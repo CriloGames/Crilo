@@ -1,0 +1,4002 @@
+[
+  {
+    "domain": "voice.com",
+    "answer_price_usd": 30000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chat.com",
+    "answer_price_usd": 15500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "nfts.com",
+    "answer_price_usd": 15000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rocket.com",
+    "answer_price_usd": 14000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "crypto.com",
+    "answer_price_usd": 12000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "icon.com",
+    "answer_price_usd": 12000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "tesla.com",
+    "answer_price_usd": 11000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "club.com",
+    "answer_price_usd": 10000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "connect.com",
+    "answer_price_usd": 10000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "gold.com",
+    "answer_price_usd": 8515000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "healthinsurance.com",
+    "answer_price_usd": 8133000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "diamond.com",
+    "answer_price_usd": 7500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "green.com",
+    "answer_price_usd": 7500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "slots.com",
+    "answer_price_usd": 5500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "clothes.com",
+    "answer_price_usd": 4900000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hippo.com",
+    "answer_price_usd": 3300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "christmas.com",
+    "answer_price_usd": 3150000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "floor.com",
+    "answer_price_usd": 3144000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "whisky.com",
+    "answer_price_usd": 3100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "vodka.com",
+    "answer_price_usd": 3000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "help.com",
+    "answer_price_usd": 3000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "yolo.com",
+    "answer_price_usd": 3000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "california.com",
+    "answer_price_usd": 3000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "lotto.com",
+    "answer_price_usd": 2680000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "social.com",
+    "answer_price_usd": 2600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "gambling.com",
+    "answer_price_usd": 2500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "marketing.com",
+    "answer_price_usd": 2500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "pharmacy.com",
+    "answer_price_usd": 2300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "forge.com",
+    "answer_price_usd": 2202000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "delta.com",
+    "answer_price_usd": 2125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "vivo.com",
+    "answer_price_usd": 2100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "computer.com",
+    "answer_price_usd": 2100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "token.com",
+    "answer_price_usd": 2017825,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "freedom.com",
+    "answer_price_usd": 2000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "angel.com",
+    "answer_price_usd": 2000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "wise.com",
+    "answer_price_usd": 2000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chatter.com",
+    "answer_price_usd": 2000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "exodus.com",
+    "answer_price_usd": 1945000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "better.com",
+    "answer_price_usd": 1820000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "seniors.com",
+    "answer_price_usd": 1800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "galaxy.com",
+    "answer_price_usd": 1761000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "dating.com",
+    "answer_price_usd": 1750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "sneakers.com",
+    "answer_price_usd": 1750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "datarecovery.com",
+    "answer_price_usd": 1659000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "call.com",
+    "answer_price_usd": 1600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chill.com",
+    "answer_price_usd": 1600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "dailymail.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "gems.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "enjoy.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hurt.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cameras.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "tandberg.com",
+    "answer_price_usd": 1500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "banks.com",
+    "answer_price_usd": 1300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "power.com",
+    "answer_price_usd": 1261000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "vista.com",
+    "answer_price_usd": 1250000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "photo.com",
+    "answer_price_usd": 1250000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "jade.com",
+    "answer_price_usd": 1250000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "unlock.com",
+    "answer_price_usd": 1228200,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "super.com",
+    "answer_price_usd": 1200000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "scores.com",
+    "answer_price_usd": 1180000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ballet.com",
+    "answer_price_usd": 1160235,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chinese.com",
+    "answer_price_usd": 1120008,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "flying.com",
+    "answer_price_usd": 1100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bullish.com",
+    "answer_price_usd": 1080000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bestodds.com",
+    "answer_price_usd": 1025000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fish.com",
+    "answer_price_usd": 1020000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "invest.com",
+    "answer_price_usd": 1015000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "stable.com",
+    "answer_price_usd": 1008925,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "domainname.com",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ring.com",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "check.com",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "selfmade.com",
+    "answer_price_usd": 977500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bills.com",
+    "answer_price_usd": 964500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "nursing.com",
+    "answer_price_usd": 950000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "recursion.com",
+    "answer_price_usd": 904000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "great.com",
+    "answer_price_usd": 900000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "public.com",
+    "answer_price_usd": 900000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "investment.com",
+    "answer_price_usd": 900000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "skiresorts.com",
+    "answer_price_usd": 850000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "guns.com",
+    "answer_price_usd": 800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "kiwi.com",
+    "answer_price_usd": 800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "printer.com",
+    "answer_price_usd": 800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "earth.com",
+    "answer_price_usd": 800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "website.com",
+    "answer_price_usd": 750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "property.com",
+    "answer_price_usd": 750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "files.com",
+    "answer_price_usd": 750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "liquid.com",
+    "answer_price_usd": 750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "view.com",
+    "answer_price_usd": 737000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rate.com",
+    "answer_price_usd": 725000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mathgames.com",
+    "answer_price_usd": 725000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "refinance.com",
+    "answer_price_usd": 706850,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "local.com",
+    "answer_price_usd": 700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "runningshoes.com",
+    "answer_price_usd": 700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "telecom.com",
+    "answer_price_usd": 700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "melbourne.com",
+    "answer_price_usd": 700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "nuts.com",
+    "answer_price_usd": 700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "teamwork.com",
+    "answer_price_usd": 675000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "booking.com",
+    "answer_price_usd": 662446,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "grove.com",
+    "answer_price_usd": 656000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "livewire.com",
+    "answer_price_usd": 632500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "zerocarbon.com",
+    "answer_price_usd": 600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mastermind.com",
+    "answer_price_usd": 600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "annuity.com",
+    "answer_price_usd": 600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "affiliate.com",
+    "answer_price_usd": 579900,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "carrot.com",
+    "answer_price_usd": 565000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "wolf.com",
+    "answer_price_usd": 550000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "answer.com",
+    "answer_price_usd": 550000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "able.com",
+    "answer_price_usd": 542500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "blade.com",
+    "answer_price_usd": 503000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "sleeping.com",
+    "answer_price_usd": 502225,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "kush.com",
+    "answer_price_usd": 500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "puzzle.com",
+    "answer_price_usd": 500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "financialaid.com",
+    "answer_price_usd": 480000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "plants.com",
+    "answer_price_usd": 450000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "james.com",
+    "answer_price_usd": 440000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "leads.com",
+    "answer_price_usd": 435000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cooking.com",
+    "answer_price_usd": 402500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "overview.com",
+    "answer_price_usd": 400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "worldclass.com",
+    "answer_price_usd": 400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "look.com",
+    "answer_price_usd": 400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "tell.com",
+    "answer_price_usd": 400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "myblog.com",
+    "answer_price_usd": 400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "boatsforsale.com",
+    "answer_price_usd": 396769,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "steam.com",
+    "answer_price_usd": 390560,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "whatismyip.com",
+    "answer_price_usd": 386100,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "session.com",
+    "answer_price_usd": 385000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "symphony.com",
+    "answer_price_usd": 375000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "digital.com",
+    "answer_price_usd": 373750,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "lowfare.com",
+    "answer_price_usd": 365000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "curve.com",
+    "answer_price_usd": 360360,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "banners.com",
+    "answer_price_usd": 360000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chaos.com",
+    "answer_price_usd": 350000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rvrental.com",
+    "answer_price_usd": 325000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "palace.com",
+    "answer_price_usd": 306000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "joyride.com",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "isearch.com",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "dvds.com",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bookmarks.com",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "recycling.com",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "single.com",
+    "answer_price_usd": 290000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "shoppingcart.com",
+    "answer_price_usd": 285000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "action.com",
+    "answer_price_usd": 270000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "results.com",
+    "answer_price_usd": 264000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "taxes.com",
+    "answer_price_usd": 250000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "picture.com",
+    "answer_price_usd": 225000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "billionaire.com",
+    "answer_price_usd": 215000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "sofa.com",
+    "answer_price_usd": 200000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bird.com",
+    "answer_price_usd": 200000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "weekend.com",
+    "answer_price_usd": 200000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bath.com",
+    "answer_price_usd": 195000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "consulting.com",
+    "answer_price_usd": 181000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "honest.com",
+    "answer_price_usd": 180000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "electriccar.com",
+    "answer_price_usd": 180000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "physician.com",
+    "answer_price_usd": 179000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bookstore.com",
+    "answer_price_usd": 175000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "uruguay.com",
+    "answer_price_usd": 175000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "soulmate.com",
+    "answer_price_usd": 160000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "glance.com",
+    "answer_price_usd": 160000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bogota.com",
+    "answer_price_usd": 159500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "scottish.com",
+    "answer_price_usd": 155000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "king.com",
+    "answer_price_usd": 155000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fanbase.com",
+    "answer_price_usd": 151000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cheapgas.com",
+    "answer_price_usd": 150000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "parkcity.com",
+    "answer_price_usd": 150000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bettingtips.com",
+    "answer_price_usd": 150000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "memento.com",
+    "answer_price_usd": 148000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "sharks.com",
+    "answer_price_usd": 140000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "linktree.com",
+    "answer_price_usd": 138000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mathematics.com",
+    "answer_price_usd": 135000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "photographer.com",
+    "answer_price_usd": 133000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bolt.com",
+    "answer_price_usd": 125581,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cows.com",
+    "answer_price_usd": 125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "expireddomains.com",
+    "answer_price_usd": 125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bachelor.com",
+    "answer_price_usd": 125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cryptobank.com",
+    "answer_price_usd": 125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "passwords.com",
+    "answer_price_usd": 115900,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "import.com",
+    "answer_price_usd": 115000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "enhance.com",
+    "answer_price_usd": 110000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "photobooth.com",
+    "answer_price_usd": 107000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "elections.com",
+    "answer_price_usd": 100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "paycard.com",
+    "answer_price_usd": 100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rude.com",
+    "answer_price_usd": 100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "gifted.com",
+    "answer_price_usd": 94000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "freemarket.com",
+    "answer_price_usd": 93000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fiction.com",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "monument.com",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mycard.com",
+    "answer_price_usd": 88000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "publica.com",
+    "answer_price_usd": 75000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fiona.com",
+    "answer_price_usd": 75000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hallow.com",
+    "answer_price_usd": 70000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "paystubs.com",
+    "answer_price_usd": 68750,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fort.com",
+    "answer_price_usd": 66500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "uncle.com",
+    "answer_price_usd": 66002,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "webmonkey.com",
+    "answer_price_usd": 65500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "chatroom.com",
+    "answer_price_usd": 65167,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "damn.com",
+    "answer_price_usd": 65000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "contactless.com",
+    "answer_price_usd": 64998,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "instructions.com",
+    "answer_price_usd": 62000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "redbarn.com",
+    "answer_price_usd": 60750,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "worm.com",
+    "answer_price_usd": 60000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "punks.com",
+    "answer_price_usd": 60000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "heir.com",
+    "answer_price_usd": 55000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "videoeditor.com",
+    "answer_price_usd": 49000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "aitimes.com",
+    "answer_price_usd": 46000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "centric.com",
+    "answer_price_usd": 46000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "murphy.com",
+    "answer_price_usd": 45000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "spitfire.com",
+    "answer_price_usd": 42800,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "extracts.com",
+    "answer_price_usd": 37700,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "goldenstate.com",
+    "answer_price_usd": 37100,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "firehose.com",
+    "answer_price_usd": 35000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "loveletter.com",
+    "answer_price_usd": 35000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "flax.com",
+    "answer_price_usd": 35000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "internetservices.com",
+    "answer_price_usd": 32000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ella.com",
+    "answer_price_usd": 30000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "beginning.com",
+    "answer_price_usd": 29000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "lawnmowers.com",
+    "answer_price_usd": 28100,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "dossier.com",
+    "answer_price_usd": 27000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "onlyyou.com",
+    "answer_price_usd": 27000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fountainpens.com",
+    "answer_price_usd": 26600,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "lando.com",
+    "answer_price_usd": 25000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "phonecases.com",
+    "answer_price_usd": 24000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "archeology.com",
+    "answer_price_usd": 23000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rightwing.com",
+    "answer_price_usd": 20900,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "collegeloans.com",
+    "answer_price_usd": 20299,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "editors.com",
+    "answer_price_usd": 20000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "skaters.com",
+    "answer_price_usd": 20000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "pageview.com",
+    "answer_price_usd": 19988,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "localhero.com",
+    "answer_price_usd": 18720,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "highlife.com",
+    "answer_price_usd": 18000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "onebank.com",
+    "answer_price_usd": 17856,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "refuse.com",
+    "answer_price_usd": 15200,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "awakened.com",
+    "answer_price_usd": 15000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fastvpn.com",
+    "answer_price_usd": 15000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "costaricatravel.com",
+    "answer_price_usd": 15000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "backinjury.com",
+    "answer_price_usd": 14000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "poker.org",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "estocks.com",
+    "answer_price_usd": 13100,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "currencycharts.com",
+    "answer_price_usd": 12500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "systemx.com",
+    "answer_price_usd": 12500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "rainbowsocks.com",
+    "answer_price_usd": 12000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "caketoppers.com",
+    "answer_price_usd": 11600,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "linedance.com",
+    "answer_price_usd": 11500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "stuffed.com",
+    "answer_price_usd": 11000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "poker.net",
+    "answer_price_usd": 750000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "autohunt.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "blackball.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "metamorphosis.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "foodcode.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "goldengoal.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "masterprep.com",
+    "answer_price_usd": 10000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cityhotel.com",
+    "answer_price_usd": 9000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "trustedlogin.com",
+    "answer_price_usd": 8000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ridgeback.com",
+    "answer_price_usd": 7500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "upsidedown.com",
+    "answer_price_usd": 6500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "amazingads.com",
+    "answer_price_usd": 6000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "smudge.com",
+    "answer_price_usd": 5423,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "masking.com",
+    "answer_price_usd": 4850,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "realestate.net",
+    "answer_price_usd": 300000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "stack.ai",
+    "answer_price_usd": 258888,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "lottery.net",
+    "answer_price_usd": 220000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "metaverse.io",
+    "answer_price_usd": 175000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "cars.net",
+    "answer_price_usd": 170000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "news.net",
+    "answer_price_usd": 150000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hero.io",
+    "answer_price_usd": 125000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "gaming.io",
+    "answer_price_usd": 105000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ai.com",
+    "answer_price_usd": 70000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "we.com",
+    "answer_price_usd": 8000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "z.com",
+    "answer_price_usd": 6784000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ig.com",
+    "answer_price_usd": 4700000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "av.com",
+    "answer_price_usd": 4176922,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "it.com",
+    "answer_price_usd": 3800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hg.com",
+    "answer_price_usd": 3770000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mi.com",
+    "answer_price_usd": 3600000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "ice.com",
+    "answer_price_usd": 3500000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fly.com",
+    "answer_price_usd": 2890000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "kk.com",
+    "answer_price_usd": 2400000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "eth.com",
+    "answer_price_usd": 2000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "is.com",
+    "answer_price_usd": 1950000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "max.com",
+    "answer_price_usd": 1800000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "coffee.org",
+    "answer_price_usd": 100000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "army.org",
+    "answer_price_usd": 99000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "study.ai",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "miami.org",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "travel.ai",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "mountain.io",
+    "answer_price_usd": 90000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "la.com",
+    "answer_price_usd": 1200000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "genie.io",
+    "answer_price_usd": 82500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "bank.io",
+    "answer_price_usd": 80000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "zip.com",
+    "answer_price_usd": 1058830,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "guy.com",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "btc.com",
+    "answer_price_usd": 1000000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fix.com",
+    "answer_price_usd": 850000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "hot.com",
+    "answer_price_usd": 850000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "viral.io",
+    "answer_price_usd": 60000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "horseracing.net",
+    "answer_price_usd": 60000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "baseball.net",
+    "answer_price_usd": 52500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "fishing.net",
+    "answer_price_usd": 52500,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "asia.net",
+    "answer_price_usd": 50000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "assistant.io",
+    "answer_price_usd": 50000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "esports.net",
+    "answer_price_usd": 50000,
+    "price_type": "documented_sale",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Documented-sale candidate from Crilo DNJournal research; retain source URL/year in production master record."
+  },
+  {
+    "domain": "google.com",
+    "answer_price_usd": 250000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "youtube.com",
+    "answer_price_usd": 200000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "facebook.com",
+    "answer_price_usd": 175000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "amazon.com",
+    "answer_price_usd": 175000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "reddit.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "instagram.com",
+    "answer_price_usd": 150000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wikipedia.org",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "yahoo.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "netflix.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "walmart.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ebay.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "apple.com",
+    "answer_price_usd": 250000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "microsoft.com",
+    "answer_price_usd": 175000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "linkedin.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tiktok.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "x.com",
+    "answer_price_usd": 200000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "twitter.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bing.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "office.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "live.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "espn.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cnn.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nytimes.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "weather.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "zillow.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "paypal.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "pinterest.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "twitch.tv",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "discord.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "roblox.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "spotify.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hulu.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "target.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "homedepot.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "lowes.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "costco.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bestbuy.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "doordash.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ubereats.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "uber.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "lyft.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "airbnb.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "expedia.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tripadvisor.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "yelp.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "indeed.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "craigslist.org",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "etsy.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wayfair.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "chewy.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nike.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "adidas.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "starbucks.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mcdonalds.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "chipotle.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "dominos.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "subway.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wendys.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tacobell.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "chick-fil-a.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "coca-cola.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "pepsi.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "disney.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hbo.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "paramount.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "fox.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nbc.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "abc.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cbs.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nfl.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nba.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mlb.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nhl.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "fifa.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "github.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "dropbox.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "zoom.us",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "slack.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "canva.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "adobe.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "salesforce.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "oracle.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "intel.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nvidia.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "amd.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "dell.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hp.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "samsung.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "sony.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "lg.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "verizon.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "att.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tmobile.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "spectrum.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "comcast.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "fedex.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ups.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "usps.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "chase.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bankofamerica.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wellsfargo.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "capitalone.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "citi.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "visa.com",
+    "answer_price_usd": 175000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mastercard.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "amex.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "robinhood.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "fidelity.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "schwab.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "coinbase.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "opentable.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ticketmaster.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "stubhub.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "gamestop.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "epicgames.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "playstation.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "xbox.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nintendo.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ea.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ign.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "imdb.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "rottentomatoes.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tmz.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "buzzfeed.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "forbes.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bloomberg.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "reuters.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wsj.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cnbc.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "npr.org",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "pbs.org",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "whitehouse.gov",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "irs.gov",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "usa.gov",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nih.gov",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cdc.gov",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mayoclinic.org",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "webmd.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "healthline.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "goodrx.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "walgreens.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cvs.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "riteaid.com",
+    "answer_price_usd": 35000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "kroger.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "wholefoodsmarket.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "traderjoes.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "instacart.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "grubhub.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "pizzahut.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "panerabread.com",
+    "answer_price_usd": 35000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "dunkindonuts.com",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "dunkin.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ikea.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "macys.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "kohls.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "nordstrom.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "gap.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "oldnavy.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hm.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "zara.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "sephora.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ulta.com",
+    "answer_price_usd": 65000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "lego.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mattel.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ford.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "chevrolet.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "toyota.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "honda.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bmw.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "mercedes-benz.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "audi.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "porsche.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hyundai.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "kia.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "jeep.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "subaru.com",
+    "answer_price_usd": 85000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "autotrader.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "carfax.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "cars.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "carvana.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "enterprise.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hertz.com",
+    "answer_price_usd": 75000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "southwest.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "united.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "aa.com",
+    "answer_price_usd": 200000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "jetblue.com",
+    "answer_price_usd": 60000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "marriott.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hilton.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hyatt.com",
+    "answer_price_usd": 70000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "kayak.com",
+    "answer_price_usd": 100000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "vrbo.com",
+    "answer_price_usd": 55000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "hotels.com",
+    "answer_price_usd": 150000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "match.com",
+    "answer_price_usd": 125000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "tinder.com",
+    "answer_price_usd": 90000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "bumble.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "eharmony.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "ancestry.com",
+    "answer_price_usd": 80000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "duolingo.com",
+    "answer_price_usd": 50000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "coursera.org",
+    "answer_price_usd": 40000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  },
+  {
+    "domain": "quizlet.com",
+    "answer_price_usd": 45000000,
+    "price_type": "crilo_estimate",
+    "recognizability_market": "US",
+    "content_rating": "general_audience",
+    "source_note": "Hypothetical domain-only game estimate; NOT a public sale or appraisal. Famous branded domains may not realistically be transferable apart from trademark/business rights."
+  }
+]

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Guess what famous domain names sold for—or what Crilo estimates they could be worth." />
+  <title>How Much Was the Domain? — Crilo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="logo" href="./" aria-label="Crilo home">crilo</a>
+    <div class="score-pill"><span id="score">0</span> pts</div>
+  </header>
+
+  <main class="shell">
+    <section id="gameScreen">
+      <h1>How Much Was the Domain?</h1>
+      <p class="subtitle" id="subtitle">Guess the price. Closer guesses earn more points.</p>
+      <div id="progress" class="progress" aria-label="Round progress"></div>
+
+      <article class="card">
+        <div class="eyebrow" id="questionType">DOMAIN</div>
+        <div class="domain" id="domainName">loading…</div>
+        <p class="question" id="question">How much did this domain sell for?</p>
+
+        <div class="guess-value" id="guessValue">$100,000</div>
+        <input id="priceSlider" type="range" min="0" max="1000" value="500" aria-label="Price guess" />
+        <div class="scale-labels" aria-hidden="true">
+          <span>$1</span><span>$100</span><span>$10K</span><span>$1M</span><span>$10M</span><span>$250M</span>
+        </div>
+
+        <button id="guessButton" class="primary">Lock in guess</button>
+
+        <div id="reveal" class="reveal hidden" aria-live="polite">
+          <div class="reveal-grid">
+            <div><span>Your guess</span><strong id="yourGuess"></strong></div>
+            <div><span id="answerLabel">Sale price</span><strong id="actualPrice"></strong></div>
+          </div>
+          <div class="round-score">+<span id="roundScore">0</span> points</div>
+          <p class="fineprint" id="sourceNote"></p>
+          <button id="nextButton" class="primary">Next round</button>
+        </div>
+      </article>
+    </section>
+
+    <section id="resultsScreen" class="hidden results">
+      <h1>Final score</h1>
+      <div class="final-score"><span id="finalScore">0</span><small>/ 5000</small></div>
+      <p id="finalMessage" class="subtitle"></p>
+      <div id="roundResults" class="round-results"></div>
+      <button id="playAgainButton" class="primary">Play again</button>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
