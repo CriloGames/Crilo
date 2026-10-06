@@ -1,444 +1,1127 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>How Much Was the Domain? | Crilo</title>
+<title>How Much Was the Domain? | Crilo</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f7f7f7;
-      color: #111;
-    }
+:root {
+  --bg: #f4f0ff;
+  --text: #17151d;
+  --muted: #77727f;
+  --card: #ffffff;
+  --accent: #6c4cff;
+}
 
-    nav {
-      width: 100%;
-      padding: 22px 30px;
-      font-size: 24px;
-      font-weight: 800;
-    }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.5s ease;
+}
 
-    .logo {
-      cursor: pointer;
-    }
+header {
+  height: 70px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-    main {
-      width: 90%;
-      max-width: 850px;
-      margin: 40px auto;
-      text-align: center;
-    }
+.logo {
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  cursor: pointer;
+}
 
-    h1 {
-      margin: 0;
-      font-size: clamp(38px, 7vw, 68px);
-      letter-spacing: -3px;
-    }
+.header-score {
+  font-size: 14px;
+  font-weight: 800;
+  background: rgba(255,255,255,.7);
+  padding: 10px 16px;
+  border-radius: 100px;
+}
 
-    .subtitle {
-      margin-top: 12px;
-      color: #777;
-      font-size: 18px;
-    }
+main {
+  width: 92%;
+  max-width: 800px;
+  margin: 15px auto 60px;
+  text-align: center;
+}
 
-    .game {
-      margin-top: 65px;
-    }
+.title {
+  font-size: clamp(30px, 5vw, 48px);
+  margin: 15px 0 5px;
+  letter-spacing: -2px;
+}
 
-    .round {
-      color: #999;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-    }
+.subtitle {
+  color: var(--muted);
+  font-size: 16px;
+  margin-bottom: 45px;
+}
 
-    .domain {
-      margin: 18px 0 10px;
-      font-size: clamp(35px, 7vw, 62px);
-      font-weight: 800;
-      word-break: break-word;
-    }
+.progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 35px;
+}
 
-    .question {
-      margin-bottom: 45px;
-      font-size: 18px;
-      color: #555;
-    }
+.progress-dot {
+  width: 35px;
+  height: 7px;
+  background: rgba(0,0,0,.1);
+  border-radius: 20px;
+  transition: all .3s ease;
+}
 
-    .guess {
-      font-size: clamp(36px, 6vw, 56px);
-      font-weight: 800;
-      margin-bottom: 25px;
-    }
+.progress-dot.active {
+  background: var(--accent);
+}
 
-    .slider-container {
-      max-width: 700px;
-      margin: auto;
-    }
+.progress-dot.done {
+  background: #222;
+}
 
-    input[type="range"] {
-      width: 100%;
-      cursor: pointer;
-      accent-color: #111;
-    }
+.game-card {
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(8px);
+  border-radius: 28px;
+  padding: 42px 40px 38px;
+  box-shadow: 0 15px 50px rgba(40,30,80,.08);
+}
 
-    .range-labels {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-      color: #888;
-      font-size: 14px;
-    }
+.round-label {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+}
 
-    button {
-      margin-top: 40px;
-      border: none;
-      background: #111;
-      color: white;
-      padding: 16px 34px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform .15s ease, opacity .15s ease;
-    }
+.domain {
+  font-size: clamp(38px, 8vw, 66px);
+  font-weight: 900;
+  letter-spacing: -3px;
+  margin: 12px 0 5px;
+  word-break: break-word;
+}
 
-    button:hover {
-      transform: translateY(-2px);
-    }
+.question {
+  color: var(--muted);
+  font-size: 16px;
+}
 
-    button:active {
-      transform: translateY(0);
-    }
+.guess-price {
+  font-size: clamp(38px, 7vw, 58px);
+  font-weight: 900;
+  margin: 38px 0 24px;
+  letter-spacing: -2px;
+}
 
-    .result {
-      display: none;
-      margin: 45px auto 0;
-      padding: 30px;
-      max-width: 600px;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 8px 30px rgba(0,0,0,.07);
-    }
+.slider-wrap {
+  max-width: 650px;
+  margin: auto;
+}
 
-    .result-label {
-      color: #888;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
+input[type="range"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 20px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) 50%,
+    #ddd 50%,
+    #ddd 100%
+  );
+  outline: none;
+  cursor: pointer;
+}
 
-    .actual-price {
-      font-size: 44px;
-      font-weight: 800;
-      margin: 8px 0 15px;
-    }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  border: 7px solid var(--accent);
+  box-shadow: 0 3px 12px rgba(0,0,0,.18);
+  cursor: grab;
+}
 
-    .difference {
-      color: #555;
-      font-size: 17px;
-      line-height: 1.5;
-    }
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 7px solid var(--accent);
+  box-shadow: 0 3px 12px rgba(0,0,0,.18);
+  cursor: grab;
+}
 
-    #nextButton {
-      margin-top: 25px;
-    }
+.scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 13px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+}
 
-    footer {
-      text-align: center;
-      color: #aaa;
-      font-size: 13px;
-      padding: 80px 20px 30px;
-    }
+button {
+  border: 0;
+  background: var(--text);
+  color: white;
+  padding: 17px 35px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 900;
+  cursor: pointer;
+  margin-top: 36px;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
 
-    @media (max-width: 600px) {
-      nav {
-        padding: 18px 20px;
-      }
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 18px rgba(0,0,0,.15);
+}
 
-      main {
-        margin-top: 25px;
-      }
+button:active {
+  transform: translateY(0);
+}
 
-      .game {
-        margin-top: 50px;
-      }
+.reveal {
+  display: none;
+  animation: pop .35s ease;
+}
 
-      h1 {
-        letter-spacing: -2px;
-      }
-    }
-  </style>
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 35px;
+}
+
+.price-box {
+  background: #f7f7f8;
+  padding: 20px 10px;
+  border-radius: 18px;
+}
+
+.price-label {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  font-weight: 900;
+}
+
+.price-value {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight: 900;
+  margin-top: 7px;
+}
+
+.points {
+  margin-top: 28px;
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--accent);
+}
+
+.points-label {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.sale-note {
+  font-size: 12px;
+  color: #999;
+  margin-top: 15px;
+}
+
+.final-screen {
+  display: none;
+}
+
+.final-score {
+  font-size: clamp(60px, 14vw, 100px);
+  font-weight: 900;
+  letter-spacing: -6px;
+  margin: 15px 0 0;
+}
+
+.out-of {
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 18px;
+}
+
+.final-message {
+  font-size: 23px;
+  font-weight: 900;
+  margin: 25px 0 30px;
+}
+
+.results-list {
+  max-width: 520px;
+  margin: 25px auto 0;
+}
+
+.result-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 15px;
+  text-align: left;
+  padding: 15px 5px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+
+.result-domain {
+  font-weight: 800;
+}
+
+.result-points {
+  font-weight: 900;
+}
+
+.play-again {
+  background: var(--accent);
+}
+
+footer {
+  text-align: center;
+  color: rgba(0,0,0,.35);
+  font-size: 12px;
+  padding: 15px 20px 30px;
+}
+
+@media (max-width: 600px) {
+  header {
+    padding: 18px;
+  }
+
+  main {
+    width: 94%;
+  }
+
+  .game-card {
+    padding: 32px 18px;
+    border-radius: 22px;
+  }
+
+  .domain {
+    letter-spacing: -2px;
+  }
+
+  .scale {
+    font-size: 9px;
+  }
+
+  .comparison {
+    gap: 8px;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <nav>
-    <span class="logo">crilo</span>
-  </nav>
+<header>
+  <div class="logo">crilo</div>
+  <div class="header-score" id="headerScore">
+    SCORE 0
+  </div>
+</header>
 
-  <main>
+<main>
 
-    <h1>How Much Was the Domain?</h1>
+  <div id="gameScreen">
 
-    <div class="subtitle">
-      Guess what real domain names actually sold for.
-    </div>
+    <h1 class="title">How Much Was the Domain?</h1>
+    <div class="subtitle">Guess what real domains sold for.</div>
 
-    <section class="game">
+    <div class="progress" id="progress"></div>
 
-      <div class="round" id="round"></div>
+    <div class="game-card">
 
-      <div class="domain" id="domain"></div>
+      <div class="round-label" id="roundLabel">
+        ROUND 1 OF 5
+      </div>
 
-      <div class="question">
+      <div class="domain" id="domainName"></div>
+
+      <div class="question" id="question">
         How much did it sell for?
       </div>
 
-      <div class="guess" id="guess">
-        $10,000
-      </div>
+      <div id="guessArea">
 
-      <div class="slider-container">
+        <div class="guess-price" id="guessPrice"></div>
 
-        <input
-          type="range"
-          id="priceSlider"
-          min="0"
-          max="1000"
-          value="500"
-        >
+        <div class="slider-wrap">
 
-        <div class="range-labels">
-          <span>$1</span>
-          <span>$100M</span>
+          <input
+            type="range"
+            id="priceSlider"
+            min="0"
+            max="1000"
+            value="500"
+          >
+
+          <div class="scale">
+            <span>$1</span>
+            <span>$100</span>
+            <span>$10K</span>
+            <span>$1M</span>
+            <span>$10M</span>
+            <span>$70M</span>
+          </div>
+
         </div>
 
-      </div>
-
-      <button id="guessButton">
-        LOCK IN GUESS
-      </button>
-
-      <div class="result" id="result">
-
-        <div class="result-label">
-          Actual sale price
-        </div>
-
-        <div class="actual-price" id="actualPrice"></div>
-
-        <div class="difference" id="difference"></div>
-
-        <button id="nextButton">
-          NEXT DOMAIN →
+        <button id="guessButton">
+          LOCK IN
         </button>
 
       </div>
 
-    </section>
+      <div class="reveal" id="reveal">
 
-  </main>
+        <div class="comparison">
 
-  <footer>
-    crilo.fun
-  </footer>
+          <div class="price-box">
+            <div class="price-label">Your guess</div>
+            <div class="price-value" id="yourGuess"></div>
+          </div>
 
-  <script>
+          <div class="price-box">
+            <div class="price-label" id="actualLabel">
+              Sold for
+            </div>
+            <div class="price-value" id="actualPrice"></div>
+          </div>
 
-    const domains = [
-      {
-        name: "voice.com",
-        price: 30000000
-      },
-      {
-        name: "internet.com",
-        price: 18000000
-      },
-      {
-        name: "360.com",
-        price: 17000000
-      },
-      {
-        name: "fund.com",
-        price: 9999950
-      },
-      {
-        name: "hotels.com",
-        price: 11000000
-      },
-      {
-        name: "porno.com",
-        price: 8888888
-      },
-      {
-        name: "we.com",
-        price: 8000000
-      },
-      {
-        name: "diamond.com",
-        price: 7500000
-      }
-    ];
+        </div>
 
-    let currentRound = 0;
-    let currentGuess = 10000;
+        <div class="points" id="pointsEarned"></div>
 
-    const slider = document.getElementById("priceSlider");
-    const guessDisplay = document.getElementById("guess");
-    const domainDisplay = document.getElementById("domain");
-    const roundDisplay = document.getElementById("round");
-    const result = document.getElementById("result");
-    const actualPrice = document.getElementById("actualPrice");
-    const difference = document.getElementById("difference");
-    const guessButton = document.getElementById("guessButton");
-    const nextButton = document.getElementById("nextButton");
+        <div class="points-label">
+          points
+        </div>
 
-    function formatMoney(number) {
-      return "$" + Math.round(number).toLocaleString("en-US");
+        <div class="sale-note" id="saleNote"></div>
+
+        <button id="nextButton">
+          NEXT →
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="final-screen" id="finalScreen">
+
+    <h1 class="title">How Much Was the Domain?</h1>
+
+    <div class="game-card">
+
+      <div class="round-label">
+        FINAL SCORE
+      </div>
+
+      <div class="final-score" id="finalScore">
+        0
+      </div>
+
+      <div class="out-of">
+        / 5,000
+      </div>
+
+      <div class="final-message" id="finalMessage"></div>
+
+      <div class="results-list" id="resultsList"></div>
+
+      <button class="play-again" id="playAgain">
+        PLAY AGAIN
+      </button>
+
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  crilo.fun
+</footer>
+
+
+<script>
+
+/*
+  STARTER DATASET
+
+  The structure is ready for a much larger domains.json
+  file later.
+
+  crilo.fun is intentionally included as a Crilo Easter egg.
+*/
+
+const domainPools = {
+
+  tiny: [
+    {
+      name: "crilo.fun",
+      price: 1.57,
+      type: "registration",
+      note: "Crilo's original 2026 registration price."
     }
+  ],
 
-    /*
-      The slider is logarithmic.
+  low: [
+    {
+      name: "domainsarefun.com",
+      price: 2500,
+      type: "prototype"
+    },
+    {
+      name: "quickexample.com",
+      price: 7500,
+      type: "prototype"
+    },
+    {
+      name: "brightname.com",
+      price: 12000,
+      type: "prototype"
+    }
+  ],
 
-      That means $100 → $1,000 feels roughly the same
-      distance as $1M → $10M.
+  medium: [
+    {
+      name: "examplemarket.com",
+      price: 85000,
+      type: "prototype"
+    },
+    {
+      name: "sampledomain.com",
+      price: 150000,
+      type: "prototype"
+    },
+    {
+      name: "premiumexample.com",
+      price: 450000,
+      type: "prototype"
+    }
+  ],
 
-      This makes the huge $1–$100M range actually usable.
-    */
+  high: [
+    {
+      name: "diamond.com",
+      price: 7500000,
+      type: "sale"
+    },
+    {
+      name: "we.com",
+      price: 8000000,
+      type: "sale"
+    },
+    {
+      name: "fund.com",
+      price: 9999950,
+      type: "sale"
+    }
+  ],
 
-    function sliderToPrice(value) {
+  extreme: [
+    {
+      name: "voice.com",
+      price: 30000000,
+      type: "sale"
+    }
+  ]
 
-      const minPrice = 1;
-      const maxPrice = 100000000;
+};
 
-      const minLog = Math.log10(minPrice);
-      const maxLog = Math.log10(maxPrice);
 
-      const scale = value / 1000;
+const backgrounds = [
+  "#f4f0ff",
+  "#eef8ff",
+  "#fff4e8",
+  "#edfff4",
+  "#fff0f5"
+];
 
-      const price = Math.pow(
-        10,
-        minLog + (maxLog - minLog) * scale
+
+const accentColors = [
+  "#6c4cff",
+  "#2878ff",
+  "#ff7a35",
+  "#00a86b",
+  "#e34d8c"
+];
+
+
+let rounds = [];
+let currentRound = 0;
+let totalScore = 0;
+let currentGuess = 0;
+let results = [];
+
+
+const slider =
+  document.getElementById("priceSlider");
+
+const guessPrice =
+  document.getElementById("guessPrice");
+
+const domainName =
+  document.getElementById("domainName");
+
+const roundLabel =
+  document.getElementById("roundLabel");
+
+const guessArea =
+  document.getElementById("guessArea");
+
+const reveal =
+  document.getElementById("reveal");
+
+const yourGuess =
+  document.getElementById("yourGuess");
+
+const actualPrice =
+  document.getElementById("actualPrice");
+
+const pointsEarned =
+  document.getElementById("pointsEarned");
+
+const saleNote =
+  document.getElementById("saleNote");
+
+const actualLabel =
+  document.getElementById("actualLabel");
+
+const headerScore =
+  document.getElementById("headerScore");
+
+const progress =
+  document.getElementById("progress");
+
+const gameScreen =
+  document.getElementById("gameScreen");
+
+const finalScreen =
+  document.getElementById("finalScreen");
+
+const resultsList =
+  document.getElementById("resultsList");
+
+
+function formatMoney(number) {
+
+  if (number < 100) {
+    return "$" +
+      number.toLocaleString(
+        "en-US",
+        {
+          minimumFractionDigits:
+            Number.isInteger(number) ? 0 : 2,
+          maximumFractionDigits: 2
+        }
       );
+  }
 
-      return Math.max(1, Math.round(price));
-    }
+  return "$" +
+    Math.round(number).toLocaleString("en-US");
 
-    function loadRound() {
+}
 
-      const domain = domains[currentRound];
 
-      domainDisplay.textContent = domain.name;
+/*
+  Slider uses a logarithmic scale.
 
-      roundDisplay.textContent =
-        "Domain " +
-        (currentRound + 1) +
-        " of " +
-        domains.length;
+  Minimum: $1
+  Maximum: $70,000,000
+*/
 
-      slider.value = 500;
+function sliderToPrice(value) {
 
-      currentGuess = sliderToPrice(slider.value);
+  const min = 1;
+  const max = 70000000;
 
-      guessDisplay.textContent =
-        formatMoney(currentGuess);
+  const minLog = Math.log10(min);
+  const maxLog = Math.log10(max);
 
-      result.style.display = "none";
+  const position = value / 1000;
 
-      guessButton.style.display = "inline-block";
+  return Math.pow(
+    10,
+    minLog + ((maxLog - minLog) * position)
+  );
 
-      slider.disabled = false;
-    }
+}
 
-    slider.addEventListener("input", function () {
 
-      currentGuess =
-        sliderToPrice(slider.value);
+function roundGuess(price) {
 
-      guessDisplay.textContent =
-        formatMoney(currentGuess);
+  if (price < 10)
+    return Math.round(price * 100) / 100;
 
-    });
+  if (price < 100)
+    return Math.round(price);
 
-    guessButton.addEventListener("click", function () {
+  if (price < 1000)
+    return Math.round(price / 10) * 10;
 
-      const domain = domains[currentRound];
+  if (price < 10000)
+    return Math.round(price / 100) * 100;
 
-      slider.disabled = true;
+  if (price < 100000)
+    return Math.round(price / 1000) * 1000;
 
-      guessButton.style.display = "none";
+  if (price < 1000000)
+    return Math.round(price / 10000) * 10000;
 
-      actualPrice.textContent =
-        formatMoney(domain.price);
+  if (price < 10000000)
+    return Math.round(price / 100000) * 100000;
 
-      const amountOff =
-        Math.abs(domain.price - currentGuess);
+  return Math.round(price / 1000000) * 1000000;
 
-      const percentOff =
-        Math.round(
-          (amountOff / domain.price) * 100
-        );
+}
 
-      if (percentOff <= 10) {
 
-        difference.textContent =
-          "Incredible guess — you were only " +
-          percentOff +
-          "% off.";
+function randomItem(array) {
+  return array[
+    Math.floor(Math.random() * array.length)
+  ];
+}
 
-      } else if (percentOff <= 30) {
 
-        difference.textContent =
-          "Pretty close! You were " +
-          percentOff +
-          "% off.";
+function shuffle(array) {
 
-      } else {
+  for (
+    let i = array.length - 1;
+    i > 0;
+    i--
+  ) {
 
-        difference.textContent =
-          "You guessed " +
-          formatMoney(currentGuess) +
-          ". You were " +
-          formatMoney(amountOff) +
-          " away.";
+    const j =
+      Math.floor(Math.random() * (i + 1));
 
-      }
+    [array[i], array[j]] =
+      [array[j], array[i]];
 
-      result.style.display = "block";
+  }
 
-    });
+  return array;
 
-    nextButton.addEventListener("click", function () {
+}
 
-      currentRound++;
 
-      if (currentRound >= domains.length) {
-        currentRound = 0;
-      }
+function buildGame() {
 
-      loadRound();
+  /*
+    One domain from each broad value level.
 
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+    Once we have ~500 verified entries, these pools
+    will contain many possible domains.
+  */
 
-    });
+  rounds = [
 
-    loadRound();
+    randomItem(domainPools.tiny),
+    randomItem(domainPools.low),
+    randomItem(domainPools.medium),
+    randomItem(domainPools.high),
+    randomItem(domainPools.extreme)
 
-  </script>
+  ];
+
+  rounds = shuffle(rounds);
+
+}
+
+
+/*
+  Score is based on multiplicative distance.
+
+  Guessing $100K for a $200K domain is treated similarly
+  to guessing $5M for a $10M domain.
+
+  This works much better across a huge price range than
+  simply measuring dollar difference.
+*/
+
+function calculateScore(guess, actual) {
+
+  const ratio =
+    Math.max(guess, actual) /
+    Math.min(guess, actual);
+
+  const logError =
+    Math.log10(ratio);
+
+  const score =
+    1000 * Math.exp(-1.35 * logError);
+
+  return Math.max(
+    0,
+    Math.min(
+      1000,
+      Math.round(score)
+    )
+  );
+
+}
+
+
+function updateSlider() {
+
+  currentGuess =
+    roundGuess(
+      sliderToPrice(slider.value)
+    );
+
+  guessPrice.textContent =
+    formatMoney(currentGuess);
+
+  const percent =
+    slider.value / 10;
+
+  slider.style.background =
+    `linear-gradient(
+      to right,
+      var(--accent) 0%,
+      var(--accent) ${percent}%,
+      #ddd ${percent}%,
+      #ddd 100%
+    )`;
+
+}
+
+
+function updateProgress() {
+
+  progress.innerHTML = "";
+
+  for (let i = 0; i < 5; i++) {
+
+    const dot =
+      document.createElement("div");
+
+    dot.className = "progress-dot";
+
+    if (i < currentRound)
+      dot.classList.add("done");
+
+    if (i === currentRound)
+      dot.classList.add("active");
+
+    progress.appendChild(dot);
+
+  }
+
+}
+
+
+function loadRound() {
+
+  const domain =
+    rounds[currentRound];
+
+  document.documentElement.style.setProperty(
+    "--bg",
+    backgrounds[currentRound]
+  );
+
+  document.documentElement.style.setProperty(
+    "--accent",
+    accentColors[currentRound]
+  );
+
+  domainName.textContent =
+    domain.name;
+
+  roundLabel.textContent =
+    `ROUND ${currentRound + 1} OF 5`;
+
+  if (domain.type === "registration") {
+
+    document.getElementById("question").textContent =
+      "How much did it originally cost to register?";
+
+  } else {
+
+    document.getElementById("question").textContent =
+      "How much did it sell for?";
+
+  }
+
+  slider.value =
+    Math.floor(
+      250 + Math.random() * 500
+    );
+
+  slider.disabled = false;
+
+  guessArea.style.display = "block";
+  reveal.style.display = "none";
+
+  saleNote.textContent = "";
+
+  updateSlider();
+  updateProgress();
+
+}
+
+
+function revealAnswer() {
+
+  const domain =
+    rounds[currentRound];
+
+  slider.disabled = true;
+
+  const points =
+    calculateScore(
+      currentGuess,
+      domain.price
+    );
+
+  totalScore += points;
+
+  results.push({
+    name: domain.name,
+    guess: currentGuess,
+    actual: domain.price,
+    points: points
+  });
+
+  yourGuess.textContent =
+    formatMoney(currentGuess);
+
+  actualPrice.textContent =
+    formatMoney(domain.price);
+
+  pointsEarned.textContent =
+    "+" + points;
+
+  if (domain.type === "registration") {
+
+    actualLabel.textContent =
+      "Registration price";
+
+  } else {
+
+    actualLabel.textContent =
+      "Sold for";
+
+  }
+
+  if (domain.note) {
+    saleNote.textContent =
+      domain.note;
+  }
+
+  headerScore.textContent =
+    "SCORE " +
+    totalScore.toLocaleString();
+
+  guessArea.style.display = "none";
+  reveal.style.display = "block";
+
+}
+
+
+function nextRound() {
+
+  currentRound++;
+
+  if (currentRound >= 5) {
+
+    showFinalScreen();
+    return;
+
+  }
+
+  loadRound();
+
+}
+
+
+function showFinalScreen() {
+
+  gameScreen.style.display = "none";
+  finalScreen.style.display = "block";
+
+  document.documentElement.style.setProperty(
+    "--bg",
+    "#f4f0ff"
+  );
+
+  document.documentElement.style.setProperty(
+    "--accent",
+    "#6c4cff"
+  );
+
+  document.getElementById(
+    "finalScore"
+  ).textContent =
+    totalScore.toLocaleString();
+
+  let message = "";
+
+  if (totalScore >= 4700)
+    message = "Domain genius.";
+
+  else if (totalScore >= 4000)
+    message = "Seriously impressive.";
+
+  else if (totalScore >= 3000)
+    message = "Pretty good.";
+
+  else if (totalScore >= 2000)
+    message = "Not bad.";
+
+  else if (totalScore >= 1000)
+    message = "Domains are weird.";
+
+  else
+    message = "Maybe don't become a domain broker.";
+
+  document.getElementById(
+    "finalMessage"
+  ).textContent = message;
+
+  resultsList.innerHTML = "";
+
+  results.forEach(result => {
+
+    const row =
+      document.createElement("div");
+
+    row.className =
+      "result-row";
+
+    row.innerHTML =
+      `
+        <div>
+          <div class="result-domain">
+            ${result.name}
+          </div>
+
+          <div style="
+            font-size:12px;
+            color:#888;
+            margin-top:4px;
+          ">
+            ${formatMoney(result.guess)}
+            → ${formatMoney(result.actual)}
+          </div>
+        </div>
+
+        <div class="result-points">
+          ${result.points}
+        </div>
+      `;
+
+    resultsList.appendChild(row);
+
+  });
+
+}
+
+
+function resetGame() {
+
+  currentRound = 0;
+  totalScore = 0;
+  results = [];
+
+  headerScore.textContent =
+    "SCORE 0";
+
+  finalScreen.style.display =
+    "none";
+
+  gameScreen.style.display =
+    "block";
+
+  buildGame();
+  loadRound();
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+slider.addEventListener(
+  "input",
+  updateSlider
+);
+
+
+document.getElementById(
+  "guessButton"
+).addEventListener(
+  "click",
+  revealAnswer
+);
+
+
+document.getElementById(
+  "nextButton"
+).addEventListener(
+  "click",
+  nextRound
+);
+
+
+document.getElementById(
+  "playAgain"
+).addEventListener(
+  "click",
+  resetGame
+);
+
+
+buildGame();
+loadRound();
+
+</script>
 
 </body>
 </html>
