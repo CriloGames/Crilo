@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Crilo</title>
+  <title>How Much Was the Domain? | Crilo</title>
 
   <style>
     * {
@@ -13,83 +13,432 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
       background: #f7f7f7;
       color: #111;
     }
 
-    header {
+    nav {
+      width: 100%;
+      padding: 22px 30px;
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .logo {
+      cursor: pointer;
+    }
+
+    main {
+      width: 90%;
+      max-width: 850px;
+      margin: 40px auto;
       text-align: center;
-      padding: 70px 20px 45px;
     }
 
     h1 {
-      font-size: 64px;
       margin: 0;
+      font-size: clamp(38px, 7vw, 68px);
       letter-spacing: -3px;
     }
 
-    header p {
+    .subtitle {
+      margin-top: 12px;
       color: #777;
       font-size: 18px;
     }
 
-    main {
-      width: min(900px, 90%);
+    .game {
+      margin-top: 65px;
+    }
+
+    .round {
+      color: #999;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .domain {
+      margin: 18px 0 10px;
+      font-size: clamp(35px, 7vw, 62px);
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .question {
+      margin-bottom: 45px;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .guess {
+      font-size: clamp(36px, 6vw, 56px);
+      font-weight: 800;
+      margin-bottom: 25px;
+    }
+
+    .slider-container {
+      max-width: 700px;
       margin: auto;
     }
 
-    .game {
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: #111;
+    }
+
+    .range-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 40px;
+      border: none;
+      background: #111;
+      color: white;
+      padding: 16px 34px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .result {
+      display: none;
+      margin: 45px auto 0;
+      padding: 30px;
+      max-width: 600px;
       background: white;
       border-radius: 20px;
-      padding: 35px;
-      cursor: pointer;
-      transition: transform .2s;
-      border: 1px solid #ddd;
+      box-shadow: 0 8px 30px rgba(0,0,0,.07);
     }
 
-    .game:hover {
-      transform: translateY(-5px);
+    .result-label {
+      color: #888;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    .game h2 {
-      font-size: 30px;
-      margin: 0 0 10px;
+    .actual-price {
+      font-size: 44px;
+      font-weight: 800;
+      margin: 8px 0 15px;
     }
 
-    .game p {
-      margin: 0;
-      color: #666;
+    .difference {
+      color: #555;
       font-size: 17px;
+      line-height: 1.5;
     }
 
-    .coming {
-      margin-top: 30px;
+    #nextButton {
+      margin-top: 25px;
+    }
+
+    footer {
       text-align: center;
       color: #aaa;
+      font-size: 13px;
+      padding: 80px 20px 30px;
+    }
+
+    @media (max-width: 600px) {
+      nav {
+        padding: 18px 20px;
+      }
+
+      main {
+        margin-top: 25px;
+      }
+
+      .game {
+        margin-top: 50px;
+      }
+
+      h1 {
+        letter-spacing: -2px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <header>
-    <h1>crilo</h1>
-    <p>games & other stuff</p>
-  </header>
+  <nav>
+    <span class="logo">crilo</span>
+  </nav>
 
   <main>
 
-    <div class="game">
-      <h2>Domain or Garbage?</h2>
-      <p>How much did this domain actually sell for?</p>
+    <h1>How Much Was the Domain?</h1>
+
+    <div class="subtitle">
+      Guess what real domain names actually sold for.
     </div>
 
-    <div class="coming">
-      more coming soon
-    </div>
+    <section class="game">
+
+      <div class="round" id="round"></div>
+
+      <div class="domain" id="domain"></div>
+
+      <div class="question">
+        How much did it sell for?
+      </div>
+
+      <div class="guess" id="guess">
+        $10,000
+      </div>
+
+      <div class="slider-container">
+
+        <input
+          type="range"
+          id="priceSlider"
+          min="0"
+          max="1000"
+          value="500"
+        >
+
+        <div class="range-labels">
+          <span>$1</span>
+          <span>$100M</span>
+        </div>
+
+      </div>
+
+      <button id="guessButton">
+        LOCK IN GUESS
+      </button>
+
+      <div class="result" id="result">
+
+        <div class="result-label">
+          Actual sale price
+        </div>
+
+        <div class="actual-price" id="actualPrice"></div>
+
+        <div class="difference" id="difference"></div>
+
+        <button id="nextButton">
+          NEXT DOMAIN →
+        </button>
+
+      </div>
+
+    </section>
 
   </main>
+
+  <footer>
+    crilo.fun
+  </footer>
+
+  <script>
+
+    const domains = [
+      {
+        name: "voice.com",
+        price: 30000000
+      },
+      {
+        name: "internet.com",
+        price: 18000000
+      },
+      {
+        name: "360.com",
+        price: 17000000
+      },
+      {
+        name: "fund.com",
+        price: 9999950
+      },
+      {
+        name: "hotels.com",
+        price: 11000000
+      },
+      {
+        name: "porno.com",
+        price: 8888888
+      },
+      {
+        name: "we.com",
+        price: 8000000
+      },
+      {
+        name: "diamond.com",
+        price: 7500000
+      }
+    ];
+
+    let currentRound = 0;
+    let currentGuess = 10000;
+
+    const slider = document.getElementById("priceSlider");
+    const guessDisplay = document.getElementById("guess");
+    const domainDisplay = document.getElementById("domain");
+    const roundDisplay = document.getElementById("round");
+    const result = document.getElementById("result");
+    const actualPrice = document.getElementById("actualPrice");
+    const difference = document.getElementById("difference");
+    const guessButton = document.getElementById("guessButton");
+    const nextButton = document.getElementById("nextButton");
+
+    function formatMoney(number) {
+      return "$" + Math.round(number).toLocaleString("en-US");
+    }
+
+    /*
+      The slider is logarithmic.
+
+      That means $100 → $1,000 feels roughly the same
+      distance as $1M → $10M.
+
+      This makes the huge $1–$100M range actually usable.
+    */
+
+    function sliderToPrice(value) {
+
+      const minPrice = 1;
+      const maxPrice = 100000000;
+
+      const minLog = Math.log10(minPrice);
+      const maxLog = Math.log10(maxPrice);
+
+      const scale = value / 1000;
+
+      const price = Math.pow(
+        10,
+        minLog + (maxLog - minLog) * scale
+      );
+
+      return Math.max(1, Math.round(price));
+    }
+
+    function loadRound() {
+
+      const domain = domains[currentRound];
+
+      domainDisplay.textContent = domain.name;
+
+      roundDisplay.textContent =
+        "Domain " +
+        (currentRound + 1) +
+        " of " +
+        domains.length;
+
+      slider.value = 500;
+
+      currentGuess = sliderToPrice(slider.value);
+
+      guessDisplay.textContent =
+        formatMoney(currentGuess);
+
+      result.style.display = "none";
+
+      guessButton.style.display = "inline-block";
+
+      slider.disabled = false;
+    }
+
+    slider.addEventListener("input", function () {
+
+      currentGuess =
+        sliderToPrice(slider.value);
+
+      guessDisplay.textContent =
+        formatMoney(currentGuess);
+
+    });
+
+    guessButton.addEventListener("click", function () {
+
+      const domain = domains[currentRound];
+
+      slider.disabled = true;
+
+      guessButton.style.display = "none";
+
+      actualPrice.textContent =
+        formatMoney(domain.price);
+
+      const amountOff =
+        Math.abs(domain.price - currentGuess);
+
+      const percentOff =
+        Math.round(
+          (amountOff / domain.price) * 100
+        );
+
+      if (percentOff <= 10) {
+
+        difference.textContent =
+          "Incredible guess — you were only " +
+          percentOff +
+          "% off.";
+
+      } else if (percentOff <= 30) {
+
+        difference.textContent =
+          "Pretty close! You were " +
+          percentOff +
+          "% off.";
+
+      } else {
+
+        difference.textContent =
+          "You guessed " +
+          formatMoney(currentGuess) +
+          ". You were " +
+          formatMoney(amountOff) +
+          " away.";
+
+      }
+
+      result.style.display = "block";
+
+    });
+
+    nextButton.addEventListener("click", function () {
+
+      currentRound++;
+
+      if (currentRound >= domains.length) {
+        currentRound = 0;
+      }
+
+      loadRound();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    });
+
+    loadRound();
+
+  </script>
 
 </body>
 </html>
