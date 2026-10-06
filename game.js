@@ -1,129 +1,70 @@
-const ROUNDS = 5;
-const MIN_PRICE = 1;
-const MAX_PRICE = 250_000_000;
-const backgrounds = ['#e9f3ff','#fff1df','#e9f8ee','#f5eaff','#fff6c9','#e9f7f7'];
-
-const $ = id => document.getElementById(id);
-const fmt = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:n<100?2:0}).format(n);
-
-let domains=[];
-let rounds=[];
-let roundIndex=0;
-let totalScore=0;
-let results=[];
-let locked=false;
-
-function sliderToPrice(v){
-  const t = Number(v)/1000;
-  const raw = Math.pow(10, Math.log10(MIN_PRICE) + t*(Math.log10(MAX_PRICE)-Math.log10(MIN_PRICE)));
-  return snapPrice(raw);
+(() => {
+const wheel=document.getElementById("wheel"), ctx=wheel.getContext("2d");
+const drawing=document.getElementById("drawing"), dctx=drawing.getContext("2d");
+const spinBtn=document.getElementById("spinButton"), scoreEl=document.getElementById("score"), spinsEl=document.getElementById("spins"), levelEl=document.getElementById("level"), msg=document.getElementById("message");
+const dailyBtn=document.getElementById("dailyBtn"), unlimitedBtn=document.getElementById("unlimitedBtn"), gameLabel=document.getElementById("gameLabel");
+let mode="daily", started=false, spinning=false, score=0, spins=5, multiplier=1, upgrades=0, doubles=0, ducks=0, totalSpins=0, rotation=0;
+let segments=[];
+const palette=["#ffd166","#8ecae6","#ffafcc","#bde0fe","#caffbf","#f1c0e8","#a9def9","#fcf6bd","#d0f4de","#e4c1f9"];
+function resetSegments(){segments=[
+ {type:"num",base:1},{type:"num",base:1},{type:"num",base:1},{type:"num",base:2},
+ {type:"num",base:2},{type:"num",base:3},{type:"num",base:5},
+ {type:"double",label:"×2"},{type:"upgrade",label:"UP"},{type:"spins",label:"+2"},
+ {type:"duck",label:"🦆"}
+];}
+function label(s){return s.type==="num"?fmt(s.base*multiplier):s.label}
+function fmt(n){if(n<1e3)return Math.round(n).toLocaleString();const units=[["Qa",1e15],["T",1e12],["B",1e9],["M",1e6],["K",1e3]];for(const [u,v] of units)if(n>=v)return (n/v>=100?(n/v).toFixed(0):(n/v).toFixed(1)).replace(".0","")+u;return String(n)}
+function drawWheel(){
+ const w=wheel.width,c=w/2,r=c-10,N=segments.length,a=Math.PI*2/N;
+ ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);
+ segments.forEach((s,i)=>{const start=i*a-Math.PI/2,end=start+a;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,start,end);ctx.closePath();ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=4;ctx.stroke();
+ ctx.save();ctx.rotate(start+a/2);ctx.translate(r*.69,0);ctx.rotate(Math.PI/2);ctx.fillStyle="#17191e";ctx.textAlign="center";ctx.textBaseline="middle";ctx.font=`900 ${Math.max(12,Math.min(24,190/N))}px system-ui`;ctx.fillText(label(s),0,0);ctx.restore();});
+ ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle="#17191e";ctx.lineWidth=6;ctx.stroke();ctx.restore();
 }
-function priceToSlider(price){
-  return 1000*(Math.log10(price)-Math.log10(MIN_PRICE))/(Math.log10(MAX_PRICE)-Math.log10(MIN_PRICE));
+function update(){scoreEl.textContent=fmt(score);spinsEl.textContent=spins;levelEl.textContent="×"+fmt(multiplier);drawWheel()}
+function addDuck(){ducks++;const d=document.createElement("div");d.className="duck";d.textContent="🦆";d.style.animationDelay=(-Math.random()*7)+"s";document.getElementById("creatures").appendChild(d)}
+function addNumbers(){
+ const count=4+Math.min(upgrades,8);
+ const bases=[1,1,2,2,3,3,5,5,8,10];
+ for(let i=0;i<count;i++)segments.push({type:"num",base:bases[Math.floor(Math.random()*bases.length)]});
 }
-function snapPrice(n){
-  if(n<10) return Math.round(n*100)/100;
-  if(n<100) return Math.round(n);
-  if(n<1_000) return Math.round(n/10)*10;
-  if(n<10_000) return Math.round(n/100)*100;
-  if(n<100_000) return Math.round(n/1_000)*1_000;
-  if(n<1_000_000) return Math.round(n/10_000)*10_000;
-  if(n<10_000_000) return Math.round(n/100_000)*100_000;
-  return Math.round(n/1_000_000)*1_000_000;
+function resolve(s){
+ if(s.type==="num"){const v=s.base*multiplier;score+=v;msg.textContent="+"+fmt(v)}
+ if(s.type==="double"){score*=2;spins++;doubles++;msg.textContent="DOUBLE — score ×2 and this spin is free."}
+ if(s.type==="upgrade"){multiplier*=3;upgrades++;spins++;addNumbers();msg.textContent="UPGRADE — number values ×3. The wheel grew."}
+ if(s.type==="spins"){spins+=2;msg.textContent="+2 SPINS"}
+ if(s.type==="duck"){spins++;addDuck();msg.textContent="DUCK — +1 free spin. He lives here now."}
+ update();
+ if(spins<=0)endRun();
 }
-function calculateScore(guess,actual){
-  const ratio=Math.max(guess,actual)/Math.max(0.01,Math.min(guess,actual));
-  const logError=Math.log10(ratio);
-  return Math.max(0,Math.min(1000,Math.round(1000*Math.exp(-1.35*logError))));
+function spin(){
+ if(spinning||!started||spins<=0)return;
+ spinning=true;spinBtn.disabled=true;spins--;totalSpins++;update();msg.textContent="...";
+ const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N);
+ const targetCenter=index*a+a/2-Math.PI/2;
+ const current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+ let desired=(-Math.PI/2-targetCenter)%(Math.PI*2); if(desired<0)desired+=Math.PI*2;
+ let delta=desired-current; if(delta<0)delta+=Math.PI*2;
+ const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta;
+ const t0=performance.now(),dur=2800;
+ function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0){spinBtn.disabled=false}}}
+ requestAnimationFrame(anim);
 }
-function shuffle(a){
-  const b=[...a];
-  for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}
-  return b;
+function start(){
+ started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;rotation=0;resetSegments();document.getElementById("creatures").innerHTML="";document.getElementById("drawPanel").style.display="none";document.getElementById("result").classList.add("hidden");spinBtn.disabled=false;msg.textContent="Good luck.";update();
 }
-function chooseRounds(){
-  // 3 documented + 2 estimates per game when possible, randomized order.
-  const sales=shuffle(domains.filter(d=>d.price_type==='documented_sale')).slice(0,3);
-  const estimates=shuffle(domains.filter(d=>d.price_type==='crilo_estimate')).slice(0,2);
-  return shuffle([...sales,...estimates]).slice(0,ROUNDS);
+function endRun(){
+ spinBtn.disabled=true;document.getElementById("result").classList.remove("hidden");document.getElementById("finalScore").textContent=fmt(score);document.getElementById("statSpins").textContent=totalSpins;document.getElementById("statUpgrades").textContent=upgrades;document.getElementById("statDoubles").textContent=doubles;document.getElementById("statDucks").textContent=ducks;msg.textContent=mode==="daily"?"Daily run complete.":"Run complete.";
 }
-function renderProgress(){
-  $('progress').innerHTML=Array.from({length:ROUNDS},(_,i)=>`<span class="dot ${i<roundIndex?'done':i===roundIndex?'current':''}"></span>`).join('');
-}
-function setRound(){
-  locked=false;
-  const d=rounds[roundIndex];
-  document.body.style.background=backgrounds[roundIndex%backgrounds.length];
-  $('score').textContent=totalScore.toLocaleString();
-  $('domainName').textContent=d.domain;
-  const estimated=d.price_type==='crilo_estimate';
-  $('questionType').textContent=estimated?'CRILO ESTIMATE':'DOCUMENTED SALE';
-  $('question').textContent=estimated?'What is this famous domain worth in Crilo’s domain-only estimate?':'How much did this domain sell for?';
-  $('guessButton').classList.remove('hidden');
-  $('reveal').classList.add('hidden');
-  $('priceSlider').disabled=false;
-  $('priceSlider').value=Math.round(priceToSlider(100_000));
-  updateGuess();
-  renderProgress();
-}
-function updateGuess(){ $('guessValue').textContent=fmt(sliderToPrice($('priceSlider').value)); }
-function submitGuess(){
-  if(locked) return;
-  locked=true;
-  const d=rounds[roundIndex];
-  const guess=sliderToPrice($('priceSlider').value);
-  const score=calculateScore(guess,d.answer_price_usd);
-  totalScore+=score;
-  results.push({domain:d.domain,guess,actual:d.answer_price_usd,score,type:d.price_type});
-  $('score').textContent=totalScore.toLocaleString();
-  $('yourGuess').textContent=fmt(guess);
-  $('actualPrice').textContent=fmt(d.answer_price_usd);
-  $('roundScore').textContent=score.toLocaleString();
-  $('answerLabel').textContent=d.price_type==='crilo_estimate'?'Crilo estimate':'Sale price';
-  $('sourceNote').textContent=d.price_type==='crilo_estimate'
-    ? 'Hypothetical domain-only game estimate — not a public sale or professional appraisal.'
-    : 'Documented-sale entry from the Crilo research dataset.';
-  $('priceSlider').disabled=true;
-  $('guessButton').classList.add('hidden');
-  $('nextButton').textContent=roundIndex===ROUNDS-1?'See results':'Next round';
-  $('reveal').classList.remove('hidden');
-}
-function nextRound(){
-  if(roundIndex===ROUNDS-1){showResults();return;}
-  roundIndex++;setRound();
-}
-function showResults(){
-  $('gameScreen').classList.add('hidden');
-  $('resultsScreen').classList.remove('hidden');
-  $('finalScore').textContent=totalScore.toLocaleString();
-  $('score').textContent=totalScore.toLocaleString();
-  const msg=totalScore>=4700?'Domain genius.':totalScore>=4000?'Seriously impressive.':totalScore>=3000?'Pretty good.':totalScore>=2000?'Not bad.':totalScore>=1000?'Domains are weird.':"Maybe don't become a domain broker.";
-  $('finalMessage').textContent=msg;
-  $('roundResults').innerHTML=results.map(r=>`<div class="result-row"><div><div class="r-domain">${r.domain}</div><div class="r-meta">${r.type==='crilo_estimate'?'Estimated value':'Documented sale'}</div></div><div class="r-meta">Guess: ${fmt(r.guess)}</div><div class="r-meta">Answer: ${fmt(r.actual)}</div><div class="r-points">${r.score}</div></div>`).join('');
-  document.body.style.background='#eef0f6';
-}
-function restart(){
-  roundIndex=0;totalScore=0;results=[];rounds=chooseRounds();
-  $('resultsScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');setRound();
-}
-async function init(){
-  try{
-    const res=await fetch('domains.json',{cache:'no-store'});
-    if(!res.ok) throw new Error('Could not load domains.json');
-    domains=await res.json();
-    // Crilo Easter egg: keep it rare and clearly a registration price.
-    domains.push({domain:'crilo.fun',answer_price_usd:1.57,price_type:'registration'});
-    rounds=chooseRounds();
-    setRound();
-  }catch(err){
-    $('domainName').textContent='Could not load game data';
-    $('question').textContent='Make sure index.html, game.js, style.css, and domains.json are in the same GitHub folder.';
-    $('guessButton').disabled=true;
-    console.error(err);
-  }
-}
-$('priceSlider').addEventListener('input',updateGuess);
-$('guessButton').addEventListener('click',submitGuess);
-$('nextButton').addEventListener('click',nextRound);
-$('playAgainButton').addEventListener('click',restart);
-init();
+dailyBtn.addEventListener("click",()=>{mode="daily";dailyBtn.classList.add("active");unlimitedBtn.classList.remove("active");gameLabel.textContent="DAILY WHEEL";});
+unlimitedBtn.addEventListener("click",()=>{mode="unlimited";unlimitedBtn.classList.add("active");dailyBtn.classList.remove("active");gameLabel.textContent="UNLIMITED WHEEL";});
+document.getElementById("startRun").addEventListener("click",start);spinBtn.addEventListener("click",spin);
+document.getElementById("againButton").addEventListener("click",()=>{mode="unlimited";unlimitedBtn.click();dctx.clearRect(0,0,drawing.width,drawing.height);document.getElementById("drawPanel").style.display="flex";document.getElementById("result").classList.add("hidden");started=false;spinBtn.disabled=true;msg.textContent="Draw something, then start your run.";});
+document.getElementById("clearDrawing").addEventListener("click",()=>dctx.clearRect(0,0,drawing.width,drawing.height));
+let painting=false,last=null;
+function point(e){const r=drawing.getBoundingClientRect();return{x:(e.clientX-r.left)*drawing.width/r.width,y:(e.clientY-r.top)*drawing.height/r.height}}
+drawing.addEventListener("pointerdown",e=>{painting=true;drawing.setPointerCapture(e.pointerId);last=point(e)});
+drawing.addEventListener("pointermove",e=>{if(!painting)return;const p=point(e);dctx.strokeStyle=document.getElementById("drawColor").value;dctx.lineWidth=6;dctx.lineCap="round";dctx.lineJoin="round";dctx.beginPath();dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke();last=p});
+drawing.addEventListener("pointerup",()=>{painting=false;last=null});drawing.addEventListener("pointercancel",()=>{painting=false;last=null});
+resetSegments();drawWheel();update();
+})();
