@@ -1,58 +1,87 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="Guess what famous domain names sold for—or what Crilo estimates they could be worth." />
-  <title>How Much Was the Domain? — Crilo</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crilo — Daily Wheel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="topbar">
-    <a class="logo" href="./" aria-label="Crilo home">crilo</a>
-    <div class="score-pill"><span id="score">0</span> pts</div>
-  </header>
+<header class="topbar">
+  <a class="brand" href="index.html">CRILO</a>
+  <nav>
+    <a class="active" href="index.html">PLAY</a>
+    <a href="leaderboard.html">🏆 LEADERBOARD</a>
+    <a href="#more-games">MORE GAMES</a>
+  </nav>
+</header>
 
-  <main class="shell">
-    <section id="gameScreen">
-      <h1>How Much Was the Domain?</h1>
-      <p class="subtitle" id="subtitle">Guess the price. Closer guesses earn more points.</p>
-      <div id="progress" class="progress" aria-label="Round progress"></div>
+<main>
+  <section class="hero">
+    <div class="mode-switch" aria-label="Game mode">
+      <button id="dailyBtn" class="mode active">DAILY</button>
+      <button id="unlimitedBtn" class="mode">UNLIMITED</button>
+    </div>
 
-      <article class="card">
-        <div class="eyebrow" id="questionType">DOMAIN</div>
-        <div class="domain" id="domainName">loading…</div>
-        <p class="question" id="question">How much did this domain sell for?</p>
+    <div class="eyebrow" id="gameLabel">DAILY WHEEL</div>
+    <h1>Make the number bigger.</h1>
+    <p class="sub">Spin until your spins run out. Strange things may happen.</p>
 
-        <div class="guess-value" id="guessValue">$100,000</div>
-        <input id="priceSlider" type="range" min="0" max="1000" value="500" aria-label="Price guess" />
-        <div class="scale-labels" aria-hidden="true">
-          <span>$1</span><span>$100</span><span>$10K</span><span>$1M</span><span>$10M</span><span>$250M</span>
-        </div>
+    <div class="draw-panel" id="drawPanel">
+      <div>
+        <strong>Draw on your wheel</strong>
+        <span>Your doodle stays in the center for the whole run.</span>
+      </div>
+      <div class="draw-actions">
+        <input id="drawColor" type="color" value="#222222" aria-label="Drawing color">
+        <button id="clearDrawing" class="small-btn">Clear</button>
+        <button id="startRun" class="primary small">Done drawing</button>
+      </div>
+    </div>
 
-        <button id="guessButton" class="primary">Lock in guess</button>
+    <div class="wheel-stage">
+      <div class="pointer">▼</div>
+      <div id="wheelWrap" class="wheel-wrap">
+        <canvas id="wheel" width="560" height="560" aria-label="Prize wheel"></canvas>
+        <canvas id="drawing" width="180" height="180" aria-label="Drawing canvas"></canvas>
+      </div>
+      <div id="creatures" class="creatures" aria-hidden="true"></div>
+    </div>
 
-        <div id="reveal" class="reveal hidden" aria-live="polite">
-          <div class="reveal-grid">
-            <div><span>Your guess</span><strong id="yourGuess"></strong></div>
-            <div><span id="answerLabel">Sale price</span><strong id="actualPrice"></strong></div>
-          </div>
-          <div class="round-score">+<span id="roundScore">0</span> points</div>
-          <p class="fineprint" id="sourceNote"></p>
-          <button id="nextButton" class="primary">Next round</button>
-        </div>
-      </article>
-    </section>
+    <div class="stats">
+      <div><span id="score">0</span><small>SCORE</small></div>
+      <div><span id="spins">5</span><small>SPINS</small></div>
+      <div><span id="level">×1</span><small>VALUES</small></div>
+    </div>
 
-    <section id="resultsScreen" class="hidden results">
-      <h1>Final score</h1>
-      <div class="final-score"><span id="finalScore">0</span><small>/ 5000</small></div>
-      <p id="finalMessage" class="subtitle"></p>
-      <div id="roundResults" class="round-results"></div>
-      <button id="playAgainButton" class="primary">Play again</button>
-    </section>
-  </main>
+    <button id="spinButton" class="spin-btn" disabled>SPIN</button>
+    <div id="message" class="message" aria-live="polite">Draw something, then start your run.</div>
 
-  <script src="game.js"></script>
+    <div id="result" class="result hidden">
+      <div class="eyebrow">RUN OVER</div>
+      <div id="finalScore" class="final-score">0</div>
+      <div class="result-grid">
+        <div><b id="statSpins">0</b><span>Spins</span></div>
+        <div><b id="statUpgrades">0</b><span>Upgrades</span></div>
+        <div><b id="statDoubles">0</b><span>Doubles</span></div>
+        <div><b id="statDucks">0</b><span>Ducks 🦆</span></div>
+      </div>
+      <button id="againButton" class="primary">Play unlimited</button>
+    </div>
+  </section>
+
+  <section id="more-games" class="more-games">
+    <p class="section-kicker">MORE GAMES</p>
+    <div class="game-card">
+      <div>
+        <h2>How Much Was the Domain?</h2>
+        <p>Your existing domain game stays exactly as it is. Put its current files in <code>/domain/</code> when you are ready to reorganize the live site.</p>
+      </div>
+      <span class="arrow">→</span>
+    </div>
+  </section>
+</main>
+
+<script src="game.js"></script>
 </body>
 </html>
