@@ -9,8 +9,6 @@
   }
   applyTheme(localStorage.getItem('crilo_theme') || 'light');
 
-  let authReadySent = false;
-
   async function loadIdentity(sessionOverride){
     if(!window.criloDB) return;
 
@@ -37,46 +35,17 @@
     }
 
     renderAccount();
-    authReadySent = true;
     window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
       detail:{user:Crilo.user,profile:Crilo.profile}
     }));
   }
 
-  async function finishAuthCallback(){
-    if(!window.criloDB) return;
-
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get('code');
-
-    // Support PKCE callbacks if Supabase returns ?code=...
-    if(code){
-      const {data, error} = await criloDB.auth.exchangeCodeForSession(code);
-      if(error){
-        console.error('Crilo magic-link callback error:', error);
-      } else {
-        url.searchParams.delete('code');
-        history.replaceState({}, document.title, url.pathname + url.search + url.hash);
-        await loadIdentity(data?.session || undefined);
-        return;
-      }
-    }
-
-    // Browser/implicit callbacks are detected and persisted by supabase-js.
-    await loadIdentity();
-
-    // Clean up a leftover empty # after a successful email redirect.
-    if(window.location.hash === '#' && Crilo.user){
-      history.replaceState({}, document.title, window.location.pathname + window.location.search);
-    }
-  }
-
   function renderAccount(){
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
-    if(!Crilo.user || !Crilo.profile){ btn.textContent='SIGN IN'; btn.style.color=''; return; }
-    btn.textContent=Crilo.profile.username || 'ACCOUNT';
-    btn.style.color=Crilo.profile.name_color || '';
+    if(!Crilo.user){ btn.textContent='SIGN IN'; btn.style.color=''; return; }
+    btn.textContent=Crilo.profile?.username || 'ACCOUNT';
+    btn.style.color=Crilo.profile?.name_color || '';
     if(menu){
       menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
       $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); location.href='index.html';});
@@ -97,7 +66,7 @@
 
   // Keep the header/profile synchronized whenever Supabase signs in or out.
   criloDB.auth.onAuthStateChange((event, session) => {
-    if(event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED'){
+    if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED'){
       setTimeout(() => loadIdentity(session), 0);
     } else if(event === 'SIGNED_OUT'){
       Crilo.user = null;
@@ -118,5 +87,7 @@
     if(date>=reset) reset=new Date(Date.UTC(y,m,d+1,22,0,0));
     return reset;
   };
-  finishAuthCallback();
+  // Supabase processes email redirects and restores the session automatically.
+  // Read the session after initialization; auth events also refresh identity.
+  loadIdentity();
 })();
