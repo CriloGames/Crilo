@@ -49,13 +49,12 @@
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
 
-    // Supabase PKCE magic links return with ?code=...
+    // Support PKCE callbacks if Supabase returns ?code=...
     if(code){
       const {data, error} = await criloDB.auth.exchangeCodeForSession(code);
       if(error){
         console.error('Crilo magic-link callback error:', error);
       } else {
-        // Remove the one-time auth code without reloading the page.
         url.searchParams.delete('code');
         history.replaceState({}, document.title, url.pathname + url.search + url.hash);
         await loadIdentity(data?.session || undefined);
@@ -63,9 +62,13 @@
       }
     }
 
-    // For implicit/hash callbacks, Supabase JS processes the URL itself.
-    // Give it a moment, then read the persisted session.
+    // Browser/implicit callbacks are detected and persisted by supabase-js.
     await loadIdentity();
+
+    // Clean up a leftover empty # after a successful email redirect.
+    if(window.location.hash === '#' && Crilo.user){
+      history.replaceState({}, document.title, window.location.pathname + window.location.search);
+    }
   }
 
   function renderAccount(){
