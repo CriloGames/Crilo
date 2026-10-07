@@ -64,6 +64,36 @@
   window.Crilo.refreshIdentity = loadIdentity;
   window.Crilo.applyTheme = applyTheme;
 
+  // Restore an existing Supabase session if it arrives after the first page load.
+  // This also handles returning from an email-link redirect or switching tabs.
+  let syncInProgress = false;
+  async function syncSession(){
+    if(syncInProgress) return;
+    syncInProgress = true;
+    try {
+      const {data, error} = await criloDB.auth.getSession();
+      if(error) console.error('Crilo auth synchronization error:', error);
+      const session = data?.session || null;
+      if(session?.user && (!Crilo.user || Crilo.user.id !== session.user.id || !Crilo.profile)){
+        await loadIdentity(session);
+      } else if(!session && Crilo.user){
+        await loadIdentity(null);
+      }
+    } catch(error){
+      console.error('Crilo session synchronization failed:', error);
+    } finally {
+      syncInProgress = false;
+    }
+  }
+  window.addEventListener('focus', syncSession);
+  window.addEventListener('pageshow', syncSession);
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) syncSession();
+  });
+  // Retry after Supabase has finished processing any email callback.
+  setTimeout(syncSession, 500);
+  setTimeout(syncSession, 2000);
+
   // Keep the header/profile synchronized whenever Supabase signs in or out.
   criloDB.auth.onAuthStateChange((event, session) => {
     if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED'){
