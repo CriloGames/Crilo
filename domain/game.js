@@ -96,6 +96,7 @@ function nextRound(){
   if(roundIndex===ROUNDS-1){showResults();return;}
   roundIndex++;setRound();
 }
+async function syncDomainScore(){try{const {data:{session}}=await criloDB.auth.getSession();if(session?.user)await criloDB.from('game_scores').insert({user_id:session.user.id,game_key:'domain',score:totalScore,details:{rounds:results}})}catch(err){console.warn('Domain score sync skipped',err)}}
 function showResults(){
   $('gameScreen').classList.add('hidden');
   $('resultsScreen').classList.remove('hidden');
@@ -105,6 +106,7 @@ function showResults(){
   $('finalMessage').textContent=msg;
   $('roundResults').innerHTML=results.map(r=>`<div class="result-row"><div><div class="r-domain">${r.domain}</div><div class="r-meta">${r.type==='crilo_estimate'?'Estimated value':'Documented sale'}</div></div><div class="r-meta">Guess: ${fmt(r.guess)}</div><div class="r-meta">Answer: ${fmt(r.actual)}</div><div class="r-points">${r.score}</div></div>`).join('');
   renderBests(saveBest(totalScore));
+  syncDomainScore();
   document.body.style.background='#eef0f6';
 }
 function restart(){
