@@ -12,6 +12,10 @@ let roundIndex=0;
 let totalScore=0;
 let results=[];
 let locked=false;
+const BEST_KEY='crilo_domain_top5';
+function getBests(){try{return JSON.parse(localStorage.getItem(BEST_KEY)||'[]')}catch{return []}}
+function saveBest(score){const b=[...getBests(),score].sort((a,b)=>b-a).slice(0,5);localStorage.setItem(BEST_KEY,JSON.stringify(b));return b}
+function renderBests(scores=getBests()){$('bestScores').innerHTML=scores.length?scores.map((s,i)=>`<div class="best-score-row"><span>#${i+1}</span><strong>${Number(s).toLocaleString()} / 5000</strong></div>`).join(''):'<div class="r-meta">Finish a game to set your first personal best.</div>'}
 
 function sliderToPrice(v){
   const t = Number(v)/1000;
@@ -100,6 +104,7 @@ function showResults(){
   const msg=totalScore>=4700?'Domain genius.':totalScore>=4000?'Seriously impressive.':totalScore>=3000?'Pretty good.':totalScore>=2000?'Not bad.':totalScore>=1000?'Domains are weird.':"Maybe don't become a domain broker.";
   $('finalMessage').textContent=msg;
   $('roundResults').innerHTML=results.map(r=>`<div class="result-row"><div><div class="r-domain">${r.domain}</div><div class="r-meta">${r.type==='crilo_estimate'?'Estimated value':'Documented sale'}</div></div><div class="r-meta">Guess: ${fmt(r.guess)}</div><div class="r-meta">Answer: ${fmt(r.actual)}</div><div class="r-points">${r.score}</div></div>`).join('');
+  renderBests(saveBest(totalScore));
   document.body.style.background='#eef0f6';
 }
 function restart(){
@@ -127,3 +132,8 @@ $('guessButton').addEventListener('click',submitGuess);
 $('nextButton').addEventListener('click',nextRound);
 $('playAgainButton').addEventListener('click',restart);
 init();
+
+$('helpBtn').addEventListener('click',()=>$('helpModal').classList.remove('hidden'));
+$('closeHelp').addEventListener('click',()=>$('helpModal').classList.add('hidden'));
+$('helpModal').addEventListener('click',e=>{if(e.target===$('helpModal'))$('helpModal').classList.add('hidden')});
+renderBests();
