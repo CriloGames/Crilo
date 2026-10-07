@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Crilo Daily Wheel — one strange spin run every day.">
   <title>Crilo — Daily Wheel</title>
- <link rel="stylesheet" href="style.css?v=2">
+  <link rel="stylesheet" href="style.css?v=4">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <header class="topbar">
@@ -14,23 +16,22 @@
     <a href="leaderboard.html">🏆 LEADERBOARD</a>
     <a href="#more-games">MORE GAMES</a>
   </nav>
+  <div class="header-actions">
+    <button class="circle-btn" id="helpBtn" aria-label="How to play">?</button>
+    <button class="account-btn" id="accountBtn">SIGN IN</button>
+  </div>
 </header>
 
 <main>
   <section class="hero">
-    <div class="mode-switch" aria-label="Game mode">
-      <button id="dailyBtn" class="mode active">DAILY</button>
-      <button id="unlimitedBtn" class="mode">UNLIMITED</button>
-    </div>
-
-    <div class="eyebrow" id="gameLabel">DAILY WHEEL</div>
+    <div class="daily-chip" id="dailyChip">DAILY WHEEL</div>
     <h1>Make the number bigger.</h1>
-    <p class="sub">Spin until your spins run out. Strange things may happen.</p>
+    <p class="sub">Five spins to start. One run per day. Strange things may happen.</p>
 
     <div class="draw-panel" id="drawPanel">
       <div>
         <strong>Draw on your wheel</strong>
-        <span>Your doodle stays in the center for the whole run.</span>
+        <span>Your doodle stays in the center for the whole run. Once you start, it is locked.</span>
       </div>
       <div class="draw-actions">
         <input id="drawColor" type="color" value="#222222" aria-label="Drawing color">
@@ -42,10 +43,11 @@
     <div class="wheel-stage">
       <div class="pointer">▼</div>
       <div id="wheelWrap" class="wheel-wrap">
-        <canvas id="wheel" width="560" height="560" aria-label="Prize wheel"></canvas>
-        <canvas id="drawing" width="180" height="180" aria-label="Drawing canvas"></canvas>
+        <canvas id="wheel" width="620" height="620" aria-label="Daily wheel"></canvas>
+        <canvas id="drawing" width="200" height="200" aria-label="Drawing canvas"></canvas>
       </div>
       <div id="creatures" class="creatures" aria-hidden="true"></div>
+      <div id="eventPop" class="event-pop" aria-hidden="true"></div>
     </div>
 
     <div class="stats">
@@ -55,33 +57,88 @@
     </div>
 
     <button id="spinButton" class="spin-btn" disabled>SPIN</button>
-    <div id="message" class="message" aria-live="polite">Draw something, then start your run.</div>
+    <div id="message" class="message" aria-live="polite">Draw something, then start your Daily.</div>
+
+    <div id="playedPanel" class="played-panel hidden">
+      <div class="played-check">✓</div>
+      <div>
+        <strong>Daily complete</strong>
+        <span id="playedText">Come back tomorrow for another wheel.</span>
+      </div>
+      <a class="primary small" href="leaderboard.html">See leaderboard</a>
+    </div>
 
     <div id="result" class="result hidden">
-      <div class="eyebrow">RUN OVER</div>
+      <div class="eyebrow">DAILY COMPLETE</div>
       <div id="finalScore" class="final-score">0</div>
       <div class="result-grid">
         <div><b id="statSpins">0</b><span>Spins</span></div>
         <div><b id="statUpgrades">0</b><span>Upgrades</span></div>
         <div><b id="statDoubles">0</b><span>Doubles</span></div>
-        <div><b id="statDucks">0</b><span>Ducks 🦆</span></div>
+        <div><b id="statDucks">0</b><span>Ducks</span></div>
       </div>
-      <button id="againButton" class="primary">Play unlimited</button>
+      <a class="primary result-link" href="leaderboard.html">See today's leaderboard →</a>
     </div>
   </section>
 
   <section id="more-games" class="more-games">
     <p class="section-kicker">MORE GAMES</p>
-    <div class="game-card">
-      <div>
+    <a class="game-card" href="domain/" aria-label="Play How Much Was the Domain?">
+      <div class="game-icon" aria-hidden="true">
+        <span class="domain-dot">.</span><span class="domain-tag">com</span>
+      </div>
+      <div class="game-copy">
         <h2>How Much Was the Domain?</h2>
-        <p>Your existing domain game stays exactly as it is. Put its current files in <code>/domain/</code> when you are ready to reorganize the live site.</p>
+        <p>Guess what some of the internet's most valuable domain names sold for.</p>
       </div>
       <span class="arrow">→</span>
-    </div>
+    </a>
   </section>
 </main>
 
-<script src="game.js?v=2"></script>
+<div class="modal-backdrop hidden" id="helpModal">
+  <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <button class="modal-close" data-close="helpModal" aria-label="Close">×</button>
+    <div class="eyebrow">HOW TO PLAY</div>
+    <h2 id="helpTitle">What is the Daily Wheel?</h2>
+    <p>You get one run each day. Start with 5 spins and try to make your score as large as possible before your spins run out.</p>
+    <div class="how-grid">
+      <div><b>1 · 2 · 3 · 5</b><span>Add that number × your current value multiplier.</span></div>
+      <div><b>×2</b><span>Double your whole score. The spin is free.</span></div>
+      <div><b>UP! ↑</b><span>Triple number values, grow the wheel, and refund the spin.</span></div>
+      <div><b>+2</b><span>Add two extra spins.</span></div>
+      <div><b>DUCK!</b><span>Refund the spin and release a duck onto the page.</span></div>
+    </div>
+    <p class="modal-note"><b>Drawing:</b> doodle before starting. It locks when the run begins and can appear with your result.</p>
+    <p class="modal-note"><b>Leaderboard:</b> Today shows today's best runs, This Week combines the last 7 days, All-Time shows the biggest scores ever, and Records highlights unusual runs.</p>
+  </section>
+</div>
+
+<div class="modal-backdrop hidden" id="authModal">
+  <section class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="modal-close" data-close="authModal" aria-label="Close">×</button>
+    <div class="eyebrow">CRILO ACCOUNT</div>
+    <h2 id="authTitle">Sign in to play today's Daily.</h2>
+    <p class="auth-copy">Enter your email and Crilo will send you a one-time sign-in link.</p>
+    <input class="text-input" id="emailInput" type="email" autocomplete="email" placeholder="you@example.com">
+    <button class="primary full" id="sendLinkBtn">Send sign-in link</button>
+    <p class="auth-status" id="authStatus"></p>
+  </section>
+</div>
+
+<div class="modal-backdrop hidden" id="profileModal">
+  <section class="modal-card auth-card" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
+    <div class="eyebrow">ONE LAST THING</div>
+    <h2 id="profileTitle">Choose your Crilo name.</h2>
+    <p class="auth-copy">This is what people will see on the leaderboard.</p>
+    <input class="text-input" id="usernameInput" maxlength="20" placeholder="username">
+    <label class="color-row">Name color <input id="nameColorInput" type="color" value="#17191e"></label>
+    <button class="primary full" id="saveProfileBtn">Save username</button>
+    <p class="auth-status" id="profileStatus"></p>
+  </section>
+</div>
+
+<script src="supabase-config.js?v=4"></script>
+<script src="game.js?v=4"></script>
 </body>
 </html>
