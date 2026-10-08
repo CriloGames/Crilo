@@ -63,7 +63,7 @@ function sound(kind){
  }catch{}
 }
 function pop(text){const p=$('eventPop');p.textContent=text;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
-function addDuck(){ducks++;$('duckCount').textContent=ducks;DuckWorld.spawn()}
+function addDuck(){ducks++;$('duckCount').textContent=ducks;return DuckWorld.spawn()}
 
 function bump(){const w=$('wheelWrap');w.classList.remove('upgrade-bump');void w.offsetWidth;w.classList.add('upgrade-bump')}
 function addNumbers(){const count=4+Math.min(upgrades,8),bases=[1,1,2,2,3,3,5,5,8,10];for(let i=0;i<count;i++)segments.push({type:'num',base:bases[Math.floor(Math.random()*bases.length)]})}
@@ -74,7 +74,7 @@ function resolve(s){const p=outcomeProbability(s);runProbability*=p;let points=0
 if(s.type==='double'){points=score;score*=2;spins++;doubles++;recordBest(points,'×2');pop('×2!');$('message').textContent='DOUBLE — score ×2 and this spin is free.';sound('double')}
 if(s.type==='upgrade'){multiplier*=3;upgrades++;spins++;addNumbers();bump();pop('UP! ↑');$('message').textContent='UPGRADE — number values ×3. The wheel grew.';sound('upgrade')}
 if(s.type==='spins'){spins+=2;extraSpins+=2;pop('+2!');$('message').textContent='+2 SPINS';sound('spins')}
-if(s.type==='duck'){spins++;addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';sound('duck')}
+if(s.type==='duck'){spins++;const duck=addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';DuckWorld.playSound(duck)}
 results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});update();if(spins<=0)endRun()}
 function lockDrawing(){if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 async function spin(){if(spinning||spins<=0)return;
