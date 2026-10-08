@@ -177,3 +177,10 @@
 .guest-save-notice{margin:20px auto 8px;text-align:center}
 .guest-save-notice button{background:none;border:0;padding:7px;color:#657083;text-decoration:underline;text-underline-offset:3px;font:inherit;font-weight:700;cursor:pointer}
 .guest-save-notice button:hover{color:#252b35}
+
+/* Comfortable desktop wheel size: keep the controls in view at normal browser zoom. */
+@media (min-width:701px){
+ .wheel-stage{max-width:560px}
+ .wheel-wrap{width:min(480px, 78vw, 55vh)}
+}
+@media (max-width:700px){.wheel-wrap{width:min(600px,88vw)}}
