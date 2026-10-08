@@ -348,3 +348,7 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 /* Drawing hint is DOM-only: never painted into the saved canvas image. */
 .wheel-wrap .draw-placeholder{position:absolute;left:34%;top:34%;width:32%;height:32%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;color:#b9b9b9;font:600 clamp(12px,1.5vw,20px) system-ui,sans-serif;letter-spacing:.015em;user-select:none}
 .wheel-wrap .draw-placeholder.hidden{display:none}
+
+/* Duck buttons are visually just ducks: suppress native mobile tap flash and desktop focus rectangles. */
+.creatures .roaming-duck,.creatures .roaming-duck:hover,.creatures .roaming-duck:active,.creatures .roaming-duck:focus,.creatures .roaming-duck:focus-visible{background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;-webkit-appearance:none;appearance:none}
+.creatures .roaming-duck svg{-webkit-tap-highlight-color:transparent;pointer-events:none}
