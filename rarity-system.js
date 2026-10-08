@@ -18,7 +18,7 @@ window.CriloRarity=(()=>{
   const data=new Array(COUNT);
   for(let k=0;k<COUNT;k++){
    let left=5,score=0,multiplier=1,upgrades=0,steps=0;
-   const segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'];
+   const segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck','duck'];
    while(left>0&&steps++<250){
     left--;
     const v=segments[Math.floor(rand()*segments.length)];
