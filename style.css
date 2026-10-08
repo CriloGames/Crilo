@@ -112,3 +112,13 @@
 .new-badge-icon{display:flex;align-items:center;justify-content:center;width:36px;height:36px;flex-shrink:0;border-radius:50%;background:#eee1ff;color:#713bb1;font-size:21px}
 .new-badge-item strong{font-size:15px;color:#29212f}
 .new-badge-item p{margin:4px 0 0;font-size:13px;color:#6f6477;line-height:1.45}
+
+/* Editable featured badge slots */
+.featured-slot.featured-editable{cursor:pointer;background:#fff;font:inherit;transition:border-color .15s,background .15s}
+.featured-slot.featured-editable:hover{border-color:#9572d3;background:#faf7ff}
+.featured-slot .badge-icon{font-size:26px;margin-bottom:8px}
+.featured-slot b{display:block;font-size:13px;color:#28232f}
+.featured-picker-card{max-width:440px;width:calc(100% - 32px)}
+.featured-picker-card p{color:#72717b;font-size:14px}
+.featured-picker-card select{width:100%;margin:12px 0}
+.featured-picker-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:14px}
