@@ -133,3 +133,19 @@
 .stat-rarity-epic{--rarity-border:#d6b7f4;--rarity-bg:#f4eaff;--rarity-ink:#8b43c7}
 .stat-rarity-legendary{--rarity-border:#eacb7c;--rarity-bg:#fff5d9;--rarity-ink:#9d710c}
 .stat-rarity-mythic{--rarity-border:#f2b6d5;--rarity-bg:#fff0f7;--rarity-ink:#c54286}
+
+/* Clickable rarest OFFICIAL run statistic and details */
+.stat-rarity-clickable{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.stat-rarity-clickable:hover{transform:translateY(-2px);box-shadow:0 5px 14px #11182717}
+.stat-rarity-clickable:focus-visible{outline:3px solid #7a66d8;outline-offset:3px}
+.stat-rarity-hint{position:absolute;bottom:11px;right:13px;font-size:10px;font-weight:700;color:var(--rarity-ink,#777);opacity:.8}
+.rarest-run-card{position:relative;width:min(520px,calc(100vw - 30px));max-height:85vh;overflow:auto;padding:26px}
+.rarest-run-close{position:absolute;top:13px;right:16px;border:0;background:transparent;font-size:27px;cursor:pointer}
+.rarest-run-score{font-size:44px;font-weight:900;letter-spacing:-.04em;margin:8px 0}
+.rarest-run-card p{color:#777d89;margin:7px 0}
+.rarest-run-details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:20px}
+.rarest-run-detail{border:1px solid #e7e8ec;border-radius:12px;background:#f7f7f9;padding:12px;text-align:center}
+.rarest-run-detail b{display:block;font-size:21px}
+.rarest-run-detail span{font-size:11px;color:#777d89}
+.rarest-run-drawing{display:block;max-width:220px;max-height:220px;object-fit:contain;margin:18px auto 0;border:1px solid #eee;border-radius:12px}
+.rarest-run-drawing.hidden{display:none}
