@@ -233,7 +233,18 @@ const scoreBadgeIcon=b=>{
  const art=scoreIllustrations[b.badge_key];if(!art)return null;
  return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg></span>';
 };
-const badgeSymbol=b=>scoreBadgeIcon(b)||bespokeDuckIcon(b)||individualBadgeArt(b)||sceneArt(b);
+// Literal illustrations take priority over milestone-based designs.
+// Match the displayed badge name, not the threshold or category.
+const namedBadgeScenes={
+ 'pocket change':'<path d="M8 7h32v12c0 14-7 23-16 23S8 33 8 19Z"/><path d="M13 10v9c0 10 4 16 11 16s11-6 11-16v-9"/><circle cx="19" cy="9" r="7" fill="white"/><circle cx="30" cy="7" r="6" fill="white"/><path d="M17 6h4m-2-2v9M28 5h4m-2-2v8"/>',
+ 'cooking':'<path d="M5 31h38v12H5zM11 37h7m13 0h7"/><path d="M9 24h26q0 10-13 10T9 24ZM35 25l10-6"/><path d="M16 19q-4-4 0-8t0-7M24 19q-4-4 0-8t0-7M32 19q-4-4 0-8"/>'
+};
+const namedBadgeIcon=b=>{
+ const name=(b.name||'').trim().toLowerCase();
+ const art=namedBadgeScenes[name];if(!art)return null;
+ return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg></span>';
+};
+const badgeSymbol=b=>namedBadgeIcon(b)||scoreBadgeIcon(b)||bespokeDuckIcon(b)||individualBadgeArt(b)||sceneArt(b);
 
 
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
