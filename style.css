@@ -94,3 +94,8 @@
 .owner-test-details{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
 .owner-test-rarity{font-size:11px;letter-spacing:.6px;font-weight:800;color:#7c65b8;white-space:nowrap}
 @media(max-width:550px){.owner-test-row{gap:9px}.owner-test-rarity{font-size:10px}.owner-test-actions{padding:14px}}
+
+/* Owner-only moderation button on public score rows */
+.owner-remove-run{flex-shrink:0;border:1px solid #e7b7b7;background:#fff8f8;color:#a33232;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:750;cursor:pointer}
+.owner-remove-run:hover{background:#fce8e8;border-color:#d88585}
+@media(max-width:600px){.owner-remove-run{padding:6px 8px;font-size:11px}}
