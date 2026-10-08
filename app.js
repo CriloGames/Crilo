@@ -10,7 +10,7 @@
   applyTheme(localStorage.getItem('crilo_theme') || 'light');
 
   async function loadIdentity(sessionOverride){
-    if(!window.criloDB) return;
+    if(typeof criloDB === 'undefined') return;
 
     let session = sessionOverride;
     if(session === undefined){
