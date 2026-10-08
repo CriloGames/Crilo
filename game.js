@@ -42,7 +42,7 @@ renderResult(r);
 $('replayTestBtn').classList.toggle('hidden',!profile?.is_owner);
 if(error){$('message').textContent='Run finished, but saving failed: '+error.message;console.error(error);return}
 if(isTest){
- $('message').textContent='Test run saved to the public leaderboard (marked OWNER TEST).';
+ $('message').textContent='Extra run saved to your private leaderboard view.';
  $('replayTestBtn').classList.remove('hidden');
 }else{
  $('message').textContent='Official Daily saved. See how you ranked.';
