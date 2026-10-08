@@ -7,8 +7,61 @@ function art(d){const fill=colors[d.slug]||'#ffe1a2';return '<svg viewBox="0 0 1
 async function load(db,user){if(!db||!user)return;const [a,b]=await Promise.all([db.from('duck_types').select('id,slug,name,tier,unlock_runs,appearance_weight').order('id'),db.rpc('crilo_duck_progress')]);if(!a.error&&a.data?.length)catalog=a.data;if(!b.error&&b.data?.length)completed=Number(b.data[0].completed_dailies)||0;else console.warn('Duck progress unavailable',b.error)}
 function choose(){const available=catalog.filter(d=>d.unlock_runs<=completed);const list=available.length?available:[catalog[0]];let n=Math.random()*list.reduce((s,d)=>s+d.appearance_weight,0);for(const d of list){n-=d.appearance_weight;if(n<0)return d}return list[0]}
 const moving=new Set();
-function roam(el){if(!moving.has(el)||!el.isConnected)return;const w=Math.max(0,innerWidth-90),top=()=>Math.min(innerHeight-80,Math.max(120,document.querySelector('.topbar')?.getBoundingClientRect().bottom||120)),bottom=()=>Math.max(top(),innerHeight-85),h=Math.max(0,bottom()-top()),x=Number(el.dataset.x),y=Number(el.dataset.y),nx=Math.random()*w,ny=top()+Math.random()*h;el.dataset.x=nx;el.dataset.y=ny;const anim=el.animate([{transform:`translate(${x}px,${y}px)`},{transform:`translate(${nx}px,${ny}px)`}],{duration:4000+Math.random()*4500,easing:'ease-in-out',fill:'forwards'});el.motion=anim;anim.onfinish=()=>{el.style.transform=`translate(${nx}px,${ny}px)`;roam(el)}}
-function spawn(){const d=choose(),el=document.createElement('div');el.className='duck-pal roaming-duck';el.title=d.name+' · '+d.tier;el.innerHTML=art(d);const root=document.getElementById('creatures');if(!root)return d;root.appendChild(el);moving.add(el);el.dataset.x=Math.random()*Math.max(0,innerWidth-90);el.dataset.y=Math.min(innerHeight-85,Math.max(120,document.querySelector('.topbar')?.getBoundingClientRect().bottom||120))+Math.random()*Math.max(0,innerHeight-Math.min(innerHeight-85,Math.max(120,document.querySelector('.topbar')?.getBoundingClientRect().bottom||120))-85);roam(el);if(moving.size>15){const first=moving.values().next().value;first.motion?.cancel();first.remove();moving.delete(first)}return d}
+function quack(){
+ if(localStorage.getItem('crilo_sound')==='off')return;
+ try{
+  const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+  const ac=quack.context||(quack.context=new Audio());
+  if(ac.state==='suspended')ac.resume();
+  const now=ac.currentTime;
+  // Two short, nasal descending pulses make a recognizable cartoon quack.
+  for(let i=0;i<2;i++){
+   const t=now+i*.145,o=ac.createOscillator(),filter=ac.createBiquadFilter(),gain=ac.createGain();
+   o.type='sawtooth';o.frequency.setValueAtTime(i?430:510,t);o.frequency.exponentialRampToValueAtTime(i?220:280,t+.13);
+   filter.type='lowpass';filter.frequency.value=1100;
+   gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.10,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.15);
+   o.connect(filter);filter.connect(gain);gain.connect(ac.destination);o.start(t);o.stop(t+.16);
+  }
+ }catch(e){console.warn('Duck quack unavailable',e)}
+}
+function bounds(){
+ const header=document.querySelector('.topbar')?.getBoundingClientRect().bottom||70;
+ const top=Math.min(innerHeight-90,Math.max(100,header+14));
+ return {left:8,right:Math.max(8,innerWidth-85),top,bottom:Math.max(top,innerHeight-95)};
+}
+function roam(el){
+ if(!moving.has(el)||!el.isConnected)return;
+ const b=bounds(),x=Number(el.dataset.x),y=Number(el.dataset.y);
+ // Small meandering movements with a gentle vertical bob, instead of teleport-like diagonal sweeps.
+ const dx=(Math.random()-.5)*Math.min(350,innerWidth*.38);
+ const dy=(Math.random()-.5)*Math.min(140,innerHeight*.2);
+ const nx=Math.max(b.left,Math.min(b.right,x+dx));
+ const ny=Math.max(b.top,Math.min(b.bottom,y+dy));
+ const duration=3200+Math.random()*3300;
+ const facing=nx<x?-1:1;
+ el.querySelector('svg').style.transform='scaleX('+facing+')';
+ const anim=el.animate([
+  {transform:`translate(${x}px,${y}px)`},
+  {transform:`translate(${x+(nx-x)*.35}px,${y+(ny-y)*.35-9}px)`,offset:.35},
+  {transform:`translate(${x+(nx-x)*.7}px,${y+(ny-y)*.7+5}px)`,offset:.7},
+  {transform:`translate(${nx}px,${ny}px)`}
+ ],{duration,easing:'ease-in-out',fill:'forwards'});
+ el.motion=anim;
+ anim.onfinish=()=>{el.style.transform=`translate(${nx}px,${ny}px)`;el.dataset.x=nx;el.dataset.y=ny;roam(el)};
+}
+function spawn(){
+ const d=choose(),el=document.createElement('button');
+ el.type='button';el.className='duck-pal roaming-duck';el.title='Quack! '+d.name;el.setAttribute('aria-label','Hear '+d.name+' quack');
+ el.innerHTML=art(d);
+ const root=document.getElementById('creatures');if(!root)return d;
+ root.appendChild(el);moving.add(el);
+ const b=bounds(),x=b.left+Math.random()*(b.right-b.left),y=b.top+Math.random()*(b.bottom-b.top);
+ el.dataset.x=x;el.dataset.y=y;el.style.transform=`translate(${x}px,${y}px)`;
+ el.addEventListener('click',()=>{quack();el.classList.remove('duck-quacking');void el.offsetWidth;el.classList.add('duck-quacking')});
+ roam(el);
+ if(moving.size>15){const first=moving.values().next().value;first.motion?.cancel();first.remove();moving.delete(first)}
+ return d;
+}
 function clear(){spawned=0;for(const el of moving){el.motion?.cancel();el.remove()}moving.clear();document.getElementById('creatures')?.replaceChildren()}
 return{load,spawn,clear,art,get catalog(){return catalog},get completed(){return completed}};
 })();
