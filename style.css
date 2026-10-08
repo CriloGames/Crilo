@@ -161,3 +161,14 @@
 
 /* Match the circular white drawing center of the actual Daily wheel */
 .rarest-run-drawing{width:200px;height:200px;max-width:min(200px,70vw);max-height:none;aspect-ratio:1;object-fit:fill;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 7px #fff,0 0 0 10px #17191e;margin:24px auto 16px;overflow:hidden}
+
+/* Duck unlock details */
+.duck-collection-card.duck-unlocked{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.duck-collection-card.duck-unlocked:hover{transform:translateY(-3px);box-shadow:0 7px 18px #241c141c}
+.duck-collection-card.duck-unlocked:focus-visible{outline:3px solid #a77a42;outline-offset:3px}
+.duck-unlock-modal{position:relative;width:min(420px,calc(100vw - 30px));padding:26px;text-align:center}
+.duck-unlock-art{width:150px;max-width:65%;margin:10px auto}
+.duck-unlock-art svg{display:block;width:100%}
+.duck-unlock-modal h2{font-size:30px;margin:4px 0}
+.duck-unlock-modal h3{font-size:16px;margin:20px 0 8px}
+.duck-unlock-modal p{color:#746b61;line-height:1.5}
