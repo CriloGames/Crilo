@@ -19,33 +19,23 @@ function quack(d){
   const key=String(d?.slug||d?.id||'classic');
   let seed=2166136261;
   for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
-  // A distinct combination of rhythm, notes, timbre and quack inflection per duck.
-  const scales=[0,2,3,5,7,9,10,12,14,15,17,19];
-  const root=196+((seed>>>4)%7)*24;
-  const count=3+seed%3;
-  const waveform=['sine','triangle','square','sawtooth'][(seed>>>8)%4];
-  const rhythm=.105+((seed>>>12)%5)*.022;
-  const notes=[];
-  for(let i=0;i<count;i++)notes.push(scales[(seed>>>(i*5))%scales.length]);
-  function tone(freq,start,length,volume,wave,fall=1){
-   const o=ac.createOscillator(),g=ac.createGain(),filter=ac.createBiquadFilter();
-   o.type=wave;o.frequency.setValueAtTime(freq,start);
-   o.frequency.exponentialRampToValueAtTime(Math.max(80,freq*fall),start+length);
-   filter.type='lowpass';filter.frequency.value=wave==='sawtooth'||wave==='square'?1050:2200;
-   o.connect(filter);filter.connect(g);g.connect(limiter);
-   g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(Math.min(.13,volume*1.6),start+.012);
-   g.gain.exponentialRampToValueAtTime(.0001,start+length);
-   o.start(start);o.stop(start+length+.01);
-  }
-  // Characteristic quack intro, customized to the duck.
-  const q=380+(seed%240);
-  tone(q,now,.11,.042,'sawtooth',.55+(seed%18)/100);
-  tone(q*(.8+((seed>>>5)%12)/100),now+.13,.12,.036,'triangle',.56);
-  // Each duck's unique little tune.
-  notes.forEach((step,i)=>{
-   const freq=root*Math.pow(2,step/12);
-   tone(freq,now+.29+i*rhythm,.16+((seed>>>(i+3))%3)*.045,.026,waveform,.92+((seed>>>i)%8)/100);
-  });
+  // One short, individual quack per duck. No secondary chimes or melodies.
+  const duration=.15+((seed>>>7)%7)*.013;
+  const pitch=360+(seed%320);
+  const fall=.48+((seed>>>13)%28)/100;
+  const waves=['triangle','sawtooth','square'];
+  const wave=waves[(seed>>>5)%waves.length];
+  const o=ac.createOscillator(),filter=ac.createBiquadFilter(),gain=ac.createGain();
+  o.type=wave;
+  o.frequency.setValueAtTime(pitch,now);
+  o.frequency.exponentialRampToValueAtTime(pitch*fall,now+duration);
+  filter.type='lowpass';
+  filter.frequency.value=700+((seed>>>11)%9)*110;
+  o.connect(filter);filter.connect(gain);gain.connect(limiter);
+  gain.gain.setValueAtTime(.0001,now);
+  gain.gain.exponentialRampToValueAtTime(.075,now+.012);
+  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+  o.start(now);o.stop(now+duration+.01);
  }catch(e){console.warn('Duck sound unavailable',e)}
 }
 function bounds(){
