@@ -38,7 +38,7 @@ WHERE NOT EXISTS(SELECT 1 FROM public.badges b WHERE b.badge_key=v.badge_key);
 CREATE OR REPLACE FUNCTION public.crilo_award_wheel_discoveries(p_user uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE
- r record; previous record; first_score numeric; lucky_count int:=0;
+ r record; prev_period date; prev_score numeric; first_score numeric; lucky_count int:=0;
  seen text[]:=ARRAY[]::text[]; first_three text[]; prev_three text[];
  arr jsonb; n int; i int; t text; identity text; prev_identity text;
  duck_streak int; number_streak int; duck_count int; number_count int;
@@ -83,8 +83,8 @@ BEGIN
   END IF;
   IF first_score IS NULL THEN first_score:=r.score;
   ELSIF r.score=first_score THEN keys:=array_append(keys,'wheel_full_circle');END IF;
-  IF previous.daily_period IS NOT NULL AND r.daily_period=previous.daily_period+1 THEN
-   IF r.score=previous.score THEN keys:=array_append(keys,'wheel_dejavu');END IF;
+  IF prev_period IS NOT NULL AND r.daily_period=prev_period+1 THEN
+   IF r.score=prev_score THEN keys:=array_append(keys,'wheel_dejavu');END IF;
    IF n>=3 AND cardinality(prev_three)=3 AND first_three=prev_three
    THEN keys:=array_append(keys,'wheel_groundhog');END IF;
   END IF;
@@ -112,7 +112,7 @@ BEGIN
   IF n>0 AND arr->0->>'type'='num' AND arr->0->>'base'='1' AND r.score>=1000
   THEN keys:=array_append(keys,'wheel_small_beginnings');END IF;
   IF n=5 AND all_numbers AND r.spins=5 THEN keys:=array_append(keys,'wheel_minimalist');END IF;
-  previous:=r;
+  prev_period:=r.daily_period;prev_score:=r.score;
   prev_three:=first_three;
  END LOOP;
  INSERT INTO public.user_badges(user_id,badge_id,earned_at)
