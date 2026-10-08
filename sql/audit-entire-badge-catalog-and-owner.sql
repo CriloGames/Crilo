@@ -6,7 +6,7 @@ WITH owners AS (
  SELECT DISTINCT user_id FROM public.owner_test_runs
 ), owner_meta AS (
  SELECT count(*)::int AS owner_accounts_found,
-        CASE WHEN count(*)=1 THEN min(user_id) ELSE NULL::uuid END AS owner_id
+        CASE WHEN count(*)=1 THEN (array_agg(user_id))[1] ELSE NULL::uuid END AS owner_id
  FROM owners
 ), catalog AS (
  SELECT id,badge_key,name,category,is_secret FROM public.badges
