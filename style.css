@@ -280,3 +280,7 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;max-width:650px;margin-left:auto;margin-right:auto;gap:12px}
 .stats>div{min-width:0;text-align:center}
 @media(max-width:440px){.stats{gap:4px}.stats>div>span{font-size:clamp(25px,7vw,40px)}.stats small{font-size:10px;letter-spacing:.1em}}
+
+/* Prevent wheel/touch scroll from chaining outside open dialogs. */
+.modal-backdrop{overscroll-behavior:contain}
+.modal-backdrop .modal-card{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
