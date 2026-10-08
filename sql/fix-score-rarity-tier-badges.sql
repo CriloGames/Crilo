@@ -2,15 +2,15 @@
 -- Does not modify rarity calculations, existing awards, or owner test runs.
 CREATE OR REPLACE FUNCTION public.crilo_award_score_rarity_tier(p_run public.daily_runs)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE tier text; badge_key text;
+DECLARE tier text; v_badge_key text;
 BEGIN
  IF p_run.is_test IS DISTINCT FROM FALSE THEN RETURN; END IF;
  tier:=lower(trim(coalesce(p_run.rarity_label,'')));
  IF tier NOT IN ('uncommon','rare','epic','legendary','mythic') THEN RETURN; END IF;
- badge_key:='score_'||tier;
+ v_badge_key:='score_'||tier;
  INSERT INTO public.user_badges(user_id,badge_id,earned_at)
  SELECT p_run.user_id,b.id,now() FROM public.badges b
- WHERE b.badge_key=badge_key ON CONFLICT DO NOTHING;
+ WHERE b.badge_key=v_badge_key ON CONFLICT DO NOTHING;
 END $$;
 CREATE OR REPLACE FUNCTION public.crilo_score_rarity_tier_trigger()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
