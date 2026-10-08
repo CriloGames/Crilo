@@ -149,3 +149,12 @@
 .rarest-run-detail span{font-size:11px;color:#777d89}
 .rarest-run-drawing{display:block;max-width:220px;max-height:220px;object-fit:contain;margin:18px auto 0;border:1px solid #eee;border-radius:12px}
 .rarest-run-drawing.hidden{display:none}
+
+/* All profile statistics explain themselves on click */
+.stat-tile.stat-explained{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.stat-tile.stat-explained:hover{transform:translateY(-2px);box-shadow:0 5px 14px #11182717}
+.stat-tile.stat-explained:focus-visible{outline:3px solid #7a66d8;outline-offset:3px}
+.stat-info-card{position:relative;width:min(460px,calc(100vw - 30px));padding:28px}
+.stat-info-card h2{margin:12px 0}
+.stat-info-value{font-size:36px;font-weight:900;margin:8px 0}
+.stat-info-card p{line-height:1.6;color:#646a75}
