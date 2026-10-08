@@ -198,3 +198,10 @@
 .draw-tool-group .small-btn{white-space:nowrap}
 .draw-panel{max-width:980px;flex-wrap:wrap}
 @media(max-width:700px){.draw-panel{align-items:flex-start}.draw-actions{width:100%;justify-content:flex-start}}
+
+/* Compact centered drawing toolbar, with Pixel Studio first. */
+.draw-panel{max-width:980px;display:flex;flex-direction:column;align-items:stretch;gap:14px}
+.draw-panel>div:first-child{text-align:center}
+.draw-actions{width:100%;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px}
+.draw-tool-group{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+@media(max-width:700px){.draw-actions{justify-content:center}}
