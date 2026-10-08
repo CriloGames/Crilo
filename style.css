@@ -331,3 +331,16 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
  .owner-tools-label,.owner-tools-status{overflow-wrap:anywhere}
  .preview-banner{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
 }
+
+/* Duck collection guest state — inviting without revealing the collection. */
+#duckStatus.duck-guest-card{width:min(880px,100%);margin:30px auto 65px;padding:38px 44px;display:grid;grid-template-columns:220px minmax(0,1fr);align-items:center;gap:38px;text-align:left;border:1px solid var(--line);border-radius:26px;background:var(--panel);box-shadow:0 12px 40px var(--shadow)}
+.duck-guest-art{position:relative;display:grid;place-items:center;aspect-ratio:1;border-radius:28px;background:var(--soft);color:var(--text)}
+.duck-guest-art svg{display:block;width:76%;height:76%}
+.duck-guest-lock{position:absolute;right:14px;bottom:12px;display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--line);border-radius:50%;background:var(--panel);font-size:20px}
+.duck-guest-copy{min-width:0}
+.duck-guest-copy h2{font-size:clamp(26px,3vw,38px);line-height:1.12;letter-spacing:-.04em;margin:10px 0 14px;color:var(--text)}
+.duck-guest-copy p{font-size:15px;line-height:1.65;color:var(--muted);margin:0 0 23px;max-width:480px}
+.duck-guest-signin{padding:14px 19px;border-radius:12px;font-size:14px}
+.duck-guest-signin span{margin-left:8px}
+.duck-guest-footnote{display:block;margin-top:16px;font-size:12px;color:var(--muted);line-height:1.5}
+@media(max-width:700px){#duckStatus.duck-guest-card{grid-template-columns:1fr;gap:20px;padding:24px 20px;margin:24px auto 48px;text-align:center}.duck-guest-art{width:150px;margin:auto;border-radius:22px}.duck-guest-copy p{margin-left:auto;margin-right:auto}.duck-guest-signin{width:100%;max-width:350px}.duck-guest-copy h2{font-size:28px}}
