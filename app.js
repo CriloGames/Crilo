@@ -71,6 +71,33 @@
   window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateFriendBell()});
 
+  // Keep the document fixed while any modal is open, including modals opened
+  // by page-specific scripts. MutationObserver catches class changes everywhere.
+  let modalScrollY=0,modalLocked=false;
+  function syncModalScroll(){
+    const open=!!document.querySelector('.modal-backdrop:not(.hidden)');
+    if(open&&!modalLocked){
+      modalScrollY=window.scrollY;
+      document.body.style.position='fixed';
+      document.body.style.top=-modalScrollY+'px';
+      document.body.style.left='0';
+      document.body.style.right='0';
+      document.body.style.width='100%';
+      modalLocked=true;
+    }else if(!open&&modalLocked){
+      document.body.style.position='';
+      document.body.style.top='';
+      document.body.style.left='';
+      document.body.style.right='';
+      document.body.style.width='';
+      modalLocked=false;
+      window.scrollTo(0,modalScrollY);
+    }
+  }
+  const modalObserver=new MutationObserver(syncModalScroll);
+  modalObserver.observe(document.documentElement,{subtree:true,attributes:true,attributeFilter:['class'],childList:true});
+  syncModalScroll();
+
   // Escape closes the topmost visible popup, without affecting the page underneath.
   document.addEventListener('keydown',event=>{
     if(event.key!=='Escape'||event.defaultPrevented)return;
