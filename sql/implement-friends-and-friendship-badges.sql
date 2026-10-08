@@ -30,7 +30,7 @@ BEGIN
  SELECT p.id,p.username::text,p.name_color::text
  FROM public.profiles p
  WHERE p.id<>auth.uid()
- AND (p.username ILIKE '%'||replace(replace(replace(q,'\\','\\\\'),'%','\\%'),'_','\\_')||'%' ESCAPE '\'
+ AND (position(lower(q) in lower(p.username::text))>0
       OR upper(p.account_code::text)=upper(q))
  ORDER BY CASE WHEN lower(p.username)=lower(q) THEN 0 ELSE 1 END,p.username
  LIMIT 20;
