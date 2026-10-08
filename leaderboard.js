@@ -26,6 +26,7 @@ function makePreview(){
  return rows;
 }
 const previewRows=makePreview();
+if(new URLSearchParams(location.search).get('tab')==='tests')tab='tests';
 const previewBadgeCounts=[72,68,68,44,39,32,24,19,17,12,8,3];
 const previewProfiles=new Map(previewRows.map((r,i)=>[r.user_id,{username:fakeNames[i%fakeNames.length]+(i>=12?' '+(i+1):''),name_color:['#2763a1','#b03f70','#3c825b','#a35d2c'][i%4]}]));
 function previewRender(){if(tab==='badges'){renderBadgeLeaders(previewBadgeCounts.map((n,i)=>({user_id:'preview-'+i,count:n})),previewProfiles);return}let rows=previewRows.filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).slice();if(tab==='records')rows.sort((a,b)=>b.spins-a.spins||b.score-a.score);else if(tab==='ducks')rows.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);else rows.sort((a,b)=>b.score-a.score||a.user_id.localeCompare(b.user_id));render(rows,previewProfiles)}
@@ -84,7 +85,7 @@ window.addEventListener('crilo-auth-ready',async e=>{
  document.querySelector('.owner-only-tab')?.classList.toggle('hidden',!owner);
  if(owner)await refreshOwnerTests();
  else{ownerTestRows=[];testLoadError='';if(preview)togglePreview(false);if(tab==='tests'){tab='today';document.querySelectorAll('.leader-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='today'))}}
- if(tab==='tests'&&owner)renderOwnerTests();
+ if(tab==='tests'&&owner){document.querySelectorAll('.leader-tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='tests'));renderOwnerTests();}
 });
 $('previewToggle')?.addEventListener('click',()=>togglePreview(!preview));
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
