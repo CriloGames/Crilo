@@ -42,7 +42,7 @@ window.CriloRarity=(()=>{
   const hits=n-lo,tail=hits/n;
   // If none of 100k runs reached this score, don't claim an exact 1-in-X chance.
   const level=levels.find(l=>tail<=l.max)||levels[levels.length-1];
-  return{label:level.label,color:level.key,probability:tail,odds:hits?Math.max(1,Math.round(n/hits)):null,hits,trials:n,
+  return{label:level.label,color:level.key,probability:tail,odds:hits?Math.max(1,Math.round(n/hits)):n,hits,trials:n,
     explanation:hits===0?'Fewer than 1 in 100,000 reference runs reached this score':'About '+(tail*100).toFixed(tail<0.01?3:tail<1?2:1)+'% of reference runs scored this high or higher'};
  }
  function thresholds(){const data=sample();return levels.slice(0,-1).map(l=>({label:l.label,minScore:data[Math.max(0,Math.ceil(data.length*(1-l.max))-1)]}))}
