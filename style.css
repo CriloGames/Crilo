@@ -356,3 +356,17 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 /* Quiet but readable safety reminders beside both drawing tools. */
 .draw-panel .drawing-safety-note{display:block;margin-top:7px;color:#8a6262;font-size:11px;line-height:1.45;font-weight:500}
 .pixel-studio-card .pixel-safety-note{margin:9px 0 0;color:#8a6262;font-size:12px;line-height:1.45;text-align:center}
+
+
+/* Keep Crilo Spinning — independent, mobile-friendly support page. */
+.support-main{min-height:calc(100vh - 68px);padding:34px 20px 90px;background:var(--bg,#fff);color:var(--text,#15171c)}
+.support-back{display:block;width:min(560px,100%);margin:0 auto 26px;color:var(--muted,#74777e);font-size:13px;text-decoration:none}.support-back:hover{text-decoration:underline}
+.support-card{width:min(560px,100%);margin:auto;padding:42px 42px 35px;border:1px solid var(--line,#e5e5e5);border-radius:24px;background:var(--panel,#fff);text-align:center;box-shadow:0 16px 50px rgba(0,0,0,.045)}
+.support-symbol{display:grid;place-items:center;width:56px;height:56px;margin:0 auto 20px;border-radius:50%;background:var(--soft,#f3f3f3);font-size:39px;font-weight:600;line-height:1}
+.support-card h1{margin:12px 0 14px;font-size:clamp(32px,5vw,44px);letter-spacing:-.055em;line-height:1.08}.support-intro{max-width:410px;margin:0 auto;color:var(--muted,#6c7077);font-size:15px;line-height:1.75}
+.support-divider{height:1px;margin:30px 0;background:var(--line,#e8e8e8)}.support-card h2{margin:0 0 17px;font-size:17px;letter-spacing:-.02em}
+.support-amounts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.support-amount{min-height:53px;border:1px solid var(--line,#dedede);border-radius:12px;background:var(--panel,#fff);color:var(--text,#15171c);font-weight:750;cursor:pointer}.support-amount.selected{border:2px solid var(--text,#15171c);background:var(--soft,#f4f4f4)}.support-amount:focus-visible{outline:2px solid #6d6d6d;outline-offset:2px}
+.support-custom{display:block;margin-top:17px;text-align:left;font-size:13px;font-weight:600}.support-custom input{display:block;width:100%;padding:12px;margin-top:7px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--panel,#fff);color:var(--text,#15171c)}.support-selected{margin:17px 0 25px;font-size:13px;color:var(--muted,#777)}
+.support-checkout{padding-top:22px;border-top:1px solid var(--line,#eee)}.support-checkout-heading{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#777)}.support-pay{display:block;width:100%;min-height:51px;margin:10px 0;border:1px solid var(--line,#ddd);border-radius:11px;font-size:16px;font-weight:800;opacity:.5;cursor:not-allowed}.support-paypal{background:#ffca48;color:#17368c}.support-venmo{background:#1684ec;color:#fff}.support-card-pay{background:#292c30;color:#fff}.support-pending{margin:16px 0 0;font-size:12px;line-height:1.6;color:var(--muted,#777)}.support-fine{margin:23px 0 0;font-size:11px;line-height:1.6;color:var(--muted,#777)}
+.crilo-support-link{display:block;width:max-content;max-width:calc(100% - 32px);margin:20px auto 32px;color:var(--muted,#777);font-size:12px;text-align:center;text-decoration:none}.crilo-support-link:hover{text-decoration:underline;color:var(--text,#222)}
+@media(max-width:600px){.support-main{padding:24px 14px 60px}.support-card{padding:32px 19px 27px;border-radius:18px}.support-amounts{gap:6px}.support-amount{font-size:13px;min-height:49px}}
