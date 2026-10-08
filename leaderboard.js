@@ -4,7 +4,7 @@ function fakePeriod(n){const date=new Date(Date.now()-n*86400000);return Crilo.d
 // Deterministic sample runs, using the exact wheel event rules in game.js.
 function seededRandom(seed){let x=seed>>>0;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/4294967296}}
 function simulateRun(random){
- let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'];
+ let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck','duck'];
  let score=0,spinsLeft=5,totalSpins=0,upgrades=0,doubles=0,ducks=0,extraSpins=0,multiplier=1,numbersLanded=0;
  while(spinsLeft>0&&totalSpins<250){
   spinsLeft--;totalSpins++;
@@ -29,7 +29,7 @@ const previewRows=makePreview();
 
 const previewBadgeCounts=[72,68,68,44,39,32,24,19,17,12,8,3];
 const previewProfiles=new Map(previewRows.map((r,i)=>[r.user_id,{username:fakeNames[i%fakeNames.length]+(i>=12?' '+(i+1):''),name_color:['#2763a1','#b03f70','#3c825b','#a35d2c'][i%4]}]));
-function previewRender(){if(tab==='badges'){renderBadgeLeaders(previewBadgeCounts.map((n,i)=>({user_id:'preview-'+i,count:n})),previewProfiles);return}let rows=previewRows.filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).slice();if(tab==='records')rows.sort((a,b)=>b.spins-a.spins||b.score-a.score);else if(tab==='ducks')rows.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);else rows.sort((a,b)=>b.score-a.score||a.user_id.localeCompare(b.user_id));render(rows,previewProfiles)}
+function previewRender(){if(tab==='ducks'){const totals=new Map();for(const r of previewRows)totals.set(r.user_id,(totals.get(r.user_id)||0)+Number(r.ducks||0));renderDuckLeaders([...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count),previewProfiles);return}if(tab==='badges'){renderBadgeLeaders(previewBadgeCounts.map((n,i)=>({user_id:'preview-'+i,count:n})),previewProfiles);return}let rows=previewRows.filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).slice();if(tab==='records')rows.sort((a,b)=>b.spins-a.spins||b.score-a.score);else if(tab==='ducks')rows.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);else rows.sort((a,b)=>b.score-a.score||a.user_id.localeCompare(b.user_id));render(rows,previewProfiles)}
 function togglePreview(on){
  if(on&&!Crilo.profile?.is_owner)return;
  preview=!!on;
@@ -59,7 +59,7 @@ $('leaderList')?.addEventListener('click',e=>{
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
 async function load(){
  if(preview){previewRender();return}
- if(tab==='badges'){await loadBadges();return}
+ if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
  const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at';
  let q=criloDB.from('daily_runs').select(fields).eq('is_test',false);
@@ -86,6 +86,31 @@ async function load(){
  let profiles=[];
  if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,is_owner').in('id',ids);profiles=result.data||[]}
  render(visible,new Map(profiles.map(p=>[p.id,p])));
+}
+async function loadDucks(){
+ $('leaderList').innerHTML='<div class="empty-state">Loading lifetime duck totals…</div>';
+ const totals=new Map();let offset=0;
+ // Fetch all official runs, not just the top 100 single-run results.
+ while(true){
+  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks').eq('is_test',false).order('id',{ascending:true}).range(offset,offset+999);
+  if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
+  for(const run of data||[])totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));
+  if(!data||data.length<1000)break;
+  offset+=1000;
+ }
+ const entries=[...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count||a.user_id.localeCompare(b.user_id)).slice(0,100);
+ const ids=entries.map(x=>x.user_id);let profiles=[];
+ if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color').in('id',ids);profiles=data||[]}
+ renderDuckLeaders(entries,new Map(profiles.map(p=>[p.id,p])));
+}
+function renderDuckLeaders(entries,profiles){
+ $('bestHeading').textContent='ALL-TIME DUCK COLLECTORS';
+ $('leaderDescription').textContent='Total ducks collected across all official Daily runs. Private test runs do not count. Ties share a rank.';
+ $('bestDrawing').classList.add('hidden');
+ if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
+ const best=entries[0],p=profiles.get(best.user_id);
+ $('bestScore').textContent=best.count.toLocaleString()+' 🦆';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Ducks collected across all official Daily runs';
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+(p?.name_color||'inherit')+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score">'+e.count.toLocaleString()+' 🦆</div></div>'}).join('');
 }
 async function loadBadges(){
  $('leaderList').innerHTML='<div class="empty-state">Loading badge collectors…</div>';
