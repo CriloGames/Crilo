@@ -67,6 +67,7 @@
     indicator.style.display=count?'inline':'none';indicator.textContent=count>9?'9+':String(count);
     panel.innerHTML=count?'<strong>'+count+' pending friend request'+(count===1?'':'s')+'</strong><p style="margin:10px 0">Someone wants to be your friend!</p><a href="friends.html" style="color:#17191e;font-weight:800">View requests →</a>':'<strong>Notifications</strong><p style="color:#777;margin-bottom:0">No new friend requests.</p>';
   }
+  window.addEventListener('crilo-friends-changed',updateFriendBell);
   window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateFriendBell()});
 
