@@ -35,7 +35,23 @@ const prepareBadgeIcons=badges=>{
   used.add(icon);assignedIcons.set(b.id,icon);
  }
 };
-const badgeSymbol=b=>'<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><i data-lucide="'+assignedIcons.get(b.id)+'" aria-hidden="true"></i></span>';
+// Bespoke illustrations for the duck milestones; no unrelated library symbols.
+const duckDrawing=(x,y,scale=1)=>'<g transform="translate('+x+' '+y+') scale('+scale+')"><path d="M3 19c-1-4 1-8 6-9 3-1 6 0 8 2 0-5 3-8 7-8 4 0 7 3 7 7 0 2-1 3-2 4l5 2-5 2c-2 6-7 9-14 9C8 28 4 25 3 19Z"/><path d="M8 18c3 3 7 4 11 2"/><circle cx="25" cy="10" r="1.1" fill="currentColor" stroke="none"/></g>';
+const duckMilestoneArt={
+ duck_1:duckDrawing(7,6,.85),
+ duck_2:duckDrawing(0,10,.62)+duckDrawing(19,0,.62),
+ duck_3:duckDrawing(0,2,.55)+duckDrawing(18,2,.55)+duckDrawing(9,20,.55),
+ duck_4:duckDrawing(7,10,.8)+'<path d="m27 14 3-10 5 10M26 14h10M8 9l-2-3m34 8 3-2M8 32l-4 2M36 33l4 3"/><path d="m5 5 2 1m31-1 2 2M5 27l2 2"/>',
+ duck_5:duckDrawing(6,8,.84)+'<path d="M20 18h3m-18-2h4"/><circle cx="12" cy="17" r="5"/><circle cx="28" cy="17" r="5"/>',
+ duck_7:'<path d="M2 30q10-14 21-12t23-13M4 35q13-10 25-5t17-3"/>'+duckDrawing(1,7,.45)+duckDrawing(20,3,.45)+duckDrawing(24,24,.45),
+ duck_10:duckDrawing(5,13,.84)+'<path d="M10 14V5l8-4 8 4v9M10 7h16M18 2v8"/><path d="m34 6 6 3v7l-6 4-6-4V9Z"/>',
+ duck_15:'<path d="M0 35q10-8 23 0t25-3M2 40q10-7 23 1t21-2"/><circle cx="38" cy="6" r="5"/>'+duckDrawing(0,15,.4)+duckDrawing(15,10,.4)+duckDrawing(29,14,.4)
+};
+const bespokeDuckIcon=b=>{
+ const art=duckMilestoneArt[b.badge_key];if(!art)return null;
+ return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg></span>';
+};
+const badgeSymbol=b=>bespokeDuckIcon(b)||'<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><i data-lucide="'+assignedIcons.get(b.id)+'" aria-hidden="true"></i></span>';
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
 
 async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,account_code').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,is_secret,sort_order').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(5)]);if(!p){$('profileName').textContent='Player not found';return}$('profileName').textContent=p.username;$('profileName').style.color=p.name_color||'';$('avatar').textContent=(p.username||'C')[0].toUpperCase();$('profileCode').textContent=target===Crilo.user?.id?`Account code: ${p.account_code||'—'}`:'Crilo player';const s=metricsError?(stats?.[0]||{}):(metrics||{});
