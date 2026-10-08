@@ -275,3 +275,8 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .help-rarity-dot.mythic{background:#e05dcd}.help-rarity-dot.legendary{background:#e5b34e}.help-rarity-dot.epic{background:#9968df}.help-rarity-dot.rare{background:#4b91cf}.help-rarity-dot.uncommon{background:#56ae8a}.help-rarity-dot.common{background:#8b929e}
 .help-rarity .help-rarity-note{font-size:12px;margin:10px 0 0}
 @media(max-width:480px){.help-rarity-row{padding:11px 12px}.help-rarity-row span{font-size:12px}}
+
+/* Four balanced live wheel statistics */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;max-width:650px;margin-left:auto;margin-right:auto;gap:12px}
+.stats>div{min-width:0;text-align:center}
+@media(max-width:440px){.stats{gap:4px}.stats>div>span{font-size:clamp(25px,7vw,40px)}.stats small{font-size:10px;letter-spacing:.1em}}
