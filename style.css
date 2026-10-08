@@ -158,3 +158,6 @@
 .stat-info-card h2{margin:12px 0}
 .stat-info-value{font-size:36px;font-weight:900;margin:8px 0}
 .stat-info-card p{line-height:1.6;color:#646a75}
+
+/* Match the circular white drawing center of the actual Daily wheel */
+.rarest-run-drawing{width:200px;height:200px;max-width:min(200px,70vw);max-height:none;aspect-ratio:1;object-fit:fill;border-radius:50%;background:#fff;border:0;box-shadow:0 0 0 7px #fff,0 0 0 10px #17191e;margin:24px auto 16px;overflow:hidden}
