@@ -239,3 +239,20 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .domain-score:first-child::before{background:var(--text);color:var(--panel)}
 .domain-score{justify-content:space-between}
 @media(max-width:600px){.domain-stat{padding:12px}.domain-score{gap:8px;padding:12px 4px;font-size:14px}}
+
+/* Compact personal Domain leaderboard */
+.domain-stat{max-width:650px;margin:0 auto;padding:16px 24px}
+.domain-top{display:flex;flex-direction:column;gap:0}
+.domain-score{display:flex;align-items:center;gap:16px;justify-content:initial;padding:14px 0;border-bottom:1px solid var(--line);background:none;border-radius:0;font-weight:normal}
+.domain-score:last-child{border-bottom:none}
+.domain-score::before{display:none}
+.domain-rank{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;border-radius:9px;background:var(--soft);color:var(--muted);font-size:13px;font-weight:900}
+.domain-score:first-child .domain-rank{background:var(--text);color:var(--panel)}
+.domain-score-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:7px}
+.domain-score-title{font-size:13px;font-weight:750;color:var(--muted)}
+.domain-score-bar{height:5px;border-radius:9px;background:var(--soft);overflow:hidden}
+.domain-score-bar i{display:block;height:100%;border-radius:9px;background:#9299a5}
+.domain-score:first-child .domain-score-bar i{background:var(--text)}
+.domain-score-number{font-size:18px;font-weight:900;letter-spacing:-.03em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.domain-score-number small{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0}
+@media(max-width:550px){.domain-stat{padding:12px 16px}.domain-score{gap:10px}.domain-score-number{font-size:15px}.domain-score-number small{font-size:10px}}
