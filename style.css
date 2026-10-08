@@ -229,3 +229,13 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .crilo-badge-svg{display:block;width:1.1em;height:1.1em;color:var(--text,#17191e);flex-shrink:0}
 .badge-set-icon .crilo-badge-svg{width:32px;height:32px;margin:auto}
 .badge-icon .crilo-badge-svg{width:25px;height:25px;margin:auto}
+
+/* Domain personal best leaderboard */
+.domain-stat{padding:24px;max-width:900px;margin:auto}
+.domain-top{display:grid;grid-template-columns:1fr;gap:0}
+.domain-score{display:flex;align-items:center;gap:20px;background:transparent;border-radius:0;border-bottom:1px solid var(--line);padding:15px 8px;font-weight:700}
+.domain-score:last-child{border-bottom:0}
+.domain-score::before{content:'★';display:grid;place-items:center;width:36px;height:36px;flex-shrink:0;border-radius:11px;background:var(--soft);color:var(--muted);font-size:14px}
+.domain-score:first-child::before{background:var(--text);color:var(--panel)}
+.domain-score{justify-content:space-between}
+@media(max-width:600px){.domain-stat{padding:12px}.domain-score{gap:8px;padding:12px 4px;font-size:14px}}
