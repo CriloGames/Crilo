@@ -16,7 +16,7 @@ function sound(kind){
   if(ac.state==='suspended')ac.resume().catch(()=>{});
   const now=ac.currentTime;
   // Balance perceived loudness by event; quieter wheel ticks get a lift.
-  const levels={tick:3.0,num:2.1,spins:1.3,double:1.05,upgrade:.84,duck:1};
+  const levels={tick:3.0,num:2.1,spins:1.3,double:1.05,upgrade:.84};
   const level=levels[kind]||1;
   const limiter=sound.limiter||(sound.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
   // All sounds are synthesized locally; no downloads or external audio assets.
@@ -56,13 +56,7 @@ function sound(kind){
    note(784,.40,.28,.056,'sine');
    note(1047,.54,.52,.052,'sine');
    note(1568,.59,.48,.017,'sine');
-  }else if(kind==='duck'){
-   // Duck: playful two-part cartoon quack with a cheerful discovery jingle.
-   note(510,0,.105,.055,'sawtooth',335);
-   note(450,.115,.13,.048,'sawtooth',245);
-   note(659,.28,.19,.045,'triangle');
-   note(880,.43,.23,.043,'sine');
-   note(1175,.59,.35,.035,'sine');
+
   }
  }catch{}
 }
