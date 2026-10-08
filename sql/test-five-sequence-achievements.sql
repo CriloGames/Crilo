@@ -11,7 +11,7 @@ DECLARE src text;
 BEGIN
  SELECT pg_get_functiondef(p.oid) INTO src FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
  WHERE n.nspname='public' AND p.proname='crilo_award_missing_sequence_badges'
- AND pg_get_function_identity_arguments(p.oid)='p_run public.daily_runs';
+ AND p.pronargs=1 AND p.proargtypes[0]='public.daily_runs'::regtype;
  IF src IS NULL THEN RAISE EXCEPTION 'Sequence award function not installed'; END IF;
  src:=replace(src,'public.crilo_award_missing_sequence_badges','pg_temp.crilo_seq_award');
  src:=replace(src,'public.user_badges','pg_temp.crilo_seq_awards');
