@@ -1,6 +1,6 @@
 (() => {
 const $=id=>document.getElementById(id), wheel=$('wheel'),ctx=wheel.getContext('2d'),drawing=$('drawing'),dctx=drawing.getContext('2d');
-let user=null,profile=null,started=false,spinning=false,drawingLocked=false,isTest=false,officialRun=null;
+let user=null,profile=null,started=false,spinning=false,drawingLocked=false,isTest=false,saveOwnerTest=false,officialRun=null;
 let drawMode='stationary',drawTool='pen',undoStack=[],redoStack=[];let score=0,spins=5,multiplier=1,upgrades=0,doubles=0,ducks=0,totalSpins=0,numbersLanded=0,extraSpins=0,bestRollPoints=0,bestRollLabel='',rotation=0,segments=[],results=[],runProbability=1;
 const palette=['#ffd86b','#9bd9ef','#ffb8d2','#c6dcff','#c8f4bd','#efc5ef','#aee9f4','#fff0a8','#c9f1df','#dfc8f6','#ffc8a8'];
 const fmt=n=>{n=Number(n)||0;if(n<1e3)return Math.round(n).toLocaleString();for(const [s,v] of [['Qa',1e15],['T',1e12],['B',1e9],['M',1e6],['K',1e3]])if(n>=v)return(n/v>=100?(n/v).toFixed(0):(n/v).toFixed(1)).replace('.0','')+s;return String(n)};
@@ -27,7 +27,29 @@ results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(poi
 function lockDrawing(){if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 function spin(){if(spinning||spins<=0)return;if(!user){open('authModal');return}if(!profile){open('profileModal');return}if(!started)beginRun();lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
 function beginRun(){DuckWorld.clear();started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
-async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity(),drawingData=drawing.toDataURL('image/png');const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};const {data,error}=isTest&&profile?.is_owner?{data:{is_test:true},error:null}:await criloDB.from('daily_runs').insert(payload).select('is_test,daily_period').single();isTest=!!data?.is_test || (isTest && !!profile?.is_owner);renderResult(r);$('replayTestBtn').classList.toggle('hidden',!profile?.is_owner);if(error){$('message').textContent='Run finished, but saving failed: '+error.message;console.error(error);return}if(isTest){$('message').textContent='Test run complete — nothing permanent was changed.';$('replayTestBtn').classList.remove('hidden')}else{$('message').textContent='Official Daily saved. See how you ranked.';officialRun={...payload,is_test:false};$('testRunBtn').classList.toggle('hidden',!profile?.is_owner)}}
+async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity(),drawingData=drawing.toDataURL('image/png');const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};let data=null,error=null;
+if(isTest&&profile?.is_owner){
+ if(saveOwnerTest){
+  const response=await criloDB.rpc('crilo_save_owner_test_run',{p_run:payload});
+  error=response.error;
+  if(!error)data={is_test:true,id:response.data};
+ }else data={is_test:true};
+}else{
+ const response=await criloDB.from('daily_runs').insert(payload).select('is_test,daily_period').single();
+ data=response.data;error=response.error;
+}
+renderResult(r);
+$('replayTestBtn').classList.toggle('hidden',!profile?.is_owner);
+if(error){$('message').textContent='Run finished, but saving failed: '+error.message;console.error(error);return}
+if(isTest){
+ $('message').textContent=saveOwnerTest?'Owner test run saved. View it on the leaderboard using “Show my test runs”.':'Test run complete — nothing permanent was changed.';
+ $('replayTestBtn').classList.remove('hidden');
+}else{
+ $('message').textContent='Official Daily saved. See how you ranked.';
+ officialRun={...payload,is_test:false};
+ $('testRunBtn').classList.toggle('hidden',!profile?.is_owner);
+}
+}
 function renderResult(r){
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
@@ -41,10 +63,10 @@ async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();co
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
-function startTest(){if(!profile?.is_owner)return;isTest=true;$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun()}
+function startTest(save=false){if(!profile?.is_owner||spinning)return;isTest=true;saveOwnerTest=save;$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun()}
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;$('resetCountdown').textContent=`NEXT DAILY ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;if(diff<1000)setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
-window.addEventListener('crilo-auth-ready',async e=>{user=e.detail.user;profile=e.detail.profile;if(!user){$('message').textContent='Sign in to save an official Daily, or draw while you wait.';beginRun();return}if(!profile){open('profileModal');return}await DuckWorld.load(criloDB,user);await checkPlayed()});window.addEventListener('crilo-signin-request',()=>open('authModal'));
-$('spinButton').addEventListener('click',spin);$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('testRunBtn').addEventListener('click',startTest);$('replayTestBtn').addEventListener('click',startTest);document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+window.addEventListener('crilo-auth-ready',async e=>{user=e.detail.user;profile=e.detail.profile;$('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);if(!user){$('message').textContent='Sign in to save an official Daily, or draw while you wait.';beginRun();return}if(!profile){open('profileModal');return}await DuckWorld.load(criloDB,user);await checkPlayed()});window.addEventListener('crilo-signin-request',()=>open('authModal'));
+$('spinButton').addEventListener('click',spin);$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('testRunBtn').addEventListener('click',()=>startTest(false));$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null;
 function snapshot(){undoStack.push(dctx.getImageData(0,0,200,200));if(undoStack.length>25)undoStack.shift();redoStack=[]}
