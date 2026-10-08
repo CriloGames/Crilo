@@ -15,6 +15,7 @@ function quack(d){
   const ac=quack.context||(quack.context=new Audio());
   if(ac.state==='suspended')ac.resume().catch(()=>{});
   const now=ac.currentTime;
+  const limiter=quack.limiter||(quack.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
   const key=String(d?.slug||d?.id||'classic');
   let seed=2166136261;
   for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
@@ -31,8 +32,8 @@ function quack(d){
    o.type=wave;o.frequency.setValueAtTime(freq,start);
    o.frequency.exponentialRampToValueAtTime(Math.max(80,freq*fall),start+length);
    filter.type='lowpass';filter.frequency.value=wave==='sawtooth'||wave==='square'?1050:2200;
-   o.connect(filter);filter.connect(g);g.connect(ac.destination);
-   g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.012);
+   o.connect(filter);filter.connect(g);g.connect(limiter);
+   g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(Math.min(.13,volume*1.6),start+.012);
    g.gain.exponentialRampToValueAtTime(.0001,start+length);
    o.start(start);o.stop(start+length+.01);
   }
