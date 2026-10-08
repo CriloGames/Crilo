@@ -122,3 +122,14 @@
 .featured-picker-card p{color:#72717b;font-size:14px}
 .featured-picker-card select{width:100%;margin:12px 0}
 .featured-picker-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:14px}
+
+/* Compact rarity statistic, matching the other statistic tiles */
+.stat-tile.stat-rarity{position:relative;overflow:hidden;border-color:var(--rarity-border,#dedee3);background:var(--rarity-bg,var(--soft))}
+.stat-tile.stat-rarity b{font-size:25px;line-height:1.2;white-space:nowrap;color:var(--rarity-ink,#17191e)}
+.stat-tile.stat-rarity .stat-rarity-tier{position:absolute;right:13px;top:13px;font-size:10px;font-weight:900;letter-spacing:.07em;color:var(--rarity-ink,#777);opacity:.85}
+.stat-rarity-common{--rarity-border:#d7d9de;--rarity-bg:#f5f5f6;--rarity-ink:#747984}
+.stat-rarity-uncommon{--rarity-border:#b9dfc7;--rarity-bg:#eaf7ef;--rarity-ink:#29865b}
+.stat-rarity-rare{--rarity-border:#b7d5f9;--rarity-bg:#eaf3ff;--rarity-ink:#2767bc}
+.stat-rarity-epic{--rarity-border:#d6b7f4;--rarity-bg:#f4eaff;--rarity-ink:#8b43c7}
+.stat-rarity-legendary{--rarity-border:#eacb7c;--rarity-bg:#fff5d9;--rarity-ink:#9d710c}
+.stat-rarity-mythic{--rarity-border:#f2b6d5;--rarity-bg:#fff0f7;--rarity-ink:#c54286}
