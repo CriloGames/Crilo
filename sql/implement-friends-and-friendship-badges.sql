@@ -20,21 +20,8 @@ CREATE POLICY crilo_friend_participant_read ON public.friend_requests
 REVOKE ALL ON public.friend_requests FROM anon,authenticated;
 GRANT SELECT ON public.friend_requests TO authenticated;
 
-CREATE OR REPLACE FUNCTION public.search_crilo_players(search_text text)
-RETURNS TABLE(id uuid,username text,name_color text)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE q text:=left(trim(coalesce(search_text,'')),80);
-BEGIN
- IF auth.uid() IS NULL OR length(q)<2 THEN RETURN;END IF;
- RETURN QUERY
- SELECT p.id,p.username::text,p.name_color::text
- FROM public.profiles p
- WHERE p.id<>auth.uid()
- AND (position(lower(q) in lower(p.username::text))>0
-      OR upper(p.account_code::text)=upper(q))
- ORDER BY CASE WHEN lower(p.username)=lower(q) THEN 0 ELSE 1 END,p.username
- LIMIT 20;
-END $$;
+-- Existing search_crilo_players(text) is retained to preserve its return type.
+-- The site's existing Friends page already calls this function.
 
 CREATE OR REPLACE FUNCTION public.send_friend_request(target_user uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
@@ -112,15 +99,13 @@ CREATE TRIGGER crilo_friend_badges_on_accept
 AFTER INSERT OR UPDATE ON public.friend_requests
 FOR EACH ROW EXECUTE FUNCTION public.crilo_friend_badge_trigger();
 
-REVOKE ALL ON FUNCTION public.search_crilo_players(text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.send_friend_request(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.accept_friend_request(bigint) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.decline_friend_request(bigint) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.remove_crilo_friend(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crilo_award_friend_badges(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.crilo_friend_badge_trigger() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.search_crilo_players(text),
- public.send_friend_request(uuid),public.accept_friend_request(bigint),
+GRANT EXECUTE ON FUNCTION public.send_friend_request(uuid),public.accept_friend_request(bigint),
  public.decline_friend_request(bigint),public.remove_crilo_friend(uuid) TO authenticated;
 
 SELECT b.badge_key,b.name,b.description FROM public.badges b
