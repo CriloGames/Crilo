@@ -184,3 +184,10 @@
  .wheel-wrap{width:min(480px, 78vw, 55vh)}
 }
 @media (max-width:700px){.wheel-wrap{width:min(600px,88vw)}}
+
+/* Roaming ducks: interactive, gently bobbing companions */
+.creatures .roaming-duck{pointer-events:auto!important;cursor:pointer;touch-action:manipulation;border:0;background:transparent;padding:0;z-index:7}
+.creatures .roaming-duck svg{width:100%;height:100%;animation:none!important;transition:transform .3s ease;transform-origin:center}
+.creatures .roaming-duck.duck-quacking svg{animation:duck-quack-bob .35s ease-in-out!important}
+@keyframes duck-quack-bob{0%,100%{translate:0 0}45%{translate:0 -12px}70%{translate:0 3px}}
+@media(prefers-reduced-motion:reduce){.creatures .roaming-duck.duck-quacking svg{animation:none!important}}
