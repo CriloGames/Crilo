@@ -47,7 +47,7 @@ if(isTest){
 }else{
  $('message').textContent='Official Daily saved. See how you ranked.';
  officialRun={...payload,is_test:false};
- $('testRunBtn').classList.toggle('hidden',!profile?.is_owner);
+ $('testRunBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').disabled=true;
 }
 }
 function renderResult(r){
@@ -59,7 +59,7 @@ function renderResult(r){
  $('rarityOdds').textContent=r.explanation;
  $('statSpins').textContent=totalSpins;$('statUpgrades').textContent=upgrades;$('statDoubles').textContent=doubles;$('statDucks').textContent=ducks;$('statExtra').textContent=extraSpins;$('statBestRoll').textContent=fmt(bestRollPoints)
 }
-async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data}=await criloDB.from('daily_runs').select('score,spins,upgrades,doubles,ducks,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();officialRun=data||null;if(data){$('playedPanel').classList.remove('hidden');$('playedText').textContent=`You scored ${Number(data.score).toLocaleString()} this Daily.`;$('testRunBtn').classList.toggle('hidden',!profile?.is_owner);$('spinButton').classList.add('hidden');if(data.drawing){const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else beginRun()}
+async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data}=await criloDB.from('daily_runs').select('score,spins,upgrades,doubles,ducks,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();officialRun=data||null;if(data){$('playedPanel').classList.remove('hidden');$('playedText').textContent=`You scored ${Number(data.score).toLocaleString()} this Daily.`;$('testRunBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').disabled=true;$('spinButton').classList.add('hidden');if(data.drawing){const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else beginRun()}
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
