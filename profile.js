@@ -226,7 +226,14 @@ const individualBadgeArt=b=>{
  if(!drawing)return null;
  return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+drawing+'</svg></span>';
 };
-const badgeSymbol=b=>bespokeDuckIcon(b)||individualBadgeArt(b)||sceneArt(b);
+// Score Milestones: distinct silhouette and visual concept for every threshold.
+// No number stamps, reused base pictograms, or generated variations.
+const scoreIllustrations={"score_001":"<path d=\"M24 5v35M16 13l8-8 8 8M12 40h24\"/>","score_100":"<path d=\"M6 37h36M9 37V21l15-13 15 13v16M18 37V26h12v11\"/>","score_250":"<path d=\"M6 35q18-27 36 0M6 35h36M24 8v26M15 19l9 8 9-8\"/>","score_500":"<path d=\"M7 35h34M12 35V15h24v20M9 15h30M17 10h14M19 6h10\"/><path d=\"M18 22h12v7H18z\"/>","score_750":"<path d=\"m24 4 7 14 15 2-11 11 3 15-14-7-14 7 3-15L2 20l15-2Z\"/>","score_1000":"<path d=\"M10 42V6h28v36M5 42h38M16 14h6m5 0h5m-16 8h6m5 0h5m-16 8h6m5 0h5M21 42V35h7v7\"/>","score_1500":"<path d=\"M7 39 18 9l9 17 7-10 8 23ZM4 39h40M18 9l-5 17 5-3 4 3\"/>","score_2000":"<path d=\"M8 39V8h32v31M4 39h40M13 14h22M13 20h22M13 26h22M13 32h22\"/><path d=\"M18 8V3h12v5\"/>","score_3000":"<path d=\"M7 36q0-27 17-27t17 27M5 36h38M13 36V25m22 11V25M19 16l5 8 5-8\"/>","score_4000":"<path d=\"M5 39 24 6l19 33H5ZM14 39l10-18 10 18M24 6v15\"/>","score_5000":"<path d=\"M7 13 24 4l17 9v27H7zM12 19h24M12 26h24M12 33h24M19 13v27m10-27v27\"/>","score_7500":"<path d=\"M4 39 17 7l9 19 7-12 11 25ZM4 39h40M12 19l5 5 5-5M29 23l4 4 4-4\"/>","score_10000":"<path d=\"M6 42V12l18-9 18 9v30M4 42h40M12 17h24M12 24h24M12 31h24M18 42V36h12v6\"/>","score_15000":"<path d=\"M24 4 7 19l7 24h20l7-24L24 4ZM7 19h34M14 43l10-24 10 24M24 4v15\"/>","score_20000":"<path d=\"M5 40V14l10-9 10 9v26M25 40V9l9-5 9 5v31M4 40h40M10 21h10m-10 8h10m20-13h-9m9 9h-9m9 9h-9\"/>","score_30000":"<path d=\"M24 3 9 11v13c0 11 6 16 15 21 9-5 15-10 15-21V11Z\"/><path d=\"m16 24 6 6 12-14\"/>","score_50000":"<path d=\"M24 3 8 17v23h32V17ZM4 40h40M16 40V25h16v15M15 14h18M24 3v11\"/>","score_75000":"<path d=\"M7 41 12 7l12 13L36 7l5 34ZM5 41h38M12 7l6 34M36 7l-6 34M24 20v21\"/>","score_100000":"<path d=\"M24 3 5 14v20l19 11 19-11V14Z\"/><path d=\"M5 14 24 25l19-11M24 25v20M14 8l20 31M34 8 14 39\"/>","score_250000":"<path d=\"M24 3 37 10v14l8 7-8 7v7H11v-7l-8-7 8-7V10Z\"/><path d=\"m24 12 4 10 11 1-8 7 2 11-9-6-9 6 2-11-8-7 11-1Z\"/>"};
+const scoreBadgeIcon=b=>{
+ const art=scoreIllustrations[b.badge_key];if(!art)return null;
+ return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg></span>';
+};
+const badgeSymbol=b=>scoreBadgeIcon(b)||bespokeDuckIcon(b)||individualBadgeArt(b)||sceneArt(b);
 
 
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
