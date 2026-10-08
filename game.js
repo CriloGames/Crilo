@@ -9,7 +9,59 @@ function label(s){return s.type==='num'?fmt(s.base*multiplier):s.label}
 function drawDuckIcon(x,y,size){ctx.save();ctx.translate(x,y);ctx.strokeStyle='#17191e';ctx.lineWidth=Math.max(2,size*.08);ctx.fillStyle='#ffe06a';ctx.beginPath();ctx.ellipse(-size*.08,size*.08,size*.34,size*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(size*.22,-size*.13,size*.19,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#17191e';ctx.beginPath();ctx.arc(size*.28,-size*.17,size*.035,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff9d4d';ctx.beginPath();ctx.moveTo(size*.39,-size*.11);ctx.lineTo(size*.58,-size*.04);ctx.lineTo(size*.39,size*.01);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
 function drawWheel(){const w=wheel.width,c=w/2,r=c-12,N=segments.length,a=Math.PI*2/N;ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);segments.forEach((s,i)=>{const st=i*a-Math.PI/2,en=st+a;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();const ang=st+a/2,tx=Math.cos(ang)*r*.69,ty=Math.sin(ang)*r*.69;if(s.type==='duck')drawDuckIcon(tx,ty,Math.max(34,Math.min(58,360/N)));else{ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);ctx.fillStyle='#17191e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`1000 ${Math.max(17,Math.min(s.type!=='num'?27:36,310/N))}px system-ui`;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=5;ctx.strokeText(label(s),0,0);ctx.fillText(label(s),0,0);ctx.restore()}});ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle='#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();drawing.style.transform=drawMode==='spin'?('rotate('+rotation+'rad)'):'none'}
 function update(){ $('score').textContent=fmt(score);$('spins').textContent=spins;$('level').textContent='×'+fmt(multiplier);$('duckCount').textContent=ducks;drawWheel() }
-function sound(kind){if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;try{const A=window.AudioContext||window.webkitAudioContext,ac=sound.ac||(sound.ac=new A());if(kind==='tick'){const now=ac.currentTime;if(now-(sound.lastTick||0)<.065)return;sound.lastTick=now;const o=ac.createOscillator(),g=ac.createGain(),filter=ac.createBiquadFilter();o.type='triangle';o.frequency.setValueAtTime(950,now);o.frequency.exponentialRampToValueAtTime(480,now+.025);filter.type='lowpass';filter.frequency.value=1600;o.connect(filter);filter.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.0001,now);g.gain.linearRampToValueAtTime(.018,now+.003);g.gain.exponentialRampToValueAtTime(.0001,now+.035);o.start(now);o.stop(now+.04);return}const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);const map={num:660,double:820,upgrade:980,spins:740,duck:430};o.frequency.value=map[kind]||600;o.type=kind==='duck'?'square':'sine';g.gain.setValueAtTime(.055,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.09);o.start();o.stop(ac.currentTime+.1)}catch{}}
+function sound(kind){
+ if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;
+ try{
+  const A=window.AudioContext||window.webkitAudioContext,ac=sound.ac||(sound.ac=new A());
+  if(ac.state==='suspended')ac.resume().catch(()=>{});
+  const now=ac.currentTime;
+  // All sounds are synthesized locally; no downloads or external audio assets.
+  function note(freq,delay,duration,volume=.035,wave='sine',endFreq=freq){
+   const o=ac.createOscillator(),g=ac.createGain(),start=now+delay;
+   o.type=wave;o.frequency.setValueAtTime(freq,start);
+   if(endFreq!==freq)o.frequency.exponentialRampToValueAtTime(Math.max(30,endFreq),start+duration);
+   o.connect(g);g.connect(ac.destination);
+   g.gain.setValueAtTime(.0001,start);
+   g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),start+.008);
+   g.gain.exponentialRampToValueAtTime(.0001,start+duration);
+   o.start(start);o.stop(start+duration+.01);
+  }
+  if(kind==='tick'){
+   if(now-(sound.lastTick||0)<.065)return;
+   sound.lastTick=now;
+   note(950,0,.035,.018,'triangle',480);
+  }else if(kind==='num'){
+   note(560,0,.085,.024,'sine',680);
+  }else if(kind==='spins'){
+   // +2 spins: two buoyant, rising chimes.
+   note(587,0,.17,.045,'triangle');
+   note(784,.12,.24,.047,'sine');
+   note(1175,.24,.28,.018,'sine');
+  }else if(kind==='double'){
+   // Double: punchy low impact followed by a sparkling upward flourish.
+   note(220,0,.16,.065,'triangle',155);
+   note(523,.055,.19,.042,'triangle',659);
+   note(784,.17,.24,.045,'sine');
+   note(1047,.29,.32,.03,'sine');
+  }else if(kind==='upgrade'){
+   // Upgrade: the biggest victory sound, a rising five-note fanfare.
+   note(196,0,.25,.055,'triangle',147);
+   note(392,.045,.20,.045,'triangle');
+   note(523,.16,.22,.052,'triangle');
+   note(659,.28,.24,.05,'triangle');
+   note(784,.40,.28,.056,'sine');
+   note(1047,.54,.52,.052,'sine');
+   note(1568,.59,.48,.017,'sine');
+  }else if(kind==='duck'){
+   // Duck: playful two-part cartoon quack with a cheerful discovery jingle.
+   note(510,0,.105,.055,'sawtooth',335);
+   note(450,.115,.13,.048,'sawtooth',245);
+   note(659,.28,.19,.045,'triangle');
+   note(880,.43,.23,.043,'sine');
+   note(1175,.59,.35,.035,'sine');
+  }
+ }catch{}
+}
 function pop(text){const p=$('eventPop');p.textContent=text;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
 function addDuck(){ducks++;$('duckCount').textContent=ducks;DuckWorld.spawn()}
 
