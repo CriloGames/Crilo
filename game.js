@@ -27,7 +27,8 @@ results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(poi
 function lockDrawing(){if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 function spin(){if(spinning||spins<=0)return;if(!user){open('authModal');return}if(!profile){open('profileModal');return}if(!started)beginRun();lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
 function beginRun(){DuckWorld.clear();started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
-async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity(),drawingData=drawing.toDataURL('image/png');const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};let data=null,error=null;
+async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity(),drawingData=drawing.toDataURL('image/png');const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};let data=null,error=null;let priorBadges=null;
+if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
 if(isTest&&profile?.is_owner){
  {
   const response=await criloDB.rpc('crilo_save_owner_test_run',{p_run:payload});
@@ -46,11 +47,24 @@ if(isTest){
  $('replayTestBtn').classList.remove('hidden');
 }else{
  $('message').textContent='Official Daily saved. See how you ranked.';
+ if(priorBadges)await showNewBadges(priorBadges);
  officialRun={...payload,is_test:false};
  $('testRunBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').classList.toggle('hidden',!profile?.is_owner);$('ownerOfficialBtn').disabled=true;
 }
 }
+async function showNewBadges(prior){
+ const {data:earned,error}=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);
+ if(error)return;
+ const ids=(earned||[]).map(x=>x.badge_id).filter(id=>!prior.has(id));
+ if(!ids.length)return;
+ const {data:badges,error:badgeError}=await criloDB.from('badges').select('id,name,description').in('id',ids);
+ if(badgeError||!badges?.length)return;
+ $('newBadgeCount').textContent=badges.length+' NEW BADGE'+(badges.length===1?'':'S')+' UNLOCKED';
+ $('newBadgeList').innerHTML=badges.map(b=>'<div class="new-badge-item"><span class="new-badge-icon">★</span><div><strong>'+Crilo.esc(b.name)+'</strong><p>'+Crilo.esc(b.description||'')+'</p></div></div>').join('');
+ $('newBadgePanel').classList.remove('hidden');$('newBadgePanel').open=true;
+}
 function renderResult(r){
+ $('newBadgePanel').classList.add('hidden');$('newBadgePanel').open=false;
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
