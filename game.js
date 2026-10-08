@@ -25,7 +25,28 @@ if(s.type==='spins'){spins+=2;extraSpins+=2;pop('+2!');$('message').textContent=
 if(s.type==='duck'){spins++;addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';sound('duck')}
 results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});update();if(spins<=0)endRun()}
 function lockDrawing(){if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
-function spin(){if(spinning||spins<=0)return;if(!user){open('authModal');return}if(!profile){open('profileModal');return}if(!started)beginRun();lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
+async function spin(){if(spinning||spins<=0)return;
+ // Auth events can arrive after the wheel is ready, especially on a refreshed owner tab.
+ // Recheck the persisted session before telling a signed-in player to log in.
+ if(!user||!profile){
+  $('spinButton').disabled=true;
+  try{
+   const {data:sessionData}=await criloDB.auth.getSession();
+   const sessionUser=sessionData?.session?.user;
+   if(sessionUser){
+    user=sessionUser;
+    if(Crilo.profile?.id===user.id)profile=Crilo.profile;
+    if(!profile){
+     const {data:loadedProfile}=await criloDB.from('profiles').select('id,username,is_owner').eq('id',user.id).maybeSingle();
+     if(loadedProfile)profile=loadedProfile;
+    }
+   }
+  }catch(err){console.error('Could not restore sign-in for spin',err)}
+  $('spinButton').disabled=false;
+ }
+ if(!user){open('authModal');return}
+ if(!profile){open('profileModal');return}
+ if(!started)beginRun();lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
 function beginRun(){DuckWorld.clear();started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
 async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity(),drawingData=drawing.toDataURL('image/png');const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
