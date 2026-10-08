@@ -1,24 +1,27 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';let preview=false,previewReady=false;
 const fakeNames=['PixelPilot','LuckyDuck','WheelWizard','SpinDoctor','TinyComet','BlueJay','SevenStars','QuackAttack','MoonMoth','OrbitFox','DoodleCat','RollMaster'];
 function fakePeriod(n){const date=new Date(Date.now()-n*86400000);return Crilo.dailyPeriod(date)}
-function simulateRun(){
- let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'],score=0,spins=5,totalSpins=0,upgrades=0,doubles=0,ducks=0,multiplier=1;
- while(spins>0&&totalSpins<250){
-  spins--;totalSpins++;
-  const v=segments[Math.floor(Math.random()*segments.length)];
-  if(typeof v==='number')score+=v*multiplier;
-  else if(v==='double'){score*=2;spins++;doubles++}
-  else if(v==='upgrade'){multiplier*=3;spins++;upgrades++;const bases=[1,1,2,2,3,3,5,5,8,10];for(let j=0;j<4+Math.min(upgrades,8);j++)segments.push(bases[Math.floor(Math.random()*bases.length)])}
-  else if(v==='spins')spins+=2;
-  else if(v==='duck'){spins++;ducks++}
+// Deterministic sample runs, using the exact wheel event rules in game.js.
+function seededRandom(seed){let x=seed>>>0;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/4294967296}}
+function simulateRun(random){
+ let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'];
+ let score=0,spinsLeft=5,totalSpins=0,upgrades=0,doubles=0,ducks=0,extraSpins=0,multiplier=1,numbersLanded=0;
+ while(spinsLeft>0&&totalSpins<250){
+  spinsLeft--;totalSpins++;
+  const v=segments[Math.floor(random()*segments.length)];
+  if(typeof v==='number'){score+=v*multiplier;numbersLanded++}
+  else if(v==='double'){score*=2;spinsLeft++;doubles++}
+  else if(v==='upgrade'){multiplier*=3;spinsLeft++;upgrades++;const bases=[1,1,2,2,3,3,5,5,8,10];for(let j=0;j<4+Math.min(upgrades,8);j++)segments.push(bases[Math.floor(random()*bases.length)])}
+  else if(v==='spins'){spinsLeft+=2;extraSpins+=2}
+  else if(v==='duck'){spinsLeft++;ducks++}
  }
- return{score,spins:totalSpins,upgrades,doubles,ducks}
+ return{score,spins:totalSpins,upgrades,doubles,ducks,extra_spins:extraSpins,numbers_landed:numbersLanded}
 }
 function makePreview(){
- const rows=[];
- for(let i=0;i<24;i++){
-  const run=simulateRun();
-  rows.push({user_id:'preview-'+i,daily_period:fakePeriod(i%11),...run,drawing:null,rarity_odds:Math.max(1,Math.round(1+run.score/35)),rarity_label:'SIMULATED',created_at:new Date().toISOString()});
+ const random=seededRandom(20261007),rows=[];
+ for(let i=0;i<48;i++){
+  const run=simulateRun(random);
+  rows.push({user_id:'preview-'+i,daily_period:fakePeriod(i%14),...run,drawing:null,rarity_odds:null,rarity_label:null,created_at:new Date().toISOString()});
  }
  return rows;
 }
