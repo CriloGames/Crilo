@@ -413,3 +413,9 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .crilo-achievement-mark{font-size:10px;font-weight:900;letter-spacing:.035em;line-height:1.2;max-width:100%;white-space:nowrap}
 .featured-slot .crilo-achievement-symbol{min-height:52px}
 .featured-slot .crilo-achievement-art{font-size:27px}
+
+/* Thin, monochrome stroke icons; category header icons are not changed. */
+.badge-card .crilo-achievement-symbol,.featured-slot .crilo-achievement-symbol{display:flex;align-items:center;justify-content:center;width:48px;height:48px;min-height:48px;color:#181b20}
+.crilo-achievement-symbol svg{width:36px;height:36px;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+.badge-card.locked .crilo-achievement-symbol{color:#999}
+.featured-slot .crilo-achievement-symbol svg{width:34px;height:34px}
