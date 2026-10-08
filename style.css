@@ -21,3 +21,6 @@
 
 /* Interactive leaderboard artwork */
 .mini-wheel{width:62px;height:62px;flex:0 0 62px;border:5px solid #17191e;border-radius:50%;background:white;overflow:hidden;padding:0;cursor:pointer;display:grid;place-items:center}.mini-wheel img{width:100%;height:100%;object-fit:cover;border-radius:50%}.mini-wheel:focus-visible{outline:3px solid #658dff;outline-offset:3px}
+
+/* Leaderboard context and duck records */
+.best-description{font-size:13px;color:#777;margin:8px auto 12px;max-width:520px}.leader-tabs{display:flex;flex-wrap:wrap;gap:5px}.leader-tab{white-space:nowrap}.leader-score{white-space:nowrap}@media(max-width:640px){.leader-tabs{gap:2px}.leader-tab{font-size:12px;padding:11px 10px}.best-description{padding:0 12px}}
