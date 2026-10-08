@@ -52,3 +52,19 @@
 .badge-set-items{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;padding:4px 18px 18px}
 .badge-set-items .badge-card{min-width:0}
 @media(max-width:540px){.badge-set-head{padding:15px;grid-template-columns:32px minmax(0,1fr) 55px 14px;gap:8px}.badge-set-label strong{font-size:14px}.badge-set-label small{font-size:11px}.badge-set-items{grid-template-columns:repeat(auto-fit,minmax(145px,1fr));padding:4px 12px 12px}}
+
+/* Score rarity is a fixed, transparent tier based on final score. */
+.result[data-rarity="common"]{--rarity-accent:#737985;--rarity-bg:#f4f5f6}
+.result[data-rarity="uncommon"]{--rarity-accent:#29865c;--rarity-bg:#e5f7eb}
+.result[data-rarity="rare"]{--rarity-accent:#237bc5;--rarity-bg:#e4f1ff}
+.result[data-rarity="epic"]{--rarity-accent:#8d4bc9;--rarity-bg:#f2e7ff}
+.result[data-rarity="legendary"]{--rarity-accent:#d48a13;--rarity-bg:#fff3cf}
+.result[data-rarity="mythic"]{--rarity-accent:#c13b78;--rarity-bg:#ffe4f1}
+.result[data-rarity] .rarity-card{border:2px solid var(--rarity-accent);background:var(--rarity-bg);border-radius:18px;padding:17px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center}
+.result[data-rarity] #rarityLabel{color:var(--rarity-accent);font-weight:950}
+.result[data-rarity] #rarityOdds{flex-basis:100%;text-align:center;color:#555;line-height:1.5}
+.result[data-rarity] .final-score{color:var(--rarity-accent)}
+.creatures{position:fixed!important;inset:0!important;z-index:18!important;overflow:hidden!important;pointer-events:none!important}
+.creatures .roaming-duck{position:absolute!important;top:0!important;left:0!important;bottom:auto!important;width:70px;height:76px;pointer-events:none!important;animation:none!important;will-change:transform}
+.creatures .roaming-duck svg{animation:duck-wiggle 2.4s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.creatures .roaming-duck svg{animation:none}}
