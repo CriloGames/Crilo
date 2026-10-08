@@ -71,6 +71,20 @@
   window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateFriendBell()});
 
+  // Escape closes the topmost visible popup, without affecting the page underneath.
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape'||event.defaultPrevented)return;
+    const visible=[...document.querySelectorAll('.modal-backdrop:not(.hidden)')];
+    if(visible.length){
+      const top=visible[visible.length-1];
+      top.classList.add('hidden');
+      event.preventDefault();
+      return;
+    }
+    const bell=document.getElementById('friendBellPanel');
+    if(bell&&!bell.classList.contains('hidden')){bell.classList.add('hidden');event.preventDefault();}
+  });
+
   function renderAccount(){
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
