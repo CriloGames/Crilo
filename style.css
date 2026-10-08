@@ -214,3 +214,13 @@
 .played-panel .primary{margin-left:0}
 @media(max-width:700px){.played-panel{justify-content:center;align-items:center;padding:20px 16px}.played-panel>div:nth-child(2){text-align:center}.played-panel .primary{margin-left:0}}
 @media(max-width:440px){.played-panel>div:nth-child(2){flex-basis:calc(100% - 70px);text-align:left}.played-panel>a.small-btn{width:100%;text-align:center}}
+
+/* Friendly post-run invitation for guests. */
+.guest-finish-card{max-width:440px;text-align:center;padding:38px 32px 26px}
+.guest-finish-card h2{font-size:clamp(28px,5vw,36px);line-height:1.12;margin:14px 0}
+.guest-finish-card>p{font-size:15px;line-height:1.55;color:#626773}
+.guest-finish-card .guest-finish-note{font-size:12px;color:#858993;margin:15px 0 22px}
+.guest-finish-card .primary{padding:15px 20px;border-radius:13px}
+.guest-finish-dismiss{display:block;margin:14px auto 0;border:0;background:transparent;color:#727782;cursor:pointer;font-size:13px;font-weight:700;padding:8px}
+.guest-finish-dismiss:hover{text-decoration:underline}
+html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--text)}
