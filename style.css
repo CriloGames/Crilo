@@ -191,3 +191,10 @@
 .creatures .roaming-duck.duck-quacking svg{animation:duck-quack-bob .35s ease-in-out!important}
 @keyframes duck-quack-bob{0%,100%{translate:0 0}45%{translate:0 -12px}70%{translate:0 3px}}
 @media(prefers-reduced-motion:reduce){.creatures .roaming-duck.duck-quacking svg{animation:none!important}}
+
+/* Keep related drawing tools together across wrapped rows. */
+.draw-actions{flex-wrap:wrap;justify-content:flex-end;gap:9px}
+.draw-tool-group{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.draw-tool-group .small-btn{white-space:nowrap}
+.draw-panel{max-width:980px;flex-wrap:wrap}
+@media(max-width:700px){.draw-panel{align-items:flex-start}.draw-actions{width:100%;justify-content:flex-start}}
