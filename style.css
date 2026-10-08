@@ -172,3 +172,8 @@
 .duck-unlock-modal h2{font-size:30px;margin:4px 0}
 .duck-unlock-modal h3{font-size:16px;margin:20px 0 8px}
 .duck-unlock-modal p{color:#746b61;line-height:1.5}
+
+/* Guest play conversion without saving anonymous runs */
+.guest-save-notice{margin:20px auto 8px;text-align:center}
+.guest-save-notice button{background:none;border:0;padding:7px;color:#657083;text-decoration:underline;text-underline-offset:3px;font:inherit;font-weight:700;cursor:pointer}
+.guest-save-notice button:hover{color:#252b35}
