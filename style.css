@@ -205,3 +205,12 @@
 .draw-actions{width:100%;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px}
 .draw-tool-group{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
 @media(max-width:700px){.draw-actions{justify-content:center}}
+
+/* Balanced completion state for normal Daily players; owner buttons still wrap. */
+.played-panel{max-width:590px;justify-content:center;flex-wrap:wrap;gap:14px 18px;padding:22px 24px;text-align:center}
+.played-panel>div:nth-child(2){flex:0 1 auto;min-width:0;text-align:left}
+.played-panel .played-check{flex:0 0 44px;width:44px;height:44px}
+.played-panel>a.small-btn{margin-left:0;white-space:nowrap}
+.played-panel .primary{margin-left:0}
+@media(max-width:700px){.played-panel{justify-content:center;align-items:center;padding:20px 16px}.played-panel>div:nth-child(2){text-align:center}.played-panel .primary{margin-left:0}}
+@media(max-width:440px){.played-panel>div:nth-child(2){flex-basis:calc(100% - 70px);text-align:left}.played-panel>a.small-btn{width:100%;text-align:center}}
