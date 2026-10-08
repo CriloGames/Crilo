@@ -224,3 +224,8 @@
 .guest-finish-dismiss{display:block;margin:14px auto 0;border:0;background:transparent;color:#727782;cursor:pointer;font-size:13px;font-weight:700;padding:8px}
 .guest-finish-dismiss:hover{text-decoration:underline}
 html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--text)}
+
+/* Monochrome achievement illustrations replace bright platform emoji. */
+.crilo-badge-svg{display:block;width:1.1em;height:1.1em;color:var(--text,#17191e);flex-shrink:0}
+.badge-set-icon .crilo-badge-svg{width:32px;height:32px;margin:auto}
+.badge-icon .crilo-badge-svg{width:25px;height:25px;margin:auto}
