@@ -352,3 +352,7 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 /* Duck buttons are visually just ducks: suppress native mobile tap flash and desktop focus rectangles. */
 .creatures .roaming-duck,.creatures .roaming-duck:hover,.creatures .roaming-duck:active,.creatures .roaming-duck:focus,.creatures .roaming-duck:focus-visible{background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;-webkit-tap-highlight-color:transparent!important;-webkit-appearance:none;appearance:none}
 .creatures .roaming-duck svg{-webkit-tap-highlight-color:transparent;pointer-events:none}
+
+/* Quiet but readable safety reminders beside both drawing tools. */
+.draw-panel .drawing-safety-note{display:block;margin-top:7px;color:#8a6262;font-size:11px;line-height:1.45;font-weight:500}
+.pixel-studio-card .pixel-safety-note{margin:9px 0 0;color:#8a6262;font-size:12px;line-height:1.45;text-align:center}
