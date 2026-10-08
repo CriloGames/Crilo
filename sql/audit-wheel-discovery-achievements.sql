@@ -30,20 +30,23 @@ WITH official AS (
  SELECT r.user_id,r.id,r.daily_period,r.score,r.spins,r.ducks,r.upgrades,
         coalesce(r.results,'[]'::jsonb) AS results
  FROM public.daily_runs r WHERE r.is_test=false
+), run_flags AS (
+ SELECT o.*,
+   NOT EXISTS(SELECT 1 FROM jsonb_array_elements(o.results) x WHERE x->>'type'<>'num') AS numbers_only,
+   (SELECT count(*) FROM jsonb_array_elements(o.results) x WHERE x->>'type'='duck') AS result_ducks,
+   (SELECT count(*) FROM jsonb_array_elements(o.results) x WHERE x->>'type'='num') AS result_numbers
+ FROM official o
 ), conditions AS (
  SELECT 'wheel_against_odds'::text badge_key,user_id,
-   bool_or(ducks>=5 AND upgrades=0) eligible FROM official GROUP BY user_id
- UNION ALL SELECT 'wheel_long_way',user_id,bool_or(spins>=20) FROM official GROUP BY user_id
- UNION ALL SELECT 'wheel_no_ducks',user_id,bool_or(ducks=0) FROM official GROUP BY user_id
+   bool_or(ducks>=5 AND upgrades=0) eligible FROM run_flags GROUP BY user_id
+ UNION ALL SELECT 'wheel_long_way',user_id,bool_or(spins>=20) FROM run_flags GROUP BY user_id
+ UNION ALL SELECT 'wheel_no_ducks',user_id,bool_or(ducks=0) FROM run_flags GROUP BY user_id
  UNION ALL SELECT 'wheel_minimalist',user_id,
-   bool_or(spins=5 AND jsonb_array_length(results)=5 AND
-     NOT EXISTS(SELECT 1 FROM jsonb_array_elements(results) x WHERE x->>'type'<>'num'))
- FROM official GROUP BY user_id
+   bool_or(spins=5 AND jsonb_array_length(results)=5 AND numbers_only)
+ FROM run_flags GROUP BY user_id
  UNION ALL SELECT 'wheel_duck_dynasty',user_id,
-   bool_or(jsonb_array_length(results)>0 AND
-     (SELECT count(*) FROM jsonb_array_elements(results) x WHERE x->>'type'='duck') >
-     (SELECT count(*) FROM jsonb_array_elements(results) x WHERE x->>'type'='num'))
- FROM official GROUP BY user_id
+   bool_or(jsonb_array_length(results)>0 AND result_ducks>result_numbers)
+ FROM run_flags GROUP BY user_id
 ), actual AS (
  SELECT b.badge_key,ub.user_id FROM public.user_badges ub
  JOIN public.badges b ON b.id=ub.badge_id
