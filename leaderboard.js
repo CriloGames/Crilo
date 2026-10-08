@@ -1,7 +1,27 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';let preview=false,previewReady=false;
 const fakeNames=['PixelPilot','LuckyDuck','WheelWizard','SpinDoctor','TinyComet','BlueJay','SevenStars','QuackAttack','MoonMoth','OrbitFox','DoodleCat','RollMaster'];
 function fakePeriod(n){const date=new Date(Date.now()-n*86400000);return Crilo.dailyPeriod(date)}
-function makePreview(){const rows=[];for(let i=0;i<24;i++){const days=i%11,score=[8500,8500,3100,1800,900,540,250,100,50,18,0,420][i%12]+Math.floor(i/12)*3;rows.push({user_id:'preview-'+i,daily_period:fakePeriod(days),score,spins:5+i%12,upgrades:i%5,doubles:i%4,ducks:i%7,drawing:null,rarity_odds:[2000,2000,300,80,15,2,1][i%7],rarity_label:'PREVIEW',created_at:new Date().toISOString()})}return rows}
+function simulateRun(){
+ let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'],score=0,spins=5,totalSpins=0,upgrades=0,doubles=0,ducks=0,multiplier=1;
+ while(spins>0&&totalSpins<250){
+  spins--;totalSpins++;
+  const v=segments[Math.floor(Math.random()*segments.length)];
+  if(typeof v==='number')score+=v*multiplier;
+  else if(v==='double'){score*=2;spins++;doubles++}
+  else if(v==='upgrade'){multiplier*=3;spins++;upgrades++;const bases=[1,1,2,2,3,3,5,5,8,10];for(let j=0;j<4+Math.min(upgrades,8);j++)segments.push(bases[Math.floor(Math.random()*bases.length)])}
+  else if(v==='spins')spins+=2;
+  else if(v==='duck'){spins++;ducks++}
+ }
+ return{score,spins:totalSpins,upgrades,doubles,ducks}
+}
+function makePreview(){
+ const rows=[];
+ for(let i=0;i<24;i++){
+  const run=simulateRun();
+  rows.push({user_id:'preview-'+i,daily_period:fakePeriod(i%11),...run,drawing:null,rarity_odds:Math.max(1,Math.round(1+run.score/35)),rarity_label:'SIMULATED',created_at:new Date().toISOString()});
+ }
+ return rows;
+}
 const previewRows=makePreview();
 const previewProfiles=new Map(previewRows.map((r,i)=>[r.user_id,{username:fakeNames[i%fakeNames.length]+(i>=12?' '+(i+1):''),name_color:['#2763a1','#b03f70','#3c825b','#a35d2c'][i%4]}]));
 function previewRender(){let rows=previewRows.filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).slice();if(tab==='records')rows.sort((a,b)=>b.rarity_odds-a.rarity_odds||b.score-a.score);else if(tab==='ducks')rows.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);else rows.sort((a,b)=>b.score-a.score||a.user_id.localeCompare(b.user_id));render(rows,previewProfiles)}
