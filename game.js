@@ -16,27 +16,7 @@ function addDuck(){ducks++;DuckWorld.spawn()}
 function bump(){const w=$('wheelWrap');w.classList.remove('upgrade-bump');void w.offsetWidth;w.classList.add('upgrade-bump')}
 function addNumbers(){const count=4+Math.min(upgrades,8),bases=[1,1,2,2,3,3,5,5,8,10];for(let i=0;i<count;i++)segments.push({type:'num',base:bases[Math.floor(Math.random()*bases.length)]})}
 function outcomeProbability(s){if(s.type==='num')return segments.filter(x=>x.type==='num'&&x.base===s.base).length/segments.length;return segments.filter(x=>x.type===s.type).length/segments.length}
-function rarity(){
- // Monte Carlo comparison against actual wheel rules; a score percentile, not exact run-sequence odds.
- const trials=30000;let hits=0;
- for(let k=0;k<trials;k++){
-  let left=5,sc=0,m=1,up=0,steps=0;
-  const seg=[1,1,1,2,2,3,5,'double','upgrade','spins','duck'];
-  while(left>0&&steps++<250){
-   left--;const v=seg[Math.floor(Math.random()*seg.length)];
-   if(typeof v==='number')sc+=v*m;
-   else if(v==='double'){sc*=2;left++}
-   else if(v==='upgrade'){m*=3;left++;up++;const bases=[1,1,2,2,3,3,5,5,8,10];for(let i=0;i<4+Math.min(up,8);i++)seg.push(bases[Math.floor(Math.random()*bases.length)])}
-   else if(v==='spins')left+=2;
-   else left++;
-  }
-  if(sc>=score)hits++;
- }
- const probability=hits/trials,odds=hits?Math.max(1,Math.round(trials/hits)):null;
- const tiers=[[10000,'MYTHIC','mythic'],[2000,'LEGENDARY','legendary'],[500,'EPIC','epic'],[100,'RARE','rare'],[25,'UNCOMMON','uncommon'],[0,'COMMON','common']];
- const tier=tiers.find(([minimum])=>score>=minimum);
- return{odds,label:tier[1],color:tier[2],probability,hits,trials}
-}
+function rarity(){return CriloRarity.classify(score)}
 function recordBest(points,labelText){if(points>bestRollPoints){bestRollPoints=Math.round(points);bestRollLabel=labelText}}
 function resolve(s){const p=outcomeProbability(s);runProbability*=p;let points=0;if(s.type==='num'){points=s.base*multiplier;score+=points;numbersLanded++;recordBest(points,'+'+fmt(points));$('message').textContent='+'+fmt(points);sound('num')}
 if(s.type==='double'){points=score;score*=2;spins++;doubles++;recordBest(points,'×2');pop('×2!');$('message').textContent='DOUBLE — score ×2 and this spin is free.';sound('double')}
@@ -54,7 +34,7 @@ function renderResult(r){
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
  $('finalScore').textContent=fmt(score);
  $('rarityLabel').textContent=r.label;
- $('rarityOdds').textContent=r.hits===0?'Fewer than 1 in '+r.trials.toLocaleString()+' simulations reached this score':'About 1 in '+Number(r.odds).toLocaleString()+' simulations reached this score';
+ $('rarityOdds').textContent=r.explanation;
  $('statSpins').textContent=totalSpins;$('statUpgrades').textContent=upgrades;$('statDoubles').textContent=doubles;$('statDucks').textContent=ducks;$('statExtra').textContent=extraSpins;$('statBestRoll').textContent=fmt(bestRollPoints)
 }
 async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data}=await criloDB.from('daily_runs').select('score,spins,upgrades,doubles,ducks,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();officialRun=data||null;if(data){$('playedPanel').classList.remove('hidden');$('playedText').textContent=`You scored ${Number(data.score).toLocaleString()} this Daily.`;$('testRunBtn').classList.toggle('hidden',!profile?.is_owner);$('spinButton').classList.add('hidden');if(data.drawing){const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else beginRun()}
