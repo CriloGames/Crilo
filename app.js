@@ -52,6 +52,24 @@
     }));
   }
 
+  // Pending friend requests: lightweight in-site notifications on every page.
+  let bellTimer=null;
+  async function updateFriendBell(){
+    const host=document.querySelector('.header-actions');
+    if(!host)return;
+    let wrap=document.getElementById('friendBellWrap');
+    if(!wrap){wrap=document.createElement('div');wrap.id='friendBellWrap';wrap.style.cssText='position:relative;display:none';wrap.innerHTML='<button id="friendBellBtn" type="button" aria-label="Friend requests" title="Friend requests" style="position:relative;width:38px;height:38px;border-radius:50%;border:1px solid #ddd;background:white;cursor:pointer;font-size:19px">🔔<span id="friendBellCount" style="display:none;position:absolute;top:-5px;right:-7px;background:#df3030;color:white;border-radius:20px;padding:2px 5px;font-size:10px;font-weight:900"></span></button><div id="friendBellPanel" class="hidden" style="position:absolute;right:0;top:45px;width:260px;max-width:85vw;padding:16px;background:white;border:1px solid #ddd;border-radius:14px;box-shadow:0 12px 28px #0002;z-index:50"></div>';host.insertBefore(wrap,host.firstChild);document.getElementById('friendBellBtn').addEventListener('click',()=>document.getElementById('friendBellPanel').classList.toggle('hidden'));}
+    wrap.style.display=Crilo.user?'block':'none';
+    if(!Crilo.user)return;
+    const {data,error}=await criloDB.from('friend_requests').select('id,sender_id').eq('receiver_id',Crilo.user.id).eq('status','pending');
+    if(error){console.warn('Friend notifications:',error.message);return}
+    const count=(data||[]).length,indicator=document.getElementById('friendBellCount'),panel=document.getElementById('friendBellPanel');
+    indicator.style.display=count?'inline':'none';indicator.textContent=count>9?'9+':String(count);
+    panel.innerHTML=count?'<strong>'+count+' pending friend request'+(count===1?'':'s')+'</strong><p style="margin:10px 0">Someone wants to be your friend!</p><a href="friends.html" style="color:#17191e;font-weight:800">View requests →</a>':'<strong>Notifications</strong><p style="color:#777;margin-bottom:0">No new friend requests.</p>';
+  }
+  window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateFriendBell()});
+
   function renderAccount(){
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
