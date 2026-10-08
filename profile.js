@@ -51,7 +51,105 @@ const bespokeDuckIcon=b=>{
  const art=duckMilestoneArt[b.badge_key];if(!art)return null;
  return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'</svg></span>';
 };
-const badgeSymbol=b=>bespokeDuckIcon(b)||'<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><i data-lucide="'+assignedIcons.get(b.id)+'" aria-hidden="true"></i></span>';
+// Every badge is illustrated from its actual requirement and name, using a
+// semantic scene rather than selecting the next unrelated icon in a pool.
+const sceneIcon=(name,x=12,y=12,size=24)=>'<svg x="'+x+'" y="'+y+'" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><use href="#crilo-line-'+name+'"/></svg>';
+const lineArt={
+ duck:'<path d="M3 15c0-4 4-6 8-5 0-5 3-7 6-6 3 1 4 3 3 6l3 2-4 2c-1 5-5 7-10 7-4 0-6-2-6-6Z"/><circle cx="17" cy="8" r="1" fill="currentColor" stroke="none"/><path d="m4 14 5 2 4-1"/>',
+ wheel:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7m0 4v7M3 12h7m4 0h7m-15-6 5 5m2 2 5 5m0-12-5 5m-2 2-5 5"/>',
+ points:'<path d="M4 20V11h4v9M10 20V6h4v14M16 20V3h4v17M2 21h20"/>',
+ up:'<path d="M12 21V4m-7 7 7-7 7 7M4 21h16"/>',
+ double:'<path d="M3 6h12l-4-4m4 4-4 4M21 18H9l4-4m-4 4 4 4M3 18h3M18 6h3"/>',
+ spins:'<path d="M20 11a8 8 0 1 0-3 7M20 4v7h-7"/><path d="M12 7v10m-5-5h10"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3"/>',
+ calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M8 15l2 2 5-5"/>',
+ rank:'<path d="M4 21v-8h5v8m0 0V7h6v14m0 0v-5h5v5M2 21h20"/><path d="m12 2 1 2 2 .4-1.5 1.3.4 2L12 6.7l-2 1 .4-2L9 4.4l2-.4Z"/>',
+ friend:'<circle cx="8" cy="7" r="3"/><circle cx="17" cy="8" r="2.5"/><path d="M2 21v-3c0-5 12-5 12 0v3M15 15c5-1 7 2 7 5v1"/>',
+ secret:'<path d="M4 10V7a8 8 0 0 1 16 0v3M4 10h16v12H4z"/><path d="M12 14v4"/><circle cx="12" cy="13" r="1"/>',
+ rarity:'<path d="m7 3 10 0 5 7-10 12L2 10Z"/><path d="M2 10h20M7 3l5 7 5-7M12 10v12"/>',
+ target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+ trophy:'<path d="M6 3h12v9a6 6 0 0 1-12 0V3ZM6 6H3v4c0 4 3 5 5 5m10-9h3v4c0 4-3 5-5 5M12 18v3m-5 0h10"/>',
+ pen:'<path d="m4 20 5-1 12-12-4-4L5 15l-1 5ZM14 6l4 4M4 22h17"/>',
+ sequence:'<path d="M4 7h16m-16 5h16m-16 5h16M7 4l-3 3 3 3m10-1 3 3-3 3"/>',
+ mystery:'<path d="M8 9a4 4 0 1 1 7 3c-2 1-3 2-3 4M12 20h.01"/><circle cx="12" cy="12" r="10"/>',
+};
+const semanticBase=b=>{
+ const k=b.badge_key||'',t=(b.name+' '+b.description).toLowerCase();
+ if(k.startsWith('duck_')||/duck|quack|pond/.test(t))return 'duck';
+ if(k.startsWith('upgrade_')||/upgrade/.test(t))return 'up';
+ if(k.startsWith('double_')||/doubl|twice|×2/.test(t))return 'double';
+ if(k.startsWith('spinplus_')||k.startsWith('spins_')||/extra spin/.test(t))return 'spins';
+ if(k.startsWith('score_')||/score|points/.test(t))return 'points';
+ if(k.startsWith('rank_')||/leaderboard|rank|place|podium/.test(t))return 'rank';
+ if(k.startsWith('rarity_')||/rarity|rare|odds|mythic/.test(t))return 'rarity';
+ if(k.startsWith('daily_')||k.startsWith('runs_')||/daily|consecutive day|streak/.test(t))return 'calendar';
+ if(k.startsWith('social_')||/friend/.test(t))return 'friend';
+ if(/draw|paint|art/.test(t))return 'pen';
+ if(k.startsWith('seq_')||/sequence|consecutive spin|in a row/.test(t))return 'sequence';
+ if(/clock|minute|time/.test(t))return 'clock';
+ if(/match|same|exact|perfect|mirror/.test(t))return 'target';
+ if(k.startsWith('secret_')||k.startsWith('wheel_'))return 'mystery';
+ return 'trophy';
+};
+const semanticAccent=b=>{
+ const k=b.badge_key||'',t=(b.name+' '+b.description).toLowerCase();
+ if(/party|celebrat/.test(t))return 'party';
+ if(/army|soldier|battle/.test(t))return 'shield';
+ if(/flock|migration/.test(t))return 'flight';
+ if(/first|begin|start/.test(t))return 'start';
+ if(/last|final|end/.test(t))return 'finish';
+ if(/zero|nothing|blank|none|no /.test(t))return 'empty';
+ if(/consecutive|streak|row|repeat/.test(t))return 'streak';
+ if(/friend|together|social/.test(t))return 'friends';
+ if(/lucky|odds|chance|rare/.test(t))return 'luck';
+ if(/win|champion|leader|top/.test(t))return 'win';
+ if(/doubl|twice/.test(t))return 'times';
+ if(/upgrade|increase|rise|more/.test(t))return 'rise';
+ if(/mirror|reverse|palindrome/.test(t))return 'mirror';
+ if(/clock|time|minute/.test(t))return 'time';
+ if(/draw|picture|paint/.test(t))return 'drawing';
+ if(/collection|collector|all|every/.test(t))return 'collect';
+ if(/secret|hidden|mystery/.test(t))return 'hidden';
+ return 'mark';
+};
+const accentArt={
+ party:'<path d="m28 12 8-9 5 12-13-3ZM8 8l2-3m29 19 4-2M6 27l-3 3M36 35l4 4"/><circle cx="39" cy="5" r="1.5"/>',
+ shield:'<path d="m32 2 11 5v11c0 7-6 11-11 14-5-3-11-7-11-14V7Z"/>',
+ flight:'<path d="M4 30q11-18 24-11t17-12M3 37q14-11 25-2t17-1"/>',
+ start:'<path d="M6 3v39M7 5h18l-5 7 5 7H7"/>',
+ finish:'<path d="M40 4v39M22 6h18v13H22zM23 10h6m4 0h6m-12 5h7"/>',
+ empty:'<circle cx="34" cy="12" r="10"/><path d="m27 19 14-14"/>',
+ streak:'<path d="M27 38c-9-6-5-14 0-19 0 5 5 6 5 0 8 9 10 17 1 20-3 1-5 0-6-1Z"/>',
+ friends:'<circle cx="32" cy="10" r="5"/><circle cx="41" cy="13" r="4"/><path d="M23 29v-5c0-9 18-9 18 0v5"/>',
+ luck:'<path d="M32 5c-9-6-13 6-5 11-9 3-3 15 5 9 7 7 15-2 8-9 7-8-1-16-8-11Z"/>',
+ win:'<path d="M26 3h16v12c0 12-16 12-16 0V3ZM34 26v7m-7 0h14"/>',
+ times:'<path d="m26 7 15 15m0-15L26 22"/>',
+ rise:'<path d="M24 24 42 6M32 6h10v10"/>',
+ mirror:'<path d="M33 3v36m-8-28 5-5m-5 18 5 5m11-18-5-5m5 18-5 5"/>',
+ time:'<circle cx="33" cy="14" r="11"/><path d="M33 7v7l5 3"/>',
+ drawing:'<path d="m27 29 12-20 5 4-12 20-7 3Z"/>',
+ collect:'<path d="M24 8h20v28H24zM28 13h12M28 20h12M28 27h12"/>',
+ hidden:'<path d="M26 13q8-9 17 0-9 9-17 0Z"/><circle cx="35" cy="13" r="3"/>',
+ mark:'<path d="m28 8 4-5 4 5 6 2-6 3-4 6-4-6-6-3Z"/>'
+};
+const sceneLabel=b=>{
+ const k=b.badge_key||'',n=k.match(/_(\d+)$/);
+ if(n)return n[1];
+ if(/404|777|1337/.test(k))return k.split('_').pop();
+ return '';
+};
+const sceneArt=b=>{
+ const base=semanticBase(b),accent=semanticAccent(b);
+ const id=b.badge_key||b.name;
+ // Custom duck milestones are drawn separately, above.
+ const art='<svg x="3" y="8" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">'+lineArt[base]+'</svg>';
+ const marker=accentArt[accent];
+ const label=sceneLabel(b);
+ const extra=label?'<rect x="25" y="29" width="21" height="14" rx="5" fill="white" stroke="currentColor" stroke-width="1.5"/><text x="35.5" y="38.5" font-size="'+(label.length>4?6:8)+'" text-anchor="middle" fill="currentColor" stroke="none" font-family="system-ui" font-weight="700">'+label+'</text>':'';
+ return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'<g transform="translate(19 0) scale(.58)">'+marker+'</g>'+extra+'</svg></span>';
+};
+const badgeSymbol=b=>bespokeDuckIcon(b)||sceneArt(b);
+
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
 
 async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,account_code').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,is_secret,sort_order').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(5)]);if(!p){$('profileName').textContent='Player not found';return}$('profileName').textContent=p.username;$('profileName').style.color=p.name_color||'';$('avatar').textContent=(p.username||'C')[0].toUpperCase();$('profileCode').textContent=target===Crilo.user?.id?`Account code: ${p.account_code||'—'}`:'Crilo player';const s=metricsError?(stats?.[0]||{}):(metrics||{});
