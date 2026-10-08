@@ -3,6 +3,18 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   window.Crilo = { $, esc, user:null, profile:null };
 
+  // Client-side feedback only; the Supabase trigger is the authoritative guard.
+  window.Crilo.validateUsername = (value) => {
+    const name = String(value || '').trim();
+    if(!/^[A-Za-z0-9_]{2,20}$/.test(name)) return 'Use 2–20 letters, numbers, or underscores.';
+    const normalized = name.toLowerCase().replace(/_/g, '').replace(/0/g, 'o').replace(/1/g, 'i').replace(/3/g, 'e').replace(/4/g, 'a').replace(/5/g, 's').replace(/7/g, 't');
+    const reserved = /^(admin|administrator|mod|moderator|support|helpdesk|staff|official|crilo|crilogames|owner|system|security|developer|devteam|verified|supabase)$/;
+    const blocked = /(fuck|shit|bitch|cunt|nigg|fagg|retard|nazi|porn|rape|rapist|kike|spic|chink|whore|slut|dick|pussy|cock|penis|vagina|sexoffender)/;
+    if(reserved.test(normalized)) return 'That username is reserved.';
+    if(blocked.test(normalized)) return 'Choose a more appropriate username.';
+    return null;
+  };
+
   function applyTheme(theme){
     document.documentElement.dataset.theme = theme === 'dark' ? 'dark' : 'light';
     localStorage.setItem('crilo_theme', theme === 'dark' ? 'dark' : 'light');
