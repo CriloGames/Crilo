@@ -15,14 +15,18 @@ function sound(kind){
   const A=window.AudioContext||window.webkitAudioContext,ac=sound.ac||(sound.ac=new A());
   if(ac.state==='suspended')ac.resume().catch(()=>{});
   const now=ac.currentTime;
+  // Balance perceived loudness by event; quieter wheel ticks get a lift.
+  const levels={tick:3.0,num:2.1,spins:1.3,double:1.05,upgrade:.84,duck:1};
+  const level=levels[kind]||1;
+  const limiter=sound.limiter||(sound.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
   // All sounds are synthesized locally; no downloads or external audio assets.
   function note(freq,delay,duration,volume=.035,wave='sine',endFreq=freq){
    const o=ac.createOscillator(),g=ac.createGain(),start=now+delay;
    o.type=wave;o.frequency.setValueAtTime(freq,start);
    if(endFreq!==freq)o.frequency.exponentialRampToValueAtTime(Math.max(30,endFreq),start+duration);
-   o.connect(g);g.connect(ac.destination);
+   o.connect(g);g.connect(limiter);
    g.gain.setValueAtTime(.0001,start);
-   g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),start+.008);
+   g.gain.exponentialRampToValueAtTime(Math.min(.13,Math.max(.0002,volume*level)),start+.008);
    g.gain.exponentialRampToValueAtTime(.0001,start+duration);
    o.start(start);o.stop(start+duration+.01);
   }
