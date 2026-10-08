@@ -148,7 +148,86 @@ const sceneArt=b=>{
  const extra=label?'<rect x="25" y="29" width="21" height="14" rx="5" fill="white" stroke="currentColor" stroke-width="1.5"/><text x="35.5" y="38.5" font-size="'+(label.length>4?6:8)+'" text-anchor="middle" fill="currentColor" stroke="none" font-family="system-ui" font-weight="700">'+label+'</text>':'';
  return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+art+'<g transform="translate(19 0) scale(.58)">'+marker+'</g>'+extra+'</svg></span>';
 };
-const badgeSymbol=b=>bespokeDuckIcon(b)||sceneArt(b);
+// Individually composed line illustrations for named achievements.
+// Unlike the old system, these scenes do not use category glyphs or numerical stamps.
+const drawnScenes={
+ duck_first:'<path d="M8 30q4-20 17-20t15 20M8 30h32M16 23l4 4 4-4 4 4 4-4"/><path d="M20 9q4-6 8 0"/>',
+ duck_last:'<path d="M5 6h17l-5 6 5 6H5zM5 6v35"/>'+duckDrawing(19,21,.58),
+ duck_back2:duckDrawing(0,13,.56)+duckDrawing(20,13,.56)+'<path d="m13 8 6-5 6 5"/>',
+ duck_sandwich:'<path d="M5 8q19-12 38 0l-2 5H7ZM6 32q18 9 36 0l-2 6H8Z"/>'+duckDrawing(10,12,.55),
+ duck_upgrade:duckDrawing(3,17,.65)+'<path d="M35 38V7m-7 7 7-7 7 7M29 22h12"/>',
+ duck_double:duckDrawing(2,14,.64)+'<path d="m30 8 6 6-6 6m8-12 6 6-6 6M30 32h13"/>',
+ duck_lifetime100:'<path d="M5 39V18l19-11 19 11v21ZM13 39V25h22v14M19 25v14m10-14v14"/>'+duckDrawing(13,9,.4),
+ double_final:'<path d="M6 4v39m0-37h22l-6 7 6 7H6"/><path d="M32 25h10m-5-5v10M30 39h14"/>',
+ double_zero:'<circle cx="18" cy="25" r="12"/><path d="M10 33 26 17m6-7h12m-6-6v12"/>',
+ double_1000:'<path d="M5 12h38v25H5zM9 18h30M9 31h30"/><circle cx="24" cy="25" r="5"/><path d="M22 22h4m-4 6h4"/>',
+ double_5000:'<path d="m5 17 19-11 19 11M7 19h34M10 22v15m9-15v15m10-15v15m9-15v15M5 40h38"/>',
+ double_back2:'<path d="M6 8h24l-6-5m6 5-6 5M42 39H18l6-5m-6 5 6 5"/><path d="M13 19h22v10H13z"/>',
+ double_back3:'<path d="M6 9h35l-6-5m6 5-6 5M6 24h35l-6-5m6 5-6 5M6 39h35l-6-5m6 5-6 5"/>',
+ spinplus_saved:'<circle cx="23" cy="24" r="17"/><path d="M23 7v9m0 16v9M6 24h9m16 0h9M17 19l6 5 8-11"/>',
+ seq_repeat2:'<path d="M5 11h27l-6-6m6 6-6 6M43 35H16l6-6m-6 6 6 6"/><circle cx="10" cy="35" r="4"/>',
+ seq_repeat3:'<path d="M10 12a17 17 0 0 1 27 0l4-2-1 10-10-4 4-2M38 36a17 17 0 0 1-27 0l-4 2 1-10 10 4-4 2"/>',
+ seq_repeat4:'<path d="M8 12h32M8 20h32M8 28h32M8 36h32M34 6l6 6-6 6M14 14l-6 6 6 6M34 22l6 6-6 6M14 30l-6 6 6 6"/>',
+ seq_special3:'<path d="M5 36 14 8l10 28 10-28 9 28M5 36h38"/><circle cx="14" cy="7" r="3"/><circle cx="34" cy="7" r="3"/>',
+ seq_special5:'<path d="m24 3 4 13 13-4-9 11 9 11-13-4-4 13-4-13-13 4 9-11-9-11 13 4Z"/>',
+ seq_variety5:'<circle cx="12" cy="12" r="6"/><rect x="27" y="5" width="12" height="12" rx="2"/><path d="m12 29 8 13H4zM30 27h11v12H30zM24 21l-4 4 4 4 4-4z"/>',
+ seq_all_specials:'<circle cx="24" cy="24" r="20"/><path d="M24 4v40M4 24h40m-34-14 28 28m0-28L10 38"/><circle cx="24" cy="24" r="4"/>',
+ seq_numbers_only:'<path d="M6 8h36v32H6zM12 17h8m-4-4v13M29 13h7v13h-7v-13M12 32h8m9 0h7"/>',
+ seq_bookends:'<path d="M5 6h10v35H5zM33 6h10v35H33zM15 14h18M15 33h18"/><path d="M9 11v24m28-24v24"/>',
+ seq_palindrome:'<path d="M24 3v42M8 10l10 8-10 8m32-16-10 8 10 8M9 35h9m12 0h9"/>',
+ wheel_dejavu:'<path d="M8 16a18 18 0 1 1-2 14M8 7v10h10"/><path d="M23 12v13l8 5"/>',
+ wheel_full_circle:'<circle cx="24" cy="24" r="19"/><circle cx="24" cy="24" r="9"/><path d="M24 5v8m0 22v8M5 24h8m22 0h8"/>',
+ wheel_lucky_seven:'<path d="M7 8h34l-21 34M7 8v8"/><path d="m32 27 2-5 2 5 5 2-5 2-2 5-2-5-5-2Z"/>',
+ wheel_mirror:'<path d="M24 4v40M7 12l11 8-11 8m34-16-11 8 11 8M9 37h9m12 0h9"/>',
+ wheel_groundhog:'<path d="M5 36h38M9 36a15 15 0 0 1 30 0M24 4v7M7 12l6 6m28-6-6 6"/><path d="M17 36q7-14 14 0"/>',
+ wheel_perfect_match:'<path d="M4 9h17v10h-5a4 4 0 0 0 0 8h5v12H4V9ZM25 9h19v30H25V27h5a4 4 0 0 0 0-8h-5Z"/>',
+ wheel_collector:'<path d="M5 12h38v29H5zM3 6h42v6H3zM18 22h12v7H18zM24 29v8"/>',
+ wheel_against_odds:'<rect x="7" y="7" width="34" height="34" rx="6"/><circle cx="16" cy="16" r="2"/><circle cx="32" cy="16" r="2"/><circle cx="24" cy="24" r="2"/><circle cx="16" cy="32" r="2"/><circle cx="32" cy="32" r="2"/>',
+ wheel_one_each:'<circle cx="13" cy="13" r="8"/><path d="M27 5h15v16H27zM5 27h16v16H5zM35 27l9 16H26z"/>',
+ wheel_long_way:'<path d="M4 39q13-30 25-16T44 7M4 39l8-3m-8 3 3-8M44 7l-9 1m9-1-4 9"/><path d="M6 6h14M6 12h9"/>',
+ wheel_quack_attack:duckDrawing(1,14,.7)+'<path d="m30 8 12 6-12 6 4-6Z"/><path d="m30 29 12 6-12 6 4-6Z"/>',
+ wheel_comeback:'<path d="M5 40h38M8 35l12-12 7 6L41 8M31 8h10v10"/><path d="M7 10h11m-11 6h7"/>',
+ wheel_slow_starter:'<path d="M5 38h38M7 32h9v6m3-13h9v13m3-23h10v23"/><path d="M6 12h11m-11 6h7"/>',
+ wheel_no_ducks:'<circle cx="24" cy="24" r="19"/>'+duckDrawing(10,13,.65)+'<path d="M10 38 38 10"/>',
+ wheel_duck_dynasty:duckDrawing(7,17,.8)+'<path d="m13 16-3-11 9 5 6-8 6 8 9-5-3 11Z"/>',
+ wheel_small_beginnings:'<path d="M24 43V19m0 11Q6 30 7 13q17 0 17 17Zm0-7Q40 23 41 8q-17 0-17 15Z"/><path d="M15 43h18"/>',
+ wheel_minimalist:'<path d="M8 10h32M8 19h32M8 28h32M8 37h32"/><circle cx="24" cy="6" r="2"/>',
+ wheel_chosen_one:'<circle cx="24" cy="24" r="19"/><circle cx="24" cy="24" r="12"/><circle cx="24" cy="24" r="5"/><path d="M24 1v13M24 34v13M1 24h13m20 0h13"/>',
+ secret_404:'<path d="M7 7h34v34H7zM13 16h8m-4-4v12M28 12h8v12h-8zM13 32h8m-4-4v8M28 32h8"/>',
+ secret_42:'<path d="M5 9h38v30H5zM12 16v12h10m-4-16v20M28 15h11l-11 10h11v7"/>',
+ secret_69:'<circle cx="16" cy="16" r="9"/><path d="M25 16v15q0 8-9 8"/><circle cx="34" cy="32" r="9"/><path d="M25 32V17q0-8 9-8"/>',
+ secret_777:'<path d="M5 9h38v30H5zM9 15h8l-5 16m6-16h9l-5 16m6-16h10l-6 16"/>',
+ secret_1337:'<path d="M5 7h38v34H5zM12 15v18m7-18h7l-7 9h7m5-9h7l-7 9h7"/>',
+ secret_zero:'<circle cx="24" cy="24" r="17"/><path d="M13 35 35 13"/>',
+ secret_close:'<path d="M5 39h38M8 39l10-12 9 4 12-23M34 8h5v5"/><path d="M27 8h8"/>',
+ secret_first:'<path d="M24 5 8 14v18l16 11 16-11V14Z"/><path d="M24 13v22m-5-17 5-5 5 5"/>',
+ secret_ducks:duckDrawing(0,15,.5)+duckDrawing(16,6,.5)+duckDrawing(24,22,.5),
+ secret_double:'<path d="M5 11h38l-7-7m7 7-7 7M5 35h38l-7-7m7 7-7 7"/>',
+ secret_pattern:'<path d="M5 9h38M5 19h38M5 29h38M5 39h38"/><path d="m12 5 5 8-5 8 5 8-5 8m19-32-5 8 5 8-5 8 5 8"/>',
+ secret_blank:'<rect x="5" y="5" width="38" height="38" rx="3" stroke-dasharray="4 4"/>',
+ secret_clock:'<circle cx="24" cy="24" r="19"/><path d="M24 11v14l11 5M16 2h16"/>',
+ secret_impossible:'<path d="M7 40 40 7M23 7h17v17M6 18l8-8m-8 8 8 8m-8-8h14"/><path d="M27 40h14"/>',
+ secret_owner:'<path d="M6 18 12 6l12 10L36 6l6 12-4 20H10Z"/><circle cx="24" cy="26" r="3"/>',
+ social_profile:'<rect x="6" y="5" width="36" height="38" rx="4"/><circle cx="19" cy="18" r="6"/><path d="M10 34c0-11 18-11 18 0M32 15h6m-6 6h6m-6 6h6"/>',
+ social_friend1:'<path d="M3 24 14 13l10 7 10-7 11 11-13 13-8-5-8 5Z"/><path d="m17 25 7 7 7-7"/>',
+ social_friend5:'<circle cx="24" cy="9" r="5"/><circle cx="9" cy="20" r="5"/><circle cx="39" cy="20" r="5"/><path d="M15 40c0-13 18-13 18 0M2 37c0-8 10-10 13-6m31 6c0-8-10-10-13-6"/>',
+ social_friend25:'<circle cx="24" cy="7" r="4"/><circle cx="8" cy="22" r="4"/><circle cx="40" cy="22" r="4"/><circle cx="14" cy="41" r="4"/><circle cx="34" cy="41" r="4"/><path d="M20 10 11 19m17-9 9 9M9 26l5 11m25-11-5 11m-16 4h12"/>',
+ daily_draw:'<path d="M7 40h34M11 33 34 6l8 7-23 27H9zM29 11l8 7M11 33l8 7"/>',
+ score_uncommon:'<path d="M5 35q20-32 38 0M5 35h38M24 13v20"/><path d="m19 17 5-7 5 7"/>',
+ score_rare:'<path d="m24 3 20 17-20 25L4 20Z"/><path d="M4 20h40M24 3l-8 17 8 25 8-25Z"/>',
+ score_epic:'<path d="M10 5h28v30L24 44 10 35Z"/><path d="m24 10 4 9 10 1-8 7 2 10-8-5-8 5 2-10-8-7 10-1Z"/>',
+ score_legendary:'<path d="m5 14 10 6 9-15 9 15 10-6-5 24H10Z"/><path d="M10 42h28M15 29h18"/>',
+ score_mythic:'<circle cx="24" cy="24" r="17"/><path d="m24 3 5 14 15 7-15 5-5 16-5-16L4 24l15-7Z"/>',
+ rarity_legendary:'<path d="M24 3 30 18l15 6-15 6-6 15-6-15-15-6 15-6Z"/><circle cx="24" cy="24" r="5"/>'
+};
+const individualBadgeArt=b=>{
+ const key=b.badge_key||'';
+ const drawing=drawnScenes[key];
+ if(!drawing)return null;
+ return '<span class="crilo-achievement-symbol" role="img" aria-label="'+Crilo.esc(b.name)+'"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+drawing+'</svg></span>';
+};
+const badgeSymbol=b=>bespokeDuckIcon(b)||individualBadgeArt(b)||sceneArt(b);
+
 
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
 
