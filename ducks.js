@@ -7,22 +7,45 @@ function art(d){const fill=colors[d.slug]||'#ffe1a2';return '<svg viewBox="0 0 1
 async function load(db,user){if(!db||!user)return;const [a,b]=await Promise.all([db.from('duck_types').select('id,slug,name,tier,unlock_runs,appearance_weight').order('id'),db.rpc('crilo_duck_progress')]);if(!a.error&&a.data?.length)catalog=a.data;if(!b.error&&b.data?.length)completed=Number(b.data[0].completed_dailies)||0;else console.warn('Duck progress unavailable',b.error)}
 function choose(){const available=catalog.filter(d=>d.unlock_runs<=completed);const list=available.length?available:[catalog[0]];let n=Math.random()*list.reduce((s,d)=>s+d.appearance_weight,0);for(const d of list){n-=d.appearance_weight;if(n<0)return d}return list[0]}
 const moving=new Set();
-function quack(){
- if(localStorage.getItem('crilo_sound')==='off')return;
+// Each catalog duck has its own deterministic melodic/quack signature.
+function quack(d){
+ if(localStorage.getItem('crilo_sound')==='off'||window.Crilo?.profile?.sound_enabled===false)return;
  try{
   const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   const ac=quack.context||(quack.context=new Audio());
-  if(ac.state==='suspended')ac.resume();
+  if(ac.state==='suspended')ac.resume().catch(()=>{});
   const now=ac.currentTime;
-  // Two short, nasal descending pulses make a recognizable cartoon quack.
-  for(let i=0;i<2;i++){
-   const t=now+i*.145,o=ac.createOscillator(),filter=ac.createBiquadFilter(),gain=ac.createGain();
-   o.type='sawtooth';o.frequency.setValueAtTime(i?430:510,t);o.frequency.exponentialRampToValueAtTime(i?220:280,t+.13);
-   filter.type='lowpass';filter.frequency.value=1100;
-   gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.10,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.15);
-   o.connect(filter);filter.connect(gain);gain.connect(ac.destination);o.start(t);o.stop(t+.16);
+  const key=String(d?.slug||d?.id||'classic');
+  let seed=2166136261;
+  for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
+  // A distinct combination of rhythm, notes, timbre and quack inflection per duck.
+  const scales=[0,2,3,5,7,9,10,12,14,15,17,19];
+  const root=196+((seed>>>4)%7)*24;
+  const count=3+seed%3;
+  const waveform=['sine','triangle','square','sawtooth'][(seed>>>8)%4];
+  const rhythm=.105+((seed>>>12)%5)*.022;
+  const notes=[];
+  for(let i=0;i<count;i++)notes.push(scales[(seed>>>(i*5))%scales.length]);
+  function tone(freq,start,length,volume,wave,fall=1){
+   const o=ac.createOscillator(),g=ac.createGain(),filter=ac.createBiquadFilter();
+   o.type=wave;o.frequency.setValueAtTime(freq,start);
+   o.frequency.exponentialRampToValueAtTime(Math.max(80,freq*fall),start+length);
+   filter.type='lowpass';filter.frequency.value=wave==='sawtooth'||wave==='square'?1050:2200;
+   o.connect(filter);filter.connect(g);g.connect(ac.destination);
+   g.gain.setValueAtTime(.0001,start);g.gain.exponentialRampToValueAtTime(volume,start+.012);
+   g.gain.exponentialRampToValueAtTime(.0001,start+length);
+   o.start(start);o.stop(start+length+.01);
   }
- }catch(e){console.warn('Duck quack unavailable',e)}
+  // Characteristic quack intro, customized to the duck.
+  const q=380+(seed%240);
+  tone(q,now,.11,.042,'sawtooth',.55+(seed%18)/100);
+  tone(q*(.8+((seed>>>5)%12)/100),now+.13,.12,.036,'triangle',.56);
+  // Each duck's unique little tune.
+  notes.forEach((step,i)=>{
+   const freq=root*Math.pow(2,step/12);
+   tone(freq,now+.29+i*rhythm,.16+((seed>>>(i+3))%3)*.045,.026,waveform,.92+((seed>>>i)%8)/100);
+  });
+ }catch(e){console.warn('Duck sound unavailable',e)}
 }
 function bounds(){
  const header=document.querySelector('.topbar')?.getBoundingClientRect().bottom||70;
@@ -57,11 +80,11 @@ function spawn(){
  root.appendChild(el);moving.add(el);
  const b=bounds(),x=b.left+Math.random()*(b.right-b.left),y=b.top+Math.random()*(b.bottom-b.top);
  el.dataset.x=x;el.dataset.y=y;el.style.transform=`translate(${x}px,${y}px)`;
- el.addEventListener('click',()=>{quack();el.classList.remove('duck-quacking');void el.offsetWidth;el.classList.add('duck-quacking')});
+ el.addEventListener('click',()=>{quack(d);el.classList.remove('duck-quacking');void el.offsetWidth;el.classList.add('duck-quacking')});
  roam(el);
  if(moving.size>15){const first=moving.values().next().value;first.motion?.cancel();first.remove();moving.delete(first)}
  return d;
 }
 function clear(){spawned=0;for(const el of moving){el.motion?.cancel();el.remove()}moving.clear();document.getElementById('creatures')?.replaceChildren()}
-return{load,spawn,clear,art,get catalog(){return catalog},get completed(){return completed}};
+return{load,spawn,clear,art,playSound:quack,get catalog(){return catalog},get completed(){return completed}};
 })();
