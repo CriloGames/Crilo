@@ -29,3 +29,14 @@ The script trains a HOG+logistic-regression baseline, chooses a conservative con
 
 ## Existing live moderation
 Keep functioning free handwriting/URL detection, owner permissions and ban controls unchanged. Generic CLIP/SigLIP scores are not reliable proof that a doodle violates policy.
+
+## First automated result (2026-10-09)
+
+Research run: https://github.com/CriloGames/Crilo/actions/runs/37998138045
+
+- Collected 1,500 positive and 1,800 ordinary sketch examples.
+- Validation chose a threshold of 1.0 to avoid false positives at the fixed 1% maximum.
+- Independent holdout: 360/360 harmless sketches unflagged, 0/300 prohibited doodles detected.
+- **Quality gate failed: DO NOT DEPLOY**. The model missed every positive test example.
+- This result concerns only the very first HOG/logistic-regression baseline, not the datasets' overall potential or any future neural classifier.
+- Future research should prioritize better learned image features, proper hard negatives, subject-independent splits, and evaluation on Crilo-style raster drawings. Do not adjust the same threshold using held-out samples.
