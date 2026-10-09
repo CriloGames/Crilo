@@ -1,6 +1,7 @@
 (() => {
 const $=id=>document.getElementById(id), wheel=$('wheel'),ctx=wheel.getContext('2d'),drawing=$('drawing'),dctx=drawing.getContext('2d');
 let guestRun=false,user=null,profile=null,started=false,spinning=false,drawingLocked=false,isTest=false,saveOwnerTest=false,officialRun=null,ownerModeChosen=false;
+let verifiedSpinSessionId=null;
 let drawMode='stationary',drawTool='pen',undoStack=[],redoStack=[];let score=0,spins=5,multiplier=1,upgrades=0,doubles=0,ducks=0,totalSpins=0,numbersLanded=0,extraSpins=0,bestRollPoints=0,bestRollLabel='',rotation=0,segments=[],results=[],runProbability=1;
 const palette=['#ffd86b','#9bd9ef','#ffb8d2','#c6dcff','#c8f4bd','#efc5ef','#aee9f4','#fff0a8','#c9f1df','#dfc8f6','#ffc8a8'];
 const fmt=n=>{n=Number(n)||0;if(n<1e3)return Math.round(n).toLocaleString();for(const [s,v] of [['Qa',1e15],['T',1e12],['B',1e9],['M',1e6],['K',1e3]])if(n>=v)return(n/v>=100?(n/v).toFixed(0):(n/v).toFixed(1)).replace('.0','')+s;return String(n)};
@@ -68,12 +69,12 @@ function addNumbers(){const count=4+Math.min(upgrades,8),bases=[1,1,2,2,3,3,5,5,
 function outcomeProbability(s){if(s.type==='num')return segments.filter(x=>x.type==='num'&&x.base===s.base).length/segments.length;return segments.filter(x=>x.type===s.type).length/segments.length}
 function rarity(){return CriloRarity.classify(score)}
 function recordBest(points,labelText){if(points>bestRollPoints){bestRollPoints=Math.round(points);bestRollLabel=labelText}}
-function resolve(s){const p=outcomeProbability(s);runProbability*=p;let points=0;if(s.type==='num'){points=s.base*multiplier;score+=points;numbersLanded++;recordBest(points,'+'+fmt(points));$('message').textContent='+'+fmt(points);sound('num')}
+function resolve(s,serverReply=null){const p=outcomeProbability(s);runProbability*=p;let points=0;if(s.type==='num'){points=s.base*multiplier;score+=points;numbersLanded++;recordBest(points,'+'+fmt(points));$('message').textContent='+'+fmt(points);sound('num')}
 if(s.type==='double'){points=score;score*=2;spins++;doubles++;recordBest(points,'×2');pop('×2!');$('message').textContent='DOUBLE — score ×2 and this spin is free.';sound('double')}
 if(s.type==='upgrade'){multiplier*=3;upgrades++;spins++;addNumbers();bump();pop('UP! ↑');$('message').textContent='UPGRADE — number values ×3. The wheel grew.';sound('upgrade')}
 if(s.type==='spins'){spins+=2;extraSpins+=2;pop('+2!');$('message').textContent='+2 SPINS';sound('spins')}
 if(s.type==='duck'){spins++;const duck=addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';DuckWorld.playSound(duck)}
-results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});update();if(spins<=0)endRun()}
+results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});if(serverReply){results[results.length-1]={...serverReply.outcome,label:label(s)};segments=serverReply.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);totalSpins=Number(serverReply.spin_count);}update();if(spins<=0)endRun()}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
 function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
@@ -98,9 +99,34 @@ async function spin(){if(spinning||spins<=0)return;
   }catch(err){console.error('Could not restore sign-in for spin',err)}
   $('spinButton').disabled=false;
  }
- if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index]);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
-function beginRun(){DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
-async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results};let data=null,error=null;let priorBadges=null;
+ if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}
+ let serverReply=null;
+ if(!guestRun&&!isTest){
+   try{
+     if(!verifiedSpinSessionId){
+       const startedSession=await criloDB.rpc('crilo_begin_server_spin_session');
+       if(startedSession.error)throw startedSession.error;
+       verifiedSpinSessionId=startedSession.data;
+       const saved=await criloDB.rpc('crilo_get_server_spin_state',{p_session:verifiedSpinSessionId});
+       if(saved.error)throw saved.error;
+       if(Number(saved.data.spin_count)>0){
+         score=Number(saved.data.score);spins=Number(saved.data.remaining_spins);
+         totalSpins=Number(saved.data.spin_count);multiplier=Number(saved.data.multiplier);
+         upgrades=Number(saved.data.upgrades);doubles=Number(saved.data.doubles);
+         ducks=Number(saved.data.ducks);numbersLanded=Number(saved.data.numbers_landed);
+         extraSpins=Number(saved.data.extra_spins);results=saved.data.results;
+         segments=saved.data.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
+         if(spins<=0){endRun();return}update();
+       }
+     }
+     const next=await criloDB.rpc('crilo_server_spin',{p_session:verifiedSpinSessionId});
+     if(next.error)throw next.error;
+     serverReply=next.data;
+   }catch(err){console.error('Verified spin failed',err);$('message').textContent='Could not contact the game server. Please retry your spin.';return;}
+ }
+ lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=serverReply?Number(serverReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],serverReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
+function beginRun(){DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;verifiedSpinSessionId=null;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
+async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(!guestRun&&!isTest&&verifiedSpinSessionId?{verified_spin_session_id:verifiedSpinSessionId}:{})};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
 if(isTest&&profile?.is_owner){
  {
