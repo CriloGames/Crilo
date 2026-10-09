@@ -205,6 +205,46 @@ jobs:
                !ownerMode.ownerModeChosen||ownerMode.calls!==0)
               throw Error('Owner test-mode regression: '+JSON.stringify(ownerMode));
             console.log('PASS: owner private test mode initializes separately from server Daily',ownerMode);
+            // Exercise real endRun() browser logic: failed database insert then successful retry.
+            const saveRetry=await page.evaluate(async original=>{
+              const a=original.indexOf('async function endRun()'),b=original.indexOf('async function showNewBadges(',a);
+              if(a<0||b<0)throw Error('Cannot extract save routine');
+              const content=original.slice(a,b);
+              const elements=new Map(),$=id=>{
+                if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',
+                  classList:{add(){},remove(){},toggle(){}}});return elements.get(id)};
+              const canvas=document.createElement('canvas');canvas.width=30;canvas.height=30;
+              const dctx=canvas.getContext('2d');dctx.fillRect(1,1,10,10);
+              let inserts=0;
+              const db={from:name=>name==='user_badges'?
+                {select:()=>({eq:async()=>({data:[],error:null})})}:
+                {insert:payload=>({select:()=>({single:async()=>{
+                  inserts++;return inserts===1?{error:{message:'offline'},data:null}:
+                  {error:null,data:{is_test:false,daily_period:'2026-10-09'}}}})})}};
+              const ctx={savingCompletedRun:false,spinning:false,started:true,guestRun:false,
+                isTest:false,profile:{is_owner:false},user:{id:'ci'},
+                drawing:canvas,dctx,score:10,totalSpins:5,upgrades:0,doubles:0,ducks:0,
+                numbersLanded:1,extraSpins:0,bestRollPoints:10,bestRollLabel:'+10',
+                results:[],verifiedSpinSessionId:'mock-session',officialRun:null,
+                $: $,criloDB:db,DuckWorld:{clear(){}},Crilo:{dailyPeriod:()=>'2026-10-09'},
+                rarity:()=>({probability:0.1,label:'RARE',odds:10}),
+                renderResult(){},showNewBadges:async()=>{},fmt:String,open(){},
+                verifiedDrawingKey:()=>null,localStorage,console,Math};
+              const end=new Function('ctx','with(ctx){'+content+';return endRun}')(ctx);
+              await end();
+              const failed={inserts,retry:!$('spinButton').disabled,
+                message:$('message').textContent};
+              await end();
+              const recovered={inserts,message:$('message').textContent,
+                official:!!ctx.officialRun,spinHidden:true};
+              return {failed,recovered};
+            },source);
+            if(saveRetry.failed.inserts!==1||!saveRetry.failed.retry||
+              !saveRetry.failed.message.includes('Retry Save')||
+              saveRetry.recovered.inserts!==2||!saveRetry.recovered.official||
+              !saveRetry.recovered.message.includes('Official Daily saved'))
+              throw Error('Official Daily browser save retry regression: '+JSON.stringify(saveRetry));
+            console.log('PASS: Chromium save fails safely then retries same official Daily',saveRetry);
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
