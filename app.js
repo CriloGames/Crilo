@@ -31,6 +31,30 @@
       session = data?.session || null;
     }
 
+    // A previously issued JWT may remain locally cached after an Auth ban.
+    // Check the server-side account ban registry before restoring a session.
+    if(session?.user){
+      try{
+        const {data:banned,error:banError}=await criloDB.rpc('crilo_my_ban_status');
+        if(banError)throw banError;
+        if(banned===true){
+          Crilo.user=null;
+          Crilo.profile=null;
+          await criloDB.auth.signOut({scope:'local'});
+          renderAccount();
+          window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
+          return;
+        }
+      }catch(error){
+        console.error('Crilo ban status check failed:',error);
+        // Don't restore a privileged signed-in UI if the ban check failed.
+        Crilo.user=null;
+        Crilo.profile=null;
+        renderAccount();
+        window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
+        return;
+      }
+    }
     Crilo.user = session?.user || null;
     Crilo.profile = null;
 
