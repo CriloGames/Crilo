@@ -108,6 +108,8 @@ async function spin(){if(spinning||spins<=0)return;
  // Lock before awaiting the RPC: rapid clicks must not submit multiple server spins.
  spinning=true;$('spinButton').disabled=true;
  if(!guestRun&&!isTest){
+   // Save the drawing before the first network call: a committed spin response may be lost.
+   if(totalSpins===0)cacheVerifiedDrawing();
    try{
      if(!verifiedSpinSessionId){
        const startedSession=await criloDB.rpc('crilo_begin_server_spin_session');
@@ -190,6 +192,8 @@ if(isTest){
  $('replayTestBtn').classList.remove('hidden');
 }else{
  $('message').textContent='Official Daily saved. See how you ranked.';
+ // Remove the cached drawing only after Supabase confirms the official submission.
+ const drawingKey=verifiedDrawingKey();if(drawingKey){try{localStorage.removeItem(drawingKey)}catch(e){console.warn('Could not clear Daily drawing cache',e)}}
  if(priorBadges)await showNewBadges(priorBadges);
  officialRun={...payload,is_test:false};
  
