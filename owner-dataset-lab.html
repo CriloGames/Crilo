@@ -40,8 +40,8 @@ small{color:#656168}.tiles{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 <p id="status" role="status">0 examples saved in this tab.</p>
 <div class="tiles" id="tiles"></div>
 <div class="controls"><button id="remove" type="button">Remove last saved example</button>
-<button class="primary" id="export" type="button">Download private labeled dataset</button></div>
-<p><small>Closing or refreshing this tab discards examples that have not been downloaded. Export regularly. The downloaded JSON contains the drawing images and labels. Keep it private and do not commit it to the public repository.</small></p>
+<button class="primary" id="export" type="button">Download private labeled dataset</button><label>Restore earlier export <input id="import" type="file" accept=".json,application/json"></label></div>
+<p><small>To resume later, import an earlier JSON export. Closing or refreshing this tab discards examples that have not been downloaded. Export regularly. The downloaded JSON contains the drawing images and labels. Keep it private and do not commit it to the public repository.</small></p>
 </section>
-<script src="owner-dataset-lab.js?v=1"></script>
+<script src="owner-dataset-lab.js?v=2"></script>
 </body></html>
