@@ -71,7 +71,18 @@ async function checkText(){
   if(!ocrEngine)ocrEngine=await Tesseract.createWorker('eng');
   for(const item of jobs){
    try{
-    const result=await ocrEngine.recognize(item.drawing);
+    // Composite transparent drawings onto white and upscale small handwriting.
+    const source=await new Promise((ok,fail)=>{
+     const image=new Image();image.onload=()=>ok(image);image.onerror=fail;image.src=item.drawing;
+    });
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.max(800,source.naturalWidth*3);
+    canvas.height=Math.max(800,source.naturalHeight*3);
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(source,0,0,canvas.width,canvas.height);
+    const result=await ocrEngine.recognize(canvas);
     const text=String(result.data.text||'').slice(0,4096);
     const saved=item.ownerTest?await criloDB.rpc('crilo_owner_saved_test_ocr_finish',{p_run_id:item.run_id,p_text:text}):await criloDB.rpc('crilo_owner_finish_ocr',{p_run_id:item.run_id,p_is_test:item.is_test,p_text:text});
     if(saved.error)console.warn('OCR result could not be saved',saved.error);
