@@ -27,7 +27,7 @@ jobs:
       - name: Train and evaluate offline-only binary doodle classifier
         run: |
           set -o pipefail
-          python research/train_doodle_cnn.py --positives 3000 --per-category 300 --epochs 28 2>&1 | tee research-evaluation.log
+          python research/train_doodle_cnn.py --positives 4500 --per-category 300 --epochs 28 2>&1 | tee research-evaluation.log
       - name: Preserve evaluation logs and model artifact
         if: always()
         uses: actions/upload-artifact@v4
