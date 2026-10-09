@@ -255,7 +255,36 @@ const badgeSymbol=b=>customTitleIcon(b)||scoreBadgeIcon(b)||namedBadgeIcon(b)||b
 
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
 
-async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,account_code').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,is_secret,sort_order').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(5)]);if(!p){$('profileName').textContent='Player not found';return}$('profileName').textContent=p.username;$('profileName').style.color=p.name_color||'';$('avatar').textContent=(p.username||'C')[0].toUpperCase();$('profileCode').textContent=target===Crilo.user?.id?`Account code: ${p.account_code||'—'}`:'Crilo player';const s=metricsError?(stats?.[0]||{}):(metrics||{});
+async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,account_code').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,is_secret,sort_order').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(5)]);if(!p){$('profileName').textContent='Player not found';return}const ownerBanBtn=$('ownerProfileBanBtn');
+if(ownerBanBtn){
+ const canBan=!!Crilo.profile?.is_owner && target!==Crilo.user?.id;
+ ownerBanBtn.classList.toggle('hidden',!canBan);
+ if(canBan){
+  ownerBanBtn.onclick=async()=>{
+   if(!confirm('Ban '+p.username+' from Crilo? This disables their account and blocks their email from creating another account.'))return;
+   if(!confirm('Confirm permanent ban for '+p.username+'?'))return;
+   ownerBanBtn.disabled=true;
+   $('ownerProfileBanStatus').textContent='Banning account…';
+   try{
+    const {data:auth}=await criloDB.auth.getSession();
+    if(!auth?.session?.access_token)throw Error('Please sign in again.');
+    const res=await fetch(CRILO_SUPABASE_URL+'/functions/v1/owner-ban-drawing-account',{
+     method:'POST',
+     headers:{'Content-Type':'application/json','apikey':CRILO_SUPABASE_KEY,'Authorization':'Bearer '+auth.session.access_token},
+     body:JSON.stringify({action:'ban',user_id:target})
+    });
+    const body=await res.json().catch(()=>({}));
+    if(!res.ok||!body.ok)throw Error(body.error||'Ban failed');
+    ownerBanBtn.textContent='ACCOUNT BANNED';
+    $('ownerProfileBanStatus').textContent='Account banned and email blocked from re-registration.';
+   }catch(err){
+    $('ownerProfileBanStatus').textContent='Ban failed: '+err.message;
+    ownerBanBtn.disabled=false;
+   }
+  };
+ }
+}
+$('profileName').textContent=p.username;$('profileName').style.color=p.name_color||'';$('avatar').textContent=(p.username||'C')[0].toUpperCase();$('profileCode').textContent=target===Crilo.user?.id?`Account code: ${p.account_code||'—'}`:'Crilo player';const s=metricsError?(stats?.[0]||{}):(metrics||{});
 const {data:rarestOfficial,error:rarestError}=await criloDB.from('daily_runs')
  .select('score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,best_roll_label,daily_period,rarity_label,drawing')
  .eq('user_id',target).eq('is_test',false).order('score',{ascending:false}).limit(1).maybeSingle();
