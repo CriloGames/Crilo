@@ -121,7 +121,7 @@ async function spin(){if(spinning||spins<=0)return;
          bestRollPoints=0;bestRollLabel='';runProbability=1;
          for(const outcome of results){const pts=Number(outcome.points||0);if(pts>bestRollPoints){bestRollPoints=pts;bestRollLabel=outcome.type==='double'?'×2':'+'+fmt(pts)}runProbability*=Number(outcome.probability||1)}
          segments=saved.data.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
-         if(spins<=0){endRun();return}update();
+         if(spins<=0){spinning=false;await endRun();return}update();
        }
      }
      const next=await criloDB.rpc('crilo_server_spin',{p_session:verifiedSpinSessionId});
