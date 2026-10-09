@@ -68,16 +68,13 @@ async function load(){
  else if(tab==='records')q=q.order('spins',{ascending:false}).order('score',{ascending:false}).limit(100);
  else if(tab==='ducks')q=q.order('ducks',{ascending:false}).order('score',{ascending:false}).limit(100);
  else q=q.order('score',{ascending:false}).limit(100);
- const [official,tests]=await Promise.all([q,Crilo.profile?.is_owner?criloDB.rpc('crilo_public_owner_runs'):Promise.resolve({data:[],error:null})]);
+ const official=await q;
  if(official.error){$('leaderList').innerHTML='<div class="empty-state">Could not load leaderboard: '+Crilo.esc(official.error.message)+'</div>';return}
- if(tests.error)console.warn('Private owner runs unavailable:',tests.error);
  const runs=(official.data||[]).filter(run=>{
   const oldFifteen=Number(run.score)===15&&Number(run.spins)===8&&Number(run.upgrades)===0&&Number(run.doubles)===1&&Number(run.ducks)===2;
   const oldEightSixtyFour=Number(run.score)===864&&Number(run.spins)===11&&Number(run.upgrades)===3&&Number(run.doubles)===1&&Number(run.ducks)===0;
   return !(oldFifteen||oldEightSixtyFour);
  }).map(r=>({...r,_source:'official'}));
- const testRows=(tests.data||[]).filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).map(r=>({...r,_source:'test'}));
- runs.push(...testRows);
  if(tab==='records')runs.sort((a,b)=>b.spins-a.spins||b.score-a.score);
  else if(tab==='ducks')runs.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);
  else runs.sort((a,b)=>b.score-a.score);
