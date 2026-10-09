@@ -340,9 +340,15 @@ if(mine){
   $('featuredSave').disabled=false;
   if(error){$('featuredStatus').textContent='Could not save: '+error.message;return}
   if(id)featuredIds.set(position,id);else featuredIds.delete(position);
-  $('featuredBadges').innerHTML=Array.from({length:5},(_,i)=>featuredCard(i+1)).join('');
+  // Update only the changed slot. Rebuilding the entire profile resets
+  // scroll position and causes the page to jump after closing the picker.
+  const slot=$('featuredBadges').querySelector('[data-position="'+position+'"]');
+  if(slot){
+   const template=document.createElement('div');
+   template.innerHTML=featuredCard(position);
+   slot.innerHTML=template.firstElementChild.innerHTML;
+  }
   dialog.classList.add('hidden');
-  load();
  };
 }
 let local=[];if(target===Crilo.user?.id){try{local=JSON.parse(localStorage.getItem('crilo_domain_top5')||'[]')}catch{}}const ds=(domainScores||[]).map(x=>x.score);const top=[...ds,...local].sort((a,b)=>b-a).slice(0,5);$('domainTop').innerHTML=top.length?top.map((v,i)=>`<div class="domain-score"><span class="domain-rank">${i+1}</span><span class="domain-score-main"><span class="domain-score-title">${i===0?'Personal best':'Run '+(i+1)}</span><span class="domain-score-bar"><i style="width:${Math.min(100,Math.max(0,Number(v)/5000*100))}%"></i></span></span><strong class="domain-score-number">${Number(v).toLocaleString()}<small> / 5,000</small></strong></div>`).join(''):'<span class="muted">No Domain scores yet.</span>'}
