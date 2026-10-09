@@ -52,6 +52,20 @@ jobs:
             } else {
               throw Error('Guest spin button unexpectedly unavailable');
             }
+            // Play two more rounds in a real browser, including button re-enabling.
+            // Starting from five spins guarantees at least three outcomes even without bonuses.
+            for(let round=2;round<=3;round++){
+              await button.waitFor({state:'visible',timeout:5000});
+              await page.waitForFunction(() => !document.querySelector('#spinButton').disabled, {timeout:5000});
+              await button.click();
+              await page.waitForTimeout(3400);
+              const message=(await page.locator('#message').textContent()||'').trim();
+              const score=(await page.locator('#score').textContent()||'').trim();
+              const remaining=(await page.locator('#spins').textContent()||'').trim();
+              if(!message || message==='...' || !score || !remaining)
+                throw Error('Guest spin '+round+' did not settle: '+JSON.stringify({message,score,remaining}));
+              console.log('PASS: guest spin '+round+' resolved',JSON.stringify({message,score,remaining}));
+            }
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
