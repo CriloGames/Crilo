@@ -255,9 +255,9 @@ jobs:
             await integrated.route('**/game.js?v=*',async route=>{
               const response=await route.fetch();
               let body=await response.text();
-              const ending='resetSegments();update();\\n})();';
-              if(!body.includes(ending))throw Error('Cannot install browser integration fixture');
-              body=body.replace(ending,`window.__criloAcceptance={authenticate(){user={id:'ci-fixture'};profile={id:user.id,is_owner:false};guestRun=false;beginRun()},spin,summary(){return{score,spins,totalSpins,verifiedSpinSessionId,officialSaved:!!officialRun,message:$('message').textContent}}};\\n`+ending);
+              const ending=/resetSegments\(\);update\(\);\s*\}\)\(\);/;
+              if(!ending.test(body))throw Error('Cannot install browser integration fixture');
+              body=body.replace(ending,matched=>`window.__criloAcceptance={authenticate(){user={id:'ci-fixture'};profile={id:user.id,is_owner:false};guestRun=false;beginRun()},spin,summary(){return{score,spins,totalSpins,verifiedSpinSessionId,officialSaved:!!officialRun,message:$('message').textContent}}};${String.fromCharCode(10)}`+matched);
               await route.fulfill({response,body});
             });
             await integrated.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
