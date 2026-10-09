@@ -102,3 +102,13 @@ Next research priorities: obtain independent consented Crilo-style drawings for 
 Run: https://github.com/CriloGames/Crilo/actions/runs/38003938659
 
 The 9,900-example experiment, including six additional innocent drawing categories, **failed** the fixed research quality gate. On an untouched 1,980-example holdout: TN=1068, FP=12, FN=134, TP=766. Detection recall 85.11%, false-positive rate 1.11%; minimum required 80% recall and maximum permitted 1% false positives. **Do not deploy.** These numbers cannot substitute for Crilo-specific independent validation. Future development should focus on representative Crilo canvas captures, hard-negative data sourced independently, and locked thresholds selected on validation data only.
+
+## Crilo pen-width experiment private smoke test (2026-10-09)
+
+Research run: https://github.com/CriloGames/Crilo/actions/runs/38005240291
+
+The source-domain public holdout passed provisionally: TN=1071, FP=9, FN=152, TP=748; 83.11% detection recall, 0.833% false-positive rate, threshold 0.920707.
+
+**Private Crilo QA: failed.** Evaluated checkpoint offline against the same six previously inspected owner Test Run images without publishing image bytes or identifiers. Both explicit anatomical drawings were missed (visual class scores approximately 0.6906 and 0.1717, both below 0.9207 threshold). Four non-anatomical drawings were not flagged by the *visual* detector; two contained profanity requiring the separate OCR checks. Those six diagnostic samples were examined previously and must not be counted as an independent model-selection holdout. **DO NOT DEPLOY**.
+
+Pen-width augmentation alone did not address Crilo domain shift. Stop treating passing QuickDraw holdouts as sufficient evidence for live reliability. Gather a meaningful consented, manually labeled, representative collection, with separate development and untouched evaluation subsets. Enforce hard deployment gating on Crilo-specific detection plus false-positive performance, not training scores.
