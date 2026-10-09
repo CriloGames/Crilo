@@ -230,11 +230,16 @@
     }
     const code=params.get('code');
     if(code){
-      const {error:exchangeError}=await criloDB.auth.exchangeCodeForSession(code);
-      if(exchangeError){
-        console.error('Crilo email code exchange:',exchangeError);
-        window.dispatchEvent(new CustomEvent('crilo-auth-error',{detail:{message:exchangeError.message}}));
-      }else{
+      const {data:existing}=await criloDB.auth.getSession();
+      if(!existing?.session){
+        const {error:exchangeError}=await criloDB.auth.exchangeCodeForSession(code);
+        if(exchangeError){
+          console.error('Crilo email code exchange:',exchangeError);
+          window.dispatchEvent(new CustomEvent('crilo-auth-error',{detail:{message:exchangeError.message}}));
+        }
+      }
+      const {data:restored}=await criloDB.auth.getSession();
+      if(restored?.session){
         params.delete('code');
         history.replaceState(null,'',location.pathname+(params.toString()?'?'+params:''));
       }
