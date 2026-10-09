@@ -452,3 +452,16 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .account-btn:hover{background:var(--soft,#f4f4f4);opacity:.82}
 .account-btn:focus-visible{outline:2px solid currentColor;outline-offset:3px}
 @media(max-width:600px){.account-btn{font-size:14px;max-width:28vw;padding:7px 3px}}
+
+/* Settings danger zone — clear, understated destructive action */
+.settings-card.danger-zone{padding:26px 28px;border:1px solid #efc9c9;background:transparent}
+.danger-zone-heading{margin:0 0 22px;color:#ac141a;font-size:25px;line-height:1.15;letter-spacing:-.025em;font-weight:900}
+.danger-zone .settings-row{gap:24px;align-items:center}
+.danger-zone .settings-row>div{flex:1;min-width:0}
+.danger-zone .settings-row h3{font-size:17px;font-weight:900;letter-spacing:.015em;margin:0 0 9px}
+.danger-zone .settings-row p{font-size:15px;line-height:1.5;max-width:650px}
+.danger-delete-btn{display:inline-flex;align-items:center;justify-content:center;gap:11px;flex-shrink:0;border:1.5px solid #f28e94;border-radius:11px;background:#fff7f7;color:#b20d17;font:900 14px/1.2 inherit;font-family:inherit;font-size:14px;font-weight:900;letter-spacing:.015em;padding:13px 19px;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}
+.danger-delete-btn:hover{background:#ffe8e9;border-color:#d73c46}
+.danger-delete-btn:focus-visible{outline:3px solid #e05259;outline-offset:3px}
+.danger-delete-btn svg{flex-shrink:0}
+@media(max-width:650px){.settings-card.danger-zone{padding:20px}.danger-zone-heading{font-size:22px}.danger-zone .settings-row{align-items:flex-start;flex-direction:column;gap:18px}.danger-delete-btn{width:100%}}
