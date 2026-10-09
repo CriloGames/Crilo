@@ -60,6 +60,7 @@ async function act(action){
  const current=chosen;
  const warning=action==='ban'?'Permanently ban '+current.username+' from Crilo? This will disable their account and remove this drawing.':action==='remove'?'Remove this drawing from Crilo? The player’s Daily score will remain unchanged.':'Mark this drawing as approved?';
  if(!window.confirm(warning))return;
+ if(action==='ban'&&!window.confirm('Confirm again: apply the account restriction to '+current.username+'?'))return;
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=true;
  $('reviewActionStatus').textContent='Saving…';
  try{
