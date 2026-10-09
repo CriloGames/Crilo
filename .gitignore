@@ -1,0 +1,6 @@
+research/private-qa/
+research/outputs/
+research/**/*.pt
+research/**/*.joblib
+__pycache__/
+*.pyc
