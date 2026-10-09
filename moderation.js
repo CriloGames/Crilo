@@ -2,6 +2,10 @@
 const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),testList=$('ownerTestDrawingList'),message=$('reviewMessage'),modal=$('reviewLightbox');
 let rows=[],testRows=[],chosen=null,generation=0;
+// Visual QA fixture only: not a stored run, score, AI flag, or real moderation target.
+const sampleSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff5c0"/><circle cx="200" cy="195" r="118" fill="#ffdc81" stroke="#222" stroke-width="8"/><ellipse cx="160" cy="170" rx="12" ry="19" fill="#222"/><ellipse cx="239" cy="170" rx="12" ry="19" fill="#222"/><path d="M142 226 Q200 289 258 226" fill="none" stroke="#222" stroke-width="11" stroke-linecap="round"/><text x="200" y="355" fill="#222" font-family="sans-serif" font-size="24" font-weight="bold" text-anchor="middle">DRAWING VIEWER TEST</text></svg>';
+const sampleDrawing='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(sampleSvg);
+const sampleRow={username:'Owner QA Sample',submitted_at:new Date().toISOString(),drawing:sampleDrawing,score:0,review_status:'test',ai_status:'test',ai_reasons:[],ai_details:'Visual test only. No account or run is changed.'};
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
@@ -11,9 +15,9 @@ async function load(){
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  rows=data||[];
- testRows=testError?[]:(tests||[]);
+ testRows=[sampleRow,...(testError?[]:(tests||[]))];
  testList.innerHTML=testRows.map((d,i)=>'<button type="button" class="crilo-review-row" data-test-index="'+i+'"><span class="crilo-review-rank">TEST</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Owner test drawing" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">Owner QA</span><span aria-hidden="true">↗</span></button>').join('');
- $('ownerTestDrawingMessage').textContent=testError?'Could not load test runs: '+testError.message:(testRows.length?testRows.length+' owner test drawing(s). Click to inspect.':'No saved Test Run drawings yet.');
+ $('ownerTestDrawingMessage').textContent='1 nonblank QA sample + '+(testRows.length-1)+' saved Test Run drawing(s). Click to inspect.'+(testError?' Saved runs unavailable: '+testError.message:'');
  message.textContent=rows.length?rows.length+' drawing'+(rows.length===1?'':'s')+' in this view.':'No drawings to review.';
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
