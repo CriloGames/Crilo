@@ -1,24 +1,18 @@
 (()=>{
 const $=id=>document.getElementById(id);
-const list=$('drawingReviewList'),testList=$('ownerTestDrawingList'),message=$('reviewMessage'),modal=$('reviewLightbox');
-let rows=[],testRows=[],chosen=null,generation=0;
-// Visual QA fixture only: not a stored run, score, AI flag, or real moderation target.
-const sampleSvg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff5c0"/><circle cx="200" cy="195" r="118" fill="#ffdc81" stroke="#222" stroke-width="8"/><ellipse cx="160" cy="170" rx="12" ry="19" fill="#222"/><ellipse cx="239" cy="170" rx="12" ry="19" fill="#222"/><path d="M142 226 Q200 289 258 226" fill="none" stroke="#222" stroke-width="11" stroke-linecap="round"/><text x="200" y="355" fill="#222" font-family="sans-serif" font-size="24" font-weight="bold" text-anchor="middle">DRAWING VIEWER TEST</text></svg>';
-const sampleDrawing='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(sampleSvg);
-const sampleRow={username:'Owner QA Sample',submitted_at:new Date().toISOString(),drawing:sampleDrawing,score:0,review_status:'test',ai_status:'test',ai_reasons:[],ai_details:'Visual test only. No account or run is changed.'};
+const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
+let rows=[],chosen=null,generation=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
- if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();testList.replaceChildren();return}
+ if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_test_drawings')]);
+ const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_test_drawings')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
- rows=data||[];
- testRows=[sampleRow,...(testError?[]:(tests||[]))];
- testList.innerHTML=testRows.map((d,i)=>'<button type="button" class="crilo-review-row" data-test-index="'+i+'"><span class="crilo-review-rank">TEST</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Owner test drawing" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">Owner QA</span><span aria-hidden="true">↗</span></button>').join('');
- $('ownerTestDrawingMessage').textContent='1 nonblank QA sample + '+(testRows.length-1)+' saved Test Run drawing(s). Click to inspect.'+(testError?' Saved runs unavailable: '+testError.message:'');
- message.textContent=rows.length?rows.length+' drawing'+(rows.length===1?'':'s')+' in this view.':'No drawings to review.';
+ rows=[...(data||[]),...(testError?[]:(tests||[]))];
+ message.textContent=rows.length?rows.length+' AI-flagged drawing(s).':'No AI-flagged drawings to review.';
+ if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
 function openDrawing(index,source=rows){
@@ -27,12 +21,11 @@ function openDrawing(index,source=rows){
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
  $('reviewActionStatus').textContent=chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
- const pending=chosen.review_status==='pending' && chosen.ai_status!=='test';
+ const pending=chosen.review_status==='pending' && chosen.ai_status==='flagged';
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const row=e.target.closest('[data-index]');if(row)openDrawing(Number(row.dataset.index))});
-testList.addEventListener('click',e=>{const row=e.target.closest('[data-test-index]');if(row){const item=testRows[Number(row.dataset.testIndex)];if(item)openDrawing(Number(row.dataset.testIndex),testRows)}});
 const close=()=>{modal.classList.add('hidden');chosen=null};
 $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
@@ -54,6 +47,8 @@ async function scanPending(){
   await load();
   message.textContent+=(data.scanned?' Scanned '+data.scanned+'; flagged '+data.flagged+'.':' No new scans.');
   if(data.failed)message.textContent+=' '+data.failed+' scan(s) could not be completed.';
+  if(data.testScanned)message.textContent+=' Scanned '+data.testScanned+' owner Test Run(s); flagged '+data.testFlagged+'.';
+  if(data.testFailed)message.textContent+=' '+data.testFailed+' owner test scan(s) failed.';
  }catch(err){message.textContent='AI scan: '+err.message}
  finally{scanning=false}
 }
