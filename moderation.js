@@ -7,9 +7,21 @@ async function load(){
  const request=++generation;
  if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests')]);
+ const [{data,error},{data:tests,error:testError},{data:scanRows,error:scanError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests'),criloDB.rpc('crilo_owner_test_scan_status')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
+ const diagnostic=$('ownerScanDiagnostics');
+ if(scanError){diagnostic.textContent='Could not load scan status: '+scanError.message}
+ else {
+  const checks=scanRows||[];
+  const pending=checks.filter(x=>!x.ai_status||x.ai_status==='pending').length;
+  const failed=checks.filter(x=>x.ai_status==='error').length;
+  const flagged=checks.filter(x=>x.ai_status==='flagged').length;
+  const clear=checks.filter(x=>x.ai_status==='clear').length;
+  const ocrPending=checks.filter(x=>x.ai_status==='clear'&&!x.ocr_checked_at).length;
+  diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
+  $('ownerScanHistory').innerHTML=checks.slice(0,10).map(x=>'<div style="padding:5px 0;font-size:13px;color:var(--muted,#767676)">'+escape(new Date(x.submitted_at).toLocaleString())+' · '+escape(x.ai_status||'pending')+(x.ocr_checked_at?' · text checked':' · text not checked')+'</div>').join('');
+ }
  rows=[...(data||[]),...(testError?[]:(tests||[]))];
  message.textContent=rows.length?rows.length+' AI-flagged drawing(s).':'No AI-flagged drawings to review.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
