@@ -249,6 +249,56 @@ jobs:
               !saveRetry.recovered.message.includes('Official Daily saved'))
               throw Error('Official Daily browser save retry regression: '+JSON.stringify(saveRetry));
             console.log('PASS: Chromium save fails safely then retries same official Daily',saveRetry);
+            // Full real-DOM authenticated flow, with the database boundary mocked:
+            // use a fresh page and inject test controls into the unmodified game closure.
+            const integrated=await browser.newPage();
+            await integrated.route('**/game.js?v=*',async route=>{
+              const response=await route.fetch();
+              let body=await response.text();
+              const ending='resetSegments();update();\\n})();';
+              if(!body.includes(ending))throw Error('Cannot install browser integration fixture');
+              body=body.replace(ending,`window.__criloAcceptance={authenticate(){user={id:'ci-fixture'};profile={id:user.id,is_owner:false};guestRun=false;beginRun()},spin,summary(){return{score,spins,totalSpins,verifiedSpinSessionId,officialSaved:!!officialRun,message:$('message').textContent}}};\\n`+ending);
+              await route.fulfill({response,body});
+            });
+            await integrated.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+            await integrated.locator('#spinButton').waitFor({state:'visible',timeout:10000});
+            const integration=await integrated.evaluate(async()=>{
+              let spinsMade=0,saved=null;
+              const initial=[{type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},{type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},{type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}];
+              const db=criloDB;
+              db.rpc=async name=>{
+                if(name==='crilo_begin_server_spin_session')return{data:'mock-completed-session',error:null};
+                if(name==='crilo_get_server_spin_state')return{data:{spin_count:0},error:null};
+                if(name==='crilo_server_spin'){
+                  spinsMade++;
+                  return{data:{outcome_index:0,
+                    outcome:{type:'num',base:2,points:2,segments:12,probability:3/12},
+                    score:spinsMade*2,remaining_spins:5-spinsMade,spin_count:spinsMade,
+                    segments:initial,finished:spinsMade===5},error:null};
+                }
+                throw Error('Unexpected RPC '+name);
+              };
+              db.from=table=>table==='user_badges'
+                ?{select:()=>({eq:async()=>({data:[],error:null})})}
+                :{insert:payload=>({select:()=>({single:async()=>{
+                  saved=payload;return{data:{is_test:false,daily_period:'2026-10-09'},error:null};
+                }})})};
+              window.requestAnimationFrame=cb=>setTimeout(()=>cb(performance.now()+3500),0);
+              window.__criloAcceptance.authenticate();
+              for(let i=0;i<5;i++){
+                await window.__criloAcceptance.spin();
+                await new Promise(resolve=>setTimeout(resolve,45));
+              }
+              await new Promise(resolve=>setTimeout(resolve,350));
+              return{spinsMade,saved:!!saved,savedScore:saved?.score,
+                savedSession:saved?.verified_spin_session_id,
+                ...window.__criloAcceptance.summary()};
+            });
+            if(integration.spinsMade!==5 || !integration.saved || !integration.officialSaved ||
+              integration.savedScore!==10 || integration.savedSession!=='mock-completed-session')
+              throw Error('Real-DOM authenticated spin-to-save flow failed: '+JSON.stringify(integration));
+            console.log('PASS: real Chromium DOM ran all authenticated spins and official save with mocked RPCs',integration);
+            await integrated.close();
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
