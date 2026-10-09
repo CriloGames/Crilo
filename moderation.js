@@ -1,16 +1,19 @@
 (()=>{
 const $=id=>document.getElementById(id);
-const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
-let rows=[],chosen=null,generation=0;
+const list=$('drawingReviewList'),testList=$('ownerTestDrawingList'),message=$('reviewMessage'),modal=$('reviewLightbox');
+let rows=[],testRows=[],chosen=null,generation=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
- if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
+ if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();testList.replaceChildren();return}
  message.textContent='Loading drawings…';
- const {data,error}=await criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'});
+ const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_test_drawings')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  rows=data||[];
+ testRows=testError?[]:(tests||[]);
+ testList.innerHTML=testRows.map((d,i)=>'<button type="button" class="crilo-review-row" data-test-index="'+i+'"><span class="crilo-review-rank">TEST</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Owner test drawing" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">Owner QA</span><span aria-hidden="true">↗</span></button>').join('');
+ $('ownerTestDrawingMessage').textContent=testError?'Could not load test runs: '+testError.message:(testRows.length?testRows.length+' owner test drawing(s). Click to inspect.':'No saved Test Run drawings yet.');
  message.textContent=rows.length?rows.length+' drawing'+(rows.length===1?'':'s')+' in this view.':'No drawings to review.';
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
@@ -20,11 +23,12 @@ function openDrawing(index){
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
  $('reviewActionStatus').textContent=chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
- const pending=chosen.review_status==='pending';
+ const pending=chosen.review_status==='pending' && chosen.ai_status!=='test';
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const row=e.target.closest('[data-index]');if(row)openDrawing(Number(row.dataset.index))});
+testList.addEventListener('click',e=>{const row=e.target.closest('[data-test-index]');if(row){const item=testRows[Number(row.dataset.testIndex)];if(item){rows.push(item);openDrawing(rows.length-1)}}});
 const close=()=>{modal.classList.add('hidden');chosen=null};
 $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
