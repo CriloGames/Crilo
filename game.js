@@ -78,7 +78,10 @@ if(s.type==='duck'){spins++;const duck=addDuck();pop('DUCK!');$('message').textC
 results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});if(serverReply){runProbability=results.slice(0,-1).reduce((acc,item)=>acc*Number(item.probability||1),1)*Number(serverReply.outcome.probability);results[results.length-1]={...serverReply.outcome,label:label(s)};segments=serverReply.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);totalSpins=Number(serverReply.spin_count);const authoritative=serverReply.outcome;if(authoritative.type==='num')recordBest(Number(authoritative.points),'+'+fmt(Number(authoritative.points)));else if(authoritative.type==='double')recordBest(Number(authoritative.points),'×2');}update();if(spins<=0)endRun()}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
-function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
+function verifiedDrawingKey(){return user?.id?'crilo_verified_drawing_'+user.id+'_'+Crilo.dailyPeriod():null}
+function cacheVerifiedDrawing(){if(guestRun||isTest)return;const key=verifiedDrawingKey();if(!key)return;try{localStorage.setItem(key,drawing.toDataURL('image/png'))}catch(e){console.warn('Cannot cache Daily drawing',e)}}
+async function restoreVerifiedDrawing(){const key=verifiedDrawingKey();if(!key)return;let uri;try{uri=localStorage.getItem(key)}catch(e){return}if(!uri)return;await new Promise(resolve=>{const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);resolve()};img.onerror=resolve;img.src=uri})}
+function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;cacheVerifiedDrawing();drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 async function spin(){if(spinning||spins<=0)return;
  if(!profile&&user){$('message').textContent='Loading your account. Please wait.';return;}
  if(profile?.is_owner&&!ownerModeChosen){$('message').textContent='Choose Official Daily or Test Run before spinning.';$('spinButton').classList.add('hidden');return;}
@@ -117,7 +120,7 @@ async function spin(){if(spinning||spins<=0)return;
          totalSpins=Number(saved.data.spin_count);multiplier=Number(saved.data.multiplier);
          upgrades=Number(saved.data.upgrades);doubles=Number(saved.data.doubles);
          ducks=Number(saved.data.ducks);numbersLanded=Number(saved.data.numbers_landed);
-         extraSpins=Number(saved.data.extra_spins);results=saved.data.results;restoreDucksFromVerifiedResults();lockDrawing();
+         extraSpins=Number(saved.data.extra_spins);results=saved.data.results;restoreDucksFromVerifiedResults();await restoreVerifiedDrawing();lockDrawing();
          bestRollPoints=0;bestRollLabel='';runProbability=1;
          for(const outcome of results){const pts=Number(outcome.points||0);if(pts>bestRollPoints){bestRollPoints=pts;bestRollLabel=outcome.type==='double'?'×2':'+'+fmt(pts)}runProbability*=Number(outcome.probability||1)}
          segments=saved.data.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
@@ -140,7 +143,7 @@ async function spin(){if(spinning||spins<=0)return;
          upgrades=Number(state.upgrades);doubles=Number(state.doubles);
          ducks=Number(state.ducks);numbersLanded=Number(state.numbers_landed);
          extraSpins=Number(state.extra_spins);
-         results=state.results;restoreDucksFromVerifiedResults();if(totalSpins>0)lockDrawing();
+         results=state.results;restoreDucksFromVerifiedResults();if(totalSpins>0){await restoreVerifiedDrawing();lockDrawing();}
          segments=state.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
          bestRollPoints=0;bestRollLabel='';runProbability=1;
          for(const outcome of results){
