@@ -118,6 +118,8 @@ def run(args):
                  'categories': NEGATIVES, 'seed': SEED,
                  'warning': 'RESEARCH ONLY, NOT APPROVED FOR DEPLOYMENT'}, dest)
     print('Saved evaluation artifact:', dest)
+    if threshold >= 1.0 or tp == 0:
+        raise SystemExit('REJECTED: Classifier failed research quality gate; refusing deployment (exit code 1).')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
