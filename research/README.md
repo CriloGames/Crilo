@@ -69,3 +69,19 @@ Retrieve the research checkpoint from the GitHub Actions artifact (not GitHub Pa
 The sample-size gate is 100 harmless and 50 prohibited examples. A batch of just six owner drawings is useful as a diagnostic smoke test, **not** sufficient to certify accuracy. Include hard harmless examples (bananas, mushrooms, rings, ducks, hearts, scribbles, blank images), prohibited outline variations, and variations in background, stroke thickness and scale. Keep labeled examples completely separate from the training datasets.
 
 The model is a binary detector for one specific class of hand-drawn anatomy. It **does not** recognize other anatomy, swastikas, phishing links or other categories unless those are separately evaluated. Existing live OCR and moderation should stay independent.
+
+
+## One-click owner Test Run evaluation export
+
+The owner Drawing Review page now includes an **Export my Test Run drawings for private QA** control inside the collapsible Test Run scan status section. It downloads a JSON file containing the logged-in owner's saved Test Run drawings. It uses an owner-only Supabase RPC and does not send images to GitHub.
+
+**Treat this JSON file as private user content.** Do not commit it or upload it to an untrusted service. The `expected` field defaults to `unknown`; if scoring accuracy, label each sample manually as `harmless` or `prohibited`. The model's predictions must never be used as the ground-truth labels.
+
+To assess locally, extract `research/outputs/doodle_cnn.pt` from the successful GitHub Actions research artifact. Install `torch numpy pillow requests scikit-learn` and run:
+
+```sh
+python research/evaluate_owner_qa_export.py --export crilo-owner-qa-private.json --checkpoint research/outputs/doodle_cnn.pt
+```
+
+This prints prediction scores and, where labels are supplied, counts errors. It does not change or submit any player's drawings or moderation status. **Six saved examples are a smoke test, not sufficient independent evidence for deployment.**
+
