@@ -58,6 +58,7 @@ async function scanPending(){
   if(!result.ok)throw Error(data.error||'AI scanner unavailable');
   await load();
   checkText();
+  checkSymbols();
   message.textContent+=(data.scanned?' Scanned '+data.scanned+'; flagged '+data.flagged+'.':' No new scans.');
   if(data.failed)message.textContent+=' '+data.failed+' scan(s) could not be completed.';
   if(data.testScanned)message.textContent+=' Scanned '+data.testScanned+' owner Test Run(s); flagged '+data.testFlagged+'.';
@@ -129,10 +130,63 @@ async function checkText(){
  }catch(e){console.warn('Free OCR unavailable',e);const status=$('ownerOcrStatus');if(status)status.textContent='OCR check failed; please refresh to retry.';}
  finally{ocrBusy=false}
 }
+
+let symbolBusy=false,symbolClassifier=null,symbolUnavailable=false;
+const symbolLabels=[
+ 'A simple black line drawing of a penis or male genitals',
+ 'A simple black line drawing of a vagina or female genitals',
+ 'A hand drawn swastika symbol',
+ 'A hand drawn extremist hate symbol',
+ 'A harmless smiley face doodle',
+ 'A harmless flower doodle',
+ 'A harmless duck doodle',
+ 'A blank white drawing',
+ 'Random abstract pencil strokes'
+];
+async function checkSymbols(){
+ if(symbolBusy||symbolUnavailable||document.hidden||!window.Crilo?.profile?.is_owner)return;
+ symbolBusy=true;
+ const status=$('ownerVisualStatus');
+ try{
+  const {data:jobs,error}=await criloDB.rpc('crilo_owner_visual_jobs');
+  if(error)throw error;
+  if(!jobs?.length){if(status)status.textContent='Visual symbol checks are up to date.';return}
+  if(!symbolClassifier){
+   if(status)status.textContent='Loading open-source CLIP visual classifier (large first-time download)…';
+   const module=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+   symbolClassifier=await module.pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{device:'wasm',dtype:'q8'});
+  }
+  for(const item of jobs){
+   try{
+    if(status)status.textContent='Scanning drawing for prohibited symbols…';
+    const results=await symbolClassifier(item.drawing,symbolLabels);
+    const best=Array.isArray(results)?results[0]:null;
+    if(!best||!Number.isFinite(best.score))throw Error('Invalid visual classification');
+    const pos=symbolLabels.indexOf(best.label);
+    const category=pos===0||pos===1?'explicit genital drawing':pos===2?'hand drawn swastika':pos===3?'hate symbol drawing':'clear';
+    const saved=await criloDB.rpc('crilo_owner_finish_visual',{
+     p_run_id:String(item.run_id),p_is_test:item.is_test,p_label:category,p_score:best.score,p_error:null
+    });
+    if(saved.error)throw saved.error;
+   }catch(err){
+    console.warn('Visual symbol scan failed:',err);
+    await criloDB.rpc('crilo_owner_finish_visual',{
+     p_run_id:String(item.run_id),p_is_test:item.is_test,p_label:'unavailable',p_score:0,p_error:String(err).slice(0,300)
+    });
+   }
+  }
+  if(status)status.textContent='Visual symbol check finished. Results require manual review.';
+  await load();
+ }catch(err){
+  console.warn('Visual symbol model unavailable:',err);
+  symbolUnavailable=true;
+  if(status)status.textContent='Visual symbol classifier could not load. Visual symbol detection is unavailable; do not assume drawings passed.';
+ }finally{symbolBusy=false}
+}
 let firstOwnerLoad=false;
-window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending();checkText()}});
-setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText()}},30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText()}});
+window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending();checkText();checkSymbols()}});
+setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText();checkSymbols()}},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText();checkSymbols()}});
 
 async function act(action){
  if(!chosen)return;
