@@ -32,13 +32,14 @@ def get_drawings(url, limit):
     finally: response.close()
     return out
 
-def bitmap(strokes):
+def bitmap(strokes, width=5, margin=0):
     image=Image.new('L',(256,256),255)
     pen=ImageDraw.Draw(image)
-    for s in strokes:
-        if len(s)!=2 or len(s[0])!=len(s[1]):continue
-        coords=list(zip(s[0],s[1]))
-        if len(coords)>1:pen.line(coords,fill=0,width=5)
+    for stroke in strokes:
+        if len(stroke)!=2 or len(stroke[0])!=len(stroke[1]):continue
+        coords=list(zip(stroke[0],stroke[1]))
+        coords=[(int(margin+(256-2*margin)*x/255),int(margin+(256-2*margin)*y/255)) for x,y in coords]
+        if len(coords)>1:pen.line(coords,fill=0,width=width,joint='curve')
         elif coords:pen.point(coords[0],fill=0)
     return np.asarray(image.resize((64,64),Image.Resampling.BILINEAR),dtype=np.float32)/255
 
@@ -73,6 +74,8 @@ def run(a):
         samples=get_drawings(NEG_URL.format(category=requests.utils.quote(cat,safe='')),a.per_category)
         raw+=samples;labels += [0]*len(samples)
         print(cat,len(samples),flush=True)
+    # Keep independent heldout drawings separate before augmenting. Each training
+    # source sketch appears in only one split; variant renders never cross splits.
     x=np.stack([bitmap(draw) for draw in raw])[:,None,:,:]
     y=np.array(labels,dtype=np.float32)
     train_idx,hold_idx=train_test_split(np.arange(len(y)),test_size=.20,stratify=y,random_state=SEED)
@@ -82,6 +85,8 @@ def run(a):
     loss_fn=nn.BCEWithLogitsLoss(pos_weight=torch.tensor([np.sum(y[fit_idx]==0)/max(1,np.sum(y[fit_idx]==1))]))
     from torch.nn import functional as F
     def augment(batch):
+        # Crilo uses a white transparent-composited square canvas. Simulate
+        # thinner pen strokes through random erosion/dilation on inverted ink.
         n=len(batch)
         angle=(torch.rand(n)*2-1)*0.15
         shift=(torch.rand(n,2)*2-1)*0.13
@@ -93,7 +98,13 @@ def run(a):
         matrix[:,1,1]=scale*torch.cos(angle)
         matrix[:,:,2]=shift
         grid=F.affine_grid(matrix,batch.size(),align_corners=False)
-        return F.grid_sample(batch-1,grid,padding_mode='zeros',align_corners=False)+1
+        aug=F.grid_sample(batch-1,grid,padding_mode='zeros',align_corners=False)+1
+        ink=1-aug
+        thin=1-F.max_pool2d(1-ink,kernel_size=3,stride=1,padding=1)
+        thick=F.max_pool2d(ink,kernel_size=3,stride=1,padding=1)
+        choice=torch.rand(n,1,1,1)
+        ink=torch.where(choice<.24,thin,torch.where(choice<.48,thick,ink))
+        return (1-ink).clamp(0,1)
     scheduler=torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=a.epochs,eta_min=.00003)
     for epoch in range(a.epochs):
         net.train();total=0
