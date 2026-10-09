@@ -101,6 +101,8 @@ async function spin(){if(spinning||spins<=0)return;
  }
  if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}
  let serverReply=null;
+ // Lock before awaiting the RPC: rapid clicks must not submit multiple server spins.
+ spinning=true;$('spinButton').disabled=true;
  if(!guestRun&&!isTest){
    try{
      if(!verifiedSpinSessionId){
@@ -124,7 +126,7 @@ async function spin(){if(spinning||spins<=0)return;
      const next=await criloDB.rpc('crilo_server_spin',{p_session:verifiedSpinSessionId});
      if(next.error)throw next.error;
      serverReply=next.data;
-   }catch(err){console.error('Verified spin failed',err);$('message').textContent='Could not contact the game server. Please retry your spin.';return;}
+   }catch(err){spinning=false;$('spinButton').disabled=false;console.error('Verified spin failed',err);$('message').textContent='Could not contact the game server. Please retry your spin.';return;}
  }
  lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=serverReply?Number(serverReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],serverReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
 function beginRun(){DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;verifiedSpinSessionId=null;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
