@@ -43,6 +43,31 @@ $('save').addEventListener('click',()=>{
  strokes=[];$('label').value='';paint();redraw();
 });
 $('remove').addEventListener('click',()=>{examples.pop();redraw()});
+$('import').addEventListener('change',async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  if(file.size>20000000)throw new Error('File exceeds the 20 MB import limit.');
+  const parsed=JSON.parse(await file.text());
+  if(parsed.format!=='crilo-labeled-private-v1'||!Array.isArray(parsed.samples))
+   throw new Error('This is not a labeled dataset export from the drawing lab.');
+  if(parsed.samples.length>2000)throw new Error('Too many samples in this file.');
+  let added=0;
+  const known=new Set(examples.map(x=>x.image));
+  for(const x of parsed.samples){
+   if(!x||!['harmless','prohibited'].includes(x.expected)||typeof x.image!=='string'
+     ||!/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(x.image)
+     ||x.image.length>3000000)throw new Error('File contains an invalid drawing or label.');
+   if(!known.has(x.image)){
+    examples.push({expected:x.expected,image:x.image,source:'human-crilo-style',
+     collected_at:typeof x.collected_at==='string'?x.collected_at:null});
+    known.add(x.image);added++;
+   }
+  }
+  redraw();$('status').textContent+=' Restored '+added+' unique drawings from the imported file.';
+ }catch(err){alert('Import unsuccessful: '+(err.message||err))}
+ finally{e.target.value=''}
+});
+
 $('export').addEventListener('click',()=>{
  if(!examples.length)return;
  const payload={format:'crilo-labeled-private-v1',notice:'PRIVATE labeled images. Do not publish.',samples:examples};
