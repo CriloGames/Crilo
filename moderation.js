@@ -7,7 +7,7 @@ async function load(){
  const request=++generation;
  if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const [{data,error},{data:tests,error:testError},{data:scanRows,error:scanError},{data:visualRows,error:visualError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests'),criloDB.rpc('crilo_owner_test_scan_status'),criloDB.rpc('crilo_owner_visual_diagnostics')]);
+ const [{data,error},{data:tests,error:testError},{data:scanRows,error:scanError},{data:visualRows,error:visualError},{data:reviewDrawings,error:reviewError},{data:reviewTests,error:reviewTestError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests'),criloDB.rpc('crilo_owner_test_scan_status'),criloDB.rpc('crilo_owner_visual_diagnostics'),criloDB.rpc('crilo_owner_review_drawings',{p_status:'review'}),criloDB.rpc('crilo_owner_visual_review_tests')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  const diagnostic=$('ownerScanDiagnostics');
@@ -18,8 +18,9 @@ async function load(){
   const failed=checks.filter(x=>x.ai_status==='error').length;
   const flagged=checks.filter(x=>x.ai_status==='flagged').length;
   const clear=checks.filter(x=>x.ai_status==='clear').length;
+  const review=checks.filter(x=>x.ai_status==='review').length;
   const ocrPending=checks.filter(x=>x.ai_status==='clear'&&!x.ocr_checked_at).length;
-  diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
+  diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+review+' needs review · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
   $('ownerScanHistory').innerHTML=checks.slice(0,10).map(x=>'<div style="padding:5px 0;font-size:13px;color:var(--muted,#767676)">'+escape(new Date(x.submitted_at).toLocaleString())+' · '+escape(x.ai_status||'pending')+(x.ocr_checked_at?' · text checked':' · text not checked')+'</div>').join('');
  }
  const visual=$('ownerVisualHistory');
@@ -32,18 +33,21 @@ async function load(){
    return '<div style="padding:6px 0;font-size:13px">'+date+' · '+escape(outcome)+escape(confidence)+' · '+escape(x.ai_status||'pending')+'</div>';
   }).join('');
  }
- rows=[...(data||[]),...(testError?[]:(tests||[]))];
- message.textContent=rows.length?rows.length+' AI-flagged drawing(s).':'No AI-flagged drawings to review.';
+ const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
+ const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
+ rows=[...flaggedRows,...uncertainRows];
+ message.textContent=flaggedRows.length+' flagged · '+uncertainRows.length+' needs manual review.';
+ if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
- list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
+ list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
 function openDrawing(index,source=rows){
  chosen=source[index];if(!chosen)return;
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
- $('reviewActionStatus').textContent=chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
- const pending=chosen.review_status==='pending' && chosen.ai_status==='flagged';
+ $('reviewActionStatus').textContent=chosen.ai_status==='review'?'Needs manual review (not a confirmed violation). '+(chosen.ai_details||''):chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
+ const pending=chosen.review_status==='pending' && (chosen.ai_status==='flagged'||chosen.ai_status==='review');
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
  modal.classList.remove('hidden');
 }
