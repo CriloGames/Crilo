@@ -63,6 +63,7 @@ function sound(kind){
 }
 function pop(text){const p=$('eventPop');p.textContent=text;p.classList.remove('show');void p.offsetWidth;p.classList.add('show')}
 function addDuck(){ducks++;$('duckCount').textContent=ducks;return DuckWorld.spawn()}
+function restoreDucksFromVerifiedResults(){DuckWorld.clear();for(const result of results){if(result.type==='duck')DuckWorld.spawn()}}
 
 function bump(){const w=$('wheelWrap');w.classList.remove('upgrade-bump');void w.offsetWidth;w.classList.add('upgrade-bump')}
 function addNumbers(){const count=4+Math.min(upgrades,8),bases=[1,1,2,2,3,3,5,5,8,10];for(let i=0;i<count;i++)segments.push({type:'num',base:bases[Math.floor(Math.random()*bases.length)]})}
@@ -116,7 +117,7 @@ async function spin(){if(spinning||spins<=0)return;
          totalSpins=Number(saved.data.spin_count);multiplier=Number(saved.data.multiplier);
          upgrades=Number(saved.data.upgrades);doubles=Number(saved.data.doubles);
          ducks=Number(saved.data.ducks);numbersLanded=Number(saved.data.numbers_landed);
-         extraSpins=Number(saved.data.extra_spins);results=saved.data.results;
+         extraSpins=Number(saved.data.extra_spins);results=saved.data.results;restoreDucksFromVerifiedResults();
          bestRollPoints=0;bestRollLabel='';runProbability=1;
          for(const outcome of results){const pts=Number(outcome.points||0);if(pts>bestRollPoints){bestRollPoints=pts;bestRollLabel=outcome.type==='double'?'×2':'+'+fmt(pts)}runProbability*=Number(outcome.probability||1)}
          segments=saved.data.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
@@ -139,7 +140,7 @@ async function spin(){if(spinning||spins<=0)return;
          upgrades=Number(state.upgrades);doubles=Number(state.doubles);
          ducks=Number(state.ducks);numbersLanded=Number(state.numbers_landed);
          extraSpins=Number(state.extra_spins);
-         results=state.results;
+         results=state.results;restoreDucksFromVerifiedResults();
          segments=state.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
          bestRollPoints=0;bestRollLabel='';runProbability=1;
          for(const outcome of results){
