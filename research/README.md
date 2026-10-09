@@ -85,3 +85,14 @@ python research/evaluate_owner_qa_export.py --export crilo-owner-qa-private.json
 
 This prints prediction scores and, where labels are supplied, counts errors. It does not change or submit any player's drawings or moderation status. **Six saved examples are a smoke test, not sufficient independent evidence for deployment.**
 
+
+## First private Crilo-style smoke test (2026-10-09)
+
+Using the successful 28-epoch CNN checkpoint (validation threshold 0.9801), six private owner QA drawings were assessed **offline**. Only aggregate results are recorded here; no private drawings, identifiers, or labels are published.
+
+- Two hand-drawn male-genital examples: **0/2 detected** (scores approximately 0.0002 and 0.7893).
+- Four other examples (ordinary and handwritten text): **4/4 left unflagged** by this visual-only model.
+- One handwritten-profanity example was scored 0.7438; reducing the visual threshold enough to catch one anatomy example would also risk flagging this text drawing.
+- **DO NOT DEPLOY.** This six-example smoke test is not a statistical benchmark, but both missed relevant drawings demonstrate dataset shift from public QuickDraw sketches to actual Crilo drawings.
+
+Next research priorities: obtain independent consented Crilo-style drawings for both classes; ensure exact canvas preprocessing, stroke width and scale variations are reflected in training; set aside a new Crilo-specific holdout before training; repeat evaluation without reusing the six QA examples as a final test set. Do not solve this by lowering the threshold alone.
