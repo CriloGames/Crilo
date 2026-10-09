@@ -1,0 +1,314 @@
+name: Browser smoke test
+on:
+  pull_request:
+    paths:
+      - 'game.js'
+      - 'index.html'
+      - '.github/workflows/browser-smoke.yml'
+  workflow_dispatch:
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        timeout-minutes: 5
+        run: |
+          npm install --no-save playwright
+          npx playwright install chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/crilo-server.log 2>&1 &
+      - name: Exercise real Chromium DOM
+        run: |
+          node <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage();
+            const errors = [];
+            page.on('pageerror',error => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+            await page.locator('#spinButton').waitFor({state:'attached',timeout:15000});
+            await page.locator('#wheel').waitFor({state:'attached'});
+            await page.locator('#drawing').waitFor({state:'attached'});
+            const canvasOK = await page.evaluate(() =>
+              !!document.querySelector('#wheel')?.getContext('2d') &&
+              !!document.querySelector('#drawing')?.getContext('2d'));
+            if(!canvasOK) throw Error('Game canvas unavailable');
+            await page.waitForTimeout(1500);
+            // Exercise the actual guest spin animation and outcome resolution.
+            const button = page.locator('#spinButton');
+            if(await button.isVisible() && await button.isEnabled()){
+              await button.click();
+              await page.waitForTimeout(3300);
+              const message = (await page.locator('#message').textContent() || '').trim();
+              if(!message || message === '...') throw Error('Guest spin failed to resolve: '+message);
+              console.log('PASS: real Chromium guest spin resolved with message:',message);
+            } else {
+              throw Error('Guest spin button unexpectedly unavailable');
+            }
+            // Play two more rounds in a real browser, including button re-enabling.
+            // Starting from five spins guarantees at least three outcomes even without bonuses.
+            for(let round=2;round<=3;round++){
+              await button.waitFor({state:'visible',timeout:5000});
+              await page.waitForFunction(() => !document.querySelector('#spinButton').disabled, {timeout:5000});
+              await button.click();
+              await page.waitForTimeout(3400);
+              const message=(await page.locator('#message').textContent()||'').trim();
+              const score=(await page.locator('#score').textContent()||'').trim();
+              const remaining=(await page.locator('#spins').textContent()||'').trim();
+              if(!message || message==='...' || !score || !remaining)
+                throw Error('Guest spin '+round+' did not settle: '+JSON.stringify({message,score,remaining}));
+              console.log('PASS: guest spin '+round+' resolved',JSON.stringify({message,score,remaining}));
+            }
+            // Reload the actual browser page and verify guest gameplay remains usable.
+            await page.reload({waitUntil:'domcontentloaded'});
+            await page.locator('#spinButton').waitFor({state:'visible',timeout:10000});
+            await page.waitForTimeout(1000);
+            if(!(await page.locator('#spinButton').isEnabled()))
+              throw Error('Spin unavailable after browser refresh');
+            await page.locator('#spinButton').click();
+            await page.waitForTimeout(3300);
+            const afterReload=(await page.locator('#message').textContent()||'').trim();
+            if(!afterReload || afterReload==='...')
+              throw Error('Spin after reload failed to resolve: '+afterReload);
+            console.log('PASS: guest game survives reload and resolves a subsequent spin');
+            // Exercise server-authoritative code in Chromium without touching production accounts:
+            // inject a temporary test harness into the served source, mock only Supabase RPCs,
+            // and verify that one authenticated spin is server-selected.
+            const source = await (await page.request.get('http://127.0.0.1:8765/game.js')).text();
+            const browserAuth = await page.evaluate(async (original) => {
+              const start=original.indexOf('async function spin()');
+              const end=original.indexOf('function beginRun()',start);
+              if(start<0||end<0) throw Error('Cannot extract actual spin implementation');
+              const actual=original.slice(start,end);
+              let requests=0, resolved=null, frames=[];
+              const button={disabled:false,classList:{add(){},remove(){}}};
+              const msg={textContent:''};
+              const ctx={
+                spinning:false,spins:5,profile:{is_owner:false},user:{id:'ci-test'},ownerModeChosen:true,
+                started:true,guestRun:false,isTest:false,verifiedSpinSessionId:'mock-session',
+                totalSpins:0,score:0,segments:[{type:'num',base:2}],rotation:0,
+                $:id=>id==='spinButton'?button:msg,
+                criloDB:{rpc:async name=>{requests++;if(name!=='crilo_server_spin')throw Error('Unexpected RPC '+name);
+                  return {data:{outcome_index:0,outcome:{type:'num',base:2,points:2,probability:1},score:2,
+                    remaining_spins:4,spin_count:1,segments:[{type:'num',base:2}],finished:false}}}},
+                lockDrawing(){},update(){},resolve(segment,response){resolved={segment,response}},drawWheel(){},sound(){},
+                requestAnimationFrame:fn=>frames.push(fn),performance:{now:()=>0},
+                console,fmt:n=>String(n),Math,cacheVerifiedDrawing(){},Crilo:{dailyPeriod:()=> '2026-10-09'}
+              };
+              const fn=new Function('ctx','with(ctx){'+actual+';return spin}')(ctx);
+              await fn();
+              for(let i=0;i<5&&frames.length;i++){const frame=frames.shift();frame(3000)}
+              const normalized=(ctx.rotation%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+              const angle=(0.5*2*Math.PI/ctx.segments.length-Math.PI/2+normalized)%(2*Math.PI);
+              const distance=Math.abs(Math.atan2(Math.sin(angle+Math.PI/2),Math.cos(angle+Math.PI/2)));
+              return {requests,resolved:!!resolved,score:ctx.score,spins:ctx.spins,locked:button.disabled,
+                angularErrorRadians:distance,rotation:ctx.rotation};
+            },source);
+            if(browserAuth.requests!==1||!browserAuth.resolved||browserAuth.spins!==4||browserAuth.angularErrorRadians>0.00001)
+              throw Error('Browser authenticated RPC integration regression: '+JSON.stringify(browserAuth));
+            console.log('PASS: authenticated spin function ran in Chromium with deterministic mocked server RPC',browserAuth);
+            // Verify lost server responses recover the authoritative state in Chromium.
+            const recovered = await page.evaluate(async original => {
+              const start=original.indexOf('async function spin()');
+              const end=original.indexOf('function beginRun()',start);
+              const source=original.slice(start,end);
+              const calls=[],button={disabled:false,classList:{add(){},remove(){}}},msg={textContent:''};
+              const state={score:17,remaining_spins:4,spin_count:1,multiplier:1,upgrades:0,
+                doubles:0,ducks:0,numbers_landed:1,extra_spins:0,
+                results:[{type:'num',base:2,points:17,probability:0.2}],
+                segments:[{type:'num',base:2}],finished:false};
+              const ctx={spinning:false,spins:5,profile:{is_owner:false},user:{id:'ci'},
+                ownerModeChosen:true,started:true,guestRun:false,isTest:false,
+                verifiedSpinSessionId:'mock-session',totalSpins:0,score:0,
+                segments:[{type:'num',base:2}],rotation:0,
+                $:id=>id==='spinButton'?button:msg,
+                criloDB:{rpc:async name=>{calls.push(name);return name==='crilo_server_spin'
+                  ?{error:{message:'connection lost'}}:{data:state}}},
+                lockDrawing(){},restoreVerifiedDrawing:async()=>{},restoreDucksFromVerifiedResults(){},
+                update(){},endRun(){},drawWheel(){},sound(){},requestAnimationFrame(){},
+                performance:{now:()=>0},console,fmt:n=>String(n),Math,
+                cacheVerifiedDrawing(){},Crilo:{dailyPeriod:()=> '2026-10-09'}};
+              await new Function('ctx','with(ctx){'+source+';return spin}')(ctx)();
+              return {calls,score:ctx.score,spins:ctx.spins,unlocked:!button.disabled,
+                message:msg.textContent};
+            },source);
+            if(recovered.calls.length!==2 || recovered.calls[0]!=='crilo_server_spin'
+              || recovered.calls[1]!=='crilo_get_server_spin_state'
+              || recovered.score!==17 || recovered.spins!==4 || !recovered.unlocked)
+              throw Error('Interrupted spin recovery failed in Chromium: '+JSON.stringify(recovered));
+            console.log('PASS: Chromium recovery after lost RPC reply',recovered);
+            // Exercise real canvas/image decoding and drawing recovery in Chromium.
+            const drawingRecovery=await page.evaluate(async original=>{
+              const start=original.indexOf('function verifiedDrawingKey()');
+              const end=original.indexOf('function lockDrawing()',start);
+              if(start<0||end<0)throw Error('Drawing recovery functions not found');
+              const drawing=document.querySelector('#drawing');
+              const dctx=drawing.getContext('2d');
+              const id='crilo-ci-drawing-test';
+              const canvas=document.createElement('canvas');
+              canvas.width=drawing.width;canvas.height=drawing.height;
+              const ctx=canvas.getContext('2d');
+              ctx.fillStyle='#e74c3c';ctx.fillRect(30,30,40,40);
+              const saved=canvas.toDataURL('image/png');
+              const key='crilo_verified_drawing_'+id+'_2026-10-09';
+              localStorage.removeItem(key);
+              dctx.clearRect(0,0,drawing.width,drawing.height);
+              dctx.drawImage(canvas,0,0);
+              const fake={user:{id},guestRun:false,isTest:false,drawing,dctx,
+                Crilo:{dailyPeriod:()=>'2026-10-09'},localStorage,Image,console};
+              const helpers=new Function('ctx','with(ctx){'+original.slice(start,end)+
+                ';return {cacheVerifiedDrawing,restoreVerifiedDrawing}}')(fake);
+              helpers.cacheVerifiedDrawing();
+              dctx.clearRect(0,0,drawing.width,drawing.height);
+              await helpers.restoreVerifiedDrawing();
+              const pixel=[...dctx.getImageData(45,45,1,1).data];
+              const retained=localStorage.getItem(key)===saved;
+              localStorage.removeItem(key);
+              return {pixel,retained};
+            },source);
+            if(!drawingRecovery.retained || drawingRecovery.pixel[0]!==231 ||
+              drawingRecovery.pixel[1]!==76 || drawingRecovery.pixel[2]!==60)
+              throw Error('Drawing canvas restore failed in Chromium: '+JSON.stringify(drawingRecovery));
+            console.log('PASS: Chromium drawing PNG persisted, decoded, restored to canvas',drawingRecovery);
+            // Owner's private test mode must not call any server-authenticated spin RPC.
+            const ownerMode=await page.evaluate(async original=>{
+              const begin=original.slice(original.indexOf('function beginRun()'),original.indexOf('async function endRun()'));
+              const beginBody=begin.slice(0,begin.indexOf('let savingCompletedRun=false;'));
+              const testSrc=original.slice(original.indexOf('function startTest('),original.indexOf('function countdown()',original.indexOf('function startTest(')));
+              const elements=new Map();
+              const $=id=>{if(!elements.has(id))elements.set(id,{
+                disabled:false,textContent:'',classList:{add(){},remove(){},toggle(){}}});
+                return elements.get(id)};
+              let calls=0;
+              const drawing={width:200,height:200},ctx={
+                profile:{is_owner:true},spinning:false,ownerModeChosen:false,isTest:false,
+                saveOwnerTest:false,started:false,guestRun:false,user:{id:'owner'},
+                drawing,dctx:{clearRect(){}},drawMode:'stationary',
+                undoStack:[],redoStack:[],score:0,spins:5,multiplier:1,upgrades:0,
+                doubles:0,ducks:0,totalSpins:0,numbersLanded:0,extraSpins:0,
+                bestRollPoints:0,bestRollLabel:'',rotation:0,segments:[],results:[],
+                runProbability:1,verifiedSpinSessionId:null,
+                DuckWorld:{clear(){}},$,
+                document:{querySelectorAll:()=>[]},
+                showDrawPlaceholder(){},resetSegments(){},update(){},
+                criloDB:{rpc:async()=>{calls++;throw Error('Owner test invoked RPC')}}
+              };
+              const fns=new Function('ctx','with(ctx){'+beginBody+';'+testSrc+';return {startTest}}')(ctx);
+              fns.startTest();
+              return {isTest:ctx.isTest,started:ctx.started,spins:ctx.spins,
+                ownerModeChosen:ctx.ownerModeChosen,calls};
+            },source);
+            if(!ownerMode.isTest||!ownerMode.started||ownerMode.spins!==5||
+               !ownerMode.ownerModeChosen||ownerMode.calls!==0)
+              throw Error('Owner test-mode regression: '+JSON.stringify(ownerMode));
+            console.log('PASS: owner private test mode initializes separately from server Daily',ownerMode);
+            // Exercise real endRun() browser logic: failed database insert then successful retry.
+            const saveRetry=await page.evaluate(async original=>{
+              const a=original.indexOf('async function endRun()'),b=original.indexOf('async function showNewBadges(',a);
+              if(a<0||b<0)throw Error('Cannot extract save routine');
+              const content=original.slice(a,b);
+              const elements=new Map(),$=id=>{
+                if(!elements.has(id))elements.set(id,{disabled:false,textContent:'',
+                  classList:{add(){},remove(){},toggle(){}}});return elements.get(id)};
+              const canvas=document.createElement('canvas');canvas.width=30;canvas.height=30;
+              const dctx=canvas.getContext('2d');dctx.fillRect(1,1,10,10);
+              let inserts=0;
+              const db={from:name=>name==='user_badges'?
+                {select:()=>({eq:async()=>({data:[],error:null})})}:
+                {insert:payload=>({select:()=>({single:async()=>{
+                  inserts++;return inserts===1?{error:{message:'offline'},data:null}:
+                  {error:null,data:{is_test:false,daily_period:'2026-10-09'}}}})})}};
+              const ctx={savingCompletedRun:false,spinning:false,started:true,guestRun:false,
+                isTest:false,profile:{is_owner:false},user:{id:'ci'},
+                drawing:canvas,dctx,score:10,totalSpins:5,upgrades:0,doubles:0,ducks:0,
+                numbersLanded:1,extraSpins:0,bestRollPoints:10,bestRollLabel:'+10',
+                results:[],verifiedSpinSessionId:'mock-session',officialRun:null,
+                $: $,criloDB:db,DuckWorld:{clear(){}},Crilo:{dailyPeriod:()=>'2026-10-09'},
+                rarity:()=>({probability:0.1,label:'RARE',odds:10}),
+                renderResult(){},showNewBadges:async()=>{},fmt:String,open(){},
+                verifiedDrawingKey:()=>null,localStorage,console,Math};
+              const end=new Function('ctx','with(ctx){'+content+';return endRun}')(ctx);
+              await end();
+              const failed={inserts,retry:!$('spinButton').disabled,
+                message:$('message').textContent};
+              await end();
+              const recovered={inserts,message:$('message').textContent,
+                official:!!ctx.officialRun,spinHidden:true};
+              return {failed,recovered};
+            },source);
+            if(saveRetry.failed.inserts!==1||!saveRetry.failed.retry||
+              !saveRetry.failed.message.includes('Retry Save')||
+              saveRetry.recovered.inserts!==2||!saveRetry.recovered.official||
+              !saveRetry.recovered.message.includes('Official Daily saved'))
+              throw Error('Official Daily browser save retry regression: '+JSON.stringify(saveRetry));
+            console.log('PASS: Chromium save fails safely then retries same official Daily',saveRetry);
+            // Full real-DOM authenticated flow, with the database boundary mocked:
+            // use a fresh page and inject test controls into the unmodified game closure.
+            const integrated=await browser.newPage();
+            await integrated.route('**/game.js?v=*',async route=>{
+              const response=await route.fetch();
+              let body=await response.text();
+              const ending=/resetSegments\(\);update\(\);\s*\}\)\(\);/;
+              if(!ending.test(body))throw Error('Cannot install browser integration fixture');
+              body=body.replace(ending,matched=>`window.__criloAcceptance={authenticate(){user={id:'ci-fixture'};profile={id:user.id,is_owner:false};guestRun=false;beginRun()},spin,summary(){return{score,spins,totalSpins,verifiedSpinSessionId,officialSaved:!!officialRun,message:$('message').textContent}}};${String.fromCharCode(10)}`+matched);
+              await route.fulfill({response,body});
+            });
+            await integrated.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+            await integrated.locator('#spinButton').waitFor({state:'visible',timeout:10000});
+            const integration=await integrated.evaluate(async()=>{
+              let spinsMade=0,saved=null;
+              const initial=[{type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},{type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},{type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}];
+              const db=criloDB;
+              db.rpc=async name=>{
+                if(name==='crilo_begin_server_spin_session')return{data:'mock-completed-session',error:null};
+                if(name==='crilo_get_server_spin_state')return{data:{spin_count:0},error:null};
+                if(name==='crilo_server_spin'){
+                  spinsMade++;
+                  return{data:{outcome_index:0,
+                    outcome:{type:'num',base:2,points:2,segments:12,probability:3/12},
+                    score:spinsMade*2,remaining_spins:5-spinsMade,spin_count:spinsMade,
+                    segments:initial,finished:spinsMade===5},error:null};
+                }
+                throw Error('Unexpected RPC '+name);
+              };
+              db.from=table=>table==='user_badges'
+                ?{select:()=>({eq:async()=>({data:[],error:null})})}
+                :{insert:payload=>({select:()=>({single:async()=>{
+                  saved=payload;return{data:{is_test:false,daily_period:'2026-10-09'},error:null};
+                }})})};
+              window.requestAnimationFrame=cb=>setTimeout(()=>cb(performance.now()+3500),0);
+              window.__criloAcceptance.authenticate();
+              for(let i=0;i<5;i++){
+                await window.__criloAcceptance.spin();
+                await new Promise(resolve=>setTimeout(resolve,45));
+              }
+              await new Promise(resolve=>setTimeout(resolve,350));
+              return{spinsMade,saved:!!saved,savedScore:saved?.score,
+                savedSession:saved?.verified_spin_session_id,
+                ...window.__criloAcceptance.summary()};
+            });
+            if(integration.spinsMade!==5 || !integration.saved || !integration.officialSaved ||
+              integration.savedScore!==10 || integration.savedSession!=='mock-completed-session')
+              throw Error('Real-DOM authenticated spin-to-save flow failed: '+JSON.stringify(integration));
+            console.log('PASS: real Chromium DOM ran all authenticated spins and official save with mocked RPCs',integration);
+            await integrated.close();
+            await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
+            if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
+            console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
+            await browser.close();
+          })().catch(e => {console.error(e);process.exit(1)});
+          JS
+      - name: Upload browser screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crilo-browser-smoke
+          path: crilo-browser-smoke.png
+          if-no-files-found: ignore
