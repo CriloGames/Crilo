@@ -46,11 +46,12 @@ class DoodleCNN(nn.Module):
     def __init__(self):
         super().__init__()
         self.net=nn.Sequential(
-            nn.Conv2d(1,16,3,padding=1),nn.ReLU(),nn.MaxPool2d(2),
-            nn.Conv2d(16,32,3,padding=1),nn.ReLU(),nn.MaxPool2d(2),
-            nn.Conv2d(32,64,3,padding=1),nn.ReLU(),nn.MaxPool2d(2),
-            nn.Flatten(),nn.Linear(64*8*8,64),nn.ReLU(),
-            nn.Dropout(0.35),nn.Linear(64,1))
+            nn.Conv2d(1,32,3,padding=1),nn.BatchNorm2d(32),nn.ReLU(),nn.MaxPool2d(2),
+            nn.Conv2d(32,64,3,padding=1),nn.BatchNorm2d(64),nn.ReLU(),nn.MaxPool2d(2),
+            nn.Conv2d(64,128,3,padding=1),nn.BatchNorm2d(128),nn.ReLU(),nn.MaxPool2d(2),
+            nn.Conv2d(128,128,3,padding=1),nn.BatchNorm2d(128),nn.ReLU(),
+            nn.AdaptiveAvgPool2d((4,4)),nn.Flatten(),nn.Linear(128*4*4,128),nn.ReLU(),
+            nn.Dropout(0.35),nn.Linear(128,1))
     def forward(self,x):return self.net(x).flatten()
 
 def scores(net,x,device):
@@ -77,7 +78,7 @@ def run(a):
     train_idx,hold_idx=train_test_split(np.arange(len(y)),test_size=.20,stratify=y,random_state=SEED)
     fit_idx,val_idx=train_test_split(train_idx,test_size=.20,stratify=y[train_idx],random_state=SEED)
     device='cpu';net=DoodleCNN().to(device)
-    optimizer=torch.optim.AdamW(net.parameters(),lr=.001,weight_decay=.005)
+    optimizer=torch.optim.AdamW(net.parameters(),lr=.0007,weight_decay=.008)
     loss_fn=nn.BCEWithLogitsLoss(pos_weight=torch.tensor([np.sum(y[fit_idx]==0)/max(1,np.sum(y[fit_idx]==1))]))
     from torch.nn import functional as F
     def augment(batch):
@@ -93,6 +94,7 @@ def run(a):
         matrix[:,:,2]=shift
         grid=F.affine_grid(matrix,batch.size(),align_corners=False)
         return F.grid_sample(batch-1,grid,padding_mode='zeros',align_corners=False)+1
+    scheduler=torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=a.epochs,eta_min=.00003)
     for epoch in range(a.epochs):
         net.train();total=0
         loader=DataLoader(TensorDataset(torch.tensor(x[fit_idx]),torch.tensor(y[fit_idx])),
@@ -101,6 +103,7 @@ def run(a):
             optimizer.zero_grad()
             loss=loss_fn(net(augment(features)),target)
             loss.backward();optimizer.step();total+=loss.item()
+        scheduler.step()
         print('Epoch',epoch+1,'loss',round(total/len(loader),4),flush=True)
     val=scores(net,torch.tensor(x[val_idx]),device)
     desired=[]
