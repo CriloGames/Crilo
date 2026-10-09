@@ -79,7 +79,7 @@ results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(poi
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
 function verifiedDrawingKey(){return user?.id?'crilo_verified_drawing_'+user.id+'_'+Crilo.dailyPeriod():null}
-function cacheVerifiedDrawing(){if(guestRun||isTest)return;const key=verifiedDrawingKey();if(!key)return;try{localStorage.setItem(key,drawing.toDataURL('image/png'))}catch(e){console.warn('Cannot cache Daily drawing',e)}}
+function cacheVerifiedDrawing(){if(guestRun||isTest)return;const key=verifiedDrawingKey();if(!key)return;try{if(localStorage.getItem(key)===null)localStorage.setItem(key,drawing.toDataURL('image/png'))}catch(e){console.warn('Cannot cache Daily drawing',e)}}
 async function restoreVerifiedDrawing(){const key=verifiedDrawingKey();if(!key)return;let uri;try{uri=localStorage.getItem(key)}catch(e){return}if(!uri)return;await new Promise(resolve=>{const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);resolve()};img.onerror=resolve;img.src=uri})}
 function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;cacheVerifiedDrawing();drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 async function spin(){if(spinning||spins<=0)return;
