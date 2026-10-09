@@ -9,6 +9,7 @@ This checklist replaces open-ended micro-audits. A gate is **complete only when 
 - [x] Chromium animation landing angle matches the mocked server-selected segment at pointer (angular tolerance <0.00001 rad). Evidence: https://github.com/CriloGames/Crilo/actions/runs/37972539917.
 - [x] Real Supabase RPC chain starts/reuses an authenticated session and spins until completion; stored state matches each RPC outcome (rollback-safe SQL regression, 2026-10-09).
 - [x] Complete verified Daily spin-to-insert Supabase database integration passed for an ephemeral authenticated identity (2026-10-09); transaction rolled back, no test auth account retained.
+- [x] Full real-page Chromium authenticated five-spin sequence and successful official save with mocked Supabase API. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37973157186.
 - [ ] Authenticated server-controlled spin goes from real Supabase RPC through animation through saved official Daily.
   - 2026-10-09 blocker: both existing testable profiles already have an official Daily for the current period; rollback-safe server-to-insert test correctly rejected duplicate submission. Need isolated test identity or a fresh Daily period and actual browser session before completion.
 - [x] Lost server response and authoritative-state recovery executes in Chromium with mocked RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970646915.
