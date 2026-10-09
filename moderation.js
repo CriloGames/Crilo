@@ -162,9 +162,9 @@ async function checkSymbols(){
   if(error)throw error;
   if(!jobs?.length){if(status)status.textContent='Visual symbol checks are up to date.';return}
   if(!symbolClassifier){
-   if(status)status.textContent='Loading open-source CLIP visual classifier (large first-time download)…';
+   if(status)status.textContent='Loading open-source SigLIP visual classifier (large first-time download)…';
    const module=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
-   symbolClassifier=await module.pipeline('zero-shot-image-classification','Xenova/clip-vit-base-patch32',{device:'wasm',dtype:'q8'});
+   symbolClassifier=await module.pipeline('zero-shot-image-classification','Xenova/siglip-base-patch16-224',{device:'wasm',dtype:'q8'});
   }
   for(const item of jobs){
    try{
