@@ -8,6 +8,7 @@ This checklist replaces open-ended micro-audits. A gate is **complete only when 
 - [x] Authenticated spin logic runs in Chromium with mocked server RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970339088.
 - [ ] Authenticated server-controlled spin goes from real Supabase RPC through animation through saved official Daily.
 - [x] Lost server response and authoritative-state recovery executes in Chromium with mocked RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970646915.
+- [x] Real Chromium canvas PNG caching and restoration passed. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970884450.
 - [ ] Refresh, disconnect/recover, failed-save retry, and drawing restoration run in browser.
 - [ ] Owner test runs remain private and independent of the official Daily.
 
