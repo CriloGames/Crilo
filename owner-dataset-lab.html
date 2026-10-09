@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crilo — Private Drawing Dataset Lab</title>
+<style>
+:root{font:16px/1.5 system-ui,-apple-system,sans-serif;background:#fffaf1;color:#252329}
+*{box-sizing:border-box}body{max-width:940px;margin:auto;padding:24px}h1{line-height:1.15}
+a{color:#5745a6}section{background:white;border:1px solid #e8dfd3;border-radius:16px;padding:18px;margin:20px 0}
+button,select{border-radius:9px;border:1px solid #aaa;padding:10px;font:inherit;background:#fff;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}.primary{background:#b9e8d3;border-color:#89c3a8}
+canvas{display:block;width:min(100%,400px);aspect-ratio:1;background:white;border:2px solid #c9c4bf;border-radius:8px;touch-action:none;cursor:crosshair;image-rendering:auto}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+small{color:#656168}.tiles{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tiles img{width:70px;height:70px;border:1px solid #bbb;border-radius:6px;background:white}
+#status{font-weight:600}.note{background:#f7f0fc;padding:12px;border-radius:8px}
+</style></head>
+<body>
+<p><a href="moderation.html">← Drawing Review</a></p>
+<h1>Private drawing dataset lab</h1>
+<p>Create and label <strong>new</strong> Crilo-style doodles for independent AI validation. Everything stays in this browser tab until you explicitly download a file. No uploads, accounts, network requests or automated moderation decisions.</p>
+<section>
+<h2>1. Draw a new example</h2>
+<p>Use the square canvas. Vary line thickness, scale, position and drawing style. Create a wide variety of ordinary drawings, including shapes that resemble prohibited content.</p>
+<canvas id="canvas" width="200" height="200" aria-label="Drawing area"></canvas>
+<div class="controls">
+<label>Pen width <select id="pen"><option value="2">Thin (2px)</option><option value="4" selected>Normal (4px)</option><option value="8">Thick (8px)</option></select></label>
+<button id="undo" type="button">Undo last stroke</button><button id="clear" type="button">Clear</button>
+</div>
+<div class="controls">
+<label>Human-verified label <select id="label">
+<option value="">Choose a label…</option>
+<option value="harmless">Harmless</option>
+<option value="prohibited">Prohibited anatomical drawing</option>
+</select></label>
+<button class="primary" id="save" type="button">Save labeled example</button>
+</div>
+<p class="note">Label only what you can confidently identify. Do not use images from prior tests to claim independent accuracy. Never use an AI prediction as the correct label.</p>
+</section>
+<section>
+<h2>2. Saved examples</h2>
+<p id="status" role="status">0 examples saved in this tab.</p>
+<div class="tiles" id="tiles"></div>
+<div class="controls"><button id="remove" type="button">Remove last saved example</button>
+<button class="primary" id="export" type="button">Download private labeled dataset</button></div>
+<p><small>Closing or refreshing this tab discards examples that have not been downloaded. Export regularly. The downloaded JSON contains the drawing images and labels. Keep it private and do not commit it to the public repository.</small></p>
+</section>
+<script src="owner-dataset-lab.js?v=1"></script>
+</body></html>
