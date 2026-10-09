@@ -126,7 +126,43 @@ async function spin(){if(spinning||spins<=0)return;
      const next=await criloDB.rpc('crilo_server_spin',{p_session:verifiedSpinSessionId});
      if(next.error)throw next.error;
      serverReply=next.data;
-   }catch(err){spinning=false;$('spinButton').disabled=false;console.error('Verified spin failed',err);$('message').textContent='Could not contact the game server. Please retry your spin.';return;}
+   }catch(err){
+     console.error('Verified spin request interrupted',err);
+     // An RPC can commit even when its HTTP response is lost. Never blindly retry.
+     try{
+       if(verifiedSpinSessionId){
+         const recovered=await criloDB.rpc('crilo_get_server_spin_state',{p_session:verifiedSpinSessionId});
+         if(recovered.error)throw recovered.error;
+         const state=recovered.data;
+         score=Number(state.score);spins=Number(state.remaining_spins);
+         totalSpins=Number(state.spin_count);multiplier=Number(state.multiplier);
+         upgrades=Number(state.upgrades);doubles=Number(state.doubles);
+         ducks=Number(state.ducks);numbersLanded=Number(state.numbers_landed);
+         extraSpins=Number(state.extra_spins);
+         results=state.results;
+         segments=state.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
+         bestRollPoints=0;bestRollLabel='';runProbability=1;
+         for(const outcome of results){
+           const pts=Number(outcome.points||0);
+           if(pts>bestRollPoints){bestRollPoints=pts;bestRollLabel=outcome.type==='double'?'×2':'+'+fmt(pts)}
+           runProbability*=Number(outcome.probability||1);
+         }
+         spinning=false;update();
+         if(state.finished){endRun();return;}
+         $('spinButton').disabled=false;
+         $('message').textContent='Connection interrupted. Your server-confirmed spin progress has been restored.';
+         return;
+       }
+     }catch(recoveryError){
+       console.error('Could not verify server spin state',recoveryError);
+       spinning=false;$('spinButton').disabled=true;
+       $('message').textContent='Unable to confirm your spin. Refresh the page before playing again.';
+       return;
+     }
+     spinning=false;$('spinButton').disabled=false;
+     $('message').textContent='Could not start the spin session. Please retry.';
+     return;
+   }
  }
  lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=serverReply?Number(serverReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],serverReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
 function beginRun(){DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;verifiedSpinSessionId=null;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
