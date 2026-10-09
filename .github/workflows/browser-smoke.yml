@@ -110,6 +110,36 @@ jobs:
             if(browserAuth.requests!==1||!browserAuth.resolved||browserAuth.spins!==4)
               throw Error('Browser authenticated RPC integration regression: '+JSON.stringify(browserAuth));
             console.log('PASS: authenticated spin function ran in Chromium with deterministic mocked server RPC',browserAuth);
+            // Verify lost server responses recover the authoritative state in Chromium.
+            const recovered = await page.evaluate(async original => {
+              const start=original.indexOf('async function spin()');
+              const end=original.indexOf('function beginRun()',start);
+              const source=original.slice(start,end);
+              const calls=[],button={disabled:false,classList:{add(){},remove(){}}},msg={textContent:''};
+              const state={score:17,remaining_spins:4,spin_count:1,multiplier:1,upgrades:0,
+                doubles:0,ducks:0,numbers_landed:1,extra_spins:0,
+                results:[{type:'num',base:2,points:17,probability:0.2}],
+                segments:[{type:'num',base:2}],finished:false};
+              const ctx={spinning:false,spins:5,profile:{is_owner:false},user:{id:'ci'},
+                ownerModeChosen:true,started:true,guestRun:false,isTest:false,
+                verifiedSpinSessionId:'mock-session',totalSpins:0,score:0,
+                segments:[{type:'num',base:2}],rotation:0,
+                $:id=>id==='spinButton'?button:msg,
+                criloDB:{rpc:async name=>{calls.push(name);return name==='crilo_server_spin'
+                  ?{error:{message:'connection lost'}}:{data:state}}},
+                lockDrawing(){},restoreVerifiedDrawing:async()=>{},restoreDucksFromVerifiedResults(){},
+                update(){},endRun(){},drawWheel(){},sound(){},requestAnimationFrame(){},
+                performance:{now:()=>0},console,fmt:n=>String(n),Math,
+                cacheVerifiedDrawing(){},Crilo:{dailyPeriod:()=> '2026-10-09'}};
+              await new Function('ctx','with(ctx){'+source+';return spin}')(ctx)();
+              return {calls,score:ctx.score,spins:ctx.spins,unlocked:!button.disabled,
+                message:msg.textContent};
+            },source);
+            if(recovered.calls.length!==2 || recovered.calls[0]!=='crilo_server_spin'
+              || recovered.calls[1]!=='crilo_get_server_spin_state'
+              || recovered.score!==17 || recovered.spins!==4 || !recovered.unlocked)
+              throw Error('Interrupted spin recovery failed in Chromium: '+JSON.stringify(recovered));
+            console.log('PASS: Chromium recovery after lost RPC reply',recovered);
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
