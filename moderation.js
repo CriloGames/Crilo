@@ -59,7 +59,7 @@ async function checkText(){
  if(ocrBusy||document.hidden||!window.Crilo?.profile?.is_owner)return;
  ocrBusy=true;
  try{
-  const q=await criloDB.rpc('crilo_owner_ocr_queue');
+  const q=await criloDB.rpc('crilo_owner_saved_test_ocr_queue');
   if(q.error||!q.data?.length)return;
   if(!window.Tesseract)await new Promise((ok,fail)=>{
    const script=document.createElement('script');
@@ -70,7 +70,7 @@ async function checkText(){
   for(const item of q.data){
    try{
     const result=await ocrEngine.recognize(item.drawing);
-    const saved=await criloDB.rpc('crilo_owner_finish_ocr',{p_run_id:item.run_id,p_is_test:item.is_test,p_text:String(result.data.text||'').slice(0,4096)});
+    const saved=await criloDB.rpc('crilo_owner_saved_test_ocr_finish',{p_run_id:item.run_id,p_text:String(result.data.text||'').slice(0,4096)});
     if(saved.error)console.warn('OCR result could not be saved',saved.error);
    }catch(e){console.warn('OCR unavailable for a drawing',e)}
   }
