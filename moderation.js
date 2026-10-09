@@ -17,8 +17,8 @@ async function load(){
  message.textContent=rows.length?rows.length+' drawing'+(rows.length===1?'':'s')+' in this view.':'No drawings to review.';
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
-function openDrawing(index){
- chosen=rows[index];if(!chosen)return;
+function openDrawing(index,source=rows){
+ chosen=source[index];if(!chosen)return;
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
@@ -28,7 +28,7 @@ function openDrawing(index){
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const row=e.target.closest('[data-index]');if(row)openDrawing(Number(row.dataset.index))});
-testList.addEventListener('click',e=>{const row=e.target.closest('[data-test-index]');if(row){const item=testRows[Number(row.dataset.testIndex)];if(item){rows.push(item);openDrawing(rows.length-1)}}});
+testList.addEventListener('click',e=>{const row=e.target.closest('[data-test-index]');if(row){const item=testRows[Number(row.dataset.testIndex)];if(item)openDrawing(Number(row.dataset.testIndex),testRows)}});
 const close=()=>{modal.classList.add('hidden');chosen=null};
 $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
