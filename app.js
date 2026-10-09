@@ -113,13 +113,20 @@
       document.body.style.width='100%';
       modalLocked=true;
     }else if(!open&&modalLocked){
+      // Restore the document without exposing a frame at scroll position 0.
+      // The body's fixed top offset holds the old viewport while locked.
+      const savedY=modalScrollY;
+      document.documentElement.style.scrollBehavior='auto';
+      document.body.style.scrollBehavior='auto';
       document.body.style.position='';
       document.body.style.top='';
       document.body.style.left='';
       document.body.style.right='';
       document.body.style.width='';
+      window.scrollTo({top:savedY,left:0,behavior:'instant'});
       modalLocked=false;
-      window.scrollTo(0,modalScrollY);
+      document.documentElement.style.scrollBehavior='';
+      document.body.style.scrollBehavior='';
     }
   }
   const modalObserver=new MutationObserver(syncModalScroll);
