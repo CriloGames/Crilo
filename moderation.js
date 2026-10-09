@@ -45,6 +45,7 @@ async function scanPending(){
   const data=await result.json().catch(()=>({}));
   if(!result.ok)throw Error(data.error||'AI scanner unavailable');
   await load();
+  checkText();
   message.textContent+=(data.scanned?' Scanned '+data.scanned+'; flagged '+data.flagged+'.':' No new scans.');
   if(data.failed)message.textContent+=' '+data.failed+' scan(s) could not be completed.';
   if(data.testScanned)message.textContent+=' Scanned '+data.testScanned+' owner Test Run(s); flagged '+data.testFlagged+'.';
@@ -53,10 +54,34 @@ async function scanPending(){
  finally{scanning=false}
 }
 
+let ocrBusy=false,ocrEngine=null;
+async function checkText(){
+ if(ocrBusy||document.hidden||!window.Crilo?.profile?.is_owner)return;
+ ocrBusy=true;
+ try{
+  const q=await criloDB.rpc('crilo_owner_ocr_queue');
+  if(q.error||!q.data?.length)return;
+  if(!window.Tesseract)await new Promise((ok,fail)=>{
+   const script=document.createElement('script');
+   script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+   script.onload=ok;script.onerror=fail;document.head.appendChild(script);
+  });
+  if(!ocrEngine)ocrEngine=await Tesseract.createWorker('eng');
+  for(const item of q.data){
+   try{
+    const result=await ocrEngine.recognize(item.drawing);
+    const saved=await criloDB.rpc('crilo_owner_finish_ocr',{p_run_id:item.run_id,p_is_test:item.is_test,p_text:String(result.data.text||'').slice(0,4096)});
+    if(saved.error)console.warn('OCR result could not be saved',saved.error);
+   }catch(e){console.warn('OCR unavailable for a drawing',e)}
+  }
+  await load();
+ }catch(e){console.warn('Free OCR unavailable',e)}
+ finally{ocrBusy=false}
+}
 let firstOwnerLoad=false;
-window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending()}});
-setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()},30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()});
+window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending();checkText()}});
+setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText()}},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner){scanPending();checkText()}});
 
 async function act(action){
  if(!chosen)return;
