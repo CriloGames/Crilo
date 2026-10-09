@@ -259,6 +259,32 @@ async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileNam
 if(ownerBanBtn){
  const canBan=!!Crilo.profile?.is_owner && target!==Crilo.user?.id;
  ownerBanBtn.classList.toggle('hidden',!canBan);
+ const unbanBtn=$('ownerProfileUnbanBtn');
+ if(unbanBtn){
+   unbanBtn.classList.add('hidden');
+   if(canBan){
+     const {data:banStatus,error:banCheckError}=await criloDB.rpc('crilo_owner_ban_status',{p_user_id:target});
+     if(!banCheckError&&banStatus===true){
+       ownerBanBtn.classList.add('hidden');unbanBtn.classList.remove('hidden');
+     }
+     unbanBtn.onclick=async()=>{
+       if(!confirm('Restore '+p.username+' and allow the email to sign up again?'))return;
+       unbanBtn.disabled=true;$('ownerProfileBanStatus').textContent='Restoring account…';
+       try{
+         const {data:auth}=await criloDB.auth.getSession();
+         if(!auth?.session?.access_token)throw Error('Sign in again.');
+         const result=await fetch(CRILO_SUPABASE_URL+'/functions/v1/owner-unban-player',{
+           method:'POST',headers:{'Content-Type':'application/json','apikey':CRILO_SUPABASE_KEY,'Authorization':'Bearer '+auth.session.access_token},
+           body:JSON.stringify({user_id:target})
+         });
+         const data=await result.json().catch(()=>({}));
+         if(!result.ok||!data.ok)throw Error(data.error||'Unban failed');
+         unbanBtn.classList.add('hidden');ownerBanBtn.classList.remove('hidden');ownerBanBtn.disabled=false;ownerBanBtn.textContent='BAN ACCOUNT';
+         $('ownerProfileBanStatus').textContent='Account unbanned and email restriction removed.';
+       }catch(err){unbanBtn.disabled=false;$('ownerProfileBanStatus').textContent='Unban failed: '+err.message}
+     };
+   }
+ }
  if(canBan){
   ownerBanBtn.onclick=async()=>{
    if(!confirm('Ban '+p.username+' from Crilo? This disables their account and blocks their email from creating another account.'))return;
@@ -276,6 +302,7 @@ if(ownerBanBtn){
     const body=await res.json().catch(()=>({}));
     if(!res.ok||!body.ok)throw Error(body.error||'Ban failed');
     ownerBanBtn.textContent='ACCOUNT BANNED';
+    ownerBanBtn.classList.add('hidden');if(unbanBtn){unbanBtn.classList.remove('hidden');unbanBtn.disabled=false;}
     $('ownerProfileBanStatus').textContent='Account banned and email blocked from re-registration.';
    }catch(err){
     $('ownerProfileBanStatus').textContent='Ban failed: '+err.message;
