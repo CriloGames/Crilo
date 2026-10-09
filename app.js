@@ -210,6 +210,7 @@
       Crilo.user = null;
       Crilo.profile = null;
       renderAccount();
+      document.querySelectorAll('.crilo-owner-review-link').forEach(el=>el.classList.add('hidden'));
       window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
         detail:{user:null,profile:null}
       }));
