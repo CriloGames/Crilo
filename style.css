@@ -426,3 +426,23 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .owner-run-panel .primary{margin-left:0}
 .owner-run-panel #ownerDailyChoiceBtn:disabled{background:#ededed!important;color:#a5a5a5!important;border:1px solid #d9d9d9!important;box-shadow:none!important;opacity:1!important;cursor:not-allowed!important;pointer-events:none}
 @media(max-width:650px){.owner-run-panel{padding:16px;gap:12px}.owner-run-panel>div:nth-child(2){flex-basis:100%}.owner-run-panel button{flex:1 1 140px}}
+
+/* Crilo notification activity dropdown */
+.crilo-notification-wrap{position:relative}
+.crilo-notification-wrap .circle-btn{position:relative}
+.crilo-notification-count{position:absolute;top:-5px;right:-7px;background:#dc3030;color:white;border-radius:12px;padding:2px 5px;font-size:10px;font-weight:900;min-width:17px}
+.crilo-notification-panel{position:absolute;right:0;top:calc(100% + 13px);width:390px;max-width:calc(100vw - 24px);background:var(--surface,#fff);color:var(--text,#17191e);border:1px solid #e8e8ec;border-radius:16px;box-shadow:0 16px 42px #0002;z-index:150;overflow:hidden}
+.crilo-notification-title{font-size:14px;font-weight:900;letter-spacing:.06em;padding:19px 20px;border-bottom:1px solid #ececf0}
+.crilo-notification-item{display:flex;align-items:flex-start;gap:13px;padding:16px 19px;border-bottom:1px solid #ececf0;text-decoration:none;color:inherit;line-height:1.4}
+.crilo-notification-item:hover{background:#f7f7f9}
+.crilo-notification-icon{width:24px;height:24px;display:grid;place-items:center;flex-shrink:0;color:#939ca9;font-size:20px}
+.crilo-notification-copy{font-size:13px;color:#505968;overflow-wrap:anywhere}
+.crilo-notification-copy b{color:#10a4bd;font-weight:850}
+.crilo-notification-item small{display:block;margin-top:5px;font-size:11px;color:#939baa;font-weight:650}
+.crilo-notification-empty{padding:24px 20px;color:#777;font-size:14px}
+.crilo-notification-footer{display:block;text-align:center;padding:14px;font-size:12px;font-weight:750;color:#87909f;text-decoration:none}
+.crilo-notification-footer:hover{background:#f7f7f9}
+[data-theme="dark"] .crilo-notification-panel{background:#23252c;color:#f5f5f7;border-color:#42444d}
+[data-theme="dark"] .crilo-notification-title,[data-theme="dark"] .crilo-notification-item{border-color:#42444d}
+[data-theme="dark"] .crilo-notification-item:hover,[data-theme="dark"] .crilo-notification-footer:hover{background:#31343c}
+[data-theme="dark"] .crilo-notification-copy{color:#c4c9d2}
