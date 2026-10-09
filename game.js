@@ -74,7 +74,7 @@ if(s.type==='double'){points=score;score*=2;spins++;doubles++;recordBest(points,
 if(s.type==='upgrade'){multiplier*=3;upgrades++;spins++;addNumbers();bump();pop('UP! ↑');$('message').textContent='UPGRADE — number values ×3. The wheel grew.';sound('upgrade')}
 if(s.type==='spins'){spins+=2;extraSpins+=2;pop('+2!');$('message').textContent='+2 SPINS';sound('spins')}
 if(s.type==='duck'){spins++;const duck=addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';DuckWorld.playSound(duck)}
-results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});if(serverReply){results[results.length-1]={...serverReply.outcome,label:label(s)};segments=serverReply.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);totalSpins=Number(serverReply.spin_count);}update();if(spins<=0)endRun()}
+results.push({type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});if(serverReply){runProbability=results.slice(0,-1).reduce((acc,item)=>acc*Number(item.probability||1),1)*Number(serverReply.outcome.probability);results[results.length-1]={...serverReply.outcome,label:label(s)};segments=serverReply.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);totalSpins=Number(serverReply.spin_count);}update();if(spins<=0)endRun()}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
 function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
@@ -115,6 +115,8 @@ async function spin(){if(spinning||spins<=0)return;
          upgrades=Number(saved.data.upgrades);doubles=Number(saved.data.doubles);
          ducks=Number(saved.data.ducks);numbersLanded=Number(saved.data.numbers_landed);
          extraSpins=Number(saved.data.extra_spins);results=saved.data.results;
+         bestRollPoints=0;bestRollLabel='';runProbability=1;
+         for(const outcome of results){const pts=Number(outcome.points||0);if(pts>bestRollPoints){bestRollPoints=pts;bestRollLabel=outcome.type==='double'?'×2':'+'+fmt(pts)}runProbability*=Number(outcome.probability||1)}
          segments=saved.data.segments.map(segment=>({...segment,label:segment.label||({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[segment.type])}));
          if(spins<=0){endRun();return}update();
        }
