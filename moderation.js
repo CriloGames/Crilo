@@ -7,7 +7,7 @@ async function load(){
  const request=++generation;
  if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const [{data,error},{data:tests,error:testError},{data:scanRows,error:scanError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests'),criloDB.rpc('crilo_owner_test_scan_status')]);
+ const [{data,error},{data:tests,error:testError},{data:scanRows,error:scanError},{data:visualRows,error:visualError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests'),criloDB.rpc('crilo_owner_test_scan_status'),criloDB.rpc('crilo_owner_visual_diagnostics')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  const diagnostic=$('ownerScanDiagnostics');
@@ -21,6 +21,16 @@ async function load(){
   const ocrPending=checks.filter(x=>x.ai_status==='clear'&&!x.ocr_checked_at).length;
   diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
   $('ownerScanHistory').innerHTML=checks.slice(0,10).map(x=>'<div style="padding:5px 0;font-size:13px;color:var(--muted,#767676)">'+escape(new Date(x.submitted_at).toLocaleString())+' · '+escape(x.ai_status||'pending')+(x.ocr_checked_at?' · text checked':' · text not checked')+'</div>').join('');
+ }
+ const visual=$('ownerVisualHistory');
+ if(visual){
+  if(visualError) visual.textContent='Visual diagnostics unavailable: '+visualError.message;
+  else visual.innerHTML=(visualRows||[]).slice(0,10).map(x=>{
+   const date=escape(new Date(x.submitted_at).toLocaleString());
+   const outcome=x.scan_error?'Scan failed: '+x.scan_error:!x.checked_at?'Not scanned yet':x.visual_label==='clear'?'Classified as harmless':x.visual_label||'No prediction';
+   const confidence=x.visual_score!=null?' · '+(Number(x.visual_score)*100).toFixed(1)+'% relative score':'';
+   return '<div style="padding:6px 0;font-size:13px">'+date+' · '+escape(outcome)+escape(confidence)+' · '+escape(x.ai_status||'pending')+'</div>';
+  }).join('');
  }
  rows=[...(data||[]),...(testError?[]:(tests||[]))];
  message.textContent=rows.length?rows.length+' AI-flagged drawing(s).':'No AI-flagged drawings to review.';
