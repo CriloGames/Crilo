@@ -35,8 +35,8 @@ async function load(){
  }
  const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
  const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
- rows=[...flaggedRows,...uncertainRows];
- message.textContent=flaggedRows.length+' flagged · '+uncertainRows.length+' needs manual review.';
+ rows=flaggedRows;
+ message.textContent=flaggedRows.length+' drawings flagged by text or image moderation. Uncertain visual predictions are diagnostics only.';
  if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
