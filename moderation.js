@@ -1,7 +1,7 @@
 (()=>{
 const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
-let rows=[],chosen=null,filter='pending',generation=0;
+let rows=[],chosen=null,filter='flagged',generation=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
@@ -19,7 +19,7 @@ function openDrawing(index){
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
- $('reviewActionStatus').textContent='';
+ $('reviewActionStatus').textContent=chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
  const pending=chosen.review_status==='pending';
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
  modal.classList.remove('hidden');
@@ -31,6 +31,29 @@ modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 document.querySelectorAll('[data-review-filter]').forEach(btn=>btn.addEventListener('click',()=>{filter=btn.dataset.reviewFilter;document.querySelectorAll('[data-review-filter]').forEach(x=>x.classList.toggle('active',x===btn));load()}));
 $('reviewRefresh').addEventListener('click',load);
+let scanning=false;
+async function scanPending(){
+ if(scanning||!window.Crilo?.profile?.is_owner)return;
+ scanning=true;const btn=$('reviewScan');btn.disabled=true;btn.textContent='Scanning…';
+ try{
+  const {data:auth}=await criloDB.auth.getSession();const token=auth?.session?.access_token;
+  if(!token)throw Error('Sign in first');
+  const result=await fetch(CRILO_SUPABASE_URL+'/functions/v1/owner-scan-drawings',{
+   method:'POST',headers:{'Content-Type':'application/json','apikey':CRILO_SUPABASE_KEY,'Authorization':'Bearer '+token}
+  });
+  const data=await result.json().catch(()=>({}));
+  if(!result.ok)throw Error(data.error||'AI scanner unavailable');
+  await load();
+  message.textContent+=(data.scanned?' Scanned '+data.scanned+'; flagged '+data.flagged+'.':' No new scans.');
+  if(data.failed)message.textContent+=' '+data.failed+' scan(s) could not be completed.';
+ }catch(err){message.textContent='AI scan: '+err.message}
+ finally{scanning=false;btn.disabled=false;btn.textContent='Scan new drawings'}
+}
+$('reviewScan').addEventListener('click',scanPending);
+let firstOwnerLoad=false;
+window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending()}});
+setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()},120000);
+
 async function act(action){
  if(!chosen)return;
  const current=chosen;
