@@ -1,13 +1,13 @@
 (()=>{
 const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
-let rows=[],chosen=null,filter='flagged',generation=0;
+let rows=[],chosen=null,generation=0;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
  if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const {data,error}=await criloDB.rpc('crilo_owner_review_drawings',{p_status:filter});
+ const {data,error}=await criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'});
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  rows=data||[];
@@ -30,7 +30,7 @@ $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 
-$('reviewRefresh').addEventListener('click',()=>{if(!scanning)scanPending();else load()});
+$('reviewRefresh').addEventListener('click',load);
 let scanning=false;
 async function scanPending(){
  if(scanning||!window.Crilo?.profile?.is_owner)return;
@@ -53,6 +53,7 @@ async function scanPending(){
 let firstOwnerLoad=false;
 window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending()}});
 setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()});
 
 async function act(action){
  if(!chosen)return;
