@@ -81,6 +81,14 @@ def run(a):
     y=np.array(labels,dtype=np.float32)
     train_idx,hold_idx=train_test_split(np.arange(len(y)),test_size=.20,stratify=y,random_state=SEED)
     fit_idx,val_idx=train_test_split(train_idx,test_size=.20,stratify=y[train_idx],random_state=SEED)
+    # Stroke-width variants are computed ONLY for the fitting split. This
+    # simulates Crilo's square pen canvas at 256px before downsampling, rather
+    # than modifying the held-out/validation renders after the fact.
+    # Keep variants source-grouped: no original sketch crosses a split.
+    thin_fit=np.stack([bitmap(raw[int(i)],width=2,margin=12) for i in fit_idx])[:,None,:,:]
+    thick_fit=np.stack([bitmap(raw[int(i)],width=9,margin=4) for i in fit_idx])[:,None,:,:]
+    original_fit=x[fit_idx]
+    print('TRAINING-ONLY CANVAS VARIANTS:',len(fit_idx),'source sketches, 3 renderings each',flush=True)
     device='cpu';net=DoodleCNN().to(device)
     optimizer=torch.optim.AdamW(net.parameters(),lr=.0007,weight_decay=.008)
     loss_fn=nn.BCEWithLogitsLoss(pos_weight=torch.tensor([np.sum(y[fit_idx]==0)/max(1,np.sum(y[fit_idx]==1))]))
@@ -109,7 +117,10 @@ def run(a):
     scheduler=torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,T_max=a.epochs,eta_min=.00003)
     for epoch in range(a.epochs):
         net.train();total=0
-        loader=DataLoader(TensorDataset(torch.tensor(x[fit_idx]),torch.tensor(y[fit_idx])),
+        variant=np.random.randint(0,3,size=len(fit_idx))
+        fit_x=np.where(variant[:,None,None,None]==0,original_fit,
+                       np.where(variant[:,None,None,None]==1,thin_fit,thick_fit))
+        loader=DataLoader(TensorDataset(torch.tensor(fit_x),torch.tensor(y[fit_idx])),
                           batch_size=96,shuffle=True)
         for features,target in loader:
             optimizer.zero_grad()
