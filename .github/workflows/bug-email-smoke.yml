@@ -1,0 +1,21 @@
+name: Beetle email delivery smoke test
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/bug-email-smoke.yml'
+jobs:
+  email-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Send one test bug report to Crilo reporting API
+        shell: bash
+        run: |
+          cat > /tmp/crilo-test.json <<'EOF'
+          {"description":"TEST REPORT: Checking Crilo beetle reporting email delivery. This is a controlled test and not an actual bug.","page_url":"https://crilo.fun/","user_agent":"Crilo GitHub Actions acceptance test"}
+          EOF
+          code=$(curl --silent --show-error --max-time 25 --output /tmp/crilo-response.json --write-out '%{http_code}' -X POST 'https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/report-bug' -H 'Content-Type: application/json' --data-binary @/tmp/crilo-test.json)
+          echo "Bug report API HTTP status: $code"
+          # Response is deliberately not printed; users can check their inbox.
+          test "$code" = "200"
