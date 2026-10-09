@@ -217,7 +217,29 @@
     if(date>=reset) reset=new Date(Date.UTC(y,m,d+1,22,0,0));
     return reset;
   };
-  // Supabase processes email redirects and restores the session automatically.
-  // Read the session after initialization; auth events also refresh identity.
-  loadIdentity();
+  // Finish magic-link callbacks before the initial header identity check.
+  async function initializeAuth(){
+    const params=new URLSearchParams(location.search);
+    const hash=new URLSearchParams(location.hash.replace(/^#/,''));
+    const error=params.get('error_description')||hash.get('error_description');
+    if(error){
+      console.error('Crilo sign-in callback:',error);
+      const status=$('authStatus');
+      if(status)status.textContent='Sign-in link failed: '+error+'. Please request a new link.';
+      window.dispatchEvent(new CustomEvent('crilo-auth-error',{detail:{message:error}}));
+    }
+    const code=params.get('code');
+    if(code){
+      const {error:exchangeError}=await criloDB.auth.exchangeCodeForSession(code);
+      if(exchangeError){
+        console.error('Crilo email code exchange:',exchangeError);
+        window.dispatchEvent(new CustomEvent('crilo-auth-error',{detail:{message:exchangeError.message}}));
+      }else{
+        params.delete('code');
+        history.replaceState(null,'',location.pathname+(params.toString()?'?'+params:''));
+      }
+    }
+    await loadIdentity();
+  }
+  initializeAuth().catch(error=>console.error('Crilo auth initialization:',error));
 })();
