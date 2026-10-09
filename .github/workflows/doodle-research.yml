@@ -1,0 +1,38 @@
+name: Doodle classifier research
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/train_doodle_classifier.py'
+      - '.github/workflows/doodle-research.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline experiment dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pillow scikit-image scikit-learn joblib requests
+      - name: Train and evaluate offline-only binary doodle classifier
+        run: |
+          python research/train_doodle_classifier.py --positives 1500 --per-category 150 --output research/outputs/doodle_baseline.joblib 2>&1 | tee research-evaluation.log
+      - name: Preserve evaluation logs and model artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doodle-research-results
+          path: |
+            research-evaluation.log
+            research/outputs/doodle_baseline.joblib
+          retention-days: 7
+          if-no-files-found: warn
