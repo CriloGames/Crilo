@@ -96,3 +96,9 @@ Using the successful 28-epoch CNN checkpoint (validation threshold 0.9801), six 
 - **DO NOT DEPLOY.** This six-example smoke test is not a statistical benchmark, but both missed relevant drawings demonstrate dataset shift from public QuickDraw sketches to actual Crilo drawings.
 
 Next research priorities: obtain independent consented Crilo-style drawings for both classes; ensure exact canvas preprocessing, stroke width and scale variations are reflected in training; set aside a new Crilo-specific holdout before training; repeat evaluation without reusing the six QA examples as a final test set. Do not solve this by lowering the threshold alone.
+
+## Larger hard-negative experiment (2026-10-09)
+
+Run: https://github.com/CriloGames/Crilo/actions/runs/38003938659
+
+The 9,900-example experiment, including six additional innocent drawing categories, **failed** the fixed research quality gate. On an untouched 1,980-example holdout: TN=1068, FP=12, FN=134, TP=766. Detection recall 85.11%, false-positive rate 1.11%; minimum required 80% recall and maximum permitted 1% false positives. **Do not deploy.** These numbers cannot substitute for Crilo-specific independent validation. Future development should focus on representative Crilo canvas captures, hard-negative data sourced independently, and locked thresholds selected on validation data only.
