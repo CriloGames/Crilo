@@ -40,3 +40,32 @@ Research run: https://github.com/CriloGames/Crilo/actions/runs/37998138045
 - **Quality gate failed: DO NOT DEPLOY**. The model missed every positive test example.
 - This result concerns only the very first HOG/logistic-regression baseline, not the datasets' overall potential or any future neural classifier.
 - Future research should prioritize better learned image features, proper hard negatives, subject-independent splits, and evaluation on Crilo-style raster drawings. Do not adjust the same threshold using held-out samples.
+
+
+## Crilo-specific validation (2026-10-09 onward)
+
+The latest deeper CNN achieved an **initial provisional holdout pass**, 514/600 prohibited drawings detected (85.67%), 720/720 ordinary doodles unflagged (0 observed false positives). This does **not** establish accuracy on real Crilo player drawings. Source: https://github.com/CriloGames/Crilo/actions/runs/37999293782
+
+An offline validator is now available: `research/validate_crilo_drawings.py`. It accepts a folder of *privately exported*, hand-labeled drawings and the research artifact checkpoint. It uses Crilo-like transparent-on-white raster input, reports per-image predictions, and rejects unrepresentative small samples. It never uploads data, touches Supabase, or changes accounts.
+
+Create `research/private-qa/labels.json` with rows such as:
+
+```json
+[
+  {"file": "ordinary-01.png", "expected": "harmless"},
+  {"file": "prohibited-01.png", "expected": "prohibited"}
+]
+```
+
+Place those images in the same private folder, then run from the repo root:
+
+```sh
+python -m pip install torch pillow numpy scikit-learn requests
+python research/validate_crilo_drawings.py --manifest research/private-qa/labels.json --checkpoint research/private-qa/doodle_cnn.pt
+```
+
+Retrieve the research checkpoint from the GitHub Actions artifact (not GitHub Pages), store it outside the public GitHub repository, and **never commit private drawings, labels, or checkpoint artifacts to main**. Public checkpoint files from GitHub must be trusted and checked before loading; `torch.load(weights_only=True)` reduces but does not eliminate risk.
+
+The sample-size gate is 100 harmless and 50 prohibited examples. A batch of just six owner drawings is useful as a diagnostic smoke test, **not** sufficient to certify accuracy. Include hard harmless examples (bananas, mushrooms, rings, ducks, hearts, scribbles, blank images), prohibited outline variations, and variations in background, stroke thickness and scale. Keep labeled examples completely separate from the training datasets.
+
+The model is a binary detector for one specific class of hand-drawn anatomy. It **does not** recognize other anatomy, swastikas, phishing links or other categories unless those are separately evaluated. Existing live OCR and moderation should stay independent.
