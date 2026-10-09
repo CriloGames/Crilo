@@ -71,14 +71,17 @@ async function handwritingOCR(canvas){
  if(handwritingUnavailable)return '';
  try{
   if(!handwritingModel){
+   const status=$('ownerOcrStatus');if(status)status.textContent='Loading open-source handwriting model (large first-time download)…';
    const mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
    handwritingModel=await mod.pipeline('image-to-text','Xenova/trocr-small-handwritten',{device:'wasm',dtype:'q8'});
   }
+  const status=$('ownerOcrStatus');if(status)status.textContent='Checking handwriting…';
   const output=await handwritingModel(canvas.toDataURL('image/png'),{max_new_tokens:80});
   return String(output?.[0]?.generated_text||'').slice(0,4096);
  }catch(error){
   console.warn('Handwriting model unavailable; retaining Tesseract results',error);
   handwritingUnavailable=true;
+  const status=$('ownerOcrStatus');if(status)status.textContent='Handwriting model unavailable; using basic OCR only. Some handwritten words may be missed.';
   return '';
  }
 }
@@ -122,7 +125,8 @@ async function checkText(){
    }catch(e){console.warn('OCR unavailable for a drawing',e)}
   }
   await load();
- }catch(e){console.warn('Free OCR unavailable',e)}
+  if(!handwritingUnavailable){const status=$('ownerOcrStatus');if(status)status.textContent='Handwriting check completed.';}
+ }catch(e){console.warn('Free OCR unavailable',e);const status=$('ownerOcrStatus');if(status)status.textContent='OCR check failed; please refresh to retry.';}
  finally{ocrBusy=false}
 }
 let firstOwnerLoad=false;
