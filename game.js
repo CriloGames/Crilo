@@ -82,7 +82,7 @@ function verifiedDrawingKey(){return user?.id?'crilo_verified_drawing_'+user.id+
 function cacheVerifiedDrawing(){if(guestRun||isTest)return;const key=verifiedDrawingKey();if(!key)return;try{if(localStorage.getItem(key)===null)localStorage.setItem(key,drawing.toDataURL('image/png'))}catch(e){console.warn('Cannot cache Daily drawing',e)}}
 async function restoreVerifiedDrawing(){const key=verifiedDrawingKey();if(!key)return;let uri;try{uri=localStorage.getItem(key)}catch(e){return}if(!uri)return;await new Promise(resolve=>{const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);resolve()};img.onerror=resolve;img.src=uri})}
 function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;cacheVerifiedDrawing();drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
-async function spin(){if(spinning||spins<=0)return;
+async function spin(){if(spinning)return;if(!started&&spins<=0&&totalSpins>0&&verifiedSpinSessionId&&!officialRun){await endRun();return;}if(spins<=0)return;
  if(!profile&&user){$('message').textContent='Loading your account. Please wait.';return;}
  if(profile?.is_owner&&!ownerModeChosen){$('message').textContent='Choose Official Daily or Test Run before spinning.';$('spinButton').classList.add('hidden');return;}
  // Auth events can arrive after the wheel is ready, especially on a refreshed owner tab.
@@ -172,8 +172,9 @@ async function spin(){if(spinning||spins<=0)return;
    }
  }
  lockDrawing();spinning=true;$('spinButton').disabled=true;spins--;totalSpins++;update();$('message').textContent='...';const N=segments.length,a=Math.PI*2/N,index=serverReply?Number(serverReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],serverReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
-function beginRun(){DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;verifiedSpinSessionId=null;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
-async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(!guestRun&&!isTest&&verifiedSpinSessionId?{verified_spin_session_id:verifiedSpinSessionId}:{})};let data=null,error=null;let priorBadges=null;
+function beginRun(){savingCompletedRun=false;$('spinButton').textContent='SPIN';DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;verifiedSpinSessionId=null;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
+let savingCompletedRun=false;
+async function endRun(){if(savingCompletedRun)return;savingCompletedRun=true;DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(!guestRun&&!isTest&&verifiedSpinSessionId?{verified_spin_session_id:verifiedSpinSessionId}:{})};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
 if(isTest&&profile?.is_owner){
  {
@@ -187,7 +188,7 @@ if(isTest&&profile?.is_owner){
 }
 renderResult(r);
 $('replayTestBtn').classList.toggle('hidden',!profile?.is_owner);
-if(error){$('message').textContent='Run finished, but saving failed: '+error.message;console.error(error);return}
+if(error){savingCompletedRun=false;$('message').textContent='Run finished, but saving failed: '+error.message+'. Use Retry Save to submit the same finished run.';console.error(error);const retry=$('spinButton');retry.textContent='Retry Save';retry.classList.remove('hidden');retry.disabled=false;return}
 if(isTest){
  $('message').textContent='Private test run saved. It does not count toward leaderboards, badges, or official Dailies.';
  $('replayTestBtn').classList.remove('hidden');
@@ -196,7 +197,7 @@ if(isTest){
  // Remove the cached drawing only after Supabase confirms the official submission.
  const drawingKey=verifiedDrawingKey();if(drawingKey){try{localStorage.removeItem(drawingKey)}catch(e){console.warn('Could not clear Daily drawing cache',e)}}
  if(priorBadges)await showNewBadges(priorBadges);
- officialRun={...payload,is_test:false};
+ officialRun={...payload,is_test:false};$('spinButton').classList.add('hidden');savingCompletedRun=false;
  
 }
 }
