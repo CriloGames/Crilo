@@ -78,6 +78,38 @@ jobs:
             if(!afterReload || afterReload==='...')
               throw Error('Spin after reload failed to resolve: '+afterReload);
             console.log('PASS: guest game survives reload and resolves a subsequent spin');
+            // Exercise server-authoritative code in Chromium without touching production accounts:
+            // inject a temporary test harness into the served source, mock only Supabase RPCs,
+            // and verify that one authenticated spin is server-selected.
+            const source = await (await page.request.get('http://127.0.0.1:8765/game.js')).text();
+            const browserAuth = await page.evaluate(async (original) => {
+              const start=original.indexOf('async function spin()');
+              const end=original.indexOf('function beginRun()',start);
+              if(start<0||end<0) throw Error('Cannot extract actual spin implementation');
+              const actual=original.slice(start,end);
+              let requests=0, resolved=null, frames=[];
+              const button={disabled:false,classList:{add(){},remove(){}}};
+              const msg={textContent:''};
+              const ctx={
+                spinning:false,spins:5,profile:{is_owner:false},user:{id:'ci-test'},ownerModeChosen:true,
+                started:true,guestRun:false,isTest:false,verifiedSpinSessionId:'mock-session',
+                totalSpins:0,score:0,segments:[{type:'num',base:2}],rotation:0,
+                $:id=>id==='spinButton'?button:msg,
+                criloDB:{rpc:async name=>{requests++;if(name!=='crilo_server_spin')throw Error('Unexpected RPC '+name);
+                  return {data:{outcome_index:0,outcome:{type:'num',base:2,points:2,probability:1},score:2,
+                    remaining_spins:4,spin_count:1,segments:[{type:'num',base:2}],finished:false}}}},
+                lockDrawing(){},update(){},resolve(segment,response){resolved={segment,response}},drawWheel(){},sound(){},
+                requestAnimationFrame:fn=>frames.push(fn),performance:{now:()=>0},
+                console,fmt:n=>String(n),Math,cacheVerifiedDrawing(){},Crilo:{dailyPeriod:()=> '2026-10-09'}
+              };
+              const fn=new Function('ctx','with(ctx){'+actual+';return spin}')(ctx);
+              await fn();
+              for(let i=0;i<5&&frames.length;i++){const frame=frames.shift();frame(3000)}
+              return {requests,resolved:!!resolved,score:ctx.score,spins:ctx.spins,locked:button.disabled};
+            },source);
+            if(browserAuth.requests!==1||!browserAuth.resolved||browserAuth.spins!==4)
+              throw Error('Browser authenticated RPC integration regression: '+JSON.stringify(browserAuth));
+            console.log('PASS: authenticated spin function ran in Chromium with deterministic mocked server RPC',browserAuth);
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
