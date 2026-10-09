@@ -15,7 +15,8 @@ from torch.utils.data import DataLoader, TensorDataset
 
 SEED = 2048
 CATEGORIES = ['banana','mushroom','smiley face','flower','duck','snake',
-              'cloud','umbrella','eye','lollipop','apple','circle']
+              'cloud','umbrella','eye','lollipop','apple','circle',
+              'hot dog','pencil','toothbrush','baseball bat','finger','tree']
 POS_URL='https://raw.githubusercontent.com/studiomoniker/Quickdraw-appendix/master/penis-simplified.ndjson'
 NEG_URL='https://storage.googleapis.com/quickdraw_dataset/full/simplified/{category}.ndjson'
 
