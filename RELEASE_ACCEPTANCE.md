@@ -4,8 +4,9 @@ This checklist replaces open-ended micro-audits. A gate is **complete only when 
 
 ## Gate 1 — Browser gameplay and recovery
 - [x] Chromium starts the local game; wheel and drawing canvases initialize without JavaScript exceptions. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37969481467
-- [ ] Real-browser guest spins and spin animation correctly land on the selected outcome.
-- [ ] Authenticated server-controlled spin goes from RPC through animation through saved official Daily.
+- [x] Real-browser guest spin sequences and refresh tests pass. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970025582 and https://github.com/CriloGames/Crilo/actions/runs/37970143144. Visual landing inspection pending.
+- [x] Authenticated spin logic runs in Chromium with mocked server RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970339088.
+- [ ] Authenticated server-controlled spin goes from real Supabase RPC through animation through saved official Daily.
 - [ ] Refresh, disconnect/recover, failed-save retry, and drawing restoration run in browser.
 - [ ] Owner test runs remain private and independent of the official Daily.
 
