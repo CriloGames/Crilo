@@ -1,0 +1,47 @@
+name: Browser smoke test
+on:
+  pull_request:
+    paths:
+      - 'game.js'
+      - 'index.html'
+      - '.github/workflows/browser-smoke.yml'
+  workflow_dispatch:
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/crilo-server.log 2>&1 &
+      - name: Exercise real Chromium DOM
+        run: |
+          node <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage();
+            const errors = [];
+            page.on('pageerror',error => errors.push(error.message));
+            await page.goto('http://127.0.0.1:8765/',{waitUntil:'domcontentloaded'});
+            await page.locator('#spinButton').waitFor({state:'attached',timeout:15000});
+            await page.locator('#wheel').waitFor({state:'attached'});
+            await page.locator('#drawing').waitFor({state:'attached'});
+            const canvasOK = await page.evaluate(() =>
+              !!document.querySelector('#wheel')?.getContext('2d') &&
+              !!document.querySelector('#drawing')?.getContext('2d'));
+            if(!canvasOK) throw Error('Game canvas unavailable');
+            await page.waitForTimeout(1500);
+            if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
+            console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
+            await browser.close();
+          })().catch(e => {console.error(e);process.exit(1)});
+          JS
