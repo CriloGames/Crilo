@@ -446,3 +446,9 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 [data-theme="dark"] .crilo-notification-title,[data-theme="dark"] .crilo-notification-item{border-color:#42444d}
 [data-theme="dark"] .crilo-notification-item:hover,[data-theme="dark"] .crilo-notification-footer:hover{background:#31343c}
 [data-theme="dark"] .crilo-notification-copy{color:#c4c9d2}
+
+/* Clean, larger username in the top navigation (no pill) */
+.account-btn{border:0;background:transparent;border-radius:7px;padding:8px 5px;font-size:16px;font-weight:900;letter-spacing:-.015em;line-height:1.25;max-width:min(240px,32vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .15s ease,background .15s ease}
+.account-btn:hover{background:var(--soft,#f4f4f4);opacity:.82}
+.account-btn:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+@media(max-width:600px){.account-btn{font-size:14px;max-width:28vw;padding:7px 3px}}
