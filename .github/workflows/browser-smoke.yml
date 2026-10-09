@@ -66,6 +66,18 @@ jobs:
                 throw Error('Guest spin '+round+' did not settle: '+JSON.stringify({message,score,remaining}));
               console.log('PASS: guest spin '+round+' resolved',JSON.stringify({message,score,remaining}));
             }
+            // Reload the actual browser page and verify guest gameplay remains usable.
+            await page.reload({waitUntil:'domcontentloaded'});
+            await page.locator('#spinButton').waitFor({state:'visible',timeout:10000});
+            await page.waitForTimeout(1000);
+            if(!(await page.locator('#spinButton').isEnabled()))
+              throw Error('Spin unavailable after browser refresh');
+            await page.locator('#spinButton').click();
+            await page.waitForTimeout(3300);
+            const afterReload=(await page.locator('#message').textContent()||'').trim();
+            if(!afterReload || afterReload==='...')
+              throw Error('Spin after reload failed to resolve: '+afterReload);
+            console.log('PASS: guest game survives reload and resolves a subsequent spin');
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
