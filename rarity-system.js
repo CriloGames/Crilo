@@ -3,8 +3,8 @@
 window.CriloRarity=(()=>{
  const COUNT=100000;
  const levels=[
-  {key:'mythic',label:'MYTHIC',max:0.0001},
-  {key:'legendary',label:'LEGENDARY',max:0.001},
+  {key:'mythic',label:'MYTHIC',max:0.002},
+  {key:'legendary',label:'LEGENDARY',max:0.004},
   {key:'epic',label:'EPIC',max:0.01},
   {key:'rare',label:'RARE',max:0.05},
   {key:'uncommon',label:'UNCOMMON',max:0.20},
