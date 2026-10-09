@@ -6,6 +6,7 @@ This checklist replaces open-ended micro-audits. A gate is **complete only when 
 - [x] Chromium starts the local game; wheel and drawing canvases initialize without JavaScript exceptions. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37969481467
 - [x] Real-browser guest spin sequences and refresh tests pass. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970025582 and https://github.com/CriloGames/Crilo/actions/runs/37970143144. Visual landing inspection pending.
 - [x] Authenticated spin logic runs in Chromium with mocked server RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970339088.
+- [x] Chromium animation landing angle matches the mocked server-selected segment at pointer (angular tolerance <0.00001 rad). Evidence: https://github.com/CriloGames/Crilo/actions/runs/37972539917.
 - [x] Real Supabase RPC chain starts/reuses an authenticated session and spins until completion; stored state matches each RPC outcome (rollback-safe SQL regression, 2026-10-09).
 - [x] Complete verified Daily spin-to-insert Supabase database integration passed for an ephemeral authenticated identity (2026-10-09); transaction rolled back, no test auth account retained.
 - [ ] Authenticated server-controlled spin goes from real Supabase RPC through animation through saved official Daily.
