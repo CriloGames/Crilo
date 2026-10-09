@@ -29,12 +29,12 @@ const close=()=>{modal.classList.add('hidden');chosen=null};
 $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
-document.querySelectorAll('[data-review-filter]').forEach(btn=>btn.addEventListener('click',()=>{filter=btn.dataset.reviewFilter;document.querySelectorAll('[data-review-filter]').forEach(x=>x.classList.toggle('active',x===btn));load()}));
-$('reviewRefresh').addEventListener('click',load);
+
+$('reviewRefresh').addEventListener('click',()=>{if(!scanning)scanPending();else load()});
 let scanning=false;
 async function scanPending(){
  if(scanning||!window.Crilo?.profile?.is_owner)return;
- scanning=true;const btn=$('reviewScan');btn.disabled=true;btn.textContent='Scanning…';
+ scanning=true;
  try{
   const {data:auth}=await criloDB.auth.getSession();const token=auth?.session?.access_token;
   if(!token)throw Error('Sign in first');
@@ -47,12 +47,12 @@ async function scanPending(){
   message.textContent+=(data.scanned?' Scanned '+data.scanned+'; flagged '+data.flagged+'.':' No new scans.');
   if(data.failed)message.textContent+=' '+data.failed+' scan(s) could not be completed.';
  }catch(err){message.textContent='AI scan: '+err.message}
- finally{scanning=false;btn.disabled=false;btn.textContent='Scan new drawings'}
+ finally{scanning=false}
 }
-$('reviewScan').addEventListener('click',scanPending);
+
 let firstOwnerLoad=false;
 window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner&&!firstOwnerLoad){firstOwnerLoad=true;scanPending()}});
-setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()},120000);
+setInterval(()=>{if(!document.hidden&&window.Crilo?.profile?.is_owner)scanPending()},30000);
 
 async function act(action){
  if(!chosen)return;
