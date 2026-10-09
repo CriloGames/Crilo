@@ -59,18 +59,21 @@ async function checkText(){
  if(ocrBusy||document.hidden||!window.Crilo?.profile?.is_owner)return;
  ocrBusy=true;
  try{
-  const q=await criloDB.rpc('crilo_owner_saved_test_ocr_queue');
-  if(q.error||!q.data?.length)return;
+  const [q,regular]=await Promise.all([criloDB.rpc('crilo_owner_saved_test_ocr_queue'),criloDB.rpc('crilo_owner_ocr_queue')]);
+  if(q.error||regular.error)return;
+  const jobs=[...(q.data||[]).map(x=>({...x,ownerTest:true})),...(regular.data||[]).map(x=>({...x,ownerTest:false}))];
+  if(!jobs.length)return;
   if(!window.Tesseract)await new Promise((ok,fail)=>{
    const script=document.createElement('script');
    script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
    script.onload=ok;script.onerror=fail;document.head.appendChild(script);
   });
   if(!ocrEngine)ocrEngine=await Tesseract.createWorker('eng');
-  for(const item of q.data){
+  for(const item of jobs){
    try{
     const result=await ocrEngine.recognize(item.drawing);
-    const saved=await criloDB.rpc('crilo_owner_saved_test_ocr_finish',{p_run_id:item.run_id,p_text:String(result.data.text||'').slice(0,4096)});
+    const text=String(result.data.text||'').slice(0,4096);
+    const saved=item.ownerTest?await criloDB.rpc('crilo_owner_saved_test_ocr_finish',{p_run_id:item.run_id,p_text:text}):await criloDB.rpc('crilo_owner_finish_ocr',{p_run_id:item.run_id,p_is_test:item.is_test,p_text:text});
     if(saved.error)console.warn('OCR result could not be saved',saved.error);
    }catch(e){console.warn('OCR unavailable for a drawing',e)}
   }
