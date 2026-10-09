@@ -13,29 +13,33 @@ function quack(d){
  try{
   const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
   const ac=quack.context||(quack.context=new Audio());
-  if(ac.state==='suspended')ac.resume().catch(()=>{});
-  const now=ac.currentTime;
-  const limiter=quack.limiter||(quack.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
-  const key=String(d?.slug||d?.id||'classic');
-  let seed=2166136261;
-  for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
-  // One short, individual quack per duck. No secondary chimes or melodies.
-  const duration=.15+((seed>>>7)%7)*.013;
-  const pitch=360+(seed%320);
-  const fall=.48+((seed>>>13)%28)/100;
-  const waves=['triangle','sawtooth','square'];
-  const wave=waves[(seed>>>5)%waves.length];
-  const o=ac.createOscillator(),filter=ac.createBiquadFilter(),gain=ac.createGain();
-  o.type=wave;
-  o.frequency.setValueAtTime(pitch,now);
-  o.frequency.exponentialRampToValueAtTime(pitch*fall,now+duration);
-  filter.type='lowpass';
-  filter.frequency.value=700+((seed>>>11)%9)*110;
-  o.connect(filter);filter.connect(gain);gain.connect(limiter);
-  gain.gain.setValueAtTime(.0001,now);
-  gain.gain.exponentialRampToValueAtTime(.075,now+.012);
-  gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
-  o.start(now);o.stop(now+duration+.01);
+  // On Chrome and mobile browsers, audio may remain suspended when the page
+  // first loads. Resume directly from the click event, before scheduling notes.
+  const play=()=>{
+   try{
+    const now=ac.currentTime+.012;
+    const limiter=quack.limiter||(quack.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
+    const key=String(d?.slug||d?.id||'classic');
+    let seed=2166136261;
+    for(let i=0;i<key.length;i++)seed=Math.imul(seed^key.charCodeAt(i),16777619)>>>0;
+    const duration=.15+((seed>>>7)%7)*.013;
+    const pitch=360+(seed%320);
+    const fall=.48+((seed>>>13)%28)/100;
+    const waves=['triangle','sawtooth','square'];
+    const o=ac.createOscillator(),filter=ac.createBiquadFilter(),gain=ac.createGain();
+    o.type=waves[(seed>>>5)%waves.length];
+    o.frequency.setValueAtTime(pitch,now);
+    o.frequency.exponentialRampToValueAtTime(pitch*fall,now+duration);
+    filter.type='lowpass';filter.frequency.value=700+((seed>>>11)%9)*110;
+    o.connect(filter);filter.connect(gain);gain.connect(limiter);
+    gain.gain.setValueAtTime(.0001,now);
+    gain.gain.exponentialRampToValueAtTime(.11,now+.012);
+    gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+    o.start(now);o.stop(now+duration+.01);
+   }catch(e){console.warn('Duck sound playback failed',e)}
+  };
+  if(ac.state==='suspended')ac.resume().then(play).catch(e=>console.warn('Duck sound unlock failed',e));
+  else play();
  }catch(e){console.warn('Duck sound unavailable',e)}
 }
 function bounds(){

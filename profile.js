@@ -352,4 +352,4 @@ if(mine){
  };
 }
 let local=[];if(target===Crilo.user?.id){try{local=JSON.parse(localStorage.getItem('crilo_domain_top5')||'[]')}catch{}}const ds=(domainScores||[]).map(x=>x.score);const top=[...ds,...local].sort((a,b)=>b-a).slice(0,5);$('domainTop').innerHTML=top.length?top.map((v,i)=>`<div class="domain-score"><span class="domain-rank">${i+1}</span><span class="domain-score-main"><span class="domain-score-title">${i===0?'Personal best':'Run '+(i+1)}</span><span class="domain-score-bar"><i style="width:${Math.min(100,Math.max(0,Number(v)/5000*100))}%"></i></span></span><strong class="domain-score-number">${Number(v).toLocaleString()}<small> / 5,000</small></strong></div>`).join(''):'<span class="muted">No Domain scores yet.</span>'}
-window.addEventListener('crilo-auth-ready',load)})();
+window.addEventListener('crilo-auth-ready',()=>load().catch(err=>{console.error('Profile loading failed',err);$('profileName').textContent='Could not load statistics. Refresh or try again.'}));setTimeout(()=>{if($('profileName')?.textContent?.includes('Loading'))load().catch(console.error)},500);})();
