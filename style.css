@@ -465,3 +465,28 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .danger-delete-btn:focus-visible{outline:3px solid #e05259;outline-offset:3px}
 .danger-delete-btn svg{flex-shrink:0}
 @media(max-width:650px){.settings-card.danger-zone{padding:20px}.danger-zone-heading{font-size:22px}.danger-zone .settings-row{align-items:flex-start;flex-direction:column;gap:18px}.danger-delete-btn{width:100%}}
+
+/* Owner-only drawing review */
+.topbar nav a.crilo-owner-review-link{color:#b92e3c;background:#fff0f1;padding:8px 10px;border:1px solid #f2c6cc;border-radius:8px;white-space:nowrap}
+.topbar nav a.crilo-owner-review-link:hover,.topbar nav a.crilo-owner-review-link.active{color:#a31b2b;background:#ffe1e5;border-color:#e9a8b2}
+.crilo-review-page{max-width:1050px;margin:auto;padding:50px 22px}
+.crilo-review-page h1{font-size:clamp(37px,6vw,67px);letter-spacing:-.055em;margin:10px 0}
+.crilo-review-sub{font-size:16px;color:#70747a;max-width:690px;line-height:1.6}
+.crilo-review-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:28px 0}
+.crilo-review-toolbar .active{background:#ffe0e4;border-color:#db8c98;color:#9d2634}
+.crilo-review-list{display:grid;gap:8px}
+.crilo-review-row{cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:19px;padding:12px 17px;background:var(--card,#fff);border:1px solid #e1e3e7;border-radius:13px;color:inherit}
+.crilo-review-row:hover,.crilo-review-row:focus-visible{border-color:#d19ca6;background:var(--soft,#fafafa);outline-offset:2px}
+.crilo-review-rank{font-size:13px;color:#9ba0a6;width:24px;text-align:center}
+.crilo-review-thumbnail{width:74px;height:74px;flex:0 0 74px;border-radius:10px;border:1px solid #e0e3e8;background:#fff;display:grid;place-items:center;font-size:11px;color:#8b9098}
+.crilo-review-thumbnail img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.crilo-review-player{flex:1;display:grid;gap:5px;min-width:0}.crilo-review-player strong{font-size:16px;overflow:hidden;text-overflow:ellipsis}.crilo-review-player small{color:#777;font-size:12px}
+.crilo-review-score{font-weight:750;color:#626870;white-space:nowrap}
+.crilo-review-state{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:850;color:#ad3946;background:#fbe8eb;border-radius:12px;padding:6px 9px}
+.crilo-review-detail{max-width:min(95vw,670px);max-height:94vh;overflow:auto;text-align:center}
+.crilo-review-detail #reviewLargeDrawing{display:block;margin:14px auto;background:#fff;border:1px solid #d9dde3;border-radius:14px;width:min(100%,460px);height:auto;aspect-ratio:1;object-fit:contain;image-rendering:pixelated}
+.crilo-review-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:20px 0}
+.crilo-review-remove{border-color:#deab64!important;background:#fff5e5!important;color:#885317!important}
+.crilo-review-ban{border-color:#e09eaa!important;background:#ffe8ec!important;color:#ad1830!important}
+.crilo-review-actions button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:680px){.topbar nav{flex-wrap:wrap;gap:10px}.crilo-review-row{gap:9px;padding:8px}.crilo-review-thumbnail{width:54px;height:54px;flex-basis:54px}.crilo-review-score{display:none}.crilo-review-state{font-size:9px}.crilo-review-page{padding:28px 14px}}
