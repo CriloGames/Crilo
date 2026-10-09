@@ -20,7 +20,7 @@ async function load(){
   const clear=checks.filter(x=>x.ai_status==='clear').length;
   const review=checks.filter(x=>x.ai_status==='review').length;
   const ocrPending=checks.filter(x=>x.ai_status==='clear'&&!x.ocr_checked_at).length;
-  diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+review+' needs review · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
+  diagnostic.textContent='Owner Test Runs: '+pending+' pending · '+clear+' clear · '+flagged+' flagged · '+review+ ' inconclusive visual scans · '+failed+' failed'+(ocrPending?' · '+ocrPending+' awaiting text recognition':'');
   $('ownerScanHistory').innerHTML=checks.slice(0,10).map(x=>'<div style="padding:5px 0;font-size:13px;color:var(--muted,#767676)">'+escape(new Date(x.submitted_at).toLocaleString())+' · '+escape(x.ai_status||'pending')+(x.ocr_checked_at?' · text checked':' · text not checked')+'</div>').join('');
  }
  const visual=$('ownerVisualHistory');
@@ -34,7 +34,7 @@ async function load(){
   }).join('');
  }
  const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
- const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
+ const uncertainRows=[];
  rows=flaggedRows;
  message.textContent=flaggedRows.length+' drawings flagged by text or image moderation. Uncertain visual predictions are diagnostics only.';
  if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
