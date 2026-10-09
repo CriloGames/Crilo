@@ -7,7 +7,7 @@ async function load(){
  const request=++generation;
  if(!window.Crilo?.user||!window.Crilo?.profile?.is_owner){message.textContent='Owner access only.';list.replaceChildren();return}
  message.textContent='Loading drawings…';
- const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_test_drawings')]);
+ const [{data,error},{data:tests,error:testError}]=await Promise.all([criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),criloDB.rpc('crilo_owner_flagged_saved_tests')]);
  if(request!==generation)return;
  if(error){message.textContent='Could not load drawings: '+error.message;return}
  rows=[...(data||[]),...(testError?[]:(tests||[]))];
