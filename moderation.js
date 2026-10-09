@@ -66,6 +66,22 @@ async function scanPending(){
  finally{scanning=false}
 }
 
+let handwritingModel=null,handwritingUnavailable=false;
+async function handwritingOCR(canvas){
+ if(handwritingUnavailable)return '';
+ try{
+  if(!handwritingModel){
+   const mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+   handwritingModel=await mod.pipeline('image-to-text','Xenova/trocr-small-handwritten',{device:'wasm',dtype:'q8'});
+  }
+  const output=await handwritingModel(canvas.toDataURL('image/png'),{max_new_tokens:80});
+  return String(output?.[0]?.generated_text||'').slice(0,4096);
+ }catch(error){
+  console.warn('Handwriting model unavailable; retaining Tesseract results',error);
+  handwritingUnavailable=true;
+  return '';
+ }
+}
 let ocrBusy=false,ocrEngine=null;
 async function checkText(){
  if(ocrBusy||document.hidden||!window.Crilo?.profile?.is_owner)return;
@@ -95,7 +111,12 @@ async function checkText(){
     ctx.imageSmoothingEnabled=false;
     ctx.drawImage(source,0,0,canvas.width,canvas.height);
     const result=await ocrEngine.recognize(canvas);
-    const text=String(result.data.text||'').slice(0,4096);
+    const primaryText=String(result.data.text||'').slice(0,4096);
+    // TrOCR is trained on handwriting; fallback only when the printed-text OCR
+    // finds no matching common profanity. Keep the original text too.
+    const profanity=/\b(fuck|fucking|fucked|shit|shitty|bitch|asshole|bastard|damn|crap|cunt|dick|motherfucker)\b/i;
+    const fallbackText=!profanity.test(primaryText)?await handwritingOCR(canvas):'';
+    const text=(primaryText+' '+fallbackText).slice(0,4096);
     const saved=item.ownerTest?await criloDB.rpc('crilo_owner_saved_test_ocr_finish',{p_run_id:item.run_id,p_text:text}):await criloDB.rpc('crilo_owner_finish_ocr',{p_run_id:item.run_id,p_is_test:item.is_test,p_text:text});
     if(saved.error)console.warn('OCR result could not be saved',saved.error);
    }catch(e){console.warn('OCR unavailable for a drawing',e)}
