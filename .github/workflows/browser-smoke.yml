@@ -173,6 +173,38 @@ jobs:
               drawingRecovery.pixel[1]!==76 || drawingRecovery.pixel[2]!==60)
               throw Error('Drawing canvas restore failed in Chromium: '+JSON.stringify(drawingRecovery));
             console.log('PASS: Chromium drawing PNG persisted, decoded, restored to canvas',drawingRecovery);
+            // Owner's private test mode must not call any server-authenticated spin RPC.
+            const ownerMode=await page.evaluate(async original=>{
+              const begin=original.slice(original.indexOf('function beginRun()'),original.indexOf('async function endRun()'));
+              const beginBody=begin.slice(0,begin.indexOf('let savingCompletedRun=false;'));
+              const testSrc=original.slice(original.indexOf('function startTest('),original.indexOf('function countdown()',original.indexOf('function startTest(')));
+              const elements=new Map();
+              const $=id=>{if(!elements.has(id))elements.set(id,{
+                disabled:false,textContent:'',classList:{add(){},remove(){},toggle(){}}});
+                return elements.get(id)};
+              let calls=0;
+              const drawing={width:200,height:200},ctx={
+                profile:{is_owner:true},spinning:false,ownerModeChosen:false,isTest:false,
+                saveOwnerTest:false,started:false,guestRun:false,user:{id:'owner'},
+                drawing,dctx:{clearRect(){}},drawMode:'stationary',
+                undoStack:[],redoStack:[],score:0,spins:5,multiplier:1,upgrades:0,
+                doubles:0,ducks:0,totalSpins:0,numbersLanded:0,extraSpins:0,
+                bestRollPoints:0,bestRollLabel:'',rotation:0,segments:[],results:[],
+                runProbability:1,verifiedSpinSessionId:null,
+                DuckWorld:{clear(){}},$,
+                document:{querySelectorAll:()=>[]},
+                showDrawPlaceholder(){},resetSegments(){},update(){},
+                criloDB:{rpc:async()=>{calls++;throw Error('Owner test invoked RPC')}}
+              };
+              const fns=new Function('ctx','with(ctx){'+beginBody+';'+testSrc+';return {startTest}}')(ctx);
+              fns.startTest();
+              return {isTest:ctx.isTest,started:ctx.started,spins:ctx.spins,
+                ownerModeChosen:ctx.ownerModeChosen,calls};
+            },source);
+            if(!ownerMode.isTest||!ownerMode.started||ownerMode.spins!==5||
+               !ownerMode.ownerModeChosen||ownerMode.calls!==0)
+              throw Error('Owner test-mode regression: '+JSON.stringify(ownerMode));
+            console.log('PASS: owner private test mode initializes separately from server Daily',ownerMode);
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
