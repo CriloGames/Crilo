@@ -14,4 +14,17 @@ $('saveIdentity').onclick=()=>save();
 $('lightBtn').onclick=()=>savePreference({theme:'light'});
 $('darkBtn').onclick=()=>savePreference({theme:'dark'});
 $('soundBtn').onclick=()=>savePreference({sound_enabled:!(p?.sound_enabled??true)});
-$('signOutBtn').onclick=async()=>{await criloDB.auth.signOut();location.href='index.html'};$('deleteBtn').onclick=async()=>{if(!Crilo.user)return;if(!confirm('Request deletion of your Crilo account?'))return;const {error}=await criloDB.from('account_deletion_requests').upsert({user_id:Crilo.user.id});$('deleteStatus').textContent=error?error.message:'Deletion request submitted. Your account has not been deleted yet.'};window.addEventListener('crilo-auth-ready',init)})();
+$('signOutBtn').onclick=async()=>{await criloDB.auth.signOut();location.href='index.html'};$('deleteBtn').onclick=async()=>{
+ if(!Crilo.user){$('deleteStatus').textContent='Please sign in first.';return}
+ const confirmation=prompt('Permanently delete your Crilo account, scores, badges, ducks, and friends? This cannot be undone. Type DELETE to confirm:');
+ if(confirmation===null)return;
+ if(confirmation!=='DELETE'){$('deleteStatus').textContent='Account not deleted. Type DELETE exactly to confirm.';return}
+ if(!confirm('Final confirmation: permanently delete your Crilo account and all associated player data?'))return;
+ const btn=$('deleteBtn');btn.disabled=true;$('deleteStatus').textContent='Deleting your account…';
+ try{
+  const {data,error}=await criloDB.functions.invoke('delete-my-account',{body:{confirmation:'DELETE'}});
+  if(error||!data?.deleted)throw new Error(data?.error||error?.message||'Deletion failed');
+  try{await criloDB.auth.signOut({scope:'local'})}catch(_){}
+  location.replace('index.html?account_deleted=1');
+ }catch(e){$('deleteStatus').textContent='Account was not deleted: '+(e?.message||'Please try again.');btn.disabled=false}
+};window.addEventListener('crilo-auth-ready',init)})();
