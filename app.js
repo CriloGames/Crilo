@@ -52,20 +52,48 @@
     }));
   }
 
-  // Pending friend requests: lightweight in-site notifications on every page.
+  // Friend activity notifications, shared across Crilo pages.
   let bellTimer=null;
+  const relativeTime=value=>{
+    const seconds=Math.max(0,Math.floor((Date.now()-new Date(value).getTime())/1000));
+    if(seconds<60)return 'JUST NOW';
+    if(seconds<3600)return Math.floor(seconds/60)+'M AGO';
+    if(seconds<86400)return Math.floor(seconds/3600)+'H AGO';
+    if(seconds<604800)return Math.floor(seconds/86400)+'D AGO';
+    return new Date(value).toLocaleDateString(undefined,{month:'short',day:'numeric'}).toUpperCase();
+  };
   async function updateFriendBell(){
     const host=document.querySelector('.header-actions');
     if(!host)return;
     let wrap=document.getElementById('friendBellWrap');
-    if(!wrap){wrap=document.createElement('div');wrap.id='friendBellWrap';wrap.style.cssText='position:relative;display:none';wrap.innerHTML='<button id="friendBellBtn" type="button" aria-label="Friend requests" title="Friend requests" style="position:relative;width:38px;height:38px;border-radius:50%;border:1px solid #ddd;background:#f3f3f3;cursor:pointer;display:grid;place-items:center"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="#17191e" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" style="display:none;position:absolute;top:-5px;right:-7px;background:#df3030;color:white;border-radius:20px;padding:2px 5px;font-size:10px;font-weight:900"></span></button><div id="friendBellPanel" class="hidden" style="position:absolute;right:0;top:45px;width:260px;max-width:85vw;padding:16px;background:white;border:1px solid #ddd;border-radius:14px;box-shadow:0 12px 28px #0002;z-index:50"></div>';host.insertBefore(wrap,host.firstChild);document.getElementById('friendBellBtn').addEventListener('click',()=>document.getElementById('friendBellPanel').classList.toggle('hidden'));}
+    if(!wrap){
+      wrap=document.createElement('div');
+      wrap.id='friendBellWrap';
+      wrap.className='crilo-notification-wrap';
+      wrap.innerHTML='<button id="friendBellBtn" class="circle-btn" type="button" aria-label="Notifications" aria-expanded="false" title="Notifications"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" class="crilo-notification-count hidden"></span></button><section id="friendBellPanel" class="crilo-notification-panel hidden" aria-label="Notifications"><div class="crilo-notification-title">NOTIFICATIONS</div><div id="friendBellItems"></div><a class="crilo-notification-footer" href="friends.html">VIEW ALL FRIEND REQUESTS →</a></section>';
+      host.insertBefore(wrap,host.firstChild);
+      document.getElementById('friendBellBtn').addEventListener('click',()=>{
+        const panel=document.getElementById('friendBellPanel');
+        panel.classList.toggle('hidden');
+        document.getElementById('friendBellBtn').setAttribute('aria-expanded',String(!panel.classList.contains('hidden')));
+      });
+    }
     wrap.style.display=Crilo.user?'block':'none';
     if(!Crilo.user)return;
-    const {data,error}=await criloDB.from('friend_requests').select('id,sender_id').eq('receiver_id',Crilo.user.id).eq('status','pending');
+    const {data,error}=await criloDB.from('friend_requests').select('id,sender_id,created_at').eq('receiver_id',Crilo.user.id).eq('status','pending').order('created_at',{ascending:false}).limit(15);
     if(error){console.warn('Friend notifications:',error.message);return}
-    const count=(data||[]).length,indicator=document.getElementById('friendBellCount'),panel=document.getElementById('friendBellPanel');
-    indicator.style.display=count?'inline':'none';indicator.textContent=count>9?'9+':String(count);
-    panel.innerHTML=count?'<strong>'+count+' pending friend request'+(count===1?'':'s')+'</strong><p style="margin:10px 0">Someone wants to be your friend!</p><a href="friends.html" style="color:#17191e;font-weight:800">View requests →</a>':'<strong>Notifications</strong><p style="color:#777;margin-bottom:0">No new friend requests.</p>';
+    const requests=data||[],indicator=document.getElementById('friendBellCount'),items=document.getElementById('friendBellItems');
+    indicator.classList.toggle('hidden',!requests.length);
+    indicator.textContent=requests.length>9?'9+':String(requests.length);
+    let names={};
+    if(requests.length){
+      const ids=[...new Set(requests.map(x=>x.sender_id).filter(Boolean))];
+      const response=await criloDB.from('profiles').select('id,username').in('id',ids);
+      if(!response.error)names=Object.fromEntries((response.data||[]).map(x=>[x.id,x.username]));
+    }
+    items.innerHTML=requests.length?requests.map(req=>
+      '<a class="crilo-notification-item" href="friends.html"><span class="crilo-notification-icon">↗</span><span><span class="crilo-notification-copy"><b>'+esc(names[req.sender_id]||'A PLAYER')+'</b> SENT YOU A FRIEND REQUEST</span><small>'+relativeTime(req.created_at)+'</small></span></a>'
+    ).join(''):'<div class="crilo-notification-empty">You’re all caught up. No new friend requests.</div>';
   }
   window.addEventListener('crilo-friends-changed',updateFriendBell);
   window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
