@@ -30,7 +30,7 @@
     if(description.length<15){status.textContent='Please describe the issue in at least 15 characters.';return}
     submit.disabled=true;status.textContent='Sending your report…';
     try{
-      const session=await window.criloDB?.auth?.getSession?.();
+      const session=typeof criloDB!=='undefined'?await criloDB.auth.getSession():null;
       const token=session?.data?.session?.access_token;
       const res=await fetch(CRILO_SUPABASE_URL+'/functions/v1/report-bug',{
         method:'POST',headers:{'Content-Type':'application/json','apikey':CRILO_SUPABASE_KEY,...(token?{'Authorization':'Bearer '+token}:{})},
