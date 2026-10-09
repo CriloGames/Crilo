@@ -47,6 +47,7 @@
     }
 
     renderAccount();
+    document.querySelectorAll('.crilo-owner-review-link').forEach(el=>el.classList.toggle('hidden',!Crilo.profile?.is_owner));
     window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
       detail:{user:Crilo.user,profile:Crilo.profile}
     }));
