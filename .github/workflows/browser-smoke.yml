@@ -140,6 +140,39 @@ jobs:
               || recovered.score!==17 || recovered.spins!==4 || !recovered.unlocked)
               throw Error('Interrupted spin recovery failed in Chromium: '+JSON.stringify(recovered));
             console.log('PASS: Chromium recovery after lost RPC reply',recovered);
+            // Exercise real canvas/image decoding and drawing recovery in Chromium.
+            const drawingRecovery=await page.evaluate(async original=>{
+              const start=original.indexOf('function verifiedDrawingKey()');
+              const end=original.indexOf('function lockDrawing()',start);
+              if(start<0||end<0)throw Error('Drawing recovery functions not found');
+              const drawing=document.querySelector('#drawing');
+              const dctx=drawing.getContext('2d');
+              const id='crilo-ci-drawing-test';
+              const canvas=document.createElement('canvas');
+              canvas.width=drawing.width;canvas.height=drawing.height;
+              const ctx=canvas.getContext('2d');
+              ctx.fillStyle='#e74c3c';ctx.fillRect(30,30,40,40);
+              const saved=canvas.toDataURL('image/png');
+              const key='crilo_verified_drawing_'+id+'_2026-10-09';
+              localStorage.removeItem(key);
+              dctx.clearRect(0,0,drawing.width,drawing.height);
+              dctx.drawImage(canvas,0,0);
+              const fake={user:{id},guestRun:false,isTest:false,drawing,dctx,
+                Crilo:{dailyPeriod:()=>'2026-10-09'},localStorage,Image,console};
+              const helpers=new Function('ctx','with(ctx){'+original.slice(start,end)+
+                ';return {cacheVerifiedDrawing,restoreVerifiedDrawing}}')(fake);
+              helpers.cacheVerifiedDrawing();
+              dctx.clearRect(0,0,drawing.width,drawing.height);
+              await helpers.restoreVerifiedDrawing();
+              const pixel=[...dctx.getImageData(45,45,1,1).data];
+              const retained=localStorage.getItem(key)===saved;
+              localStorage.removeItem(key);
+              return {pixel,retained};
+            },source);
+            if(!drawingRecovery.retained || drawingRecovery.pixel[0]!==231 ||
+              drawingRecovery.pixel[1]!==76 || drawingRecovery.pixel[2]!==60)
+              throw Error('Drawing canvas restore failed in Chromium: '+JSON.stringify(drawingRecovery));
+            console.log('PASS: Chromium drawing PNG persisted, decoded, restored to canvas',drawingRecovery);
             await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
