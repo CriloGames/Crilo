@@ -10,6 +10,7 @@ This checklist replaces open-ended micro-audits. A gate is **complete only when 
 - [x] Lost server response and authoritative-state recovery executes in Chromium with mocked RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970646915.
 - [x] Real Chromium canvas PNG caching and restoration passed. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37970884450.
 - [ ] Refresh, disconnect/recover, failed-save retry, and drawing restoration run in browser.
+- [x] Owner private-test initialization runs in Chromium without invoking the official spin RPC. Evidence: https://github.com/CriloGames/Crilo/actions/runs/37971202015.
 - [ ] Owner test runs remain private and independent of the official Daily.
 
 ## Gate 2 — Frontend deployment
