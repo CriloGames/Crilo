@@ -41,8 +41,27 @@ jobs:
               !!document.querySelector('#drawing')?.getContext('2d'));
             if(!canvasOK) throw Error('Game canvas unavailable');
             await page.waitForTimeout(1500);
+            // Exercise the actual guest spin animation and outcome resolution.
+            const button = page.locator('#spinButton');
+            if(await button.isVisible() && await button.isEnabled()){
+              await button.click();
+              await page.waitForTimeout(3300);
+              const message = (await page.locator('#message').textContent() || '').trim();
+              if(!message || message === '...') throw Error('Guest spin failed to resolve: '+message);
+              console.log('PASS: real Chromium guest spin resolved with message:',message);
+            } else {
+              throw Error('Guest spin button unexpectedly unavailable');
+            }
+            await page.screenshot({path:'crilo-browser-smoke.png',fullPage:true});
             if(errors.length) throw Error('Browser JS exceptions: '+errors.join(' | '));
             console.log('PASS: game loads in real Chromium; wheel and drawing canvases initialize without JS exceptions.');
             await browser.close();
           })().catch(e => {console.error(e);process.exit(1)});
           JS
+      - name: Upload browser screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crilo-browser-smoke
+          path: crilo-browser-smoke.png
+          if-no-files-found: ignore
