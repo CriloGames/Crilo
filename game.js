@@ -88,7 +88,8 @@ async function spin(){if(spinning||spins<=0)return;
  // Auth events can arrive after the wheel is ready, especially on a refreshed owner tab.
  // Recheck the persisted session before telling a signed-in player to log in.
  if(!user||!profile){
-  $('spinButton').disabled=true;
+  // Lock before async session restoration so multiple clicks cannot race.
+  spinning=true;$('spinButton').disabled=true;
   try{
    const {data:sessionData}=await criloDB.auth.getSession();
    const sessionUser=sessionData?.session?.user;
@@ -101,7 +102,7 @@ async function spin(){if(spinning||spins<=0)return;
     }
    }
   }catch(err){console.error('Could not restore sign-in for spin',err)}
-  $('spinButton').disabled=false;
+  spinning=false;$('spinButton').disabled=false;
  }
  if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}
  let serverReply=null;
