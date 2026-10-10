@@ -56,11 +56,11 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  let cursor=0,lost=loseFirstReply;
  const db={
   rpc:async(name,args)=>{
+   rpcCalls.push(name);
    if(name==='crilo_save_owner_test_run'){
     testSaved.push(args.p_run);
     return {data:'private-test-id',error:null};
    }
-   rpcCalls.push(name);
    if(name==='crilo_begin_server_spin_session')return{data:state.id};
    if(name==='crilo_get_server_spin_state')return{data:{
     session_id:state.id,remaining_spins:state.remaining_spins,spin_count:state.spin_count,
