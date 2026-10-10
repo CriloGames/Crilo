@@ -1276,3 +1276,42 @@ html[data-theme="dark"] .crilo-warning-decision{background:#382b2a;color:#fae4dd
 html[data-theme="dark"] .crilo-warning-decision label{color:#ffd5cb}
 html[data-theme="dark"] .crilo-warning-decision p{color:#ecc1b9}
 html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ffc1cc;border-color:#ad6c79}
+
+
+/* Leaderboard introduction: compact, centered and readable across screen sizes.
+   Keep copy aligned with the hero card without pushing rankings below the fold. */
+.leader-main .leader-head{
+  max-width:800px;
+  margin-inline:auto;
+  text-align:center;
+}
+.leader-main .leader-head h1{
+  margin:10px 0 14px;
+  font-size:clamp(40px,6vw,64px);
+  line-height:1.04;
+  letter-spacing:-.055em;
+  overflow-wrap:normal;
+}
+.leader-main .leader-head .sub{
+  width:100%;
+  max-width:660px;
+  margin:0 auto;
+  font-size:clamp(15px,1.65vw,18px);
+  line-height:1.5;
+  color:var(--muted,#7b7f87);
+  text-align:center;
+  text-wrap:pretty;
+}
+.leader-main .leader-head + .best-card{margin-top:28px}
+@media(max-width:600px){
+  .leader-main .leader-head h1{
+    margin:9px 0 12px;
+    font-size:clamp(34px,9vw,46px);
+    line-height:1.08;
+  }
+  .leader-main .leader-head .sub{
+    max-width:37ch;
+    font-size:14px;
+    line-height:1.5;
+  }
+}
