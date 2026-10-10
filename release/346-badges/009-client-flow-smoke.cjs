@@ -22,12 +22,16 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
   const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(200*200*4)})},{get:(o,p)=>o[p]??(()=>{})});
   const el={id,classList,style:{},dataset:{},textContent:'',innerHTML:'',value:'',
    disabled:false,width:200,height:200,open:false,addEventListener:(name,cb)=>el['on_'+name]=cb,
-   setAttribute:()=>{},getContext:()=>ctx,toDataURL:()=> 'data:image/png;base64,'+'a'.repeat(200),
+   setAttribute:(key,val)=>{(el.attrs||(el.attrs={}))[key]=val;},getContext:()=>ctx,toDataURL:()=> 'data:image/png;base64,'+'a'.repeat(200),
    querySelector:()=>element('nested'),querySelectorAll:()=>[],
+   getAttribute:(key)=>el.attrs?.[key]||null,
+   removeAttribute:(key)=>{if(el.attrs)delete el.attrs[key];},
+   replaceChildren:(...nodes)=>{el.children=nodes;el.textContent=nodes.map(n=>n.textContent).join('');},
    getBoundingClientRect:()=>({left:0,top:0,width:200,height:200})};
   els.set(id,el);return el;
  }
  const document={getElementById:element,querySelectorAll:()=>[],querySelector:()=>element('nested'),
+  createElement:()=>({textContent:'',className:'',style:{setProperty(){}},setAttribute(){}}),
   addEventListener:()=>{}};
  const window={addEventListener:(n,cb)=>events[n]=cb,CriloBadgeEvents:{track:async()=>true}};
  const rpcCalls=[],saved=[],errors=[];
