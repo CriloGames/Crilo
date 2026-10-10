@@ -27,6 +27,7 @@
     inDomain?'domain_open':
     null;
   if(page)track(page);
+  // Final ranks are settled by the 22:02 UTC pg_cron job, not an unauthenticated client RPC.
   if(onPage('profile')){
    const id=new URLSearchParams(location.search).get('id');
    criloDB.auth.getSession().then(({data})=>{
@@ -47,7 +48,6 @@
    if(id==='helpBtn')track('info_open');
    if(id==='rarityInfoBtn')track('rarity_info');
    if(node.closest('a[href="#more-games"]'))track('more_games_page');
-   if(node.matches('[data-tool="fill"]'))track('drawing_canvas');
   }
   if(onPage('ducks')){
    if(node.closest('.duck-unlocked')){track('duck_details');track('duck_sound');}
