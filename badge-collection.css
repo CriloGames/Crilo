@@ -91,6 +91,9 @@ html[data-theme="dark"] .collection-rarity-legend span{background:color-mix(in s
 .collection-tile small{font-size:9.5px;letter-spacing:.04em;font-weight:850;text-transform:uppercase;color:color-mix(in srgb,var(--crilo-badge-accent) 77%,#15171b)}
 .collection-tile-description{font-size:10.5px;line-height:1.38;color:#343943;opacity:1;margin:2px 0 0;
  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;line-clamp:4;overflow:hidden}
+.collection-tile[role="button"]{cursor:pointer}
+.collection-tile:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
+.collection-tile.expanded .collection-tile-description{display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}
 /* Locked rarity remains identifiable without visually competing with earned. */
 .collection-tile.locked{
  background:color-mix(in srgb,var(--crilo-badge-accent) 8%,#fff);
