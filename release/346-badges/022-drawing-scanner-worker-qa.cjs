@@ -130,7 +130,8 @@ async function feedTest(){
   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,username:'Owner',drawing:image,score:88,submitted_at:'2026-10-10T08:00:00Z'}];
  const db={rpc:async(name)=>{
   if(name==='crilo_owner_drawing_feed')return {data};
-  if(name==='crilo_owner_local_scan_report')return {data:[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',checked_at:'2026-10-10T10:00:00Z'}]};
+  if(name==='crilo_owner_local_scan_report')return {data:[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',checked_at:'2026-10-10T10:00:00Z'},
+   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',checked_at:'2026-10-10T10:01:00Z'}]};
   return {data:[]};
  }};
  vm.runInNewContext(feed,{window:w,document:doc,criloDB:db,
@@ -150,7 +151,14 @@ async function feedTest(){
  node('showOwnerTests').checked=true;
  await w.criloRefreshDrawingFeed();
  assert.ok(node('drawingReviewList').innerHTML.includes('crilo-review-test-tag'),
-  'Owner Test Runs should be explicitly labeled, even when unscanned');
+  'Owner Test Runs should keep a separate test tag near username');
+ const testRow=node('drawingReviewList').innerHTML.split('data-index="1"')[1]||'';
+ assert.ok(testRow.includes('>NO FLAGS</span>'),
+  'Scanned clean Owner Test Run must show NO FLAGS in status');
+ assert.ok(!testRow.includes('>OWNER TEST</span>'),
+  'Owner Test Run must never displace the scan-result status');
+ assert.ok(node('drawingReviewList').innerHTML.includes('>REVIEW SUGGESTED</span>'),
+  'Flagged official run must still show its scan result');
  node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'1'}})}});
  assert.equal(node('reviewRemove').disabled,true,'Never delete a Test Run as an official Daily');
  assert.equal(node('reviewBan').disabled,true,'Never ban accounts via Test Run moderation');
