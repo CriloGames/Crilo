@@ -24,6 +24,8 @@ on:
       - 'moderation-scan-worker.js'
       - 'moderation-shape-review.js'
       - 'moderation-genital-review.js'
+      - 'moderation-example-features.js'
+      - 'moderation-feedback.js'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -52,6 +54,8 @@ on:
       - 'moderation-scan-worker.js'
       - 'moderation-shape-review.js'
       - 'moderation-genital-review.js'
+      - 'moderation-example-features.js'
+      - 'moderation-feedback.js'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -88,6 +92,8 @@ jobs:
           node --check moderation-scan-worker.js
           node --check moderation-shape-review.js
           node --check moderation-genital-review.js
+          node --check moderation-example-features.js
+          node --check moderation-feedback.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
@@ -112,6 +118,8 @@ jobs:
         run: node release/346-badges/024-shape-review-acceptance.cjs
       - name: Catch OCR-misread handwritten website links
         run: node release/346-badges/025-handwritten-link-smoke.cjs
+      - name: Verify private example learning and owner action queue updates
+        run: node release/346-badges/026-owner-example-learning-smoke.cjs
       - name: Verify leaderboard tabs never wrap across mobile/tablet/desktop widths
         run: node release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
