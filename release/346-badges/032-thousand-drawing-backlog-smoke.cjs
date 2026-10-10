@@ -62,8 +62,8 @@ function countImages(){return (node('drawingReviewList').innerHTML.match(/<img /
 (async()=>{
  const started=Date.now();
  await window.criloRefreshDrawingFeed();
- assert.equal(node('reviewCountPending').textContent,'1000');
- assert.equal(node('reviewCountFlagged').textContent,'100');
+ assert.equal(node('reviewCountPending').textContent,1000);
+ assert.equal(node('reviewCountFlagged').textContent,100);
  assert.equal(node('reviewStats').textContent,'1–24 of 1000 matching drawings · 0 Test Runs included');
  assert.equal(node('reviewPageInfo').textContent,'Page 1 of 42');
  assert.equal(countImages(),24,'Do not create 1,000 image elements at once');
@@ -88,7 +88,7 @@ function countImages(){return (node('drawingReviewList').innerHTML.match(/<img /
  assert.equal(node('reviewPageInfo').textContent,'Page 1 of 5');
  assert.equal(node('reviewStats').textContent,'1–24 of 100 matching drawings · 0 Test Runs included');
  assert.equal(countImages(),24);
- assert.equal(node('reviewCountFlagged').textContent,'100');
+ assert.equal(node('reviewCountFlagged').textContent,100);
  node('reviewFilter').value='all';
  node('reviewFilter').handlers.change({target:{value:'all'}});
  await window.criloRefreshDrawingFeed();
