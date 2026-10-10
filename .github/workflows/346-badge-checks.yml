@@ -115,6 +115,8 @@ jobs:
         run: node release/346-badges/022-drawing-scanner-worker-qa.cjs
       - name: Stress-test thousand-drawing owner backlog with bounded pages
         run: node release/346-badges/032-thousand-drawing-backlog-smoke.cjs
+      - name: Verify removed Daily warnings, streak resets and private notifications
+        run: node release/346-badges/036-owner-warning-penalty-smoke.cjs
       - name: Verify low-memory mobile review opens without automatic AI load
         run: node release/346-badges/034-low-memory-scanner-smoke.cjs
       - name: Detect drawn genital-like outlines and never clear inconclusive images
