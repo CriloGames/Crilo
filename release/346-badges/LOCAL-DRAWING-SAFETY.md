@@ -50,3 +50,14 @@ A real Owner Test Run containing a simple outlined genital drawing returned no v
 - `release/346-badges/023-outline-safety-review-smoke.cjs` tests several rotation angles, benign negative fixtures, and integration with the worker. These are synthetic smoke tests, not measured accuracy/recall.
 
 For this specific Owner Test Run: keep **Include my Test Runs** and **Include image and symbol detection** checked, wait for the new worker to scan, or select **Scan this drawing**. Never automatically delete, ban, or approve based on these checks.
+
+
+## False-positive correction (October 10, 2026)
+- Previously the UI treated any vision similarity below 0.10 as \`REVIEW SUGGESTED\`. This was a false-positive bug: low similarity is not evidence of inappropriate art. Removed from both the scanner and the UI.
+- \`REVIEW SUGGESTED\`: only detected scan reasons (or separately recorded earlier flags).
+- \`INCOMPLETE CHECK\`: a model/library/check failed or image checking was switched off; it is **not** a confirmed violation.
+- \`NOT CHECKED\`: no saved scan; \`NO FLAGS\`: completed scan without a detected reason.
+- A nearly uniform blank drawing is recognized cheaply by the dedicated Web Worker. OCR, QR decoding, geometry and image model loading are skipped, and the completed result is saved as \`Blank or nearly blank drawing\`.
+- Legitimate explicit genital-outline heuristics, OCR abuse/links and QR detections are still active. No model result ever triggers an automatic ban or deletion.
+- The new \`022-drawing-scanner-worker-qa.cjs\` fixtures cover blank scans and low-confidence harmless image scores, so this precise false-positive issue is part of regression testing.
+- This version does **not** force a full re-scan of previously checked drawings solely to correct the UI. A user-initiated \`Scan this drawing\` re-runs the updated worker and can use the blank fast path.
