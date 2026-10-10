@@ -14,13 +14,27 @@ for(const tier of ['trash','common','uncommon','rare','epic','anomaly','mythic']
  assert.ok(collectionCSS.includes('.badge-top-chip[data-badge-rarity="'+tier+'"],.collection-tile[data-badge-rarity="'+tier+'"]'),
   'Both badge layouts must explicitly color the '+tier+' rarity');
 }
-assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-pale) 34%,#fff)'),
- 'Locked badges must have a light, muted rarity tint');
-assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-accent) 29%,var(--crilo-badge-pale))'),
- 'Earned badges must have visibly richer rarity colors');
+assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-accent) 8%,#fff)'),
+ 'Locked badges must have an almost-white rarity tint');
+assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-accent) 47%,var(--crilo-badge-pale))'),
+ 'Earned badges must have noticeably stronger rarity colors');
+assert.ok(collectionCSS.includes('grid-template-columns:repeat(auto-fill,minmax(155px,1fr))'),
+ 'Collection cards should use a denser multi-column layout');
+assert.ok(collectionCSS.includes('min-height:110px'),
+ 'Collection cards must remain compact');
+assert.ok(collectionCSS.includes('-webkit-line-clamp:4'),
+ 'Visible requirements must fit in a compact tile');
 assert.ok(collectionCSS.includes('.collection-tile.locked .collection-tile-description{opacity:1'),
  'Keep locked badge unlock requirements readable');
 const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'catalog-rules.json'),'utf8'));
+const setsPage=fs.readFileSync(path.join(root,'badge-sets.html'),'utf8');
+assert.match(setsPage,/class="collection-info" id="collectionInfo"/,
+ 'A visible badge information button is required');
+for(const rarity of ['Trash','Common','Uncommon','Rare','Epic','Anomaly','Mythic']){
+ assert.ok(setsPage.includes('>'+rarity+'</span>'),'Missing help-legend rarity '+rarity);
+}
+assert.ok(setsPage.includes('badge-collection.css?v=4'),
+ 'Bump badge collection stylesheet cache on release');
 const badges=catalog.map((b,i)=>({
  id:i+1,badge_key:b.key,name:b.name||b.key,description:b.condition||'',
  category:b.category||'other',requirement:{rarity:b.rarity||'common'},
