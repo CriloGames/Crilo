@@ -53,3 +53,11 @@ saved spin history remains intentionally retained but not historically verified.
 **Emergency rollback:** `010-rollout-rollback.md`; remove only the new `zx_`
 proof trigger if an immediate save outage occurs, then revert the frontend through a new
 GitHub commit. Do not delete data or blindly restore historical tables.
+
+## Final follow-up checks
+
+- Repeated a post-gate **ordinary non-owner player** transaction smoke test (not the Owner account). A full authenticated server session completed, the official Daily insert passed, `is_test=false`, the submitted leaderboard rank was cleared, and all test data rolled back.
+- Confirmed `public.badges=346`, `public.crilo_v3_badge_stage=346`, `public.user_badges=189`, `public.daily_runs=8`, `public.owner_test_runs=6`, and `public.crilo_spin_sessions=0` after QA. No persistent test runs were introduced.
+- Confirmed both the official proof trigger and the original attached-session verifier trigger are enabled.
+- Supabase security advisor reported no notices specifically for the new official proof trigger/function; unrelated pre-existing notices remain.
+- `profile.js` loads badge definitions directly from `public.badges` with no 68-badge limit in code. Rarity CSS has all seven canonical colors and hides pictograms as approved. This is source verification, **not** evidence of an authenticated visual browser render.
