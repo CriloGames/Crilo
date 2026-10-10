@@ -36,8 +36,8 @@ for(const rarity of ['Trash','Common','Uncommon','Rare','Epic','Anomaly','Mythic
  assert.ok(setsPage.includes('>'+rarity+'</span>'),'Missing help-legend rarity '+rarity);
 }
 const profilePage=fs.readFileSync(path.join(root,'profile.html'),'utf8');
-const setsCssVersion=setsPage.match(/badge-collection\\.css\\?v=(\\d+)/)?.[1];
-const profileCssVersion=profilePage.match(/badge-collection\\.css\\?v=(\\d+)/)?.[1];
+const setsCssVersion=setsPage.match(/badge-collection\.css\?v=(\d+)/)?.[1];
+const profileCssVersion=profilePage.match(/badge-collection\.css\?v=(\d+)/)?.[1];
 assert.ok(setsCssVersion && Number(setsCssVersion)>=9 && setsCssVersion===profileCssVersion,
  'Profile and Badge Collections must share the current versioned badge stylesheet');
 const badges=catalog.map((b,i)=>({
