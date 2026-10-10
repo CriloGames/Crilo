@@ -60,24 +60,31 @@ function analyzePixels(rgba,w,h){
  for(const pair of regionPairs){
   const {mid,diam:d}=pair;
   const ax=pair.b.center.x-pair.a.center.x,ay=pair.b.center.y-pair.a.center.y;
-  const magnitude=Math.hypot(ax,ay)||1,px=-ay/magnitude,py=ax/magnitude;
-  const countOnSide=sign=>{
-   let far=0,near=0,extent=0;
-   for(let y=miny;y<=maxy;y+=2)for(let x=minx;x<=maxx;x+=2){
-    if(!dark[y*w+x])continue;
-    const t=((x-mid.x)*px+(y-mid.y)*py)*sign;
-    const sideways=Math.abs((x-mid.x)*ax/magnitude+(y-mid.y)*ay/magnitude);
-    if(t>d*0.80&&sideways<d*0.95){near++;extent=Math.max(extent,t);
-     if(t>d*1.45)far++}
+  const length=Math.hypot(ax,ay)||1,ux=ax/length,uy=ay/length,px=-uy,py=ux;
+  // Petals/flowers often consist of 3+ small round enclosures and a stem.
+  const extraRounded=shapes.some(r=>r!==pair.a&&r!==pair.b&&r.ratio<1.8&&
+   r.area>Math.min(pair.a.area,pair.b.area)*0.22);
+  if(extraRounded)continue;
+  function twoSidedShaft(sign){
+   let aligned=0,usable=0,extension=0;
+   for(let t=d*0.95;t<d*3.4;t+=Math.max(2,d*0.09)){
+    let first=null,last=null;
+    for(let off=-d*0.85;off<=d*0.85;off+=1.2){
+     const x=Math.round(mid.x+sign*px*t+ux*off),
+           y=Math.round(mid.y+sign*py*t+uy*off);
+     if(x<0||x>=w||y<0||y>=h)continue;
+     if(!dark[y*w+x])continue;
+     if(first===null)first=off;last=off;
+    }
+    if(first===null)continue;
+    usable++;
+    if(last-first>d*0.28&&last-first<d*1.4){aligned++;extension=t}
    }
-   return {near,far,extent};
-  };
-  if([1,-1].some(sign=>{
-   const s=countOnSide(sign);
-   // This is only a shape hint. Avoid using mere paired eyes and a tiny mouth.
-   return s.extent>d*1.8&&s.far>Math.max(7,n*0.015)&&s.near>s.far*1.1;
-  }))return {suspected:true,type:'penis',evidence:[
-   'Two rounded outlines with an extended narrow curved stroke']};
+   return aligned>=3&&aligned/Math.max(1,usable)>0.42&&extension>d*1.7;
+  }
+  if(twoSidedShaft(1)||twoSidedShaft(-1))
+   return {suspected:true,type:'penis',evidence:[
+    'Paired rounded features adjoining two long shaft boundaries']};
  }
  // Nested elongated regions / aligned labial contours suggest a vulva doodle.
  // Two concentric circles (target, eyes) are explicitly ruled out by requiring
@@ -100,6 +107,33 @@ function analyzePixels(rgba,w,h){
    return {suspected:true,type:'vulva',evidence:[
     'Nested elongated outer and inner labial outlines']};
   }
+ }
+ // Also recognize an elongated outer labial outline with a central slit.
+ // Unlike nested loops this works when the inner line is left open.
+ for(const r of shapes){
+  if(r.ratio<1.55||r.ratio>5.8)continue;
+  const width=r.bbox[2]-r.bbox[0]+1,height=r.bbox[3]-r.bbox[1]+1;
+  const majorY=height>width*1.35,majorX=width>height*1.35;
+  if(!majorX&&!majorY)continue;
+  const major=majorY?height:width,minor=majorY?width:height;
+  if(major<30||minor<12)continue;
+  let withCenter=0,checked=0;
+  const center=r.center;
+  for(let t=-0.32*major;t<=0.32*major;t+=2){
+   const x=Math.round(center.x+(majorX?t:0)),
+         y=Math.round(center.y+(majorY?t:0));
+   checked++;
+   let seen=false;
+   for(let off=-minor*0.085;off<=minor*0.085;off+=1){
+    const xx=Math.round(x+(majorY?off:0)),
+          yy=Math.round(y+(majorX?off:0));
+    if(xx>=0&&xx<w&&yy>=0&&yy<h&&dark[yy*w+xx]){seen=true;break}
+   }
+   if(seen)withCenter++;
+  }
+  if(checked>=10&&withCenter/checked>0.27)
+   return {suspected:true,type:'vulva',evidence:[
+    'Elongated outer outline with a central slit-like line']};
  }
  return {suspected:false,type:null,evidence:[]};
 }
