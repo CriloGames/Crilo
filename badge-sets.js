@@ -46,10 +46,12 @@
           const rarity=getRarity(b);
           const title=secret?'Hidden badge':String(b.name||'');
           const subtitle=owned?rarity:'Locked · '+(secret?'Secret':rarity);
-          const description=secret?'Unlock this secret badge to reveal it.':String(b.description||'');
+          const description=secret?'Unlock to reveal this secret achievement.':
+            String(b.description||b.requirement?.rule?.condition||'Complete this achievement to unlock it.');
           return '<article class="collection-tile'+(owned?'':' locked')+'" data-badge-rarity="'+rarity+
-            '" title="'+esc(description)+'" aria-label="'+esc(title+', '+subtitle)+'">'+
-            '<b>'+esc(title)+'</b><small>'+esc(subtitle)+'</small></article>';
+            '" title="'+esc(description)+'">'+
+            '<b>'+esc(title)+'</b><small>'+esc(subtitle)+'</small>'+
+            '<p class="collection-tile-description">'+esc(description)+'</p></article>';
         }).join('');
         return '<details class="collection-card">'+
           '<summary><span class="collection-set-copy"><strong>'+esc(set.name)+'</strong>'+
