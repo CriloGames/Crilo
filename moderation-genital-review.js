@@ -34,7 +34,7 @@ function analyzePixels(rgba,w,h){
    if(sep<diam*0.85||sep>diam*3.5)continue;
    if(Math.abs(left.center.y-right.center.y)>diam*0.48)continue;
    const eyeBottom=Math.max(left.bbox[3],right.bbox[3]);
-   const yMax=Math.min(h-1,Math.round(eyeBottom+diam*1.75));
+   const yMax=Math.min(h-1,Math.round(eyeBottom+diam*3.0));
    const yMin=Math.round(eyeBottom+Math.max(3,diam*0.14));
    if(yMax<=yMin)continue;
    // Count independent x-columns with a mouth segment BELOW both eyes.
