@@ -216,6 +216,7 @@ async function feedTest(){
     partial:all.filter(d=>d.local?.status==='partial').length,
     tests:all.filter(d=>d.is_test).length}};
   }
+  if(name==='crilo_owner_penalize_daily'){assert.equal(args.p_reason,'sexual');return {data:true};}
   if(name==='crilo_owner_drawing_decision')return {data:true};
   if(name==='crilo_owner_delete_test_run')return {data:true};
   return {data:[]};
@@ -295,6 +296,8 @@ async function feedTest(){
  node('reviewFilter').handlers.change({target:{value:'all'}});
  node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'0'}})}});
  assert.equal(node('reviewRemove').disabled,false);
+ node('reviewViolationReason').value='sexual';
+ node('reviewViolationReason').selectedOptions=[{textContent:'Sexual or genital drawing'}];
  await node('reviewRemove').handlers.click();
  assert.ok(!node('drawingReviewList').innerHTML.includes('Tester'),
   'Successful deleted run must disappear immediately');
