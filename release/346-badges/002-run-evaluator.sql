@@ -21,10 +21,9 @@ begin
   if kind not in ('num','duck','spins','double','upgrade') or kind is null then
     return '{"valid":false,"reason":"unknown_type"}'::jsonb;
   end if;
-  if e ? 'segments' and (e->>'segments') is not null then
+  if (e->>'segments') is not null then
     if (e->>'segments')!~'^[0-9]+$' then return '{"valid":false,"reason":"bad_segment_count"}'::jsonb;end if;
-    if (e->>'segments')::integer <> sectors+
-      case when kind='upgrade' then 4+least(upgrades+1,8) else 0 end then
+    if (e->>'segments')::integer <> (sectors + (case when kind='upgrade' then 4+least(upgrades+1,8) else 0 end)) then
       return '{"valid":false,"reason":"wrong_segment_count"}'::jsonb;
     end if;
   end if;
@@ -61,7 +60,7 @@ begin
    'totals',totals,'streaks',streaks,'basecount',basecount,'hits',visited,
    'max_base_streak',max_base_chain,'upgraded_large_number',after_upgrade15,
    'best_number_points',best_num,'spins',i);
-end $fn$;
+end; $fn$;
 create or replace function crilo_badge_prelaunch.qualifies_run(r jsonb,v jsonb)
 returns boolean language plpgsql immutable set search_path='' as $fn$
 declare
@@ -137,7 +136,7 @@ begin
    return false;
  end case;
  return false;
-end $fn$;
+end; $fn$;
 create or replace function crilo_badge_prelaunch.qualifying_run_badges(p_results jsonb,p_score bigint)
 returns table(badge_key text)
 language plpgsql stable set search_path='' as $fn$
@@ -150,4 +149,4 @@ begin
   'sequence','challenge','first_event','final_base','spin_position','base_total',
   'base_sequence','number_sequence','first_last','variety')
  and crilo_badge_prelaunch.qualifies_run(d.rule,ev);
-end $fn$;
+end; $fn$;
