@@ -228,9 +228,9 @@
       '<h2 id="criloSharedAuthTitle">Your next spin awaits.</h2>'+
       '<p>Enter your email and we’ll send you a one-time sign-in link. No password needed.</p>'+
       '<form id="criloSharedAuthForm">'+
-      '<label for="criloSharedAuthEmail" class="crilo-shared-auth-label">Email address</label>'+
-      '<input class="text-input" id="criloSharedAuthEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>'+
-      '<button class="primary full" type="submit" id="criloSharedAuthSend">Send sign-in link →</button>'+
+      '<label for="criloSharedAuthEmail" style="display:block;text-align:left;margin:14px 0 6px;font-size:13px;font-weight:800;">Email address</label>'+
+      '<input class="text-input" style="font-size:16px;" id="criloSharedAuthEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>'+
+      '<button class="primary full" style="min-height:50px;" type="submit" id="criloSharedAuthSend">Send sign-in link →</button>'+
       '</form>'+
       '<p class="auth-status" id="criloSharedAuthStatus" role="status" aria-live="polite"></p>'+
       '</section>';
