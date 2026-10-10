@@ -112,6 +112,8 @@ async function syncDomainScore(){
    p_rounds:results.map(r=>({domain:r.domain,slider:r.slider}))
   });
   if(error)throw error;
+  // A Domain-set badge is earned only after the server accepted all five rounds.
+  window.CriloBadgeEvents?.track('domain_set');
   if(status)status.textContent=Number(data)===totalScore?
    'Verified! Your score is saved to your Crilo profile.':
    'Server-verified score: '+Number(data).toLocaleString()+' points saved to your Crilo profile.';
@@ -129,7 +131,7 @@ function showResults(){
   $('finalMessage').textContent=msg;
   $('roundResults').innerHTML=results.map(r=>`<div class="result-row"><div><div class="r-domain">${r.domain}</div><div class="r-meta">${r.type==='crilo_estimate'?'Estimated value':'Documented sale'}</div></div><div class="r-meta">Guess: ${fmt(r.guess)}</div><div class="r-meta">Answer: ${fmt(r.actual)}</div><div class="r-points">${r.score}</div></div>`).join('');
   renderBests(saveBest(totalScore));
-  syncDomainScore();window.CriloBadgeEvents?.track('domain_set');
+  syncDomainScore();
   document.body.style.background='#eef0f6';
 }
 function restart(){
