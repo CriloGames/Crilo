@@ -36,7 +36,7 @@ const database=Array.from({length:1000},(_,i)=>{
 let maxSent=0,requests=[],decisions=0;
 const criloDB={rpc:async(name,args)=>{
  requests.push({name,args});
- if(name==='crilo_owner_drawing_decision'){decisions++;return {data:true}}
+ if(name==='crilo_owner_penalize_daily'){assert.equal(args.p_reason,'links');decisions++;return {data:true}}
  assert.equal(name,'crilo_owner_review_page_v1','No old 200-image legacy feed RPCs');
  assert.ok(Number.isInteger(args.p_page)&&args.p_page>=0);
  const all=database.filter(x=>args.p_include_tests||!x.is_test);
@@ -95,6 +95,8 @@ function countImages(){return (node('drawingReviewList').innerHTML.match(/<img /
  const first=node('drawingReviewList').innerHTML;
  node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'0'}})}});
  assert.ok(!node('reviewLightbox').classList.contains('hidden'));
+ node('reviewViolationReason').value='links';
+ node('reviewViolationReason').selectedOptions=[{textContent:'Website link or external promotion'}];
  await node('reviewRemove').handlers.click();
  assert.equal(decisions,1,'Only one confirmed owner deletion RPC');
  assert.equal(confirms.length,2,'Keep both confirmations');
