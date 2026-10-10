@@ -234,7 +234,7 @@ window.addEventListener('resize',()=>{
 });
 function beginRun(alignPlay=false){document.body?.classList?.remove('wheel-run-active');serverSessionId=null;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();if(alignPlay)alignPlayViewport()}
 async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
-if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
+if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>String(b.badge_id)));}
 if(isTest){
  // A Test Run must never fall through to official Daily storage, even if
  // ownership/session information becomes stale while the wheel is active.
@@ -268,16 +268,46 @@ if(isTest){
  
 }
 }
+// Only compare badge IDs before/after this official Daily. Badge rules and
+// award timing remain server-side; Owner Test Runs never reach this path.
 async function showNewBadges(prior){
- const {data:earned,error}=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);
+ const {data:earned,error}=await criloDB.from('user_badges')
+  .select('badge_id').eq('user_id',user.id);
  if(error)return;
- const ids=(earned||[]).map(x=>x.badge_id).filter(id=>!prior.has(id));
+ const ids=[...new Set((earned||[]).map(x=>String(x.badge_id)))]
+  .filter(id=>!prior.has(id));
  if(!ids.length)return;
- const {data:badges,error:badgeError}=await criloDB.from('badges').select('id,name,description,requirement').in('id',ids);
+ const {data:badges,error:badgeError}=await criloDB.from('badges')
+  .select('id,badge_key,name,description,category,requirement,is_secret').in('id',ids);
  if(badgeError||!badges?.length)return;
+ const collection=window.CriloBadgeCollection;
+ const rarity=b=>collection?.rarity(b)||String(b.requirement?.rarity||'common').toLowerCase();
+ const byKey=new Map(badges.map(b=>[String(b.badge_key),b]));
  $('newBadgeCount').textContent=badges.length+' NEW BADGE'+(badges.length===1?'':'S')+' UNLOCKED';
- $('newBadgeList').innerHTML=badges.map(b=>'<div class="new-badge-item" data-badge-rarity="'+Crilo.esc(String(b.requirement?.rarity||'common').toLowerCase())+'"><div><strong>'+Crilo.esc(b.name)+'</strong><p>'+Crilo.esc(b.description||'')+'</p></div></div>').join('');
+ $('newBadgeList').innerHTML=badges.map(b=>{
+  const tier=rarity(b),label=Crilo.esc(String(b.name||'Badge'));
+  return '<button type="button" class="badge-top-chip new-badge-item"'+
+   ' data-badge-key="'+Crilo.esc(String(b.badge_key))+
+   '" data-badge-rarity="'+Crilo.esc(tier)+
+   '" aria-label="Preview newly earned '+label+' badge">'+
+   '<span class="new-badge-item-copy"><strong>'+label+'</strong>'+
+   '<small>'+Crilo.esc(tier.toUpperCase())+' · UNLOCKED</small>'+
+   '<p>'+Crilo.esc(b.description||'')+'</p></span>'+
+   '<span class="new-badge-open" aria-hidden="true">↗</span></button>';
+ }).join('');
  $('newBadgePanel').classList.remove('hidden');$('newBadgePanel').open=true;
+ const list=$('newBadgeList'),dialog=$('dailyBadgePreviewDialog');
+ list.onclick=event=>{
+  const button=event.target.closest?.('button[data-badge-key]');
+  const b=button&&byKey.get(button.dataset.badgeKey);
+  if(!b||!collection||!dialog)return;
+  $('dailyBadgePreviewCard').innerHTML=collection.tileHTML(b,true,Crilo.esc,{expanded:true,interactive:false});
+  $('dailyBadgePreviewSetName').textContent=String(b.category||'Badge collection')+' · UNLOCKED';
+  $('dailyBadgePreviewOpenSet').href='badge-sets.html?badge='+encodeURIComponent(String(b.badge_key));
+  dialog.showModal();$('dailyBadgePreviewClose').focus();
+ };
+ $('dailyBadgePreviewClose').onclick=()=>dialog.close();
+ dialog.onclick=event=>{if(event.target===dialog)dialog.close()};
 }
 function renderResult(r){
  $('newBadgePanel').classList.add('hidden');$('newBadgePanel').open=false;
