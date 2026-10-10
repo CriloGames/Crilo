@@ -13,7 +13,7 @@ const brandPages=['index.html','leaderboard.html','ducks.html','profile.html',
 for(const pageName of brandPages){
  const pageHTML=fs.readFileSync(path.join(root,pageName),'utf8');
  assert.ok(pageHTML.includes('class="brand"'),pageName+' shared wordmark missing');
- assert.ok(pageHTML.includes('style.css?v=88'),pageName+' must use the updated CSS');
+ assert.ok(pageHTML.includes('style.css?v='+(['index.html','leaderboard.html','profile.html'].includes(pageName)?'95':'88')),pageName+' current shared CSS reference');
 }
 assert.ok(css.includes('animation:criloLogoSheen 10s ease-in-out infinite'),
  'The quiet Crilo rainbow sheen animation should be present');
@@ -21,12 +21,12 @@ assert.ok(css.includes('@keyframes criloLogoSheen'),'Wordmark sweep keyframes mi
 assert.ok(css.includes('-webkit-text-fill-color:currentColor;'),
  'Reduced-motion fallback must keep the wordmark readable');
 
-assert.match(html,/style\.css\?v=88/);
+assert.match(html,/style\.css\?v=95/);
 assert.match(html,/leaderboard-tabs\.js\?v=2/);
 assert.match(html,/id="leaderTabs"/);
 assert.match(html,/id="leaderTabPrev"/);
 assert.match(html,/id="leaderTabNext"/);
-assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,6);
+assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,7);
 assert.match(css,/\.leader-tabs-wrap \.leader-tabs\{[\s\S]*?flex-wrap:nowrap/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab\{[\s\S]*?white-space:nowrap/);
 assert.match(css,/overflow-x:auto/);
@@ -50,7 +50,7 @@ function simulate(width){
  const classes=new Set();
  wrap.classList={toggle(name,on){if(on)classes.add(name);else classes.delete(name)},contains:name=>classes.has(name)};
  wrap.clientWidth=width;
- strip.scrollWidth=1120;
+ strip.scrollWidth=1330;
  strip.scrollLeft=0;
  strip.clientWidth=width;
  strip.scrollBy=({left})=>{
@@ -58,7 +58,7 @@ function simulate(width){
   strip.handlers.scroll?.();
  };
  strip.getBoundingClientRect=()=>({left:0,right:strip.clientWidth});
- const tabs=Array.from({length:6},(_,i)=>({
+ const tabs=Array.from({length:7},(_,i)=>({
   handlers:{},getBoundingClientRect:()=>({left:i*190-strip.scrollLeft,right:(i+1)*190-strip.scrollLeft}),
   addEventListener(name,fn){this.handlers[name]=fn}
  }));
@@ -67,7 +67,7 @@ function simulate(width){
  const window={addEventListener(name,fn){this.events[name]=fn},events:{},visualViewport:{addEventListener(){}}};
  vm.runInNewContext(source,{document:doc,window,Math,ResizeObserver:class{observe(){}},console},
   {filename:'leaderboard-tabs.js'});
- const overflow=width<1120;
+ const overflow=width<1330;
  assert.equal(prev.hidden,!overflow,width+'px: left arrow visibility');
  assert.equal(next.hidden,!overflow,width+'px: right arrow visibility');
  assert.equal(wrap.classList.contains('tabs-fit'),!overflow,
@@ -80,7 +80,7 @@ function simulate(width){
   assert.ok(strip.scrollLeft>0,width+'px next arrow moves strip');
   prev.handlers.click();
   assert.equal(strip.scrollLeft,0,width+'px previous arrow returns to start');
-  tabs[5].handlers.click();
+  tabs[6].handlers.click();
   assert.ok(strip.scrollLeft>0,width+'px selecting far-right tab reveals it');
  }else{
   assert.equal(prev.disabled,true);
@@ -98,4 +98,4 @@ function simulate(width){
  console.log('PASS: '+width+'px overflow controls, swipe strip, selection and resize states');
 }
 for(const width of widths)simulate(width);
-console.log('PASS: all six tabs stay on one nonwrapping scrollable row at tested simulated widths.');
+console.log('PASS: all seven tabs stay on one nonwrapping scrollable row at tested simulated widths.');
