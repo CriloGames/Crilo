@@ -14,12 +14,12 @@
 
 Run:
 
-\`\`\`sh
+```sh
 CRILO_QA_STRICT=1 CRILO_QA_REPORT_PATH=/tmp/crilo-100-report.json \
 node release/346-badges/030-controlled-100-drawings.cjs
-\`\`\`
+```
 
-CI saves the JSON output as artifact \`crilo-controlled-100-drawings\`.
+CI saves the JSON output as artifact `crilo-controlled-100-drawings`.
 
 ## Independent supplemental OCR stress check
 
@@ -27,10 +27,10 @@ CI saves the JSON output as artifact \`crilo-controlled-100-drawings\`.
 - Applied the exact production text-classifier to the returned transcriptions.
 - Results after corrective rules: **29/30 violating text images flagged; 15/15 clean images correctly clear** (44/45 correct, 1 false negative, 0 false positives).
 - Remaining miss: a swear word was read as the harmless word **Tuck**. The scanner should NOT treat Tuck as profanity just to improve the benchmark score.
-- Corrected another Tesseract error in narrowly recognized \`SH [T\` without broadly flagging other harmless text.
+- Corrected another Tesseract error in narrowly recognized `SH [T` without broadly flagging other harmless text.
 - This is NOT the same as mobile-browser OCR on user handwriting, and it is not included in the 100 controlled benchmark score.
 
-Regression transcriptions: \`node release/346-badges/031-rendered-ocr-stress.cjs\`.
+Regression transcriptions: `node release/346-badges/031-rendered-ocr-stress.cjs`.
 
 ## Safety and remaining tests
 
