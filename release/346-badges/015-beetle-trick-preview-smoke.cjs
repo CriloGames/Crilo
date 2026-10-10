@@ -9,7 +9,7 @@ const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const kinds=['backflip','barrel','frontflip','doublehop','wiggle'];
-assert.ok(html.includes('style.css?v=96'),'Live homepage must load current styles');
+assert.ok(html.includes('style.css?v=99'),'Live homepage must load current styles');
 assert.ok(demo.includes('style.css?v=83'),'Lab must share actual live beetle CSS');
 assert.equal((demo.match(/viewBox="0 0 112 60"/g)||[]).length,6,
  'Show six actual beetles at once: five specials and normal control');
@@ -35,14 +35,16 @@ assert.ok(css.includes('animation:none!important;opacity:0!important}'),
 assert.ok(css.includes('0%,74.2%{opacity:0')&&css.includes('74.6%,88%{opacity:1'),
  'Poop should appear precisely when the returning beetle clears it');
 for(const [width,beetleWidth,offset] of [
- [320,65,40],[375,65,40],[768,74,46],[1440,74,46],[1494,74,46]]){
+ [320,65,25],[375,65,25],[768,74,29],[1440,74,29],[1494,74,29]]){
  const start=width-beetleWidth-8;
  const xAtDrop=start+(8-start)*(74.6-50)/(96-50);
- const rear=xAtDrop+beetleWidth;
+ // The flipped SVG's visible rear is not the edge of its click-target.
+ const svgWidth=width<=600?59:68;
+ const rear=xAtDrop+(beetleWidth-svgWidth)/2+(94/112)*svgWidth;
  const drop=.4674*width+offset;
  const gap=drop-rear;
- assert.ok(gap>=0&&gap<12,
-   'Drop must land within 12px BEHIND beetle, not far away, at '+width+'px; gap '+gap);
+ assert.ok(gap>=0&&gap<=7,
+   'Drop must appear 0–7px BEHIND the drawn beetle at '+width+'px; gap '+gap);
 }
 assert.ok(css.includes('width:100%;height:61px')&&css.includes('overflow:visible'),
  'Footer should be tighter and keep Report a Bug tooltip unclipped');
