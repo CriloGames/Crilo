@@ -14,7 +14,7 @@ assert.match(profile,/total_points\?\?s\.total_score/);
 const outputs=new Map();
 const get=id=>{
  if(!outputs.has(id))outputs.set(id,{innerHTML:'',textContent:'',style:{},
-  dataset:{},classList:{add(){},remove(){}}});
+  dataset:{},classList:{add(){},remove(){}},addEventListener(){}});
  return outputs.get(id);
 };
 let called=0,fromCalled=0;
