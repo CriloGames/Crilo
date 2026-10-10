@@ -136,17 +136,19 @@ function schedule(delay=waitMs){
  if(!auto||document.hidden||!owner()||unavailable)return;
  pendingTimer=setTimeout(()=>{pendingTimer=null;scanNext(false)},delay);
 }
-async function scanNext(manual=false){
+async function scanNext(manual=false,selected=null){
  if(scanning||document.hidden||!owner()||(!auto&&!manual))return;
+ const startedAt=cancelled;
  scanning=true;
  const nextButton=$('reviewScanNext');if(nextButton)nextButton.disabled=true;
  try{
   if(unavailable)throw Error('Background scanner unavailable in this browser');
-  const {data,error}=await criloDB.rpc('crilo_owner_local_scan_jobs',{p_limit:1});
-  if(error)throw error;
-  if(document.hidden||!owner()||(!auto&&!manual))return;
-  const item=data?.[0];
-  if(!item || (item.is_test&&!$('showOwnerTests')?.checked)){
+  const request=selected?{data:[selected],error:null}:
+   await criloDB.rpc('crilo_owner_local_scan_jobs',{p_limit:1});
+  if(request.error)throw request.error;
+  if(document.hidden||!owner()||cancelled!==startedAt||(!auto&&!manual))return;
+  const item=request.data?.[0];
+  if(!item || (item.is_test&&!$('showOwnerTests')?.checked&&!selected)){
    setStatus(item?.is_test?'Player drawings checked. Enable Test Runs to scan those too.':
     'Up to date. New drawings will be checked in the background.');
    resetStage();
@@ -217,6 +219,16 @@ function init(){
  setStatus('Background scanning ready. The page remains responsive while checks run.');
  schedule(1600);
 }
+window.criloScanSpecificDrawing=async selected=>{
+ if(!selected||!owner()||typeof selected.run_id==='undefined')return;
+ if(scanning){
+  stopActive();
+  for(let tries=0;tries<40&&scanning;tries++)
+   await new Promise(resolve=>setTimeout(resolve,25));
+ }
+ if(scanning){setStatus('Current scan is stopping. Try this drawing again.');return}
+ return scanNext(true,selected);
+};
 window.criloScanPendingDrawings=()=>scanNext(true);
 window.CriloLocalSafety.start=init;
 window.addEventListener('crilo-auth-ready',init);
