@@ -21,7 +21,7 @@ assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
-assert.match(indexHTML,/game\.js\?v=60/);
+assert.match(indexHTML,/game\.js\?v=62/);
 assert.match(scoreCSS,/\.wheel-score\[data-rarity="mythic"\]/);
 assert.match(scoreCSS,/\.wheel-hud \.wheel-counts/);
 assert.ok(game.includes("if(isTest){\n // A Test Run must never fall through"),'Test save must fail closed');
