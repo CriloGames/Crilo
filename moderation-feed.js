@@ -17,11 +17,12 @@ const hintsFor=d=>[
    d.local.visual_label.replace(' (shape review)',''):reason),
  ...(d.legacyHint?[d.legacyHint]:[])
 ];
+const isStale=d=>!d.local||Number(d.local.scan_version||0)<5;
 function visible(d){
  const flagged=hintsFor(d).length>0;
  switch(filter){
   case 'flagged':return flagged;
-  case 'unscanned':return !d.local;
+  case 'unscanned':return isStale(d);
   case 'partial':return d.local?.status==='partial';
   case 'clear':return !!d.local&&!flagged&&d.local.status==='complete';
   default:return true;
@@ -31,7 +32,7 @@ function render(){
  const filtered=rows.filter(visible);
  const priority=rows.filter(d=>hintsFor(d).length>0).length;
  const pending=rows.filter(d=>!d.is_test).length;
- const unchecked=rows.filter(d=>!d.local).length;
+ const unchecked=rows.filter(isStale).length;
  const partial=rows.filter(d=>d.local?.status==='partial').length;
  const update=(id,v)=>{const e=$(id);if(e&&e.textContent!==String(v))e.textContent=v};
  update('reviewCountPending',pending);
@@ -44,7 +45,7 @@ function render(){
  // Repeated reflows and image decoding caused UI freezes while scanning.
  const signature=filter+'|'+filtered.map(d=>[
   key(d),d.score,d.username,d.review_status,d.local?.status||'',
-  (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||'',d.local?.error||''
+  (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||'',d.local?.scan_version||'',d.local?.error||''
  ].join(':')).join('|');
  if(signature===lastPaint)return;
  if(chosen&&!modal.classList.contains('hidden'))return;
@@ -52,7 +53,7 @@ function render(){
  list.innerHTML=filtered.length?filtered.map(d=>{
   const i=rows.indexOf(d),why=hintsFor(d);
   const status=why.length?'REVIEW SUGGESTED':!d.local?'NOT CHECKED':
-   d.local.status==='partial'?'INCOMPLETE CHECK':'NO FLAGS';
+   isStale(d)?'NEEDS RESCAN':d.local.status==='partial'?'INCOMPLETE CHECK':'NO FLAGS';
   const chips=why.length?'<span class="crilo-review-reasons">'+
    why.slice(0,3).map(w=>'<em>'+escape(w)+'</em>').join('')+
    (why.length>3?'<em>+'+(why.length-3)+'</em>':'')+'</span>':'';
@@ -63,7 +64,7 @@ function render(){
    '<span class="crilo-review-player"><strong>'+escape(d.username)+(d.is_test?'<span class="crilo-review-test-tag">TEST RUN</span>':'')+'</strong><small>'+
    escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
    '<span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span>'+
-   '<span class="crilo-review-state" data-state="'+(why.length?'flagged':d.local?.status==='partial'?'partial':'normal')+'">'+
+   '<span class="crilo-review-state" data-state="'+(why.length?'flagged':isStale(d)?'stale':d.local?.status==='partial'?'partial':'normal')+'">'+
    status+'</span><span aria-hidden="true">↗</span></button>';
  }).join(''):'<p class="muted">No drawings match this filter.</p>';
 }
@@ -112,7 +113,7 @@ function open(i){
  const title=document.createElement('strong');title.textContent=why.length?'Review suggestions (unconfirmed)':'Review status';
  findings.appendChild(title);
  const p=document.createElement('p');
- p.textContent=why.length?why.join(' · '):!chosen.local?'Not yet scanned. Please review manually.':chosen.local.status==='partial'?'Incomplete scan; please review manually.':'No automatic flags. This is not a guarantee that the drawing is appropriate.';
+ p.textContent=why.length?why.join(' · '):!chosen.local?'Not yet scanned. Please review manually.':isStale(chosen)?'Checked with an older scanner. Scan this drawing again for the latest link detection.':chosen.local.status==='partial'?'Incomplete scan; please review manually.':'No automatic flags. This is not a guarantee that the drawing is appropriate.';
  findings.appendChild(p);
  if(chosen.local?.recognized_text){
   const words=document.createElement('p');
