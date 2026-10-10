@@ -15,7 +15,7 @@ Project: `mqozqigwkobnhijvvboy`
 
 Both emails use the supported **`{{ .ConfirmationURL }}`** variable. Leave it unchanged; do not replace it with `https://crilo.fun` or another generic URL because the unique one-time verification token is required.
 
-The main CTA is a full-width yellow button inside the message card, approximately 70 px tall on modern mail apps, with a prominent black border and dark text. A smaller plain-link alternative is provided. The layout uses inline, table-based styling for Gmail, Apple Mail and Outlook; no external fonts, images, scripts, or tracking pixels are required.
+The main CTA is a full-width yellow button inside the message card, approximately 70 px tall on modern mail apps, with a prominent black border and dark text. A smaller plain-link alternative is provided. The layout uses inline, table-based styling for Gmail, Apple Mail and Outlook; no external fonts, scripts, or tracking pixels are required. The wheel itself is now a real **PNG image hosted in the public Crilo GitHub repository**, because Gmail and several other email apps strip the CSS gradients used by the original wheel. Email recipients who disable remote images will need to choose **Display images**; an email template cannot override that setting.
 
 **Safety:** Never use a real sign-in URL for a public template preview. The sign-in link is a secret. If sending through Resend SMTP, disable open/click link rewriting or tracking so the verification link is not modified.
 
