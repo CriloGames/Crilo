@@ -11,7 +11,7 @@ const REASONS={
  genital:'Possible genital drawing',sexual:'Possible sexual image',
  gore:'Possible graphic violence',qrMaybe:'Possible QR-like image'
 };
-const words=/(?:fuck(?:ing|ed|er|s)?|shit(?:ty|head|s)?|bitch(?:es|y)?|asshole|cunt|motherfucker|dickhead|cock(?:sucker)?|nigg(?:er|a)s?|faggot|kike|spic|retard(?:ed)?)/i;
+const words=/(?:fuck(?:ing|ed|er|s)?|shit(?:ty|head|s)?|bitch(?:es|y)?|asshole|bastard|damn|crap|slut|whore|cunt|motherfucker|dick(?:head)?|cock(?:sucker)?|nigg(?:er|a)s?|faggot|kike|spic|retard(?:ed)?)/i;
 const abusive=/(?:kill\s*(?:yourself|urself)|heil\s*hitler|white\s*power|nazi|gas\s*the\s*\w+)/i;
 const url=/(?:https?:\/\/|www[.]|(?:discord[.]gg|t[.]me|bit[.]ly)\/|(?:[a-z0-9-]{2,}[.](?:com|net|org|io|gg|fun|co|xyz|link|app|dev|edu|gov|me|tv|shop|site|info|us|uk|ru|ly|ai|store|online|click|to|cc))(?:\b|\/)|[a-z0-9-]{2,}\s*(?:dot|\[dot\]|\(dot\))\s*(?:com|net|org|io|gg|fun|co|xyz|app|link)\b)/i;
 function classifyText(raw){
@@ -19,9 +19,10 @@ function classifyText(raw){
  const basic=original.replace(/[\u200b-\u200f\u2060]/g,'').replace(/[@4]/g,'a').replace(/3/g,'e').replace(/[1!|]/g,'i').replace(/0/g,'o').replace(/5|\$/g,'s').replace(/7/g,'t');
  const combined=[original,basic,basic.replace(/[^a-z0-9]+/g,' '),basic.replace(/[^a-z0-9]+/g,'')];
  const hasWord=combined.some((s,i)=>i===3?false:new RegExp('(?:^|[^a-z])'+words.source+'(?=$|[^a-z])','i').test(s));
+ const spaced=/\b(?:f[^a-z0-9]{1,3}u[^a-z0-9]{1,3}c[^a-z0-9]{1,3}k|s[^a-z0-9]{1,3}h[^a-z0-9]{1,3}i[^a-z0-9]{1,3}t)\b/i.test(original);
  const hasHate=combined.some((s,i)=>i===3?false:abusive.test(s));
  const hasLink=url.test(original)||url.test(basic);
- return [hasWord&&REASONS.profanity,hasHate&&REASONS.hate,hasLink&&REASONS.link].filter(Boolean);
+ return [(hasWord||spaced)&&REASONS.profanity,hasHate&&REASONS.hate,hasLink&&REASONS.link].filter(Boolean);
 }
 const candidateLabels=[
  'A hand drawn Nazi swastika or extremist hate symbol',
