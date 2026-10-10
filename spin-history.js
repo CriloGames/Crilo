@@ -11,7 +11,7 @@
   const params=new URLSearchParams(location.search);
   const profileId=params.get('id');
   const esc=value=>Crilo.esc(String(value??''));
-  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,shownSpins=0,busy=false;
+  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,shownSpins=0,busy=false,lifetimeSpins=null;
 
   function scoreTier(score){
     const bands=window.CriloRarity?.scoreBands;
@@ -88,10 +88,43 @@
   async function ensureQueue(id,size){
     while(queue.length<size&&!runExhausted)await fetchRuns(id);
   }
+  // Count EVERY recorded official spin, regardless of Load More pagination.
+  // Legacy Dailies can have a run-level "spins" value but no detailed results:
+  // include their recorded spins without inventing individual feed cards.
+  // Paginate the lightweight count query below Supabase's 1,000-row cap.
+  async function loadLifetimeTotal(id,token){
+    let sum=0,offset=0;
+    try{
+      for(;;){
+        const {data,error}=await criloDB.from('daily_runs')
+          .select('spins').eq('user_id',id).eq('is_test',false)
+          .range(offset,offset+499);
+        if(error)throw error;
+        if(token!==requestId)return;
+        const rows=data||[];
+        for(const row of rows){
+          const n=Number(row.spins);
+          if(Number.isFinite(n)&&n>0)sum+=Math.floor(n);
+        }
+        if(rows.length<500)break;
+        offset+=rows.length;
+      }
+      if(token!==requestId)return;
+      lifetimeSpins=sum;
+      updateCount();
+    }catch(error){
+      if(token!==requestId)return;
+      counter.textContent='Spin total unavailable';
+      console.warn('Could not total official wheel spins',error);
+    }
+  }
   function updateCount(){
-    const maybeLegacy=shown-shownSpins;
-    counter.textContent=shownSpins+' spin'+(shownSpins===1?'':'s')+' shown'+
-      (maybeLegacy?' · '+maybeLegacy+' older Daily summar'+(maybeLegacy===1?'y':'ies'):'');
+    if(lifetimeSpins===null){
+      counter.textContent='Counting all official spins…';
+      return;
+    }
+    counter.textContent=fmt(lifetimeSpins)+' spin'+(lifetimeSpins===1?'':'s')+' total';
+    counter.setAttribute?.('aria-label',fmt(lifetimeSpins)+' official lifetime spins');
   }
   async function showNext(id,token){
     if(busy||token!==requestId)return;
@@ -119,14 +152,13 @@
       ending.hidden=hasMore||shownSpins<=5;
       if(shown===0){
         list.innerHTML='<p class="spin-history-message">No official spins yet. Your first Daily will appear here.</p>';
-        counter.textContent='No spins yet';
       }
     }catch(error){
       if(token!==requestId)return;
       if(!shown)list.innerHTML='<p class="spin-history-message">Could not load spin history. Try again.</p>';
       button.textContent='RETRY LOADING SPINS ↻';
       pager.hidden=false;
-      counter.textContent=shownSpins?'History temporarily unavailable':'Could not load spins';
+      if(lifetimeSpins===null)counter.textContent='Spin total unavailable';
       console.warn('Crilo spin history unavailable',error);
     }finally{
       if(token===requestId){
@@ -142,7 +174,7 @@
     const id=profileId||Crilo.user?.id||'';
     if(id===currentId)return;
     const token=++requestId;
-    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;shownSpins=0;busy=false;
+    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;shownSpins=0;busy=false;lifetimeSpins=null;
     pager.hidden=true;ending.hidden=true;
     counter.textContent='Loading…';
     list.innerHTML='<p class="spin-history-message">Fetching official spins…</p>';
@@ -151,6 +183,7 @@
       counter.textContent='Sign in to view';
       return;
     }
+    loadLifetimeTotal(id,token);
     showNext(id,token);
   }
   button.addEventListener('click',()=>showNext(currentId,requestId));
