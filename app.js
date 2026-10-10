@@ -185,6 +185,12 @@
           nav.appendChild(link);
         }
         link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
+        link.style.setProperty('color','#b42336','important');
+        link.style.setProperty('background-color','#ffe4e8','important');
+        link.style.setProperty('border','1px solid #ef9eaa','important');
+        link.style.setProperty('border-radius','10px','important');
+        link.style.setProperty('padding','11px 15px','important');
+        link.style.setProperty('font-weight','800','important');
       }else if(link)link.remove();
     }
     const btn=$('accountBtn'), menu=$('accountMenu');
