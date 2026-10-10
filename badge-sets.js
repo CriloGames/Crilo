@@ -81,8 +81,12 @@
 
       // An intentional expand is an actual exploration interaction, not page-load progress.
       $('collectionSets').querySelectorAll('details').forEach(set=>{
-        set.addEventListener('toggle',()=>{
-          if(set.open&&Crilo.user?.id&&userId===Crilo.user.id)
+        // Only a real player clicking a CLOSED category earns this badge.
+        // Deep links can auto-expand their category via parent.open=true;
+        // the browser fires 'toggle' for those too, so it must not award.
+        set.querySelector('summary')?.addEventListener('click',event=>{
+          if(event.isTrusted&&event.currentTarget.parentElement===set&&!set.open&&
+             Crilo.user?.id&&userId===Crilo.user.id)
             window.CriloBadgeEvents?.track('badge_detail');
         });
       });
