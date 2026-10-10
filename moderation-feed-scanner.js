@@ -96,6 +96,7 @@ function classifyVisual(list){
 }
 window.CriloLocalSafety={classifyText,classifyVisual,looksLikeHandwrittenLink,candidateLabels,REASONS};
 let background=null,pending=null,scanning=false,started=false,auto=true,visualChecks=true;
+let examples=[],examplesLoadedAt=0;
 let pendingTimer=null,processed=0,suspected=0,cancelled=0,unavailable=false;
 let nowStage={qr:'Waiting',ocr:'Waiting',visual:'Waiting'};
 const waitMs=2500;
@@ -113,7 +114,7 @@ function startWorker(){
  if(typeof Worker==='undefined'){
   unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const active=new Worker('moderation-scan-worker.js?v=7');
+ const active=new Worker('moderation-scan-worker.js?v=8');
  background=active;
  active.onmessage=e=>{
   const data=e.data;
@@ -168,7 +169,7 @@ function runInWorker(item){
    if(background===active)background=null;
    reject(Error('Scan exceeded 3 minutes; review manually or retry'));
   },180000)};
-  active.postMessage({type:'scan',id,drawing:item.drawing,checkVisual:visualChecks});
+  active.postMessage({type:'scan',id,drawing:item.drawing,checkVisual:visualChecks,examples});
  });
 }
 function schedule(delay=waitMs){
@@ -196,6 +197,15 @@ async function scanNext(manual=false,selected=null){
    return;
   }
   resetStage();
+  // Refresh owner labels periodically and whenever feedback is saved.
+  if(Date.now()-examplesLoadedAt>30000){
+   try{const response=await criloDB.rpc('crilo_owner_example_list');
+    if(!response.error&&Array.isArray(response.data)){
+     examples=response.data.filter(e=>/^[0-9a-f]{64}$/.test(e.fingerprint||'')).slice(0,300);
+     examplesLoadedAt=Date.now();
+    }
+   }catch(e){console.warn('Optional owner examples unavailable',e)}
+  }
   const idAtStart=cancelled;
   let result;
   try{result=await runInWorker(item)}
@@ -217,6 +227,14 @@ async function scanNext(manual=false,selected=null){
   // Recognized outline shapes are positive advisory signals, not proof.
   if(!blank&&result.benignFace!==true&&(result.shapeSuspected===true||result.genitalSuspected===true))
     reasons.push(REASONS.genital);
+  // Strict nearest-neighbor similarity to owner-labeled examples.
+  // This is only a review hint, never an automatic punitive action.
+  const exampleReason={
+   genitalia:REASONS.genital,hate:REASONS.extremism,
+   link:REASONS.link,profanity:REASONS.profanity,
+   qr:REASONS.qr,other:REASONS.sexual
+  }[result.learnedCategory];
+  if(!blank&&exampleReason)reasons.push(exampleReason);
   const problems=[...(result.errors||[])];
   if(!blank){
    if(result.stages?.qr!=='done'&&!problems.some(x=>/QR/i.test(x)))
@@ -237,6 +255,8 @@ async function scanNext(manual=false,selected=null){
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
    p_visual_label:blank?'Blank or nearly blank drawing':
+    result.learnedCategory&&!result.benignFace?
+     'Similar to owner-labeled '+result.learnedCategory+' example':
     result.benignFace?'Cartoon face (shape review)':
     result.genitalSuspected?(result.genitalType==='vulva'?
      'Possible vulva drawing (shape review)':'Possible penis drawing (shape review)'):
@@ -297,6 +317,7 @@ window.criloScanSpecificDrawing=async selected=>{
  if(scanning){setStatus('Current scan is stopping. Try this drawing again.');return}
  return scanNext(true,selected);
 };
+window.criloOwnerExamplesChanged=()=>{examplesLoadedAt=0;};
 window.criloScanPendingDrawings=()=>scanNext(true);
 window.CriloLocalSafety.start=init;
 window.addEventListener('crilo-auth-ready',init);
