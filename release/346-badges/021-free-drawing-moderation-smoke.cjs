@@ -15,9 +15,9 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=15/);
-assert.match(page,/moderation-feed-scanner\.js\?v=13/);
-assert.match(page,/style\.css\?v=92/);
+assert.match(page,/moderation-feed\.js\?v=16/);
+assert.match(page,/moderation-feed-scanner\.js\?v=14/);
+assert.match(page,/style\.css\?v=93/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
 assert.ok(css.includes('.crilo-review-test-tag'),'Test runs need visually distinct labels');
@@ -30,7 +30,7 @@ assert.ok(!scanner.includes('visual.score<0.10'),'Low image-score must NOT autom
 assert.ok(!feed.includes('Visual result uncertain — rescan advised'),'Normal drawings must not be flagged for weak ML scores');
 assert.ok(feed.includes('NEEDS RESCAN'),'Previous scanner runs must not show NO FLAGS');
 assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v6'), 'Unscanned drawings not being queued');
-assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=7')"),
+assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=8')"),
  'Background worker must keep heavy CPU operations off the page');
 assert.doesNotMatch(scanner,/new OffscreenCanvas|\.recognize\(|\.pipeline\(/,
  'Drawing preprocessing and ML must not run on UI thread');
