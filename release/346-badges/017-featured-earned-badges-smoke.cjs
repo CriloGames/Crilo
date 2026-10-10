@@ -20,7 +20,7 @@ assert.match(html,/id="featuredBadgeOptions"/);
 assert.match(html,/id="featuredBadgeSearch"/);
 assert.match(html,/id="featuredClear"/);
 assert.match(html,/badge-collection\.css\?v=9/);
-assert.match(html,/profile\.js\?v=95/);
+assert.match(html,/profile\.js\?v=96/);
 assert.match(css,/\.featured-slot\.featured-filled\[data-badge-rarity\]/);
 assert.match(css,/\.featured-pick-option\{/);
 assert.ok(!css.includes('.featured-pick-option{--crilo-badge-accent:'),
