@@ -151,6 +151,12 @@ async function feedTest(){
  await w.criloRefreshDrawingFeed();
  assert.ok(node('drawingReviewList').innerHTML.includes('crilo-review-test-tag'),
   'Owner Test Runs should be explicitly labeled, even when unscanned');
+ node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'1'}})}});
+ assert.equal(node('reviewRemove').disabled,true,'Never delete a Test Run as an official Daily');
+ assert.equal(node('reviewBan').disabled,true,'Never ban accounts via Test Run moderation');
+ assert.equal(node('reviewApprove').disabled,true,'Test Run is only for inspection');
+ node('reviewClose').handlers.click();
+
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
 (async()=>{
