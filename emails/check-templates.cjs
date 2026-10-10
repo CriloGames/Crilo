@@ -4,7 +4,7 @@
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
-const wheelUrl='https://cdn.jsdelivr.net/gh/CriloGames/Crilo@main/emails/crilo-wheel.png';
+const wheelUrl='https://cdn.jsdelivr.net/gh/CriloGames/Crilo@main/emails/crilo-wheel-all-pastel.png';
 for(const file of ['magic-link.html','confirm-signup.html']){
  const html=fs.readFileSync(path.join(__dirname,file),'utf8');
  assert.ok(html.startsWith('<!doctype html>'),'Complete HTML document: '+file);
