@@ -106,7 +106,7 @@ function showResults(){
   $('finalMessage').textContent=msg;
   $('roundResults').innerHTML=results.map(r=>`<div class="result-row"><div><div class="r-domain">${r.domain}</div><div class="r-meta">${r.type==='crilo_estimate'?'Estimated value':'Documented sale'}</div></div><div class="r-meta">Guess: ${fmt(r.guess)}</div><div class="r-meta">Answer: ${fmt(r.actual)}</div><div class="r-points">${r.score}</div></div>`).join('');
   renderBests(saveBest(totalScore));
-  syncDomainScore();
+  syncDomainScore();window.CriloBadgeEvents?.track('domain_set');
   document.body.style.background='#eef0f6';
 }
 function restart(){
