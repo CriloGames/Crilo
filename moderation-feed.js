@@ -6,7 +6,9 @@ const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLigh
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(x);
 const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
-let rows=[],chosen=null,busy=false,refreshQueued=false,filter='all',loadGeneration=0,lastPaint='';
+let rows=[],chosen=null,busy=false,refreshQueued=false,filter='all',pageIndex=0,matchedCount=0,loadGeneration=0,lastPaint='';
+let totals={pending:0,flagged:0,unscanned:0,partial:0,tests:0};
+const PAGE_SIZE=24;
 const dismissedKeys=new Set();
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
 // Only evidence-based scan reasons (or a separately flagged legacy result)
@@ -22,33 +24,28 @@ const hintsFor=d=>[
    []:d.legacyHint?[d.legacyHint]:[])
 ];
 const isStale=d=>!d.local||Number(d.local.scan_version||0)<5;
-function visible(d){
- if(dismissedKeys.has(key(d)))return false;
- const flagged=hintsFor(d).length>0;
- switch(filter){
-  case 'flagged':return flagged;
-  case 'unscanned':return isStale(d);
-  case 'partial':return d.local?.status==='partial';
-  case 'clear':return !!d.local&&!flagged&&d.local.status==='complete';
-  default:return true;
- }
-}
+function visible(d){return !dismissedKeys.has(key(d))}
 function render(){
  const filtered=rows.filter(visible);
- const priority=rows.filter(d=>hintsFor(d).length>0).length;
- const pending=rows.filter(d=>!d.is_test).length;
- const unchecked=rows.filter(isStale).length;
- const partial=rows.filter(d=>d.local?.status==='partial').length;
+ const priority=totals.flagged;
+ const pending=totals.pending;
+ const unchecked=totals.unscanned;
+ const partial=totals.partial;
  const update=(id,v)=>{const e=$(id);if(e&&e.textContent!==String(v))e.textContent=v};
  update('reviewCountPending',pending);
  update('reviewCountFlagged',priority);
  update('reviewCountUnscanned',unchecked);
  update('reviewCountPartial',partial);
- update('reviewStats',filtered.length+' shown · '+rows.filter(d=>d.is_test).length+' Test Runs included');
+ const first=matchedCount?PAGE_SIZE*pageIndex+1:0;
+ const last=Math.min(matchedCount,first+filtered.length-1);
+ update('reviewStats',first+'–'+last+' of '+matchedCount+' matching drawings · '+totals.tests+' Test Runs included');
+ update('reviewPageInfo','Page '+(pageIndex+1)+' of '+Math.max(1,Math.ceil(matchedCount/PAGE_SIZE)));
+ $('reviewPagePrev').disabled=pageIndex===0;
+ $('reviewPageNext').disabled=(pageIndex+1)*PAGE_SIZE>=matchedCount;
  update('reviewMessage','Results are advisory. Select a drawing for details and owner decisions.');
  // Avoid recreating large base64 <img> elements on every 30-second refresh.
  // Repeated reflows and image decoding caused UI freezes while scanning.
- const signature=filter+'|'+filtered.map(d=>[
+ const signature=filter+'|'+pageIndex+'|'+matchedCount+'|'+filtered.map(d=>[
   key(d),d.score,d.username,d.review_status,d.local?.status||'',
   (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||'',d.local?.scan_version||'',d.local?.error||''
  ].join(':')).join('|');
@@ -79,29 +76,25 @@ async function refresh(){
  refreshQueued=false;
  busy=true;const request=++loadGeneration;
  try{
-  const [feed,scans,flagged,flaggedTests,visual]=await Promise.all([
-   criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200}),
-   criloDB.rpc('crilo_owner_local_scan_report_v5',{p_limit:250}),
-   criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),
-   criloDB.rpc('crilo_owner_flagged_saved_tests'),
-   criloDB.rpc('crilo_owner_visual_candidates')
-  ]);
-  if(feed.error)throw feed.error;
-  if(scans.error)throw Error('Local scan results: '+scans.error.message);
-  if((scans.data||[]).some(x=>x.scan_version==null))throw Error('Scanner report missing scan version');
-  const oldHints=new Map();
-  // Old AI and OCR hints remain reviewable but do not represent proof of wrongdoing.
-  for(const item of flagged.data||[])oldHints.set('official:'+item.run_id,'Earlier text/image flag');
-  for(const item of flaggedTests.data||[])oldHints.set('test:'+item.run_id,'Earlier text/image flag');
-  for(const item of visual.data||[]){
-   const k=(item.review_status==='test'?'test:':'official:')+item.run_id;
-   if(!oldHints.has(k))oldHints.set(k,'Earlier image prediction');
+  // One bounded request: server counts ALL pending drawings but sends only
+  // the requested 24 images. Never download 1,000 base64 canvases on sign-in.
+  const requestedPage=pageIndex;
+  const {data,error}=await criloDB.rpc('crilo_owner_review_page_v1',{
+   p_page:requestedPage,p_filter:filter,p_include_tests:!!$('showOwnerTests').checked
+  });
+  if(error)throw error;
+  if(request!==loadGeneration||requestedPage!==pageIndex)return;
+  if(!data||!Array.isArray(data.rows)||data.rows.length>PAGE_SIZE)
+   throw Error('Drawing feed returned an invalid page');
+  matchedCount=Math.max(0,Number(data.matched)||0);
+  totals={pending:Number(data.pending)||0,flagged:Number(data.flagged)||0,
+   unscanned:Number(data.unscanned)||0,partial:Number(data.partial)||0,
+   tests:Number(data.tests)||0};
+  if(pageIndex>0&&pageIndex*PAGE_SIZE>=matchedCount){
+   pageIndex=Math.max(0,Math.ceil(matchedCount/PAGE_SIZE)-1);
+   refreshQueued=true;return;
   }
-  const scanMap=new Map((scans.data||[]).map(s=>[(s.is_test?'test:':'official:')+s.run_id,s]));
-  if(request!==loadGeneration)return;
-  rows=(feed.data||[]).filter(x=>validDrawing(x.drawing)&&!dismissedKeys.has(key(x))&&($('showOwnerTests').checked||!x.is_test))
-    .map(x=>({...x,local:scanMap.get(key(x))||null,legacyHint:oldHints.get(key(x))||null}))
-    .sort((a,b)=>Number(hintsFor(b).length>0)-Number(hintsFor(a).length>0)||new Date(b.submitted_at)-new Date(a.submitted_at));
+  rows=data.rows.filter(x=>validDrawing(x.drawing)&&!dismissedKeys.has(key(x)));
   render();
  }catch(err){message.textContent='Drawing feed could not load: '+err.message}
  finally{busy=false;if(refreshQueued){refreshQueued=false;setTimeout(refresh,0)}}
@@ -234,8 +227,12 @@ $('reviewRetry').addEventListener('click',async()=>{
  }catch(err){$('reviewActionStatus').textContent='Could not rescan: '+err.message;$('reviewRetry').disabled=false}
 });
 $('reviewRefresh').addEventListener('click',refresh);
-$('showOwnerTests').addEventListener('change',refresh);
-$('reviewFilter').addEventListener('change',e=>{filter=e.target.value;lastPaint='';render()});
+$('showOwnerTests').addEventListener('change',()=>{pageIndex=0;lastPaint='';refresh()});
+$('reviewFilter').addEventListener('change',e=>{filter=e.target.value;pageIndex=0;lastPaint='';refresh()});
+$('reviewPagePrev').addEventListener('click',()=>{if(pageIndex>0){pageIndex--;lastPaint='';refresh()}});
+$('reviewPageNext').addEventListener('click',()=>{
+ if((pageIndex+1)*PAGE_SIZE<matchedCount){pageIndex++;lastPaint='';refresh()}
+});
 window.criloRefreshDrawingFeed=refresh;
 window.addEventListener('crilo-auth-ready',()=>{if(isOwner())refresh();else{
  list.replaceChildren();message.textContent='Owner access only.';}});
