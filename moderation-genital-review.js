@@ -3,7 +3,7 @@
    never auto-delete a run or ban an account. No external services. */
 (function(root){
 'use strict';
-const HYPOTHESIS_VERSION=3;
+const HYPOTHESIS_VERSION=4;
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const inkAt=(d,i)=>{const a=d[i*4+3]/255;return Math.min(
  d[i*4]*a+255*(1-a),d[i*4+1]*a+255*(1-a),d[i*4+2]*a+255*(1-a))<205};
@@ -26,7 +26,11 @@ function analyzePixels(rgba,w,h){
  function hasBroadSmilingMouth(){
   for(let i=0;i<shapes.length;i++)for(let j=i+1;j<shapes.length;j++){
    const first=shapes[i],second=shapes[j];
-   if(first.ratio>1.75||second.ratio>1.75)continue;
+   // Cartoon eyes are often narrow/tilted polygons, not perfect circles.
+   // The old 1.75 upper limit rejected the RIGHT eye of a genuine smiley
+   // (measured aspect ratio about 1.82), allowing its tongue to look like
+   // a shaft. Require the broad mouth underneath both eyes as well.
+   if(first.ratio>2.2||second.ratio>2.2)continue;
    const left=first.center.x<second.center.x?first:second;
    const right=left===first?second:first;
    const diam=(left.diameter+right.diameter)/2;
