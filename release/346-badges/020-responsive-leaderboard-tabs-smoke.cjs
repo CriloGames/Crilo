@@ -7,8 +7,8 @@ const root=path.resolve(__dirname,'../..');
 const html=fs.readFileSync(path.join(root,'leaderboard.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const source=fs.readFileSync(path.join(root,'leaderboard-tabs.js'),'utf8');
-assert.match(html,/style\.css\?v=86/);
-assert.match(html,/leaderboard-tabs\.js\?v=1/);
+assert.match(html,/style\.css\?v=87/);
+assert.match(html,/leaderboard-tabs\.js\?v=2/);
 assert.match(html,/id="leaderTabs"/);
 assert.match(html,/id="leaderTabPrev"/);
 assert.match(html,/id="leaderTabNext"/);
@@ -16,6 +16,10 @@ assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,6);
 assert.match(css,/\.leader-tabs-wrap \.leader-tabs\{[\s\S]*?flex-wrap:nowrap/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab\{[\s\S]*?white-space:nowrap/);
 assert.match(css,/overflow-x:auto/);
+assert.ok(css.includes('.leader-tabs-wrap.tabs-fit .leader-tabs{justify-content:space-evenly}'),
+ 'Tabs should spread evenly on wide screens, not bunch on the left');
+assert.ok(css.includes('font-size:clamp(12px,1.13vw,18px)'),
+ 'Desktop category labels should be more legible');
 assert.match(css,/\.leader-tab-scroll\[hidden\]\{display:none!important\}/);
 const widths=[320,375,393,430,600,768,820,1024,1180,1280,1440,1920];
 function simulate(width){
@@ -29,6 +33,8 @@ function simulate(width){
   return e;
  };
  const prev=node('leaderTabPrev'),next=node('leaderTabNext'),strip=node('leaderTabs'),wrap=node('wrap');
+ const classes=new Set();
+ wrap.classList={toggle(name,on){if(on)classes.add(name);else classes.delete(name)},contains:name=>classes.has(name)};
  wrap.clientWidth=width;
  strip.scrollWidth=1120;
  strip.scrollLeft=0;
@@ -50,6 +56,8 @@ function simulate(width){
  const overflow=width<1120;
  assert.equal(prev.hidden,!overflow,width+'px: left arrow visibility');
  assert.equal(next.hidden,!overflow,width+'px: right arrow visibility');
+ assert.equal(wrap.classList.contains('tabs-fit'),!overflow,
+  width+'px: fully visible categories should get centered spacing');
  if(overflow){
   assert.equal(prev.disabled,true,width+'px initially cannot scroll left');
   assert.equal(next.disabled,false,width+'px can scroll right');
@@ -67,9 +75,12 @@ function simulate(width){
  wrap.clientWidth=1400;strip.clientWidth=1400;strip.scrollLeft=0;
  window.events.resize();
  assert.equal(prev.hidden,true,width+'px resize to wide hides arrows');
+ assert.ok(wrap.classList.contains('tabs-fit'),width+'px resize centers the categories');
  wrap.clientWidth=320;strip.clientWidth=260;
  window.events.orientationchange();
  assert.equal(next.hidden,false,width+'px narrow orientation restores arrows');
+ assert.equal(wrap.classList.contains('tabs-fit'),false,
+  width+'px narrow orientation should revert to left-aligned scrolling');
  console.log('PASS: '+width+'px overflow controls, swipe strip, selection and resize states');
 }
 for(const width of widths)simulate(width);

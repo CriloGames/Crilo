@@ -9,7 +9,7 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
-assert.ok(html.includes('style.css?v=84')&&html.includes('game.js?v=64'));
+assert.ok(html.includes('style.css?v=87')&&html.includes('game.js?v=65'));
 assert.ok(demo.includes('style.css?v=83'));
 assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);
 assert.doesNotMatch(html,/user-scalable=no|maximum-scale=1/);
@@ -21,6 +21,11 @@ assert.ok(css.includes('.wheel-score-rarity,.wheel-score-hint{box-sizing:border-
  'Neutral helper and visible tier occupy the same height');
 assert.ok(game.includes("const revealed=results.length>0"),'Rarity is revealed after resolution, not button press');
 assert.ok(css.includes('var(--crilo-wheel-fit,320px)'));
+assert.ok(css.includes('width:min(640px,calc(100vw - 24px),var(--crilo-wheel-fit,320px))'));
+assert.ok(css.includes('width:34%;height:34%;left:33%;top:33%'),
+ 'Drawing canvas uses 34% of wheel while keeping its center fixed');
+assert.ok(css.includes('left:33%;top:33%;width:34%;height:34%'),
+ 'Drawing placeholder follows the larger canvas area');
 assert.ok(css.includes('body.wheel-session-fit #spinButton'));
 assert.ok(css.includes('touch-action:manipulation'));
 assert.ok(css.includes('.text-input{font-size:16px}'));
@@ -49,7 +54,10 @@ for(const scenario of [
  {label:'iPhone 13 mini',w:375,h:635,header:68,below:245},
  {label:'iPhone 15',w:393,h:730,header:68,below:255},
  {label:'Landscape mobile',w:667,h:390,header:68,below:190},
+ {label:'iPad portrait',w:768,h:1024,header:68,below:250},
+ {label:'iPad landscape',w:1024,h:768,header:80,below:255},
  {label:'Minimized laptop',w:920,h:660,header:92,below:265},
+ {label:'Laptop at 1152px',w:1152,h:768,header:80,below:265},
  {label:'Desktop small',w:1280,h:720,header:68,below:265},
  {label:'Maximized laptop',w:1440,h:900,header:68,below:270},
  {label:'Large monitor',w:1920,h:1080,header:68,below:270}
@@ -71,14 +79,16 @@ for(const scenario of [
   implementation+';return {fitPlayViewport,alignPlayViewport}')(
   document,window,id=>id==='spinButton'?button:null,cb=>cb(),false);
  script.fitPlayViewport(); // Called on site load, long before the first SPIN.
- const budget=Math.max(scenario.w<=700?260:300,scenario.below);
- const expected=Math.max(140,Math.floor(Math.min(600,scenario.w-24,
-  scenario.h-scenario.header-budget-60)));
+ const budget=Math.max(scenario.w<=700?225:250,scenario.below);
+ const expected=Math.max(140,Math.floor(Math.min(640,scenario.w-24,
+  scenario.h-scenario.header-budget-40)));
  assert.equal(size,expected,scenario.label+' initial diameter');
  assert.ok(size<=scenario.w-24,scenario.label+' horizontally clipped');
- assert.ok(scenario.header+size+budget+60<=scenario.h+1||
-  (size===140&&scenario.h<scenario.header+budget+200),
+ assert.ok(scenario.header+size+budget+40<=scenario.h+1||
+  (size===140&&scenario.h<scenario.header+budget+180),
   scenario.label+' full SPIN button should fit');
+ if(scenario.label==='Maximized laptop')assert.ok(size>=520,'Tall laptop should get a clearly larger drawing wheel');
+ if(scenario.label==='iPhone SE')assert.ok(size>=210,'Small iPhone wheel should gain drawing space');
  const firstSize=size;
  script.alignPlayViewport(); // Mode selection scrolls without resizing.
  assert.equal(size,firstSize,scenario.label+' wheel changed after run selection');

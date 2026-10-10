@@ -196,12 +196,15 @@ function fitPlayViewport(){
  const headerHeight=header?.getBoundingClientRect().height||68;
  const stageRect=stage.getBoundingClientRect();
  const buttonRect=button.getBoundingClientRect();
- // Reserve room for score, rarity, counters, run-mode banner, SPIN and
- // margins even while owner controls are initially hidden.
- const reservedBelow=viewportWidth<=700?260:300;
- const belowWheel=Math.max(reservedBelow,buttonRect.bottom-stageRect.bottom);
- const room=viewportHeight-headerHeight-belowWheel-60;
- const diameter=Math.max(140,Math.floor(Math.min(600,viewportWidth-24,room)));
+ // Measure the actual gap to the bottom of SPIN and reserve enough for the
+ // score, counters and an owner run-mode banner that may appear later.
+ // Previously an oversized 260/300px allowance + 60px margin made the
+ // drawing wheel unnecessarily small on laptops and tablets.
+ const measuredBelow=Math.max(0,buttonRect.bottom-stageRect.bottom);
+ const reservedBelow=viewportWidth<=700?225:250;
+ const belowWheel=Math.max(reservedBelow,measuredBelow);
+ const room=viewportHeight-headerHeight-belowWheel-40;
+ const diameter=Math.max(140,Math.floor(Math.min(640,viewportWidth-24,room)));
  body.style.setProperty('--crilo-wheel-fit',diameter+'px');
  playLayoutWidth=viewportWidth;playLayoutHeight=viewportHeight;
 }

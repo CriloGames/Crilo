@@ -2,7 +2,7 @@
 .topbar{min-height:68px;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 24px;gap:38px;position:sticky;top:0;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);z-index:30}.brand{font-size:22px;font-weight:950;letter-spacing:.12em;text-decoration:none;color:#15171c}.topbar nav{display:flex;gap:28px;align-items:center}.topbar nav a{text-decoration:none;color:#3e424a;font-size:13px;font-weight:800;letter-spacing:.04em}.topbar nav a.active,.topbar nav a:hover{color:#111}.header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}.circle-btn{width:36px;height:36px;border-radius:50%;border:1px solid #ddd;background:#f3f3f3;font-weight:950;cursor:pointer}.account-btn{border:1px solid #ddd;background:#fff;border-radius:999px;padding:9px 14px;font-size:12px;font-weight:900;cursor:pointer}
 .hero{max-width:900px;margin:0 auto;padding:58px 20px 80px;text-align:center}.daily-chip,.eyebrow{font-size:12px;font-weight:950;letter-spacing:.14em;color:#777;text-transform:uppercase}.daily-chip{display:inline-flex;border:1px solid #dedede;border-radius:999px;padding:8px 12px;background:#fafafa}.hero h1,.leader-main h1{font-size:clamp(38px,6vw,62px);line-height:.95;margin:14px 0 12px;letter-spacing:-.055em}.sub{color:#7b7f87;margin:0 auto 26px;max-width:590px}
 .draw-panel{max-width:680px;margin:26px auto 34px;padding:14px 16px;border:1px solid #e5e5e5;border-radius:18px;display:flex;align-items:center;justify-content:space-between;text-align:left;gap:16px;background:#fff}.draw-panel strong{display:block}.draw-panel span{display:block;font-size:13px;color:#888;margin-top:3px}.draw-actions{display:flex;gap:8px;align-items:center}.draw-actions input{width:42px;height:42px;border:0;background:none;padding:2px}.small-btn,.primary{border:1px solid #ddd;background:#fff;border-radius:11px;padding:11px 14px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-block}.primary{background:#16181d;color:#fff;border-color:#16181d}.primary.small{white-space:nowrap}.primary.full{width:100%}
-.wheel-stage{position:relative;max-width:650px;margin:0 auto}.wheel-wrap{width:min(600px,88vw);aspect-ratio:1;margin:auto;position:relative;filter:drop-shadow(0 18px 30px rgba(0,0,0,.10));transform-origin:center}.wheel-wrap.upgrade-bump{animation:wheelBump .72s cubic-bezier(.2,.8,.25,1)}@keyframes wheelBump{0%{transform:scale(1)}35%{transform:scale(1.07) rotate(-1deg)}62%{transform:scale(.985) rotate(1deg)}100%{transform:scale(1)}}.wheel-wrap canvas#wheel{width:100%;height:100%;display:block}.pointer{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:35px;z-index:5;color:#17191e;filter:drop-shadow(0 2px 0 #fff)}.wheel-wrap canvas#drawing{position:absolute;width:32%;height:32%;left:34%;top:34%;border-radius:50%;background:#fff;box-shadow:0 0 0 7px #fff,0 0 0 10px #17191e;touch-action:none;cursor:crosshair}.wheel-wrap.locked canvas#drawing{cursor:default}
+.wheel-stage{position:relative;max-width:650px;margin:0 auto}.wheel-wrap{width:min(600px,88vw);aspect-ratio:1;margin:auto;position:relative;filter:drop-shadow(0 18px 30px rgba(0,0,0,.10));transform-origin:center}.wheel-wrap.upgrade-bump{animation:wheelBump .72s cubic-bezier(.2,.8,.25,1)}@keyframes wheelBump{0%{transform:scale(1)}35%{transform:scale(1.07) rotate(-1deg)}62%{transform:scale(.985) rotate(1deg)}100%{transform:scale(1)}}.wheel-wrap canvas#wheel{width:100%;height:100%;display:block}.pointer{position:absolute;top:-22px;left:50%;transform:translateX(-50%);font-size:35px;z-index:5;color:#17191e;filter:drop-shadow(0 2px 0 #fff)}.wheel-wrap canvas#drawing{position:absolute;width:34%;height:34%;left:33%;top:33%;border-radius:50%;background:#fff;box-shadow:0 0 0 7px #fff,0 0 0 10px #17191e;touch-action:none;cursor:crosshair}.wheel-wrap.locked canvas#drawing{cursor:default}
 .creatures{pointer-events:none;position:fixed;inset:0;overflow:hidden;z-index:18}.duck{position:absolute;width:58px;height:48px;left:-80px;bottom:16px;animation:duckCross 11s linear forwards}.duck:nth-child(2n){animation-duration:14s;bottom:50px}.duck:nth-child(3n){animation-duration:17s;bottom:84px}.duck-body{position:absolute;width:36px;height:25px;border:3px solid #17191e;background:#ffe06a;border-radius:50% 55% 48% 48%;left:10px;top:10px;animation:duckBob .34s ease-in-out infinite alternate}.duck-head{position:absolute;width:22px;height:22px;border:3px solid #17191e;background:#ffe06a;border-radius:50%;right:-8px;top:-8px}.duck-eye{position:absolute;width:4px;height:4px;background:#17191e;border-radius:50%;right:4px;top:5px}.duck-beak{position:absolute;width:13px;height:8px;background:#ff9d4d;border:2px solid #17191e;border-radius:60% 80% 80% 60%;right:-11px;top:9px}.duck-wing{position:absolute;width:17px;height:11px;border:2px solid #17191e;border-radius:50%;left:9px;top:8px;transform:rotate(-15deg)}.duck-foot{position:absolute;width:13px;height:3px;background:#ff9d4d;bottom:-7px;border-radius:3px}.duck-foot.one{left:8px;animation:footA .34s infinite alternate}.duck-foot.two{left:22px;animation:footB .34s infinite alternate}@keyframes duckCross{to{left:calc(100vw + 90px)}}@keyframes duckBob{to{transform:translateY(-4px) rotate(2deg)}}@keyframes footA{to{transform:translateX(6px) rotate(18deg)}}@keyframes footB{from{transform:translateX(6px) rotate(18deg)}}
 .event-pop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.3) rotate(-8deg);z-index:50;pointer-events:none;font-size:clamp(56px,10vw,120px);font-weight:1000;letter-spacing:-.06em;color:#ffd51f;-webkit-text-stroke:4px #17191e;text-shadow:7px 7px 0 #fff;opacity:0}.event-pop.show{animation:eventPop .95s ease-out forwards}@keyframes eventPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.25) rotate(-10deg)}28%{opacity:1;transform:translate(-50%,-50%) scale(1.16) rotate(4deg)}62%{opacity:1;transform:translate(-50%,-50%) scale(.98) rotate(-2deg)}100%{opacity:0;transform:translate(-50%,-62%) scale(1.05)}}
 /* Wheel scoreboard: one centered score above three compact run counters.
@@ -399,7 +399,7 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 @media(max-width:700px){#duckStatus.duck-guest-card{grid-template-columns:1fr;gap:20px;padding:24px 20px;margin:24px auto 48px;text-align:center}.duck-guest-art{width:150px;margin:auto;border-radius:22px}.duck-guest-copy p{margin-left:auto;margin-right:auto}.duck-guest-signin{width:100%;max-width:350px}.duck-guest-copy h2{font-size:28px}}
 
 /* Drawing hint is DOM-only: never painted into the saved canvas image. */
-.wheel-wrap .draw-placeholder{position:absolute;left:34%;top:34%;width:32%;height:32%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;color:#b9b9b9;font:600 clamp(12px,1.5vw,20px) system-ui,sans-serif;letter-spacing:.015em;user-select:none}
+.wheel-wrap .draw-placeholder{position:absolute;left:33%;top:33%;width:34%;height:34%;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:2;color:#b9b9b9;font:600 clamp(12px,1.5vw,20px) system-ui,sans-serif;letter-spacing:.015em;user-select:none}
 .wheel-wrap .draw-placeholder.hidden{display:none}
 
 /* Duck buttons are visually just ducks: suppress native mobile tap flash and desktop focus rectangles. */
@@ -793,7 +793,7 @@ body.wheel-session-fit .wheel-stage{
  overflow-anchor:none;
 }
 body.wheel-session-fit .wheel-wrap{
- width:min(600px,calc(100vw - 24px),var(--crilo-wheel-fit,320px));
+ width:min(640px,calc(100vw - 24px),var(--crilo-wheel-fit,320px));
  filter:drop-shadow(0 8px 16px rgba(0,0,0,.09));
 }
 body.wheel-session-fit .wheel-hud{margin:8px auto 2px}
@@ -918,8 +918,8 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
 }
 .leader-tabs-wrap .leader-tab{
  flex:0 0 auto;min-width:max-content;max-width:none;white-space:nowrap;
- font-size:clamp(12px,1.04vw,15px);line-height:1.2;
- padding:12px clamp(10px,.92vw,15px);
+ font-size:clamp(12px,1.13vw,18px);line-height:1.2;
+ padding:12px clamp(10px,1.06vw,18px);
  scroll-snap-align:start;touch-action:manipulation;
 }
 .leader-tab-scroll{
@@ -943,4 +943,13 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
  .leader-tabs-wrap .leader-tabs{gap:4px;padding:7px 6px}
  .leader-tabs-wrap .leader-tab{font-size:12px;padding:10px 11px}
  .leader-tab-scroll{flex-basis:27px}
+}
+
+
+/* When all categories fit, distribute them evenly instead of leaving a
+   large empty patch on the right. Overflow layouts remain left-aligned so
+   the first item is always reachable by touch/trackpad and arrow controls. */
+@media(min-width:701px){
+ .leader-tabs-wrap.tabs-fit .leader-tabs{justify-content:space-evenly}
+ .leader-tabs-wrap.tabs-fit .leader-tab{font-size:clamp(14px,1.13vw,18px)}
 }

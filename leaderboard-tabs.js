@@ -12,6 +12,7 @@
   // Compare against the full wrapper width, not the width after adding arrows;
   // otherwise arrows can remain visible even when all tabs would fit.
   const fits=strip.scrollWidth<=wrap.clientWidth+2;
+  wrap.classList.toggle('tabs-fit',fits);
   previous.hidden=next.hidden=fits;
   const remaining=Math.max(0,strip.scrollWidth-strip.clientWidth);
   previous.disabled=fits||strip.scrollLeft<=2;
