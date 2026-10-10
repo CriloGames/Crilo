@@ -27,7 +27,7 @@ $('leaderList')?.addEventListener('click',e=>{
 });
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
 async function load(){
- if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}
+ if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}if(tab==='points'){await loadTotalPoints();return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
  const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at';
  let q=criloDB.from('daily_runs').select(fields).eq('is_test',false);
@@ -51,6 +51,48 @@ async function load(){
  let profiles=[];
  if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,is_owner').in('id',ids);profiles=result.data||[]}
  render(visible,new Map(profiles.map(p=>[p.id,p])));
+}
+// One aggregated row per player, from the database over every official Daily.
+// Owner Test Runs are stored separately and can never add to these totals.
+async function loadTotalPoints(){
+ $('leaderList').innerHTML='<div class="empty-state">Loading all-time points…</div>';
+ const {data,error}=await criloDB.rpc('crilo_total_points_leaders',{p_limit:100});
+ if(error){
+  setBestScoreRarity(null);
+  $('leaderList').innerHTML='<div class="empty-state">Total points are unavailable: '+
+   Crilo.esc(error.message)+'</div>';
+  return;
+ }
+ const entries=data||[];
+ setBestScoreRarity(null); // cumulative points are NOT one Daily's score tier.
+ $('bestHeading').textContent='ALL-TIME POINTS LEADER';
+ $('leaderDescription').textContent='Every point earned across all official Daily runs, added together. Private Test Runs do not count.';
+ $('bestDrawing').classList.add('hidden');
+ if(!entries.length){
+  $('bestScore').textContent='—';$('bestUser').textContent='No points recorded yet';
+  $('bestStats').textContent='Complete an official Daily to begin accumulating points.';
+  $('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';
+  return;
+ }
+ const leader=entries[0];
+ const fmt=n=>Number(n||0).toLocaleString();
+ $('bestScore').textContent=fmt(leader.total_points)+' pts';
+ $('bestUser').textContent=leader.username||'Crilo player';
+ $('bestUser').style.color=leader.name_color||'';
+ $('bestStats').textContent=fmt(leader.official_runs)+' official Dailies played · lifetime points';
+ // Competition ranks: scores tied for first share #1; next player is #3.
+ $('leaderList').innerHTML=entries.map((entry,index)=>{
+  const rank=entries.findIndex(x=>Number(x.total_points)===Number(entry.total_points))+1;
+  const icon=rank<=3?['🥇','🥈','🥉'][rank-1]:String(rank);
+  return '<div class="leader-row crilo-lifetime-points-row">'+
+   '<div class="rank">'+icon+'</div><div class="leader-player">'+
+   '<a class="leader-name" href="profile.html?id='+encodeURIComponent(entry.user_id)+
+   '" style="color:'+Crilo.esc(entry.name_color||'inherit')+'">'+
+   Crilo.esc(entry.username||'Crilo player')+'</a>'+
+   '<span class="leader-mini">'+fmt(entry.official_runs)+' official Dailies played</span>'+
+   '</div><div class="leader-score">'+fmt(entry.total_points)+
+   ' <small class="leader-total-units">pts</small></div></div>';
+ }).join('');
 }
 async function loadDucks(){
  $('leaderList').innerHTML='<div class="empty-state">Loading lifetime duck totals…</div>';
