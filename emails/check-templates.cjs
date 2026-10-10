@@ -22,7 +22,7 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Email card must be centered: '+file);
  assert.ok(html.includes('width="100%" align="center" style="margin:0 auto;width:100%;max-width:390px;'),
   'Sign-in CTA must be centered: '+file);
- assert.equal((html.match(/<img\\b/g)||[]).length,0,
+ assert.equal((html.match(/<img\b/g)||[]).length,0,
   'Preview should never show a broken <img> fallback icon: '+file);
  assert.ok(html.includes('background="'+wheelUrl+'"'),
   'Email-safe table background URL must serve a real wheel: '+file);
@@ -36,7 +36,7 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Wheel dimensions must remain stable in restrictive email clients: '+file);
  for(const color of ['#ffd86b','#9bd9ef','#ffb8d2','#c8f4bd','#dfc8f6'])
   assert.ok(html.includes(color),'Wheel preview palette missing '+color+': '+file);
- assert.ok(!/<script\\b|<iframe\\b|@import|data:image\\/|cid:/i.test(html),
+ assert.ok(!/<script\b|<iframe\b|@import|data:image\/|cid:/i.test(html),
   'No scripts or insecure data-image URLs: '+file);
  assert.ok(html.includes("Didn't request this email?"),'Security notice missing: '+file);
  assert.ok(html.length<25000,'Template too large: '+file);
