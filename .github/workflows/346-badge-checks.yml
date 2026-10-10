@@ -7,6 +7,9 @@ on:
       - release/346-badges-prelaunch
     paths:
       - 'app.js'
+      - 'domain/game.js'
+      - 'domain/index.html'
+      - 'domain/domains.json'
       - 'release/346-badges/043-site-connections-smoke.cjs'
       - 'owner-profile-scores.js'
       - 'badge-events.js'
@@ -46,6 +49,9 @@ on:
       - main
     paths:
       - 'app.js'
+      - 'domain/game.js'
+      - 'domain/index.html'
+      - 'domain/domains.json'
       - 'release/346-badges/043-site-connections-smoke.cjs'
       - 'owner-profile-scores.js'
       - 'badge-events.js'
@@ -97,6 +103,7 @@ jobs:
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
+          node --check domain/game.js
           node --check friends.js
           node --check badge-events.js
           node --check badge-sets.js
@@ -118,6 +125,8 @@ jobs:
           node --check moderation-genital-review.js
           node --check moderation-example-features.js
           node --check moderation-feedback.js
+      - name: Reject fabricated Domain results and unauthorized score or owner edits
+        run: node release/346-badges/047-owner-score-security-smoke.cjs
       - name: Audit all page links, friend invites, badge triggers and owner controls
         run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
