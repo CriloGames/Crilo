@@ -66,4 +66,4 @@ assert.ok(feed.includes("d.local.status==='partial'?'INCOMPLETE CHECK'"),
 assert.ok(worker.includes('isNearlyBlank(bitmap)'),
  'Blank drawings must have a fast path before expensive AI loading');
 console.log('PASS: outlined genital-like shapes at five orientations, harmless fixtures, worker integration');
-console.log('PASS: uncertain visual model cannot silently produce NO FLAGS; findings never auto-ban');
+console.log('PASS: low similarity scores stay clear, incomplete scans remain separate; findings never auto-ban');
