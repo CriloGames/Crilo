@@ -212,6 +212,89 @@
     }
   });
 
+  // The home game already provides its own authModal. Other pages share
+  // the same account header, but historically never handled the sign-in event.
+  // Supply the same passwordless email flow there without redirecting players
+  // away from the leaderboard, ducks, badges, profile, friends or settings.
+  function sharedSignInModal(){
+    if(document.getElementById('authModal')) return null; // Home's existing modal.
+    const modal=document.createElement('div');
+    modal.id='criloSharedAuthModal';
+    modal.className='modal-backdrop hidden';
+    modal.innerHTML=
+      '<section class="modal-card auth-card crilo-shared-auth" role="dialog" aria-modal="true" aria-labelledby="criloSharedAuthTitle">'+
+      '<button type="button" class="modal-close" aria-label="Close sign-in" data-shared-auth-close>×</button>'+
+      '<div class="eyebrow">CRILO ACCOUNT</div>'+
+      '<h2 id="criloSharedAuthTitle">Your next spin awaits.</h2>'+
+      '<p>Enter your email and we’ll send you a one-time sign-in link. No password needed.</p>'+
+      '<form id="criloSharedAuthForm">'+
+      '<label for="criloSharedAuthEmail" class="crilo-shared-auth-label">Email address</label>'+
+      '<input class="text-input" id="criloSharedAuthEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>'+
+      '<button class="primary full" type="submit" id="criloSharedAuthSend">Send sign-in link →</button>'+
+      '</form>'+
+      '<p class="auth-status" id="criloSharedAuthStatus" role="status" aria-live="polite"></p>'+
+      '</section>';
+    document.body.appendChild(modal);
+    const email=modal.querySelector('#criloSharedAuthEmail');
+    const button=modal.querySelector('#criloSharedAuthSend');
+    const status=modal.querySelector('#criloSharedAuthStatus');
+    const close=()=>{
+      modal.classList.add('hidden');
+      $('accountBtn')?.focus();
+    };
+    modal.querySelector('[data-shared-auth-close]').addEventListener('click',close);
+    modal.addEventListener('click',event=>{if(event.target===modal)close();});
+    modal.querySelector('#criloSharedAuthForm').addEventListener('submit',async event=>{
+      event.preventDefault();
+      if(button.disabled)return;
+      const address=email.value.trim();
+      if(!address||!email.checkValidity()){
+        status.textContent='Enter a valid email address.';
+        email.focus();
+        return;
+      }
+      button.disabled=true;
+      status.textContent='Sending your sign-in link…';
+      try{
+        // Keep this callback consistent with the existing home-page flow.
+        // Supabase handles the one-time email and subsequent session restore.
+        const {error}=await criloDB.auth.signInWithOtp({
+          email:address,
+          options:{emailRedirectTo:location.origin+location.pathname}
+        });
+        status.textContent=error?
+          'Could not send the sign-in link: '+error.message:
+          'Check your email for your Crilo sign-in link.';
+      }catch(error){
+        status.textContent='Could not send the sign-in link: '+
+          (error?.message||'Please try again.');
+      }finally{
+        button.disabled=false;
+      }
+    });
+    return modal;
+  }
+  let sharedAuthModal=null;
+  window.addEventListener('crilo-signin-request',()=>{
+    // Home has its own modal and game-specific sign-in actions.
+    if(document.getElementById('authModal'))return;
+    sharedAuthModal=sharedAuthModal||sharedSignInModal();
+    sharedAuthModal.classList.remove('hidden');
+    sharedAuthModal.querySelector('#criloSharedAuthEmail')?.focus();
+  });
+  window.addEventListener('crilo-auth-error',event=>{
+    if(document.getElementById('authModal'))return;
+    sharedAuthModal=sharedAuthModal||sharedSignInModal();
+    sharedAuthModal.classList.remove('hidden');
+    sharedAuthModal.querySelector('#criloSharedAuthStatus').textContent=
+      'Sign-in failed: '+(event.detail?.message||'Please request a new link.');
+  });
+  window.addEventListener('crilo-auth-ready',event=>{
+    if(event.detail?.user&&sharedAuthModal){
+      sharedAuthModal.classList.add('hidden');
+    }
+  });
+
   function renderAccount(){
     // Owner-only navigation is also checked server-side by the moderation RPCs.
     const nav=document.querySelector('.topbar nav');
