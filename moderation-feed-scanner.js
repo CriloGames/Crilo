@@ -115,7 +115,7 @@ function startWorker(){
  if(typeof Worker==='undefined'){
   unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const active=new Worker('moderation-scan-worker.js?v=8');
+ const active=new Worker('moderation-scan-worker.js?v=9');
  background=active;
  active.onmessage=e=>{
   const data=e.data;
@@ -187,7 +187,7 @@ async function scanNext(manual=false,selected=null){
  try{
   if(unavailable)throw Error('Background scanner unavailable in this browser');
   const request=selected?{data:[selected],error:null}:
-   await criloDB.rpc('crilo_owner_local_scan_jobs_v6',{p_limit:1});
+   await criloDB.rpc('crilo_owner_local_scan_jobs_v7',{p_limit:1});
   if(request.error)throw request.error;
   if(document.hidden||!owner()||cancelled!==startedAt||(!auto&&!manual))return;
   const item=request.data?.[0];
@@ -265,7 +265,7 @@ async function scanNext(manual=false,selected=null){
    p_visual_score:visual.score,
    p_error:problems.length?problems.join('; ').slice(0,250):null
   };
-  const saved=await criloDB.rpc('crilo_owner_local_scan_save_v6',payload);
+  const saved=await criloDB.rpc('crilo_owner_local_scan_save_v7',payload);
   if(saved.error)throw saved.error;
   if(saved.data!==true)throw Error('Run is no longer awaiting review');
   processed++;if(payload.p_reasons.length)suspected++;
