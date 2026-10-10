@@ -44,7 +44,7 @@ function render(){
  list.innerHTML=filtered.length?filtered.map(d=>{
   const i=rows.indexOf(d),why=hintsFor(d);
   const status=why.length?'REVIEW SUGGESTED':!d.local?'NOT CHECKED':
-   d.local.status==='partial'?'INCOMPLETE CHECK':d.is_test?'OWNER TEST':'NO FLAGS';
+   d.local.status==='partial'?'INCOMPLETE CHECK':'NO FLAGS';
   const chips=why.length?'<span class="crilo-review-reasons">'+
    why.slice(0,3).map(w=>'<em>'+escape(w)+'</em>').join('')+
    (why.length>3?'<em>+'+(why.length-3)+'</em>':'')+'</span>':'';
