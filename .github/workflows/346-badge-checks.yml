@@ -40,6 +40,8 @@ jobs:
           node --check profile.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
+      - name: Render all 346 profile badges and earned states
+        run: node release/346-badges/012-profile-rendering-smoke.cjs
       - name: Check 346 normalized badge keys and positive/negative fixtures
         run: |
           node - <<'JS'
