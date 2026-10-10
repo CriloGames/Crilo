@@ -74,13 +74,14 @@ async function refresh(){
  try{
   const [feed,scans,flagged,flaggedTests,visual]=await Promise.all([
    criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200}),
-   criloDB.rpc('crilo_owner_local_scan_report',{p_limit:250}),
+   criloDB.rpc('crilo_owner_local_scan_report_v5',{p_limit:250}),
    criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),
    criloDB.rpc('crilo_owner_flagged_saved_tests'),
    criloDB.rpc('crilo_owner_visual_candidates')
   ]);
   if(feed.error)throw feed.error;
   if(scans.error)throw Error('Local scan results: '+scans.error.message);
+  if((scans.data||[]).some(x=>x.scan_version==null))throw Error('Scanner report missing scan version');
   const oldHints=new Map();
   // Old AI and OCR hints remain reviewable but do not represent proof of wrongdoing.
   for(const item of flagged.data||[])oldHints.set('official:'+item.run_id,'Earlier text/image flag');
