@@ -34,6 +34,9 @@ async function load(){
   }).join('');
  }
  const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
+ const {data:visionCandidates,error:candidateError}=await criloDB.rpc('crilo_owner_visual_candidates');
+ if(request!==generation)return;
+ const suspects=(candidateError?[]:(visionCandidates||[])).map(x=>({...x,ai_reasons:[],ai_details:'Unverified visual prediction: '+x.visual_label+'. Manually inspect. No automatic violation or account punishment.',suspected_visual:true}));
  let unflaggedRows=[];
  if(showUnflagged){
   const [ordinary,ownerTests]=await Promise.all([
@@ -55,11 +58,13 @@ async function load(){
   }
  }
  const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
- rows=[...flaggedRows,...uncertainRows,...unflaggedRows];
- message.textContent=flaggedRows.length+' flagged drawings · '+uncertainRows.length+' visual predictions awaiting owner review.'+(showUnflagged?' Showing '+unflaggedRows.length+' additional unflagged drawings for manual inspection.':'');
+ const shown=new Set([...flaggedRows,...uncertainRows].map(x=>String(x.run_id)));
+ rows=[...flaggedRows,...uncertainRows,...suspects.filter(x=>!shown.has(String(x.run_id))),...unflaggedRows.filter(x=>!shown.has(String(x.run_id))&&!suspects.some(y=>String(y.run_id)===String(x.run_id)))];
+ message.textContent=flaggedRows.length+' text/image flagged drawings · '+suspects.length+' suspected images to inspect (unverified, not violations) · '+uncertainRows.length+' previous review items.'+(showUnflagged?' Showing '+unflaggedRows.length+' additional unflagged drawings for manual inspection.':'');
  if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
- list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
+ if(candidateError)message.textContent+=' Suspected-image queue unavailable: '+candidateError.message;
+ list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.suspected_visual?'SUSPECTED IMAGE':d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
 }
 function openDrawing(index,source=rows){
  chosen=source[index];if(!chosen)return;
@@ -67,9 +72,9 @@ function openDrawing(index,source=rows){
  const img=$('reviewLargeDrawing');img.src=chosen.drawing||'';img.classList.toggle('hidden',!chosen.drawing);
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score).toLocaleString()+' points';
  $('reviewActionStatus').textContent=chosen.ai_status==='review'?'Needs manual review (not a confirmed violation). '+(chosen.ai_details||''):chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
- const pending=chosen.review_status==='pending' && (chosen.ai_status==='flagged'||chosen.ai_status==='review');
+ const pending=!chosen.suspected_visual&&chosen.review_status==='pending' && (chosen.ai_status==='flagged'||chosen.ai_status==='review');
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
- if(chosen.ai_status==='review')$('reviewBan').disabled=true;
+ if(chosen.ai_status==='review'||chosen.suspected_visual)$('reviewBan').disabled=true;
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const row=e.target.closest('[data-index]');if(row)openDrawing(Number(row.dataset.index))});
@@ -232,6 +237,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Cr
 async function act(action){
  if(!chosen)return;
  const current=chosen;
+ if(current.suspected_visual){$('reviewActionStatus').textContent='Unverified image prediction: this item is for inspection only. Account actions require an independently confirmed violation.';return;}
  if(action==='ban'&&current.ai_status==='review'){ $('reviewActionStatus').textContent='A visual prediction alone cannot start a ban. Review the drawing first.';return;}
  const warning=action==='ban'?'Permanently ban '+current.username+' from Crilo? This will disable their account and remove this drawing.':action==='remove'?'Remove this drawing from Crilo? The player’s Daily score will remain unchanged.':'Mark this drawing as approved?';
  if(!window.confirm(warning))return;
