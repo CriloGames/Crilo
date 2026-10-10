@@ -741,7 +741,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
    Prior to the first spin the full-size wheel and drawing tools are unchanged. */
 body.wheel-run-active .wheel-stage{scroll-margin-top:98px}
 body.wheel-run-active .wheel-wrap{
- width:min(600px,88vw,max(225px,calc(100dvh - 355px)));
+ width:min(600px,88vw,max(225px,calc(100dvh - 395px)));
  filter:drop-shadow(0 9px 18px rgba(0,0,0,.10))
 }
 body.wheel-run-active .draw-panel.locked-panel{display:none}
