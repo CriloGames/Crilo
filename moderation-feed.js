@@ -6,7 +6,8 @@ const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLigh
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(x);
 const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
-let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0,lastPaint='';
+let rows=[],chosen=null,busy=false,refreshQueued=false,filter='all',loadGeneration=0,lastPaint='';
+const dismissedKeys=new Set();
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
 // Only evidence-based scan reasons (or a separately flagged legacy result)
 // make a drawing REVIEW SUGGESTED. Incomplete checks are a different status.
@@ -19,6 +20,7 @@ const hintsFor=d=>[
 ];
 const isStale=d=>!d.local||Number(d.local.scan_version||0)<5;
 function visible(d){
+ if(dismissedKeys.has(key(d)))return false;
  const flagged=hintsFor(d).length>0;
  switch(filter){
   case 'flagged':return flagged;
@@ -69,7 +71,9 @@ function render(){
  }).join(''):'<p class="muted">No drawings match this filter.</p>';
 }
 async function refresh(){
- if(busy||document.hidden||!isOwner())return;
+ if(document.hidden||!isOwner())return;
+ if(busy){refreshQueued=true;return}
+ refreshQueued=false;
  busy=true;const request=++loadGeneration;
  try{
   const [feed,scans,flagged,flaggedTests,visual]=await Promise.all([
@@ -92,12 +96,12 @@ async function refresh(){
   }
   const scanMap=new Map((scans.data||[]).map(s=>[(s.is_test?'test:':'official:')+s.run_id,s]));
   if(request!==loadGeneration)return;
-  rows=(feed.data||[]).filter(x=>validDrawing(x.drawing)&&($('showOwnerTests').checked||!x.is_test))
+  rows=(feed.data||[]).filter(x=>validDrawing(x.drawing)&&!dismissedKeys.has(key(x))&&($('showOwnerTests').checked||!x.is_test))
     .map(x=>({...x,local:scanMap.get(key(x))||null,legacyHint:oldHints.get(key(x))||null}))
     .sort((a,b)=>Number(hintsFor(b).length>0)-Number(hintsFor(a).length>0)||new Date(b.submitted_at)-new Date(a.submitted_at));
   render();
  }catch(err){message.textContent='Drawing feed could not load: '+err.message}
- finally{busy=false}
+ finally{busy=false;if(refreshQueued){refreshQueued=false;setTimeout(refresh,0)}}
 }
 function close(){
  modal.classList.add('hidden');chosen=null;$('reviewLargeDrawing').removeAttribute('src');
@@ -138,6 +142,7 @@ function open(i){
  $('deleteRunWithBan').checked=false;
  $('reviewBanOptions').hidden=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
  modal.classList.remove('hidden');
+ window.criloFeedbackShow?.(chosen);
 }
 list.addEventListener('click',e=>{const item=e.target.closest('[data-index]');if(item)open(Number(item.dataset.index))});
 $('reviewClose').addEventListener('click',close);
@@ -172,7 +177,18 @@ async function decide(action){
    if(error)throw error;
    if(data!==true)throw Error('Run already reviewed or unavailable');
   }
-  close();await refresh();
+  // The server has confirmed the owner action. Remove the completed item
+  // immediately, even when a 30-second refresh is already running.
+  // Suppress stale in-flight snapshots so deleted runs cannot reappear.
+  dismissedKeys.add(key(d));
+  loadGeneration++;
+  rows=rows.filter(row=>key(row)!==key(d));
+  close();lastPaint='';render();
+  await refresh();
+  const note=action==='approve'?'Drawing approved and removed from review.':
+   action==='remove'?'Official run deleted and removed from review.':
+   'Account action completed; drawing removed from the review queue.';
+  $('reviewMessage').textContent=note;
  }catch(err){
   $('reviewActionStatus').textContent=err.message;
   for(const id of buttons)$(id).disabled=id==='reviewBan'&&d.username?.toLowerCase()==='owner';
