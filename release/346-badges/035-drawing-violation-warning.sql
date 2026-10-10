@@ -215,7 +215,7 @@ BEGIN
  LEFT JOIN public.crilo_drawing_reviews r ON r.run_id=d.id
  WHERE d.id=p_run_id AND coalesce(d.is_test,false)=false
   AND d.drawing IS NOT NULL
-  AND coalesce(r.status,'pending')='pending'
+  AND coalesce(r.status,'pending') IN ('pending','approved')
  FOR UPDATE OF d;
  IF v_user IS NULL THEN RETURN false;END IF;
  PERFORM pg_advisory_xact_lock(hashtextextended(v_user::text,442204));
