@@ -24,6 +24,8 @@ assert.ok(collectionCSS.includes('min-height:110px'),
  'Collection cards must remain compact');
 assert.ok(collectionCSS.includes('-webkit-line-clamp:4'),
  'Visible requirements must fit in a compact tile');
+assert.ok(collectionCSS.includes('.collection-tile.expanded .collection-tile-description'),
+ 'Tap-to-expand must restore the full unlock requirement');
 assert.ok(collectionCSS.includes('.collection-tile.locked .collection-tile-description{opacity:1'),
  'Keep locked badge unlock requirements readable');
 const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'catalog-rules.json'),'utf8'));
@@ -33,7 +35,7 @@ assert.match(setsPage,/class="collection-info" id="collectionInfo"/,
 for(const rarity of ['Trash','Common','Uncommon','Rare','Epic','Anomaly','Mythic']){
  assert.ok(setsPage.includes('>'+rarity+'</span>'),'Missing help-legend rarity '+rarity);
 }
-assert.ok(setsPage.includes('badge-collection.css?v=4'),
+assert.ok(setsPage.includes('badge-collection.css?v=5'),
  'Bump badge collection stylesheet cache on release');
 const badges=catalog.map((b,i)=>({
  id:i+1,badge_key:b.key,name:b.name||b.key,description:b.condition||'',
@@ -122,6 +124,8 @@ async function run(awards){
  const collection=getElementById('collectionSets').innerHTML;
  assert.equal((collection.match(/<details class="collection-card">/g)||[]).length,sets.length);
  assert.equal((collection.match(/<article class="collection-tile/g)||[]).length,346);
+ assert.equal((collection.match(/tabindex="0" role="button" aria-expanded="false"/g)||[]).length,346,
+  'Compact tiles must support keyboard/touch expansion of full requirements');
  assert.equal((collection.match(/<article class="collection-tile locked"/g)||[]).length,346-awards);
  assert.equal((collection.match(/<article class="collection-tile" data-badge-rarity=/g)||[]).length,awards,
   'Every earned badge must display using its own brighter rarity tile');
