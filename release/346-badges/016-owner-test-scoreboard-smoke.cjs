@@ -50,14 +50,19 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
   const classList={add:x=>states.add(x),remove:x=>states.delete(x),contains:x=>states.has(x),
    toggle:x=>states.has(x)?(states.delete(x),false):(states.add(x),true)};
   const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(200*200*4)})},{get:(o,p)=>o[p]??(()=>{})});
+  const attrs={};
   const el={id,classList,style:{},dataset:{},textContent:'',innerHTML:'',value:'',
    disabled:false,width:200,height:200,open:false,addEventListener:(name,cb)=>el['on_'+name]=cb,
-   setAttribute:()=>{},getContext:()=>ctx,toDataURL:()=> 'data:image/png;base64,'+'a'.repeat(200),
+   setAttribute:(key,value)=>{attrs[key]=value},getAttribute:key=>attrs[key]||null,
+   removeAttribute:key=>{delete attrs[key]},
+   replaceChildren:(...nodes)=>{el.children=nodes;el.textContent=nodes.map(x=>x.textContent).join('')},
+   getContext:()=>ctx,toDataURL:()=> 'data:image/png;base64,'+'a'.repeat(200),
    querySelector:()=>element('nested'),querySelectorAll:()=>[],
    getBoundingClientRect:()=>({left:0,top:0,width:200,height:200})};
   els.set(id,el);return el;
  }
  const document={getElementById:element,querySelectorAll:()=>[],querySelector:()=>element('nested'),
+  createElement:()=>({textContent:'',className:'',style:{setProperty(){}},setAttribute(){}}),
   addEventListener:()=>{}};
  const window={addEventListener:(n,cb)=>events[n]=cb,CriloRarity:{scoreBands:trueScoreBands},CriloBadgeEvents:{track:async name=>{badgeEvents.push(name);return true;}}};
  const rpcCalls=[],saved=[],testSaved=[],badgeEvents=[],errors=[];
