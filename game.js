@@ -15,7 +15,7 @@ function update(){
  const tier=String(band.key||'trash').toLowerCase();
  $('score').textContent=fmt(score);
  $('wheelScorePanel').dataset.rarity=tier;
- $('scoreTier').lastChild.textContent=tier.toUpperCase();
+ $('scoreTierText').textContent=tier.toUpperCase();
  $('scoreTier').setAttribute('aria-label','Score rarity: '+tier);
  $('spins').textContent=spins;
  $('level').textContent='×'+fmt(multiplier);
