@@ -9,11 +9,21 @@ const feed=fs.readFileSync(path.join(base,'moderation-feed.js'),'utf8');
 
 async function workerTest(){
  const responses=[];
+ let blankFixture=false;
  const self={postMessage:x=>responses.push(x)};
  class FakeOffscreenCanvas {
   constructor(w,h){this.width=w;this.height=h}
   getContext(){return {fillRect(){},drawImage(){},
-   getImageData:()=>({data:new Uint8ClampedArray(this.width*this.height*4)})}}
+   getImageData:()=>{
+    const data=new Uint8ClampedArray(this.width*this.height*4);
+    data.fill(255);
+    if(!blankFixture){
+     for(let i=0;i<this.width*this.height/8;i++){
+      const j=i*4;data[j]=0;data[j+1]=0;data[j+2]=0;
+     }
+    }
+    return {data};
+   }}}
   async convertToBlob(){return {type:'image/png'}}
  }
  const environment={
@@ -38,7 +48,15 @@ async function workerTest(){
  assert.equal(result.stages.ocr,'done');
  assert.equal(result.stages.visual,'skipped');
  assert.equal(result.errors.length,0);
- console.log('PASS: dedicated worker decoded QR + OCR without any UI-thread canvas use');
+ blankFixture=true;
+ await self.onmessage({data:{type:'scan',id:6,drawing:'data:image/png;base64,QUJD',checkVisual:true}});
+ const blank=responses.find(x=>x.type==='result'&&x.id===6);
+ assert.equal(blank.blank,true,'Uniform drawing should be recognized as nearly blank');
+ assert.equal(blank.stages.qr,'skipped_blank');
+ assert.equal(blank.stages.ocr,'skipped_blank');
+ assert.equal(blank.stages.visual,'skipped_blank');
+ assert.deepEqual(Array.from(blank.errors),[],'Blank checks must not be errors');
+ console.log('PASS: dedicated worker decoded QR + OCR and skipped expensive work for blank drawings');
 }
 async function schedulerTest(){
  const listeners={};
@@ -172,10 +190,13 @@ async function feedTest(){
  scans[1].checked_at='2026-10-10T10:02:00Z';
  await w.criloRefreshDrawingFeed();
  const updated=node('drawingReviewList').innerHTML;
- assert.ok(updated.includes('Visual result uncertain'),
-  'Older low-confidence scan must request manual inspection');
- assert.ok(updated.includes('>REVIEW SUGGESTED</span>'),
-  'Low-confidence Owner Test Run should be prioritized, not shown as NO FLAGS');
+ assert.ok(!updated.includes('Visual result uncertain'),
+  'Low image similarity alone must never generate a review suggestion');
+ const safeRow=updated.split('data-index="1"')[1]||'';
+ assert.ok(safeRow.includes('>NO FLAGS</span>'),
+  'A scanned clean Owner Test Run with a low score must show NO FLAGS');
+ assert.equal((updated.match(/>REVIEW SUGGESTED<\/span>/g)||[]).length,1,
+  'Only the genuinely QR-flagged drawing should request review');
 
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
