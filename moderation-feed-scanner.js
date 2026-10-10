@@ -14,6 +14,47 @@ const REASONS={
 const words=/(?:fuck(?:ing|ed|er|s)?|shit(?:ty|head|s)?|bitch(?:es|y)?|asshole|bastard|damn|crap|slut|whore|cunt|motherfucker|dick(?:head)?|cock(?:sucker)?|nigg(?:er|a)s?|faggot|kike|spic|retard(?:ed)?)/i;
 const abusive=/(?:kill\s*(?:yourself|urself)|heil\s*hitler|white\s*power|nazi|gas\s*the\s*\w+)/i;
 const url=/(?:https?:\/\/|www[.]|(?:discord[.]gg|t[.]me|bit[.]ly)\/|(?:[a-z0-9-]{2,}[.](?:com|net|org|io|gg|fun|co|xyz|link|app|dev|edu|gov|me|tv|shop|site|info|us|uk|ru|ly|ai|store|online|click|to|cc))(?:\b|\/)|[a-z0-9-]{2,}\s*(?:dot|\[dot\]|\(dot\))\s*(?:com|net|org|io|gg|fun|co|xyz|app|link)\b)/i;
+// Pixel-studio handwriting OCR often loses periods, separates domain words, or
+// reads handwritten "m" as "rn", "an" or "n". Those patterns still need owner
+// review, but never constitute proof of a website or automatic enforcement.
+function looksLikeHandwrittenLink(raw){
+ const normalized=String(raw||'').normalize('NFKC').toLowerCase()
+  .replace(/[\u200b-\u200f\u2060]/g,'')
+  .replace(/[。．｡·•]/g,'.')
+  .replace(/[0]/g,'o')
+  .replace(/[|]/g,'l')
+  .slice(0,4096);
+ if(url.test(normalized))return true;
+ // Keep tokens separate, including line breaks and punctuation.
+ // One OCR token for a host + one for a TLD is the common case;
+ // two short host fragments preceding the TLD is also common.
+ const tokens=(normalized.match(/[a-z0-9]+/g)||[]).filter(Boolean);
+ if(tokens.length<2)return false;
+ const tldToken=t=>/^(?:com|corn|coan|con|cam|c0m|comm|corm|carn|c0rn|net|org|fun|xyz|io|gg|app|link|site|online)$/.test(t);
+ const isHost=t=>/^[a-z0-9][a-z0-9-]*$/.test(t)&&
+  /[a-z]/.test(t)&&t.length>=3&&t.length<=63;
+ // Demand that a plausible TLD appears at the END of the recognized line.
+ // Otherwise prose such as "my com project" becomes too noisy.
+ for(let i=1;i<tokens.length;i++){
+  if(!tldToken(tokens[i]))continue;
+  const root=tokens[i-1];
+  const fuzzy=/^(?:corn|coan|con|cam|comm|corm|carn|c0rn)$/.test(tokens[i]);
+  if(!isHost(root))continue;
+  if(fuzzy&&root.length<4)continue;
+  // Require either end of OCR snippet, or punctuation/whitespace and no
+  // subsequent long phrase. Preserves multiline "Porn hub / Coan".
+  const tail=tokens.slice(i+1);
+  if(tail.length===0 || tail.length===1&&tail[0].length<=2)return true;
+ }
+ // Occasionally handwritten "com" is itself split as "co m" or "c om".
+ const last=tokens.slice(-3);
+ if(last.length>=3){
+  const [host,a,b]=last;
+  if(isHost(host) && ((a==='co'&&['m','rn','an'].includes(b)) ||
+      (a==='c'&&['om','orn','oan'].includes(b))))return true;
+ }
+ return false;
+}
 function classifyText(raw){
  const original=String(raw||'').slice(0,4096).normalize('NFKC').toLowerCase();
  const basic=original.replace(/[\u200b-\u200f\u2060]/g,'').replace(/[@4]/g,'a').replace(/3/g,'e').replace(/[1!|]/g,'i').replace(/0/g,'o').replace(/5|\$/g,'s').replace(/7/g,'t');
@@ -21,7 +62,7 @@ function classifyText(raw){
  const hasWord=combined.some((s,i)=>i===3?false:new RegExp('(?:^|[^a-z])'+words.source+'(?=$|[^a-z])','i').test(s));
  const spaced=/\b(?:f[^a-z0-9]{1,3}u[^a-z0-9]{1,3}c[^a-z0-9]{1,3}k|s[^a-z0-9]{1,3}h[^a-z0-9]{1,3}i[^a-z0-9]{1,3}t)\b/i.test(original);
  const hasHate=combined.some((s,i)=>i===3?false:abusive.test(s));
- const hasLink=url.test(original)||url.test(basic);
+ const hasLink=looksLikeHandwrittenLink(original)||looksLikeHandwrittenLink(basic);
  return [(hasWord||spaced)&&REASONS.profanity,hasHate&&REASONS.hate,hasLink&&REASONS.link].filter(Boolean);
 }
 const candidateLabels=[
@@ -53,7 +94,7 @@ function classifyVisual(list){
  const reason=good?(idx<=1?REASONS.extremism:idx<=3?REASONS.genital:idx<=5?REASONS.sexual:idx===6?REASONS.gore:REASONS.qrMaybe):null;
  return {reason,label:good?top.label:'No strong category match',score:top.score};
 }
-window.CriloLocalSafety={classifyText,classifyVisual,candidateLabels,REASONS};
+window.CriloLocalSafety={classifyText,classifyVisual,looksLikeHandwrittenLink,candidateLabels,REASONS};
 let background=null,pending=null,scanning=false,started=false,auto=true,visualChecks=true;
 let pendingTimer=null,processed=0,suspected=0,cancelled=0,unavailable=false;
 let nowStage={qr:'Waiting',ocr:'Waiting',visual:'Waiting'};
