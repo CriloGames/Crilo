@@ -172,6 +172,21 @@
   });
 
   function renderAccount(){
+    // Owner-only navigation is also checked server-side by the moderation RPCs.
+    const nav=document.querySelector('.topbar nav');
+    if(nav){
+      let link=nav.querySelector('#ownerDrawingNav');
+      if(Crilo.profile?.is_owner){
+        if(!link){
+          link=document.createElement('a');
+          link.id='ownerDrawingNav';
+          link.href='moderation.html';
+          link.textContent='DRAWING REVIEW';
+          nav.appendChild(link);
+        }
+        link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
+      }else if(link)link.remove();
+    }
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
     if(!Crilo.user){ btn.textContent='SIGN IN'; btn.style.color=''; return; }
