@@ -13,7 +13,7 @@ const brandPages=['index.html','leaderboard.html','ducks.html','profile.html',
 for(const pageName of brandPages){
  const pageHTML=fs.readFileSync(path.join(root,pageName),'utf8');
  assert.ok(pageHTML.includes('class="brand"'),pageName+' shared wordmark missing');
- assert.ok(pageHTML.includes('style.css?v='+(['index.html','leaderboard.html','profile.html'].includes(pageName)?'95':'88')),pageName+' current shared CSS reference');
+ assert.ok(pageHTML.includes('style.css?v='+(['index.html','leaderboard.html','profile.html'].includes(pageName)?'96':'88')),pageName+' current shared CSS reference');
 }
 assert.ok(css.includes('animation:criloLogoSheen 10s ease-in-out infinite'),
  'The quiet Crilo rainbow sheen animation should be present');
