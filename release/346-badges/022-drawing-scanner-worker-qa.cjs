@@ -91,9 +91,9 @@ async function schedulerTest(){
  }
  const db={rpc:async(name,args)=>{
   calls.push({name,args});
-  if(name==='crilo_owner_local_scan_jobs_v4')return {data:[{run_id:useTest?'test-uuid':'123',
+  if(name==='crilo_owner_local_scan_jobs_v5')return {data:[{run_id:useTest?'test-uuid':'123',
    is_test:useTest,drawing:'data:image/png;base64,QUJD'}]};
-  if(name==='crilo_owner_local_scan_save_v4')return {data:true};
+  if(name==='crilo_owner_local_scan_save_v5')return {data:true};
   throw Error('Unexpected RPC '+name);
  }};
  const timers=new Map();let n=0;
@@ -103,35 +103,35 @@ async function schedulerTest(){
   setTimeout,clearTimeout,console},{filename:'moderation-feed-scanner.js'});
  window.CriloLocalSafety.start();
  await window.criloScanPendingDrawings();
- assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').length,1,
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').length,1,
   'One official scan should be saved');
- const payload=calls.find(x=>x.name==='crilo_owner_local_scan_save_v4').args;
+ const payload=calls.find(x=>x.name==='crilo_owner_local_scan_save_v5').args;
  assert.deepEqual(Array.from(payload.p_reasons),['QR code','Profanity','Website or link']);
  assert.equal(payload.p_is_test,false);
  assert.ok(node('reviewScanStatus').textContent.includes('Checked 1 drawing'));
  useTest=true;
  await window.criloScanPendingDrawings();
- assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').length,1,
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').length,1,
   'Do not scan owner Test Runs unless explicitly included');
  node('showOwnerTests').checked=true;
  await window.criloScanPendingDrawings();
- assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').length,2);
- assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4')[1].args.p_is_test,true,
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').length,2);
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5')[1].args.p_is_test,true,
   'An Owner Test Run must be identified as a Test Run');
- const queuedBefore=calls.filter(x=>x.name==='crilo_owner_local_scan_jobs_v4').length;
+ const queuedBefore=calls.filter(x=>x.name==='crilo_owner_local_scan_jobs_v5').length;
  await window.criloScanSpecificDrawing({run_id:'direct-owner-test',is_test:true,
    drawing:'data:image/png;base64,QUJD'});
- const direct=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').at(-1).args;
+ const direct=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').at(-1).args;
  assert.equal(direct.p_run_id,'direct-owner-test',
   'Manual rescan must evaluate the selected drawing, not the next queue item');
  assert.equal(direct.p_is_test,true,'Owner Test Run must retain isolation when rescanned');
- assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_jobs_v4').length,queuedBefore,
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_jobs_v5').length,queuedBefore,
   'Targeted rescan must not fetch the unrelated backlog');
 
  blankResult=true;
  await window.criloScanSpecificDrawing({run_id:'blank-safe-test',is_test:true,
    drawing:'data:image/png;base64,QUJD'});
- const blankSaved=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').at(-1).args;
+ const blankSaved=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').at(-1).args;
  assert.equal(blankSaved.p_run_id,'blank-safe-test');
  assert.deepEqual(Array.from(blankSaved.p_reasons),[],
   'Blank drawing must have no suggestion');
@@ -142,7 +142,7 @@ async function schedulerTest(){
  harmlessLowScore=true;
  await window.criloScanSpecificDrawing({run_id:'harmless-low-vision',is_test:true,
    drawing:'data:image/png;base64,QUJD'});
- const harmless=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v4').at(-1).args;
+ const harmless=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v5').at(-1).args;
  assert.deepEqual(Array.from(harmless.p_reasons),[],
   'Low ML similarity without an actual signal is not an abuse flag');
  assert.equal(harmless.p_error,null,
