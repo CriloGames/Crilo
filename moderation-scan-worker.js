@@ -115,7 +115,7 @@ self.onmessage=async event=>{
  busy=true;
  const id=msg.id;
  let bitmap=null;
- const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',genitalSuspected:false,genitalType:null,genitalEvidence:[],benignFace:false,blank:false,visualResults:[],errors:[],stages:{}};
+ const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',genitalSuspected:false,genitalType:null,genitalEvidence:[],benignFace:false,learnedCategory:null,learnedSimilarity:null,blank:false,visualResults:[],errors:[],stages:{}};
  try{
   progress(id,'decode','Preparing image');
   bitmap=await getBitmap(msg.drawing);
@@ -130,6 +130,19 @@ self.onmessage=async event=>{
   catch(e){out.errors.push(String(e.message||e));out.stages.qr='unavailable';}
   try{out.ocrText=await readOCR(bitmap,id);out.stages.ocr='done';}
   catch(e){out.errors.push(String(e.message||e));out.stages.ocr='unavailable';}
+  // Reuse only fingerprints that the owner explicitly labeled.
+  // This is nearest-neighbor matching, not a trained general AI classifier.
+  try{
+   importScripts('moderation-example-features.js?v=1');
+   const canvas=createCanvas(bitmap,160);
+   const img=canvas.getContext('2d',{willReadFrequently:true}).getImageData(0,0,canvas.width,canvas.height);
+   const hash=self.CriloExampleFeatures.fingerprint(img.data,canvas.width,canvas.height);
+   const match=self.CriloExampleFeatures.classify(hash,msg.examples);
+   if(match){out.learnedCategory=match.category;out.learnedSimilarity=match.similarity}
+  }catch(e){
+   // Example matching is optional; never fail base scans over feedback library.
+   out.errors.push('Example matching unavailable: '+String(e.message||e).slice(0,75));
+  }
   if(msg.checkVisual!==false){
    // Small, deterministic outline-shape advisory supplements weak generic
    // image classifiers. This still runs when SigLIP cannot load.
