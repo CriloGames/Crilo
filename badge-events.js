@@ -54,8 +54,12 @@
    if(id==='duckUnlockArt')track('duck_sound');
   }
   if(onPage('profile')){
-   if(node.closest('.badge-set summary'))track('badge_detail');
-   if(node.closest('.featured-editable,.featured-slot'))track('badge_search');
+   // Badge Detail belongs to an actual collection-category expansion in
+   // badge-sets.js, not to nonexistent '.badge-set summary' markup here.
+   // Opening another player's featured display is not editing your own badges.
+   const viewedId=new URLSearchParams(location.search).get('id');
+   if((!viewedId||viewedId===window.Crilo?.user?.id)&&
+      node.closest('.featured-editable,.featured-slot'))track('badge_search');
    if(node.closest('.stat-tile')){track('run_history');if(/best/i.test(node.textContent||''))track('personal_best');}
   }
   if(onPage('leaderboard')){
