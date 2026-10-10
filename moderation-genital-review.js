@@ -133,7 +133,7 @@ function analyzePixels(rgba,w,h){
  // an elongated outer contour with a significantly narrower internal contour.
  for(let i=0;i<shapes.length;i++){
   const outer=shapes[i];
-  if(outer.ratio<1.5||outer.ratio>5.8)continue;
+  if(outer.ratio<1.32||outer.ratio>5.8)continue;
   for(let j=0;j<shapes.length;j++){
    if(i===j)continue;
    const inner=shapes[j];
