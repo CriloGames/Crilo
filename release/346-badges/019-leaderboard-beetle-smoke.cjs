@@ -12,8 +12,12 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
 assert.match(html,/style\.css\?v=87/);
-assert.match(html,/rarity-system\.js\?v=10"><\/script><script src="leaderboard-tabs\.js\?v=2"><\/script><script src="leaderboard\.js\?v=34/);
-assert.match(index,/bug-beetle\.js\?v=9/);
+assert.match(html,/rarity-system\.js\?v=10"><\/script><script src="leaderboard-tabs\.js\?v=2"><\/script><script src="leaderboard\.js\?v=35/);
+assert.match(index,/bug-beetle\\.js\\?v=9/);
+assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
+ 'Owner Tools panel and sample-preview button must not render for any user');
+assert.doesNotMatch(script,/previewRender|togglePreview|previewRows|previewToggle|ownerTools|previewBanner/,
+ 'Obsolete sample-preview logic must not remain in the leaderboard');
 assert.match(css,/\.leader-score-actions\{display:flex/);
 assert.match(css,/\.leader-row\.score-run-row\.owner-moderated/);
 assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?\.leader-row\.score-run-row \.leader-score-actions\{grid-column:2;grid-row:2/);
@@ -47,7 +51,7 @@ async function testBoard(){
  const db={from:()=>q};
  const context={window,document,Crilo:crilo,criloDB:db,Date,Map,Math,console,encodeURIComponent};
  const instrumented=script.replace(/\}\)\(\);\s*$/,
-   '\nwindow.__qaBoard={render,renderDuckLeaders,renderBadgeLeaders,setTab:v=>{tab=v},setPreview:v=>{preview=v}};})();');
+   '\nwindow.__qaBoard={render,renderDuckLeaders,renderBadgeLeaders,setTab:v=>{tab=v}};})();');
  assert.notEqual(instrumented,script,'Could not expose scoreboard QA functions');
  vm.runInNewContext(instrumented,context,{filename:'leaderboard.js'});
  const qa=window.__qaBoard;

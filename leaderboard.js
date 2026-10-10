@@ -1,34 +1,4 @@
-(() => {const $=id=>document.getElementById(id);let tab='today';let preview=false;
-const fakeNames=['PixelPilot','LuckyDuck','WheelWizard','SpinDoctor','TinyComet','BlueJay','SevenStars','QuackAttack','MoonMoth','OrbitFox','DoodleCat','RollMaster'];
-function fakePeriod(n){const date=new Date(Date.now()-n*86400000);return Crilo.dailyPeriod(date)}
-// Deterministic sample runs, using the exact wheel event rules in game.js.
-function seededRandom(seed){let x=seed>>>0;return()=>{x=(Math.imul(1664525,x)+1013904223)>>>0;return x/4294967296}}
-function simulateRun(random){
- let segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck','duck'];
- let score=0,spinsLeft=5,totalSpins=0,upgrades=0,doubles=0,ducks=0,extraSpins=0,multiplier=1,numbersLanded=0;
- while(spinsLeft>0&&totalSpins<250){
-  spinsLeft--;totalSpins++;
-  const v=segments[Math.floor(random()*segments.length)];
-  if(typeof v==='number'){score+=v*multiplier;numbersLanded++}
-  else if(v==='double'){score*=2;spinsLeft++;doubles++}
-  else if(v==='upgrade'){multiplier*=3;spinsLeft++;upgrades++;const bases=[1,1,2,2,3,3,5,5,8,10];for(let j=0;j<4+Math.min(upgrades,8);j++)segments.push(bases[Math.floor(random()*bases.length)])}
-  else if(v==='spins'){spinsLeft+=2;extraSpins+=2}
-  else if(v==='duck'){spinsLeft++;ducks++}
- }
- return{score,spins:totalSpins,upgrades,doubles,ducks,extra_spins:extraSpins,numbers_landed:numbersLanded}
-}
-function makePreview(){
- const random=seededRandom(20261007),rows=[];
- for(let i=0;i<48;i++){
-  const run=simulateRun(random);
-  rows.push({user_id:'preview-'+i,daily_period:fakePeriod(i%14),...run,drawing:null,rarity_odds:null,rarity_label:null,created_at:new Date().toISOString()});
- }
- return rows;
-}
-const previewRows=makePreview();
-
-const previewBadgeCounts=[72,68,68,44,39,32,24,19,17,12,8,3];
-const previewProfiles=new Map(previewRows.map((r,i)=>[r.user_id,{username:fakeNames[i%fakeNames.length]+(i>=12?' '+(i+1):''),name_color:['#2763a1','#b03f70','#3c825b','#a35d2c'][i%4]}]));
+(() => {const $=id=>document.getElementById(id);let tab='today';
 // Use the exact seven final-score thresholds from the Daily Wheel, not the
 // rank, spin count, badge count, or lifetime duck count of a leaderboard row.
 function scoreRarity(value){
@@ -42,21 +12,7 @@ function setBestScoreRarity(value){
  if(tier)$('bestScore').dataset.scoreRarity=tier;
  else delete $('bestScore').dataset.scoreRarity;
 }
-function previewRender(){if(tab==='ducks'){const totals=new Map();for(const r of previewRows)totals.set(r.user_id,(totals.get(r.user_id)||0)+Number(r.ducks||0));renderDuckLeaders([...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count),previewProfiles);return}if(tab==='badges'){renderBadgeLeaders(previewBadgeCounts.map((n,i)=>({user_id:'preview-'+i,count:n})),previewProfiles);return}let rows=previewRows.filter(r=>tab==='today'?r.daily_period===Crilo.dailyPeriod():tab==='week'?r.daily_period>=periodDaysAgo(6):true).slice();if(tab==='records')rows.sort((a,b)=>b.spins-a.spins||b.score-a.score);else if(tab==='ducks')rows.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);else rows.sort((a,b)=>b.score-a.score||a.user_id.localeCompare(b.user_id));render(rows,previewProfiles)}
-function togglePreview(on){
- if(on&&!Crilo.profile?.is_owner)return;
- preview=!!on;
- $('previewBanner')?.classList.toggle('hidden',!preview);
- $('previewToggle').textContent=preview?'Exit sample preview':'Preview sample players';
- if(preview)previewRender();else load();
-}
-window.addEventListener('crilo-auth-ready',e=>{
- const owner=!!e.detail.profile?.is_owner;
- $('ownerTools')?.classList.toggle('hidden',!owner);
- if(!owner&&preview)togglePreview(false);
- if(!preview)load();
-});
-$('previewToggle')?.addEventListener('click',()=>togglePreview(!preview));
+window.addEventListener('crilo-auth-ready',()=>load());
 async function moderateRun(id,source){
  if(!Crilo.profile?.is_owner)return;
  if(!confirm('Permanently remove this '+(source==='test'?'owner test':'official')+' score and its drawing from the leaderboard? This cannot be undone.'))return;
@@ -71,7 +27,6 @@ $('leaderList')?.addEventListener('click',e=>{
 });
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
 async function load(){
- if(preview){previewRender();return}
  if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
  const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at';
@@ -141,7 +96,7 @@ function renderBadgeLeaders(entries,profiles){
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
- const descriptions={today:'The highest score from today’s Daily. Owners also see their private extra runs.',week:'The highest score from the last seven Daily periods.',all:'The highest score ever recorded.',records:'Most spins in a single run. Score breaks ties.',badges:'Players ranked by the number of unique badges earned.',ducks:'The most ducks collected in a single run.'};
+ const descriptions={today:'The highest score from today’s official Daily.',week:'The highest score from the last seven Daily periods.',all:'The highest score ever recorded.',records:'Most spins in a single run. Score breaks ties.',badges:'Players ranked by the number of unique badges earned.',ducks:'The most ducks collected in a single run.'};
  $('bestHeading').textContent=headings[tab];
  $('leaderDescription').textContent=descriptions[tab];
  const scoreBoard=tab==='today'||tab==='week'||tab==='all';
@@ -163,7 +118,7 @@ function render(runs,pm){
  $('bestDrawing').classList.toggle('hidden',!best.drawing);
  if(best.drawing)$('bestDrawing').src=best.drawing;
  const medals=['🥇','🥈','🥉'];
- const canModerate=Boolean(Crilo.profile?.is_owner&&!preview);
+ const canModerate=Boolean(Crilo.profile?.is_owner);
  $('leaderList').innerHTML=runs.map((r,i)=>{
   const p=pm.get(r.user_id);
   const metric=tab==='records'?`${Number(r.spins).toLocaleString()} spins`:
@@ -186,4 +141,4 @@ function render(runs,pm){
   img.animate([{transform:'rotate(0deg)'},{transform:'rotate(1440deg)'}],{duration:2300,easing:'cubic-bezier(.1,.65,.2,1)'});
  }));
 }
-document.querySelectorAll('.leader-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.leader-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.tab;if(preview)previewRender();else load()}));load()})();
+document.querySelectorAll('.leader-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.leader-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.tab;load()}));load()})();
