@@ -384,12 +384,41 @@ if(!badgeDataReady){
  return;
 }
 const topBadges=collection.bestEarned(activeBadges,earned||[],50);
-$('badgeGrid').innerHTML=topBadges.length?topBadges.map(b=>{
+const previewByKey=new Map(topBadges.map(b=>[String(b.badge_key),b]));
+const collectionGroups=collection.sets(activeBadges,earned||[]);
+const gallery=$('badgeGrid');
+gallery.innerHTML=topBadges.length?topBadges.map(b=>{
  const rarity=collection.rarity(b);
  const description=rarity.toUpperCase()+' · '+String(b.description||'');
- return '<span class="badge-top-chip" data-badge-rarity="'+rarity+
-  '" title="'+Crilo.esc(description)+'">'+Crilo.esc(b.name)+'</span>';
+ return '<button type="button" class="badge-top-chip" data-badge-rarity="'+rarity+
+  '" data-badge-key="'+Crilo.esc(String(b.badge_key||''))+
+  '" title="'+Crilo.esc(description)+'" aria-label="View '+Crilo.esc(b.name)+' badge details">'+
+  Crilo.esc(b.name)+'</button>';
 }).join(''):'<p class="badge-showcase-empty">No badges unlocked yet. Complete an official Daily to start your collection.</p>';
+// The same live 346-badge catalog powers both screens, so every earned preview
+// opens the exact detailed card shown in Badge Collections, not a separate copy.
+const badgeDialog=$('badgePreviewDialog');
+const badgeClose=$('badgePreviewClose');
+let badgePreviewTrigger=null;
+gallery.onclick=event=>{
+ const pressed=event.target.closest?.('button.badge-top-chip[data-badge-key]');
+ if(!pressed)return;
+ const badge=previewByKey.get(pressed.dataset.badgeKey);
+ if(!badge)return;
+ badgePreviewTrigger=pressed;
+ $('badgePreviewCard').innerHTML=collection.tileHTML(badge,true,Crilo.esc,{expanded:true,interactive:false});
+ const set=collectionGroups.find(g=>g.category===badge.category);
+ $('badgePreviewSetName').textContent=(set?.name||String(badge.category||'Badge Collection'))+' · UNLOCKED';
+ const query=new URLSearchParams();
+ if(target)query.set('id',target);
+ query.set('badge',String(badge.badge_key));
+ $('badgePreviewOpenSet').href='badge-sets.html?'+query.toString();
+ badgeDialog.showModal();
+ badgeClose.focus();
+};
+badgeClose.onclick=()=>badgeDialog.close();
+badgeDialog.onclose=()=>badgePreviewTrigger?.focus({preventScroll:true});
+badgeDialog.onclick=event=>{if(event.target===badgeDialog)badgeDialog.close()};
 renderBadgeIcons();
 const bm=new Map((badges||[]).map(b=>[b.id,b]));
 const mine=target===Crilo.user?.id;
