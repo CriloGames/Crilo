@@ -1191,3 +1191,46 @@ html[data-theme="dark"] .stats-grid .stat-total-points span{color:#cfbee9}
 .crilo-review-pagination button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:440px){.crilo-review-pagination{gap:8px}
  .crilo-review-pagination button{min-width:0;flex:1 1 100px;padding:9px}}
+
+
+/* Owner-verified Daily violations: public first warning and private notices. */
+.crilo-warning-decision{margin:12px 0;border:1px solid #eec4bb;border-radius:13px;
+ padding:13px 15px;background:#fff7f3;display:grid;gap:8px}
+.crilo-warning-decision[hidden]{display:none!important}
+.crilo-warning-decision label{font-size:13px;font-weight:900;color:#713b30}
+.crilo-warning-decision select{display:block;width:100%;min-width:0;max-width:100%;
+ padding:10px 12px;border-radius:10px;border:1px solid #d5bbb3;
+ background:#fff;color:#17191e;font-size:14px}
+.crilo-warning-decision p{margin:0;color:#875c51;font-size:12px;line-height:1.5}
+.crilo-warning-profile{display:inline-flex;max-width:100%;margin:10px 0 0}
+.crilo-warning-flag{position:relative;max-width:100%;z-index:7}
+.crilo-warning-flag summary{list-style:none;display:inline-flex;gap:9px;align-items:center;
+ background:#fff0ed;color:#a42a40;border:1px solid #e7a1a7;
+ border-radius:100px;padding:8px 12px;font-weight:950;font-size:11px;
+ letter-spacing:.06em;cursor:pointer;user-select:none}
+.crilo-warning-flag summary::-webkit-details-marker{display:none}
+.crilo-warning-flag summary:focus-visible{outline:3px solid #8cafd7;outline-offset:3px}
+.crilo-warning-more{font-size:10px;font-weight:750;letter-spacing:0;color:#855158}
+.crilo-warning-popover{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:20;
+ width:min(330px,calc(100vw - 40px));max-width:100%;padding:15px;
+ background:var(--panel,#fff);color:var(--text,#17191e);border:1px solid #d8b9be;
+ border-radius:13px;box-shadow:0 10px 25px #0002;
+ font-size:13px;line-height:1.5;letter-spacing:0}
+.crilo-warning-popover strong{font-size:14px}
+.crilo-warning-popover p{margin:8px 0}
+.crilo-warning-popover small{color:var(--muted,#777);font-size:11px}
+.crilo-warning-flag[open] .crilo-warning-popover,
+.crilo-warning-flag:focus-within .crilo-warning-popover,
+.crilo-warning-flag:hover .crilo-warning-popover{display:block}
+.crilo-notification-item.crilo-moderation-notice{display:flex;align-items:flex-start;width:100%;text-align:left;
+ border:0;border-bottom:1px solid var(--line,#e5e5e5);background:transparent;
+ padding:11px 13px;cursor:pointer;color:var(--text,#17191e);gap:10px}
+.crilo-notification-item.crilo-moderation-notice .crilo-notification-copy{line-height:1.4}
+.crilo-notification-item.crilo-moderation-notice .crilo-notification-icon{color:#ad3545}
+.crilo-moderation-notice:not(.is-read){background:color-mix(in srgb,#ffe0e5 26%,var(--panel,#fff))}
+.crilo-moderation-notice small{display:block}
+@media(max-width:520px){.crilo-warning-popover{left:0;max-width:calc(100vw - 44px)}}
+html[data-theme="dark"] .crilo-warning-decision{background:#382b2a;color:#fae4dd;border-color:#895e57}
+html[data-theme="dark"] .crilo-warning-decision label{color:#ffd5cb}
+html[data-theme="dark"] .crilo-warning-decision p{color:#ecc1b9}
+html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ffc1cc;border-color:#ad6c79}
