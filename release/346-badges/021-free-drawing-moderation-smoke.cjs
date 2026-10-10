@@ -15,8 +15,8 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=7/);
-assert.match(page,/moderation-feed-scanner\.js\?v=4/);
+assert.match(page,/moderation-feed\.js\?v=8/);
+assert.match(page,/moderation-feed-scanner\.js\?v=5/);
 assert.match(page,/style\.css\?v=91/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
@@ -33,6 +33,8 @@ assert.doesNotMatch(scanner,/new OffscreenCanvas|\.recognize\(|\.pipeline\(/,
 assert.ok(worker.includes('OffscreenCanvas'),'QR and OCR must use offscreen canvas');
 assert.ok(worker.includes('self.onmessage'),'Worker messaging missing');
 assert.ok(scanner.includes('stopActive()'),'Pause should cancel active scanning');
+assert.ok(scanner.includes('criloScanSpecificDrawing'),'Manual rescan must target selected drawing');
+assert.ok(feed.includes('criloScanSpecificDrawing?.({run_id:d.run_id'),'Review modal must request its own drawing');
 assert.ok(scanner.includes('p_limit:1'),'Large batches must not stall review');
 assert.doesNotMatch(feed,/criloScanPendingDrawings\?\.\(\);\}\);/,
  'Refreshing the review list should not start expensive scans');
