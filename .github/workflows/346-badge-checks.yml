@@ -121,6 +121,18 @@ jobs:
         run: node release/346-badges/025-handwritten-link-smoke.cjs
       - name: Verify private example learning and owner action queue updates
         run: node release/346-badges/026-owner-example-learning-smoke.cjs
+      - name: Benchmark 100 controlled safe and inappropriate drawings
+        env:
+          CRILO_QA_STRICT: '1'
+          CRILO_QA_REPORT_PATH: release/346-badges/controlled-100-report.json
+        run: node release/346-badges/030-controlled-100-drawings.cjs
+      - name: Save 100-drawing benchmark results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crilo-controlled-100-drawings
+          path: release/346-badges/controlled-100-report.json
+          if-no-files-found: warn
       - name: Verify Daily reward previews and hidden complex ranking stats
         run: node release/346-badges/027-postdaily-badges-total-points-smoke.cjs
       - name: Verify cumulative points leaderboard and neutral score styling
