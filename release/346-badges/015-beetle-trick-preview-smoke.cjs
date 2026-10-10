@@ -9,7 +9,7 @@ const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const kinds=['backflip','barrel','frontflip','doublehop','wiggle'];
-assert.ok(html.includes('style.css?v=83'),'Live homepage must load new footer styles');
+assert.ok(html.includes('style.css?v=84'),'Live homepage must load current styles');
 assert.ok(demo.includes('style.css?v=83'),'Lab must share actual live beetle CSS');
 assert.equal((demo.match(/viewBox="0 0 112 60"/g)||[]).length,6,
  'Show six actual beetles at once: five specials and normal control');
