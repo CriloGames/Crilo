@@ -180,7 +180,7 @@ $('reviewRetry').addEventListener('click',async()=>{
   close();await refresh();window.criloScanPendingDrawings?.();
  }catch(err){$('reviewActionStatus').textContent='Could not rescan: '+err.message;$('reviewRetry').disabled=false}
 });
-$('reviewRefresh').addEventListener('click',()=>{refresh();window.criloScanPendingDrawings?.()});
+$('reviewRefresh').addEventListener('click',refresh);
 $('showOwnerTests').addEventListener('change',refresh);
 $('reviewFilter').addEventListener('change',e=>{filter=e.target.value;lastPaint='';render()});
 window.criloRefreshDrawingFeed=refresh;
