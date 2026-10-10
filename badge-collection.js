@@ -67,6 +67,26 @@
     if(pa!==null&&pb!==null&&pa!==pb)return pa-pb;
     return 0;
   }
+  // Single source of markup for the collection grid and profile badge detail.
+  // Every badge uses its database key, rarity, description, and earned state.
+  function tileHTML(badge,owned,escapeHTML,options={}){
+    const esc=value=>escapeHTML(String(value??''));
+    const hidden=Boolean(badge.is_secret)&&!owned;
+    const tier=rarity(badge);
+    const title=hidden?'Hidden badge':String(badge.name||'');
+    const status=owned?tier:'Locked · '+(hidden?'Secret':tier);
+    const description=hidden?'Unlock to reveal this secret achievement.':
+      String(badge.description||badge.requirement?.rule?.condition||'Complete this achievement to unlock it.');
+    const expanded=Boolean(options.expanded);
+    const interactive=options.interactive!==false;
+    return '<article class="collection-tile'+(owned?'':' locked')+(expanded?' expanded':'')+
+      '" data-badge-rarity="'+esc(tier)+'" data-badge-key="'+esc(badge.badge_key||'')+
+      '" title="'+esc(description)+'"'+
+      (interactive?' tabindex="0" role="button" aria-expanded="'+String(expanded)+
+      '" aria-label="'+esc(title+'. '+status+'. '+description+' Tap to expand.')+'"':'')+'>'+
+      '<b>'+esc(title)+'</b><small>'+esc(status)+'</small>'+
+      '<p class="collection-tile-description">'+esc(description)+'</p></article>';
+  }
   function bestEarned(badges,earnedRows,max=50){
     const earned=earnedMap(earnedRows);
     return active(badges).filter(b=>earned.has(key(b.id))).sort((a,b)=>{
@@ -108,5 +128,5 @@
       return a.name.localeCompare(b.name);
     });
   }
-  window.CriloBadgeCollection={active,earnedMap,rarity,compareDifficulty,bestEarned,sets,rarityOrder};
+  window.CriloBadgeCollection={active,earnedMap,rarity,compareDifficulty,bestEarned,sets,tileHTML,rarityOrder};
 })();
