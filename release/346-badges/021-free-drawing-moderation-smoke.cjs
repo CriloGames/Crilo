@@ -31,7 +31,7 @@ assert.ok(!feed.includes('Visual result uncertain — rescan advised'),'Normal d
 assert.ok(feed.includes('NEEDS RESCAN'),'Previous scanner runs must not show NO FLAGS');
 assert.ok(feed.includes("Number(d.local.scan_version)>=6"),'Completed recent scans should override older legacy predictions');
 assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v7'), 'Unscanned drawings not being queued');
-assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=9')"),
+assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=10')"),
  'Background worker must keep heavy CPU operations off the page');
 assert.doesNotMatch(scanner,/new OffscreenCanvas|\.recognize\(|\.pipeline\(/,
  'Drawing preprocessing and ML must not run on UI thread');
