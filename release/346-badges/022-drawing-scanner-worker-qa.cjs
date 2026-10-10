@@ -69,12 +69,18 @@ async function schedulerTest(){
  const window={Crilo:{user:{id:'owner'},profile:{is_owner:true}},
   addEventListener(type,fn){listeners[type]=fn},criloRefreshDrawingFeed:async()=>{}};
  const document={hidden:false,getElementById:node,addEventListener(type,fn){listeners['document:'+type]=fn}};
- let useTest=false,blankResult=false,harmlessLowScore=false,workersCreated=0,terminated=0;
+ let useTest=false,blankResult=false,harmlessLowScore=false,smileyResult=false,workersCreated=0,terminated=0;
  class MockWorker{
   constructor(path){assert.ok(path.includes('moderation-scan-worker'));workersCreated++}
   postMessage({id,checkVisual}){
    this.onmessage({data:{type:'progress',id,step:'ocr',detail:'Reading text'}});
-   this.onmessage({data:blankResult?
+   this.onmessage({data:smileyResult?
+    {type:'result',id,blank:false,qrFound:false,ocrText:'',benignFace:true,
+     shapeSuspected:true,genitalSuspected:true,genitalType:'penis',
+     stages:{qr:'done',ocr:'done',shape:'done',visual:'done'},
+     visualResults:[{label:'An explicit hand drawing of a penis or testicles',score:0.85},
+      {label:'A harmless smiley face doodle',score:0.12}],errors:[]}:
+    blankResult?
     {type:'result',id,blank:true,qrFound:false,ocrText:'',shapeSuspected:false,
      stages:{qr:'skipped_blank',ocr:'skipped_blank',shape:'skipped_blank',visual:'skipped_blank'},
      visualResults:[],errors:[]}:
@@ -148,6 +154,16 @@ async function schedulerTest(){
  assert.equal(harmless.p_error,null,
   'Low ML similarity alone must not mark a fully scanned drawing incomplete');
  assert.equal(harmless.p_visual_score,0.00195244);
+ harmlessLowScore=false;
+ smileyResult=true;
+ await window.criloScanSpecificDrawing({run_id:'smiley-with-tongue',is_test:true,
+  drawing:'data:image/png;base64,QUJD'});
+ const benign=calls.filter(x=>x.name==='crilo_owner_local_scan_save_v6').at(-1).args;
+ assert.deepEqual(Array.from(benign.p_reasons),[],
+  'Strong cartoon-face evidence overrides genital outline false positive');
+ assert.equal(benign.p_error,null);
+ smileyResult=false;
+
 
  node('reviewToggleScan').handlers.click();
  assert.ok(node('reviewScanStatus').textContent.includes('Paused'));
