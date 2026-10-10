@@ -11,7 +11,7 @@ const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
-assert.match(html,/style\.css\?v=85/);
+assert.match(html,/style\.css\?v=86/);
 assert.match(html,/rarity-system\.js\?v=10"><\/script><script src="leaderboard\.js\?v=34/);
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.match(css,/\.leader-score-actions\{display:flex/);
