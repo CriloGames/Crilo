@@ -260,7 +260,12 @@
         // Supabase handles the one-time email and subsequent session restore.
         const {error}=await criloDB.auth.signInWithOtp({
           email:address,
-          options:{emailRedirectTo:location.origin+location.pathname}
+          options:{emailRedirectTo:location.origin+location.pathname+(
+            /\/friends\.html$/i.test(location.pathname)&&
+            /^[A-Za-z0-9_-]{5,24}$/.test(new URLSearchParams(location.search).get('invite')||'')
+              ?'?invite='+encodeURIComponent(new URLSearchParams(location.search).get('invite'))
+              :''
+          )}
         });
         status.textContent=error?
           'Could not send the sign-in link: '+error.message:
