@@ -57,19 +57,22 @@ async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={
  async function flush(){for(let i=0;i<30;i++)await Promise.resolve();}
  await flush();
  const entryCount=()=> (element('spinHistoryList').innerHTML.match(/<article class="spin-history-item/g)||[]).length;
+ const official=runs.filter(x=>x.user_id==='player'&&!x.is_test);
+ const expectedTotal=official.reduce((n,r)=>n+(Number(r.spins)||0),0);
+ const expectedLifetimeLabel=expectedTotal+' spin'+(expectedTotal===1?'':'s')+' total';
+ const assertLifetime=phase=>assert.equal(element('spinHistoryCount').textContent,
+  expectedLifetimeLabel,name+' total changed '+phase);
  assert.equal(entryCount(),counts[0],name+' initial 5');
+ assertLifetime('after initial history load');
  assert.ok(calls.every(c=>c.user_id==='player'&&c.is_test===false),name+' privacy filter');
  for(let i=1;i<counts.length;i++){
   assert.equal(element('spinHistoryPager').hidden,false,name+' load button before '+i);
   await element('spinHistoryMore').handlers.click();
   assert.equal(entryCount(),counts[i],name+' after page '+i);
+  assertLifetime('after loading page '+i);
  }
  assert.equal(element('spinHistoryPager').hidden,!expectMore,name+' pager end');
- const official=runs.filter(x=>x.user_id==='player'&&!x.is_test);
- const expectedTotal=official.reduce((n,r)=>n+(Number(r.spins)||0),0);
- assert.equal(element('spinHistoryCount').textContent,
-  expectedTotal+' spin'+(expectedTotal===1?'':'s')+' total',
-  name+' lifetime count must not depend on loaded pages');
+ assertLifetime('at end of pagination');
  assert.ok(calls.some(c=>c.fields==='spins'),name+' must independently fetch lifetime spins');
  const expectedReal=official.reduce((n,r)=>n+(r.results?.length||0),0);
  const shouldDuck=expectedReal>5&&!expectMore; // Duck appears only after reaching the final page.
@@ -95,4 +98,7 @@ async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={
  const many=Array.from({length:501},(_,i)=>run(i+1,[1]));
  await scenario('501 official Dailies total across two 500-row chunks',
   [...many,{...run(999,[1,1,1]),is_test:true}],[5],{expectMore:true});
+ const thousandPlus=Array.from({length:1001},(_,i)=>run(i+1,[1]));
+ await scenario('1001 official Dailies total across three 500-row chunks',
+  [...thousandPlus,{...run(1002,[1,1,1]),is_test:true}],[5,10,15],{expectMore:true});
 })().catch(err=>{console.error(err);process.exitCode=1});
