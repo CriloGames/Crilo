@@ -9,7 +9,7 @@ det=NudeDetector()
 pred=[]
 for i,row in enumerate(data):
  try:
-  found=det.detect(str(p/row['file']),score_threshold=.20)
+  found=det.detect(str(p/row['file']))
   genital=[x for x in found if 'GENITALIA' in x['class'] and 'EXPOSED' in x['class']]
   confidence=max((float(x['score']) for x in genital),default=0.0)
   pred.append({'file':row['file'],'label':row['label'],'score':confidence})
