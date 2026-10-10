@@ -27,6 +27,13 @@
     inDomain?'domain_open':
     null;
   if(page)track(page);
+  // Backup rank settlement if the nightly scheduled task is delayed.
+  // The server refuses to finalize an unfinished Daily period.
+  if(page==='leaderboard_page'){
+    criloDB.rpc('crilo_v3_finalize_periods').then(({error})=>{
+      if(error)console.warn('Daily rank settlement retry skipped:',error.message);
+    }).catch(()=>{});
+  }
   if(onPage('profile')){
    const id=new URLSearchParams(location.search).get('id');
    criloDB.auth.getSession().then(({data})=>{
