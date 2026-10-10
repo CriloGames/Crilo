@@ -115,7 +115,7 @@ self.onmessage=async event=>{
  busy=true;
  const id=msg.id;
  let bitmap=null;
- const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',genitalSuspected:false,genitalType:null,genitalEvidence:[],blank:false,visualResults:[],errors:[],stages:{}};
+ const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',genitalSuspected:false,genitalType:null,genitalEvidence:[],benignFace:false,blank:false,visualResults:[],errors:[],stages:{}};
  try{
   progress(id,'decode','Preparing image');
   bitmap=await getBitmap(msg.drawing);
@@ -143,11 +143,19 @@ self.onmessage=async event=>{
     out.shapeDetail=hint.detail||'';
     // Specialized structural checks for curved penis drawings and nested
     // or slit-like vulva doodles. Keep legacy outline detector as fallback.
-    importScripts('moderation-genital-review.js?v=1');
+    importScripts('moderation-genital-review.js?v=2');
     const genital=self.CriloGenitalReview.analyzePixels(pixels.data,canvas.width,canvas.height);
-    out.genitalSuspected=genital.suspected===true;
-    out.genitalType=genital.type||null;
-    out.genitalEvidence=Array.isArray(genital.evidence)?genital.evidence.slice(0,3):[];
+    // The old and new genital detectors must both respect a stronger
+    // smiley-face match (eyes plus wide smile/tongue).
+    out.benignFace=genital.benignFace===true;
+    if(out.benignFace){
+     out.shapeSuspected=false;
+     out.shapeDetail='Cartoon face with broad smile';
+    }
+    out.genitalSuspected=!out.benignFace&&genital.suspected===true;
+    out.genitalType=out.benignFace?null:(genital.type||null);
+    out.genitalEvidence=out.benignFace?[]:
+     Array.isArray(genital.evidence)?genital.evidence.slice(0,3):[];
     out.stages.shape='done';
    }catch(e){
     out.stages.shape='unavailable';
