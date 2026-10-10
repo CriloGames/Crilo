@@ -1,0 +1,37 @@
+name: Compare independent NSFW detectors (research only)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/prepare_public_nsfw_benchmark.py'
+      - 'research/evaluate_public_nudenet.py'
+      - 'research/evaluate_public_nsfwjs.cjs'
+      - '.github/workflows/nsfw-public-research.yml'
+permissions:
+  contents: read
+jobs:
+  public-proxy-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install public-dataset tools
+        run: python -m pip install requests pillow
+      - name: Generate public doodle examples (no user drawings)
+        run: python research/prepare_public_nsfw_benchmark.py --count 75
+      - name: Install NudeNet and run CPU model
+        continue-on-error: true
+        run: |
+          python -m pip install nudenet
+          python research/evaluate_public_nudenet.py
+      - name: Install and run NSFWJS CPU model
+        continue-on-error: true
+        run: |
+          npm install --no-save --no-package-lock --ignore-scripts=false @tensorflow/tfjs nsfwjs canvas
+          node research/evaluate_public_nsfwjs.cjs
