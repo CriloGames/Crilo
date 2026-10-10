@@ -19,10 +19,12 @@ assert.equal(badges.length,346);
 assert.match(html,/id="featuredBadgeOptions"/);
 assert.match(html,/id="featuredBadgeSearch"/);
 assert.match(html,/id="featuredClear"/);
-assert.match(html,/badge-collection\.css\?v=7/);
+assert.match(html,/badge-collection\.css\?v=8/);
 assert.match(html,/profile\.js\?v=92/);
 assert.match(css,/\.featured-slot\.featured-filled\[data-badge-rarity\]/);
 assert.match(css,/\.featured-pick-option\{/);
+assert.ok(!css.includes('.featured-pick-option{--crilo-badge-accent:'),
+ 'A generic picker color would override individual badge rarities');
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({
  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 })[c]);
