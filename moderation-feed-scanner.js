@@ -54,154 +54,173 @@ function classifyVisual(list){
  return {reason,label:good?top.label:'No strong category match',score:top.score};
 }
 window.CriloLocalSafety={classifyText,classifyVisual,candidateLabels,REASONS};
-let worker=null,ocrBroken=false,qrBroken=false,visionBroken=false,visionModel=null,scanning=false,started=false;
-let scannedCount=0,scannedFlagged=0;
-const statuses={ocr:'Waiting',qr:'Waiting',visual:'Waiting'};
-function setStatus(text){
- const e=$('reviewScanStatus');if(e)e.textContent=text;
+let background=null,pending=null,scanning=false,started=false,auto=true,visualChecks=true;
+let pendingTimer=null,processed=0,suspected=0,cancelled=0,unavailable=false;
+let nowStage={qr:'Waiting',ocr:'Waiting',visual:'Waiting'};
+const waitMs=2500;
+function setStatus(message){
+ const p=$('reviewScanStatus');if(p)p.textContent=message;
 }
-function renderStatus(){
- const e=$('reviewScannerDetails');if(e)e.textContent='Text: '+statuses.ocr+' · QR: '+statuses.qr+' · Visual: '+statuses.visual;
+function showStage(){
+ const el=$('reviewScannerDetails');if(el)el.textContent=
+  'QR: '+nowStage.qr+'  ·  Text: '+nowStage.ocr+'  ·  Image: '+nowStage.visual;
 }
-function loadScript(src,test){
- if(test())return Promise.resolve();
- return new Promise((resolve,reject)=>{
-  const s=document.createElement('script');s.src=src;s.async=true;
-  s.onload=()=>test()?resolve():reject(Error('Library did not initialize'));
-  s.onerror=()=>reject(Error('Could not load scanner library'));
-  document.head.appendChild(s);
- });
-}
-function loadImage(src){
- return new Promise((resolve,reject)=>{
-  if(typeof src!=='string'||!/^data:image\/(png|jpeg|webp);base64,[a-z0-9+/=]+$/i.test(src))
-   return reject(Error('Invalid drawing data'));
-  const img=new Image();
-  img.onload=()=>resolve(img);
-  img.onerror=()=>reject(Error('Could not decode drawing'));
-  img.src=src;
- });
-}
-function canvasFor(image,scale=1){
- const c=document.createElement('canvas');
- c.width=Math.min(1600,Math.max(1,Math.round(image.naturalWidth*scale)));
- c.height=Math.min(1600,Math.max(1,Math.round(image.naturalHeight*scale)));
- const x=c.getContext('2d',{willReadFrequently:true});
- x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
- x.imageSmoothingEnabled=false;x.drawImage(image,0,0,c.width,c.height);
- return c;
-}
-async function scanQR(image){
- try{
-  if(qrBroken)throw Error('QR decoder unavailable');
-  statuses.qr='Loading';renderStatus();
-  await loadScript('https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',()=>typeof window.jsQR==='function');
-  for(const factor of [1,2,4]){
-   const c=canvasFor(image,factor),x=c.getContext('2d',{willReadFrequently:true});
-   const data=x.getImageData(0,0,c.width,c.height);
-   if(window.jsQR(data.data,c.width,c.height,{inversionAttempts:'attemptBoth'})){
-    statuses.qr='QR detected';renderStatus();return true;
-   }
-  }
-  statuses.qr='Checked';renderStatus();return false;
- }catch(err){qrBroken=true;statuses.qr='Unavailable';renderStatus();throw Error('QR: '+err.message)}
-}
-async function scanOCR(image){
- try{
-  if(ocrBroken)throw Error('OCR library unavailable');
-  statuses.ocr='Loading';renderStatus();
-  await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',()=>typeof window.Tesseract?.createWorker==='function');
-  if(!worker)worker=await window.Tesseract.createWorker('eng');
-  const large=canvasFor(image,Math.max(2,Math.ceil(900/Math.max(image.naturalWidth,image.naturalHeight))));
-  statuses.ocr='Reading text';renderStatus();
-  let result=await worker.recognize(large);
-  let output=String(result?.data?.text||'').slice(0,3500);
-  // A second high-contrast pass helps with simple handwriting and pixel letters.
-  if(!classifyText(output).length&&output.trim().length<12){
-   const ctx=large.getContext('2d',{willReadFrequently:true}),px=ctx.getImageData(0,0,large.width,large.height);
-   for(let i=0;i<px.data.length;i+=4){
-    const gray=0.299*px.data[i]+0.587*px.data[i+1]+0.114*px.data[i+2];
-    const v=gray<185?0:255;
-    px.data[i]=v;px.data[i+1]=v;px.data[i+2]=v;
-   }
-   ctx.putImageData(px,0,0);
-   result=await worker.recognize(large);
-   output+=' '+String(result?.data?.text||'').slice(0,3000);
-  }
-  statuses.ocr='Checked';renderStatus();
-  return output.slice(0,4096);
- }catch(err){ocrBroken=true;statuses.ocr='Unavailable';renderStatus();throw Error('Text OCR: '+err.message)}
-}
-async function scanVisual(image){
- try{
-  if(visionBroken)throw Error('Visual classifier unavailable');
-  statuses.visual='Loading local model';renderStatus();
-  if(!visionModel){
-   const lib=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
-   visionModel=await lib.pipeline('zero-shot-image-classification','Xenova/siglip-base-patch16-224',{device:'wasm',dtype:'q8'});
-  }
-  statuses.visual='Classifying drawing';renderStatus();
-  const c=canvasFor(image,Math.max(1,Math.ceil(224/Math.max(image.naturalWidth,image.naturalHeight))));
-  const result=await visionModel(c.toDataURL('image/png'),candidateLabels);
-  statuses.visual='Checked (advisory)';renderStatus();
-  return classifyVisual(result);
- }catch(err){visionBroken=true;statuses.visual='Unavailable';renderStatus();throw Error('Visual model: '+err.message)}
-}
-async function runJob(job){
- const problems=[],reasons=[],src=job.drawing;
- let recognized='',visual={label:null,score:null,reason:null},qrFound=false;
- setStatus('Scanning '+(job.is_test?'Owner Test Run':'player drawing')+' (local device only)…');
- let image;
- try{image=await loadImage(src)}
- catch(err){problems.push(String(err.message))}
- if(image){
-  try{qrFound=await scanQR(image);if(qrFound)reasons.push(REASONS.qr)}catch(err){problems.push(err.message)}
-  try{recognized=await scanOCR(image);reasons.push(...classifyText(recognized))}
-  catch(err){problems.push(err.message)}
-  try{visual=await scanVisual(image);if(visual.reason)reasons.push(visual.reason)}
-  catch(err){problems.push(err.message)}
+function resetStage(){nowStage={qr:'Waiting',ocr:'Waiting',visual:'Waiting'};showStage()}
+function startWorker(){
+ if(unavailable)throw Error('Background scanning is unavailable in this browser');
+ if(background)return background;
+ if(typeof Worker==='undefined'){
+  unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const payload={
-  p_run_id:String(job.run_id),p_is_test:!!job.is_test,
-  p_reasons:[...new Set(reasons)],p_text:recognized.trim().slice(0,300),
-  p_visual_label:visual.label,p_visual_score:visual.score,
-  p_error:problems.length?problems.join('; ').slice(0,250):null
- };
- const {data,error}=await criloDB.rpc('crilo_owner_local_scan_save',payload);
- if(error)throw error;
- if(data!==true)throw Error('Run no longer awaiting review');
- scannedCount++;if(payload.p_reasons.length)scannedFlagged++;
- if(problems.length)setStatus('Partial scan: '+problems.join(' · ')+'. Inspect manually.');
- else setStatus('Scanned '+scannedCount+' drawing(s), '+scannedFlagged+' with review suggestions. No automatic actions.');
- await window.criloRefreshDrawingFeed?.();
-}
-async function scanBatch(){
- if(scanning||document.hidden||!owner())return;
- scanning=true;
- try{
-  const {data,error}=await criloDB.rpc('crilo_owner_local_scan_jobs',{p_limit:3});
-  if(error)throw error;
-  if(!data?.length){
-   if(!scannedCount)setStatus('No new drawings to scan. Previously scanned drawings remain in the feed.');
+ const active=new Worker('moderation-scan-worker.js?v=1');
+ background=active;
+ active.onmessage=e=>{
+  const data=e.data;
+  if(!pending||active!==background||data.id!==pending.id)return;
+  if(data.type==='progress'){
+   const phase=data.step==='visual'?'visual':data.step==='ocr'?'ocr':data.step==='qr'?'qr':null;
+   if(phase)nowStage[phase]=data.detail||'Working';
+   showStage();
+   setStatus((pending.is_test?'Test Run':'Player drawing')+': '+(data.detail||'Scanning')+'…');
    return;
   }
-  for(const job of data){
-   if(document.hidden||!owner())break;
-   try{await runJob(job)}
-   catch(err){setStatus('Scan could not be saved: '+err.message+'. Refresh to retry.');console.warn('Crilo local drawing scanner',err)}
+  if(data.type==='result'){
+   const job=pending;pending=null;
+   clearTimeout(job.timeout);
+   nowStage={
+    qr:data.stages?.qr==='done'?'Done':data.stages?.qr==='unavailable'?'Unavailable':'Not started',
+    ocr:data.stages?.ocr==='done'?'Done':data.stages?.ocr==='unavailable'?'Unavailable':'Not started',
+    visual:data.stages?.visual==='done'?'Done':data.stages?.visual==='skipped'?'Off':data.stages?.visual==='unavailable'?'Unavailable':'Not started'
+   };
+   showStage();
+   job.resolve(data);
   }
- }catch(err){setStatus('Scanner unavailable: '+err.message)}
- finally{scanning=false}
+ };
+ active.onerror=e=>{
+  e.preventDefault?.();
+  if(active!==background)return;
+  const fail=pending;pending=null;
+  if(fail){clearTimeout(fail.timeout);fail.reject(Error('Background worker crashed'));}
+  active.terminate();background=null;unavailable=true;
+  setStatus('Background scanner could not start. Review drawings manually.');
+ };
+ return active;
 }
-window.criloScanPendingDrawings=scanBatch;
-window.CriloLocalSafety.start=()=>{
- if(started||!owner())return;started=true;
- setStatus('Free local scan ready. No images sent to a paid API.');
- scanBatch();
-};
-window.addEventListener('crilo-auth-ready',window.CriloLocalSafety.start);
-setTimeout(window.CriloLocalSafety.start,1500);
-setInterval(scanBatch,30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)scanBatch()});
-window.addEventListener('beforeunload',()=>{if(worker)worker.terminate().catch(()=>{})});
+function stopActive(){
+ cancelled++;
+ if(pending){
+  const job=pending;pending=null;clearTimeout(job.timeout);
+  job.reject(Error('Scan paused'));
+ }
+ if(background){background.terminate();background=null;}
+}
+function runInWorker(item){
+ return new Promise((resolve,reject)=>{
+  let active;
+  try{active=startWorker();}
+  catch(err){reject(err);return}
+  const id=++cancelled;
+  pending={id,is_test:!!item.is_test,resolve,reject,timeout:setTimeout(()=>{
+   if(!pending||pending.id!==id)return;
+   pending=null;
+   active.terminate();
+   if(background===active)background=null;
+   reject(Error('Scan exceeded 3 minutes; review manually or retry'));
+  },180000)};
+  active.postMessage({type:'scan',id,drawing:item.drawing,checkVisual:visualChecks});
+ });
+}
+function schedule(delay=waitMs){
+ if(pendingTimer!==null)clearTimeout(pendingTimer);
+ pendingTimer=null;
+ if(!auto||document.hidden||!owner()||unavailable)return;
+ pendingTimer=setTimeout(()=>{pendingTimer=null;scanNext(false)},delay);
+}
+async function scanNext(manual=false){
+ if(scanning||document.hidden||!owner()||(!auto&&!manual))return;
+ scanning=true;
+ try{
+  if(unavailable)throw Error('Background scanner unavailable in this browser');
+  const {data,error}=await criloDB.rpc('crilo_owner_local_scan_jobs',{p_limit:1});
+  if(error)throw error;
+  const item=data?.[0];
+  if(!item || (item.is_test&&!$('showOwnerTests')?.checked)){
+   setStatus(item?.is_test?'Player drawings checked. Enable Test Runs to scan those too.':
+    'Up to date. New drawings will be checked in the background.');
+   resetStage();
+   return;
+  }
+  resetStage();
+  const idAtStart=cancelled;
+  let result;
+  try{result=await runInWorker(item)}
+  catch(err){
+   if(String(err.message).includes('Scan paused'))return;
+   setStatus('Scan interrupted: '+err.message+'. You can retry; manual review is still available.');
+   // A crashed/unsupported scanner must never produce a "clear" result.
+   if(!unavailable)unavailable=true;
+   return;
+  }
+  if(!owner()||document.hidden||cancelled!==idAtStart+1)return;
+  const visual=classifyVisual(result.visualResults);
+  const reasons=[...(result.qrFound?[REASONS.qr]:[]),...classifyText(result.ocrText)];
+  if(visual.reason)reasons.push(visual.reason);
+  if(!result.errors?.length && result.stages?.qr!=='done')result.errors=['QR was not checked'];
+  const payload={
+   p_run_id:String(item.run_id),p_is_test:!!item.is_test,
+   p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
+   p_visual_label:visual.label,p_visual_score:visual.score,
+   p_error:(result.errors||[]).length?result.errors.join('; ').slice(0,250):null
+  };
+  const saved=await criloDB.rpc('crilo_owner_local_scan_save',payload);
+  if(saved.error)throw saved.error;
+  if(saved.data!==true)throw Error('Run is no longer awaiting review');
+  processed++;if(payload.p_reasons.length)suspected++;
+  setStatus('Checked '+processed+' drawing'+(processed!==1?'s':'')+
+   ' · '+suspected+' suggested for your review'+(payload.p_error?' · Some checks unavailable':'')+
+   '. No automatic removal or bans.');
+  await window.criloRefreshDrawingFeed?.();
+ }catch(err){
+  setStatus('Scan error: '+err.message+'. Drawings remain available for your review.');
+ }finally{
+  scanning=false;
+  if(!manual) schedule();
+  else if(auto)schedule(6000);
+ }
+}
+function setAuto(value){
+ auto=!!value;
+ const btn=$('reviewToggleScan');
+ if(btn){btn.textContent=auto?'Pause scanning':'Resume scanning';btn.setAttribute('aria-pressed',String(!auto));}
+ if(!auto){
+  if(pendingTimer!==null)clearTimeout(pendingTimer);
+  pendingTimer=null;stopActive();setStatus('Paused. You can review and moderate drawings without scanning.');
+ }else{
+  unavailable=false;setStatus('Background checks are on; processing one drawing at a time.');
+  schedule(1200);
+ }
+}
+function init(){
+ if(started||!owner())return;
+ started=true;resetStage();
+ if($('reviewToggleScan'))$('reviewToggleScan').addEventListener('click',()=>setAuto(!auto));
+ if($('reviewScanNext'))$('reviewScanNext').addEventListener('click',()=>scanNext(true));
+ if($('reviewVisualEnabled'))$('reviewVisualEnabled').addEventListener('change',e=>{
+  visualChecks=!!e.target.checked;
+  if(!visualChecks)nowStage.visual='Off';
+  showStage();
+ });
+ if($('showOwnerTests'))$('showOwnerTests').addEventListener('change',()=>{if(auto)schedule(500)});
+ setStatus('Background scanning ready. The page remains responsive while checks run.');
+ schedule(1600);
+}
+window.criloScanPendingDrawings=()=>scanNext(true);
+window.CriloLocalSafety.start=init;
+window.addEventListener('crilo-auth-ready',init);
+setTimeout(init,1500);
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){if(pendingTimer!==null)clearTimeout(pendingTimer);pendingTimer=null;stopActive();}
+ else if(auto){if(unavailable)unavailable=false;schedule(1200)}
+});
+window.addEventListener('beforeunload',stopActive);
 })();
