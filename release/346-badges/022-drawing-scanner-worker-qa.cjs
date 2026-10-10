@@ -128,10 +128,11 @@ async function feedTest(){
  const image='data:image/png;base64,QUJD';
  const data=[{run_id:'11',is_test:false,username:'Tester',drawing:image,score:15,submitted_at:'2026-10-10T09:00:00Z'},
   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,username:'Owner',drawing:image,score:88,submitted_at:'2026-10-10T08:00:00Z'}];
+ const scans=[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',checked_at:'2026-10-10T10:00:00Z'},
+   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',checked_at:'2026-10-10T10:01:00Z'}];
  const db={rpc:async(name)=>{
   if(name==='crilo_owner_drawing_feed')return {data};
-  if(name==='crilo_owner_local_scan_report')return {data:[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',checked_at:'2026-10-10T10:00:00Z'},
-   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',checked_at:'2026-10-10T10:01:00Z'}]};
+  if(name==='crilo_owner_local_scan_report')return {data:scans};
   return {data:[]};
  }};
  vm.runInNewContext(feed,{window:w,document:doc,criloDB:db,
@@ -164,6 +165,17 @@ async function feedTest(){
  assert.equal(node('reviewBan').disabled,true,'Never ban accounts via Test Run moderation');
  assert.equal(node('reviewApprove').disabled,true,'Test Run is only for inspection');
  node('reviewClose').handlers.click();
+ // Regression for the actual 3:33 AM false negative: an extremely low
+ // visual score from an earlier scan must NOT be shown as NO FLAGS.
+ scans[1].visual_score=0.00195244;
+ scans[1].visual_label='No strong category match';
+ scans[1].checked_at='2026-10-10T10:02:00Z';
+ await w.criloRefreshDrawingFeed();
+ const updated=node('drawingReviewList').innerHTML;
+ assert.ok(updated.includes('Visual result uncertain'),
+  'Older low-confidence scan must request manual inspection');
+ assert.ok(updated.includes('>REVIEW SUGGESTED</span>'),
+  'Low-confidence Owner Test Run should be prioritized, not shown as NO FLAGS');
 
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
