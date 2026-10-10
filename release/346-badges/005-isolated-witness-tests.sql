@@ -23,3 +23,23 @@ SELECT count(*) total,
  SELECT 1 FROM crilo_badge_prelaunch.qualifying_run_badges('[]'::jsonb,w.score) q
  WHERE q.badge_key=w.badge_key)) accepts_missing_history
 FROM crilo_badge_prelaunch.qa_run_witnesses w;
+
+-- Every badge must also reject at least one other REALISTIC, fully valid
+-- wheel outcome sequence in the private fixture pool (not merely empty JSON).
+WITH valid_negative AS(
+ SELECT d.badge_key, EXISTS(
+   SELECT 1 FROM crilo_badge_prelaunch.qa_run_witnesses w
+   WHERE w.badge_key<>d.badge_key
+     AND crilo_badge_prelaunch.run_evidence(w.results)->>'valid'='true'
+     AND NOT crilo_badge_prelaunch.qualifies_run(
+         d.rule,crilo_badge_prelaunch.run_evidence(w.results))
+ ) AS negative_found
+ FROM crilo_badge_prelaunch.definitions d
+ WHERE d.rule->>'rule' IN (
+  'hit_exact','score_band','event_total','event_streak','sequence',
+  'challenge','first_event','final_base','spin_position','base_total',
+  'base_sequence','number_sequence','first_last','variety')
+)
+SELECT count(*) AS run_based_badges,
+       count(*) FILTER(WHERE negative_found) AS valid_nonqualifying_witnesses
+FROM valid_negative;
