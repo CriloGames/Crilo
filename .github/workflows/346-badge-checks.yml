@@ -7,6 +7,11 @@ on:
       - release/346-badges-prelaunch
     paths:
       - 'app.js'
+      - 'release/346-badges/043-site-connections-smoke.cjs'
+      - 'owner-profile-scores.js'
+      - 'badge-events.js'
+      - 'support.html'
+      - 'friends.js'
       - 'ducks.html'
       - 'friends.html'
       - 'settings.html'
@@ -41,6 +46,11 @@ on:
       - main
     paths:
       - 'app.js'
+      - 'release/346-badges/043-site-connections-smoke.cjs'
+      - 'owner-profile-scores.js'
+      - 'badge-events.js'
+      - 'support.html'
+      - 'friends.js'
       - 'ducks.html'
       - 'friends.html'
       - 'settings.html'
@@ -87,6 +97,10 @@ jobs:
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
+          node --check friends.js
+          node --check badge-events.js
+          node --check badge-sets.js
+          node --check owner-profile-scores.js
           node --check game.js
           node --check rarity-system.js
           node --check badge-events.js
@@ -104,6 +118,8 @@ jobs:
           node --check moderation-genital-review.js
           node --check moderation-example-features.js
           node --check moderation-feedback.js
+      - name: Audit all page links, friend invites, badge triggers and owner controls
+        run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
         run: node release/346-badges/041-shared-signin-pages-smoke.cjs
       - name: Run official-spin client regression tests
