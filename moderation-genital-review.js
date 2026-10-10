@@ -19,6 +19,44 @@ function analyzePixels(rgba,w,h){
  const fraction=n/(w*h);
  if(fraction<0.002||fraction>0.32)return {suspected:false,type:null,evidence:[]};
  const shapes=root.CriloShapeReview?.regions?.(rgba,w,h)||[];
+ // Conservative facial-expression veto: two round eyes with a broad, separate
+ // mouth line extending under BOTH eyes are much likelier to be smiley doodles
+ // than two anatomical lobes. Do not mistake a hanging tongue for a shaft.
+ // Only affects geometric genital hints; other detection signals stay active.
+ function hasBroadSmilingMouth(){
+  for(let i=0;i<shapes.length;i++)for(let j=i+1;j<shapes.length;j++){
+   const first=shapes[i],second=shapes[j];
+   if(first.ratio>1.75||second.ratio>1.75)continue;
+   const left=first.center.x<second.center.x?first:second;
+   const right=left===first?second:first;
+   const diam=(left.diameter+right.diameter)/2;
+   const sep=right.center.x-left.center.x;
+   if(sep<diam*0.85||sep>diam*3.5)continue;
+   if(Math.abs(left.center.y-right.center.y)>diam*0.48)continue;
+   const eyeBottom=Math.max(left.bbox[3],right.bbox[3]);
+   const yMax=Math.min(h-1,Math.round(eyeBottom+diam*1.75));
+   const yMin=Math.round(eyeBottom+Math.max(3,diam*0.14));
+   if(yMax<=yMin)continue;
+   // Count independent x-columns with a mouth segment BELOW both eyes.
+   const xFrom=Math.max(0,Math.round(left.center.x-diam*0.12));
+   const xTo=Math.min(w-1,Math.round(right.center.x+diam*0.12));
+   let total=0,marked=0,firstMarked=false,lastMarked=false;
+   for(let x=xFrom;x<=xTo;x+=2){
+    total++;let hit=false;
+    for(let y=yMin;y<=yMax;y+=2)if(dark[y*w+x]){
+     hit=true;break;
+    }
+    if(hit){marked++;
+     if(x<xFrom+(xTo-xFrom)*0.20)firstMarked=true;
+     if(x>xTo-(xTo-xFrom)*0.20)lastMarked=true;
+    }
+   }
+   if(total>=9&&marked/total>=0.73&&firstMarked&&lastMarked)return true;
+  }
+  return false;
+ }
+ if(hasBroadSmilingMouth())return {suspected:false,type:null,
+  evidence:[],benignFace:true};
  const regionPairs=[];
  // A common penis doodle consists of two rounded testicles adjacent to the
  // tip of a curved/tapered shaft. The previous rule insisted that ALL THREE
