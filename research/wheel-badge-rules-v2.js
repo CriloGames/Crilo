@@ -18,6 +18,23 @@
  {type:'upgrade',kind:'streak',tiers:{rare:2,epic:3,mythic:4}}
  ];
  const types=new Set(['num','duck','double','spins','upgrade']);
+ // Score rarity uses the percentage of simulated *completed runs* reaching this score or higher.
+ const scoreTiers=[
+  {rarity:'mythic',max:0.0001},
+  {rarity:'legendary',max:0.001},
+  {rarity:'epic',max:0.01},
+  {rarity:'rare',max:0.05},
+  {rarity:'uncommon',max:0.20},
+  {rarity:'common',max:1}
+ ];
+ const scoreRules=Object.freeze(scoreTiers.map(x=>Object.freeze({
+  key:'v2_score_rarity_'+x.rarity,kind:'score_rarity',rarity:x.rarity,maxTailProbability:x.max
+ })));
+ function classifyScoreTail(tailProbability){
+  if(typeof tailProbability!=='number'||!Number.isFinite(tailProbability)||tailProbability<0||tailProbability>1)
+   throw Error('Score rarity requires a valid verified tail probability between 0 and 1');
+  return scoreTiers.find(t=>tailProbability<=t.max).rarity;
+ }
  const rules=Object.freeze(families.flatMap(f=>Object.entries(f.tiers).map(([rarity,threshold])=>Object.freeze({
   key:'v2_'+f.type+'_'+f.kind+'_'+threshold,type:f.type,kind:f.kind,threshold,rarity
  }))));
@@ -38,10 +55,12 @@
   }
   return {totals,streaks,upgrades,segments};
  }
- function evaluate(results){
+ function evaluate(results,scoreTailProbability){
   const stats=analyze(results);
   const earned=rules.filter(rule=>(rule.kind==='total'?stats.totals:stats.streaks)[rule.type]>=rule.threshold).map(r=>r.key);
+  // Exactly ONE score-tier badge per completed official run, never all lower tiers.
+  if(scoreTailProbability!==undefined)earned.push('v2_score_rarity_'+classifyScoreTail(scoreTailProbability));
   return {earned,stats};
  }
- return {rules,analyze,evaluate};
+ return {rules,scoreRules,classifyScoreTail,analyze,evaluate};
 });
