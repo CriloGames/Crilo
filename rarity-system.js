@@ -3,12 +3,22 @@
 window.CriloRarity=(()=>{
  const COUNT=100000;
  const levels=[
-  {key:'mythic',label:'MYTHIC',max:0.002},
-  {key:'legendary',label:'LEGENDARY',max:0.004},
-  {key:'epic',label:'EPIC',max:0.01},
-  {key:'rare',label:'RARE',max:0.05},
-  {key:'uncommon',label:'UNCOMMON',max:0.20},
-  {key:'common',label:'COMMON',max:1}
+  {key:'mythic',label:'MYTHIC',max:0.01},
+  {key:'anomaly',label:'ANOMALY',max:0.05},
+  {key:'epic',label:'EPIC',max:0.10},
+  {key:'rare',label:'RARE',max:0.25},
+  {key:'uncommon',label:'UNCOMMON',max:0.50},
+  {key:'common',label:'COMMON',max:0.99},
+  {key:'trash',label:'TRASH',max:1}
+ ];
+ const scoreBands=[
+ {key:'trash',min:0,max:6},
+ {key:'common',min:7,max:24},
+ {key:'uncommon',min:25,max:48},
+ {key:'rare',min:49,max:92},
+ {key:'epic',min:93,max:141},
+ {key:'anomaly',min:142,max:317},
+ {key:'mythic',min:318,max:Infinity}
  ];
  let sorted;
  function sample(){
@@ -36,15 +46,15 @@ window.CriloRarity=(()=>{
   sorted=data.sort((a,b)=>a-b);return sorted;
  }
  function classify(score){
-  const values=sample(),n=values.length;
-  let lo=0,hi=n;
+  const band=scoreBands.find(b=>score<=b.max)||scoreBands[scoreBands.length-1];
+  const values=sample(),n=values.length;let lo=0,hi=n;
   while(lo<hi){const mid=(lo+hi)>>>1;if(values[mid]<score)lo=mid+1;else hi=mid}
   const hits=n-lo,tail=hits/n;
-  // If none of 100k runs reached this score, don't claim an exact 1-in-X chance.
-  const level=levels.find(l=>tail<=l.max)||levels[levels.length-1];
-  return{label:level.label,color:level.key,probability:tail,odds:hits?Math.max(1,Math.round(n/hits)):n,hits,trials:n,
-    explanation:hits===0?'About 0% of runs reach this score or higher':'About '+(tail*100).toFixed(tail<0.01?3:tail<1?2:1)+'% of runs reach this score or higher'};
+  return{label:band.key.toUpperCase(),color:band.key,probability:tail,
+   odds:hits?Math.max(1,Math.round(n/hits)):null,hits,trials:n,
+   explanation:'Score tier based on 2,000,000-run reference: '+band.key.toUpperCase()+
+    '. '+(tail*100).toFixed(2)+'% of simulated runs scored at least this high.'};
  }
  function thresholds(){const data=sample();return levels.slice(0,-1).map(l=>({label:l.label,minScore:data[Math.max(0,Math.ceil(data.length*(1-l.max))-1)]}))}
- return{classify,thresholds,levels};
+ return{classify,thresholds,levels,scoreBands};
 })();
