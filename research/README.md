@@ -136,3 +136,7 @@ The independent proxy public doodle workflow at https://github.com/CriloGames/Cr
 ## Multiscale sketch detector experiment
 
 New research architecture in `research/train_multiscale_sketch.py` uses two views of each doodle: entire 200x200 canvas and a separately zoomed ink bounding box. An independent public-sample holdout is split by original sketch before training; validation chooses a threshold at <=1% observed false positives. A companion free GitHub Actions workflow trains on 1,800 public positive sketches and up to 1,800 ordinary sketches from 20 categories for 18 epochs. **No private drawings are uploaded or used by this workflow.** Public holdout success must never be mistaken for Crilo production accuracy; the pre-inspected 100 private Crilo examples remain diagnostics, not new independent validation. Don't enable production flags or bans from this model without stronger testing.
+
+### Multiscale public holdout result (run 38013163776)
+
+Completed research-only experiment: **TN=355, FP=5, FN=210, TP=150**, positive recall **41.67%** and false-positive rate **1.39%** at validation-chosen threshold ~0.999. This **fails** both the 80% recall and <=1% false-positive targets. No Crilo private drawings used in this training workflow. **Do not integrate the model into moderation.** A public sketch benchmark does not certify actual Crilo detection.
