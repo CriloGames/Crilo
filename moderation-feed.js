@@ -6,7 +6,7 @@ const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLigh
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(x);
 const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
-let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0;
+let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0,lastPaint='';
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
 const hintsFor=d=>[...(d.local?.reasons||[]),...(d.legacyHint?[d.legacyHint]:[])];
 function visible(d){
@@ -21,24 +21,42 @@ function visible(d){
 }
 function render(){
  const filtered=rows.filter(visible);
- const prioritized=rows.filter(d=>hintsFor(d).length>0).length;
- const remaining=rows.filter(d=>!d.is_test).length;
+ const priority=rows.filter(d=>hintsFor(d).length>0).length;
+ const pending=rows.filter(d=>!d.is_test).length;
  const unchecked=rows.filter(d=>!d.local).length;
- const incomplete=rows.filter(d=>d.local?.status==='partial').length;
- message.textContent=prioritized+' drawings suggested for review · '+remaining+' player drawings pending · '+unchecked+' not scanned · '+incomplete+' partial scans · Updated '+new Date().toLocaleTimeString();
- if($('reviewStats'))$('reviewStats').textContent=rows.length+' visible to owner · '+prioritized+' prioritized · '+unchecked+' awaiting local check';
+ const partial=rows.filter(d=>d.local?.status==='partial').length;
+ const update=(id,v)=>{const e=$(id);if(e&&e.textContent!==String(v))e.textContent=v};
+ update('reviewCountPending',pending);
+ update('reviewCountFlagged',priority);
+ update('reviewCountUnscanned',unchecked);
+ update('reviewCountPartial',partial);
+ update('reviewStats',filtered.length+' shown · '+rows.filter(d=>d.is_test).length+' Test Runs included');
+ update('reviewMessage','Results are advisory. Select a drawing for details and owner decisions.');
+ // Avoid recreating large base64 <img> elements on every 30-second refresh.
+ // Repeated reflows and image decoding caused UI freezes while scanning.
+ const signature=filter+'|'+filtered.map(d=>[
+  key(d),d.score,d.username,d.review_status,d.local?.status||'',
+  (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||''
+ ].join(':')).join('|');
+ if(signature===lastPaint)return;
+ if(chosen&&!modal.classList.contains('hidden'))return;
+ lastPaint=signature;
  list.innerHTML=filtered.length?filtered.map(d=>{
-  const i=rows.indexOf(d);
-  const why=hintsFor(d);
-  const status=why.length?'REVIEW SUGGESTED':!d.local?'NOT SCANNED':d.local.status==='partial'?'PARTIAL SCAN':d.is_test?'OWNER TEST':'NO FLAGS FOUND';
-  const chips=why.length?'<span class="crilo-review-reasons">'+why.slice(0,3).map(w=>'<em>'+escape(w)+'</em>').join('')+(why.length>3?'<em>+'+(why.length-3)+'</em>':'')+'</span>':'';
-  return '<button type="button" class="crilo-review-row'+(why.length?' crilo-review-suspected':'')+'" data-index="'+i+'">'+
-   '<span class="crilo-review-rank">'+(i+1)+'</span>'+
-   '<span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Drawing preview" loading="lazy"></span>'+
-   '<span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
+  const i=rows.indexOf(d),why=hintsFor(d);
+  const status=why.length?'REVIEW SUGGESTED':!d.local?'NOT CHECKED':
+   d.local.status==='partial'?'INCOMPLETE CHECK':d.is_test?'OWNER TEST':'NO FLAGS';
+  const chips=why.length?'<span class="crilo-review-reasons">'+
+   why.slice(0,3).map(w=>'<em>'+escape(w)+'</em>').join('')+
+   (why.length>3?'<em>+'+(why.length-3)+'</em>':'')+'</span>':'';
+  return '<button type="button" class="crilo-review-row'+(why.length?' crilo-review-suspected':'')+
+   '" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span>'+
+   '<span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+
+   '" alt="Drawing preview" loading="lazy" decoding="async"></span>'+
+   '<span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+
+   escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
    '<span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span>'+
-   '<span class="crilo-review-state" data-state="'+(why.length?'flagged':d.local?.status==='partial'?'partial':'normal')+'">'+status+'</span>'+
-   '<span aria-hidden="true">↗</span></button>';
+   '<span class="crilo-review-state" data-state="'+(why.length?'flagged':d.local?.status==='partial'?'partial':'normal')+'">'+
+   status+'</span><span aria-hidden="true">↗</span></button>';
  }).join(''):'<p class="muted">No drawings match this filter.</p>';
 }
 async function refresh(){
@@ -73,6 +91,7 @@ async function refresh(){
 }
 function close(){
  modal.classList.add('hidden');chosen=null;$('reviewLargeDrawing').removeAttribute('src');
+ render();
 }
 function open(i){
  chosen=rows[i];if(!chosen)return;
@@ -163,7 +182,7 @@ $('reviewRetry').addEventListener('click',async()=>{
 });
 $('reviewRefresh').addEventListener('click',()=>{refresh();window.criloScanPendingDrawings?.()});
 $('showOwnerTests').addEventListener('change',refresh);
-$('reviewFilter').addEventListener('change',e=>{filter=e.target.value;render()});
+$('reviewFilter').addEventListener('change',e=>{filter=e.target.value;lastPaint='';render()});
 window.criloRefreshDrawingFeed=refresh;
 window.addEventListener('crilo-auth-ready',()=>{if(isOwner())refresh();else{
  list.replaceChildren();message.textContent='Owner access only.';}});
