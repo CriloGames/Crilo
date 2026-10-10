@@ -730,7 +730,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 }
 .crilo-beetle-track.paused .crilo-beetle-trick-right,.crilo-beetle-track.paused .crilo-beetle-trick-left{animation-play-state:paused!important}
 /* The landing is an ornament, never a clickable overlay; one per return, then disappears. */
-.crilo-beetle-dropping{position:absolute;left:calc(46.74% + 46px);bottom:3px;width:24px;height:33px;opacity:0;pointer-events:none;transform-origin:50% 100%}
+.crilo-beetle-dropping{position:absolute;left:calc(46.74% + 29px);bottom:3px;width:24px;height:33px;opacity:0;pointer-events:none;transform-origin:50% 100%}
 .crilo-poop-art{position:absolute;width:22px;height:19px;left:0;bottom:0;filter:drop-shadow(0 1px 0 #00000012)}
 .crilo-poop-fly{position:absolute;left:9px;bottom:21px;width:5px;height:4px;border-radius:50%;background:#272a2c;opacity:.95}
 .crilo-poop-fly:before,.crilo-poop-fly:after{content:"";position:absolute;top:-3px;width:4px;height:4px;border-radius:75%;background:#d7ebee;border:1px solid #869da0}
@@ -763,7 +763,10 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
   98.4%,100%{transform:scaleX(1)}
 }
 /* On the return the beetle's back passes the drop position around 74.5%.
-   Keep the landing ~5px behind the moving body at all screen widths.
+   The left edge at this frame is roughly 46.74% of track width minus
+   34px (desktop) / 30px (mobile). The mirrored SVG's rear is about
+   60px / 52px inside that button. Place the dropping 3px past the rear,
+   rather than the previous 17-20px gap, across viewport widths.
    A rare trick on EITHER wall suppresses poop and flies for that entire lap. */
 .crilo-beetle-track.walking[class*="beetle-right-"] .crilo-beetle-dropping,
 .crilo-beetle-track.walking[class*="beetle-left-"] .crilo-beetle-dropping{animation:none!important;opacity:0!important}
@@ -788,7 +791,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 @keyframes criloLegB{from{transform:rotate(9deg)}to{transform:rotate(-9deg)}}
 @keyframes criloBeetleBob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
 .crilo-bug-card{max-width:500px}.crilo-bug-card form{display:flex;flex-direction:column;gap:10px}.crilo-bug-card label{font-size:13px;font-weight:800}.crilo-bug-card label span{font-weight:500;opacity:.65}.crilo-bug-card textarea{display:block;min-height:105px;width:100%;box-sizing:border-box;border:1.5px solid #b4bac5;border-radius:9px;background:var(--card,#fff);color:inherit;font:inherit;padding:12px;resize:vertical}.crilo-bug-card textarea:focus{outline:2px solid #93cbb0;outline-offset:1px}.crilo-bug-card #bugSteps{min-height:75px}.crilo-bug-card #bugReportStatus{min-height:20px}.bug-honeypot{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
-@media(max-width:600px){.crilo-beetle{height:34px}.crilo-beetle svg{width:59px;height:25px}.crilo-beetle-track{--beetle-width:65px;height:59px}.crilo-beetle-tooltip{bottom:36px}.crilo-beetle-dropping{left:calc(46.74% + 40px)}}
+@media(max-width:600px){.crilo-beetle{height:34px}.crilo-beetle svg{width:59px;height:25px}.crilo-beetle-track{--beetle-width:65px;height:59px}.crilo-beetle-tooltip{bottom:36px}.crilo-beetle-dropping{left:calc(46.74% + 25px)}}
 @media(prefers-reduced-motion:reduce){.crilo-beetle-track.walking .crilo-beetle,.crilo-beetle-track.walking .crilo-beetle-facing,.crilo-beetle-track.walking .crilo-beetle-trick-right,.crilo-beetle-track.walking .crilo-beetle-trick-left,.crilo-beetle-track.walking .beetle-legs,.crilo-beetle-track.walking svg,.crilo-beetle-track.walking .crilo-beetle-dropping,.crilo-beetle-track.walking .crilo-poop-fly{animation:none!important}.crilo-beetle-dropping{opacity:0!important}}
 
 /* Active-spin viewport: after the first SPIN, align the entire wheel,
