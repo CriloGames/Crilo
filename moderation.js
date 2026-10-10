@@ -34,9 +34,9 @@ async function load(){
   }).join('');
  }
  const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
- const uncertainRows=[];
- rows=flaggedRows;
- message.textContent=flaggedRows.length+' drawings flagged by text or image moderation. Uncertain visual predictions are diagnostics only.';
+ const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
+ rows=[...flaggedRows,...uncertainRows];
+ message.textContent=flaggedRows.length+' flagged drawings · '+uncertainRows.length+' visual predictions awaiting owner review. Predictions are not confirmed violations.';
  if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
@@ -49,6 +49,7 @@ function openDrawing(index,source=rows){
  $('reviewActionStatus').textContent=chosen.ai_status==='review'?'Needs manual review (not a confirmed violation). '+(chosen.ai_details||''):chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
  const pending=chosen.review_status==='pending' && (chosen.ai_status==='flagged'||chosen.ai_status==='review');
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
+ if(chosen.ai_status==='review')$('reviewBan').disabled=true;
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const row=e.target.closest('[data-index]');if(row)openDrawing(Number(row.dataset.index))});
@@ -205,6 +206,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&window.Cr
 async function act(action){
  if(!chosen)return;
  const current=chosen;
+ if(action==='ban'&&current.ai_status==='review'){ $('reviewActionStatus').textContent='A visual prediction alone cannot start a ban. Review the drawing first.';return;}
  const warning=action==='ban'?'Permanently ban '+current.username+' from Crilo? This will disable their account and remove this drawing.':action==='remove'?'Remove this drawing from Crilo? The player’s Daily score will remain unchanged.':'Mark this drawing as approved?';
  if(!window.confirm(warning))return;
  if(action==='ban'&&!window.confirm('Confirm again: apply the account restriction to '+current.username+'?'))return;
