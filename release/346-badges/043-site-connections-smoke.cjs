@@ -46,6 +46,8 @@ assert.ok(app.includes("location.search).get('invite')"),
 const catalog=load('badge-collection.js'),sets=load('badge-sets.js'),events=load('badge-events.js'),profile=load('profile.js');
 assert.ok(catalog.includes('window.CriloBadgeCollection='),
  'Profile and Collections must reuse one badge formatting model');
+assert.ok(sets.includes('event.isTrusted')&&sets.includes('!set.open')&&!sets.includes("addEventListener('toggle'"),
+ 'Auto-opened badge sets must not award exploration badges without a real player click');
 assert.ok(sets.includes("track('badge_detail')")&&!sets.includes("track('badge_filter')"),
  'Collection category expansion must not accidentally award Featured Badge change');
 assert.ok(profile.includes("track('badge_filter')")&&profile.includes('crilo_set_featured_badge'),
@@ -56,7 +58,7 @@ for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html
  'profile.html','settings.html','domain/index.html'])
  assert.ok(pagesSource[page].includes('badge-events.js?v=4'),
   'Updated badge exploration listeners not loaded on '+page);
-assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=6'),
+assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=7'),
  'Collection trigger cache must be current');
 for(const id of ['ownerScoreManager','ownerScoreList','ownerScoreStatus'])
  assert.ok(pagesSource['profile.html'].includes('id="'+id+'"'),
