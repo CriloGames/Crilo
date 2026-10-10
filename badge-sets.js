@@ -61,7 +61,8 @@
           const description=secret?'Unlock to reveal this secret achievement.':
             String(b.description||b.requirement?.rule?.condition||'Complete this achievement to unlock it.');
           return '<article class="collection-tile'+(owned?'':' locked')+'" data-badge-rarity="'+rarity+
-            '" title="'+esc(description)+'">'+
+            '" title="'+esc(description)+'" tabindex="0" role="button" aria-expanded="false"'+
+            ' aria-label="'+esc(title+'. '+subtitle+'. '+description+' Tap to expand.')+'">'+
             '<b>'+esc(title)+'</b><small>'+esc(subtitle)+'</small>'+
             '<p class="collection-tile-description">'+esc(description)+'</p></article>';
         }).join('');
@@ -89,6 +90,23 @@
       console.error('Crilo collection progress failed',error);
     }
   }
+
+  // The compact cards show a short preview. Click/tap or press Enter/Space
+  // to expand the full requirement without losing the native title tooltip.
+  const collectionContainer=$('collectionSets');
+  function toggleTile(event){
+    const tile=event.target.closest?.('.collection-tile');
+    if(!tile||!collectionContainer.contains(tile))return;
+    const expanded=tile.classList.toggle('expanded');
+    tile.setAttribute('aria-expanded',String(expanded));
+  }
+  collectionContainer.addEventListener?.('click',toggleTile);
+  collectionContainer.addEventListener?.('keydown',event=>{
+    if(event.target.matches?.('.collection-tile')&&(event.key==='Enter'||event.key===' ')){
+      event.preventDefault();
+      toggleTile(event);
+    }
+  });
 
   window.addEventListener('crilo-auth-ready',load);
   load();
