@@ -9,12 +9,24 @@ async function refresh(){
  if(busy||document.hidden||!window.Crilo?.user||!window.Crilo?.profile?.is_owner)return;
  busy=true;
  try{
-  const {data,error}=await criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200});
-  if(error)throw error;
-  rows=(data||[]).filter(x=>validDrawing(x.drawing)&&($('showOwnerTests').checked||!x.is_test));
-  const pending=rows.filter(x=>!x.is_test).length,tests=rows.length-pending;
-  message.textContent=pending+' player drawings awaiting review'+(tests?' · '+tests+' owner Test Runs':'')+' · Updated '+new Date().toLocaleTimeString();
-  list.innerHTML=rows.length?rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Drawing preview" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span><span class="crilo-review-state">'+(d.is_test?'OWNER TEST':'REVIEW')+'</span><span aria-hidden="true">↗</span></button>').join(''):'<p class="muted">No drawings waiting for review.</p>';
+  const [feed,flagged,flaggedTests,visual]=await Promise.all([
+    criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200}),
+    criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),
+    criloDB.rpc('crilo_owner_flagged_saved_tests'),
+    criloDB.rpc('crilo_owner_visual_candidates')
+  ]);
+  if(feed.error)throw feed.error;
+  const flags=new Map();
+  for(const x of [...(flagged.data||[]),...(flaggedTests.data||[])])
+    flags.set(String(x.run_id),'FLAGGED: TEXT / PROFANITY');
+  for(const x of visual.data||[])
+    if(!flags.has(String(x.run_id)))flags.set(String(x.run_id),'SUSPECTED IMAGE');
+  rows=(feed.data||[]).filter(x=>validDrawing(x.drawing)&&($('showOwnerTests').checked||!x.is_test))
+    .map(x=>({...x,reviewHint:flags.get(String(x.run_id))||''}))
+    .sort((a,b)=>Number(!!b.reviewHint)-Number(!!a.reviewHint)||new Date(b.submitted_at)-new Date(a.submitted_at));
+  const pending=rows.filter(x=>!x.is_test).length,tests=rows.length-pending,priority=rows.filter(x=>x.reviewHint).length;
+  message.textContent=priority+' flagged/suspected drawings prioritized · '+pending+' player drawings awaiting review'+(tests?' · '+tests+' owner Test Runs':'')+' · Updated '+new Date().toLocaleTimeString();
+  list.innerHTML=rows.length?rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Drawing preview" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span><span class="crilo-review-state">'+(d.reviewHint?escape(d.reviewHint):d.is_test?'OWNER TEST':'REVIEW')+'</span><span aria-hidden="true">↗</span></button>').join(''):'<p class="muted">No drawings waiting for review.</p>';
  }catch(error){message.textContent='Drawing feed could not load: '+error.message}
  finally{busy=false}
 }
@@ -24,7 +36,7 @@ function open(index){
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  $('reviewLargeDrawing').src=chosen.drawing;
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score||0).toLocaleString()+' points'+(chosen.is_test?' · Owner Test Run':'');
- $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':'Approve hides this drawing from the feed. Remove deletes the drawing but keeps its score.';
+ $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Approve hides this drawing from the feed. Remove deletes the drawing but keeps its score.';
  $('reviewApprove').disabled=!!chosen.is_test;$('reviewRemove').disabled=!!chosen.is_test;
  modal.classList.remove('hidden');
 }
