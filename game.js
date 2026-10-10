@@ -120,6 +120,11 @@ if(isTest){
  $('replayTestBtn').classList.remove('hidden');
 }else{
  $('message').textContent='Official Daily saved. See how you ranked.';
+ if(window.CriloBadgeEvents){
+  await window.CriloBadgeEvents.track('daily_run_screen');
+  await window.CriloBadgeEvents.track('daily_results');
+  if(!drawingIsBlank)await window.CriloBadgeEvents.track('drawing_mark');
+ }
  if(priorBadges)await showNewBadges(priorBadges);
  officialRun={...payload,is_test:false};
  
