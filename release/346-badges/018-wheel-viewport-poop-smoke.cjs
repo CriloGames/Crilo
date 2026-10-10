@@ -9,7 +9,7 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
-assert.ok(html.includes('style.css?v=83')&&html.includes('game.js?v=63'));
+assert.ok(html.includes('style.css?v=84')&&html.includes('game.js?v=64'));
 assert.ok(demo.includes('style.css?v=83'));
 assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);
 assert.doesNotMatch(html,/user-scalable=no|maximum-scale=1/);
@@ -17,6 +17,9 @@ assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'));
 assert.ok(html.indexOf('id="wheelScorePanel"')<html.indexOf('class="stats wheel-counts"'));
 assert.ok(html.indexOf('class="stats wheel-counts"')<html.indexOf('id="spinButton"'));
 assert.ok(css.includes('body.wheel-session-fit .wheel-wrap'));
+assert.ok(css.includes('.wheel-score-rarity,.wheel-score-hint{box-sizing:border-box;min-height:25px}'),
+ 'Neutral helper and visible tier occupy the same height');
+assert.ok(game.includes("const revealed=results.length>0"),'Rarity is revealed after resolution, not button press');
 assert.ok(css.includes('var(--crilo-wheel-fit,320px)'));
 assert.ok(css.includes('body.wheel-session-fit #spinButton'));
 assert.ok(css.includes('touch-action:manipulation'));

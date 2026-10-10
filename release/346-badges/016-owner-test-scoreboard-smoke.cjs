@@ -21,7 +21,12 @@ assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
-assert.match(indexHTML,/game\.js\?v=63/);
+assert.match(indexHTML,/game\.js\?v=64/);
+assert.match(indexHTML,/style\.css\?v=84/);
+assert.match(indexHTML,/id="wheelScorePanel" data-rarity="unrevealed"/);
+assert.match(indexHTML,/id="scoreTier" hidden/);
+assert.match(indexHTML,/id="scoreTierHint">Spin to reveal tier/);
+assert.match(scoreCSS,/\.wheel-score-rarity\[hidden\],\.wheel-score-hint\[hidden\]\{display:none!important\}/);
 assert.match(scoreCSS,/\.wheel-score\[data-rarity="mythic"\]/);
 assert.match(scoreCSS,/\.wheel-hud \.wheel-counts/);
 assert.ok(game.includes("if(isTest){\n // A Test Run must never fall through"),'Test save must fail closed');
@@ -122,7 +127,14 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.ok(owner.els.get('ownerSaveRunBtn').on_click,'Owner Test Run button is bound');
  owner.els.get('ownerSaveRunBtn').on_click();
  assert.equal(owner.els.get('testBanner').classList.contains('hidden'),false,'Owner Test mode visible');
- for(let i=0;i<5;i++)await owner.spin();
+ assert.equal(owner.els.get('wheelScorePanel').dataset.rarity,'unrevealed','No Trash tier before first owner Test spin');
+ assert.equal(owner.els.get('scoreTier').hidden,true);
+ assert.equal(owner.els.get('scoreTierHint').hidden,false);
+ await owner.spin(); // Resolved first result can still be Trash.
+ assert.equal(owner.els.get('wheelScorePanel').dataset.rarity,'trash','First resolved low score reveals Trash');
+ assert.equal(owner.els.get('scoreTier').hidden,false);
+ assert.equal(owner.els.get('scoreTierHint').hidden,true);
+ for(let i=1;i<5;i++)await owner.spin();
  await new Promise(setImmediate);
  assert.equal(owner.saved.length,0,'Test must not create official Daily row');
  assert.equal(owner.testSaved.length,1,'Private test uses its own RPC exactly once');
@@ -143,9 +155,14 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
   assert.equal(owner.els.get('scoreTierText').textContent,tier.toUpperCase());
   assert.equal(owner.els.get('scoreTier').id,'scoreTier');
  }
+ owner.els.get('ownerSaveRunBtn').on_click();
+ assert.equal(owner.els.get('wheelScorePanel').dataset.rarity,'unrevealed','Next owner Test run begins without Trash');
+ assert.equal(owner.els.get('scoreTier').hidden,true);
+ assert.equal(owner.els.get('scoreTierHint').hidden,false);
  console.log('PASS: owner Test Run saved privately, zero official inserts, zero badge events, and all 14 rarity score boundaries.');
  const x=mockClient(Array.from({length:5},()=>({type:'num',base:1})));
  await x.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
+ assert.equal(x.els.get('wheelScorePanel').dataset.rarity,'unrevealed','Official Daily starts neutral');
  for(let i=0;i<5;i++)await x.spin();
  // The animation is synchronously mocked, but endRun saves asynchronously.
  await new Promise(setImmediate);
@@ -159,7 +176,11 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
   ...Array.from({length:6},()=>({type:'num',base:1}))
  ]);
  await y.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
- for(let i=0;i<10;i++)await y.spin();
+ assert.equal(y.els.get('wheelScorePanel').dataset.rarity,'unrevealed');
+ await y.spin();
+ assert.equal(y.els.get('wheelScorePanel').dataset.rarity,'trash','First Duck reveals zero-point Trash after resolution');
+ assert.equal(y.els.get('scoreTier').hidden,false);
+ for(let i=1;i<10;i++)await y.spin();
  await new Promise(setImmediate);
  assert.equal(y.saved.length,1,'All-special run saved only once');
  assert.equal(y.saved[0].spins,10);

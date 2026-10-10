@@ -10,13 +10,16 @@ function label(s){return s.type==='num'?fmt(s.base*multiplier):s.label}
 function drawDuckIcon(x,y,size){ctx.save();ctx.translate(x,y);ctx.strokeStyle='#17191e';ctx.lineWidth=Math.max(2,size*.08);ctx.fillStyle='#ffe06a';ctx.beginPath();ctx.ellipse(-size*.08,size*.08,size*.34,size*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(size*.22,-size*.13,size*.19,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#17191e';ctx.beginPath();ctx.arc(size*.28,-size*.17,size*.035,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff9d4d';ctx.beginPath();ctx.moveTo(size*.39,-size*.11);ctx.lineTo(size*.58,-size*.04);ctx.lineTo(size*.39,size*.01);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
 function drawWheel(){const w=wheel.width,c=w/2,r=c-12,N=segments.length,a=Math.PI*2/N;ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);segments.forEach((s,i)=>{const st=i*a-Math.PI/2,en=st+a;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();const ang=st+a/2,tx=Math.cos(ang)*r*.69,ty=Math.sin(ang)*r*.69;if(s.type==='duck')drawDuckIcon(tx,ty,Math.max(34,Math.min(58,360/N)));else{ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);ctx.fillStyle='#17191e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`1000 ${Math.max(17,Math.min(s.type!=='num'?27:36,310/N))}px system-ui`;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=5;ctx.strokeText(label(s),0,0);ctx.fillText(label(s),0,0);ctx.restore()}});ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle='#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();drawing.style.transform=drawMode==='spin'?('rotate('+rotation+'rad)'):'none'}
 function update(){
+ const revealed=results.length>0; // Only a resolved spin counts, not a SPIN click.
  const band=window.CriloRarity?.scoreBands?.find(b=>score<=b.max)||
    {key:'trash',label:'TRASH'};
  const tier=String(band.key||'trash').toLowerCase();
  $('score').textContent=fmt(score);
- $('wheelScorePanel').dataset.rarity=tier;
- $('scoreTierText').textContent=tier.toUpperCase();
- $('scoreTier').setAttribute('aria-label','Score rarity: '+tier);
+ $('wheelScorePanel').dataset.rarity=revealed?tier:'unrevealed';
+ $('scoreTier').hidden=!revealed;
+ $('scoreTierHint').hidden=revealed;
+ $('scoreTierText').textContent=revealed?tier.toUpperCase():'';
+ $('scoreTier').setAttribute('aria-label',revealed?'Score rarity: '+tier:'Score rarity not yet revealed');
  $('spins').textContent=spins;
  $('level').textContent='×'+fmt(multiplier);
  $('duckCount').textContent=ducks;

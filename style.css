@@ -8,8 +8,9 @@
 /* Wheel scoreboard: one centered score above three compact run counters.
    Uses the same seven rarity colors as Badge Collections and Spin History. */
 .wheel-hud{max-width:640px;margin:20px auto 14px;text-align:center}
-.wheel-score{--score-accent:#8d531a;--score-tint:#f6e7d3;display:flex;align-items:center;flex-direction:column;gap:4px;
+.wheel-score{--score-accent:#8d949e;--score-tint:#f2f3f6;display:flex;align-items:center;flex-direction:column;gap:4px;
  width:100%;margin:0 auto;min-width:0;transition:color .24s ease}
+.wheel-score[data-rarity="unrevealed"]{--score-accent:#8d949e;--score-tint:#f2f3f6}
 .wheel-score[data-rarity="trash"]{--score-accent:#8d531a;--score-tint:#f6e7d3}
 .wheel-score[data-rarity="common"]{--score-accent:#7f8794;--score-tint:#eceef2}
 .wheel-score[data-rarity="uncommon"]{--score-accent:#49ab82;--score-tint:#e1f4ea}
@@ -27,6 +28,9 @@
  padding:6px 11px;border:1px solid color-mix(in srgb,var(--score-accent) 38%,#ffffff);
  background:var(--score-tint);color:color-mix(in srgb,var(--score-accent) 80%,#202226);
  border-radius:999px;transition:background-color .22s ease,border-color .22s ease}
+.wheel-score-rarity,.wheel-score-hint{box-sizing:border-box;min-height:25px}
+.wheel-score-rarity[hidden],.wheel-score-hint[hidden]{display:none!important}
+.wheel-score-hint{display:inline-flex;align-items:center;justify-content:center;margin-top:3px;padding:6px 11px;border:1px solid transparent;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;line-height:1.1;color:var(--muted)}
 .wheel-score-rarity-dot{width:6px;height:6px;border-radius:50%;background:var(--score-accent)}
 .wheel-hud .wheel-counts{display:flex;gap:clamp(18px,7vw,65px);justify-content:center;align-items:center;margin:22px auto 18px}
 .wheel-hud .wheel-counts>div{min-width:75px;text-align:center}
@@ -38,7 +42,7 @@ html[data-theme="dark"] .wheel-score-rarity{background:color-mix(in srgb,var(--s
  .wheel-hud{margin:14px auto 12px}
  .wheel-score-amount{font-size:clamp(44px,10vw,61px)}
  .wheel-score-eyebrow{font-size:10px}
- .wheel-score-rarity{font-size:9px}
+ .wheel-score-rarity,.wheel-score-hint{font-size:9px}
  .wheel-hud .wheel-counts{gap:clamp(12px,6vw,28px);margin:18px auto 15px}
  .wheel-hud .wheel-counts>div{min-width:65px}
 }
@@ -303,16 +307,25 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 #helpModal .modal-card{max-width:620px;max-height:min(88vh,900px);overflow-y:auto}
 .help-rarity{margin-top:25px;padding-top:23px;border-top:1px solid var(--line)}
 .help-rarity h3{font-size:22px;letter-spacing:-.03em;margin:9px 0 5px}
-.help-rarity>p{color:var(--muted);font-size:13px;line-height:1.5}
-.help-rarity-list{border:1px solid var(--line);border-radius:16px;overflow:hidden;margin:16px 0}
-.help-rarity-row{display:grid;grid-template-columns:12px 1fr auto;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.help-rarity>p{color:var(--muted);font-size:13px;line-height:1.55}
+.help-rarity-list{border:1px solid var(--line);border-radius:19px;overflow:hidden;margin:16px 0;background:var(--panel)}
+.help-rarity-row{display:grid;grid-template-columns:12px minmax(0,1fr) auto;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--help-accent) 7%,var(--panel))}
 .help-rarity-row:last-child{border-bottom:0}
-.help-rarity-row strong{font-size:14px}
-.help-rarity-row span{font-size:13px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
-.help-rarity-dot{display:block;width:11px;height:11px;border-radius:50%}
-.help-rarity-dot.mythic{background:#e05dcd}.help-rarity-dot.legendary{background:#e5b34e}.help-rarity-dot.epic{background:#9968df}.help-rarity-dot.rare{background:#4b91cf}.help-rarity-dot.uncommon{background:#56ae8a}.help-rarity-dot.common{background:#8b929e}
+.help-rarity-row[data-rarity="mythic"]{--help-accent:#d957c2}
+.help-rarity-row[data-rarity="anomaly"]{--help-accent:#d45722}
+.help-rarity-row[data-rarity="epic"]{--help-accent:#8e5ddd}
+.help-rarity-row[data-rarity="rare"]{--help-accent:#417fcb}
+.help-rarity-row[data-rarity="uncommon"]{--help-accent:#49ab82}
+.help-rarity-row[data-rarity="common"]{--help-accent:#7f8794}
+.help-rarity-row[data-rarity="trash"]{--help-accent:#8d531a}
+.help-rarity-dot{display:block;width:11px;height:11px;border-radius:50%;background:var(--help-accent)}
+.help-rarity-name{display:flex;flex-direction:column;gap:3px;min-width:0}
+.help-rarity-name strong{font-size:14px;line-height:1.1;color:var(--text)}
+.help-rarity-name small{font-size:11px;line-height:1.25;color:var(--muted);font-variant-numeric:tabular-nums}
+.help-rarity-rank{font-size:12px;font-weight:850;line-height:1.2;white-space:nowrap;color:var(--text);background:color-mix(in srgb,var(--help-accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--help-accent) 20%,var(--line));padding:7px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
 .help-rarity .help-rarity-note{font-size:12px;margin:10px 0 0}
-@media(max-width:480px){.help-rarity-row{padding:11px 12px}.help-rarity-row span{font-size:12px}}
+@media(max-width:480px){.help-rarity-row{padding:10px 12px;gap:9px}.help-rarity-rank{font-size:11px;padding:6px 8px}}
+@media(max-width:350px){.help-rarity-row{grid-template-columns:12px minmax(0,1fr)}.help-rarity-rank{grid-column:2;justify-self:start}}
 
 /* Four balanced live wheel statistics */
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;max-width:650px;margin-left:auto;margin-right:auto;gap:12px}
