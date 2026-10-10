@@ -54,6 +54,7 @@ async function decide(action){
 }
 $('reviewApprove').addEventListener('click',()=>decide('approve'));$('reviewRemove').addEventListener('click',()=>decide('remove'));
 $('reviewRefresh').addEventListener('click',refresh);$('showOwnerTests').addEventListener('change',refresh);
+window.criloRefreshDrawingFeed=refresh;
 window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner){refresh();}});
 setInterval(refresh,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 })();
