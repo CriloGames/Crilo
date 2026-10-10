@@ -1116,3 +1116,6 @@ html[data-theme="dark"] .crilo-review-state[data-state="partial"]{color:#f5d49d;
  .crilo-review-row .crilo-review-state{max-width:78px}
  .crilo-review-heading h1{font-size:36px}
 }
+
+.crilo-review-test-tag{display:inline-flex;vertical-align:middle;align-items:center;margin-left:8px;padding:3px 6px;border:1px solid #ccd3ec;border-radius:6px;background:#f0f2ff;color:#5961a3;font-size:9px;letter-spacing:.04em;font-weight:900}
+html[data-theme="dark"] .crilo-review-test-tag{background:#303350;border-color:#555b88;color:#d2d8ff}
