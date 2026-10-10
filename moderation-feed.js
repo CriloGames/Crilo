@@ -8,14 +8,9 @@ const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,
 const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
 let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0,lastPaint='';
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
-const hintsFor=d=>[
- ...(d.local?.reasons||[]),
- ...(d.local?.status==='partial'?['Manual inspection needed']:[]),
- ...(d.local?.status==='complete'&&Number.isFinite(d.local.visual_score)&&
-     d.local.visual_score<0.10&&!(d.local.reasons||[]).length?
-     ['Visual result uncertain — rescan advised']:[]),
- ...(d.legacyHint?[d.legacyHint]:[])
-];
+// Only evidence-based scan reasons (or a separately flagged legacy result)
+// make a drawing REVIEW SUGGESTED. Incomplete checks are a different status.
+const hintsFor=d=>[...(d.local?.reasons||[]),...(d.legacyHint?[d.legacyHint]:[])];
 function visible(d){
  const flagged=hintsFor(d).length>0;
  switch(filter){
@@ -43,7 +38,7 @@ function render(){
  // Repeated reflows and image decoding caused UI freezes while scanning.
  const signature=filter+'|'+filtered.map(d=>[
   key(d),d.score,d.username,d.review_status,d.local?.status||'',
-  (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||''
+  (d.local?.reasons||[]).join('/'),d.legacyHint||'',d.local?.checked_at||'',d.local?.error||''
  ].join(':')).join('|');
  if(signature===lastPaint)return;
  if(chosen&&!modal.classList.contains('hidden'))return;
