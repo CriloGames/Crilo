@@ -44,6 +44,25 @@ async function getBitmap(src){
  if(!data.ok)throw Error('Could not decode data URL');
  return createImageBitmap(await data.blob());
 }
+// Detect truly blank or nearly uniform canvases before loading expensive models.
+// A low vision similarity score does NOT imply a drawing is suspicious.
+function isNearlyBlank(bitmap){
+ const canvas=createCanvas(bitmap,160);
+ const {data}=canvas.getContext('2d',{willReadFrequently:true})
+  .getImageData(0,0,canvas.width,canvas.height);
+ const w=canvas.width,h=canvas.height;
+ if(w*h<100)return false;
+ const corners=[0,(w-1)*4,(h-1)*w*4,((h-1)*w+w-1)*4];
+ const median=channel=>corners.map(i=>data[i+channel]).sort((a,b)=>a-b)[1];
+ const base=[median(0),median(1),median(2)];
+ let changed=0;
+ const limit=Math.max(8,Math.floor(w*h*0.0015));
+ for(let i=0;i<data.length;i+=4){
+  if(Math.max(Math.abs(data[i]-base[0]),Math.abs(data[i+1]-base[1]),
+     Math.abs(data[i+2]-base[2]))>35 && ++changed>limit)return false;
+ }
+ return true;
+}
 async function readQR(bitmap,id){
  if(qrFailed)throw Error('QR library unavailable');
  progress(id,'qr','Checking QR codes');
@@ -96,10 +115,17 @@ self.onmessage=async event=>{
  busy=true;
  const id=msg.id;
  let bitmap=null;
- const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',visualResults:[],errors:[],stages:{}};
+ const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',blank:false,visualResults:[],errors:[],stages:{}};
  try{
   progress(id,'decode','Preparing image');
   bitmap=await getBitmap(msg.drawing);
+  if(isNearlyBlank(bitmap)){
+   out.blank=true;
+   out.stages={qr:'skipped_blank',ocr:'skipped_blank',
+    shape:'skipped_blank',visual:'skipped_blank'};
+   progress(id,'blank','Blank or nearly blank drawing');
+   return;
+  }
   try{out.qrFound=await readQR(bitmap,id);out.stages.qr='done';}
   catch(e){out.errors.push(String(e.message||e));out.stages.qr='unavailable';}
   try{out.ocrText=await readOCR(bitmap,id);out.stages.ocr='done';}
