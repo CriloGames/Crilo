@@ -55,9 +55,15 @@ assert.ok(worker.includes('out.shapeSuspected=hint.suspected===true'),
  'Worker must return outline result separately from SigLIP');
 assert.ok(scanner.includes('if(result.shapeSuspected===true)reasons.push(REASONS.genital)'),
  'Outline shape hints must be routed to a review flag');
-assert.ok(scanner.includes('Visual scan inconclusive on stylized drawing'),
- 'Low-confidence generic model results must not silently be called clear');
-assert.ok(feed.includes("d.local?.status==='partial'?['Manual inspection needed']"),
- 'Failed or uncertain visual analysis should be suggested for manual review');
+assert.ok(!scanner.includes('visual.score<0.10'),
+ 'A low relative image score is not evidence of abuse');
+assert.ok(scanner.includes("result.shapeSuspected===true"),
+ 'Actual shape hint must remain active after false-positive fix');
+assert.ok(!feed.includes('Visual result uncertain — rescan advised'),
+ 'Previously clean pictures must not be blanket-flagged');
+assert.ok(feed.includes("d.local.status==='partial'?'INCOMPLETE CHECK'"),
+ 'Failed or unfinished scans need their own status instead of a violation flag');
+assert.ok(worker.includes('isNearlyBlank(bitmap)'),
+ 'Blank drawings must have a fast path before expensive AI loading');
 console.log('PASS: outlined genital-like shapes at five orientations, harmless fixtures, worker integration');
 console.log('PASS: uncertain visual model cannot silently produce NO FLAGS; findings never auto-ban');
