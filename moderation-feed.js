@@ -36,7 +36,7 @@ function open(index){
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  $('reviewLargeDrawing').src=chosen.drawing;
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score||0).toLocaleString()+' points'+(chosen.is_test?' · Owner Test Run':'');
- $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Approve hides this drawing from the feed. Remove deletes the drawing but keeps its score.';
+ $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Approve hides this drawing from the feed. Remove permanently deletes the entire official run, including score and statistics.';
  $('reviewApprove').disabled=!!chosen.is_test;$('reviewRemove').disabled=!!chosen.is_test;
  modal.classList.remove('hidden');
 }
@@ -44,7 +44,8 @@ list.addEventListener('click',e=>{const b=e.target.closest('[data-index]');if(b)
 $('reviewClose').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 async function decide(action){
  const d=chosen;if(!d||d.is_test)return;
- if(!confirm(action==='remove'?'Permanently remove this drawing? The player score will be preserved.':'Approve and hide this drawing from review?'))return;
+ if(!confirm(action==='remove'?'Permanently delete this drawing AND its entire official run? This removes its score from leaderboards and recalculates profile statistics.':'Approve and hide this drawing from review?'))return;
+ if(action==='remove'&&!confirm('FINAL CONFIRMATION: Delete this run, its score, and its related statistics? This cannot be undone.'))return;
  $('reviewApprove').disabled=true;$('reviewRemove').disabled=true;$('reviewActionStatus').textContent='Saving…';
  try{
   const {data,error}=await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
