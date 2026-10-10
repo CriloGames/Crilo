@@ -50,9 +50,9 @@ for(const x of clean){
 }
 assert.equal(looksLikeHandwrittenLink('Crile Com'),true);
 assert.equal(looksLikeHandwrittenLink('Farm lauh\nCoan'),true);
-assert.match(page,/moderation-feed-scanner\.js\?v=16/);
-assert.ok(source.includes('crilo_owner_local_scan_jobs_v6'));
-assert.ok(source.includes('crilo_owner_local_scan_save_v6'));
+assert.match(page,/moderation-feed-scanner\.js\?v=17/);
+assert.ok(source.includes('crilo_owner_local_scan_jobs_v7'));
+assert.ok(source.includes('crilo_owner_local_scan_save_v7'));
 assert.ok(source.includes('classifyText(result.ocrText)'));
 assert.doesNotMatch(source,/api\.openai\.com|OPENAI_API_KEY|owner-scan-drawings/);
 console.log('PASS: '+flagged.length+' positive URL/OCR fixtures and '+clean.length+
