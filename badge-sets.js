@@ -82,7 +82,8 @@
       // An intentional expand is an actual exploration interaction, not page-load progress.
       $('collectionSets').querySelectorAll('details').forEach(set=>{
         set.addEventListener('toggle',()=>{
-          if(set.open)window.CriloBadgeEvents?.track('badge_filter');
+          if(set.open&&Crilo.user?.id&&userId===Crilo.user.id)
+            window.CriloBadgeEvents?.track('badge_detail');
         });
       });
     }catch(error){
