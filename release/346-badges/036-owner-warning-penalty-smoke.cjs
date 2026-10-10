@@ -39,8 +39,8 @@ assert.ok(sql.includes("crilo_server_spin(uuid)"),'Must reject already-open sess
 assert.ok(sql.includes("crilo_profile_metrics(uuid)"),'Profile current streak must read reset cutoff');
 assert.ok(feed.includes("'crilo_owner_penalize_daily'"),'Drawing Review must use one atomic penalty RPC');
 assert.ok(leader.includes("'crilo_owner_penalize_daily'"),'Leaderboard must require reasoned penalty');
-assert.ok(!leader.includes("crilo_owner_moderate_run',{p_id:id,p_source:source}));"),
- 'Official leaderboard removal cannot silently skip penalties');
+assert.ok(leader.includes("if(source==='official'){")&&leader.includes("p_reason:selected[1]"),
+ 'Official leaderboard removal must require an owner-selected penalty reason');
 assert.ok(html.includes('id="reviewViolationReason"'),'Owner should choose violation category');
 assert.ok(profile.includes("'crilo_public_warning_status'"),'Public profile flag must use owner-controlled reason');
 assert.ok(profileHTML.includes('id="publicAccountWarning"'),'Public warning container missing');
