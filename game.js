@@ -25,6 +25,75 @@ function update(){
  $('duckCount').textContent=ducks;
  drawWheel();
 }
+// The music and visual letter pops share one exact note timeline.
+// Each entry is [pitch, start offset, length, volume, wave, optional glide].
+const CRILO_FINAL_RARITY_NOTES={
+ trash:[[294,0,.20,.022,'triangle',185],[196,.20,.34,.025,'sine',131]],
+ common:[[440,0,.13,.027,'sine'],[554,.16,.22,.032,'triangle']],
+ uncommon:[[440,0,.12,.027,'triangle'],[587,.13,.13,.029,'triangle'],[698,.27,.29,.033,'sine']],
+ rare:[[523,0,.11,.025,'sine'],[659,.12,.12,.027,'triangle'],[784,.25,.17,.032,'sine'],[1047,.41,.32,.029,'sine']],
+ epic:[[392,0,.16,.031,'triangle'],[523,.11,.17,.033,'triangle'],[659,.23,.17,.034,'triangle'],[784,.36,.22,.036,'sine'],[1047,.57,.38,.029,'sine']],
+ anomaly:[[659,0,.24,.025,'triangle',988],[523,.17,.28,.027,'sine',392],[988,.36,.34,.028,'triangle',1568],[1319,.62,.47,.025,'sine',784]],
+ mythic:[[262,0,.19,.033,'triangle'],[392,.12,.19,.034,'triangle'],[523,.25,.19,.035,'triangle'],[659,.39,.19,.035,'sine'],[784,.54,.24,.037,'triangle'],[1047,.73,.32,.037,'sine'],[1568,.97,.55,.034,'sine']]
+};
+let lastFinalAnimationMs=0,finalCelebrationId=0;
+function resetFinalCelebration(){
+ // Restore plain, accessible text; never leave a resized HUD behind when
+ // an owner starts another Test Run or a new Daily begins.
+ finalCelebrationId++;
+ for(const id of ['score','scoreTierText']){
+  const node=$(id);
+  if(node?.classList?.contains('crilo-final-animate')){
+   const original=node.getAttribute('aria-label');
+   node.textContent=original||node.textContent;
+   node.removeAttribute('aria-label');
+   node.classList.remove('crilo-final-animate');
+   node.style.minWidth='';
+  }
+ }
+ lastFinalAnimationMs=0;
+}
+function playFinalScoreWave(tier){
+ resetFinalCelebration();
+ // Respect OS reduced-motion even if the player's sound is enabled.
+ if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return 0;
+ const notes=CRILO_FINAL_RARITY_NOTES[String(tier||'').toLowerCase()]||CRILO_FINAL_RARITY_NOTES.common;
+ const lastNote=notes.at(-1),melodySpan=lastNote[1];
+ const glyphs=[
+  {el:$('score'),type:'digit'},
+  {el:$('scoreTierText'),type:'letter'}
+ ];
+ let maxEnd=0;
+ for(const {el,type} of glyphs){
+  if(!el)return 0;
+  const original=el.textContent,characters=[...original];
+  if(!characters.length)continue;
+  // Higher rarities stretch the wave naturally with their longer melodies;
+  // short Common/Trash melodies still give each letter room to breathe.
+  const spread=Math.max(melodySpan,(characters.length-1)*(type==='letter'?.09:.095));
+  const before=el.getBoundingClientRect().width;
+  const output=characters.map((character,index)=>{
+   const node=document.createElement('span');
+   node.textContent=character;
+   node.setAttribute('aria-hidden','true');
+   node.className='crilo-final-glyph '+(type==='digit'?'crilo-final-digit':'crilo-final-letter');
+   if(/[A-Za-z0-9]/.test(character)){
+    const delay=Math.round(220+(characters.length===1?0:index/(characters.length-1)*spread*1000));
+    node.style.setProperty('--crilo-pop-delay',delay+'ms');
+    maxEnd=Math.max(maxEnd,delay+(type==='digit'?620:530));
+   }
+   return node;
+  });
+  el.setAttribute('aria-label',original);
+  el.classList.add('crilo-final-animate');
+  el.style.minWidth=before+'px';
+  el.replaceChildren(...output);
+ }
+ const thisCelebration=++finalCelebrationId;
+ lastFinalAnimationMs=maxEnd;
+ setTimeout(()=>{if(finalCelebrationId===thisCelebration)resetFinalCelebration();},maxEnd+100);
+ return maxEnd;
+}
 function sound(kind,tier=null){
  if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;
  try{
@@ -50,16 +119,7 @@ function sound(kind,tier=null){
    // Each final SCORE tier gets its own motif. Start after the last number
    // landing chime so the two sounds don't mask one another.
    // Nothing here runs on a Duck, ×2, Upgrade or +2 that extends the run.
-   const motifs={
-    trash:[[294,0,.20,.022,'triangle',185],[196,.20,.34,.025,'sine',131]],
-    common:[[440,0,.13,.027,'sine'],[554,.16,.22,.032,'triangle']],
-    uncommon:[[440,0,.12,.027,'triangle'],[587,.13,.13,.029,'triangle'],[698,.27,.29,.033,'sine']],
-    rare:[[523,0,.11,.025,'sine'],[659,.12,.12,.027,'triangle'],[784,.25,.17,.032,'sine'],[1047,.41,.32,.029,'sine']],
-    epic:[[392,0,.16,.031,'triangle'],[523,.11,.17,.033,'triangle'],[659,.23,.17,.034,'triangle'],[784,.36,.22,.036,'sine'],[1047,.57,.38,.029,'sine']],
-    anomaly:[[659,0,.24,.025,'triangle',988],[523,.17,.28,.027,'sine',392],[988,.36,.34,.028,'triangle',1568],[1319,.62,.47,.025,'sine',784]],
-    mythic:[[262,0,.19,.033,'triangle'],[392,.12,.19,.034,'triangle'],[523,.25,.19,.035,'triangle'],[659,.39,.19,.035,'sine'],[784,.54,.24,.037,'triangle'],[1047,.73,.32,.037,'sine'],[1568,.97,.55,.034,'sine']]
-   };
-   for(const [frequency,delay,duration,volume,wave,target] of motifs[String(tier||'').toLowerCase()]||motifs.common)
+   for(const [frequency,delay,duration,volume,wave,target] of CRILO_FINAL_RARITY_NOTES[String(tier||'').toLowerCase()]||CRILO_FINAL_RARITY_NOTES.common)
     note(frequency,.22+delay,duration,volume,wave,target===undefined?frequency:target);
    return;
   }
@@ -317,6 +377,7 @@ if(spins<=0){
  // Classify only after the LAST resolved spin, after every extra-spin effect.
  // This path is shared by guest, official Daily and owner Test Runs.
  sound('final',rarity().color);
+ playFinalScoreWave(rarity().color);
  endRun();
 }}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
@@ -437,6 +498,7 @@ window.addEventListener('resize',()=>{
   fitPlayViewport();
 });
 function beginRun(alignPlay=false){
+ resetFinalCelebration();
  if(!user&&!isTest){
   const saved=guestDailyRecord();
   if(saved?.status==='started'&&saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)){
@@ -445,7 +507,7 @@ function beginRun(alignPlay=false){
   if(guestDailyLocked())return;
  }
  document.body?.classList?.remove('wheel-run-active');serverSessionId=null;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();if(alignPlay)alignPlayViewport()}
-async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
+async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>String(b.badge_id)));}
 if(isTest){
  // A Test Run must never fall through to official Daily storage, even if
