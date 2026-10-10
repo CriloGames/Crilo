@@ -12,7 +12,7 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
 assert.match(html,/style\.css\?v=98/);
-assert.match(html,/rarity-system\.js\?v=10"><\/script><script src="leaderboard-tabs\.js\?v=2"><\/script><script src="leaderboard\.js\?v=37/);
+assert.match(html,/rarity-system\.js\?v=10"><\/script><script src="leaderboard-tabs\.js\?v=2"><\/script><script src="leaderboard\.js\?v=38/);
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
  'Owner Tools panel and sample-preview button must not render for any user');
