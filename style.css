@@ -496,3 +496,27 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .result[data-rarity="trash"]{--rarity-accent:#995b21;--rarity-bg:#faf0e2}
 .help-rarity-dot.anomaly{background:#dc5526}
 .help-rarity-dot.trash{background:#995b21}
+
+/* Crilo V3 badges: option B, exact accent hex codes from the game's rarity Info legend.
+   Colored whole-tile backgrounds, identical shapes, no pictograms or numeral art. */
+.badge-card,.featured-slot{--crilo-badge-accent:#8b929e;--crilo-badge-pale:#f0f1f3}
+[data-badge-rarity="trash"]{--crilo-badge-accent:#995b21;--crilo-badge-pale:#faf0e2}
+[data-badge-rarity="common"]{--crilo-badge-accent:#8b929e;--crilo-badge-pale:#f0f1f3}
+[data-badge-rarity="uncommon"]{--crilo-badge-accent:#56ae8a;--crilo-badge-pale:#e8f7ef}
+[data-badge-rarity="rare"]{--crilo-badge-accent:#4b91cf;--crilo-badge-pale:#e8f3fc}
+[data-badge-rarity="epic"]{--crilo-badge-accent:#9968df;--crilo-badge-pale:#f3eaff}
+[data-badge-rarity="anomaly"]{--crilo-badge-accent:#dc5526;--crilo-badge-pale:#fff0e7}
+[data-badge-rarity="mythic"]{--crilo-badge-accent:#e05dcd;--crilo-badge-pale:#fbe7f8}
+.badge-card,.featured-slot[data-badge-rarity]:not([data-badge-rarity="none"]){
+ background:var(--crilo-badge-pale)!important;
+ border:1.5px solid #17191e!important;
+ border-radius:18px;
+ box-shadow:2px 3px 0 color-mix(in srgb,var(--crilo-badge-accent) 28%,transparent);
+}
+.badge-card .badge-icon,.featured-slot .badge-icon,.badge-card .crilo-badge-svg,.featured-slot .crilo-badge-svg{display:none!important}
+.badge-card.locked{opacity:.58;filter:saturate(.35)}
+.badge-card .badge-rarity-label{display:inline-block;margin-top:12px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--crilo-badge-accent)}
+html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-badge-rarity]:not([data-badge-rarity="none"]){
+ background:color-mix(in srgb,var(--crilo-badge-accent) 23%,#1b1b24)!important;
+ border-color:#17191e!important
+}
