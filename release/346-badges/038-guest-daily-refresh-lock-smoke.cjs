@@ -35,7 +35,10 @@ function mount({period='2026-10-10',signedIn=false,owner=false,
    getContext:()=>ctx,toDataURL:()=>DRAWING,
    addEventListener:(name,cb)=>{el['on_'+name]=cb;},
    querySelector:()=>get(id+'-child'),querySelectorAll:()=>[],
-   setAttribute:()=>{},getBoundingClientRect:()=>({left:0,top:0,bottom:200,width:200,height:200})
+   setAttribute:()=>{},getAttribute:(key)=>el.attrs?.[key]||null,
+   removeAttribute:(key)=>{if(el.attrs)delete el.attrs[key];},
+   replaceChildren:(...nodes)=>{el.children=nodes;el.textContent=nodes.map(n=>n.textContent).join('');},
+   getBoundingClientRect:()=>({left:0,top:0,bottom:200,width:200,height:200})
   };
   els.set(id,el);return el;
  }
@@ -43,6 +46,7 @@ function mount({period='2026-10-10',signedIn=false,owner=false,
  const profile=identity?{id:identity.id,is_owner:owner,sound_enabled:false}:null;
  const Crilo={dailyPeriod:()=>period,nextReset:()=>new Date(Date.now()+86400000),user:identity,profile};
  const document={getElementById:get,querySelectorAll:()=>[],querySelector:()=>get('query'),
+  createElement:()=>({textContent:'',className:'',style:{setProperty(){}},setAttribute(){}}),
   addEventListener:()=>{},body:{classList:{add:()=>{},remove:()=>{}},style:{setProperty:()=>{}}},
   documentElement:{clientWidth:900}};
  const window={addEventListener:(n,cb)=>{events[n]=cb;},CriloBadgeEvents:{track:async()=>true}};
