@@ -52,7 +52,7 @@ function render(){
    '" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span>'+
    '<span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+
    '" alt="Drawing preview" loading="lazy" decoding="async"></span>'+
-   '<span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+
+   '<span class="crilo-review-player"><strong>'+escape(d.username)+(d.is_test?'<span class="crilo-review-test-tag">TEST RUN</span>':'')+'</strong><small>'+
    escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
    '<span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span>'+
    '<span class="crilo-review-state" data-state="'+(why.length?'flagged':d.local?.status==='partial'?'partial':'normal')+'">'+
