@@ -19,8 +19,8 @@
     track.classList.remove('walking');void track.offsetWidth;track.classList.add('walking');
   }
   track.addEventListener('animationend',e=>{if(e.animationName==='criloBeetleCross')track.classList.remove('walking')});
-  setTimeout(walk,4500);
-  setInterval(walk,60000);
+  // Start quickly, then make a new pass every 10 seconds (7 seconds walking, 3 resting).
+  setTimeout(()=>{walk();setInterval(walk,10000)},1500);
   let lastSend=0;
   form.addEventListener('submit',async e=>{
     e.preventDefault();
