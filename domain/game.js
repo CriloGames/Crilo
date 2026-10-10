@@ -78,7 +78,7 @@ function submitGuess(){
   const guess=sliderToPrice($('priceSlider').value);
   const score=calculateScore(guess,d.answer_price_usd);
   totalScore+=score;
-  results.push({domain:d.domain,guess,actual:d.answer_price_usd,score,type:d.price_type});
+  results.push({domain:d.domain,guess,actual:d.answer_price_usd,score,type:d.price_type,slider:Number($('priceSlider').value)});
   $('score').textContent=totalScore.toLocaleString();
   $('yourGuess').textContent=fmt(guess);
   $('actualPrice').textContent=fmt(d.answer_price_usd);
@@ -96,7 +96,30 @@ function nextRound(){
   if(roundIndex===ROUNDS-1){showResults();return;}
   roundIndex++;setRound();
 }
-async function syncDomainScore(){try{const {data:{session}}=await criloDB.auth.getSession();if(session?.user)await criloDB.from('game_scores').insert({user_id:session.user.id,game_key:'domain',score:totalScore,details:{rounds:results}})}catch(err){console.warn('Domain score sync skipped',err)}}
+async function syncDomainScore(){
+ const status=$('domainSaveStatus');
+ try{
+  const {data:{session},error:sessionError}=await criloDB.auth.getSession();
+  if(sessionError)throw sessionError;
+  if(!session?.user){
+   if(status)status.textContent='Playing as a guest. Sign in on Crilo to save future verified scores.';
+   return;
+  }
+  if(status)status.textContent='Verifying your score on the server…';
+  // Supabase recomputes all five rounds from the authoritative price table.
+  // The browser can never choose the score saved in game_scores.
+  const {data,error}=await criloDB.rpc('crilo_submit_domain_score',{
+   p_rounds:results.map(r=>({domain:r.domain,slider:r.slider}))
+  });
+  if(error)throw error;
+  if(status)status.textContent=Number(data)===totalScore?
+   'Verified! Your score is saved to your Crilo profile.':
+   'Server-verified score: '+Number(data).toLocaleString()+' points saved to your Crilo profile.';
+ }catch(err){
+  console.warn('Domain score verification unavailable:',err);
+  if(status)status.textContent='Your game was completed, but the score could not be saved: '+(err?.message||'Please try later.');
+ }
+}
 function showResults(){
   $('gameScreen').classList.add('hidden');
   $('resultsScreen').classList.remove('hidden');
