@@ -7,6 +7,18 @@
   const requestedId=new URLSearchParams(location.search).get('id');
   let loadToken=0;
   const getRarity=badge=>model.rarity(badge);
+  // The small badge-info legend is intentionally optional and read-only.
+  const info=$('collectionInfo');
+  document.addEventListener?.('keydown',event=>{
+    if(event.key==='Escape'&&info?.open){
+      info.open=false;
+      info.querySelector('summary')?.focus();
+      event.preventDefault();
+    }
+  });
+  document.addEventListener?.('click',event=>{
+    if(info?.open&&!info.contains(event.target))info.open=false;
+  });
 
   async function load(){
     const token=++loadToken;
