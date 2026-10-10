@@ -33,6 +33,9 @@ async function workerTest(){
   importScripts:(src)=>{
    if(src.includes('jsQR'))self.jsQR=()=>({data:'https://example.com'});
    else if(src.includes('tesseract'))self.Tesseract={createWorker:async()=>({recognize:async()=>({data:{text:'fuck https://example.com'}})})};
+   else if(src.includes('moderation-example-features.js')){
+    self.CriloExampleFeatures={fingerprint:()=>null,classify:()=>null};
+   }
    else throw Error('Unexpected third-party library '+src);
   },
   console
@@ -97,6 +100,7 @@ async function schedulerTest(){
  }
  const db={rpc:async(name,args)=>{
   calls.push({name,args});
+  if(name==='crilo_owner_example_list')return {data:[]};
   if(name==='crilo_owner_local_scan_jobs_v6')return {data:[{run_id:useTest?'test-uuid':'123',
    is_test:useTest,drawing:'data:image/png;base64,QUJD'}]};
   if(name==='crilo_owner_local_scan_save_v6')return {data:true};
