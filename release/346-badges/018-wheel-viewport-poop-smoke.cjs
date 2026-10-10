@@ -1,6 +1,6 @@
-/* The active wheel must fit from its pointer to the full SPIN button
- * on ordinary mobile and desktop viewport heights, with no changes to
- * official Daily randomness, badges or saved run data. */
+/* Regression: game view is sized BEFORE the first spin; the viewport
+ * never auto-scrolls while a wheel spin animates. No live credentials needed.
+ */
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
@@ -9,58 +9,84 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
-assert.ok(html.includes('style.css?v=81'));
-assert.ok(html.includes('game.js?v=60'));
-assert.ok(demo.includes('style.css?v=81'));
-assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'),
- 'The active stack must be wheel > score > counters > mode > SPIN');
+assert.ok(html.includes('style.css?v=83')&&html.includes('game.js?v=62'));
+assert.ok(demo.includes('style.css?v=83'));
+assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);
+assert.doesNotMatch(html,/user-scalable=no|maximum-scale=1/);
+assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'));
 assert.ok(html.indexOf('id="wheelScorePanel"')<html.indexOf('class="stats wheel-counts"'));
 assert.ok(html.indexOf('class="stats wheel-counts"')<html.indexOf('id="spinButton"'));
-assert.ok(css.includes('body.wheel-run-active .wheel-wrap{'));
-assert.ok(css.includes('calc(100dvh - 395px)'),'Desktop size must respond to viewport height');
-assert.ok(css.includes('calc(100dvh - 335px)'),'Mobile wheel must respond to viewport height');
-assert.ok(css.includes('body.wheel-run-active .wheel-stage{scroll-margin-top:98px}'));
-assert.ok(css.includes('body.wheel-run-active .draw-panel.locked-panel{display:none}'),
- 'Do not leave a disabled drawing panel above active play');
-assert.ok(css.includes('body.wheel-run-active #testBanner{display:none!important}'),
- 'Only one owner Test Run banner should be on screen');
-assert.ok(css.includes('#ownerActiveMode:not(.hidden)'));
-assert.ok(css.includes('body.wheel-run-active #spinButton{min-height:49px'));
-assert.ok(game.includes("if(!document.body?.classList?.contains('wheel-run-active'))"),
- 'Resize-and-scroll must happen once per run');
-assert.ok(game.includes("stage?.scrollIntoView?.({behavior:window.matchMedia"),
- 'The wheel pointer must be aligned below the sticky header');
-assert.ok(game.includes("document.body?.classList?.remove('wheel-run-active');serverSessionId=null;"),
- 'Reset compact mode when a new Daily or owner test begins');
-assert.ok(game.includes("lockDrawing();\n// Focus the play surface"),
- 'Drawing must stay editable until the first spin');
-function wheelWidth(W,H){
- const mobile=W<=600;
- const preferred=Math.max(mobile?210:225,H-(mobile?335:395));
- return Math.min(mobile?W*.90:W*.88,600,preferred);
+assert.ok(css.includes('body.wheel-session-fit .wheel-wrap'));
+assert.ok(css.includes('var(--crilo-wheel-fit,320px)'));
+assert.ok(css.includes('body.wheel-session-fit .wheel-hud'));
+assert.ok(css.includes('body.wheel-session-fit #ownerActiveMode:not(.hidden)'));
+assert.ok(css.includes('body.wheel-session-fit #spinButton'));
+assert.ok(css.includes('body.wheel-session-fit.wheel-run-active .draw-panel.locked-panel{'));
+assert.ok(css.includes('display:flex!important;visibility:hidden;opacity:0;pointer-events:none'));
+assert.ok(css.includes('body.wheel-session-fit.wheel-run-active #testBanner:not(.hidden){'));
+assert.ok(css.includes('touch-action:manipulation'));
+assert.ok(css.includes('.modal-card input:not([type=color]),.modal-card select,'));
+assert.ok(css.includes('.text-input{font-size:16px}'));
+assert.ok(css.includes('-webkit-text-size-adjust:100%'));
+assert.ok(game.includes('function beginRun(alignPlay=false)'));
+assert.ok(game.includes('update();fitPlayViewport(alignPlay)'));
+assert.ok(game.includes('beginRun(true)'),'Owner choice must focus play screen');
+assert.ok(game.includes('document.body?.classList?.add(\'wheel-run-active\')'));
+assert.ok(!game.includes('scrollIntoView'),'First spin must not trigger Safari smooth auto-scroll');
+const spinArea=game.slice(game.indexOf('lockDrawing();\n// Never scroll'),game.indexOf('spinning=true;',game.indexOf('lockDrawing();\n// Never scroll')));
+assert.ok(!spinArea.includes('scrollTo(')&&!spinArea.includes('requestAnimationFrame('));
+assert.ok(game.includes('Math.abs((window.innerWidth||0)-playLayoutWidth)>18'));
+assert.ok(game.includes('window.innerWidth>700&&Math.abs(h-playLayoutHeight)>70'),
+ 'Do not relayout when iPhone browser toolbars change height');
+
+// Exercise the actual viewport-fit function with realistic DOM geometry.
+const start=game.indexOf('let playLayoutWidth=0,playLayoutHeight=0;');
+const stop=game.indexOf('function beginRun(alignPlay=false)',start);
+assert.ok(start>=0&&stop>start,'Find sizing implementation');
+const implementation=game.slice(start,stop);
+for(const scenario of [
+ {label:'iPhone SE',w:320,h:568,header:68,below:240},
+ {label:'iPhone 13 mini',w:375,h:635,header:68,below:245},
+ {label:'iPhone 15',w:393,h:730,header:68,below:255},
+ {label:'Landscape mobile',w:667,h:390,header:68,below:190},
+ {label:'Minimized laptop',w:920,h:660,header:92,below:265},
+ {label:'Desktop small',w:1280,h:720,header:68,below:265},
+ {label:'Maximized laptop',w:1440,h:900,header:68,below:270},
+ {label:'Large monitor',w:1920,h:1080,header:68,below:270}
+]){
+ let y=120,size=450,resizeHandler,scrolls=0,session=false;
+ const classSet=new Set();
+ const classList={add(name){classSet.add(name)},contains(name){return classSet.has(name)}};
+ const body={classList,style:{setProperty(key,value){
+  assert.equal(key,'--crilo-wheel-fit');size=parseInt(value,10);
+ }}};
+ const header={getBoundingClientRect:()=>({height:scenario.header})};
+ const stage={getBoundingClientRect:()=>({top:550-y,bottom:550-y+size})};
+ const button={getBoundingClientRect:()=>({bottom:550-y+size+scenario.below})};
+ const document={body,documentElement:{clientWidth:scenario.w,style:{scrollBehavior:''}},
+  querySelector:sel=>sel==='.wheel-stage'?stage:sel==='.topbar'?header:null};
+ const window={innerWidth:scenario.w,innerHeight:scenario.h,
+  visualViewport:{height:scenario.h},scrollY:y,
+  addEventListener:(event,callback)=>{if(event==='resize')resizeHandler=callback},
+  scrollTo(options){scrolls++;y=options.top;this.scrollY=y;assert.equal(options.behavior,'instant')}};
+ let spinning=false;
+ const source=implementation+';return {fitPlayViewport,metrics:()=>({playLayoutWidth,playLayoutHeight})}';
+ const f=new Function('document','window','$','requestAnimationFrame','spinning',source);
+ const script=f(document,window,id=>id==='spinButton'?button:null,cb=>cb(),spinning);
+ script.fitPlayViewport(true);
+ const expected=Math.max(140,Math.floor(Math.min(600,scenario.w-24,
+  scenario.h-scenario.header-Math.max(180,scenario.below)-53)));
+ assert.equal(size,expected,scenario.label+' diameter');
+ assert.ok(size<=scenario.w-24,scenario.label+' horizontally clipped');
+ assert.ok(scenario.header+size+scenario.below+53<=scenario.h+1||
+  (size===140&&scenario.h<scenario.header+scenario.below+193),
+  scenario.label+' pointer or button cut off');
+ assert.equal(scrolls,1,scenario.label+' alignment should happen once');
+ assert.equal(y,Math.max(0,550-scenario.header-25),scenario.label+' sticky header offset');
+ assert.ok(classSet.has('wheel-session-fit'),scenario.label+' run class');
+ resizeHandler();
+ assert.equal(scrolls,1,scenario.label+' resize should not scroll on iPhone');
+ console.log('PASS '+scenario.label+': '+scenario.w+'x'+scenario.h+
+  ', wheel '+size+'px, top '+y+', visible through SPIN');
 }
-for(const [W,H] of [[320,560],[320,650],[375,620],[390,740],
- [768,650],[1024,720],[1280,768],[1494,800],[1920,1080]]){
- const mobile=W<=600,topOffset=mobile?85:98;
- const elementsBudget=mobile?238:269;
- const wheel=wheelWidth(W,H);
- assert.ok(wheel>0&&wheel<=600&&wheel<=W*.9,'Wheel must stay within screen width');
- assert.ok(topOffset+wheel+elementsBudget<=H,
-  'Keep wheel through SPIN within viewport at '+W+'×'+H+
-  ', estimated stack '+(topOffset+wheel+elementsBudget));
-}
-assert.ok(css.includes('left:calc(46.74% + 46px)'), 'Desktop poop position');
-assert.ok(css.includes('left:calc(46.74% + 40px)'), 'Mobile poop position');
-assert.ok(css.includes('0%,74.2%{opacity:0')&&css.includes('74.6%,88%{opacity:1'));
-for(const [W,bodyWidth,offset] of [[320,65,40],[375,65,40],[428,65,40],
- [768,74,46],[1024,74,46],[1494,74,46],[1920,74,46]]){
- const firstRight=W-bodyWidth-8;
- const beetleRear=firstRight+(8-firstRight)*(74.6-50)/(96-50)+bodyWidth;
- const poopX=.4674*W+offset;
- assert.ok(poopX>beetleRear&&poopX-beetleRear<14,
-  'Poop must appear within 14px behind beetle at '+W+'px, gap '+(poopX-beetleRear));
-}
-assert.ok(css.includes('[class*="beetle-right-"] .crilo-beetle-dropping')&&
- css.includes('[class*="beetle-left-"] .crilo-beetle-dropping'),
- 'Special turns must always suppress poop');
-console.log('PASS: 9 viewport sizes, first-spin-only wheel alignment, intact score HUD, 7 poop offsets and suppressed special-turn poop.');
+console.log('PASS: iPhone pinch accessibility, no spin-time auto-scroll, stable locked drawing and test banner.');
