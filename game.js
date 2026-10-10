@@ -139,18 +139,27 @@ spinning=true;$('spinButton').disabled=true;
 let officialReply=null;
 if(officialServerMode()){
  try{
+  // Recover any completed server spin before making another irreversible request.
+  const priorLocalSpins=totalSpins;
   const state=await restoreOfficialServerState();
   if(state.finished){
    spinning=false;
    $('message').textContent='Restoring your completed official Daily.';
    await endRun();return;
   }
+  if(Number(state.spin_count)>priorLocalSpins){
+   spinning=false;
+   $('spinButton').disabled=false;
+   $('message').textContent='Saved spins restored. Press SPIN to continue.';
+   return;
+  }
+  if(Number(state.spin_count)<priorLocalSpins)throw new Error('Server spin count decreased');
   const {data,error}=await criloDB.rpc('crilo_server_spin',{p_session:serverSessionId});
   if(error||!data)throw error||new Error('No authoritative spin response');
   officialReply=data;
  }catch(err){
   spinning=false;$('spinButton').disabled=false;
-  $('message').textContent='Official spin not completed locally. Retry to restore server state.';
+  $('message').textContent='Could not confirm the official spin. Press SPIN to safely restore server state before requesting another spin.';
   console.error('Authoritative Daily spin failed',err);return;
  }
 }
