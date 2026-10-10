@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const {rules,scoreRules,classifyScoreTail,evaluate}=require('./wheel-badge-rules-v2.js');
 const TYPES=['duck','double','spins','upgrade'];
 const create=(types)=>{let upgrades=0,segments=12;return types.map(type=>{if(type==='upgrade'){upgrades++;segments+=4+Math.min(upgrades,8)}return {type,segments};});};
-assert.equal(rules.length,39,'39 unique proposed new badge requirements');
+assert.equal(rules.length,22,'22 balanced new badge requirements');
 assert.equal(new Set(rules.map(r=>r.key)).size,39);
 assert.deepEqual(evaluate([]).earned,[],'empty run cannot win wheel badges');
 assert.deepEqual(evaluate(create(['num','num','num'])).earned,[],'numbers award no wheel badges');
@@ -29,7 +29,7 @@ for(const t of TYPES){
 }
 assert.throws(()=>evaluate([{type:'fake'}]));
 assert.throws(()=>evaluate([{type:'upgrade',segments:12}]),/segment/);
-console.log('PASS: all 39 badge thresholds fire at exact boundary, never fire early, reject broken streaks, and account for upgrade-expanded wheels.');
+console.log('PASS: all 22 badge thresholds fire at exact boundary, never fire early, reject broken streaks, and account for upgrade-expanded wheels.');
 assert.equal(scoreRules.length,6,'six distinct score rarity badges');
 for(const [p,label] of [[0.00005,'mythic'],[0.0001,'mythic'],[0.00011,'legendary'],[0.001,'legendary'],[0.00101,'epic'],[0.01,'epic'],[0.0101,'rare'],[0.05,'rare'],[0.0501,'uncommon'],[0.2,'uncommon'],[0.2001,'common'],[1,'common']]){
  assert.equal(classifyScoreTail(p),label,'score tier boundary '+p);
