@@ -14,8 +14,12 @@ for(const tier of ['trash','common','uncommon','rare','epic','anomaly','mythic']
  assert.ok(collectionCSS.includes('.badge-top-chip[data-badge-rarity="'+tier+'"],.collection-tile[data-badge-rarity="'+tier+'"]'),
   'Both badge layouts must explicitly color the '+tier+' rarity');
 }
-assert.ok(collectionCSS.includes('background:var(--crilo-badge-pale);opacity:.70'),
- 'Locked badges should preserve their muted rarity tint');
+assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-pale) 34%,#fff)'),
+ 'Locked badges must have a light, muted rarity tint');
+assert.ok(collectionCSS.includes('background:color-mix(in srgb,var(--crilo-badge-accent) 29%,var(--crilo-badge-pale))'),
+ 'Earned badges must have visibly richer rarity colors');
+assert.ok(collectionCSS.includes('.collection-tile.locked .collection-tile-description{opacity:1'),
+ 'Keep locked badge unlock requirements readable');
 const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'catalog-rules.json'),'utf8'));
 const badges=catalog.map((b,i)=>({
  id:i+1,badge_key:b.key,name:b.name||b.key,description:b.condition||'',
@@ -70,8 +74,8 @@ async function run(awards){
  assert.equal(sets.reduce((n,set)=>n+set.unlocked,0),awards,'All awards counted once');
  for(const set of sets){
   for(let i=1;i<set.badges.length;i++){
-   assert.ok(model.compareDifficulty(set.badges[i-1],set.badges[i])<=0,
-    'Set must display hardest rarity before easier rarity: '+set.category);
+   assert.ok(model.compareDifficulty(set.badges[i-1],set.badges[i])>=0,
+    'Collection sets must display easier rarity before harder rarity: '+set.category);
   }
  }
 
@@ -105,6 +109,8 @@ async function run(awards){
  assert.equal((collection.match(/<details class="collection-card">/g)||[]).length,sets.length);
  assert.equal((collection.match(/<article class="collection-tile/g)||[]).length,346);
  assert.equal((collection.match(/<article class="collection-tile locked"/g)||[]).length,346-awards);
+ assert.equal((collection.match(/<article class="collection-tile" data-badge-rarity=/g)||[]).length,awards,
+  'Every earned badge must display using its own brighter rarity tile');
  assert.equal((collection.match(/<p class="collection-tile-description">/g)||[]).length,346,
   'All 346 badges must display their unlock instructions, not just hover titles');
  assert.ok(collection.includes(esc(badges[0].description)),
