@@ -55,6 +55,6 @@ window.CriloRarity=(()=>{
    explanation:'Score tier based on 2,000,000-run reference: '+band.key.toUpperCase()+
     '. '+(tail*100).toFixed(2)+'% of simulated runs scored at least this high.'};
  }
- function thresholds(){const data=sample();return levels.slice(0,-1).map(l=>({label:l.label,minScore:data[Math.max(0,Math.ceil(data.length*(1-l.max))-1)]}))}
+ function thresholds(){return scoreBands.filter(b=>b.key!=='trash').map(b=>({label:b.key.toUpperCase(),minScore:b.min}));}
  return{classify,thresholds,levels,scoreBands};
 })();
