@@ -6,6 +6,16 @@
 **Supabase project:** `mqozqigwkobnhijvvboy`
 **Decision:** **CONDITIONAL NO-GO for an unconditional 100% production certificate.** Requirement-level rule testing is complete; authenticated website E2E and coordinated security enforcement are not.
 
+## October 9 certification addendum — new independently repeated tests
+
+- Executed 215 private PostgreSQL positive witness checks, confirming **215 valid completed sequences**, **215 badges earned**, **zero accepted tampered scores**, and **zero accepted missing histories**. All 215 run rules also have a distinct *legitimate nonqualifying* run in the QA fixture pool. Witness data is stored only under `crilo_badge_prelaunch.qa_run_witnesses`.
+- Reran the private stateful-account PostgreSQL fixture suite: **131/131 account achievements** passed empty-state and positive-state evaluations.
+- Conducted mock browser-logic checks against the candidate `game.js`: five successful server-authoritative number outcomes produce one correctly proven official run; an all-special run (Duck, ×2, Upgrade, +2, six numbers) produced one correct save and matching server counters; lost server-spin response recovery did not issue a second spin.
+- Verified one historic run matches the **original 11-sector, one-Duck game.js** from GitHub commit `5f55d2b...`, dated before commit `7458d24...` introduced the second Duck. New isolated `006-legacy-one-duck-replay.sql` checks saved sector counts, probabilities, points, score, and completion. **22 existing awards** previously relying on this legacy run have mechanics-consistent supporting evidence. The run with no saved spin history remains excluded.
+- Tightened staged replay maximum to **500** spin outcomes to match the server RPC and added a database integer-overflow guard.
+- No new achievement definitions, public award records, user profiles, scores, drawings, or private Test Runs were deleted or rewritten by these checks.
+- **Release state remains CONDITIONAL NO-GO** until official browser deployment and verified-session gate are rolled out together and authenticated device/browser smoke tests pass.
+
 ## 1. Direct observations of the existing live environment
 
 - `public.badges`: **346** rows (already in the production database before this work).
@@ -46,7 +56,7 @@ The prelaunch `rarity-system.js` now correctly describes the **100,000** runs us
 
 Of six official runs, **four** pass current 12-sector strict replay. One historical record has an empty spin array and one uses an older **11-sector** wheel. These two remain untouched and excluded from new current-wheel automatic backfills. An older compatible replay implementation or deliberate grandfather policy is required to certify historical wheel-derived awards from them.
 
-Across all three existing profiles × 346 badges = **1,038** eligibility combinations, the present records included **189** awards. Of those, **166** were supported by current replay/account rule data; **23** were dependent on legacy data that cannot be independently certified under today's rules. No currently supported award was missing, and no other unqualified award was found by this audit. The **23 legacy-dependent awards were retained**, not revoked.
+Across all three existing profiles × 346 badges = **1,038** eligibility combinations, the present records included **189** awards. Of those, **166** were supported by current-format replay/account data, another **22** by a strict version-specific replay of the original 11-sector wheel, and **one** Mythic score award belongs to a run without recorded spin history and cannot be verified. This yields **188/189 replay/account-supported existing awards**. No supported award was missing. The single unverifiable award was retained, not revoked.
 
 All rollback-scoped live gate tests passed: forged no-run score and exploration claims were rejected, a legitimate run-linked award was accepted, duplicate awarding was suppressed, an owner Test Run did not add public badges, deleting one of several qualifying runs reassigned an award, and deleting the sole qualifying run revoked it. Tests were rolled back before transaction commit.
 
@@ -90,7 +100,7 @@ The release branch has diverged from `main`; reconcile carefully instead of over
 1. **Authenticated browser QA:** Owner first login and Daily/Test selection; a normal player's first Daily; multiple spins including Duck, Double, Upgrade and +2; refresh/recovery during a run; completing a Daily; saved server session ID; Test Run isolation; reset; mobile/iPad; error handling.
 2. **Badges end to end:** Verified server-run achievement insert, gallery display of all 346, actual correct locked/unlocked colors, notification queue, featured badges, exploration events, friend actions, rank settlement, and account deletion/reassignment.
 3. **Security smoke:** Browser submits official run with valid attached session; direct no-session forged run is rejected *after* gate activation; valid old-tab handling, server RNG, duplicate save, cross-user session denial, invalid final-rank payload.
-4. **Historical policy:** Explicitly grandfather the 23 legacy-dependent current awards or verify their older gameplay rules; do not silently backfill incompatible/empty spin histories.
+4. **Historical policy:** The original 11-sector run (22 formerly legacy-dependent awards) now passes a version-specific verifier grounded in historical GitHub wheel code and checked spin probabilities; keep it distinct from modern 12-sector runs. Decide how to display or quarantine the single Mythic award associated with an empty-history run, without deleting that player's score. Never automatically backfill from missing spin history.
 5. **Coordinated rollout:** Snapshot DB schema/awards/functions; deploy tested frontend on `main`; smoke-test a real signed-in run; apply `003` in a controlled deployment; smoke-test again; monitor errors; document rollback procedure.
 6. **External app verification:** Inspect `https://crilo.fun` with an actual authenticated browser and verify DNS, GitHub Pages and full gallery. That was not achievable here.
 
