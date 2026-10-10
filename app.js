@@ -106,18 +106,46 @@
     if(!Crilo.user)return;
     const {data,error}=await criloDB.from('friend_requests').select('id,sender_id,created_at').eq('receiver_id',Crilo.user.id).eq('status','pending').order('created_at',{ascending:false}).limit(15);
     if(error){console.warn('Friend notifications:',error.message);return}
+    // Private, owner-issued moderation notices share the existing bell.
+    // Only the signed-in account's notices can be returned by this RPC.
+    const {data:moderationNotices,error:moderationError}=await criloDB.rpc('crilo_my_moderation_notices');
+    if(moderationError)console.warn('Moderation notices:',moderationError.message);
+    const notices=moderationError?[]:(moderationNotices||[]);
     const requests=data||[],indicator=document.getElementById('friendBellCount'),items=document.getElementById('friendBellItems');
-    indicator.classList.toggle('hidden',!requests.length);
-    indicator.textContent=requests.length>9?'9+':String(requests.length);
+    const unread=notices.filter(n=>!n.read_at).length;
+    const totalUnread=requests.length+unread;
+    indicator.classList.toggle('hidden',!totalUnread);
+    indicator.textContent=totalUnread>9?'9+':String(totalUnread);
     let names={};
     if(requests.length){
       const ids=[...new Set(requests.map(x=>x.sender_id).filter(Boolean))];
       const response=await criloDB.from('profiles').select('id,username').in('id',ids);
       if(!response.error)names=Object.fromEntries((response.data||[]).map(x=>[x.id,x.username]));
     }
-    items.innerHTML=requests.length?requests.map(req=>
+    const penaltyHTML=notices.map(n=>
+      '<button type="button" class="crilo-notification-item crilo-moderation-notice'+(n.read_at?' is-read':'')+
+       '" data-moderation-notice="'+Number(n.id)+'"><span class="crilo-notification-icon">⚑</span><span>'+
+       '<span class="crilo-notification-copy"><b>DAILY DRAWING REMOVED — ACCOUNT FLAGGED</b>'+
+       ' Your official Daily for '+esc(n.daily_period)+' was deleted for '+esc(n.reason)+
+       '. '+Number(n.removed_score||0).toLocaleString()+' points were removed, and your current streak was reset. '+
+       'You cannot replay that Daily. This is your one official warning; further violations may result in a ban.</span>'+
+       '<small>'+relativeTime(n.created_at)+(n.read_at?' · READ':' · NEW')+'</small></span></button>'
+    ).join('');
+    const friendsHTML=requests.map(req=>
       '<a class="crilo-notification-item" href="friends.html"><span class="crilo-notification-icon">↗</span><span><span class="crilo-notification-copy"><b>'+esc(names[req.sender_id]||'A PLAYER')+'</b> SENT YOU A FRIEND REQUEST</span><small>'+relativeTime(req.created_at)+'</small></span></a>'
-    ).join(''):'<div class="crilo-notification-empty">You’re all caught up. No new friend requests.</div>';
+    ).join('');
+    items.innerHTML=penaltyHTML+friendsHTML||
+     '<div class="crilo-notification-empty">You’re all caught up. No new notifications.</div>';
+    // Clicking a warning acknowledges it privately but keeps its message in
+    // notification history. No public moderation details are exposed here.
+    items.onclick=async event=>{
+      const button=event.target.closest?.('[data-moderation-notice]');
+      if(!button)return;
+      const id=Number(button.dataset.moderationNotice);
+      if(!Number.isSafeInteger(id)||id<=0)return;
+      const {error}=await criloDB.rpc('crilo_read_moderation_notice',{p_id:id});
+      if(!error)updateFriendBell();
+    };
   }
   window.addEventListener('crilo-friends-changed',updateFriendBell);
   window.addEventListener('crilo-auth-ready',()=>{updateFriendBell();if(!bellTimer)bellTimer=setInterval(updateFriendBell,30000)});
