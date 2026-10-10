@@ -80,6 +80,8 @@ jobs:
         run: node release/346-badges/016-owner-test-scoreboard-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
         run: node release/346-badges/015-beetle-trick-preview-smoke.cjs
+      - name: Check active wheel viewport fit and synced beetle droppings
+        run: node release/346-badges/018-wheel-viewport-poop-smoke.cjs
       - name: Check 346 normalized badge keys and positive/negative fixtures
         run: |
           node - <<'JS'
