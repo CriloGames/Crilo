@@ -12,7 +12,7 @@ const historySource=fs.readFileSync(path.resolve(__dirname,'../../spin-history.j
 const scoreCSS=fs.readFileSync(path.resolve(__dirname,'../../style.css'),'utf8');
 const rarityWorld={};vm.runInNewContext(raritySource,{window:rarityWorld});
 const trueScoreBands=rarityWorld.CriloRarity.scoreBands;
-assert.deepEqual(trueScoreBands.map(b=>[b.key,b.min,b.max===Infinity?'infinity':b.max]),[
+assert.deepEqual(Array.from(trueScoreBands,b=>[b.key,b.min,b.max===Infinity?'infinity':b.max]),[
  ['trash',0,6],['common',7,24],['uncommon',25,48],
  ['rare',49,92],['epic',93,141],['anomaly',142,300],
  ['mythic',301,'infinity']
