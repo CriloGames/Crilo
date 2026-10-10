@@ -26,8 +26,9 @@ list.addEventListener('click',async e=>{
   ['3','hate','Hate or extremist symbol'],['4','links','Website link or external promotion'],
   ['5','qr','QR code or scannable link'],['6','abuse','Harassment or abusive message'],
   ['7','other','Other inappropriate drawing']];
- const choice=prompt('Why is this official Daily being removed?\\n'+
-  reasons.map(v=>v[0]+'. '+v[2]).join('\\n')+'\\n\\nEnter a reason number (1–7):');
+ const nl=String.fromCharCode(10);
+ const choice=prompt('Why is this official Daily being removed?'+nl+
+  reasons.map(v=>v[0]+'. '+v[2]).join(nl)+nl+nl+'Enter a reason number (1–7):');
  if(choice===null)return;
  const selected=reasons.find(v=>v[0]===choice.trim());
  if(!selected){status.textContent='Choose a valid violation reason (1–7). No action taken.';return;}
