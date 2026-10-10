@@ -1145,3 +1145,6 @@ html[data-theme="dark"] .crilo-review-state[data-state="stale"]{
 .crilo-example-buttons button:disabled{opacity:.45;cursor:not-allowed}
 .crilo-example-teach #reviewExampleStatus{font-size:12px;overflow-wrap:anywhere}
 @media(max-width:520px){.crilo-example-buttons .small-btn{flex:1 1 100%}}
+
+/* Never show the owner-only practice delete action for official Dailies. */
+#reviewDeleteTest[hidden]{display:none!important}
