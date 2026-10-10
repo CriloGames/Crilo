@@ -28,7 +28,7 @@ assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only offic
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
 assert.match(indexHTML,/game\.js\?v=65/);
-assert.match(indexHTML,/style\.css\?v=87/);
+assert.match(indexHTML,/style\.css\?v=88/);
 assert.match(indexHTML,/id="wheelScorePanel" data-rarity="unrevealed"/);
 assert.match(indexHTML,/id="scoreTier" hidden/);
 assert.match(indexHTML,/id="scoreTierHint">Spin to reveal tier/);
