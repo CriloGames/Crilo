@@ -13,7 +13,7 @@ declare
  basecount jsonb:='{"1":0,"2":0,"3":0,"5":0,"8":0,"10":0}'::jsonb;
  visited jsonb:='{}'::jsonb; best_num numeric:=0; after_upgrade15 boolean:=false;
 begin
- if jsonb_typeof(p_results)<>'array' or jsonb_array_length(p_results)>250 or jsonb_array_length(p_results)<5 then
+ if jsonb_typeof(p_results)<>'array' or jsonb_array_length(p_results)>500 or jsonb_array_length(p_results)<5 then
  return '{"valid":false,"reason":"invalid_results_length"}'::jsonb;end if;
  for e in select value from jsonb_array_elements(p_results) loop
   if left_spins<=0 then return '{"valid":false,"reason":"results_after_finish"}'::jsonb;end if;
@@ -52,6 +52,9 @@ begin
       when 'spins' then left_spins:=left_spins+2;
       when 'duck' then left_spins:=left_spins+1;
     end case;
+  end if;
+  if v_score>9223372036854775807 then
+   return '{"valid":false,"reason":"score_overflow"}'::jsonb;
   end if;
   visited:=jsonb_set(visited,array[v_score::text],'true'::jsonb,true);
  end loop;
