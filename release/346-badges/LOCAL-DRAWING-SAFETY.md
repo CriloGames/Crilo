@@ -61,3 +61,14 @@ For this specific Owner Test Run: keep **Include my Test Runs** and **Include im
 - Legitimate explicit genital-outline heuristics, OCR abuse/links and QR detections are still active. No model result ever triggers an automatic ban or deletion.
 - The new \`022-drawing-scanner-worker-qa.cjs\` fixtures cover blank scans and low-confidence harmless image scores, so this precise false-positive issue is part of regression testing.
 - This version does **not** force a full re-scan of previously checked drawings solely to correct the UI. A user-initiated \`Scan this drawing\` re-runs the updated worker and can use the blank fast path.
+
+
+## Specialized owner-only morphology v4
+
+- Added \`moderation-genital-review.js\`, running **inside the existing free Web Worker**. It recognizes several outlined drawing patterns: two rounded features beside an elongated or curved body; nested elongated contours; slit-like inner markings; and tilted, irregular enclosed contours.
+- The standalone shape checker is complementary to OCR, QR decoding, and the generic image model. It is not a definitive sexual-content classifier, cannot identify all depictions, and will sometimes flag harmless look-alike objects.
+- Only the human owner can remove official runs or ban accounts; Owner Test Runs remain protected.
+- A read-only diagnostic against saved Owner Test Run image bytes (without storing private images in public source control) recognized three different stylized elongated anatomical outlines and one irregular nested/tilted drawing. A smiley-face control did not match.
+- New regression suite: \`release/346-badges/024-shape-review-acceptance.cjs\`. It includes positive shape fixtures and harmless face/flower/dumbbell/blank controls.
+- **Important deployment safeguard:** v4 scans have separate Supabase \`crilo_owner_local_scan_jobs_v4\` and \`crilo_owner_local_scan_save_v4\` owner-guarded RPCs. Old open tabs continue using the v3 queue and cannot mark drawings as freshly checked by v4. v4 results require the current scanner script after deployment and browser refresh. This prevents stale browser code from silently completing the new audit.
+- The owner can recognize the new page from the **Safety scanner v4** label. While scanning, keep **Include my Test Runs** enabled to re-evaluate saved QA drawings. Opening a particular drawing and selecting **Scan this drawing** re-evaluates it immediately.
