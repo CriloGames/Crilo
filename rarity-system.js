@@ -3,7 +3,7 @@
 window.CriloRarity=(()=>{
  const COUNT=100000;
  const levels=[
-  {key:'mythic',label:'MYTHIC',max:0.01},
+  {key:'mythic',label:'MYTHIC',max:1/90},
   {key:'anomaly',label:'ANOMALY',max:0.05},
   {key:'epic',label:'EPIC',max:0.10},
   {key:'rare',label:'RARE',max:0.25},
@@ -17,8 +17,8 @@ window.CriloRarity=(()=>{
  {key:'uncommon',min:25,max:48},
  {key:'rare',min:49,max:92},
  {key:'epic',min:93,max:141},
- {key:'anomaly',min:142,max:317},
- {key:'mythic',min:318,max:Infinity}
+ {key:'anomaly',min:142,max:300},
+ {key:'mythic',min:301,max:Infinity}
  ];
  let sorted;
  function sample(){
@@ -52,7 +52,7 @@ window.CriloRarity=(()=>{
   const hits=n-lo,tail=hits/n;
   return{label:band.key.toUpperCase(),color:band.key,probability:tail,
    odds:hits?Math.max(1,Math.round(n/hits)):null,hits,trials:n,
-   explanation:'Score tier based on 2,000,000-run reference: '+band.key.toUpperCase()+
+   explanation:'Score tier based on 2,000,000 simulated runs: '+band.key.toUpperCase()+
     '. '+(tail*100).toFixed(2)+'% of simulated runs scored at least this high.'};
  }
  function thresholds(){return scoreBands.filter(b=>b.key!=='trash').map(b=>({label:b.key.toUpperCase(),minScore:b.min}));}
