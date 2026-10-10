@@ -205,7 +205,7 @@ function fitPlayViewport(){
 function alignPlayViewport(){
  const stage=document.querySelector('.wheel-stage');
  const header=document.querySelector('.topbar');
- if(!stage)return;
+ if(!stage||typeof window.scrollTo!=='function')return;
  // Align once on Daily/Test selection; never scroll during any SPIN.
  requestAnimationFrame(()=>{
   const headerHeight=header?.getBoundingClientRect().height||68;
