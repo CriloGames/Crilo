@@ -15,14 +15,22 @@
     track.classList.add('walking');
     track.classList.toggle('paused',document.hidden||!modal.classList.contains('hidden'));
   }
-  const open=()=>{status.textContent='';modal.classList.remove('hidden');syncMotion();document.getElementById('bugDescription').focus()};
-  const close=()=>{modal.classList.add('hidden');syncMotion();beetle.focus()};
+  const open=()=>{beetle.classList.remove('silent-return-focus');status.textContent='';modal.classList.remove('hidden');syncMotion();document.getElementById('bugDescription').focus()};
+  const close=()=>{
+    modal.classList.add('hidden');
+    syncMotion();
+    // Keep keyboard focus on the report control, but avoid the persistent
+    // focus-visible outline after closing the dialog with Escape.
+    beetle.classList.add('silent-return-focus');
+    beetle.focus({preventScroll:true});
+  };
+  beetle.addEventListener('blur',()=>beetle.classList.remove('silent-return-focus'));
   beetle.addEventListener('click',open);
   document.getElementById('bugClose').addEventListener('click',close);
   modal.addEventListener('click',e=>{if(e.target===modal)close()});
   // Capture Escape before the site's global modal listener so focus returns to the beetle.
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden')){e.preventDefault();e.stopImmediatePropagation();close()}},true);
-  // One uninterrupted patrol: 6s out, 1s turn, 6s back, 3s resting.
+  // One uninterrupted patrol: 7.36s out, quick hopping turn, 7.36s back, quick turn.
   setTimeout(syncMotion,1500);
   document.addEventListener('visibilitychange',syncMotion);
   motionQuery.addEventListener?.('change',syncMotion);
