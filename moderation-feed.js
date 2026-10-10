@@ -36,8 +36,8 @@ function open(index){
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  $('reviewLargeDrawing').src=chosen.drawing;
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score||0).toLocaleString()+' points'+(chosen.is_test?' · Owner Test Run':'');
- $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Approve hides this drawing from the feed. Remove permanently deletes the entire official run, including score and statistics.';
- $('reviewApprove').disabled=!!chosen.is_test;$('reviewRemove').disabled=!!chosen.is_test;
+ $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Remove permanently deletes the entire official run, including score and statistics.';
+ $('reviewRemove').disabled=!!chosen.is_test;
  modal.classList.remove('hidden');
 }
 list.addEventListener('click',e=>{const b=e.target.closest('[data-index]');if(b)open(Number(b.dataset.index))});
@@ -46,14 +46,14 @@ async function decide(action){
  const d=chosen;if(!d||d.is_test)return;
  if(!confirm(action==='remove'?'Permanently delete this drawing AND its entire official run? This removes its score from leaderboards and recalculates profile statistics.':'Approve and hide this drawing from review?'))return;
  if(action==='remove'&&!confirm('FINAL CONFIRMATION: Delete this run, its score, and its related statistics? This cannot be undone.'))return;
- $('reviewApprove').disabled=true;$('reviewRemove').disabled=true;$('reviewActionStatus').textContent='Saving…';
+ $('reviewRemove').disabled=true;$('reviewActionStatus').textContent='Saving…';
  try{
   const {data,error}=await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
   if(error)throw error;if(!data)throw Error('Drawing already reviewed or unavailable.');
   close();await refresh();
- }catch(e){$('reviewActionStatus').textContent='Could not save: '+e.message;$('reviewApprove').disabled=false;$('reviewRemove').disabled=false}
+ }catch(e){$('reviewActionStatus').textContent='Could not save: '+e.message;$('reviewRemove').disabled=false}
 }
-$('reviewApprove').addEventListener('click',()=>decide('approve'));$('reviewRemove').addEventListener('click',()=>decide('remove'));
+$('reviewRemove').addEventListener('click',()=>decide('remove'));
 $('reviewRefresh').addEventListener('click',refresh);$('showOwnerTests').addEventListener('change',refresh);
 window.criloRefreshDrawingFeed=refresh;
 window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner){refresh();}});
