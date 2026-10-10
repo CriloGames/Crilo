@@ -1,61 +1,173 @@
+/* Owner drawing review. Findings are hints, never automatic punishments. */
 (()=>{
 'use strict';
 const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let rows=[],chosen=null,busy=false;
 const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(x);
+const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
+let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0;
+const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
+const hintsFor=d=>[...(d.local?.reasons||[]),...(d.legacyHint?[d.legacyHint]:[])];
+function visible(d){
+ const flagged=hintsFor(d).length>0;
+ switch(filter){
+  case 'flagged':return flagged;
+  case 'unscanned':return !d.local;
+  case 'partial':return d.local?.status==='partial';
+  case 'clear':return !!d.local&&!flagged&&d.local.status==='complete';
+  default:return true;
+ }
+}
+function render(){
+ const filtered=rows.filter(visible);
+ const prioritized=rows.filter(d=>hintsFor(d).length>0).length;
+ const remaining=rows.filter(d=>!d.is_test).length;
+ const unchecked=rows.filter(d=>!d.local).length;
+ const incomplete=rows.filter(d=>d.local?.status==='partial').length;
+ message.textContent=prioritized+' drawings suggested for review · '+remaining+' player drawings pending · '+unchecked+' not scanned · '+incomplete+' partial scans · Updated '+new Date().toLocaleTimeString();
+ if($('reviewStats'))$('reviewStats').textContent=rows.length+' visible to owner · '+prioritized+' prioritized · '+unchecked+' awaiting local check';
+ list.innerHTML=filtered.length?filtered.map(d=>{
+  const i=rows.indexOf(d);
+  const why=hintsFor(d);
+  const status=why.length?'REVIEW SUGGESTED':!d.local?'NOT SCANNED':d.local.status==='partial'?'PARTIAL SCAN':d.is_test?'OWNER TEST':'NO FLAGS FOUND';
+  const chips=why.length?'<span class="crilo-review-reasons">'+why.slice(0,3).map(w=>'<em>'+escape(w)+'</em>').join('')+(why.length>3?'<em>+'+(why.length-3)+'</em>':'')+'</span>':'';
+  return '<button type="button" class="crilo-review-row'+(why.length?' crilo-review-suspected':'')+'" data-index="'+i+'">'+
+   '<span class="crilo-review-rank">'+(i+1)+'</span>'+
+   '<span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Drawing preview" loading="lazy"></span>'+
+   '<span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
+   '<span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span>'+
+   '<span class="crilo-review-state" data-state="'+(why.length?'flagged':d.local?.status==='partial'?'partial':'normal')+'">'+status+'</span>'+
+   '<span aria-hidden="true">↗</span></button>';
+ }).join(''):'<p class="muted">No drawings match this filter.</p>';
+}
 async function refresh(){
- if(busy||document.hidden||!window.Crilo?.user||!window.Crilo?.profile?.is_owner)return;
- busy=true;
+ if(busy||document.hidden||!isOwner())return;
+ busy=true;const request=++loadGeneration;
  try{
-  const [feed,flagged,flaggedTests,visual]=await Promise.all([
-    criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200}),
-    criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),
-    criloDB.rpc('crilo_owner_flagged_saved_tests'),
-    criloDB.rpc('crilo_owner_visual_candidates')
+  const [feed,scans,flagged,flaggedTests,visual]=await Promise.all([
+   criloDB.rpc('crilo_owner_drawing_feed',{p_limit:200}),
+   criloDB.rpc('crilo_owner_local_scan_report',{p_limit:250}),
+   criloDB.rpc('crilo_owner_review_drawings',{p_status:'flagged'}),
+   criloDB.rpc('crilo_owner_flagged_saved_tests'),
+   criloDB.rpc('crilo_owner_visual_candidates')
   ]);
   if(feed.error)throw feed.error;
-  const flags=new Map();
-  for(const x of [...(flagged.data||[]),...(flaggedTests.data||[])])
-    flags.set(String(x.run_id),'FLAGGED: TEXT / PROFANITY');
-  for(const x of visual.data||[])
-    if(!flags.has(String(x.run_id)))flags.set(String(x.run_id),'SUSPECTED IMAGE');
+  if(scans.error)throw Error('Local scan results: '+scans.error.message);
+  const oldHints=new Map();
+  // Old AI and OCR hints remain reviewable but do not represent proof of wrongdoing.
+  for(const item of flagged.data||[])oldHints.set('official:'+item.run_id,'Earlier text/image flag');
+  for(const item of flaggedTests.data||[])oldHints.set('test:'+item.run_id,'Earlier text/image flag');
+  for(const item of visual.data||[]){
+   const k=(item.review_status==='test'?'test:':'official:')+item.run_id;
+   if(!oldHints.has(k))oldHints.set(k,'Earlier image prediction');
+  }
+  const scanMap=new Map((scans.data||[]).map(s=>[(s.is_test?'test:':'official:')+s.run_id,s]));
+  if(request!==loadGeneration)return;
   rows=(feed.data||[]).filter(x=>validDrawing(x.drawing)&&($('showOwnerTests').checked||!x.is_test))
-    .map(x=>({...x,reviewHint:flags.get(String(x.run_id))||''}))
-    .sort((a,b)=>Number(!!b.reviewHint)-Number(!!a.reviewHint)||new Date(b.submitted_at)-new Date(a.submitted_at));
-  const pending=rows.filter(x=>!x.is_test).length,tests=rows.length-pending,priority=rows.filter(x=>x.reviewHint).length;
-  message.textContent=priority+' flagged/suspected drawings prioritized · '+pending+' player drawings awaiting review'+(tests?' · '+tests+' owner Test Runs':'')+' · Updated '+new Date().toLocaleTimeString();
-  list.innerHTML=rows.length?rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+'" alt="Drawing preview" loading="lazy"></span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span><span class="crilo-review-state">'+(d.reviewHint?escape(d.reviewHint):d.is_test?'OWNER TEST':'REVIEW')+'</span><span aria-hidden="true">↗</span></button>').join(''):'<p class="muted">No drawings waiting for review.</p>';
- }catch(error){message.textContent='Drawing feed could not load: '+error.message}
+    .map(x=>({...x,local:scanMap.get(key(x))||null,legacyHint:oldHints.get(key(x))||null}))
+    .sort((a,b)=>Number(hintsFor(b).length>0)-Number(hintsFor(a).length>0)||new Date(b.submitted_at)-new Date(a.submitted_at));
+  render();
+ }catch(err){message.textContent='Drawing feed could not load: '+err.message}
  finally{busy=false}
 }
-function close(){modal.classList.add('hidden');chosen=null;$('reviewLargeDrawing').removeAttribute('src')}
-function open(index){
- chosen=rows[index];if(!chosen)return;
+function close(){
+ modal.classList.add('hidden');chosen=null;$('reviewLargeDrawing').removeAttribute('src');
+}
+function open(i){
+ chosen=rows[i];if(!chosen)return;
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  $('reviewLargeDrawing').src=chosen.drawing;
  $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score||0).toLocaleString()+' points'+(chosen.is_test?' · Owner Test Run':'');
- $('reviewActionStatus').textContent=chosen.is_test?'Test Run: no moderation actions.':(chosen.reviewHint?chosen.reviewHint+' (verify manually). ':'')+'Remove permanently deletes the entire official run, including score and statistics.';
- $('reviewRemove').disabled=!!chosen.is_test;
+ const why=hintsFor(chosen);
+ const findings=$('reviewFindings');
+ findings.replaceChildren();
+ const title=document.createElement('strong');title.textContent=why.length?'Review suggestions (unconfirmed)':'Review status';
+ findings.appendChild(title);
+ const p=document.createElement('p');
+ p.textContent=why.length?why.join(' · '):!chosen.local?'Not yet scanned. Please review manually.':chosen.local.status==='partial'?'Incomplete scan; please review manually.':'No automatic flags. This is not a guarantee that the drawing is appropriate.';
+ findings.appendChild(p);
+ if(chosen.local?.recognized_text){
+  const words=document.createElement('p');
+  words.textContent='OCR saw: "'+chosen.local.recognized_text+'" (may be incorrect)';
+  findings.appendChild(words);
+ }
+ if(chosen.local?.visual_label){
+  const v=document.createElement('p');
+  v.textContent='Local image comparison: '+chosen.local.visual_label+(Number.isFinite(chosen.local.visual_score)?' (relative match score '+chosen.local.visual_score.toFixed(2)+', not a probability)':'');
+  findings.appendChild(v);
+ }
+ if(chosen.local?.error){
+  const warning=document.createElement('p');warning.className='crilo-review-scan-warning';
+  warning.textContent='Scanner limitation: '+chosen.local.error+'. Manual inspection required.';
+  findings.appendChild(warning);
+ }
+ $('reviewActionStatus').textContent=chosen.is_test?'Owner Test Run: account actions are disabled.':'Only your decision can remove a run or ban a player.';
+ for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!!chosen.is_test;
+ $('reviewBan').disabled=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
+ $('reviewRetry').disabled=false;
+ $('deleteRunWithBan').checked=false;
+ $('reviewBanOptions').hidden=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
  modal.classList.remove('hidden');
 }
-list.addEventListener('click',e=>{const b=e.target.closest('[data-index]');if(b)open(Number(b.dataset.index))});
-$('reviewClose').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
+list.addEventListener('click',e=>{const item=e.target.closest('[data-index]');if(item)open(Number(item.dataset.index))});
+$('reviewClose').addEventListener('click',close);
+modal.addEventListener('click',e=>{if(e.target===modal)close()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 async function decide(action){
  const d=chosen;if(!d||d.is_test)return;
- if(!confirm(action==='remove'?'Permanently delete this drawing AND its entire official run? This removes its score from leaderboards and recalculates profile statistics.':'Approve and hide this drawing from review?'))return;
- if(action==='remove'&&!confirm('FINAL CONFIRMATION: Delete this run, its score, and its related statistics? This cannot be undone.'))return;
- $('reviewRemove').disabled=true;$('reviewActionStatus').textContent='Saving…';
+ const extra=!!$('deleteRunWithBan').checked;
+ let warning;
+ if(action==='approve')warning='Approve this drawing and hide it from your review queue?';
+ else if(action==='remove')warning='Delete this entire official run, including its leaderboard score and associated statistics? This cannot be undone.';
+ else warning='Permanently ban '+d.username+'? '+(extra?'This also deletes the entire official run and its score.':'This removes the drawing while retaining their score.');
+ if(!confirm(warning))return;
+ if((action==='remove'||action==='ban')&&!confirm('FINAL CONFIRMATION: '+(action==='ban'?'Apply account ban'+(extra?' AND delete the run':''):'Permanently delete the run')+'?'))return;
+ const buttons=['reviewApprove','reviewRemove','reviewBan','reviewRetry'];
+ for(const id of buttons)$(id).disabled=true;
+ $('reviewActionStatus').textContent='Saving your decision…';
  try{
-  const {data,error}=await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
-  if(error)throw error;if(!data)throw Error('Drawing already reviewed or unavailable.');
+  if(action==='ban'){
+   const {data:auth}=await criloDB.auth.getSession();
+   const token=auth?.session?.access_token;
+   if(!token)throw Error('Your owner session expired');
+   const response=await fetch(CRILO_SUPABASE_URL+'/functions/v1/owner-ban-drawing-account',{
+    method:'POST',headers:{'Content-Type':'application/json','apikey':CRILO_SUPABASE_KEY,'Authorization':'Bearer '+token},
+    body:JSON.stringify({action:'ban',run_id:Number(d.run_id),delete_run:extra})
+   });
+   const reply=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(reply.error||'Account ban failed');
+   if(extra&&!reply.run_deleted)throw Error('Account was banned, but the run could not be deleted. Check the leaderboard and remove it separately.');
+  }else{
+   const {data,error}=await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
+   if(error)throw error;
+   if(data!==true)throw Error('Run already reviewed or unavailable');
+  }
   close();await refresh();
- }catch(e){$('reviewActionStatus').textContent='Could not save: '+e.message;$('reviewRemove').disabled=false}
+ }catch(err){
+  $('reviewActionStatus').textContent=err.message;
+  for(const id of buttons)$(id).disabled=id==='reviewBan'&&d.username?.toLowerCase()==='owner';
+ }
 }
+$('reviewApprove').addEventListener('click',()=>decide('approve'));
 $('reviewRemove').addEventListener('click',()=>decide('remove'));
-$('reviewRefresh').addEventListener('click',refresh);$('showOwnerTests').addEventListener('change',refresh);
+$('reviewBan').addEventListener('click',()=>decide('ban'));
+$('reviewRetry').addEventListener('click',async()=>{
+ const d=chosen;if(!d)return;
+ $('reviewRetry').disabled=true;$('reviewActionStatus').textContent='Scheduling another local scan…';
+ try{
+  const {error}=await criloDB.rpc('crilo_owner_local_scan_retry',{p_run_id:String(d.run_id),p_is_test:!!d.is_test});
+  if(error)throw error;
+  close();await refresh();window.criloScanPendingDrawings?.();
+ }catch(err){$('reviewActionStatus').textContent='Could not rescan: '+err.message;$('reviewRetry').disabled=false}
+});
+$('reviewRefresh').addEventListener('click',()=>{refresh();window.criloScanPendingDrawings?.()});
+$('showOwnerTests').addEventListener('change',refresh);
+$('reviewFilter').addEventListener('change',e=>{filter=e.target.value;render()});
 window.criloRefreshDrawingFeed=refresh;
-window.addEventListener('crilo-auth-ready',()=>{if(window.Crilo?.profile?.is_owner){refresh();}});
-setInterval(refresh,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
+window.addEventListener('crilo-auth-ready',()=>{if(isOwner())refresh();else{
+ list.replaceChildren();message.textContent='Owner access only.';}});
+setTimeout(()=>{if(isOwner())refresh()},1800);
+setInterval(refresh,30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 })();
