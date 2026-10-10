@@ -91,6 +91,16 @@ async function schedulerTest(){
  assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save').length,2);
  assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_save')[1].args.p_is_test,true,
   'An Owner Test Run must be identified as a Test Run');
+ const queuedBefore=calls.filter(x=>x.name==='crilo_owner_local_scan_jobs').length;
+ await window.criloScanSpecificDrawing({run_id:'direct-owner-test',is_test:true,
+   drawing:'data:image/png;base64,QUJD'});
+ const direct=calls.filter(x=>x.name==='crilo_owner_local_scan_save').at(-1).args;
+ assert.equal(direct.p_run_id,'direct-owner-test',
+  'Manual rescan must evaluate the selected drawing, not the next queue item');
+ assert.equal(direct.p_is_test,true,'Owner Test Run must retain isolation when rescanned');
+ assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_jobs').length,queuedBefore,
+  'Targeted rescan must not fetch the unrelated backlog');
+
  node('reviewToggleScan').handlers.click();
  assert.ok(node('reviewScanStatus').textContent.includes('Paused'));
  assert.ok(terminated>0,'Pausing should free worker resources');
