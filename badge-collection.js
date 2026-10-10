@@ -92,8 +92,11 @@
         total,unlocked,percent:total?Math.round(unlocked/total*100):0,
         complete:total>0&&unlocked===total,
         badges:items.slice().sort((a,b)=>{
-          const harder=compareDifficulty(a,b);
-          if(harder!==0)return harder;
+          // Collection sets are a progression ladder: Trash (below Common),
+          // Common, Uncommon, Rare, Epic, Anomaly, Mythic.
+          // Keep the profile preview's best-first ranking unchanged.
+          const easier=compareDifficulty(b,a);
+          if(easier!==0)return easier;
           const ar=earned.has(key(a.id)),br=earned.has(key(b.id));
           if(ar!==br)return ar?-1:1;
           return Number(a.sort_order||0)-Number(b.sort_order||0)||
