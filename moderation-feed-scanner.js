@@ -9,7 +9,8 @@ const REASONS={
  profanity:'Profanity',hate:'Hateful or abusive text',link:'Website or link',
  qr:'QR code',extremism:'Possible extremist symbol',
  genital:'Possible genital drawing',sexual:'Possible sexual image',
- gore:'Possible graphic violence',qrMaybe:'Possible QR-like image'
+ gore:'Possible graphic violence',qrMaybe:'Possible QR-like image',
+ other:'Possible inappropriate artwork'
 };
 const words=/(?:fuck(?:ing|ed|er|s)?|shit(?:ty|head|s)?|bitch(?:es|y)?|asshole|bastard|damn|crap|slut|whore|cunt|motherfucker|dick(?:head)?|cock(?:sucker)?|nigg(?:er|a)s?|faggot|kike|spic|retard(?:ed)?)/i;
 const abusive=/(?:kill\s*(?:yourself|urself)|heil\s*hitler|white\s*power|nazi|gas\s*the\s*\w+)/i;
@@ -232,7 +233,7 @@ async function scanNext(manual=false,selected=null){
   const exampleReason={
    genitalia:REASONS.genital,hate:REASONS.extremism,
    link:REASONS.link,profanity:REASONS.profanity,
-   qr:REASONS.qr,other:REASONS.sexual
+   qr:REASONS.qr,other:REASONS.other
   }[result.learnedCategory];
   if(!blank&&exampleReason)reasons.push(exampleReason);
   const problems=[...(result.errors||[])];
