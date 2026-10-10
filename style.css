@@ -490,3 +490,9 @@ html[data-theme="dark"] .guest-finish-card{background:var(--panel);color:var(--t
 .crilo-review-ban{border-color:#e09eaa!important;background:#ffe8ec!important;color:#ad1830!important}
 .crilo-review-actions button:disabled{opacity:.4;cursor:not-allowed}
 @media(max-width:680px){.topbar nav{flex-wrap:wrap;gap:10px}.crilo-review-row{gap:9px;padding:8px}.crilo-review-thumbnail{width:54px;height:54px;flex-basis:54px}.crilo-review-score{display:none}.crilo-review-state{font-size:9px}.crilo-review-page{padding:28px 14px}}
+
+/* Seven-tier score rarity and separate badge rarity palette */
+.result[data-rarity="anomaly"]{--rarity-accent:#dc5526;--rarity-bg:#fff0e7}
+.result[data-rarity="trash"]{--rarity-accent:#995b21;--rarity-bg:#faf0e2}
+.help-rarity-dot.anomaly{background:#dc5526}
+.help-rarity-dot.trash{background:#995b21}
