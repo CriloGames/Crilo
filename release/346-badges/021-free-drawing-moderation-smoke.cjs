@@ -49,7 +49,7 @@ assert.doesNotMatch(feed,/criloScanPendingDrawings\?\.\(\);\}\);/,
  'Refreshing the review list should not start expensive scans');
 new Function(worker);
 
-assert.ok(feed.includes('crilo_owner_local_scan_report_v5'), 'Review feed must return true scan version');
+assert.ok(feed.includes('crilo_owner_review_page_v1'), 'Page RPC must include the scan version');
 assert.ok(!feed.includes("d.is_test?'OWNER TEST':'NO FLAGS'"),
  'Test Run status must reflect scanning, not account type');
 assert.ok(feed.includes('crilo_owner_drawing_decision'), 'Owner approval/deletion missing');
