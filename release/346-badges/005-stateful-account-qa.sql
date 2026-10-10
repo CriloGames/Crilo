@@ -116,7 +116,7 @@ begin
  end if;
  return false;
 exception when others then return false;
-end $function$
+end $function$;
 
 REVOKE ALL ON FUNCTION crilo_badge_prelaunch.qa_account_matches(jsonb,uuid) FROM PUBLIC,anon,authenticated;
 
