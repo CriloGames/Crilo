@@ -1,0 +1,53 @@
+name: Crilo 346-badge prelaunch checks
+
+on:
+  push:
+    branches:
+      - release/346-badges-prelaunch
+    paths:
+      - 'game.js'
+      - 'rarity-system.js'
+      - 'release/346-badges/**'
+      - '.github/workflows/346-badge-checks.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'game.js'
+      - 'rarity-system.js'
+      - 'release/346-badges/**'
+      - '.github/workflows/346-badge-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-client-and-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check production JavaScript syntax
+        run: |
+          node --check game.js
+          node --check rarity-system.js
+          node --check badge-events.js
+          node --check profile.js
+      - name: Run official-spin client regression tests
+        run: node release/346-badges/009-client-flow-smoke.cjs
+      - name: Check 346 normalized badge keys and positive/negative fixtures
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const defs=JSON.parse(fs.readFileSync('release/346-badges/catalog-rules.json'));
+          assert.equal(defs.length,346);
+          assert.equal(new Set(defs.map(b=>b.key)).size,346);
+          assert.equal(new Set(defs.map(b=>b.name)).size,346);
+          assert.ok(defs.every(b=>b.rule&&b.condition&&b.rarity));
+          const raw=JSON.parse(fs.readFileSync('release/346-badges/006-run-rule-fixtures.json'));
+          console.log('Badge catalog:',defs.length,'badge keys, fixture data shape:',Array.isArray(raw)?raw.length:Object.keys(raw));
+          JS
