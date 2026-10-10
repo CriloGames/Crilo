@@ -176,8 +176,8 @@ async function feedTest(){
  const image='data:image/png;base64,QUJD';
  const data=[{run_id:'11',is_test:false,username:'Tester',drawing:image,score:15,submitted_at:'2026-10-10T09:00:00Z'},
   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,username:'Owner',drawing:image,score:88,submitted_at:'2026-10-10T08:00:00Z'}];
- const scans=[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',checked_at:'2026-10-10T10:00:00Z'},
-   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',checked_at:'2026-10-10T10:01:00Z'}];
+ const scans=[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',scan_version:5,checked_at:'2026-10-10T10:00:00Z'},
+   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',scan_version:5,checked_at:'2026-10-10T10:01:00Z'}];
  const db={rpc:async(name)=>{
   if(name==='crilo_owner_drawing_feed')return {data};
   if(name==='crilo_owner_local_scan_report')return {data:scans};
@@ -227,6 +227,19 @@ async function feedTest(){
   'A scanned clean Owner Test Run with a low score must show NO FLAGS');
  assert.equal((updated.match(/>REVIEW SUGGESTED<\/span>/g)||[]).length,1,
   'Only the genuinely QR-flagged drawing should request review');
+ scans[1].scan_version=4;
+ scans[1].checked_at='2026-10-10T10:03:00Z';
+ await w.criloRefreshDrawingFeed();
+ const oldScan=node('drawingReviewList').innerHTML.split('data-index="1"')[1]||'';
+ assert.ok(oldScan.includes('>NEEDS RESCAN</span>'),
+  'A clean result from an outdated scanner must not be presented as final');
+ assert.equal(node('reviewCountUnscanned').textContent,1,
+  'Older scans should be counted as needing checking');
+ scans[1].scan_version=5;
+ scans[1].checked_at='2026-10-10T10:04:00Z';
+ await w.criloRefreshDrawingFeed();
+ assert.ok(node('drawingReviewList').innerHTML.split('data-index="1"')[1].includes('>NO FLAGS</span>'),
+  'Current scanner returning no reasons is allowed to show NO FLAGS');
 
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
