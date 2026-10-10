@@ -74,9 +74,12 @@ function createPage(home=false){
   setTimeout(){return 0},setInterval(){return 0},
   URLSearchParams,Date,console:{log(){},error(){},warn(){}}
  };
+ // Browser globals and window are the same object; model that explicitly.
+ Object.assign(context,window);
+ context.window=context;
  vm.runInNewContext(app,context,{filename:'app.js'});
  const click=()=>{for(const fn of events.get('doc:click')||[])fn({target:account})};
- return {window,account,menu,document,created,sent,click,auth,Fake};
+ return {window:context,account,menu,document,created,sent,click,auth,Fake};
 }
 (async()=>{
  const page=createPage();
