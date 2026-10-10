@@ -117,6 +117,8 @@ jobs:
         run: node release/346-badges/032-thousand-drawing-backlog-smoke.cjs
       - name: Verify removed Daily warnings, streak resets and private notifications
         run: node release/346-badges/036-owner-warning-penalty-smoke.cjs
+      - name: Verify synchronized final score digit pops and rarity letter wave
+        run: node release/346-badges/040-final-rarity-wave-smoke.cjs
       - name: Verify last-spin rarity fanfare and bonus-spin silence
         run: node release/346-badges/039-final-rarity-audio-smoke.cjs
       - name: Verify guest Daily persists after reload and locks second tab
