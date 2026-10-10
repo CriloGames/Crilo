@@ -49,5 +49,16 @@ jobs:
           assert.equal(new Set(defs.map(b=>b.name)).size,346);
           assert.ok(defs.every(b=>b.rule&&b.condition&&b.rarity));
           const raw=JSON.parse(fs.readFileSync('release/346-badges/006-run-rule-fixtures.json'));
-          console.log('Badge catalog:',defs.length,'badge keys, fixture data shape:',Array.isArray(raw)?raw.length:Object.keys(raw));
+          const runKinds=new Set(['hit_exact','score_band','event_total','event_streak','sequence','challenge','first_event','final_base','spin_position','base_total','base_sequence','number_sequence','first_last','variety']);
+          const expected=new Set(defs.filter(b=>runKinds.has(b.rule)).map(b=>b.key));
+          assert.equal(expected.size,215);
+          assert.ok(Array.isArray(raw.fixtures));
+          assert.equal(raw.fixtures.length,215);
+          assert.equal(new Set(raw.fixtures.map(b=>b.badge_key)).size,215);
+          for(const f of raw.fixtures){
+            assert.ok(expected.has(f.badge_key),'Unrecognized run rule fixture '+f.badge_key);
+            assert.ok(Array.isArray(f.positive) && f.positive.length>=5,'Missing positive '+f.badge_key);
+            assert.ok(Array.isArray(f.negative) && f.negative.length>=5,'Missing negative '+f.badge_key);
+          }
+          console.log('PASS: 346 unique definitions; 215 positive and negative wheel fixtures.');
           JS
