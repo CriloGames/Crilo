@@ -1181,3 +1181,13 @@ html[data-theme="dark"] .stats-grid .stat-total-points span{color:#cfbee9}
 /* Lifetime total is an aggregate, not a single-run rarity score. */
 .crilo-lifetime-points-row .leader-score{white-space:nowrap;font-variant-numeric:tabular-nums}
 .leader-total-units{font-size:11px;color:var(--muted,#777);font-weight:750;text-transform:uppercase}
+
+/* Bounded owner review pages: never render more than 24 drawing thumbnails. */
+.crilo-review-pagination{display:flex;align-items:center;justify-content:center;gap:14px;
+ flex-wrap:wrap;padding:20px 8px 24px}
+.crilo-review-pagination span{font-size:13px;font-weight:800;color:var(--muted,#777);
+ min-width:95px;text-align:center;font-variant-numeric:tabular-nums}
+.crilo-review-pagination button{min-width:100px}
+.crilo-review-pagination button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:440px){.crilo-review-pagination{gap:8px}
+ .crilo-review-pagination button{min-width:0;flex:1 1 100px;padding:9px}}
