@@ -84,3 +84,12 @@ Two actual saved Owner Test Run drawings containing domain names were previously
 - A \`crilo_scan_version_guard\` database trigger prevents old browser tabs from downgrading scan results produced by newer code.
 - The owner sees **Safety scanner v5** and should enable **Include my Test Runs** to scan saved test drawings. The original OCR mistakes are reproducible, and the updated text classifier recognizes both, but a full browser re-scan and live deployment still need owner-browser verification.
 - This remains 100% local/free. Handwritten URLs may be missed when OCR recognizes no usable characters. Review all pending artwork manually as needed.
+
+
+## Scan-report and cartoon-smile correction — v6
+
+- **Root cause of persistent NEEDS RESCAN:** \`crilo_owner_local_scan_report\` did not return \`scan_version\`, even though the UI required it. The owner-only \`crilo_owner_local_scan_report_v5\` RPC explicitly includes the version. A complete version-5 blank/harmless scan is now shown as **NO FLAGS**, not endlessly awaiting recheck.
+- **Root cause of smiley false positive:** a smiley with two round eyes and a hanging tongue can resemble the geometrical two-lobes-plus-shaft rule. The local shape classifier now recognizes a *broad curved smile beneath paired eyes* as a conservative benign-face indicator; both outline detectors and the main scanner respect this geometry veto. Text, QR, link and hateful-symbol scanning are unaffected.
+- The \`crilo_owner_local_scan_jobs_v6\` queue targets **previously unscanned or pre-v5 drawings** plus **existing v5 genital-shape flags**; it deliberately does not rescan completed blank v5 images unnecessarily. Version-6 scan saves are owner-only, and the existing database downgrade guard remains in place.
+- Tests include a smiley with two eyes, wide mouth and hanging tongue, alongside earlier anatomical-positive and flower/dumbbell controls, plus mocked worker contradictory genital signals. These tests passed in a local JS harness, but real site-browser testing and published GitHub Pages checks remain separately necessary.
+- Old flagged images remain visible until their fresh scan finishes. We never delete, ban, or change official game results based on automated scan findings.
