@@ -24,6 +24,16 @@ const cases=[
  ['dumbbell',null,(f,l)=>{f(61,49,16,16);f(110,49,16,16);l(86,63,86,140)}],
  ['blank',null,()=>{}]
 ];
+// Reproduce the specific false-positive pattern: two eyes, a broad curved
+// smile, and a hanging tongue (without using private player image bytes).
+const smileTongue=fixture((oval,stroke)=>{
+ oval(52,51,10,12);oval(109,50,11,12);
+ stroke(47,91,67,98);stroke(67,98,94,99);stroke(94,99,120,94);
+ stroke(85,100,86,124);stroke(86,124,97,117);stroke(97,117,99,97);
+});
+const face=ctx.CriloGenitalReview.analyzePixels(smileTongue,w,h);
+assert.equal(face.suspected,false,'Smiley with tongue must not be flagged');
+assert.equal(face.benignFace,true,'Smiley must trigger the conservative face veto');
 for(const [name,expected,paint] of cases){
  const observed=ctx.CriloGenitalReview.analyzePixels(fixture(paint),w,h);
  assert.equal(observed.type,expected,name+': '+JSON.stringify(observed));
@@ -31,6 +41,7 @@ for(const [name,expected,paint] of cases){
 const scanner=fs.readFileSync(path.join(root,'moderation-feed-scanner.js'),'utf8');
 const worker=fs.readFileSync(path.join(root,'moderation-scan-worker.js'),'utf8');
 assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=2')"));
+assert.ok(worker.includes('if(out.benignFace)'), 'Both outline detectors must honor face veto');
 assert.ok(scanner.includes('result.genitalSuspected===true'));
 assert.ok(scanner.includes("result.genitalType==='vulva'"));
 console.log('PASS: 8 geometry and harmless-control cases, worker wiring');
