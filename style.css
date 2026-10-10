@@ -32,6 +32,48 @@
 .wheel-score-rarity[hidden],.wheel-score-hint[hidden]{display:none!important}
 .wheel-score-hint{display:inline-flex;align-items:center;justify-content:center;margin-top:3px;padding:6px 11px;border:1px solid transparent;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;line-height:1.1;color:var(--muted)}
 .wheel-score-rarity-dot{width:6px;height:6px;border-radius:50%;background:var(--score-accent)}
+
+/* Final-score celebration: glyphs swell one at a time on the rarity melody.
+   Only transforms animate, never font-size/line-height or the HUD's bounds. */
+.wheel-score-amount.crilo-final-animate,
+#scoreTierText.crilo-final-animate{
+ display:inline-flex;
+ justify-content:center;
+ align-items:baseline;
+ white-space:nowrap;
+ overflow:visible;
+}
+.crilo-final-glyph{
+ display:inline-block;
+ position:relative;
+ transform-origin:50% 72%;
+ white-space:pre;
+ backface-visibility:hidden;
+}
+.crilo-final-digit{
+ animation:crilo-final-score-pop .62s cubic-bezier(.18,.78,.15,1) both;
+ animation-delay:var(--crilo-pop-delay,0ms);
+}
+.crilo-final-letter{
+ animation:crilo-final-rarity-wave .53s cubic-bezier(.18,.78,.2,1) both;
+ animation-delay:var(--crilo-pop-delay,0ms);
+}
+@keyframes crilo-final-score-pop{
+ 0%,100%{transform:translateY(0) scale(1)}
+ 29%{transform:translateY(-.085em) scale(1.22)}
+ 54%{transform:translateY(.012em) scale(.965)}
+ 75%{transform:translateY(-.018em) scale(1.035)}
+}
+@keyframes crilo-final-rarity-wave{
+ 0%,100%{transform:translateY(0) scale(1)}
+ 27%{transform:translateY(-.14em) scale(1.36)}
+ 57%{transform:translateY(.018em) scale(.96)}
+ 77%{transform:translateY(-.025em) scale(1.055)}
+}
+@media(prefers-reduced-motion:reduce){
+ .crilo-final-digit,.crilo-final-letter{animation:none!important}
+}
+
 .wheel-hud .wheel-counts{display:flex;gap:clamp(18px,7vw,65px);justify-content:center;align-items:center;margin:22px auto 18px}
 .wheel-hud .wheel-counts>div{min-width:75px;text-align:center}
 .wheel-hud .wheel-counts span{font-size:clamp(24px,4vw,30px)}
