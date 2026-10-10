@@ -177,7 +177,7 @@ $('reviewRetry').addEventListener('click',async()=>{
  try{
   const {error}=await criloDB.rpc('crilo_owner_local_scan_retry',{p_run_id:String(d.run_id),p_is_test:!!d.is_test});
   if(error)throw error;
-  close();await refresh();window.criloScanPendingDrawings?.();
+  close();await refresh();await window.criloScanSpecificDrawing?.({run_id:d.run_id,is_test:!!d.is_test,drawing:d.drawing});
  }catch(err){$('reviewActionStatus').textContent='Could not rescan: '+err.message;$('reviewRetry').disabled=false}
 });
 $('reviewRefresh').addEventListener('click',refresh);
