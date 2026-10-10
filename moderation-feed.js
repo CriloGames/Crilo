@@ -16,7 +16,10 @@ const hintsFor=d=>[
   reason==='Possible genital drawing'&&
   /^Possible (penis|vulva) drawing \(shape review\)$/.test(d.local?.visual_label||'')?
    d.local.visual_label.replace(' (shape review)',''):reason),
- ...(d.legacyHint?[d.legacyHint]:[])
+ // A completed v6 recheck supersedes older advisory image flags.
+ // Otherwise false positives continue to appear after clean rescans.
+ ...(d.local?.status==='complete'&&Number(d.local.scan_version)>=6?
+   []:d.legacyHint?[d.legacyHint]:[])
 ];
 const isStale=d=>!d.local||Number(d.local.scan_version||0)<5;
 function visible(d){
