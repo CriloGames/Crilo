@@ -135,7 +135,7 @@ self.onmessage=async event=>{
    // image classifiers. This still runs when SigLIP cannot load.
    try{
     importScripts('moderation-shape-review.js?v=1');
-    const canvas=createCanvas(bitmap,192);
+    const canvas=createCanvas(bitmap,200);
     const pixels=canvas.getContext('2d',{willReadFrequently:true})
       .getImageData(0,0,canvas.width,canvas.height);
     const hint=self.CriloShapeReview.analyze(pixels.data,canvas.width,canvas.height);
