@@ -151,6 +151,9 @@ async function run(){
 
  // Clearing slot 1 makes that badge selectable elsewhere again.
  await fixtureWithExisting.node('featuredClear').onclick();
+ // The clear handler dispatches an async RPC but intentionally returns no promise.
+ // Let its mocked RPC and post-save rendering finish before inspecting the slots.
+ await new Promise(resolve=>setImmediate(resolve));
  assert.equal(fixtureWithExisting.saved[1].p_badge_id,null);
  slots=row.innerHTML.split('<button type="button" class="featured-slot');
  assert.ok(!slots[1].includes(badges[3].name),'Old badge removed');
