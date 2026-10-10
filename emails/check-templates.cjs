@@ -1,51 +1,40 @@
-/* Ensures Supabase email bodies retain a working, touch-friendly magic link. */
+/* Authentication email must stay portable across Gmail / Apple Mail / Outlook.
+ * Radial CSS gradients and CSS-only table wedges are not supported reliably.
+ */
 'use strict';
-const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const wheelUrl='https://raw.githubusercontent.com/CriloGames/Crilo/main/emails/crilo-wheel.png';
 for(const file of ['magic-link.html','confirm-signup.html']){
  const html=fs.readFileSync(path.join(__dirname,file),'utf8');
- assert.ok(html.startsWith('<!doctype html>'),'Email must contain a complete HTML document: '+file);
- assert.ok(html.includes('<meta name="viewport"'),'Email must support narrow mobile screens: '+file);
- assert.ok(html.includes('max-width:520px'),'Email must keep a mobile-friendly card width: '+file);
+ assert.ok(html.startsWith('<!doctype html>'),'Complete HTML document: '+file);
+ assert.ok(html.includes('name="viewport"'),'Mobile-friendly viewport: '+file);
+ assert.ok(html.includes('max-width:520px'),'Bounded email card: '+file);
  assert.equal((html.match(/href="{{ \.ConfirmationURL }}"/g)||[]).length,2,
-  'Main CTA and fallback must use the correct Supabase one-time link: '+file);
+  'Both links must preserve the unique Supabase token: '+file);
  assert.ok(/<a href="{{ \.ConfirmationURL }}"[^>]+style="[^"]*padding:21px 12px;[^"]*font-size:19px;/.test(html),
-  'The entire large button should be clickable and at least 19px text: '+file);
+  'Large clickable sign-in button missing: '+file);
  assert.ok(html.includes('bgcolor="#ffe38a"')&&html.includes('border:2px solid #1b1d26'),
-  'Large pastel yellow CTA needs strong ink contrast and a visible border: '+file);
+  'High-contrast yellow sign-in CTA missing: '+file);
  for(const pastel of ['#ffd86b','#9bd9ef','#ffb8d2','#c8f4bd'])
-  assert.ok(html.includes(pastel),'Crilo wheel accent color missing '+pastel+': '+file);
- assert.ok(html.includes("Didn't request this email?"),'Missing unsolicited email safety text: '+file);
- assert.ok(!/<img\b|<script\b|<iframe\b|@import|src="https?:/i.test(html),
-  'Self-contained email must not depend on hosted images, scripts or CSS: '+file);
- assert.ok(html.includes('aria-label="Crilo pastel prize wheel"'),
-  'Crilo wheel must have an accessible label: '+file);
+  assert.ok(html.includes(pastel),'Crilo accent missing '+pastel+': '+file);
  assert.ok(html.includes('width="520" align="center" style="margin:0 auto;'),
-  'Entire email card must be centered: '+file);
- assert.ok(html.includes('width="82" align="center" style="margin:0 auto;'),
-  'Yellow wheel tile must be centered: '+file);
- assert.ok(html.includes('width="60" align="center" style="width:60px;margin:0 auto;'),
-  'Pointer and wheel nested table must be centered: '+file);
- assert.ok(html.includes('width="58" align="center" style="width:58px;height:58px;margin:0 auto;'),
-  'Circle must be centered within the yellow square: '+file);
+  'Email card must be centered: '+file);
  assert.ok(html.includes('width="100%" align="center" style="margin:0 auto;width:100%;max-width:390px;'),
-  'Large sign-in button must be centered: '+file);
- assert.ok(!html.includes('conic-gradient('),
-  'Gmail strips CSS gradients, so email wheel must not depend on them: '+file);
- for(const color of ['#ffc8a8','#ffd86b','#9bd9ef','#dfc8f6','#ffb8d2','#fff0a8','#aee9f4','#c8f4bd']){
-  assert.ok(html.includes('bgcolor="'+color+'"'),
-   'Every wheel sector needs an email-safe bgcolor: '+color+' in '+file);
- }
- assert.equal((html.match(/<td bgcolor="#(?:ffc8a8|ffd86b|9bd9ef|dfc8f6|ffb8d2|fff0a8|aee9f4|c8f4bd)"/g)||[]).length,8,
-  'Wheel must contain all eight colored sectors even in restrictive email clients: '+file);
- assert.ok(html.includes('aria-label="Eight-color Crilo wheel"'),
-  'Accessible wheel should identify its eight colors: '+file);
- assert.ok(html.includes('border-collapse:separate;border-spacing:0;table-layout:fixed;overflow:hidden'),
-  'Color sectors must remain inside a fixed-size circular wheel: '+file);
- assert.ok(html.includes('&#9660;')&&html.includes('border:4px solid #17191e'),
-  'Wheel must have its dark pointer and outer ring: '+file);
- assert.ok(html.includes('bgcolor="#ffffff"')&&html.includes('border:3px solid #17191e;border-radius:50%;'),
-  'Wheel must have the centered white hub: '+file);
- assert.ok(!html.includes('&#127922;'),'Old dice emoji must be gone: '+file);
- assert.ok(html.length<25000,'Email too long to render reliably: '+file);
+  'Sign-in CTA must be centered: '+file);
+ assert.ok(!html.includes('conic-gradient(')&&!html.includes('radial-gradient('),
+  'Email body must not depend on unsupported gradient CSS: '+file);
+ assert.equal((html.match(/<img\b/g)||[]).length,1,
+  'Exactly one wheel image, no tracking pixels: '+file);
+ assert.ok(html.includes('src="'+wheelUrl+'"'),
+  'Use publicly hosted Crilo PNG image: '+file);
+ assert.ok(html.includes('width="82" height="82" alt="Crilo pastel prize wheel"'),
+  'Wheel must be size-bounded and accessible: '+file);
+ assert.ok(html.includes('display:block;width:82px;height:82px;'),
+  'Wheel image must preserve size in restrictive email apps: '+file);
+ assert.ok(!/<script\b|<iframe\b|@import|data:image\/|cid:/i.test(html),
+  'No scripts, embedded data URIs, or unsupported CID attachments: '+file);
+ assert.ok(html.includes("Didn't request this email?"),'Security notice missing: '+file);
+ assert.ok(html.length<25000,'Template too large: '+file);
 }
-console.log('PASS: magic link and signup email templates keep their token URLs, large CTA, self-contained wheel and Crilo pastels.');
+console.log('PASS: Magic Link and signup email contain one real PNG wheel, safe Supabase links, pastel accents and oversized centered button.');
