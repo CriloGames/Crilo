@@ -70,7 +70,7 @@ RETURNS integer LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $fn$
  ), streaks AS (
   SELECT count(*)::integer AS days,max(daily_period) AS last_day FROM numbered GROUP BY grp
  )
- SELECT coalesce((SELECT s.days FROM streaks s,CROSS JOIN clock c
+ SELECT coalesce((SELECT s.days FROM streaks s CROSS JOIN clock c
     WHERE s.last_day>=c.period-1 ORDER BY s.last_day DESC LIMIT 1),0);
 $fn$;
 REVOKE ALL ON FUNCTION public.crilo_warning_current_streak(uuid) FROM PUBLIC,anon;
