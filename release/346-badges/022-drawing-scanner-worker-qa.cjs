@@ -69,7 +69,7 @@ async function schedulerTest(){
  const window={Crilo:{user:{id:'owner'},profile:{is_owner:true}},
   addEventListener(type,fn){listeners[type]=fn},criloRefreshDrawingFeed:async()=>{}};
  const document={hidden:false,getElementById:node,addEventListener(type,fn){listeners['document:'+type]=fn}};
- let useTest=false,blankResult=false,workersCreated=0,terminated=0;
+ let useTest=false,blankResult=false,harmlessLowScore=false,workersCreated=0,terminated=0;
  class MockWorker{
   constructor(path){assert.ok(path.includes('moderation-scan-worker'));workersCreated++}
   postMessage({id,checkVisual}){
@@ -78,6 +78,10 @@ async function schedulerTest(){
     {type:'result',id,blank:true,qrFound:false,ocrText:'',shapeSuspected:false,
      stages:{qr:'skipped_blank',ocr:'skipped_blank',shape:'skipped_blank',visual:'skipped_blank'},
      visualResults:[],errors:[]}:
+     harmlessLowScore?
+     {type:'result',id,blank:false,qrFound:false,ocrText:'hello',shapeSuspected:false,
+      stages:{qr:'done',ocr:'done',shape:'done',visual:'done'},
+      visualResults:[{label:'A harmless smiley face doodle',score:0.00195244}],errors:[]}:
     {type:'result',id,blank:false,qrFound:true,ocrText:'fuck https://example.com',
      stages:{qr:'done',ocr:'done',shape:checkVisual?'done':'skipped',
       visual:checkVisual?'done':'skipped'},
@@ -133,6 +137,17 @@ async function schedulerTest(){
   'Blank drawing must have no suggestion');
  assert.equal(blankSaved.p_visual_label,'Blank or nearly blank drawing');
  assert.equal(blankSaved.p_error,null,'A skipped blank image must not be an incomplete check');
+
+ blankResult=false;
+ harmlessLowScore=true;
+ await window.criloScanSpecificDrawing({run_id:'harmless-low-vision',is_test:true,
+   drawing:'data:image/png;base64,QUJD'});
+ const harmless=calls.filter(x=>x.name==='crilo_owner_local_scan_save').at(-1).args;
+ assert.deepEqual(Array.from(harmless.p_reasons),[],
+  'Low ML similarity without an actual signal is not an abuse flag');
+ assert.equal(harmless.p_error,null,
+  'Low ML similarity alone must not mark a fully scanned drawing incomplete');
+ assert.equal(harmless.p_visual_score,0.00195244);
 
  node('reviewToggleScan').handlers.click();
  assert.ok(node('reviewScanStatus').textContent.includes('Paused'));
