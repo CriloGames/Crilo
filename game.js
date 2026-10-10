@@ -136,10 +136,10 @@ async function showNewBadges(prior){
  if(error)return;
  const ids=(earned||[]).map(x=>x.badge_id).filter(id=>!prior.has(id));
  if(!ids.length)return;
- const {data:badges,error:badgeError}=await criloDB.from('badges').select('id,name,description').in('id',ids);
+ const {data:badges,error:badgeError}=await criloDB.from('badges').select('id,name,description,requirement').in('id',ids);
  if(badgeError||!badges?.length)return;
  $('newBadgeCount').textContent=badges.length+' NEW BADGE'+(badges.length===1?'':'S')+' UNLOCKED';
- $('newBadgeList').innerHTML=badges.map(b=>'<div class="new-badge-item"><span class="new-badge-icon">★</span><div><strong>'+Crilo.esc(b.name)+'</strong><p>'+Crilo.esc(b.description||'')+'</p></div></div>').join('');
+ $('newBadgeList').innerHTML=badges.map(b=>'<div class="new-badge-item" data-badge-rarity="'+Crilo.esc(String(b.requirement?.rarity||'common').toLowerCase())+'"><div><strong>'+Crilo.esc(b.name)+'</strong><p>'+Crilo.esc(b.description||'')+'</p></div></div>').join('');
  $('newBadgePanel').classList.remove('hidden');$('newBadgePanel').open=true;
 }
 function renderResult(r){
