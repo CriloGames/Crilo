@@ -13,7 +13,7 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
 assert.match(page,/moderation-feed\.js\?v=5/);
-assert.match(page,/moderation-feed-scanner\.js\?v=2/);
+assert.match(page,/moderation-feed-scanner\.js\?v=3/);
 assert.match(page,/style\.css\?v=89/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
@@ -42,6 +42,9 @@ assert.ok(safe&&typeof safe.classifyText==='function');
 assert.deepEqual(Array.from(safe.classifyText('Hello, little duck!')),[]);
 assert.deepEqual(Array.from(safe.classifyText('FUCK this')),['Profanity']);
 assert.deepEqual(Array.from(safe.classifyText('b!tch')),['Profanity']);
+assert.deepEqual(Array.from(safe.classifyText('f.u.c.k')),['Profanity']);
+assert.deepEqual(Array.from(safe.classifyText('s h i t')),['Profanity']);
+assert.deepEqual(Array.from(safe.classifyText('damn')),['Profanity']);
 assert.deepEqual(Array.from(safe.classifyText('Visit website dot com')),['Website or link']);
 assert.deepEqual(Array.from(safe.classifyText('https://example.xyz')),['Website or link']);
 assert.deepEqual(Array.from(safe.classifyText('join discord.gg/abc')),['Website or link']);
