@@ -12,6 +12,10 @@ on:
       - 'profile.html'
       - 'spin-history.js'
       - 'spin-history.css'
+      - 'beetle-tricks.html'
+      - 'bug-beetle.js'
+      - 'style.css'
+      - 'index.html'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -28,6 +32,10 @@ on:
       - 'profile.html'
       - 'spin-history.js'
       - 'spin-history.css'
+      - 'beetle-tricks.html'
+      - 'bug-beetle.js'
+      - 'style.css'
+      - 'index.html'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -57,6 +65,7 @@ jobs:
           node --check badge-collection.js
           node --check badge-sets.js
           node --check spin-history.js
+          node --check bug-beetle.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
@@ -65,6 +74,8 @@ jobs:
         run: node release/346-badges/013-clickable-profile-badges-smoke.cjs
       - name: Page official spin history five outcomes at a time
         run: node release/346-badges/014-spin-history-smoke.cjs
+      - name: Verify all beetle tricks and normal poop alignment
+        run: node release/346-badges/015-beetle-trick-preview-smoke.cjs
       - name: Check 346 normalized badge keys and positive/negative fixtures
         run: |
           node - <<'JS'
