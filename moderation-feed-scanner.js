@@ -215,7 +215,7 @@ async function scanNext(manual=false,selected=null){
     (visual.reason===REASONS.genital||visual.reason===REASONS.sexual)))
     reasons.push(visual.reason);
   // Recognized outline shapes are positive advisory signals, not proof.
-  if(!blank&&(result.shapeSuspected===true||result.genitalSuspected===true))
+  if(!blank&&result.benignFace!==true&&(result.shapeSuspected===true||result.genitalSuspected===true))
     reasons.push(REASONS.genital);
   const problems=[...(result.errors||[])];
   if(!blank){
@@ -237,6 +237,7 @@ async function scanNext(manual=false,selected=null){
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
    p_visual_label:blank?'Blank or nearly blank drawing':
+    result.benignFace?'Cartoon face (shape review)':
     result.genitalSuspected?(result.genitalType==='vulva'?
      'Possible vulva drawing (shape review)':'Possible penis drawing (shape review)'):
     result.shapeSuspected?'Possible genital outline (shape review)':visual.label,
