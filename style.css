@@ -675,7 +675,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 }
 .crilo-beetle-track.paused .crilo-beetle-trick-right,.crilo-beetle-track.paused .crilo-beetle-trick-left{animation-play-state:paused!important}
 /* The landing is an ornament, never a clickable overlay; one per return, then disappears. */
-.crilo-beetle-dropping{position:absolute;left:calc(50% + 26px);bottom:3px;width:24px;height:33px;opacity:0;pointer-events:none;transform-origin:50% 100%}
+.crilo-beetle-dropping{position:absolute;left:calc(46.74% + 46px);bottom:3px;width:24px;height:33px;opacity:0;pointer-events:none;transform-origin:50% 100%}
 .crilo-poop-art{position:absolute;width:22px;height:19px;left:0;bottom:0;filter:drop-shadow(0 1px 0 #00000012)}
 .crilo-poop-fly{position:absolute;left:9px;bottom:21px;width:5px;height:4px;border-radius:50%;background:#272a2c;opacity:.95}
 .crilo-poop-fly:before,.crilo-poop-fly:after{content:"";position:absolute;top:-3px;width:4px;height:4px;border-radius:75%;background:#d7ebee;border:1px solid #869da0}
@@ -707,14 +707,14 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
   48.4%,98.39%{transform:scaleX(-1)}
   98.4%,100%{transform:scaleX(1)}
 }
-/* On a normal return trip the beetle clears the center landing around
-   75% of the 16-second path; the little dropping appears safely behind it.
+/* On the return the beetle's back passes the drop position around 74.5%.
+   Keep the landing ~5px behind the moving body at all screen widths.
    A rare trick on EITHER wall suppresses poop and flies for that entire lap. */
 .crilo-beetle-track.walking[class*="beetle-right-"] .crilo-beetle-dropping,
 .crilo-beetle-track.walking[class*="beetle-left-"] .crilo-beetle-dropping{animation:none!important;opacity:0!important}
 @keyframes criloDropping{
-  0%,76%{opacity:0;transform:translateY(-7px) scale(.7)}
-  77%,88%{opacity:1;transform:translateY(0) scale(1)}
+  0%,74.2%{opacity:0;transform:translateY(-7px) scale(.7)}
+  74.6%,88%{opacity:1;transform:translateY(0) scale(1)}
   95%,100%{opacity:0;transform:translateY(2px) scale(.85)}
 }
 @keyframes criloFlyOrbit{
@@ -733,5 +733,39 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 @keyframes criloLegB{from{transform:rotate(9deg)}to{transform:rotate(-9deg)}}
 @keyframes criloBeetleBob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
 .crilo-bug-card{max-width:500px}.crilo-bug-card form{display:flex;flex-direction:column;gap:10px}.crilo-bug-card label{font-size:13px;font-weight:800}.crilo-bug-card label span{font-weight:500;opacity:.65}.crilo-bug-card textarea{display:block;min-height:105px;width:100%;box-sizing:border-box;border:1.5px solid #b4bac5;border-radius:9px;background:var(--card,#fff);color:inherit;font:inherit;padding:12px;resize:vertical}.crilo-bug-card textarea:focus{outline:2px solid #93cbb0;outline-offset:1px}.crilo-bug-card #bugSteps{min-height:75px}.crilo-bug-card #bugReportStatus{min-height:20px}.bug-honeypot{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
-@media(max-width:600px){.crilo-beetle{height:34px}.crilo-beetle svg{width:59px;height:25px}.crilo-beetle-track{--beetle-width:65px;height:59px}.crilo-beetle-tooltip{bottom:36px}.crilo-beetle-dropping{left:calc(50% + 22px)}}
+@media(max-width:600px){.crilo-beetle{height:34px}.crilo-beetle svg{width:59px;height:25px}.crilo-beetle-track{--beetle-width:65px;height:59px}.crilo-beetle-tooltip{bottom:36px}.crilo-beetle-dropping{left:calc(46.74% + 40px)}}
 @media(prefers-reduced-motion:reduce){.crilo-beetle-track.walking .crilo-beetle,.crilo-beetle-track.walking .crilo-beetle-facing,.crilo-beetle-track.walking .crilo-beetle-trick-right,.crilo-beetle-track.walking .crilo-beetle-trick-left,.crilo-beetle-track.walking .beetle-legs,.crilo-beetle-track.walking svg,.crilo-beetle-track.walking .crilo-beetle-dropping,.crilo-beetle-track.walking .crilo-poop-fly{animation:none!important}.crilo-beetle-dropping{opacity:0!important}}
+
+/* Active-spin viewport: after the first SPIN, align the entire wheel,
+   rarity score, counters, mode banner and button below the sticky header.
+   Prior to the first spin the full-size wheel and drawing tools are unchanged. */
+body.wheel-run-active .wheel-stage{scroll-margin-top:98px}
+body.wheel-run-active .wheel-wrap{
+ width:min(600px,88vw,max(225px,calc(100dvh - 355px)));
+ filter:drop-shadow(0 9px 18px rgba(0,0,0,.10))
+}
+body.wheel-run-active .draw-panel.locked-panel{display:none}
+body.wheel-run-active #testBanner{display:none!important}
+body.wheel-run-active .wheel-hud{margin:10px auto 4px}
+body.wheel-run-active .wheel-score{gap:2px}
+body.wheel-run-active .wheel-score-eyebrow{font-size:10px;letter-spacing:.13em}
+body.wheel-run-active .wheel-score-amount{font-size:clamp(38px,6vw,58px);line-height:1.04}
+body.wheel-run-active .wheel-score-rarity{margin-top:1px;padding:4px 9px;font-size:9px}
+body.wheel-run-active .wheel-counts{gap:clamp(17px,6vw,46px);margin:10px auto 10px}
+body.wheel-run-active .wheel-counts>div{min-width:65px}
+body.wheel-run-active .wheel-counts span{font-size:clamp(21px,3vw,26px)}
+body.wheel-run-active .wheel-counts small{font-size:9px}
+body.wheel-run-active #ownerActiveMode:not(.hidden){
+ margin:7px auto 9px;padding:7px 12px;
+ max-width:620px;font-size:10px;line-height:1.35;box-shadow:2px 2px 0 #17191e
+}
+body.wheel-run-active #spinButton{min-height:49px;padding:12px 32px}
+body.wheel-run-active .message{margin-top:9px;min-height:20px}
+@media(max-width:600px){
+ body.wheel-run-active .wheel-stage{scroll-margin-top:85px}
+ body.wheel-run-active .wheel-wrap{width:min(90vw,600px,max(210px,calc(100dvh - 335px)))}
+ body.wheel-run-active .wheel-score-amount{font-size:clamp(38px,9vw,52px)}
+ body.wheel-run-active .wheel-counts{margin:9px auto 9px;gap:clamp(12px,5vw,25px)}
+ body.wheel-run-active #ownerActiveMode:not(.hidden){font-size:9px;padding:7px}
+ body.wheel-run-active #spinButton{min-height:47px}
+}
