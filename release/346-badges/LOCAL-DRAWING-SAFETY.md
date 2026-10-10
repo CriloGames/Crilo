@@ -72,3 +72,15 @@ For this specific Owner Test Run: keep **Include my Test Runs** and **Include im
 - New regression suite: \`release/346-badges/024-shape-review-acceptance.cjs\`. It includes positive shape fixtures and harmless face/flower/dumbbell/blank controls.
 - **Important deployment safeguard:** v4 scans have separate Supabase \`crilo_owner_local_scan_jobs_v4\` and \`crilo_owner_local_scan_save_v4\` owner-guarded RPCs. Old open tabs continue using the v3 queue and cannot mark drawings as freshly checked by v4. v4 results require the current scanner script after deployment and browser refresh. This prevents stale browser code from silently completing the new audit.
 - The owner can recognize the new page from the **Safety scanner v4** label. While scanning, keep **Include my Test Runs** enabled to re-evaluate saved QA drawings. Opening a particular drawing and selecting **Scan this drawing** re-evaluates it immediately.
+
+
+## Handwritten links v5 (October 10, 2026)
+
+Two actual saved Owner Test Run drawings containing domain names were previously marked as \`NO FLAGS\`. Their OCR outputs were \`Crile Com\` and \`Farm lauh\\nCoan\`: the periods and some letters were lost or mistranscribed by handwriting OCR.
+
+- \`moderation-feed-scanner.js\` now recognizes OCR-lost dots, line-broken hostnames, separated \`co m\`, and conservative \`.com\` variations, including the observed \`Coan\` mistake. It still recognizes normal URLs and domain names. These are owner-review *suggestions*, not proof of an actual URL.
+- \`release/346-badges/025-handwritten-link-smoke.cjs\` contains those two observed OCR strings, plus additional positive and negative controls. No private drawing bytes are committed to the repository.
+- v5 owner-only RPCs (\`crilo_owner_local_scan_jobs_v5\` and \`crilo_owner_local_scan_save_v5\`) recheck older scan results without rewriting any official Daily runs.
+- A \`crilo_scan_version_guard\` database trigger prevents old browser tabs from downgrading scan results produced by newer code.
+- The owner sees **Safety scanner v5** and should enable **Include my Test Runs** to scan saved test drawings. The original OCR mistakes are reproducible, and the updated text classifier recognizes both, but a full browser re-scan and live deployment still need owner-browser verification.
+- This remains 100% local/free. Handwritten URLs may be missed when OCR recognizes no usable characters. Review all pending artwork manually as needed.
