@@ -21,7 +21,7 @@
   const fmt=value=>Number.isFinite(Number(value))?Number(value).toLocaleString('en-US'):'—';
   function dayLabel(row){
     const day=String(row.daily_period||row.run_date||row.created_at||'').slice(0,10);
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(day))return 'Previous Daily';
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return 'Previous Daily';
     const date=new Date(day+'T12:00:00Z');
     return Number.isFinite(date.getTime())?new Intl.DateTimeFormat('en-US',
       {month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(date):'Previous Daily';
