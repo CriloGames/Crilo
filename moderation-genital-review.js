@@ -135,6 +135,32 @@ function analyzePixels(rgba,w,h){
    return {suspected:true,type:'vulva',evidence:[
     'Elongated outer outline with a central slit-like line']};
  }
+ // Orientation-independent variation: an irregular, tilted outer outline can
+ // contain an inner stroke while having no second fully closed region.
+ for(const r of shapes){
+  if(r.ratio<2.0||r.ratio>8||r.area<w*h*0.008)continue;
+  const dx=r.tipA.x-r.tipB.x,dy=r.tipA.y-r.tipB.y,
+        major=Math.hypot(dx,dy);
+  if(major<27)continue;
+  const ux=dx/major,uy=dy/major,vx=-uy,vy=ux;
+  const halfMinor=Math.sqrt(r.area/(Math.PI*r.ratio));
+  if(halfMinor<4||halfMinor>0.28*major)continue;
+  let rows=0,covered=0;
+  for(let t=-major*0.28;t<=major*0.28;t+=2){
+   rows++;let matched=false;
+   for(let off=-halfMinor*0.68;off<=halfMinor*0.68;off+=1.2){
+    const x=Math.round(r.center.x+ux*t+vx*off),
+          y=Math.round(r.center.y+uy*t+vy*off);
+    if(x<0||x>=w||y<0||y>=h)continue;
+    if(dark[y*w+x]){matched=true;break}
+   }
+   if(matched)covered++;
+  }
+  if(rows>12&&covered/rows>0.27){
+   return {suspected:true,type:'vulva',evidence:[
+    'Tilted elongated genital-like outer contour with central markings']};
+  }
+ }
  return {suspected:false,type:null,evidence:[]};
 }
 root.CriloGenitalReview={analyzePixels,version:HYPOTHESIS_VERSION};
