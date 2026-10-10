@@ -25,14 +25,14 @@ function update(){
  $('duckCount').textContent=ducks;
  drawWheel();
 }
-function sound(kind){
+function sound(kind,tier=null){
  if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;
  try{
   const A=window.AudioContext||window.webkitAudioContext,ac=sound.ac||(sound.ac=new A());
   if(ac.state==='suspended')ac.resume().catch(()=>{});
   const now=ac.currentTime;
   // Balance perceived loudness by event; quieter wheel ticks get a lift.
-  const levels={tick:3.0,num:2.1,spins:1.3,double:1.05,upgrade:.84};
+  const levels={tick:3.0,num:2.1,spins:1.3,double:1.05,upgrade:.84,final:.95};
   const level=levels[kind]||1;
   const limiter=sound.limiter||(sound.limiter=(()=>{const c=ac.createDynamicsCompressor();c.threshold.value=-19;c.knee.value=12;c.ratio.value=7;c.attack.value=.003;c.release.value=.14;c.connect(ac.destination);return c})());
   // All sounds are synthesized locally; no downloads or external audio assets.
@@ -45,6 +45,23 @@ function sound(kind){
    g.gain.exponentialRampToValueAtTime(Math.min(.13,Math.max(.0002,volume*level)),start+.008);
    g.gain.exponentialRampToValueAtTime(.0001,start+duration);
    o.start(start);o.stop(start+duration+.01);
+  }
+  if(kind==='final'){
+   // Each final SCORE tier gets its own motif. Start after the last number
+   // landing chime so the two sounds don't mask one another.
+   // Nothing here runs on a Duck, ×2, Upgrade or +2 that extends the run.
+   const motifs={
+    trash:[[294,0,.20,.022,'triangle',185],[196,.20,.34,.025,'sine',131]],
+    common:[[440,0,.13,.027,'sine'],[554,.16,.22,.032,'triangle']],
+    uncommon:[[440,0,.12,.027,'triangle'],[587,.13,.13,.029,'triangle'],[698,.27,.29,.033,'sine']],
+    rare:[[523,0,.11,.025,'sine'],[659,.12,.12,.027,'triangle'],[784,.25,.17,.032,'sine'],[1047,.41,.32,.029,'sine']],
+    epic:[[392,0,.16,.031,'triangle'],[523,.11,.17,.033,'triangle'],[659,.23,.17,.034,'triangle'],[784,.36,.22,.036,'sine'],[1047,.57,.38,.029,'sine']],
+    anomaly:[[659,0,.24,.025,'triangle',988],[523,.17,.28,.027,'sine',392],[988,.36,.34,.028,'triangle',1568],[1319,.62,.47,.025,'sine',784]],
+    mythic:[[262,0,.19,.033,'triangle'],[392,.12,.19,.034,'triangle'],[523,.25,.19,.035,'triangle'],[659,.39,.19,.035,'sine'],[784,.54,.24,.037,'triangle'],[1047,.73,.32,.037,'sine'],[1568,.97,.55,.034,'sine']]
+   };
+   for(const [frequency,delay,duration,volume,wave,target] of motifs[String(tier||'').toLowerCase()]||motifs.common)
+    note(frequency,.22+delay,duration,volume,wave,target===undefined?frequency:target);
+   return;
   }
   if(kind==='tick'){
    if(now-(sound.lastTick||0)<.065)return;
@@ -294,7 +311,14 @@ if(serverReply){
   $('spinButton').disabled=true;update();return;
  }
 }
-update();if(guestRun&&spins>0&&!guestSaveOrPause())return;if(spins<=0)endRun()}
+update();
+if(guestRun&&spins>0&&!guestSaveOrPause())return;
+if(spins<=0){
+ // Classify only after the LAST resolved spin, after every extra-spin effect.
+ // This path is shared by guest, official Daily and owner Test Runs.
+ sound('final',rarity().color);
+ endRun();
+}}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
 function lockDrawing(){hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
