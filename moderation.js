@@ -1,7 +1,7 @@
 (()=>{
 const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
-let rows=[],chosen=null,generation=0;
+let rows=[],chosen=null,generation=0,showUnflagged=false;
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function load(){
  const request=++generation;
@@ -34,9 +34,29 @@ async function load(){
   }).join('');
  }
  const flaggedRows=[...(data||[]),...(testError?[]:(tests||[]))];
+ let unflaggedRows=[];
+ if(showUnflagged){
+  const [ordinary,ownerTests]=await Promise.all([
+   criloDB.rpc('crilo_owner_review_drawings',{p_status:'pending'}),
+   criloDB.rpc('crilo_owner_qa_export_drawings')
+  ]);
+  if(request!==generation)return;
+  if(ordinary.error||ownerTests.error){
+   message.textContent='Some unflagged drawings could not be loaded. Please refresh.';
+  }else{
+   const previouslyShown=new Set(flaggedRows.map(x=>String(x.run_id)));
+   unflaggedRows=[
+    ...(ordinary.data||[]).filter(x=>x.ai_status!=='flagged'&&x.ai_status!=='review'),
+    ...(ownerTests.data||[]).filter(x=>x.ai_status!=='flagged'&&x.ai_status!=='review').map(x=>({
+     ...x,username:'Owner',run_id:String(x.run_id),review_status:'test',ai_reasons:[],
+     ai_details:'Owner Test Run; no account actions are available.'
+    }))
+   ].filter(x=>!previouslyShown.has(String(x.run_id)));
+  }
+ }
  const uncertainRows=[...(reviewError?[]:(reviewDrawings||[])),...(reviewTestError?[]:(reviewTests||[]))];
- rows=[...flaggedRows,...uncertainRows];
- message.textContent=flaggedRows.length+' flagged drawings · '+uncertainRows.length+' visual predictions awaiting owner review. Predictions are not confirmed violations.';
+ rows=[...flaggedRows,...uncertainRows,...unflaggedRows];
+ message.textContent=flaggedRows.length+' flagged drawings · '+uncertainRows.length+' visual predictions awaiting owner review.'+(showUnflagged?' Showing '+unflaggedRows.length+' additional unflagged drawings for manual inspection.':'');
  if(reviewError||reviewTestError)message.textContent+=' Some visual review results could not be loaded.';
  if(testError)message.textContent+=' Test scan results unavailable: '+testError.message;
  list.innerHTML=rows.map((d,i)=>'<button type="button" class="crilo-review-row" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span><span class="crilo-review-thumbnail">'+(d.drawing?'<img src="'+escape(d.drawing)+'" alt="Drawing thumbnail" loading="lazy">':'<span>Removed</span>')+'</span><span class="crilo-review-player"><strong>'+escape(d.username)+'</strong><small>'+escape(new Date(d.submitted_at).toLocaleString())+'</small></span><span class="crilo-review-score">'+Number(d.score).toLocaleString()+' pts</span><span class="crilo-review-state">'+escape(d.ai_status==='review'?'Needs review':d.review_status)+'</span><span aria-hidden="true">↗</span></button>').join('');
@@ -59,6 +79,12 @@ modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 
 $('reviewRefresh').addEventListener('click',load);
+$('reviewUnflagged').addEventListener('click',()=>{
+ showUnflagged=!showUnflagged;
+ $('reviewUnflagged').textContent=showUnflagged?'Hide unflagged drawings':'Show unflagged drawings';
+ $('reviewUnflagged').setAttribute('aria-pressed',String(showUnflagged));
+ load();
+});
 let scanning=false;
 async function scanPending(){
  if(scanning||!window.Crilo?.profile?.is_owner)return;
