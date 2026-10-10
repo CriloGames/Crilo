@@ -59,7 +59,7 @@ async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={
  const entryCount=()=> (element('spinHistoryList').innerHTML.match(/<article class="spin-history-item/g)||[]).length;
  const official=runs.filter(x=>x.user_id==='player'&&!x.is_test);
  const expectedTotal=official.reduce((n,r)=>n+(Number(r.spins)||0),0);
- const expectedLifetimeLabel=expectedTotal+' spin'+(expectedTotal===1?'':'s')+' total';
+ const expectedLifetimeLabel=expectedTotal.toLocaleString('en-US')+' spin'+(expectedTotal===1?'':'s')+' total';
  const assertLifetime=phase=>assert.equal(element('spinHistoryCount').textContent,
   expectedLifetimeLabel,name+' total changed '+phase);
  assert.equal(entryCount(),counts[0],name+' initial 5');
