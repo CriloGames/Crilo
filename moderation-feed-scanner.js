@@ -139,10 +139,12 @@ function schedule(delay=waitMs){
 async function scanNext(manual=false){
  if(scanning||document.hidden||!owner()||(!auto&&!manual))return;
  scanning=true;
+ const nextButton=$('reviewScanNext');if(nextButton)nextButton.disabled=true;
  try{
   if(unavailable)throw Error('Background scanner unavailable in this browser');
   const {data,error}=await criloDB.rpc('crilo_owner_local_scan_jobs',{p_limit:1});
   if(error)throw error;
+  if(document.hidden||!owner()||(!auto&&!manual))return;
   const item=data?.[0];
   if(!item || (item.is_test&&!$('showOwnerTests')?.checked)){
    setStatus(item?.is_test?'Player drawings checked. Enable Test Runs to scan those too.':
@@ -184,6 +186,7 @@ async function scanNext(manual=false){
   setStatus('Scan error: '+err.message+'. Drawings remain available for your review.');
  }finally{
   scanning=false;
+  if(nextButton)nextButton.disabled=false;
   if(!manual) schedule();
   else if(auto)schedule(6000);
  }
