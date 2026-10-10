@@ -19,6 +19,16 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Self-contained email must not depend on hosted images, scripts or CSS: '+file);
  assert.ok(html.includes('aria-label="Crilo pastel prize wheel"'),
   'Crilo wheel must have an accessible label: '+file);
+ assert.ok(html.includes('width="520" align="center" style="margin:0 auto;'),
+  'Entire email card must be centered: '+file);
+ assert.ok(html.includes('width="82" align="center" style="margin:0 auto;'),
+  'Yellow wheel tile must be centered: '+file);
+ assert.ok(html.includes('width="60" align="center" style="width:60px;margin:0 auto;'),
+  'Pointer and wheel nested table must be centered: '+file);
+ assert.ok(html.includes('display:block;margin:0 auto;width:58px;height:58px;'),
+  'Circle must be centered within the yellow square: '+file);
+ assert.ok(html.includes('width="100%" align="center" style="margin:0 auto;width:100%;max-width:390px;'),
+  'Large sign-in button must be centered: '+file);
  assert.ok(html.includes('background-image:conic-gradient(')&&html.includes('background-color:#ffd86b;'),
   'Wheel segments and compatible solid-color fallback must both be present: '+file);
  assert.ok(html.includes('&#9660;')&&html.includes('border:4px solid #17191e'),
