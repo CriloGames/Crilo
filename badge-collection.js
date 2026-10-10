@@ -52,11 +52,26 @@
     const name=String(badge?.requirement?.rarity||'common').toLowerCase();
     return Object.hasOwn(rank,name)?name:'common';
   };
+  // Rarity tier is the primary difficulty order. Compare numeric simulated
+  // odds only if both badges have comparable probabilities in their metadata.
+  // Otherwise do not pretend one same-tier badge is statistically harder.
+  const probability=badge=>{
+    const raw=badge?.requirement?.probability_percent;
+    const n=Number(raw);
+    return raw==null||raw===''||!Number.isFinite(n)||n<0?null:n;
+  };
+  function compareDifficulty(a,b){
+    const tier=rank[rarity(b)]-rank[rarity(a)];
+    if(tier)return tier;
+    const pa=probability(a),pb=probability(b);
+    if(pa!==null&&pb!==null&&pa!==pb)return pa-pb;
+    return 0;
+  }
   function bestEarned(badges,earnedRows,max=50){
     const earned=earnedMap(earnedRows);
     return active(badges).filter(b=>earned.has(key(b.id))).sort((a,b)=>{
-      const byRarity=rank[rarity(b)]-rank[rarity(a)];
-      if(byRarity!==0)return byRarity;
+      const harder=compareDifficulty(a,b);
+      if(harder!==0)return harder;
       const timeA=Date.parse(earned.get(key(a.id))?.earned_at)||0;
       const timeB=Date.parse(earned.get(key(b.id))?.earned_at)||0;
       if(timeB!==timeA)return timeB-timeA;
@@ -77,10 +92,10 @@
         total,unlocked,percent:total?Math.round(unlocked/total*100):0,
         complete:total>0&&unlocked===total,
         badges:items.slice().sort((a,b)=>{
+          const harder=compareDifficulty(a,b);
+          if(harder!==0)return harder;
           const ar=earned.has(key(a.id)),br=earned.has(key(b.id));
           if(ar!==br)return ar?-1:1;
-          const rarityDiff=rank[rarity(b)]-rank[rarity(a)];
-          if(rarityDiff!==0)return rarityDiff;
           return Number(a.sort_order||0)-Number(b.sort_order||0)||
             String(a.name||'').localeCompare(String(b.name||''));
         })};
@@ -90,5 +105,5 @@
       return a.name.localeCompare(b.name);
     });
   }
-  window.CriloBadgeCollection={active,earnedMap,rarity,bestEarned,sets,rarityOrder};
+  window.CriloBadgeCollection={active,earnedMap,rarity,compareDifficulty,bestEarned,sets,rarityOrder};
 })();
