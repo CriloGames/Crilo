@@ -52,6 +52,7 @@ const commonLetterClasses=els.scoreTierText.children.map(x=>x.className);
 assert.ok(commonLetterClasses.every(x=>x.includes('crilo-final-letter')));
 
 for(const tier of Object.keys(helpers.notes)){
+ helpers.resetFinalCelebration();
  els.score.textContent='12,345';
  els.scoreTierText.textContent=tier.toUpperCase();
  const duration=helpers.playFinalScoreWave(tier);
