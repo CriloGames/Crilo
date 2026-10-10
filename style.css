@@ -953,3 +953,46 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
  .leader-tabs-wrap.tabs-fit .leader-tabs{justify-content:space-evenly}
  .leader-tabs-wrap.tabs-fit .leader-tab{font-size:clamp(14px,1.13vw,18px)}
 }
+
+
+/* CRILO wordmark: a quiet, occasional iridescent gleam over dark ink.
+   Scoped to the shared top navigation; no layout or hit-target changes. */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+ .topbar .brand{
+  --crilo-logo-ink:#15171c;
+  --crilo-logo-rose:#5a414f;
+  --crilo-logo-gold:#675638;
+  --crilo-logo-green:#40614e;
+  --crilo-logo-blue:#405c73;
+  --crilo-logo-violet:#60496a;
+  background-image:linear-gradient(110deg,
+   var(--crilo-logo-ink) 0%,var(--crilo-logo-ink) 39%,
+   var(--crilo-logo-rose) 43%,var(--crilo-logo-gold) 46%,
+   var(--crilo-logo-green) 49%,var(--crilo-logo-blue) 52%,
+   var(--crilo-logo-violet) 55%,var(--crilo-logo-ink) 60%,
+   var(--crilo-logo-ink) 100%);
+  background-size:260% 100%;
+  background-position:100% 50%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:criloLogoSheen 10s ease-in-out infinite;
+ }
+ html[data-theme="dark"] .topbar .brand{
+  --crilo-logo-ink:#f2f3f5;
+  --crilo-logo-rose:#d9bcc7;
+  --crilo-logo-gold:#e5d1ad;
+  --crilo-logo-green:#bcdac8;
+  --crilo-logo-blue:#b5d1e4;
+  --crilo-logo-violet:#d0c0e1;
+ }
+ @keyframes criloLogoSheen{
+  0%,15%{background-position:100% 50%}
+  60%,100%{background-position:0% 50%}
+ }
+ @media(prefers-reduced-motion:reduce){
+  .topbar .brand{
+   animation:none;background-image:none;
+   -webkit-text-fill-color:currentColor;
+  }
+ }
+}
