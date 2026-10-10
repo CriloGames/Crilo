@@ -102,7 +102,14 @@ function classifyVisual(list){
  return {reason,label:good?top.label:'No strong category match',score:top.score};
 }
 window.CriloLocalSafety={classifyText,classifyVisual,looksLikeHandwrittenLink,candidateLabels,REASONS};
-let background=null,pending=null,scanning=false,started=false,auto=true,visualChecks=true;
+// Heavy local image models can exceed memory budgets on phones/tablets.
+ // Opening Drawing Review on those devices stays safe: scanning is opt-in.
+ const lowPowerDevice=typeof navigator!=='undefined'&&(
+  Number(navigator.deviceMemory||0)>0&&Number(navigator.deviceMemory)<=4 ||
+  /iPhone|iPad|iPod|Android/i.test(navigator.userAgent||'') ||
+  /Macintosh/i.test(navigator.userAgent||'')&&Number(navigator.maxTouchPoints||0)>1
+ );
+let background=null,pending=null,scanning=false,started=false,auto=!lowPowerDevice,visualChecks=true;
 let examples=[],examplesLoadedAt=0;
 let pendingTimer=null,processed=0,suspected=0,cancelled=0,unavailable=false;
 let nowStage={qr:'Waiting',ocr:'Waiting',visual:'Waiting'};
@@ -311,8 +318,13 @@ function init(){
   showStage();
  });
  if($('showOwnerTests'))$('showOwnerTests').addEventListener('change',()=>{if(auto)schedule(500)});
- setStatus('Background scanning ready. The page remains responsive while checks run.');
- schedule(1600);
+ if(lowPowerDevice){
+  setAuto(false);
+  setStatus('Scanning is paused on this device to save memory. Tap Resume scanning to start one drawing at a time.');
+ }else{
+  setStatus('Background scanning ready. The page remains responsive while checks run.');
+  schedule(1600);
+ }
 }
 window.criloScanSpecificDrawing=async selected=>{
  if(!selected||!owner()||typeof selected.run_id==='undefined')return;
