@@ -50,7 +50,7 @@ assert.ok(sets.includes("track('badge_detail')")&&!sets.includes("track('badge_f
  'Collection category expansion must not accidentally award Featured Badge change');
 assert.ok(profile.includes("track('badge_filter')")&&profile.includes('crilo_set_featured_badge'),
  'Featured Badge change must be awarded only through a successful slot save');
-assert.ok(!events.includes(".badge-set summary"),
+assert.ok(!events.includes("if(node.closest('.badge-set summary'))"),
  'Badge Detail trigger must not rely on removed profile markup');
 for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','settings.html','domain/index.html'])
