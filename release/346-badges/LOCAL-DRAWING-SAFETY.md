@@ -39,3 +39,14 @@ GitHub commits alone do not establish GitHub Pages deployment status. Check the 
 - Worker scans one job per queue request and can be stopped. The scanner intentionally does not process saved Owner Test Runs until **Include my Test Runs** is enabled.
 - All controls and scanning status are gathered near the top, with four summary counters and a simplified mobile layout.
 - \`node release/346-badges/022-drawing-scanner-worker-qa.cjs\` exercises QR/OCR mock worker processing, pause, owner guards, test isolation and avoidance of redundant base64 thumbnail repainting.
+
+## Outlined-genital false-negative correction (October 10)
+A real Owner Test Run containing a simple outlined genital drawing returned no visual match (relative score roughly 0.002) under the generic SigLIP comparison. The original `NO FLAGS` was a false negative.
+
+- Added `moderation-shape-review.js`, a small off-main-thread contour geometry hint for one elongated closed stroke region adjoining two rounded regions. It is rotation-tolerant and only produces **possible genital drawing** advisories. Similar innocent doodles can be flagged, so the owner must inspect them.
+- The worker always runs this lightweight check before the optional large image model (if image scanning is enabled).
+- Generic image-model scores below 0.10 are treated as **inconclusive**, not proof of safety. Uncertain, partial, or legacy weak model results are prioritized for manual review instead of showing `NO FLAGS`.
+- Local scan records now use `scan_version=2`; earlier version-1 scans are eligible for rechecking without changing existing runs, scores, badges, or accounts.
+- `release/346-badges/023-outline-safety-review-smoke.cjs` tests several rotation angles, benign negative fixtures, and integration with the worker. These are synthetic smoke tests, not measured accuracy/recall.
+
+For this specific Owner Test Run: keep **Include my Test Runs** and **Include image and symbol detection** checked, wait for the new worker to scan, or select **Scan this drawing**. Never automatically delete, ban, or approve based on these checks.
