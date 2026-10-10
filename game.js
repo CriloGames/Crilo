@@ -147,16 +147,10 @@ async function spin(){if(spinning||spins<=0)return;
  }
  if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}
 lockDrawing();
-// Focus the play surface only when the first real spin begins. Preserve the
-// drawing UI until this moment, then fit the entire wheel and SPIN button
-// inside the visible viewport. Later spins never re-scroll the page.
-if(!document.body?.classList?.contains('wheel-run-active')){
- document.body?.classList?.add('wheel-run-active');
- const stage=document.querySelector?.('.wheel-stage');
- requestAnimationFrame(()=>{
-  stage?.scrollIntoView?.({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth',block:'start'});
- });
-}
+// Never scroll while a wheel animation begins. On iPhone an animated
+// scroll, dynamic address-bar height and wheel resizing could combine
+// into the reported apparent zoom/jump during Daily spins.
+document.body?.classList?.add('wheel-run-active');
 spinning=true;$('spinButton').disabled=true;
 let officialReply=null;
 if(officialServerMode()){
@@ -187,7 +181,52 @@ if(officialServerMode()){
 }
 spins--;totalSpins++;update();$('message').textContent='...';
 const N=segments.length,a=Math.PI*2/N,index=officialReply?Number(officialReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],officialReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
-function beginRun(){document.body?.classList?.remove('wheel-run-active');serverSessionId=null;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
+// Size to REAL visible space below the sticky nav and above the complete
+// SPIN button. A fixed pixel size per run avoids 100dvh/iOS address-bar
+// resizes changing the wheel while it is spinning.
+let playLayoutWidth=0,playLayoutHeight=0;
+function fitPlayViewport(align=false){
+ const body=document.body;
+ const stage=document.querySelector('.wheel-stage');
+ const button=$('spinButton');
+ const header=document.querySelector('.topbar');
+ if(!body||!stage||!button)return;
+ body.classList.add('wheel-session-fit');
+ const viewportHeight=Math.min(window.innerHeight||9999,window.visualViewport?.height||9999);
+ const viewportWidth=window.innerWidth||document.documentElement.clientWidth||375;
+ const headerHeight=header?.getBoundingClientRect().height||68;
+ const stageRect=stage.getBoundingClientRect();
+ const buttonRect=button.getBoundingClientRect();
+ // This includes the actual score, rarity chip, counters, owner mode banner
+ // and margins, instead of guessing their heights at every screen size.
+ const belowWheel=Math.max(180,buttonRect.bottom-stageRect.bottom);
+ const room=viewportHeight-headerHeight-belowWheel-28-25;
+ const diameter=Math.max(140,Math.floor(Math.min(600,viewportWidth-24,room)));
+ body.style.setProperty('--crilo-wheel-fit',diameter+'px');
+ playLayoutWidth=viewportWidth;playLayoutHeight=viewportHeight;
+ if(align){
+  // One deliberate alignment when the player CHOOSES Daily/Test, not on
+  // every spin. No smooth scrolling: avoids iOS browser chrome bouncing.
+  requestAnimationFrame(()=>{
+   const top=stage.getBoundingClientRect().top+window.scrollY-headerHeight-25;
+   const root=document.documentElement;
+   const previous=root.style.scrollBehavior;
+   root.style.scrollBehavior='auto';
+   window.scrollTo({top:Math.max(0,top),behavior:'instant'});
+   root.style.scrollBehavior=previous;
+  });
+ }
+}
+window.addEventListener('resize',()=>{
+ if(!document.body?.classList?.contains('wheel-session-fit')||spinning)return;
+ const h=Math.min(window.innerHeight||9999,window.visualViewport?.height||9999);
+ // Ignore iPhone's small, frequent visual viewport changes as toolbars slide;
+ // recalculate for real desktop resizes and orientation changes.
+ if(Math.abs((window.innerWidth||0)-playLayoutWidth)>18||
+    (window.innerWidth>700&&Math.abs(h-playLayoutHeight)>70))
+  fitPlayViewport(false);
+});
+function beginRun(alignPlay=false){document.body?.classList?.remove('wheel-run-active');serverSessionId=null;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();fitPlayViewport(alignPlay)}
 async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
 if(isTest){
@@ -248,11 +287,11 @@ async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();co
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
-function startTest(save=true){if(!profile?.is_owner||spinning)return;ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun()}
+function startTest(save=true){if(!profile?.is_owner||spinning)return;ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun(true)}
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;$('resetCountdown').textContent=`NEXT DAILY ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;if(diff<1000)setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('crilo-auth-ready',async e=>{user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;$('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);if(profile?.is_owner){$('spinButton').classList.add('hidden');$('message').textContent='Choose Official Daily or Test Run to begin.';}if(!user){$('message').textContent='Play for free! Sign up to save future Daily runs.';if(!started&&$('result').classList.contains('hidden'))beginRun();return}if(!profile){open('profileModal');return}if(guestRun&&(started||!$('result').classList.contains('hidden')))return;await DuckWorld.load(criloDB,user);await checkPlayed()});window.addEventListener('crilo-signin-request',()=>open('authModal'));
 window.addEventListener('crilo-auth-error',e=>{open('authModal');$('authStatus').textContent='Sign-in failed: '+(e.detail?.message||'Please request a new email link.');});
-$('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>open('authModal'));$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun();$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+$('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>open('authModal'));$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null;
 function snapshot(){undoStack.push(dctx.getImageData(0,0,200,200));if(undoStack.length>25)undoStack.shift();redoStack=[]}
