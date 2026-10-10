@@ -20,14 +20,26 @@ list.addEventListener('click',async e=>{
  const btn=e.target.closest('.crilo-owner-delete-score');if(!btn||busy||!window.Crilo?.profile?.is_owner)return;
  const r=rows[Number(btn.dataset.index)];if(!r)return;
  const who=target||window.Crilo?.user?.id;if(!who)return;
- if(!confirm('Remove the '+Number(r.score).toLocaleString()+' point official run from '+esc(document.getElementById('profileName').textContent)+'? This deletes its score and drawing, and updates best runs and stats.'))return;
- if(!confirm('FINAL CONFIRMATION: Permanently delete this score? This cannot be undone.'))return;
- busy=true;btn.disabled=true;status.textContent='Deleting score…';
+ // Apply the SAME accountable penalty as the leaderboard and Drawing Review.
+ // Silent deletion bypassed the required account warning, notice and replay lock.
+ const reasons=[['1','profanity','Profanity or offensive text'],['2','sexual','Sexual or genital drawing'],
+  ['3','hate','Hate or extremist symbol'],['4','links','Website link or external promotion'],
+  ['5','qr','QR code or scannable link'],['6','abuse','Harassment or abusive message'],
+  ['7','other','Other inappropriate drawing']];
+ const choice=prompt('Why is this official Daily being removed?\\n'+
+  reasons.map(v=>v[0]+'. '+v[2]).join('\\n')+'\\n\\nEnter a reason number (1–7):');
+ if(choice===null)return;
+ const selected=reasons.find(v=>v[0]===choice.trim());
+ if(!selected){status.textContent='Choose a valid violation reason (1–7). No action taken.';return;}
+ const playerName=document.getElementById('profileName')?.textContent||'this player';
+ if(!confirm('Remove '+Number(r.score).toLocaleString()+' points from '+playerName+' for '+selected[2]+'? Their Daily and associated badges will be removed, streak reset and account flagged.'))return;
+ if(!confirm('FINAL CONFIRMATION: Permanently penalize this official Daily? The player cannot replay it, and will receive a warning.'))return;
+ busy=true;btn.disabled=true;status.textContent='Applying Daily penalty…';
  try{
-  const {data,error}=await criloDB.rpc('crilo_owner_delete_profile_run',{p_user:who,p_run_id:r.run_id});
+  const {data,error}=await criloDB.rpc('crilo_owner_penalize_daily',{p_run_id:Number(r.run_id),p_reason:selected[1]});
   if(error)throw error;if(data!==true)throw Error('Score no longer exists.');
   await load();
-  status.textContent='Score deleted. Reloading player statistics…';
+  status.textContent='Official Daily removed with violation warning. Reloading player statistics…';
   location.reload();
  }catch(error){status.textContent='Deletion failed: '+error.message;btn.disabled=false}
  finally{busy=false}
