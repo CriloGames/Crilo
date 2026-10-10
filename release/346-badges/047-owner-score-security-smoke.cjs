@@ -37,7 +37,7 @@ assert.match(scores,/GRANT EXECUTE ON FUNCTION public\.crilo_submit_domain_score
 assert.ok(domain.includes("rpc('crilo_submit_domain_score'"),'Game must use server-approved score RPC');
 assert.ok(!/from\(['"]game_scores['"]\)\.insert/.test(domain),'Never let browser write Domain leaderboard rows');
 assert.ok(domain.includes("slider:Number($('priceSlider').value)"),'Send slider, not a claimed points total');
-assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=10'));
+assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=11'));
 assert.ok(profile.includes(".eq('is_verified',true)")&&profile.includes(".eq('is_verified',false)"));
 assert.ok(profile.includes('Legacy / local (unverified)'), 'Legacy scores must be visibly untrusted');
 assert.ok(profilePage.includes('profile.js?v=97'));
