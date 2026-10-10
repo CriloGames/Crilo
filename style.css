@@ -1119,3 +1119,11 @@ html[data-theme="dark"] .crilo-review-state[data-state="partial"]{color:#f5d49d;
 
 .crilo-review-test-tag{display:inline-flex;vertical-align:middle;align-items:center;margin-left:8px;padding:3px 6px;border:1px solid #ccd3ec;border-radius:6px;background:#f0f2ff;color:#5961a3;font-size:9px;letter-spacing:.04em;font-weight:900}
 html[data-theme="dark"] .crilo-review-test-tag{background:#303350;border-color:#555b88;color:#d2d8ff}
+
+/* V5 scanner: older scans are explicitly pending new analysis, not clean. */
+.crilo-review-state[data-state="stale"]{
+ color:#806329;background:#fbf1d9;border:1px solid #f1e2ba;
+}
+html[data-theme="dark"] .crilo-review-state[data-state="stale"]{
+ color:#e5c88f;background:#4a3b25;border-color:#685237;
+}
