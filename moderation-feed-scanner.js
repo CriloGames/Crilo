@@ -72,7 +72,7 @@ function startWorker(){
  if(typeof Worker==='undefined'){
   unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const active=new Worker('moderation-scan-worker.js?v=2');
+ const active=new Worker('moderation-scan-worker.js?v=3');
  background=active;
  active.onmessage=e=>{
   const data=e.data;
@@ -166,25 +166,34 @@ async function scanNext(manual=false,selected=null){
    return;
   }
   if(!owner()||document.hidden||cancelled!==idAtStart+1)return;
-  const visual=classifyVisual(result.visualResults);
-  const reasons=[...(result.qrFound?[REASONS.qr]:[]),...classifyText(result.ocrText)];
-  if(visual.reason)reasons.push(visual.reason);
-  // Generic image classifiers routinely miss tiny pixel-art outlines.
-  // The separate geometry check is an advisory signal, not proof.
-  if(result.shapeSuspected===true)reasons.push(REASONS.genital);
+  const blank=result.blank===true;
+  const visual=blank?{reason:null,label:'Blank or nearly blank',score:null}:
+   classifyVisual(result.visualResults);
+  const reasons=blank?[]:[...(result.qrFound?[REASONS.qr]:[]),...classifyText(result.ocrText)];
+  if(!blank&&visual.reason)reasons.push(visual.reason);
+  // Recognized outline shapes are positive advisory signals, not proof.
+  if(!blank&&result.shapeSuspected===true)reasons.push(REASONS.genital);
   const problems=[...(result.errors||[])];
-  if(!problems.length && result.stages?.qr!=='done')problems.push('QR was not checked');
-  if(!visualChecks)problems.push('Image/symbol checking disabled; review manually');
-  else if(result.stages?.shape!=='done')problems.push('Outline check incomplete; manual review required');
-  // The model outputs relative similarity scores, not calibrated safety odds.
-  // Avoid showing NO FLAGS when the vision match was inconclusive.
-  if(visualChecks&&result.stages?.visual==='done'&&!visual.reason&&
-     (!Number.isFinite(visual.score)||visual.score<0.10))
-    problems.push('Visual scan inconclusive on stylized drawing; manual review required');
+  if(!blank){
+   if(result.stages?.qr!=='done'&&!problems.some(x=>/QR/i.test(x)))
+    problems.push('QR check incomplete');
+   if(result.stages?.ocr!=='done'&&!problems.some(x=>/OCR|Text/i.test(x)))
+    problems.push('Text check incomplete');
+   if(!visualChecks)problems.push('Image/symbol checks switched off');
+   else{
+    if(result.stages?.shape!=='done'&&!problems.some(x=>/Outline/i.test(x)))
+     problems.push('Outline check incomplete');
+    if(result.stages?.visual!=='done'&&!problems.some(x=>/Visual|model/i.test(x)))
+     problems.push('Image model check incomplete');
+   }
+  }
+  // Low SigLIP similarity is common even on entirely harmless artwork.
+  // Never flag or mark incomplete solely because the numeric score is low.
   const payload={
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
-   p_visual_label:result.shapeSuspected?'Possible outlined genital drawing (geometry hint)':visual.label,
+   p_visual_label:blank?'Blank or nearly blank drawing':
+    result.shapeSuspected?'Possible outlined genital drawing (geometry hint)':visual.label,
    p_visual_score:visual.score,
    p_error:problems.length?problems.join('; ').slice(0,250):null
   };
