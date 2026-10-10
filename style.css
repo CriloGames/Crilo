@@ -996,3 +996,52 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
   }
  }
 }
+
+
+/* Owner drawing review: calm, responsive local-safety dashboard. */
+.crilo-review-scan-box{
+ border:1px solid var(--line,#e4e5e8);border-radius:16px;
+ padding:16px 18px;background:var(--card,#fff);
+ display:grid;gap:7px;margin:22px 0 12px;
+}
+.crilo-review-scan-box strong{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:15px}
+.crilo-review-scan-box p{margin:0;color:var(--text,#17191e);font-size:14px;overflow-wrap:anywhere}
+.crilo-review-scan-box small{color:var(--muted,#777);line-height:1.55;overflow-wrap:anywhere}
+.crilo-review-free-label{font-size:10px;font-weight:900;letter-spacing:.09em;
+ color:#477761;background:#eaf5ee;border:1px solid #cae3d0;padding:5px 8px;border-radius:999px}
+.crilo-review-filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.crilo-review-filters label{font-size:13px;font-weight:850}
+.crilo-review-filters select{max-width:100%;padding:9px 12px;border-radius:10px;
+ background:var(--card,#fff);color:var(--text,#17191e);border:1px solid var(--line,#ddd)}
+.crilo-review-filters .muted{font-size:12px}
+.crilo-review-player .crilo-review-reasons{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px;min-width:0}
+.crilo-review-reasons em{font-style:normal;font-size:10px;font-weight:750;border-radius:7px;
+ padding:3px 7px;color:#874b30;border:1px solid #f0d8c8;background:#fff0e6}
+.crilo-review-suspected{border-color:#edc5ae;background:color-mix(in srgb,var(--card,#fff) 93%,#ffcfad)}
+.crilo-review-state{flex:0 0 auto;white-space:nowrap}
+.crilo-review-state[data-state="normal"]{color:#5a6474;background:#eceff2}
+.crilo-review-state[data-state="partial"]{color:#885d22;background:#fff0d2}
+.crilo-review-findings{border:1px solid var(--line,#ddd);border-radius:12px;
+ text-align:left;padding:13px 16px;margin-top:13px;background:var(--soft,#fafafa);
+ overflow-wrap:anywhere}
+.crilo-review-findings strong{font-size:14px}
+.crilo-review-findings p{font-size:13px;line-height:1.5;margin:7px 0;color:var(--text,#17191e)}
+.crilo-review-scan-warning{color:#ab4a27!important}
+.crilo-review-ban-option{display:flex;gap:8px;align-items:center;justify-content:center;
+ font-size:13px;line-height:1.4;padding:6px 0 10px;cursor:pointer}
+.crilo-review-ban-option[hidden]{display:none!important}
+.crilo-review-actions{margin:15px 0 8px}
+@media(max-width:700px){
+ .crilo-review-row{gap:8px;min-width:0}
+ .crilo-review-rank{width:17px;flex-shrink:0}
+ .crilo-review-thumbnail{width:50px;height:50px;flex-basis:50px}
+ .crilo-review-player strong{font-size:14px}
+ .crilo-review-state{white-space:normal;text-align:center;font-size:9px;max-width:88px}
+ .crilo-review-row>span:last-child{display:none}
+ .crilo-review-actions button{flex:1 1 42%;font-size:12px}
+ .crilo-review-filters select{width:min(100%,265px)}
+}
+html[data-theme="dark"] .crilo-review-free-label{background:#203b30;border-color:#396652;color:#a9dcc3}
+html[data-theme="dark"] .crilo-review-reasons em{background:#3f3026;border-color:#725039;color:#f0c49b}
+html[data-theme="dark"] .crilo-review-state[data-state="normal"]{color:#c4cbd1;background:#303741}
+html[data-theme="dark"] .crilo-review-state[data-state="partial"]{color:#f5d49d;background:#4d3c24}
