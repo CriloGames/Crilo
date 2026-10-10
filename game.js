@@ -138,8 +138,8 @@ function completeGuestDaily(){
  if(!guestDailyClaimedHere)return;
  try{
   // A tab that finishes after Daily reset must not consume the NEW period.
-  const existing=guestDailyRecord();
-  if(existing&&!existing.storageUnavailable&&existing.period!==guestDailyClaimedPeriod)return;
+  const stored=localStorage.getItem(GUEST_DAILY_STORAGE_KEY);
+  if(stored&&JSON.parse(stored)?.period!==guestDailyClaimedPeriod)return;
   localStorage.setItem(GUEST_DAILY_STORAGE_KEY,JSON.stringify({
    period:guestDailyClaimedPeriod,status:'complete',score:Math.round(score),
    spins:totalSpins,completedAt:new Date().toISOString()
