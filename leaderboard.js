@@ -15,8 +15,30 @@ function setBestScoreRarity(value){
 window.addEventListener('crilo-auth-ready',()=>load());
 async function moderateRun(id,source){
  if(!Crilo.profile?.is_owner)return;
- if(!confirm('Permanently remove this '+(source==='test'?'owner test':'official')+' score and its drawing from the leaderboard? This cannot be undone.'))return;
- const {data,error}=await criloDB.rpc('crilo_owner_moderate_run',{p_id:id,p_source:source});
+ let data,error;
+ if(source==='official'){
+  // Official removal for inappropriate artwork must use the same penalty
+  // transaction as Drawing Review. A reason is required and publicly shown.
+  const options=[
+   ['1','profanity','Profanity or offensive text'],
+   ['2','sexual','Sexual or genital drawing'],
+   ['3','hate','Hate or extremist symbol'],
+   ['4','links','Website link or external promotion'],
+   ['5','qr','QR code or scannable link'],
+   ['6','abuse','Harassment or abusive message'],
+   ['7','other','Other inappropriate drawing']
+  ];
+  const choice=prompt('Reason for permanently deleting this official Daily and issuing a PUBLIC account warning:\n'+
+   options.map(x=>x[0]+'. '+x[2]).join('\n')+'\nCancel to keep the run.');
+  if(choice===null)return;
+  const selected=options.find(x=>x[0]===choice.trim());
+  if(!selected){alert('Choose a valid reason from 1 to 7. No changes made.');return}
+  if(!confirm('FINAL CONFIRMATION: Delete the Daily and its points, reset the streak, block replay of that Daily period, and issue a permanent public warning for '+selected[2]+'?'))return;
+  ({data,error}=await criloDB.rpc('crilo_owner_penalize_daily',{p_run_id:Number(id),p_reason:selected[1]}));
+ }else{
+  if(!confirm('Delete this private owner Test Run? Official players will not be affected.'))return;
+  ({data,error}=await criloDB.rpc('crilo_owner_moderate_run',{p_id:id,p_source:source}));
+ }
  if(error){alert('Could not remove run: '+error.message);return}
  if(!data){alert('Run not found or already removed.');return}
  await load();
