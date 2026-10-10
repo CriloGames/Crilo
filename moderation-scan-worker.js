@@ -96,7 +96,7 @@ self.onmessage=async event=>{
  busy=true;
  const id=msg.id;
  let bitmap=null;
- const out={type:'result',id,ocrText:'',qrFound:false,visualResults:[],errors:[],stages:{}};
+ const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',visualResults:[],errors:[],stages:{}};
  try{
   progress(id,'decode','Preparing image');
   bitmap=await getBitmap(msg.drawing);
@@ -105,9 +105,24 @@ self.onmessage=async event=>{
   try{out.ocrText=await readOCR(bitmap,id);out.stages.ocr='done';}
   catch(e){out.errors.push(String(e.message||e));out.stages.ocr='unavailable';}
   if(msg.checkVisual!==false){
+   // Small, deterministic outline-shape advisory supplements weak generic
+   // image classifiers. This still runs when SigLIP cannot load.
+   try{
+    importScripts('moderation-shape-review.js?v=1');
+    const canvas=createCanvas(bitmap,192);
+    const pixels=canvas.getContext('2d',{willReadFrequently:true})
+      .getImageData(0,0,canvas.width,canvas.height);
+    const hint=self.CriloShapeReview.analyze(pixels.data,canvas.width,canvas.height);
+    out.shapeSuspected=hint.suspected===true;
+    out.shapeDetail=hint.detail||'';
+    out.stages.shape='done';
+   }catch(e){
+    out.stages.shape='unavailable';
+    out.errors.push('Outline check unavailable: '+String(e.message||e).slice(0,95));
+   }
    try{out.visualResults=await readVision(bitmap,id);out.stages.visual='done';}
    catch(e){out.errors.push(String(e.message||e));out.stages.visual='unavailable';}
-  }else out.stages.visual='skipped';
+  }else{out.stages.visual='skipped';out.stages.shape='skipped';}
  }catch(e){
   out.errors.push('Cannot read drawing: '+String(e.message||e).slice(0,130));
  }finally{
