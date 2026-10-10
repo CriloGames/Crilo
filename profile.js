@@ -420,45 +420,125 @@ badgeClose.onclick=()=>badgeDialog.close();
 badgeDialog.onclose=()=>badgePreviewTrigger?.focus({preventScroll:true});
 badgeDialog.onclick=event=>{if(event.target===badgeDialog)badgeDialog.close()};
 renderBadgeIcons();
-const bm=new Map((badges||[]).map(b=>[b.id,b]));
+// Featured badges are always drawn from this player's earned, active catalog.
+// Convert database bigint IDs to strings consistently: a newly saved feature
+// should never look empty because the selector supplied a string value.
+const earnedIds=new Set((earned||[]).map(row=>String(row.badge_id)));
+const bm=new Map(activeBadges.map(b=>[String(b.id),b]));
 const mine=target===Crilo.user?.id;
-const featuredIds=new Map((featured||[]).map(f=>[f.position,f.badge_id]));
-const featuredCard=(position)=>{
- const id=featuredIds.get(position),b=id&&em.has(id)?bm.get(id):null;
- return '<button type="button" class="featured-slot '+(mine?'featured-editable':'')+'" data-badge-rarity="'+(b?String(b.requirement?.rarity||'common').toLowerCase():'none')+'" data-position="'+position+'" '+(mine?'title="Choose an earned badge for this slot"':'disabled')+'>'+(b?'<b>'+Crilo.esc(b.name)+'</b><small>'+Crilo.esc(String(b.requirement?.rarity||'common'))+'</small>':mine?'<span>+ Choose badge</span>':'<span>Empty badge slot</span>')+'</button>';
+const featuredIds=new Map((featured||[]).map(f=>[Number(f.position),String(f.badge_id)]));
+const featuredCard=position=>{
+ const id=featuredIds.get(position);
+ const b=id&&earnedIds.has(id)?bm.get(id):null;
+ const rarity=b?collection.rarity(b):'none';
+ const title=b?'Change '+b.name+' featured badge':'Choose an earned badge for slot '+position;
+ return '<button type="button" class="featured-slot '+(mine?'featured-editable ':'')+
+   (b?'featured-filled':'featured-empty')+'" data-badge-rarity="'+rarity+
+   '" data-position="'+position+'" '+(mine?'title="'+Crilo.esc(title)+'" aria-label="'+Crilo.esc(title)+'"':'disabled')+'>'+
+   (b?'<b>'+Crilo.esc(b.name)+'</b><small>'+Crilo.esc(rarity.toUpperCase())+'</small>':
+   mine?'<span class="featured-empty-label"><span aria-hidden="true">+</span> Choose badge</span>':
+   '<span>Empty badge slot</span>')+'</button>';
 };
-$('featuredBadges').innerHTML=Array.from({length:5},(_,i)=>featuredCard(i+1)).join('');
+const featuredRow=$('featuredBadges');
+const renderFeatured=()=>{featuredRow.innerHTML=Array.from({length:5},(_,i)=>featuredCard(i+1)).join('')};
+renderFeatured();
 if(mine){
- const dialog=$('featuredPicker');
- const options=()=>'<option value="">Empty slot</option>'+[...bm.values()].filter(b=>em.has(b.id)).map(b=>'<option value="'+Crilo.esc(b.id)+'">'+Crilo.esc(b.name)+'</option>').join('');
- $('featuredBadges').querySelectorAll('[data-position]').forEach(btn=>btn.addEventListener('click',()=>{
-  const pos=Number(btn.dataset.position);
-  $('featuredSlotNumber').textContent=pos;
-  $('featuredBadgeSelect').innerHTML=options();
-  $('featuredBadgeSelect').value=featuredIds.get(pos)||'';
-  $('featuredStatus').textContent='';
-  dialog.dataset.position=pos;
-  dialog.classList.remove('hidden');
- }));
- $('featuredCancel').onclick=()=>dialog.classList.add('hidden');
- $('featuredSave').onclick=async()=>{
-  const position=Number(dialog.dataset.position),id=$('featuredBadgeSelect').value||null;
-  $('featuredSave').disabled=true;
-  const {error}=await criloDB.rpc('crilo_set_featured_badge',{p_position:position,p_badge_id:id?Number(id):null});
-  $('featuredSave').disabled=false;
-  if(error){$('featuredStatus').textContent='Could not save: '+error.message;return}
-  if(id)featuredIds.set(position,id);else featuredIds.delete(position);
-  if(id)window.CriloBadgeEvents?.track('badge_filter');
-  // Update only the changed slot. Rebuilding the entire profile resets
-  // scroll position and causes the page to jump after closing the picker.
-  const slot=$('featuredBadges').querySelector('[data-position="'+position+'"]');
-  if(slot){
-   const template=document.createElement('div');
-   template.innerHTML=featuredCard(position);
-   slot.innerHTML=template.firstElementChild.innerHTML;slot.dataset.badgeRarity=template.firstElementChild.dataset.badgeRarity;
-  }
+ const dialog=$('featuredPicker'),grid=$('featuredBadgeOptions');
+ const choiceInput=$('featuredBadgeSelect'),search=$('featuredBadgeSearch');
+ const count=$('featuredPickerCount'),status=$('featuredStatus');
+ const saveBtn=$('featuredSave'),clearBtn=$('featuredClear');
+ const choices=activeBadges.filter(b=>earnedIds.has(String(b.id)))
+   .sort((a,b)=>collection.compareDifficulty(a,b)||String(a.name||'').localeCompare(String(b.name||'')));
+ let editingPosition=1,busySaving=false,returnFocus=null;
+ const closePicker=()=>{
+  if(busySaving)return;
   dialog.classList.add('hidden');
+  returnFocus?.focus?.({preventScroll:true});
  };
+ const renderChoices=()=>{
+  const needle=String(search.value||'').trim().toLowerCase();
+  const found=choices.filter(b=>!needle||[b.name,b.description,collection.rarity(b)]
+    .some(t=>String(t||'').toLowerCase().includes(needle)));
+  const selected=String(choiceInput.value||'');
+  count.textContent=found.length+' of '+choices.length+' earned badge'+(choices.length===1?'':'s');
+  grid.innerHTML=found.length?found.map(b=>{
+   const id=String(b.id),rarity=collection.rarity(b);
+   const selectedNow=selected===id;
+   const otherPosition=[...featuredIds].find(([slot,value])=>slot!==editingPosition&&value===id)?.[0];
+   return '<button type="button" class="featured-pick-option'+(selectedNow?' is-selected':'')+
+    '" data-badge-id="'+Crilo.esc(id)+'" data-badge-rarity="'+rarity+
+    '" aria-pressed="'+(selectedNow?'true':'false')+'">'+
+    '<span class="featured-pick-title">'+Crilo.esc(b.name)+'</span>'+
+    '<span class="featured-pick-rarity">'+Crilo.esc(rarity.toUpperCase())+(selectedNow?' · SELECTED':'')+'</span>'+
+    '<span class="featured-pick-description">'+Crilo.esc(b.description||'Earned achievement')+'</span>'+
+    (otherPosition?'<span class="featured-pick-used">Featured in slot '+otherPosition+' · will move</span>':'')+
+    '</button>';
+  }).join(''):'<p class="featured-pick-empty">'+(choices.length?
+    'No earned badges match that search.':'No earned badges yet. Play an official Daily to unlock your first one.')+'</p>';
+  saveBtn.disabled=busySaving||(!choices.length&&!featuredIds.has(editingPosition));
+ };
+ featuredRow.onclick=e=>{
+  const slot=e.target.closest?.('.featured-slot[data-position]');
+  if(!slot)return;
+  editingPosition=Number(slot.dataset.position);
+  if(!Number.isInteger(editingPosition)||editingPosition<1||editingPosition>5)return;
+  returnFocus=slot;
+  dialog.dataset.position=String(editingPosition);
+  $('featuredSlotNumber').textContent=editingPosition;
+  choiceInput.value=featuredIds.get(editingPosition)||'';
+  search.value='';
+  status.textContent='';
+  clearBtn.disabled=!featuredIds.has(editingPosition);
+  renderChoices();
+  dialog.classList.remove('hidden');
+  search.focus();
+ };
+ grid.onclick=e=>{
+  const option=e.target.closest?.('.featured-pick-option[data-badge-id]');
+  if(!option||!grid.contains(option))return;
+  const id=String(option.dataset.badgeId);
+  if(!earnedIds.has(id)||!bm.has(id))return;
+  choiceInput.value=id;
+  status.textContent='';
+  renderChoices();
+ };
+ search.oninput=renderChoices;
+ const saveSelection=async()=>{
+  if(busySaving)return;
+  const id=String(choiceInput.value||'');
+  if(id&&(!earnedIds.has(id)||!bm.has(id))){
+   status.textContent='You can only feature a badge you have unlocked.';
+   return;
+  }
+  busySaving=true;
+  saveBtn.disabled=true;clearBtn.disabled=true;
+  try{
+   const {error}=await criloDB.rpc('crilo_set_featured_badge',{
+    p_position:editingPosition,p_badge_id:id?Number(id):null
+   });
+   if(error){status.textContent='Could not save: '+error.message;return}
+   // The database also moves an already-featured badge out of its old slot.
+   if(id)for(const [position,value] of featuredIds)
+     if(position!==editingPosition&&value===id)featuredIds.delete(position);
+   if(id)featuredIds.set(editingPosition,id);
+   else featuredIds.delete(editingPosition);
+   if(id)window.CriloBadgeEvents?.track('badge_filter');
+   renderFeatured();
+   dialog.classList.add('hidden');
+   featuredRow.querySelector('[data-position="'+editingPosition+'"]')?.focus({preventScroll:true});
+  }catch(error){
+   status.textContent='Could not save: '+(error?.message||'Please try again.');
+  }finally{
+   busySaving=false;
+   clearBtn.disabled=!featuredIds.has(editingPosition);
+   saveBtn.disabled=choices.length===0&&!featuredIds.has(editingPosition);
+  }
+ };
+ saveBtn.onclick=saveSelection;
+ clearBtn.onclick=()=>{choiceInput.value='';saveSelection()};
+ $('featuredCancel').onclick=closePicker;
+ dialog.onclick=e=>{if(e.target===dialog)closePicker()};
+ dialog.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closePicker()}};
 }
 let local=[];if(target===Crilo.user?.id){try{local=JSON.parse(localStorage.getItem('crilo_domain_top5')||'[]')}catch{}}const ds=(domainScores||[]).map(x=>x.score);const top=[...ds,...local].sort((a,b)=>b-a).slice(0,5);$('domainTop').innerHTML=top.length?top.map((v,i)=>`<div class="domain-score"><span class="domain-rank">${i+1}</span><span class="domain-score-main"><span class="domain-score-title">${i===0?'Personal best':'Run '+(i+1)}</span><span class="domain-score-bar"><i style="width:${Math.min(100,Math.max(0,Number(v)/5000*100))}%"></i></span></span><strong class="domain-score-number">${Number(v).toLocaleString()}<small> / 5,000</small></strong></div>`).join(''):'<span class="muted">No Domain scores yet.</span>'}
 window.addEventListener('crilo-auth-ready',load)})();
