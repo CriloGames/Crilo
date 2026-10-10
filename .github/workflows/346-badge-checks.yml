@@ -113,6 +113,8 @@ jobs:
         run: node release/346-badges/021-free-drawing-moderation-smoke.cjs
       - name: Verify background QR OCR and nonblocking moderation feed
         run: node release/346-badges/022-drawing-scanner-worker-qa.cjs
+      - name: Stress-test thousand-drawing owner backlog with bounded pages
+        run: node release/346-badges/032-thousand-drawing-backlog-smoke.cjs
       - name: Detect drawn genital-like outlines and never clear inconclusive images
         run: node release/346-badges/023-outline-safety-review-smoke.cjs
       - name: Verify specialized shape detection and harmless controls
