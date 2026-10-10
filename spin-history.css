@@ -1,0 +1,66 @@
+/* Compact official Daily spin history on player profiles.
+   Seven exact Crilo score-rarity tiers, no test-run data. */
+.spin-history{margin:32px 0 34px}
+.spin-history-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:15px}
+.spin-history-heading h2{font-size:clamp(22px,3vw,27px);font-weight:900;letter-spacing:-.035em;margin:0;text-transform:uppercase}
+.spin-history-heading p{margin:5px 0 0;font-size:13px;color:var(--muted,#7c828d)}
+.spin-history-count{font-size:12px;color:var(--muted,#7c828d);white-space:nowrap;font-weight:750}
+.spin-history-list{display:flex;flex-direction:column;gap:8px}
+.spin-history-item{--spin-rarity:#7f8794;--spin-tint:#eceef2;display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;column-gap:15px;
+ padding:12px 16px;border:1px solid var(--line,#e2e5e9);background:var(--panel,#fff);border-radius:14px;
+ box-shadow:0 2px 4px #17191e0a}
+.spin-history-item[data-rarity="trash"]{--spin-rarity:#8d531a;--spin-tint:#f6e7d3}
+.spin-history-item[data-rarity="common"]{--spin-rarity:#7f8794;--spin-tint:#eceef2}
+.spin-history-item[data-rarity="uncommon"]{--spin-rarity:#49ab82;--spin-tint:#e1f4ea}
+.spin-history-item[data-rarity="rare"]{--spin-rarity:#417fcb;--spin-tint:#e1eefb}
+.spin-history-item[data-rarity="epic"]{--spin-rarity:#8e5ddd;--spin-tint:#efe5ff}
+.spin-history-item[data-rarity="anomaly"]{--spin-rarity:#d45722;--spin-tint:#ffe9df}
+.spin-history-item[data-rarity="mythic"]{--spin-rarity:#d957c2;--spin-tint:#fbe2f5}
+.spin-history-score{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:61px;padding:9px 5px;
+ color:var(--text,#17191e);background:var(--spin-tint);border:1.5px solid var(--spin-rarity);border-radius:11px;
+ box-shadow:1px 2px 0 color-mix(in srgb,var(--spin-rarity) 30%,transparent)}
+.spin-history-score strong{font-size:clamp(16px,2.25vw,22px);line-height:1;font-weight:950;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.spin-history-score small{font-size:9px;line-height:1.2;text-transform:uppercase;letter-spacing:.04em;color:var(--spin-rarity);font-weight:900}
+.spin-history-detail{min-width:0}
+.spin-history-event{font-size:14px;font-weight:850;line-height:1.4;color:var(--text,#17191e)}
+.spin-history-meta{font-size:11px;color:var(--muted,#7c828d);margin-top:5px;line-height:1.45}
+.spin-history-side{text-align:right;min-width:75px}
+.spin-history-side strong{font-size:12px;font-weight:850;color:var(--text,#17191e);display:block}
+.spin-history-side span{display:block;font-size:10px;margin-top:4px;color:var(--muted,#7c828d)}
+.spin-history-item.legacy .spin-history-score{border-style:dashed;box-shadow:none}
+.spin-history-message{margin:0;border:1px dashed var(--line,#d9dee4);border-radius:14px;padding:24px;text-align:center;color:var(--muted,#737b88);font-size:13px}
+.spin-history-pager{margin:12px 0 0}
+.spin-history-pager[hidden],.spin-history-end[hidden]{display:none!important}
+.spin-history-progress{height:3px;width:100%;background:var(--soft,#edeff2);border-radius:99px;overflow:hidden;margin:0 0 9px}
+.spin-history-progress span{display:block;width:100%;height:100%;background:linear-gradient(90deg,#74b49e,#88a6d3,#bb8cdb);transform-origin:left;transform:scaleX(1);transition:transform .25s ease}
+.spin-history-pager.is-loading .spin-history-progress span{animation:criloHistoryLoading 1.1s ease-in-out infinite alternate}
+@keyframes criloHistoryLoading{from{transform:translateX(-85%)}to{transform:translateX(85%)}}
+.spin-history-more{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:43px;
+ background:var(--panel,#fff);color:var(--text,#17191e);border:1.3px solid var(--line,#d8dde5);border-radius:12px;
+ font-weight:850;font-size:12px;letter-spacing:.035em;cursor:pointer}
+.spin-history-more span{font-size:19px;line-height:1}
+.spin-history-more:hover:not(:disabled){border-color:#87919d;background:var(--soft,#f5f6f8)}
+.spin-history-more:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
+.spin-history-more:disabled{opacity:.6;cursor:wait}
+.spin-history-end{display:flex;align-items:center;justify-content:center;gap:9px;margin:14px 0 0;padding:10px 14px;
+ border:1px dashed var(--line,#d8dde5);border-radius:13px;color:var(--muted,#737b88);font-size:12px;font-weight:750}
+.spin-history-end svg{flex-shrink:0}
+html[data-theme="dark"] .spin-history-score{background:color-mix(in srgb,var(--spin-rarity) 27%,#252631);color:var(--text,#f7f7f7)}
+html[data-theme="dark"] .spin-history-score small{color:color-mix(in srgb,var(--spin-rarity) 65%,#ffffff)}
+@media(max-width:550px){
+ .spin-history{margin:27px 0}
+ .spin-history-heading{align-items:flex-start}
+ .spin-history-heading p{font-size:12px}
+ .spin-history-count{font-size:10px;margin-top:8px}
+ .spin-history-item{grid-template-columns:72px minmax(0,1fr);gap:10px;padding:10px 11px}
+ .spin-history-score{min-height:52px;padding:7px 4px}
+ .spin-history-score strong{font-size:17px}
+ .spin-history-score small{font-size:8px}
+ .spin-history-event{font-size:12.5px}
+ .spin-history-meta{font-size:10px}
+ .spin-history-side{grid-column:2;text-align:left;min-width:0;margin-top:-3px}
+ .spin-history-side strong,.spin-history-side span{display:inline;font-size:10px}
+ .spin-history-side span:before{content:" · "}
+ .spin-history-end{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.spin-history-progress span{animation:none!important;transition:none!important}}
