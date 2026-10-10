@@ -98,10 +98,10 @@ function countImages(){return (node('drawingReviewList').innerHTML.match(/<img /
  await node('reviewRemove').handlers.click();
  assert.equal(decisions,1,'Only one confirmed owner deletion RPC');
  assert.equal(confirms.length,2,'Keep both confirmations');
- assert.ok(!node('drawingReviewList').innerHTML.includes('Player990'),
+ assert.ok(!node('drawingReviewList').innerHTML.includes('Player1000'),
   'Deleted item must not appear even with stale mock database');
  await window.criloRefreshDrawingFeed();
- assert.ok(!node('drawingReviewList').innerHTML.includes('Player990'),
+ assert.ok(!node('drawingReviewList').innerHTML.includes('Player1000'),
   'Stale remote response must not restore locally deleted item');
  assert.ok(maxSent<=24);
  const durationMs=Date.now()-started;
