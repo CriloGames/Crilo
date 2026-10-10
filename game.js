@@ -85,7 +85,7 @@ function bump(){const w=$('wheelWrap');w.classList.remove('upgrade-bump');void w
 // The record is written BEFORE the first random outcome so refreshing during
 // an unfinished game cannot grant a new guest attempt.
 const GUEST_DAILY_STORAGE_KEY='crilo_guest_daily_v1';
-let guestDailyClaimedHere=false;
+let guestDailyClaimedHere=false,guestDailyClaimedPeriod=null;
 function guestDailyRecord(){
  try{
   const raw=localStorage.getItem(GUEST_DAILY_STORAGE_KEY);
@@ -126,6 +126,7 @@ function claimGuestDaily(){
   localStorage.setItem(GUEST_DAILY_STORAGE_KEY,JSON.stringify(saved));
   if(!localStorage.getItem(GUEST_DAILY_STORAGE_KEY))throw Error('Guest attempt was not saved');
   guestDailyClaimedHere=true;
+  guestDailyClaimedPeriod=saved.period;
   return true;
  }catch(error){
   $('message').textContent='Guest play requires browser storage so a refresh cannot reset your Daily. Enable site storage or sign in.';
@@ -136,8 +137,11 @@ function claimGuestDaily(){
 function completeGuestDaily(){
  if(!guestDailyClaimedHere)return;
  try{
+  // A tab that finishes after Daily reset must not consume the NEW period.
+  const existing=guestDailyRecord();
+  if(existing&&!existing.storageUnavailable&&existing.period!==guestDailyClaimedPeriod)return;
   localStorage.setItem(GUEST_DAILY_STORAGE_KEY,JSON.stringify({
-   period:Crilo.dailyPeriod(),status:'complete',score:Math.round(score),
+   period:guestDailyClaimedPeriod,status:'complete',score:Math.round(score),
    spins:totalSpins,completedAt:new Date().toISOString()
   }));
  }catch(error){console.warn('Could not save completed guest Daily',error);}
