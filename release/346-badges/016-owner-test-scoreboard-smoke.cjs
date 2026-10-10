@@ -48,7 +48,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  }
  const document={getElementById:element,querySelectorAll:()=>[],querySelector:()=>element('nested'),
   addEventListener:()=>{}};
- const window={addEventListener:(n,cb)=>events[n]=cb,CriloBadgeEvents:{track:async name=>{badgeEvents.push(name);return true;}}};
+ const window={addEventListener:(n,cb)=>events[n]=cb,CriloRarity:{scoreBands:trueScoreBands},CriloBadgeEvents:{track:async name=>{badgeEvents.push(name);return true;}}};
  const rpcCalls=[],saved=[],testSaved=[],badgeEvents=[],errors=[];
  const state={id:'test-session',remaining_spins:5,spin_count:0,score:0,multiplier:1,
   upgrades:0,doubles:0,ducks:0,extra_spins:0,numbers_landed:0,segments:defaults.map(x=>({...x})),
