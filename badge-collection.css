@@ -199,7 +199,8 @@ html[data-theme="dark"] .collection-tile.locked .collection-tile-description{col
 .featured-picker-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
  max-height:420px;min-height:70px;overflow-y:auto;overscroll-behavior:contain;
  border:1px solid var(--line,#e1e4e8);border-radius:13px;padding:9px;background:var(--soft,#f7f8fa)}
-.featured-pick-option{--crilo-badge-accent:#7f8794;--crilo-badge-pale:#eceef2;
+.featured-pick-option{
+ /* Rarity variables come from style.css [data-badge-rarity]. Do not reset them here. */
  appearance:none;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;
  padding:12px 13px;min-width:0;min-height:102px;
  border:1.3px solid color-mix(in srgb,var(--crilo-badge-accent) 58%,#25262a);
