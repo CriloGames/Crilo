@@ -127,6 +127,8 @@ jobs:
           node --check moderation-feedback.js
       - name: Reject fabricated Domain results and unauthorized score or owner edits
         run: node release/346-badges/047-owner-score-security-smoke.cjs
+      - name: Reject stored profile-color XSS affecting player and owner sessions
+        run: node release/346-badges/049-stored-profile-xss-security-smoke.cjs
       - name: Audit all page links, friend invites, badge triggers and owner controls
         run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
