@@ -93,3 +93,15 @@ Two actual saved Owner Test Run drawings containing domain names were previously
 - The \`crilo_owner_local_scan_jobs_v6\` queue targets **previously unscanned or pre-v5 drawings** plus **existing v5 genital-shape flags**; it deliberately does not rescan completed blank v5 images unnecessarily. Version-6 scan saves are owner-only, and the existing database downgrade guard remains in place.
 - Tests include a smiley with two eyes, wide mouth and hanging tongue, alongside earlier anatomical-positive and flower/dumbbell controls, plus mocked worker contradictory genital signals. These tests passed in a local JS harness, but real site-browser testing and published GitHub Pages checks remain separately necessary.
 - Old flagged images remain visible until their fresh scan finishes. We never delete, ban, or change official game results based on automated scan findings.
+
+
+## Owner example feedback and deletion-list fix
+
+- The Drawing Review detail modal now includes **Teach the scanner** with **Add as inappropriate example**, **Mark as safe example**, category selection, and **Remove saved example**.
+- Owner labels are persisted in the protected \`public.crilo_owner_drawing_examples\` table through owner-guarded RPCs. Row-level security is enabled; ordinary authenticated players and anonymous visitors have no direct table permissions or function access. Owner-only access checks have been exercised against an unauthorized identity.
+- The database retains a **64-character hexadecimal visual fingerprint** and label, not the original drawing pixels. It supports up to 300 labeled examples and preserves examples when an official run is subsequently deleted.
+- \`moderation-example-features.js\` performs low-cost 16x16 ink-pattern normalization, Hamming-distance nearest-neighbor matching, and a conservative safe-example veto. It can recognize closely resembling examples only; this is **not neural-model retraining** and cannot generalize reliably to every inappropriate drawing.
+- The scanner pulls saved owner labels periodically (and when changed) and passes the examples into the dedicated Web Worker. Matches can suggest manual review; they never automatically ban players or delete a run.
+- Successfully approved/deleted/banned official run cards are removed immediately. Pending or stale list refresh responses cannot restore locally confirmed decisions. Unsuccessful server decisions continue to show errors and are not removed optimistically.
+- A clean completed v6 scan suppresses legacy image-prediction hints, allowing previously misidentified cartoon faces to clear after an actual rescan. Background owner scans remain tab-open-only; the owner can use **Scan this drawing** to prioritize a specific older drawing.
+- Focused regression suite \`026-owner-example-learning-smoke.cjs\` covers close matching, unrelated faces, safe veto, blank exclusion, ownership feedback wiring, and deletion queue UI wiring. The existing \`022-drawing-scanner-worker-qa.cjs\` suite additionally checks that a confirmed deletion stays absent even if an older feed snapshot still contains it.
