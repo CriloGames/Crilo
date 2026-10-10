@@ -1,4 +1,4 @@
-<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Crilo Daily Wheel — one strange spin run every day."><title>Crilo — Daily Wheel</title><link rel="stylesheet" href="style.css?v=69"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
+<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Crilo Daily Wheel — one strange spin run every day."><title>Crilo — Daily Wheel</title><link rel="stylesheet" href="style.css?v=70"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body>
 <header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a class="active" href="index.html">PLAY</a><a href="leaderboard.html"><svg class="nav-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5h14v8c0 6-3 9-7 9s-7-3-7-9V5Z"/><path d="M9 8H5v4c0 4 2 6 6 6M23 8h4v4c0 4-2 6-6 6M16 22v5m-6 1h12"/></svg> LEADERBOARD</a><a href="ducks.html"><svg class="nav-icon" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 18c0-4 3-7 7-7 2 0 4 1 5 2 0-5 3-8 7-8 3 0 5 2 5 5 0 2-1 3-2 4l4 2-4 2c-1 6-6 10-13 10-6 0-10-4-10-9 0-2 0-3 1-4Z"/><path d="M9 18c2 3 5 4 9 3"/><circle cx="24" cy="10" r="1" fill="currentColor" stroke="none"/></svg> DUCKS</a><a href="#more-games">MORE GAMES</a></nav><div class="header-actions"><button class="circle-btn" id="helpBtn" aria-label="How to play">?</button><div class="account-wrap"><button class="account-btn" id="accountBtn">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div></header>
 <main><section class="hero"><div class="daily-row"><div class="daily-chip">DAILY WHEEL</div><div class="reset-chip" id="resetCountdown">NEXT DAILY —:—:—</div></div><h1>Make the number bigger.</h1><p class="sub">Five spins to start. One official run per Daily. Strange things may happen.</p>
 <div class="test-banner hidden" id="testBanner">OWNER TEST MODE — DOES NOT COUNT AS AN OFFICIAL DAILY</div>
@@ -14,6 +14,7 @@
 <a class="crilo-support-link" href="support.html">♡ Keep Crilo Spinning</a>
 <div class="crilo-beetle-track" id="bugBeetleTrack">
 <button class="crilo-beetle" id="bugBeetle" type="button" aria-label="Report a bug" title="Found a bug? Report it!">
+<span class="crilo-beetle-facing">
 <svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <!-- Side-on beetle: head points in the direction it walks, left to right. -->
   <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
@@ -35,8 +36,19 @@
     </g>
   </g>
 </svg>
+</span>
 <span class="crilo-beetle-tooltip">REPORT A BUG</span>
 </button>
+<!-- One tiny landing and two circling flies, synchronized to each return pass. -->
+<span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
 </div>
 </footer>
 <div class="modal-backdrop hidden" id="bugReportModal"><section class="modal-card auth-card crilo-bug-card" role="dialog" aria-modal="true" aria-labelledby="bugReportTitle"><button class="modal-close" id="bugClose" type="button" aria-label="Close bug report">×</button><div class="eyebrow">FOUND A LITTLE BUG?</div><h2 id="bugReportTitle">Tell us what happened.</h2><form id="bugReportForm"><label for="bugDescription">What went wrong?</label><textarea id="bugDescription" maxlength="3000" minlength="15" required placeholder="Describe what happened..."></textarea><label for="bugSteps">How can we reproduce it? <span>(optional)</span></label><textarea id="bugSteps" maxlength="1500" placeholder="What were you doing before it happened?"></textarea><input type="text" id="bugWebsite" autocomplete="off" tabindex="-1" aria-hidden="true" class="bug-honeypot"><button id="bugSubmit" class="primary full" type="submit">Send bug report</button><p id="bugReportStatus" class="auth-status" role="status" aria-live="polite"></p></form></section></div>
@@ -45,4 +57,4 @@
 <div class="modal-backdrop hidden" id="guestFinishModal"><section class="modal-card auth-card guest-finish-card" role="dialog" aria-modal="true" aria-labelledby="guestFinishTitle"><button class="modal-close" data-close="guestFinishModal" aria-label="Close">×</button><div class="eyebrow">GREAT RUN!</div><h2 id="guestFinishTitle">Make your next score count.</h2><p>Create a free Crilo account to save future Daily scores, compete on the leaderboard, and earn achievements.</p><p class="guest-finish-note">This guest run can’t be saved, but your next Daily can.</p><button class="primary full" type="button" id="guestFinishSignIn">Sign up / Log in</button><button class="guest-finish-dismiss" type="button" id="guestFinishDismiss">Not now — see my results</button></section></div>
 <div class="modal-backdrop hidden" id="authModal"><section class="modal-card auth-card"><button class="modal-close" data-close="authModal">×</button><div class="eyebrow">CRILO ACCOUNT</div><h2>Sign in to play today's Daily.</h2><p>Enter your email and Crilo will send a one-time sign-in link.</p><input class="text-input" id="emailInput" type="email" placeholder="you@example.com"><button class="primary full" id="sendLinkBtn">Send sign-in link</button><p class="auth-status" id="authStatus"></p></section></div>
 <div class="modal-backdrop hidden" id="profileModal"><section class="modal-card auth-card"><div class="eyebrow">ONE LAST THING</div><h2>Choose your Crilo name.</h2><input class="text-input" id="usernameInput" maxlength="20" placeholder="username"><label class="color-row">Name color <input id="nameColorInput" type="color" value="#17191e"></label><button class="primary full" id="saveProfileBtn">Save username</button><p class="auth-status" id="profileStatus"></p></section></div>
-<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="ducks.js?v=12"></script><script src="rarity-system.js?v=10"></script><script src="badge-events.js?v=3"></script><script src="game.js?v=57"></script><script src="bug-beetle.js?v=2"></script></body></html>
+<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="ducks.js?v=12"></script><script src="rarity-system.js?v=10"></script><script src="badge-events.js?v=3"></script><script src="game.js?v=57"></script><script src="bug-beetle.js?v=3"></script></body></html>
