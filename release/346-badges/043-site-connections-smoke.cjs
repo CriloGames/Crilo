@@ -29,7 +29,7 @@ for(const page of pages.filter(p=>p!=='domain/index.html')){
   'Broken or missing account header on '+page);
  assert.ok(html.includes('app.js?v=39'),'Stale/missing shared authentication script on '+page);
 }
-assert.ok(pagesSource['friends.html'].includes('friends.js?v=11'));
+assert.ok(pagesSource['friends.html'].includes('friends.js?v=12'));
 for(const id of ['copyInviteBtn','inviteLink','invitationNotice','friendSearch','searchBtn'])
  assert.ok(pagesSource['friends.html'].includes('id="'+id+'"'),'Friends control missing: '+id);
 const friends=load('friends.js'),app=load('app.js');
