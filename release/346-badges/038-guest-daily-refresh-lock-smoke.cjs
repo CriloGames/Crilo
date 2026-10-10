@@ -67,8 +67,7 @@ function mount({period='2026-10-10',signedIn=false,owner=false,store=storage}={}
  async function ready(){
   await events['crilo-auth-ready']({detail:{user:identity,profile}});
  }
- return {get,events,ready,spin:()=>get('spinButton').on_click(),
-  eval:code=>vm.runInContext(code,ctx)};
+ return {get,events,ready,spin:()=>get('spinButton').on_click()};
 }
 (async()=>{
  const unplayed=mount();await unplayed.ready();
@@ -80,7 +79,7 @@ function mount({period='2026-10-10',signedIn=false,owner=false,store=storage}={}
  let marker=JSON.parse(backing.get(key));
  assert.equal(marker.period,'2026-10-10');
  assert.equal(marker.status,'started','First guest spin must claim Daily immediately');
- assert.equal(unplayed.eval('totalSpins'),1);
+ assert.equal(unplayed.get('spins').textContent,4);
  secondTab.events.storage({key});
  assert.equal(secondTab.get('spinButton').classList.contains('hidden'),true,
   'Second open tab should lock after first claims Daily');
@@ -89,8 +88,8 @@ function mount({period='2026-10-10',signedIn=false,owner=false,store=storage}={}
  assert.match(refreshed.get('playedText').textContent,/already been started/);
  assert.equal(refreshed.get('spinButton').classList.contains('hidden'),true);
  await refreshed.spin(); // even a synthetic programmatic click must fail closed
- assert.equal(refreshed.eval('totalSpins'),0);
- assert.equal(unplayed.eval('totalSpins'),1,'Original tab may finish its original run');
+ assert.equal(refreshed.get('spins').textContent,5);
+ assert.equal(unplayed.get('spins').textContent,4,'Original tab may finish its original run');
  for(let i=0;i<4;i++)await unplayed.spin();
  marker=JSON.parse(backing.get(key));
  assert.equal(marker.status,'complete');
