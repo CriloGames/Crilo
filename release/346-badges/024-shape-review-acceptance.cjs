@@ -30,7 +30,7 @@ for(const [name,expected,paint] of cases){
 }
 const scanner=fs.readFileSync(path.join(root,'moderation-feed-scanner.js'),'utf8');
 const worker=fs.readFileSync(path.join(root,'moderation-scan-worker.js'),'utf8');
-assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=1')"));
+assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=2')"));
 assert.ok(scanner.includes('result.genitalSuspected===true'));
 assert.ok(scanner.includes("result.genitalType==='vulva'"));
 console.log('PASS: 8 geometry and harmless-control cases, worker wiring');
