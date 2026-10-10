@@ -1127,3 +1127,21 @@ html[data-theme="dark"] .crilo-review-test-tag{background:#303350;border-color:#
 html[data-theme="dark"] .crilo-review-state[data-state="stale"]{
  color:#e5c88f;background:#4a3b25;border-color:#685237;
 }
+
+
+/* Owner-only drawing example feedback. Keep it secondary to moderation actions. */
+.crilo-example-teach{border:1px solid var(--line,#dde1e6);background:var(--card,#fff);
+ border-radius:14px;padding:14px;margin-top:16px;display:grid;gap:10px;min-width:0}
+.crilo-example-teach strong{font-weight:850;font-size:15px}
+.crilo-example-teach p{font-size:12px;line-height:1.5;color:var(--muted,#72777c);margin:3px 0 0}
+.crilo-example-teach label{font-size:12px;font-weight:750}
+.crilo-example-teach select{min-width:0;max-width:100%;width:100%;font-size:13px;
+ border:1px solid var(--line,#ddd);border-radius:10px;padding:10px;
+ background:var(--card,#fff);color:var(--text,#17191e)}
+.crilo-example-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.crilo-example-buttons .small-btn{padding:10px 12px;font-size:12px}
+.crilo-example-buttons #reviewExampleBad{border-color:#dbbaba;color:#a83e48}
+.crilo-example-buttons #reviewExampleSafe{border-color:#bad9c7;color:#30745b}
+.crilo-example-buttons button:disabled{opacity:.45;cursor:not-allowed}
+.crilo-example-teach #reviewExampleStatus{font-size:12px;overflow-wrap:anywhere}
+@media(max-width:520px){.crilo-example-buttons .small-btn{flex:1 1 100%}}
