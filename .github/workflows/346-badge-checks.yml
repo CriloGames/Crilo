@@ -110,6 +110,8 @@ jobs:
         run: node release/346-badges/023-outline-safety-review-smoke.cjs
       - name: Verify specialized shape detection and harmless controls
         run: node release/346-badges/024-shape-review-acceptance.cjs
+      - name: Catch OCR-misread handwritten website links
+        run: node release/346-badges/025-handwritten-link-smoke.cjs
       - name: Verify leaderboard tabs never wrap across mobile/tablet/desktop widths
         run: node release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
