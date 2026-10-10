@@ -1,0 +1,33 @@
+name: Multiscale sketch detector research
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'research/train_multiscale_sketch.py'
+      - '.github/workflows/multiscale-sketch-research.yml'
+permissions:
+  contents: read
+jobs:
+  offline-public-evaluation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install free research dependencies
+        run: python -m pip install numpy pillow scikit-learn requests torch
+      - name: Train and score multiscale sketch model
+        run: |
+          set -o pipefail
+          python research/train_multiscale_sketch.py --positives 1800 --per-category 90 --epochs 18 2>&1 | tee multiscale-evaluation.log
+      - name: Archive research artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiscale-sketch-results
+          path: |
+            multiscale-evaluation.log
+            research/outputs/multiscale_sketch.pt
+          retention-days: 7
