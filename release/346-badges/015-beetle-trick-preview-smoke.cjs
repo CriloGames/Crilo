@@ -25,6 +25,8 @@ for(const kind of kinds){
 }
 assert.ok(demo.includes('id="replayAll"')&&demo.includes('id="pauseAll"'),
  'Replay and pause test controls must work');
+assert.ok(demo.includes('animation-delay:-6.4s!important'),
+ 'All five rare-turn previews must start together close to their first wall');
 assert.ok(css.includes('[class*="beetle-right-"] .crilo-beetle-dropping')&&
  css.includes('[class*="beetle-left-"] .crilo-beetle-dropping'),
  'All five special animations on either wall must suppress poop');
