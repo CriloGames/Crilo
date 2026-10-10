@@ -10,7 +10,13 @@ let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0,lastPaint='';
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
 // Only evidence-based scan reasons (or a separately flagged legacy result)
 // make a drawing REVIEW SUGGESTED. Incomplete checks are a different status.
-const hintsFor=d=>[...(d.local?.reasons||[]),...(d.legacyHint?[d.legacyHint]:[])];
+const hintsFor=d=>[
+ ...(d.local?.reasons||[]).map(reason=>
+  reason==='Possible genital drawing'&&
+  /^Possible (penis|vulva) drawing \(shape review\)$/.test(d.local?.visual_label||'')?
+   d.local.visual_label.replace(' (shape review)',''):reason),
+ ...(d.legacyHint?[d.legacyHint]:[])
+];
 function visible(d){
  const flagged=hintsFor(d).length>0;
  switch(filter){
