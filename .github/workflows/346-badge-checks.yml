@@ -121,6 +121,8 @@ jobs:
         run: node release/346-badges/025-handwritten-link-smoke.cjs
       - name: Verify private example learning and owner action queue updates
         run: node release/346-badges/026-owner-example-learning-smoke.cjs
+      - name: Verify OCR on rendered text stress transcriptions
+        run: node release/346-badges/031-rendered-ocr-stress.cjs
       - name: Benchmark 100 controlled safe and inappropriate drawings
         env:
           CRILO_QA_STRICT: '1'
