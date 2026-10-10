@@ -37,7 +37,7 @@ function render(){
  update('reviewCountUnscanned',unchecked);
  update('reviewCountPartial',partial);
  const first=matchedCount?PAGE_SIZE*pageIndex+1:0;
- const last=Math.min(matchedCount,first+filtered.length-1);
+ const last=matchedCount?Math.min(matchedCount,first+filtered.length-1):0;
  update('reviewStats',first+'–'+last+' of '+matchedCount+' matching drawings · '+totals.tests+' Test Runs included');
  update('reviewPageInfo','Page '+(pageIndex+1)+' of '+Math.max(1,Math.ceil(matchedCount/PAGE_SIZE)));
  $('reviewPagePrev').disabled=pageIndex===0;
@@ -83,7 +83,7 @@ async function refresh(){
    p_page:requestedPage,p_filter:filter,p_include_tests:!!$('showOwnerTests').checked
   });
   if(error)throw error;
-  if(request!==loadGeneration||requestedPage!==pageIndex)return;
+  if(request!==loadGeneration||requestedPage!==pageIndex||!isOwner()||document.hidden)return;
   if(!data||!Array.isArray(data.rows)||data.rows.length>PAGE_SIZE)
    throw Error('Drawing feed returned an invalid page');
   matchedCount=Math.max(0,Number(data.matched)||0);
