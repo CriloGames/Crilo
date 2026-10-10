@@ -29,11 +29,21 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Circle must be centered within the yellow square: '+file);
  assert.ok(html.includes('width="100%" align="center" style="margin:0 auto;width:100%;max-width:390px;'),
   'Large sign-in button must be centered: '+file);
- assert.ok(html.includes('background-image:conic-gradient(')&&html.includes('background-color:#ffd86b;'),
-  'Wheel segments and compatible solid-color fallback must both be present: '+file);
+ assert.ok(!html.includes('conic-gradient('),
+  'Gmail strips CSS gradients, so email wheel must not depend on them: '+file);
+ for(const color of ['#ffc8a8','#ffd86b','#9bd9ef','#dfc8f6','#ffb8d2','#fff0a8','#aee9f4','#c8f4bd']){
+  assert.ok(html.includes('bgcolor="'+color+'"'),
+   'Every wheel sector needs an email-safe bgcolor: '+color+' in '+file);
+ }
+ assert.equal((html.match(/<td bgcolor="#(?:ffc8a8|ffd86b|9bd9ef|dfc8f6|ffb8d2|fff0a8|aee9f4|c8f4bd)"/g)||[]).length,8,
+  'Wheel must contain all eight colored sectors even in restrictive email clients: '+file);
+ assert.ok(html.includes('aria-label="Eight-color Crilo wheel"'),
+  'Accessible wheel should identify its eight colors: '+file);
+ assert.ok(html.includes('border-collapse:separate;border-spacing:0;table-layout:fixed;overflow:hidden'),
+  'Color sectors must remain inside a fixed-size circular wheel: '+file);
  assert.ok(html.includes('&#9660;')&&html.includes('border:4px solid #17191e'),
   'Wheel must have its dark pointer and outer ring: '+file);
- assert.ok(html.includes('width:20px;height:20px;box-sizing:border-box;background-color:#ffffff;'),
+ assert.ok(html.includes('bgcolor="#ffffff"')&&html.includes('border:3px solid #17191e;border-radius:50%;'),
   'Wheel must have the centered white hub: '+file);
  assert.ok(!html.includes('&#127922;'),'Old dice emoji must be gone: '+file);
  assert.ok(html.length<25000,'Email too long to render reliably: '+file);
