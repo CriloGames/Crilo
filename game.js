@@ -82,7 +82,7 @@ async function restoreOfficialServerState(){
  upgrades=Number(s.upgrades);doubles=Number(s.doubles);ducks=Number(s.ducks);
  totalSpins=Number(s.spin_count);numbersLanded=Number(s.numbers_landed);
  extraSpins=Number(s.extra_spins);segments=serverSegments(s.segments);
- results=(s.results||[]).map(r=>({...r,label:r.type==='num'?fmt(Number(r.base)*Number(s.multiplier)):({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[r.type]||r.type)}));
+ results=(s.results||[]).map(r=>({...r,label:r.type==='num'?fmt(Number(r.points)||0):({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[r.type]||r.type)}));
  runProbability=results.reduce((p,r)=>p*Number(r.probability||1),1);
  bestRollPoints=results.reduce((p,r)=>Math.max(p,Number(r.points)||0),0);
  const best=results.find(r=>Number(r.points)===bestRollPoints);
