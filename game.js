@@ -9,7 +9,19 @@ function resetSegments(){segments=[{type:'num',base:2},{type:'duck',label:'DUCK'
 function label(s){return s.type==='num'?fmt(s.base*multiplier):s.label}
 function drawDuckIcon(x,y,size){ctx.save();ctx.translate(x,y);ctx.strokeStyle='#17191e';ctx.lineWidth=Math.max(2,size*.08);ctx.fillStyle='#ffe06a';ctx.beginPath();ctx.ellipse(-size*.08,size*.08,size*.34,size*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(size*.22,-size*.13,size*.19,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#17191e';ctx.beginPath();ctx.arc(size*.28,-size*.17,size*.035,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ff9d4d';ctx.beginPath();ctx.moveTo(size*.39,-size*.11);ctx.lineTo(size*.58,-size*.04);ctx.lineTo(size*.39,size*.01);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
 function drawWheel(){const w=wheel.width,c=w/2,r=c-12,N=segments.length,a=Math.PI*2/N;ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);segments.forEach((s,i)=>{const st=i*a-Math.PI/2,en=st+a;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();ctx.fillStyle=palette[i%palette.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();const ang=st+a/2,tx=Math.cos(ang)*r*.69,ty=Math.sin(ang)*r*.69;if(s.type==='duck')drawDuckIcon(tx,ty,Math.max(34,Math.min(58,360/N)));else{ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);ctx.fillStyle='#17191e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`1000 ${Math.max(17,Math.min(s.type!=='num'?27:36,310/N))}px system-ui`;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=5;ctx.strokeText(label(s),0,0);ctx.fillText(label(s),0,0);ctx.restore()}});ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle='#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();drawing.style.transform=drawMode==='spin'?('rotate('+rotation+'rad)'):'none'}
-function update(){ $('score').textContent=fmt(score);$('spins').textContent=spins;$('level').textContent='×'+fmt(multiplier);$('duckCount').textContent=ducks;drawWheel() }
+function update(){
+ const band=window.CriloRarity?.scoreBands?.find(b=>score<=b.max)||
+   {key:'trash',label:'TRASH'};
+ const tier=String(band.key||'trash').toLowerCase();
+ $('score').textContent=fmt(score);
+ $('wheelScorePanel').dataset.rarity=tier;
+ $('scoreTier').lastChild.textContent=tier.toUpperCase();
+ $('scoreTier').setAttribute('aria-label','Score rarity: '+tier);
+ $('spins').textContent=spins;
+ $('level').textContent='×'+fmt(multiplier);
+ $('duckCount').textContent=ducks;
+ drawWheel();
+}
 function sound(kind){
  if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;
  try{
@@ -168,8 +180,12 @@ const N=segments.length,a=Math.PI*2/N,index=officialReply?Number(officialReply.o
 function beginRun(){serverSessionId=null;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update()}
 async function endRun(){DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');open('guestFinishModal');return}const drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
 if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>b.badge_id));}
-if(isTest&&profile?.is_owner){
- {
+if(isTest){
+ // A Test Run must never fall through to official Daily storage, even if
+ // ownership/session information becomes stale while the wheel is active.
+ if(!profile?.is_owner){
+  error=new Error('Only the owner may save a Test Run. Nothing was submitted as an official Daily.');
+ }else{
   const response=await criloDB.rpc('crilo_save_owner_test_run',{p_run:payload});
   error=response.error;
   if(!error)data={is_test:true,id:response.data};
