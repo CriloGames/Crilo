@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=94"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=95"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
   <div class="crilo-review-heading">
    <div><div class="eyebrow">OWNER TOOLS</div><h1>Drawing review<span class="crilo-review-dot">.</span></h1>
    <p class="crilo-review-sub">Review player drawings. Automated checks can miss things, so only you decide what to remove or ban.</p></div>
@@ -40,6 +40,11 @@
   <div class="crilo-review-list-header"><h2>Drawings awaiting review</h2><span id="reviewStats" class="muted">Loading…</span></div>
   <p id="reviewMessage" class="crilo-review-feed-status" role="status">Checking owner access…</p>
   <div id="drawingReviewList" class="crilo-review-list" aria-label="Drawings to review"></div>
+  <nav class="crilo-review-pagination" aria-label="Drawing review pages">
+   <button type="button" id="reviewPagePrev" class="small-btn" disabled>← Previous</button>
+   <span id="reviewPageInfo" aria-live="polite">Page 1 of 1</span>
+   <button type="button" id="reviewPageNext" class="small-btn" disabled>Next →</button>
+  </nav>
 </main>
 <div id="reviewLightbox" class="modal-backdrop hidden"><section class="modal-card crilo-review-detail" role="dialog" aria-modal="true" aria-labelledby="reviewDetailTitle">
 <button id="reviewClose" class="modal-close" type="button" aria-label="Close drawing">×</button>
@@ -73,4 +78,4 @@
 </section>
 <label id="reviewBanOptions" class="crilo-review-ban-option"><input type="checkbox" id="deleteRunWithBan"> Also delete the official run if banning</label>
 <p id="reviewActionStatus" role="status"></p></section></div>
-<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-example-features.js?v=1"></script><script src="moderation-feed.js?v=18"></script><script src="moderation-feed-scanner.js?v=19"></script><script src="moderation-feedback.js?v=1"></script></body></html>
+<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-example-features.js?v=1"></script><script src="moderation-feed.js?v=19"></script><script src="moderation-feed-scanner.js?v=19"></script><script src="moderation-feedback.js?v=1"></script></body></html>
