@@ -34,6 +34,8 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Centered table with fixed dimensions is required for Gmail and Supabase: '+file);
  assert.ok(html.includes('width:96px;height:96px;min-width:96px;max-width:96px'),
   'Wheel dimensions must remain stable in restrictive email clients: '+file);
+ assert.ok(html.includes('valign="top"')&&html.includes('&#9660;'),
+  'The wheel must have its centered black pointer in CSS-only preview: '+file);
  for(const color of ['#ffd86b','#9bd9ef','#ffb8d2','#c8f4bd','#dfc8f6'])
   assert.ok(html.includes(color),'Wheel preview palette missing '+color+': '+file);
  assert.ok(!/<script\b|<iframe\b|@import|data:image\/|cid:/i.test(html),
