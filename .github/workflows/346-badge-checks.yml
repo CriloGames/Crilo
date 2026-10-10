@@ -82,6 +82,7 @@ jobs:
           node --check rarity-system.js
           node --check badge-events.js
           node --check profile.js
+          node --check leaderboard.js
           node --check badge-collection.js
           node --check badge-sets.js
           node --check spin-history.js
@@ -120,6 +121,10 @@ jobs:
         run: node release/346-badges/025-handwritten-link-smoke.cjs
       - name: Verify private example learning and owner action queue updates
         run: node release/346-badges/026-owner-example-learning-smoke.cjs
+      - name: Verify Daily reward previews and hidden complex ranking stats
+        run: node release/346-badges/027-postdaily-badges-total-points-smoke.cjs
+      - name: Verify cumulative points leaderboard and neutral score styling
+        run: node release/346-badges/028-lifetime-points-leaderboard-smoke.cjs
       - name: Verify leaderboard tabs never wrap across mobile/tablet/desktop widths
         run: node release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
