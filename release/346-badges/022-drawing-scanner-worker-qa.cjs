@@ -201,6 +201,7 @@ async function feedTest(){
  const db={rpc:async(name)=>{
   if(name==='crilo_owner_drawing_feed')return {data};
   if(name==='crilo_owner_local_scan_report_v5')return {data:scans};
+  if(name==='crilo_owner_drawing_decision')return {data:true};
   return {data:[]};
  }};
  vm.runInNewContext(feed,{window:w,document:doc,criloDB:db,
@@ -261,6 +262,19 @@ async function feedTest(){
  assert.ok(node('drawingReviewList').innerHTML.split('data-index="1"')[1].includes('>NO FLAGS</span>'),
   'Current scanner returning no reasons is allowed to show NO FLAGS');
 
+ // Mock a successful official deletion while the feed API still responds with
+ // a stale snapshot. The deleted drawing must stay off screen.
+ node('reviewFilter').value='all';
+ node('reviewFilter').handlers.change({target:{value:'all'}});
+ node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'0'}})}});
+ assert.equal(node('reviewRemove').disabled,false);
+ await node('reviewRemove').handlers.click();
+ assert.ok(!node('drawingReviewList').innerHTML.includes('Tester'),
+  'Successful deleted run must disappear immediately');
+ await w.criloRefreshDrawingFeed();
+ assert.ok(!node('drawingReviewList').innerHTML.includes('Tester'),
+  'A stale server response must never restore a deleted run');
+ console.log('PASS: confirmed owner deletion disappears immediately and resists stale snapshots');
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
 (async()=>{
