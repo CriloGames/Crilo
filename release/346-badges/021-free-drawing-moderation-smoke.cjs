@@ -15,8 +15,8 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=14/);
-assert.match(page,/moderation-feed-scanner\.js\?v=11/);
+assert.match(page,/moderation-feed\.js\?v=15/);
+assert.match(page,/moderation-feed-scanner\.js\?v=12/);
 assert.match(page,/style\.css\?v=92/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
@@ -24,13 +24,13 @@ assert.ok(css.includes('.crilo-review-test-tag'),'Test runs need visually distin
 assert.ok(worker.includes('jsqr@1.4.0'), 'Local QR decoder missing');
 assert.ok(worker.includes('tesseract.js@5.1.1'), 'On-device OCR missing');
 assert.ok(worker.includes('siglip-base-patch16-224'), 'On-device image comparator missing');
-assert.ok(scanner.includes('crilo_owner_local_scan_save_v5'), 'Scan records not being persisted');
+assert.ok(scanner.includes('crilo_owner_local_scan_save_v6'), 'Scan records not being persisted');
 assert.ok(scanner.includes('const blank=result.blank===true'),'Blank result must be handled');
 assert.ok(!scanner.includes('visual.score<0.10'),'Low image-score must NOT automatically be suspicious');
 assert.ok(!feed.includes('Visual result uncertain — rescan advised'),'Normal drawings must not be flagged for weak ML scores');
 assert.ok(feed.includes('NEEDS RESCAN'),'Previous scanner runs must not show NO FLAGS');
-assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v5'), 'Unscanned drawings not being queued');
-assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=5')"),
+assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v6'), 'Unscanned drawings not being queued');
+assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=6')"),
  'Background worker must keep heavy CPU operations off the page');
 assert.doesNotMatch(scanner,/new OffscreenCanvas|\.recognize\(|\.pipeline\(/,
  'Drawing preprocessing and ML must not run on UI thread');
@@ -44,7 +44,7 @@ assert.doesNotMatch(feed,/criloScanPendingDrawings\?\.\(\);\}\);/,
  'Refreshing the review list should not start expensive scans');
 new Function(worker);
 
-assert.ok(feed.includes('crilo_owner_local_scan_report'), 'Review feed cannot load findings');
+assert.ok(feed.includes('crilo_owner_local_scan_report_v5'), 'Review feed must return true scan version');
 assert.ok(!feed.includes("d.is_test?'OWNER TEST':'NO FLAGS'"),
  'Test Run status must reflect scanning, not account type');
 assert.ok(feed.includes('crilo_owner_drawing_decision'), 'Owner approval/deletion missing');
