@@ -9,7 +9,7 @@ const src=fs.readFileSync(path.join(root,'spin-history.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'spin-history.css'),'utf8');
 const html=fs.readFileSync(path.join(root,'profile.html'),'utf8');
 assert.ok(html.indexOf('id="spinHistoryHeading"')<html.indexOf('How Much Was the Domain?'));
-assert.match(html,/spin-history\.js\?v=1/);
+assert.match(html,/spin-history\.js\?v=2/);
 assert.match(html,/spin-history\.css\?v=1/);
 for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic']){
  assert.ok(css.includes('.spin-history-item[data-rarity="'+rarity+'"]'),'Missing color '+rarity);
@@ -24,7 +24,7 @@ const bands=[
  {key:'rare',max:92},{key:'epic',max:141},{key:'anomaly',max:300},
  {key:'mythic',max:Infinity}
 ];
-async function scenario(name,runs,counts,{expectLegacy=false}={}){
+async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={}){
  const elements=new Map(),calls=[],listeners={};
  function element(id){
   if(elements.has(id))return elements.get(id);
@@ -38,12 +38,14 @@ async function scenario(name,runs,counts,{expectLegacy=false}={}){
  const db={from(table){
   assert.equal(table,'daily_runs');
   const filters={};
-  const query={select(){return query},eq(key,val){filters[key]=val;return query},
+  const query={fields:'',select(fields){query.fields=fields;return query},
+   eq(key,val){filters[key]=val;return query},
    order(){return query},
    range(start,end){
-    calls.push({start,end,...filters});
+    calls.push({start,end,fields:query.fields,...filters});
     const found=sorted.filter(x=>x.user_id===filters.user_id&&x.is_test===filters.is_test);
-    return Promise.resolve({data:found.slice(start,end+1),error:null});
+    const rows=found.slice(start,end+1);
+    return Promise.resolve({data:query.fields==='spins'?rows.map(x=>({spins:x.spins})):rows,error:null});
    }};
   return query;
  }};
@@ -52,7 +54,7 @@ async function scenario(name,runs,counts,{expectLegacy=false}={}){
   Crilo:{user:{id:'player'},esc:x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')},
   criloDB:db,location:{search:''},URLSearchParams,console};
  vm.runInNewContext(src,ctx,{filename:'spin-history.js'});
- async function flush(){for(let i=0;i<8;i++)await Promise.resolve();}
+ async function flush(){for(let i=0;i<30;i++)await Promise.resolve();}
  await flush();
  const entryCount=()=> (element('spinHistoryList').innerHTML.match(/<article class="spin-history-item/g)||[]).length;
  assert.equal(entryCount(),counts[0],name+' initial 5');
@@ -62,9 +64,14 @@ async function scenario(name,runs,counts,{expectLegacy=false}={}){
   await element('spinHistoryMore').handlers.click();
   assert.equal(entryCount(),counts[i],name+' after page '+i);
  }
- assert.equal(element('spinHistoryPager').hidden,true,name+' pager end');
- const expectedReal=runs.filter(x=>x.user_id==='player'&&!x.is_test)
-  .reduce((n,r)=>n+(r.results?.length||0),0);
+ assert.equal(element('spinHistoryPager').hidden,!expectMore,name+' pager end');
+ const official=runs.filter(x=>x.user_id==='player'&&!x.is_test);
+ const expectedTotal=official.reduce((n,r)=>n+(Number(r.spins)||0),0);
+ assert.equal(element('spinHistoryCount').textContent,
+  expectedTotal+' spin'+(expectedTotal===1?'':'s')+' total',
+  name+' lifetime count must not depend on loaded pages');
+ assert.ok(calls.some(c=>c.fields==='spins'),name+' must independently fetch lifetime spins');
+ const expectedReal=official.reduce((n,r)=>n+(r.results?.length||0),0);
  const shouldDuck=expectedReal>5;
  assert.equal(element('spinHistoryEnd').hidden,!shouldDuck,name+' duck end');
  assert.equal((element('spinHistoryList').innerHTML.match(/data-rarity="mythic"/g)||[]).length>0,
@@ -85,4 +92,7 @@ async function scenario(name,runs,counts,{expectLegacy=false}={}){
   run(1,[1,1,1,1,1,10,10,10,10,10,10]),legacy,
   {...run(3,[301]),is_test:true}
  ],[5,10,12],{expectLegacy:true});
+ const many=Array.from({length:501},(_,i)=>run(i+1,[1]));
+ await scenario('501 official Dailies total across two 500-row chunks',
+  [...many,{...run(999,[1,1,1]),is_test:true}],[5],{expectMore:true});
 })().catch(err=>{console.error(err);process.exitCode=1});
