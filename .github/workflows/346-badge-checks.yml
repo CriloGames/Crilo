@@ -3,6 +3,7 @@ name: Crilo 346-badge prelaunch checks
 on:
   push:
     branches:
+      - main
       - release/346-badges-prelaunch
     paths:
       - 'game.js'
