@@ -520,3 +520,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
  background:color-mix(in srgb,var(--crilo-badge-accent) 23%,#1b1b24)!important;
  border-color:#17191e!important
 }
+
+/* Newly unlocked badges use the same color-only rarity system as the gallery. */
+.new-badge-item[data-badge-rarity]{background:var(--crilo-badge-pale)!important;border:1.5px solid #17191e;border-radius:13px;padding:12px}
+.new-badge-item[data-badge-rarity] .new-badge-icon{display:none!important}
