@@ -56,7 +56,7 @@ for(const [name,expected,paint] of cases){
 }
 const scanner=fs.readFileSync(path.join(root,'moderation-feed-scanner.js'),'utf8');
 const worker=fs.readFileSync(path.join(root,'moderation-scan-worker.js'),'utf8');
-assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=3')"));
+assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=4')"));
 assert.ok(worker.includes('if(out.benignFace)'), 'Both outline detectors must honor face veto');
 assert.ok(scanner.includes('result.genitalSuspected===true'));
 assert.ok(scanner.includes("result.genitalType==='vulva'"));
