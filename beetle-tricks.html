@@ -34,6 +34,13 @@ body{margin:0;background:#fafaf7;color:#1b1e22}
 .beetle-demo-stage .crilo-beetle{bottom:13px;pointer-events:none}
 .beetle-demo-stage .crilo-beetle-dropping{bottom:12px}
 .beetle-demo-stage .crilo-beetle-trick-right,.beetle-demo-stage .crilo-beetle-trick-left{will-change:transform}
+/* Start every long animation at the same near-wall point: all five tricks
+   happen within about one second of opening or replaying this lab. */
+.beetle-demo-track.walking .crilo-beetle,
+.beetle-demo-track.walking .crilo-beetle-facing,
+.beetle-demo-track.walking .crilo-beetle-trick-right,
+.beetle-demo-track.walking .crilo-beetle-trick-left,
+.beetle-demo-track.walking .crilo-beetle-dropping{animation-delay:-6.4s!important}
 .beetle-demo-foot{display:flex;justify-content:space-between;align-items:center;margin:14px 0;font-size:10px;color:#7c8881;font-weight:750}
 .beetle-demo-dot{width:6px;height:6px;background:#7cbd99;border-radius:50%}
 .beetle-demo-baseline{border-color:#bdc9d2;background:#f9fbfd}
@@ -58,7 +65,7 @@ body{margin:0;background:#fafaf7;color:#1b1e22}
 <div class="beetle-lab-toolbar">
 <button type="button" id="replayAll">↻ Replay all tricks</button>
 <button type="button" id="pauseAll">Ⅱ Pause</button>
-<span class="beetle-lab-status">16-second synchronized loop · tricks at both walls</span>
+<span class="beetle-lab-status">16-second synchronized loop · first tricks start almost immediately</span>
 </div>
 <div class="beetle-lab-grid"><article class="beetle-demo-card" aria-label="Wall Backflip animation">
   <div class="beetle-demo-top"><span class="beetle-demo-index">01</span><span class="beetle-demo-tag">BACKWARD</span></div>
