@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=92"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=93"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
   <div class="crilo-review-heading">
    <div><div class="eyebrow">OWNER TOOLS</div><h1>Drawing review<span class="crilo-review-dot">.</span></h1>
    <p class="crilo-review-sub">Review player drawings. Automated checks can miss things, so only you decide what to remove or ban.</p></div>
@@ -52,6 +52,24 @@
 <button id="reviewBan" class="small-btn crilo-review-ban" type="button">Ban player</button>
 <button id="reviewRetry" class="small-btn" type="button">Scan this drawing</button>
 </div>
+<section class="crilo-example-teach" aria-label="Teach the drawing detector">
+ <div><strong>Teach the scanner</strong><p>Add examples so Crilo can recognize very similar drawings. This is private, free, and never automatically bans players.</p></div>
+ <label for="reviewExampleCategory">Inappropriate because of</label>
+ <select id="reviewExampleCategory">
+  <option value="genitalia">Genitalia / sexual drawing</option>
+  <option value="hate">Hate or extremist symbol</option>
+  <option value="link">Website or link</option>
+  <option value="profanity">Profanity / offensive text</option>
+  <option value="qr">QR code</option>
+  <option value="other">Other inappropriate artwork</option>
+ </select>
+ <div class="crilo-example-buttons">
+  <button type="button" id="reviewExampleBad" class="small-btn">Add as inappropriate example</button>
+  <button type="button" id="reviewExampleSafe" class="small-btn">Mark as safe example</button>
+  <button type="button" id="reviewExampleRemove" class="small-btn" disabled>Remove saved example</button>
+ </div>
+ <p id="reviewExampleStatus" role="status">Saved examples help the scanner identify closely similar drawings.</p>
+</section>
 <label id="reviewBanOptions" class="crilo-review-ban-option"><input type="checkbox" id="deleteRunWithBan"> Also delete the official run if banning</label>
 <p id="reviewActionStatus" role="status"></p></section></div>
-<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-feed.js?v=15"></script><script src="moderation-feed-scanner.js?v=13"></script></body></html>
+<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-example-features.js?v=1"></script><script src="moderation-feed.js?v=16"></script><script src="moderation-feed-scanner.js?v=14"></script><script src="moderation-feedback.js?v=1"></script></body></html>
