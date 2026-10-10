@@ -1,0 +1,3424 @@
+[
+  {
+    "key": "v2_funny_score_21",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Twenty-One",
+    "condition": "Reach exactly 21 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 21
+  },
+  {
+    "key": "v2_funny_score_42",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Answer to Everything",
+    "condition": "Reach exactly 42 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 42
+  },
+  {
+    "key": "v2_funny_score_67",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Six Seven",
+    "condition": "Reach exactly 67 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 67
+  },
+  {
+    "key": "v2_funny_score_69",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "Nice.",
+    "condition": "Reach exactly 69 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 69
+  },
+  {
+    "key": "v2_funny_score_96",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Reverse Nice",
+    "condition": "Reach exactly 96 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 96
+  },
+  {
+    "key": "v2_funny_score_99",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Almost a Hundred",
+    "condition": "Reach exactly 99 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 99
+  },
+  {
+    "key": "v2_funny_score_111",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Ones",
+    "condition": "Reach exactly 111 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 111
+  },
+  {
+    "key": "v2_funny_score_123",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "One Two Three",
+    "condition": "Reach exactly 123 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 123
+  },
+  {
+    "key": "v2_funny_score_222",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Twos",
+    "condition": "Reach exactly 222 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 222
+  },
+  {
+    "key": "v2_funny_score_333",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Threes",
+    "condition": "Reach exactly 333 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 333
+  },
+  {
+    "key": "v2_funny_score_404",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Score Not Found",
+    "condition": "Reach exactly 404 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 404
+  },
+  {
+    "key": "v2_funny_score_420",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Blaze It",
+    "condition": "Reach exactly 420 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 420
+  },
+  {
+    "key": "v2_funny_score_444",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Fours",
+    "condition": "Reach exactly 444 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 444
+  },
+  {
+    "key": "v2_funny_score_555",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Fives",
+    "condition": "Reach exactly 555 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 555
+  },
+  {
+    "key": "v2_funny_score_666",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Devil's Number",
+    "condition": "Reach exactly 666 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 666
+  },
+  {
+    "key": "v2_funny_score_777",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Lucky Sevens",
+    "condition": "Reach exactly 777 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 777
+  },
+  {
+    "key": "v2_funny_score_888",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Eights",
+    "condition": "Reach exactly 888 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 888
+  },
+  {
+    "key": "v2_funny_score_999",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Nines",
+    "condition": "Reach exactly 999 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 999
+  },
+  {
+    "key": "v2_funny_score_5",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "High Five",
+    "condition": "Reach exactly 5 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 5
+  },
+  {
+    "key": "v2_funny_score_7",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Lucky Number Seven",
+    "condition": "Reach exactly 7 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 7
+  },
+  {
+    "key": "v2_funny_score_10",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Perfect Ten",
+    "condition": "Reach exactly 10 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 10
+  },
+  {
+    "key": "v2_funny_score_11",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Make a Wish",
+    "condition": "Reach exactly 11 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 11
+  },
+  {
+    "key": "v2_funny_score_12",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "A Dozen",
+    "condition": "Reach exactly 12 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 12
+  },
+  {
+    "key": "v2_funny_score_13",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Unlucky Thirteen",
+    "condition": "Reach exactly 13 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 13
+  },
+  {
+    "key": "v2_funny_score_15",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Quarter Hour",
+    "condition": "Reach exactly 15 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 15
+  },
+  {
+    "key": "v2_funny_score_20",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Twenty Twenty",
+    "condition": "Reach exactly 20 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 20
+  },
+  {
+    "key": "v2_funny_score_24",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Around the Clock",
+    "condition": "Reach exactly 24 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 24
+  },
+  {
+    "key": "v2_funny_score_25",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Quarter Century",
+    "condition": "Reach exactly 25 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 25
+  },
+  {
+    "key": "v2_funny_score_30",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Thirty Flirty",
+    "condition": "Reach exactly 30 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 30
+  },
+  {
+    "key": "v2_funny_score_33",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Double Threes",
+    "condition": "Reach exactly 33 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 33
+  },
+  {
+    "key": "v2_funny_score_50",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "Half a Century",
+    "condition": "Reach exactly 50 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 50
+  },
+  {
+    "key": "v2_funny_score_55",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Double Fives",
+    "condition": "Reach exactly 55 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 55
+  },
+  {
+    "key": "v2_funny_score_66",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "Double Sixes",
+    "condition": "Reach exactly 66 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 66
+  },
+  {
+    "key": "v2_funny_score_70",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Seventy Up",
+    "condition": "Reach exactly 70 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 70
+  },
+  {
+    "key": "v2_funny_score_77",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Double Lucky",
+    "condition": "Reach exactly 77 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 77
+  },
+  {
+    "key": "v2_funny_score_88",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Double Eights",
+    "condition": "Reach exactly 88 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 88
+  },
+  {
+    "key": "v2_funny_score_100",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Triple Digits",
+    "condition": "Reach exactly 100 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 100
+  },
+  {
+    "key": "v2_funny_score_101",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Introduction to Numbers",
+    "condition": "Reach exactly 101 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 101
+  },
+  {
+    "key": "v2_funny_score_200",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Double Century",
+    "condition": "Reach exactly 200 accumulated points at least once during an official Daily (final score may differ).",
+    "rule": "hit_exact",
+    "target": 200
+  },
+  {
+    "key": "v2_score_rarity_trash",
+    "category": "Score rarity",
+    "rarity": "Trash",
+    "name": "Trash Score",
+    "condition": "Finish one official Daily with a final score of 0–6.",
+    "rule": "score_band",
+    "lower": 0,
+    "upper": 6
+  },
+  {
+    "key": "v2_score_rarity_common",
+    "category": "Score rarity",
+    "rarity": "Common",
+    "name": "Common Score",
+    "condition": "Finish one official Daily with a final score of 7–24.",
+    "rule": "score_band",
+    "lower": 7,
+    "upper": 24
+  },
+  {
+    "key": "v2_score_rarity_uncommon",
+    "category": "Score rarity",
+    "rarity": "Uncommon",
+    "name": "Uncommon Score",
+    "condition": "Finish one official Daily with a final score of 25–48.",
+    "rule": "score_band",
+    "lower": 25,
+    "upper": 48
+  },
+  {
+    "key": "v2_score_rarity_rare",
+    "category": "Score rarity",
+    "rarity": "Rare",
+    "name": "Rare Score",
+    "condition": "Finish one official Daily with a final score of 49–92.",
+    "rule": "score_band",
+    "lower": 49,
+    "upper": 92
+  },
+  {
+    "key": "v2_score_rarity_epic",
+    "category": "Score rarity",
+    "rarity": "Epic",
+    "name": "Epic Score",
+    "condition": "Finish one official Daily with a final score of 93–141.",
+    "rule": "score_band",
+    "lower": 93,
+    "upper": 141
+  },
+  {
+    "key": "v2_score_rarity_anomaly",
+    "category": "Score rarity",
+    "rarity": "Anomaly",
+    "name": "Anomaly Score",
+    "condition": "Finish one official Daily with a final score of 142–300.",
+    "rule": "score_band",
+    "lower": 142,
+    "upper": 300
+  },
+  {
+    "key": "v2_score_rarity_mythic",
+    "category": "Score rarity",
+    "rarity": "Mythic",
+    "name": "Mythic Score",
+    "condition": "Finish one official Daily with a final score of at least 301.",
+    "rule": "score_band",
+    "lower": 301,
+    "upper": null
+  },
+  {
+    "key": "v2_duck_total_2",
+    "category": "Wheel Duck",
+    "rarity": "Common",
+    "name": "Duck Collector 2",
+    "condition": "Land 2 Duck results during one official Daily.",
+    "rule": "event_total",
+    "event": "duck",
+    "target": 2
+  },
+  {
+    "key": "v2_duck_total_3",
+    "category": "Wheel Duck",
+    "rarity": "Uncommon",
+    "name": "Duck Collector 3",
+    "condition": "Land 3 Duck results during one official Daily.",
+    "rule": "event_total",
+    "event": "duck",
+    "target": 3
+  },
+  {
+    "key": "v2_duck_total_4",
+    "category": "Wheel Duck",
+    "rarity": "Rare",
+    "name": "Duck Collector 4",
+    "condition": "Land 4 Duck results during one official Daily.",
+    "rule": "event_total",
+    "event": "duck",
+    "target": 4
+  },
+  {
+    "key": "v2_duck_total_5",
+    "category": "Wheel Duck",
+    "rarity": "Epic",
+    "name": "Duck Collector 5",
+    "condition": "Land 5 Duck results during one official Daily.",
+    "rule": "event_total",
+    "event": "duck",
+    "target": 5
+  },
+  {
+    "key": "v2_duck_streak_2",
+    "category": "Wheel Duck",
+    "rarity": "Uncommon",
+    "name": "Duck Streak 2",
+    "condition": "Land 2 consecutive Duck results during one official Daily.",
+    "rule": "event_streak",
+    "event": "duck",
+    "target": 2
+  },
+  {
+    "key": "v2_duck_streak_3",
+    "category": "Wheel Duck",
+    "rarity": "Epic",
+    "name": "Duck Streak 3",
+    "condition": "Land 3 consecutive Duck results during one official Daily.",
+    "rule": "event_streak",
+    "event": "duck",
+    "target": 3
+  },
+  {
+    "key": "v2_duck_streak_4",
+    "category": "Wheel Duck",
+    "rarity": "Mythic",
+    "name": "Duck Streak 4",
+    "condition": "Land 4 consecutive Duck results during one official Daily.",
+    "rule": "event_streak",
+    "event": "duck",
+    "target": 4
+  },
+  {
+    "key": "v2_double_total_1",
+    "category": "Wheel ×2",
+    "rarity": "Common",
+    "name": "×2 Collector 1",
+    "condition": "Land 1 ×2 results during one official Daily.",
+    "rule": "event_total",
+    "event": "double",
+    "target": 1
+  },
+  {
+    "key": "v2_double_total_2",
+    "category": "Wheel ×2",
+    "rarity": "Uncommon",
+    "name": "×2 Collector 2",
+    "condition": "Land 2 ×2 results during one official Daily.",
+    "rule": "event_total",
+    "event": "double",
+    "target": 2
+  },
+  {
+    "key": "v2_double_total_3",
+    "category": "Wheel ×2",
+    "rarity": "Epic",
+    "name": "×2 Collector 3",
+    "condition": "Land 3 ×2 results during one official Daily.",
+    "rule": "event_total",
+    "event": "double",
+    "target": 3
+  },
+  {
+    "key": "v2_double_streak_2",
+    "category": "Wheel ×2",
+    "rarity": "Epic",
+    "name": "×2 Streak 2",
+    "condition": "Land 2 consecutive ×2 results during one official Daily.",
+    "rule": "event_streak",
+    "event": "double",
+    "target": 2
+  },
+  {
+    "key": "v2_double_streak_3",
+    "category": "Wheel ×2",
+    "rarity": "Mythic",
+    "name": "×2 Streak 3",
+    "condition": "Land 3 consecutive ×2 results during one official Daily.",
+    "rule": "event_streak",
+    "event": "double",
+    "target": 3
+  },
+  {
+    "key": "v2_spins_total_1",
+    "category": "Wheel +2 Spins",
+    "rarity": "Common",
+    "name": "+2 Spins Collector 1",
+    "condition": "Land 1 +2 Spins results during one official Daily.",
+    "rule": "event_total",
+    "event": "spins",
+    "target": 1
+  },
+  {
+    "key": "v2_spins_total_2",
+    "category": "Wheel +2 Spins",
+    "rarity": "Uncommon",
+    "name": "+2 Spins Collector 2",
+    "condition": "Land 2 +2 Spins results during one official Daily.",
+    "rule": "event_total",
+    "event": "spins",
+    "target": 2
+  },
+  {
+    "key": "v2_spins_total_3",
+    "category": "Wheel +2 Spins",
+    "rarity": "Rare",
+    "name": "+2 Spins Collector 3",
+    "condition": "Land 3 +2 Spins results during one official Daily.",
+    "rule": "event_total",
+    "event": "spins",
+    "target": 3
+  },
+  {
+    "key": "v2_spins_total_4",
+    "category": "Wheel +2 Spins",
+    "rarity": "Anomaly",
+    "name": "+2 Spins Collector 4",
+    "condition": "Land 4 +2 Spins results during one official Daily.",
+    "rule": "event_total",
+    "event": "spins",
+    "target": 4
+  },
+  {
+    "key": "v2_spins_streak_2",
+    "category": "Wheel +2 Spins",
+    "rarity": "Epic",
+    "name": "+2 Spins Streak 2",
+    "condition": "Land 2 consecutive +2 Spins results during one official Daily.",
+    "rule": "event_streak",
+    "event": "spins",
+    "target": 2
+  },
+  {
+    "key": "v2_spins_streak_3",
+    "category": "Wheel +2 Spins",
+    "rarity": "Mythic",
+    "name": "+2 Spins Streak 3",
+    "condition": "Land 3 consecutive +2 Spins results during one official Daily.",
+    "rule": "event_streak",
+    "event": "spins",
+    "target": 3
+  },
+  {
+    "key": "v2_upgrade_total_1",
+    "category": "Wheel Upgrade",
+    "rarity": "Common",
+    "name": "Upgrade Collector 1",
+    "condition": "Land 1 Upgrade results during one official Daily.",
+    "rule": "event_total",
+    "event": "upgrade",
+    "target": 1
+  },
+  {
+    "key": "v2_upgrade_total_2",
+    "category": "Wheel Upgrade",
+    "rarity": "Uncommon",
+    "name": "Upgrade Collector 2",
+    "condition": "Land 2 Upgrade results during one official Daily.",
+    "rule": "event_total",
+    "event": "upgrade",
+    "target": 2
+  },
+  {
+    "key": "v2_upgrade_total_3",
+    "category": "Wheel Upgrade",
+    "rarity": "Anomaly",
+    "name": "Upgrade Collector 3",
+    "condition": "Land 3 Upgrade results during one official Daily.",
+    "rule": "event_total",
+    "event": "upgrade",
+    "target": 3
+  },
+  {
+    "key": "v2_upgrade_streak_2",
+    "category": "Wheel Upgrade",
+    "rarity": "Epic",
+    "name": "Upgrade Streak 2",
+    "condition": "Land 2 consecutive Upgrade results during one official Daily.",
+    "rule": "event_streak",
+    "event": "upgrade",
+    "target": 2
+  },
+  {
+    "key": "idea_exact_1",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "Just One",
+    "condition": "Reach exactly 1 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 1
+  },
+  {
+    "key": "idea_exact_2",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "Two of a Kind",
+    "condition": "Reach exactly 2 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 2
+  },
+  {
+    "key": "idea_exact_3",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "Three's Company",
+    "condition": "Reach exactly 3 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 3
+  },
+  {
+    "key": "idea_exact_4",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "Fantastic Four",
+    "condition": "Reach exactly 4 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 4
+  },
+  {
+    "key": "idea_exact_6",
+    "category": "Exact numbers",
+    "rarity": "Common",
+    "name": "Sixth Sense",
+    "condition": "Reach exactly 6 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 6
+  },
+  {
+    "key": "idea_exact_8",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Eight Is Great",
+    "condition": "Reach exactly 8 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 8
+  },
+  {
+    "key": "idea_exact_9",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Cloud Nine",
+    "condition": "Reach exactly 9 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 9
+  },
+  {
+    "key": "idea_exact_14",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Two Weeks",
+    "condition": "Reach exactly 14 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 14
+  },
+  {
+    "key": "idea_exact_16",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Sweet Sixteen",
+    "condition": "Reach exactly 16 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 16
+  },
+  {
+    "key": "idea_exact_17",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Seventeen Again",
+    "condition": "Reach exactly 17 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 17
+  },
+  {
+    "key": "idea_exact_18",
+    "category": "Exact numbers",
+    "rarity": "Uncommon",
+    "name": "Finally Eighteen",
+    "condition": "Reach exactly 18 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 18
+  },
+  {
+    "key": "idea_exact_19",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Nineteen Ninety-Nine-ish",
+    "condition": "Reach exactly 19 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 19
+  },
+  {
+    "key": "idea_exact_22",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Double Deuces",
+    "condition": "Reach exactly 22 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 22
+  },
+  {
+    "key": "idea_exact_23",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Twenty-Three",
+    "condition": "Reach exactly 23 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 23
+  },
+  {
+    "key": "idea_exact_26",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Twenty-Six Letters",
+    "condition": "Reach exactly 26 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 26
+  },
+  {
+    "key": "idea_exact_27",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Three Cubed",
+    "condition": "Reach exactly 27 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 27
+  },
+  {
+    "key": "idea_exact_28",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "February Forever",
+    "condition": "Reach exactly 28 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 28
+  },
+  {
+    "key": "idea_exact_32",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Thirty-Two Bits",
+    "condition": "Reach exactly 32 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 32
+  },
+  {
+    "key": "idea_exact_34",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Thirty-Four",
+    "condition": "Reach exactly 34 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 34
+  },
+  {
+    "key": "idea_exact_36",
+    "category": "Exact numbers",
+    "rarity": "Rare",
+    "name": "Square Six",
+    "condition": "Reach exactly 36 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 36
+  },
+  {
+    "key": "idea_exact_40",
+    "category": "Exact numbers",
+    "rarity": "Epic",
+    "name": "Over the Hill",
+    "condition": "Reach exactly 40 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 40
+  },
+  {
+    "key": "idea_exact_44",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "Forty-Four",
+    "condition": "Reach exactly 44 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 44
+  },
+  {
+    "key": "idea_exact_49",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "Seven Squared",
+    "condition": "Reach exactly 49 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 49
+  },
+  {
+    "key": "idea_exact_60",
+    "category": "Exact numbers",
+    "rarity": "Anomaly",
+    "name": "One Minute",
+    "condition": "Reach exactly 60 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 60
+  },
+  {
+    "key": "idea_exact_64",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Sixty-Four Bits",
+    "condition": "Reach exactly 64 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 64
+  },
+  {
+    "key": "idea_exact_81",
+    "category": "Exact numbers",
+    "rarity": "Mythic",
+    "name": "Nine Squared",
+    "condition": "Reach exactly 81 accumulated points at least once during one official Daily; the final score may be higher.",
+    "rule": "hit_exact",
+    "target": 81
+  },
+  {
+    "key": "idea_seq_94",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Duck Sandwich",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → number → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_95",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Double Duck",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_96",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Duck Double",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_97",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "Upgrade Then Double",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_98",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Double Then Upgrade",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → Upgrade.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "idea_seq_99",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Bonus Bookends",
+    "condition": "Get these consecutive spin-result types in one official Daily: +2 Spins → Duck → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "duck",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_100",
+    "category": "Wheel combinations",
+    "rarity": "Anomaly",
+    "name": "Freebie Parade",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → ×2 → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "double",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_101",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Triple Threat",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → ×2 → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "double",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_102",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Special Delivery",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → +2 Spins → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "spins",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_103",
+    "category": "Wheel combinations",
+    "rarity": "Anomaly",
+    "name": "Duck Upgrade Duck",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → Upgrade → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "upgrade",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_104",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "The Accelerator",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → Upgrade → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "upgrade",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_105",
+    "category": "Wheel combinations",
+    "rarity": "Common",
+    "name": "The Detour",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → Duck → number.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "duck",
+      "num"
+    ]
+  },
+  {
+    "key": "idea_seq_106",
+    "category": "Wheel combinations",
+    "rarity": "Uncommon",
+    "name": "Back on Track",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → Upgrade → number.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "upgrade",
+      "num"
+    ]
+  },
+  {
+    "key": "idea_seq_107",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "Ups And Downs",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → number → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_108",
+    "category": "Wheel combinations",
+    "rarity": "Uncommon",
+    "name": "Duck Duck Number",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → Duck → number.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "duck",
+      "num"
+    ]
+  },
+  {
+    "key": "idea_seq_109",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Upward Duck",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_110",
+    "category": "Wheel combinations",
+    "rarity": "Anomaly",
+    "name": "Pond Multiplier",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → Duck → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "duck",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_111",
+    "category": "Wheel combinations",
+    "rarity": "Uncommon",
+    "name": "A Little Extra",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → +2 Spins → number.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "spins",
+      "num"
+    ]
+  },
+  {
+    "key": "idea_seq_112",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "Spin Sandwich",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: +2 Spins → number → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_113",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Three Specials",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → Upgrade → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "upgrade",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_114",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Lucky Interrupt",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → Duck → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "duck",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_115",
+    "category": "Wheel combinations",
+    "rarity": "Anomaly",
+    "name": "The Upgrade Train",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → Upgrade → Upgrade.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "upgrade",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "idea_seq_116",
+    "category": "Wheel combinations",
+    "rarity": "Uncommon",
+    "name": "Duck Crossing",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → Duck → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "duck",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_117",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Round Trip",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → Duck → Upgrade.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "duck",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "idea_seq_118",
+    "category": "Wheel combinations",
+    "rarity": "Anomaly",
+    "name": "Two Extra Ducks",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: +2 Spins → Duck → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "duck",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_119",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Double Relief",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_120",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Bonus Multiplier",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: +2 Spins → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_121",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "Upgrade Detour",
+    "condition": "Get these consecutive spin-result types in one official Daily: Upgrade → number → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_122",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Double Bonus Duck",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → +2 Spins → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "spins",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_123",
+    "category": "Wheel combinations",
+    "rarity": "Rare",
+    "name": "Duck Double Number",
+    "condition": "Get these consecutive spin-result types in one official Daily: Duck → ×2 → number.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "double",
+      "num"
+    ]
+  },
+  {
+    "key": "idea_seq_124",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Special Spiral",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → ×2 → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "double",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_seq_125",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "The Encore",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: number → +2 Spins → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "num",
+      "spins",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_126",
+    "category": "Wheel combinations",
+    "rarity": "Epic",
+    "name": "Duck Loop",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Duck → number → number → Duck.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "num",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "idea_seq_127",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "High Gear",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: Upgrade → Upgrade → ×2.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "upgrade",
+      "double"
+    ]
+  },
+  {
+    "key": "idea_seq_128",
+    "category": "Wheel combinations",
+    "rarity": "Mythic",
+    "name": "Double Duck Bonus",
+    "condition": "Get these consecutive spin-result types, in this exact order, during one official Daily: ×2 → Duck → +2 Spins.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "duck",
+      "spins"
+    ]
+  },
+  {
+    "key": "idea_run_129",
+    "category": "Single-run challenges",
+    "rarity": "Rare",
+    "name": "All Numbers",
+    "condition": "Use all five starting spins on number results, with no bonus or free-spin outcomes.",
+    "rule": "challenge",
+    "number": 129
+  },
+  {
+    "key": "idea_run_130",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "No Ducks Allowed",
+    "condition": "Finish an official Daily without landing on a Duck.",
+    "rule": "challenge",
+    "number": 130
+  },
+  {
+    "key": "idea_run_131",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Pond Visitor",
+    "condition": "Finish an official Daily with exactly one Duck.",
+    "rule": "challenge",
+    "number": 131
+  },
+  {
+    "key": "idea_run_132",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Two Ducks Only",
+    "condition": "Finish an official Daily with exactly two Ducks.",
+    "rule": "challenge",
+    "number": 132
+  },
+  {
+    "key": "idea_run_133",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "No Doubling Down",
+    "condition": "Finish an official Daily without landing on ×2.",
+    "rule": "challenge",
+    "number": 133
+  },
+  {
+    "key": "idea_run_134",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Multiplier Minimalist",
+    "condition": "Finish an official Daily with exactly one ×2 result.",
+    "rule": "challenge",
+    "number": 134
+  },
+  {
+    "key": "idea_run_135",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "No Upgrade Required",
+    "condition": "Finish an official Daily without landing on Upgrade.",
+    "rule": "challenge",
+    "number": 135
+  },
+  {
+    "key": "idea_run_136",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "One Upgrade Only",
+    "condition": "Finish an official Daily with exactly one Upgrade.",
+    "rule": "challenge",
+    "number": 136
+  },
+  {
+    "key": "idea_run_137",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Bonus-Free Day",
+    "condition": "Finish an official Daily without landing on +2 Spins.",
+    "rule": "challenge",
+    "number": 137
+  },
+  {
+    "key": "idea_run_138",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "One More Round",
+    "condition": "Finish an official Daily with exactly one +2 Spins result.",
+    "rule": "challenge",
+    "number": 138
+  },
+  {
+    "key": "idea_run_139",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "All Four Specials",
+    "condition": "Land at least one Duck, ×2, Upgrade, and +2 Spins during the same official Daily.",
+    "rule": "challenge",
+    "number": 139
+  },
+  {
+    "key": "idea_run_140",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Duck And Double",
+    "condition": "Land at least one Duck and at least one ×2 during the same official Daily.",
+    "rule": "challenge",
+    "number": 140
+  },
+  {
+    "key": "idea_run_141",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Duck And Upgrade",
+    "condition": "Land at least one Duck and at least one Upgrade during the same official Daily.",
+    "rule": "challenge",
+    "number": 141
+  },
+  {
+    "key": "idea_run_142",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Duck And Bonus",
+    "condition": "Land at least one Duck and at least one +2 Spins during the same official Daily.",
+    "rule": "challenge",
+    "number": 142
+  },
+  {
+    "key": "idea_run_143",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Double And Upgrade",
+    "condition": "Land at least one ×2 and at least one Upgrade during the same official Daily.",
+    "rule": "challenge",
+    "number": 143
+  },
+  {
+    "key": "idea_run_144",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Double And Bonus",
+    "condition": "Land at least one ×2 and at least one +2 Spins during the same official Daily.",
+    "rule": "challenge",
+    "number": 144
+  },
+  {
+    "key": "idea_run_145",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Upgrade And Bonus",
+    "condition": "Land at least one Upgrade and at least one +2 Spins during the same official Daily.",
+    "rule": "challenge",
+    "number": 145
+  },
+  {
+    "key": "idea_run_146",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Eight Spins",
+    "condition": "Complete at least 8 total wheel spins in one official Daily.",
+    "rule": "challenge",
+    "number": 146
+  },
+  {
+    "key": "idea_run_147",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Ten Spins",
+    "condition": "Complete at least 10 total wheel spins in one official Daily.",
+    "rule": "challenge",
+    "number": 147
+  },
+  {
+    "key": "idea_run_148",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Twelve Spins",
+    "condition": "Complete at least 12 total wheel spins in one official Daily.",
+    "rule": "challenge",
+    "number": 148
+  },
+  {
+    "key": "idea_run_149",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Odd Squad",
+    "condition": "Land base-number 1, base-number 3, and base-number 5 at least once each during the same completed official Daily run.",
+    "rule": "challenge",
+    "number": 149
+  },
+  {
+    "key": "idea_run_150",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "One Is Enough",
+    "condition": "Land base number 1 at least once in one official Daily.",
+    "rule": "challenge",
+    "number": 150
+  },
+  {
+    "key": "idea_run_151",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Two by Two",
+    "condition": "Land base number 2 at least twice in one official Daily.",
+    "rule": "challenge",
+    "number": 151
+  },
+  {
+    "key": "idea_run_152",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Five Alive Again",
+    "condition": "Land base number 5 at least once in one official Daily.",
+    "rule": "challenge",
+    "number": 152
+  },
+  {
+    "key": "idea_run_153",
+    "category": "Single-run challenges",
+    "rarity": "Epic",
+    "name": "Triple Three",
+    "condition": "Land base number 3 at least three times in one official Daily.",
+    "rule": "challenge",
+    "number": 153
+  },
+  {
+    "key": "idea_run_154",
+    "category": "Single-run challenges",
+    "rarity": "Rare",
+    "name": "No Ones",
+    "condition": "Finish an official Daily without landing on base number 1.",
+    "rule": "challenge",
+    "number": 154
+  },
+  {
+    "key": "idea_run_155",
+    "category": "Single-run challenges",
+    "rarity": "Epic",
+    "name": "All Ones",
+    "condition": "Land on base number 1 at least five times during one official Daily (not necessarily consecutive).",
+    "rule": "challenge",
+    "number": 155
+  },
+  {
+    "key": "idea_run_156",
+    "category": "Single-run challenges",
+    "rarity": "Rare",
+    "name": "Four of a Kind",
+    "condition": "Land the same base number on four consecutive numerical spins in one official Daily.",
+    "rule": "challenge",
+    "number": 156
+  },
+  {
+    "key": "idea_run_157",
+    "category": "Single-run challenges",
+    "rarity": "Common",
+    "name": "Quite a Turnaround",
+    "condition": "After at least one Upgrade, land a numerical spin worth 15 or more points.",
+    "rule": "challenge",
+    "number": 157
+  },
+  {
+    "key": "idea_run_158",
+    "category": "Single-run challenges",
+    "rarity": "Uncommon",
+    "name": "Big Single Hit",
+    "condition": "Land a single numerical spin worth at least 30 points in one official Daily.",
+    "rule": "challenge",
+    "number": 158
+  },
+  {
+    "key": "idea_lifetime_159",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "Welcome Back",
+    "condition": "Complete at least 1 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 1
+  },
+  {
+    "key": "idea_lifetime_160",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "First Week",
+    "condition": "Complete at least 7 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 7
+  },
+  {
+    "key": "idea_lifetime_161",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "Daily Explorer",
+    "condition": "Complete at least 25 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 25
+  },
+  {
+    "key": "idea_lifetime_162",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Monthly Regular",
+    "condition": "Complete at least 60 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 60
+  },
+  {
+    "key": "idea_lifetime_163",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Getting Serious",
+    "condition": "Complete at least 120 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 120
+  },
+  {
+    "key": "idea_lifetime_164",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Two Hundred Club",
+    "condition": "Complete at least 200 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 200
+  },
+  {
+    "key": "idea_lifetime_165",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Three Hundred Strong",
+    "condition": "Complete at least 300 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 300
+  },
+  {
+    "key": "idea_lifetime_166",
+    "category": "Lifetime milestones",
+    "rarity": "Mythic",
+    "name": "Four Fifty",
+    "condition": "Complete at least 450 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 450
+  },
+  {
+    "key": "idea_lifetime_167",
+    "category": "Lifetime milestones",
+    "rarity": "Mythic",
+    "name": "Six Fifty",
+    "condition": "Complete at least 650 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 650
+  },
+  {
+    "key": "idea_lifetime_168",
+    "category": "Lifetime milestones",
+    "rarity": "Mythic",
+    "name": "The Thousandth Spin",
+    "condition": "Complete at least 1000 official Daily runs over your account lifetime; Test Runs excluded.",
+    "rule": "lifetime_runs",
+    "target": 1000
+  },
+  {
+    "key": "idea_lifetime_169",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "First Quack",
+    "condition": "Land 1 or more Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 1
+  },
+  {
+    "key": "idea_lifetime_170",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "Pond Regular",
+    "condition": "Land 25 or more Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 25
+  },
+  {
+    "key": "idea_lifetime_171",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Duck Enthusiast",
+    "condition": "Land 75 or more Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 75
+  },
+  {
+    "key": "idea_lifetime_172",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Flock Collector",
+    "condition": "Land 150 or more Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 150
+  },
+  {
+    "key": "idea_lifetime_173",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Duck Dynasty",
+    "condition": "Land 300 or more Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 300
+  },
+  {
+    "key": "idea_lifetime_174",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "First Double",
+    "condition": "Land 1 or more ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 1
+  },
+  {
+    "key": "idea_lifetime_175",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "Double Digits",
+    "condition": "Land 15 or more ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 15
+  },
+  {
+    "key": "idea_lifetime_176",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Compound Interest",
+    "condition": "Land 50 or more ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 50
+  },
+  {
+    "key": "idea_lifetime_177",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Multiplier Veteran",
+    "condition": "Land 100 or more ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 100
+  },
+  {
+    "key": "idea_lifetime_178",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Master of Doubles",
+    "condition": "Land 200 or more ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 200
+  },
+  {
+    "key": "idea_lifetime_179",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "Freebie",
+    "condition": "Land 1 or more +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 1
+  },
+  {
+    "key": "idea_lifetime_180",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "Bonus Collector",
+    "condition": "Land 15 or more +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 15
+  },
+  {
+    "key": "idea_lifetime_181",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Second Wind Society",
+    "condition": "Land 50 or more +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 50
+  },
+  {
+    "key": "idea_lifetime_182",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Overtime Veteran",
+    "condition": "Land 100 or more +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 100
+  },
+  {
+    "key": "idea_lifetime_183",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Endless Encore",
+    "condition": "Land 200 or more +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 200
+  },
+  {
+    "key": "idea_lifetime_184",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "First Evolution",
+    "condition": "Land 1 or more Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 1
+  },
+  {
+    "key": "idea_lifetime_185",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "Upgrade Regular",
+    "condition": "Land 15 or more Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 15
+  },
+  {
+    "key": "idea_lifetime_186",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Evolving Fast",
+    "condition": "Land 50 or more Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 50
+  },
+  {
+    "key": "idea_lifetime_187",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Upgrade Specialist",
+    "condition": "Land 100 or more Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 100
+  },
+  {
+    "key": "idea_lifetime_188",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Fully Evolved",
+    "condition": "Land 200 or more Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 200
+  },
+  {
+    "key": "idea_lifetime_189",
+    "category": "Lifetime milestones",
+    "rarity": "Common",
+    "name": "Wheel Historian 25",
+    "condition": "Accumulate at least 25 actual wheel spins across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_spins",
+    "target": 25
+  },
+  {
+    "key": "idea_lifetime_190",
+    "category": "Lifetime milestones",
+    "rarity": "Uncommon",
+    "name": "First Hundred Spins",
+    "condition": "Accumulate at least 100 actual wheel spins across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_spins",
+    "target": 100
+  },
+  {
+    "key": "idea_lifetime_191",
+    "category": "Lifetime milestones",
+    "rarity": "Rare",
+    "name": "Wheel Historian 350",
+    "condition": "Accumulate at least 350 actual wheel spins across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_spins",
+    "target": 350
+  },
+  {
+    "key": "idea_lifetime_192",
+    "category": "Lifetime milestones",
+    "rarity": "Epic",
+    "name": "Wheel Historian 900",
+    "condition": "Accumulate at least 900 actual wheel spins across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_spins",
+    "target": 900
+  },
+  {
+    "key": "idea_lifetime_193",
+    "category": "Lifetime milestones",
+    "rarity": "Anomaly",
+    "name": "Wheel Historian 2000",
+    "condition": "Accumulate at least 2000 actual wheel spins across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_spins",
+    "target": 2000
+  },
+  {
+    "key": "idea_daily_streak_2",
+    "category": "Daily streaks",
+    "rarity": "Common",
+    "name": "See You Tomorrow",
+    "condition": "Complete 2 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 2
+  },
+  {
+    "key": "idea_daily_streak_3",
+    "category": "Daily streaks",
+    "rarity": "Common",
+    "name": "Five-Day Habit",
+    "condition": "Complete 5 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 5
+  },
+  {
+    "key": "idea_daily_streak_4",
+    "category": "Daily streaks",
+    "rarity": "Uncommon",
+    "name": "Ten-Day Orbit",
+    "condition": "Complete 10 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 10
+  },
+  {
+    "key": "idea_daily_streak_5",
+    "category": "Daily streaks",
+    "rarity": "Uncommon",
+    "name": "Twenty Straight",
+    "condition": "Complete 20 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 20
+  },
+  {
+    "key": "idea_daily_streak_6",
+    "category": "Daily streaks",
+    "rarity": "Rare",
+    "name": "Thirty-Five Straight",
+    "condition": "Complete 35 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 35
+  },
+  {
+    "key": "idea_daily_streak_7",
+    "category": "Daily streaks",
+    "rarity": "Rare",
+    "name": "Fifty Straight",
+    "condition": "Complete 50 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 50
+  },
+  {
+    "key": "idea_daily_streak_10",
+    "category": "Daily streaks",
+    "rarity": "Rare",
+    "name": "Seventy-Five Straight",
+    "condition": "Complete 75 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 75
+  },
+  {
+    "key": "idea_daily_streak_14",
+    "category": "Daily streaks",
+    "rarity": "Epic",
+    "name": "Centurion Streak",
+    "condition": "Complete 100 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 100
+  },
+  {
+    "key": "idea_daily_streak_21",
+    "category": "Daily streaks",
+    "rarity": "Epic",
+    "name": "Five Months Straight",
+    "condition": "Complete 150 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 150
+  },
+  {
+    "key": "idea_daily_streak_30",
+    "category": "Daily streaks",
+    "rarity": "Anomaly",
+    "name": "Two Hundred Straight",
+    "condition": "Complete 200 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 200
+  },
+  {
+    "key": "idea_daily_streak_45",
+    "category": "Daily streaks",
+    "rarity": "Anomaly",
+    "name": "Three Hundred Straight",
+    "condition": "Complete 300 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 300
+  },
+  {
+    "key": "idea_daily_streak_60",
+    "category": "Daily streaks",
+    "rarity": "Mythic",
+    "name": "Four Hundred Straight",
+    "condition": "Complete 400 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 400
+  },
+  {
+    "key": "idea_daily_streak_90",
+    "category": "Daily streaks",
+    "rarity": "Mythic",
+    "name": "Five Hundred Straight",
+    "condition": "Complete 500 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 500
+  },
+  {
+    "key": "idea_daily_streak_120",
+    "category": "Daily streaks",
+    "rarity": "Mythic",
+    "name": "Six Fifty Straight",
+    "condition": "Complete 650 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 650
+  },
+  {
+    "key": "idea_daily_streak_180",
+    "category": "Daily streaks",
+    "rarity": "Mythic",
+    "name": "The Thousand-Day Streak",
+    "condition": "Complete 1000 consecutive Crilo Daily periods without a missed period; only official Daily runs count.",
+    "rule": "daily_streak",
+    "target": 1000
+  },
+  {
+    "key": "idea_rank_209",
+    "category": "Leaderboard",
+    "rarity": "Rare",
+    "name": "First Appearance",
+    "condition": "Finish any completed Daily in the public Top 100 for that Daily period.",
+    "rule": "leaderboard",
+    "description": "Finish any completed Daily in the public Top 100 for that Daily period."
+  },
+  {
+    "key": "idea_rank_210",
+    "category": "Leaderboard",
+    "rarity": "Rare",
+    "name": "Top Fifty",
+    "condition": "Finish any Daily within Top 50.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily within Top 50."
+  },
+  {
+    "key": "idea_rank_211",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Top Twenty-Five",
+    "condition": "Finish any Daily within Top 25.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily within Top 25."
+  },
+  {
+    "key": "idea_rank_212",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Top Ten Ticket",
+    "condition": "Finish any Daily within Top 10.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily within Top 10."
+  },
+  {
+    "key": "idea_rank_213",
+    "category": "Leaderboard",
+    "rarity": "Anomaly",
+    "name": "Top Five Club",
+    "condition": "Finish any Daily within Top 5.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily within Top 5."
+  },
+  {
+    "key": "idea_rank_214",
+    "category": "Leaderboard",
+    "rarity": "Mythic",
+    "name": "On the Podium",
+    "condition": "Finish any Daily within Top 3.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily within Top 3."
+  },
+  {
+    "key": "idea_rank_215",
+    "category": "Leaderboard",
+    "rarity": "Mythic",
+    "name": "Runner Up",
+    "condition": "Finish any Daily at #2.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily at #2."
+  },
+  {
+    "key": "idea_rank_216",
+    "category": "Leaderboard",
+    "rarity": "Mythic",
+    "name": "Bronze Day",
+    "condition": "Finish any Daily at #3.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily at #3."
+  },
+  {
+    "key": "idea_rank_217",
+    "category": "Leaderboard",
+    "rarity": "Mythic",
+    "name": "Daily Champion",
+    "condition": "Finish any Daily at #1.",
+    "rule": "leaderboard",
+    "description": "Finish any Daily at #1."
+  },
+  {
+    "key": "idea_rank_218",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Twice on the Board",
+    "condition": "Finish within Top 100 on 2 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish within Top 100 on 2 distinct Daily periods."
+  },
+  {
+    "key": "idea_rank_219",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Five Appearances",
+    "condition": "Finish within Top 100 on 5 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish within Top 100 on 5 distinct Daily periods."
+  },
+  {
+    "key": "idea_rank_220",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Ten Appearances",
+    "condition": "Finish within Top 100 on 10 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish within Top 100 on 10 distinct Daily periods."
+  },
+  {
+    "key": "idea_rank_221",
+    "category": "Leaderboard",
+    "rarity": "Epic",
+    "name": "Repeat Top Ten",
+    "condition": "Finish within Top 10 on 2 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish within Top 10 on 2 distinct Daily periods."
+  },
+  {
+    "key": "idea_rank_222",
+    "category": "Leaderboard",
+    "rarity": "Anomaly",
+    "name": "Five Top Tens",
+    "condition": "Finish within Top 10 on 5 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish within Top 10 on 5 distinct Daily periods."
+  },
+  {
+    "key": "idea_rank_223",
+    "category": "Leaderboard",
+    "rarity": "Mythic",
+    "name": "Double Crown",
+    "condition": "Finish at #1 on 2 distinct Daily periods.",
+    "rule": "leaderboard",
+    "description": "Finish at #1 on 2 distinct Daily periods."
+  },
+  {
+    "key": "idea_social_224",
+    "category": "Social",
+    "rarity": "Common",
+    "name": "First Friend",
+    "condition": "Have at least one accepted mutual Crilo friendship.",
+    "rule": "social",
+    "description": "Have at least one accepted mutual Crilo friendship."
+  },
+  {
+    "key": "idea_social_225",
+    "category": "Social",
+    "rarity": "Uncommon",
+    "name": "Three Is Company",
+    "condition": "Have at least 3 accepted mutual Crilo friendships.",
+    "rule": "social",
+    "description": "Have at least 3 accepted mutual Crilo friendships."
+  },
+  {
+    "key": "idea_social_226",
+    "category": "Social",
+    "rarity": "Rare",
+    "name": "Five Friends",
+    "condition": "Have at least 5 accepted mutual Crilo friendships.",
+    "rule": "social",
+    "description": "Have at least 5 accepted mutual Crilo friendships."
+  },
+  {
+    "key": "idea_social_227",
+    "category": "Social",
+    "rarity": "Epic",
+    "name": "Ten Friends",
+    "condition": "Have at least 10 accepted mutual Crilo friendships.",
+    "rule": "social",
+    "description": "Have at least 10 accepted mutual Crilo friendships."
+  },
+  {
+    "key": "idea_social_228",
+    "category": "Social",
+    "rarity": "Anomaly",
+    "name": "Twenty Friends",
+    "condition": "Have at least 20 accepted mutual Crilo friendships.",
+    "rule": "social",
+    "description": "Have at least 20 accepted mutual Crilo friendships."
+  },
+  {
+    "key": "idea_social_229",
+    "category": "Social",
+    "rarity": "Uncommon",
+    "name": "Friendly Challenger",
+    "condition": "Beat an accepted friend’s official score in the same Daily period once.",
+    "rule": "social",
+    "description": "Beat an accepted friend’s official score in the same Daily period once."
+  },
+  {
+    "key": "idea_social_230",
+    "category": "Social",
+    "rarity": "Anomaly",
+    "name": "Friendly Rivalry",
+    "condition": "Beat an accepted friend’s official score on 5 distinct Daily periods.",
+    "rule": "social",
+    "description": "Beat an accepted friend’s official score on 5 distinct Daily periods."
+  },
+  {
+    "key": "idea_social_231",
+    "category": "Social",
+    "rarity": "Rare",
+    "name": "Close Competition",
+    "condition": "Finish within 5 score points of an accepted friend during one same-period Daily.",
+    "rule": "social",
+    "description": "Finish within 5 score points of an accepted friend during one same-period Daily."
+  },
+  {
+    "key": "idea_social_232",
+    "category": "Social",
+    "rarity": "Anomaly",
+    "name": "Friend on Top",
+    "condition": "Have at least one friend finish #1 on a finalized Daily leaderboard.",
+    "rule": "social",
+    "description": "Have at least one friend finish #1 on a finalized Daily leaderboard."
+  },
+  {
+    "key": "idea_social_233",
+    "category": "Social",
+    "rarity": "Uncommon",
+    "name": "Mutual High Five",
+    "condition": "On a single Daily period, you and an accepted friend both finish a completed official Daily.",
+    "rule": "social",
+    "description": "On a single Daily period, you and an accepted friend both finish a completed official Daily."
+  },
+  {
+    "key": "idea_art_234",
+    "category": "Drawing",
+    "rarity": "Common",
+    "name": "First Scribble",
+    "condition": "Submit a nonblank drawing with your completed official Daily.",
+    "rule": "drawing",
+    "description": "Submit a nonblank drawing with your completed official Daily."
+  },
+  {
+    "key": "idea_art_235",
+    "category": "Drawing",
+    "rarity": "Common",
+    "name": "Drawn Twice",
+    "condition": "Submit nonblank drawings on 2 distinct completed official Dailies.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings on 2 distinct completed official Dailies."
+  },
+  {
+    "key": "idea_art_236",
+    "category": "Drawing",
+    "rarity": "Common",
+    "name": "Sketchbook Five",
+    "condition": "Submit nonblank drawings on 5 distinct completed official Dailies.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings on 5 distinct completed official Dailies."
+  },
+  {
+    "key": "idea_art_237",
+    "category": "Drawing",
+    "rarity": "Uncommon",
+    "name": "Sketchbook Ten",
+    "condition": "Submit nonblank drawings on 10 distinct completed official Dailies.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings on 10 distinct completed official Dailies."
+  },
+  {
+    "key": "idea_art_238",
+    "category": "Drawing",
+    "rarity": "Uncommon",
+    "name": "Sketchbook Twenty",
+    "condition": "Submit nonblank drawings on 20 distinct completed official Dailies.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings on 20 distinct completed official Dailies."
+  },
+  {
+    "key": "idea_art_239",
+    "category": "Drawing",
+    "rarity": "Common",
+    "name": "Pen Pals",
+    "condition": "On one Daily period, you and an accepted friend each submit a nonblank drawing.",
+    "rule": "drawing",
+    "description": "On one Daily period, you and an accepted friend each submit a nonblank drawing."
+  },
+  {
+    "key": "idea_art_240",
+    "category": "Drawing",
+    "rarity": "Epic",
+    "name": "Illustrated Week",
+    "condition": "Submit nonblank drawings in 7 consecutive Crilo Daily periods.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings in 7 consecutive Crilo Daily periods."
+  },
+  {
+    "key": "idea_art_241",
+    "category": "Drawing",
+    "rarity": "Rare",
+    "name": "Thirty Drawings Later",
+    "condition": "Submit nonblank drawings on 30 distinct completed official Dailies.",
+    "rule": "drawing",
+    "description": "Submit nonblank drawings on 30 distinct completed official Dailies."
+  },
+  {
+    "key": "idea_edges_242",
+    "category": "Opening & final spins",
+    "rarity": "Uncommon",
+    "name": "Duck at the Door",
+    "condition": "Your very first spin of an official Daily lands on Duck.",
+    "rule": "first_event",
+    "event": "duck"
+  },
+  {
+    "key": "idea_edges_243",
+    "category": "Opening & final spins",
+    "rarity": "Rare",
+    "name": "Double Entrance",
+    "condition": "Your very first spin of an official Daily lands on ×2.",
+    "rule": "first_event",
+    "event": "double"
+  },
+  {
+    "key": "idea_edges_244",
+    "category": "Opening & final spins",
+    "rarity": "Rare",
+    "name": "Upgrade Entrance",
+    "condition": "Your very first spin of an official Daily lands on Upgrade.",
+    "rule": "first_event",
+    "event": "upgrade"
+  },
+  {
+    "key": "idea_edges_245",
+    "category": "Opening & final spins",
+    "rarity": "Rare",
+    "name": "Extra Entrance",
+    "condition": "Your very first spin of an official Daily lands on +2 Spins.",
+    "rule": "first_event",
+    "event": "spins"
+  },
+  {
+    "key": "idea_edges_246",
+    "category": "Opening & final spins",
+    "rarity": "Common",
+    "name": "Last Little One",
+    "condition": "Your final spin of an official Daily lands on a base number 1.",
+    "rule": "final_base",
+    "base": 1
+  },
+  {
+    "key": "idea_edges_247",
+    "category": "Opening & final spins",
+    "rarity": "Uncommon",
+    "name": "Last Little Two",
+    "condition": "Your final spin of an official Daily lands on a base number 2.",
+    "rule": "final_base",
+    "base": 2
+  },
+  {
+    "key": "idea_edges_248",
+    "category": "Opening & final spins",
+    "rarity": "Uncommon",
+    "name": "Last Little Three",
+    "condition": "Your final spin of an official Daily lands on a base number 3.",
+    "rule": "final_base",
+    "base": 3
+  },
+  {
+    "key": "idea_edges_249",
+    "category": "Opening & final spins",
+    "rarity": "Uncommon",
+    "name": "Last Big Five",
+    "condition": "Your final spin of an official Daily lands on a base number 5.",
+    "rule": "final_base",
+    "base": 5
+  },
+  {
+    "key": "proposal_linear_001",
+    "category": "Lifetime collections",
+    "rarity": "Uncommon",
+    "name": "Number Apprentice",
+    "condition": "Record at least 100 number results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "num",
+    "target": 100
+  },
+  {
+    "key": "proposal_linear_002",
+    "category": "Lifetime collections",
+    "rarity": "Rare",
+    "name": "Number Veteran",
+    "condition": "Record at least 500 number results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "num",
+    "target": 500
+  },
+  {
+    "key": "proposal_linear_003",
+    "category": "Lifetime collections",
+    "rarity": "Anomaly",
+    "name": "Pond Historian",
+    "condition": "Record at least 450 Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 450
+  },
+  {
+    "key": "proposal_linear_004",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Quackologist",
+    "condition": "Record at least 750 Duck results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "duck",
+    "target": 750
+  },
+  {
+    "key": "proposal_linear_005",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Double Archivist",
+    "condition": "Record at least 300 ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 300
+  },
+  {
+    "key": "proposal_linear_006",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Doubling Legend",
+    "condition": "Record at least 500 ×2 results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "double",
+    "target": 500
+  },
+  {
+    "key": "proposal_linear_007",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Bonus Archivist",
+    "condition": "Record at least 300 +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 300
+  },
+  {
+    "key": "proposal_linear_008",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Bonus Legend",
+    "condition": "Record at least 500 +2 Spins results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "spins",
+    "target": 500
+  },
+  {
+    "key": "proposal_linear_009",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Evolution Archivist",
+    "condition": "Record at least 300 Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 300
+  },
+  {
+    "key": "proposal_linear_010",
+    "category": "Lifetime collections",
+    "rarity": "Mythic",
+    "name": "Evolution Legend",
+    "condition": "Record at least 500 Upgrade results across completed official Daily runs; Test Runs excluded.",
+    "rule": "lifetime_event",
+    "event": "upgrade",
+    "target": 500
+  },
+  {
+    "key": "proposal_linear_011",
+    "category": "Lifetime number slices",
+    "rarity": "Uncommon",
+    "name": "Base 1 Collector 25",
+    "condition": "Land the base-number 1 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 1,
+    "target": 25
+  },
+  {
+    "key": "proposal_linear_012",
+    "category": "Lifetime number slices",
+    "rarity": "Rare",
+    "name": "Base 1 Collector 150",
+    "condition": "Land the base-number 1 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 1,
+    "target": 150
+  },
+  {
+    "key": "proposal_linear_013",
+    "category": "Lifetime number slices",
+    "rarity": "Uncommon",
+    "name": "Base 2 Collector 25",
+    "condition": "Land the base-number 2 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 2,
+    "target": 25
+  },
+  {
+    "key": "proposal_linear_014",
+    "category": "Lifetime number slices",
+    "rarity": "Epic",
+    "name": "Base 2 Collector 150",
+    "condition": "Land the base-number 2 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 2,
+    "target": 150
+  },
+  {
+    "key": "proposal_linear_015",
+    "category": "Lifetime number slices",
+    "rarity": "Uncommon",
+    "name": "Base 3 Collector 25",
+    "condition": "Land the base-number 3 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 3,
+    "target": 25
+  },
+  {
+    "key": "proposal_linear_016",
+    "category": "Lifetime number slices",
+    "rarity": "Epic",
+    "name": "Base 3 Collector 150",
+    "condition": "Land the base-number 3 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 3,
+    "target": 150
+  },
+  {
+    "key": "proposal_linear_017",
+    "category": "Lifetime number slices",
+    "rarity": "Uncommon",
+    "name": "Base 5 Collector 25",
+    "condition": "Land the base-number 5 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 5,
+    "target": 25
+  },
+  {
+    "key": "proposal_linear_018",
+    "category": "Lifetime number slices",
+    "rarity": "Epic",
+    "name": "Base 5 Collector 150",
+    "condition": "Land the base-number 5 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "rule": "lifetime_base",
+    "base": 5,
+    "target": 150
+  },
+  {
+    "key": "proposal_linear_019",
+    "category": "Spin positions",
+    "rarity": "Common",
+    "name": "Number on Spin 1",
+    "condition": "On the 1th actual spin of a completed official Daily run, land any number slice.",
+    "rule": "spin_position",
+    "target": 1
+  },
+  {
+    "key": "proposal_linear_020",
+    "category": "Spin positions",
+    "rarity": "Common",
+    "name": "Number on Spin 2",
+    "condition": "On the 2th actual spin of a completed official Daily run, land any number slice.",
+    "rule": "spin_position",
+    "target": 2
+  },
+  {
+    "key": "proposal_linear_021",
+    "category": "Spin positions",
+    "rarity": "Common",
+    "name": "Number on Spin 3",
+    "condition": "On the 3th actual spin of a completed official Daily run, land any number slice.",
+    "rule": "spin_position",
+    "target": 3
+  },
+  {
+    "key": "proposal_linear_022",
+    "category": "Spin positions",
+    "rarity": "Common",
+    "name": "Number on Spin 4",
+    "condition": "On the 4th actual spin of a completed official Daily run, land any number slice.",
+    "rule": "spin_position",
+    "target": 4
+  },
+  {
+    "key": "proposal_linear_023",
+    "category": "Spin positions",
+    "rarity": "Common",
+    "name": "Number on Spin 5",
+    "condition": "On the 5th actual spin of a completed official Daily run, land any number slice.",
+    "rule": "spin_position",
+    "target": 5
+  },
+  {
+    "key": "proposal_linear_024",
+    "category": "Number slice patterns",
+    "rarity": "Common",
+    "name": "Ones in the Mix 2",
+    "condition": "Land at least 2 base-number 1 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 1,
+    "target": 2
+  },
+  {
+    "key": "proposal_linear_025",
+    "category": "Number slice patterns",
+    "rarity": "Common",
+    "name": "Ones in the Mix 3",
+    "condition": "Land at least 3 base-number 1 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 1,
+    "target": 3
+  },
+  {
+    "key": "proposal_linear_026",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "Two Twos Together",
+    "condition": "Land base-number 2 on two consecutive actual spins during one completed official Daily run.",
+    "rule": "base_sequence",
+    "pattern": [
+      2,
+      2
+    ]
+  },
+  {
+    "key": "proposal_linear_027",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "Twos in the Mix 3",
+    "condition": "Land at least 3 base-number 2 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 2,
+    "target": 3
+  },
+  {
+    "key": "proposal_linear_028",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "Threes in the Mix 2",
+    "condition": "Land at least 2 base-number 3 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 3,
+    "target": 2
+  },
+  {
+    "key": "proposal_linear_029",
+    "category": "Number slice patterns",
+    "rarity": "Mythic",
+    "name": "Triple Threes in a Row",
+    "condition": "Land base-number 3 on three consecutive actual spins during one completed official Daily run.",
+    "rule": "base_sequence",
+    "pattern": [
+      3,
+      3,
+      3
+    ]
+  },
+  {
+    "key": "proposal_linear_030",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "Fives in the Mix 2",
+    "condition": "Land at least 2 base-number 5 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 5,
+    "target": 2
+  },
+  {
+    "key": "proposal_linear_031",
+    "category": "Number slice patterns",
+    "rarity": "Epic",
+    "name": "Fives in the Mix 3",
+    "condition": "Land at least 3 base-number 5 slices during the same completed official Daily run (not necessarily consecutive).",
+    "rule": "base_total",
+    "base": 5,
+    "target": 3
+  },
+  {
+    "key": "proposal_linear_032",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "One-Two Pair",
+    "condition": "Get consecutive number slices with base values 1 then 2 in one official Daily run; Upgrades do not change their base values.",
+    "rule": "number_sequence",
+    "pattern": [
+      1,
+      2
+    ]
+  },
+  {
+    "key": "proposal_linear_033",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "Two-Three Pair",
+    "condition": "Get consecutive number slices with base values 2 then 3 in one official Daily run; Upgrades do not change their base values.",
+    "rule": "number_sequence",
+    "pattern": [
+      2,
+      3
+    ]
+  },
+  {
+    "key": "proposal_linear_034",
+    "category": "Number slice patterns",
+    "rarity": "Rare",
+    "name": "Three-Five Pair",
+    "condition": "Get consecutive number slices with base values 3 then 5 in one official Daily run; Upgrades do not change their base values.",
+    "rule": "number_sequence",
+    "pattern": [
+      3,
+      5
+    ]
+  },
+  {
+    "key": "proposal_linear_035",
+    "category": "Number slice patterns",
+    "rarity": "Uncommon",
+    "name": "One-Five Pair",
+    "condition": "Get consecutive number slices with base values 1 then 5 in one official Daily run; Upgrades do not change their base values.",
+    "rule": "number_sequence",
+    "pattern": [
+      1,
+      5
+    ]
+  },
+  {
+    "key": "proposal_linear_036",
+    "category": "Wheel placement",
+    "rarity": "Rare",
+    "name": "Duck Opens, 1 Closes",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "duck",
+    "last_base": 1
+  },
+  {
+    "key": "proposal_linear_037",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Duck Opens, 2 Closes",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "duck",
+    "last_base": 2
+  },
+  {
+    "key": "proposal_linear_038",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Duck Opens, 5 Closes",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "duck",
+    "last_base": 5
+  },
+  {
+    "key": "proposal_linear_039",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Double Opens, 1 Closes",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "double",
+    "last_base": 1
+  },
+  {
+    "key": "proposal_linear_040",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Double Opens, 2 Closes",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "double",
+    "last_base": 2
+  },
+  {
+    "key": "proposal_linear_041",
+    "category": "Wheel placement",
+    "rarity": "Anomaly",
+    "name": "Double Opens, 5 Closes",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "double",
+    "last_base": 5
+  },
+  {
+    "key": "proposal_linear_042",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Bonus Opens, 1 Closes",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "spins",
+    "last_base": 1
+  },
+  {
+    "key": "proposal_linear_043",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Bonus Opens, 2 Closes",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "spins",
+    "last_base": 2
+  },
+  {
+    "key": "proposal_linear_044",
+    "category": "Wheel placement",
+    "rarity": "Anomaly",
+    "name": "Bonus Opens, 5 Closes",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "spins",
+    "last_base": 5
+  },
+  {
+    "key": "proposal_linear_045",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Upgrade Opens, 1 Closes",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "upgrade",
+    "last_base": 1
+  },
+  {
+    "key": "proposal_linear_046",
+    "category": "Wheel placement",
+    "rarity": "Epic",
+    "name": "Upgrade Opens, 2 Closes",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "upgrade",
+    "last_base": 2
+  },
+  {
+    "key": "proposal_linear_047",
+    "category": "Wheel placement",
+    "rarity": "Anomaly",
+    "name": "Upgrade Opens, 5 Closes",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "rule": "first_last",
+    "first": "upgrade",
+    "last_base": 5
+  },
+  {
+    "key": "proposal_linear_048",
+    "category": "Wheel gap patterns",
+    "rarity": "Rare",
+    "name": "Duck–Number–Double",
+    "condition": "Land the exact consecutive spin-result sequence duck → number → double in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "num",
+      "double"
+    ]
+  },
+  {
+    "key": "proposal_linear_049",
+    "category": "Wheel gap patterns",
+    "rarity": "Rare",
+    "name": "Duck–Number–Bonus",
+    "condition": "Land the exact consecutive spin-result sequence duck → number → spins in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "num",
+      "spins"
+    ]
+  },
+  {
+    "key": "proposal_linear_050",
+    "category": "Wheel gap patterns",
+    "rarity": "Rare",
+    "name": "Duck–Number–Upgrade",
+    "condition": "Land the exact consecutive spin-result sequence duck → number → upgrade in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "duck",
+      "num",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "proposal_linear_051",
+    "category": "Wheel gap patterns",
+    "rarity": "Rare",
+    "name": "Double–Number–Duck",
+    "condition": "Land the exact consecutive spin-result sequence double → number → duck in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "proposal_linear_052",
+    "category": "Wheel gap patterns",
+    "rarity": "Epic",
+    "name": "Double–Number–Bonus",
+    "condition": "Land the exact consecutive spin-result sequence double → number → spins in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "num",
+      "spins"
+    ]
+  },
+  {
+    "key": "proposal_linear_053",
+    "category": "Wheel gap patterns",
+    "rarity": "Epic",
+    "name": "Double–Number–Upgrade",
+    "condition": "Land the exact consecutive spin-result sequence double → number → upgrade in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "double",
+      "num",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "proposal_linear_054",
+    "category": "Wheel gap patterns",
+    "rarity": "Rare",
+    "name": "Bonus–Number–Duck",
+    "condition": "Land the exact consecutive spin-result sequence spins → number → duck in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "proposal_linear_055",
+    "category": "Wheel gap patterns",
+    "rarity": "Epic",
+    "name": "Bonus–Number–Double",
+    "condition": "Land the exact consecutive spin-result sequence spins → number → double in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "double"
+    ]
+  },
+  {
+    "key": "proposal_linear_056",
+    "category": "Wheel gap patterns",
+    "rarity": "Epic",
+    "name": "Bonus–Number–Upgrade",
+    "condition": "Land the exact consecutive spin-result sequence spins → number → upgrade in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "proposal_linear_057",
+    "category": "Wheel gap patterns",
+    "rarity": "Epic",
+    "name": "Upgrade–Number–Bonus",
+    "condition": "Land the exact consecutive spin-result sequence upgrade → number → spins in one completed official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "spins"
+    ]
+  },
+  {
+    "key": "proposal_explore_home_view",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "First Look",
+    "condition": "Open the Crilo Home page while signed in. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "home_view"
+  },
+  {
+    "key": "proposal_explore_info_open",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "The Rulebook",
+    "condition": "Open the game's Info or instructions menu. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "info_open"
+  },
+  {
+    "key": "proposal_explore_rarity_info",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Odds Curious",
+    "condition": "Open the rarity explanation in the Info menu. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "rarity_info"
+  },
+  {
+    "key": "proposal_explore_ducks_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Around the Pond",
+    "condition": "Visit the Ducks page. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "ducks_page"
+  },
+  {
+    "key": "proposal_explore_duck_details",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Duck Detective",
+    "condition": "Open the detail view of any Duck. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "duck_details"
+  },
+  {
+    "key": "proposal_explore_duck_sound",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Quack Check",
+    "condition": "Play the sound of an unlocked Duck on the Ducks page. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "duck_sound"
+  },
+  {
+    "key": "proposal_explore_badges_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Trophy Case",
+    "condition": "Visit the Badge Collection section on your Player Profile while signed in.",
+    "rule": "exploration",
+    "event": "badges_page"
+  },
+  {
+    "key": "proposal_explore_badge_detail",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Open the Collection",
+    "condition": "Expand a category in the Badge Collection on your Player Profile.",
+    "rule": "exploration",
+    "event": "badge_detail"
+  },
+  {
+    "key": "proposal_explore_badge_search",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Featured Curator",
+    "condition": "Open the Featured Badge selection dialog on your Player Profile.",
+    "rule": "exploration",
+    "event": "badge_search"
+  },
+  {
+    "key": "proposal_explore_badge_filter",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Showcase Something",
+    "condition": "Set or change one of your Featured Badges on your Player Profile.",
+    "rule": "exploration",
+    "event": "badge_filter"
+  },
+  {
+    "key": "proposal_explore_leaderboard_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "The Rankings",
+    "condition": "Visit the Leaderboard page. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "leaderboard_page"
+  },
+  {
+    "key": "proposal_explore_daily_leaderboard",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "The Big Picture",
+    "condition": "Open the current Daily leaderboard. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "daily_leaderboard"
+  },
+  {
+    "key": "proposal_linear_070",
+    "category": "Single-run number variety",
+    "rarity": "Common",
+    "name": "2 Different Digits",
+    "condition": "Land at least 2 distinct base-number values from {1,2,3,5} within one completed official Daily run.",
+    "rule": "variety",
+    "target": 2
+  },
+  {
+    "key": "proposal_linear_071",
+    "category": "Single-run number variety",
+    "rarity": "Common",
+    "name": "3 Different Digits",
+    "condition": "Land at least 3 distinct base-number values from {1,2,3,5} within one completed official Daily run.",
+    "rule": "variety",
+    "target": 3
+  },
+  {
+    "key": "proposal_linear_072",
+    "category": "Single-run number variety",
+    "rarity": "Uncommon",
+    "name": "4 Different Digits",
+    "condition": "Land at least 4 distinct base-number values from {1,2,3,5} within one completed official Daily run.",
+    "rule": "variety",
+    "target": 4
+  },
+  {
+    "key": "proposal_explore_other_player_profile",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "People Watching",
+    "condition": "Open another player's public profile from a ranking. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "other_player_profile"
+  },
+  {
+    "key": "proposal_explore_profile_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Numbers Person",
+    "condition": "Visit your Profile or Stats page. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "profile_page"
+  },
+  {
+    "key": "proposal_explore_personal_best",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Personal Best",
+    "condition": "Open your best-score statistics. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "personal_best"
+  },
+  {
+    "key": "proposal_explore_run_history",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Stat Inspector",
+    "condition": "Open the explanation of any statistic on your Player Profile.",
+    "rule": "exploration",
+    "event": "run_history"
+  },
+  {
+    "key": "proposal_explore_settings_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Getting Personal",
+    "condition": "Open Settings. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "settings_page"
+  },
+  {
+    "key": "proposal_explore_dark_mode",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Lights Out",
+    "condition": "Switch the site from light to dark mode. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "dark_mode"
+  },
+  {
+    "key": "proposal_explore_light_mode",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Let There Be Light",
+    "condition": "Switch the site from dark to light mode. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "light_mode"
+  },
+  {
+    "key": "proposal_explore_name_color_saved",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Pick Your Shade",
+    "condition": "Save a different display-name color in Settings. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "name_color_saved"
+  },
+  {
+    "key": "proposal_explore_display_name_saved",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "New Identity",
+    "condition": "Save a changed display name. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "display_name_saved"
+  },
+  {
+    "key": "proposal_explore_more_games_page",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "The Arcade",
+    "condition": "Visit More Games. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "more_games_page"
+  },
+  {
+    "key": "proposal_explore_domain_open",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Domain Curious",
+    "condition": "Open How Much Was the Domain? Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "domain_open"
+  },
+  {
+    "key": "proposal_explore_domain_instructions",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Domain 101",
+    "condition": "Open the instructions for How Much Was the Domain? Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "domain_instructions"
+  },
+  {
+    "key": "proposal_explore_domain_guess",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "First Guess",
+    "condition": "Submit a guess in How Much Was the Domain?. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "domain_guess"
+  },
+  {
+    "key": "proposal_explore_domain_set",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Five for Five",
+    "condition": "Complete a five-question set in How Much Was the Domain?. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "domain_set"
+  },
+  {
+    "key": "proposal_explore_drawing_canvas",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Fill It In",
+    "condition": "Switch the drawing tool to Fill during an official Daily run.",
+    "rule": "exploration",
+    "event": "drawing_canvas"
+  },
+  {
+    "key": "proposal_explore_drawing_mark",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "First Mark",
+    "condition": "Make at least one drawing mark during a Daily run. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "drawing_mark"
+  },
+  {
+    "key": "proposal_explore_daily_run_screen",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Wheel Ready",
+    "condition": "Enter the official Daily Run screen. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "daily_run_screen"
+  },
+  {
+    "key": "proposal_explore_daily_results",
+    "category": "Exploration & onboarding",
+    "rarity": "Common",
+    "name": "Results Day",
+    "condition": "Open the completed-Daily results screen. Award only once per account upon a real signed-in user action; no Test Run badge awarding.",
+    "rule": "exploration",
+    "event": "daily_results"
+  },
+  {
+    "key": "proposal_linear_091",
+    "category": "Four-outcome chains",
+    "rarity": "Epic",
+    "name": "Bonus Two Numbers Duck",
+    "condition": "Land the exact four-spin sequence spins → number → number → duck in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "proposal_linear_092",
+    "category": "Four-outcome chains",
+    "rarity": "Anomaly",
+    "name": "Bonus Two Numbers Double",
+    "condition": "Land the exact four-spin sequence spins → number → number → double in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "num",
+      "double"
+    ]
+  },
+  {
+    "key": "proposal_linear_093",
+    "category": "Four-outcome chains",
+    "rarity": "Anomaly",
+    "name": "Bonus Two Numbers Upgrade",
+    "condition": "Land the exact four-spin sequence spins → number → number → upgrade in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "spins",
+      "num",
+      "num",
+      "upgrade"
+    ]
+  },
+  {
+    "key": "proposal_linear_094",
+    "category": "Four-outcome chains",
+    "rarity": "Epic",
+    "name": "Upgrade Two Numbers Duck",
+    "condition": "Land the exact four-spin sequence upgrade → number → number → duck in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "num",
+      "duck"
+    ]
+  },
+  {
+    "key": "proposal_linear_095",
+    "category": "Four-outcome chains",
+    "rarity": "Anomaly",
+    "name": "Upgrade Two Numbers Double",
+    "condition": "Land the exact four-spin sequence upgrade → number → number → double in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "num",
+      "double"
+    ]
+  },
+  {
+    "key": "proposal_linear_096",
+    "category": "Four-outcome chains",
+    "rarity": "Anomaly",
+    "name": "Upgrade Two Numbers Bonus",
+    "condition": "Land the exact four-spin sequence upgrade → number → number → spins in one official Daily run.",
+    "rule": "sequence",
+    "pattern": [
+      "upgrade",
+      "num",
+      "num",
+      "spins"
+    ]
+  }
+]
