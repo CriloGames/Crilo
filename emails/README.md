@@ -10,9 +10,8 @@ Project: `mqozqigwkobnhijvvboy`
 2. Select **Magic Link / Magic link or OTP**.
 3. Set the subject to **Your Crilo sign-in link**.
 4. Replace the HTML body with the complete contents of [magic-link.html](./magic-link.html). Click **Save**.
-5. Select **Confirm signup**. Set the subject to **Welcome to Crilo — confirm your email**.
-6. Replace the HTML body with [confirm-signup.html](./confirm-signup.html). Click **Save**.
-7. Send a real sign-in link from [crilo.fun](https://crilo.fun) to a testing email address. Check Gmail and iPhone Mail if available, then click the CTA to verify it returns you to Crilo signed in.
+5. **Optional:** Only if you use a separate **Confirm signup** email, select that template. Set its subject to **Welcome to Crilo — confirm your email**, replace the HTML body with [confirm-signup.html](./confirm-signup.html), then click **Save**. You do **not** need to paste both HTML files into the same Supabase template.
+6. Send a real sign-in link from [crilo.fun](https://crilo.fun) to a testing email address. Check Gmail and iPhone Mail if available, then click the CTA to verify it returns you to Crilo signed in.
 
 Both emails use the supported **`{{ .ConfirmationURL }}`** variable. Leave it unchanged; do not replace it with `https://crilo.fun` or another generic URL because the unique one-time verification token is required.
 
