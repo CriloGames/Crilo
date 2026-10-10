@@ -202,6 +202,7 @@ async function feedTest(){
   if(name==='crilo_owner_drawing_feed')return {data};
   if(name==='crilo_owner_local_scan_report_v5')return {data:scans};
   if(name==='crilo_owner_drawing_decision')return {data:true};
+  if(name==='crilo_owner_delete_test_run')return {data:true};
   return {data:[]};
  }};
  vm.runInNewContext(feed,{window:w,document:doc,criloDB:db,
@@ -262,6 +263,17 @@ async function feedTest(){
  assert.ok(node('drawingReviewList').innerHTML.split('data-index="1"')[1].includes('>NO FLAGS</span>'),
   'Current scanner returning no reasons is allowed to show NO FLAGS');
 
+ // Practice runs may be deleted only through their dedicated RPC,
+ // not with the official-run account-moderation buttons.
+ node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'1'}})}});
+ assert.equal(node('reviewDeleteTest').hidden,false);
+ assert.equal(node('reviewRemove').disabled,true);
+ await node('reviewDeleteTest').handlers.click();
+ assert.ok(!node('drawingReviewList').innerHTML.includes('crilo-review-test-tag'),
+  'Deleted Owner Test Run must disappear from the review queue');
+ await w.criloRefreshDrawingFeed();
+ assert.ok(!node('drawingReviewList').innerHTML.includes('crilo-review-test-tag'),
+  'Stale feed snapshots must not restore a deleted practice run');
  // Mock a successful official deletion while the feed API still responds with
  // a stale snapshot. The deleted drawing must stay off screen.
  node('reviewFilter').value='all';
