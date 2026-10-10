@@ -255,7 +255,7 @@ async function scanNext(manual=false,selected=null){
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
    p_visual_label:blank?'Blank or nearly blank drawing':
-    result.learnedCategory&&!result.benignFace?
+    result.learnedCategory?
      'Similar to owner-labeled '+result.learnedCategory+' example':
     result.benignFace?'Cartoon face (shape review)':
     result.genitalSuspected?(result.genitalType==='vulva'?
