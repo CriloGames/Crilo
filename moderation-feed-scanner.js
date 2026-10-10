@@ -72,7 +72,7 @@ function startWorker(){
  if(typeof Worker==='undefined'){
   unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const active=new Worker('moderation-scan-worker.js?v=3');
+ const active=new Worker('moderation-scan-worker.js?v=4');
  background=active;
  active.onmessage=e=>{
   const data=e.data;
@@ -172,7 +172,8 @@ async function scanNext(manual=false,selected=null){
   const reasons=blank?[]:[...(result.qrFound?[REASONS.qr]:[]),...classifyText(result.ocrText)];
   if(!blank&&visual.reason)reasons.push(visual.reason);
   // Recognized outline shapes are positive advisory signals, not proof.
-  if(!blank&&result.shapeSuspected===true)reasons.push(REASONS.genital);
+  if(!blank&&(result.shapeSuspected===true||result.genitalSuspected===true))
+    reasons.push(REASONS.genital);
   const problems=[...(result.errors||[])];
   if(!blank){
    if(result.stages?.qr!=='done'&&!problems.some(x=>/QR/i.test(x)))
@@ -193,7 +194,9 @@ async function scanNext(manual=false,selected=null){
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
    p_visual_label:blank?'Blank or nearly blank drawing':
-    result.shapeSuspected?'Possible outlined genital drawing (geometry hint)':visual.label,
+    result.genitalSuspected?(result.genitalType==='vulva'?
+     'Possible vulva drawing (shape review)':'Possible penis drawing (shape review)'):
+    result.shapeSuspected?'Possible genital outline (shape review)':visual.label,
    p_visual_score:visual.score,
    p_error:problems.length?problems.join('; ').slice(0,250):null
   };
