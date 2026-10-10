@@ -198,9 +198,24 @@ async function feedTest(){
   {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,username:'Owner',drawing:image,score:88,submitted_at:'2026-10-10T08:00:00Z'}];
  const scans=[{run_id:'11',is_test:false,reasons:['QR code'],status:'complete',scan_version:5,checked_at:'2026-10-10T10:00:00Z'},
    {run_id:'ca712ad4-a0bf-47a6-8e0b-46a4128bfcaf',is_test:true,reasons:[],status:'complete',scan_version:5,checked_at:'2026-10-10T10:01:00Z'}];
- const db={rpc:async(name)=>{
-  if(name==='crilo_owner_drawing_feed')return {data};
-  if(name==='crilo_owner_local_scan_report_v5')return {data:scans};
+ const db={rpc:async(name,args)=>{
+  if(name==='crilo_owner_review_page_v1'){
+   const all=data.filter(d=>args.p_include_tests||!d.is_test)
+    .map(d=>({...d,local:scans.find(s=>s.run_id===d.run_id)||null,legacyHint:null}));
+   const flagged=d=>(d.local?.reasons||[]).length>0;
+   const unchecked=d=>!d.local||Number(d.local.scan_version||0)<5;
+   const selected=all.filter(d=>args.p_filter==='all'||
+    args.p_filter==='flagged'&&flagged(d)||
+    args.p_filter==='unscanned'&&unchecked(d)||
+    args.p_filter==='partial'&&d.local?.status==='partial'||
+    args.p_filter==='clear'&&!flagged(d)&&!unchecked(d)&&d.local?.status==='complete');
+   return {data:{rows:selected.slice(args.p_page*24,args.p_page*24+24),
+    page:args.p_page,matched:selected.length,total:all.length,
+    pending:all.filter(d=>!d.is_test).length,
+    flagged:all.filter(flagged).length,unscanned:all.filter(unchecked).length,
+    partial:all.filter(d=>d.local?.status==='partial').length,
+    tests:all.filter(d=>d.is_test).length}};
+  }
   if(name==='crilo_owner_drawing_decision')return {data:true};
   if(name==='crilo_owner_delete_test_run')return {data:true};
   return {data:[]};
