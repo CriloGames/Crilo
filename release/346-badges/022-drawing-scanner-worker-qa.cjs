@@ -69,14 +69,19 @@ async function schedulerTest(){
  const window={Crilo:{user:{id:'owner'},profile:{is_owner:true}},
   addEventListener(type,fn){listeners[type]=fn},criloRefreshDrawingFeed:async()=>{}};
  const document={hidden:false,getElementById:node,addEventListener(type,fn){listeners['document:'+type]=fn}};
- let useTest=false,workersCreated=0,terminated=0;
+ let useTest=false,blankResult=false,workersCreated=0,terminated=0;
  class MockWorker{
   constructor(path){assert.ok(path.includes('moderation-scan-worker'));workersCreated++}
   postMessage({id,checkVisual}){
    this.onmessage({data:{type:'progress',id,step:'ocr',detail:'Reading text'}});
-   this.onmessage({data:{type:'result',id,qrFound:true,ocrText:'fuck https://example.com',
-    stages:{qr:'done',ocr:'done',visual:checkVisual?'done':'skipped'},
-    visualResults:[],errors:[]}});
+   this.onmessage({data:blankResult?
+    {type:'result',id,blank:true,qrFound:false,ocrText:'',shapeSuspected:false,
+     stages:{qr:'skipped_blank',ocr:'skipped_blank',shape:'skipped_blank',visual:'skipped_blank'},
+     visualResults:[],errors:[]}:
+    {type:'result',id,blank:false,qrFound:true,ocrText:'fuck https://example.com',
+     stages:{qr:'done',ocr:'done',shape:checkVisual?'done':'skipped',
+      visual:checkVisual?'done':'skipped'},
+     visualResults:[],errors:[]}});
   }
   terminate(){terminated++}
  }
@@ -118,6 +123,16 @@ async function schedulerTest(){
  assert.equal(direct.p_is_test,true,'Owner Test Run must retain isolation when rescanned');
  assert.equal(calls.filter(x=>x.name==='crilo_owner_local_scan_jobs').length,queuedBefore,
   'Targeted rescan must not fetch the unrelated backlog');
+
+ blankResult=true;
+ await window.criloScanSpecificDrawing({run_id:'blank-safe-test',is_test:true,
+   drawing:'data:image/png;base64,QUJD'});
+ const blankSaved=calls.filter(x=>x.name==='crilo_owner_local_scan_save').at(-1).args;
+ assert.equal(blankSaved.p_run_id,'blank-safe-test');
+ assert.deepEqual(Array.from(blankSaved.p_reasons),[],
+  'Blank drawing must have no suggestion');
+ assert.equal(blankSaved.p_visual_label,'Blank or nearly blank drawing');
+ assert.equal(blankSaved.p_error,null,'A skipped blank image must not be an incomplete check');
 
  node('reviewToggleScan').handlers.click();
  assert.ok(node('reviewScanStatus').textContent.includes('Paused'));
