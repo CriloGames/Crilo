@@ -61,7 +61,7 @@ RETURNS integer LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $fn$
            WHERE w.user_id=p_user) AS cutoff
  ), dates AS (
   SELECT DISTINCT d.daily_period
-  FROM public.daily_runs d,CROSS JOIN clock c
+  FROM public.daily_runs d CROSS JOIN clock c
   WHERE d.user_id=p_user AND d.is_test=false AND d.daily_period IS NOT NULL
    AND (c.cutoff IS NULL OR d.created_at>c.cutoff)
  ), numbered AS (
