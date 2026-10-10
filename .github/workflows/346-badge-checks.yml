@@ -6,6 +6,10 @@ on:
       - main
       - release/346-badges-prelaunch
     paths:
+      - 'app.js'
+      - 'ducks.html'
+      - 'friends.html'
+      - 'settings.html'
       - 'game.js'
       - 'rarity-system.js'
       - 'profile.js'
@@ -36,6 +40,10 @@ on:
     branches:
       - main
     paths:
+      - 'app.js'
+      - 'ducks.html'
+      - 'friends.html'
+      - 'settings.html'
       - 'game.js'
       - 'rarity-system.js'
       - 'profile.js'
@@ -78,6 +86,7 @@ jobs:
           node-version: '22'
       - name: Check production JavaScript syntax
         run: |
+          node --check app.js
           node --check game.js
           node --check rarity-system.js
           node --check badge-events.js
@@ -95,6 +104,8 @@ jobs:
           node --check moderation-genital-review.js
           node --check moderation-example-features.js
           node --check moderation-feedback.js
+      - name: Verify sign-in works on all pages with account headers
+        run: node release/346-badges/041-shared-signin-pages-smoke.cjs
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
