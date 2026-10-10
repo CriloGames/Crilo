@@ -115,7 +115,7 @@ self.onmessage=async event=>{
  busy=true;
  const id=msg.id;
  let bitmap=null;
- const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',blank:false,visualResults:[],errors:[],stages:{}};
+ const out={type:'result',id,ocrText:'',qrFound:false,shapeSuspected:false,shapeDetail:'',genitalSuspected:false,genitalType:null,genitalEvidence:[],blank:false,visualResults:[],errors:[],stages:{}};
  try{
   progress(id,'decode','Preparing image');
   bitmap=await getBitmap(msg.drawing);
@@ -141,6 +141,13 @@ self.onmessage=async event=>{
     const hint=self.CriloShapeReview.analyze(pixels.data,canvas.width,canvas.height);
     out.shapeSuspected=hint.suspected===true;
     out.shapeDetail=hint.detail||'';
+    // Specialized structural checks for curved penis drawings and nested
+    // or slit-like vulva doodles. Keep legacy outline detector as fallback.
+    importScripts('moderation-genital-review.js?v=1');
+    const genital=self.CriloGenitalReview.analyzePixels(pixels.data,canvas.width,canvas.height);
+    out.genitalSuspected=genital.suspected===true;
+    out.genitalType=genital.type||null;
+    out.genitalEvidence=Array.isArray(genital.evidence)?genital.evidence.slice(0,3):[];
     out.stages.shape='done';
    }catch(e){
     out.stages.shape='unavailable';
