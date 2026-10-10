@@ -1,38 +1,116 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Crilo — Badge Art Audit</title>
-<style>:root{font-family:system-ui,-apple-system,sans-serif;color:#30343c;background:#f8f6f1}*{box-sizing:border-box}body{margin:0;padding:28px;max-width:1400px;margin-inline:auto}h1{margin:0 0 8px}p{color:#60636c}header{margin-bottom:22px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}input,select{font:inherit;border:2px solid #30343c;border-radius:10px;background:white;padding:10px 12px}input{flex:1;min-width:220px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:13px}.tile{background:white;border:2px solid #30343c;border-radius:15px;padding:14px;min-height:180px}.symbol{width:72px;height:72px;display:grid;place-items:center;background:#faf7ed;border-radius:13px;margin-bottom:10px}.symbol svg{width:64px;height:64px}.name{font-weight:750;font-size:15px}.description{font-size:12px;line-height:1.4;margin-top:6px;color:#666}.key{font-size:10px;color:#8a8d94;margin-top:9px;overflow-wrap:anywhere}.group{grid-column:1/-1;font-size:19px;font-weight:800;margin:20px 0 0}.error{padding:15px;border:2px solid #d36e65;border-radius:12px;background:#fff0ed}.count{font-weight:700}a{color:#30343c}</style></head><body>
-<header><h1>Crilo Badge Art Audit</h1><p>Internal visual review of the <strong>actual SVG scenes used on player profiles</strong>. No account or badge progress is changed. <a href="profile.html">Back to profile</a></p><div class="controls"><input id="search" placeholder="Search badge names, keys, or descriptions" aria-label="Search badges"><select id="category" aria-label="Filter category"><option value="">All categories</option></select></div><div class="count" id="count">Loading badges…</div></header><main class="grid" id="gallery"></main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Crilo — Badge Collection Audit</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17191e;background:#fcfaf5}
+*{box-sizing:border-box}
+body{margin:0 auto;padding:30px 22px 70px;max-width:1450px}
+a{color:inherit}h1{margin:0 0 8px;font-size:clamp(27px,4vw,40px);letter-spacing:-.04em}
+p{line-height:1.5;color:#60636c}
+header{margin-bottom:22px}
+.subtitle{max-width:780px}
+nav{margin:12px 0 23px}
+.filters{display:grid;grid-template-columns:minmax(220px,2fr) repeat(2,minmax(160px,1fr)) auto;gap:10px;margin-bottom:15px}
+input,select{font:inherit;min-width:0;background:#fff;border:1.5px solid #17191e;border-radius:12px;padding:12px}
+.checkbox{display:flex;align-items:center;gap:7px;padding:10px;white-space:nowrap}
+.checkbox input{accent-color:#383d42}
+.count{font-size:14px;font-weight:750;margin:12px 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:14px}
+.tile{--accent:#8b929e;--pale:#f0f1f3;background:var(--pale);border:1.5px solid #17191e;border-radius:18px;
+padding:17px;box-shadow:2px 3px 0 color-mix(in srgb,var(--accent) 28%,transparent);min-height:144px}
+.tile[data-rarity="trash"]{--accent:#995b21;--pale:#faf0e2}
+.tile[data-rarity="common"]{--accent:#8b929e;--pale:#f0f1f3}
+.tile[data-rarity="uncommon"]{--accent:#56ae8a;--pale:#e8f7ef}
+.tile[data-rarity="rare"]{--accent:#4b91cf;--pale:#e8f3fc}
+.tile[data-rarity="epic"]{--accent:#9968df;--pale:#f3eaff}
+.tile[data-rarity="anomaly"]{--accent:#dc5526;--pale:#fff0e7}
+.tile[data-rarity="mythic"]{--accent:#e05dcd;--pale:#fbe7f8}
+.tile.locked{opacity:.58;filter:saturate(.35)}
+.name{font-weight:800;font-size:15px;overflow-wrap:anywhere}
+.description{font-size:12px;color:#4c525b;margin-top:8px;line-height:1.45}
+.rarity{font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:800;color:var(--accent);margin-top:13px}
+.key{font-size:10px;overflow-wrap:anywhere;color:#747a85;margin-top:6px}
+.empty{grid-column:1/-1;padding:22px;border:1px dashed #969ba5;border-radius:14px}
+.error{background:#fff1ed;border-color:#c25b46}
+@media(max-width:800px){.filters{grid-template-columns:1fr 1fr}.filters input{grid-column:1/-1}}
+@media(max-width:520px){.filters{grid-template-columns:1fr}.filters input{grid-column:1}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+</style>
+</head><body>
+<header>
+<nav><a href="profile.html">← Back to profile</a></nav>
+<h1>Crilo Badge Collection Audit</h1>
+<p class="subtitle">Read-only preview of the actual icon-free, rarity-tinted badge tiles used on player profiles.
+This page displays the current database catalog. The locked toggle previews how unearned badges look; it does not change your account or award anything.</p>
+</header>
+<div class="filters">
+<input id="search" placeholder="Search names, descriptions, keys…" aria-label="Search badges">
+<select id="category" aria-label="Filter badge category"><option value="">All categories</option></select>
+<select id="rarity" aria-label="Filter badge rarity"><option value="">All rarities</option></select>
+<label class="checkbox"><input type="checkbox" id="locked"> Preview locked</label>
+</div>
+<div class="count" role="status" aria-live="polite" id="count">Loading badges…</div>
+<main class="grid" id="gallery"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js?v=8"></script>
 <script>
-// Isolated audit page: use the existing profile.js scene data without running profile initialization.
-// This page fetches the same source files in their production order and extracts only SVG string values.
-(async()=>{const files=["profile.js?v=85","score-art-overrides.js?v=1","badge-art-batch-02.js?v=1","badge-art-upgrade-audit.js?v=1","badge-art-batch-03.js?v=1","badge-art-batch-04.js?v=1","badge-art-batch-05.js?v=1","badge-art-batch-06.js?v=1","badge-art-batch-07.js?v=1","badge-art-batch-08.js?v=1","badge-art-batch-09.js?v=1","badge-art-batch-10.js?v=1","badge-art-batch-11.js?v=1","badge-art-batch-12.js?v=1","badge-art-batch-13.js?v=2","badge-art-final-audit.js?v=1","badge-art-score-250-fix.js?v=2","badge-art-score-rarity-aligned.js?v=1","badge-art-six-rarity-milestones.js?v=2","badge-art-doubles-spins-refresh.js?v=1","badge-art-name-refinements.js?v=6","badge-art-meaning-fixes.js?v=2"];
-const scenes={};const gallery=document.getElementById("gallery"),counter=document.getElementById("count"),search=document.getElementById("search"),category=document.getElementById("category");
-try{
-for(const file of files){
-const response=await fetch(file,{cache:"no-cache"});if(!response.ok)throw Error("Cannot load "+file);
-const src=await response.text();
-const marker=file.startsWith("profile.js")?"const customTitleScenes=":"Object.assign(customTitleScenes,";
-let cursor=0,blocks=0;
-while(true){
-const at=src.indexOf(marker,cursor);if(at<0)break;
-const start=src.indexOf("{",at+marker.length);if(start<0)throw Error("Missing SVG object in "+file);
-let depth=0,inString=false,escaped=false,end=-1;
-for(let i=start;i<src.length;i++){const ch=src[i];if(inString){if(escaped)escaped=false;else if(ch==="\\")escaped=true;else if(ch==='"')inString=false;continue}if(ch==='"'){inString=true;continue}if(ch==="{")depth++;else if(ch==="}"&&--depth===0){end=i+1;break}}
-if(end<0)throw Error("Unclosed SVG definitions in "+file);
-const json=src.slice(start,end);let found=0;
-for(const match of json.matchAll(/["']?([a-z][a-z0-9_]+)["']?\s*:\s*("(?:\\.|[^"\\])*")/g)){try{scenes[match[1]]=JSON.parse(match[2]);found++}catch(e){throw Error("Invalid SVG string for "+match[1]+" in "+file)}}
-if(!found)throw Error("No SVG entries parsed from "+file);
-blocks++;cursor=end;
-}
-if(!blocks)throw Error("No SVG definitions found in "+file);
-}
-const config=typeof CRILO_SUPABASE_URL!=="undefined"&&typeof CRILO_SUPABASE_KEY!=="undefined"?{url:CRILO_SUPABASE_URL,key:CRILO_SUPABASE_KEY}:null;
-if(!config)throw Error("Missing public Supabase configuration. This page requires the project's existing public URL and anon key.");
-const db=window.supabase.createClient(config.url,config.key);const {data,error}=await db.from("badges").select("badge_key,name,description,category").order("badge_key");if(error)throw error;
-const rows=data||[];const missingKeys=rows.filter(b=>!scenes[b.badge_key]).map(b=>b.badge_key);const categories=[...new Set(rows.map(r=>r.category))].sort();for(const c of categories){const option=document.createElement("option");option.value=c;option.textContent=c.replaceAll("_"," ");category.append(option)}
-function render(){const query=search.value.trim().toLowerCase(),cat=category.value;const filtered=rows.filter(r=>(!cat||r.category===cat)&&[r.name,r.description,r.badge_key].some(x=>(x||"").toLowerCase().includes(query)));gallery.replaceChildren();let missing=0;for(const b of filtered){const tile=document.createElement("article");tile.className="tile";const symbol=document.createElement("div");symbol.className="symbol";const art=scenes[b.badge_key];if(art){const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");svg.setAttribute("viewBox","0 0 48 48");svg.setAttribute("fill","none");svg.setAttribute("stroke","#30343c");svg.setAttribute("stroke-width","1.7");svg.setAttribute("stroke-linecap","round");svg.setAttribute("stroke-linejoin","round");svg.innerHTML=art;symbol.append(svg)}else{symbol.textContent="Missing SVG";missing++}tile.append(symbol);for(const [className,value] of [["name",b.name],["description",b.description],["key",b.badge_key]]){const d=document.createElement("div");d.className=className;d.textContent=value||"";tile.append(d)}gallery.append(tile)}counter.textContent=filtered.length+" / "+rows.length+" active badges shown"+(missingKeys.length?" · "+missingKeys.length+" missing SVGs overall: "+missingKeys.join(", "):" · all active badges have SVGs")}
-search.addEventListener("input",render);category.addEventListener("change",render);render();
-}catch(e){counter.textContent="Could not load badge audit";gallery.innerHTML="";const el=document.createElement("div");el.className="error";el.textContent=e.message;gallery.append(el)}
+(async()=>{
+ const $=id=>document.getElementById(id);
+ const search=$('search'),category=$('category'),rarity=$('rarity'),locked=$('locked');
+ const count=$('count'),gallery=$('gallery');
+ try{
+  if(typeof window.supabase?.createClient!=='function')throw Error('Supabase library unavailable');
+  if(typeof CRILO_SUPABASE_URL==='undefined'||typeof CRILO_SUPABASE_KEY==='undefined')
+   throw Error('Public Supabase configuration unavailable');
+  const db=window.supabase.createClient(CRILO_SUPABASE_URL,CRILO_SUPABASE_KEY);
+  const {data,error}=await db.from('badges')
+   .select('badge_key,name,description,category,requirement,is_secret,sort_order').order('sort_order');
+  if(error)throw error;
+  const rows=data||[];
+  if(rows.length===0)throw Error('No badge definitions returned by the public catalog');
+  const label=x=>String(x||'').replaceAll('_',' ');
+  const getRarity=b=>String(b.requirement?.rarity||'common').toLowerCase();
+  [...new Set(rows.map(b=>b.category).filter(Boolean))].sort().forEach(value=>{
+   const opt=document.createElement('option');opt.value=value;opt.textContent=label(value);category.append(opt);
+  });
+  const ranks=['trash','common','uncommon','rare','epic','anomaly','mythic'];
+  ranks.filter(value=>rows.some(b=>getRarity(b)===value)).forEach(value=>{
+   const opt=document.createElement('option');opt.value=value;opt.textContent=value[0].toUpperCase()+value.slice(1);
+   rarity.append(opt);
+  });
+  function render(){
+   const q=search.value.trim().toLowerCase();
+   const filtered=rows.filter(b=>(!category.value||b.category===category.value)
+     &&(!rarity.value||getRarity(b)===rarity.value)
+     &&(!q||[b.name,b.description,b.badge_key,b.category].some(x=>String(x||'').toLowerCase().includes(q))));
+   const frag=document.createDocumentFragment();
+   for(const b of filtered){
+    const card=document.createElement('article');card.className='tile'+(locked.checked?' locked':'');
+    card.dataset.rarity=getRarity(b);
+    const secret=locked.checked&&Boolean(b.is_secret);
+    for(const [name,value] of [['name',secret?'???':b.name],
+       ['description',secret?'Unlock to reveal this badge.':b.description],
+       ['rarity',getRarity(b)],['key',b.badge_key]]){
+     const node=document.createElement('div');node.className=name;node.textContent=value||'';
+     card.append(node);
+    }
+    frag.append(card);
+   }
+   gallery.replaceChildren(frag);
+   if(!filtered.length){
+    const none=document.createElement('p');none.className='empty';none.textContent='No badges match those filters.';
+    gallery.append(none);
+   }
+   count.textContent=filtered.length+' / '+rows.length+' badges shown · '+new Set(rows.map(x=>x.category)).size+' categories';
+  }
+  [search,category,rarity,locked].forEach(el=>el.addEventListener(el===search?'input':'change',render));
+  render();
+ }catch(err){
+  count.textContent='Could not load badge catalog';
+  const msg=document.createElement('p');msg.className='empty error';
+  msg.textContent=err?.message||String(err);gallery.replaceChildren(msg);
+  console.error('Crilo badge audit load failed',err);
+ }
 })();
 </script></body></html>
