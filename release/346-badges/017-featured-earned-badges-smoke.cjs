@@ -19,8 +19,8 @@ assert.equal(badges.length,346);
 assert.match(html,/id="featuredBadgeOptions"/);
 assert.match(html,/id="featuredBadgeSearch"/);
 assert.match(html,/id="featuredClear"/);
-assert.match(html,/badge-collection\.css\?v=8/);
-assert.match(html,/profile\.js\?v=92/);
+assert.match(html,/badge-collection\.css\?v=9/);
+assert.match(html,/profile\.js\?v=93/);
 assert.match(css,/\.featured-slot\.featured-filled\[data-badge-rarity\]/);
 assert.match(css,/\.featured-pick-option\{/);
 assert.ok(!css.includes('.featured-pick-option{--crilo-badge-accent:'),
@@ -107,19 +107,63 @@ async function run(){
  assert.ok(row.innerHTML.includes('data-badge-rarity="'+
   fixtureWithExisting.win.CriloBadgeCollection.rarity(badges[3])+'"'));
  assert.ok(row.innerHTML.includes(badges[3].name),'Saved featured badge renders on first load');
+
+ // Slot 2: the badge already in slot 1 must look faded and be disabled,
+ // but must still show its original rarity color and where it is featured.
  chooseSlot(fixtureWithExisting,2);
- chooseBadge(fixtureWithExisting,4);
+ const grid=fixtureWithExisting.node('featuredBadgeOptions');
+ const originalMarkup=grid.innerHTML;
+ const alreadyFeatured=originalMarkup.match(/<button[^>]*data-badge-id="4"[^>]*>[\s\S]*?<\/button>/)?.[0];
+ assert.ok(alreadyFeatured,'Featured badge remains visible in search');
+ assert.match(alreadyFeatured,/is-already-featured/,'Already-featured badge must be dimmed');
+ assert.match(alreadyFeatured,/disabled/,'Already-featured badge cannot be selected');
+ assert.match(alreadyFeatured,/Already featured · Slot 1/,'Explain why selection is unavailable');
+ assert.match(alreadyFeatured,/data-badge-rarity="/,'Keep original rarity on dimmed badge');
+ chooseBadge(fixtureWithExisting,4); // Mock a forged click on a disabled item
+ assert.equal(fixtureWithExisting.node('featuredBadgeSelect').value,'',
+  'Click cannot select the badge assigned to another slot');
+ assert.equal(fixtureWithExisting.saved.length,0);
+
+ // Defense in depth: a manually modified hidden input must also fail.
+ fixtureWithExisting.node('featuredBadgeSelect').value='4';
+ await fixtureWithExisting.node('featuredSave').onclick();
+ assert.equal(fixtureWithExisting.saved.length,0,'Duplicate save must be rejected before RPC');
+ assert.match(fixtureWithExisting.node('featuredStatus').textContent,/already featured/);
+ fixtureWithExisting.node('featuredBadgeSelect').value='';
+
+ // Choosing a different earned badge fills slot 2 without changing slot 1.
+ chooseBadge(fixtureWithExisting,5);
  await fixtureWithExisting.node('featuredSave').onclick();
  assert.deepEqual(JSON.parse(JSON.stringify(fixtureWithExisting.saved[0])),
-  {p_position:2,p_badge_id:4});
- const slots=row.innerHTML.split('<button type="button" class="featured-slot');
- assert.ok(!slots[1].includes(badges[3].name),'Moving badges clears their prior slot');
- assert.ok(slots[2].includes(badges[3].name),'New slot shows selected earned badge');
+  {p_position:2,p_badge_id:5});
+ let slots=row.innerHTML.split('<button type="button" class="featured-slot');
+ assert.ok(slots[1].includes(badges[3].name),'Original slot remains populated');
+ assert.ok(slots[2].includes(badges[4].name),'Second slot shows distinct badge');
  assert.equal(slots.length,6);
- chooseSlot(fixtureWithExisting,2);
+
+ // Editing slot 1: its own selected badge stays bright and selectable.
+ chooseSlot(fixtureWithExisting,1);
+ const ownMarkup=grid.innerHTML.match(/<button[^>]*data-badge-id="4"[^>]*>[\s\S]*?<\/button>/)?.[0];
+ assert.ok(ownMarkup,'Own featured badge option exists');
+ assert.doesNotMatch(ownMarkup,/is-already-featured/,'Current slot remains available');
+ assert.doesNotMatch(ownMarkup,/disabled/,'Current badge can be reselected');
+ assert.match(ownMarkup,/is-selected/,'Current badge remains selected');
+
+ // Clearing slot 1 makes that badge selectable elsewhere again.
  await fixtureWithExisting.node('featuredClear').onclick();
  assert.equal(fixtureWithExisting.saved[1].p_badge_id,null);
- assert.equal((row.innerHTML.match(/featured-filled/g)||[]).length,0);
- console.log('PASS: existing feature, rarity colors, move without duplicates, and remove');
+ slots=row.innerHTML.split('<button type="button" class="featured-slot');
+ assert.ok(!slots[1].includes(badges[3].name),'Old badge removed');
+ chooseSlot(fixtureWithExisting,2);
+ const freed=grid.innerHTML.match(/<button[^>]*data-badge-id="4"[^>]*>[\s\S]*?<\/button>/)?.[0];
+ assert.ok(freed);
+ assert.doesNotMatch(freed,/is-already-featured|disabled/,'Freed badge is available again');
+ chooseBadge(fixtureWithExisting,4);
+ await fixtureWithExisting.node('featuredSave').onclick();
+ assert.deepEqual(JSON.parse(JSON.stringify(fixtureWithExisting.saved[2])),
+  {p_position:2,p_badge_id:4});
+ assert.ok(row.innerHTML.includes(badges[3].name),'Previously featured badge can be reused once removed');
+ assert.ok(css.includes('.featured-pick-option.is-already-featured:disabled'));
+ console.log('PASS: already-featured badge dimmed and disabled; duplicate click/save rejected; own slot available; clearing frees selection.');
 }
 run().catch(e=>{console.error(e);process.exitCode=1});
