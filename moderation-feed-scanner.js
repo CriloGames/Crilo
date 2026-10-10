@@ -62,12 +62,15 @@ function classifyText(raw){
  const combined=[original,basic,basic.replace(/[^a-z0-9]+/g,' '),basic.replace(/[^a-z0-9]+/g,'')];
  const hasWord=combined.some((s,i)=>i===3?false:new RegExp('(?:^|[^a-z])'+words.source+'(?=$|[^a-z])','i').test(s));
  const spaced=/\b(?:f[^a-z0-9]{1,3}u[^a-z0-9]{1,3}c[^a-z0-9]{1,3}k|s[^a-z0-9]{1,3}h[^a-z0-9]{1,3}i[^a-z0-9]{1,3}t)\b/i.test(original);
+ // In small handwritten text, Tesseract sometimes reads I as an opening
+ // bracket: SH [T. Restrict the correction to this complete four-letter word.
+ const ocrBracketProfanity=/(?:^|[^a-z])s\s*h\s*[\[i1!|]\s*t(?:$|[^a-z])/i.test(original);
  // Handwritten hate slogans can be recognized as separated letters by OCR.
  // Only match clearly spelled letter sequences with short separators.
  const spacedHate=/(?:^|[^a-z0-9])n[^a-z0-9]{1,3}a[^a-z0-9]{1,3}z[^a-z0-9]{1,3}i(?:$|[^a-z0-9])/i.test(original);
  const hasHate=spacedHate||combined.some((s,i)=>i===3?false:abusive.test(s));
  const hasLink=looksLikeHandwrittenLink(original)||looksLikeHandwrittenLink(basic);
- return [(hasWord||spaced)&&REASONS.profanity,hasHate&&REASONS.hate,hasLink&&REASONS.link].filter(Boolean);
+ return [(hasWord||spaced||ocrBracketProfanity)&&REASONS.profanity,hasHate&&REASONS.hate,hasLink&&REASONS.link].filter(Boolean);
 }
 const candidateLabels=[
  'A hand drawn Nazi swastika or extremist hate symbol',
