@@ -901,3 +901,46 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
  .leader-row.score-run-row .mini-wheel{width:48px;height:48px;min-width:48px;border-width:4px}
  .leader-row.score-run-row .leader-score{font-size:clamp(15px,4.6vw,19px)}
 }
+
+
+/* Leaderboard navigation never wraps into orphan tabs at any viewport or zoom.
+   On narrow screens, preserve legible labels and reveal overflow with arrows
+   plus native touch/trackpad horizontal scrolling. */
+.leader-panel{min-width:0}
+.leader-tabs-wrap{display:flex;align-items:stretch;min-width:0;max-width:100%;border-bottom:1px solid var(--line)}
+.leader-tabs-wrap .leader-tabs{
+ display:flex;flex:1 1 auto;flex-wrap:nowrap;align-items:center;justify-content:flex-start;
+ width:0;min-width:0;max-width:100%;gap:clamp(3px,.5vw,9px);
+ padding:10px clamp(8px,1vw,16px);margin:0;border:0;
+ overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+ -webkit-overflow-scrolling:touch;scrollbar-width:thin;
+ scroll-snap-type:x proximity;scroll-padding-inline:10px;
+}
+.leader-tabs-wrap .leader-tab{
+ flex:0 0 auto;min-width:max-content;max-width:none;white-space:nowrap;
+ font-size:clamp(12px,1.04vw,15px);line-height:1.2;
+ padding:12px clamp(10px,.92vw,15px);
+ scroll-snap-align:start;touch-action:manipulation;
+}
+.leader-tab-scroll{
+ flex:0 0 36px;align-self:stretch;border:0;
+ background:var(--panel);color:var(--text);cursor:pointer;
+ font:900 26px/1 system-ui,sans-serif;display:grid;place-items:center;
+ position:relative;z-index:1;
+}
+.leader-tab-scroll:not([hidden]):first-child{border-right:1px solid var(--line)}
+.leader-tab-scroll:not([hidden]):last-child{border-left:1px solid var(--line)}
+.leader-tab-scroll:hover:not(:disabled){background:var(--soft)}
+.leader-tab-scroll:disabled{opacity:.35;cursor:default}
+.leader-tab-scroll:focus-visible{outline:2px solid #317ac0;outline-offset:-3px}
+.leader-tab-scroll[hidden]{display:none!important}
+@media(max-width:600px){
+ .leader-tabs-wrap .leader-tabs{flex-wrap:nowrap;gap:6px;padding:9px 8px}
+ .leader-tabs-wrap .leader-tab{flex:0 0 auto;white-space:nowrap;font-size:12px;padding:11px 12px;min-height:42px}
+ .leader-tab-scroll{flex-basis:30px;font-size:23px}
+}
+@media(max-width:375px){
+ .leader-tabs-wrap .leader-tabs{gap:4px;padding:7px 6px}
+ .leader-tabs-wrap .leader-tab{font-size:12px;padding:10px 11px}
+ .leader-tab-scroll{flex-basis:27px}
+}
