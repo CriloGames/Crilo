@@ -525,8 +525,8 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 .new-badge-item[data-badge-rarity]{background:var(--crilo-badge-pale)!important;border:1.5px solid #17191e;border-radius:13px;padding:12px}
 .new-badge-item[data-badge-rarity] .new-badge-icon{display:none!important}
 
-/* Tiny footer beetle: a continuous 16-second stroll in both directions.
-   Outbound 6s, pause 1s, return 6s, pause 3s. The dropping is on return only. */
+/* Continuous 16-second beetle patrol: 7.36 seconds each direction, with
+   a brief 0.64-second jumping turn at each wall. No running in place. */
 .crilo-site-footer{width:100%;margin:0 auto;padding:0 0 6px}
 .crilo-site-footer .crilo-support-link{margin:10px auto 2px;position:relative;z-index:1}
 .crilo-beetle-track{--beetle-width:74px;position:relative;left:auto;bottom:auto;width:100%;height:82px;pointer-events:none;z-index:1;overflow:hidden}
@@ -535,6 +535,8 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 .crilo-beetle svg{width:68px;height:29px;overflow:visible;filter:drop-shadow(0 1px 1px #ffffff99)}
 .crilo-beetle:hover{filter:brightness(.92)}
 .crilo-beetle:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px}
+/* Escape restores focus for keyboard users without leaving a giant focus frame behind. */
+.crilo-beetle.silent-return-focus:focus-visible{outline:none;box-shadow:none}
 .crilo-beetle-tooltip{position:absolute;left:10px;bottom:38px;white-space:nowrap;border:1.5px solid #17191e;border-radius:8px;background:#fff9e8;color:#17191e;font-size:10px;font-weight:900;letter-spacing:.06em;padding:4px 6px;opacity:0;transform:translateY(3px);transition:opacity .2s,transform .2s;pointer-events:none}
 .crilo-beetle:hover .crilo-beetle-tooltip,.crilo-beetle:focus-visible .crilo-beetle-tooltip{opacity:1;transform:translateY(0)}
 .crilo-beetle-track.walking .crilo-beetle{animation:criloBeetlePatrol 16s linear infinite}
@@ -554,28 +556,26 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 .crilo-poop-fly-two{left:19px;bottom:22px}
 .crilo-beetle-track.walking .crilo-poop-fly-two{animation:criloFlyOrbitAlt 1.4s ease-in-out -.5s infinite}
 .crilo-beetle-track.paused .crilo-beetle,.crilo-beetle-track.paused .crilo-beetle-facing,.crilo-beetle-track.paused .crilo-beetle-facing svg,.crilo-beetle-track.paused .beetle-legs,.crilo-beetle-track.paused .crilo-beetle-dropping,.crilo-beetle-track.paused .crilo-poop-fly{animation-play-state:paused!important}
-/* 6s outbound, hop-and-turn at the right edge, 6s return, hop at left.
-   The tiny squash, airborne tilt and landing use the existing 16s patrol clock,
-   so the droppings, flies, leg gait, and pause/resume remain synchronized. */
+/* Continuous gait: outbound 0–46%, right jump 46–50%, return 50–96%,
+   left jump 96–100%. The face flips only while airborne. */
 @keyframes criloBeetlePatrol{
   0%,100%{left:8px;transform:translateY(0) rotate(0deg) scale(1)}
-  37.5%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1)}
-  38.2%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(1px) rotate(0deg) scale(1.04,.92)}
-  39.6%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(-12px) rotate(-7deg) scale(.98,1.06)}
-  40.6%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(-14px) rotate(6deg) scale(1.01,1.03)}
-  42.3%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1.05,.90)}
-  43.75%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1)}
-  81.25%{left:8px;transform:translateY(0) rotate(0deg) scale(1)}
-  82%{left:8px;transform:translateY(1px) rotate(0deg) scale(1.04,.92)}
-  83.3%{left:8px;transform:translateY(-12px) rotate(7deg) scale(.98,1.06)}
-  84.1%{left:8px;transform:translateY(-14px) rotate(-6deg) scale(1.01,1.03)}
-  85.8%{left:8px;transform:translateY(0) rotate(0deg) scale(1.05,.90)}
-  87%{left:8px;transform:translateY(0) rotate(0deg) scale(1)}
+  46%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1)}
+  46.5%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(1px) rotate(0deg) scale(1.04,.92)}
+  47.4%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(-12px) rotate(-7deg) scale(.98,1.06)}
+  48.5%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(-14px) rotate(6deg) scale(1.01,1.03)}
+  49.3%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1.05,.90)}
+  50%{left:calc(100% - var(--beetle-width) - 8px);transform:translateY(0) rotate(0deg) scale(1)}
+  96%{left:8px;transform:translateY(0) rotate(0deg) scale(1)}
+  96.5%{left:8px;transform:translateY(1px) rotate(0deg) scale(1.04,.92)}
+  97.4%{left:8px;transform:translateY(-12px) rotate(7deg) scale(.98,1.06)}
+  98.5%{left:8px;transform:translateY(-14px) rotate(-6deg) scale(1.01,1.03)}
+  99.3%{left:8px;transform:translateY(0) rotate(0deg) scale(1.05,.90)}
 }
 @keyframes criloBeetleFacing{
-  0%,40.09%{transform:scaleX(1)}
-  40.1%,83.69%{transform:scaleX(-1)}
-  83.7%,100%{transform:scaleX(1)}
+  0%,48.39%{transform:scaleX(1)}
+  48.4%,98.39%{transform:scaleX(-1)}
+  98.4%,100%{transform:scaleX(1)}
 }
 @keyframes criloDropping{
   0%,61.8%{opacity:0;transform:translateY(-9px) scale(.7)}
