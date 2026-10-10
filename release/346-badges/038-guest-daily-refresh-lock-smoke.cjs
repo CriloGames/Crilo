@@ -127,6 +127,26 @@ function mount({period='2026-10-10',signedIn=false,owner=false,
  interrupted.flush();
  assert.equal(JSON.stringify(read()),stable,'The older tab must not overwrite resumed progress');
 
+ // Special wheel actions and all counters survive a reload unchanged.
+ backing.delete(KEY);
+ const specials=mount({random:[0,.1,0,.88,0,.53,0,.29,0,0,.1,.2,.3,.4]});
+ await specials.ready();
+ for(let i=0;i<4;i++)await specials.spin();
+ const withSpecials=clean(read().state);
+ assert.equal(withSpecials.ducks,1);
+ assert.equal(withSpecials.doubles,1);
+ assert.equal(withSpecials.upgrades,1);
+ assert.equal(withSpecials.extraSpins,2);
+ assert.equal(withSpecials.multiplier,3);
+ assert.equal(withSpecials.spins,6);
+ assert.deepEqual(withSpecials.results.map(r=>r.type),['duck','double','spins','upgrade']);
+ const specialReload=mount();await specialReload.ready();
+ assert.equal(specialReload.get('spins').textContent,6);
+ assert.equal(specialReload.get('level').textContent,'×3');
+ assert.equal(specialReload.get('duckCount').textContent,1);
+ assert.equal(specialReload.spawned,1,'Restored ducks must visibly reappear');
+ assert.deepEqual(clean(read().state),withSpecials,'No special-run mutation during restore');
+
  // Finished runs still lock, while the next period has a new guest Daily.
  backing.delete(KEY);
  const finishing=mount();await finishing.ready();
