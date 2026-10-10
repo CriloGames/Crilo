@@ -18,6 +18,9 @@ on:
       - 'leaderboard.html'
       - 'leaderboard-tabs.js'
       - 'index.html'
+      - 'moderation.html'
+      - 'moderation-feed.js'
+      - 'moderation-feed-scanner.js'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -71,6 +74,8 @@ jobs:
           node --check spin-history.js
           node --check bug-beetle.js
           node --check leaderboard-tabs.js
+          node --check moderation-feed.js
+          node --check moderation-feed-scanner.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
@@ -85,6 +90,8 @@ jobs:
         run: node release/346-badges/016-owner-test-scoreboard-smoke.cjs
       - name: Verify leaderboard rarity layout and clickable beetle sound
         run: node release/346-badges/019-leaderboard-beetle-smoke.cjs
+      - name: Verify free owner-local drawing scans and protected moderation controls
+        run: node release/346-badges/021-free-drawing-moderation-smoke.cjs
       - name: Verify leaderboard tabs never wrap across mobile/tablet/desktop widths
         run: node release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
