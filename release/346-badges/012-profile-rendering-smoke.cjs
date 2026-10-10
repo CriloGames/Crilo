@@ -99,7 +99,7 @@ async function run(awards){
  assert.equal(typeof listeners['crilo-auth-ready'],'function');
  await listeners['crilo-auth-ready']();
  const html=getElementById('badgeGrid').innerHTML;
- const chipMatches=[...html.matchAll(/<span class="badge-top-chip" data-badge-rarity="([^"]+)"/g)];
+ const chipMatches=[...html.matchAll(/<button type="button" class="badge-top-chip" data-badge-rarity="([^"]+)"/g)];
  assert.equal(chipMatches.length,Math.min(50,awards),
   'Top badge showcase must contain no more than 50 earned badges');
  assert.ok(!html.includes('badge-set-head')&&!html.includes('badge-card locked'),
@@ -110,11 +110,12 @@ async function run(awards){
  assert.match(getElementById('featuredBadges').innerHTML,/featured-slot/);
 
  const expected=model.bestEarned(badges,rows,50);
- const displayed=[...html.matchAll(/<span class="badge-top-chip" data-badge-rarity="([^"]+)" title="[^"]*">([^<]+)<\/span>/g)];
+ const displayed=[...html.matchAll(/<button type="button" class="badge-top-chip" data-badge-rarity="([^"]+)" data-badge-key="([^"]+)" title="[^"]*" aria-label="[^"]*">([^<]+)<\/button>/g)];
  assert.equal(displayed.length,expected.length);
  for(let i=0;i<expected.length;i++){
   assert.equal(displayed[i][1],model.rarity(expected[i]),'Rarity order '+i);
-  assert.equal(displayed[i][2],esc(expected[i].name),'Name order '+i);
+  assert.equal(displayed[i][2],esc(expected[i].badge_key),'Identity order '+i);
+  assert.equal(displayed[i][3],esc(expected[i].name),'Name order '+i);
  }
  assert.ok(!/<svg|<img|badge-set-icon/.test(html),'Profile badges must have no symbols');
 
