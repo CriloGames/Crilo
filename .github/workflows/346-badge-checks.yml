@@ -74,6 +74,8 @@ jobs:
         run: node release/346-badges/013-clickable-profile-badges-smoke.cjs
       - name: Page official spin history five outcomes at a time
         run: node release/346-badges/014-spin-history-smoke.cjs
+      - name: Verify owner Test Run isolation and wheel rarity score HUD
+        run: node release/346-badges/016-owner-test-scoreboard-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
         run: node release/346-badges/015-beetle-trick-preview-smoke.cjs
       - name: Check 346 normalized badge keys and positive/negative fixtures
