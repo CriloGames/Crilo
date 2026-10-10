@@ -34,8 +34,8 @@ function shaft(x,y,ax,ay,bx,by,radius){
  const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy)));
  return Math.abs(Math.hypot(x-ax-t*dx,y-ay-t*dy)-radius)<1.45;
 }
-const suspect=angle=>image(p=>outline(p,(x,y)=>circle(x,y,60,46,21,18)||
- circle(x,y,106,53,20,24)||shaft(x,y,79,76,32,135,13),angle));
+const suspect=angle=>image(p=>outline(p,(x,y)=>circle(x,y,64,51,17,15)||
+ circle(x,y,101,57,16,19)||shaft(x,y,79,75,42,121,10),angle));
 const mild=angle=>image(p=>outline(p,(x,y)=>circle(x,y,80,65,22,22)||
  shaft(x,y,80,99,80,137,10),angle));
 const circles=image(p=>outline(p,(x,y)=>circle(x,y,65,45,20,20)||
