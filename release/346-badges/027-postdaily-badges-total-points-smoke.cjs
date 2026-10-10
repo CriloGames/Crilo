@@ -15,7 +15,7 @@ assert.match(index,/badge-collection\.js\?v=4/);
 assert.match(index,/badge-collection\.css\?v=9/);
 assert.match(index,/game\.js\?v=71/);
 assert.match(profileHTML,/profile\.js\?v=97/);
-assert.match(leaderHTML,/leaderboard\.js\?v=37/);
+assert.match(leaderHTML,/leaderboard\.js\?v=38/);
 assert.match(leaderHTML,/data-tab="points">TOTAL POINTS/);
 assert.match(styles,/\.stat-tile\.stat-total-points/);
 assert.match(styles,/\.new-badge-list \.badge-top-chip\.new-badge-item/);
