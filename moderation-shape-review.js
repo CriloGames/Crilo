@@ -89,9 +89,7 @@ function analyze(imageData,width,height){
     // Both lobes have to cluster at the SAME tip of the shaft.
     const nearTip=[shaft.tipA,shaft.tipB].some(tip=>
      DIST(a.center,tip)<diameter*1.12&&DIST(b.center,tip)<diameter*1.12);
-    const otherTip=[shaft.tipA,shaft.tipB].some(tip=>
-     DIST(a.center,tip)<diameter*1.12&&DIST(b.center,tip)<diameter*1.12);
-    if(!nearTip||!otherTip)continue;
+    if(!nearTip)continue;
     return {suspected:true,detail:'Possible genital-like outline: one elongated and two rounded connected-region shapes'};
    }
   }
