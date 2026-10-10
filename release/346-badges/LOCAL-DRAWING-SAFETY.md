@@ -112,3 +112,13 @@ Two actual saved Owner Test Run drawings containing domain names were previously
 Owner Test Runs now have a separate **Delete this Test Run** button in Drawing Review, guarded by two confirmations and \`crilo_owner_delete_test_run(uuid)\`. This can only remove the owner's own \`owner_test_runs\` row; it cannot touch \`daily_runs\`, official scores, or player accounts. Associated Test Run scan rows cascade automatically. The new entry is immediately removed from the review UI; old in-flight feed snapshots cannot resurrect it. Saved visual training fingerprints are independent of run data and persist until explicitly removed.
 
 A free owner-local classifier uses only explicitly labeled examples; it does not update model weights or send data to paid AI. The generic "other" category becomes **Possible inappropriate artwork**, not an unrelated sexual-content label.
+
+
+## Angled-eye tongue doodle correction — v7 (October 10, 2026)
+
+- A real player-submitted smiley face with a horizontal mouth and hanging tongue remained incorrectly marked **Possible penis drawing** even after a complete v6 scan. The old face veto required both eye regions to have aspect ratios <= 1.75; the uploaded thumbnail's right eye is elongated/tilted (~1.82), while its mouth spans both eyes.
+- The free on-device outline detector now permits elongated eye shapes up to ratio 2.2 **only when a broad mouth is drawn beneath both eyes**. It still classifies actual genital shapes as advisory findings. Visual, OCR, link, QR and extremist-symbol signals stay independent of this geometric veto.
+- A new owner-only \`crilo_owner_local_scan_jobs_v7\` queue automatically retries previous v5/v6 **genital-shape suggestions**, and \`crilo_owner_local_scan_save_v7\` saves the fresh status/version. Previously clear drawings are not needlessly rescanned. It preserves all official runs and award records.
+- A trigger prevents older open tabs from overwriting newer scan versions. Owner authentication is checked on both RPCs; anonymous and non-owner callers cannot invoke them.
+- Added a synthetic tilted-eye smile/tongue fixture to shape-acceptance tests. It reproduces the specific v6 eye-aspect failure, without publishing or storing a private player's actual drawing.
+- The old suggestion remains visible until the owner has Drawing Review open and the corrected scan successfully completes. This is **not** an automatic approval and never deletes or bans accounts.
