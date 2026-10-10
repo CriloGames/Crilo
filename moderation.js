@@ -74,6 +74,7 @@ function openDrawing(index,source=rows){
  $('reviewActionStatus').textContent=chosen.ai_status==='review'?'Needs manual review (not a confirmed violation). '+(chosen.ai_details||''):chosen.ai_status==='flagged'?'AI flag: '+(chosen.ai_reasons||[]).join(', ')+(chosen.ai_details?' — '+chosen.ai_details:''):('AI scan status: '+(chosen.ai_status||'pending'));
  const pending=!chosen.suspected_visual&&chosen.review_status==='pending' && (chosen.ai_status==='flagged'||chosen.ai_status==='review');
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!pending;
+ $('reviewManualFlag').disabled=chosen.review_status!=='pending'||chosen.ai_status==='flagged'||chosen.review_status==='test';
  if(chosen.ai_status==='review'||chosen.suspected_visual)$('reviewBan').disabled=true;
  modal.classList.remove('hidden');
 }
@@ -83,6 +84,18 @@ $('reviewClose').addEventListener('click',close);
 modal.addEventListener('click',e=>{if(e.target===modal)close()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))close()});
 
+$('reviewManualFlag').addEventListener('click',async()=>{
+ if(!chosen||chosen.review_status!=='pending'||chosen.ai_status==='flagged')return;
+ if(!window.confirm('Flag this player drawing for owner review? This does not ban the account.'))return;
+ $('reviewManualFlag').disabled=true;
+ $('reviewActionStatus').textContent='Flagging drawing…';
+ try{
+  const {error,data}=await criloDB.rpc('crilo_owner_manual_flag',{p_run_id:chosen.run_id});
+  if(error)throw error;
+  if(!data)throw Error('This drawing cannot be flagged.');
+  close();await load();
+ }catch(err){$('reviewActionStatus').textContent='Flag failed: '+err.message;$('reviewManualFlag').disabled=false;}
+});
 $('reviewRefresh').addEventListener('click',load);
 $('reviewUnflagged').addEventListener('click',()=>{
  showUnflagged=!showUnflagged;
