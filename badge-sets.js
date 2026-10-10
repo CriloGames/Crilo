@@ -4,9 +4,10 @@
   const $=id=>document.getElementById(id);
   const esc=value=>Crilo.esc(String(value??''));
   const model=window.CriloBadgeCollection;
-  const requestedId=new URLSearchParams(location.search).get('id');
+  const query=new URLSearchParams(location.search);
+  const requestedId=query.get('id');
+  const requestedBadge=query.get('badge');
   let loadToken=0;
-  const getRarity=badge=>model.rarity(badge);
   // The small badge-info legend is intentionally optional and read-only.
   const info=$('collectionInfo');
   document.addEventListener?.('keydown',event=>{
@@ -53,19 +54,7 @@
         return;
       }
       $('collectionSets').innerHTML=sets.map(set=>{
-        const tiles=set.badges.map(b=>{
-          const owned=earnedIds.has(String(b.id)),secret=b.is_secret&&!owned;
-          const rarity=getRarity(b);
-          const title=secret?'Hidden badge':String(b.name||'');
-          const subtitle=owned?rarity:'Locked · '+(secret?'Secret':rarity);
-          const description=secret?'Unlock to reveal this secret achievement.':
-            String(b.description||b.requirement?.rule?.condition||'Complete this achievement to unlock it.');
-          return '<article class="collection-tile'+(owned?'':' locked')+'" data-badge-rarity="'+rarity+
-            '" title="'+esc(description)+'" tabindex="0" role="button" aria-expanded="false"'+
-            ' aria-label="'+esc(title+'. '+subtitle+'. '+description+' Tap to expand.')+'">'+
-            '<b>'+esc(title)+'</b><small>'+esc(subtitle)+'</small>'+
-            '<p class="collection-tile-description">'+esc(description)+'</p></article>';
-        }).join('');
+        const tiles=set.badges.map(b=>model.tileHTML(b,earnedIds.has(String(b.id)),esc)).join('');
         return '<details class="collection-card">'+
           '<summary><span class="collection-set-copy"><strong>'+esc(set.name)+'</strong>'+
           '<small>'+esc(set.description)+'</small></span>'+
@@ -75,6 +64,20 @@
           '<span class="collection-set-track"><i style="width:'+set.percent+'%"></i></span>'+
           '</summary><div class="collection-tile-grid">'+tiles+'</div></details>';
       }).join('');
+
+      // A badge opened from a player's Top 50 preview lands on its actual
+      // collection card, with the containing set expanded and badge highlighted.
+      if(requestedBadge){
+        const linked=Array.from($('collectionSets').querySelectorAll?.('.collection-tile[data-badge-key]')||[])
+          .find(el=>el.dataset.badgeKey===requestedBadge);
+        if(linked){
+          const parent=linked.closest('details.collection-card');
+          if(parent)parent.open=true;
+          linked.classList.add('expanded','badge-linked-highlight');
+          linked.setAttribute('aria-expanded','true');
+          requestAnimationFrame?.(()=>linked.scrollIntoView?.({behavior:'smooth',block:'center'}));
+        }
+      }
 
       // An intentional expand is an actual exploration interaction, not page-load progress.
       $('collectionSets').querySelectorAll('details').forEach(set=>{
