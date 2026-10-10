@@ -1,19 +1,23 @@
-/* Browser-scoped guest Daily persistence regression (no real users / network).
- * Simulates a reload, second tab, Daily rollover, disabled storage, and
- * a legitimate signed-in account on the same browser.
+/* Guest Daily resume regression: in-memory browsers, no production writes.
+ * node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs
  */
 'use strict';
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const game=fs.readFileSync(path.resolve(__dirname,'../../game.js'),'utf8');
-const key='crilo_guest_daily_v1';
+const KEY='crilo_guest_daily_v1';
+const DRAWING='data:image/png;base64,'+'a'.repeat(120);
 const backing=new Map([['crilo_sound','off']]);
 const storage={
  getItem:k=>backing.has(k)?backing.get(k):null,
  setItem:(k,v)=>backing.set(k,String(v))
 };
-function mount({period='2026-10-10',signedIn=false,owner=false,store=storage}={}){
- const els=new Map(),events={};
+const read=()=>JSON.parse(backing.get(KEY));
+const clean=x=>JSON.parse(JSON.stringify(x));
+function mount({period='2026-10-10',signedIn=false,owner=false,
+ store=storage,random=[0],deferAnimation=false}={}){
+ const els=new Map(),events={},queued=[],randoms=[...random];
+ let drawnImage=null,spawned=0,clock=0;
  function get(id){
   if(els.has(id))return els.get(id);
   const classes=new Set(['hidden']);
@@ -21,101 +25,140 @@ function mount({period='2026-10-10',signedIn=false,owner=false,store=storage}={}
    add:s=>classes.add(s),remove:s=>classes.delete(s),contains:s=>classes.has(s),
    toggle:(s,on)=>{if(on===undefined)on=!classes.has(s);if(on)classes.add(s);else classes.delete(s);return !!on;}
   };
-  const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(200*200*4)})},
-   {get:(target,prop)=>target[prop]||(()=>{})});
+  const ctx=new Proxy({
+   getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),
+   clearRect:()=>{},drawImage:img=>{drawnImage=img.src;}
+  },{get:(target,prop)=>target[prop]||(()=>{})});
   const el={
    id,disabled:false,hidden:false,open:false,value:'',textContent:'',classList,
    dataset:{},style:{},width:200,height:200,innerHTML:'',
-   getContext:()=>ctx,toDataURL:()=> 'data:image/png;base64,test',
-   addEventListener:(event,fn)=>{el['on_'+event]=fn;},
+   getContext:()=>ctx,toDataURL:()=>DRAWING,
+   addEventListener:(name,cb)=>{el['on_'+name]=cb;},
    querySelector:()=>get(id+'-child'),querySelectorAll:()=>[],
-   setAttribute:()=>{},getBoundingClientRect:()=>({left:0,top:0,bottom:200,width:200,height:200}),
-   getClientRects:()=>[]
+   setAttribute:()=>{},getBoundingClientRect:()=>({left:0,top:0,bottom:200,width:200,height:200})
   };
   els.set(id,el);return el;
  }
  const identity=signedIn?{id:owner?'owner':'account'}:null;
  const profile=identity?{id:identity.id,is_owner:owner,sound_enabled:false}:null;
- const Crilo={dailyPeriod:()=>period,nextReset:()=>new Date(Date.now()+86400000),
-  user:identity,profile};
- const document={getElementById:get,querySelectorAll:()=>[],
-  querySelector:()=>get('query'),addEventListener:()=>{},
-  body:{classList:{add:()=>{},remove:()=>{}},style:{setProperty:()=>{}}},
+ const Crilo={dailyPeriod:()=>period,nextReset:()=>new Date(Date.now()+86400000),user:identity,profile};
+ const document={getElementById:get,querySelectorAll:()=>[],querySelector:()=>get('query'),
+  addEventListener:()=>{},body:{classList:{add:()=>{},remove:()=>{}},style:{setProperty:()=>{}}},
   documentElement:{clientWidth:900}};
- const window={addEventListener:(event,fn)=>{events[event]=fn;},CriloBadgeEvents:{track:async()=>true}};
+ const window={addEventListener:(n,cb)=>{events[n]=cb;},CriloBadgeEvents:{track:async()=>true}};
  const db={
   auth:{getSession:async()=>({data:{session:identity?{user:identity}:null}})},
   rpc:async name=>{
-   if(name==='crilo_my_daily_penalty')return {data:{blocked:false},error:null};
-   throw new Error('Unexpected RPC: '+name);
+   if(name==='crilo_my_daily_penalty')return{data:{blocked:false},error:null};
+   return{data:null,error:{message:'Unexpected signed-in RPC '+name}};
   },
   from:()=>({select(){return this},eq(){return this},
    maybeSingle:async()=>({data:null,error:null})})
  };
- let clock=0;
+ const raf=cb=>{
+  if(deferAnimation){queued.push(cb);return;}
+  clock+=3200;cb(clock);
+ };
+ class ImageMock{
+  set src(value){this._src=value;if(this.onload)this.onload();}
+  get src(){return this._src;}
+ }
  const sandbox={window,document,Crilo,criloDB:db,
-  DuckWorld:{clear:()=>{},load:async()=>{},spawn:()=>({}),playSound:()=>{}},
+  DuckWorld:{clear:()=>{},load:async()=>{},spawn:()=>{spawned++;return{};},playSound:()=>{}},
   CriloRarity:{classify:()=>({label:'COMMON',color:'common',probability:.5,odds:2,explanation:'test'})},
   localStorage:store,location:{origin:'https://crilo.fun',pathname:'/index.html'},
   console:{log:()=>{},warn:()=>{},error:()=>{}},
-  Image:class{},setInterval:()=>0,setTimeout:()=>0,
-  performance:{now:()=>clock},Math:Object.assign(Object.create(Math),{random:()=>0}),
-  requestAnimationFrame:cb=>{clock+=3200;cb(clock);}
- };
+  Image:ImageMock,setInterval:()=>0,setTimeout:()=>0,
+  performance:{now:()=>clock},Math:Object.assign(Object.create(Math),
+   {random:()=>randoms.length?randoms.shift():0}),
+  requestAnimationFrame:raf};
  const ctx=vm.createContext(sandbox);
  vm.runInContext(game,ctx,{filename:'game.js',timeout:2000});
- async function ready(){
-  await events['crilo-auth-ready']({detail:{user:identity,profile}});
- }
- return {get,events,ready,spin:()=>get('spinButton').on_click()};
+ async function ready(){await events['crilo-auth-ready']({detail:{user:identity,profile}});}
+ return {get,events,ready,spin:()=>get('spinButton').on_click(),
+  flush:()=>{const tasks=queued.splice(0);deferAnimation=false;for(const cb of tasks){clock+=3200;cb(clock);}},
+  get drawnImage(){return drawnImage},get spawned(){return spawned}};
 }
 (async()=>{
- const unplayed=mount();await unplayed.ready();
- assert.equal(unplayed.get('spinButton').classList.contains('hidden'),false,
-  'Unused guest Daily should show spin button');
- assert.equal(backing.has(key),false,'Viewing an unplayed wheel must not consume the Daily');
- const secondTab=mount();await secondTab.ready();
- await unplayed.spin();
- let marker=JSON.parse(backing.get(key));
- assert.equal(marker.period,'2026-10-10');
- assert.equal(marker.status,'started','First guest spin must claim Daily immediately');
- assert.equal(unplayed.get('spins').textContent,4);
- secondTab.events.storage({key});
- assert.equal(secondTab.get('spinButton').classList.contains('hidden'),true,
-  'Second open tab should lock after first claims Daily');
- const refreshed=mount();await refreshed.ready();
- assert.equal(refreshed.get('playedPanel').classList.contains('hidden'),false);
- assert.match(refreshed.get('playedText').textContent,/already been started/);
- assert.equal(refreshed.get('spinButton').classList.contains('hidden'),true);
- await refreshed.spin(); // even a synthetic programmatic click must fail closed
- assert.equal(refreshed.get('spins').textContent,5);
- assert.equal(unplayed.get('spins').textContent,4,'Original tab may finish its original run');
- for(let i=0;i<4;i++)await unplayed.spin();
- marker=JSON.parse(backing.get(key));
- assert.equal(marker.status,'complete');
- assert.equal(marker.spins,5);
- assert.equal(marker.score,10);
- const finished=mount();await finished.ready();
- assert.match(finished.get('playedText').textContent,/10 points/);
- assert.equal(finished.get('spinButton').classList.contains('hidden'),true);
- const nextPeriod=mount({period:'2026-10-11'});await nextPeriod.ready();
- assert.equal(nextPeriod.get('spinButton').classList.contains('hidden'),false,
-  'Guest should be eligible next Daily period');
- await nextPeriod.spin();
- assert.equal(JSON.parse(backing.get(key)).period,'2026-10-11');
+ const first=mount();await first.ready();
+ assert.equal(backing.has(KEY),false,'Just opening the wheel never consumes a Daily');
+ await first.spin();
+ assert.equal(read().status,'started');
+ assert.equal(read().version,2);
+ assert.equal(read().pending,null);
+ assert.equal(read().state.totalSpins,1);
+ assert.equal(read().state.spins,4);
+ assert.equal(read().state.score,2);
+ assert.equal(read().state.drawing,DRAWING);
+ assert.equal(read().state.results.length,1);
+ const snap=clean(read().state);
+ const reloaded=mount();await reloaded.ready();
+ assert.equal(reloaded.get('playedPanel').classList.contains('hidden'),true);
+ assert.equal(reloaded.get('spinButton').classList.contains('hidden'),false);
+ assert.equal(reloaded.get('spins').textContent,4);
+ assert.equal(reloaded.get('score').textContent,'2');
+ assert.equal(reloaded.get('wheelWrap').classList.contains('locked'),true);
+ assert.equal(reloaded.drawnImage,DRAWING);
+ assert.deepEqual(clean(read().state.results),snap.results,'Outcome history must be unchanged');
+ assert.deepEqual(clean(read().state.segments),snap.segments,'Wheel slices must be unchanged');
+ assert.match(reloaded.get('message').textContent,/Welcome back/);
+ await reloaded.spin();
+ assert.equal(read().state.totalSpins,2);
+ assert.equal(read().state.score,4);
+
+ // Refresh after outcome selection but before the wheel animation ends.
+ // The old tab must not be able to overwrite the resumed state.
+ backing.delete(KEY);
+ const interrupted=mount({deferAnimation:true,random:[0,.28,.3,.1,.2,.3,.4,.5,.6]});
+ await interrupted.ready();await interrupted.spin();
+ assert.equal(read().status,'started');
+ assert.equal(read().pending.index,3,'Queued outcome should be upgrade');
+ assert.equal(read().state.totalSpins,0,'Snapshot remains pre-spin until committed outcome is applied');
+ assert.equal(read().pending.upgradeBases.length,5);
+ const chosen=clean(read().pending.upgradeBases);
+ const during=mount();await during.ready();
+ assert.equal(read().pending,null,'Reload must commit chosen outcome exactly once');
+ assert.equal(read().state.totalSpins,1);
+ assert.equal(read().state.upgrades,1);
+ assert.equal(read().state.multiplier,3);
+ assert.equal(read().state.spins,5,'Upgrade refunds the spin');
+ assert.deepEqual(clean(read().state.segments.slice(-5).map(x=>x.base)),chosen);
+ const stable=JSON.stringify(read());
+ interrupted.flush();
+ assert.equal(JSON.stringify(read()),stable,'The older tab must not overwrite resumed progress');
+
+ // Finished runs still lock, while the next period has a new guest Daily.
+ backing.delete(KEY);
+ const finishing=mount();await finishing.ready();
+ for(let i=0;i<5;i++)await finishing.spin();
+ assert.equal(read().status,'complete');
+ assert.equal(read().score,10);
+ const completed=mount();await completed.ready();
+ assert.equal(completed.get('spinButton').classList.contains('hidden'),true);
+ assert.match(completed.get('playedText').textContent,/10 points/);
+ const next=mount({period:'2026-10-11'});await next.ready();
+ assert.equal(next.get('spinButton').classList.contains('hidden'),false);
+ await next.spin();
+ assert.equal(read().period,'2026-10-11');
+
+ // Signed-in official and owner test selection must ignore guest browser saves.
  const signed=mount({signedIn:true});await signed.ready();
- assert.equal(signed.get('spinButton').classList.contains('hidden'),false,
-  'Signed-in official Daily uses its own server-side eligibility');
+ assert.equal(signed.get('spinButton').classList.contains('hidden'),false);
  const owner=mount({signedIn:true,owner:true});await owner.ready();
- assert.equal(owner.get('ownerRunControls').classList.contains('hidden'),false,
-  'Owner choice must stay available');
- const brokenStorage={getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}};
- const denied=mount({store:brokenStorage});await denied.ready();
- assert.match(denied.get('playedText').textContent,/allow this site to save browser data/);
- assert.equal(denied.get('spinButton').classList.contains('hidden'),true,
-  'No persistent storage means guest may not play untrackably');
- console.log('PASS: guest viewing alone is free; first spin claims Daily.');
- console.log('PASS: refresh, second tab, and synthetic clicks cannot replay.');
- console.log('PASS: completion remains locked; next period, signed-in and owner unaffected.');
- console.log('PASS: unavailable browser storage fails closed for guests.');
+ assert.equal(owner.get('ownerRunControls').classList.contains('hidden'),false);
+
+ // Unrestorable legacy attempts and blocked storage fail CLOSED.
+ backing.set(KEY,JSON.stringify({period:'2026-10-10',status:'started'}));
+ const legacy=mount();await legacy.ready();
+ assert.equal(legacy.get('spinButton').classList.contains('hidden'),true);
+ assert.match(legacy.get('playedText').textContent,/cannot be restored/);
+ const denied=mount({store:{getItem(){throw Error('disabled');},setItem(){throw Error('disabled');}}});
+ await denied.ready();
+ assert.equal(denied.get('spinButton').classList.contains('hidden'),true);
+ assert.match(denied.get('playedText').textContent,/Allow this site/);
+
+ console.log('PASS: guest spin, artwork, entire wheel and counters restored unchanged.');
+ console.log('PASS: mid-animation pending upgrade is committed once without reroll.');
+ console.log('PASS: stale tab cannot overwrite; completed run and next period correct.');
+ console.log('PASS: owner/sign-in isolated, legacy and broken-storage fail closed.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
