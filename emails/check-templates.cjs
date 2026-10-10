@@ -25,7 +25,7 @@ for(const file of ['magic-link.html','confirm-signup.html']){
   'Yellow wheel tile must be centered: '+file);
  assert.ok(html.includes('width="60" align="center" style="width:60px;margin:0 auto;'),
   'Pointer and wheel nested table must be centered: '+file);
- assert.ok(html.includes('display:block;margin:0 auto;width:58px;height:58px;'),
+ assert.ok(html.includes('width="58" align="center" style="width:58px;height:58px;margin:0 auto;'),
   'Circle must be centered within the yellow square: '+file);
  assert.ok(html.includes('width="100%" align="center" style="margin:0 auto;width:100%;max-width:390px;'),
   'Large sign-in button must be centered: '+file);
