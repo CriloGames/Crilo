@@ -8,14 +8,14 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
  'use strict';
  const families=[
- {type:'duck',kind:'total',tiers:{common:2,uncommon:4,rare:6,epic:8,legendary:10,mythic:12}},
- {type:'double',kind:'total',tiers:{common:1,uncommon:2,rare:4,epic:5,legendary:7,mythic:8}},
- {type:'spins',kind:'total',tiers:{common:1,uncommon:3,rare:4,epic:6,legendary:8,mythic:10}},
- {type:'upgrade',kind:'total',tiers:{common:1,uncommon:2,rare:3,epic:4,mythic:5}},
- {type:'duck',kind:'streak',tiers:{uncommon:2,rare:3,epic:4,legendary:6,mythic:7}},
- {type:'double',kind:'streak',tiers:{rare:2,epic:3,legendary:4,mythic:5}},
- {type:'spins',kind:'streak',tiers:{rare:2,epic:3,legendary:4,mythic:5}},
- {type:'upgrade',kind:'streak',tiers:{rare:2,epic:3,mythic:4}}
+ {type:'duck',kind:'total',tiers:{common:2,uncommon:3,rare:4,epic:5}},
+ {type:'duck',kind:'streak',tiers:{uncommon:2,epic:3,mythic:4}},
+ {type:'double',kind:'total',tiers:{common:1,uncommon:2,epic:3}},
+ {type:'double',kind:'streak',tiers:{epic:2,mythic:3}},
+ {type:'spins',kind:'total',tiers:{common:1,uncommon:2,rare:3,anomaly:4}},
+ {type:'spins',kind:'streak',tiers:{epic:2,mythic:3}},
+ {type:'upgrade',kind:'total',tiers:{common:1,uncommon:2,anomaly:3}},
+ {type:'upgrade',kind:'streak',tiers:{epic:2}}
  ];
  const types=new Set(['num','duck','double','spins','upgrade']);
  // Score rarity uses the percentage of simulated *completed runs* reaching this score or higher.
