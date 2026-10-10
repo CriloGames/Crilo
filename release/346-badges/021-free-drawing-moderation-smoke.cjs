@@ -15,9 +15,9 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=18/);
+assert.match(page,/moderation-feed\.js\?v=19/);
 assert.match(page,/moderation-feed-scanner\.js\?v=19/);
-assert.match(page,/style\.css\?v=94/);
+assert.match(page,/style\.css\?v=95/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
 assert.ok(css.includes('.crilo-review-test-tag'),'Test runs need visually distinct labels');
@@ -29,6 +29,10 @@ assert.ok(scanner.includes('const blank=result.blank===true'),'Blank result must
 assert.ok(!scanner.includes('visual.score<0.10'),'Low image-score must NOT automatically be suspicious');
 assert.ok(!feed.includes('Visual result uncertain — rescan advised'),'Normal drawings must not be flagged for weak ML scores');
 assert.ok(feed.includes('NEEDS RESCAN'),'Previous scanner runs must not show NO FLAGS');
+assert.ok(feed.includes("crilo_owner_review_page_v1"),'Drawing Review must fetch a bounded page');
+assert.ok(feed.includes('const PAGE_SIZE=24'),'No large photo list on owner login');
+assert.doesNotMatch(feed,/p_limit:200/,'Do not download 200 base64 drawings on login');
+
 assert.ok(feed.includes("Number(d.local.scan_version)>=6"),'Completed recent scans should override older legacy predictions');
 assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v7'), 'Unscanned drawings not being queued');
 assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=10')"),
