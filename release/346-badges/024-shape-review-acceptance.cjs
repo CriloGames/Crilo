@@ -31,6 +31,22 @@ const smileTongue=fixture((oval,stroke)=>{
  stroke(47,91,67,98);stroke(67,98,94,99);stroke(94,99,120,94);
  stroke(85,100,86,124);stroke(86,124,97,117);stroke(97,117,99,97);
 });
+// Visual-geometry regression for the real-world failure: one eye is
+// noticeably taller/tilted (its enclosed region has ratio > 1.75).
+// Earlier scanner versions ignored that eye and misread the tongue below.
+const tiltedEyesTongue=fixture((oval,stroke)=>{
+ oval(44,52,10,15);oval(110,51,10,19);
+ stroke(36,97,54,103);stroke(54,103,87,106);stroke(87,106,125,101);
+ stroke(87,103,83,127);stroke(83,127,89,137);
+ stroke(89,137,98,127);stroke(98,127,98,103);
+});
+const elongated=ctx.CriloShapeReview.regions(tiltedEyesTongue,w,h);
+assert.ok(elongated.some(x=>x.ratio>1.75&&x.ratio<2.2),
+ 'Fixture must contain the tall/tilted eye that escaped v6 face checking');
+const tiltedFace=ctx.CriloGenitalReview.analyzePixels(tiltedEyesTongue,w,h);
+assert.equal(tiltedFace.suspected,false,'Tilted-eye smiley is not genitalia');
+assert.equal(tiltedFace.benignFace,true,
+ 'Both eyes and broad smile must veto tongue-as-shaft detection');
 const face=ctx.CriloGenitalReview.analyzePixels(smileTongue,w,h);
 assert.equal(face.suspected,false,'Smiley with tongue must not be flagged');
 assert.equal(face.benignFace,true,'Smiley must trigger the conservative face veto');
@@ -40,8 +56,8 @@ for(const [name,expected,paint] of cases){
 }
 const scanner=fs.readFileSync(path.join(root,'moderation-feed-scanner.js'),'utf8');
 const worker=fs.readFileSync(path.join(root,'moderation-scan-worker.js'),'utf8');
-assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=2')"));
+assert.ok(worker.includes("importScripts('moderation-genital-review.js?v=3')"));
 assert.ok(worker.includes('if(out.benignFace)'), 'Both outline detectors must honor face veto');
 assert.ok(scanner.includes('result.genitalSuspected===true'));
 assert.ok(scanner.includes("result.genitalType==='vulva'"));
-console.log('PASS: 8 geometry and harmless-control cases, worker wiring');
+console.log('PASS: tilted-eye tongue smile, 8 geometry controls, worker wiring');
