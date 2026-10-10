@@ -72,7 +72,7 @@ function startWorker(){
  if(typeof Worker==='undefined'){
   unavailable=true;throw Error('This browser does not support dedicated workers');
  }
- const active=new Worker('moderation-scan-worker.js?v=4');
+ const active=new Worker('moderation-scan-worker.js?v=5');
  background=active;
  active.onmessage=e=>{
   const data=e.data;
