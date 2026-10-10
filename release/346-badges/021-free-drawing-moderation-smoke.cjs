@@ -15,7 +15,7 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=8/);
+assert.match(page,/moderation-feed\.js\?v=9/);
 assert.match(page,/moderation-feed-scanner\.js\?v=5/);
 assert.match(page,/style\.css\?v=91/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
@@ -41,6 +41,8 @@ assert.doesNotMatch(feed,/criloScanPendingDrawings\?\.\(\);\}\);/,
 new Function(worker);
 
 assert.ok(feed.includes('crilo_owner_local_scan_report'), 'Review feed cannot load findings');
+assert.ok(!feed.includes("d.is_test?'OWNER TEST':'NO FLAGS'"),
+ 'Test Run status must reflect scanning, not account type');
 assert.ok(feed.includes('crilo_owner_drawing_decision'), 'Owner approval/deletion missing');
 assert.ok(feed.includes('owner-ban-drawing-account'), 'Owner-only account ban endpoint missing');
 assert.ok(feed.includes('FINAL CONFIRMATION'), 'Irreversible decisions need second confirmation');
