@@ -17,7 +17,7 @@ assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'),
 assert.ok(html.indexOf('id="wheelScorePanel"')<html.indexOf('class="stats wheel-counts"'));
 assert.ok(html.indexOf('class="stats wheel-counts"')<html.indexOf('id="spinButton"'));
 assert.ok(css.includes('body.wheel-run-active .wheel-wrap{'));
-assert.ok(css.includes('calc(100dvh - 355px)'),'Desktop size must respond to viewport height');
+assert.ok(css.includes('calc(100dvh - 395px)'),'Desktop size must respond to viewport height');
 assert.ok(css.includes('calc(100dvh - 335px)'),'Mobile wheel must respond to viewport height');
 assert.ok(css.includes('body.wheel-run-active .wheel-stage{scroll-margin-top:98px}'));
 assert.ok(css.includes('body.wheel-run-active .draw-panel.locked-panel{display:none}'),
@@ -36,13 +36,13 @@ assert.ok(game.includes("lockDrawing();\n// Focus the play surface"),
  'Drawing must stay editable until the first spin');
 function wheelWidth(W,H){
  const mobile=W<=600;
- const preferred=Math.max(mobile?210:225,H-(mobile?335:355));
+ const preferred=Math.max(mobile?210:225,H-(mobile?335:395));
  return Math.min(mobile?W*.90:W*.88,600,preferred);
 }
 for(const [W,H] of [[320,560],[320,650],[375,620],[390,740],
  [768,650],[1024,720],[1280,768],[1494,800],[1920,1080]]){
  const mobile=W<=600,topOffset=mobile?85:98;
- const elementsBudget=mobile?225:230;
+ const elementsBudget=mobile?238:269;
  const wheel=wheelWidth(W,H);
  assert.ok(wheel>0&&wheel<=600&&wheel<=W*.9,'Wheel must stay within screen width');
  assert.ok(topOffset+wheel+elementsBudget<=H,
