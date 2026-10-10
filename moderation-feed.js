@@ -8,7 +8,14 @@ const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,
 const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
 let rows=[],chosen=null,busy=false,filter='all',loadGeneration=0,lastPaint='';
 const isOwner=()=>!!(window.Crilo?.user&&window.Crilo?.profile?.is_owner);
-const hintsFor=d=>[...(d.local?.reasons||[]),...(d.local?.status==='partial'?['Manual inspection needed']:[]),...(d.legacyHint?[d.legacyHint]:[])];
+const hintsFor=d=>[
+ ...(d.local?.reasons||[]),
+ ...(d.local?.status==='partial'?['Manual inspection needed']:[]),
+ ...(d.local?.status==='complete'&&Number.isFinite(d.local.visual_score)&&
+     d.local.visual_score<0.10&&!(d.local.reasons||[]).length?
+     ['Visual result uncertain — rescan advised']:[]),
+ ...(d.legacyHint?[d.legacyHint]:[])
+];
 function visible(d){
  const flagged=hintsFor(d).length>0;
  switch(filter){
