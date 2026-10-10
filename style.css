@@ -534,6 +534,7 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 .crilo-beetle-track{--beetle-width:74px;position:relative;left:auto;bottom:auto;width:100%;height:82px;pointer-events:none;z-index:1;overflow:hidden}
 .crilo-beetle{position:absolute;left:8px;bottom:2px;width:var(--beetle-width);height:36px;border:0;padding:2px;background:transparent;cursor:pointer;pointer-events:auto;display:grid;place-items:center;transition:filter .15s}
 .crilo-beetle-facing{display:grid;place-items:center;transform-origin:center}
+.crilo-beetle-trick-right,.crilo-beetle-trick-left{display:grid;place-items:center;transform-origin:50% 48%;transform-style:preserve-3d;backface-visibility:visible}
 .crilo-beetle svg{width:68px;height:29px;overflow:visible;filter:drop-shadow(0 1px 1px #ffffff99)}
 .crilo-beetle:hover{filter:brightness(.92)}
 .crilo-beetle:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:8px}
@@ -546,6 +547,95 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 .crilo-beetle-track.walking .beetle-legs-back{transform-origin:48px 39px;animation:criloLegA .18s ease-in-out infinite alternate}
 .crilo-beetle-track.walking .beetle-legs-front{transform-origin:70px 39px;animation:criloLegB .18s ease-in-out infinite alternate}
 .crilo-beetle-track.walking .crilo-beetle-facing svg{animation:criloBeetleBob .22s ease-in-out infinite alternate}
+/* Rare tricks: independent turn-only body motion layered INSIDE the
+   continuous 16s wall-hop patrol. Exactly one side's class per wall, selected
+   at the patrol's iteration boundary. The click area and tooltip never spin. */
+.crilo-beetle-track.walking.beetle-right-backflip .crilo-beetle-trick-right{animation:criloBeetleTrickRightBackflip 16s linear infinite}
+@keyframes criloBeetleTrickRightBackflip{
+  0%,46%{transform:rotate(0deg)}
+  46.8%{transform:rotate(-55deg)}
+  47.7%{transform:rotate(-200deg)}
+  48.7%{transform:rotate(-322deg)}
+  50%{transform:rotate(-360deg)}
+  50.01%,100%{transform:rotate(0deg)}
+}
+.crilo-beetle-track.walking.beetle-left-backflip .crilo-beetle-trick-left{animation:criloBeetleTrickLeftBackflip 16s linear infinite}
+@keyframes criloBeetleTrickLeftBackflip{
+  0%,96%{transform:rotate(0deg)}
+  96.8%{transform:rotate(-55deg)}
+  97.7%{transform:rotate(-200deg)}
+  98.7%{transform:rotate(-322deg)}
+  100%{transform:rotate(-360deg)}
+}
+.crilo-beetle-track.walking.beetle-right-barrel .crilo-beetle-trick-right{animation:criloBeetleTrickRightBarrel 16s linear infinite}
+@keyframes criloBeetleTrickRightBarrel{
+  0%,46%{transform:perspective(140px) rotateY(0deg)}
+  46.8%{transform:perspective(140px) rotateY(66deg)}
+  47.7%{transform:perspective(140px) rotateY(200deg)}
+  48.7%{transform:perspective(140px) rotateY(315deg)}
+  50%{transform:perspective(140px) rotateY(360deg)}
+  50.01%,100%{transform:perspective(140px) rotateY(0deg)}
+}
+.crilo-beetle-track.walking.beetle-left-barrel .crilo-beetle-trick-left{animation:criloBeetleTrickLeftBarrel 16s linear infinite}
+@keyframes criloBeetleTrickLeftBarrel{
+  0%,96%{transform:perspective(140px) rotateY(0deg)}
+  96.8%{transform:perspective(140px) rotateY(66deg)}
+  97.7%{transform:perspective(140px) rotateY(200deg)}
+  98.7%{transform:perspective(140px) rotateY(315deg)}
+  100%{transform:perspective(140px) rotateY(360deg)}
+}
+.crilo-beetle-track.walking.beetle-right-frontflip .crilo-beetle-trick-right{animation:criloBeetleTrickRightFrontflip 16s linear infinite}
+@keyframes criloBeetleTrickRightFrontflip{
+  0%,46%{transform:rotate(0deg)}
+  46.8%{transform:rotate(55deg)}
+  47.7%{transform:rotate(210deg)}
+  48.7%{transform:rotate(335deg)}
+  50%{transform:rotate(360deg)}
+  50.01%,100%{transform:rotate(0deg)}
+}
+.crilo-beetle-track.walking.beetle-left-frontflip .crilo-beetle-trick-left{animation:criloBeetleTrickLeftFrontflip 16s linear infinite}
+@keyframes criloBeetleTrickLeftFrontflip{
+  0%,96%{transform:rotate(0deg)}
+  96.8%{transform:rotate(55deg)}
+  97.7%{transform:rotate(210deg)}
+  98.7%{transform:rotate(335deg)}
+  100%{transform:rotate(360deg)}
+}
+.crilo-beetle-track.walking.beetle-right-doublehop .crilo-beetle-trick-right{animation:criloBeetleTrickRightDoubleHop 16s linear infinite}
+@keyframes criloBeetleTrickRightDoubleHop{
+  0%,46%{transform:translateY(0) scale(1)}
+  46.8%{transform:translateY(-11px) scale(.95,1.05)}
+  47.7%{transform:translateY(-1px) scale(1.06,.93)}
+  48.7%{transform:translateY(-12px) scale(.97,1.04)}
+  50%{transform:translateY(0) scale(1)}
+  50.01%,100%{transform:translateY(0) scale(1)}
+}
+.crilo-beetle-track.walking.beetle-left-doublehop .crilo-beetle-trick-left{animation:criloBeetleTrickLeftDoubleHop 16s linear infinite}
+@keyframes criloBeetleTrickLeftDoubleHop{
+  0%,96%{transform:translateY(0) scale(1)}
+  96.8%{transform:translateY(-11px) scale(.95,1.05)}
+  97.7%{transform:translateY(-1px) scale(1.06,.93)}
+  98.7%{transform:translateY(-12px) scale(.97,1.04)}
+  100%{transform:translateY(0) scale(1)}
+}
+.crilo-beetle-track.walking.beetle-right-wiggle .crilo-beetle-trick-right{animation:criloBeetleTrickRightWiggle 16s linear infinite}
+@keyframes criloBeetleTrickRightWiggle{
+  0%,46%{transform:rotate(0deg)}
+  46.8%{transform:rotate(-25deg) scale(.93,1.05)}
+  47.7%{transform:rotate(24deg) scale(1.06,.95)}
+  48.7%{transform:rotate(-15deg) scale(.97,1.04)}
+  50%{transform:rotate(0deg) scale(1)}
+  50.01%,100%{transform:rotate(0deg)}
+}
+.crilo-beetle-track.walking.beetle-left-wiggle .crilo-beetle-trick-left{animation:criloBeetleTrickLeftWiggle 16s linear infinite}
+@keyframes criloBeetleTrickLeftWiggle{
+  0%,96%{transform:rotate(0deg)}
+  96.8%{transform:rotate(-25deg) scale(.93,1.05)}
+  97.7%{transform:rotate(24deg) scale(1.06,.95)}
+  98.7%{transform:rotate(-15deg) scale(.97,1.04)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+.crilo-beetle-track.paused .crilo-beetle-trick-right,.crilo-beetle-track.paused .crilo-beetle-trick-left{animation-play-state:paused!important}
 /* The landing is an ornament, never a clickable overlay; one per return, then disappears. */
 .crilo-beetle-dropping{position:absolute;left:calc(50% + 26px);bottom:3px;width:24px;height:33px;opacity:0;pointer-events:none;transform-origin:50% 100%}
 .crilo-poop-art{position:absolute;width:22px;height:19px;left:0;bottom:0;filter:drop-shadow(0 1px 0 #00000012)}
@@ -601,4 +691,4 @@ html[data-theme="dark"] .badge-card,html[data-theme="dark"] .featured-slot[data-
 @keyframes criloBeetleBob{from{transform:translateY(0)}to{transform:translateY(-2px)}}
 .crilo-bug-card{max-width:500px}.crilo-bug-card form{display:flex;flex-direction:column;gap:10px}.crilo-bug-card label{font-size:13px;font-weight:800}.crilo-bug-card label span{font-weight:500;opacity:.65}.crilo-bug-card textarea{display:block;min-height:105px;width:100%;box-sizing:border-box;border:1.5px solid #b4bac5;border-radius:9px;background:var(--card,#fff);color:inherit;font:inherit;padding:12px;resize:vertical}.crilo-bug-card textarea:focus{outline:2px solid #93cbb0;outline-offset:1px}.crilo-bug-card #bugSteps{min-height:75px}.crilo-bug-card #bugReportStatus{min-height:20px}.bug-honeypot{position:absolute;left:-9999px;opacity:0;width:1px;height:1px}
 @media(max-width:600px){.crilo-beetle{height:34px}.crilo-beetle svg{width:59px;height:25px}.crilo-beetle-track{--beetle-width:65px;height:78px}.crilo-beetle-tooltip{bottom:36px}.crilo-beetle-dropping{left:calc(50% + 22px)}}
-@media(prefers-reduced-motion:reduce){.crilo-beetle-track.walking .crilo-beetle,.crilo-beetle-track.walking .crilo-beetle-facing,.crilo-beetle-track.walking .beetle-legs,.crilo-beetle-track.walking svg,.crilo-beetle-track.walking .crilo-beetle-dropping,.crilo-beetle-track.walking .crilo-poop-fly{animation:none!important}.crilo-beetle-dropping{opacity:0!important}}
+@media(prefers-reduced-motion:reduce){.crilo-beetle-track.walking .crilo-beetle,.crilo-beetle-track.walking .crilo-beetle-facing,.crilo-beetle-track.walking .crilo-beetle-trick-right,.crilo-beetle-track.walking .crilo-beetle-trick-left,.crilo-beetle-track.walking .beetle-legs,.crilo-beetle-track.walking svg,.crilo-beetle-track.walking .crilo-beetle-dropping,.crilo-beetle-track.walking .crilo-poop-fly{animation:none!important}.crilo-beetle-dropping{opacity:0!important}}
