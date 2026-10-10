@@ -1,17 +1,45 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=89"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
-<div class="eyebrow">OWNER TOOLS</div><h1>Drawing Feed<span style="color:#d45c5c">.</span></h1>
-<p class="crilo-review-sub">Every pending drawing appears here. Free, on-device checks look for offensive text, links, QR codes and potentially inappropriate imagery. Suggestions are not proof of a violation, and a clean result is not a guarantee. You decide whether to approve, remove a run, or ban a player. Owner Test Runs are safe for testing and never affect player accounts.</p>
-<div class="crilo-review-toolbar"><span class="muted" style="font-size:13px;align-self:center">Newest first · refreshes every 30 seconds while this page is open</span><button class="small-btn" id="reviewRefresh" type="button">Refresh now</button><label style="font-size:13px"><input type="checkbox" id="showOwnerTests"> Include my Test Runs</label></div>
-<div class="crilo-review-scan-box" aria-label="Free local detection status">
-<strong>Local safety checks <span class="crilo-review-free-label">FREE · ON YOUR DEVICE</span></strong>
-<p id="reviewScanStatus" role="status">Scanner starts when the owner page opens. No paid AI calls.</p>
-<small id="reviewScannerDetails">Text: Waiting · QR: Waiting · Visual: Waiting</small>
-<small>The page must be open for new scans to run. A first-time model download may be large. Results are saved for later review.</small>
-</div>
-<div class="crilo-review-filters"><label for="reviewFilter">Show</label>
-<select id="reviewFilter" aria-label="Filter drawing review queue"><option value="all">All pending drawings</option><option value="flagged">Suggested for review</option><option value="unscanned">Not yet scanned</option><option value="partial">Incomplete scans</option><option value="clear">No flags found</option></select>
-<span id="reviewStats" class="muted"></span></div>
-<p id="reviewMessage" role="status">Checking owner access…</p><div id="drawingReviewList" class="crilo-review-list"></div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crilo — Owner Drawing Feed</title><link rel="stylesheet" href="style.css?v=90"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head><body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><div class="account-wrap"><button id="accountBtn" class="account-btn">SIGN IN</button><div id="accountMenu" class="account-menu hidden"></div></div></div></header><main class="page-shell crilo-review-page">
+  <div class="crilo-review-heading">
+   <div><div class="eyebrow">OWNER TOOLS</div><h1>Drawing review<span class="crilo-review-dot">.</span></h1>
+   <p class="crilo-review-sub">Review player drawings. Automated checks can miss things, so only you decide what to remove or ban.</p></div>
+   <a href="index.html" class="small-btn crilo-review-back">← Back to game</a>
+  </div>
+  <section class="crilo-review-overview" aria-label="Drawing review summary">
+   <div><strong id="reviewCountPending">—</strong><small>Pending drawings</small></div>
+   <div><strong id="reviewCountFlagged">—</strong><small>Review suggested</small></div>
+   <div><strong id="reviewCountUnscanned">—</strong><small>Not checked</small></div>
+   <div><strong id="reviewCountPartial">—</strong><small>Partial checks</small></div>
+  </section>
+  <section class="crilo-review-scan-box" aria-label="Local safety scanning">
+   <div class="crilo-review-scan-top">
+    <div><strong>Safety scanner</strong><span class="crilo-review-free-label">FREE · ON YOUR DEVICE</span></div>
+    <div class="crilo-review-scan-controls">
+     <button class="small-btn" id="reviewToggleScan" type="button" aria-pressed="false">Pause scanning</button>
+     <button class="small-btn" id="reviewScanNext" type="button">Scan next</button>
+    </div>
+   </div>
+   <p id="reviewScanStatus" role="status">Starting owner safety checks…</p>
+   <p id="reviewScannerDetails" class="crilo-review-scan-stages">QR: Waiting · Text: Waiting · Image: Waiting</p>
+   <label class="crilo-review-scan-visual"><input id="reviewVisualEnabled" type="checkbox" checked> Include image and symbol detection (slower)</label>
+   <details class="crilo-review-explainer"><summary>How these checks work</summary>
+    QR and text checks plus an optional image classifier run on your device, not through a paid AI service.
+    Each drawing is processed separately in the background. Leave this page open to continue scanning.
+    The first image-model download can take a while. A flag is only a suggestion; “no flags” is not proof of safety.
+   </details>
+  </section>
+  <div class="crilo-review-controls">
+   <div><label for="reviewFilter">Show drawings</label>
+    <select id="reviewFilter" aria-label="Filter drawing review queue">
+     <option value="all">All pending</option><option value="flagged">Review suggested</option>
+     <option value="unscanned">Not checked</option><option value="partial">Incomplete checks</option>
+     <option value="clear">No flags detected</option>
+    </select></div>
+   <label class="crilo-review-show-tests"><input type="checkbox" id="showOwnerTests"> Include my Test Runs</label>
+   <button class="small-btn" id="reviewRefresh" type="button">↻ Refresh list</button>
+  </div>
+  <div class="crilo-review-list-header"><h2>Drawings awaiting review</h2><span id="reviewStats" class="muted">Loading…</span></div>
+  <p id="reviewMessage" class="crilo-review-feed-status" role="status">Checking owner access…</p>
+  <div id="drawingReviewList" class="crilo-review-list" aria-label="Drawings to review"></div>
 </main>
 <div id="reviewLightbox" class="modal-backdrop hidden"><section class="modal-card crilo-review-detail" role="dialog" aria-modal="true" aria-labelledby="reviewDetailTitle">
 <button id="reviewClose" class="modal-close" type="button" aria-label="Close drawing">×</button>
@@ -26,4 +54,4 @@
 </div>
 <label id="reviewBanOptions" class="crilo-review-ban-option"><input type="checkbox" id="deleteRunWithBan"> Also delete the official run if banning</label>
 <p id="reviewActionStatus" role="status"></p></section></div>
-<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-feed.js?v=5"></script><script src="moderation-feed-scanner.js?v=3"></script></body></html>
+<script src="supabase-config.js?v=21"></script><script src="app.js?v=35"></script><script src="moderation-feed.js?v=6"></script><script src="moderation-feed-scanner.js?v=4"></script></body></html>
