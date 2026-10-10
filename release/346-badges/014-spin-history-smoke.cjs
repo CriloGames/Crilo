@@ -72,7 +72,7 @@ async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={
   name+' lifetime count must not depend on loaded pages');
  assert.ok(calls.some(c=>c.fields==='spins'),name+' must independently fetch lifetime spins');
  const expectedReal=official.reduce((n,r)=>n+(r.results?.length||0),0);
- const shouldDuck=expectedReal>5;
+ const shouldDuck=expectedReal>5&&!expectMore; // Duck appears only after reaching the final page.
  assert.equal(element('spinHistoryEnd').hidden,!shouldDuck,name+' duck end');
  assert.equal((element('spinHistoryList').innerHTML.match(/data-rarity="mythic"/g)||[]).length>0,
   runs.some(r=>r.score>=301),name+' mythic rarity') ;
