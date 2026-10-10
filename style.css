@@ -839,3 +839,14 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   62%{transform:scale(.993) rotate(.5deg)}
  }
 }
+
+/* On the first spin, locking the drawing or hiding the owner Test banner
+   MUST NOT collapse blocks ABOVE the wheel. Doing so moved the wheel behind
+   the sticky header and made iOS Safari appear to zoom/jump. Retain their
+   layout space invisibly for the remainder of this run. */
+body.wheel-session-fit.wheel-run-active .draw-panel.locked-panel{
+ display:flex!important;visibility:hidden;opacity:0;pointer-events:none
+}
+body.wheel-session-fit.wheel-run-active #testBanner:not(.hidden){
+ display:block!important;visibility:hidden;opacity:0;pointer-events:none
+}
