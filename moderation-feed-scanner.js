@@ -169,12 +169,24 @@ async function scanNext(manual=false,selected=null){
   const visual=classifyVisual(result.visualResults);
   const reasons=[...(result.qrFound?[REASONS.qr]:[]),...classifyText(result.ocrText)];
   if(visual.reason)reasons.push(visual.reason);
-  if(!result.errors?.length && result.stages?.qr!=='done')result.errors=['QR was not checked'];
+  // Generic image classifiers routinely miss tiny pixel-art outlines.
+  // The separate geometry check is an advisory signal, not proof.
+  if(result.shapeSuspected===true)reasons.push(REASONS.genital);
+  const problems=[...(result.errors||[])];
+  if(!problems.length && result.stages?.qr!=='done')problems.push('QR was not checked');
+  if(!visualChecks)problems.push('Image/symbol checking disabled; review manually');
+  else if(result.stages?.shape!=='done')problems.push('Outline check incomplete; manual review required');
+  // The model outputs relative similarity scores, not calibrated safety odds.
+  // Avoid showing NO FLAGS when the vision match was inconclusive.
+  if(visualChecks&&result.stages?.visual==='done'&&!visual.reason&&
+     (!Number.isFinite(visual.score)||visual.score<0.10))
+    problems.push('Visual scan inconclusive on stylized drawing; manual review required');
   const payload={
    p_run_id:String(item.run_id),p_is_test:!!item.is_test,
    p_reasons:[...new Set(reasons)],p_text:String(result.ocrText||'').trim().slice(0,300),
-   p_visual_label:visual.label,p_visual_score:visual.score,
-   p_error:(result.errors||[]).length?result.errors.join('; ').slice(0,250):null
+   p_visual_label:result.shapeSuspected?'Possible outlined genital drawing (geometry hint)':visual.label,
+   p_visual_score:visual.score,
+   p_error:problems.length?problems.join('; ').slice(0,250):null
   };
   const saved=await criloDB.rpc('crilo_owner_local_scan_save',payload);
   if(saved.error)throw saved.error;
