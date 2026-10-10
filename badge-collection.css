@@ -23,6 +23,30 @@
 .badge-top-chip[data-badge-rarity="epic"],.collection-tile[data-badge-rarity="epic"]{--crilo-badge-accent:#8e5ddd;--crilo-badge-pale:#efe5ff}
 .badge-top-chip[data-badge-rarity="anomaly"],.collection-tile[data-badge-rarity="anomaly"]{--crilo-badge-accent:#d45722;--crilo-badge-pale:#ffe9df}
 .badge-top-chip[data-badge-rarity="mythic"],.collection-tile[data-badge-rarity="mythic"]{--crilo-badge-accent:#d957c2;--crilo-badge-pale:#fbe2f5}
+/* Top-50 preview badges are real buttons, not inert colored chips. */
+.badge-top-chip{appearance:none;cursor:pointer;font-family:inherit;text-align:left}
+.badge-top-chip:hover{transform:translateY(-1px);box-shadow:2px 3px 0 color-mix(in srgb,var(--crilo-badge-accent) 48%,transparent)}
+.badge-top-chip:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
+.badge-preview-dialog{position:fixed;inset:0;width:min(390px,calc(100vw - 32px));max-width:none;max-height:calc(100dvh - 32px);
+ border:1.5px solid #1b1e25;border-radius:18px;padding:23px 20px 20px;
+ background:var(--panel,#fff);color:var(--text,#17191e);box-shadow:0 20px 75px #17191e4a;overflow-y:auto}
+.badge-preview-dialog:not([open]){display:none}
+.badge-preview-dialog::backdrop{background:#13171fa3}
+.badge-preview-close{position:absolute;right:12px;top:10px;width:35px;height:35px;display:grid;place-items:center;
+ background:transparent;border:1px solid transparent;border-radius:10px;color:inherit;cursor:pointer;font-size:28px;line-height:1}
+.badge-preview-close:hover{background:var(--soft,#f0f2f4);border-color:var(--line,#d2d6db)}
+.badge-preview-close:focus-visible{outline:3px solid #78a7dc}
+.badge-preview-eyebrow{font-size:11px;letter-spacing:.1em;font-weight:850;color:var(--muted,#7d8490);margin:0 48px 17px 0}
+.badge-preview-card .collection-tile{min-height:0;padding:17px 18px;gap:9px;cursor:default}
+.badge-preview-card .collection-tile b{font-size:19px}
+.badge-preview-card .collection-tile small{font-size:11px}
+.badge-preview-card .collection-tile-description{font-size:13px;line-height:1.55;display:block;-webkit-line-clamp:unset;line-clamp:unset;overflow:visible}
+.badge-preview-set{margin:17px 0 12px;color:var(--muted,#79818d);font-size:12px;font-weight:750}
+.badge-preview-link{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.035em;font-weight:850;
+ text-decoration:none;color:var(--text,#17191e);padding:10px 0}
+.badge-preview-link:hover{text-decoration:underline}
+.badge-preview-link:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
+.collection-tile.badge-linked-highlight{outline:3px solid var(--crilo-badge-accent);outline-offset:3px;scroll-margin-top:120px}
 .badge-showcase-empty{color:var(--muted,#808994);margin:4px 0 0;font-size:14px}
 .badge-view-sets:focus-visible,.collection-return:focus-visible,.collection-card summary:focus-visible{outline:3px solid #78a7dc;outline-offset:4px}
 html[data-theme="dark"] .badge-top-chip{
