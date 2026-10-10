@@ -105,3 +105,10 @@ Two actual saved Owner Test Run drawings containing domain names were previously
 - Successfully approved/deleted/banned official run cards are removed immediately. Pending or stale list refresh responses cannot restore locally confirmed decisions. Unsuccessful server decisions continue to show errors and are not removed optimistically.
 - A clean completed v6 scan suppresses legacy image-prediction hints, allowing previously misidentified cartoon faces to clear after an actual rescan. Background owner scans remain tab-open-only; the owner can use **Scan this drawing** to prioritize a specific older drawing.
 - Focused regression suite \`026-owner-example-learning-smoke.cjs\` covers close matching, unrelated faces, safe veto, blank exclusion, ownership feedback wiring, and deletion queue UI wiring. The existing \`022-drawing-scanner-worker-qa.cjs\` suite additionally checks that a confirmed deletion stays absent even if an older feed snapshot still contains it.
+
+
+### Dedicated practice-run cleanup
+
+Owner Test Runs now have a separate **Delete this Test Run** button in Drawing Review, guarded by two confirmations and \`crilo_owner_delete_test_run(uuid)\`. This can only remove the owner's own \`owner_test_runs\` row; it cannot touch \`daily_runs\`, official scores, or player accounts. Associated Test Run scan rows cascade automatically. The new entry is immediately removed from the review UI; old in-flight feed snapshots cannot resurrect it. Saved visual training fingerprints are independent of run data and persist until explicitly removed.
+
+A free owner-local classifier uses only explicitly labeled examples; it does not update model weights or send data to paid AI. The generic "other" category becomes **Possible inappropriate artwork**, not an unrelated sexual-content label.
