@@ -142,6 +142,8 @@ async function homeCase(blocked){
  assert.equal(acknowledged,null);
  // Guard event delegation: a notice can only be marked read by its owner.
  assert.ok(get('friendBellItems').innerHTML.includes('data-moderation-notice="31"'));
+ await get('friendBellItems').onclick({target:{closest:()=>({dataset:{moderationNotice:'31'}})}});
+ assert.equal(acknowledged,31,'Only the tapped notice can be acknowledged');
  console.log('PASS: locked Daily vs next eligible period, public one-warning flag, private notice, owner reason');
  console.log('PASS: atomic penalty SQL, badges and points cleanup, cutoff streak, no auto bans');
 })().catch(e=>{console.error(e);process.exitCode=1});
