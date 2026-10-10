@@ -10,6 +10,8 @@ on:
       - 'rarity-system.js'
       - 'profile.js'
       - 'profile.html'
+      - 'spin-history.js'
+      - 'spin-history.css'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -24,6 +26,8 @@ on:
       - 'rarity-system.js'
       - 'profile.js'
       - 'profile.html'
+      - 'spin-history.js'
+      - 'spin-history.css'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -52,12 +56,15 @@ jobs:
           node --check profile.js
           node --check badge-collection.js
           node --check badge-sets.js
+          node --check spin-history.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
         run: node release/346-badges/012-profile-rendering-smoke.cjs
       - name: Open matching badge details for all 346 badge identities
         run: node release/346-badges/013-clickable-profile-badges-smoke.cjs
+      - name: Page official spin history five outcomes at a time
+        run: node release/346-badges/014-spin-history-smoke.cjs
       - name: Check 346 normalized badge keys and positive/negative fixtures
         run: |
           node - <<'JS'
