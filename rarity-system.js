@@ -52,7 +52,7 @@ window.CriloRarity=(()=>{
   const hits=n-lo,tail=hits/n;
   return{label:band.key.toUpperCase(),color:band.key,probability:tail,
    odds:hits?Math.max(1,Math.round(n/hits)):null,hits,trials:n,
-   explanation:'Score tier based on 2,000,000 simulated runs: '+band.key.toUpperCase()+
+   explanation:'Score tier based on '+COUNT.toLocaleString()+' simulated runs: '+band.key.toUpperCase()+
     '. '+(tail*100).toFixed(2)+'% of simulated runs scored at least this high.'};
  }
  function thresholds(){return scoreBands.filter(b=>b.key!=='trash').map(b=>({label:b.key.toUpperCase(),minScore:b.min}));}

@@ -1,0 +1,64 @@
+name: Crilo 346-badge prelaunch checks
+
+on:
+  push:
+    branches:
+      - release/346-badges-prelaunch
+    paths:
+      - 'game.js'
+      - 'rarity-system.js'
+      - 'release/346-badges/**'
+      - '.github/workflows/346-badge-checks.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'game.js'
+      - 'rarity-system.js'
+      - 'release/346-badges/**'
+      - '.github/workflows/346-badge-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-client-and-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check production JavaScript syntax
+        run: |
+          node --check game.js
+          node --check rarity-system.js
+          node --check badge-events.js
+          node --check profile.js
+      - name: Run official-spin client regression tests
+        run: node release/346-badges/009-client-flow-smoke.cjs
+      - name: Check 346 normalized badge keys and positive/negative fixtures
+        run: |
+          node - <<'JS'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const defs=JSON.parse(fs.readFileSync('release/346-badges/catalog-rules.json'));
+          assert.equal(defs.length,346);
+          assert.equal(new Set(defs.map(b=>b.key)).size,346);
+          assert.equal(new Set(defs.map(b=>b.name)).size,346);
+          assert.ok(defs.every(b=>b.rule&&b.condition&&b.rarity));
+          const raw=JSON.parse(fs.readFileSync('release/346-badges/006-run-rule-fixtures.json'));
+          const runKinds=new Set(['hit_exact','score_band','event_total','event_streak','sequence','challenge','first_event','final_base','spin_position','base_total','base_sequence','number_sequence','first_last','variety']);
+          const expected=new Set(defs.filter(b=>runKinds.has(b.rule)).map(b=>b.key));
+          assert.equal(expected.size,215);
+          assert.ok(Array.isArray(raw.fixtures));
+          assert.equal(raw.fixtures.length,215);
+          assert.equal(new Set(raw.fixtures.map(b=>b.badge_key)).size,215);
+          for(const f of raw.fixtures){
+            assert.ok(expected.has(f.badge_key),'Unrecognized run rule fixture '+f.badge_key);
+            assert.ok(Array.isArray(f.positive) && f.positive.length>=5,'Missing positive '+f.badge_key);
+            assert.ok(Array.isArray(f.negative) && f.negative.length>=5,'Missing negative '+f.badge_key);
+          }
+          console.log('PASS: 346 unique definitions; 215 positive and negative wheel fixtures.');
+          JS
