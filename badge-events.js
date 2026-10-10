@@ -47,7 +47,6 @@
    if(id==='helpBtn')track('info_open');
    if(id==='rarityInfoBtn')track('rarity_info');
    if(node.closest('a[href="#more-games"]'))track('more_games_page');
-   if(node.matches('[data-tool="fill"]'))track('drawing_canvas');
   }
   if(onPage('ducks')){
    if(node.closest('.duck-unlocked')){track('duck_details');track('duck_sound');}
