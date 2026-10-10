@@ -1,0 +1,24 @@
+name: Package offline NSFWJS research dependencies
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/nsfwjs-offline-pack.yml'
+permissions:
+  contents: read
+jobs:
+  pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          mkdir -p research-offline-deps
+          cd research-offline-deps
+          npm install --no-save --no-package-lock nsfwjs@4.2.1 @tensorflow/tfjs@4.22.0 pngjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-nsfwjs-dependencies
+          path: research-offline-deps/node_modules/
+          retention-days: 1
