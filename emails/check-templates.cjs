@@ -15,8 +15,14 @@ for(const file of ['magic-link.html','confirm-signup.html']){
  for(const pastel of ['#ffd86b','#9bd9ef','#ffb8d2','#c8f4bd'])
   assert.ok(html.includes(pastel),'Crilo wheel accent color missing '+pastel+': '+file);
  assert.ok(html.includes("Didn't request this email?"),'Missing unsolicited email safety text: '+file);
- assert.ok(!/<script\b|<img\b|<iframe\b|@import|src="https?:/i.test(html),
-  'No external image, tracking pixel, script or CSS dependencies allowed: '+file);
+ assert.equal((html.match(/<img\b/g)||[]).length,1,
+  'Exactly one brand wheel image in each email: '+file);
+ assert.ok(html.includes('src="https://crilo.fun/emails/crilo-wheel.png"')&&
+  html.includes('alt="Crilo colorful prize wheel"'),
+  'Crilo email wheel must have its fixed same-site HTTPS source and accessible alt: '+file);
+ assert.ok(!html.includes('&#127922;'),'Old dice emoji must be gone: '+file);
+ assert.ok(!/<script\b|<iframe\b|@import|src="https?:\/\/(?!crilo\.fun\/emails\/crilo-wheel\.png)/i.test(html),
+  'No external scripts or tracking-image sources allowed: '+file);
  assert.ok(html.length<25000,'Email too long to render reliably: '+file);
 }
-console.log('PASS: magic link and signup email templates keep their token URLs, large CTA and Crilo pastels.');
+console.log('PASS: magic link and signup email templates keep their token URLs, large CTA, wheel icon and Crilo pastels.');
