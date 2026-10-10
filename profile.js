@@ -465,13 +465,18 @@ if(mine){
    const id=String(b.id),rarity=collection.rarity(b);
    const selectedNow=selected===id;
    const otherPosition=[...featuredIds].find(([slot,value])=>slot!==editingPosition&&value===id)?.[0];
-   return '<button type="button" class="featured-pick-option'+(selectedNow?' is-selected':'')+
+   // A badge featured in another slot stays visible for context, but cannot
+   // be chosen twice. Editing its OWN slot keeps it fully selectable.
+   const alreadyFeatured=otherPosition!==undefined;
+   return '<button type="button" class="featured-pick-option'+
+    (selectedNow?' is-selected':'')+(alreadyFeatured?' is-already-featured':'')+
     '" data-badge-id="'+Crilo.esc(id)+'" data-badge-rarity="'+rarity+
-    '" aria-pressed="'+(selectedNow?'true':'false')+'">'+
+    '" aria-pressed="'+(selectedNow?'true':'false')+'"'+
+    (alreadyFeatured?' disabled aria-label="'+Crilo.esc(b.name)+', already featured in slot '+otherPosition+'"':'')+'>'+
     '<span class="featured-pick-title">'+Crilo.esc(b.name)+'</span>'+
     '<span class="featured-pick-rarity">'+Crilo.esc(rarity.toUpperCase())+(selectedNow?' · SELECTED':'')+'</span>'+
     '<span class="featured-pick-description">'+Crilo.esc(b.description||'Earned achievement')+'</span>'+
-    (otherPosition?'<span class="featured-pick-used">Featured in slot '+otherPosition+' · will move</span>':'')+
+    (alreadyFeatured?'<span class="featured-pick-used">✓ Already featured · Slot '+otherPosition+'</span>':'')+
     '</button>';
   }).join(''):'<p class="featured-pick-empty">'+(choices.length?
     'No earned badges match that search.':'No earned badges yet. Play an official Daily to unlock your first one.')+'</p>';
@@ -498,6 +503,10 @@ if(mine){
   if(!option||!grid.contains(option))return;
   const id=String(option.dataset.badgeId);
   if(!earnedIds.has(id)||!bm.has(id))return;
+  // Check the current slot map, not just the disabled DOM state. This also
+  // protects against stale picker markup and programmatic click events.
+  const assignedElsewhere=[...featuredIds].some(([slot,value])=>slot!==editingPosition&&value===id);
+  if(assignedElsewhere)return;
   choiceInput.value=id;
   status.textContent='';
   renderChoices();
@@ -510,6 +519,10 @@ if(mine){
    status.textContent='You can only feature a badge you have unlocked.';
    return;
   }
+  if(id&&[...featuredIds].some(([slot,value])=>slot!==editingPosition&&value===id)){
+   status.textContent='That badge is already featured. Remove it from its existing slot first.';
+   return;
+  }
   busySaving=true;
   saveBtn.disabled=true;clearBtn.disabled=true;
   try{
@@ -517,9 +530,6 @@ if(mine){
     p_position:editingPosition,p_badge_id:id?Number(id):null
    });
    if(error){status.textContent='Could not save: '+error.message;return}
-   // The database also moves an already-featured badge out of its old slot.
-   if(id)for(const [position,value] of featuredIds)
-     if(position!==editingPosition&&value===id)featuredIds.delete(position);
    if(id)featuredIds.set(editingPosition,id);
    else featuredIds.delete(editingPosition);
    if(id)window.CriloBadgeEvents?.track('badge_filter');
