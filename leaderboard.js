@@ -1,4 +1,5 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';
+const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(String(value||'')) ? String(value) : 'inherit';
 // Use the exact seven final-score thresholds from the Daily Wheel, not the
 // rank, spin count, badge count, or lifetime duck count of a leaderboard row.
 function scoreRarity(value){
@@ -109,7 +110,7 @@ async function loadTotalPoints(){
   return '<div class="leader-row crilo-lifetime-points-row">'+
    '<div class="rank">'+icon+'</div><div class="leader-player">'+
    '<a class="leader-name" href="profile.html?id='+encodeURIComponent(entry.user_id)+
-   '" style="color:'+Crilo.esc(entry.name_color||'inherit')+'">'+
+   '" style="color:'+safeColor(entry.name_color)+'">'+
    Crilo.esc(entry.username||'Crilo player')+'</a>'+
    '<span class="leader-mini">'+fmt(entry.official_runs)+' official Dailies played</span>'+
    '</div><div class="leader-score">'+fmt(entry.total_points)+
@@ -140,7 +141,7 @@ function renderDuckLeaders(entries,profiles){
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);
  $('bestScore').textContent=best.count.toLocaleString()+' 🦆';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Ducks collected across all official Daily runs';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+(p?.name_color||'inherit')+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score">'+e.count.toLocaleString()+' 🦆</div></div>'}).join('');
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score">'+e.count.toLocaleString()+' 🦆</div></div>'}).join('');
 }
 async function loadBadges(){
  $('leaderList').innerHTML='<div class="empty-state">Loading badge collectors…</div>';
@@ -156,7 +157,7 @@ function renderBadgeLeaders(entries,profiles){
  $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Unique badges earned, not featured slots. Ties share a rank.';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString()+' badges';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most badges earned across Crilo';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><span class="leader-name" style="color:'+(p?.name_color||'inherit')+'">'+Crilo.esc(p?.username||'Crilo player')+'</span><span class="leader-mini">Unique badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><span class="leader-name" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</span><span class="leader-mini">Unique badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
@@ -195,7 +196,7 @@ function render(runs,pm){
    `<button type="button" class="owner-remove-run" data-id="${Crilo.esc(r.id)}" data-source="${r._source}" title="Remove score and drawing">Remove</button>`:'';
   return `<div class="leader-row score-run-row${canModerate?' owner-moderated':''}">
    <div class="rank">${medals[i]||i+1}</div>
-   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${p?.name_color||'inherit'}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
+   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
    ${r.drawing?`<button class="mini-wheel" title="Spin artwork" data-drawing="${i}"><img src="${r.drawing}" alt="Player artwork"></button>`:''}
   </div>`;
