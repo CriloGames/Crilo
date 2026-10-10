@@ -8,6 +8,27 @@
   const submit=document.getElementById('bugSubmit');
   if(!track||!beetle||!modal||!form)return;
   const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
+  // Each turnaround independently has a 1-in-15 chance of a special trick.
+  // Five tricks are equally likely when one is selected (1 in 75 per wall).
+  // Select them once per 16-second patrol, keeping the trick layers on the
+  // SAME CSS timeline as the walking, jumping, poop and flies.
+  const tricks=['backflip','barrel','frontflip','doublehop','wiggle'];
+  const sides=['right','left'];
+  function chooseTurnTricks(){
+    for(const side of sides){
+      for(const trick of tricks)track.classList.remove('beetle-'+side+'-'+trick);
+      if(Math.random()<1/15){
+        const trick=tricks[Math.floor(Math.random()*tricks.length)];
+        track.classList.add('beetle-'+side+'-'+trick);
+      }
+    }
+  }
+  // A new random choice at the exact start of each patrol iteration avoids
+  // timers drifting out of sync when the tab or report modal pauses the beetle.
+  beetle.addEventListener('animationiteration',event=>{
+    if(event.target===beetle&&event.animationName==='criloBeetlePatrol')chooseTurnTricks();
+  });
+
   // CSS coordinates the return direction, the tiny landing, and its flies.
   // Pausing, rather than restarting, keeps the beetle and details in sync.
   function syncMotion(){
@@ -64,7 +85,7 @@
   // Capture Escape before the site's global modal listener so focus returns to the beetle.
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden')){e.preventDefault();e.stopImmediatePropagation();close()}},true);
   // One uninterrupted patrol: 7.36s out, quick hopping turn, 7.36s back, quick turn.
-  setTimeout(syncMotion,1500);
+  setTimeout(()=>{chooseTurnTricks();syncMotion()},1500);
   document.addEventListener('visibilitychange',syncMotion);
   motionQuery.addEventListener?.('change',syncMotion);
   let lastSend=0;
