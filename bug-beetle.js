@@ -36,35 +36,45 @@
     track.classList.add('walking');
     track.classList.toggle('paused',document.hidden||!modal.classList.contains('hidden'));
   }
-  // A tiny locally synthesized chitter. No audio download or background sound;
-  // only a direct beetle click plays it, and Crilo's sound preference is respected.
+  // A short, distinct insect chitter triggered ONLY by the report-beetle click.
+  // Web Audio is generated locally (no downloads, requests, or usage fees).
   let audioContext=null;
   function playBeetleChirp(){
     try{
       if(window.Crilo?.profile?.sound_enabled===false)return;
       if(window.localStorage?.getItem('crilo_sound')==='off')return;
       const Audio=window.AudioContext||window.webkitAudioContext;
-      if(!Audio)return;
+      if(!Audio)return; // An unsupported audio device must not block reports.
       const ac=audioContext||(audioContext=new Audio());
       if(ac.state==='suspended')ac.resume().catch(()=>{});
       const filter=ac.createBiquadFilter();
       filter.type='lowpass';
-      filter.frequency.value=1650;
+      filter.frequency.value=2550;
       filter.connect(ac.destination);
-      const start=ac.currentTime+0.005;
-      [[0,540,315,.052],[.062,670,400,.047],[.121,455,250,.073]].forEach(([delay,from,to,duration],i)=>{
+      const start=ac.currentTime+0.012;
+      // Five small descending, scratchy trills and a soft final click.
+      // Kept well below the volume of the normal wheel effects.
+      const chirps=[
+        [0,1175,810,.055,.034,'triangle'],
+        [.065,1380,880,.058,.031,'sawtooth'],
+        [.133,1120,700,.064,.037,'triangle'],
+        [.215,960,620,.082,.034,'triangle'],
+        [.309,1180,720,.057,.029,'sawtooth'],
+        [.380,510,320,.034,.023,'triangle']
+      ];
+      for(const [delay,from,to,duration,volume,wave] of chirps){
         const t=start+delay,osc=ac.createOscillator(),gain=ac.createGain();
-        osc.type=i===1?'sawtooth':'triangle';
+        osc.type=wave;
         osc.frequency.setValueAtTime(from,t);
         osc.frequency.exponentialRampToValueAtTime(to,t+duration);
-        gain.gain.setValueAtTime(0.0001,t);
-        gain.gain.exponentialRampToValueAtTime(i===1?.013:.022,t+.008);
-        gain.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+        gain.gain.setValueAtTime(.0001,t);
+        gain.gain.exponentialRampToValueAtTime(volume,t+.008);
+        gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
         osc.connect(gain);
         gain.connect(filter);
         osc.start(t);
-        osc.stop(t+duration+.005);
-      });
+        osc.stop(t+duration+.006);
+      }
     }catch(_err){
       // Audio is optional: unavailable or blocked sound must not block bug reports.
     }

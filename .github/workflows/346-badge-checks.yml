@@ -78,6 +78,8 @@ jobs:
         run: node release/346-badges/014-spin-history-smoke.cjs
       - name: Verify owner Test Run isolation and wheel rarity score HUD
         run: node release/346-badges/016-owner-test-scoreboard-smoke.cjs
+      - name: Verify leaderboard rarity layout and clickable beetle sound
+        run: node release/346-badges/019-leaderboard-beetle-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
         run: node release/346-badges/015-beetle-trick-preview-smoke.cjs
       - name: Check active wheel viewport fit and synced beetle droppings
