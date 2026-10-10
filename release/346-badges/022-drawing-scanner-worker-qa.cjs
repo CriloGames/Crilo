@@ -187,7 +187,7 @@ async function feedTest(){
    el.set(id,{id,handlers:{},checked:false,textContent:'',value:'all',disabled:false,hidden:false,
     innerHTML:'',dataset:{},addEventListener(x,fn){this.handlers[x]=fn},
     classList:{contains:x=>flag.has(x),add:x=>flag.add(x),remove:x=>flag.delete(x)},
-    replaceChildren(){this.children=[]},appendChild(x){(this.children??=[]).push(x)},removeAttribute(){}});
+    replaceChildren(){this.children=[]},appendChild(x){(this.children??=[]).push(x)},removeAttribute(){},focus(){this.focused=true}});
   }
   return el.get(id);
  }
@@ -296,6 +296,9 @@ async function feedTest(){
  node('reviewFilter').handlers.change({target:{value:'all'}});
  node('drawingReviewList').handlers.click({target:{closest:()=>({dataset:{index:'0'}})}});
  assert.equal(node('reviewRemove').disabled,false);
+ await node('reviewRemove').handlers.click();
+ assert.ok(node('reviewActionStatus').textContent.includes('Select the violation reason'),
+  'Never remove a player run without an explicit owner-selected reason');
  node('reviewViolationReason').value='sexual';
  node('reviewViolationReason').selectedOptions=[{textContent:'Sexual or genital drawing'}];
  await node('reviewRemove').handlers.click();
