@@ -206,8 +206,15 @@ html[data-theme="dark"] .collection-tile.locked .collection-tile-description{col
  border:1.3px solid color-mix(in srgb,var(--crilo-badge-accent) 58%,#25262a);
  border-radius:11px;background:color-mix(in srgb,var(--crilo-badge-accent) 34%,var(--crilo-badge-pale));
  font:inherit;color:#1a1c20;overflow-wrap:anywhere}
-.featured-pick-option:hover{background:color-mix(in srgb,var(--crilo-badge-accent) 47%,var(--crilo-badge-pale));
+.featured-pick-option:hover:not(:disabled){background:color-mix(in srgb,var(--crilo-badge-accent) 47%,var(--crilo-badge-pale));
  transform:translateY(-1px)}
+/* Already on display: preserve a hint of rarity, but visibly unavailable. */
+.featured-pick-option.is-already-featured:disabled{
+ opacity:.52;filter:saturate(.38);
+ background:color-mix(in srgb,var(--crilo-badge-accent) 13%,var(--crilo-badge-pale));
+ border-style:dashed;box-shadow:none;cursor:not-allowed;transform:none}
+.featured-pick-option.is-already-featured .featured-pick-used{
+ font-weight:900;font-size:10px;letter-spacing:.015em;color:#333b45}
 .featured-pick-option.is-selected{border:2px solid #17191e;
  box-shadow:inset 0 3px 0 var(--crilo-badge-accent),0 0 0 2px var(--crilo-badge-accent)}
 .featured-pick-title{font-size:13px;font-weight:900;line-height:1.3;color:#17191e}
@@ -229,6 +236,9 @@ html[data-theme="dark"] .featured-slot.featured-filled b,
 html[data-theme="dark"] .featured-slot.featured-filled small{color:#fff}
 html[data-theme="dark"] .featured-pick-option{
  background:color-mix(in srgb,var(--crilo-badge-accent) 34%,#242631);color:#fff}
+html[data-theme="dark"] .featured-pick-option.is-already-featured:disabled{
+ background:color-mix(in srgb,var(--crilo-badge-accent) 12%,#242631);
+ opacity:.52}
 html[data-theme="dark"] .featured-pick-title,
 html[data-theme="dark"] .featured-pick-rarity,
 html[data-theme="dark"] .featured-pick-description,
