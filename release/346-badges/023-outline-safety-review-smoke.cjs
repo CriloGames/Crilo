@@ -53,7 +53,7 @@ assert.ok(worker.includes('moderation-shape-review.js?v=1'),
  'Main web worker must load the lightweight shape detection');
 assert.ok(worker.includes('out.shapeSuspected=hint.suspected===true'),
  'Worker must return outline result separately from SigLIP');
-assert.ok(scanner.includes('if(result.shapeSuspected===true)reasons.push(REASONS.genital)'),
+assert.ok(scanner.includes('if(!blank&&result.shapeSuspected===true)reasons.push(REASONS.genital)'),
  'Outline shape hints must be routed to a review flag');
 assert.ok(!scanner.includes('visual.score<0.10'),
  'A low relative image score is not evidence of abuse');
