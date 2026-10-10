@@ -63,9 +63,10 @@ for(const kind of ['duck','double','upgrade','spins']){
  const {state,calls}=simulate(kind);
  assert.ok(state.spins>0,kind+' must give another spin');
  assert.equal(calls.some(x=>x.kind==='final'),false,kind+' cannot play finishing sound');
+ assert.equal(calls.some(x=>x.kind==='wave'),false,kind+' cannot start final rarity animation');
  assert.equal(calls.some(x=>x.kind==='endRun'),false,kind+' cannot finish game');
 }
-assert.equal(simulate('num',3).calls.some(x=>x.kind==='final'),false);
+assert.equal(simulate('num',3).calls.some(x=>x.kind==='final'||x.kind==='wave'),false);
 const completed=simulate('num',0,'mythic');
 assert.deepEqual(completed.calls.filter(x=>x.kind==='final'||x.kind==='wave'||x.kind==='endRun')
  .map(x=>x.kind),['final','wave','endRun']);
