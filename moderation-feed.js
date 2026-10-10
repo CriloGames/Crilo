@@ -142,6 +142,8 @@ function open(i){
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!!chosen.is_test;
  $('reviewBan').disabled=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
  $('reviewRetry').disabled=false;
+ $('reviewDeleteTest').hidden=!chosen.is_test;
+ $('reviewDeleteTest').disabled=!chosen.is_test;
  $('deleteRunWithBan').checked=false;
  $('reviewBanOptions').hidden=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
  modal.classList.remove('hidden');
@@ -197,6 +199,28 @@ async function decide(action){
   for(const id of buttons)$(id).disabled=id==='reviewBan'&&d.username?.toLowerCase()==='owner';
  }
 }
+// Owner Test Runs are disposable QA records, never official Dailies.
+// A separate owner-guarded RPC prevents accidental changes to player runs.
+$('reviewDeleteTest').addEventListener('click',async()=>{
+ const d=chosen;if(!d||!d.is_test||!isOwner())return;
+ if(!confirm('Delete this Owner Test Run and remove it from Drawing Review?'))return;
+ if(!confirm('FINAL CONFIRMATION: Permanently delete this practice Test Run?'))return;
+ $('reviewDeleteTest').disabled=true;
+ $('reviewActionStatus').textContent='Deleting practice Test Run…';
+ try{
+  const {data,error}=await criloDB.rpc('crilo_owner_delete_test_run',
+   {p_run_id:String(d.run_id)});
+  if(error)throw error;
+  if(data!==true)throw Error('Practice run was already deleted or unavailable');
+  dismissedKeys.add(key(d));loadGeneration++;
+  rows=rows.filter(row=>key(row)!==key(d));
+  close();lastPaint='';render();await refresh();
+  $('reviewMessage').textContent='Practice Test Run deleted. Official Dailies remain unchanged.';
+ }catch(err){
+  $('reviewActionStatus').textContent='Could not delete Test Run: '+err.message;
+  $('reviewDeleteTest').disabled=false;
+ }
+});
 $('reviewApprove').addEventListener('click',()=>decide('approve'));
 $('reviewRemove').addEventListener('click',()=>decide('remove'));
 $('reviewBan').addEventListener('click',()=>decide('ban'));
