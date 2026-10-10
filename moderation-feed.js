@@ -139,6 +139,8 @@ function open(i){
  $('reviewDeleteTest').disabled=!chosen.is_test;
  $('deleteRunWithBan').checked=false;
  $('reviewBanOptions').hidden=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
+ $('reviewWarningDecision').hidden=!!chosen.is_test;
+ $('reviewViolationReason').value='';
  modal.classList.remove('hidden');
  window.criloFeedbackShow?.(chosen);
 }
@@ -149,9 +151,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.co
 async function decide(action){
  const d=chosen;if(!d||d.is_test)return;
  const extra=!!$('deleteRunWithBan').checked;
+ const reason=$('reviewViolationReason').value;
+ if(action==='remove'&&!['profanity','sexual','hate','links','qr','abuse','other'].includes(reason)){
+  $('reviewActionStatus').textContent='Select the violation reason first.';
+  $('reviewViolationReason').focus();
+  return;
+ }
  let warning;
  if(action==='approve')warning='Approve this drawing and hide it from your review queue?';
- else if(action==='remove')warning='Delete this entire official run, including its leaderboard score and associated statistics? This cannot be undone.';
+ else if(action==='remove')warning='Permanently delete this official Daily, remove its points, reset the current streak, block replay of that Daily period and issue a PUBLIC warning for: '+$('reviewViolationReason').selectedOptions[0].textContent+'?';
  else warning='Permanently ban '+d.username+'? '+(extra?'This also deletes the entire official run and its score.':'This removes the drawing while retaining their score.');
  if(!confirm(warning))return;
  if((action==='remove'||action==='ban')&&!confirm('FINAL CONFIRMATION: '+(action==='ban'?'Apply account ban'+(extra?' AND delete the run':''):'Permanently delete the run')+'?'))return;
@@ -171,7 +179,9 @@ async function decide(action){
    if(!response.ok)throw Error(reply.error||'Account ban failed');
    if(extra&&!reply.run_deleted)throw Error('Account was banned, but the run could not be deleted. Check the leaderboard and remove it separately.');
   }else{
-   const {data,error}=await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
+   const {data,error}=action==='remove'
+    ? await criloDB.rpc('crilo_owner_penalize_daily',{p_run_id:Number(d.run_id),p_reason:reason})
+    : await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
    if(error)throw error;
    if(data!==true)throw Error('Run already reviewed or unavailable');
   }
@@ -184,7 +194,7 @@ async function decide(action){
   close();lastPaint='';render();
   await refresh();
   const note=action==='approve'?'Drawing approved and removed from review.':
-   action==='remove'?'Official run deleted and removed from review.':
+   action==='remove'?'Daily removed, streak reset and public account warning issued. Player notified.':
    'Account action completed; drawing removed from the review queue.';
   $('reviewMessage').textContent=note;
  }catch(err){
