@@ -104,6 +104,7 @@
     }
     wrap.style.display=Crilo.user?'block':'none';
     if(!Crilo.user)return;
+    const signedInUserId=Crilo.user.id;
     const {data,error}=await criloDB.from('friend_requests').select('id,sender_id,created_at').eq('receiver_id',Crilo.user.id).eq('status','pending').order('created_at',{ascending:false}).limit(15);
     if(error)console.warn('Friend notifications:',error.message);
     // Private, owner-issued moderation notices share the existing bell.
@@ -111,6 +112,7 @@
     const {data:moderationNotices,error:moderationError}=await criloDB.rpc('crilo_my_moderation_notices');
     if(moderationError)console.warn('Moderation notices:',moderationError.message);
     const notices=moderationError?[]:(moderationNotices||[]);
+    if(Crilo.user?.id!==signedInUserId)return; // A logout/account switch must not display another player's notice.
     const requests=error?[]:(data||[]),indicator=document.getElementById('friendBellCount'),items=document.getElementById('friendBellItems');
     const unread=notices.filter(n=>!n.read_at).length;
     const totalUnread=requests.length+unread;
