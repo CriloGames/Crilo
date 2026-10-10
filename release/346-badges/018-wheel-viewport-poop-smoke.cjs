@@ -9,9 +9,9 @@ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
-assert.ok(html.includes('style.css?v=80'));
+assert.ok(html.includes('style.css?v=81'));
 assert.ok(html.includes('game.js?v=60'));
-assert.ok(demo.includes('style.css?v=80'));
+assert.ok(demo.includes('style.css?v=81'));
 assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'),
  'The active stack must be wheel > score > counters > mode > SPIN');
 assert.ok(html.indexOf('id="wheelScorePanel"')<html.indexOf('class="stats wheel-counts"'));
