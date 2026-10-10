@@ -156,7 +156,7 @@ self.onmessage=async event=>{
     out.shapeDetail=hint.detail||'';
     // Specialized structural checks for curved penis drawings and nested
     // or slit-like vulva doodles. Keep legacy outline detector as fallback.
-    importScripts('moderation-genital-review.js?v=2');
+    importScripts('moderation-genital-review.js?v=3');
     const genital=self.CriloGenitalReview.analyzePixels(pixels.data,canvas.width,canvas.height);
     // The old and new genital detectors must both respect a stronger
     // smiley-face match (eyes plus wide smile/tongue).
