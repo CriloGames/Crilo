@@ -269,7 +269,7 @@ async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileNam
     '<div class="crilo-warning-popover" role="note"><strong>One official warning</strong>'+
     '<p>Reason: '+reason+'</p><p>'+meaning+'</p>'+
     (when?'<small>Issued '+Crilo.esc(when)+'</small>':'')+'</div></details>';
-  }else warningHost.replaceChildren();
+  }else warningHost.innerHTML='';
  }
  const ownerBanBtn=$('ownerProfileBanBtn');
 if(ownerBanBtn){
