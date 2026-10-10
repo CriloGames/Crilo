@@ -7,20 +7,25 @@
   const status=document.getElementById('bugReportStatus');
   const submit=document.getElementById('bugSubmit');
   if(!track||!beetle||!modal||!form)return;
-  const open=()=>{track.classList.remove('walking');status.textContent='';modal.classList.remove('hidden');document.getElementById('bugDescription').focus()};
-  const close=()=>{modal.classList.add('hidden');beetle.focus()};
+  const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
+  // CSS coordinates the return direction, the tiny landing, and its flies.
+  // Pausing, rather than restarting, keeps the beetle and details in sync.
+  function syncMotion(){
+    if(motionQuery.matches){track.classList.remove('walking','paused');return}
+    track.classList.add('walking');
+    track.classList.toggle('paused',document.hidden||!modal.classList.contains('hidden'));
+  }
+  const open=()=>{status.textContent='';modal.classList.remove('hidden');syncMotion();document.getElementById('bugDescription').focus()};
+  const close=()=>{modal.classList.add('hidden');syncMotion();beetle.focus()};
   beetle.addEventListener('click',open);
   document.getElementById('bugClose').addEventListener('click',close);
   modal.addEventListener('click',e=>{if(e.target===modal)close()});
   // Capture Escape before the site's global modal listener so focus returns to the beetle.
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden')){e.preventDefault();e.stopImmediatePropagation();close()}},true);
-  function walk(){
-    if(document.hidden||!modal.classList.contains('hidden')||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-    track.classList.remove('walking');void track.offsetWidth;track.classList.add('walking');
-  }
-  track.addEventListener('animationend',e=>{if(e.animationName==='criloBeetleCross')track.classList.remove('walking')});
-  // Start quickly, then make a new pass every 10 seconds (7 seconds walking, 3 resting).
-  setTimeout(()=>{walk();setInterval(walk,10000)},1500);
+  // One uninterrupted patrol: 6s out, 1s turn, 6s back, 3s resting.
+  setTimeout(syncMotion,1500);
+  document.addEventListener('visibilitychange',syncMotion);
+  motionQuery.addEventListener?.('change',syncMotion);
   let lastSend=0;
   form.addEventListener('submit',async e=>{
     e.preventDefault();
