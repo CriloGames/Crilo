@@ -137,6 +137,10 @@ async function feedTest(){
  await w.criloRefreshDrawingFeed();
  assert.equal(node('drawingReviewList').innerHTML,'SENTINEL',
   'Identical feed must avoid expensive image DOM redraws');
+ node('showOwnerTests').checked=true;
+ await w.criloRefreshDrawingFeed();
+ assert.ok(node('drawingReviewList').innerHTML.includes('crilo-review-test-tag'),
+  'Owner Test Runs should be explicitly labeled, even when unscanned');
  console.log('PASS: clear counters, owner Test Run filtering and zero redundant thumbnail redraws');
 }
 (async()=>{
