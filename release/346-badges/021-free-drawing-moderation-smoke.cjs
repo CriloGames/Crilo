@@ -15,11 +15,12 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=6/);
+assert.match(page,/moderation-feed\.js\?v=7/);
 assert.match(page,/moderation-feed-scanner\.js\?v=4/);
-assert.match(page,/style\.css\?v=90/);
+assert.match(page,/style\.css\?v=91/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
 assert.ok(css.includes('.crilo-review-reasons'), 'Scan reason labels missing');
+assert.ok(css.includes('.crilo-review-test-tag'),'Test runs need visually distinct labels');
 assert.ok(worker.includes('jsqr@1.4.0'), 'Local QR decoder missing');
 assert.ok(worker.includes('tesseract.js@5.1.1'), 'On-device OCR missing');
 assert.ok(worker.includes('siglip-base-patch16-224'), 'On-device image comparator missing');
