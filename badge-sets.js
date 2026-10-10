@@ -75,7 +75,7 @@
           if(parent)parent.open=true;
           linked.classList.add('expanded','badge-linked-highlight');
           linked.setAttribute('aria-expanded','true');
-          requestAnimationFrame?.(()=>linked.scrollIntoView?.({behavior:'smooth',block:'center'}));
+          if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>linked.scrollIntoView?.({behavior:'smooth',block:'center'}));
         }
       }
 
