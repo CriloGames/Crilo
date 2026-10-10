@@ -5,15 +5,15 @@ This is an **owner-operated review assistant**, NOT an automatic content-policin
 ## Components
 - \`moderation.html\`: all pending drawings, filter, scan status and manual approve/remove/ban controls.
 - \`moderation-feed.js\`: combines human review queue with prior flags and new local findings.
-- \`moderation-feed-scanner.js\`: image decoding, open-source **Tesseract.js** OCR, **jsQR** reading, and an advisory **SigLIP** image comparison, all running in the **owner's browser**.
+- \`moderation-feed-scanner.js\`: image decoding, open-source **Tesseract.js** OCR, **jsQR** reading, and an advisory **SigLIP** image comparison, all running **inside a dedicated owner-browser Web Worker**, not the UI thread.
 - \`public.crilo_local_drawing_scans\`: persistent advisory findings with FKs (on-delete cascade), row-level security and **no direct client access**.
 - \`crilo_owner_local_scan_jobs\`, \`crilo_owner_local_scan_save\`, \`crilo_owner_local_scan_report\`, \`crilo_owner_local_scan_retry\`: owner-guarded, SECURITY DEFINER RPCs; executable only by signed-in roles after owner checking.
 - \`owner-ban-drawing-account\` Edge Function v5: preserves existing owner-only/authenticated ban behavior; optional \`delete_run: true\` deletes the associated OFFICIAL run after the ban, otherwise retains score and hides artwork.
 - \`owner-scan-drawings\` Edge Function v6: authenticated owner-only compatibility response, NO OpenAI or paid API requests.
 
 ## Behavior
-- Scans batches of up to **3**, while the **Drawing Review browser tab is open**, checks for new submissions every 30 seconds, and stores results for future review.
-- No processing while the owner's browser is closed. No server-side scheduled AI requests.
+- Scans **one drawing at a time** using a background Web Worker while the **Drawing Review browser tab is open**. Small gaps between jobs prevent large CPU bursts. Scan findings are saved for later review. The owner may pause/resume or manually scan the next drawing; auto scanning is enabled by default.
+- No processing while the owner's browser is closed, paused or hidden. No server-side scheduled AI requests. The list refreshes every 30 seconds independently of scanning, and unchanged thumbnails are not decoded/re-rendered.
 - Bad words, hostile text, and written URLs: OCR + normalization + local heuristics.
 - QR codes: locally decoded actual QR patterns. Visual model may additionally mark QR-*like* images.
 - Possible hateful symbols, explicit genital drawings, sexual imagery and graphic injury: **relative image/text similarity** in a generic model, **not reliable detection or calibrated confidence**.
@@ -31,3 +31,11 @@ This is an **owner-operated review assistant**, NOT an automatic content-policin
 
 ## Deployment verification
 GitHub commits alone do not establish GitHub Pages deployment status. Check the Actions tabs for both the 346 badge checks and the Pages publish run; verify new JS/CSS version references in the published page. Never claim that real-device classification, CDN loading or GitHub Pages propagation was tested by static checks.
+
+
+## Responsive performance improvements
+- \`moderation-scan-worker.js\` loads QR, Tesseract and SigLIP off the UI thread; OffscreenCanvas scales images without blocking the review interface.
+- OCR uses one reasonably sized pass instead of a 900px scan + another high-contrast pass for each image. Some subtle handwriting may be missed, so manual inspection remains essential.
+- Worker scans one job per queue request and can be stopped. The scanner intentionally does not process saved Owner Test Runs until **Include my Test Runs** is enabled.
+- All controls and scanning status are gathered near the top, with four summary counters and a simplified mobile layout.
+- \`node release/346-badges/022-drawing-scanner-worker-qa.cjs\` exercises QR/OCR mock worker processing, pause, owner guards, test isolation and avoidance of redundant base64 thumbnail repainting.
