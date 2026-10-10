@@ -15,7 +15,7 @@ for(const id of ['reviewScanStatus','reviewScannerDetails','reviewFilter','revie
  'reviewToggleScan','reviewScanNext','reviewVisualEnabled']){
  assert.ok(page.includes('id="'+id+'"'),id+' is missing from review UI');
 }
-assert.match(page,/moderation-feed\.js\?v=16/);
+assert.match(page,/moderation-feed\.js\?v=17/);
 assert.match(page,/moderation-feed-scanner\.js\?v=14/);
 assert.match(page,/style\.css\?v=93/);
 assert.ok(css.includes('.crilo-review-scan-box'), 'Scanner layout should fit mobile and desktop');
@@ -29,6 +29,7 @@ assert.ok(scanner.includes('const blank=result.blank===true'),'Blank result must
 assert.ok(!scanner.includes('visual.score<0.10'),'Low image-score must NOT automatically be suspicious');
 assert.ok(!feed.includes('Visual result uncertain — rescan advised'),'Normal drawings must not be flagged for weak ML scores');
 assert.ok(feed.includes('NEEDS RESCAN'),'Previous scanner runs must not show NO FLAGS');
+assert.ok(feed.includes("Number(d.local.scan_version)>=6"),'Completed recent scans should override older legacy predictions');
 assert.ok(scanner.includes('crilo_owner_local_scan_jobs_v6'), 'Unscanned drawings not being queued');
 assert.ok(scanner.includes("new Worker('moderation-scan-worker.js?v=8')"),
  'Background worker must keep heavy CPU operations off the page');
