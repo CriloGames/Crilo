@@ -22,6 +22,7 @@ on:
       - 'moderation-feed.js'
       - 'moderation-feed-scanner.js'
       - 'moderation-scan-worker.js'
+      - 'moderation-shape-review.js'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -48,6 +49,7 @@ on:
       - 'moderation-feed.js'
       - 'moderation-feed-scanner.js'
       - 'moderation-scan-worker.js'
+      - 'moderation-shape-review.js'
       - 'badge-collection.js'
       - 'badge-collection.css'
       - 'badge-sets.js'
@@ -82,6 +84,7 @@ jobs:
           node --check moderation-feed.js
           node --check moderation-feed-scanner.js
           node --check moderation-scan-worker.js
+          node --check moderation-shape-review.js
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
@@ -100,6 +103,8 @@ jobs:
         run: node release/346-badges/021-free-drawing-moderation-smoke.cjs
       - name: Verify background QR OCR and nonblocking moderation feed
         run: node release/346-badges/022-drawing-scanner-worker-qa.cjs
+      - name: Detect drawn genital-like outlines and never clear inconclusive images
+        run: node release/346-badges/023-outline-safety-review-smoke.cjs
       - name: Verify leaderboard tabs never wrap across mobile/tablet/desktop widths
         run: node release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs
       - name: Verify all beetle tricks and normal poop alignment
