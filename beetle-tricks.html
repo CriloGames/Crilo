@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Crilo — Beetle Trick Lab</title>
+<link rel="stylesheet" href="style.css?v=78">
+<style>
+body{margin:0;background:#fafaf7;color:#1b1e22}
+.beetle-lab{max-width:1240px;margin:0 auto;padding:32px 22px 78px}
+.beetle-lab-nav{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:52px}
+.beetle-lab-brand{font-size:25px;letter-spacing:.14em;font-weight:950;text-decoration:none;color:inherit}
+.beetle-lab-back{font-size:12px;font-weight:800;color:#4c5664;text-decoration:none;border:1px solid #dce0e2;border-radius:99px;padding:9px 14px}
+.beetle-lab-back:hover{background:#ecf4ef}
+.beetle-lab-header{max-width:840px;margin-bottom:32px}
+.beetle-lab-eyebrow{color:#749b86;font-size:11px;font-weight:950;letter-spacing:.17em;margin:0 0 12px}
+.beetle-lab-header h1{font-size:clamp(38px,5vw,64px);line-height:1.02;letter-spacing:-.055em;font-weight:950;margin:0 0 17px}
+.beetle-lab-header p{color:#6b737c;font-size:16px;line-height:1.65;margin:0;max-width:680px}
+.beetle-lab-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:24px 0}
+.beetle-lab-toolbar button{background:#c2e7d2;color:#132a20;border:1.5px solid #202e27;border-radius:10px;padding:12px 16px;font:inherit;font-size:12px;font-weight:850;cursor:pointer}
+.beetle-lab-toolbar button:hover{background:#b2d9c5}
+.beetle-lab-toolbar button:focus-visible{outline:3px solid #8ab1eb;outline-offset:3px}
+.beetle-lab-status{color:#7f8790;font-size:12px}
+.beetle-lab-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.beetle-demo-card{background:white;border:1px solid #dce1df;border-radius:20px;padding:20px 20px 0;box-shadow:0 4px 14px #25362a0b;min-width:0;overflow:hidden}
+.beetle-demo-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.beetle-demo-index{font-size:11px;color:#8f989e;font-weight:850}
+.beetle-demo-tag{font-size:10px;letter-spacing:.05em;font-weight:850;color:#678c77;background:#e8f5ed;border-radius:99px;padding:5px 9px}
+.beetle-demo-card h2{font-size:22px;letter-spacing:-.03em;font-weight:900;margin:0 0 7px}
+.beetle-demo-card p{min-height:42px;font-size:12px;line-height:1.5;color:#777f88;margin:0 0 12px}
+.beetle-demo-stage{border-radius:13px;background:linear-gradient(180deg,#f7fcf8 0%,#edf8ef 95%);border:1px solid #e4eee7;overflow:hidden;margin:0 -2px;position:relative}
+.beetle-demo-stage:after{content:"";position:absolute;bottom:8px;left:0;right:0;height:1px;background:#a0b9a8;opacity:.8;pointer-events:none}
+.beetle-demo-stage .crilo-beetle-track{height:114px;--beetle-width:74px;overflow:visible}
+.beetle-demo-stage .crilo-beetle{bottom:13px;pointer-events:none}
+.beetle-demo-stage .crilo-beetle-dropping{bottom:12px}
+.beetle-demo-stage .crilo-beetle-trick-right,.beetle-demo-stage .crilo-beetle-trick-left{will-change:transform}
+.beetle-demo-foot{display:flex;justify-content:space-between;align-items:center;margin:14px 0;font-size:10px;color:#7c8881;font-weight:750}
+.beetle-demo-dot{width:6px;height:6px;background:#7cbd99;border-radius:50%}
+.beetle-demo-baseline{border-color:#bdc9d2;background:#f9fbfd}
+.beetle-demo-baseline .beetle-demo-tag{background:#e5eef7;color:#6a829a}
+.beetle-lab-note{color:#8b9298;font-size:12px;line-height:1.65;margin:24px 0}
+@media(max-width:940px){.beetle-lab-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.beetle-lab{padding:20px 14px 45px}.beetle-lab-nav{margin-bottom:37px}.beetle-lab-grid{grid-template-columns:1fr}.beetle-lab-header p{font-size:14px}.beetle-lab-toolbar{gap:10px}.beetle-demo-card p{min-height:0}.beetle-demo-stage .crilo-beetle-track{--beetle-width:74px;height:114px}.beetle-demo-stage .crilo-beetle svg{width:68px;height:29px}}
+@media(prefers-reduced-motion:reduce){.beetle-demo-track.walking .crilo-beetle,.beetle-demo-track.walking .crilo-beetle-facing,.beetle-demo-track.walking .crilo-beetle-trick-right,.beetle-demo-track.walking .crilo-beetle-trick-left,.beetle-demo-track.walking .beetle-legs,.beetle-demo-track.walking svg,.beetle-demo-track.walking .crilo-beetle-dropping{animation:none!important}}
+</style>
+</head>
+<body>
+<main class="beetle-lab">
+<header class="beetle-lab-nav">
+<a class="beetle-lab-brand" href="index.html">CRILO</a>
+<a class="beetle-lab-back" href="index.html#more-games">← Back to Crilo</a>
+</header>
+<div class="beetle-lab-header">
+<div class="beetle-lab-eyebrow">ANIMATION TEST ROOM</div>
+<h1>Beetle Trick Lab</h1>
+<p>Every trick plays simultaneously using the real Crilo beetle artwork and the same wall-turn animation. On the main page, each turn has a <strong>1-in-15 chance</strong> of a special. Here, every animation is guaranteed so you can compare them.</p>
+</div>
+<div class="beetle-lab-toolbar">
+<button type="button" id="replayAll">↻ Replay all tricks</button>
+<button type="button" id="pauseAll">Ⅱ Pause</button>
+<span class="beetle-lab-status">16-second synchronized loop · tricks at both walls</span>
+</div>
+<div class="beetle-lab-grid"><article class="beetle-demo-card" aria-label="Wall Backflip animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">01</span><span class="beetle-demo-tag">BACKWARD</span></div>
+  <h2>Wall Backflip</h2><p>A quick backward somersault at both walls.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking beetle-right-backflip beetle-left-backflip">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop disabled during tricks<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article>
+<article class="beetle-demo-card" aria-label="Barrel Roll animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">02</span><span class="beetle-demo-tag">SIDEWAYS</span></div>
+  <h2>Barrel Roll</h2><p>A full sideways roll before heading home.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking beetle-right-barrel beetle-left-barrel">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop disabled during tricks<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article>
+<article class="beetle-demo-card" aria-label="Front Flip animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">03</span><span class="beetle-demo-tag">FORWARD</span></div>
+  <h2>Front Flip</h2><p>A cheeky forward somersault mid-hop.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking beetle-right-frontflip beetle-left-frontflip">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop disabled during tricks<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article>
+<article class="beetle-demo-card" aria-label="Double Bounce animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">04</span><span class="beetle-demo-tag">BOUNCY</span></div>
+  <h2>Double Bounce</h2><p>An extra bounce tucked into the turnaround.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking beetle-right-doublehop beetle-left-doublehop">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop disabled during tricks<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article>
+<article class="beetle-demo-card" aria-label="Victory Wiggle animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">05</span><span class="beetle-demo-tag">PLAYFUL</span></div>
+  <h2>Victory Wiggle</h2><p>A happy little wiggle and head shake.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking beetle-right-wiggle beetle-left-wiggle">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop disabled during tricks<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article>
+<article class="beetle-demo-card beetle-demo-baseline" aria-label="Normal walk animation">
+  <div class="beetle-demo-top"><span class="beetle-demo-index">06</span><span class="beetle-demo-tag">CONTROL</span></div>
+  <h2>Normal walk</h2><p>Regular hop turns, with a properly timed return-trip poop and circling flies.</p>
+  <div class="beetle-demo-stage">
+    <div class="crilo-beetle-track beetle-demo-track walking">
+      <div class="crilo-beetle" aria-hidden="true"><span class="crilo-beetle-facing">
+<span class="crilo-beetle-trick-right"><span class="crilo-beetle-trick-left">
+<svg viewBox="0 0 112 60" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- Side-on beetle: head points in the direction it walks, left to right. -->
+  <ellipse cx="57" cy="55" rx="41" ry="3" fill="#17191e" opacity=".10" stroke="none"/>
+  <g stroke="#17191e" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+    <g class="beetle-legs beetle-legs-back">
+      <path d="M35 35L25 42 19 52M52 38L46 46 44 55M69 37L76 46 76 55"/>
+    </g>
+    <path d="M19 30Q28 36 45 39Q65 42 83 34Q79 47 51 47Q28 47 19 39Z" fill="#679584"/>
+    <path d="M18 29Q19 17 34 13Q50 8 67 12Q81 16 86 28Q81 38 67 41Q42 46 24 40Q17 36 18 29Z" fill="#BEE6CD"/>
+    <path d="M31 16Q47 11 62 14Q76 17 80 27" stroke="#F4FFF2" stroke-width="2.1" opacity=".88"/>
+    <path d="M46 12Q48 27 45 42" stroke="#659A83" stroke-width="1.8"/>
+    <path d="M20 30Q39 36 61 34" stroke="#679584" stroke-width="1.6" opacity=".8"/>
+    <path d="M81 24Q92 18 99 25Q106 32 101 39Q97 44 88 40L81 34Z" fill="#A5DABB"/>
+    <circle cx="97" cy="29" r="2.5" fill="#17191e" stroke="none"/>
+    <path d="M102 35L107 36" stroke-width="1.8"/>
+    <path d="M98 23Q101 17 107 15M93 21Q93 15 97 11" stroke-width="1.9"/>
+    <g class="beetle-legs beetle-legs-front">
+      <path d="M32 38L25 45 26 55M49 40L48 48 54 56M76 36L83 44 91 53"/>
+    </g>
+  </g>
+</svg>
+</span></span>
+</span>
+</div>
+      <span class="crilo-beetle-dropping" aria-hidden="true">
+  <svg class="crilo-poop-art" viewBox="0 0 26 22" xmlns="http://www.w3.org/2000/svg" fill="none">
+    <path d="M4 19c-1.3-3.4.9-6 4.2-6.3-.6-2.6 1-4.8 4.2-5 2-.2 3-2 2-4.5 4.3 1.8 5.4 5.1 3.2 7.4 3.7.4 5.5 2.9 4.3 5.7-.8 2-3.2 2.7-6.3 2.7H10c-3.5 0-5.4-.4-6-2.5Z" fill="#B98A67" stroke="#422F2B" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M11 13.5c3.1-1 6.4-.3 7.3 1.2" stroke="#76503E" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M12.1 8.1c2.2-.4 4.2-.1 5 1" stroke="#EDCCAC" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span class="crilo-poop-fly crilo-poop-fly-one"></span>
+  <span class="crilo-poop-fly crilo-poop-fly-two"></span>
+</span>
+    </div>
+  </div>
+  <div class="beetle-demo-foot">Poop appears only after passing<span class="beetle-demo-dot" aria-hidden="true"></span></div>
+</article></div>
+<p class="beetle-lab-note">The sixth card is a normal patrol to check the poop and flies. Special-trick previews keep them hidden. Nothing on this test page submits bug reports or changes accounts.</p>
+</main>
+<script>
+(()=>{
+  const tracks=Array.from(document.querySelectorAll('.beetle-demo-track'));
+  const pause=document.getElementById('pauseAll');
+  document.getElementById('replayAll').addEventListener('click',()=>{
+    for(const t of tracks)t.classList.remove('walking','paused');
+    void document.body.offsetWidth;
+    for(const t of tracks)t.classList.add('walking');
+    pause.textContent='Ⅱ Pause';
+  });
+  pause.addEventListener('click',()=>{
+    const paused=!tracks[0].classList.contains('paused');
+    for(const t of tracks)t.classList.toggle('paused',paused);
+    pause.textContent=paused?'▶ Resume':'Ⅱ Pause';
+  });
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    for(const t of tracks)t.classList.remove('walking');
+    void document.body.offsetWidth;
+    for(const t of tracks)t.classList.add('walking');
+  }else{
+    document.querySelector('.beetle-lab-status').textContent='Animations are disabled by your reduced-motion preference';
+  }
+})();
+</script>
+</body>
+</html>
