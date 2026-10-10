@@ -50,7 +50,7 @@ for(const x of clean){
 }
 assert.equal(looksLikeHandwrittenLink('Crile Com'),true);
 assert.equal(looksLikeHandwrittenLink('Farm lauh\nCoan'),true);
-assert.match(page,/moderation-feed-scanner\.js\?v=18/);
+assert.match(page,/moderation-feed-scanner\.js\?v=19/);
 assert.ok(source.includes('crilo_owner_local_scan_jobs_v7'));
 assert.ok(source.includes('crilo_owner_local_scan_save_v7'));
 assert.ok(source.includes('classifyText(result.ocrText)'));
