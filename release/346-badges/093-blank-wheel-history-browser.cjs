@@ -21,6 +21,8 @@ function installFakeDaily(){
     eq(k,v){if(k==='user_id'||k==='is_test'||k==='daily_period')rows=rows.filter(r=>r[k]===v);return q},
     not(){return q},gte(){return q},order(){return q},limit(n){rows=rows.slice(0,n);return q},
     range(a,b){const data=rows.slice(a,b+1);return Promise.resolve({data:fields==='spins'?data.map(r=>({spins:r.spins})):data,error:null})},
+    maybeSingle(){return Promise.resolve({data:rows[0]||null,error:null})},
+    single(){return Promise.resolve({data:rows[0]||null,error:null})},
     then(yes,no){return Promise.resolve({data:rows,error:null}).then(yes,no)}
    };
    return q;
