@@ -134,7 +134,7 @@ async function main(){
      ok('Domain instructions, slider, five guesses, reveal, next and replay '+width);
     }
     if(filename==='shape-of-sound.html'){
-     await page.locator('#soundAdd').click();
+     await page.locator('#soundAddBoop').click();
      await page.locator('#soundShuffle').click();
      await page.locator('#soundMute').click();
      await page.locator('#soundPlayRoom').click();
