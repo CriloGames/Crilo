@@ -52,7 +52,11 @@ async function main(){
    }
   });
   const page=await context.newPage(),errors=[];
+  page.setDefaultTimeout(7000);
+  console.log('START '+scenario.name+' '+scenario.width+'x'+scenario.height);
   page.on('pageerror',e=>{if(/sound-shapes|sound|null|undefined|ReferenceError|SyntaxError/.test(e.message))errors.push(e.message)});
+  // Keep the sound sandbox independent from Crilo auth and third-party CDNs.
+  await page.route(/\/(?:app|supabase-config)\.js(?:\?.*)?$/,route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('.sound-blob').first().waitFor({state:'visible'});
@@ -85,7 +89,7 @@ async function main(){
   check(after>before,scenario.name+' tap should play Web Audio, voices '+before+' -> '+after);
   check(await page.locator('#soundInspector').isVisible(),scenario.name+' inspector must open');
   const slider=page.locator('#soundStretch');
-  await slider.fill('140');
+  await slider.evaluate(input=>{input.value='140';input.dispatchEvent(new Event('input',{bubbles:true}))});
   check((await page.locator('.sound-blob').first().boundingBox()).width>layout.blobs[0].width,scenario.name+' stretch should change width');
   const persisted=await page.evaluate(()=>localStorage.getItem('crilo_sound_shapes_v1'));
   check(!!persisted&&persisted.includes('1.4'),scenario.name+' scaled shape persisted');
