@@ -327,6 +327,7 @@
         link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
         link.classList.remove('crilo-owner-pending');
         link.removeAttribute('aria-disabled');
+        link.removeAttribute('tabindex');
       }else if(link)link.remove();
     }
     const btn=$('accountBtn'), menu=$('accountMenu');
