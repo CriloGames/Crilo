@@ -674,8 +674,8 @@ function insidePaintArea(canvas,event){
   rect.width>0&&rect.height>0&&event.clientX>=rect.left&&
   event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
  if(!inside)return false;
- if(canvas===drawing){
-  // The actual wheel drawing surface is a circle, not its square bounding box.
+ if(canvas===drawing||canvas===pixelCanvas){
+  // Both visible drawing surfaces are circles, not their square canvas boxes.
   // CSS rotation expands getBoundingClientRect() but not the round canvas.
   // Its true diameter is the untransformed clientWidth.
   const radius=(canvas.clientWidth||rect.width)/2;
