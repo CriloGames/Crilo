@@ -37,11 +37,11 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      'Initial button and letter/number input must have exactly matching heights at '+width);
    assert.ok((await page.locator('label[for="avatarCustomLetter"]').innerText()).includes('number'),
      'Letter and number support must be explained');
+   const first=await page.locator('#avatarEditorPreview').getAttribute('aria-label');
+   assert.ok(first.includes('C'),'Initial preview incorrect');
    await page.locator('#avatarCustomLetter').fill('7');
    assert.equal(await page.locator('#avatarEditorPreview').innerText(),'7',
      'Single-digit numeric icon did not preview');
-   const first=await page.locator('#avatarEditorPreview').getAttribute('aria-label');
-   assert.ok(first.includes('C'),'Initial preview incorrect');
    pass('initial avatar and nine illustration choices, eight colors at '+width+'px');
    await page.locator('[data-symbol="icon:duck"]').click();
    await page.locator('[data-color="#DFECFF"]').click();
