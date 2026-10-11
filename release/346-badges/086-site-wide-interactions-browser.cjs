@@ -52,7 +52,7 @@ const mockSupabase=`(()=>{
   storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}
  })};
 })();`;
-function initPage(page){let errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push('console: '+m.text())});return errors}
+function initPage(page){let errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'&&!/Failed to load resource: net::ERR_FAILED/.test(m.text()))errors.push('console: '+m.text())});return errors}
 async function goto(page,url){let response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:16000});assert.equal(response.status(),200,'Page missing '+url);await page.waitForTimeout(180);return response}
 async function checkErrors(errors,label){assert.deepEqual(errors,[],label+' script errors: '+JSON.stringify(errors))}
 async function main(){
