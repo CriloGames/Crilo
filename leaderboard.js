@@ -1,5 +1,14 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';
 const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(String(value||'')) ? String(value) : 'inherit';
+// These two old pre-verification sample-like rows were already intentionally
+// excluded from public score boards. Do not hide future verified real results
+// that happen to have matching score/counter totals.
+function isLegacyPreviewRun(run){
+ if(run.verified_spin_session_id||String(run.daily_period||'')>='2026-10-09')return false;
+ const oldFifteen=Number(run.score)===15&&Number(run.spins)===8&&Number(run.upgrades)===0&&Number(run.doubles)===1&&Number(run.ducks)===2;
+ const oldEightSixtyFour=Number(run.score)===864&&Number(run.spins)===11&&Number(run.upgrades)===3&&Number(run.doubles)===1&&Number(run.ducks)===0;
+ return oldFifteen||oldEightSixtyFour;
+}
 // Use the exact seven final-score thresholds from the Daily Wheel, not the
 // rank, spin count, badge count, or lifetime duck count of a leaderboard row.
 function scoreRarity(value){
@@ -52,7 +61,7 @@ function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Da
 async function load(){
  if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}if(tab==='points'){await loadTotalPoints();return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
- const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at';
+ const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at,verified_spin_session_id';
  let q=criloDB.from('daily_runs').select(fields).eq('is_test',false);
  if(tab==='today')q=q.eq('daily_period',Crilo.dailyPeriod()).order('score',{ascending:false}).limit(100);
  else if(tab==='week')q=q.gte('daily_period',periodDaysAgo(6)).order('score',{ascending:false}).limit(100);
@@ -61,11 +70,7 @@ async function load(){
  else q=q.order('score',{ascending:false}).limit(100);
  const official=await q;
  if(official.error){$('leaderList').innerHTML='<div class="empty-state">Could not load leaderboard: '+Crilo.esc(official.error.message)+'</div>';return}
- const runs=(official.data||[]).filter(run=>{
-  const oldFifteen=Number(run.score)===15&&Number(run.spins)===8&&Number(run.upgrades)===0&&Number(run.doubles)===1&&Number(run.ducks)===2;
-  const oldEightSixtyFour=Number(run.score)===864&&Number(run.spins)===11&&Number(run.upgrades)===3&&Number(run.doubles)===1&&Number(run.ducks)===0;
-  return !(oldFifteen||oldEightSixtyFour);
- }).map(r=>({...r,_source:'official'}));
+ const runs=(official.data||[]).filter(run=>!isLegacyPreviewRun(run).map(r=>({...r,_source:'official'}));
  if(tab==='records')runs.sort((a,b)=>b.spins-a.spins||b.score-a.score);
  else if(tab==='ducks')runs.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);
  else runs.sort((a,b)=>b.score-a.score);
@@ -122,9 +127,9 @@ async function loadDucks(){
  const totals=new Map();let offset=0;
  // Fetch all official runs, not just the top 100 single-run results.
  while(true){
-  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks').eq('is_test',false).order('id',{ascending:true}).range(offset,offset+999);
+  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks,daily_period,score,spins,upgrades,doubles,verified_spin_session_id').eq('is_test',false).order('id',{ascending:true}).range(offset,offset+999);
   if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
-  for(const run of data||[])totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));
+  for(const run of data||[]){if(isLegacyPreviewRun(run))continue;totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));}
   if(!data||data.length<1000)break;
   offset+=1000;
  }
