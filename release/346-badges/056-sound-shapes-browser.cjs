@@ -85,6 +85,32 @@ async function main(){
   for(const control of controls.controls)check(
     control.left>=controls.toolbar.left-2&&control.right<=controls.toolbar.right+2,
     scenario.name+' toolbar button was clipped '+JSON.stringify(controls));
+  check(await page.locator('#accountBtn').isHidden(),
+    scenario.name+' should not display sign-in on the free sound playground');
+  const organization=await page.evaluate(()=>{
+    const toolbar=document.querySelector('.sound-toolbar').getBoundingClientRect();
+    const left=document.querySelector('.sound-toolbar-left').getBoundingClientRect();
+    const right=document.querySelector('.sound-toolbar-right').getBoundingClientRect();
+    const label=document.querySelector('.sound-palette-title').getBoundingClientRect();
+    const options=document.querySelector('.sound-palette-options').getBoundingClientRect();
+    const buttons=[...document.querySelectorAll('.sound-palette-button')].map(n=>n.getBoundingClientRect().toJSON());
+    return {toolbar:toolbar.toJSON(),left:left.toJSON(),right:right.toJSON(),label:label.toJSON(),options:options.toJSON(),buttons};
+  });
+  check(organization.buttons.length===5,scenario.name+' needs five named sound choices');
+  check(organization.label.top>=organization.toolbar.bottom-3,
+    scenario.name+' sound label overlaps the toolbar');
+  check(organization.options.top>=organization.label.bottom-3,
+    scenario.name+' add buttons should appear below their label');
+  for(const b of organization.buttons)check(
+    b.left>=organization.options.left-2&&b.right<=organization.options.right+2,
+    scenario.name+' sound button exceeds its palette');
+  if(scenario.width>=360){
+    check(Math.abs(organization.left.top-organization.right.top)<4,
+      scenario.name+' Play and utility controls should share the first row');
+    check(Math.max(...organization.buttons.map(b=>b.top))-
+      Math.min(...organization.buttons.map(b=>b.top))<3,
+      scenario.name+' five sound choices should occupy a single row');
+  }
   if(scenario.name==='iphone-portrait'||scenario.name==='desktop-wide'){
    const jpg=await page.screenshot({type:'jpeg',quality:50,fullPage:false});
    console.log('VISUAL_SCREENSHOT_B64 '+scenario.name+' '+jpg.toString('base64'));

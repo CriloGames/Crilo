@@ -243,3 +243,87 @@
   .sound-toolbar .sound-button{padding:7px 5px;min-height:40px;font-size:10px}
   .sound-toolbar .sound-button-primary{min-width:102px}
 }
+
+/* Crilo Shape of Sound — two organized tool rows (desktop, tablet, mobile). */
+body.sound-only-page .topbar .header-actions{display:none!important}
+.sound-app .sound-toolbar{
+  display:grid;
+  grid-template-columns:max-content minmax(0,1fr);
+  gap:12px;
+  align-items:center;
+  justify-content:stretch;
+  padding:4px 4px 13px;
+  flex-wrap:nowrap;
+}
+.sound-app .sound-toolbar-left{
+  display:flex;justify-content:flex-start;align-items:center;min-width:0;flex-wrap:nowrap;
+}
+.sound-app .sound-toolbar-right{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;flex-wrap:nowrap;
+}
+.sound-app .sound-palette{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:initial;
+  gap:8px;
+  padding:0 4px 14px;
+}
+.sound-app .sound-palette-title{
+  display:block;
+  width:100%;
+  font-size:12px;
+  font-weight:800;
+  line-height:1.3;
+  letter-spacing:.005em;
+  color:var(--muted,#777);
+}
+.sound-app .sound-palette-options{
+  width:100%;
+  max-width:none;
+  min-width:0;
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+}
+.sound-app .sound-palette-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:44px;
+}
+@media(max-width:850px){
+  .sound-app .sound-toolbar{grid-template-columns:max-content minmax(0,1fr);gap:8px}
+  .sound-app .sound-toolbar-right{gap:6px}
+}
+@media(max-width:520px){
+  .sound-app .sound-toolbar{
+    grid-template-columns:max-content minmax(0,1fr);
+    gap:4px;
+    align-items:center;
+    padding:3px 1px 11px;
+  }
+  .sound-app .sound-toolbar-left,
+  .sound-app .sound-toolbar-right{flex-wrap:nowrap;min-width:0}
+  .sound-app .sound-toolbar-right{gap:3px}
+  .sound-app .sound-toolbar .sound-button{
+    min-height:42px;
+    padding:7px 5px;
+    font-size:10px;
+    line-height:1.15;
+  }
+  .sound-app .sound-toolbar .sound-button-primary{min-width:102px}
+  .sound-app .sound-palette{padding:0 1px 11px;gap:7px}
+  .sound-app .sound-palette-title{font-size:11px}
+  .sound-app .sound-palette-options{gap:4px}
+  .sound-app .sound-palette-button{min-height:44px;padding:6px 2px;font-size:10px;gap:3px}
+  .sound-app .sound-palette-button span{width:20px;height:20px;margin-right:0;flex-shrink:0}
+}
+@media(max-width:359px){
+  .sound-app .sound-toolbar{grid-template-columns:1fr}
+  .sound-app .sound-toolbar-left,
+  .sound-app .sound-toolbar-right{justify-content:center}
+  .sound-app .sound-palette-button{font-size:9px}
+  .sound-app .sound-palette-button span{width:17px;height:17px}
+}

@@ -8,11 +8,12 @@ const root=path.resolve(__dirname,'../..');
 const html=fs.readFileSync(path.join(root,'support.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'sound-shapes.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'sound-shapes.js'),'utf8');
+const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert.match(html,/id="soundStage"/);
 assert.match(html,/id="soundPlayRoom"/);
 assert.match(html,/id="soundObjects"/);
 assert.match(html,/sound-shapes\.js\?v=2/);
-assert.match(html,/sound-shapes\.css\?v=3/);
+assert.match(html,/sound-shapes\.css\?v=4/);
 assert.ok(css.includes('@media(max-width:420px)'),'Mobile touch and scaling CSS must exist');
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'),'Reduce motion for sensitive visitors');
 assert.ok(js.includes('window.webkitAudioContext'),'Support iOS Safari Web Audio');
@@ -24,6 +25,14 @@ assert.ok(js.includes('const MAX_OBJECTS=25'),'25 sound slots must be supported'
 assert.ok(js.includes("button.id='soundAdd'+spec.name"),'All sounds have direct add buttons');
 assert.ok(js.includes('insertBefore(tip,lab)'),'Move existing optional tips above the game');
 assert.ok(css.includes('.sound-palette-button'),'Offer visible sound choices');
+assert.ok(css.includes('body.sound-only-page .topbar .header-actions{display:none!important}'),
+ 'Hide sign-in on sound page only, preserving shared header wiring');
+assert.ok(html.includes('class="sound-only-page"'),'Sound page needs scoped header class');
+assert.ok(homepage.includes('id="soundHomeGame" href="support.html"'),'Homepage needs link to Shape of Sound');
+assert.ok(homepage.indexOf('id="soundHomeGame"')<homepage.indexOf('href="domain/"'),
+ 'Shape of Sound must be immediately before Domain');
+assert.ok(homepage.includes('The Shape of Sound'),'Homepage card needs game title');
+assert.ok(css.includes('.sound-palette-button'),'Palette CSS is present');
 assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|location\.href|window\.open/i.test(js),
  'The free game must not call the backend or interact with checkout');
 for(const id of ['soundStage','soundObjects','soundInspector','soundSelection','soundPlayRoom',

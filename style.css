@@ -1324,3 +1324,54 @@ html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ff
 .support-checkout-link:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,.12)}
 .support-checkout-link:focus-visible{outline:3px solid #2163c8;outline-offset:3px}
 .support-checkout-link:active{transform:translateY(0)}
+
+/* Shape of Sound is a first-class game, placed immediately above Domain. */
+.more-games .sound-home-card{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:16px;
+  background:linear-gradient(115deg,#fff0eb 0%,#faf5ff 53%,#ecfaf2 100%);
+  border-color:#e5dce7;
+  box-shadow:0 7px 24px rgba(93,76,103,.045);
+}
+.more-games .sound-home-card:hover{
+  border-color:#cdbbd7;
+  box-shadow:0 15px 38px rgba(91,72,111,.1);
+}
+.sound-home-card .sound-home-art{
+  position:relative;
+  isolation:isolate;
+  flex-shrink:0;
+  overflow:hidden;
+  background:rgba(255,255,255,.65);
+  border:1.5px solid #cbb9d2;
+  box-shadow:4px 4px 0 rgba(89,69,102,.11);
+  transform:rotate(-3deg);
+}
+.sound-home-orb{
+  position:absolute;display:block;
+  width:45px;height:45px;border-radius:47% 53% 55% 45% / 52% 45% 55% 48%;
+  box-shadow:inset 3px 4px 11px rgba(255,255,255,.48),0 4px 10px rgba(55,44,60,.09);
+}
+.sound-home-orb-boop{top:8px;left:4px;background:#f9b8b6}
+.sound-home-orb-chime{bottom:7px;right:3px;background:#a9e0ca}
+.sound-home-orb-buzz{width:28px;height:28px;top:3px;right:6px;background:#cdb5ea}
+.sound-home-note{position:relative;z-index:2;font-family:Georgia,serif;color:#564864;font-size:30px;transform:rotate(9deg)}
+.sound-home-card .sound-home-eyebrow{
+  display:block;
+  margin:0 0 6px;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.14em;
+  color:#82708d;
+}
+.sound-home-card .game-copy{min-width:0}
+.sound-home-card .arrow{color:#665275}
+@media(max-width:700px){
+ .more-games .sound-home-card{gap:14px}
+ .sound-home-card .sound-home-art .sound-home-orb{transform:scale(.84);transform-origin:center}
+ .sound-home-card .sound-home-eyebrow{font-size:9px;letter-spacing:.09em}
+ .sound-home-card .game-copy h2{font-size:20px}
+ .sound-home-card .game-copy p{font-size:12px;line-height:1.4}
+ .sound-home-card .arrow{font-size:27px}
+}
