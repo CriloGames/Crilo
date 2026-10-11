@@ -9,14 +9,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="support-pastel.css?v=6">
+<link rel="stylesheet" href="support-pastel.css?v=7">
 </head>
 <body>
 <main class="pastel-world" aria-labelledby="supportHeading">
-  <div class="shape-canvas floating-shape-field" id="shapeCanvas" aria-label="Interactive 3D shape playground"></div>
-  <header class="shape-toolbar" aria-label="3D shape building tools">
-    <div class="toolbar-title"><strong>Shape Lab</strong><span>Pick a block. Drop it. Stack it.</span></div>
-    <div class="shape-palette" role="group" aria-label="Add a 3D shape">
+  <div class="shape-canvas stacking-playfield" id="shapeCanvas" aria-label="Interactive 3D shape playground"></div>
+  <header class="shape-toolbar" aria-label="Stack Lab controls">
+    <a class="shape-back" href="index.html#more-games" aria-label="Back to Crilo home">← Crilo</a>
+    <div class="toolbar-title"><strong>Stack Lab</strong><span>Build a tower. Reach the next star.</span></div>
+    <div class="shape-palette" role="group" aria-label="Choose a solid 3D shape">
       <button type="button" data-add-shape="cube"><i class="palette-icon cube"></i>Cube</button>
       <button type="button" data-add-shape="slab"><i class="palette-icon slab"></i>Slab</button>
       <button type="button" data-add-shape="cylinder"><i class="palette-icon cylinder"></i>Cylinder</button>
@@ -25,19 +26,21 @@
       <button type="button" data-add-shape="arch"><i class="palette-icon arch"></i>Arch</button>
     </div>
     <div class="shape-tools">
-      <div class="depth-switch" role="group" aria-label="Depth layer">
-        <span class="layer-label">Depth</span>
-        <button type="button" data-depth-layer="1" aria-pressed="true">1</button>
-        <button type="button" data-depth-layer="2" aria-pressed="false">2</button>
-        <button type="button" data-depth-layer="3" aria-pressed="false">3</button>
-      </div>
-      <button type="button" class="utility-tool" id="shapeGravity" aria-pressed="true">Gravity on</button>
+      <button type="button" class="utility-tool shape-surprise" id="shapeSurprise">✦ Surprise drop</button>
       <button type="button" class="utility-tool" id="shapeDelete" disabled>Remove</button>
-      <button type="button" class="utility-tool" id="shapeReset">Reset</button>
+      <button type="button" class="utility-tool" id="shapeReset">New pile</button>
     </div>
   </header>
-  <p class="shape-hint">Drag a block to move it · Drag a corner to resize · Choose a depth layer to stack</p>
-  <p id="shapeStatus" class="visually-hidden" aria-live="polite"></p>
+  <div class="stack-hud" aria-label="Stacking challenge">
+    <span class="stack-hud-title">STACK TO THE STAR</span>
+    <span id="stackProgress" aria-live="polite">Tower 0 / 3</span>
+    <div class="stack-track" aria-hidden="true"><span id="stackFill"></span></div>
+    <span id="stackBest">Best 0</span>
+  </div>
+  <p class="shape-hint">Choose a shape to drop it · Drag to stack · Pull a corner to resize proportionally</p>
+  <div class="stack-floor" aria-hidden="true"></div>
+  <div class="stack-celebration" aria-hidden="true" id="stackCelebrate">✦ Next star unlocked! ✦</div>
+  <p id="shapeStatus" class="visually-hidden" role="status" aria-live="polite"></p>
   <section class="tip-card" aria-label="Optional one-time support for Crilo">
     <span class="card-ribbon" aria-hidden="true">✦ A LITTLE LOVE FOR CRILO ✦</span>
     <span class="card-sticker one" aria-hidden="true">✿</span>
@@ -80,9 +83,30 @@
       button.setAttribute('aria-pressed',String(selected));
     });
   }
+  // Only a user-initiated click opens PayPal. Never embed or inspect its payment page.
+  checkout.addEventListener('click',event=>{
+    if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    event.preventDefault();
+    const w=Math.min(570,Math.max(340,screen.availWidth-30));
+    const h=Math.min(780,Math.max(520,screen.availHeight-60));
+    const left=Math.max(0,Math.round((screen.availWidth-w)/2));
+    const top=Math.max(0,Math.round((screen.availHeight-h)/2));
+    let popup=null;
+    try{
+      popup=window.open('about:blank','criloPaypalCheckout',
+        'popup=yes,width='+w+',height='+h+',left='+left+',top='+top+',resizable=yes,scrollbars=yes');
+      if(popup){
+        popup.opener=null;
+        popup.location.replace(checkout.href);
+        popup.focus();
+      }
+    }catch(_){popup=null}
+    // Popup blockers and browsers that force separate windows: keep payment accessible.
+    if(!popup)window.location.assign(checkout.href);
+  });
   buttons.forEach(button=>button.addEventListener('click',()=>choose(button.dataset.amount)));
   choose('2');
 })();</script>
-<script src="support-pastel.js?v=5"></script>
+<script src="support-pastel.js?v=6"></script>
 <script>if(location.hash==='#shape-of-sound')location.replace('shape-of-sound.html');</script>
 </body></html>

@@ -1,35 +1,66 @@
-/* Crilo shape playground — free, local, and separate from PayPal. */
+/* STACK LAB — completely free 3D block-stacking mini-game.
+   No backend, no payment logic. Gravity and collisions work in one shared play plane. */
 (()=>{
 'use strict';
-const scene=document.getElementById('shapeCanvas'),status=document.getElementById('shapeStatus');
-const addButtons=[...document.querySelectorAll('[data-add-shape]')];
-const layerButtons=[...document.querySelectorAll('[data-depth-layer]')];
-const gravityButton=document.getElementById('shapeGravity');
+const board=document.getElementById('shapeCanvas');
+const status=document.getElementById('shapeStatus');
+const progress=document.getElementById('stackProgress');
+const fill=document.getElementById('stackFill');
+const bestLabel=document.getElementById('stackBest');
+const celebrate=document.getElementById('stackCelebrate');
+const removeButton=document.getElementById('shapeDelete');
 const resetButton=document.getElementById('shapeReset');
-const deleteButton=document.getElementById('shapeDelete');
-if(!scene||!status||!gravityButton||!resetButton||!deleteButton)return;
+const surprise=document.getElementById('shapeSurprise');
+if(!board||!status||!progress||!fill||!bestLabel||!celebrate)return;
 const TYPES=['cube','slab','cylinder','sphere','prism','arch'];
+const RATIOS={cube:1,slab:1.75,cylinder:.9,sphere:1,prism:1,arch:.9};
 const COLORS=[
-  ['#F7B6C8','#D9899F','#FFE1E9'],['#A9DAF0','#76B1CF','#D8F1FF'],
-  ['#F9DB91','#D9B768','#FFF0C4'],['#B5E4C5','#83BB99','#DBF6E2'],
-  ['#D0BDF3','#A48BC8','#EEE1FF'],['#FFBEA0','#D79679','#FFE0CC']
+ ['#f3b2ca','#ca87a4','#ffe1eb'],['#b3dff4','#79aace','#e2f5ff'],
+ ['#f6d694','#d8ae6a','#fff0c5'],['#b6e2c8','#87bca3','#def7e6'],
+ ['#d2c0f1','#a58bc8','#f0e6ff'],['#f4bea4','#cf977d','#ffdfc9']
 ];
-const KEY='crilo:shape-playground:v1',LIMIT=46;
-const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
-let shapes=[],nextId=1,selectedId=null,layer=1,gravity=true,held=null,frame=0,last=0,active=false,saver=0;
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const size=()=>({w:scene.clientWidth||375,h:scene.clientHeight||700});
-const announce=text=>{status.textContent=text};
+const STORAGE='crilo:stack-lab:v2',BEST='crilo:stack-lab:best',MAX=32;
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+let shapes=[],id=1,selected=null,held=null,goal=3,highest=0,winTimer=0;
+let t0=0,frames=0,autosave=0,spawnNumber=0,rand=0xCAFE91;
+let best=0;
+try{best=Number(localStorage.getItem(BEST))||0}catch(_){}
+const random=()=>{rand^=rand<<13;rand^=rand>>>17;rand^=rand<<5;return (rand>>>0)/4294967296};
+const dimensions=()=>({w:board.clientWidth||390,h:board.clientHeight||680});
+const topOf=selector=>{
+ const node=document.querySelector(selector);
+ return node?node.getBoundingClientRect().bottom-board.getBoundingClientRect().top:150;
+};
+const floor=()=>{
+ const d=dimensions();
+ // Keep the physical floor within the first screen instead of far below the fold.
+ return clamp(Math.min(d.h-22,window.innerHeight-31),Math.min(390,d.h-22),d.h-15);
+};
+function positionFloor(){
+ const y=floor();
+ document.querySelector('.pastel-world').style.setProperty('--floor-y',y+'px');
+}
+function note(msg){status.textContent=msg}
+function save(){
+ try{
+  const d=dimensions();
+  localStorage.setItem(STORAGE,JSON.stringify(shapes.map(s=>({
+   type:s.type,x:s.x/d.w,y:s.y/d.h,w:s.w,id:s.id
+  }))));
+ }catch(_){}
+}
+function saveSoon(){clearTimeout(autosave);autosave=setTimeout(save,400)}
+function aspect(type,w){return w/(RATIOS[type]||1)}
 function paint(s){
- const node=s.node;if(!node)return;
- node.style.left=s.x+'px';node.style.top=s.y+'px';
- node.style.width=s.w+'px';node.style.height=s.h+'px';
- node.style.setProperty('--depth',Math.max(7,Math.min(21,s.w*.17)).toFixed(1)+'px');
- node.style.zIndex=String(10+s.layer*100+(s.id===selectedId?60:0));
- node.dataset.layer=String(s.layer);
- node.classList.toggle('selected',s.id===selectedId);
- node.classList.toggle('held',held?.id===s.id);
- node.setAttribute('aria-label',s.type+' on depth layer '+s.layer+', resize using the corner handles or arrow keys');
+ if(!s.el)return;
+ s.el.style.left=s.x+'px';s.el.style.top=s.y+'px';
+ s.el.style.width=s.w+'px';s.el.style.height=s.h+'px';
+ s.el.style.setProperty('--depth',clamp(s.w*.15,6,17)+'px');
+ s.el.style.zIndex=String(20+s.id+(s.id===selected?100:0));
+ s.el.classList.toggle('selected',selected===s.id);
+ s.el.classList.toggle('held',held?.id===s.id);
+ s.el.dataset.resting=String(Boolean(s.resting));
+ s.el.setAttribute('aria-label',s.type+' block. Drag to stack; resize proportionally by a corner or press plus/minus.');
 }
 function draw(s){
  const el=document.createElement('div');
@@ -37,200 +68,242 @@ function draw(s){
  el.dataset.shapeId=String(s.id);
  el.tabIndex=0;el.setAttribute('role','group');
  el.innerHTML='<div class="toy-shadow"></div><div class="toy-object"><span class="toy-top"></span><span class="toy-side"></span><span class="toy-front"></span><span class="toy-glint"></span></div>';
- ['nw','ne','sw','se'].forEach(corner=>{
-  const handle=document.createElement('span');handle.className='toy-handle at-'+corner;
-  handle.dataset.resize=corner;handle.setAttribute('aria-hidden','true');el.appendChild(handle);
- });
- const color=COLORS[(s.id-1)%COLORS.length];
- el.style.setProperty('--face',color[0]);el.style.setProperty('--side',color[1]);el.style.setProperty('--top',color[2]);
- scene.appendChild(el);s.node=el;paint(s);
+ for(const corner of ['nw','ne','sw','se']){
+  const n=document.createElement('span');n.className='toy-handle at-'+corner;
+  n.dataset.resize=corner;n.setAttribute('aria-hidden','true');el.appendChild(n);
+ }
+ const colors=COLORS[(s.id-1)%COLORS.length];
+ el.style.setProperty('--face',colors[0]);el.style.setProperty('--side',colors[1]);el.style.setProperty('--top',colors[2]);
+ board.appendChild(el);s.el=el;paint(s);
 }
 function select(s){
- selectedId=s?.id??null;
- if(s)layer=s.layer;
- layerButtons.forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.depthLayer)===layer)));
+ selected=s?.id??null;
+ removeButton.disabled=!s;
  for(const obj of shapes)paint(obj);
- deleteButton.disabled=!s;
 }
-function add(type,options={}){
- if(shapes.length>=LIMIT){announce('Shape limit reached. Remove one to make room.');return null;}
- const dims=size(),w=options.w|| (type==='slab'?115:type==='sphere'?74:88);
- const h=options.h||(type==='slab'?58:type==='prism'?100:type==='arch'?104:80);
- const index=shapes.length,seedX=(index*71+23) % Math.max(120,dims.w-120);
- const toolbarBottom=document.querySelector('.shape-toolbar')?.getBoundingClientRect().bottom||130;
- const sceneTop=scene.getBoundingClientRect().top;
- const visibleTop=Math.max(150,toolbarBottom-sceneTop+24);
- const tipBottom=document.querySelector('.tip-card')?.getBoundingClientRect().bottom||0;
- const dropTop=dims.w<640?Math.max(visibleTop,tipBottom-sceneTop+25):visibleTop;
- const s={id:nextId++,type:TYPES.includes(type)?type:'cube',
-   x:clamp(options.x??(dims.w>=640?(index%2===0?24:dims.w-w-24):(index%2===0?16:dims.w-w-16)),0,Math.max(0,dims.w-w)),
-   y:clamp(options.y??(dropTop+index%3*12),0,Math.max(0,dims.h-h)),
-   w,h,layer:options.layer??layer,vx:0,vy:0,node:null};
- shapes.push(s);draw(s);select(s);announce(s.type+' added. Drag to move; resize using a corner.');saveLater();return s;
+function supportOverlap(a,b){return Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))}
+function supports(s){
+ // The closest vertical contact below this shape always wins.
+ const yFloor=floor();
+ let limit=yFloor-s.h,other=null;
+ for(const b of shapes){
+  if(b===s||held?.id===b.id)continue;
+  if(supportOverlap(s,b)<Math.min(s.w,b.w)*.38)continue;
+  const contact=b.y-s.h;
+  if(contact<-1||b.y<s.y+s.h*.25)continue;
+  if(contact<limit+1){limit=contact;other=b;}
+ }
+ return {limit,other};
+}
+function create(type,options={}){
+ if(shapes.length>=MAX){note('The room is full. Remove a block to keep stacking.');return null;}
+ const d=dimensions(),w=clamp(Number(options.w)||({slab:105,arch:73,cylinder:70,prism:75,sphere:72,cube:78}[type]||76),43,Math.min(194,d.w-14));
+ const h=aspect(type,w);
+ const card=document.querySelector('.tip-card').getBoundingClientRect();
+ const cardBottom=card.bottom-board.getBoundingClientRect().top;
+ // On small screens, begin just below the tip panel; on desktop, spawn to either side.
+ const spawnY=d.w<570?Math.min(floor()-h-18,cardBottom+18):topOf('.shape-toolbar')+45;
+ const lane=spawnNumber++%4;
+ const positions=d.w<570?[.12,.51,.32,.68]:[.06,.84,.12,.77];
+ const x=clamp(options.x??((d.w-w)*positions[lane]),0,Math.max(0,d.w-w));
+ const y=clamp(options.y??spawnY,0,Math.max(0,floor()-h));
+ const s={id:id++,type:TYPES.includes(type)?type:'cube',x,y,w,h,vy:0,resting:false,el:null};
+ shapes.push(s);draw(s);
+ if(options.select!==false)select(s);
+ if(!options.quiet)note('Dropped '+s.type+'! Move it over another block to build your tower.');
+ saveSoon();return s;
 }
 function remove(){
- const s=shapes.find(x=>x.id===selectedId);if(!s)return;
- s.node.remove();shapes=shapes.filter(x=>x!==s);select(null);
- announce('Shape removed.');saveLater();
+ const s=shapes.find(x=>x.id===selected);if(!s)return;
+ s.el.remove();shapes=shapes.filter(x=>x!==s);
+ select(null);note('Block removed.');saveSoon();updateScore();
 }
-function snapshot(){
- const dims=size();
- return shapes.map(s=>({type:s.type,layer:s.layer,x:s.x/dims.w,y:s.y/dims.h,w:s.w,h:s.h}));
+function clear(){
+ for(const s of shapes)s.el?.remove();
+ shapes=[];id=1;selected=null;spawnNumber=0;removeButton.disabled=true;
 }
-function saveLater(){clearTimeout(saver);saver=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(_){}},300)}
-function seed(){
- const dims=size(),data=[
-  ['cube',.05,.20,86,86,1],['slab',.13,.06,115,55,2],['sphere',.77,.20,82,82,3],
-  ['arch',.80,.04,75,96,1],['cylinder',.04,.53,76,96,2],['prism',.81,.54,86,90,2],
-  ['cube',.25,.12,75,75,3],['slab',.60,.11,115,55,1],
-  ['sphere',.21,.35,76,76,2],['cube',.69,.35,78,78,1],
-  ['prism',.12,.04,76,78,3],['cylinder',.66,.02,78,95,2]
- ];
- for(const item of data){
-  const [type,x,y,w,h,z]=item;
-  add(type,{x:Math.min(dims.w-w,x*dims.w),
-   y:Math.max(155,y*dims.h),w,h,layer:z});
+function newPile(){
+ clear();goal=3;highest=0;
+ const d=dimensions(),f=floor();
+ // A short starter pile, placed beside the panel and visible in the first viewport.
+ const positions=d.w<570?[.03,.72]:[.075,.80];
+ for(let i=0;i<2;i++){
+  const type=i?'cube':'slab',w=d.w<450?65:85,h=aspect(type,w);
+  create(type,{x:(d.w-w)*positions[i],y:f-h,w,quiet:true,select:false});
  }
- select(null);
-}
-function reset(){
- for(const s of shapes)s.node?.remove();
- shapes=[];nextId=1;select(null);
- seed();announce('Fresh pile! Pick a shape from the top bar.');saveLater();
+ select(null);updateScore();
+ note('Stack three blocks to reach the first star. The challenge is free!');
+ saveSoon();
 }
 function restore(){
- let data=null;
- try{data=JSON.parse(localStorage.getItem(KEY)||'null')}catch(_){}
- const dims=size();
- if(!Array.isArray(data)||!data.length||data.length>LIMIT){seed();return;}
- for(const o of data){
-  if(!TYPES.includes(o.type))continue;
-  const w=clamp(Number(o.w)||80,38,210),h=clamp(Number(o.h)||80,38,210);
-  add(o.type,{x:clamp(Number(o.x)*dims.w||0,0,dims.w-w),
-   y:clamp(Number(o.y)*dims.h||0,0,dims.h-h),w,h,layer:clamp(Number(o.layer)||1,1,3)});
+ let data;try{data=JSON.parse(localStorage.getItem(STORAGE)||'null')}catch(_){}
+ if(!Array.isArray(data)||!data.length||data.length>MAX){newPile();return}
+ const d=dimensions();
+ for(const obj of data){
+  if(!TYPES.includes(obj.type))continue;
+  const w=clamp(Number(obj.w)||70,43,Math.min(194,d.w-14)),h=aspect(obj.type,w);
+  create(obj.type,{x:clamp(Number(obj.x)*d.w||0,0,d.w-w),
+   y:clamp(Number(obj.y)*d.h||0,0,floor()-h),w,quiet:true,select:false});
  }
- select(null);
+ select(null);updateScore();
 }
-function position(e){const r=scene.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
-function down(e){
+function point(e){const box=board.getBoundingClientRect();return {x:e.clientX-box.left,y:e.clientY-box.top}}
+function pointerDown(e){
  const el=e.target.closest('.toy-shape');if(!el)return;
- const s=shapes.find(obj=>String(obj.id)===el.dataset.shapeId);if(!s)return;
+ const s=shapes.find(o=>String(o.id)===el.dataset.shapeId);
+ if(!s)return;
  e.preventDefault();select(s);
- const corner=e.target.closest('[data-resize]')?.dataset.resize||null;
- const p=position(e);
- held={id:s.id,corner,p0:p,x:s.x,y:s.y,w:s.w,h:s.h};
- s.vx=0;s.vy=0;active=true;
+ const p=point(e),corner=e.target.closest('[data-resize]')?.dataset.resize||null;
+ held={id:s.id,pointer:e.pointerId,corner,p,x:s.x,y:s.y,w:s.w,h:s.h};
+ s.vy=0;s.resting=false;
  el.setPointerCapture(e.pointerId);paint(s);
 }
-function move(e){
- if(!held)return;
- const s=shapes.find(x=>x.id===held.id);if(!s)return;
+function pointerMove(e){
+ if(!held||e.pointerId!==held.pointer)return;
+ const s=shapes.find(o=>o.id===held.id);if(!s)return;
  e.preventDefault();
- const p=position(e),dx=p.x-held.p0.x,dy=p.y-held.p0.y,dims=size();
+ const p=point(e),dx=p.x-held.p.x,dy=p.y-held.p.y,d=dimensions();
  if(held.corner){
-  const c=held.corner;
-  const right=c.includes('e'),bottom=c.includes('s');
-  const dw=right?dx:-dx,dh=bottom?dy:-dy;
-  const maxW=right?dims.w-held.x:held.x+held.w;
-  const maxH=bottom?dims.h-held.y:held.y+held.h;
-  const w=clamp(held.w+dw,38,Math.max(38,Math.min(230,maxW)));
-  const h=clamp(held.h+dh,38,Math.max(38,Math.min(230,maxH)));
-  s.x=right?held.x:held.x+held.w-w;
-  s.y=bottom?held.y:held.y+held.h-h;
-  s.w=w;s.h=h;
+  const east=held.corner.includes('e'),south=held.corner.includes('s');
+  const signX=east?1:-1,signY=south?1:-1;
+  // Uniform scaling preserves shape aspect ratio, regardless of corner direction.
+  const factor=clamp(1+((signX*dx/held.w)+(signY*dy/held.h))*.5,
+   Math.max(43/held.w,43/Math.max(held.h,1)),Math.min(194/held.w,194/held.h));
+  const newW=clamp(held.w*factor,43,194),newH=aspect(s.type,newW);
+  const anchorX=east?held.x:held.x+held.w;
+  const anchorY=south?held.y:held.y+held.h;
+  s.w=newW;s.h=newH;
+  s.x=clamp(east?anchorX:anchorX-newW,0,Math.max(0,d.w-newW));
+  s.y=clamp(south?anchorY:anchorY-newH,0,Math.max(0,floor()-newH));
  }else{
-  const nx=clamp(held.x+dx,0,Math.max(0,dims.w-s.w));
-  const ny=clamp(held.y+dy,0,Math.max(0,dims.h-s.h));
-  s.vx=clamp((nx-s.x)*.38,-7,7);s.vy=clamp((ny-s.y)*.28,-7,7);
-  s.x=nx;s.y=ny;
+  s.x=clamp(held.x+dx,0,Math.max(0,d.w-s.w));
+  s.y=clamp(held.y+dy,0,Math.max(0,floor()-s.h));
  }
  paint(s);
 }
-function up(){
- if(!held)return;
- const s=shapes.find(x=>x.id===held.id);
- held=null;active=false;
- if(s){s.vy=0;paint(s);}
- saveLater();
-}
-scene.addEventListener('pointerdown',down);
-scene.addEventListener('pointermove',move);
-scene.addEventListener('pointerup',up);
-scene.addEventListener('pointercancel',up);
-scene.addEventListener('lostpointercapture',up);
-scene.addEventListener('keydown',e=>{
- const el=e.target.closest('.toy-shape');if(!el)return;
- const s=shapes.find(x=>String(x.id)===el.dataset.shapeId);if(!s)return;
- if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','Delete','Backspace'].includes(e.key))e.preventDefault();
- select(s);
- const dims=size(),step=e.shiftKey?20:8;
- if(e.key==='ArrowLeft')s.x-=step;
- else if(e.key==='ArrowRight')s.x+=step;
- else if(e.key==='ArrowUp')s.y-=step;
- else if(e.key==='ArrowDown')s.y+=step;
- else if(e.key==='+'||e.key==='='){s.w+=step;s.h+=step;}
- else if(e.key==='-'){s.w-=step;s.h-=step;}
- else if(e.key==='Delete'||e.key==='Backspace'){remove();return;}
- else return;
- s.w=clamp(s.w,38,230);s.h=clamp(s.h,38,230);
- s.x=clamp(s.x,0,Math.max(0,dims.w-s.w));s.y=clamp(s.y,0,Math.max(0,dims.h-s.h));
- s.vx=s.vy=0;paint(s);saveLater();
-});
-for(const button of addButtons)button.addEventListener('click',()=>add(button.dataset.addShape));
-for(const button of layerButtons)button.addEventListener('click',()=>{
- layer=Number(button.dataset.depthLayer);
- const s=shapes.find(x=>x.id===selectedId);
- if(s){s.layer=layer;paint(s);}
- layerButtons.forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.depthLayer)===layer)));
- announce('Depth layer '+layer+' selected. '+(s?'Selected shape moved to this layer.':'New shapes will use this layer.'));
- saveLater();
-});
-gravityButton.addEventListener('click',()=>{
- gravity=!gravity;
- gravityButton.setAttribute('aria-pressed',String(gravity));
- gravityButton.textContent=gravity?'Gravity on':'Gravity off';
- announce(gravity?'Gravity enabled. Drop a block to watch it fall.':'Gravity paused. Shapes stay where you place them.');
-});
-resetButton.addEventListener('click',reset);
-deleteButton.addEventListener('click',remove);
-function tick(t){
- if(!last)last=t;
- const dt=clamp((t-last)/16.67,.3,2);last=t;
- if(gravity&&!document.hidden){
-  const dims=size();
-  const objects=[...shapes].sort((a,b)=>b.y-a.y);
-  for(const s of objects){
-   if(held?.id===s.id)continue;
-   s.vy=clamp(s.vy+.52*dt,-20,13);
-   let nextY=s.y+s.vy*dt;
-   let resting=dims.h-s.h;
-   // Contact surfaces on the same Z layer: falling objects stack on other blocks.
-   for(const other of objects){
-    if(s===other||s.layer!==other.layer||held?.id===other.id)continue;
-    const overlap=Math.min(s.x+s.w,other.x+other.w)-Math.max(s.x,other.x);
-    if(overlap<Math.min(s.w,other.w)*.32)continue;
-    const support=other.y-s.h;
-    if(other.y<=s.y+7||support<0)continue;
-    if(s.y+s.h<=other.y+5&&nextY>=support-1)resting=Math.min(resting,support);
-   }
-   if(nextY>=resting){
-    nextY=resting;s.vy=s.vy>2?-s.vy*.14:0;
-    if(Math.abs(s.vy)<.5)s.vy=0;
-   }
-   if(Math.abs(nextY-s.y)>.08){s.y=nextY;paint(s);}
+function pointerUp(e){
+ if(!held||(e&&e.pointerId!==held.pointer))return;
+ const s=shapes.find(o=>o.id===held.id);held=null;
+ if(!s)return;
+ // Snap a block to the top of a nearby shape when dropped over it.
+ const sorted=shapes.filter(b=>b!==s)
+  .filter(b=>supportOverlap(s,b)>=Math.min(s.w,b.w)*.38&&s.y<b.y)
+  .sort((a,b)=>a.y-b.y);
+ for(const other of sorted){
+  if(s.y+s.h>=other.y-14&&s.y<other.y){
+   s.y=clamp(other.y-s.h,0,floor()-s.h);break;
   }
  }
- frame=requestAnimationFrame(tick);
+ s.vy=0;s.resting=false;paint(s);saveSoon();updateScore();
 }
-function resized(){
- const dims=size();
+board.addEventListener('pointerdown',pointerDown);
+board.addEventListener('pointermove',pointerMove);
+board.addEventListener('pointerup',pointerUp);
+board.addEventListener('pointercancel',pointerUp);
+board.addEventListener('lostpointercapture',pointerUp);
+board.addEventListener('keydown',e=>{
+ const el=e.target.closest('.toy-shape');if(!el)return;
+ const s=shapes.find(o=>String(o.id)===el.dataset.shapeId);if(!s)return;
+ const keys=['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','Delete','Backspace'];
+ if(!keys.includes(e.key))return;
+ e.preventDefault();select(s);
+ const step=e.shiftKey?18:7,d=dimensions();
+ if(e.key==='Delete'||e.key==='Backspace'){remove();return}
+ if(e.key==='+'||e.key==='='||e.key==='-'){
+  const next=clamp(s.w+(e.key==='-'?-step:step),43,Math.min(194,d.w-14));
+  s.w=next;s.h=aspect(s.type,next);
+ }else{
+  if(e.key==='ArrowLeft')s.x-=step;
+  if(e.key==='ArrowRight')s.x+=step;
+  if(e.key==='ArrowUp')s.y-=step;
+  if(e.key==='ArrowDown')s.y+=step;
+ }
+ s.x=clamp(s.x,0,d.w-s.w);s.y=clamp(s.y,0,floor()-s.h);
+ s.vy=0;paint(s);saveSoon();updateScore();
+});
+for(const button of document.querySelectorAll('[data-add-shape]')){
+ button.addEventListener('click',()=>create(button.dataset.addShape));
+}
+surprise.addEventListener('click',()=>{
+ const kind=TYPES[Math.floor(random()*TYPES.length)];
+ create(kind);note('Surprise! Try landing this '+kind+' on your tower.');
+});
+resetButton.addEventListener('click',newPile);
+removeButton.addEventListener('click',remove);
+function towerScore(){
+ const memo=new Map(),visiting=new Set();
+ const stackDepth=s=>{
+  if(memo.has(s.id))return memo.get(s.id);
+  if(visiting.has(s.id))return 1;
+  visiting.add(s.id);
+  const b=s.support;
+  const depth=1+(b&&b!==s?stackDepth(b):0);
+  visiting.delete(s.id);memo.set(s.id,depth);return depth;
+ };
+ let max=0;
  for(const s of shapes){
-  s.x=clamp(s.x,0,Math.max(0,dims.w-s.w));
-  s.y=clamp(s.y,0,Math.max(0,dims.h-s.h));paint(s);
+  if(!s.resting)continue;
+  const score=stackDepth(s);
+  if(score>max)max=score;
+ }
+ return max;
+}
+function updateScore(){
+ const count=towerScore();
+ highest=Math.max(highest,count);
+ if(highest>best){
+  best=highest;
+  try{localStorage.setItem(BEST,String(best))}catch(_){}
+ }
+ if(count>=goal){
+  goal+=goal<5?2:3;
+  celebrate.textContent='✦ Stack complete! Next star: '+goal+' ✦';
+  celebrate.classList.add('celebrate');
+  clearTimeout(winTimer);
+  winTimer=setTimeout(()=>celebrate.classList.remove('celebrate'),1900);
+  note('You reached the star! Keep stacking to '+goal+' blocks.');
+ }
+ progress.textContent='Tower '+count+' / '+goal;
+ fill.style.width=Math.min(100,count/goal*100)+'%';
+ bestLabel.textContent='Best '+best;
+ board.dataset.tower=String(count);board.dataset.goal=String(goal);
+}
+function physics(now){
+ if(!t0)t0=now;
+ const dt=clamp((now-t0)/16.7,.25,2);t0=now;
+ if(!document.hidden){
+  // Sort bottom first so supporting blocks settle before blocks above them.
+  const ordered=[...shapes].sort((a,b)=>b.y-a.y);
+  for(const s of ordered){
+   if(held?.id===s.id)continue;
+   const prev=s.y;
+   s.vy=clamp(s.vy+.65*dt,-5,14);
+   const support=supports(s);
+   const next=s.y+s.vy*dt;
+   if(next>=support.limit-.15){
+    s.y=support.limit;
+    s.vy=0;
+    s.resting=true;s.support=support.other;
+   }else{
+    s.y=Math.min(next,floor()-s.h);
+    s.resting=false;s.support=null;
+   }
+   if(Math.abs(prev-s.y)>.05)paint(s);
+  }
+ }
+ if(++frames%9===0)updateScore();
+ requestAnimationFrame(physics);
+}
+function resize(){
+ positionFloor();const d=dimensions();
+ for(const s of shapes){
+  s.w=Math.min(s.w,d.w-12);s.h=aspect(s.type,s.w);
+  s.x=clamp(s.x,0,Math.max(0,d.w-s.w));
+  s.y=clamp(s.y,0,Math.max(0,floor()-s.h));
+  paint(s);
  }
 }
-window.addEventListener('resize',resized,{passive:true});
-window.addEventListener('pagehide',()=>{try{localStorage.setItem(KEY,JSON.stringify(snapshot()))}catch(_){}});
-restore();
-frame=requestAnimationFrame(tick);
+window.addEventListener('resize',resize,{passive:true});
+window.addEventListener('pagehide',save);
+positionFloor();restore();requestAnimationFrame(physics);
 })();

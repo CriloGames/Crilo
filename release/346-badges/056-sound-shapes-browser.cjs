@@ -233,82 +233,88 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  // All six real 3D toys, physics and resizing must be interactive.
+  // Interactive Stack Lab: distinct solids, proportional resizing, physics and score.
   const initialCount=await tipPage.locator('.toy-shape').count();
-  check(initialCount>=10,scenario.name+' initial 3D toys were not created');
-  for(const t of ['cube','slab','cylinder','sphere','prism','arch']){
-    check(await tipPage.locator('.type-'+t).count()>0,scenario.name+' missing 3D '+t);
-  }
-  const layers=await tipPage.evaluate(()=>{
-    const toys=[...document.querySelectorAll('.toy-shape')];
-    const card=document.querySelector('.tip-card');
-    const board=document.getElementById('shapeCanvas');
-    const toolbar=document.querySelector('.shape-toolbar');
-    return {
-      levels:new Set(toys.map(n=>n.dataset.layer)).size,
-      front:Number(getComputedStyle(card).zIndex),
-      maxToy:Math.max(...toys.map(n=>Number(getComputedStyle(n).zIndex))),
-      toolbar:Number(getComputedStyle(toolbar).zIndex),
-      boardHeight:board.getBoundingClientRect().height,
-      topFaces:document.querySelectorAll('.toy-top').length,
-      rightFaces:document.querySelectorAll('.toy-side').length
-    };
+  check(initialCount===2,scenario.name+' starter shapes should be visible and uncluttered');
+  check(await tipPage.locator('[data-depth-layer]').count()===0,
+    scenario.name+' artificial depth options must be removed');
+  check(await tipPage.locator('.shape-back').getAttribute('href')==='index.html#more-games',
+    scenario.name+' back-to-home navigation missing');
+  check(await tipPage.locator('#stackProgress').isVisible(),
+    scenario.name+' stacking game HUD missing');
+  const first=await tipPage.evaluate(()=>{
+    const board=document.getElementById('shapeCanvas').getBoundingClientRect();
+    const first=[...document.querySelectorAll('.toy-shape')].map(el=>el.getBoundingClientRect());
+    const card=document.querySelector('.tip-card').getBoundingClientRect();
+    const hud=document.querySelector('.stack-hud').getBoundingClientRect();
+    return {height:board.height,card:card.toJSON(),hud:hud.toJSON(),shapes:first.map(r=>r.toJSON()),
+      pageHeight:document.documentElement.scrollHeight,viewportHeight:innerHeight};
   });
-  check(layers.levels===3&&layers.front>layers.maxToy&&layers.toolbar>layers.front,
-    scenario.name+' 3 layers or permanent frontmost checkout missing '+JSON.stringify(layers));
-  check(layers.topFaces===initialCount&&layers.rightFaces===initialCount,
-    scenario.name+' 3D toy faces missing');
-  await tipPage.locator('#shapeGravity').click();
-  check(await tipPage.locator('#shapeGravity').getAttribute('aria-pressed')==='false',
-    scenario.name+' gravity cannot be paused');
+  check(first.shapes.every(r=>r.y>=0&&r.bottom<=Math.max(first.viewportHeight+20,first.height)),
+    scenario.name+' initial shapes start below screen '+JSON.stringify(first));
+  check(first.pageHeight<=Math.max(first.viewportHeight+135,730),
+    scenario.name+' stacking page remains unnecessarily tall '+JSON.stringify(first));
+  for(const kind of ['cube','slab','cylinder','sphere','prism','arch']){
+    await tipPage.locator('[data-add-shape="'+kind+'"]').click();
+    check(await tipPage.locator('.toy-shape.type-'+kind).count()>=1,
+      scenario.name+' add '+kind+' failed');
+  }
+  const front=await tipPage.evaluate(()=>{
+    const card=document.querySelector('.tip-card');
+    const canvas=document.getElementById('shapeCanvas');
+    const toolbar=document.querySelector('.shape-toolbar');
+    const cubes=[...document.querySelectorAll('.toy-shape')];
+    return {card:Number(getComputedStyle(card).zIndex),
+      field:Number(getComputedStyle(canvas).zIndex),
+      toolbar:Number(getComputedStyle(toolbar).zIndex),
+      depthGroups:document.querySelectorAll('[data-depth-layer]').length,
+      topFaces:cubes.filter(n=>n.querySelector('.toy-top')&&n.querySelector('.toy-side')&&n.querySelector('.toy-front')).length,
+      total:cubes.length};
+  });
+  check(front.depthGroups===0&&front.card>front.field&&front.toolbar>front.card&&front.topFaces===front.total,
+    scenario.name+' 3D geometry or protected tip card missing '+JSON.stringify(front));
+  // Exercise the mouse/touch pointer gesture on a fresh square block.
   await tipPage.locator('[data-add-shape="cube"]').click();
-  check(await tipPage.locator('.toy-shape').count()===initialCount+1,
-    scenario.name+' add shape failed');
   const toy=tipPage.locator('.toy-shape.selected');
-  check(await toy.count()===1,scenario.name+' new shape not selected');
-  await tipPage.locator('[data-depth-layer="3"]').click();
-  check(await toy.getAttribute('data-layer')==='3',scenario.name+' selected toy did not change Z layer');
-  // Actual pointer drag — reposition selected toy inside the interactive field.
   await toy.scrollIntoViewIfNeeded();
   const box=await toy.boundingBox();
-  check(!!box,scenario.name+' selected toy bounding box missing');
-  const x=box.x+box.width*.48,y=box.y+box.height*.45;
+  check(!!box,scenario.name+' selected shape missing');
+  const x=box.x+box.width*.50,y=box.y+box.height*.48;
   await tipPage.mouse.move(x,y);
   await tipPage.mouse.down();
-  await tipPage.mouse.move(x+24,y+16,{steps:5});
+  await tipPage.mouse.move(x+22,y+8,{steps:5});
   await tipPage.mouse.up();
   const moved=await toy.boundingBox();
-  check(moved.x>box.x+10&&moved.y>box.y+4,
-    scenario.name+' pointer dragging failed: '+JSON.stringify({box,moved}));
-  // Corner handle should resize in two dimensions, with minimum limits.
-  const handle=toy.locator('.toy-handle.at-se');
-  // On short iPhones the bottom-right handle may be just below the fold.
-  // Scroll the handle itself fully into view before beginning the touch/pointer gesture.
-  await handle.scrollIntoViewIfNeeded();
+  check(Math.abs(moved.x-box.x)>=10,scenario.name+' dragging does not reposition toys');
+  const resize=toy.locator('.toy-handle.at-se');
+  await resize.scrollIntoViewIfNeeded();
   const beforeResize=await toy.boundingBox();
-  const hbox=await handle.boundingBox();
-  check(!!hbox,scenario.name+' resize handle absent');
-  await tipPage.mouse.move(hbox.x+hbox.width/2,hbox.y+hbox.height/2);
+  const hb=await resize.boundingBox();
+  check(!!hb,scenario.name+' missing corner handle');
+  await tipPage.mouse.move(hb.x+hb.width/2,hb.y+hb.height/2);
   await tipPage.mouse.down();
-  await tipPage.mouse.move(hbox.x+hbox.width/2+20,hbox.y+hbox.height/2+18,{steps:5});
+  await tipPage.mouse.move(hb.x+hb.width/2+20,hb.y+hb.height/2+20,{steps:5});
   await tipPage.mouse.up();
   const afterResize=await toy.boundingBox();
-  check(afterResize.width>=beforeResize.width+9&&afterResize.height>=beforeResize.height+7,
-    scenario.name+' corner resize failed: '+JSON.stringify({beforeResize,afterResize}));
-  // Resume gravity and check an actual downward movement from the suspended position.
-  const beforeFall=await toy.boundingBox();
-  await tipPage.locator('#shapeGravity').click();
-  await tipPage.waitForTimeout(260);
-  const afterFall=await toy.boundingBox();
-  check(afterFall.y>beforeFall.y+2,
-    scenario.name+' gravity did not make a shape fall: '+JSON.stringify({beforeFall,afterFall}));
-  await tipPage.locator('#shapeGravity').click();
+  check(afterResize.width>beforeResize.width+6 && afterResize.height>beforeResize.height+6,
+    scenario.name+' proportional resize gesture failed '+JSON.stringify({beforeResize,afterResize}));
+  check(Math.abs(afterResize.width/afterResize.height-beforeResize.width/beforeResize.height)<.07,
+    scenario.name+' block was stretched or squished during resizing');
+  await tipPage.waitForFunction(()=>document.querySelector('.toy-shape.selected')?.dataset.resting==='true',
+    null,{timeout:4500});
+  check(await toy.getAttribute('data-resting')==='true',
+    scenario.name+' physics did not settle the shape on a support');
   await tipPage.locator('#shapeDelete').click();
-  check(await tipPage.locator('.toy-shape').count()===initialCount,
-    scenario.name+' remove shape failed');
+  check(await tipPage.locator('.toy-shape').count()===initialCount+6,
+    scenario.name+' remove selected block failed');
   await tipPage.locator('#shapeReset').click();
-  check(await tipPage.locator('.toy-shape').count()>=10,
-    scenario.name+' reset pile did not restore starter shapes');
+  check(await tipPage.locator('.toy-shape').count()===2,
+    scenario.name+' new pile did not reset the game');
+  check(await tipPage.locator('#stackProgress').isVisible(),
+    scenario.name+' score HUD disappeared after reset');
+  await tipPage.locator('#shapeSurprise').click();
+  check(await tipPage.locator('.toy-shape').count()===3,
+    scenario.name+' surprise drop did not work');
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,
@@ -346,6 +352,23 @@ async function main(){
     check(await tipPage.locator('[data-amount="'+amount+'"]').getAttribute('aria-pressed')==='true',
       scenario.name+' amount selection is not accessible');
   }
+  // Popup is invoked from a direct checkout click, without requesting real PayPal.
+  await tipPage.evaluate(()=>{
+    window.__checkoutPopup={};
+    window.open=(url,name,features)=>{
+      window.__checkoutPopup={url,name,features};
+      return {opener:window,location:{replace:dest=>{window.__checkoutPopup.destination=dest}},
+        focus:()=>{window.__checkoutPopup.focused=true}};
+    };
+  });
+  await tipPage.locator('[data-amount="5"]').click();
+  await tipPage.locator('#supportPayLink').click();
+  const popup=await tipPage.evaluate(()=>window.__checkoutPopup);
+  check(popup.name==='criloPaypalCheckout'&&popup.features.includes('popup=yes')&&
+    popup.destination===urls['5']&&popup.focused,
+    scenario.name+' hosted PayPal popup did not open from a direct click: '+JSON.stringify(popup));
+  check(tipPage.url().endsWith('/support.html'),
+    scenario.name+' checkout popup navigated the underlying game');
   check(!tipErrors.length,scenario.name+' pastel tip script errors: '+tipErrors.join('; '));
   await tipPage.close();
   check(!errors.length,scenario.name+' JavaScript errors: '+errors.join('; '));
