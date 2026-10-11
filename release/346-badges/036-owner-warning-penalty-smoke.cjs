@@ -130,10 +130,12 @@ async function homeCase(blocked){
   }
  };
  const clock=()=>new Date('2026-10-10T13:00:00Z');
- const bell=new Function('Crilo','criloDB','document','esc','relativeTime',
+ const bell=new Function('Crilo','criloDB','document','esc','relativeTime','window',
   app.slice(start,stop)+';return updateFriendBell')(
    {user:{id:'victim'}},criloDB,document,x=>String(x).replace(/</g,'&lt;'),
-   ()=> '1H AGO');
+   ()=> '1H AGO',{CriloHeaderContinuity:{
+    ensureBell:()=>get('friendBellWrap'),updateCount:()=>{}
+   }});
  await bell();
  assert.equal(get('friendBellCount').textContent,'1');
  assert.ok(get('friendBellItems').innerHTML.includes('Sexual or genital drawing'));
