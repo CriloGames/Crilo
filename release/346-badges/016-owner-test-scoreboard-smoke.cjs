@@ -27,7 +27,7 @@ assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
-assert.match(indexHTML,/game\.js\?v=72/);
+assert.match(indexHTML,/game\.js\?v=73/);
 assert.match(indexHTML,/style\.css\?v=101/);
 assert.match(indexHTML,/id="wheelScorePanel" data-rarity="unrevealed"/);
 assert.match(indexHTML,/id="scoreTier" hidden/);

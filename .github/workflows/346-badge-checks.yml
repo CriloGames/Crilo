@@ -168,6 +168,8 @@ jobs:
         run: node release/346-badges/067-wheel-reset-overflow-smoke.cjs
       - name: Keep badge competition server verified and protect active reset runs
         run: node release/346-badges/068-competitive-badges-smoke.cjs
+      - name: Disallow secondary Gmail aliases from receiving extra Daily attempts
+        run: node release/346-badges/069-wheel-gmail-alias-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game

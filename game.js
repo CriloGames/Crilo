@@ -433,7 +433,9 @@ if(officialServerMode()){
   officialReply=data;
  }catch(err){
   spinning=false;$('spinButton').disabled=false;
-  $('message').textContent=String(err?.message||'').includes('previous Daily has closed')?
+  $('message').textContent=String(err?.message||'').includes('Gmail alias already linked')?
+    'This Gmail address is an alias of an older Crilo account. Sign in with the original address to play the Daily.':
+    String(err?.message||'').includes('previous Daily has closed')?
    'The previous Daily has closed. Refresh this page to begin the new Daily.':
    'Could not confirm the official spin. Press SPIN to safely restore server state before requesting another spin.';
   console.error('Authoritative Daily spin failed',err);return;
