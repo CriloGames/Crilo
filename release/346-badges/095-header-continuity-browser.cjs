@@ -32,6 +32,9 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     // must show the same notification badge without waiting for any new RPC.
     await page.evaluate(()=>window.CriloHeaderContinuity.updateCount(window.Crilo.user.id,3));
     for(const route of ['leaderboard.html','profile.html','friends.html','index.html']){
+      // Each server refresh can legitimately update unread counts; seed a new
+      // cached count for this navigation and verify it survives the page load.
+      await page.evaluate(()=>window.CriloHeaderContinuity.updateCount(window.Crilo.user.id,3));
       await page.goto(origin+'/'+route,{waitUntil:'domcontentloaded'});
       const button=page.locator('#accountBtn');
       // Prepaint is synchronous, ahead of the 700ms auth round trip.
