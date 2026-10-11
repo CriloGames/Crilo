@@ -9,7 +9,7 @@ a.match(html,/id="criloOfficialDailyToday"/);
 a.match(html,/id="criloOfficialDailyLabel"/);
 a.match(html,/DAILIES COMPLETED TODAY/);
 a.doesNotMatch(html,/>ALL-TIME</);
-a.match(html,/official-daily-total\.js\?v=3/);
+a.match(html,/official-daily-total\.js\?v=4/);
 a.match(html,/official-daily-total\.css\?v=3/);
 a.match(js,/rpc\('crilo_public_daily_completion_counts'\)/);
 a.match(js,/Official Daily saved/);
