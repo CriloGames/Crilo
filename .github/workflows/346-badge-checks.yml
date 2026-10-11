@@ -29,6 +29,7 @@ on:
       - 'profile.html'
       - 'spin-history.js'
       - 'spin-history.css'
+      - 'blank-wheel.svg'
       - 'beetle-tricks.html'
       - 'bug-beetle.js'
       - 'style.css'
@@ -208,7 +209,7 @@ jobs:
         run: node release/346-badges/013-clickable-profile-badges-smoke.cjs
       - name: Check earned-only featured badges and rarity colors
         run: node release/346-badges/017-featured-earned-badges-smoke.cjs
-      - name: Page official spin history five outcomes at a time
+      - name: Page personal leaderboard five saved Dailies at a time
         run: node release/346-badges/014-spin-history-smoke.cjs
       - name: Verify owner Test Run isolation and wheel rarity score HUD
         run: node release/346-badges/016-owner-test-scoreboard-smoke.cjs
