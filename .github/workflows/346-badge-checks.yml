@@ -118,6 +118,8 @@ jobs:
           node-version: '22'
       - name: Verify privacy notice, terms, sitemap and responsive public contact links
         run: node release/346-badges/082-legal-pages-smoke.cjs
+      - name: Check safe profile-icon UI and server-side settings allowlists
+        run: node release/346-badges/090-profile-icon-static-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
           node --check app.js

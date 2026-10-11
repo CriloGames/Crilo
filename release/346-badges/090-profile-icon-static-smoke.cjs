@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const html=fs.readFileSync('profile.html','utf8'),app=fs.readFileSync('app.js','utf8'),profile=fs.readFileSync('profile.js','utf8');
+const icon=fs.readFileSync('profile-avatar.js','utf8'),sql=fs.readFileSync('release/346-badges/088-customizable-profile-icon.sql','utf8');
+for(const item of ['avatarEditorModal','avatarEditorSave','avatarEditorPreview','avatarCustomLetter','avatarIconOptions','avatarColorOptions','avatarUseInitial','avatarEditBtn'])
+ assert.ok(html.includes('id="'+item+'"'),'missing '+item);
+assert.match(html,/profile-avatar\.js\?v=1/);
+assert.match(html,/profile-avatar\.css\?v=1/);
+assert.match(profile,/CriloAvatar\?\.bind\(p,target===Crilo\.user\?\.id\)/);
+assert.match(app,/account_code,avatar_symbol,avatar_background/);
+assert.match(sql,/WHERE id=auth\.uid\(\)/i);
+assert.match(sql,/REVOKE ALL ON FUNCTION public\.crilo_update_profile_icon/);
+assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_update_profile_icon\(text,text\)/);
+assert.match(sql,/avatar_symbol ~ '\^\[A-Z0-9\]\$'/);
+assert.ok(!/toDataURL|<img|upload|FileReader/.test(icon),'Profile icon cannot accept unsafe image uploads');
+assert.match(icon,/crilo_update_profile_icon/);
+assert.match(icon,/aria-pressed/);
+console.log('PASS: profile icon UI, save permissions, fixed symbol allowlist and no image uploads.');

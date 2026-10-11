@@ -29,6 +29,9 @@ on:
       - 'ducks-page.js'
       - 'ducks.html'
       - 'profile.js'
+      - 'profile-avatar.js'
+      - 'profile-avatar.css'
+      - 'release/346-badges/089-profile-icon-browser.cjs'
       - 'profile.html'
       - 'owner-analytics.js'
       - 'owner-analytics.html'
@@ -64,6 +67,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
+      - name: Verify customizable profile icon save and public display in Chromium
+        run: node release/346-badges/089-profile-icon-browser.cjs
       - name: Test authenticated account settings, Friends, Ducks and owner-only menus without live writes
         run: node release/346-badges/087-signed-in-controls-browser.cjs
       - name: Exercise actual wheel page with synthetic signed-in browser
