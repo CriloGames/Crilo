@@ -25,8 +25,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   const insideX=cx+Math.min(12,box.width*.1);
   // The wheel is circular: choose a point INSIDE its square box but
   // outside the circular painted region to catch border-only failures.
-  const outsideX=studio?box.x+box.width+15:cx+box.width*.43;
-  const outsideY=studio?cy:cy+box.height*.43;
+  const outsideX=cx+box.width*.43;
+  const outsideY=cy+box.height*.43;
   const canvasId=studio?'pixelCanvas':'drawing';
   await page.mouse.move(cx,cy);await page.mouse.down();
   await page.mouse.move(insideX,cy);
