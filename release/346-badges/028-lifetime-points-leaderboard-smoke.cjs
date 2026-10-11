@@ -41,7 +41,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  assert.equal(fromCalled,0);
  assert.equal(get('bestScore').textContent,'1,000 pts');
  assert.equal(get('bestHeading').textContent,'ALL-TIME POINTS LEADER');
- assert.match(get('leaderDescription').textContent,/official Daily/);
+ assert.match(get('leaderDescription').textContent,/server-verified official Dailies/);
  assert.ok(!('scoreRarity' in get('bestScore').dataset));
  const html=get('leaderList').innerHTML;
  assert.match(html,/Winner/);
