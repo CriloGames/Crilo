@@ -189,6 +189,8 @@ jobs:
         run: node release/346-badges/069-wheel-gmail-alias-smoke.cjs
       - name: Validate Classic duck art on every leaderboard counter
         run: node release/346-badges/096-classic-duck-leaderboard-smoke.cjs
+      - name: Ignore stale leaderboard requests and keep badge profiles clickable
+        run: node release/346-badges/098-leaderboard-tab-race-smoke.cjs
       - name: Separate archived legacy scores from verified competition
         run: node release/346-badges/070-verified-legacy-separation-smoke.cjs
       - name: Protect official save recovery and authoritative terminal spins
