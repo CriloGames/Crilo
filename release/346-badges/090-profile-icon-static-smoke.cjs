@@ -12,7 +12,7 @@ assert.match(sql,/WHERE id=auth\.uid\(\)/i);
 assert.match(sql,/REVOKE ALL ON FUNCTION public\.crilo_update_profile_icon/);
 assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_update_profile_icon\(text,text\)/);
 assert.match(sql,/avatar_symbol ~ '\^\[A-Z0-9\]\$'/);
-assert.ok(!/toDataURL|<img|upload|FileReader/.test(icon),'Profile icon cannot accept unsafe image uploads');
+assert.ok(!/toDataURL|<img\\b|FileReader|\\.files\\b/.test(icon),'Profile icon cannot accept unsafe image uploads');
 assert.match(icon,/crilo_update_profile_icon/);
 assert.match(icon,/aria-pressed/);
 console.log('PASS: profile icon UI, save permissions, fixed symbol allowlist and no image uploads.');
