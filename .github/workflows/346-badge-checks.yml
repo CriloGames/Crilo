@@ -148,6 +148,8 @@ jobs:
         run: node release/346-badges/053-owner-mfa-security-smoke.cjs
       - name: Check server authority and hardened bug reporting
         run: node release/346-badges/059-security-hardening-smoke.cjs
+      - name: Reject stale banned-session friend and settings writes
+        run: node release/346-badges/060-friend-ban-throttle-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
