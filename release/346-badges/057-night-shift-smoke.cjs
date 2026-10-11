@@ -1,36 +1,34 @@
-/* Crilo support page: no gameplay gate, beautiful motion-safe abstract backdrop,
-   separate optional PayPal payments and preservation of original sound game. */
+/* Support: intentional print-design backdrop, voluntary PayPal only. */
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../..');
 const html=fs.readFileSync(path.join(root,'support.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'support-pastel.css'),'utf8');
-const js=fs.readFileSync(path.join(root,'support-pastel.js'),'utf8');
 const music=fs.readFileSync(path.join(root,'shape-of-sound.html'),'utf8');
-assert.equal((html.match(/id="supportPayLink"/g)||[]).length,1,'Exactly one voluntary PayPal checkout');
-assert.equal((html.match(/data-amount="/g)||[]).length,4,'Preserve the four existing tip amounts');
-assert.ok(html.includes('href="index.html#more-games"'),'Back to Crilo link');
-assert.ok(html.includes('support-pastel.css?v=8')&&html.includes('support-pastel.js?v=7'),'Cache-busted visual assets');
-assert.ok(html.includes('family=Manrope')&&css.includes('font-family:"Manrope"'),'Modern UI typography');
-assert.ok(html.includes('class="dreamscape"')&&html.includes('id="dreamscape"'),'Background as a decorative scene');
-assert.ok(html.includes('aria-hidden="true"')&&html.includes('viewBox="0 0 1600 1000"'),'Accessible original ribbon artwork');
-for(const sel of ['portal-left','portal-right','op-wheel-a','op-wheel-b','orb-top','orb-bottom','wave-one','wave-two','wave-three','light-grain']){
- assert.ok(html.includes(sel),'Missing layered composition '+sel);
+assert.equal((html.match(/id="supportPayLink"/g)||[]).length,1,'Exactly one checkout');
+assert.equal((html.match(/data-amount="/g)||[]).length,4,'Four voluntary tip options');
+assert.ok(html.includes('href="index.html#more-games"'),'Back to main site link');
+assert.ok(html.includes('support-pastel.css?v=9'),'Refresh redesigned static art CSS');
+assert.ok(html.includes('family=Manrope')&&css.includes('font-family:"Manrope"'),'Preserve familiar typography');
+assert.ok(html.includes('class="print-field"')&&html.includes('aria-hidden="true"'),'Artwork must be decorative');
+for(const mark of ['orbit-left','orbit-right','poster-loop','poster-stripes','poster-checks','poster-sun','poster-swoop','field-mark','paper-grain']){
+ assert.ok(html.includes(mark),'Missing distinct authored graphic element '+mark);
 }
-for(const item of ['repeating-conic-gradient','repeating-radial-gradient','.flow-art','.glass-orb','.light-pool','.portal','.tip-card','@media(prefers-reduced-motion:reduce)']){
- assert.ok(css.includes(item),'Missing original design/motion-safety asset '+item);
+assert.ok(html.includes('viewBox="0 0 700 410"'),'An intentional hand-authored outline needs its vector path');
+for(const mark of ['repeating-conic-gradient','repeating-linear-gradient','repeating-radial-gradient','.poster-orbit','.poster-loop','.tip-card','@media(prefers-reduced-motion:reduce)']){
+ assert.ok(css.includes(mark),'Missing screen-print style '+mark);
 }
-assert.ok(css.includes('animation:none!important')&&css.includes('pointer-events:none'),'Respect reduced motion and keep decor inert');
-assert.ok(js.includes('prefers-reduced-motion: reduce')&&js.includes('pointer: fine'),'Pointer parallax must be disabled on touch and reduced motion');
-assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|window\.open|localStorage|location\.href/i.test(js),
- 'Visual effect must not use backend, checkout or storage');
-for(const bad of ['shapeCanvas','shapeSurprise','stackProgress','data-depth-layer','data-add-shape','id="nightShift"','id="soundStage"','Stack Lab']){
- assert.ok(!html.includes(bad),'Remove old interaction/game interface '+bad);
+assert.ok(!css.includes('backdrop-filter')&&!css.includes('filter:blur('),
+ 'No glass cards or generic out-of-focus glowing blobs');
+assert.ok(css.includes('background:#fffdf9')&&css.includes('border:2px solid var(--ink)'),
+ 'Checkout should look like solid printed paper with ink outlines');
+for(const bad of ['shapeCanvas','shapeSurprise','stackProgress','data-depth-layer','data-add-shape','portal-iris','glass-orb','light-pool']){
+ assert.ok(!html.includes(bad),'Retired game/glossy decoration returned: '+bad);
 }
+assert.ok(!html.includes('support-pastel.js?v=7'),'No unnecessary moving-pointer effect');
 assert.ok(html.includes("window.open('about:blank'")&&html.includes('popup=yes')&&html.includes('popup.opener=null'),
- 'Keep prior isolated PayPal checkout popup');
-assert.ok(html.includes('if(!popup)window.location.assign(checkout.href)'),
- 'Payment must still be accessible when popup is blocked');
-assert.ok(music.includes('id="soundStage"')&&!music.includes('supportPayLink'),'Sound game remains separate');
-assert.ok(html.includes("location.hash==='#shape-of-sound'"),'Existing old game links redirect');
-console.log('PASS: Original pastel optical background, optional checkout, homepage link and accessible reduced-motion presentation.');
+ 'Keep safe one-time hosted PayPal popup');
+assert.ok(html.includes('if(!popup)window.location.assign(checkout.href)'),'Accessible popup-block fallback');
+assert.ok(music.includes('id="soundStage"')&&!music.includes('supportPayLink'),'Standalone music game unaffected');
+assert.ok(html.includes("location.hash==='#shape-of-sound'"),'Legacy music links preserved');
+console.log('PASS: Intentional paper/ink op-art background, four optional amounts, safe PayPal popup, back navigation.');

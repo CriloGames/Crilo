@@ -233,46 +233,48 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  // Optically rich donation background: artwork is decorative and never blocks checkout.
+  // Designed, flat-color print study: composition, navigation and absence of glossy UI.
   check(await tipPage.locator('.toy-shape, .shape-toolbar, #stackProgress, [data-add-shape]').count()===0,
-    scenario.name+' deleted Stack Lab gameplay still present');
+    scenario.name+' retired Stack Lab gameplay reappeared');
   check(await tipPage.locator('.support-back').getAttribute('href')==='index.html#more-games',
-    scenario.name+' direct link back to the main game is missing');
+    scenario.name+' missing back-to-Crilo link');
   const art=await tipPage.evaluate(()=>{
-    const scene=document.getElementById('dreamscape');
+    const field=document.getElementById('printField');
     const card=document.querySelector('.tip-card');
     const back=document.querySelector('.support-back');
-    const portals=[...document.querySelectorAll('.portal')];
-    const wheels=[...document.querySelectorAll('.op-wheel')];
-    const ribbons=[...document.querySelectorAll('.art-wave')];
-    const cardRect=card.getBoundingClientRect();
-    const backRect=back.getBoundingClientRect();
+    const orbit=document.querySelector('.poster-orbit');
+    const r=card.getBoundingClientRect(),n=back.getBoundingClientRect();
     return {
-      hidden:scene.getAttribute('aria-hidden'),
-      portals:portals.length,wheels:wheels.length,ribbons:ribbons.length,
-      svg:document.querySelectorAll('.flow-art path').length,
-      orbs:document.querySelectorAll('.glass-orb').length,
-      palette:getComputedStyle(portals[0]).backgroundImage,
-      cardZ:getComputedStyle(card).zIndex,
-      sceneZ:getComputedStyle(scene).zIndex,
-      card:cardRect.toJSON(),back:backRect.toJSON(),
-      visiblePay:document.getElementById('supportPayLink').getBoundingClientRect().width>120,
-      theme:getComputedStyle(document.querySelector('.pastel-world')).backgroundImage,
-      animation:getComputedStyle(portals[0]).animationName
+      hidden:field.getAttribute('aria-hidden'),
+      orbits:document.querySelectorAll('.poster-orbit').length,
+      loop:document.querySelectorAll('.poster-loop').length,
+      stripes:document.querySelectorAll('.poster-stripes').length,
+      swoop:document.querySelectorAll('.poster-swoop path').length,
+      marks:document.querySelectorAll('.field-mark').length,
+      grain:document.querySelectorAll('.paper-grain').length,
+      composition:getComputedStyle(orbit).backgroundImage,
+      ink:getComputedStyle(card).borderTopColor,
+      paper:getComputedStyle(card).backgroundColor,
+      cardZ:Number(getComputedStyle(card).zIndex),
+      artZ:Number(getComputedStyle(field).zIndex),
+      radius:getComputedStyle(card).borderRadius,
+      card:r.toJSON(),back:n.toJSON(),
+      payVisible:document.getElementById('supportPayLink').getBoundingClientRect().width>120,
+      animation:getComputedStyle(orbit).animationName,
     };
   });
-  check(art.hidden==='true'&&art.portals===2&&art.wheels===2&&art.ribbons===3&&art.svg>=8&&art.orbs===2,
-    scenario.name+' optical composition missing layers '+JSON.stringify(art));
-  check(art.palette.includes('conic-gradient')&&art.theme.includes('gradient')&&
-    Number(art.cardZ)>Number(art.sceneZ),
-    scenario.name+' background texture or frontmost checkout missing '+JSON.stringify(art));
-  check(art.card.width<=520&&art.back.width>60&&art.visiblePay,
-    scenario.name+' readable foreground controls missing '+JSON.stringify(art));
+  check(art.hidden==='true'&&art.orbits===2&&art.loop===1&&art.stripes===1&&art.swoop===3&&art.marks===2&&art.grain===1,
+    scenario.name+' authored op-art composition incomplete '+JSON.stringify(art));
+  check(art.composition.includes('conic-gradient')&&art.paper==='rgb(255, 253, 249)'&&
+    art.cardZ>art.artZ&&art.radius==='5px',
+    scenario.name+' flat printed card/style not in effect '+JSON.stringify(art));
+  check(art.card.width<=485&&art.back.width>60&&art.payVisible,
+    scenario.name+' main donation controls missing '+JSON.stringify(art));
   check(art.back.left>=0&&art.back.top>=0&&art.back.right<=scenario.width+2,
-    scenario.name+' navigation back is clipped '+JSON.stringify(art));
+    scenario.name+' back link clipped '+JSON.stringify(art));
   await tipPage.emulateMedia({reducedMotion:'reduce'});
-  const noMotion=await tipPage.locator('.portal').first().evaluate(el=>getComputedStyle(el).animationName);
-  check(noMotion==='none',scenario.name+' reduced-motion preference does not stop rotating illusion');
+  const noMotion=await tipPage.locator('.poster-orbit').first().evaluate(el=>getComputedStyle(el).animationName);
+  check(noMotion==='none',scenario.name+' reduced-motion setting failed to freeze the op-art');
   await tipPage.emulateMedia({reducedMotion:'no-preference'});
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
