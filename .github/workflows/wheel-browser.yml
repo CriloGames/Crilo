@@ -35,6 +35,7 @@ on:
       - 'profile-avatar.css'
       - 'spin-history.js'
       - 'spin-history.css'
+      - 'blank-wheel.svg'
       - 'default-wheel.svg'
       - 'release/346-badges/093-blank-wheel-history-browser.cjs'
       - 'release/346-badges/089-profile-icon-browser.cjs'
@@ -73,7 +74,7 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
-      - name: Check blank wheel thumbnail and saved spin results on mobile and desktop
+      - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
       - name: Verify customizable profile icon save and public display in Chromium
         run: node release/346-badges/089-profile-icon-browser.cjs
