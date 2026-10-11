@@ -53,7 +53,7 @@ assert.ok(ui.includes('auth.mfa.listFactors()'),'Show only verified enrolled fac
 assert.ok(ui.includes('textContent=data.totp.secret'),
  'Never inject a TOTP secret as HTML or into a URL');
 assert.ok(!ui.includes('localStorage'),'Never put authenticator secrets in local storage');
-assert.ok(settings.includes('owner-mfa.js?v=1'));
+assert.ok(settings.includes('owner-mfa.js?v=2'));
 assert.ok(app.includes('Owner security · 2FA'));
 for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','friends.html','settings.html','moderation.html','support.html']){
