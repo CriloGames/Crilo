@@ -44,9 +44,11 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    'An ordinary hover must never paint');
   // A deliberate new press must start a new stroke.
   // Use a clear region, separate from the original center stroke.
-  await page.mouse.move(cx-box.width*.28,cy+box.height*.23);
+  // Even after a 45° transform these offsets remain inside the actual
+  // circular canvas, not merely its expanded bounding rectangle.
+  await page.mouse.move(cx-box.width*.18,cy+box.height*.16);
   await page.mouse.down();
-  await page.mouse.move(cx-box.width*.16,cy+box.height*.23);
+  await page.mouse.move(cx-box.width*.10,cy+box.height*.16);
   assert.ok(await paintedPixels(page,canvasId)>left,'Fresh pointerdown did not restart drawing');
   await page.mouse.up();
   // The active pointer must be cancelled by blur with the button still down.
