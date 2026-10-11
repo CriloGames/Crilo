@@ -21,7 +21,7 @@ const end=profile.indexOf("\nwindow.addEventListener('crilo-auth-ready',load);",
 assert.ok(start>0&&end>start,'Unable to locate personal best display function');
 const chunk=profile.slice(start,end).replace(/}\s*$/,'');
 const render=new Function('target','Crilo','localStorage','domainScores','$',
- chunk+';return domainTop.innerHTML;');
+ chunk+';return $("domainTop").innerHTML;');
 function scenario(name,stored,local,expected,other=false){
  const domainTop={innerHTML:''};
  const Crilo={user:{id:'my-account'}};
