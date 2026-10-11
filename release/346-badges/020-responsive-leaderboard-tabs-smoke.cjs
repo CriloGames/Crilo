@@ -21,7 +21,7 @@ assert.ok(css.includes('@keyframes criloLogoSheen'),'Wordmark sweep keyframes mi
 assert.ok(css.includes('-webkit-text-fill-color:currentColor;'),
  'Reduced-motion fallback must keep the wordmark readable');
 
-assert.match(html,/style\.css\?v=106/);
+assert.match(html,/style\.css\?v=107/);
 assert.match(html,/leaderboard-tabs\.js\?v=2/);
 assert.match(html,/id="leaderTabs"/);
 assert.match(html,/id="leaderTabPrev"/);
