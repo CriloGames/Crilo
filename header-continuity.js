@@ -73,7 +73,7 @@ function prime(){
  button.setAttribute('aria-busy','true');
  if(snapshot.owner){
   const link=ownerLink();
-  if(link){link.setAttribute('aria-disabled','true');link.classList.add('crilo-owner-pending')}
+  if(link){link.setAttribute('aria-disabled','true');link.tabIndex=-1;link.classList.add('crilo-owner-pending')}
  }
  const counter=document.getElementById('friendBellCount');
  if(counter){
@@ -92,7 +92,7 @@ function save(user,profile){
  const button=document.getElementById('accountBtn');
  if(button)delete button.dataset.visualReady;
  const link=document.getElementById('ownerDrawingNav');
- if(link){link.removeAttribute('aria-disabled');link.classList.remove('crilo-owner-pending')}
+ if(link){link.removeAttribute('aria-disabled');link.removeAttribute('tabindex');link.classList.remove('crilo-owner-pending')}
 }
 function updateCount(userId,count){
  const old=read();
