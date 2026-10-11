@@ -86,10 +86,10 @@ async function main(){
      await page.locator('[data-close="helpModal"]').click();assert.ok(await page.locator('#helpModal').isHidden(),'Help close failed');
      await page.locator('#accountBtn').click();assert.ok(await page.locator('#authModal').isVisible(),'Sign in click failed');
      await page.locator('#authModal [data-close]').first().click();assert.ok(await page.locator('#authModal').isHidden(),'Sign-in close failed');
-     await page.locator('#pixelStudioBtn').click();assert.ok(await page.locator('#pixelModal').isVisible(),'Pixel Studio failed to open');
+     await page.locator('#pixelStudioBtn').click();assert.ok(await page.locator('#pixelStudioModal').isVisible(),'Pixel Studio failed to open');
      await page.locator('#pixelUndo').click();
      await page.locator('#pixelClear').click();
-     await page.locator('#pixelClose').click();assert.ok(await page.locator('#pixelModal').isHidden(),'Pixel Studio close failed');
+     await page.locator('#pixelClose').click();assert.ok(await page.locator('#pixelStudioModal').isHidden(),'Pixel Studio close failed');
      await page.locator('#bugBeetle').click();assert.ok(await page.locator('#bugReportModal').isVisible(),'Bug-report beetle did not open');
      await page.locator('#bugClose').click();assert.ok(await page.locator('#bugReportModal').isHidden(),'Bug report did not close');
      ok('Home nav, Help, sign-in, Pixel Studio and beetle modal '+width);
@@ -124,7 +124,7 @@ async function main(){
      await page.locator('#closeHelp').click();assert.ok(await page.locator('#helpModal').isHidden());
      await page.waitForFunction(()=>document.querySelector('#domainName').textContent!=='loading…',{timeout:10000});
      for(let round=1;round<=5;round++){
-      await page.locator('#priceSlider').fill(String(240+round*80));
+      await page.locator('#priceSlider').evaluate((el,val)=>{el.value=String(val);el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));},240+round*80);
       await page.locator('#guessButton').click();
       assert.ok(await page.locator('#reveal').isVisible(),'Reveal missing on round '+round);
       await page.locator('#nextButton').click();
@@ -140,7 +140,7 @@ async function main(){
      await page.locator('#soundPlayRoom').click();
      await page.locator('#soundPlayRoom').click();
      await page.locator('#soundReset').click();
-     const tempo=page.locator('#soundTempo');await tempo.fill('120');
+     const tempo=page.locator('#soundTempo');await tempo.evaluate(el=>{el.value='120';el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));});
      assert.ok((await page.locator('#soundTempoValue').innerText()).includes('120'));
      ok('Sound playground Add, Mix, Mute, Play, Reset, tempo '+width);
     }
