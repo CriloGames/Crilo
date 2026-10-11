@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..');
 const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
- 'profile.html','friends.html','settings.html','moderation.html','support.html','domain/index.html'];
+ 'profile.html','friends.html','settings.html','moderation.html','support.html','shape-of-sound.html','domain/index.html'];
 const load=p=>fs.readFileSync(path.join(root,p),'utf8');
 const pagesSource=Object.fromEntries(pages.map(p=>[p,load(p)]));
 let checkedLinks=0;
@@ -23,7 +23,7 @@ for(const [page,html] of Object.entries(pagesSource)){
   checkedLinks++;
  }
 }
-for(const page of pages.filter(p=>p!=='domain/index.html')){
+for(const page of pages.filter(p=>!['domain/index.html','support.html','shape-of-sound.html'].includes(p))){
  const html=pagesSource[page];
  assert.ok(html.includes('id="accountBtn"')&&html.includes('id="accountMenu"'),
   'Broken or missing account header on '+page);
@@ -78,8 +78,12 @@ assert.ok(migration.includes('crilo_owner_delete_profile_run')&&
  migration.includes("IF p_source='official' THEN")&&
  migration.includes("USING ERRCODE='22023'"),
  'Legacy official-score deletion must be rejected at the database boundary');
-assert.ok(pagesSource['support.html'].includes('app.js?v=41'),
- 'Support page must connect to shared sign-in rather than show a disconnected header');
+assert.ok(pagesSource['support.html'].includes('support-pastel.js?v=1'),
+ 'Support page must load its independent decorative code, not a fake sign-in header');
+assert.ok(pagesSource['shape-of-sound.html'].includes('sound-shapes.js?v=2'),
+ 'The free music game must have its own functioning page');
+assert.ok(pagesSource['index.html'].includes('href="shape-of-sound.html"'),
+ 'The homepage music card must link directly to its standalone game');
 console.log('PASS: '+pages.length+' site pages and '+checkedLinks+' internal asset/route links resolve.');
 console.log('PASS: sign-in headers and friend invitation/copy actions are connected.');
-console.log('PASS: Badge Detail/Featured Badge triggers, profile owner controls, reasoned deletion and Support sign-in are connected.');
+console.log('PASS: Badge Detail/Featured Badge triggers, profile owner controls, reasoned deletion, standalone music game, and optional support page are connected.');

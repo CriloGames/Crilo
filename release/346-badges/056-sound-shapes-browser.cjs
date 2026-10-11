@@ -20,7 +20,7 @@ const server=http.createServer((req,res)=>{
 function check(cond,msg){assert.ok(cond,msg)}
 async function main(){
  await new Promise((resolve,reject)=>server.listen(0,'127.0.0.1',e=>e?reject(e):resolve()));
- const port=server.address().port,url='http://127.0.0.1:'+port+'/support.html';
+ const port=server.address().port,url='http://127.0.0.1:'+port+'/shape-of-sound.html';
  let runs=0;
  for(const scenario of [
   {name:'desktop-wide',engine:chromium,width:1440,height:900,touch:false},
@@ -60,44 +60,8 @@ async function main(){
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('.sound-blob').first().waitFor({state:'visible'});
-  // Horror-lite room has a free skip path; every game action is independent
-  // from checkout and remains usable with pointer, keyboard, or touch.
-  check(await page.locator('#nightShift').isVisible(),scenario.name+' Night Shift missing');
-  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' tip station should start unrevealed');
-  check(await page.locator('#nightLights').isVisible(),scenario.name+' skip button must always be visible');
-  const roomDims=await page.evaluate(()=>{
-    const scene=document.getElementById('nightScene').getBoundingClientRect();
-    const wheel=document.getElementById('nightWheel').getBoundingClientRect();
-    return {scene:scene.toJSON(),wheel:wheel.toJSON(),vw:innerWidth,sw:document.documentElement.scrollWidth};
-  });
-  check(roomDims.sw<=roomDims.vw+2,scenario.name+' Night Shift viewport overflow');
-  check(roomDims.wheel.left>=roomDims.scene.left-2&&roomDims.wheel.right<=roomDims.scene.right+2&&
-    roomDims.wheel.top>=roomDims.scene.top-2&&roomDims.wheel.bottom<=roomDims.scene.bottom+2,
-    scenario.name+' Night Shift wheel clipped '+JSON.stringify(roomDims));
-  if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
-    const dark=await page.locator('#nightScene').screenshot({type:'jpeg',quality:52});
-    console.log('NIGHT_SHIFT_DARK_B64 '+scenario.name+' '+dark.toString('base64'));
-  }
-  await page.locator('[data-night-wheel="safe"]').click();
-  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' wheel should need clues');
-  await page.locator('[data-night-clue="duck"]').click();
-  check((await page.locator('#nightProgress').innerText()).includes('1 / 2'),scenario.name+' first clue not counted');
-  await page.locator('[data-night-clue="monitor"]').click();
-  check((await page.locator('#nightProgress').innerText()).includes('2 / 2'),scenario.name+' second clue not counted');
-  await page.locator('[data-night-wheel="danger"]').first().click();
-  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' danger symbol should not reveal tips');
-  await page.locator('[data-night-wheel="safe"]').click();
-  check(await page.locator('#nightShift').evaluate(el=>el.classList.contains('is-lit')),scenario.name+' lights did not come on');
-  check(await page.locator('#supportPayLink').isVisible(),scenario.name+' tip checkout should be visible after reveal');
-  if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
-    await page.waitForTimeout(1100); // Capture the completed light-on reveal.
-    const lit=await page.locator('#nightShift').screenshot({type:'jpeg',quality:52});
-    console.log('NIGHT_SHIFT_LIT_B64 '+scenario.name+' '+lit.toString('base64'));
-  }
-  await page.locator('#nightReplay').click();
-  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' replay did not restore the dark room');
-  await page.locator('#nightLights').click();
-  check(await page.locator('#supportPayLink').isVisible(),scenario.name+' direct skip did not reveal optional tips');
+  check(await page.locator('#shape-of-sound').isVisible(),scenario.name+' standalone sound game missing');
+  check(await page.locator('#supportPayLink').count()===0,scenario.name+' sound game unexpectedly contains checkout');
   const layout=await page.evaluate(()=>{
    const stage=document.getElementById('soundStage').getBoundingClientRect();
    const blobs=[...document.querySelectorAll('.sound-blob')].map(el=>el.getBoundingClientRect());
@@ -123,8 +87,8 @@ async function main(){
   for(const control of controls.controls)check(
     control.left>=controls.toolbar.left-2&&control.right<=controls.toolbar.right+2,
     scenario.name+' toolbar button was clipped '+JSON.stringify(controls));
-  check(await page.locator('#accountBtn').isHidden(),
-    scenario.name+' should not display sign-in on the free sound playground');
+  check(await page.locator('#accountBtn').count()===0,
+    scenario.name+' standalone sound game should not require a sign-in button');
   const organization=await page.evaluate(()=>{
     const toolbar=document.querySelector('.sound-toolbar').getBoundingClientRect();
     const left=document.querySelector('.sound-toolbar-left').getBoundingClientRect();
@@ -233,11 +197,6 @@ async function main(){
   await page.locator('#soundReset').click();
   const palette=await page.locator('.sound-palette-button').count();
   check(palette===5,scenario.name+' sound palette did not show all five choices');
-  const positions=await page.evaluate(()=>({
-    tip:document.getElementById('supportHeading').getBoundingClientRect().top,
-    stage:document.getElementById('soundStage').getBoundingClientRect().top
-  }));
-  check(positions.tip<positions.stage,scenario.name+' tip jar not visible first');
   for(let i=0;i<20;i++){
     await page.locator('#soundAdd'+['Boop','Hum','Pluck','Chime','Buzz'][i%5]).click();
   }
@@ -264,17 +223,48 @@ async function main(){
   await page.locator('#soundReset').click();
   check(await page.locator('.sound-blob').count()===5,scenario.name+' reset after 25 failed');
   check(await page.locator('#soundAddBoop').isEnabled(),scenario.name+' palette was not re-enabled');
-  const gameBefore=await page.locator('.sound-blob').count();
-  // Shape of Sound's persistence test reloads this page, correctly resetting
-  // Night Shift to dark. Use the always-available skip before checking checkout.
-  await page.locator('#nightLights').click();
-  check(await page.locator('#supportPayLink').isVisible(),
-    scenario.name+' voluntary tips inaccessible after refreshing the page');
-  await page.locator('[data-amount="10"]').click();
-  check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',scenario.name+' $10 checkout was changed');
-  await page.locator('[data-amount="custom"]').click();
-  check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/K7QJM2NVLKEYU',scenario.name+' custom checkout was changed');
-  check(await page.locator('.sound-blob').count()===gameBefore,scenario.name+' tip selection affected the free game');
+  // Dedicated support page: a pastel shape collage with one voluntary checkout.
+  const tipPage=await context.newPage();
+  tipPage.setDefaultTimeout(7000);
+  const tipErrors=[];
+  tipPage.on('pageerror',e=>tipErrors.push(e.message));
+  await tipPage.goto(url.replace('shape-of-sound.html','support.html'),{waitUntil:'load'});
+  check(await tipPage.locator('#supportPayLink').isVisible(),scenario.name+' optional PayPal checkout not immediately visible');
+  check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
+    scenario.name+' old games still on donation page');
+  check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
+  check(await tipPage.locator('.shape').count()===230,scenario.name+' pastel collage did not load 230 shapes');
+  const tipLayout=await tipPage.evaluate(()=>{
+    const card=document.querySelector('.tip-card').getBoundingClientRect();
+    const pay=document.getElementById('supportPayLink').getBoundingClientRect();
+    return {card:card.toJSON(),pay:pay.toJSON(),width:innerWidth,
+      scrollWidth:document.documentElement.scrollWidth,scale:visualViewport?.scale||1};
+  });
+  check(tipLayout.scrollWidth<=tipLayout.width+2,scenario.name+' pastel page horizontal overflow '+JSON.stringify(tipLayout));
+  check(tipLayout.card.left>=-2&&tipLayout.card.right<=tipLayout.width+2,
+    scenario.name+' pastel tip card cut off '+JSON.stringify(tipLayout));
+  check(tipLayout.pay.left>=tipLayout.card.left-2&&tipLayout.pay.right<=tipLayout.card.right+2,
+    scenario.name+' PayPal link clipped');
+  check(Math.abs(tipLayout.scale-1)<.02,scenario.name+' unwanted page zoom');
+  if(scenario.name==='iphone-portrait'||scenario.name==='desktop-wide'){
+    const jpg=await tipPage.screenshot({type:'jpeg',quality:60,fullPage:false});
+    console.log('PASTEL_DONATION_SCREENSHOT_B64 '+scenario.name+' '+jpg.toString('base64'));
+  }
+  const urls={
+    '2':'https://www.paypal.com/ncp/payment/75LUCY8GEAF84',
+    '5':'https://www.paypal.com/ncp/payment/N2EFYQL27VB3Q',
+    '10':'https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',
+    'custom':'https://www.paypal.com/ncp/payment/K7QJM2NVLKEYU'
+  };
+  for(const [amount,expected] of Object.entries(urls)){
+    await tipPage.locator('[data-amount="'+amount+'"]').click();
+    check(await tipPage.locator('#supportPayLink').getAttribute('href')===expected,
+      scenario.name+' incorrect PayPal link for '+amount);
+    check(await tipPage.locator('[data-amount="'+amount+'"]').getAttribute('aria-pressed')==='true',
+      scenario.name+' amount selection is not accessible');
+  }
+  check(!tipErrors.length,scenario.name+' pastel tip script errors: '+tipErrors.join('; '));
+  await tipPage.close();
   check(!errors.length,scenario.name+' JavaScript errors: '+errors.join('; '));
   // Confirm the homepage presents the new game before the original Domain card
   // and that the promotional card fits all ten actual browser viewport sizes.
@@ -283,7 +273,7 @@ async function main(){
     status:200,contentType:'application/javascript',body:''
   }));
   await home.route('https://cdn.jsdelivr.net/**',route=>route.abort());
-  await home.goto(url.replace('support.html','index.html'),{waitUntil:'load'});
+  await home.goto(url.replace('shape-of-sound.html','index.html'),{waitUntil:'load'});
   const gameCards=await home.evaluate(()=>{
     const sound=document.getElementById('soundHomeGame');
     const domain=document.querySelector('#more-games a[href="domain/"]');
@@ -298,7 +288,7 @@ async function main(){
       vw:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   check(!!gameCards,scenario.name+' homepage game card or Domain card missing');
-  check(gameCards.before&&gameCards.soundHref==='support.html#shape-of-sound'&&
+  check(gameCards.before&&gameCards.soundHref==='shape-of-sound.html'&&
     gameCards.title==='The Shape of Sound'&&gameCards.cards>=2,
     scenario.name+' Shape of Sound not a separate game before Domain');
   check(gameCards.domainDescription?.includes('Five rounds')&&
@@ -320,13 +310,13 @@ async function main(){
     console.log('HOMEPAGE_GAMES_SCREENSHOT_B64 '+scenario.name+' '+image.toString('base64'));
   }
   await home.locator('#soundHomeGame').click();
-  check(home.url().endsWith('/support.html#shape-of-sound'),
+  check(home.url().endsWith('/shape-of-sound.html'),
     scenario.name+' sound game card failed to navigate directly to its own game');
   check(await home.locator('#shape-of-sound').isVisible(),
     scenario.name+' Shape of Sound anchor target missing');
-  console.log('PASS_HOME '+scenario.name+' — Shape of Sound above Domain, navigates straight to sound, no overflow');
+  console.log('PASS_HOME '+scenario.name+' — Shape of Sound navigates to standalone game without overflow');
   await home.close();
-  console.log('PASS '+scenario.name+' '+scenario.width+'x'+scenario.height+' — layout/tap/audio/stretch/merge/split/loop/mute/save/reset/PayPal');
+  console.log('PASS '+scenario.name+' '+scenario.width+'x'+scenario.height+' — sound/layout/tap/audio/merge/loop/save/reset/pastel tips/PayPal');
   runs++;await context.close();await browser.close();
  }
  console.log('PASS: '+runs+' real rendered browser viewports; no purchases or user-data mutations.');

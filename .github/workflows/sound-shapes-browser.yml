@@ -4,8 +4,9 @@ on:
     branches: [main]
     paths:
       - 'sound-shapes.js'
-      - 'night-shift.js'
-      - 'night-shift.css'
+      - 'support-pastel.js'
+      - 'support-pastel.css'
+      - 'shape-of-sound.html'
       - 'sound-shapes.css'
       - 'support.html'
       - 'release/346-badges/056-sound-shapes-browser.cjs'

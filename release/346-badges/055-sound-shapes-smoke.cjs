@@ -5,7 +5,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../..');
-const html=fs.readFileSync(path.join(root,'support.html'),'utf8');
+const html=fs.readFileSync(path.join(root,'shape-of-sound.html'),'utf8');
 const css=fs.readFileSync(path.join(root,'sound-shapes.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'sound-shapes.js'),'utf8');
 const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
@@ -23,12 +23,12 @@ assert.ok(js.includes('event.pointerId!==interaction.pointerId'),'Second fingers
 assert.ok(js.includes('if(pan)pan.disconnect()'),'Stop retaining panner nodes after notes end');
 assert.ok(js.includes('const MAX_OBJECTS=25'),'25 sound slots must be supported');
 assert.ok(js.includes("button.id='soundAdd'+spec.name"),'All sounds have direct add buttons');
-assert.ok(js.includes('insertBefore(tip,lab)'),'Move existing optional tips above the game');
+assert.ok(js.includes('const MAX_OBJECTS=25'),'Keep the existing full 25-sound room');
 assert.ok(css.includes('.sound-palette-button'),'Offer visible sound choices');
 assert.ok(css.includes('body.sound-only-page .topbar .header-actions{display:none!important}'),
  'Hide sign-in on sound page only, preserving shared header wiring');
 assert.ok(html.includes('class="sound-only-page"'),'Sound page needs scoped header class');
-assert.ok(homepage.includes('id="soundHomeGame" href="support.html#shape-of-sound"'),'Homepage needs link to Shape of Sound');
+assert.ok(homepage.includes('id="soundHomeGame" href="shape-of-sound.html"'),'Homepage needs direct link to independent Shape of Sound');
 assert.ok(homepage.indexOf('id="soundHomeGame"')<homepage.indexOf('href="domain/"'),
  'Shape of Sound must be immediately before Domain');
 assert.ok(homepage.includes('The Shape of Sound'),'Homepage card needs game title');
@@ -141,11 +141,11 @@ click('soundReset');
 assert.equal(nodes().length,5,'Reset should work after reaching 25');
 assert.equal(get('soundAdd').disabled,false,'Palette should re-enable after reset');
 assert.ok(!html.includes('tips unlock')&&!html.includes('tip to play'));
-assert.ok(html.indexOf('id="supportHeading"')>html.indexOf('id="soundStage"'),
- 'The optional tip section must appear after the entire free game');
-for(const id of ['2','5','10','custom']){
- assert.ok(html.includes('data-amount="'+id+'"'),'Existing tip choice removed: '+id);
-}
+assert.ok(!html.includes('id="supportPayLink"'),'Shape of Sound must not contain checkout');
+assert.ok(!html.includes('id="nightShift"'),'Night Shift must not appear on the music page');
+const tipHtml=fs.readFileSync(path.join(root,'support.html'),'utf8');
+assert.ok(!tipHtml.includes('id="soundStage"')&&!tipHtml.includes('id="nightShift"'),
+ 'The tip page must not include other games');
 console.log('PASS: Five Web Audio sounds, resizing, pointer merging and splitting.');
 console.log('PASS: Adding, duplicating, deleting, reset, volume and looping controls.');
-console.log('PASS: Free, independent game with accessible controls and separate PayPal tips.');
+console.log('PASS: Free, independent music page with no checkout or horror game; tips live separately.');

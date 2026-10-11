@@ -1,24 +1,24 @@
-/* Night Shift static acceptance checks: gameplay stays free and PayPal is separate. */
+/* Crilo's support page is now an intentionally simple pastel tip page.
+   Regression verifies that no game mechanics or sign-in gate remain. */
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const dir=path.resolve(__dirname,'../..');
-const read=f=>fs.readFileSync(path.join(dir,f),'utf8');
-const html=read('support.html'),js=read('night-shift.js'),css=read('night-shift.css');
-assert.match(html,/id="nightShift"/);
-assert.ok(html.indexOf('id="nightShift"')<html.indexOf('id="soundStage"'),'Night Shift before sound playground');
-for(const id of ['nightScene','nightLights','nightReplay','nightSoundToggle','nightTipMount','nightProgress','nightStatus','soundStage','supportPayLink']){
- assert.ok(html.includes('id="'+id+'"'),'Missing important control '+id);
-}
-assert.equal((html.match(/id="supportPayLink"/g)||[]).length,1,'Exactly one checkout link, never duplicate tips');
-assert.equal((html.match(/class="support-amount(?: selected)?"/g)||[]).length,4,'Four PayPal denominations');
-assert.equal((html.match(/data-night-clue="/g)||[]).length,2,'Two independent scary clues');
-assert.equal((html.match(/data-night-wheel="danger"/g)||[]).length,5,'Five skull wheel positions');
-assert.equal((html.match(/data-night-wheel="safe"/g)||[]).length,1,'Only one safe wheel position');
-assert.ok(html.includes('night-shift.js?v=1')&&html.includes('night-shift.css?v=1'),'Night Shift assets are loaded');
-assert.ok(html.includes('href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84"'),'Existing initial PayPal link remains');
-assert.ok(js.includes("mount.appendChild(tip)"),'Move existing, trusted tip card rather than cloning it');
-assert.ok(js.includes("mount.hidden=false")&&js.includes("lights.addEventListener('click'"),'One-click skip must reveal optional tips');
-assert.ok(js.includes('prefers-reduced-motion'),'Replay supports reduced-motion');
-assert.ok(css.includes('@media(max-width:520px)')&&css.includes('@media(prefers-reduced-motion:reduce)'),'Mobile and reduced-motion support');
-assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|window\.open|location\.href/i.test(js),'Horror game cannot call payment or backend');
-console.log('PASS: Free Night Shift, two clues, six-piece wheel, direct tip access and isolated payment checkout.');
+const root=path.resolve(__dirname,'../..');
+const html=fs.readFileSync(path.join(root,'support.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'support-pastel.css'),'utf8');
+const js=fs.readFileSync(path.join(root,'support-pastel.js'),'utf8');
+const music=fs.readFileSync(path.join(root,'shape-of-sound.html'),'utf8');
+assert.match(html,/id="supportPayLink"/);
+assert.match(html,/id="shapeCanvas"/);
+assert.match(html,/class="tip-card"/);
+assert.equal((html.match(/id="supportPayLink"/g)||[]).length,1);
+assert.equal((html.match(/data-amount="/g)||[]).length,4);
+assert.ok(!html.includes('id="nightShift"')&&!html.includes('id="soundStage"'),'Old games must be removed from tip page');
+assert.ok(!html.includes('id="accountBtn"')&&!html.includes('app.js'),'No sign-in or account UI');
+assert.ok(html.includes('support-pastel.css?v=1')&&html.includes('support-pastel.js?v=1'));
+assert.ok(css.includes('.shape.flower')&&css.includes('.shape.heart')&&css.includes('.shape.bean'),'Pastel shape variety');
+assert.ok(css.includes('@media(max-width:650px)')&&css.includes('prefers-reduced-motion:reduce'),'Responsive reduced-motion art');
+assert.ok(js.includes('const pieces=230'),'Page should be full of layered pastel shapes');
+assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|window\.open|location\.href/i.test(js),'Decorations must remain entirely offline');
+assert.ok(music.includes('id="soundStage"')&&!music.includes('supportPayLink'),'Music game stays standalone');
+assert.ok(html.includes("location.hash==='#shape-of-sound'"),'Previously shared music links must keep working');
+console.log('PASS: Tip page has one optional PayPal checkout, 230 pastel stickers, no account or other game.');

@@ -3,7 +3,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),vm=require('node:vm');
 const html=fs.readFileSync(path.join(__dirname,'../../support.html'),'utf8');
-const style=fs.readFileSync(path.join(__dirname,'../../style.css'),'utf8');
+const style=fs.readFileSync(path.join(__dirname,'../../support-pastel.css'),'utf8');
 const urls={
   '2':'https://www.paypal.com/ncp/payment/75LUCY8GEAF84',
   '5':'https://www.paypal.com/ncp/payment/N2EFYQL27VB3Q',
@@ -15,7 +15,7 @@ assert.ok(html.includes('rel="noopener noreferrer"'),'External checkout tab must
 assert.ok(html.includes('aria-live="polite"'),'Selected tip should be announced accessibly');
 assert.ok(!html.includes('Payments aren\'t connected yet'),'Old disabled checkout notice remains');
 assert.ok(!html.includes('id="customAmount"'),'Do not collect a custom amount that PayPal cannot receive');
-assert.ok(style.includes('.support-checkout-link{opacity:1;cursor:pointer;'),'Checkout CTA must be visibly enabled');
+assert.ok(style.includes('.support-pay{display:flex;justify-content:center'),'Checkout CTA must be visibly enabled');
 const script=html.match(/<script>\(function\(\)\{[\s\S]*?\}\)\(\);<\/script>/);
 assert.ok(script,'Cannot locate PayPal checkout selector script');
 class Element{
