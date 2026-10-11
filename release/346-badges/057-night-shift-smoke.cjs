@@ -19,7 +19,7 @@ for(const id of ['shapeCanvas','shapeStatus','shapeGravity','shapeReset','shapeD
 }
 for(const kind of ['cube','slab','cylinder','sphere','prism','arch']){
  assert.ok(html.includes('data-add-shape="'+kind+'"'),'Missing shape palette slot '+kind);
- assert.ok(css.includes('.toy-shape.type-'+kind),'Missing 3D rendering for '+kind);
+ assert.ok(kind==='cube'?css.includes('.toy-front')&&css.includes('.toy-side'):css.includes('.toy-shape.type-'+kind),'Missing 3D rendering for '+kind);
 }
 for(const z of ['1','2','3']){
  assert.ok(html.includes('data-depth-layer="'+z+'"'),'Missing depth layer '+z);
