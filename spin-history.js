@@ -158,8 +158,9 @@
       if(token===requestId){
         pager.classList.remove('is-loading');
         button.disabled=false;
-        if(button.textContent!=='RETRY LOADING DAILIES ↻')updatePager();
+        const retry=button.textContent==='RETRY LOADING DAILIES ↻';
         busy=false;
+        if(!retry)updatePager();
       }
     }
   }
