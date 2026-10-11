@@ -9,11 +9,11 @@ const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const source=fs.readFileSync(path.join(root,'leaderboard-tabs.js'),'utf8');
 /* Every main navigation page shares the same motion-safe wordmark styling. */
 const brandPages=['index.html','leaderboard.html','ducks.html','profile.html',
- 'settings.html','friends.html','support.html','badge-sets.html'];
+ 'settings.html','friends.html','badge-sets.html','shape-of-sound.html'];
 for(const pageName of brandPages){
  const pageHTML=fs.readFileSync(path.join(root,pageName),'utf8');
  assert.ok(pageHTML.includes('class="brand"'),pageName+' shared wordmark missing');
- assert.ok(pageHTML.includes('style.css?v='+(pageName==='index.html'?'101':pageName==='leaderboard.html'?'98':pageName==='support.html'?'97':'96')),pageName+' current shared CSS reference');
+ assert.ok(pageHTML.includes('style.css?v='+(pageName==='index.html'?'101':pageName==='leaderboard.html'?'98':pageName==='shape-of-sound.html'?'101':'96')),pageName+' current shared CSS reference');
 }
 assert.ok(css.includes('animation:criloLogoSheen 10s ease-in-out infinite'),
  'The quiet Crilo rainbow sheen animation should be present');
