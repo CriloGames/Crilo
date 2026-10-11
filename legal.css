@@ -144,3 +144,20 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  .crilo-site-footer .crilo-legal-nav{font-size:11px;gap:5px 9px}
  .crilo-site-footer .crilo-beetle-track{height:40px}
 }
+
+/* Keep copyright exactly on the same geometric center axis as the links,
+   regardless of inherited inline/text styles or footer rail animation. */
+.crilo-site-footer .crilo-home-legal{
+ display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;
+ width:100%;max-width:100%;margin-inline:auto;text-align:center;
+}
+.crilo-site-footer .crilo-home-legal .crilo-legal-nav{
+ grid-column:1;justify-self:stretch;width:100%;margin:0;
+ justify-content:center;text-align:center;
+}
+.crilo-site-footer .crilo-home-legal .crilo-legal-copy{
+ grid-column:1;display:block;justify-self:center;
+ box-sizing:border-box;width:100%;max-width:none;
+ margin:6px 0 0;padding:0;text-align:center;
+ position:static;inset:auto;transform:none;
+}
