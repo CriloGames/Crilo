@@ -33,10 +33,11 @@
 .sound-corner{position:absolute;bottom:14px;left:18px;color:#9995a1;font-size:10px;letter-spacing:.04em;pointer-events:none;z-index:4}
 .sound-counter{position:absolute;top:15px;right:17px;border:1px solid rgba(150,146,155,.14);border-radius:50px;background:rgba(255,255,255,.72);padding:6px 10px;font-weight:700;font-size:11px;line-height:1.2;font-family:inherit;color:#77737b;z-index:5;pointer-events:none}
 .sound-objects{position:absolute;inset:0;z-index:2;pointer-events:none}
-.sound-playhead{position:absolute;top:0;bottom:0;left:0%;width:2px;z-index:1;pointer-events:none;opacity:0;background:linear-gradient(to bottom,transparent,#aca2c9 22%,#aca2c9 77%,transparent);box-shadow:0 0 22px rgba(154,139,200,.3);transition:left .075s linear}
+.sound-playhead{position:absolute;top:0;bottom:0;left:0%;width:2px;z-index:1;pointer-events:none;opacity:0;background:linear-gradient(to bottom,transparent,#aca2c9 22%,#aca2c9 77%,transparent);box-shadow:0 0 22px rgba(154,139,200,.3);transition:none}
 .sound-stage.is-looping .sound-playhead{opacity:.72}
 .sound-playhead:before{content:'';position:absolute;top:0;left:-3px;width:8px;height:8px;background:#aca2c9;border-radius:50%}
 .sound-blob{position:absolute;display:flex;align-items:center;justify-content:center;flex-direction:column;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;outline:0;overflow:visible;z-index:3}
+.sound-blob{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
 .sound-blob:active,.sound-stage.is-interacting .sound-blob.is-selected{cursor:grabbing}
 .sound-blob-halo{position:absolute;inset:-14px;border-radius:50%;background:var(--blob-color);opacity:.0;filter:blur(16px);transition:opacity .2s;pointer-events:none}
 .sound-blob:hover .sound-blob-halo,.sound-blob.is-selected .sound-blob-halo{opacity:.18}
@@ -109,7 +110,7 @@
   .sound-toolbar-right{flex:1;justify-content:center}
   .sound-button-primary{min-width:145px}
   .sound-stage{height:465px}
-  .sound-handle{width:30px;height:30px}
+  .sound-handle{width:40px;height:40px}
   .sound-blob-caption{font-size:10px;bottom:-24px}
   .sound-blob-wave{font-size:31px}
   .sound-counter{top:12px;right:9px;font-size:9px}

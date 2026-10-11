@@ -127,6 +127,38 @@ async function main(){
   check(await page.locator('.sound-blob').count()===6,scenario.name+' local restore failed');
   await page.locator('#soundReset').click();
   check(await page.locator('.sound-blob').count()===5,scenario.name+' reset failed');
+  // Stretch to maximum and drag far beyond the stage with two pointer IDs.
+  await page.locator('.sound-blob').first().click();
+  await page.locator('#soundStretch').evaluate(input=>{
+    input.value='180';input.dispatchEvent(new Event('input',{bubbles:true}));
+  });
+  await page.evaluate(()=>{
+    const shape=document.querySelector('.sound-blob');
+    const box=shape.getBoundingClientRect();
+    const x=box.x+box.width/2,y=box.y+box.height/2;
+    shape.dispatchEvent(new PointerEvent('pointerdown',{
+      bubbles:true,cancelable:true,pointerId:41,pointerType:'touch',clientX:x,clientY:y}));
+    // Unrelated touches cannot move or release the selected sound.
+    window.dispatchEvent(new PointerEvent('pointermove',{
+      bubbles:true,pointerId:42,pointerType:'touch',clientX:-800,clientY:-800}));
+    window.dispatchEvent(new PointerEvent('pointerup',{
+      bubbles:true,pointerId:42,pointerType:'touch'}));
+    window.dispatchEvent(new PointerEvent('pointermove',{
+      bubbles:true,pointerId:41,pointerType:'touch',clientX:-800,clientY:-800}));
+    window.dispatchEvent(new PointerEvent('pointerup',{
+      bubbles:true,pointerId:41,pointerType:'touch'}));
+  });
+  const edge=await page.evaluate(()=>({
+    stage:document.getElementById('soundStage').getBoundingClientRect().toJSON(),
+    blob:document.querySelector('.sound-blob').getBoundingClientRect().toJSON(),
+    scale:window.visualViewport?.scale||1
+  }));
+  check(edge.blob.left>=edge.stage.left-2&&edge.blob.right<=edge.stage.right+2,
+    scenario.name+' stretched sound clipped horizontally '+JSON.stringify(edge));
+  check(edge.blob.top>=edge.stage.top-2&&edge.blob.bottom<=edge.stage.bottom+2,
+    scenario.name+' stretched sound clipped vertically');
+  check(Math.abs(edge.scale-1)<.02,scenario.name+' unexpected viewport zoom '+edge.scale);
+  await page.locator('#soundReset').click();
   const gameBefore=await page.locator('.sound-blob').count();
   await page.locator('[data-amount="10"]').click();
   check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',scenario.name+' $10 checkout was changed');

@@ -11,11 +11,15 @@ const js=fs.readFileSync(path.join(root,'sound-shapes.js'),'utf8');
 assert.match(html,/id="soundStage"/);
 assert.match(html,/id="soundPlayRoom"/);
 assert.match(html,/id="soundObjects"/);
-assert.match(html,/sound-shapes\.js\?v=1/);
-assert.match(html,/sound-shapes\.css\?v=2/);
+assert.match(html,/sound-shapes\.js\?v=2/);
+assert.match(html,/sound-shapes\.css\?v=3/);
 assert.ok(css.includes('@media(max-width:420px)'),'Mobile touch and scaling CSS must exist');
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'),'Reduce motion for sensitive visitors');
 assert.ok(js.includes('window.webkitAudioContext'),'Support iOS Safari Web Audio');
+assert.ok(js.includes('createDynamicsCompressor'),'Overlapping audio needs a peak limiter');
+assert.ok(js.includes('keepInside(blob)'),'Stretched sounds must stay inside the playfield');
+assert.ok(js.includes('event.pointerId!==interaction.pointerId'),'Second fingers must not hijack gestures');
+assert.ok(js.includes('if(pan)pan.disconnect()'),'Stop retaining panner nodes after notes end');
 assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|location\.href|window\.open/i.test(js),
  'The free game must not call the backend or interact with checkout');
 for(const id of ['soundStage','soundObjects','soundInspector','soundSelection','soundPlayRoom',

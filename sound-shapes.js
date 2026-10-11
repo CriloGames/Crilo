@@ -38,7 +38,7 @@
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
   const round=(n)=>Math.round(n*1000)/1000;
   let idSeq=0,blobs=[],selected=null,interaction=null,muted=false,audio=null,master=null;
-  let loopTimer=null,stepIndex=0,nextStepTime=0,tempo=104,addIndex=0;
+  let loopTimer=null,stepIndex=0,nextStepTime=0,loopStartTime=0,tempo=104,addIndex=0;
   let discoveryTimer=null;
   function newBlob(kind,x,y,sx,sy,parts){
     return {id:++idSeq,kind:kinds.includes(kind)?kind:'boop',x:clamp(Number(x)||.5,.09,.91),
@@ -72,6 +72,16 @@
   function size(blob){
     const base=clamp(stage.clientWidth*.146,78,132);
     return {w:Math.round(base*blob.sx),h:Math.round(base*.91*blob.sy)};
+  }
+  // Keep stretched shapes and resize handles in view across viewport sizes.
+  function keepInside(blob){
+    const dims=size(blob),rect=stage.getBoundingClientRect();
+    const w=Math.max(1,stage.clientWidth||rect.width);
+    const h=Math.max(1,stage.clientHeight||rect.height);
+    const xInset=Math.min(.48,(dims.w/2+20)/w);
+    const yInset=Math.min(.48,(dims.h/2+31)/h);
+    blob.x=clamp(blob.x,xInset,1-xInset);
+    blob.y=clamp(blob.y,yInset,1-yInset);
   }
   function blobMarkup(blob){
     const spec=definitions[blob.kind],isMixed=blob.parts.length>1;
@@ -115,6 +125,7 @@
     const ids=new Set(blobs.map(b=>String(b.id)));
     objectLayer.querySelectorAll('.sound-blob').forEach(node=>{if(!ids.has(node.dataset.id))node.remove()});
     for(const blob of blobs){
+      keepInside(blob);
       let node=objectLayer.querySelector('[data-id="'+blob.id+'"]');
       if(!node){node=blobMarkup(blob);objectLayer.appendChild(node)}
       const dims=size(blob);
@@ -161,7 +172,16 @@
         audio=new Ctor();
         master=audio.createGain();
         master.gain.value=muted?0:.53;
-        master.connect(audio.destination);
+        // Limit stacked notes gently, without changing the normal solo voices.
+        if(typeof audio.createDynamicsCompressor==='function'){
+          const limiter=audio.createDynamicsCompressor();
+          limiter.threshold.value=-14;
+          limiter.knee.value=8;
+          limiter.ratio.value=12;
+          limiter.attack.value=.003;
+          limiter.release.value=.17;
+          master.connect(limiter);limiter.connect(audio.destination);
+        }else master.connect(audio.destination);
       }
       if(audio.state==='suspended')audio.resume().catch(()=>{});
       return audio;
@@ -193,13 +213,14 @@
       envelope.gain.exponentialRampToValueAtTime(Math.max(.001,peak),t+.012);
       envelope.gain.exponentialRampToValueAtTime(.0001,t+length);
       osc.connect(filter);filter.connect(envelope);
+      let pan=null;
       if(typeof context.createStereoPanner==='function'){
-        const pan=context.createStereoPanner();
+        pan=context.createStereoPanner();
         pan.pan.value=clamp((blob.x-.5)*1.2,-.7,.7);
         envelope.connect(pan);pan.connect(master);
       }else envelope.connect(master);
       osc.start(t);osc.stop(t+length+.025);
-      osc.onended=()=>{try{osc.disconnect();filter.disconnect();envelope.disconnect()}catch(_){}};
+      osc.onended=()=>{try{osc.disconnect();filter.disconnect();envelope.disconnect();if(pan)pan.disconnect()}catch(_){}};
       if(part==='chime'){
         const partial=context.createOscillator(),amp=context.createGain();
         partial.type='sine';
@@ -214,17 +235,18 @@
     }
   }
   function startInteraction(event,id,mode){
+    if(interaction)return; // Ignore additional fingers during an active drag.
     const blob=find(id);if(!blob)return;
     ensureAudio();
     select(id);
-    interaction={id,mode,startX:event.clientX,startY:event.clientY,x:blob.x,y:blob.y,
+    interaction={id,mode,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:blob.x,y:blob.y,
       sx:blob.sx,sy:blob.sy,moved:false,target:null};
     if(stage.setPointerCapture)try{stage.setPointerCapture(event.pointerId)}catch(_){}
     stage.classList.add('is-interacting');
     event.preventDefault();
   }
   function moveInteraction(event){
-    if(!interaction)return;
+    if(!interaction||(event.pointerId!==undefined&&event.pointerId!==interaction.pointerId))return;
     const b=find(interaction.id);if(!b)return;
     const rect=stage.getBoundingClientRect();
     const dx=event.clientX-interaction.startX,dy=event.clientY-interaction.startY;
@@ -236,6 +258,7 @@
     }else{
       b.x=clamp(interaction.x+dx/Math.max(1,rect.width),.09,.91);
       b.y=clamp(interaction.y+dy/Math.max(1,rect.height),.13,.88);
+      keepInside(b);
       interaction.target=null;
       if(interaction.moved){
         for(const other of blobs){
@@ -276,7 +299,7 @@
     paint();playBlob(mix);pulse(mix.id);persist();
   }
   function finishInteraction(event){
-    if(!interaction)return;
+    if(!interaction||(event?.pointerId!==undefined&&event.pointerId!==interaction.pointerId))return;
     const state=interaction;
     interaction=null;stage.classList.remove('is-interacting');
     if(stage.releasePointerCapture&&event?.pointerId!==undefined)try{stage.releasePointerCapture(event.pointerId)}catch(_){}
@@ -291,7 +314,10 @@
   }
   window.addEventListener('pointermove',moveInteraction);
   window.addEventListener('pointerup',finishInteraction);
-  window.addEventListener('pointercancel',()=>{interaction=null;stage.classList.remove('is-interacting');paint();persist()});
+  window.addEventListener('pointercancel',event=>{
+    if(!interaction||(event.pointerId!==undefined&&event.pointerId!==interaction.pointerId))return;
+    interaction=null;stage.classList.remove('is-interacting');paint();persist();
+  });
   function stepDuration(){return 60/tempo/2}
   function tick(){
     if(!audio||!loopTimer)return;
@@ -311,7 +337,10 @@
       nextStepTime+=stepDuration();
     }
     if(cycles>=8)nextStepTime=audio.currentTime+stepDuration();
-    playhead.style.left=((stepIndex/16)*100)+'%';
+    // Display the audible position instead of the step queued in advance.
+    const phase=audio.currentTime<loopStartTime?0:
+      ((stepIndex-(nextStepTime-audio.currentTime)/stepDuration())%16+16)%16;
+    playhead.style.left=(phase/16*100)+'%';
   }
   function stopRoom(){
     if(loopTimer){clearInterval(loopTimer);loopTimer=null}
@@ -324,7 +353,7 @@
     if(loopTimer){stopRoom();say('The room is paused.');return}
     if(!ensureAudio())return;
     if(muted){muted=false;updateMute()}
-    nextStepTime=audio.currentTime+.08;stepIndex=0;
+    nextStepTime=audio.currentTime+.08;loopStartTime=nextStepTime;stepIndex=0;
     loopTimer=setInterval(tick,28);
     stage.classList.add('is-looping');
     playButton.textContent='■  Stop the room';
