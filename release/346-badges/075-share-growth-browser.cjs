@@ -7,7 +7,7 @@ const source=fs.readFileSync('share-result.js','utf8');
 async function scenario(browser,{signedIn,completed,verified,played=false}){
  const page=await browser.newPage({viewport:{width:390,height:844},acceptDownloads:true});
  const status=completed?'Official Daily saved. See how you ranked.':'Private test run saved.';
- await page.setContent('<!doctype html><html><body><div id="message">'+status+'</div>'+
+ await page.setContent('<!doctype html><html><head><style>.hidden{display:none}</style></head><body><div id="message">'+status+'</div>'+
  '<div id="result" class="'+(played?'hidden':'result')+'"><div id="resultEyebrow">'+(completed?'DAILY COMPLETE':'TEST RUN COMPLETE')+'</div>'+
  '<div class="result-actions"></div></div>'+
  '<div id="playedPanel" class="'+(played?'played-panel':'played-panel hidden')+'">'+(played?'Official Daily complete':'')+
