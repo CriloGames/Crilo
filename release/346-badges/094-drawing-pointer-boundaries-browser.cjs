@@ -23,8 +23,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   assert.ok(box&&box.width>40,'Drawing area missing: '+selector);
   const cx=box.x+box.width/2,cy=box.y+box.height/2;
   const insideX=cx+Math.min(12,box.width*.1);
-  const outsideX=studio?box.x+box.width+15:cx+box.width*.6;
-  const outsideY=studio?cy:cy+box.height*.6;
+  // The wheel is circular: choose a point INSIDE its square box but
+  // outside the circular painted region to catch border-only failures.
+  const outsideX=studio?box.x+box.width+15:cx+box.width*.43;
+  const outsideY=studio?cy:cy+box.height*.43;
   const canvasId=studio?'pixelCanvas':'drawing';
   await page.mouse.move(cx,cy);await page.mouse.down();
   await page.mouse.move(insideX,cy);
@@ -70,6 +72,13 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.goto(base+'/index.html',{waitUntil:'domcontentloaded',timeout:15000});
    await page.waitForFunction(()=>window.Crilo?.user&&document.querySelector('#drawing')?.width===200);
    await exercise(page,'#drawing',false);
+   if(width===1280){
+    // Rotating the canvas enlarges its bounding box without changing
+    // the true circular brush area.
+    await page.locator('#drawing').evaluate(el=>el.style.transform='rotate(.785398rad)');
+    await exercise(page,'#drawing',false);
+    await page.locator('#drawing').evaluate(el=>el.style.transform='none');
+   }
    await page.locator('#pixelStudioBtn').click();
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
    await exercise(page,'#pixelCanvas',true);
