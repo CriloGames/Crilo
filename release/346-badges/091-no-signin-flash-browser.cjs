@@ -37,12 +37,16 @@ async function main(){
      await page.waitForTimeout(190);
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
        name+' exposed username or sign-in text before identity was resolved');
+     const slotBefore=await page.locator('.account-wrap').boundingBox();
      const rect=await button.boundingBox();
      assert.ok(rect?.width>=75,'Account space collapsed in '+name);
      await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false',{timeout:11000});
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'visible');
      assert.equal(await button.innerText(),mode==='signed-in'?'CriloQA':'SIGN IN',
         name+' showed incorrect completed login state');
+     const slotAfter=await page.locator('.account-wrap').boundingBox();
+     assert.ok(slotBefore&&slotAfter&&Math.abs(slotBefore.width-slotAfter.width)<1,
+       name+' account region changed width after auth and moved the header');
      count++;
      console.log('PASS no SIGN IN flash '+mode+' '+width+'px '+name);
      await page.close();
