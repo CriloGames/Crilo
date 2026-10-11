@@ -154,6 +154,8 @@ jobs:
         run: node release/346-badges/061-atomic-bug-report-smoke.cjs
       - name: Verify exploration badges require server evidence and Settings can save
         run: node release/346-badges/062-exploration-badge-evidence-smoke.cjs
+      - name: Prevent owner Test Run injection and server-proof tampering
+        run: node release/346-badges/063-wheel-proof-canonicalization-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
