@@ -164,6 +164,8 @@ jobs:
         run: node release/346-badges/065-legacy-competitive-points-smoke.cjs
       - name: Preserve genuine future scores while excluding obsolete previews
         run: node release/346-badges/066-preview-proof-leaderboards-smoke.cjs
+      - name: Audit wheel reset grace, completion proof, and extreme outcomes
+        run: node release/346-badges/067-wheel-reset-overflow-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
