@@ -7,6 +7,7 @@ on:
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'
       - 'release/346-badges/087-signed-in-controls-browser.cjs'
       - 'release/346-badges/091-no-signin-flash-browser.cjs'
+      - 'release/346-badges/095-header-continuity-browser.cjs'
       - 'moderation.html'
       - 'release/346-badges/078-daily-drawing-storage-chromium.cjs'
       - 'share-result.js'
@@ -24,6 +25,7 @@ on:
       - 'release/346-badges/083-legal-pages-browser.cjs'
       - 'index.html'
       - 'app.js'
+      - 'header-continuity.js'
       - 'settings.js'
       - 'settings.html'
       - 'friends.js'
@@ -79,6 +81,8 @@ jobs:
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
       - name: Verify customizable profile icon save and public display in Chromium
         run: node release/346-badges/089-profile-icon-browser.cjs
+      - name: Verify owner link bell and username remain stable across page navigation
+        run: node release/346-badges/095-header-continuity-browser.cjs
       - name: Verify no brief SIGN IN flash while a page restores authentication
         run: node release/346-badges/091-no-signin-flash-browser.cjs
       - name: Test authenticated account settings, Friends, Ducks and owner-only menus without live writes
