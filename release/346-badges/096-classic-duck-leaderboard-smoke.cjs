@@ -14,7 +14,7 @@ assert.ok(medal.includes('viewBox="0 0 64 64"')&&medal.includes('fill="#ffdc72"'
 assert.ok(css.includes('.leader-tabs-wrap .leader-tab-icon-duck')&&css.includes('.leader-tabs-wrap .leader-tab-icon-medal'));
 assert.match(html,/data-tab="ducks"><img class="leader-tab-icon leader-tab-icon-duck leader-duck-icon leader-duck-icon-tab" src="duck-classic\.svg"/);
 assert.match(html,/leaderboard\.js\?v=46/);
-assert.match(html,/style\.css\?v=113/);
+assert.match(html,/style\.css\?v=114/);
 assert.ok(!src.includes('🦆')&&!html.includes('🦆'),'Native duck emoji still present');
 assert.ok(css.includes('.leader-duck-icon-count')&&css.includes('.leader-duck-icon-tab'));
 assert.match(svg,/viewBox="0 0 100 90"/);
