@@ -1461,3 +1461,12 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
  .topbar nav{order:3;width:100%;gap:clamp(10px,2vw,18px);justify-content:center;flex-wrap:wrap}
  .topbar .header-actions{margin-left:auto}
 }
+
+/* Browsers supporting cross-document View Transitions keep the same header
+   bitmap visible until the next Crilo HTML document has painted. This avoids
+   a network-load blink; other browsers use the synchronous cached prepaint. */
+@view-transition{navigation:auto}
+.topbar:has(#accountBtn){view-transition-name:crilo-stable-header}
+::view-transition-old(crilo-stable-header),
+::view-transition-new(crilo-stable-header){animation-duration:0s}
+::view-transition-old(root),::view-transition-new(root){animation-duration:0s}
