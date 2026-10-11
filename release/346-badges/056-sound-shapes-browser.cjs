@@ -244,7 +244,7 @@ async function main(){
     const back=document.querySelector('.support-back');
     const template=document.getElementById('criloMiniWheel');
     const wheels=[...field.querySelectorAll('.crilo-mini-wheel')];
-    const sizes=wheels.map(el=>el.getBoundingClientRect().width);
+    const sizes=wheels.map(el=>Number.parseFloat(getComputedStyle(el).width));
     const cr=card.getBoundingClientRect(),br=back.getBoundingClientRect();
     return {
       hidden:field.getAttribute('aria-hidden'),
