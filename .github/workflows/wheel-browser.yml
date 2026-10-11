@@ -96,7 +96,7 @@ jobs:
         run: node release/346-badges/073-wheel-chromium-browser.cjs
       - name: Exercise sharing with real Chromium UI and verified-run fixtures
         run: node release/346-badges/075-share-growth-browser.cjs
-      - name: Check footer symmetry and original beetle rail on five viewports
+      - name: Check optical footer alignment and beetle rail on ten viewports
         run: node release/346-badges/085-footer-layout-chromium.cjs
       - name: Render Privacy and Terms on phone tablet and desktop
         run: node release/346-badges/083-legal-pages-browser.cjs
