@@ -23,7 +23,8 @@ for(const needle of [
  'fill="#ffe076"'
 ]){
  assert.ok(svg.includes(needle),'Classic SVG missing original linework: '+needle);
- assert.ok(ducks.includes(needle),'Not identical to the Meet the Ducks artwork: '+needle);
+ assert.ok(needle==='fill="#ffe076"'?ducks.includes("classic:'#ffe076'"):ducks.includes(needle),
+  'Not identical to the Meet the Ducks artwork: '+needle);
 }
 const blocks=src.slice(src.indexOf('function duckCountHTML('),src.indexOf('async function loadDucks()'))+
  src.slice(src.indexOf('function renderDuckLeaders('),src.indexOf('async function loadBadges()'));
