@@ -18,6 +18,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
  });
  async function exercise(page,selector,studio){
   const canvas=page.locator(selector);
+  await canvas.scrollIntoViewIfNeeded();
   const box=await canvas.boundingBox();
   assert.ok(box&&box.width>40,'Drawing area missing: '+selector);
   const cx=box.x+box.width/2,cy=box.y+box.height/2;
@@ -40,9 +41,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   assert.equal(await paintedPixels(page,canvasId),left,
    'An ordinary hover must never paint');
   // A deliberate new press must start a new stroke.
-  await page.mouse.move(cx-Math.min(18,box.width*.12),cy);
+  // Use a clear region, separate from the original center stroke.
+  await page.mouse.move(cx-box.width*.28,cy+box.height*.23);
   await page.mouse.down();
-  await page.mouse.move(cx,cy+Math.min(15,box.height*.12));
+  await page.mouse.move(cx-box.width*.16,cy+box.height*.23);
   assert.ok(await paintedPixels(page,canvasId)>left,'Fresh pointerdown did not restart drawing');
   await page.mouse.up();
   // The active pointer must be cancelled by blur with the button still down.
