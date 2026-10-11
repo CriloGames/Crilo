@@ -3,7 +3,7 @@ const a=require('node:assert/strict'),fs=require('node:fs');
 const html=fs.readFileSync('leaderboard.html','utf8'),index=fs.readFileSync('index.html','utf8');
 const board=fs.readFileSync('leaderboard.js','utf8'),game=fs.readFileSync('game.js','utf8');
 const sql=fs.readFileSync('release/346-badges/068-competitive-badges.sql','utf8');
-a.match(html,/leaderboard\.js\?v=45/);a.match(index,/game\.js\?v=76/);
+a.match(html,/leaderboard\.js\?v=46/);a.match(index,/game\.js\?v=76/);
 a.match(sql,/SECURITY DEFINER SET search_path TO ''/);
 a.match(sql,/b\.category IS DISTINCT FROM 'Exploration & onboarding'/);
 a.match(sql,/count\(DISTINCT ub\.badge_id\)/);
