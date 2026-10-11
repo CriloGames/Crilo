@@ -180,6 +180,8 @@ jobs:
         run: node release/346-badges/076-growth-seo-static-smoke.cjs
       - name: Validate official Daily image storage and legacy draft compatibility
         run: node release/346-badges/077-daily-drawing-storage-smoke.cjs
+      - name: Verify registered-only public Daily count and image compatibility
+        run: node release/346-badges/080-official-daily-total-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game

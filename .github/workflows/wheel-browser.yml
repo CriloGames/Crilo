@@ -6,6 +6,9 @@ on:
       - 'game.js'
       - 'release/346-badges/078-daily-drawing-storage-chromium.cjs'
       - 'share-result.js'
+      - 'official-daily-total.js'
+      - 'official-daily-total.css'
+      - 'release/346-badges/081-official-daily-total-browser.cjs'
       - 'share-result.css'
       - 'public-metrics.js'
       - 'release/346-badges/075-share-growth-browser.cjs'
@@ -34,5 +37,7 @@ jobs:
         run: node release/346-badges/073-wheel-chromium-browser.cjs
       - name: Exercise sharing with real Chromium UI and verified-run fixtures
         run: node release/346-badges/075-share-growth-browser.cjs
+      - name: Verify community count fits phone tablet desktop and updates after save
+        run: node release/346-badges/081-official-daily-total-browser.cjs
       - name: Check actual lossless fallback and visually decodable compact drawings
         run: node release/346-badges/078-daily-drawing-storage-chromium.cjs
