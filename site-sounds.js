@@ -92,10 +92,25 @@
  }
  function onAction(event){
   if(event.isTrusted===false||event.defaultPrevented)return;
+  // Unlock a silent AudioContext during the actual SPIN interaction so
+  // an earned-badge chime can play later after an asynchronous server save.
+  if(event.target?.closest?.('#spinButton')){
+   if(enabled())try{initialize()}catch{}
+   return;
+  }
   const kind=getKind(event.target);
   if(kind)play(kind);
  }
  document.addEventListener('click',onAction,{passive:true});
+ const badgePanel=document.getElementById('newBadgePanel');
+ if(badgePanel&&window.MutationObserver){
+  let visible=badgePanel.open&&!badgePanel.classList.contains('hidden');
+  new MutationObserver(()=>{
+   const nowVisible=badgePanel.open&&!badgePanel.classList.contains('hidden');
+   if(nowVisible&&!visible&&badgePanel.querySelector('.new-badge-item'))play('badge');
+   visible=nowVisible;
+  }).observe(badgePanel,{attributes:true,attributeFilter:['class','open']});
+ }
  // Form-control changes made by dragging a color picker do not fire click
  // on all mobile browsers. They receive their own quiet preview chime.
  document.addEventListener('change',event=>{
