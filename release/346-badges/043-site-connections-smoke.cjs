@@ -17,7 +17,9 @@ for(const [page,html] of Object.entries(pagesSource)){
   if(/^(?:https?:|mailto:|tel:|data:|#|\/\/)/i.test(url))continue;
   const clean=url.split(/[?#]/)[0];
   if(!clean)continue;
-  const file=path.resolve(base,clean);
+  // A leading slash is website-root-relative, not a path under the checked-out
+  // machine's filesystem root. Favicons and other absolute site assets use it.
+  const file=path.resolve(clean.startsWith('/')?root:base,clean.replace(/^\/+/,''));
   assert.ok(fs.existsSync(file)||fs.existsSync(path.join(file,'index.html')),
    'Broken local resource on '+page+': '+url);
   checkedLinks++;
