@@ -61,7 +61,7 @@
     if(Crilo.user){
       const {data, error} = await criloDB
         .from('profiles')
-        .select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background')
+        .select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')
         .eq('id',Crilo.user.id)
         .maybeSingle();
 

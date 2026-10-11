@@ -184,8 +184,9 @@ function render(runs,pm){
  $('bestUser').textContent=bp?.username||'Crilo player';
  $('bestUser').style.color=bp?.name_color||'';
  $('bestStats').textContent=`${best.spins} spins • ${best.upgrades} upgrades • ${best.doubles} doubles • ${best.ducks} ducks`;
- $('bestDrawing').classList.toggle('hidden',!best.drawing);
- if(best.drawing)$('bestDrawing').src=best.drawing;
+ $('bestDrawing').classList.remove('hidden');
+ $('bestDrawing').src=best.drawing||'default-wheel.svg';
+ $('bestDrawing').alt=best.drawing?'Top player wheel artwork':'Top player blank wheel';
  const medals=['🥇','🥈','🥉'];
  const canModerate=Boolean(Crilo.profile?.is_owner);
  $('leaderList').innerHTML=runs.map((r,i)=>{
@@ -202,7 +203,7 @@ function render(runs,pm){
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
-   ${r.drawing?`<button class="mini-wheel" title="Spin artwork" data-drawing="${i}"><img src="${r.drawing}" alt="Player artwork"></button>`:''}
+   ${`<button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${r.drawing||'default-wheel.svg'}" alt="${r.drawing?'Player artwork':'Blank wheel'}"></button>`}
   </div>`;
  }).join('');
  document.querySelectorAll('.mini-wheel').forEach(b=>b.addEventListener('click',()=>{
