@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'game.js'
+      - 'site-sounds.js'
+      - 'release/346-badges/102-site-sounds-browser.cjs'
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'
       - 'release/346-badges/087-signed-in-controls-browser.cjs'
       - 'release/346-badges/091-no-signin-flash-browser.cjs'
@@ -77,6 +79,8 @@ jobs:
         run: npm install --no-save --no-package-lock playwright@1.56.1
       - name: Install headless Chromium
         run: npx playwright install --with-deps chromium
+      - name: Confirm sound palette, badge reveal, silent startup and audio opt-out on four devices
+        run: node release/346-badges/102-site-sounds-browser.cjs
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
