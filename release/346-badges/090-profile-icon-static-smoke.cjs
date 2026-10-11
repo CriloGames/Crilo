@@ -5,7 +5,7 @@ const icon=fs.readFileSync('profile-avatar.js','utf8'),sql=fs.readFileSync('rele
 const newSql=fs.readFileSync('release/346-badges/092-profile-ink-palette.sql','utf8');
 for(const item of ['avatarEditorModal','avatarEditorSave','avatarEditorPreview','avatarCustomLetter','avatarIconOptions','avatarColorOptions','avatarUseInitial','avatarEditBtn'])
  assert.ok(html.includes('id="'+item+'"'),'missing '+item);
-assert.match(html,/profile-avatar\.js\?v=3/);
+assert.match(html,/profile-avatar\.js\?v=2/);
 assert.match(html,/profile-avatar\.css\?v=3/);
 assert.match(profile,/CriloAvatar\?\.bind\(p,target===Crilo\.user\?\.id\)/);
 assert.match(app,/account_code,avatar_symbol,avatar_background,avatar_ink/);
