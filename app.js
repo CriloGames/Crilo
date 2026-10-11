@@ -364,7 +364,9 @@
   // This also handles returning from an email-link redirect or switching tabs.
   let syncInProgress = false;
   async function syncSession(){
-    if(syncInProgress) return;
+    // Initial restoration has its own authoritative request. A focus/pageshow
+    // sync during it can otherwise paint SIGN IN before the profile finishes.
+    if(!authHeaderReady||syncInProgress)return;
     syncInProgress = true;
     try {
       const {data, error} = await criloDB.auth.getSession();
