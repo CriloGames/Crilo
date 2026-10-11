@@ -64,3 +64,27 @@ html[data-theme="dark"] .spin-history-score small{color:color-mix(in srgb,var(--
  .spin-history-end{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.spin-history-progress span{animation:none!important;transition:none!important}}
+
+/* Spin results, not achievement badges: each row shows the actual outcome,
+   the player's wheel (including blank ones), and score after that spin. */
+.spin-history-item{grid-template-columns:58px minmax(0,1fr) minmax(92px,auto);gap:13px;padding:10px 15px;border-left:3px solid var(--spin-rarity);min-height:69px}
+.spin-history-wheel{display:grid;place-items:center;width:54px;height:54px;box-sizing:border-box;border:0;border-radius:50%;background:transparent;padding:0;cursor:pointer;overflow:visible}
+.spin-history-wheel img{display:block;width:52px;height:52px;object-fit:contain;aspect-ratio:1;border-radius:50%;filter:drop-shadow(0 1px 1px #17191e1b)}
+.spin-history-wheel:hover img{filter:drop-shadow(0 3px 4px #17191e26)}
+.spin-history-wheel:focus-visible{outline:3px solid #8cbadf;outline-offset:4px}
+.spin-history-event{font-size:14px;font-weight:900}
+.spin-history-side{min-width:88px;text-align:right}
+.spin-history-side strong{font-size:21px;font-weight:950;letter-spacing:-.035em;line-height:1;color:var(--text,#17191e)}
+.spin-history-side strong small{font-size:9px;color:var(--muted,#7f8590);letter-spacing:.05em}
+.spin-history-side span{font-size:10px;margin-top:7px}
+@media(max-width:550px){
+ .spin-history-item{grid-template-columns:47px minmax(0,1fr) auto;gap:9px;padding:10px 9px}
+ .spin-history-wheel{width:45px;height:45px}
+ .spin-history-wheel img{width:44px;height:44px}
+ .spin-history-event{font-size:12px}
+ .spin-history-side{grid-column:3;grid-row:1;min-width:58px;text-align:right;margin:0}
+ .spin-history-side strong{font-size:17px}
+ .spin-history-side span{display:block;font-size:9px;max-width:72px;margin-left:auto}
+ .spin-history-side span:before{content:none}
+}
+@media(prefers-reduced-motion:reduce){.spin-history-wheel img{transition:none}}

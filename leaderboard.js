@@ -203,7 +203,7 @@ function render(runs,pm){
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
-   ${`<button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${r.drawing||'default-wheel.svg'}" alt="${r.drawing?'Player artwork':'Blank wheel'}"></button>`}
+   <button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${r.drawing||'default-wheel.svg'}" alt="${r.drawing?'Player artwork':'Blank wheel'}"></button>
   </div>`;
  }).join('');
  document.querySelectorAll('.mini-wheel').forEach(b=>b.addEventListener('click',()=>{

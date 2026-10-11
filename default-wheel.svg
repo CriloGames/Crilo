@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Blank Crilo wheel">
+ <circle cx="100" cy="100" r="96" fill="#fff"/>
+ <path d="M100 100L100.00 9.00A91 91 0 0 1 145.50 21.19Z" fill="#ffdb77" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L145.50 21.19A91 91 0 0 1 178.81 54.50Z" fill="#9dd8ec" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L178.81 54.50A91 91 0 0 1 191.00 100.00Z" fill="#f5c9de" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L191.00 100.00A91 91 0 0 1 178.81 145.50Z" fill="#bfe7d3" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L178.81 145.50A91 91 0 0 1 145.50 178.81Z" fill="#e3cbfd" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L145.50 178.81A91 91 0 0 1 100.00 191.00Z" fill="#ffd0b6" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L100.00 191.00A91 91 0 0 1 54.50 178.81Z" fill="#ffdb77" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L54.50 178.81A91 91 0 0 1 21.19 145.50Z" fill="#9dd8ec" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L21.19 145.50A91 91 0 0 1 9.00 100.00Z" fill="#f5c9de" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L9.00 100.00A91 91 0 0 1 21.19 54.50Z" fill="#bfe7d3" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L21.19 54.50A91 91 0 0 1 54.50 21.19Z" fill="#e3cbfd" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+<path d="M100 100L54.50 21.19A91 91 0 0 1 100.00 9.00Z" fill="#ffd0b6" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/>
+ <circle cx="100" cy="100" r="91" fill="none" stroke="#17191e" stroke-width="5"/>
+ <circle cx="100" cy="100" r="14" fill="#fffdf8" stroke="#17191e" stroke-width="3.5"/>
+ <text x="100" y="106" text-anchor="middle" font-size="18" font-weight="900" fill="#17191e" font-family="Arial,sans-serif">C</text>
+</svg>

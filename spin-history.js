@@ -29,11 +29,15 @@
   function savedSpins(row){
     const results=Array.isArray(row.results)?row.results:[];
     const date=dayLabel(row),finalScore=Math.max(0,Number(row.score)||0);
+    // Show the same wheel art used in the leaderboard on every saved spin.
+    // A blank drawing is still a real Daily, not a missing spin.
+    const drawing=typeof row.drawing==='string' && /^data:image\/(?:png|webp);base64,/.test(row.drawing)
+      ? row.drawing : 'default-wheel.svg';
     if(!results.length){
       // Older official runs may have a score but no individual spin history.
       // Never fabricate past outcomes to fill the gap.
       return [{legacy:true,score:finalScore,date,spin:null,total:Number(row.spins)||0,
-        finalScore,event:'Earlier Daily · individual spins were not saved'}];
+        finalScore,drawing,event:'Earlier Daily · individual spins were not saved'}];
     }
     let runningScore=0;
     return results.map((raw,i)=>{
@@ -55,27 +59,29 @@
         label='DUCK! · A free spin';
       }
       return {legacy:false,score:runningScore,date,spin:i+1,
-        total:results.length,finalScore,event:label};
+        total:results.length,finalScore,drawing,event:label};
     }).reverse();
   }
   function rowHTML(entry){
     const tier=scoreTier(entry.score);
-    const label=entry.legacy?'Recorded total':'Score after spin';
-    const detail=entry.legacy?'Legacy official Daily · '+entry.total+' spins recorded':
-      'Official Daily · Spin '+entry.spin+' of '+entry.total;
+    const detail=entry.legacy?'Earlier Daily · '+entry.total+' spins recorded':
+      'Spin '+entry.spin+' of '+entry.total+' · Official Daily';
+    const art=entry.drawing||'default-wheel.svg';
+    // The database stores only PNG/WebP data URLs; fallback is a fixed local SVG.
+    const src=/^data:image\/(?:png|webp);base64,/.test(art)?art:'default-wheel.svg';
     return '<article class="spin-history-item'+(entry.legacy?' legacy':'')+
       '" data-rarity="'+tier+'">'+
-      '<div class="spin-history-score"><strong>'+esc(fmt(entry.score))+'</strong>'+
-      '<small>'+esc(tier)+'</small></div>'+
+      '<button type="button" class="spin-history-wheel" title="Spin your saved wheel" aria-label="Spin saved wheel">'+
+      '<img src="'+src+'" alt="'+(src==='default-wheel.svg'?'Blank wheel':'Player wheel drawing')+'"></button>'+
       '<div class="spin-history-detail"><div class="spin-history-event">'+esc(entry.event)+'</div>'+
       '<div class="spin-history-meta">'+esc(entry.date)+' · '+esc(detail)+'</div></div>'+
-      '<div class="spin-history-side"><strong>'+esc(label)+'</strong>'+
-      '<span>Daily total '+esc(fmt(entry.finalScore))+'</span></div></article>';
+      '<div class="spin-history-side"><strong>'+esc(fmt(entry.score))+' <small>PTS</small></strong>'+
+      '<span>'+ (entry.legacy?'Final score: ':'Daily total: ')+esc(fmt(entry.finalScore))+'</span></div></article>';
   }
   async function fetchRuns(id){
     if(runExhausted)return;
     const {data,error}=await criloDB.from('daily_runs')
-      .select('id,created_at,run_date,daily_period,score,spins,results')
+      .select('id,created_at,run_date,daily_period,score,spins,results,drawing')
       .eq('user_id',id).eq('is_test',false)
       .order('created_at',{ascending:false}).order('id',{ascending:false})
       .range(runOffset,runOffset+RUN_BATCH-1);
@@ -186,6 +192,13 @@
     loadLifetimeTotal(id,token);
     showNext(id,token);
   }
+  // Same lightweight wheel-spinning interaction as the leaderboard.
+  list.addEventListener?.('click',event=>{
+    const wheel=event.target.closest?.('.spin-history-wheel');
+    const image=wheel?.querySelector('img');
+    if(image)image.animate([{transform:'rotate(0deg)'},{transform:'rotate(1440deg)'}],
+      {duration:2300,easing:'cubic-bezier(.1,.65,.2,1)'});
+  });
   button.addEventListener('click',()=>showNext(currentId,requestId));
   window.addEventListener('crilo-auth-ready',begin);
   if(profileId||Crilo.user?.id)begin();

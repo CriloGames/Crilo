@@ -9,8 +9,8 @@ const src=fs.readFileSync(path.join(root,'spin-history.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'spin-history.css'),'utf8');
 const html=fs.readFileSync(path.join(root,'profile.html'),'utf8');
 assert.ok(html.indexOf('id="spinHistoryHeading"')<html.indexOf('How Much Was the Domain?'));
-assert.match(html,/spin-history\.js\?v=2/);
-assert.match(html,/spin-history\.css\?v=1/);
+assert.match(html,/spin-history\.js\?v=3/);
+assert.match(html,/spin-history\.css\?v=2/);
 for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic']){
  assert.ok(css.includes('.spin-history-item[data-rarity="'+rarity+'"]'),'Missing color '+rarity);
 }
@@ -65,6 +65,9 @@ async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={
  assert.equal(entryCount(),counts[0],name+' initial 5');
  assertLifetime('after initial history load');
  assert.ok(calls.every(c=>c.user_id==='player'&&c.is_test===false),name+' privacy filter');
+ assert.ok(calls.some(c=>c.fields.includes('drawing')),name+' must load saved wheel art');
+ if(entryCount()>0)assert.ok(element('spinHistoryList').innerHTML.includes('default-wheel.svg'),
+   name+' must show blank wheel when no drawing was saved');
  for(let i=1;i<counts.length;i++){
   assert.equal(element('spinHistoryPager').hidden,false,name+' load button before '+i);
   await element('spinHistoryMore').handlers.click();
