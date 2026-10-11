@@ -45,7 +45,7 @@ async function testBoard(){
  const profile={is_owner:true};
  const crilo={profile,dailyPeriod:()=> '2026-10-10',esc:x=>String(x??'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')};
  const window={CriloRarity:rarityWorld.CriloRarity,addEventListener(){}};
- const q={select(){return this},eq(){return this},order(){return this},
+ const q={select(){return this},eq(){return this},not(){return this},order(){return this},
   limit(){return this},gte(){return this},
   then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};
  const db={from:()=>q};
