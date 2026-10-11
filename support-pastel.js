@@ -58,7 +58,7 @@
         el.style.setProperty('--c',color[0]);
         el.style.setProperty('--shadow',color[1]);
         // Small site motifs, without turning the backdrop into another game.
-        if(count%41===8 && shapeW>50){
+        if(count%41===8 && shapeW>45){
           const symbol=document.createElement('span');
           symbol.className='float-mark';
           const motif=['wheel','duck','domain'][(Math.floor(count/41))%3];
