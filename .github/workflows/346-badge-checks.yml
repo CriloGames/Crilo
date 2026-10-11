@@ -16,6 +16,7 @@ on:
       - 'badge-events.js'
       - 'support.html'
       - 'support-pastel.js'
+      - 'site-sounds.js'
       - 'support-pastel.css'
       - 'shape-of-sound.html'
       - 'sound-shapes.js'
@@ -72,6 +73,7 @@ on:
       - 'badge-events.js'
       - 'support.html'
       - 'support-pastel.js'
+      - 'site-sounds.js'
       - 'support-pastel.css'
       - 'shape-of-sound.html'
       - 'sound-shapes.js'
@@ -128,8 +130,11 @@ jobs:
         run: node release/346-badges/082-legal-pages-smoke.cjs
       - name: Check safe profile-icon UI and server-side settings allowlists
         run: node release/346-badges/090-profile-icon-static-smoke.cjs
+      - name: Verify all Crilo UI sounds and sound preference protections
+        run: node release/346-badges/101-site-sounds-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
+          node --check site-sounds.js
           node --check app.js
           node --check header-continuity.js
           node --check sound-shapes.js
