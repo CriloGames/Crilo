@@ -36,7 +36,7 @@ const mockSupabase=`(()=>{
   rpc:async(name,args)=>{
    window.__qa.requests.push(['rpc',name,args||null]);
    if(name==='crilo_my_ban_status')return {data:false,error:null};
-   if(name==='crilo_update_profile_icon'){return {data:{avatar_symbol:args.p_symbol??null,avatar_background:args.p_background},error:null};}
+   if(name==='crilo_update_profile_icon'||name==='crilo_update_profile_icon_v2'){return {data:{avatar_symbol:args.p_symbol??null,avatar_background:args.p_background,avatar_ink:args.p_ink||'#17191E'},error:null};}
    if(name==='crilo_public_daily_completion_counts')return {data:{today:1,all_time:2,period:new Date(Date.now()-22*3600000).toISOString().slice(0,10)},error:null};
    if(['search_crilo_players','crilo_total_points_leaders','crilo_gameplay_badge_leaders','crilo_my_moderation_notices','crilo_owner_growth_report'].includes(name))return {data:[],error:null};
    return {data:true,error:null};
