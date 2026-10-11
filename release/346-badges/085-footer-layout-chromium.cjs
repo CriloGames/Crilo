@@ -18,20 +18,33 @@ assert.ok(footer.indexOf('</div>\n<div class="crilo-beetle-track"')>=0,'The beet
    await page.addStyleTag({content:legal});
    const state=await page.evaluate(()=>{
     const b=q=>{const r=document.querySelector(q).getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,top:r.top,right:r.right,bottom:r.bottom,cx:r.left+r.width/2}};
-    return{footer:b('.crilo-site-footer'),content:b('.crilo-footer-content'),tip:b('.crilo-support-link'),links:b('.crilo-legal-nav'),copy:b('.crilo-legal-copy'),rail:b('.crilo-beetle-track'),align:getComputedStyle(document.querySelector('.crilo-legal-copy')).textAlign,scroll:document.documentElement.scrollWidth,viewport:innerWidth};
+    return{footer:b('.crilo-site-footer'),content:b('.crilo-footer-content'),tip:b('.crilo-support-link'),links:b('.crilo-legal-nav'),copy:b('.crilo-legal-copy'),rail:b('.crilo-beetle-track'),anchors:[...document.querySelectorAll('.crilo-legal-nav a')].map(a=>{const r=a.getBoundingClientRect();return{cx:r.left+r.width/2,x:r.x,right:r.right,y:r.y}}),dots:document.querySelectorAll('.crilo-legal-nav span').length,columns:getComputedStyle(document.querySelector('.crilo-legal-nav')).gridTemplateColumns,align:getComputedStyle(document.querySelector('.crilo-legal-copy')).textAlign,scroll:document.documentElement.scrollWidth,viewport:innerWidth};
    });
    assert.ok(state.scroll<=width+1,'Horizontal overflow '+width);
    assert.ok(Math.abs(state.footer.x)<1&&Math.abs(state.footer.w-width)<2,'Footer not viewport-wide '+width+' '+JSON.stringify(state.footer));
    assert.ok(Math.abs(state.rail.x)<1&&Math.abs(state.rail.w-width)<2,'Beetle rail must reach both edges '+width+' '+JSON.stringify(state.rail));
-   // Bounding boxes can be perfectly centered while the asymmetric glyph
-   // shapes LOOK off-center. Match the measured optical offsets on wide
-   // layouts and reset to true centering when legal links may wrap.
-   assert.ok(Math.abs(state.content.cx-width/2)<1.5,'Footer content not centered at '+width);
-   const optical=width<=419?{tip:0,links:0,copy:0}:{tip:-3,links:5,copy:1};
-   for(const [key,shift] of Object.entries(optical)){
-    const actual=state[key].cx-width/2;
-    assert.ok(Math.abs(actual-shift)<1.5,
-      'Footer '+key+' optical axis at '+width+'px: '+actual+' expected '+shift);
+   // Exact visible anchors, not full-width boxes: the center legal link is
+   // literally centered on desktop. On phones, Contact is the center anchor.
+   for(const key of ['content','tip','links','copy']){
+    assert.ok(Math.abs(state[key].cx-width/2)<1.5,
+      key+' center displaced at '+width+': '+JSON.stringify(state[key]));
+   }
+   assert.equal(state.anchors.length,3,'Exactly three real footer links');
+   assert.equal(state.dots,0,'Decorative dots cause asymmetric apparent spacing');
+   const [privacy,terms,contact]=state.anchors;
+   if(width>600){
+    assert.ok(Math.abs(terms.cx-width/2)<1.5,
+      'Middle Terms of Service link must be screen-centered at '+width);
+    assert.ok(Math.abs((terms.cx-privacy.cx)-(contact.cx-terms.cx))<2,
+      'Footer links must have perfectly symmetric column centers at '+width);
+    assert.ok(Math.abs(privacy.y-terms.y)<2 && Math.abs(contact.y-terms.y)<2,
+      'Desktop legal links must be on one level row at '+width);
+   }else{
+    assert.ok(Math.abs(contact.cx-width/2)<1.5,
+      'Mobile Contact link must be exactly centered at '+width);
+    assert.ok(Math.abs(privacy.cx+terms.cx-width)<2,
+      'Mobile first two links must balance about the viewport center at '+width);
+    assert.ok(contact.y>privacy.y+5,'Mobile Contact link should be a separate centered row');
    }
    for(const key of ['tip','links','copy']){
     const row=state[key];
@@ -55,7 +68,7 @@ assert.ok(footer.indexOf('</div>\n<div class="crilo-beetle-track"')>=0,'The beet
    assert.ok(stops.right.right>=width-12&&stops.right.right<=width-4,'Beetle misses right edge at '+width+': '+JSON.stringify(stops));
    assert.ok(stops.back.left>=5&&stops.back.left<=11,'Beetle misses return edge '+width);
    await page.close();
-   console.log('PASS full-width centered footer + both beetle edges '+width+'px');
+   console.log('PASS balanced centered footer, links, and beetle edges '+width+'px');
   }
  }finally{await browser.close()}
 })().catch(err=>{console.error(err);process.exitCode=1});
