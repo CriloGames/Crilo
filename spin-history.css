@@ -88,3 +88,14 @@ html[data-theme="dark"] .spin-history-score small{color:color-mix(in srgb,var(--
  .spin-history-side span:before{content:none}
 }
 @media(prefers-reduced-motion:reduce){.spin-history-wheel img{transition:none}}
+
+/* Leaderboard-style personal Daily history. The wheel's old bold black rim
+   is visible with and without a saved drawing. */
+.spin-history-day{margin:18px 2px 4px;font-size:12px;letter-spacing:.075em;font-weight:950;color:var(--muted,#646b72);text-transform:uppercase}
+.spin-history-day:first-child{margin-top:2px}
+.spin-history-item{border-left:1px solid var(--line,#e2e5e9);grid-template-columns:64px minmax(0,1fr) auto;min-width:0}
+.spin-history-wheel{width:58px;height:58px;border:4px solid #17191e;background:#fff;overflow:hidden;flex-shrink:0}
+.spin-history-wheel img{width:100%;height:100%;border-radius:50%;object-fit:cover;filter:none}
+.spin-history-wheel:hover img{filter:none}
+.spin-history-side strong{color:var(--spin-rarity)}
+@media(max-width:550px){.spin-history-item{grid-template-columns:54px minmax(0,1fr) auto;gap:9px}.spin-history-wheel{width:49px;height:49px;border-width:4px}.spin-history-wheel img{width:100%;height:100%}.spin-history-day{margin-top:14px}}
