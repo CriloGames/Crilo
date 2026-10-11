@@ -69,6 +69,10 @@ function installFakeDaily(){
     }else{
      await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===1);
      assert.equal(await page.locator('.spin-history-item').count(),1,'Ten spins must display as one scored Daily');
+     await page.waitForFunction(()=>document.getElementById('spinHistoryCount')?.textContent==='1 Daily completed');
+     assert.match(await page.locator('#spinHistorySpinCount').innerText(),/10 wheel spins in Dailies/);
+     assert.ok(await page.locator('#spinHistoryPager').isHidden(),'One saved Daily cannot have older pages');
+     assert.ok(await page.locator('#spinHistoryEnd').isVisible(),'Single saved Daily must show an explicit end');
      const text=await page.locator('#spinHistoryList').innerText();
      assert.ok(text.includes('10 spins')&&text.includes('23'),'Daily card must show saved spin count and final score');
      assert.ok(!text.includes('DUCK!')&&!text.includes('Landed '),'Do not show individual spin or badge-like events');
