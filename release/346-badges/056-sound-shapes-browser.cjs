@@ -233,27 +233,46 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  const masonry=await tipPage.evaluate(()=>{
+  const floating=await tipPage.evaluate(()=>{
     const field=document.getElementById('shapeCanvas');
-    const courses=[...field.querySelectorAll('.wall-course')];
-    const bricks=[...field.querySelectorAll('.shape.brick')];
-    const box=field.getBoundingClientRect();
-    const xs=courses.slice(1,8).map(row=>row.querySelector('.brick')?.getBoundingClientRect().left);
-    const motifs=['wheel','duck','domain'].map(kind=>field.querySelectorAll('.brick.is-'+kind).length);
-    return {bricks:bricks.length,courses:courses.length,field:box.toJSON(),
-      xs,motifs,
-      opacity:Math.min(...bricks.map(el=>parseFloat(getComputedStyle(el).opacity))),
-      widths:bricks.slice(0,30).map(el=>el.getBoundingClientRect().width),
-      height:field.scrollHeight};
+    const shapes=[...field.querySelectorAll('.float-shape')];
+    const rects=shapes.map(el=>el.getBoundingClientRect());
+    const w=field.getBoundingClientRect().width;
+    const h=field.getBoundingClientRect().height;
+    const styles=shapes.map(el=>getComputedStyle(el));
+    const colors=new Set(styles.map(s=>s.backgroundColor));
+    const depths=new Set(styles.map(s=>s.zIndex));
+    let overlap=0;
+    let totalArea=0;
+    for(let i=0;i<rects.length;i++){
+      const a=rects[i];
+      totalArea+=a.width*a.height;
+      for(let j=i+1;j<rects.length;j++){
+        const b=rects[j];
+        const inter=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))
+          *Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+        if(inter>Math.min(a.width*a.height,b.width*b.height)*.05)overlap++;
+      }
+    }
+    return {
+      count:shapes.length,areaRatio:totalArea/(w*h),
+      pairsOverlapping:overlap,shades:colors.size,zLevels:depths.size,
+      background:getComputedStyle(field).backgroundColor,
+      motifs:['wheel','duck','domain'].map(k=>field.querySelectorAll('.float-mark.'+k).length),
+      stoneElements:field.querySelectorAll('.wall-course, .shape.brick').length,
+      resized:!!field.dataset.shapeCount
+    };
   });
-  check(masonry.bricks>=45&&masonry.courses>=7&&masonry.courses<=40,
-    scenario.name+' full stacked stone wall missing '+JSON.stringify(masonry));
-  check(new Set(masonry.xs.map(x=>Math.round(x))).size>=3,
-    scenario.name+' stacked courses not staggered');
-  check(masonry.opacity>=.99&&Math.min(...masonry.widths)>=35,
-    scenario.name+' stones should be larger and opaque');
-  check(masonry.motifs.every(n=>n>=1),
-    scenario.name+' the duck, wheel and domain accents are missing '+JSON.stringify(masonry));
+  check(floating.count>=65&&floating.areaRatio>=.50,
+    scenario.name+' too much empty white space in floating shape field '+JSON.stringify(floating));
+  check(floating.pairsOverlapping<=floating.count*.18,
+    scenario.name+' shapes overlap too much '+JSON.stringify(floating));
+  check(floating.zLevels>=4&&floating.shades>=7,
+    scenario.name+' no diverse pastel depth layering '+JSON.stringify(floating));
+  check(floating.background==='rgb(255, 255, 255)'&&floating.stoneElements===0,
+    scenario.name+' white background not installed / old stone wall remains '+JSON.stringify(floating));
+  check(floating.motifs.every(n=>n>0)&&floating.resized,
+    scenario.name+' Crilo accents or responsive layout missing '+JSON.stringify(floating));
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,
