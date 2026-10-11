@@ -139,4 +139,4 @@ async function main(){
  }
  console.log('PASS: '+runs+' real rendered browser viewports; no purchases or user-data mutations.');
 }
-main().then(()=>server.close()).catch(e=>{console.error(e);server.close();process.exitCode=1});
+main().then(()=>server.close()).catch(e=>{console.error(e);server.close();process.exit(1)});
