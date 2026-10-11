@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const s=fs.readFileSync('leaderboard.js','utf8');
 const html=fs.readFileSync('leaderboard.html','utf8');
-assert.match(html,/leaderboard\.js\?v=39/,'Load newest competitive-score filter');
+assert.match(html,/leaderboard\.js\?v=40/,'Load newest competitive-score filter');
 assert.match(s,/verified_spin_session_id/,'Discriminate server-proof from old preview');
 assert.match(s,/!isLegacyPreviewRun\(run\)/,'Apply filter to single-run leaderboard');
 assert.match(s,/if\(isLegacyPreviewRun\(run\)\)continue/,'Apply filter to ducks scoreboard');
