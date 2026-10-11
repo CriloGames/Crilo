@@ -41,16 +41,16 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
 .crilo-legal-outro a:hover{text-decoration:underline}
 @media(max-width:600px){.crilo-legal-main{padding:32px 15px 8px}.crilo-legal-paper{border-radius:17px;padding:23px 20px}.crilo-legal-topbar{height:59px}.crilo-legal-section p,.crilo-legal-section li{font-size:13px;line-height:1.75}.crilo-legal-section h2{gap:9px}.crilo-legal-nav{gap:7px 9px;font-size:11px}}
 
-/* Full-width homepage footer. Center the three rows as one group, then let
-   the decorative beetle walk on a separate edge-to-edge bottom rail. */
+/* Homepage footer: each link has a symmetrical column. The middle legal
+   link, support button, and copyright share the same true visual center.
+   No per-item translateX nudges or differently sized separator gaps. */
 .crilo-site-footer{
  box-sizing:border-box;
  width:100%;
  max-width:none;
  margin:18px 0 0;
- padding:16px 0 0;
+ padding:19px 0 0;
  border-top:1px solid var(--line,#e8e8e8);
- display:block;
  text-align:center;
 }
 .crilo-site-footer .crilo-footer-content{
@@ -66,17 +66,19 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  text-align:center;
 }
 .crilo-site-footer .crilo-support-link{
- position:relative;z-index:1;
+ box-sizing:border-box;
  display:inline-flex;
  align-items:center;
  justify-content:center;
+ position:relative;
+ z-index:1;
  flex:none;
+ align-self:center;
  width:max-content;
  max-width:100%;
  min-height:34px;
- box-sizing:border-box;
+ margin:0 auto 17px;
  padding:6px 16px;
- margin:0 auto 9px;
  border:1px solid var(--line,#e3e4e4);
  border-radius:999px;
  background:var(--panel,#fff);
@@ -84,8 +86,9 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  font-size:12px;
  line-height:1.35;
  font-weight:750;
- text-align:center;
  text-decoration:none;
+ text-align:center;
+ transform:none;
 }
 .crilo-site-footer .crilo-support-link:hover{
  color:var(--text,#17191e);
@@ -94,31 +97,56 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  text-decoration:none;
 }
 .crilo-site-footer .crilo-home-legal{
- width:100%;
- max-width:100%;
- margin:0 auto;
  display:flex;
  flex-direction:column;
  align-items:center;
- text-align:center;
-}
-.crilo-site-footer .crilo-legal-nav{
  width:100%;
+ max-width:100%;
  margin:0 auto;
- display:flex;
- justify-content:center;
- align-items:center;
- flex-wrap:wrap;
- gap:6px 12px;
  text-align:center;
- font-size:12px;
 }
-.crilo-site-footer .crilo-legal-copy{
- display:block;
+.crilo-site-footer .crilo-home-legal .crilo-legal-nav{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:center;
+ justify-items:center;
+ column-gap:10px;
+ row-gap:3px;
  width:100%;
- margin:5px auto 0;
+ max-width:650px;
+ box-sizing:border-box;
+ margin:0 auto;
  padding:0;
+ font-size:12px;
+ text-align:center;
+ transform:none;
+}
+.crilo-site-footer .crilo-home-legal .crilo-legal-nav a{
+ display:block;
+ justify-self:center;
+ white-space:nowrap;
+ max-width:100%;
+ padding:4px 5px;
+ border-radius:8px;
+ line-height:1.4;
+ text-align:center;
+}
+.crilo-site-footer .crilo-home-legal .crilo-legal-nav a:hover,
+.crilo-site-footer .crilo-home-legal .crilo-legal-nav a:focus-visible{
+ background:var(--soft,#f7faf8);
+ text-decoration:none;
+}
+.crilo-site-footer .crilo-home-legal .crilo-legal-copy{
+ display:block;
+ box-sizing:border-box;
+ width:max-content;
+ max-width:100%;
+ margin:7px auto 0;
+ padding:0;
+ position:static;
+ inset:auto;
  float:none;
+ transform:none;
  text-align:center;
  font-size:11px;
  line-height:1.35;
@@ -126,94 +154,28 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
 .crilo-site-footer .crilo-beetle-track{
  width:100%;
  max-width:none;
- margin:0;
- padding:0;
- height:41px;
  box-sizing:border-box;
+ height:41px;
  position:relative;
  left:0;
- align-self:auto;
  flex:none;
+ margin:0;
+ padding:0;
 }
-/* Width is always the viewport, including desktop: the existing
-   criloBeetlePatrol animation therefore reaches within 8px of both edges. */
-@media(max-width:500px){
- .crilo-site-footer{margin-top:12px;padding-top:14px}
+@media(max-width:600px){
+ .crilo-site-footer{margin-top:12px;padding-top:15px}
  .crilo-site-footer .crilo-footer-content{padding:0 12px}
- .crilo-site-footer .crilo-support-link{min-height:32px;margin-bottom:7px;font-size:11px}
- .crilo-site-footer .crilo-legal-nav{font-size:11px;gap:5px 9px}
+ .crilo-site-footer .crilo-support-link{
+  min-height:32px;margin-bottom:12px;font-size:11px
+ }
+ .crilo-site-footer .crilo-home-legal .crilo-legal-nav{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  max-width:410px;
+  font-size:11px;
+  column-gap:6px;
+ }
+ .crilo-site-footer .crilo-home-legal .crilo-legal-nav a:last-of-type{
+  grid-column:1 / -1;
+ }
  .crilo-site-footer .crilo-beetle-track{height:40px}
-}
-
-/* Home footer: center the *visible* content, not a full-width empty box.
-   Optical nudges were calibrated against the actual footer screenshot: text
-   ink in the support button was 4px right-heavy, and legal links 12px left-
-   heavy, despite mathematically centered bounding boxes. Limit the nudges
-   to roomy viewports; on narrow phones, wrapped links center naturally. */
-.crilo-site-footer .crilo-footer-content{
- display:grid;
- grid-template-columns:minmax(0,1fr);
- justify-items:center;
- align-content:center;
- width:100%;
- max-width:740px;
- margin-inline:auto;
- padding-inline:20px;
- text-align:center;
-}
-.crilo-site-footer .crilo-support-link{
- grid-column:1;
- justify-self:center;
- width:max-content;
- max-width:100%;
- margin:0 auto 11px;
- transform:translateX(-3px);
-}
-.crilo-site-footer .crilo-home-legal{
- grid-column:1;
- display:flex;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- width:100%;
- max-width:100%;
- margin:0 auto;
- text-align:center;
-}
-.crilo-site-footer .crilo-home-legal .crilo-legal-nav{
- box-sizing:border-box;
- display:flex;
- flex-wrap:wrap;
- align-items:center;
- justify-content:center;
- width:max-content;
- max-width:100%;
- margin:0 auto;
- padding:0;
- gap:6px 12px;
- text-align:center;
- transform:translateX(5px);
-}
-.crilo-site-footer .crilo-home-legal .crilo-legal-copy{
- display:block;
- width:max-content;
- max-width:100%;
- margin:7px auto 0;
- padding:0;
- float:none;
- position:static;
- inset:auto;
- justify-self:center;
- text-align:center;
- transform:translateX(1px);
-}
-@media(max-width:640px){
- .crilo-site-footer .crilo-footer-content{padding-inline:12px}
-}
-@media(max-width:419px){
- .crilo-site-footer .crilo-support-link,
- .crilo-site-footer .crilo-home-legal .crilo-legal-nav,
- .crilo-site-footer .crilo-home-legal .crilo-legal-copy{transform:none}
- .crilo-site-footer .crilo-support-link{margin-bottom:10px}
- .crilo-site-footer .crilo-home-legal .crilo-legal-nav{gap:6px 9px}
 }
