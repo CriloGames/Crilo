@@ -102,10 +102,10 @@ async function syncDomainScore(){
   const {data:{session},error:sessionError}=await criloDB.auth.getSession();
   if(sessionError)throw sessionError;
   if(!session?.user){
-   if(status)status.textContent='Playing as a guest. Sign in on Crilo to save future verified scores.';
+   if(status)status.textContent='Playing as a guest. Your personal bests are saved on this device. Sign in to save future scores to Crilo.';
    return;
   }
-  if(status)status.textContent='Verifying your score on the server…';
+  if(status)status.textContent='Saving your score to Crilo…';
   // Supabase recomputes all five rounds from the authoritative price table.
   // The browser can never choose the score saved in game_scores.
   const {data,error}=await criloDB.rpc('crilo_submit_domain_score',{
@@ -115,10 +115,10 @@ async function syncDomainScore(){
   // A Domain-set badge is earned only after the server accepted all five rounds.
   window.CriloBadgeEvents?.track('domain_set');
   if(status)status.textContent=Number(data)===totalScore?
-   'Verified! Your score is saved to your Crilo profile.':
-   'Server-verified score: '+Number(data).toLocaleString()+' points saved to your Crilo profile.';
+   'Your score has been saved to your Crilo profile.':
+   'Saved score: '+Number(data).toLocaleString()+' points on your Crilo profile.';
  }catch(err){
-  console.warn('Domain score verification unavailable:',err);
+  console.warn('Domain score saving unavailable:',err);
   if(status)status.textContent='Your game was completed, but the score could not be saved: '+(err?.message||'Please try later.');
  }
 }
