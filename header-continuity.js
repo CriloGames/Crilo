@@ -3,7 +3,7 @@
  * Supabase re-verifies the user and owner role on every new page. */
 (()=>{
 'use strict';
-const KEY='crilo-header-preview-v1',AGE=15*60*1000;
+const KEY='crilo-header-preview-v1',AGE=3*60*60*1000;
 const validName=s=>typeof s==='string'&&/^[A-Za-z0-9_]{2,20}$/.test(s);
 const validColor=s=>typeof s==='string'&&/^#[\da-fA-F]{6}$/.test(s);
 function read(){
