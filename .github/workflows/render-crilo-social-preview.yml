@@ -1,0 +1,30 @@
+name: Render Crilo OG Image
+on:
+  push:
+    branches: [main]
+    paths: ['crilo-social-preview.svg', '.github/workflows/render-crilo-social-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install rasterizer
+        run: npm install --no-save --no-package-lock sharp@0.34.5
+      - name: Render the 1200 x 630 Open Graph PNG
+        run: node -e "require('sharp')('crilo-social-preview.svg').resize(1200,630).png().toFile('crilo-social-preview.png')"
+      - name: Commit preview PNG
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add crilo-social-preview.png
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add rasterized Crilo social preview image'
+            git push origin HEAD:main
+          fi
