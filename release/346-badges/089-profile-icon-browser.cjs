@@ -44,7 +44,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.locator('#avatarEditorSave').click();
    await page.waitForFunction(()=>document.getElementById('avatarEditorModal').classList.contains('hidden'));
    assert.equal(await page.locator('#avatar svg').count(),1,'Saved illustration missing');
-   const saved=await page.evaluate(()=>window.__qa.requests.filter(x=>x[0]==='rpc'&&x[1]==='crilo_update_profile_icon'));
+   const saved=await page.evaluate(()=>window.__qa.requests.filter(x=>x[0]==='rpc'&&x[1]==='crilo_update_profile_icon_v2'));
    assert.equal(saved.length,1,'Icon save should call one server RPC');
    assert.deepEqual(saved[0][2],{p_symbol:'icon:duck',p_background:'#DFECFF',p_ink:'#2D567F'});
    pass('saved duck + sky icon, verified RPC payload '+width+'px');
