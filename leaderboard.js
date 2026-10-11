@@ -1,4 +1,5 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';
+let loadRevision=0;
 const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(String(value||'')) ? String(value) : 'inherit';
 // These two old pre-verification sample-like rows were already intentionally
 // excluded from public score boards. Do not hide future verified real results
@@ -64,7 +65,8 @@ $('leaderList')?.addEventListener('click',e=>{
 });
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
 async function load(){
- if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}if(tab==='points'){await loadTotalPoints();return}
+ const revision=++loadRevision;
+ if(tab==='badges'){await loadBadges(revision);return}if(tab==='ducks'){await loadDucks(revision);return}if(tab==='points'){await loadTotalPoints(revision);return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
  const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at,verified_spin_session_id';
  let q=criloDB.from('daily_runs').select(fields).eq('is_test',false).not('verified_spin_session_id','is',null);
@@ -74,6 +76,7 @@ async function load(){
  else if(tab==='ducks')q=q.order('ducks',{ascending:false}).order('score',{ascending:false}).limit(100);
  else q=q.order('score',{ascending:false}).limit(100);
  const official=await q;
+ if(revision!==loadRevision)return;
  if(official.error){$('leaderList').innerHTML='<div class="empty-state">Could not load leaderboard: '+Crilo.esc(official.error.message)+'</div>';return}
  const runs=(official.data||[]).filter(run=>!isLegacyPreviewRun(run)).map(r=>({...r,_source:'official'}));
  if(tab==='records')runs.sort((a,b)=>b.spins-a.spins||b.score-a.score);
@@ -82,14 +85,15 @@ async function load(){
  const visible=runs.slice(0,100);
  const ids=[...new Set(visible.map(r=>r.user_id))];
  let profiles=[];
- if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,is_owner').in('id',ids);profiles=result.data||[]}
+ if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,is_owner').in('id',ids);if(revision!==loadRevision)return;profiles=result.data||[]}
  render(visible,new Map(profiles.map(p=>[p.id,p])));
 }
 // One aggregated row per player, from the database over every official Daily.
 // Owner Test Runs are stored separately and can never add to these totals.
-async function loadTotalPoints(){
+async function loadTotalPoints(revision){
  $('leaderList').innerHTML='<div class="empty-state">Loading all-time points…</div>';
  const {data,error}=await criloDB.rpc('crilo_total_points_leaders',{p_limit:100});
+ if(revision!==loadRevision)return;
  if(error){
   setBestScoreRarity(null);
   $('leaderList').innerHTML='<div class="empty-state">Total points are unavailable: '+
@@ -132,12 +136,13 @@ function duckCountHTML(value){
  // Original Classic illustration from the Meet the Ducks catalog.
  return '<span class="leader-duck-value"><span>'+count+'</span><img src="duck-classic.svg" class="leader-duck-icon leader-duck-icon-count" alt="" aria-hidden="true"></span>';
 }
-async function loadDucks(){
+async function loadDucks(revision){
  $('leaderList').innerHTML='<div class="empty-state">Loading lifetime duck totals…</div>';
  const totals=new Map();let offset=0;
  // Fetch all official runs, not just the top 100 single-run results.
  while(true){
   const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks,daily_period,score,spins,upgrades,doubles,verified_spin_session_id').eq('is_test',false).not('verified_spin_session_id','is',null).order('id',{ascending:true}).range(offset,offset+999);
+  if(revision!==loadRevision)return;
   if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
   for(const run of data||[]){if(isLegacyPreviewRun(run))continue;totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));}
   if(!data||data.length<1000)break;
@@ -145,7 +150,7 @@ async function loadDucks(){
  }
  const entries=[...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count||a.user_id.localeCompare(b.user_id)).slice(0,100);
  const ids=entries.map(x=>x.user_id);let profiles=[];
- if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color').in('id',ids);profiles=data||[]}
+ if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color').in('id',ids);if(revision!==loadRevision)return;profiles=data||[]}
  renderDuckLeaders(entries,new Map(profiles.map(p=>[p.id,p])));
 }
 function renderDuckLeaders(entries,profiles){
@@ -158,9 +163,10 @@ function renderDuckLeaders(entries,profiles){
  $('bestScore').innerHTML=duckCountHTML(best.count);$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Ducks collected across all official Daily runs';
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score leader-duck-score">'+duckCountHTML(e.count)+'</div></div>'}).join('');
 }
-async function loadBadges(){
+async function loadBadges(revision){
  $('leaderList').innerHTML='<div class="empty-state">Loading gameplay badge collectors…</div>';
  const {data,error}=await criloDB.rpc('crilo_gameplay_badge_leaders',{p_limit:100});
+ if(revision!==loadRevision)return;
  if(error){$('leaderList').innerHTML='<div class="empty-state">Badge rankings unavailable: '+Crilo.esc(error.message)+'</div>';return}
  const entries=(data||[]).map(x=>({user_id:x.user_id,count:Number(x.gameplay_badges)||0}));
  const profiles=new Map((data||[]).map(x=>[x.user_id,{username:x.username,name_color:x.name_color}]));
@@ -171,7 +177,7 @@ function renderBadgeLeaders(entries,profiles){
  $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Gameplay badges earned from official play. Exploration badges still count in your personal collection, but not in rankings. Ties share a rank.';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString()+' badges';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><span class="leader-name" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</span><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
