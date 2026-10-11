@@ -233,6 +233,43 @@ async function main(){
   check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/K7QJM2NVLKEYU',scenario.name+' custom checkout was changed');
   check(await page.locator('.sound-blob').count()===gameBefore,scenario.name+' tip selection affected the free game');
   check(!errors.length,scenario.name+' JavaScript errors: '+errors.join('; '));
+  // Confirm the homepage presents the new game before the original Domain card
+  // and that the promotional card fits all ten actual browser viewport sizes.
+  const home=await context.newPage();
+  await home.route(/\\.js(?:\\?.*)?$/,route=>route.fulfill({
+    status:200,contentType:'application/javascript',body:''
+  }));
+  await home.route('https://cdn.jsdelivr.net/**',route=>route.abort());
+  await home.goto(url.replace('support.html','index.html'),{waitUntil:'load'});
+  const gameCards=await home.evaluate(()=>{
+    const sound=document.getElementById('soundHomeGame');
+    const domain=document.querySelector('#more-games a[href="domain/"]');
+    if(!sound||!domain)return null;
+    const card=sound.getBoundingClientRect(),icon=sound.querySelector('.sound-home-art')?.getBoundingClientRect();
+    return {soundHref:sound.getAttribute('href'),
+      before:!!(sound.compareDocumentPosition(domain)&Node.DOCUMENT_POSITION_FOLLOWING),
+      cards:document.querySelectorAll('#more-games .game-card').length,
+      title:sound.querySelector('h2')?.textContent,
+      card:card.toJSON(),icon:icon?.toJSON(),
+      vw:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+  });
+  check(!!gameCards,scenario.name+' homepage game card or Domain card missing');
+  check(gameCards.before&&gameCards.soundHref==='support.html'&&
+    gameCards.title==='The Shape of Sound'&&gameCards.cards>=2,
+    scenario.name+' Shape of Sound not a separate game before Domain');
+  check(gameCards.scrollWidth<=gameCards.vw+2,
+    scenario.name+' homepage overflow '+JSON.stringify(gameCards));
+  check(gameCards.card.left>=-2&&gameCards.card.right<=gameCards.vw+2,
+    scenario.name+' sound homepage card clipped '+JSON.stringify(gameCards));
+  check(!!gameCards.icon&&gameCards.icon.left>=gameCards.card.left-2&&
+    gameCards.icon.right<=gameCards.card.right+2,
+    scenario.name+' sound card illustration overflow');
+  if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
+    const image=await home.locator('#more-games').screenshot({type:'jpeg',quality:53});
+    console.log('HOMEPAGE_GAMES_SCREENSHOT_B64 '+scenario.name+' '+image.toString('base64'));
+  }
+  console.log('PASS_HOME '+scenario.name+' — Shape of Sound above Domain, accessible card, no overflow');
+  await home.close();
   console.log('PASS '+scenario.name+' '+scenario.width+'x'+scenario.height+' — layout/tap/audio/stretch/merge/split/loop/mute/save/reset/PayPal');
   runs++;await context.close();await browser.close();
  }
