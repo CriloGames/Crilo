@@ -40,6 +40,7 @@ on:
       - 'blank-wheel.svg'
       - 'default-wheel.svg'
       - 'release/346-badges/093-blank-wheel-history-browser.cjs'
+      - 'release/346-badges/097-owner-daily-history-browser.cjs'
       - 'release/346-badges/089-profile-icon-browser.cjs'
       - 'profile.html'
       - 'owner-analytics.js'
@@ -79,6 +80,8 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
+      - name: Verify owner Daily counts and older-history pagination on mobile and desktop
+        run: node release/346-badges/097-owner-daily-history-browser.cjs
       - name: Verify customizable profile icon save and public display in Chromium
         run: node release/346-badges/089-profile-icon-browser.cjs
       - name: Verify owner link bell and username remain stable across page navigation
