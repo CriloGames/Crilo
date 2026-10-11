@@ -36,4 +36,5 @@
  $('analyticsReload').addEventListener('click',load);
  $('analyticsDays').addEventListener('change',load);
  window.addEventListener('crilo-auth-ready',load);
+ if(Crilo.user)load();
 })();

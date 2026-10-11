@@ -575,4 +575,4 @@ const historical=normalized([...(legacyDomainScores||[]).map(x=>x.score),...loca
 const rows=(scores,tag)=>scores.map((v,i)=>`<div class="domain-score"><span class="domain-rank">${tag==='Verified'?'#'+(i+1):'·'}</span><span class="domain-score-main"><span class="domain-score-title">${tag==='Verified'?(i===0?'Verified personal best':'Verified run '+(i+1)):'Legacy / local (unverified)'}</span><span class="domain-score-bar"><i style="width:${Math.min(100,Math.max(0,Number(v)/5000*100))}%"></i></span></span><strong class="domain-score-number">${Number(v).toLocaleString()}<small> / 5,000</small></strong></div>`).join('');
 $('domainTop').innerHTML=(verified.length?rows(verified,'Verified'):'<p class="muted">No server-verified Domain scores yet.</p>')+
  (historical.length?'<p class="muted" style="font-size:12px">Older or device-saved scores (not server verified):</p>'+rows(historical,'Legacy'):'');}
-window.addEventListener('crilo-auth-ready',load)})();
+window.addEventListener('crilo-auth-ready',load);load();})();

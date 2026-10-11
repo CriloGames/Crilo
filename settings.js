@@ -35,4 +35,4 @@ $('signOutBtn').onclick=async()=>{await criloDB.auth.signOut();location.href='in
   try{await criloDB.auth.signOut({scope:'local'})}catch(_){}
   location.replace('index.html?account_deleted=1');
  }catch(e){$('deleteStatus').textContent='Account was not deleted: '+(e?.message||'Please try again.');btn.disabled=false}
-};window.addEventListener('crilo-auth-ready',init)})();
+};window.addEventListener('crilo-auth-ready',init);if(Crilo.user)init();})();
