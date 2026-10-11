@@ -228,4 +228,17 @@ function render(runs,pm){
   img.animate([{transform:'rotate(0deg)'},{transform:'rotate(1440deg)'}],{duration:2300,easing:'cubic-bezier(.1,.65,.2,1)'});
  }));
 }
-document.querySelectorAll('.leader-tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.leader-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');tab=b.dataset.tab;load()}));load()})();
+document.querySelectorAll('.leader-tab').forEach(b=>{
+ b.setAttribute?.('aria-pressed',b.dataset.tab===tab?'true':'false');
+ b.addEventListener('click',()=>{
+  document.querySelectorAll('.leader-tab').forEach(x=>{
+   x.classList.remove('active');
+   x.setAttribute?.('aria-pressed','false');
+  });
+  b.classList.add('active');
+  b.setAttribute?.('aria-pressed','true');
+  tab=b.dataset.tab;
+  load();
+ });
+});
+load()})();
