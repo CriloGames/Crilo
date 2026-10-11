@@ -1,6 +1,6 @@
 /* Crilo's pastel tip page — a dense, overlapping, paper-cut confetti world.
    Self-contained: no shared site classes, account, game, or paid assets. */
-:root{color-scheme:light;font-family:ui-rounded,"Trebuchet MS",system-ui,-apple-system,BlinkMacSystemFont,sans-serif}
+:root{color-scheme:light;font-family:"Manrope","Inter","Avenir Next",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}
 html{min-height:100%;background:#fbdff2}
 body{margin:0;min-height:100svh;color:#34313e;overflow-x:hidden;-webkit-text-size-adjust:100%;background:#fbdff2}
@@ -46,7 +46,7 @@ button:focus-visible,a:focus-visible{outline:4px solid #6961b8;outline-offset:4p
 .squiggle-line.c{left:38%;bottom:-5%;transform:rotate(13deg)}
 .tip-card{position:relative;width:min(100%,590px);padding:clamp(26px,4vw,45px) clamp(18px,5vw,43px) 26px;background:linear-gradient(156deg,#fffdfbed,#fff8f9f7 65%,#fdf9fff3);border:3px solid #fff;outline:2px solid #dcc8e3;border-radius:45px;box-shadow:0 0 0 9px #ffffff62,0 0 0 15px #f6d6e7b9,12px 22px 0 #917d9e29,0 28px 70px #59425e1c;text-align:center;z-index:2;transform:rotate(-1deg);}
 .tip-card::before{content:"";position:absolute;inset:14px;border:2px dashed #eecbdb;border-radius:32px;pointer-events:none}
-.card-ribbon{position:absolute;top:-22px;left:50%;transform:translateX(-50%) rotate(2deg);white-space:nowrap;background:#d5f3d1;border:3px solid #fff;border-radius:99px;padding:10px 22px;letter-spacing:.16em;font-size:12px;font-weight:900;color:#53694f;box-shadow:0 6px 0 #9cccac}
+.card-ribbon{position:absolute;top:-22px;left:50%;transform:translateX(-50%) rotate(2deg);white-space:nowrap;background:#d5f3d1;border:3px solid #fff;border-radius:99px;padding:10px 22px;letter-spacing:.14em;font-size:11px;font-weight:700;color:#53694f;box-shadow:0 6px 0 #9cccac}
 .card-sticker{position:absolute;font-size:clamp(35px,6vw,58px);width:1em;height:1em;display:grid;place-items:center;line-height:1;pointer-events:none;text-shadow:3px 4px 0 #ffffff;z-index:3;}
 .card-sticker.one{left:-33px;top:31%;transform:rotate(-17deg);color:#f4a2ba}
 .card-sticker.two{right:-38px;top:15%;transform:rotate(18deg);color:#b1c5f1}
@@ -56,23 +56,23 @@ button:focus-visible,a:focus-visible{outline:4px solid #6961b8;outline-offset:4p
 .cute-stamp .heart{font-family:Georgia,serif;font-size:67px;line-height:1;color:#fb718f;transform:rotate(6deg) translateY(-3px);text-shadow:2px 3px 0 #fff8}
 .cute-stamp .eyes{position:absolute;top:45%;font-size:22px;line-height:1;letter-spacing:9px;color:#594557;left:37%;font-weight:900;transform:rotate(7deg)}
 .cute-stamp .smile{position:absolute;bottom:25%;left:50%;transform:translateX(-50%);width:14px;height:8px;border:3px solid #594557;border-top:0;border-radius:0 0 16px 16px}
-.tip-card h1{position:relative;margin:4px auto 10px;max-width:480px;font-weight:1000;font-size:clamp(39px,6.1vw,67px);line-height:.97;letter-spacing:-.067em;color:#383448;text-shadow:1px 2px 0 #fff}
-.tip-card h1 span{display:block;color:#af76bd;-webkit-text-fill-color:#af76bd;text-shadow:2px 3px 0 #fff,3px 5px 0 #d7b7df50}
-.tip-subtitle{margin:13px auto 21px;font-size:14px;line-height:1.5;font-weight:650;color:#77708c;max-width:330px}
+.tip-card h1{position:relative;margin:4px auto 10px;max-width:480px;font-weight:800;font-size:clamp(39px,6.1vw,67px);line-height:1.04;letter-spacing:-.055em;color:#363443;text-shadow:none}
+.tip-card h1 span{display:block;color:#9b78b0;-webkit-text-fill-color:#9b78b0;text-shadow:none}
+.tip-subtitle{margin:13px auto 21px;font-size:14px;line-height:1.55;font-weight:500;color:#747180;max-width:355px}
 .tip-choices{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 auto 16px;max-width:460px}
-.support-amount{border:2px solid #e9dce9;background:#fff;color:#4e445a;border-radius:17px;min-height:57px;padding:9px 2px;font-size:16px;font-weight:900;box-shadow:0 5px 0 #dfd1e599;cursor:pointer;transition:background .2s,border-color .2s,transform .2s;touch-action:manipulation}
+.support-amount{border:2px solid #e9dce9;background:#fff;color:#474352;border-radius:17px;min-height:57px;padding:9px 2px;font-size:16px;font-weight:700;box-shadow:0 5px 0 #dfd1e599;cursor:pointer;transition:background .2s,border-color .2s,transform .2s;touch-action:manipulation}
 .support-amount:nth-child(1){background:#ffe4e4}
 .support-amount:nth-child(2){background:#e1edff}
 .support-amount:nth-child(3){background:#e1f5e4}
 .support-amount:nth-child(4){background:#fff0d6;font-size:14px}
 .support-amount:hover{transform:translateY(-2px);border-color:#b7a5cd}
 .support-amount.selected{border-color:#665985;outline:2px solid #665985;outline-offset:1px;transform:translateY(-3px);box-shadow:0 8px 0 #c9bdd5}
-.support-pay{display:flex;justify-content:center;align-items:center;gap:12px;margin:0 auto;width:min(100%,460px);min-height:67px;padding:13px 16px;color:#45373c;border:3px solid #fff;border-radius:20px;background:linear-gradient(95deg,#ffde8c,#ffb5c5 50%,#c1dcfa);box-shadow:0 6px 0 #e2b2bb,0 11px 26px #c794a045;font-size:19px;font-weight:950;text-decoration:none;transition:transform .15s,box-shadow .15s}
+.support-pay{display:flex;justify-content:center;align-items:center;gap:12px;margin:0 auto;width:min(100%,460px);min-height:67px;padding:13px 16px;color:#423e4c;border:3px solid #fff;border-radius:20px;background:linear-gradient(95deg,#ffde8c,#ffb5c5 50%,#c1dcfa);box-shadow:0 6px 0 #e2b2bb,0 11px 26px #c794a045;font-size:18px;font-weight:750;text-decoration:none;transition:transform .15s,box-shadow .15s}
 .support-pay:hover{transform:translateY(-3px);box-shadow:0 9px 0 #e2b2bb,0 14px 30px #c794a055}
 .support-pay:active{transform:translateY(2px);box-shadow:0 3px 0 #e2b2bb}
 .support-pay .arrow{font-size:25px;line-height:1}
-.support-selected{min-height:20px;margin:11px auto 0;font-size:12px;font-weight:800;color:#8a7b91}
-.support-fine{position:relative;margin:16px auto 0;max-width:435px;color:#8e8699;font-size:10px;line-height:1.5;font-weight:600}
+.support-selected{min-height:20px;margin:11px auto 0;font-size:12px;font-weight:600;color:#817c89}
+.support-fine{position:relative;margin:16px auto 0;max-width:435px;color:#777484;font-size:10px;line-height:1.55;font-weight:500}
 .tip-card [aria-live]{position:relative}
 @keyframes drift{from{transform:translate(-50%,-50%) rotate(var(--rot)) translateY(0)}to{transform:translate(-50%,-50%) rotate(var(--rot)) translateY(-10px)}}
 @media(max-width:650px){

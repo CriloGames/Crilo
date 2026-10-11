@@ -234,6 +234,14 @@ async function main(){
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
   check(await tipPage.locator('.shape').count()===230,scenario.name+' pastel collage did not load 230 shapes');
+  const typeStyles=await tipPage.evaluate(()=>({
+    family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
+    headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,
+    buttonWeight:getComputedStyle(document.querySelector('.support-amount')).fontWeight,
+    headingShadow:getComputedStyle(document.querySelector('.tip-card h1 span')).textShadow
+  }));
+  check(typeStyles.family.includes('Manrope')&&typeStyles.headlineWeight==='800'&&typeStyles.buttonWeight==='700'&&typeStyles.headingShadow==='none',
+    scenario.name+' modern typography not applied '+JSON.stringify(typeStyles));
   const tipLayout=await tipPage.evaluate(()=>{
     const card=document.querySelector('.tip-card').getBoundingClientRect();
     const pay=document.getElementById('supportPayLink').getBoundingClientRect();
