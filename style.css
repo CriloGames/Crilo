@@ -1424,3 +1424,32 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
  .topbar .account-wrap{width:clamp(84px,27vw,110px)}
  .topbar #accountBtn{max-width:100%}
 }
+
+/* Stable account controls on separate HTML pages. The prepainted username
+   remains visible (but inert) until the Supabase session is verified. */
+.account-wrap:has(> #accountBtn[aria-busy="true"]:not([data-visual-ready="true"]))::before{
+ background:#d6e8dd;
+}
+.account-wrap:has(> #accountBtn[data-visual-ready="true"])::before{content:none!important}
+#accountBtn[data-visual-ready="true"][aria-busy="true"]{
+ visibility:visible!important;pointer-events:none
+}
+.topbar .header-actions{display:flex;align-items:center;gap:5px;margin-left:auto;flex:0 0 auto}
+.topbar .account-wrap{width:clamp(88px,10vw,130px);min-width:0;flex:0 0 auto}
+.topbar #accountBtn{
+ display:block;box-sizing:border-box;width:100%;min-width:0!important;
+ max-width:100%;text-align:left;padding:8px 3px;transition:none
+}
+.topbar #friendBellWrap{flex:0 0 36px;width:36px}
+.topbar .header-actions #helpBtn{flex:0 0 36px;width:36px}
+.topbar nav a.crilo-owner-review-link{
+ color:#b42336;background:#ffe4e8;border:1px solid #ef9eaa;
+ border-radius:10px;padding:11px 15px;font-weight:800;box-sizing:border-box
+}
+.topbar nav a.crilo-owner-pending{pointer-events:none}
+@media(max-width:600px){
+ .topbar .header-actions{gap:4px}
+ .topbar .account-wrap{width:clamp(78px,23vw,106px)}
+ .topbar #accountBtn{font-size:14px;min-width:0!important;padding:7px 2px}
+ .topbar nav a.crilo-owner-review-link{padding:8px 10px}
+}
