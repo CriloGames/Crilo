@@ -1415,3 +1415,12 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 }
 #accountBtn[aria-busy="true"]{visibility:hidden!important;pointer-events:none}
 #accountBtn[aria-busy="false"]{transition:none}
+
+/* Reserve exactly the same header space before and after authentication.
+   Long usernames truncate inside the slot instead of pushing navigation. */
+.topbar .account-wrap{width:clamp(112px,12vw,168px);flex:0 0 auto}
+.topbar #accountBtn{display:block;box-sizing:border-box;width:100%;max-width:100%;text-align:right}
+@media(max-width:600px){
+ .topbar .account-wrap{width:clamp(84px,27vw,110px)}
+ .topbar #accountBtn{max-width:100%}
+}
