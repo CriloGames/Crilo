@@ -50,3 +50,14 @@ html[data-theme="dark"] .avatar-editor-option[aria-pressed=true],html[data-theme
 .avatar-editor-ink[style*="rgb(255, 255, 255)"] span,.avatar-editor-ink[style*="rgb(23, 25, 30)"] span{color:#999}
 .avatar-editor-ink:disabled{cursor:not-allowed;opacity:.3;outline:0!important}
 .avatar-editor-card .avatar-editor-status{min-height:18px}
+
+/* Equal-height icon initial selector and letter/number input on every device. */
+.avatar-editor-letter-row{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:stretch;gap:10px}
+.avatar-editor-default{box-sizing:border-box;height:46px;min-height:46px;padding:0 14px;display:flex;align-items:center;justify-content:center}
+.avatar-editor-letter-row label{box-sizing:border-box;min-width:0;height:46px;display:flex;align-items:center;justify-content:flex-end;gap:9px;white-space:nowrap}
+.avatar-editor-letter-input{box-sizing:border-box;width:52px;height:46px;min-height:46px;flex:0 0 52px;padding:0}
+@media(max-width:380px){
+ .avatar-editor-letter-row{gap:7px}
+ .avatar-editor-default{padding:0 9px;font-size:11px}
+ .avatar-editor-letter-row label{gap:5px;font-size:11px}
+}
