@@ -62,13 +62,24 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       const positions=await page.evaluate(()=>{
         const b=id=>document.getElementById(id)?.getBoundingClientRect();
         const bell=b('friendBellBtn'),name=b('accountBtn'),help=b('helpBtn');
-        return {gap:name.left-bell.right,helpGap:help?name.left-help.right:null,
-          topbarWidth:document.querySelector('.topbar').getBoundingClientRect().width,
-          viewport:innerWidth};
+        const bar=document.querySelector('.topbar');
+        const barRight=bar.getBoundingClientRect().right-parseFloat(getComputedStyle(bar).paddingRight);
+        const wrap=document.querySelector('.account-wrap').getBoundingClientRect();
+        return {gap:name.left-bell.right,helpGap:help?bell.left-help.right:null,
+          nameRightGap:barRight-name.right,extraSpace:wrap.right-name.right,
+          order:help?['helpBtn','friendBellWrap','account-wrap'].map(v=>
+            v==='account-wrap'?document.querySelector('.account-wrap'):document.getElementById(v)
+          ).map(e=>e.getBoundingClientRect().left):null,
+          topbarWidth:bar.getBoundingClientRect().width,viewport:innerWidth};
       });
-      assert.ok(positions.gap>=-5&&positions.gap<65,'Bell too far from username at '+width+'px: '+positions.gap);
-      if(positions.helpGap!==null)
-        assert.ok(positions.helpGap>=-5&&positions.helpGap<20,'Question mark too far from username');
+      assert.ok(positions.gap>=0&&positions.gap<=12,'Bell must sit immediately before the username at '+width+'px: '+positions.gap);
+      assert.ok(Math.abs(positions.extraSpace)<2,'Username must not have an empty right gutter: '+positions.extraSpace);
+      assert.ok(Math.abs(positions.nameRightGap)<2,'Username must end at the header content edge: '+positions.nameRightGap);
+      if(positions.helpGap!==null){
+        assert.ok(positions.helpGap>=0&&positions.helpGap<=12,'Info must sit directly to the left of the bell');
+        assert.ok(positions.order[0]<positions.order[1]&&positions.order[1]<positions.order[2],
+          'Expected info → bell → username');
+      }
       assert.ok(positions.topbarWidth<=positions.viewport+1,'Topbar overflow');
       await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false');
       assert.equal(await button.innerText(),'CriloQA');
