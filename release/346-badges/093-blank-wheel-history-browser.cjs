@@ -77,7 +77,8 @@ function installFakeDaily(){
      assert.ok(text.includes('10 spins')&&text.includes('23'),'Daily card must show saved spin count and final score');
      assert.ok(!text.includes('DUCK!')&&!text.includes('Landed '),'Do not show individual spin or badge-like events');
      assert.equal(await page.locator('.spin-history-wheel').count(),1);
-     assert.equal(await page.locator('.spin-history-status').count(),1,'Daily run metadata should be visible');
+     assert.equal(await page.locator('.spin-history-status').count(),0,'No verification status labels should appear');
+     assert.ok(!/Verified Daily|Earlier Daily/.test(text),'Daily cards should not show verification labels');
      assert.ok(!(await page.locator('#spinHistoryList').innerText()).includes('Badge earned'),'Spin history must not show badge unlocks');
      await page.locator('.spin-history-wheel').first().click();
      assert.ok(await image.evaluate(el=>el.getAnimations().length>0),'History wheel did not spin');
