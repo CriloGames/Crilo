@@ -38,7 +38,7 @@ const javascript=fs.readFileSync('official-daily-total.js','utf8');
    await page.waitForTimeout(40);
    await page.evaluate(()=>{document.getElementById('message').textContent='Official Daily saved. See how you ranked.'});
    await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='—',
-    {timeout:2500});
+    null,{timeout:2500});
    await page.waitForTimeout(180);
    assert.ok((await page.evaluate(()=>window.__qaCalls))<=3,
     'Stale Daily period must not cause rapid-fire RPC retries');
