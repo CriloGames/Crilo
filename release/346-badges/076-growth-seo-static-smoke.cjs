@@ -1,0 +1,30 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const read=path=>fs.readFileSync(path,'utf8');
+const home=read('index.html'),sql=read('release/346-badges/074-privacy-growth-metrics.sql');
+const links=read('sitemap.xml'),robots=read('robots.txt'),metrics=read('public-metrics.js');
+for(const p of ['index.html','leaderboard.html','ducks.html','badge-sets.html','shape-of-sound.html','support.html','beetle-tricks.html']){
+ const html=read(p);
+ assert.match(html,/rel="canonical"/,p);
+ assert.match(html,/og:image" content="https:\/\/crilo\.fun\/crilo-social-preview\.png"/,p);
+ assert.match(html,/og:image:width" content="1200"/,p);
+ assert.match(html,/twitter:card" content="summary_large_image"/,p);
+}
+assert.ok(fs.existsSync('crilo-social-preview.png'));
+assert.match(home,/share-result\.js\?v=1/);
+assert.match(home,/public-metrics\.js\?v=1/);
+assert.match(home,/share-result\.css\?v=1/);
+assert.match(read('share-result.js'),/verified_spin_session_id/);
+assert.match(read('share-result.js'),/!data\?\.verified_spin_session_id/);
+assert.match(read('settings.html'),/growthSettingsCard/);
+assert.match(read('owner-analytics.html'),/noindex,nofollow/);
+assert.match(sql,/enable row level security/);
+assert.match(sql,/revoke all on public\.crilo_site_daily_metrics from public,anon,authenticated/);
+assert.match(sql,/p\.is_owner is true/);
+assert.match(metrics,/crilo_track_site_metric/);
+assert.doesNotMatch(metrics,/ip_address|user_agent|fingerprint|device_id/i);
+assert.match(links,/https:\/\/crilo\.fun\/domain\//);
+assert.match(robots,/Sitemap: https:\/\/crilo\.fun\/sitemap\.xml/);
+assert.match(robots,/Disallow: \/owner-analytics\.html/);
+assert.doesNotMatch(links,/owner-analytics|moderation|settings/);
+console.log('PASS: server-isolated anonymized growth metrics, share verification, Open Graph image and crawlable sitemap.');

@@ -4,6 +4,10 @@ on:
     branches: [main]
     paths:
       - 'game.js'
+      - 'share-result.js'
+      - 'share-result.css'
+      - 'public-metrics.js'
+      - 'release/346-badges/075-share-growth-browser.cjs'
       - 'index.html'
       - 'app.js'
       - 'ducks.js'
@@ -27,3 +31,5 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Exercise actual wheel page with synthetic signed-in browser
         run: node release/346-badges/073-wheel-chromium-browser.cjs
+      - name: Exercise sharing with real Chromium UI and verified-run fixtures
+        run: node release/346-badges/075-share-growth-browser.cjs
