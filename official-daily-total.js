@@ -15,7 +15,15 @@
    if(error)throw error;
    const today=Number(data?.today),period=String(data?.period||'');
    if(!Number.isSafeInteger(today)||today<0||!/^\d{4}-\d{2}-\d{2}$/.test(period))throw Error('Invalid Daily count');
-   if(period!==periodNow()){retry=true;return}
+   // A stale server period is not an in-flight refresh request.
+   // Retrying here recursively would create an unbounded microtask/RPC
+   // loop, freeze the page and overwhelm the read endpoint.
+   // Leave the counter neutral and let the 15-second poll retry later.
+   if(period!==periodNow()){
+    counter.textContent='—';
+    label.textContent='DAILIES COMPLETED TODAY';
+    return;
+   }
    counter.textContent=today.toLocaleString();
    label.textContent=today===1?'DAILY COMPLETED TODAY':'DAILIES COMPLETED TODAY';
    counter.title=today+' official '+(today===1?'Daily':'Dailies')+' completed this Daily period';
