@@ -38,9 +38,9 @@ assert.ok(domain.includes("rpc('crilo_submit_domain_score'"),'Game must use serv
 assert.ok(!/from\(['"]game_scores['"]\)\.insert/.test(domain),'Never let browser write Domain leaderboard rows');
 assert.ok(domain.includes("slider:Number($('priceSlider').value)"),'Send slider, not a claimed points total');
 assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=12'));
-assert.ok(profile.includes(".eq('is_verified',true)")&&profile.includes(".eq('is_verified',false)"));
-assert.ok(profile.includes('Legacy / local (unverified)'), 'Legacy scores must be visibly untrusted');
-assert.ok(profilePage.includes('profile.js?v=99'));
+assert.ok(profile.includes(".eq('game_key','domain').order('score',{ascending:false}).limit(25)"),'Personal Domain history must include all stored scores');
+assert.ok(!profile.includes('Legacy / local (unverified)')&&!profile.includes('No server-verified Domain scores yet'), 'Personal Domain scores should not display verification labels');
+assert.ok(profilePage.includes('profile.js?v=100'));
 assert.match(owner,/CREATE UNIQUE INDEX IF NOT EXISTS crilo_exactly_one_owner_guard/);
 assert.match(owner,/WHERE is_owner IS TRUE/);
 assert.match(owner,/REVOKE UPDATE \(account_code,username_changed_at\)/);
@@ -50,4 +50,4 @@ assert.ok(config.includes('sb_publishable_'),'Client must use publishable token'
 assert.ok(app.includes("select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')"),'Owner UI reads server role');
 console.log('PASS: 500 authoritative domain prices match the shipped game data.');
 console.log('PASS: forged Domain scores cannot use direct client INSERT/UPDATE; server recomputes five rounds.');
-console.log('PASS: verified scores, legacy labels, unique owner authority and internal RPC seals.');
+console.log('PASS: unified personal Domain history, server-protected writes, unique owner authority and internal RPC seals.');
