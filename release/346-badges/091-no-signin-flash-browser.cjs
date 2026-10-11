@@ -32,6 +32,11 @@ async function main(){
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
        name+' flashed SIGN IN while auth was still loading ('+mode+')');
      assert.equal(await button.getAttribute('aria-busy'),'true');
+     const solid=await button.evaluate(el=>getComputedStyle(el.parentElement,'::before').backgroundColor);
+     assert.equal(solid,'rgb(214, 232, 221)',name+' must reserve a solid-color account placeholder');
+     await page.waitForTimeout(190);
+     assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
+       name+' exposed username or sign-in text before identity was resolved');
      const rect=await button.boundingBox();
      assert.ok(rect?.width>=75,'Account space collapsed in '+name);
      await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false',{timeout:11000});
