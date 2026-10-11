@@ -54,3 +54,19 @@
  .spin-history-end{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.spin-history-progress span{animation:none!important}}
+
+/* Distinguish complete Daily runs from their individual wheel spins. */
+.spin-history-totals{display:flex;flex-direction:column;align-items:flex-end;gap:4px;min-width:0;text-align:right}
+.spin-history-totals .spin-history-count{display:block;font-size:14px;line-height:1.25;font-weight:950;color:var(--text,#17191e);white-space:nowrap}
+.spin-history-totals small{display:block;max-width:260px;color:var(--muted,#7c828d);font-size:11px;line-height:1.4;font-weight:650}
+.spin-history-end{margin-top:13px;background:var(--panel,#fff);text-align:center}
+@media(max-width:600px){
+ .spin-history-heading{gap:8px}
+ .spin-history-totals .spin-history-count{font-size:12px}
+ .spin-history-totals small{font-size:10px;max-width:160px}
+ .spin-history-heading h2{font-size:clamp(21px,5.5vw,27px)}
+}
+@media(max-width:340px){
+ .spin-history-heading{flex-wrap:wrap}
+ .spin-history-totals{align-items:flex-start;text-align:left}
+}
