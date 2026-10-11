@@ -1402,3 +1402,16 @@ html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ff
 
 /* Keep saved drawings intact: no crop or distortion inside circular rims. */
 .leader-row.score-run-row .mini-wheel img,.best-drawing{object-fit:contain}
+
+/* A solid, textless account marker while verified identity is restored.
+   No SIGN IN or transient ACCOUNT label can be painted mid-navigation. */
+.account-wrap:has(> #accountBtn[aria-busy="true"])::before{
+ content:"";position:absolute;right:4px;top:50%;transform:translateY(-50%);
+ width:min(108px,24vw);height:18px;border-radius:5px;
+ background:#d6e8dd;pointer-events:none;z-index:1;
+}
+html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::before{
+ background:#394e47;
+}
+#accountBtn[aria-busy="true"]{visibility:hidden!important;pointer-events:none}
+#accountBtn[aria-busy="false"]{transition:none}
