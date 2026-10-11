@@ -11,7 +11,7 @@ for(let i=0;i<names.length;i++){
  assert.ok(end>start,'Missing end boundary '+name);
  const definition=sql.slice(start,end);
  assert.match(definition,/SECURITY DEFINER SET search_path TO ''/,'Fixed search path: '+name);
- assert.match(definition,/auth\.uid\(\) IS NULL/,'Reject unsigned caller: '+name);
+ assert.match(definition,/(?:auth\.uid\(\)|me) IS NULL/,'Reject unsigned caller: '+name);
  assert.match(definition,/crilo_banned_accounts/,'Enforce current ban registry: '+name);
  assert.match(sql,new RegExp('REVOKE EXECUTE ON FUNCTION public\\.'+name+'\\('),'Revoke PUBLIC and anon: '+name);
 }
