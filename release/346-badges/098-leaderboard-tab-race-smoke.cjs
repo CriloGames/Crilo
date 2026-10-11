@@ -57,6 +57,7 @@ async function scenario(name,fromTab,toTab){
    prompt(){},confirm(){return false},alert(){},console};
  vm.runInNewContext(src,ctx,{filename:'leaderboard.js'});
  async function flush(){for(let i=0;i<50;i++)await Promise.resolve()}
+ await flush();
  function click(tab){buttons.get(tab).click()}
  function answer(tab){
   if(tab==='badges')return {data:[
