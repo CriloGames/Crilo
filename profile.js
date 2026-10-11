@@ -572,7 +572,7 @@ if(target===Crilo.user?.id){try{local=JSON.parse(localStorage.getItem('crilo_dom
 // A personal best is a personal best, whether from the historical game or
 // a more recent saved run. Suppress duplicates caused by the same run appearing
 // in both localStorage and Supabase, but preserve genuinely repeated DB runs.
-const normalized=a=>(Array.isArray(a)?a:[]).map(v=>Number(v)).filter(v=>Number.isFinite(v)&&v>=0&&v<=5000);
+const normalized=a=>(Array.isArray(a)?a:[]).filter(v=>v!==null&&v!==undefined&&v!=='').map(v=>Number(v)).filter(v=>Number.isFinite(v)&&v>=0&&v<=5000);
 const stored=normalized((domainScores||[]).map(x=>x.score)).sort((a,b)=>b-a);
 const onDevice=normalized(local).sort((a,b)=>b-a);
 const storedCount=new Map(),localCount=new Map();
