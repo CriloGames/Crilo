@@ -1318,3 +1318,9 @@ html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ff
     line-height:1.5;
   }
 }
+
+/* Live PayPal hosted tip checkout (no payment data processed by Crilo). */
+.support-checkout-link{opacity:1;cursor:pointer;display:flex;align-items:center;justify-content:center;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease}
+.support-checkout-link:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,0,0,.12)}
+.support-checkout-link:focus-visible{outline:3px solid #2163c8;outline-offset:3px}
+.support-checkout-link:active{transform:translateY(0)}

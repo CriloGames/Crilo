@@ -1,7 +1,31 @@
 <!doctype html>
-<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Keep Crilo Spinning — support the independently made Crilo games."><title>Keep Crilo Spinning — Crilo</title><link rel="stylesheet" href="style.css?v=96"></head>
+<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Keep Crilo Spinning — support the independently made Crilo games."><title>Keep Crilo Spinning — Crilo</title><link rel="stylesheet" href="style.css?v=97"></head>
 <body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a></nav><div class="header-actions"><div class="account-wrap"><button class="account-btn" id="accountBtn" type="button">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div></header>
 <main class="support-main"><a href="index.html" class="support-back">← Back to Crilo</a><section class="support-card"><div class="support-symbol" aria-hidden="true">↻</div><div class="eyebrow">SUPPORT CRILO</div><h1>Keep Crilo Spinning.</h1><p class="support-intro">Crilo is free to play and independently made. If you're enjoying it, you can leave a little tip to help keep the wheels turning. No pressure, ever.</p>
-<div class="support-divider"></div><h2>Choose a one-time tip</h2><div class="support-amounts" role="group" aria-label="Tip amount"><button class="support-amount selected" type="button" data-amount="2" aria-pressed="true">$2</button><button class="support-amount" type="button" data-amount="5" aria-pressed="false">$5</button><button class="support-amount" type="button" data-amount="10" aria-pressed="false">$10</button><button class="support-amount" type="button" data-amount="custom" aria-pressed="false">Custom</button></div><label class="support-custom hidden" id="customWrap">Custom tip amount (USD)<input id="customAmount" type="number" min="1" max="1000" step="0.01" inputmode="decimal" placeholder="Enter an amount"></label><p class="support-selected" id="tipSummary">Your tip: $2.00 · One time</p>
-<div class="support-checkout"><p class="support-checkout-heading">Payment options</p><button type="button" disabled class="support-pay support-paypal">PayPal</button><button type="button" disabled class="support-pay support-venmo">Venmo</button><button type="button" disabled class="support-pay support-card-pay">▤ &nbsp; Debit or credit card</button><p class="support-pending">Payments aren't connected yet. These options will become available once Crilo's PayPal checkout is configured.</p></div><p class="support-fine">Tips are voluntary, are not charitable tax-deductible donations, and don't affect gameplay or your odds.</p></section></main>
-<script>(function(){const buttons=[...document.querySelectorAll('.support-amount')],wrap=document.getElementById('customWrap'),input=document.getElementById('customAmount'),summary=document.getElementById('tipSummary');let choice='2';function update(){const n=choice==='custom'?Number(input.value):Number(choice);summary.textContent=Number.isFinite(n)&&n>=1&&n<=1000?'Your tip: $'+n.toFixed(2)+' · One time':'Enter an amount between $1 and $1,000';wrap.classList.toggle('hidden',choice!=='custom');buttons.forEach(b=>{const active=b.dataset.amount===choice;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active))})}buttons.forEach(b=>b.addEventListener('click',()=>{choice=b.dataset.amount;update();if(choice==='custom')input.focus()}));input.addEventListener('input',update);update()})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>
+<div class="support-divider"></div><h2>Choose a one-time tip</h2><div class="support-amounts" role="group" aria-label="Tip amount"><button class="support-amount selected" type="button" data-amount="2" aria-pressed="true">$2</button><button class="support-amount" type="button" data-amount="5" aria-pressed="false">$5</button><button class="support-amount" type="button" data-amount="10" aria-pressed="false">$10</button><button class="support-amount" type="button" data-amount="custom" aria-pressed="false">Custom</button></div><p class="support-selected" id="tipSummary" aria-live="polite">Your tip: $2.00 · One time</p>
+<div class="support-checkout"><p class="support-checkout-heading">Secure one-time tip</p><a class="support-pay support-paypal support-checkout-link" id="supportPayLink" href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84" target="_blank" rel="noopener noreferrer" aria-label="Continue to secure PayPal checkout for a $2 tip">Continue to secure checkout ↗</a><p class="support-pending">Checkout is handled securely by PayPal. PayPal, Venmo, and debit or credit card options may appear depending on your location and eligibility. For Custom, choose your amount on PayPal.</p></div><p class="support-fine">Tips are voluntary, are not charitable tax-deductible donations, and don't affect gameplay or your odds.</p></section></main>
+<script>(function(){
+  const links=Object.freeze({
+    '2':'https://www.paypal.com/ncp/payment/75LUCY8GEAF84',
+    '5':'https://www.paypal.com/ncp/payment/N2EFYQL27VB3Q',
+    '10':'https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',
+    'custom':'https://www.paypal.com/ncp/payment/K7QJM2NVLKEYU'
+  });
+  const buttons=[...document.querySelectorAll('.support-amount')];
+  const summary=document.getElementById('tipSummary');
+  const checkout=document.getElementById('supportPayLink');
+  function choose(amount){
+    if(!Object.prototype.hasOwnProperty.call(links,amount))return;
+    const custom=amount==='custom';
+    summary.textContent=custom?'Choose your tip amount on PayPal · One time':'Your tip: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>+Number(amount).toFixed(2)+' · One time';
+    checkout.href=links[amount];
+    checkout.setAttribute('aria-label',custom?'Continue to PayPal to choose your custom tip amount':'Continue to secure PayPal checkout for a <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>+amount+' tip');
+    buttons.forEach(button=>{
+      const selected=button.dataset.amount===amount;
+      button.classList.toggle('selected',selected);
+      button.setAttribute('aria-pressed',String(selected));
+    });
+  }
+  buttons.forEach(button=>button.addEventListener('click',()=>choose(button.dataset.amount)));
+  choose('2');
+})();</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>
