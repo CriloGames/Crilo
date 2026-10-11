@@ -21,55 +21,59 @@
   }
   applyTheme(localStorage.getItem('crilo_theme') || 'light');
 
+  // Prevent overlapping initial-session callbacks, focus sync and token refresh
+  // from painting stale SIGN IN / ACCOUNT labels over a restored username.
+  let identityGeneration=0;
   async function loadIdentity(sessionOverride){
-    if(typeof criloDB === 'undefined') return;
-
-    let session = sessionOverride;
-    if(session === undefined){
-      const {data, error} = await criloDB.auth.getSession();
-      if(error) console.error('Crilo session error:', error);
-      session = data?.session || null;
+    if(typeof criloDB === 'undefined')return;
+    const generation=++identityGeneration;
+    let session=sessionOverride;
+    if(session===undefined){
+      const {data,error}=await criloDB.auth.getSession();
+      if(error)console.error('Crilo session error:',error);
+      session=data?.session||null;
     }
+    if(generation!==identityGeneration)return;
 
-    // A previously issued JWT may remain locally cached after an Auth ban.
-    // Check the server-side account ban registry before restoring a session.
+    // Keep the previous stable account header in place until ALL checks end.
+    // Auth ban checks, not local display state, still decide eligibility.
     if(session?.user){
       try{
         const {data:banned,error:banError}=await criloDB.rpc('crilo_my_ban_status');
         if(banError)throw banError;
+        if(generation!==identityGeneration)return;
         if(banned===true){
-          Crilo.user=null;
-          Crilo.profile=null;
           await criloDB.auth.signOut({scope:'local'});
+          if(generation!==identityGeneration)return;
+          Crilo.user=null;Crilo.profile=null;
           renderAccount();
           window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
           return;
         }
       }catch(error){
+        if(generation!==identityGeneration)return;
         console.error('Crilo ban status check failed:',error);
-        // Don't restore a privileged signed-in UI if the ban check failed.
-        Crilo.user=null;
-        Crilo.profile=null;
-        renderAccount();
+        // Fail closed on a ban-check outage, never show authenticated actions.
+        Crilo.user=null;Crilo.profile=null;renderAccount();
         window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
         return;
       }
     }
-    Crilo.user = session?.user || null;
-    Crilo.profile = null;
 
-    if(Crilo.user){
-      const {data, error} = await criloDB
-        .from('profiles')
+    const nextUser=session?.user||null;
+    let nextProfile=null;
+    if(nextUser){
+      const {data,error}=await criloDB.from('profiles')
         .select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')
-        .eq('id',Crilo.user.id)
-        .maybeSingle();
-
-      if(error) console.error('Crilo profile error:', error);
-      Crilo.profile = data || null;
-      if(data?.theme) applyTheme(data.theme);
+        .eq('id',nextUser.id).maybeSingle();
+      if(generation!==identityGeneration)return;
+      if(error)console.error('Crilo profile error:',error);
+      nextProfile=data||null;
     }
-
+    if(generation!==identityGeneration)return;
+    Crilo.user=nextUser;
+    Crilo.profile=nextProfile;
+    if(nextProfile?.theme)applyTheme(nextProfile.theme);
     renderAccount();
     window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
       detail:{user:Crilo.user,profile:Crilo.profile}
@@ -387,12 +391,17 @@
   setTimeout(syncSession, 2000);
 
   // Keep the header/profile synchronized whenever Supabase signs in or out.
-  criloDB.auth.onAuthStateChange((event, session) => {
-    if(event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED'){
-      setTimeout(() => loadIdentity(session), 0);
-    } else if(event === 'SIGNED_OUT'){
-      Crilo.user = null;
-      Crilo.profile = null;
+  criloDB.auth.onAuthStateChange((event,session)=>{
+    // initializeAuth() owns the initial restore and magic-link exchange.
+    // A duplicate INITIAL_SESSION event must never temporarily show SIGN IN.
+    if(event==='INITIAL_SESSION')return;
+    if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED'){
+      if(!session?.user||!authHeaderReady)return;
+      if(Crilo.user?.id===session.user.id&&Crilo.profile)return;
+      setTimeout(()=>loadIdentity(session),0);
+    }else if(event==='SIGNED_OUT'){
+      ++identityGeneration;
+      Crilo.user=null;Crilo.profile=null;
       renderAccount();
       window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
         detail:{user:null,profile:null}
