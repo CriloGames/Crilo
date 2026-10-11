@@ -7,6 +7,7 @@ on:
       - release/346-badges-prelaunch
     paths:
       - 'app.js'
+      - 'header-continuity.js'
       - 'domain/game.js'
       - 'domain/index.html'
       - 'domain/domains.json'
@@ -124,6 +125,7 @@ jobs:
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
+          node --check header-continuity.js
           node --check sound-shapes.js
           node --check support-pastel.js
           node --check owner-mfa.js
