@@ -14,6 +14,8 @@ on:
       - 'owner-profile-scores.js'
       - 'badge-events.js'
       - 'support.html'
+      - 'sound-shapes.js'
+      - 'sound-shapes.css'
       - 'friends.js'
       - 'ducks.html'
       - 'friends.html'
@@ -56,6 +58,8 @@ on:
       - 'owner-profile-scores.js'
       - 'badge-events.js'
       - 'support.html'
+      - 'sound-shapes.js'
+      - 'sound-shapes.css'
       - 'friends.js'
       - 'ducks.html'
       - 'friends.html'
@@ -103,6 +107,7 @@ jobs:
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
+          node --check sound-shapes.js
           node --check owner-mfa.js
           node --check domain/game.js
           node --check friends.js
@@ -134,6 +139,8 @@ jobs:
         run: node release/346-badges/051-stale-jwt-ban-security-smoke.cjs
       - name: Require server-side owner authenticator for destructive actions
         run: node release/346-badges/053-owner-mfa-security-smoke.cjs
+      - name: Verify free Shape of Sound interaction and separate checkout
+        run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify all four hosted PayPal tip links and amount-selector behavior
         run: node release/346-badges/054-support-paypal-checkout-smoke.cjs
       - name: Audit all page links, friend invites, badge triggers and owner controls
