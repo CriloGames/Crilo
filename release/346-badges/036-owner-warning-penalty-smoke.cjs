@@ -46,7 +46,7 @@ assert.ok(profile.includes("'crilo_public_warning_status'"),'Public profile flag
 assert.ok(profileHTML.includes('id="publicAccountWarning"'),'Public warning container missing');
 assert.ok(css.includes('.crilo-warning-popover'),'Accessible hover/focus warning explanation missing');
 assert.ok(index.includes('game.js?v=76'));
-assert.ok(profileHTML.includes('profile.js?v=99'));
+assert.ok(profileHTML.includes('profile.js?v=100'));
 assert.ok(app.includes('crilo_my_moderation_notices'));
 assert.ok(app.includes('crilo_read_moderation_notice'));
 assert.ok(app.includes('DAILY DRAWING REMOVED — ACCOUNT FLAGGED'));
