@@ -87,7 +87,7 @@ async function scenario(name,allRows,pages,expected={}) {
  assert.equal(node('spinHistoryPager').hidden,!(expected.hasMore??false),name+' final pager visibility');
  assert.equal(node('spinHistoryEnd').hidden,(expected.hasMore??false)||total===0,name+' meaningful end-of-history message');
  if(!(expected.hasMore??false)&&total){
-  assert.ok(node('spinHistoryEndLabel').textContent.includes('All '+total.toLocaleString('en-US')+' saved Daily'),
+  assert.ok(node('spinHistoryEndLabel').textContent.includes('All '+total.toLocaleString('en-US')+' saved Dail'+(total===1?'y':'ies')),
    name+' clearly says how many saved Dailies exist');
  }
  if(official[0]?.drawing)assert.ok(htmlRows().includes(official[0].drawing),name+' saved drawing unchanged');
