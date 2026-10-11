@@ -107,7 +107,7 @@
       spinCounter.textContent='Official Dailies only · Test Runs excluded';
       return;
     }
-    const dailyLabel=fmt(totalDailies)+' Daily'+(totalDailies===1?'':'ies')+' completed';
+    const dailyLabel=fmt(totalDailies)+' Dail'+(totalDailies===1?'y':'ies')+' completed';
     counter.textContent=dailyLabel;
     counter.setAttribute('aria-label',dailyLabel);
     spinCounter.textContent=fmt(lifetimeSpins)+' wheel spin'+(lifetimeSpins===1?'':'s')+' in Dailies · Test Runs excluded';
@@ -123,7 +123,7 @@
         const fraction=totalDailies?Math.max(0,Math.min(1,shown/totalDailies)):0;
         progress.style.transform='scaleX('+fraction+')';
       }
-      if(endingLabel)endingLabel.textContent='All '+fmt(totalDailies)+' saved Daily'+(totalDailies===1?'':'ies')+' shown. Test Runs are separate.';
+      if(endingLabel)endingLabel.textContent='All '+fmt(totalDailies)+' saved Dail'+(totalDailies===1?'y':'ies')+' shown. Test Runs are separate.';
     }else if(!busy){
       button.innerHTML='SHOW OLDER DAILIES <span aria-hidden="true">↓</span>';
     }
