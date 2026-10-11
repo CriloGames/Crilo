@@ -1,0 +1,29 @@
+name: Shape of Sound real-browser device matrix
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sound-shapes.js'
+      - 'sound-shapes.css'
+      - 'support.html'
+      - 'release/346-badges/056-sound-shapes-browser.cjs'
+      - '.github/workflows/sound-shapes-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop-and-mobile:
+    name: Chromium desktop + WebKit iPhone / iPad
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser automation
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install headless Chromium and WebKit with Linux dependencies
+        run: npx playwright install --with-deps chromium webkit
+      - name: Test ten simulated device sizes, real interactions and audio
+        run: node release/346-badges/056-sound-shapes-browser.cjs
