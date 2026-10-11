@@ -5,7 +5,8 @@ const {chromium}=require('playwright');
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const home=fs.readFileSync('index.html','utf8');
 const fragment=home.split('<div class="daily-row">')[1]?.split('<h1>')[0];
-assert.ok(fragment?.includes('criloOfficialDailyTotal'));
+assert.ok(fragment?.includes('criloOfficialDailyToday'));
+assert.ok(!fragment.includes('criloOfficialDailyTotal'));
 const siteCss=fs.readFileSync('style.css','utf8');
 const chipCss=fs.readFileSync('official-daily-total.css','utf8');
 const javascript=fs.readFileSync('official-daily-total.js','utf8');
@@ -21,15 +22,15 @@ const javascript=fs.readFileSync('official-daily-total.js','utf8');
     rpc:async(name)=>{if(name!=='crilo_public_daily_completion_counts')throw Error('Unexpected RPC');window.__qaCalls++;return{data:window.__qaCounts,error:null}}
    }});
    await page.addScriptTag({content:javascript});
-   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='1'&&document.getElementById('criloOfficialDailyTotal').textContent==='2');
+   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='1'&&document.getElementById('criloOfficialDailyLabel').textContent==='DAILY COMPLETED TODAY');
    const bounds=await page.locator('.crilo-daily-total').boundingBox();
    assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+1,'Counter clipped at '+width+' px');
    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1,'Horizontal overflow at '+width);
    await page.evaluate(()=>{window.__qaCounts={today:2,all_time:3,period:'2026-10-10'};document.getElementById('message').textContent='Official Daily saved. See how you ranked.';});
-   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='2'&&document.getElementById('criloOfficialDailyTotal').textContent==='3');
+   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='2'&&document.getElementById('criloOfficialDailyLabel').textContent==='DAILIES COMPLETED TODAY');
    assert.equal(await page.evaluate(()=>window.__qaCalls),2,'Only initial read and completed Daily refresh');
    await page.close();
-   console.log('PASS community counts '+width+'px: 1 today / 2 all-time, then 2 / 3');
+   console.log('PASS today-only count '+width+'px: 1 then 2, no lifetime number');
   }
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

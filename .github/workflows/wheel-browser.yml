@@ -9,6 +9,8 @@ on:
       - 'official-daily-total.js'
       - 'official-daily-total.css'
       - 'release/346-badges/081-official-daily-total-browser.cjs'
+      - 'release/346-badges/085-footer-layout-chromium.cjs'
+      - 'legal.css'
       - 'share-result.css'
       - 'public-metrics.js'
       - 'release/346-badges/075-share-growth-browser.cjs'
@@ -41,6 +43,8 @@ jobs:
         run: node release/346-badges/073-wheel-chromium-browser.cjs
       - name: Exercise sharing with real Chromium UI and verified-run fixtures
         run: node release/346-badges/075-share-growth-browser.cjs
+      - name: Check footer symmetry and original beetle rail on five viewports
+        run: node release/346-badges/085-footer-layout-chromium.cjs
       - name: Render Privacy and Terms on phone tablet and desktop
         run: node release/346-badges/083-legal-pages-browser.cjs
       - name: Verify community count fits phone tablet desktop and updates after save

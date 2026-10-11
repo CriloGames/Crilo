@@ -4,12 +4,13 @@ const html=fs.readFileSync('index.html','utf8'),js=fs.readFileSync('official-dai
  sql=fs.readFileSync('release/346-badges/079-official-daily-total-and-drawing-validation.sql','utf8'),
  css=fs.readFileSync('official-daily-total.css','utf8');
 a.match(html,/class="crilo-daily-total"/);
-a.match(html,/id="criloOfficialDailyTotal"/);
+a.doesNotMatch(html,/id="criloOfficialDailyTotal"/);
 a.match(html,/id="criloOfficialDailyToday"/);
-a.match(html,/>TODAY</);
-a.match(html,/>ALL-TIME</);
-a.match(html,/official-daily-total\.js\?v=2/);
-a.match(html,/official-daily-total\.css\?v=2/);
+a.match(html,/id="criloOfficialDailyLabel"/);
+a.match(html,/DAILIES COMPLETED TODAY/);
+a.doesNotMatch(html,/>ALL-TIME</);
+a.match(html,/official-daily-total\.js\?v=3/);
+a.match(html,/official-daily-total\.css\?v=3/);
 a.match(js,/rpc\('crilo_public_daily_completion_counts'\)/);
 a.match(js,/Official Daily saved/);
 a.doesNotMatch(js,/\.from\('daily_runs'\)/);
@@ -22,4 +23,4 @@ a.match(sql,/FROM PUBLIC,anon,authenticated/);
 a.match(sql,/data:image\/webp;base64,/);
 a.match(sql,/NEW\.drawing_is_blank IS DISTINCT FROM TRUE/);
 a.match(css,/@media\(max-width:520px\)/);
-console.log('PASS: current Daily and all-time counts separately labeled, authenticated official verified runs only.');
+console.log('PASS: today-only verified completion count and no all-time display.');
