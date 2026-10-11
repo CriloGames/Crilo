@@ -44,11 +44,9 @@
       stat(run.doubles,'double','doubles'),
       stat(run.ducks,'duck','ducks')
     ].join(' · ');
-    const status=run.verified_spin_session_id?'Verified Daily':'Earlier Daily';
     return '<article class="spin-history-item" data-rarity="'+tier+'">'+
       '<div class="spin-history-detail"><div class="spin-history-event">'+esc(date)+'</div>'+
-      '<div class="spin-history-meta">'+esc(details)+'</div>'+
-      '<span class="spin-history-status">'+esc(status)+'</span></div>'+
+      '<div class="spin-history-meta">'+esc(details)+'</div></div>'+
       '<div class="spin-history-side"><strong>'+esc(fmt(run.score))+
       ' <small>PTS</small></strong></div>'+
       '<button type="button" class="spin-history-wheel" title="Spin this Daily wheel" aria-label="Spin wheel for '+esc(date)+'">'+
@@ -57,7 +55,7 @@
   async function fetchRuns(id){
     if(runExhausted)return;
     const {data,error}=await criloDB.from('daily_runs')
-      .select('id,created_at,run_date,daily_period,score,spins,upgrades,doubles,ducks,drawing,verified_spin_session_id')
+      .select('id,created_at,run_date,daily_period,score,spins,upgrades,doubles,ducks,drawing')
       .eq('user_id',id).eq('is_test',false)
       .order('daily_period',{ascending:false}).order('created_at',{ascending:false}).order('id',{ascending:false})
       .range(runOffset,runOffset+RUN_BATCH-1);
