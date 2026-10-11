@@ -12,7 +12,7 @@ for(const page of pages){
  const html=fs.readFileSync(path.join(root,page),'utf8');
  assert.match(html,/\bid="accountBtn"/,'Missing account button on '+page);
  assert.match(html,/\bid="accountMenu"/,'Missing account dropdown on '+page);
- assert.match(html,/app\.js\?v=40/,'Old cached script on '+page);
+ assert.match(html,/app\.js\?v=41/,'Old cached script on '+page);
 }
 assert.match(app,/window\.addEventListener\('crilo-signin-request'/);
 assert.match(app,/document\.addEventListener\('click',e=>/);
