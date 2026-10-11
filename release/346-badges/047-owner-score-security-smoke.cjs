@@ -47,7 +47,7 @@ assert.match(owner,/REVOKE UPDATE \(account_code,username_changed_at\)/);
 assert.match(triggers,/REVOKE EXECUTE ON FUNCTION/);
 assert.ok(!/sb_secret_|SUPABASE_SERVICE_ROLE_KEY|service_role/i.test(config),'Never embed service credentials in shipped client');
 assert.ok(config.includes('sb_publishable_'),'Client must use publishable token');
-assert.ok(app.includes("select('id,username,name_color,theme,sound_enabled,is_owner,account_code')"),'Owner UI reads server role');
+assert.ok(app.includes("select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background')"),'Owner UI reads server role');
 console.log('PASS: 500 authoritative domain prices match the shipped game data.');
 console.log('PASS: forged Domain scores cannot use direct client INSERT/UPDATE; server recomputes five rounds.');
 console.log('PASS: verified scores, legacy labels, unique owner authority and internal RPC seals.');
