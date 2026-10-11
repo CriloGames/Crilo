@@ -5,6 +5,7 @@ on:
     paths:
       - 'game.js'
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'
+      - 'release/346-badges/087-signed-in-controls-browser.cjs'
       - 'release/346-badges/078-daily-drawing-storage-chromium.cjs'
       - 'share-result.js'
       - 'official-daily-total.js'
@@ -42,6 +43,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
+      - name: Test authenticated account settings, Friends, Ducks and owner-only menus without live writes
+        run: node release/346-badges/087-signed-in-controls-browser.cjs
       - name: Exercise actual wheel page with synthetic signed-in browser
         run: node release/346-badges/073-wheel-chromium-browser.cjs
       - name: Exercise sharing with real Chromium UI and verified-run fixtures

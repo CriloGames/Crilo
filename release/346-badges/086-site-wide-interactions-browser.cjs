@@ -153,4 +153,5 @@ async function main(){
   console.log('SITE_WIDE_AUDIT_PASS '+total+' checks');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 }
-main().catch(e=>{console.error('SITE_WIDE_AUDIT_FAIL',e);process.exitCode=1});
+if(require.main===module)main().catch(e=>{console.error('SITE_WIDE_AUDIT_FAIL',e);process.exitCode=1});
+module.exports={serve,mockSupabase};
