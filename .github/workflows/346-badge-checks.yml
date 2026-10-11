@@ -103,6 +103,7 @@ jobs:
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
+          node --check owner-mfa.js
           node --check domain/game.js
           node --check friends.js
           node --check badge-events.js
@@ -131,6 +132,8 @@ jobs:
         run: node release/346-badges/049-stored-profile-xss-security-smoke.cjs
       - name: Deny stale banned sessions and premature Domain badge awards
         run: node release/346-badges/051-stale-jwt-ban-security-smoke.cjs
+      - name: Require server-side owner authenticator for destructive actions
+        run: node release/346-badges/053-owner-mfa-security-smoke.cjs
       - name: Audit all page links, friend invites, badge triggers and owner controls
         run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
