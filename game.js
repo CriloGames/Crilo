@@ -665,34 +665,103 @@ $('retrySaveBtn').addEventListener('click',async()=>{
 });
 $('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>open('authModal'));$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
-let painting=false,last=null;
+let painting=false,last=null,activeDrawingPointer=null;
+// Pointer capture can keep sending moves outside a canvas. Never join a stroke
+// across its boundary, even if the pointer later re-enters while held down.
+function insidePaintArea(canvas,event){
+ const rect=canvas.getBoundingClientRect();
+ return Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)&&
+  rect.width>0&&rect.height>0&&event.clientX>=rect.left&&
+  event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
+}
+function stopDrawing(event){
+ if(activeDrawingPointer===null)return;
+ if(event?.pointerId!==undefined&&event.pointerId!==activeDrawingPointer)return;
+ const id=activeDrawingPointer;activeDrawingPointer=null;painting=false;last=null;
+ try{if(drawing.hasPointerCapture?.(id))drawing.releasePointerCapture(id)}catch(error){
+  console.warn('Drawing pointer release:',error);
+ }
+}
 function snapshot(){undoStack.push(dctx.getImageData(0,0,200,200));if(undoStack.length>25)undoStack.shift();redoStack=[]}
 function history(from,to){if(drawingLocked||!from.length)return;to.push(dctx.getImageData(0,0,200,200));dctx.putImageData(from.pop(),0,0)}
 $('undoDrawing').onclick=()=>history(undoStack,redoStack);$('redoDrawing').onclick=()=>history(redoStack,undoStack);
 $('drawMode').onchange=e=>{drawMode=e.target.value;drawWheel()};
-document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>x.classList.toggle('active',x===b))});
+document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{stopDrawing();drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>x.classList.toggle('active',x===b))});
 function point(e){const r=drawing.getBoundingClientRect(),x=(e.clientX-r.left)*200/r.width,y=(e.clientY-r.top)*200/r.height;if(drawMode==='spin'){const a=-rotation,c=100,dx=x-c,dy=y-c;return{x:c+dx*Math.cos(a)-dy*Math.sin(a),y:c+dx*Math.sin(a)+dy*Math.cos(a)}}return{x,y}}
 function fill(x,y){const w=200,img=dctx.getImageData(0,0,w,w),d=img.data,xx=Math.max(0,Math.min(199,Math.floor(x))),yy=Math.max(0,Math.min(199,Math.floor(y))),start=yy*w+xx,src=Array.from(d.slice(start*4,start*4+4)),hex=$('drawColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255],seen=new Uint8Array(w*w),q=[start];if(src.every((v,i)=>v===col[i]))return false;seen[start]=1;for(let head=0;head<q.length;head++){const n=q[head],o=n*4;if(!src.every((v,i)=>Math.abs(d[o+i]-v)<24))continue;for(let j=0;j<4;j++)d[o+j]=col[j];const x=n%w,y=Math.floor(n/w);for(const v of [x>0?n-1:-1,x<199?n+1:-1,y>0?n-w:-1,y<199?n+w:-1])if(v>=0&&!seen[v]){seen[v]=1;q.push(v)}}dctx.putImageData(img,0,0);return true}
-drawing.addEventListener('pointerdown',e=>{if(drawingLocked)return;hideDrawPlaceholder();e.preventDefault();const p=point(e);snapshot();if(drawTool==='fill'){if(fill(p.x,p.y)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}painting=true;drawing.setPointerCapture(e.pointerId);last=p;dctx.fillStyle=$('drawColor').value;dctx.beginPath();dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill()});
-drawing.addEventListener('pointermove',e=>{if(!painting||drawingLocked)return;const p=point(e);dctx.strokeStyle=$('drawColor').value;dctx.lineWidth=6;dctx.lineCap='round';dctx.lineJoin='round';dctx.beginPath();dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke();last=p});
-drawing.addEventListener('pointerup',()=>{painting=false;last=null});drawing.addEventListener('pointercancel',()=>{painting=false;last=null});
+drawing.addEventListener('pointerdown',e=>{
+ if(drawingLocked||activeDrawingPointer!==null||!insidePaintArea(drawing,e)||
+    (e.pointerType==='mouse'&&e.button!==0))return;
+ e.preventDefault();
+ hideDrawPlaceholder();
+ const p=point(e);snapshot();
+ if(drawTool==='fill'){if(fill(p.x,p.y)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}
+ activeDrawingPointer=e.pointerId;painting=true;last=p;
+ try{drawing.setPointerCapture(e.pointerId)}catch(error){stopDrawing(e);return}
+ dctx.fillStyle=$('drawColor').value;dctx.beginPath();
+ dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();
+});
+drawing.addEventListener('pointermove',e=>{
+ if(!painting||drawingLocked||e.pointerId!==activeDrawingPointer)return;
+ if(!insidePaintArea(drawing,e)||
+    (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
+  stopDrawing(e);return;
+ }
+ const p=point(e);
+ dctx.strokeStyle=$('drawColor').value;dctx.lineWidth=6;
+ dctx.lineCap='round';dctx.lineJoin='round';
+ dctx.beginPath();dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke();last=p;
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture','pointerleave'])
+ drawing.addEventListener(type,stopDrawing);
+document.addEventListener('pointerup',stopDrawing);
+document.addEventListener('pointercancel',stopDrawing);
 const pixelCanvas=$('pixelCanvas'),pixelCtx=pixelCanvas.getContext('2d',{willReadFrequently:true});
-let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null;
+let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null,pixelPointerId=null;
+function stopPixelStroke(event){
+ if(pixelPointerId===null)return;
+ if(event?.pointerId!==undefined&&event.pointerId!==pixelPointerId)return;
+ const id=pixelPointerId;pixelPointerId=null;pixelPainting=false;pixelLast=null;
+ try{if(pixelCanvas.hasPointerCapture?.(id))pixelCanvas.releasePointerCapture(id)}catch(error){console.warn('Pixel pointer release:',error)}
+}
 function pixelSave(){pixelHistory.push(pixelCtx.getImageData(0,0,200,200));if(pixelHistory.length>30)pixelHistory.shift()}
 function pixelOpen(){if(drawingLocked)return;pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);$('pixelColor').value=$('drawColor').value;$('pixelStudioModal').classList.remove('hidden')}
-function pixelClose(){if(pixelPainting)pixelPainting=false;hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);$('drawColor').value=$('pixelColor').value;$('pixelStudioModal').classList.add('hidden')}
+function pixelClose(){stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);$('drawColor').value=$('pixelColor').value;$('pixelStudioModal').classList.add('hidden')}
 $('pixelStudioBtn').addEventListener('click',pixelOpen);
 $('pixelClose').addEventListener('click',pixelClose);
-document.querySelectorAll('.pixel-tool').forEach(b=>b.addEventListener('click',()=>{pixelTool=b.dataset.pixelTool;document.querySelectorAll('.pixel-tool').forEach(x=>x.classList.toggle('active',x===b))}));
+document.querySelectorAll('.pixel-tool').forEach(b=>b.addEventListener('click',()=>{stopPixelStroke();pixelTool=b.dataset.pixelTool;document.querySelectorAll('.pixel-tool').forEach(x=>x.classList.toggle('active',x===b))}));
 $('pixelUndo').addEventListener('click',()=>{if(pixelHistory.length)pixelCtx.putImageData(pixelHistory.pop(),0,0)});
 $('pixelClear').addEventListener('click',()=>{pixelSave();pixelCtx.clearRect(0,0,200,200)});
 function pixelPoint(e){const r=pixelCanvas.getBoundingClientRect();return{x:Math.max(0,Math.min(199,Math.floor((e.clientX-r.left)*200/r.width))),y:Math.max(0,Math.min(199,Math.floor((e.clientY-r.top)*200/r.height)))}}
 function pixelPaint(p){const size=Number($('pixelSize').value),x=Math.floor(p.x/size)*size,y=Math.floor(p.y/size)*size;if(pixelTool==='erase')pixelCtx.clearRect(x,y,size,size);else{pixelCtx.fillStyle=$('pixelColor').value;pixelCtx.fillRect(x,y,size,size)}}
 function pixelLine(a,b){const dx=b.x-a.x,dy=b.y-a.y,steps=Math.max(Math.abs(dx),Math.abs(dy));for(let i=0;i<=steps;i++)pixelPaint({x:a.x+dx*i/(steps||1),y:a.y+dy*i/(steps||1)})}
 function pixelFill(p){const w=200,img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=p.y*w+p.x,src=Array.from(d.slice(start*4,start*4+4)),hex=$('pixelColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];if(src.every((v,i)=>v===col[i]))return false;const seen=new Uint8Array(w*w),q=[start];seen[start]=1;for(let head=0;head<q.length;head++){const n=q[head],o=n*4;if(!src.every((v,i)=>v===d[o+i]))continue;for(let j=0;j<4;j++)d[o+j]=col[j];const x=n%w,y=Math.floor(n/w);for(const v of [x>0?n-1:-1,x<199?n+1:-1,y>0?n-w:-1,y<199?n+w:-1])if(v>=0&&!seen[v]){seen[v]=1;q.push(v)}}pixelCtx.putImageData(img,0,0);return true}
-pixelCanvas.addEventListener('pointerdown',e=>{e.preventDefault();pixelSave();const p=pixelPoint(e);if(pixelTool==='fill'){if(pixelFill(p)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}pixelPainting=true;pixelCanvas.setPointerCapture(e.pointerId);pixelLast=p;pixelPaint(p)});
-pixelCanvas.addEventListener('pointermove',e=>{if(!pixelPainting)return;const p=pixelPoint(e);pixelLine(pixelLast,p);pixelLast=p});
-for(const ev of ['pointerup','pointercancel','lostpointercapture'])pixelCanvas.addEventListener(ev,()=>{pixelPainting=false;pixelLast=null});
+pixelCanvas.addEventListener('pointerdown',e=>{
+ if(pixelPointerId!==null||!insidePaintArea(pixelCanvas,e)||
+    (e.pointerType==='mouse'&&e.button!==0))return;
+ e.preventDefault();pixelSave();
+ const p=pixelPoint(e);
+ if(pixelTool==='fill'){if(pixelFill(p)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}
+ pixelPointerId=e.pointerId;pixelPainting=true;pixelLast=p;
+ try{pixelCanvas.setPointerCapture(e.pointerId)}catch(error){stopPixelStroke(e);return}
+ pixelPaint(p);
+});
+pixelCanvas.addEventListener('pointermove',e=>{
+ if(!pixelPainting||e.pointerId!==pixelPointerId)return;
+ if(!insidePaintArea(pixelCanvas,e)||
+    (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
+  stopPixelStroke(e);return;
+ }
+ const p=pixelPoint(e);pixelLine(pixelLast,p);pixelLast=p;
+});
+for(const type of ['pointerup','pointercancel','lostpointercapture','pointerleave'])
+ pixelCanvas.addEventListener(type,stopPixelStroke);
+document.addEventListener('pointerup',stopPixelStroke);
+document.addEventListener('pointercancel',stopPixelStroke);
+window.addEventListener('blur',()=>{stopDrawing();stopPixelStroke()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden){stopDrawing();stopPixelStroke()}
+});
 
 resetSegments();update();fitPlayViewport();
 })();
