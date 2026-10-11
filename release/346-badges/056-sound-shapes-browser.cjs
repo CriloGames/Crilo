@@ -233,16 +233,27 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  check(await tipPage.locator('.shape').count()===170,scenario.name+' stacked pastel collage did not load 170 shapes');
-  const motifs=await tipPage.evaluate(()=>({
-    wheel:document.querySelectorAll('.shape.wheel').length,
-    duck:document.querySelectorAll('.shape.duck').length,
-    domain:document.querySelectorAll('.shape.domain').length,
-    smallest:Math.min(...[...document.querySelectorAll('.shape')].map(el=>parseFloat(el.style.getPropertyValue('--s')))),
-    lowestOpacity:Math.min(...[...document.querySelectorAll('.shape')].map(el=>parseFloat(el.style.getPropertyValue('--o'))))
-  }));
-  check(motifs.wheel>=3&&motifs.duck>=3&&motifs.domain>=3&&motifs.smallest>=20&&motifs.lowestOpacity>=.85,
-    scenario.name+' Crilo motif or layered shape design missing '+JSON.stringify(motifs));
+  const masonry=await tipPage.evaluate(()=>{
+    const field=document.getElementById('shapeCanvas');
+    const courses=[...field.querySelectorAll('.wall-course')];
+    const bricks=[...field.querySelectorAll('.shape.brick')];
+    const box=field.getBoundingClientRect();
+    const xs=courses.slice(1,8).map(row=>row.querySelector('.brick')?.getBoundingClientRect().left);
+    const motifs=['wheel','duck','domain'].map(kind=>field.querySelectorAll('.brick.is-'+kind).length);
+    return {bricks:bricks.length,courses:courses.length,field:box.toJSON(),
+      xs,motifs,
+      opacity:Math.min(...bricks.map(el=>parseFloat(getComputedStyle(el).opacity))),
+      widths:bricks.slice(0,30).map(el=>el.getBoundingClientRect().width),
+      height:field.scrollHeight};
+  });
+  check(masonry.bricks>=45&&masonry.courses>=7&&masonry.courses<=40,
+    scenario.name+' full stacked stone wall missing '+JSON.stringify(masonry));
+  check(new Set(masonry.xs.map(x=>Math.round(x))).size>=3,
+    scenario.name+' stacked courses not staggered');
+  check(masonry.opacity>=.99&&Math.min(...masonry.widths)>=35,
+    scenario.name+' stones should be larger and opaque');
+  check(masonry.motifs.every(n=>n>=1),
+    scenario.name+' the duck, wheel and domain accents are missing '+JSON.stringify(masonry));
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,

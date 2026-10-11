@@ -1,52 +1,88 @@
-/* Layered Crilo-themed pastel objects. Decoration only: no network, payment or analytics. */
+/* Crilo's pastel stone wall: tightly stacked interlocking horizontal courses.
+   Entirely decorative, deterministic, offline, and responsive to viewport size. */
 (function(){
   'use strict';
   const field=document.getElementById('shapeCanvas');
   if(!field)return;
-  let seed=0xC710B1A;
-  function random(){
-    seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;
-    return (seed>>>0)/4294967296;
-  }
-  const types=['circle','bean','pill','box','donut','spark','flower','heart','squiggle'];
-  const palette=['#f7b0c4','#ffd48e','#f8e88d','#b8e6ca','#a6d8ec','#cab5f0','#f6bfdc','#c5e3ef','#c6e7a9','#f8c59a'];
-  // Loosely stacked left/right clusters and lower central shapes, not a triangle.
-  const anchors=[
-    [12,12],[20,22],[13,34],[22,46],[14,60],[22,74],[15,88],
-    [88,12],[80,24],[87,37],[78,50],[86,64],[78,78],[85,91],
-    [36,88],[50,94],[64,89]
+  const palette=[
+    ['#f4b5c9','#c883a5'],['#f9c09e','#cc977e'],['#ffda9c','#d0ab74'],
+    ['#f4e2ab','#c5b27e'],['#addfc8','#7cba9f'],['#a9dacf','#7bb3a8'],
+    ['#a4d7e9','#73a8bb'],['#b6cdf2','#869ecb'],['#c9b3ef','#9a85c0'],
+    ['#ddbbed','#b08cbe'],['#f0b9d8','#bd8eac'],['#c9e5b2','#9fbd88']
   ];
-  const pieces=170;
-  const fragment=document.createDocumentFragment();
-  for(let i=0;i<pieces;i++){
-    const el=document.createElement('span');
-    const motif=i%15===0?['wheel','duck','domain'][Math.floor(i/15)%3]:null;
-    const type=motif||types[Math.floor(random()*types.length)];
-    el.className='shape '+type;
-    const anchor=anchors[Math.floor(random()*anchors.length)];
-    const spreadX=anchor[0]<30||anchor[0]>70?10:14;
-    const x=anchor[0]+(random()-.5)*spreadX;
-    const y=anchor[1]+(random()-.5)*9;
-    const chance=random();
-    const size=motif?Math.round(61+random()*62):
-      chance>.84?Math.round(92+random()*42):
-      chance>.55?Math.round(48+random()*34):
-      Math.round(20+random()*24);
-    el.style.setProperty('--x',x.toFixed(2)+'%');
-    el.style.setProperty('--y',y.toFixed(2)+'%');
-    el.style.setProperty('--s',size+'px');
-    el.style.setProperty('--rot',Math.floor(random()*360)+'deg');
-    el.style.setProperty('--c',palette[Math.floor(random()*palette.length)]);
-    el.style.setProperty('--o',(.86+random()*.14).toFixed(2));
-    el.style.setProperty('--dur',Math.round(7+random()*8)+'s');
-    el.style.setProperty('--delay',(-random()*12).toFixed(2)+'s');
-    if(type==='circle'&&size>=44&&random()>.82)el.classList.add('has-face');
-    if(type==='duck'){
-      const eye=document.createElement('i');
-      eye.className='duck-eye';
-      el.appendChild(eye);
+  let queued=false,lastW=0,lastH=0;
+  function render(){
+    queued=false;
+    const width=Math.round(field.clientWidth),height=Math.round(field.clientHeight);
+    if(!width||!height||(width===lastW&&height===lastH))return;
+    lastW=width;lastH=height;
+    let seed=0xC710B1A;
+    function random(){
+      seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;
+      return (seed>>>0)/4294967296;
     }
-    fragment.appendChild(el);
+    const narrow=width<500;
+    const base=width<360?67:width<500?76:width<740?103:width<1100?124:150;
+    const rowHeight=narrow?48:width<900?57:67;
+    const fragment=document.createDocumentFragment();
+    let count=0,rows=0,interlocking=0;
+    for(let y=-rowHeight*.54;y<height+rowHeight;y+=rowHeight){
+      const course=document.createElement('div');
+      course.className='wall-course';
+      course.style.top=Math.round(y)+'px';
+      course.style.setProperty('--course-h',rowHeight+'px');
+      const offset=base*(.22+random()*.75);
+      let x=-offset,tiles=0;
+      while(x<width+base){
+        // Mixed stone widths form offset seams, including wide irregular slabs.
+        const factor=random();
+        const factorWidth=factor<.12?.55+random()*.16:factor>.84?1.5+random()*.4:.76+random()*.62;
+        const brickWidth=Math.round(Math.max(42,base*factorWidth));
+        const brick=document.createElement('span');
+        const color=palette[Math.floor(random()*palette.length)];
+        brick.className='shape brick'+(random()>.64?' is-ridged':'');
+        brick.style.setProperty('--brick-x',Math.round(x+1)+'px');
+        brick.style.setProperty('--brick-w',Math.max(35,brickWidth-3)+'px');
+        brick.style.setProperty('--brick-color',color[0]);
+        brick.style.setProperty('--brick-shadow',color[1]);
+        brick.style.setProperty('--corners',Math.round(3+random()*7)+'px '+Math.round(3+random()*8)+'px '+Math.round(3+random()*6)+'px '+Math.round(4+random()*7)+'px');
+        brick.style.setProperty('--tilt',(random()*.9-.45).toFixed(2)+'deg');
+        // Small stamped Crilo details sit within the blocks, never on controls.
+        if(brickWidth>base*.85 && count%17===0){
+          const kind=['wheel','duck','domain'][Math.floor(count/17)%3];
+          brick.classList.add('is-'+kind);
+          const mark=document.createElement('span');
+          mark.className='brick-mark '+kind;
+          if(kind==='domain')mark.textContent='.com';
+          if(kind==='duck'){
+            mark.appendChild(document.createElement('i'));
+            mark.appendChild(document.createElement('b'));
+          }
+          brick.appendChild(mark);
+        }
+        course.appendChild(brick);
+        if(tiles>0)interlocking++;
+        x+=brickWidth;
+        count++;tiles++;
+        if(count>900)break;
+      }
+      rows++;
+      fragment.appendChild(course);
+      if(count>900)break;
+    }
+    field.replaceChildren(fragment);
+    field.dataset.brickCount=String(count);
+    field.dataset.courseCount=String(rows);
+    field.dataset.wall='stacked';
   }
-  field.appendChild(fragment);
+  function schedule(){
+    if(queued)return;
+    queued=true;requestAnimationFrame(render);
+  }
+  render();
+  if(typeof ResizeObserver!=='undefined'){
+    const observer=new ResizeObserver(schedule);
+    observer.observe(field);
+  }else window.addEventListener('resize',schedule,{passive:true});
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(schedule).catch(()=>{});
 })();
