@@ -149,7 +149,7 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
    Optical nudges were calibrated against the actual footer screenshot: text
    ink in the support button was 4px right-heavy, and legal links 12px left-
    heavy, despite mathematically centered bounding boxes. Limit the nudges
-   to roomy viewports; on phones, wrapped links center naturally. */
+   to roomy viewports; on narrow phones, wrapped links center naturally. */
 .crilo-site-footer .crilo-footer-content{
  display:grid;
  grid-template-columns:minmax(0,1fr);
@@ -167,7 +167,7 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  width:max-content;
  max-width:100%;
  margin:0 auto 11px;
- transform:translateX(-4px);
+ transform:translateX(-3px);
 }
 .crilo-site-footer .crilo-home-legal{
  grid-column:1;
@@ -192,7 +192,7 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  padding:0;
  gap:6px 12px;
  text-align:center;
- transform:translateX(8px);
+ transform:translateX(5px);
 }
 .crilo-site-footer .crilo-home-legal .crilo-legal-copy{
  display:block;
@@ -205,10 +205,12 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  inset:auto;
  justify-self:center;
  text-align:center;
- transform:translateX(2px);
+ transform:translateX(1px);
 }
 @media(max-width:640px){
  .crilo-site-footer .crilo-footer-content{padding-inline:12px}
+}
+@media(max-width:419px){
  .crilo-site-footer .crilo-support-link,
  .crilo-site-footer .crilo-home-legal .crilo-legal-nav,
  .crilo-site-footer .crilo-home-legal .crilo-legal-copy{transform:none}
