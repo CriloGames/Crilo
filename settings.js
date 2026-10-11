@@ -1,6 +1,14 @@
 (() => {const $=id=>document.getElementById(id);let p=null;async function init(){if(!Crilo.user)return;p=Crilo.profile;$('username').value=p?.username||'';$('nameColor').value=p?.name_color||'#17191e';$('soundBtn').textContent=p?.sound_enabled===false?'OFF':'ON'}async function save(extra={}){if(!Crilo.user)return;const username=$('username').value.trim(),nameColor=$('nameColor').value,theme=extra.theme||p?.theme||localStorage.getItem('crilo_theme')||'light',sound=extra.sound_enabled??p?.sound_enabled??true;const usernameError=Crilo.validateUsername(username);if(usernameError){$('identityStatus').textContent=usernameError;return false}const {error}=await criloDB.rpc('update_crilo_settings',{new_username:username,new_name_color:nameColor,new_theme:theme,new_sound_enabled:sound});if(error){$('identityStatus').textContent=error.message;return false}const oldName=p?.username,oldColor=p?.name_color;p={...p,username,name_color:nameColor,theme,sound_enabled:sound};if(oldName&&oldName!==username)window.CriloBadgeEvents?.track('display_name_saved');if(oldColor&&oldColor!==nameColor)window.CriloBadgeEvents?.track('name_color_saved');Crilo.profile=p;Crilo.applyTheme(theme);localStorage.setItem('crilo_sound',sound?'on':'off');$('identityStatus').textContent='Saved.';return true}async function savePreference(changes){
  if(!Crilo.user)return;
- const {error}=await criloDB.from('profiles').update(changes).eq('id',Crilo.user.id);
+ // Direct profile UPDATE is intentionally not granted to browser sessions.
+ // Reuse the server-owned settings RPC for theme/sound updates as well.
+ if(!p){$('identityStatus').textContent='Account still loading. Try again.';return}
+ const {error}=await criloDB.rpc('update_crilo_settings',{
+  new_username:p.username,
+  new_name_color:p.name_color,
+  new_theme:changes.theme??p.theme??'light',
+  new_sound_enabled:changes.sound_enabled??p.sound_enabled??true
+ });
  if(error){$('identityStatus').textContent='Could not save preference: '+error.message;return}
  const previousTheme=p?.theme;p={...p,...changes};Crilo.profile=p;if(changes.theme&&changes.theme!==previousTheme)window.CriloBadgeEvents?.track(changes.theme==='dark'?'dark_mode':'light_mode');
  if(changes.theme)Crilo.applyTheme(changes.theme);
