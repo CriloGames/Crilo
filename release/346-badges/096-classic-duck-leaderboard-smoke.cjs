@@ -8,7 +8,7 @@ const css=fs.readFileSync('style.css','utf8');
 const ducks=fs.readFileSync('ducks.js','utf8');
 const svg=fs.readFileSync('duck-classic.svg','utf8');
 const medal=fs.readFileSync('badge-medal.svg','utf8');
-assert.match(html,/data-tab="badges"><img class="leader-tab-icon leader-tab-icon-medal" src="badge-medal\\.svg"/);
+assert.match(html,/data-tab="badges"><img class="leader-tab-icon leader-tab-icon-medal" src="badge-medal[.]svg"/);
 assert.ok(!html.includes('🏅'),'Generic badge medal emoji must be removed');
 assert.ok(medal.includes('viewBox="0 0 64 64"')&&medal.includes('fill="#ffdc72"')&&medal.includes('fill="#92b7ea"'),'Original illustrated medal artwork missing');
 assert.ok(css.includes('.leader-tabs-wrap .leader-tab-icon-duck')&&css.includes('.leader-tabs-wrap .leader-tab-icon-medal'));
