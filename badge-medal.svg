@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Crilo badges medal">
+  <!-- Hand-drawn Crilo medal: soft ribbons, warm gold, and a star badge. -->
+  <g stroke="#453b35" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 7Q9 5 12 5L23 4L35 29L24 35Z" fill="#92b7ea" stroke-width="3.4"/>
+    <path d="M55 7Q55 5 52 5L41 4L29 29L40 35Z" fill="#f4aaa3" stroke-width="3.4"/>
+    <path d="M15 5L22 5L34 29L29 32Z" fill="#fff4db" stroke="none"/>
+    <path d="M49 5L42 5L30 29L35 32Z" fill="#fff4db" stroke="none"/>
+    <rect x="25" y="25" width="14" height="10" rx="3" fill="#e9b748" stroke-width="3"/>
+    <circle cx="32" cy="42" r="19" fill="#ffdc72" stroke-width="3.6"/>
+    <circle cx="32" cy="42" r="14.3" fill="none" stroke="#e8af45" stroke-width="2.2"/>
+    <path d="M32 32L35.5 38.1L42.6 39.4L37.3 44.5L38.5 51.5L32 48.3L25.5 51.5L26.7 44.5L21.4 39.4L28.5 38.1Z" fill="#ffd063" stroke-width="2.8"/>
+    <path d="M22 33Q24 30 27 29" fill="none" stroke="#fff8de" stroke-width="3"/>
+    <path d="M29 40L31 38" fill="none" stroke="#fff4cf" stroke-width="2.5"/>
+  </g>
+</svg>
