@@ -179,3 +179,75 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  }
  .crilo-site-footer .crilo-beetle-track{height:40px}
 }
+
+
+/* Shared footer geometry for every secondary Crilo page. Keep the same
+   balanced layout as the homepage, without copying its tip button or beetle. */
+.crilo-simple-footer{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ box-sizing:border-box;
+ width:100%;
+ max-width:none;
+ margin:16px auto 0;
+ padding:23px 20px 30px;
+ text-align:center;
+}
+.crilo-simple-footer .crilo-legal-nav{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ align-items:center;
+ justify-items:center;
+ box-sizing:border-box;
+ width:100%;
+ max-width:540px;
+ margin:0 auto;
+ padding:0;
+ column-gap:10px;
+ row-gap:3px;
+ font-size:12px;
+ text-align:center;
+}
+.crilo-simple-footer .crilo-legal-nav a{
+ display:block;
+ justify-self:center;
+ white-space:nowrap;
+ max-width:100%;
+ padding:4px 5px;
+ border-radius:8px;
+ line-height:1.4;
+ text-align:center;
+}
+.crilo-simple-footer .crilo-legal-nav a:hover,
+.crilo-simple-footer .crilo-legal-nav a:focus-visible{
+ background:var(--soft,#f7faf8);
+ text-decoration:none;
+}
+.crilo-simple-footer .crilo-legal-copy{
+ display:block;
+ width:max-content;
+ max-width:100%;
+ box-sizing:border-box;
+ margin:7px auto 0;
+ padding:0;
+ float:none;
+ text-align:center;
+ font-size:11px;
+ line-height:1.35;
+}
+@media(max-width:600px){
+ .crilo-simple-footer{
+  padding:17px 12px 25px;
+ }
+ .crilo-simple-footer .crilo-legal-nav{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  max-width:410px;
+  column-gap:6px;
+  font-size:11px;
+ }
+ .crilo-simple-footer .crilo-legal-nav a:last-of-type{
+  grid-column:1 / -1;
+ }
+}
