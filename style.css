@@ -1530,3 +1530,21 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
  .leader-tabs-wrap .leader-tab-icon-duck{width:22px;height:21px}
  .leader-tabs-wrap .leader-tab-icon-medal{width:21px;height:21px}
 }
+
+/* Leaderboard category hover cue: a small underline grows inside the pill.
+   Absolutely positioned so hovering never changes size or scroll positions. */
+.leader-tabs-wrap .leader-tab{position:relative}
+.leader-tabs-wrap .leader-tab::after{
+ content:"";position:absolute;left:12px;right:12px;bottom:3px;
+ height:2px;border-radius:99px;background:currentColor;
+ transform:scaleX(0);transform-origin:center;
+ opacity:0;pointer-events:none;
+ transition:transform .16s ease,opacity .16s ease
+}
+@media(hover:hover){
+ .leader-tabs-wrap .leader-tab:hover::after{transform:scaleX(1);opacity:1}
+}
+.leader-tabs-wrap .leader-tab:focus-visible::after{transform:scaleX(1);opacity:1}
+@media(prefers-reduced-motion:reduce){
+ .leader-tabs-wrap .leader-tab::after{transition:none}
+}
