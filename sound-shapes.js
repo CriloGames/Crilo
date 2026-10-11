@@ -33,12 +33,51 @@
     {kind:'hum',x:.30,y:.74,sx:1.2,sy:1.08},
     {kind:'buzz',x:.69,y:.72,sx:1.04,sy:.92}
   ];
-  const MAX_OBJECTS=10;
+  const MAX_OBJECTS=25;
   const KEY='crilo_sound_shapes_v1';
+  // Enhance the existing static page without touching checkout destinations.
+  // Move its single optional tip card above the experiment and turn its
+  // existing Add button into five directly accessible, named sound choices.
+  function arrangePage(){
+    if(typeof stage.closest!=='function')return; // Browser-independent VM tests.
+    const lab=stage.closest('.sound-lab');
+    const tip=document.querySelector('.sound-page > .support-card');
+    if(lab&&tip){
+      tip.classList.add('sound-tipbar');
+      lab.parentElement.insertBefore(tip,lab);
+      document.querySelector('.sound-game-divider')?.remove();
+      document.querySelector('.sound-support-label')?.remove();
+    }
+    const original=document.getElementById('soundAdd');
+    if(!original||!stage.parentElement)return;
+    const palette=document.createElement('div');
+    palette.className='sound-palette';
+    palette.setAttribute('role','group');
+    palette.setAttribute('aria-label','Add one of five sounds');
+    const label=document.createElement('span');
+    label.className='sound-palette-title';label.textContent='Add a sound ↘';
+    palette.appendChild(label);
+    const options=document.createElement('div');
+    options.className='sound-palette-options';palette.appendChild(options);
+    for(const kind of kinds){
+      const spec=definitions[kind],button=kind==='boop'?original:document.createElement('button');
+      button.id='soundAdd'+spec.name;
+      button.type='button';button.className='sound-palette-button';
+      button.dataset.kind=kind;button.setAttribute('aria-label','Add '+spec.name+' sound');
+      button.innerHTML='<span aria-hidden="true">'+spec.glyph+'</span> '+spec.name;
+      options.appendChild(button);
+    }
+    stage.parentElement.insertBefore(palette,stage);
+  }
+  function addButton(kind){
+    return document.getElementById('soundAdd'+definitions[kind].name)||
+      (kind==='boop'?document.getElementById('soundAdd'):null);
+  }
+  arrangePage();
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
   const round=(n)=>Math.round(n*1000)/1000;
   let idSeq=0,blobs=[],selected=null,interaction=null,muted=false,audio=null,master=null;
-  let loopTimer=null,stepIndex=0,nextStepTime=0,loopStartTime=0,tempo=104,addIndex=0;
+  let loopTimer=null,stepIndex=0,nextStepTime=0,loopStartTime=0,tempo=104;
   let discoveryTimer=null;
   function newBlob(kind,x,y,sx,sy,parts){
     return {id:++idSeq,kind:kinds.includes(kind)?kind:'boop',x:clamp(Number(x)||.5,.09,.91),
@@ -70,8 +109,33 @@
   function find(id){return blobs.find(b=>b.id===id)}
   function label(blob){return blob.parts.map(t=>definitions[t].name).join(' + ')}
   function size(blob){
-    const base=clamp(stage.clientWidth*.146,78,132);
+    const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);
+    const normal=clamp(w*.146,78,132);
+    const density=Math.sqrt(w*h/Math.max(8,blobs.length))*.73;
+    const base=Math.min(normal,Math.max(44,density));
     return {w:Math.round(base*blob.sx),h:Math.round(base*.91*blob.sy)};
+  }
+  function slots(){
+    const cols=stage.clientWidth>=640?7:5,rows=Math.ceil(MAX_OBJECTS/cols),all=[];
+    for(let row=0;row<rows;row++)for(let col=0;col<cols;col++)
+      all.push({x:.15+.70*col/Math.max(1,cols-1),y:.18+.64*row/Math.max(1,rows-1)});
+    return all;
+  }
+  function openSpot(blob){
+    const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);
+    let best={x:.5,y:.5},bestScore=-1;
+    for(const spot of slots()){
+      blob.x=spot.x;blob.y=spot.y;keepInside(blob);
+      const own=size(blob);
+      const score=blobs.reduce((lowest,b)=>{
+        const other=size(b);
+        const dx=(blob.x-b.x)*w/Math.max(1,(own.w+other.w)/2+8);
+        const dy=(blob.y-b.y)*h/Math.max(1,(own.h+other.h)/2+24);
+        return Math.min(lowest,Math.hypot(dx,dy));
+      },Infinity);
+      if(score>bestScore){bestScore=score;best={x:blob.x,y:blob.y}}
+    }
+    return best;
   }
   // Keep stretched shapes and resize handles in view across viewport sizes.
   function keepInside(blob){
@@ -145,12 +209,16 @@
         'Tap it, stretch it, or drop it on another sound.';
       widthSlider.value=String(Math.round(current.sx*100));
       heightSlider.value=String(Math.round(current.sy*100));
-      document.getElementById('soundSeparate').disabled=current.parts.length<2;
+      document.getElementById('soundSeparate').disabled=current.parts.length<2||blobs.length+current.parts.length-1>MAX_OBJECTS;
       document.getElementById('soundDuplicate').disabled=blobs.length>=MAX_OBJECTS;
       document.getElementById('soundDelete').disabled=blobs.length<=1;
     }
     document.getElementById('soundCounter').textContent=blobs.length+' / '+MAX_OBJECTS+' sounds';
-    document.getElementById('soundAdd').disabled=blobs.length>=MAX_OBJECTS;
+    for(const kind of kinds){
+      const button=addButton(kind);
+      if(button)button.disabled=blobs.length>=MAX_OBJECTS;
+    }
+    stage.classList.toggle('is-dense',blobs.length>12);
   }
   function select(id){
     selected=find(id)?.id||null;paint();
@@ -367,17 +435,13 @@
     muteButton.setAttribute('aria-pressed',String(!muted));
     muteButton.setAttribute('aria-label',muted?'Unmute the sound playground':'Mute the sound playground');
   }
-  function addSound(){
-    if(blobs.length>=MAX_OBJECTS){say('Your room has ten sounds already. Remove one to make space.');return}
-    const kind=kinds[addIndex++%kinds.length];
-    let x=.51,y=.46;
-    for(let i=0;i<18;i++){
-      x=.15+Math.random()*.70;y=.2+Math.random()*.62;
-      if(blobs.every(b=>Math.hypot((b.x-x)*2.2,b.y-y)> .23))break;
-    }
-    const b=newBlob(kind,x,y,1,1);
-    blobs.push(b);select(b.id);paint();playBlob(b);pulse(b.id);persist();
-    say('Meet '+definitions[kind].name+'. Tap it to hear its voice.');
+  function addSound(kind){
+    if(!kinds.includes(kind))return;
+    if(blobs.length>=MAX_OBJECTS){say('Your room has 25 sounds already. Remove one to make space.');return}
+    const blob=newBlob(kind,.5,.5,1,1),spot=openSpot(blob);
+    blob.x=spot.x;blob.y=spot.y;
+    blobs.push(blob);select(blob.id);playBlob(blob);pulse(blob.id);persist();
+    say('Added '+definitions[kind].name+'. Space for '+(MAX_OBJECTS-blobs.length)+' more.');
   }
   function separate(){
     const b=find(selected);
@@ -397,25 +461,31 @@
   function reset(){
     stopRoom();
     blobs=initial.map(v=>newBlob(v.kind,v.x,v.y,v.sx,v.sy));
-    selected=null;addIndex=0;paint();persist();
+    selected=null;paint();persist();
     say('A fresh little sound garden. Tap any shape to hear it.');
     showDiscovery('A new beginning ✧');
   }
   function shuffle(){
-    for(const blob of blobs){
-      blob.x=clamp(.12+Math.random()*.76,.09,.91);
-      blob.y=clamp(.2+Math.random()*.62,.13,.88);
+    const grid=slots();
+    for(let i=grid.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [grid[i],grid[j]]=[grid[j],grid[i]];
     }
+    blobs.forEach((blob,i)=>{blob.x=grid[i].x;blob.y=grid[i].y});
     paint();persist();say('Everything moved. Press Play the room to hear the new melody.');
   }
-  document.getElementById('soundAdd').addEventListener('click',addSound);
+  for(const kind of kinds){
+    const button=addButton(kind);
+    if(button)button.addEventListener('click',()=>addSound(kind));
+  }
   document.getElementById('soundShuffle').addEventListener('click',shuffle);
   document.getElementById('soundReset').addEventListener('click',reset);
   document.getElementById('soundSeparate').addEventListener('click',separate);
   document.getElementById('soundPreview').addEventListener('click',()=>{const b=find(selected);if(b){playBlob(b);pulse(b.id)}});
   document.getElementById('soundDuplicate').addEventListener('click',()=>{
     const b=find(selected);if(!b||blobs.length>=MAX_OBJECTS)return;
-    const duplicate=newBlob(b.kind,clamp(b.x+.11,.10,.90),clamp(b.y+.11,.13,.88),b.sx,b.sy,[...b.parts]);
+    const duplicate=newBlob(b.kind,.5,.5,b.sx,b.sy,[...b.parts]);
+    const spot=openSpot(duplicate);duplicate.x=spot.x;duplicate.y=spot.y;
     blobs.push(duplicate);select(duplicate.id);paint();persist();playBlob(duplicate);pulse(duplicate.id);
     say('A second '+label(b)+' joined the room.');
   });

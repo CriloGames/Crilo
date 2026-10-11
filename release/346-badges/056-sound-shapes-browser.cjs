@@ -115,7 +115,7 @@ async function main(){
   check(await page.locator('#soundSeparate').isEnabled(),scenario.name+' merged blob cannot split');
   await page.locator('#soundSeparate').click();
   check(await page.locator('.sound-blob').count()===5,scenario.name+' split failed');
-  await page.locator('#soundAdd').click();
+  await page.locator('#soundAddBoop').click();
   check(await page.locator('.sound-blob').count()===6,scenario.name+' add failed');
   await page.locator('#soundPlayRoom').click();
   check((await page.locator('#soundPlayRoom').innerText()).includes('Stop'),scenario.name+' room playback failed');
@@ -159,6 +159,35 @@ async function main(){
     scenario.name+' stretched sound clipped vertically');
   check(Math.abs(edge.scale-1)<.02,scenario.name+' unexpected viewport zoom '+edge.scale);
   await page.locator('#soundReset').click();
+  const palette=await page.locator('.sound-palette-button').count();
+  check(palette===5,scenario.name+' sound palette did not show all five choices');
+  const positions=await page.evaluate(()=>({
+    tip:document.getElementById('supportHeading').getBoundingClientRect().top,
+    stage:document.getElementById('soundStage').getBoundingClientRect().top
+  }));
+  check(positions.tip<positions.stage,scenario.name+' tip jar not visible first');
+  for(let i=0;i<20;i++){
+    await page.locator('#soundAdd'+['Boop','Hum','Pluck','Chime','Buzz'][i%5]).click();
+  }
+  check(await page.locator('.sound-blob').count()===25,scenario.name+' 25-sound capacity failed');
+  check((await page.locator('#soundCounter').innerText()).includes('25 / 25'),scenario.name+' counter is wrong');
+  for(const kind of ['Boop','Hum','Pluck','Chime','Buzz'])
+    check(await page.locator('#soundAdd'+kind).isDisabled(),scenario.name+' '+kind+' did not disable at capacity');
+  const filled=await page.evaluate(()=>{
+    const box=document.getElementById('soundStage').getBoundingClientRect();
+    return {stage:box.toJSON(),vw:innerWidth,sw:document.documentElement.scrollWidth,
+      sounds:[...document.querySelectorAll('.sound-blob')].map(el=>el.getBoundingClientRect().toJSON())};
+  });
+  check(filled.sw<=filled.vw+2,scenario.name+' horizontal overflow at 25 sounds');
+  for(const sound of filled.sounds)
+    check(sound.left>=filled.stage.left-2&&sound.right<=filled.stage.right+2&&
+      sound.top>=filled.stage.top-2&&sound.bottom<=filled.stage.bottom+2,
+      scenario.name+' a sound clipped '+JSON.stringify({stage:filled.stage,sound}));
+  await page.reload({waitUntil:'domcontentloaded'});
+  check(await page.locator('.sound-blob').count()===25,scenario.name+' 25 sounds did not persist');
+  await page.locator('#soundReset').click();
+  check(await page.locator('.sound-blob').count()===5,scenario.name+' reset after 25 failed');
+  check(await page.locator('#soundAddBoop').isEnabled(),scenario.name+' palette was not re-enabled');
   const gameBefore=await page.locator('.sound-blob').count();
   await page.locator('[data-amount="10"]').click();
   check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',scenario.name+' $10 checkout was changed');

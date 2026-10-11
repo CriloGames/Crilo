@@ -20,6 +20,10 @@ assert.ok(js.includes('createDynamicsCompressor'),'Overlapping audio needs a pea
 assert.ok(js.includes('keepInside(blob)'),'Stretched sounds must stay inside the playfield');
 assert.ok(js.includes('event.pointerId!==interaction.pointerId'),'Second fingers must not hijack gestures');
 assert.ok(js.includes('if(pan)pan.disconnect()'),'Stop retaining panner nodes after notes end');
+assert.ok(js.includes('const MAX_OBJECTS=25'),'25 sound slots must be supported');
+assert.ok(js.includes("button.id='soundAdd'+spec.name"),'All sounds have direct add buttons');
+assert.ok(js.includes('insertBefore(tip,lab)'),'Move existing optional tips above the game');
+assert.ok(css.includes('.sound-palette-button'),'Offer visible sound choices');
 assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|location\.href|window\.open/i.test(js),
  'The free game must not call the backend or interact with checkout');
 for(const id of ['soundStage','soundObjects','soundInspector','soundSelection','soundPlayRoom',
@@ -35,7 +39,7 @@ class FakeElement{
   this.classList={add:k=>this.classNames.add(k),remove:k=>this.classNames.delete(k),
     toggle:(k,on)=>{if(on===undefined)on=!this.classNames.has(k);on?this.classNames.add(k):this.classNames.delete(k);return on;},
     contains:k=>this.classNames.has(k)};
-  this.clientWidth=900;this.hidden=false;this.value='100';this.textContent='';
+  this.clientWidth=900;this.clientHeight=500;this.hidden=false;this.value='100';this.textContent='';
  }
  setAttribute(k,v){this[k]=v}
  addEventListener(k,fn){this.events[k]=fn}
@@ -120,6 +124,12 @@ assert.match(get('soundPlayRoom').textContent,/Play the room/);
 click('soundReset');
 assert.equal(nodes().length,5,'Reset must restore the five defaults');
 assert.equal(get('soundSelection').hidden,false);
+for(let i=0;i<20;i++)click('soundAdd');
+assert.equal(nodes().length,25,'Room should support 25 simultaneous sounds');
+assert.equal(get('soundAdd').disabled,true,'Palette should disable at capacity');
+click('soundReset');
+assert.equal(nodes().length,5,'Reset should work after reaching 25');
+assert.equal(get('soundAdd').disabled,false,'Palette should re-enable after reset');
 assert.ok(!html.includes('tips unlock')&&!html.includes('tip to play'));
 assert.ok(html.indexOf('id="supportHeading"')>html.indexOf('id="soundStage"'),
  'The optional tip section must appear after the entire free game');

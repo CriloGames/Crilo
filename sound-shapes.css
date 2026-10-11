@@ -122,3 +122,96 @@
   .sound-blob-body,.sound-blob.is-sounding .sound-blob-body,.sound-blob.is-sounding .sound-blob-halo{animation:none!important}
   .sound-playhead,.sound-button,.sound-discovery{transition:none!important}
 }
+
+/* Sound studio v4: fit the playfield, a visible optional tip jar, 25 sounds. */
+.sound-page{width:min(100%,1200px);max-width:1200px;margin:auto;padding:15px 18px 56px}
+.sound-page .support-back{width:100%;margin-bottom:11px}
+.sound-page .support-card.sound-tipbar{width:100%;max-width:1100px;margin:0 auto 23px;padding:15px 18px;display:grid;grid-template-columns:minmax(220px,1.15fr) minmax(220px,1fr) minmax(205px,.8fr);gap:5px 18px;align-items:center;text-align:left;border-radius:19px;border:1px solid #e9deda;background:linear-gradient(110deg,#fff0e9,#fff8eb 60%,#eff5ff);box-shadow:0 8px 28px #6251670a}
+[data-theme=dark] .sound-page .sound-tipbar{background:linear-gradient(110deg,#322a34,#303140);border-color:#494450}
+.sound-tipbar .support-symbol,.sound-tipbar .support-divider,.sound-tipbar > h2:not(#supportHeading),.sound-tipbar .support-checkout-heading{display:none}
+.sound-page .sound-tipbar #supportHeading{grid-column:1;grid-row:1;align-self:end;margin:0;font-size:22px;letter-spacing:-.035em}
+.sound-tipbar #supportHeading:before{content:'♡  THE CRILO TIP JAR';display:block;font-size:10px;letter-spacing:.15em;color:#b17a84;margin-bottom:3px}
+.sound-page .sound-tipbar .support-intro{grid-column:1;grid-row:2;margin:0;max-width:none;font-size:11px;line-height:1.55;align-self:start}
+.sound-tipbar .support-amounts{grid-column:2;grid-row:1;gap:6px}
+.sound-tipbar .support-amount{min-height:42px;font-size:12px;border-radius:10px;touch-action:manipulation}
+.sound-tipbar .support-selected{grid-column:2;grid-row:2;margin:0;text-align:center;font-size:11px}
+.sound-tipbar .support-checkout{grid-column:3;grid-row:1 / 3;padding:0;border:0}
+.sound-tipbar .support-pay{min-height:43px;display:flex;align-items:center;justify-content:center;margin:0;text-decoration:none;font-size:13px;border-radius:11px}
+.sound-tipbar .support-pending{margin:5px 0 0;font-size:9px;line-height:1.4}
+.sound-tipbar .support-fine{grid-column:1 / -1;grid-row:3;margin:5px 0 0;text-align:center;font-size:10px}
+.sound-lab{max-width:1100px;margin:0 auto;color:var(--text,#23252b)}
+.sound-heading{margin:1px auto 15px}
+.sound-heading h1{font-size:clamp(39px,6vw,68px);margin:8px 0 6px}
+.sound-heading p{font-size:13px;line-height:1.5}
+.sound-heading .sound-free{margin-top:8px;padding:5px 11px}
+.sound-app{padding:12px}
+.sound-toolbar{padding:1px 3px 10px}
+.sound-stage{height:clamp(380px,62svh,660px);min-height:0}
+.sound-palette{display:flex;align-items:center;justify-content:space-between;gap:11px;padding:2px 3px 10px}
+.sound-palette-title{font-weight:850;font-size:11px;white-space:nowrap;color:var(--muted,#777)}
+.sound-palette-options{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;flex:1;max-width:755px}
+.sound-palette-button{--swatch:#ddd;min-width:0;min-height:43px;padding:5px 7px;white-space:nowrap;border:1px solid var(--line,#ddd);background:var(--panel,#fff);color:var(--text,#25262c);border-radius:12px;font-family:inherit;font-size:12px;font-weight:750;cursor:pointer;touch-action:manipulation;transition:background .15s}
+.sound-palette-button span{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;margin-right:3px;color:#59455c;background:var(--swatch);font-size:16px}
+.sound-palette-button[data-kind="boop"]{--swatch:#f9c2bf}
+.sound-palette-button[data-kind="hum"]{--swatch:#bdcafa}
+.sound-palette-button[data-kind="pluck"]{--swatch:#f6d89d}
+.sound-palette-button[data-kind="chime"]{--swatch:#bcead3}
+.sound-palette-button[data-kind="buzz"]{--swatch:#e1c3ef}
+.sound-palette-button:hover:not(:disabled){background:var(--soft,#f6f6f6);border-color:#b3a7ba}
+.sound-palette-button:focus-visible{outline:3px solid #9fa9ea;outline-offset:2px}
+.sound-palette-button:disabled{opacity:.42;cursor:not-allowed}
+.sound-stage.is-dense .sound-blob-wave{font-size:clamp(18px,2.7vw,31px)}
+.sound-stage.is-dense .sound-blob-caption{opacity:0}
+.sound-stage.is-dense .sound-blob.is-selected .sound-blob-caption,
+.sound-stage.is-dense .sound-blob:hover .sound-blob-caption,
+.sound-stage.is-dense .sound-blob:focus-visible .sound-blob-caption{opacity:1}
+.sound-stage.is-dense .sound-blob.is-selected{z-index:8}
+@media(max-width:850px){
+ .sound-page .support-card.sound-tipbar{grid-template-columns:1fr 1fr;gap:7px 15px}
+ .sound-page .sound-tipbar #supportHeading{grid-column:1 / -1;grid-row:1;text-align:center}
+ .sound-page .sound-tipbar .support-intro{grid-column:1 / -1;grid-row:2;text-align:center}
+ .sound-tipbar .support-amounts{grid-column:1;grid-row:3}
+ .sound-tipbar .support-selected{grid-column:1;grid-row:4}
+ .sound-tipbar .support-checkout{grid-column:2;grid-row:3 / 5}
+ .sound-tipbar .support-fine{grid-row:5}
+ .sound-palette-title{display:none}
+ .sound-palette-options{max-width:none}
+ .sound-stage{height:clamp(380px,64svh,610px)}
+}
+@media(max-width:520px){
+ .sound-page{padding:10px 9px 54px}
+ .sound-page .support-back{margin-bottom:8px}
+ .sound-page .support-card.sound-tipbar{grid-template-columns:1fr;gap:5px;padding:10px 12px;margin-bottom:15px;border-radius:15px}
+ .sound-page .sound-tipbar #supportHeading{grid-row:1;font-size:18px}
+ .sound-tipbar #supportHeading:before{font-size:9px}
+ .sound-page .sound-tipbar .support-intro{grid-row:2;font-size:10px;line-height:1.35}
+ .sound-tipbar .support-amounts{grid-column:1;grid-row:3;gap:4px}
+ .sound-tipbar .support-amount{min-height:38px;font-size:11px}
+ .sound-tipbar .support-selected{grid-column:1;grid-row:4;font-size:10px}
+ .sound-tipbar .support-checkout{grid-column:1;grid-row:5}
+ .sound-tipbar .support-pay{min-height:37px}
+ .sound-tipbar .support-pending{display:none}
+ .sound-tipbar .support-fine{grid-row:6;margin:1px 0 0;font-size:9px;line-height:1.2}
+ .sound-heading{margin:0 auto 12px}
+ .sound-heading h1{font-size:clamp(36px,10vw,45px);margin:6px 0}
+ .sound-heading p{font-size:12px;line-height:1.45}
+ .sound-heading .sound-free{margin-top:7px}
+ .sound-app{padding:8px;border-radius:17px}
+ .sound-toolbar{justify-content:center;gap:5px;padding:3px 0 8px}
+ .sound-toolbar-left,.sound-toolbar-right{flex:0 1 auto}
+ .sound-button{min-height:40px;padding:8px 10px;font-size:11px}
+ .sound-button-primary{min-width:135px}
+ .sound-palette{padding:1px 0 8px;gap:0}
+ .sound-palette-options{gap:3px}
+ .sound-palette-button{min-height:44px;padding:5px 1px;font-size:10px;border-radius:9px}
+ .sound-palette-button span{width:19px;height:19px;margin-right:0;font-size:13px}
+ .sound-stage{height:clamp(385px,63svh,590px);border-radius:15px}
+ .sound-blob-caption{max-width:130px}
+ .sound-key{text-align:center}
+ .sound-corner{font-size:8px;bottom:8px;left:8px}
+}
+@media(max-height:490px) and (orientation:landscape){
+ .sound-stage{height:380px}
+ .sound-page .support-card.sound-tipbar{margin-bottom:10px}
+ .sound-heading h1{font-size:34px}
+}
