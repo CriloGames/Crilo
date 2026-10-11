@@ -145,19 +145,73 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
  .crilo-site-footer .crilo-beetle-track{height:40px}
 }
 
-/* Keep copyright exactly on the same geometric center axis as the links,
-   regardless of inherited inline/text styles or footer rail animation. */
+/* Home footer: center the *visible* content, not a full-width empty box.
+   Optical nudges were calibrated against the actual footer screenshot: text
+   ink in the support button was 4px right-heavy, and legal links 12px left-
+   heavy, despite mathematically centered bounding boxes. Limit the nudges
+   to roomy viewports; on phones, wrapped links center naturally. */
+.crilo-site-footer .crilo-footer-content{
+ display:grid;
+ grid-template-columns:minmax(0,1fr);
+ justify-items:center;
+ align-content:center;
+ width:100%;
+ max-width:740px;
+ margin-inline:auto;
+ padding-inline:20px;
+ text-align:center;
+}
+.crilo-site-footer .crilo-support-link{
+ grid-column:1;
+ justify-self:center;
+ width:max-content;
+ max-width:100%;
+ margin:0 auto 11px;
+ transform:translateX(-4px);
+}
 .crilo-site-footer .crilo-home-legal{
- display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;
- width:100%;max-width:100%;margin-inline:auto;text-align:center;
+ grid-column:1;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ width:100%;
+ max-width:100%;
+ margin:0 auto;
+ text-align:center;
 }
 .crilo-site-footer .crilo-home-legal .crilo-legal-nav{
- grid-column:1;justify-self:stretch;width:100%;margin:0;
- justify-content:center;text-align:center;
+ box-sizing:border-box;
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ justify-content:center;
+ width:max-content;
+ max-width:100%;
+ margin:0 auto;
+ padding:0;
+ gap:6px 12px;
+ text-align:center;
+ transform:translateX(8px);
 }
 .crilo-site-footer .crilo-home-legal .crilo-legal-copy{
- grid-column:1;display:block;justify-self:center;
- box-sizing:border-box;width:100%;max-width:none;
- margin:6px 0 0;padding:0;text-align:center;
- position:static;inset:auto;transform:none;
+ display:block;
+ width:max-content;
+ max-width:100%;
+ margin:7px auto 0;
+ padding:0;
+ float:none;
+ position:static;
+ inset:auto;
+ justify-self:center;
+ text-align:center;
+ transform:translateX(2px);
+}
+@media(max-width:640px){
+ .crilo-site-footer .crilo-footer-content{padding-inline:12px}
+ .crilo-site-footer .crilo-support-link,
+ .crilo-site-footer .crilo-home-legal .crilo-legal-nav,
+ .crilo-site-footer .crilo-home-legal .crilo-legal-copy{transform:none}
+ .crilo-site-footer .crilo-support-link{margin-bottom:10px}
+ .crilo-site-footer .crilo-home-legal .crilo-legal-nav{gap:6px 9px}
 }
