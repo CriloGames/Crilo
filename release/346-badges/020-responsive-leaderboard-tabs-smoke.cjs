@@ -13,7 +13,7 @@ const brandPages=['index.html','leaderboard.html','ducks.html','profile.html',
 for(const pageName of brandPages){
  const pageHTML=fs.readFileSync(path.join(root,pageName),'utf8');
  assert.ok(pageHTML.includes('class="brand"'),pageName+' shared wordmark missing');
- assert.ok(pageHTML.includes('style.css?v='+(pageName==='leaderboard.html'?'112':pageName==='shape-of-sound.html'?'101':'110')),pageName+' current shared CSS reference');
+ assert.ok(pageHTML.includes('style.css?v='+(pageName==='leaderboard.html'?'113':pageName==='shape-of-sound.html'?'101':'110')),pageName+' current shared CSS reference');
 }
 assert.ok(css.includes('animation:criloLogoSheen 10s ease-in-out infinite'),
  'The quiet Crilo rainbow sheen animation should be present');
@@ -21,7 +21,7 @@ assert.ok(css.includes('@keyframes criloLogoSheen'),'Wordmark sweep keyframes mi
 assert.ok(css.includes('-webkit-text-fill-color:currentColor;'),
  'Reduced-motion fallback must keep the wordmark readable');
 
-assert.match(html,/style\.css\?v=112/);
+assert.match(html,/style\.css\?v=113/);
 assert.match(html,/leaderboard-tabs\.js\?v=2/);
 assert.match(html,/id="leaderTabs"/);
 assert.match(html,/id="leaderTabPrev"/);
@@ -30,6 +30,12 @@ assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,7);
 assert.match(css,/\.leader-tabs-wrap \.leader-tabs\{[\s\S]*?flex-wrap:nowrap/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab\{[\s\S]*?white-space:nowrap/);
 assert.match(css,/overflow-x:auto/);
+assert.match(css,/\.leader-tabs-wrap \.leader-tab::after\{/);
+assert.match(css,/\.leader-tabs-wrap \.leader-tab:hover::after/);
+assert.match(css,/\.leader-tabs-wrap \.leader-tab:focus-visible::after/);
+assert.match(css,/position:absolute;left:12px;right:12px;bottom:3px/);
+assert.match(css,/prefers-reduced-motion:reduce/);
+
 assert.ok(css.includes('.leader-tabs-wrap.tabs-fit .leader-tabs{justify-content:space-evenly}'),
  'Tabs should spread evenly on wide screens, not bunch on the left');
 assert.ok(css.includes('font-size:clamp(12px,1.13vw,18px)'),
