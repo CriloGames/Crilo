@@ -165,6 +165,8 @@ jobs:
         run: node release/346-badges/051-stale-jwt-ban-security-smoke.cjs
       - name: Require server-side owner authenticator for destructive actions
         run: node release/346-badges/053-owner-mfa-security-smoke.cjs
+      - name: Reject accidental server secrets in publicly deployable files
+        run: node release/346-badges/100-deployed-secret-scanner.cjs
       - name: Check server authority and hardened bug reporting
         run: node release/346-badges/059-security-hardening-smoke.cjs
       - name: Reject stale banned-session friend and settings writes
