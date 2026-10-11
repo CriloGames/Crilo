@@ -6,6 +6,8 @@ const src=fs.readFileSync('leaderboard.js','utf8');
 const page=fs.readFileSync('leaderboard.html','utf8');
 assert.match(page,/leaderboard\.js\?v=47/);
 assert.match(src,/revision!==loadRevision/);
+assert.ok(page.includes('role="group" aria-label="Leaderboard categories"'),'Category group should be labelled');
+assert.ok(page.includes('id="leaderDescription" aria-live="polite"'),'Category updates should be announced');
 assert.match(src,/href="profile\.html\?id=/);
 function deferred(){
  let resolve;const promise=new Promise(r=>{resolve=r});
