@@ -90,6 +90,7 @@ async function main(){
   check(await page.locator('#nightShift').evaluate(el=>el.classList.contains('is-lit')),scenario.name+' lights did not come on');
   check(await page.locator('#supportPayLink').isVisible(),scenario.name+' tip checkout should be visible after reveal');
   if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
+    await page.waitForTimeout(1100); // Capture the completed light-on reveal.
     const lit=await page.locator('#nightShift').screenshot({type:'jpeg',quality:52});
     console.log('NIGHT_SHIFT_LIT_B64 '+scenario.name+' '+lit.toString('base64'));
   }
@@ -264,6 +265,11 @@ async function main(){
   check(await page.locator('.sound-blob').count()===5,scenario.name+' reset after 25 failed');
   check(await page.locator('#soundAddBoop').isEnabled(),scenario.name+' palette was not re-enabled');
   const gameBefore=await page.locator('.sound-blob').count();
+  // Shape of Sound's persistence test reloads this page, correctly resetting
+  // Night Shift to dark. Use the always-available skip before checking checkout.
+  await page.locator('#nightLights').click();
+  check(await page.locator('#supportPayLink').isVisible(),
+    scenario.name+' voluntary tips inaccessible after refreshing the page');
   await page.locator('[data-amount="10"]').click();
   check(await page.locator('#supportPayLink').getAttribute('href')==='https://www.paypal.com/ncp/payment/ZK6WTGVE48JG4',scenario.name+' $10 checkout was changed');
   await page.locator('[data-amount="custom"]').click();
