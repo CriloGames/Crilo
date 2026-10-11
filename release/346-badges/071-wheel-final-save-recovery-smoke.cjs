@@ -1,0 +1,12 @@
+'use strict';
+const a=require('node:assert/strict'),fs=require('node:fs');
+const src=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
+a.match(html,/id="retrySaveBtn"/);a.match(html,/game\.js\?v=74/);
+a.match(src,/finalSaveInProgress=true;try/);a.match(src,/finally\{finalSaveInProgress=false\}/);
+a.match(src,/score=Number\(serverReply.score\);spins=Number\(serverReply.remaining_spins\)/);
+a.match(src,/\.eq\('verified_spin_session_id',serverSessionId\).maybeSingle\(\)/);
+a.match(src,/retrySaveBtn'\).addEventListener\('click'/);
+a.match(src,/crilo-pending-official-drawing-/);
+a.match(src,/localStorage.removeItem\?\.\(draftKey\)/);
+a.match(src,/serverSessionId&&!officialRun/);
+console.log('PASS: canonical extreme-score completion and retry of interrupted official save.');

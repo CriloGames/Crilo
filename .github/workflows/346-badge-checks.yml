@@ -172,6 +172,10 @@ jobs:
         run: node release/346-badges/069-wheel-gmail-alias-smoke.cjs
       - name: Separate archived legacy scores from verified competition
         run: node release/346-badges/070-verified-legacy-separation-smoke.cjs
+      - name: Protect official save recovery and authoritative terminal spins
+        run: node release/346-badges/071-wheel-final-save-recovery-smoke.cjs
+      - name: Simulate double click and both recoverable save-failure cases
+        run: node release/346-badges/072-wheel-browser-fault-injection-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
