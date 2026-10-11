@@ -670,9 +670,17 @@ let painting=false,last=null,activeDrawingPointer=null;
 // across its boundary, even if the pointer later re-enters while held down.
 function insidePaintArea(canvas,event){
  const rect=canvas.getBoundingClientRect();
- return Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)&&
+ const inside=Number.isFinite(event.clientX)&&Number.isFinite(event.clientY)&&
   rect.width>0&&rect.height>0&&event.clientX>=rect.left&&
   event.clientX<=rect.right&&event.clientY>=rect.top&&event.clientY<=rect.bottom;
+ if(!inside)return false;
+ if(canvas===drawing){
+  // The actual wheel drawing surface is a circle, not its square bounding box.
+  const dx=(event.clientX-rect.left-rect.width/2)/(rect.width/2);
+  const dy=(event.clientY-rect.top-rect.height/2)/(rect.height/2);
+  return dx*dx+dy*dy<=1;
+ }
+ return true;
 }
 function stopDrawing(event){
  if(activeDrawingPointer===null)return;
