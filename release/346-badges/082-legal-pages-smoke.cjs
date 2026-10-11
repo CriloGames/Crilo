@@ -18,7 +18,7 @@ for(const p of [privacy,terms]){
  assert.match(p,/class="crilo-legal-paper"/);
  assert.doesNotMatch(p,/support@crilo\.fun/);
 }
-assert.match(privacy,/does not currently sell users’ personal information/);
+assert.match(privacy,/Crilo does not sell users’ personal information/);
 assert.match(privacy,/before putting them into effect/);
 assert.match(privacy,/Global Privacy Control/);
 assert.match(privacy,/does not submit a persistent visitor ID/);

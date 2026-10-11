@@ -12,6 +12,10 @@ on:
       - 'share-result.css'
       - 'public-metrics.js'
       - 'release/346-badges/075-share-growth-browser.cjs'
+      - 'privacy.html'
+      - 'terms.html'
+      - 'legal.css'
+      - 'release/346-badges/083-legal-pages-browser.cjs'
       - 'index.html'
       - 'app.js'
       - 'ducks.js'
@@ -37,6 +41,8 @@ jobs:
         run: node release/346-badges/073-wheel-chromium-browser.cjs
       - name: Exercise sharing with real Chromium UI and verified-run fixtures
         run: node release/346-badges/075-share-growth-browser.cjs
+      - name: Render Privacy and Terms on phone tablet and desktop
+        run: node release/346-badges/083-legal-pages-browser.cjs
       - name: Verify community count fits phone tablet desktop and updates after save
         run: node release/346-badges/081-official-daily-total-browser.cjs
       - name: Check actual lossless fallback and visually decodable compact drawings
