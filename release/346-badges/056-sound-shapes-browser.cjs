@@ -236,7 +236,7 @@ async function main(){
   // Confirm the homepage presents the new game before the original Domain card
   // and that the promotional card fits all ten actual browser viewport sizes.
   const home=await context.newPage();
-  await home.route(/\\.js(?:\\?.*)?$/,route=>route.fulfill({
+  await home.route('**/*.js*',route=>route.fulfill({
     status:200,contentType:'application/javascript',body:''
   }));
   await home.route('https://cdn.jsdelivr.net/**',route=>route.abort());
