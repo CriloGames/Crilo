@@ -63,7 +63,7 @@ function add(type,options={}){
  const tipBottom=document.querySelector('.tip-card')?.getBoundingClientRect().bottom||0;
  const dropTop=dims.w<640?Math.max(visibleTop,tipBottom-sceneTop+25):visibleTop;
  const s={id:nextId++,type:TYPES.includes(type)?type:'cube',
-   x:clamp(options.x??(index%2===0?16+seedX*.32:dims.w-w-17-seedX*.12),0,Math.max(0,dims.w-w)),
+   x:clamp(options.x??(dims.w>=640?(index%2===0?24:dims.w-w-24):(index%2===0?16:dims.w-w-16)),0,Math.max(0,dims.w-w)),
    y:clamp(options.y??(dropTop+index%3*12),0,Math.max(0,dims.h-h)),
    w,h,layer:options.layer??layer,vx:0,vy:0,node:null};
  shapes.push(s);draw(s);select(s);announce(s.type+' added. Drag to move; resize using a corner.');saveLater();return s;
