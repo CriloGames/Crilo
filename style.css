@@ -1399,3 +1399,6 @@ html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ff
 .leader-row.score-run-row .mini-wheel{border:4px solid #17191e;background:#fff;box-sizing:border-box;border-radius:50%;overflow:hidden}
 .leader-row.score-run-row .mini-wheel img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
 .best-drawing{box-sizing:border-box;border:4px solid #17191e;border-radius:50%;background:#fff;object-fit:cover}
+
+/* Keep saved drawings intact: no crop or distortion inside circular rims. */
+.leader-row.score-run-row .mini-wheel img,.best-drawing{object-fit:contain}
