@@ -1,0 +1,29 @@
+name: Crilo Wheel Chromium regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'game.js'
+      - 'index.html'
+      - 'app.js'
+      - 'ducks.js'
+      - 'release/346-badges/073-wheel-chromium-browser.cjs'
+      - '.github/workflows/wheel-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wheel-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: npm install --no-save --no-package-lock playwright@1.56.1
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Exercise actual wheel page with synthetic signed-in browser
+        run: node release/346-badges/073-wheel-chromium-browser.cjs
