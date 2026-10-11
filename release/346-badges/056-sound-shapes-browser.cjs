@@ -250,6 +250,7 @@ async function main(){
       before:!!(sound.compareDocumentPosition(domain)&Node.DOCUMENT_POSITION_FOLLOWING),
       cards:document.querySelectorAll('#more-games .game-card').length,
       title:sound.querySelector('h2')?.textContent,
+      domainDescription:domain.querySelector('p')?.textContent,
       card:card.toJSON(),domain:domain.getBoundingClientRect().toJSON(),icon:icon?.toJSON(),
       vw:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
@@ -257,6 +258,9 @@ async function main(){
   check(gameCards.before&&gameCards.soundHref==='support.html'&&
     gameCards.title==='The Shape of Sound'&&gameCards.cards>=2,
     scenario.name+' Shape of Sound not a separate game before Domain');
+  check(gameCards.domainDescription?.includes('Five rounds')&&
+    !gameCards.domainDescription?.includes('Put its current files'),
+    scenario.name+' Domain card should describe the playable game, not the old placeholder');
   check(gameCards.scrollWidth<=gameCards.vw+2,
     scenario.name+' homepage overflow '+JSON.stringify(gameCards));
   check(Math.abs(gameCards.card.width-gameCards.domain.width)<=1,
