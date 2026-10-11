@@ -64,6 +64,8 @@ async function scenario(name,runs,pages,{more=false}={}){
  assert.ok(calls.some(c=>c.fields.includes('score,spins')&&c.fields.includes('drawing')),name+' must use Daily scores and art');
  assert.ok(!history().includes('DUCK!')&&!history().includes('Landed '),name+' must not render spin events');
  assert.ok(!history().includes('Badge earned'),name+' must not render achievements');
+ const saved=official.find(row=>row.drawing);
+ if(saved)assert.ok(history().includes(saved.drawing),name+' must display the exact saved artwork');
  if(count())assert.ok(history().includes('blank-wheel.svg'),name+' blank artwork must be blank');
  for(let i=1;i<pages.length;i++){
   assert.equal(element('spinHistoryPager').hidden,false,name+' should show Load More');
