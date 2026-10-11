@@ -31,6 +31,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    assert.equal(await page.locator('#avatarInkOptions .avatar-editor-swatch').count(),8);
    const bounds=await page.locator('.avatar-editor-card').boundingBox();
    assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+1,'Editor clipped on '+width);
+   const dimensions=await Promise.all(['#avatarUseInitial','#avatarCustomLetter']
+     .map(selector=>page.locator(selector).boundingBox()));
+   assert.ok(dimensions.every(Boolean)&&Math.abs(dimensions[0].height-dimensions[1].height)<1,
+     'Initial button and letter/number input must have exactly matching heights at '+width);
+   assert.ok((await page.locator('label[for="avatarCustomLetter"]').innerText()).includes('number'),
+     'Letter and number support must be explained');
+   await page.locator('#avatarCustomLetter').fill('7');
+   assert.equal(await page.locator('#avatarEditorPreview').innerText(),'7',
+     'Single-digit numeric icon did not preview');
    const first=await page.locator('#avatarEditorPreview').getAttribute('aria-label');
    assert.ok(first.includes('C'),'Initial preview incorrect');
    pass('initial avatar and nine illustration choices, eight colors at '+width+'px');
