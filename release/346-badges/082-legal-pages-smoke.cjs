@@ -21,7 +21,7 @@ for(const p of [privacy,terms]){
 assert.match(privacy,/Crilo does not sell users’ personal information/);
 assert.match(privacy,/before putting them into effect/);
 assert.match(privacy,/Global Privacy Control/);
-assert.match(privacy,/does not submit a persistent visitor ID/);
+assert.match(privacy,/do not submit a persistent visitor ID/);
 assert.match(privacy,/Delete Account/);
 assert.match(terms,/Do not cheat/);
 assert.match(terms,/Tips through PayPal are completely voluntary/);
