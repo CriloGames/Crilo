@@ -30,6 +30,12 @@ assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,7);
 assert.match(css,/\.leader-tabs-wrap \.leader-tabs\{[\s\S]*?flex-wrap:nowrap/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab\{[\s\S]*?white-space:nowrap/);
 assert.match(css,/overflow-x:auto/);
+assert.match(css,/\.topbar nav a::after\{/,'Top navigation hover indicator missing');
+assert.match(css,/\.topbar nav a:hover::after/,'Header hover style missing');
+assert.match(css,/\.topbar nav a:focus-visible::after/,'Keyboard focus indicator missing');
+assert.match(css,/height:1px;border-radius:99px;background:currentColor/,'Top underline must be finer than leaderboard underline');
+assert.match(css,/@media\(prefers-reduced-motion:reduce\)[\s\S]*?\.topbar nav a::after\{transition:none\}/);
+
 assert.match(css,/\.leader-tabs-wrap \.leader-tab::after\{/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab:hover::after/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab:focus-visible::after/);
