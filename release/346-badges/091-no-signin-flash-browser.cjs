@@ -38,8 +38,8 @@ async function main(){
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
        name+' exposed username or sign-in text before identity was resolved');
      const slotBefore=await page.locator('.account-wrap').boundingBox();
-     const rect=await button.boundingBox();
-     assert.ok(rect?.width>=75,'Account space collapsed in '+name);
+     const reservedWidth=await button.evaluate(el=>el.getBoundingClientRect().width);
+     assert.ok(reservedWidth>=75,'Account space collapsed in '+name);
      await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false',{timeout:11000});
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'visible');
      assert.equal(await button.innerText(),mode==='signed-in'?'CriloQA':'SIGN IN',
