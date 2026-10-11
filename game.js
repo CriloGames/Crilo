@@ -385,7 +385,7 @@ if(spins<=0){
 }}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
-function lockDrawing(){stopDrawing();stopPixelStroke();hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
+function lockDrawing(){stopDrawing();stopPixelStroke();closeDrawingColorPicker();hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawColorPickerBtn').disabled=true;$('pixelStudioBtn').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 async function spin(){if(spinning||spins<=0)return;
  if(!profile&&user){$('message').textContent='Loading your account. Please wait.';return;}
  if(profile?.is_owner&&!ownerModeChosen){$('message').textContent='Choose Official Daily or Test Run before spinning.';$('spinButton').classList.add('hidden');return;}
@@ -513,7 +513,7 @@ function beginRun(alignPlay=false){
   }
   if(guestDailyLocked())return;
  }
- document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();if(alignPlay)alignPlayViewport()}
+ document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();resetRecentPaintColors();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();if(alignPlay)alignPlayViewport()}
 // Save only the image needed for the public Daily. WebP is optional: browsers
 // without it, or drawings that are already smaller as PNG, keep the original.
 function optimizedDailyDrawing(canvas,isBlank){
@@ -641,7 +641,7 @@ async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();co
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
-function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun(true)}
+function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('pixelStudioBtn').disabled=false;$('drawColorPickerBtn').disabled=false;$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun(true)}
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;$('resetCountdown').textContent=`NEXT DAILY ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('storage',event=>{
  if(event.key!==GUEST_DAILY_STORAGE_KEY||user||isTest)return;
@@ -709,21 +709,43 @@ function point(e){
  }
  return{x,y};
 }
-function fill(x,y){const w=200,img=dctx.getImageData(0,0,w,w),d=img.data,xx=Math.max(0,Math.min(199,Math.floor(x))),yy=Math.max(0,Math.min(199,Math.floor(y))),start=yy*w+xx,src=Array.from(d.slice(start*4,start*4+4)),hex=$('drawColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255],seen=new Uint8Array(w*w),q=[start];if(src.every((v,i)=>v===col[i]))return false;seen[start]=1;for(let head=0;head<q.length;head++){const n=q[head],o=n*4;if(!src.every((v,i)=>Math.abs(d[o+i]-v)<24))continue;for(let j=0;j<4;j++)d[o+j]=col[j];const x=n%w,y=Math.floor(n/w);for(const v of [x>0?n-1:-1,x<199?n+1:-1,y>0?n-w:-1,y<199?n+w:-1])if(v>=0&&!seen[v]){seen[v]=1;q.push(v)}}dctx.putImageData(img,0,0);return true}
+function fill(x,y){
+ const w=CANVAS_SIDE,xx=Math.floor(x),yy=Math.floor(y);
+ if(!Number.isFinite(x)||!Number.isFinite(y)||xx<0||yy<0||xx>=w||yy>=w||!insideCirclePixel(xx,yy))return false;
+ const img=dctx.getImageData(0,0,w,w),d=img.data,start=yy*w+xx,src=Array.from(d.slice(start*4,start*4+4));
+ const hex=$('drawColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
+ if(src.every((v,i)=>v===col[i]))return false;
+ const seen=new Uint8Array(w*w),q=[start];seen[start]=1;
+ for(let head=0;head<q.length;head++){
+  const n=q[head],o=n*4;
+  if(!src.every((v,i)=>Math.abs(d[o+i]-v)<24))continue;
+  for(let j=0;j<4;j++)d[o+j]=col[j];
+  const px=n%w,py=Math.floor(n/w);
+  for(const v of [px>0?n-1:-1,px<w-1?n+1:-1,py>0?n-w:-1,py<w-1?n+w:-1]){
+   if(v<0||seen[v])continue;
+   const vx=v%w,vy=Math.floor(v/w);
+   if(!insideCirclePixel(vx,vy))continue;
+   seen[v]=1;q.push(v);
+  }
+ }
+ maskInvisibleCorners(d);
+ dctx.putImageData(img,0,0);
+ return true;
+}
 drawing.addEventListener('pointerdown',e=>{
- if(drawingLocked||activeDrawingPointer!==null||!insidePaintArea(drawing,e)||
+ if(drawingLocked||isDrawingColorPickerOpen()||activeDrawingPointer!==null||!insidePaintArea(drawing,e)||
     (e.pointerType==='mouse'&&e.button!==0))return;
  e.preventDefault();
  hideDrawPlaceholder();
  const p=point(e);snapshot();
- if(drawTool==='fill'){if(fill(p.x,p.y)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}
+ if(drawTool==='fill'){if(fill(p.x,p.y)){recordPaintColor($('drawColor').value);if(!isTest&&!guestRun)usedFillOnOfficial=true}return}
  activeDrawingPointer=e.pointerId;painting=true;last=p;
  try{drawing.setPointerCapture(e.pointerId)}catch(error){stopDrawing(e);return}
  dctx.fillStyle=$('drawColor').value;dctx.beginPath();
- dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();
+ dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();recordPaintColor($('drawColor').value);
 });
 drawing.addEventListener('pointermove',e=>{
- if(!painting||drawingLocked||e.pointerId!==activeDrawingPointer)return;
+ if(!painting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==activeDrawingPointer)return;
  if(!insidePaintArea(drawing,e)||
     (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
   stopDrawing(e);return;
@@ -738,6 +760,91 @@ for(const type of ['pointerup','pointercancel','lostpointercapture','pointerleav
 document.addEventListener('pointerup',stopDrawing);
 document.addEventListener('pointercancel',stopDrawing);
 const pixelCanvas=$('pixelCanvas'),pixelCtx=pixelCanvas.getContext('2d',{willReadFrequently:true});
+const CANVAS_SIDE=200,CANVAS_RADIUS=100;
+function insideCirclePixel(x,y){
+ const dx=x+.5-CANVAS_RADIUS,dy=y+.5-CANVAS_RADIUS;
+ return dx*dx+dy*dy<=CANVAS_RADIUS*CANVAS_RADIUS;
+}
+function maskInvisibleCorners(pixels){
+ for(let y=0;y<CANVAS_SIDE;y++)for(let x=0;x<CANVAS_SIDE;x++){
+  if(!insideCirclePixel(x,y)){
+   const index=(y*CANVAS_SIDE+x)*4;
+   pixels[index]=pixels[index+1]=pixels[index+2]=pixels[index+3]=0;
+  }
+ }
+}
+// A circular clipping path prevents pen/eraser strokes leaving invisible
+// pixels. ImageData ignores clipping, so flood fills must check the same mask.
+for(const context of [dctx,pixelCtx]){
+ context.beginPath();context.arc(100,100,100,0,Math.PI*2);context.clip();
+}
+const recentPaintColors=[];
+function renderRecentPaintColors(){
+ for(const [hostId,kind] of [['drawRecentSwatches','main'],['pixelRecentSwatches','pixel']]){
+  const host=$(hostId);
+  if(!host)continue;
+  host.replaceChildren();
+  if(!recentPaintColors.length){
+   const hint=document.createElement('span');
+   hint.className='recent-colors-empty';hint.textContent='Colors you paint with will appear here';
+   host.appendChild(hint);continue;
+  }
+  for(const hex of recentPaintColors){
+   const button=document.createElement('button');
+   button.type='button';button.className='recent-color-swatch';
+   button.style.backgroundColor=hex;button.title=hex;
+   button.setAttribute('aria-label','Use recent color '+hex);
+   button.addEventListener('click',()=>setActivePaintColor(hex));
+   host.appendChild(button);
+  }
+ }
+}
+function recordPaintColor(value){
+ const color=String(value||'').toLowerCase();
+ if(!/^#[a-f0-9]{6}$/.test(color))return;
+ const index=recentPaintColors.indexOf(color);
+ if(index!==-1)recentPaintColors.splice(index,1);
+ recentPaintColors.unshift(color);
+ if(recentPaintColors.length>8)recentPaintColors.length=8;
+ renderRecentPaintColors();
+}
+function resetRecentPaintColors(){recentPaintColors.length=0;renderRecentPaintColors()}
+function setActivePaintColor(value){
+ if(!/^#[a-fA-F0-9]{6}$/.test(String(value)))return;
+ $('drawColor').value=value;$('pixelColor').value=value;
+ $('drawColorPickerBtn').style.setProperty('--current-paint-color',value);
+ $('pixelColorPickerBtn').style.setProperty('--current-paint-color',value);
+ $('colorPickerInput').value=value;
+}
+function isDrawingColorPickerOpen(){return !$('drawColorModal').classList.contains('hidden')}
+function closeDrawingColorPicker(){
+ $('drawColorModal').classList.add('hidden');
+ $('drawColorPickerBtn').setAttribute('aria-expanded','false');
+ $('pixelColorPickerBtn').setAttribute('aria-expanded','false');
+}
+function openDrawingColorPicker(which){
+ if(drawingLocked)return;
+ stopDrawing();stopPixelStroke();
+ setActivePaintColor(which==='pixel'?$('pixelColor').value:$('drawColor').value);
+ $('drawColorModal').classList.remove('hidden');
+ $(which==='pixel'?'pixelColorPickerBtn':'drawColorPickerBtn').setAttribute('aria-expanded','true');
+}
+$('drawColorPickerBtn').addEventListener('click',()=>openDrawingColorPicker('main'));
+$('pixelColorPickerBtn').addEventListener('click',()=>openDrawingColorPicker('pixel'));
+$('colorPickerInput').addEventListener('input',event=>setActivePaintColor(event.target.value));
+$('colorPickerDone').addEventListener('click',closeDrawingColorPicker);
+$('drawColorModal').addEventListener('click',event=>{
+ if(event.target===$('drawColorModal'))closeDrawingColorPicker();
+});
+document.addEventListener('keydown',event=>{
+ if(event.key!=='Escape')return;
+ if(isDrawingColorPickerOpen()){event.preventDefault();closeDrawingColorPicker()}
+ else if(!$('pixelStudioModal').classList.contains('hidden')){
+  event.preventDefault();pixelClose();
+ }
+});
+setActivePaintColor($('drawColor').value);
+renderRecentPaintColors();
 let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null,pixelPointerId=null;
 function stopPixelStroke(event){
  if(pixelPointerId===null)return;
@@ -746,29 +853,53 @@ function stopPixelStroke(event){
  try{if(pixelCanvas.hasPointerCapture?.(id))pixelCanvas.releasePointerCapture(id)}catch(error){console.warn('Pixel pointer release:',error)}
 }
 function pixelSave(){pixelHistory.push(pixelCtx.getImageData(0,0,200,200));if(pixelHistory.length>30)pixelHistory.shift()}
-function pixelOpen(){if(drawingLocked)return;stopDrawing();pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);$('pixelColor').value=$('drawColor').value;$('pixelStudioModal').classList.remove('hidden')}
-function pixelClose(){stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);$('drawColor').value=$('pixelColor').value;$('pixelStudioModal').classList.add('hidden')}
+function pixelOpen(){if(drawingLocked)return;stopDrawing();pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);setActivePaintColor($('drawColor').value);$('pixelStudioModal').classList.remove('hidden')}
+function pixelClose(){if($('pixelStudioModal').classList.contains('hidden'))return;closeDrawingColorPicker();stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);setActivePaintColor($('pixelColor').value);$('pixelStudioModal').classList.add('hidden')}
 $('pixelStudioBtn').addEventListener('click',pixelOpen);
 $('pixelClose').addEventListener('click',pixelClose);
+$('pixelExit').addEventListener('click',pixelClose);
+$('pixelStudioModal').addEventListener('click',event=>{
+ if(event.target===$('pixelStudioModal')&&!isDrawingColorPickerOpen())pixelClose();
+});
 document.querySelectorAll('.pixel-tool').forEach(b=>b.addEventListener('click',()=>{stopPixelStroke();pixelTool=b.dataset.pixelTool;document.querySelectorAll('.pixel-tool').forEach(x=>x.classList.toggle('active',x===b))}));
 $('pixelUndo').addEventListener('click',()=>{if(pixelHistory.length)pixelCtx.putImageData(pixelHistory.pop(),0,0)});
 $('pixelClear').addEventListener('click',()=>{pixelSave();pixelCtx.clearRect(0,0,200,200)});
 function pixelPoint(e){const r=pixelCanvas.getBoundingClientRect();return{x:Math.max(0,Math.min(199,Math.floor((e.clientX-r.left)*200/r.width))),y:Math.max(0,Math.min(199,Math.floor((e.clientY-r.top)*200/r.height)))}}
 function pixelPaint(p){const size=Number($('pixelSize').value),x=Math.floor(p.x/size)*size,y=Math.floor(p.y/size)*size;if(pixelTool==='erase')pixelCtx.clearRect(x,y,size,size);else{pixelCtx.fillStyle=$('pixelColor').value;pixelCtx.fillRect(x,y,size,size)}}
 function pixelLine(a,b){const dx=b.x-a.x,dy=b.y-a.y,steps=Math.max(Math.abs(dx),Math.abs(dy));for(let i=0;i<=steps;i++)pixelPaint({x:a.x+dx*i/(steps||1),y:a.y+dy*i/(steps||1)})}
-function pixelFill(p){const w=200,img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=p.y*w+p.x,src=Array.from(d.slice(start*4,start*4+4)),hex=$('pixelColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];if(src.every((v,i)=>v===col[i]))return false;const seen=new Uint8Array(w*w),q=[start];seen[start]=1;for(let head=0;head<q.length;head++){const n=q[head],o=n*4;if(!src.every((v,i)=>v===d[o+i]))continue;for(let j=0;j<4;j++)d[o+j]=col[j];const x=n%w,y=Math.floor(n/w);for(const v of [x>0?n-1:-1,x<199?n+1:-1,y>0?n-w:-1,y<199?n+w:-1])if(v>=0&&!seen[v]){seen[v]=1;q.push(v)}}pixelCtx.putImageData(img,0,0);return true}
+function pixelFill(p){
+ const w=CANVAS_SIDE;
+ if(!insideCirclePixel(p.x,p.y))return false;
+ const img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=p.y*w+p.x;
+ const src=Array.from(d.slice(start*4,start*4+4)),hex=$('pixelColor').value;
+ const col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
+ if(src.every((v,i)=>v===col[i]))return false;
+ const seen=new Uint8Array(w*w),q=[start];seen[start]=1;
+ for(let head=0;head<q.length;head++){
+  const n=q[head],o=n*4;
+  if(!src.every((v,i)=>v===d[o+i]))continue;
+  for(let j=0;j<4;j++)d[o+j]=col[j];
+  const x=n%w,y=Math.floor(n/w);
+  for(const v of [x>0?n-1:-1,x<w-1?n+1:-1,y>0?n-w:-1,y<w-1?n+w:-1]){
+   if(v<0||seen[v])continue;
+   if(!insideCirclePixel(v%w,Math.floor(v/w)))continue;
+   seen[v]=1;q.push(v);
+  }
+ }
+ maskInvisibleCorners(d);pixelCtx.putImageData(img,0,0);return true;
+}
 pixelCanvas.addEventListener('pointerdown',e=>{
- if(pixelPointerId!==null||!insidePaintArea(pixelCanvas,e)||
+ if(drawingLocked||isDrawingColorPickerOpen()||pixelPointerId!==null||!insidePaintArea(pixelCanvas,e)||
     (e.pointerType==='mouse'&&e.button!==0))return;
  e.preventDefault();pixelSave();
  const p=pixelPoint(e);
- if(pixelTool==='fill'){if(pixelFill(p)&&!isTest&&!guestRun)usedFillOnOfficial=true;return}
+ if(pixelTool==='fill'){if(pixelFill(p)){recordPaintColor($('pixelColor').value);if(!isTest&&!guestRun)usedFillOnOfficial=true}return}
  pixelPointerId=e.pointerId;pixelPainting=true;pixelLast=p;
  try{pixelCanvas.setPointerCapture(e.pointerId)}catch(error){stopPixelStroke(e);return}
- pixelPaint(p);
+ pixelPaint(p);if(pixelTool!=='erase')recordPaintColor($('pixelColor').value);
 });
 pixelCanvas.addEventListener('pointermove',e=>{
- if(!pixelPainting||e.pointerId!==pixelPointerId)return;
+ if(!pixelPainting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==pixelPointerId)return;
  if(!insidePaintArea(pixelCanvas,e)||
     (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
   stopPixelStroke(e);return;
