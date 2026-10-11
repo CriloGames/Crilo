@@ -93,7 +93,7 @@
   async function updateFriendBell(){
     const host=document.querySelector('.header-actions');
     if(!host)return;
-    let wrap=document.getElementById('friendBellWrap');
+    let wrap=window.CriloHeaderContinuity?.ensureBell(host)||document.getElementById('friendBellWrap');
     if(!wrap){
       wrap=document.createElement('div');
       wrap.id='friendBellWrap';
@@ -122,6 +122,7 @@
     const totalUnread=requests.length+unread;
     indicator.classList.toggle('hidden',!totalUnread);
     indicator.textContent=totalUnread>9?'9+':String(totalUnread);
+    window.CriloHeaderContinuity?.updateCount(signedInUserId,totalUnread);
     let names={};
     if(requests.length){
       const ids=[...new Set(requests.map(x=>x.sender_id).filter(Boolean))];
@@ -304,6 +305,8 @@
     }
   });
 
+  // Server-gated owner actions are never inferred from the header snapshot.
+  // It only supplies paint during a cross-document navigation.
   // Keep the account label hidden until the primary session restore completes.
   // An earlier INITIAL_SESSION callback may still be pending.
   let authHeaderReady=false;
@@ -320,7 +323,10 @@
           link.textContent='DRAWING REVIEW';
           nav.appendChild(link);
         }
+        link.className='crilo-owner-review-link';
         link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
+        link.classList.remove('crilo-owner-pending');
+        link.removeAttribute('aria-disabled');
         link.style.setProperty('color','#b42336','important');
         link.style.setProperty('background-color','#ffe4e8','important');
         link.style.setProperty('border','1px solid #ef9eaa','important');
@@ -332,19 +338,22 @@
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
     if(!Crilo.user){
+      window.CriloHeaderContinuity?.clear();
       btn.textContent='SIGN IN';
       btn.style.color='';
       if(menu){menu.classList.add('hidden');menu.replaceChildren();}
     }else{
+      if(authHeaderReady&&Crilo.profile?.id===Crilo.user.id)
+        window.CriloHeaderContinuity?.save(Crilo.user,Crilo.profile);
       btn.textContent=Crilo.profile?.username || 'ACCOUNT';
       btn.style.color=Crilo.profile?.name_color || '';
       if(menu){
         menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
-        $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); location.href='index.html';});
+        $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); window.CriloHeaderContinuity?.clear(); location.href='index.html';});
       }
     }
     // An empty, reserved header slot is better than a false SIGN IN flash.
-    btn.style.visibility=authHeaderReady?'visible':'hidden';
+    btn.style.visibility=authHeaderReady||btn.dataset.visualReady==='true'?'visible':'hidden';
     btn.setAttribute('aria-busy',String(!authHeaderReady));
   }
 
@@ -402,6 +411,7 @@
       if(Crilo.user?.id===session.user.id&&Crilo.profile)return;
       setTimeout(()=>loadIdentity(session),0);
     }else if(event==='SIGNED_OUT'){
+      window.CriloHeaderContinuity?.clear();
       ++identityGeneration;
       Crilo.user=null;Crilo.profile=null;
       renderAccount();
