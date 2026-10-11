@@ -54,11 +54,12 @@ assert.ok(ui.includes('textContent=data.totp.secret'),
  'Never inject a TOTP secret as HTML or into a URL');
 assert.ok(!ui.includes('localStorage'),'Never put authenticator secrets in local storage');
 assert.ok(settings.includes('owner-mfa.js?v=2'));
-assert.ok(app.includes('Owner security · 2FA'));
+assert.ok(!app.includes('Owner security · 2FA'),'Owner 2FA shortcut belongs in Settings, not the account dropdown');
+assert.ok(app.includes('<a href="settings.html">Settings</a>'),'Account menu must retain Settings for owner MFA access');
 for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','friends.html','settings.html','moderation.html','support.html']){
- assert.ok(load(page).includes('app.js?v=40'),'Old site-wide account menu on '+page);
+ assert.ok(load(page).includes('app.js?v=41'),'New site-wide account menu not loaded on '+page);
 }
 console.log('PASS: Twenty owner moderation RPCs require signed AAL2 and a verified TOTP factor.');
 console.log('PASS: Ban, unban and owner-account deletion Edge Functions require the same database check.');
-console.log('PASS: Setup UI, verified-factor flow, no leaked secrets and owner-only account shortcut.');
+console.log('PASS: Setup UI, verified-factor flow, no leaked secrets, and MFA accessible through Settings.');
