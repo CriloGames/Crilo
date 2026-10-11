@@ -1,56 +1,51 @@
-/* Server-authoritative aggregate: current Daily period and all-time Dailies.
- * 22:00 UTC Daily reset is enforced by the database. No individual scores,
- * drawings, profiles, player identifiers, or run histories are transferred. */
+/* Server-verified completions for the current 22:00 UTC-reset Daily only.
+ * No guest plays, owner Test Runs, or older unverified records are included. */
 (() => {
  'use strict';
- const current=document.getElementById('criloOfficialDailyToday');
- const lifetime=document.getElementById('criloOfficialDailyTotal');
- if(!current||!lifetime||typeof criloDB==='undefined')return;
- let pending=false,lastLoaded=0,ready=false,lastPeriod='';
+ const counter=document.getElementById('criloOfficialDailyToday');
+ const label=document.getElementById('criloOfficialDailyLabel');
+ if(!counter||!label||typeof criloDB==='undefined')return;
+ let fetching=false,retry=false,lastPeriod='',lastRead=0;
+ const periodNow=()=>window.Crilo?.dailyPeriod?.()||new Date(Date.now()-22*3600000).toISOString().slice(0,10);
  async function refresh(){
-  if(pending)return;
-  pending=true;
+  if(fetching){retry=true;return}
+  fetching=true;
   try{
    const {data,error}=await criloDB.rpc('crilo_public_daily_completion_counts');
    if(error)throw error;
-   const today=Number(data?.today),allTime=Number(data?.all_time),period=String(data?.period||'');
-   if(!Number.isSafeInteger(today)||today<0||
-      !Number.isSafeInteger(allTime)||allTime<today||
-      !/^\d{4}-\d{2}-\d{2}$/.test(period))throw new Error('Invalid Daily totals');
-   current.textContent=today.toLocaleString();
-   lifetime.textContent=allTime.toLocaleString();
-   current.title=today.toLocaleString()+' completed official runs in the current Daily';
-   lifetime.title=allTime.toLocaleString()+' completed official runs across all Daily periods';
-   lastPeriod=period;
-   lastLoaded=Date.now();
-   ready=true;
+   const today=Number(data?.today),period=String(data?.period||'');
+   if(!Number.isSafeInteger(today)||today<0||!/^\d{4}-\d{2}-\d{2}$/.test(period))throw Error('Invalid Daily count');
+   if(period!==periodNow()){retry=true;return}
+   counter.textContent=today.toLocaleString();
+   label.textContent=today===1?'DAILY COMPLETED TODAY':'DAILIES COMPLETED TODAY';
+   counter.title=today+' official '+(today===1?'Daily':'Dailies')+' completed this Daily period';
+   lastPeriod=period;lastRead=Date.now();
   }catch(e){
-   // Leave prior valid data rather than show an incorrect zero.
-   if(!ready){current.textContent='—';lifetime.textContent='—'}
-   console.warn('Crilo verified Daily count unavailable:',e?.message||e);
-  }finally{pending=false}
+   if(!lastRead)counter.textContent='—';
+   console.warn('Daily completion total unavailable:',e?.message||e);
+  }finally{
+   fetching=false;
+   if(retry){retry=false;refresh()}
+  }
  }
  const message=document.getElementById('message');
- let saveAlreadyObserved=false;
  if(message){
-  const observer=new MutationObserver(()=>{
+  let observed=false;
+  new MutationObserver(()=>{
    const saved=message.textContent?.startsWith('Official Daily saved.');
-   if(saved&&!saveAlreadyObserved)refresh();
-   saveAlreadyObserved=!!saved;
-  });
-  observer.observe(message,{childList:true,subtree:true,characterData:true});
+   if(saved&&!observed)refresh();
+   observed=!!saved;
+  }).observe(message,{childList:true,subtree:true,characterData:true});
  }
- document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden&&(
-    Date.now()-lastLoaded>10*60*1000||
-    (window.Crilo?.dailyPeriod?.() && window.Crilo.dailyPeriod()!==lastPeriod)
-   ))refresh();
- });
- // A player leaving the homepage open through reset must not see
- // yesterday's completions labeled TODAY.
- setInterval(()=>{
-  if(!document.hidden&&window.Crilo?.dailyPeriod?.()&&
-     window.Crilo.dailyPeriod()!==lastPeriod)refresh();
- },60000);
+ function check(){
+  if(document.hidden)return;
+  if(lastPeriod&&periodNow()!==lastPeriod){
+   counter.textContent='—';
+   label.textContent='DAILIES COMPLETED TODAY';
+   lastRead=0;refresh();
+  }else if(Date.now()-lastRead>5*60*1000)refresh();
+ }
+ document.addEventListener('visibilitychange',check);
+ setInterval(check,15000);
  refresh();
 })();
