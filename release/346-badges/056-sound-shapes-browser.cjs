@@ -250,7 +250,7 @@ async function main(){
       before:!!(sound.compareDocumentPosition(domain)&Node.DOCUMENT_POSITION_FOLLOWING),
       cards:document.querySelectorAll('#more-games .game-card').length,
       title:sound.querySelector('h2')?.textContent,
-      card:card.toJSON(),icon:icon?.toJSON(),
+      card:card.toJSON(),domain:domain.getBoundingClientRect().toJSON(),icon:icon?.toJSON(),
       vw:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   check(!!gameCards,scenario.name+' homepage game card or Domain card missing');
@@ -259,6 +259,10 @@ async function main(){
     scenario.name+' Shape of Sound not a separate game before Domain');
   check(gameCards.scrollWidth<=gameCards.vw+2,
     scenario.name+' homepage overflow '+JSON.stringify(gameCards));
+  check(Math.abs(gameCards.card.width-gameCards.domain.width)<=1,
+    scenario.name+' MORE GAMES cards must be the same width '+JSON.stringify(gameCards));
+  check(Math.abs(gameCards.card.height-gameCards.domain.height)<=1,
+    scenario.name+' MORE GAMES cards must be the same height '+JSON.stringify(gameCards));
   check(gameCards.card.left>=-2&&gameCards.card.right<=gameCards.vw+2,
     scenario.name+' sound homepage card clipped '+JSON.stringify(gameCards));
   check(!!gameCards.icon&&gameCards.icon.left>=gameCards.card.left-2&&

@@ -1375,3 +1375,22 @@ html[data-theme="dark"] .crilo-warning-flag summary{background:#412c35;color:#ff
  .sound-home-card .game-copy p{font-size:12px;line-height:1.4}
  .sound-home-card .arrow{font-size:27px}
 }
+
+/* Match both MORE GAMES card sizes, including dynamic mobile text wrapping.
+   Only the game cards share equal-height grid rows; the heading stays natural. */
+#more-games.more-games{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto;
+  grid-auto-rows:1fr;
+  align-items:stretch;
+  row-gap:16px;
+}
+#more-games .section-kicker{margin:0 0 2px}
+#more-games .game-card{
+  width:100%;
+  min-width:0;
+  height:100%;
+  margin:0;
+}
+#more-games .sound-home-card{margin-bottom:0}
