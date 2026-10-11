@@ -24,7 +24,7 @@ const badge=game.indexOf("CriloBadgeEvents?.track('domain_set')");
 assert.ok(saved>=0&&badge>saved,'Domain badge credit must follow server verification');
 assert.ok(!game.includes("syncDomainScore();window.CriloBadgeEvents?.track('domain_set')"),
  'Never award a completed-set badge before the score is verified');
-assert.ok(domainPage.includes('game.js?v=11'),
+assert.ok(domainPage.includes('game.js?v=12'),
  'Domain page must not load the old preverification badge code');
 console.log('PASS: banned sessions cannot spin, send requests, change featured badges or claim new exploration badges.');
 console.log('PASS: Domain-set badge credit follows a successful server-verified Domain score.');
