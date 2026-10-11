@@ -1,0 +1,37 @@
+import {createClient} from "npm:@supabase/supabase-js@2";
+Deno.serve(async req=>{
+const headers={"Content-Type":"application/json","Access-Control-Allow-Origin":"https://crilo.fun","Access-Control-Allow-Headers":"authorization,apikey,content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
+const send=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers});
+if(req.method==="OPTIONS")return send({});
+if(req.method!=="POST")return send({error:"Method not allowed"},405);
+const jwt=req.headers.get("authorization")?.replace(/^Bearer\s+/i,"");
+if(!jwt)return send({error:"Sign-in required"},401);
+const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+if(!url||!key)return send({error:"Not configured"},503);
+const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+const {data:auth,error:authError}=await db.auth.getUser(jwt);
+if(authError||!auth.user)return send({error:"Invalid session"},401);
+const {data:owner}=await db.from("profiles").select("is_owner").eq("id",auth.user.id).maybeSingle();
+if(!owner?.is_owner)return send({error:"Owner only"},403);
+ const mfaClient=createClient(url,Deno.env.get("SUPABASE_ANON_KEY")||"",{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:"Bearer "+jwt}}});
+ const {error:mfaError}=await mfaClient.rpc("crilo_require_owner_mfa");
+ if(mfaError)return send({error:"Owner authenticator verification required. Open Crilo Settings and verify your 6-digit code."},403);
+
+const json=await req.json().catch(()=>null);
+const userId=json?.user_id;
+if(typeof userId!=="string"||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId))return send({error:"Invalid player"},400);
+const {data:targetProfile}=await db.from("profiles").select("is_owner").eq("id",userId).maybeSingle();
+if(!targetProfile||targetProfile.is_owner||userId===auth.user.id)return send({error:"Cannot modify owner account"},403);
+const {data:target,error:targetError}=await db.auth.admin.getUserById(userId);
+if(targetError||!target?.user?.email)return send({error:"Player email unavailable"},404);
+const email=target.user.email.trim().toLowerCase();
+const {data:existing}=await db.from("crilo_banned_accounts").select("user_id").eq("user_id",userId).maybeSingle();
+if(!existing)return send({error:"Account is not banned"},409);
+const {error:authUpdateError}=await db.auth.admin.updateUserById(userId,{ban_duration:"none"});
+if(authUpdateError)return send({error:"Could not restore account"},503);
+const {error:deleteAccountError}=await db.from("crilo_banned_accounts").delete().eq("user_id",userId);
+if(deleteAccountError)return send({error:"Account login restored but database ban remains. Administrator attention needed"},503);
+const {error:deleteEmailError}=await db.from("crilo_banned_emails").delete().eq("email",email);
+if(deleteEmailError)return send({error:"Account restored but email ban list could not be updated"},503);
+return send({ok:true});
+});
