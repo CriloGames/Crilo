@@ -62,7 +62,7 @@ async function load(){
  if(tab==='badges'){await loadBadges();return}if(tab==='ducks'){await loadDucks();return}if(tab==='points'){await loadTotalPoints();return}
  $('leaderList').innerHTML='<div class="empty-state">Loading scores…</div>';
  const fields='id,user_id,daily_period,score,spins,upgrades,doubles,ducks,drawing,rarity_odds,rarity_label,created_at,verified_spin_session_id';
- let q=criloDB.from('daily_runs').select(fields).eq('is_test',false);
+ let q=criloDB.from('daily_runs').select(fields).eq('is_test',false).not('verified_spin_session_id','is',null);
  if(tab==='today')q=q.eq('daily_period',Crilo.dailyPeriod()).order('score',{ascending:false}).limit(100);
  else if(tab==='week')q=q.gte('daily_period',periodDaysAgo(6)).order('score',{ascending:false}).limit(100);
  else if(tab==='records')q=q.order('spins',{ascending:false}).order('score',{ascending:false}).limit(100);
@@ -94,7 +94,7 @@ async function loadTotalPoints(){
  const entries=data||[];
  setBestScoreRarity(null); // cumulative points are NOT one Daily's score tier.
  $('bestHeading').textContent='ALL-TIME POINTS LEADER';
- $('leaderDescription').textContent='Every point earned across all official Daily runs, added together. Private Test Runs do not count.';
+ $('leaderDescription').textContent='Points from server-verified official Dailies. Older unverified scores remain in personal history, but do not affect rankings.';
  $('bestDrawing').classList.add('hidden');
  if(!entries.length){
   $('bestScore').textContent='—';$('bestUser').textContent='No points recorded yet';
@@ -127,7 +127,7 @@ async function loadDucks(){
  const totals=new Map();let offset=0;
  // Fetch all official runs, not just the top 100 single-run results.
  while(true){
-  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks,daily_period,score,spins,upgrades,doubles,verified_spin_session_id').eq('is_test',false).order('id',{ascending:true}).range(offset,offset+999);
+  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks,daily_period,score,spins,upgrades,doubles,verified_spin_session_id').eq('is_test',false).not('verified_spin_session_id','is',null).order('id',{ascending:true}).range(offset,offset+999);
   if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
   for(const run of data||[]){if(isLegacyPreviewRun(run))continue;totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));}
   if(!data||data.length<1000)break;
@@ -141,7 +141,7 @@ async function loadDucks(){
 function renderDuckLeaders(entries,profiles){
  setBestScoreRarity(null); // Duck totals are counts, never final-score tiers.
  $('bestHeading').textContent='ALL-TIME DUCK COLLECTORS';
- $('leaderDescription').textContent='Total ducks collected across all official Daily runs. Private test runs do not count. Ties share a rank.';
+ $('leaderDescription').textContent='Ducks collected in server-verified official Dailies. Private tests and legacy unverified runs do not count. Ties share a rank.';
  $('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);
@@ -165,7 +165,7 @@ function renderBadgeLeaders(entries,profiles){
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
- const descriptions={today:'The highest score from today’s official Daily.',week:'The highest score from the last seven Daily periods.',all:'The highest score ever recorded.',records:'Most spins in a single run. Score breaks ties.',badges:'Players ranked by gameplay badges; client-reported exploration badges are excluded.',ducks:'The most ducks collected in a single run.'};
+ const descriptions={today:'The highest verified score from today’s official Daily.',week:'The highest verified score from the last seven Daily periods.',all:'The highest server-verified official Daily score. Legacy runs remain in personal histories.',records:'Most spins in one verified Daily run. Score breaks ties.',badges:'Players ranked by gameplay badges; client-reported exploration badges are excluded.',ducks:'The most ducks collected in a single run.'};
  $('bestHeading').textContent=headings[tab];
  $('leaderDescription').textContent=descriptions[tab];
  const scoreBoard=tab==='today'||tab==='week'||tab==='all';

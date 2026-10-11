@@ -1,0 +1,12 @@
+'use strict';
+const a=require('node:assert/strict'),fs=require('node:fs');
+const sql=fs.readFileSync('release/346-badges/070-verified-legacy-separation.sql','utf8');
+const js=fs.readFileSync('leaderboard.js','utf8');
+const html=fs.readFileSync('leaderboard.html','utf8');
+a.match(sql,/AND d\.verified_spin_session_id IS NOT NULL/);
+a.match(sql,/WHERE d\.is_test=false/);
+a.match(js,/select\(fields\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
+a.match(js,/\.select\('user_id,ducks,[^']+'\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
+a.match(js,/Older unverified scores remain in personal history/);
+a.match(html,/leaderboard\.js\?v=41/);
+console.log('PASS: all competitive wheel score, spin, duck and lifetime-point rankings require server-backed run proofs.');
