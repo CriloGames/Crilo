@@ -77,7 +77,9 @@
     try{
       for(;;){
         const {data,error}=await criloDB.from('daily_runs').select('spins,daily_period')
-          .eq('user_id',id).eq('is_test',false).range(offset,offset+499);
+          .eq('user_id',id).eq('is_test',false)
+          .order('daily_period',{ascending:false}).order('id',{ascending:false})
+          .range(offset,offset+499);
         if(error)throw error;
         if(token!==requestId)return;
         const rows=data||[];
