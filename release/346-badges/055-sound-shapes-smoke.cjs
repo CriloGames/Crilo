@@ -12,7 +12,7 @@ assert.match(html,/id="soundStage"/);
 assert.match(html,/id="soundPlayRoom"/);
 assert.match(html,/id="soundObjects"/);
 assert.match(html,/sound-shapes\.js\?v=1/);
-assert.match(html,/sound-shapes\.css\?v=1/);
+assert.match(html,/sound-shapes\.css\?v=2/);
 assert.ok(css.includes('@media(max-width:420px)'),'Mobile touch and scaling CSS must exist');
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'),'Reduce motion for sensitive visitors');
 assert.ok(js.includes('window.webkitAudioContext'),'Support iOS Safari Web Audio');
