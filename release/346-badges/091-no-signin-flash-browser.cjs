@@ -30,7 +30,11 @@ async function main(){
      const button=page.locator('#accountBtn');
      assert.equal(await button.count(),1,name+' missing account control');
      assert.equal(await button.getAttribute('aria-busy'),'true');
-     const warm=mode==='signed-in'&&name!=='index.html';
+     // Every route opens in a NEW browser tab, so it has a fresh
+     // sessionStorage snapshot. Its verified identity must remain hidden
+     // until restored. Same-tab warm navigation is covered by
+     // 095-header-continuity-browser.cjs instead.
+     const warm=false;
      if(warm){
        assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'visible',
          name+' must preserve the already verified username during next-page auth');
