@@ -1,0 +1,18 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const sql=fs.readFileSync('release/346-badges/061-atomic-bug-report-intake.sql','utf8');
+const edge=fs.readFileSync('release/346-badges/058-bug-report-edge/index.ts','utf8');
+assert.match(sql,/SECURITY INVOKER SET search_path TO ''/,'No elevated caller permissions');
+assert.match(sql,/current_user <> 'service_role'/,'Server-only RPC');
+assert.match(sql,/REVOKE ALL ON FUNCTION public\.crilo_accept_bug_report.*FROM PUBLIC,anon,authenticated/,'Revoke public access');
+assert.match(sql,/pg_advisory_xact_lock/,'Transactions serialize same-IP inserts');
+assert.match(sql,/interval '1 hour'/,'One-hour quota');
+assert.match(sql,/interval '60 seconds'/,'Cooldown');
+assert.match(sql,/description=p_description/,'Duplicate suppression');
+assert.match(edge,/await readBoundedJson\(req\)/,'Bound incoming request bytes');
+assert.match(edge,/reader\.cancel\(\)/,'Cancel oversized streams');
+assert.match(edge,/\.rpc\("crilo_accept_bug_report"/,'Use atomic intake RPC');
+assert.doesNotMatch(edge,/\.from\("crilo_bug_reports"\)\.insert\(/,'No direct insert bypass');
+assert.match(edge,/const ipHash=/,'IP pseudonymization maintained');
+assert.match(edge,/Cross-site reporting is not allowed/,'Browser origin restriction maintained');
+console.log('PASS: transactional, server-only report intake; bounded body; rate/burst/duplicate handling.');

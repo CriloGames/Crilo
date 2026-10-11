@@ -16,10 +16,10 @@ assert.ok(report.includes('"Access-Control-Allow-Origin":origin')&&report.includ
  'Bug reports must not be cross-origin readable from arbitrary sites');
 assert.ok(report.includes('Cross-site reporting is not allowed')&&report.includes('clientOrigin==="https://www.crilo.fun"'),
  'Both supported Crilo origins and no foreign origins');
-assert.ok(report.includes('created_at,description')&&report.includes('Date.now()-Date.parse(r.created_at)<60_000'),
- 'Server cooldown prevents duplicate submissions from fresh tabs');
-assert.ok(report.includes('r.description===description')&&report.includes('(count||0)>=3'),
- 'No accidental duplicate email and hourly limit remain in force');
+assert.ok(report.includes('rpc("crilo_accept_bug_report"')&&report.includes('await readBoundedJson(req)'),
+ 'Bug-report intake must be atomic and enforce an actual request-byte limit');
+assert.ok(report.includes('BUG_REPORT_COOLDOWN')&&report.includes('BUG_REPORT_DUPLICATE')&&report.includes('BUG_REPORT_RATE_LIMIT'),
+ 'Server transaction must reject burst, duplicate and excessive requests');
 assert.ok(report.includes('const ipHash=')&&report.includes('new TextEncoder().encode'),
  'Bug reporter must not store raw client IP address');
 assert.ok(report.includes('createClient(SUPABASE_URL,SERVICE_KEY') &&
