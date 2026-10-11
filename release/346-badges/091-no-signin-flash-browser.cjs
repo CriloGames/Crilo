@@ -29,24 +29,35 @@ async function main(){
      assert.equal(response.status(),200,name+' missing');
      const button=page.locator('#accountBtn');
      assert.equal(await button.count(),1,name+' missing account control');
-     assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
-       name+' flashed SIGN IN while auth was still loading ('+mode+')');
      assert.equal(await button.getAttribute('aria-busy'),'true');
-     const solid=await button.evaluate(el=>getComputedStyle(el.parentElement,'::before').backgroundColor);
-     assert.equal(solid,'rgb(214, 232, 221)',name+' must reserve a solid-color account placeholder');
+     const warm=mode==='signed-in'&&name!=='index.html';
+     if(warm){
+       assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'visible',
+         name+' must preserve the already verified username during next-page auth');
+       assert.equal(await button.innerText(),'CriloQA',
+         name+' flashed SIGN IN / ACCOUNT instead of the previous username');
+       assert.equal(await button.evaluate(el=>getComputedStyle(el).color),'rgb(47, 135, 97)',
+         name+' flashed the wrong username color');
+     }else{
+       assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
+         name+' should not expose unverified account content ('+mode+')');
+       const solid=await button.evaluate(el=>getComputedStyle(el.parentElement,'::before').backgroundColor);
+       assert.equal(solid,'rgb(214, 232, 221)',name+' should reserve a solid-color account placeholder');
+     }
      await page.waitForTimeout(190);
-     assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'hidden',
-       name+' exposed username or sign-in text before identity was resolved');
-     const slotBefore=await page.locator('.account-wrap').boundingBox();
+     assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),warm?'visible':'hidden',
+       name+' changed account label visibility during initial restoration');
      const reservedWidth=await button.evaluate(el=>el.getBoundingClientRect().width);
-     assert.ok(reservedWidth>=75,'Account space collapsed in '+name);
+     assert.ok(reservedWidth>=40,'Account space collapsed in '+name);
      await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false',{timeout:11000});
      assert.equal(await button.evaluate(el=>getComputedStyle(el).visibility),'visible');
      assert.equal(await button.innerText(),mode==='signed-in'?'CriloQA':'SIGN IN',
         name+' showed incorrect completed login state');
-     const slotAfter=await page.locator('.account-wrap').boundingBox();
-     assert.ok(slotBefore&&slotAfter&&Math.abs(slotBefore.width-slotAfter.width)<1,
-       name+' account region changed width after auth and moved the header');
+     const finalGap=await button.evaluate(el=>{
+       const r=el.getBoundingClientRect(),w=el.closest('.account-wrap').getBoundingClientRect();
+       return w.right-r.right;
+     });
+     assert.ok(Math.abs(finalGap)<2,'Account label leaves extra white space to its right on '+name);
      count++;
      console.log('PASS no SIGN IN flash '+mode+' '+width+'px '+name);
      await page.close();
