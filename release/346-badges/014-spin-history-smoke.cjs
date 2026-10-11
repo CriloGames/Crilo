@@ -7,8 +7,8 @@ const root=path.resolve(__dirname,'../..');
 const src=fs.readFileSync(path.join(root,'spin-history.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'spin-history.css'),'utf8');
 const html=fs.readFileSync(path.join(root,'profile.html'),'utf8');
-assert.match(html,/spin-history\.js\?v=8/);
-assert.match(html,/spin-history\.css\?v=7/);
+assert.match(html,/spin-history\.js\?v=9/);
+assert.match(html,/spin-history\.css\?v=8/);
 assert.match(html,/id="spinHistorySpinCount"/);
 assert.match(html,/id="spinHistoryEndLabel"/);
 assert.match(html,/Your completed Daily runs, newest first/);
@@ -16,6 +16,7 @@ for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic
  assert.ok(css.includes('.spin-history-item[data-rarity="'+rarity+'"]'),'Missing tier '+rarity);
 assert.match(css,/border:4px solid #17191e/);
 assert.ok(!src.includes('results.map'),'History must show Dailies, not badges or spin events');
+assert.ok(!src.includes('Verified Daily')&&!src.includes('Earlier Daily'),'Do not label Daily verification state');
 const bands=[{key:'trash',max:6},{key:'common',max:24},{key:'uncommon',max:48},
  {key:'rare',max:92},{key:'epic',max:141},{key:'anomaly',max:300},{key:'mythic',max:Infinity}];
 function run(id,spins=3,opts={}){
@@ -73,7 +74,7 @@ async function scenario(name,allRows,pages,expected={}) {
  assert.ok(calls.every(c=>c.user_id==='owner'&&c.is_test===false),name+' query privacy filter');
  assert.ok(calls.some(c=>c.fields.includes('score,spins')&&c.fields.includes('drawing')),name+' preserves saved wheel art');
  assert.ok(calls.some(c=>c.fields==='spins,daily_period'),name+' counts actual Dailies');
- assert.ok(!htmlRows().includes('Badge earned')&&!htmlRows().includes('DUCK!'),name+' only completed Daily cards');
+ assert.ok(!htmlRows().includes('Badge earned')&&!htmlRows().includes('DUCK!')&&!htmlRows().includes('Verified Daily')&&!htmlRows().includes('Earlier Daily'),name+' only Daily score cards without status labels');
  if(pages.length>1){
   assert.equal(node('spinHistoryPager').hidden,false,name+' older-Dailies control required');
   assert.ok(node('spinHistoryMore').innerHTML.includes('SHOW '),name+' older-control label must not stick on LOADING');
