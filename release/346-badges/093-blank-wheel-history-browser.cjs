@@ -37,8 +37,7 @@ function installFakeDaily(){
  try{
   for(const width of [390,1280]){
    const ctx=await browser.newContext({viewport:{width,height:850},reducedMotion:'reduce'});
-   await ctx.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
-   await ctx.addInitScript({content:'('+installFakeDaily.toString()+')()'});
+   await ctx.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')+';('+installFakeDaily.toString()+')()'});
    await ctx.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
    await ctx.route(/^https:\/\/(?!crilo\.fun)/,r=>r.abort());
    for(const pageFile of ['leaderboard.html','profile.html']){
