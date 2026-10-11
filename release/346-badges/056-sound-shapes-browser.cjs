@@ -235,7 +235,8 @@ async function main(){
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
   // Interactive Stack Lab: distinct solids, proportional resizing, physics and score.
   const initialCount=await tipPage.locator('.toy-shape').count();
-  check(initialCount===2,scenario.name+' starter shapes should be visible and uncluttered');
+  const expectedStarter=scenario.width<570?3:scenario.width<900?4:6;
+  check(initialCount===expectedStarter,scenario.name+' starter shapes should be visible and varied');
   check(await tipPage.locator('[data-depth-layer]').count()===0,
     scenario.name+' artificial depth options must be removed');
   check(await tipPage.locator('.shape-back').getAttribute('href')==='index.html#more-games',
@@ -308,12 +309,14 @@ async function main(){
   check(await tipPage.locator('.toy-shape').count()===initialCount+6,
     scenario.name+' remove selected block failed');
   await tipPage.locator('#shapeReset').click();
-  check(await tipPage.locator('.toy-shape').count()===2,
+  check(await tipPage.locator('.toy-shape').count()===expectedStarter,
     scenario.name+' new pile did not reset the game');
+  check(await tipPage.locator('#stackCelebrate').evaluate(el=>!el.classList.contains('celebrate')),
+    scenario.name+' stale celebration stayed on screen after reset');
   check(await tipPage.locator('#stackProgress').isVisible(),
     scenario.name+' score HUD disappeared after reset');
   await tipPage.locator('#shapeSurprise').click();
-  check(await tipPage.locator('.toy-shape').count()===3,
+  check(await tipPage.locator('.toy-shape').count()===expectedStarter+1,
     scenario.name+' surprise drop did not work');
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,

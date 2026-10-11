@@ -124,12 +124,15 @@ function clear(){
 }
 function newPile(){
  clear();goal=3;highest=0;
+ clearTimeout(winTimer);celebrate.classList.remove('celebrate');
  const d=dimensions(),f=floor();
- // A short starter pile, placed beside the panel and visible in the first viewport.
- const positions=d.w<570?[.03,.72]:[.075,.80];
- for(let i=0;i<2;i++){
-  const type=i?'cube':'slab',w=d.w<450?65:85,h=aspect(type,w);
-  create(type,{x:(d.w-w)*positions[i],y:f-h,w,quiet:true,select:false});
+ // A small colorful starter set, visible at the bottom of the first screen.
+ const count=d.w<570?3:d.w<900?4:6;
+ const types=['slab','cube','sphere','cylinder','prism','arch'];
+ for(let i=0;i<count;i++){
+  const type=types[i],w=d.w<570?61:d.w<900?68:78,h=aspect(type,w);
+  const x=(d.w-w)*(i+.5)/count;
+  create(type,{x,y:f-h,w,quiet:true,select:false});
  }
  select(null);updateScore();
  note('Stack three blocks to reach the first star. The challenge is free!');
