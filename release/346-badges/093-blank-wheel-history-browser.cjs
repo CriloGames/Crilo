@@ -50,6 +50,10 @@ function installFakeDaily(){
     await image.waitFor({state:'visible',timeout:10000});
     assert.equal(await image.getAttribute('src'),'default-wheel.svg','Blank wheel must always appear');
     assert.ok(await image.evaluate(el=>el.complete&&el.naturalWidth>0),'SVG failed to load');
+    const rim=pageFile==='leaderboard.html'?page.locator('#bestDrawing'):page.locator('.spin-history-wheel').first();
+    const border=await rim.evaluate(el=>({width:getComputedStyle(el).borderTopWidth,color:getComputedStyle(el).borderTopColor}));
+    assert.equal(border.color,'rgb(23, 25, 30)','Wheel needs original black rim');
+    assert.ok(parseFloat(border.width)>=4,'Wheel rim must be at least 4px');
     if(pageFile==='leaderboard.html'){
      await page.waitForFunction(()=>document.querySelectorAll('.leader-list .mini-wheel').length>0);
      const btn=page.locator('#leaderList .mini-wheel');
@@ -62,6 +66,8 @@ function installFakeDaily(){
      const text=await page.locator('#spinHistoryList').innerText();
      assert.ok(text.includes('DUCK!')&&text.includes('Landed 3 points'),'Actual spin outcomes missing');
      assert.equal(await page.locator('.spin-history-wheel').count(),3);
+     assert.equal(await page.locator('.spin-history-day').count(),1,'Spins must be grouped by Daily');
+     assert.ok(!(await page.locator('#spinHistoryList').innerText()).includes('Badge earned'),'Spin history must not show badge unlocks');
      await page.locator('.spin-history-wheel').first().click();
      assert.ok(await image.evaluate(el=>el.getAnimations().length>0),'History wheel did not spin');
     }
