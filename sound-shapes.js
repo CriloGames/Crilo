@@ -44,6 +44,10 @@
     const tip=document.querySelector('.sound-page > .support-card');
     if(lab&&tip){
       tip.classList.add('sound-tipbar');
+      const intro=tip.querySelector('.support-intro');
+      if(intro)intro.textContent='Crilo is free. Optional tips help make more little games.';
+      const checkout=tip.querySelector('#supportPayLink');
+      if(checkout)checkout.textContent='Tip with PayPal ↗';
       lab.parentElement.insertBefore(tip,lab);
       document.querySelector('.sound-game-divider')?.remove();
       document.querySelector('.sound-support-label')?.remove();

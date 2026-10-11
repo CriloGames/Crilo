@@ -215,3 +215,31 @@
  .sound-page .support-card.sound-tipbar{margin-bottom:10px}
  .sound-heading h1{font-size:34px}
 }
+
+/* Final small-screen refinement: the tip options share one row with checkout. */
+@media(max-width:520px){
+  .sound-page .support-card.sound-tipbar{
+    grid-template-columns:minmax(0,1.9fr) minmax(105px,1fr);
+    gap:5px 7px;
+    padding:9px 10px;
+    margin-bottom:11px
+  }
+  .sound-page .sound-tipbar #supportHeading{grid-column:1 / -1;grid-row:1;font-size:17px}
+  .sound-tipbar #supportHeading:before{margin-bottom:0;font-size:8px}
+  .sound-page .sound-tipbar .support-intro{grid-column:1 / -1;grid-row:2;font-size:10px}
+  .sound-tipbar .support-amounts{grid-column:1;grid-row:3;gap:3px}
+  .sound-tipbar .support-amount{min-height:44px;padding:3px;font-size:10px}
+  .sound-tipbar .support-checkout{grid-column:2;grid-row:3;min-width:0;align-self:center}
+  .sound-tipbar .support-pay{min-height:44px;padding:4px;font-size:11px;line-height:1.15;text-align:center}
+  .sound-tipbar .support-selected{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .sound-tipbar .support-fine{grid-column:1 / -1;grid-row:4;margin:2px 0 0;font-size:9px}
+  .sound-heading{margin:0 auto 8px}
+  .sound-eyebrow{display:none}
+  .sound-heading h1{font-size:35px;line-height:1.07;margin:5px 0}
+  .sound-heading p{font-size:11px;line-height:1.4}
+  .sound-heading .sound-free{margin-top:5px;font-size:10px}
+  .sound-toolbar{flex-wrap:nowrap;justify-content:space-between;gap:3px}
+  .sound-toolbar-left,.sound-toolbar-right{flex-wrap:nowrap;flex:0 0 auto;gap:3px}
+  .sound-toolbar .sound-button{padding:7px 5px;min-height:40px;font-size:10px}
+  .sound-toolbar .sound-button-primary{min-width:102px}
+}

@@ -77,6 +77,14 @@ async function main(){
    check(r.top>=layout.stage.top-2&&r.bottom<=layout.stage.bottom+2,
     scenario.name+' blob clipped vertically at startup');
   }
+  const controls=await page.evaluate(()=>{
+    const r=document.querySelector('.sound-toolbar').getBoundingClientRect();
+    return {toolbar:r.toJSON(),
+      controls:[...document.querySelectorAll('.sound-toolbar .sound-button')].map(el=>el.getBoundingClientRect().toJSON())};
+  });
+  for(const control of controls.controls)check(
+    control.left>=controls.toolbar.left-2&&control.right<=controls.toolbar.right+2,
+    scenario.name+' toolbar button was clipped '+JSON.stringify(controls));
   if(scenario.name==='iphone-portrait'||scenario.name==='desktop-wide'){
    const jpg=await page.screenshot({type:'jpeg',quality:50,fullPage:false});
    console.log('VISUAL_SCREENSHOT_B64 '+scenario.name+' '+jpg.toString('base64'));
@@ -170,6 +178,10 @@ async function main(){
     await page.locator('#soundAdd'+['Boop','Hum','Pluck','Chime','Buzz'][i%5]).click();
   }
   check(await page.locator('.sound-blob').count()===25,scenario.name+' 25-sound capacity failed');
+  if(scenario.name==='iphone-portrait'||scenario.name==='desktop-wide'){
+    const screenshot=await page.locator('#soundStage').screenshot({type:'jpeg',quality:56});
+    console.log('FULL_SOUND_ROOM_B64 '+scenario.name+' '+screenshot.toString('base64'));
+  }
   check((await page.locator('#soundCounter').innerText()).includes('25 / 25'),scenario.name+' counter is wrong');
   for(const kind of ['Boop','Hum','Pluck','Chime','Buzz'])
     check(await page.locator('#soundAdd'+kind).isDisabled(),scenario.name+' '+kind+' did not disable at capacity');
