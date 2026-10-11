@@ -16,5 +16,18 @@
    .catch(()=>{});
  }
  window.CriloMetrics={track};
+ // Guest play is a free experiment; count starts/finishes without sign-in.
+ document.addEventListener('click',e=>{
+  if(e.target.closest?.('#spinButton')&&!window.Crilo?.user?.id)track('guest_start');
+ });
+ const result=document.getElementById('result');
+ if(result){
+  const check=()=>{
+   if(!result.classList.contains('hidden')&&
+      document.getElementById('resultEyebrow')?.textContent==='GUEST RUN COMPLETE')
+    track('guest_complete');
+  };
+  new MutationObserver(check).observe(result,{subtree:true,childList:true,characterData:true,attributes:false});
+ }
  track('daily_visitor');
 })();
