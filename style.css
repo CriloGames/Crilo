@@ -1510,3 +1510,23 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
  .leader-tabs-wrap .leader-duck-icon-tab{width:21px;height:20px}
  .leader-duck-score .leader-duck-icon-count{width:1.15em;height:1.12em}
 }
+
+/* Crilo's original doodle icons share one text baseline and a tiny, intentional
+   gap. The Classic duck is optically raised to offset its SVG viewBox padding. */
+.leader-tabs-wrap .leader-tab[data-tab="badges"],
+.leader-tabs-wrap .leader-tab[data-tab="ducks"]{
+ display:inline-flex;align-items:center;justify-content:center;gap:3px
+}
+.leader-tabs-wrap .leader-tab-icon{
+ display:block;flex:0 0 auto;width:23px;height:23px;
+ object-fit:contain;vertical-align:middle
+}
+.leader-tabs-wrap .leader-tab-label{display:block;line-height:1.2;white-space:nowrap}
+.leader-tabs-wrap .leader-tab-icon-duck{width:24px;height:23px;transform:translateY(-1.5px)}
+.leader-tabs-wrap .leader-tab-icon-medal{width:23px;height:23px;transform:translateY(-.5px)}
+@media(max-width:600px){
+ .leader-tabs-wrap .leader-tab[data-tab="badges"],
+ .leader-tabs-wrap .leader-tab[data-tab="ducks"]{gap:2px}
+ .leader-tabs-wrap .leader-tab-icon-duck{width:22px;height:21px}
+ .leader-tabs-wrap .leader-tab-icon-medal{width:21px;height:21px}
+}
