@@ -79,7 +79,7 @@
    show(unlockBtn,false);
    message('Scan the QR code or enter the setup key, then type the code shown by your authenticator.');
    input.value='';input.focus();
-  }catch(error){message('Could not enroll authenticator: '+(error?.message||'Please try again.'))}
+  }catch(error){pendingFactor=null;clearSecret();show(setup,false);show(form,false);show(enrollBtn,true);message('Could not enroll authenticator: '+(error?.message||'Please try again.'))}
   finally{lockButtons(false)}
  });
  unlockBtn.addEventListener('click',()=>{
@@ -94,19 +94,21 @@
   if(!/^[0-9]{6}$/.test(code)){message('Enter exactly six digits from your authenticator.');return}
   const id=pendingFactor||verifiedFactor?.id;
   if(!id){message('Start authenticator setup first.');return}
+  let verified=false;
   lockButtons(true);message('Verifying with Supabase Auth…');
   try{
    const {error}=await criloDB.auth.mfa.challengeAndVerify({factorId:id,code});
    if(error)throw error;
-   input.value='';pendingFactor=null;clearSecret();
+   verified=true;input.value='';pendingFactor=null;clearSecret();
    show(setup,false);show(form,false);
    // This method refreshes the signed session with its server-issued AAL2 claim.
    message('Authenticator verified. Checking elevated session…');
   }catch(error){message('Verification failed: '+(error?.message||'Check the code and try again.'))}
   finally{lockButtons(false)}
-  if(!pendingFactor)await readMfa();
+  if(verified)await readMfa();
  });
  refreshBtn.addEventListener('click',readMfa);
  window.addEventListener('crilo-auth-ready',readMfa);
+ if(window.Crilo?.user)readMfa();
  // No enrollment is performed without an explicit owner click.
 })();
