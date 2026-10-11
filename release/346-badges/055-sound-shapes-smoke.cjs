@@ -10,6 +10,8 @@ const css=fs.readFileSync(path.join(root,'sound-shapes.css'),'utf8');
 const js=fs.readFileSync(path.join(root,'sound-shapes.js'),'utf8');
 const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
 assert.match(html,/id="soundStage"/);
+assert.ok(!html.includes('Free to play · No sign-in'),'Remove redundant sound game caption');
+assert.ok(html.includes('Best with sound on'),'Preserve helpful audio hint');
 assert.match(html,/id="soundPlayRoom"/);
 assert.match(html,/id="soundObjects"/);
 assert.match(html,/sound-shapes\.js\?v=2/);
