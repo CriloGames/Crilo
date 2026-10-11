@@ -12,6 +12,14 @@ for(const filename of [...pages,'privacy.html','terms.html']){
 }
 assert.match(read('index.html'),/class="crilo-auth-legal"/);
 assert.match(read('index.html'),/class="crilo-beetle-track"/);
+assert.match(read('index.html'),/legal\\.css\\?v=5/,'New footer layout must bypass cached CSS');
+assert.ok(css.includes('transform:translateX(-3px)')&&
+ css.includes('transform:translateX(5px)')&&
+ css.includes('transform:translateX(1px)'),
+ 'Footer must keep independently calibrated optical alignment');
+assert.match(css,/@media\\(max-width:419px\\)/,
+ 'Very narrow phone layout must reset optical offsets');
+
 assert.match(read('index.html'),/id="bugBeetle"/);
 for(const p of [privacy,terms]){
  assert.match(p,/Last updated October 11, 2026/);
