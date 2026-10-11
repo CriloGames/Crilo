@@ -29,9 +29,10 @@ for(const needle of [
  assert.ok(needle==='fill="#ffe076"'?ducks.includes("classic:'#ffe076'"):ducks.includes(needle),
   'Not identical to the Meet the Ducks artwork: '+needle);
 }
-const blocks=src.slice(src.indexOf('function duckCountHTML('),src.indexOf('async function loadDucks()'))+
- src.slice(src.indexOf('function renderDuckLeaders('),src.indexOf('async function loadBadges()'));
+const blocks=src.slice(src.indexOf('function duckCountHTML('),src.indexOf('async function loadDucks('))+
+ src.slice(src.indexOf('function renderDuckLeaders('),src.indexOf('async function loadBadges('));
 assert.ok(blocks.includes('function duckCountHTML')&&blocks.includes('function renderDuckLeaders'));
+assert.ok(!blocks.includes('load()})();'),'Extract ONLY the two duck rendering helpers');
 const elements=new Map();
 function makeElement(){
  let text='',html='';
