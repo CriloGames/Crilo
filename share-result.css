@@ -1,0 +1,13 @@
+/* Score sharing stays outside gameplay and badges. */
+.crilo-share-trigger{white-space:nowrap}
+#criloSharePlayed{margin-left:auto;align-self:center;padding:10px 14px;font-size:13px}
+.crilo-share-dialog{width:min(94vw,515px);max-height:94vh;overflow-y:auto;border:2px solid #17191e;border-radius:20px;padding:18px;background:#fffdf7;color:#17191e;box-shadow:0 18px 60px #0003}
+.crilo-share-dialog::backdrop{background:#17232b99}
+.crilo-share-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;letter-spacing:.08em}
+#criloShareClose{border:0;background:transparent;color:inherit;font-size:29px;cursor:pointer}
+#criloShareCanvas{display:block;max-width:100%;height:auto;border-radius:12px}
+.crilo-share-hint{font-size:12px;color:#716d68;margin:12px 0}
+.crilo-share-actions{display:flex;flex-wrap:wrap;gap:8px}
+.crilo-share-actions button{flex:1 1 120px;background:#d4e9da;border:1.5px solid #17191e;color:#17191e;border-radius:10px;padding:11px 10px;font-weight:800;cursor:pointer}
+.crilo-share-actions button:hover{background:#bedecb}
+#criloShareNotice{min-height:20px;font-weight:700;color:#38614b;font-size:13px}
