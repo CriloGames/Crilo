@@ -23,6 +23,7 @@ on:
       - 'terms.html'
       - 'legal.css'
       - 'release/346-badges/083-legal-pages-browser.cjs'
+      - 'release/346-badges/099-shared-footer-layout-browser.cjs'
       - 'index.html'
       - 'app.js'
       - 'header-continuity.js'
@@ -98,6 +99,8 @@ jobs:
         run: node release/346-badges/075-share-growth-browser.cjs
       - name: Check balanced footer link columns and beetle rail on ten viewports
         run: node release/346-badges/085-footer-layout-chromium.cjs
+      - name: Verify the same centered footer on twelve pages across six screen widths
+        run: node release/346-badges/099-shared-footer-layout-browser.cjs
       - name: Render Privacy and Terms on phone tablet and desktop
         run: node release/346-badges/083-legal-pages-browser.cjs
       - name: Verify community count fits phone tablet desktop and updates after save
