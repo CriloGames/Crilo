@@ -5,13 +5,13 @@
   'use strict';
   const $=id=>document.getElementById(id);
   if(!$('spinHistoryList'))return;
-  const PAGE=5, RUN_BATCH=5;
-  const list=$('spinHistoryList'), counter=$('spinHistoryCount');
+  const FIRST_PAGE=3, PAGE=5, RUN_BATCH=8;
+  const list=$('spinHistoryList'), counter=$('spinHistoryCount'), spinCounter=$('spinHistorySpinCount'), progress=$('spinHistoryProgress'), endingLabel=$('spinHistoryEndLabel');
   const pager=$('spinHistoryPager'), button=$('spinHistoryMore'), ending=$('spinHistoryEnd');
   const profileId=new URLSearchParams(location.search).get('id');
   const esc=value=>Crilo.esc(String(value??''));
   const fmt=value=>Number.isFinite(Number(value))?Number(value).toLocaleString('en-US'):'—';
-  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,busy=false,lifetimeSpins=null;
+  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,busy=false,lifetimeSpins=null,totalDailies=null;
 
   function scoreTier(value){
     const score=Number(value),bands=window.CriloRarity?.scoreBands;
@@ -70,17 +70,18 @@
   async function ensureQueue(id,count){
     while(queue.length<count&&!runExhausted)await fetchRuns(id);
   }
-  // Count every recorded official spin, independently of Daily pagination.
-  // Legacy run-level spin totals are included without fabricating outcomes.
-  async function loadLifetimeTotal(id,token){
-    let sum=0,offset=0;
+  // Count completed official Dailies separately from the spins inside them.
+  // Historical Daily runs count; private owner Test Runs do not.
+  async function loadSummary(id,token){
+    let sum=0,count=0,offset=0;
     try{
       for(;;){
-        const {data,error}=await criloDB.from('daily_runs').select('spins')
+        const {data,error}=await criloDB.from('daily_runs').select('spins,daily_period')
           .eq('user_id',id).eq('is_test',false).range(offset,offset+499);
         if(error)throw error;
         if(token!==requestId)return;
         const rows=data||[];
+        count+=rows.length;
         for(const row of rows){
           const n=Number(row.spins);
           if(Number.isFinite(n)&&n>0)sum+=Math.floor(n);
@@ -90,27 +91,51 @@
       }
       if(token!==requestId)return;
       lifetimeSpins=sum;
+      totalDailies=count;
       updateCount();
+      updatePager();
     }catch(error){
       if(token!==requestId)return;
-      counter.textContent='Spin total unavailable';
+      counter.textContent='Daily count unavailable';
+      spinCounter.textContent='Official Dailies only · Test Runs excluded';
       console.warn('Could not count lifetime Daily spins',error);
     }
   }
   function updateCount(){
-    if(lifetimeSpins===null){counter.textContent='Counting official spins…';return;}
-    const label=fmt(lifetimeSpins)+' spin'+(lifetimeSpins===1?'':'s')+' total';
-    counter.textContent=label;
-    counter.setAttribute?.('aria-label',label);
+    if(totalDailies===null){
+      counter.textContent='Counting Dailies…';
+      spinCounter.textContent='Official Dailies only · Test Runs excluded';
+      return;
+    }
+    const dailyLabel=fmt(totalDailies)+' Daily'+(totalDailies===1?'':'ies')+' completed';
+    counter.textContent=dailyLabel;
+    counter.setAttribute('aria-label',dailyLabel);
+    spinCounter.textContent=fmt(lifetimeSpins)+' wheel spin'+(lifetimeSpins===1?'':'s')+' in Dailies · Test Runs excluded';
+  }
+  function updatePager(){
+    if(totalDailies!==null){
+      const remaining=Math.max(0,totalDailies-shown);
+      const next=Math.min(PAGE,remaining);
+      if(!busy&&remaining>0){
+        button.innerHTML='SHOW '+fmt(next)+' OLDER DAIL'+(next===1?'Y':'IES')+' <span aria-hidden="true">↓</span>';
+      }
+      if(progress){
+        const fraction=totalDailies?Math.max(0,Math.min(1,shown/totalDailies)):0;
+        progress.style.transform='scaleX('+fraction+')';
+      }
+      if(endingLabel)endingLabel.textContent='All '+fmt(totalDailies)+' saved Daily'+(totalDailies===1?'':'ies')+' shown. Test Runs are separate.';
+    }else if(!busy){
+      button.innerHTML='SHOW OLDER DAILIES <span aria-hidden="true">↓</span>';
+    }
   }
   async function showNext(id,token){
     if(busy||token!==requestId)return;
     busy=true;button.disabled=true;
     pager.classList.add('is-loading');button.textContent='LOADING DAILIES…';
     try{
-      await ensureQueue(id,PAGE);
+      await ensureQueue(id,shown===0?FIRST_PAGE:PAGE);
       if(token!==requestId)return;
-      const next=queue.splice(0,PAGE);
+      const next=queue.splice(0,shown===0?FIRST_PAGE:PAGE);
       if(shown===0)list.textContent='';
       for(const run of next)list.insertAdjacentHTML('beforeend',rowHTML(run));
       shown+=next.length;
@@ -119,21 +144,21 @@
       if(token!==requestId)return;
       const more=queue.length>0;
       pager.hidden=!more;
-      ending.hidden=more||shown<=PAGE;
+      ending.hidden=more||shown===0;
       if(!shown)list.innerHTML='<p class="spin-history-message">No completed Dailies yet. Your first Daily will appear here.</p>';
+      updatePager();
     }catch(error){
       if(token!==requestId)return;
       if(!shown)list.innerHTML='<p class="spin-history-message">Could not load Daily history. Try again.</p>';
       button.textContent='RETRY LOADING DAILIES ↻';
       pager.hidden=false;
-      if(lifetimeSpins===null)counter.textContent='Spin total unavailable';
+      if(totalDailies===null)counter.textContent='Daily count unavailable';
       console.warn('Crilo Daily spin history unavailable',error);
     }finally{
       if(token===requestId){
         pager.classList.remove('is-loading');
         button.disabled=false;
-        if(button.textContent!=='RETRY LOADING DAILIES ↻')
-          button.innerHTML='LOAD 5 MORE DAILIES <span aria-hidden="true">↓</span>';
+        if(button.textContent!=='RETRY LOADING DAILIES ↻')updatePager();
         busy=false;
       }
     }
@@ -142,16 +167,18 @@
     const id=profileId||Crilo.user?.id||'';
     if(id===currentId)return;
     const token=++requestId;
-    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;busy=false;lifetimeSpins=null;
+    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;busy=false;lifetimeSpins=null;totalDailies=null;
     pager.hidden=true;ending.hidden=true;
     counter.textContent='Loading…';
+    spinCounter.textContent='Official Dailies only · Test Runs excluded';
     list.innerHTML='<p class="spin-history-message">Fetching completed Dailies…</p>';
     if(!id){
       list.innerHTML='<p class="spin-history-message">Sign in to see your Daily spin history.</p>';
       counter.textContent='Sign in to view';
+      spinCounter.textContent='';
       return;
     }
-    loadLifetimeTotal(id,token);
+    loadSummary(id,token);
     showNext(id,token);
   }
   list.addEventListener?.('click',event=>{
