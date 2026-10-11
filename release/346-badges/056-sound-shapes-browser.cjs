@@ -281,8 +281,11 @@ async function main(){
   check(moved.x>box.x+10&&moved.y>box.y+4,
     scenario.name+' pointer dragging failed: '+JSON.stringify({box,moved}));
   // Corner handle should resize in two dimensions, with minimum limits.
-  const beforeResize=await toy.boundingBox();
   const handle=toy.locator('.toy-handle.at-se');
+  // On short iPhones the bottom-right handle may be just below the fold.
+  // Scroll the handle itself fully into view before beginning the touch/pointer gesture.
+  await handle.scrollIntoViewIfNeeded();
+  const beforeResize=await toy.boundingBox();
   const hbox=await handle.boundingBox();
   check(!!hbox,scenario.name+' resize handle absent');
   await tipPage.mouse.move(hbox.x+hbox.width/2,hbox.y+hbox.height/2);
