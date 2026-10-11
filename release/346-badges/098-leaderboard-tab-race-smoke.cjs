@@ -23,7 +23,8 @@ async function scenario(name,fromTab,toTab){
   return elements.get(id);
  }
  for(const id of ['today','week','all','points','records','badges','ducks']){
-  const button={dataset:{tab:id},handlers:{},classList:{add(){},remove(){}},
+  const button={dataset:{tab:id},attrs:{},handlers:{},classList:{add(){},remove(){}},
+   setAttribute(k,v){this.attrs[k]=v},getAttribute(k){return this.attrs[k]??null},
    addEventListener(type,fn){this.handlers[type]=fn},
    click(){this.handlers.click()}};
   buttons.set(id,button);
@@ -58,7 +59,14 @@ async function scenario(name,fromTab,toTab){
  vm.runInNewContext(src,ctx,{filename:'leaderboard.js'});
  async function flush(){for(let i=0;i<50;i++)await Promise.resolve()}
  await flush();
- function click(tab){buttons.get(tab).click()}
+ assert.equal(buttons.get('today').getAttribute('aria-pressed'),'true',
+   name+' initial category should be announced as active');
+ function click(tab){buttons.get(tab).click();
+  for(const [key,item] of buttons){
+   assert.equal(item.getAttribute('aria-pressed'),key===tab?'true':'false',
+    name+' active category announcement for '+key);
+  }
+ }
  function answer(tab){
   if(tab==='badges')return {data:[
    {user_id:'badge-user',gameplay_badges:5,username:'BadgeWinner',name_color:'#334455'}
