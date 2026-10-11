@@ -36,6 +36,10 @@ on:
       - 'leaderboard.js'
       - 'leaderboard-tabs.js'
       - 'index.html'
+      - 'privacy.html'
+      - 'terms.html'
+      - 'legal.css'
+      - 'sitemap.xml'
       - 'moderation.html'
       - 'moderation-feed.js'
       - 'moderation-feed-scanner.js'
@@ -112,6 +116,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify privacy notice, terms, sitemap and responsive public contact links
+        run: node release/346-badges/082-legal-pages-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
           node --check app.js
