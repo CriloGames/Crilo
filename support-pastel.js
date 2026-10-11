@@ -1,4 +1,4 @@
-/* Colorful sticker confetti. Decoration only: no network, payment or analytics calls. */
+/* Layered Crilo-themed pastel objects. Decoration only: no network, payment or analytics. */
 (function(){
   'use strict';
   const field=document.getElementById('shapeCanvas');
@@ -9,23 +9,43 @@
     return (seed>>>0)/4294967296;
   }
   const types=['circle','bean','pill','box','donut','spark','flower','heart','squiggle'];
-  const palette=['#ff9fbd','#ffd18d','#ffeea0','#aee8c8','#9cd8ed','#c4b0f5','#f9bbde','#baddec','#bfe7a5','#f8c69e','#dbb8f0','#b2f0ed'];
-  const pieces=230;
+  const palette=['#f7b0c4','#ffd48e','#f8e88d','#b8e6ca','#a6d8ec','#cab5f0','#f6bfdc','#c5e3ef','#c6e7a9','#f8c59a'];
+  // Loosely stacked left/right clusters and lower central shapes, not a triangle.
+  const anchors=[
+    [12,12],[20,22],[13,34],[22,46],[14,60],[22,74],[15,88],
+    [88,12],[80,24],[87,37],[78,50],[86,64],[78,78],[85,91],
+    [36,88],[50,94],[64,89]
+  ];
+  const pieces=170;
   const fragment=document.createDocumentFragment();
   for(let i=0;i<pieces;i++){
     const el=document.createElement('span');
-    const type=types[Math.floor(random()*types.length)];
+    const motif=i%15===0?['wheel','duck','domain'][Math.floor(i/15)%3]:null;
+    const type=motif||types[Math.floor(random()*types.length)];
     el.className='shape '+type;
-    const size=Math.round(10+random()*70+(random()>.9?60:0));
-    el.style.setProperty('--x',(random()*109-4.5).toFixed(2)+'%');
-    el.style.setProperty('--y',(random()*109-4.5).toFixed(2)+'%');
+    const anchor=anchors[Math.floor(random()*anchors.length)];
+    const spreadX=anchor[0]<30||anchor[0]>70?10:14;
+    const x=anchor[0]+(random()-.5)*spreadX;
+    const y=anchor[1]+(random()-.5)*9;
+    const chance=random();
+    const size=motif?Math.round(61+random()*62):
+      chance>.84?Math.round(92+random()*42):
+      chance>.55?Math.round(48+random()*34):
+      Math.round(20+random()*24);
+    el.style.setProperty('--x',x.toFixed(2)+'%');
+    el.style.setProperty('--y',y.toFixed(2)+'%');
     el.style.setProperty('--s',size+'px');
     el.style.setProperty('--rot',Math.floor(random()*360)+'deg');
     el.style.setProperty('--c',palette[Math.floor(random()*palette.length)]);
-    el.style.setProperty('--o',(.68+random()*.32).toFixed(2));
-    el.style.setProperty('--dur',Math.round(7+random()*10)+'s');
-    el.style.setProperty('--delay',(-random()*16).toFixed(2)+'s');
-    if(type==='circle'&&size>=35&&random()>.78)el.classList.add('has-face');
+    el.style.setProperty('--o',(.86+random()*.14).toFixed(2));
+    el.style.setProperty('--dur',Math.round(7+random()*8)+'s');
+    el.style.setProperty('--delay',(-random()*12).toFixed(2)+'s');
+    if(type==='circle'&&size>=44&&random()>.82)el.classList.add('has-face');
+    if(type==='duck'){
+      const eye=document.createElement('i');
+      eye.className='duck-eye';
+      el.appendChild(eye);
+    }
     fragment.appendChild(el);
   }
   field.appendChild(fragment);

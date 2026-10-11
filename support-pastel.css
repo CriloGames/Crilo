@@ -6,41 +6,50 @@ html{min-height:100%;background:#fbdff2}
 body{margin:0;min-height:100svh;color:#34313e;overflow-x:hidden;-webkit-text-size-adjust:100%;background:#fbdff2}
 button,a{-webkit-tap-highlight-color:transparent;font:inherit}
 button:focus-visible,a:focus-visible{outline:4px solid #6961b8;outline-offset:4px}
+/* Chunky stacked side clusters frame the tip card without forming a literal pyramid. */
 .pastel-world{position:relative;display:grid;place-items:center;isolation:isolate;min-height:100svh;padding:75px clamp(15px,4vw,50px);overflow:hidden;background:
- radial-gradient(ellipse 42% 43% at 0 7%,#ffe19b 0 48%,transparent 83%),
- radial-gradient(ellipse 32% 43% at 100% 3%,#b2eae2 0 48%,transparent 81%),
- radial-gradient(ellipse 52% 50% at 86% 94%,#cfbfff 0 50%,transparent 85%),
- radial-gradient(ellipse 50% 47% at 17% 92%,#ffb7cf 0 53%,transparent 86%),
- linear-gradient(125deg,#ffdef0 4%,#ffedcb 28%,#ddeefa 55%,#e0f9dd 75%,#fbdff5 98%);}
-.pastel-world::before{content:"";position:absolute;inset:-7%;z-index:-3;pointer-events:none;background:
- repeating-radial-gradient(circle at 20% 55%,#fff8 0 2px,transparent 3px 70px),
- repeating-linear-gradient(125deg,transparent 0 50px,#fff4 51px 53px,transparent 54px 104px);
- opacity:.48;}
-.pastel-world::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 70% 57% at 50% 51%,#fff8e74a,transparent 85%);}
+ radial-gradient(circle at 14% 18%,#ffd5df 0 14%,transparent 15%),
+ radial-gradient(circle at 84% 16%,#c5efe8 0 16%,transparent 17%),
+ radial-gradient(circle at 20% 84%,#ffe2a8 0 18%,transparent 19%),
+ radial-gradient(circle at 82% 85%,#d9c5ff 0 18%,transparent 19%),
+ linear-gradient(135deg,#ffdce9 0%,#ffecc9 28%,#dff0ff 56%,#e2f8df 78%,#f8ddf1 100%);}
+.pastel-world::before{content:"";position:absolute;inset:0;z-index:-3;pointer-events:none;background:
+ radial-gradient(circle at 15% 50%,#ffffff66 0 2px,transparent 3px),
+ radial-gradient(circle at 84% 46%,#ffffff55 0 2px,transparent 3px);opacity:.45}
+.pastel-world::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse 64% 48% at 50% 52%,#fff9ef8c,transparent 84%)}
 .shape-canvas{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-2}
-.giant-blob{position:absolute;pointer-events:none;opacity:.87;filter:drop-shadow(10px 14px 0 #fff6);border:4px solid #ffffffaf;transform:rotate(var(--r));}
-.giant-blob:nth-child(1){width:530px;height:380px;left:-210px;top:-125px;background:#fdbfc6;border-radius:43% 57% 60% 40%/45% 39% 61% 55%;--r:26deg}
-.giant-blob:nth-child(2){width:390px;height:540px;right:-220px;top:-180px;background:#afe9dd;border-radius:65% 35% 50% 50%/51% 60% 40% 49%;--r:-27deg}
-.giant-blob:nth-child(3){width:450px;height:395px;left:-230px;bottom:-180px;background:#ffda87;border-radius:48% 52% 40% 60%/37% 50% 50% 63%;--r:-15deg}
-.giant-blob:nth-child(4){width:480px;height:380px;right:-190px;bottom:-155px;background:#c8b4ee;border-radius:65% 35% 55% 45%/51% 35% 65% 49%;--r:18deg}
-.giant-blob:nth-child(5){width:250px;height:230px;top:11%;left:22%;background:#ade2f2;border-radius:40% 60% 55% 45%/58% 37% 63% 42%;--r:20deg}
-.giant-blob:nth-child(6){width:230px;height:220px;bottom:8%;right:20%;background:#e9c2f4;border-radius:50% 50% 41% 59%/49% 65% 35% 51%;--r:-17deg}
-.giant-blob:nth-child(7){width:290px;height:220px;top:42%;right:-130px;background:#ffda9e;border-radius:56% 44% 45% 55%/65% 35% 65% 35%;--r:-12deg}
-.giant-blob:nth-child(8){width:235px;height:290px;bottom:34%;left:-140px;background:#c8efc9;border-radius:47% 53% 63% 37%/45% 54% 46% 55%;--r:28deg}
-.shape{position:absolute;display:block;width:var(--s);height:var(--s);left:var(--x);top:var(--y);transform:translate(-50%,-50%) rotate(var(--rot));opacity:var(--o,.94);background:var(--c);border:2px solid #fff9;filter:drop-shadow(3px 4px 0 #534a5b12);animation:drift var(--dur,8s) ease-in-out infinite alternate;animation-delay:var(--delay,0s);}
+.giant-blob{position:absolute;pointer-events:none;opacity:1;filter:drop-shadow(10px 12px 0 #ffffff55);border:4px solid #ffffffb5;transform:rotate(var(--r))}
+.giant-blob:nth-child(1){width:360px;height:300px;left:-70px;top:20px;background:#f8b8c9;border-radius:44% 56% 58% 42%/45% 42% 58% 55%;--r:18deg}
+.giant-blob:nth-child(2){width:310px;height:360px;left:-110px;top:220px;background:#bfe7d0;border-radius:55% 45% 50% 50%/60% 42% 58% 40%;--r:-14deg}
+.giant-blob:nth-child(3){width:350px;height:280px;left:-80px;bottom:70px;background:#ffd78f;border-radius:48% 52% 40% 60%/38% 50% 50% 62%;--r:12deg}
+.giant-blob:nth-child(4){width:300px;height:330px;right:-90px;top:10px;background:#b8e8ea;border-radius:60% 40% 52% 48%/48% 58% 42% 52%;--r:-18deg}
+.giant-blob:nth-child(5){width:330px;height:290px;right:-110px;top:250px;background:#d0bef3;border-radius:56% 44% 46% 54%/58% 38% 62% 42%;--r:14deg}
+.giant-blob:nth-child(6){width:330px;height:300px;right:-90px;bottom:45px;background:#ffc7a8;border-radius:52% 48% 60% 40%/45% 60% 40% 55%;--r:-10deg}
+.giant-blob:nth-child(7){width:280px;height:220px;left:18%;bottom:-60px;background:#9fd1ea;border-radius:48% 52% 55% 45%/55% 42% 58% 45%;--r:16deg}
+.giant-blob:nth-child(8){width:290px;height:220px;right:18%;bottom:-50px;background:#c8b6f0;border-radius:54% 46% 50% 50%/45% 56% 44% 55%;--r:-12deg}
+.shape{position:absolute;display:block;width:var(--s);height:var(--s);left:var(--x);top:var(--y);transform:translate(-50%,-50%) rotate(var(--rot));opacity:var(--o,.96);background:var(--c);border:3px solid #ffffffcc;filter:drop-shadow(5px 7px 0 #5d506220);animation:drift var(--dur,8s) ease-in-out infinite alternate;animation-delay:var(--delay,0s);}
 .shape.circle{border-radius:50%}
 .shape.bean{border-radius:61% 39% 66% 34%/45% 63% 37% 55%}
-.shape.pill{width:calc(var(--s) * 1.7);height:calc(var(--s) * .65);border-radius:99px}
-.shape.box{border-radius:22%;transform:translate(-50%,-50%) rotate(calc(var(--rot) - 11deg))}
-.shape.donut{border-radius:50%;border:calc(var(--s) * .18) solid var(--c);background:transparent;outline:2px solid #fff7}
+.shape.pill{width:calc(var(--s) * 1.9);height:calc(var(--s) * .72);border-radius:999px}
+.shape.box{border-radius:20%;transform:translate(-50%,-50%) rotate(calc(var(--rot) - 8deg))}
+.shape.donut{border-radius:50%;border:calc(var(--s) * .16) solid var(--c);background:transparent;outline:3px solid #fff8}
 .shape.spark{border:0;clip-path:polygon(50% 0,62% 37%,100% 50%,63% 63%,50% 100%,37% 63%,0 50%,38% 38%);}
 .shape.flower{border:0;background:var(--c);clip-path:polygon(50% 0,60% 14%,77% 5%,83% 24%,99% 31%,88% 49%,99% 68%,80% 75%,76% 96%,58% 87%,48% 100%,37% 85%,19% 96%,16% 75%,0 69%,13% 50%,0 30%,18% 24%,23% 5%,41% 14%)}
 .shape.heart{border:0;background:var(--c);clip-path:polygon(50% 93%,9% 52%,1% 29%,12% 7%,31% 5%,50% 23%,70% 5%,87% 7%,99% 29%,91% 53%)}
 .shape.squiggle{background:transparent;border:0;border-top:calc(var(--s) * .15) solid var(--c);border-bottom:calc(var(--s) * .15) solid var(--c);border-radius:50% 50% 42% 58%}
+/* Familiar Crilo motifs mixed into the pastel stack: a wheel, rubber duck and .com tile. */
+.shape.wheel{border-radius:50%;border:5px solid #fffc;outline:2px solid #746b88;background:conic-gradient(#f8b8c9 0deg 60deg,#c8b6f0 60deg 120deg,#b8e6ca 120deg 180deg,#a6d8ec 180deg 240deg,#ffd48e 240deg 300deg,#f5aabe 300deg 360deg);box-shadow:4px 5px 0 #75648840}
+.shape.wheel::after{content:"";position:absolute;inset:37%;border-radius:50%;background:#fffaf5;border:2px solid #756d83}
+.shape.duck{background:var(--c);border:3px solid #fff;border-radius:48% 52% 45% 55% / 54% 54% 46% 46%}
+.shape.duck::before{content:"";position:absolute;left:8%;top:-20%;width:62%;height:67%;border-radius:50%;background:var(--c);border-top:3px solid #fff;border-left:3px solid #fff}
+.shape.duck::after{content:"";position:absolute;left:62%;top:16%;width:37%;height:23%;background:#eba58c;clip-path:polygon(0 12%,100% 50%,0 85%)}
+.shape.duck .duck-eye{position:absolute;left:48%;top:14%;width:7%;height:8%;border-radius:50%;background:#58536a;z-index:2}
+.shape.domain{border:3px solid #555269;border-radius:29%;background:#e5f0ff;box-shadow:4px 6px 0 #55526940}
+.shape.domain::after{content:".com";position:absolute;inset:35% 2% auto;text-align:center;font-size:calc(var(--s) * .21);font-weight:900;letter-spacing:-.055em;color:#343443}
 .shape.has-face::before,.shape.has-face::after{content:"";position:absolute;top:35%;width:9%;height:13%;border-radius:50%;background:#53506a;z-index:2}
 .shape.has-face::before{left:33%}.shape.has-face::after{right:33%}
 .pastel-swirls{position:absolute;inset:0;overflow:hidden;z-index:-1;pointer-events:none}
-.squiggle-line{position:absolute;width:240px;height:110px;border:11px solid #fff9;border-color:#fff9 transparent transparent transparent;border-radius:50%;transform:rotate(22deg);}
+.squiggle-line{position:absolute;width:290px;height:130px;border:12px solid #fff8;border-color:#fff8 transparent transparent transparent;border-radius:50%;transform:rotate(22deg);}
 .squiggle-line.a{left:2%;top:25%;transform:rotate(-26deg)}
 .squiggle-line.b{right:1%;top:60%;transform:rotate(30deg)}
 .squiggle-line.c{left:38%;bottom:-5%;transform:rotate(13deg)}
@@ -89,7 +98,7 @@ button:focus-visible,a:focus-visible{outline:4px solid #6961b8;outline-offset:4p
  .support-amount:nth-child(4){font-size:12px}
  .tip-choices{gap:6px}
  .support-pay{min-height:60px;font-size:17px}
- .giant-blob:nth-child(5),.giant-blob:nth-child(6){display:none}
+ .giant-blob:nth-child(7),.giant-blob:nth-child(8){display:none}
 }
 @media(max-width:360px){
  .pastel-world{padding:72px 19px 40px}

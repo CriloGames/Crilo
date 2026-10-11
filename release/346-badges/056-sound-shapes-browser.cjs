@@ -233,7 +233,16 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  check(await tipPage.locator('.shape').count()===230,scenario.name+' pastel collage did not load 230 shapes');
+  check(await tipPage.locator('.shape').count()===170,scenario.name+' stacked pastel collage did not load 170 shapes');
+  const motifs=await tipPage.evaluate(()=>({
+    wheel:document.querySelectorAll('.shape.wheel').length,
+    duck:document.querySelectorAll('.shape.duck').length,
+    domain:document.querySelectorAll('.shape.domain').length,
+    smallest:Math.min(...[...document.querySelectorAll('.shape')].map(el=>parseFloat(el.style.getPropertyValue('--s')))),
+    lowestOpacity:Math.min(...[...document.querySelectorAll('.shape')].map(el=>parseFloat(el.style.getPropertyValue('--o'))))
+  }));
+  check(motifs.wheel>=3&&motifs.duck>=3&&motifs.domain>=3&&motifs.smallest>=20&&motifs.lowestOpacity>=.85,
+    scenario.name+' Crilo motif or layered shape design missing '+JSON.stringify(motifs));
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,
