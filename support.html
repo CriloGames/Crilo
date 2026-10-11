@@ -17,9 +17,9 @@
   function choose(amount){
     if(!Object.prototype.hasOwnProperty.call(links,amount))return;
     const custom=amount==='custom';
-    summary.textContent=custom?'Choose your tip amount on PayPal · One time':'Your tip: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>+Number(amount).toFixed(2)+' · One time';
+    summary.textContent=custom?'Choose your tip amount on PayPal · One time':'Your tip: $'+Number(amount).toFixed(2)+' · One time';
     checkout.href=links[amount];
-    checkout.setAttribute('aria-label',custom?'Continue to PayPal to choose your custom tip amount':'Continue to secure PayPal checkout for a <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="supabase-config.js?v=8"></script><script src="app.js?v=41"></script></body></html>+amount+' tip');
+    checkout.setAttribute('aria-label',custom?'Continue to PayPal to choose your custom tip amount':'Continue to secure PayPal checkout for a $'+amount+' tip');
     buttons.forEach(button=>{
       const selected=button.dataset.amount===amount;
       button.classList.toggle('selected',selected);
