@@ -1,9 +1,78 @@
 <!doctype html>
-<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Keep Crilo Spinning — support the independently made Crilo games."><title>Keep Crilo Spinning — Crilo</title><link rel="stylesheet" href="style.css?v=97"></head>
+<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="The Shape of Sound is a free little sound experiment. Stretch, move, and mix colorful sounds. Optional support for Crilo lives below."><title>The Shape of Sound — Crilo</title><link rel="stylesheet" href="style.css?v=97"><link rel="stylesheet" href="sound-shapes.css?v=1"></head>
 <body><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a></nav><div class="header-actions"><div class="account-wrap"><button class="account-btn" id="accountBtn" type="button">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div></header>
-<main class="support-main"><a href="index.html" class="support-back">← Back to Crilo</a><section class="support-card"><div class="support-symbol" aria-hidden="true">↻</div><div class="eyebrow">SUPPORT CRILO</div><h1>Keep Crilo Spinning.</h1><p class="support-intro">Crilo is free to play and independently made. If you're enjoying it, you can leave a little tip to help keep the wheels turning. No pressure, ever.</p>
+<main class="support-main sound-page"><a href="index.html" class="support-back">← Back to Crilo</a>
+<section class="sound-lab" aria-labelledby="soundTitle">
+  <header class="sound-heading">
+    <div class="sound-eyebrow">A LITTLE INTERNET EXPERIMENT · NO RULES, JUST NOISE</div>
+    <h1 id="soundTitle">The Shape of <em>Sound.</em></h1>
+    <p>What does a sound look like? What happens when you stretch it, move it, or smoosh it into another sound? There's only one way to find out.</p>
+    <span class="sound-free">Free to play · No sign-in · Best with sound on</span>
+  </header>
+  <div class="sound-app" aria-label="Interactive sound playground">
+    <div class="sound-toolbar">
+      <div class="sound-toolbar-left">
+        <button class="sound-button sound-button-primary" id="soundPlayRoom" type="button" aria-pressed="false">▶  Play the room</button>
+        <button class="sound-button sound-button-soft" id="soundAdd" type="button">＋ New sound</button>
+      </div>
+      <div class="sound-toolbar-right">
+        <button class="sound-button" id="soundShuffle" type="button" title="Rearrange your sounds">⇄ Mix it up</button>
+        <button class="sound-button sound-button-subtle" id="soundReset" type="button" title="Reset all sounds to the originals">↻ Reset</button>
+        <button class="sound-button" id="soundMute" type="button" aria-pressed="true" aria-label="Mute the sound playground">♫ Sound on</button>
+      </div>
+    </div>
+    <div class="sound-stage" id="soundStage" role="group" aria-label="Sound playground. Drag a shape around, stretch a selected shape using its arrow handles, or drop it onto another shape to blend them.">
+      <span class="sound-stage-scribble sound-scribble-one" aria-hidden="true">﹏</span>
+      <span class="sound-stage-scribble sound-scribble-two" aria-hidden="true">∿</span>
+      <span class="sound-stage-scribble sound-scribble-three" aria-hidden="true">✳</span>
+      <div class="sound-playhead" id="soundPlayhead" aria-hidden="true"></div>
+      <div class="sound-objects" id="soundObjects"></div>
+      <div class="sound-discovery" id="soundDiscovery" aria-live="polite"></div>
+      <span class="sound-counter" id="soundCounter">5 / 10 sounds</span>
+      <span class="sound-corner">MADE OF WAVES &amp; A LITTLE MAGIC ✳</span>
+    </div>
+    <div class="sound-status" id="soundStatus" role="status" aria-live="polite">Tap any shape to hear it. Drag one into another to mix their sounds.</div>
+    <div class="sound-bottom">
+      <div class="sound-tempo">
+        <label for="soundTempo">Room tempo</label>
+        <input id="soundTempo" type="range" min="65" max="170" value="104" step="1" aria-label="Loop tempo in beats per minute">
+        <span class="sound-tempo-value" id="soundTempoValue">104 BPM</span>
+      </div>
+      <span class="sound-key">Left ↔ right changes timing · Up ↕ down changes pitch</span>
+    </div>
+    <div class="sound-selection" id="soundSelection">Choose any shape to see how you can change it. Your little creations stay on this device.</div>
+    <div class="sound-inspector" id="soundInspector" hidden>
+      <div>
+        <div class="sound-inspector-name" id="soundSelectedName">Boop</div>
+        <p class="sound-inspector-caption" id="soundSelectedParts">Tap it, stretch it, or drop it on another sound.</p>
+      </div>
+      <div class="sound-sliders">
+        <label for="soundStretch">Stretch ↔
+          <input type="range" id="soundStretch" min="58" max="180" value="100" aria-label="Stretch sound to change pitch and length">
+        </label>
+        <label for="soundBloom">Bloom ↕
+          <input type="range" id="soundBloom" min="58" max="180" value="100" aria-label="Change sound richness and volume">
+        </label>
+      </div>
+      <div class="sound-inspector-actions">
+        <button class="sound-button" id="soundPreview" type="button">♫ Hear</button>
+        <button class="sound-button" id="soundDuplicate" type="button">⧉ Copy</button>
+        <button class="sound-button" id="soundSeparate" type="button" disabled>⇱ Split</button>
+        <button class="sound-button" id="soundDelete" type="button">× Remove</button>
+      </div>
+    </div>
+  </div>
+  <p class="sound-how"><strong>Try this:</strong> Tap a sound to hear it. Drag one shape on top of another to combine them. Use the little arrow handles or the sliders to stretch a shape. Press <strong>Play the room</strong> and rearrange the sounds to make your own looping melody. Headphones make it even nicer.</p>
+</section>
+<div class="sound-game-divider" aria-hidden="true"></div>
+<div class="sound-support-label">A QUIET LITTLE NOTE FROM CRILO ♡</div>
+<section class="support-card" aria-labelledby="supportHeading">
+  <div class="support-symbol" aria-hidden="true">♡</div>
+  <h2 id="supportHeading">Keep Crilo Spinning.</h2>
+  <p class="support-intro">This little experiment (and everything else on Crilo) is free for everyone. If you enjoyed it and want to support future games and upkeep, you can leave a tip. Absolutely no pressure.</p>
 <div class="support-divider"></div><h2>Choose a one-time tip</h2><div class="support-amounts" role="group" aria-label="Tip amount"><button class="support-amount selected" type="button" data-amount="2" aria-pressed="true">$2</button><button class="support-amount" type="button" data-amount="5" aria-pressed="false">$5</button><button class="support-amount" type="button" data-amount="10" aria-pressed="false">$10</button><button class="support-amount" type="button" data-amount="custom" aria-pressed="false">Custom</button></div><p class="support-selected" id="tipSummary" aria-live="polite">Your tip: $2.00 · One time</p>
 <div class="support-checkout"><p class="support-checkout-heading">Secure one-time tip</p><a class="support-pay support-paypal support-checkout-link" id="supportPayLink" href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84" target="_blank" rel="noopener noreferrer" aria-label="Continue to secure PayPal checkout for a $2 tip">Continue to secure checkout ↗</a><p class="support-pending">Checkout is handled securely by PayPal. PayPal, Venmo, and debit or credit card options may appear depending on your location and eligibility. For Custom, choose your amount on PayPal.</p></div><p class="support-fine">Tips are voluntary, are not charitable tax-deductible donations, and don't affect gameplay or your odds.</p></section></main>
+<script src="sound-shapes.js?v=1"></script>
 <script>(function(){
   const links=Object.freeze({
     '2':'https://www.paypal.com/ncp/payment/75LUCY8GEAF84',
