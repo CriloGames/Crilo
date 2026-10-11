@@ -11,6 +11,14 @@ const urls={
   'custom':'https://www.paypal.com/ncp/payment/K7QJM2NVLKEYU'
 };
 assert.ok(html.includes('id="supportPayLink"'),'Missing hosted checkout button');
+assert.match(html,/support-pastel\\.css\\?v=11/,'Back-link positioning must bypass browser cache');
+assert.ok(html.includes('class="support-back"')&&html.includes('href="index.html#more-games"'),
+ 'Return link should still lead to Crilo');
+assert.ok(style.includes('position:absolute;top:max(8px, env(safe-area-inset-top, 0px));left:25px;z-index:20;'),
+ 'Back link should sit clear of upper-left decorative shape on desktop');
+assert.ok(style.includes('.support-back{top:max(8px, env(safe-area-inset-top, 0px));left:17px;font-size:12px}'),
+ 'Back link should remain raised on mobile');
+
 assert.ok(html.includes('rel="noopener noreferrer"'),'External checkout tab must have safe rel');
 assert.ok(html.includes('aria-live="polite"'),'Selected tip should be announced accessibly');
 assert.ok(!html.includes('Payments aren\'t connected yet'),'Old disabled checkout notice remains');
