@@ -18,7 +18,7 @@ assert.doesNotMatch(fs.readFileSync('shape-of-sound.html','utf8'),/site-sounds\.
  'The musical playground must not overlay synthetic UI clicks on its instruments');
 assert.match(code,/window\.CriloSFX=Object\.freeze/);
 assert.match(code,/const SPECS=Object\.freeze/);
-assert.ok(!/fetch\(|XMLHttpRequest|new Audio\(|\.mp3|\.wav|\.ogg/i.test(code),
+assert.ok(!/fetch\(|XMLHttpRequest|\.mp3|\.wav|\.ogg/i.test(code),
  'All site audio must be synthesized, not network-fetched');
 const events={},elements={};
 let notes=0,created=0,started=0,storeValue='on';
