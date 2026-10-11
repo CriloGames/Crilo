@@ -124,7 +124,7 @@ function clear(){
 }
 function newPile(){
  clear();goal=3;highest=0;
- clearTimeout(winTimer);celebrate.classList.remove('celebrate');
+ clearTimeout(winTimer);celebrate.classList.remove('celebrate');celebrate.hidden=true;
  const d=dimensions(),f=floor();
  // A small colorful starter set, visible at the bottom of the first screen.
  const count=d.w<570?3:d.w<900?4:6;
@@ -261,9 +261,13 @@ function updateScore(){
  if(count>=goal){
   goal+=goal<5?2:3;
   celebrate.textContent='✦ Stack complete! Next star: '+goal+' ✦';
+  celebrate.hidden=false;
   celebrate.classList.add('celebrate');
   clearTimeout(winTimer);
-  winTimer=setTimeout(()=>celebrate.classList.remove('celebrate'),1900);
+  winTimer=setTimeout(()=>{
+    celebrate.classList.remove('celebrate');
+    setTimeout(()=>{if(!celebrate.classList.contains('celebrate'))celebrate.hidden=true;},350);
+  },1900);
   note('You reached the star! Keep stacking to '+goal+' blocks.');
  }
  progress.textContent='Tower '+count+' / '+goal;
