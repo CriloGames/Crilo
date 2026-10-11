@@ -276,7 +276,7 @@ function physics(now){
   const ordered=[...shapes].sort((a,b)=>b.y-a.y);
   for(const s of ordered){
    if(held?.id===s.id)continue;
-   const prev=s.y;
+   const prev=s.y,wasResting=s.resting,wasSupport=s.support;
    s.vy=clamp(s.vy+.65*dt,-5,14);
    const support=supports(s);
    const next=s.y+s.vy*dt;
@@ -288,7 +288,7 @@ function physics(now){
     s.y=Math.min(next,floor()-s.h);
     s.resting=false;s.support=null;
    }
-   if(Math.abs(prev-s.y)>.05)paint(s);
+   if(Math.abs(prev-s.y)>.05||wasResting!==s.resting||wasSupport!==s.support)paint(s);
   }
  }
  if(++frames%9===0)updateScore();
