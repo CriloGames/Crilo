@@ -233,46 +233,79 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  const floating=await tipPage.evaluate(()=>{
-    const field=document.getElementById('shapeCanvas');
-    const shapes=[...field.querySelectorAll('.float-shape')];
-    const rects=shapes.map(el=>el.getBoundingClientRect());
-    const w=field.getBoundingClientRect().width;
-    const h=field.getBoundingClientRect().height;
-    const styles=shapes.map(el=>getComputedStyle(el));
-    const colors=new Set(styles.map(s=>s.backgroundColor));
-    const depths=new Set(styles.map(s=>s.zIndex));
-    let overlap=0;
-    let totalArea=0;
-    for(let i=0;i<rects.length;i++){
-      const a=rects[i];
-      totalArea+=a.width*a.height;
-      for(let j=i+1;j<rects.length;j++){
-        const b=rects[j];
-        const inter=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))
-          *Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
-        if(inter>Math.min(a.width*a.height,b.width*b.height)*.05)overlap++;
-      }
-    }
+  // All six real 3D toys, physics and resizing must be interactive.
+  const initialCount=await tipPage.locator('.toy-shape').count();
+  check(initialCount>=10,scenario.name+' initial 3D toys were not created');
+  for(const t of ['cube','slab','cylinder','sphere','prism','arch']){
+    check(await tipPage.locator('.type-'+t).count()>0,scenario.name+' missing 3D '+t);
+  }
+  const layers=await tipPage.evaluate(()=>{
+    const toys=[...document.querySelectorAll('.toy-shape')];
+    const card=document.querySelector('.tip-card');
+    const board=document.getElementById('shapeCanvas');
+    const toolbar=document.querySelector('.shape-toolbar');
     return {
-      count:shapes.length,areaRatio:totalArea/(w*h),
-      pairsOverlapping:overlap,shades:colors.size,zLevels:depths.size,
-      background:getComputedStyle(field).backgroundColor,
-      motifs:['wheel','duck','domain'].map(k=>field.querySelectorAll('.float-mark.'+k).length),
-      stoneElements:field.querySelectorAll('.wall-course, .shape.brick').length,
-      resized:!!field.dataset.shapeCount
+      levels:new Set(toys.map(n=>n.dataset.layer)).size,
+      front:Number(getComputedStyle(card).zIndex),
+      maxToy:Math.max(...toys.map(n=>Number(getComputedStyle(n).zIndex))),
+      toolbar:Number(getComputedStyle(toolbar).zIndex),
+      boardHeight:board.getBoundingClientRect().height,
+      topFaces:document.querySelectorAll('.toy-top').length,
+      rightFaces:document.querySelectorAll('.toy-side').length
     };
   });
-  check(floating.count>=65&&floating.areaRatio>=.50,
-    scenario.name+' too much empty white space in floating shape field '+JSON.stringify(floating));
-  check(floating.pairsOverlapping<=floating.count*.18,
-    scenario.name+' shapes overlap too much '+JSON.stringify(floating));
-  check(floating.zLevels>=4&&floating.shades>=7,
-    scenario.name+' no diverse pastel depth layering '+JSON.stringify(floating));
-  check(floating.background==='rgb(255, 255, 255)'&&floating.stoneElements===0,
-    scenario.name+' white background not installed / old stone wall remains '+JSON.stringify(floating));
-  check(floating.motifs.every(n=>n>0)&&floating.resized,
-    scenario.name+' Crilo accents or responsive layout missing '+JSON.stringify(floating));
+  check(layers.levels===3&&layers.front>layers.maxToy&&layers.toolbar>layers.front,
+    scenario.name+' 3 layers or permanent frontmost checkout missing '+JSON.stringify(layers));
+  check(layers.topFaces===initialCount&&layers.rightFaces===initialCount,
+    scenario.name+' 3D toy faces missing');
+  await tipPage.locator('#shapeGravity').click();
+  check(await tipPage.locator('#shapeGravity').getAttribute('aria-pressed')==='false',
+    scenario.name+' gravity cannot be paused');
+  await tipPage.locator('[data-add-shape="cube"]').click();
+  check(await tipPage.locator('.toy-shape').count()===initialCount+1,
+    scenario.name+' add shape failed');
+  const toy=tipPage.locator('.toy-shape.selected');
+  check(await toy.count()===1,scenario.name+' new shape not selected');
+  await tipPage.locator('[data-depth-layer="3"]').click();
+  check(await toy.getAttribute('data-layer')==='3',scenario.name+' selected toy did not change Z layer');
+  // Actual pointer drag — reposition selected toy inside the interactive field.
+  await toy.scrollIntoViewIfNeeded();
+  const box=await toy.boundingBox();
+  check(!!box,scenario.name+' selected toy bounding box missing');
+  const x=box.x+box.width*.48,y=box.y+box.height*.45;
+  await tipPage.mouse.move(x,y);
+  await tipPage.mouse.down();
+  await tipPage.mouse.move(x+24,y+16,{steps:5});
+  await tipPage.mouse.up();
+  const moved=await toy.boundingBox();
+  check(moved.x>box.x+10&&moved.y>box.y+4,
+    scenario.name+' pointer dragging failed: '+JSON.stringify({box,moved}));
+  // Corner handle should resize in two dimensions, with minimum limits.
+  const beforeResize=await toy.boundingBox();
+  const handle=toy.locator('.toy-handle.at-se');
+  const hbox=await handle.boundingBox();
+  check(!!hbox,scenario.name+' resize handle absent');
+  await tipPage.mouse.move(hbox.x+hbox.width/2,hbox.y+hbox.height/2);
+  await tipPage.mouse.down();
+  await tipPage.mouse.move(hbox.x+hbox.width/2+20,hbox.y+hbox.height/2+18,{steps:5});
+  await tipPage.mouse.up();
+  const afterResize=await toy.boundingBox();
+  check(afterResize.width>=beforeResize.width+9&&afterResize.height>=beforeResize.height+7,
+    scenario.name+' corner resize failed: '+JSON.stringify({beforeResize,afterResize}));
+  // Resume gravity and check an actual downward movement from the suspended position.
+  const beforeFall=await toy.boundingBox();
+  await tipPage.locator('#shapeGravity').click();
+  await tipPage.waitForTimeout(260);
+  const afterFall=await toy.boundingBox();
+  check(afterFall.y>beforeFall.y+2,
+    scenario.name+' gravity did not make a shape fall: '+JSON.stringify({beforeFall,afterFall}));
+  await tipPage.locator('#shapeGravity').click();
+  await tipPage.locator('#shapeDelete').click();
+  check(await tipPage.locator('.toy-shape').count()===initialCount,
+    scenario.name+' remove shape failed');
+  await tipPage.locator('#shapeReset').click();
+  check(await tipPage.locator('.toy-shape').count()>=10,
+    scenario.name+' reset pile did not restore starter shapes');
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,

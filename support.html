@@ -9,11 +9,35 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="support-pastel.css?v=5">
+<link rel="stylesheet" href="support-pastel.css?v=6">
 </head>
 <body>
 <main class="pastel-world" aria-labelledby="supportHeading">
-  <div class="shape-canvas floating-shape-field" id="shapeCanvas" aria-hidden="true"></div>
+  <div class="shape-canvas floating-shape-field" id="shapeCanvas" aria-label="Interactive 3D shape playground"></div>
+  <header class="shape-toolbar" aria-label="3D shape building tools">
+    <div class="toolbar-title"><strong>Shape Lab</strong><span>Pick a block. Drop it. Stack it.</span></div>
+    <div class="shape-palette" role="group" aria-label="Add a 3D shape">
+      <button type="button" data-add-shape="cube"><i class="palette-icon cube"></i>Cube</button>
+      <button type="button" data-add-shape="slab"><i class="palette-icon slab"></i>Slab</button>
+      <button type="button" data-add-shape="cylinder"><i class="palette-icon cylinder"></i>Cylinder</button>
+      <button type="button" data-add-shape="sphere"><i class="palette-icon sphere"></i>Ball</button>
+      <button type="button" data-add-shape="prism"><i class="palette-icon prism"></i>Prism</button>
+      <button type="button" data-add-shape="arch"><i class="palette-icon arch"></i>Arch</button>
+    </div>
+    <div class="shape-tools">
+      <div class="depth-switch" role="group" aria-label="Depth layer">
+        <span class="layer-label">Depth</span>
+        <button type="button" data-depth-layer="1" aria-pressed="true">1</button>
+        <button type="button" data-depth-layer="2" aria-pressed="false">2</button>
+        <button type="button" data-depth-layer="3" aria-pressed="false">3</button>
+      </div>
+      <button type="button" class="utility-tool" id="shapeGravity" aria-pressed="true">Gravity on</button>
+      <button type="button" class="utility-tool" id="shapeDelete" disabled>Remove</button>
+      <button type="button" class="utility-tool" id="shapeReset">Reset</button>
+    </div>
+  </header>
+  <p class="shape-hint">Drag a block to move it · Drag a corner to resize · Choose a depth layer to stack</p>
+  <p id="shapeStatus" class="visually-hidden" aria-live="polite"></p>
   <section class="tip-card" aria-label="Optional one-time support for Crilo">
     <span class="card-ribbon" aria-hidden="true">✦ A LITTLE LOVE FOR CRILO ✦</span>
     <span class="card-sticker one" aria-hidden="true">✿</span>
@@ -59,6 +83,6 @@
   buttons.forEach(button=>button.addEventListener('click',()=>choose(button.dataset.amount)));
   choose('2');
 })();</script>
-<script src="support-pastel.js?v=4"></script>
+<script src="support-pastel.js?v=5"></script>
 <script>if(location.hash==='#shape-of-sound')location.replace('shape-of-sound.html');</script>
 </body></html>
