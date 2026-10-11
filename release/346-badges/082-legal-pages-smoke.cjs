@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const pages=["index.html","leaderboard.html","ducks.html","badge-sets.html","friends.html","profile.html","settings.html","support.html","shape-of-sound.html","beetle-tricks.html","owner-analytics.html"];
+const secondary=[...pages.filter(x=>x!=="index.html"),"privacy.html","terms.html"];
 const read=x=>fs.readFileSync(x,'utf8');
 const privacy=read('privacy.html'),terms=read('terms.html'),sitemap=read('sitemap.xml');
 const css=read('legal.css');
@@ -24,6 +25,22 @@ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,
 assert.match(css,/\.crilo-legal-nav a:last-of-type\{\s*grid-column:1 \/ -1;/,
  'Contact must center under the first two links on mobile');
 assert.ok(!css.includes('translateX(5px)'),'Remove ad hoc optical offsets');
+
+const sharedNav='<nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav>';
+for(const filename of secondary){
+ const file=read(filename);
+ const foot=file.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/)?.[0] || '';
+ assert.ok(foot.startsWith('<footer class="crilo-simple-footer" aria-label="Crilo footer">'),filename+' footer does not use shared layout');
+ assert.ok(foot.includes(sharedNav),filename+' footer links differ from the homepage design');
+ assert.ok(foot.includes('<small class="crilo-legal-copy">© 2026 Crilo</small>'),filename+' missing copyright');
+ assert.match(file,/legal\.css\?v=7/,filename+' needs fresh shared footer stylesheet');
+ assert.equal((foot.match(/<a /g)||[]).length,3,filename+' should retain exactly three legal links');
+ assert.ok(!foot.includes('aria-hidden="true">·'),filename+' still has decorative separator dots');
+}
+assert.match(css,/\.crilo-simple-footer \.crilo-legal-nav\{[\s\S]*?grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?\.crilo-simple-footer \.crilo-legal-nav\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+assert.ok(css.includes('.crilo-simple-footer .crilo-legal-nav a:last-of-type{'),'Mobile contact link should be centered');
+assert.ok(read('index.html').includes('class="crilo-beetle-track"'),'Homepage beetle remains unchanged');
 
 assert.match(read('index.html'),/id="bugBeetle"/);
 for(const p of [privacy,terms]){
