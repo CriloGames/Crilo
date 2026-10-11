@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 90" role="img" aria-label="Crilo Classic duck">
+  <!-- Exact Classic duck linework and colors from DuckWorld.art in ducks.js. -->
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28 70L26 78M44 70L45 79" stroke="#c88a58" stroke-width="4"/>
+    <path d="M13 55Q10 36 29 35Q41 28 49 39Q63 31 73 45Q82 61 66 72Q40 82 21 68Q14 63 13 55Z" fill="#ffe076" stroke="#453b35" stroke-width="3.5"/>
+    <path d="M45 43Q49 25 64 26Q79 27 78 43Q78 53 65 56" fill="#ffe076" stroke="#453b35" stroke-width="3.5"/>
+    <path d="M72 42Q84 40 91 45Q85 53 72 50Z" fill="#f7ab67" stroke="#453b35" stroke-width="3"/>
+    <path d="M27 54Q40 44 51 55Q44 65 32 63" fill="none" stroke="#aa9a74" stroke-width="2"/>
+    <circle cx="68" cy="37" r="3" fill="#453b35"/>
+  </g>
+</svg>
