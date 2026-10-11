@@ -8,7 +8,7 @@ const page=fs.readFileSync(path.join(root,'leaderboard.html'),'utf8');
 const profile=fs.readFileSync(path.join(root,'profile.js'),'utf8');
 assert.match(page,/data-tab="points">TOTAL POINTS/);
 assert.match(page,/leaderboard\.js\?v=47/);
-assert.match(script,/if\(tab==='points'\)\{await loadTotalPoints\(\);return\}/);
+assert.match(script,/if\(tab==='points'\)\{await loadTotalPoints\(revision\);return\}/);
 assert.match(script,/crilo_total_points_leaders/);
 assert.match(profile,/total_points\?\?s\.total_score/);
 const outputs=new Map();
@@ -36,7 +36,7 @@ assert.notEqual(modified,script,'Could not expose lifetime leaderboard loader');
 vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  encodeURIComponent,Number,Map,Math});
 (async()=>{
- await win.__auditLoadTotalPoints();
+ await win.__auditLoadTotalPoints(0);
  assert.equal(called,1);
  assert.equal(fromCalled,0);
  assert.equal(get('bestScore').textContent,'1,000 pts');
