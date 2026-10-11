@@ -328,7 +328,7 @@
     btn.textContent=Crilo.profile?.username || 'ACCOUNT';
     btn.style.color=Crilo.profile?.name_color || '';
     if(menu){
-      menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
+      menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a>${Crilo.profile?.is_owner?'<a href="settings.html#ownerSecurityCard">Owner security · 2FA</a>':''}<button id="menuSignOut">Sign out</button>`;
       $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); location.href='index.html';});
     }
   }
