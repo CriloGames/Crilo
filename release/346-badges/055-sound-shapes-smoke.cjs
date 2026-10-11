@@ -28,10 +28,11 @@ assert.ok(css.includes('.sound-palette-button'),'Offer visible sound choices');
 assert.ok(css.includes('body.sound-only-page .topbar .header-actions{display:none!important}'),
  'Hide sign-in on sound page only, preserving shared header wiring');
 assert.ok(html.includes('class="sound-only-page"'),'Sound page needs scoped header class');
-assert.ok(homepage.includes('id="soundHomeGame" href="support.html"'),'Homepage needs link to Shape of Sound');
+assert.ok(homepage.includes('id="soundHomeGame" href="support.html#shape-of-sound"'),'Homepage needs link to Shape of Sound');
 assert.ok(homepage.indexOf('id="soundHomeGame"')<homepage.indexOf('href="domain/"'),
  'Shape of Sound must be immediately before Domain');
 assert.ok(homepage.includes('The Shape of Sound'),'Homepage card needs game title');
+assert.ok(html.includes('id="shape-of-sound"'),'The sound game needs a direct anchor separate from Night Shift');
 assert.ok(css.includes('.sound-palette-button'),'Palette CSS is present');
 assert.ok(!/fetch\(|\.rpc\(|supabase|paypal\.com|location\.href|window\.open/i.test(js),
  'The free game must not call the backend or interact with checkout');

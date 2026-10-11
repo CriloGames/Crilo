@@ -327,3 +327,7 @@ body.sound-only-page .topbar .header-actions{display:none!important}
   .sound-app .sound-palette-button{font-size:9px}
   .sound-app .sound-palette-button span{width:17px;height:17px}
 }
+
+/* Allow the homepage's Shape of Sound card to bypass Night Shift entirely. */
+#shape-of-sound{scroll-margin-top:90px}
+@media(max-width:700px){#shape-of-sound{scroll-margin-top:84px}}

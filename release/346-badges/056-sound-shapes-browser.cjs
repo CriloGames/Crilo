@@ -298,7 +298,7 @@ async function main(){
       vw:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   check(!!gameCards,scenario.name+' homepage game card or Domain card missing');
-  check(gameCards.before&&gameCards.soundHref==='support.html'&&
+  check(gameCards.before&&gameCards.soundHref==='support.html#shape-of-sound'&&
     gameCards.title==='The Shape of Sound'&&gameCards.cards>=2,
     scenario.name+' Shape of Sound not a separate game before Domain');
   check(gameCards.domainDescription?.includes('Five rounds')&&
@@ -319,7 +319,12 @@ async function main(){
     const image=await home.locator('#more-games').screenshot({type:'jpeg',quality:53});
     console.log('HOMEPAGE_GAMES_SCREENSHOT_B64 '+scenario.name+' '+image.toString('base64'));
   }
-  console.log('PASS_HOME '+scenario.name+' — Shape of Sound above Domain, accessible card, no overflow');
+  await home.locator('#soundHomeGame').click();
+  check(home.url().endsWith('/support.html#shape-of-sound'),
+    scenario.name+' sound game card failed to navigate directly to its own game');
+  check(await home.locator('#shape-of-sound').isVisible(),
+    scenario.name+' Shape of Sound anchor target missing');
+  console.log('PASS_HOME '+scenario.name+' — Shape of Sound above Domain, navigates straight to sound, no overflow');
   await home.close();
   console.log('PASS '+scenario.name+' '+scenario.width+'x'+scenario.height+' — layout/tap/audio/stretch/merge/split/loop/mute/save/reset/PayPal');
   runs++;await context.close();await browser.close();
