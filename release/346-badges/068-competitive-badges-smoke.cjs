@@ -1,0 +1,16 @@
+'use strict';
+const a=require('node:assert/strict'),fs=require('node:fs');
+const html=fs.readFileSync('leaderboard.html','utf8'),index=fs.readFileSync('index.html','utf8');
+const board=fs.readFileSync('leaderboard.js','utf8'),game=fs.readFileSync('game.js','utf8');
+const sql=fs.readFileSync('release/346-badges/068-competitive-badges.sql','utf8');
+a.match(html,/leaderboard\.js\?v=40/);a.match(index,/game\.js\?v=72/);
+a.match(sql,/SECURITY DEFINER SET search_path TO ''/);
+a.match(sql,/b\.category IS DISTINCT FROM 'Exploration & onboarding'/);
+a.match(sql,/count\(DISTINCT ub\.badge_id\)/);
+a.match(sql,/LIMIT LEAST\(GREATEST\(COALESCE\(p_limit,100\),1\),100\)/);
+a.match(board,/rpc\('crilo_gameplay_badge_leaders',\{p_limit:100\}\)/);
+a.doesNotMatch(board,/from\('user_badges'\)\.select\('user_id,badge_id'\)/);
+a.match(board,/Exploration badges still count in your personal collection/);
+a.match(game,/started&&!isTest&&!guestRun&&\(totalSpins>0\|\|spinning\)/);
+a.match(game,/previous Daily has closed/);
+console.log('PASS: client-only badges excluded from rankings, ongoing official runs survive reset.');

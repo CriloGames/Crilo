@@ -149,24 +149,23 @@ function renderDuckLeaders(entries,profiles){
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score">'+e.count.toLocaleString()+' 🦆</div></div>'}).join('');
 }
 async function loadBadges(){
- $('leaderList').innerHTML='<div class="empty-state">Loading badge collectors…</div>';
- const {data:earned,error}=await criloDB.from('user_badges').select('user_id,badge_id').limit(10000);
+ $('leaderList').innerHTML='<div class="empty-state">Loading gameplay badge collectors…</div>';
+ const {data,error}=await criloDB.rpc('crilo_gameplay_badge_leaders',{p_limit:100});
  if(error){$('leaderList').innerHTML='<div class="empty-state">Badge rankings unavailable: '+Crilo.esc(error.message)+'</div>';return}
- const counts=new Map();for(const b of earned||[]){if(!counts.has(b.user_id))counts.set(b.user_id,new Set());counts.get(b.user_id).add(b.badge_id)}
- const entries=[...counts].map(([user_id,ids])=>({user_id,count:ids.size})).sort((a,b)=>b.count-a.count).slice(0,100);
- const ids=entries.map(x=>x.user_id);let profiles=[];if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color').in('id',ids);profiles=data||[]}
- renderBadgeLeaders(entries,new Map(profiles.map(p=>[p.id,p])));
+ const entries=(data||[]).map(x=>({user_id:x.user_id,count:Number(x.gameplay_badges)||0}));
+ const profiles=new Map((data||[]).map(x=>[x.user_id,{username:x.username,name_color:x.name_color}]));
+ renderBadgeLeaders(entries,profiles);
 }
 function renderBadgeLeaders(entries,profiles){
  setBestScoreRarity(null); // A badge count cannot be classified as a score.
- $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Unique badges earned, not featured slots. Ties share a rank.';$('bestDrawing').classList.add('hidden');
+ $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Gameplay badges earned from official play. Exploration badges still count in your personal collection, but not in rankings. Ties share a rank.';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
- const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString()+' badges';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most badges earned across Crilo';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><span class="leader-name" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</span><span class="leader-mini">Unique badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
+ const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString()+' badges';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><span class="leader-name" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</span><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
- const descriptions={today:'The highest score from today’s official Daily.',week:'The highest score from the last seven Daily periods.',all:'The highest score ever recorded.',records:'Most spins in a single run. Score breaks ties.',badges:'Players ranked by the number of unique badges earned.',ducks:'The most ducks collected in a single run.'};
+ const descriptions={today:'The highest score from today’s official Daily.',week:'The highest score from the last seven Daily periods.',all:'The highest score ever recorded.',records:'Most spins in a single run. Score breaks ties.',badges:'Players ranked by gameplay badges; client-reported exploration badges are excluded.',ducks:'The most ducks collected in a single run.'};
  $('bestHeading').textContent=headings[tab];
  $('leaderDescription').textContent=descriptions[tab];
  const scoreBoard=tab==='today'||tab==='week'||tab==='all';
