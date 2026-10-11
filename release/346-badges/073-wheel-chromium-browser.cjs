@@ -152,6 +152,7 @@ async function run(){
     await page.waitForFunction(()=>window.__qaBackend.finished&&window.__qaBackend.saves.length===1);
     assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].spins),1);
     assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].score),1);
+    assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].drawing),null,'Blank official drawings must not be stored as empty PNGs');
    }else{
     for(let i=1;i<=5;i++){
      await page.locator('#spinButton').click();

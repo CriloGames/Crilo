@@ -514,11 +514,26 @@ function beginRun(alignPlay=false){
   if(guestDailyLocked())return;
  }
  document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;update();if(alignPlay)alignPlayViewport()}
-async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;try{DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=drawing.toDataURL('image/png');const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
+// Save only the image needed for the public Daily. WebP is optional: browsers
+// without it, or drawings that are already smaller as PNG, keep the original.
+function optimizedDailyDrawing(canvas,isBlank){
+ if(isBlank)return null;
+ const png=canvas.toDataURL('image/png');
+ try{
+  const webp=canvas.toDataURL('image/webp',0.96);
+  // Favor visual fidelity over a tiny byte reduction.
+  if(webp.startsWith('data:image/webp;base64,') && webp.length<=png.length*0.8)return webp;
+ }catch(err){console.warn('Optional drawing compression unavailable',err)}
+ return png;
+}
+async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;try{DuckWorld.clear(); $('spinButton').disabled=true;started=false;const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
+ // Guest drawings stay in guest-only storage; owner Test Runs retain their
+ // original PNG behavior. Official runs use the smaller safe representation.
+ drawingData=isTest?drawing.toDataURL('image/png'):optimizedDailyDrawing(drawing,drawingIsBlank);
  const draftKey=officialServerMode()&&user?.id?'crilo-pending-official-drawing-'+user.id:'';
  if(draftKey&&serverSessionId){try{
   const prior=JSON.parse(localStorage.getItem(draftKey)||'null');
-  if(drawingIsBlank&&prior?.sessionId===serverSessionId&&typeof prior.drawing==='string'&&prior.drawing.startsWith('data:image/png;base64,')){
+  if(drawingIsBlank&&prior?.sessionId===serverSessionId&&typeof prior.drawing==='string'&&/^data:image\/(?:png|webp);base64,/.test(prior.drawing)){
    drawingData=prior.drawing;drawingIsBlank=Boolean(prior.isBlank);
   }
   localStorage.setItem?.(draftKey,JSON.stringify({sessionId:serverSessionId,drawing:drawingData,isBlank:drawingIsBlank}));

@@ -1,0 +1,13 @@
+'use strict';
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
+assert.match(html,/game\.js\?v=75/);
+assert.match(game,/function optimizedDailyDrawing\(canvas,isBlank\)/);
+assert.match(game,/if\(isBlank\)return null;/);
+assert.match(game,/toDataURL\('image\/webp',0\.96\)/);
+assert.match(game,/webp\.length<=png\.length\*0\.8/);
+assert.match(game,/drawingData=isTest\?drawing\.toDataURL\('image\/png'\):optimizedDailyDrawing\(drawing,drawingIsBlank\)/);
+assert.match(game,/data:image\\\/\(\?:png\|webp\);base64,/);
+assert.match(game,/verified_spin_session_id:serverSessionId/);
+assert.match(game,/drawing_is_blank:drawingIsBlank/);
+console.log('PASS: blank official drawings omit images and colorful drawings retain compatible size-aware encoding; owner Test Runs unchanged.');

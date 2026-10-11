@@ -178,6 +178,8 @@ jobs:
         run: node release/346-badges/072-wheel-browser-fault-injection-smoke.cjs
       - name: Verify social cards, owner-only metrics and Google discovery files
         run: node release/346-badges/076-growth-seo-static-smoke.cjs
+      - name: Validate official Daily image storage and legacy draft compatibility
+        run: node release/346-badges/077-daily-drawing-storage-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
