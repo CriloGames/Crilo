@@ -12,7 +12,7 @@ for(const page of pages){
  const html=fs.readFileSync(path.join(root,page),'utf8');
  assert.match(html,/\bid="accountBtn"/,'Missing account button on '+page);
  assert.match(html,/\bid="accountMenu"/,'Missing account dropdown on '+page);
- assert.match(html,/app\.js\?v=41/,'Old cached script on '+page);
+ assert.match(html,/app\.js\?v=42/,'Old cached script on '+page);
 }
 assert.match(app,/window\.addEventListener\('crilo-signin-request'/);
 assert.match(app,/document\.addEventListener\('click',e=>/);
@@ -34,6 +34,7 @@ function createPage(home=false){
   dispatch(k,event){return Promise.all((this.handlers.get(k)||[]).map(fn=>fn(event)))}
   focus(){this.focused=true}
   contains(x){return this===x}
+  replaceChildren(){this.children=[];this.innerHTML=''}
   appendChild(x){this.children.push(x);created.push(x);return x}
   querySelector(sel){this.nodes=this.nodes||new Map();if(!this.nodes.has(sel))this.nodes.set(sel,new Fake(sel));return this.nodes.get(sel)}
   setAttribute(key,val){this[key]=val}
