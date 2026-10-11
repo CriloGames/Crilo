@@ -190,7 +190,8 @@ function render(runs,pm){
  }
  const best=runs[0],bp=pm.get(best.user_id);
  $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString()+' spins':
-  tab==='ducks'?Number(best.ducks).toLocaleString():Number(best.score).toLocaleString();
+  Number(best.score).toLocaleString();
+ if(tab==='ducks')$('bestScore').innerHTML=duckCountHTML(best.ducks);
  $('bestUser').textContent=bp?.username||'Crilo player';
  $('bestUser').style.color=bp?.name_color||'';
  $('bestStats').textContent=`${best.spins} spins • ${best.upgrades} upgrades • ${best.doubles} doubles • ${best.ducks} ducks`;
@@ -202,7 +203,7 @@ function render(runs,pm){
  $('leaderList').innerHTML=runs.map((r,i)=>{
   const p=pm.get(r.user_id);
   const metric=tab==='records'?`${Number(r.spins).toLocaleString()} spins`:
-   tab==='ducks'?`${Number(r.ducks).toLocaleString()}`:Number(r.score).toLocaleString();
+   tab==='ducks'?duckCountHTML(r.ducks):Number(r.score).toLocaleString();
   const tier=scoreRarity(r.score);
   const scoreAttr=scoreBoard&&tier?` data-score-rarity="${tier}" title="${tier.toUpperCase()} final score"`:'';
   const secondary=tab==='records'&&tier?
