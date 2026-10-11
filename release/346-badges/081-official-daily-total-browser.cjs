@@ -18,7 +18,7 @@ const javascript=fs.readFileSync('official-daily-total.js','utf8');
    await page.setContent('<!doctype html><html data-theme="light"><body><main><section class="hero"><div class="daily-row">'+fragment+'<h1>Make the number bigger.</h1><p class="sub">Five spins to start. One official run per Daily.</p><div id="message"></div></section></main></body></html>');
    await page.addStyleTag({content:siteCss});
    await page.addStyleTag({content:chipCss});
-   await page.evaluate(()=>{window.__qaCounts={today:1,all_time:2,period:'2026-10-10'};window.__qaCalls=0;window.criloDB={
+   await page.evaluate(()=>{window.__qaCounts={today:1,all_time:2,period:new Date(Date.now()-22*3600000).toISOString().slice(0,10)};window.__qaCalls=0;window.criloDB={
     rpc:async(name)=>{if(name!=='crilo_public_daily_completion_counts')throw Error('Unexpected RPC');window.__qaCalls++;return{data:window.__qaCounts,error:null}}
    }});
    await page.addScriptTag({content:javascript});
@@ -26,9 +26,22 @@ const javascript=fs.readFileSync('official-daily-total.js','utf8');
    const bounds=await page.locator('.crilo-daily-total').boundingBox();
    assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+1,'Counter clipped at '+width+' px');
    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1,'Horizontal overflow at '+width);
-   await page.evaluate(()=>{window.__qaCounts={today:2,all_time:3,period:'2026-10-10'};document.getElementById('message').textContent='Official Daily saved. See how you ranked.';});
+   await page.evaluate(()=>{window.__qaCounts={today:2,all_time:3,period:new Date(Date.now()-22*3600000).toISOString().slice(0,10)};document.getElementById('message').textContent='Official Daily saved. See how you ranked.';});
    await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='2'&&document.getElementById('criloOfficialDailyLabel').textContent==='DAILIES COMPLETED TODAY');
    assert.equal(await page.evaluate(()=>window.__qaCalls),2,'Only initial read and completed Daily refresh');
+   // A stale backend period must never cause recursive retries or a freeze.
+   // Trigger the observer with a fresh saved-message transition.
+   await page.evaluate(()=>{
+    window.__qaCounts={today:999,period:'1999-01-01'};
+    document.getElementById('message').textContent='Waiting';
+   });
+   await page.waitForTimeout(40);
+   await page.evaluate(()=>{document.getElementById('message').textContent='Official Daily saved. See how you ranked.'});
+   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='—',
+    {timeout:2500});
+   await page.waitForTimeout(180);
+   assert.ok((await page.evaluate(()=>window.__qaCalls))<=3,
+    'Stale Daily period must not cause rapid-fire RPC retries');
    await page.close();
    console.log('PASS today-only count '+width+'px: 1 then 2, no lifetime number');
   }
