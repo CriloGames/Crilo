@@ -17,19 +17,19 @@ const javascript=fs.readFileSync('official-daily-total.js','utf8');
    await page.setContent('<!doctype html><html data-theme="light"><body><main><section class="hero"><div class="daily-row">'+fragment+'<h1>Make the number bigger.</h1><p class="sub">Five spins to start. One official run per Daily.</p><div id="message"></div></section></main></body></html>');
    await page.addStyleTag({content:siteCss});
    await page.addStyleTag({content:chipCss});
-   await page.evaluate(()=>{window.__qaTotal=2;window.__qaCalls=0;window.criloDB={
-    rpc:async(name)=>{if(name!=='crilo_public_official_daily_total')throw Error('Unexpected RPC');window.__qaCalls++;return{data:window.__qaTotal,error:null}}
+   await page.evaluate(()=>{window.__qaCounts={today:1,all_time:2,period:'2026-10-10'};window.__qaCalls=0;window.criloDB={
+    rpc:async(name)=>{if(name!=='crilo_public_daily_completion_counts')throw Error('Unexpected RPC');window.__qaCalls++;return{data:window.__qaCounts,error:null}}
    }});
    await page.addScriptTag({content:javascript});
-   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyTotal').textContent==='2');
+   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='1'&&document.getElementById('criloOfficialDailyTotal').textContent==='2');
    const bounds=await page.locator('.crilo-daily-total').boundingBox();
    assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+1,'Counter clipped at '+width+' px');
    assert.ok((await page.evaluate(()=>document.documentElement.scrollWidth))<=width+1,'Horizontal overflow at '+width);
-   await page.evaluate(()=>{window.__qaTotal=3;document.getElementById('message').textContent='Official Daily saved. See how you ranked.';});
-   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyTotal').textContent==='3');
+   await page.evaluate(()=>{window.__qaCounts={today:2,all_time:3,period:'2026-10-10'};document.getElementById('message').textContent='Official Daily saved. See how you ranked.';});
+   await page.waitForFunction(()=>document.getElementById('criloOfficialDailyToday').textContent==='2'&&document.getElementById('criloOfficialDailyTotal').textContent==='3');
    assert.equal(await page.evaluate(()=>window.__qaCalls),2,'Only initial read and completed Daily refresh');
    await page.close();
-   console.log('PASS community counter '+width+'px, initial read and real Daily completion update');
+   console.log('PASS community counts '+width+'px: 1 today / 2 all-time, then 2 / 3');
   }
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
