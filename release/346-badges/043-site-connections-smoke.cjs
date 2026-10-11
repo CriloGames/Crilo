@@ -27,7 +27,7 @@ for(const page of pages.filter(p=>p!=='domain/index.html')){
  const html=pagesSource[page];
  assert.ok(html.includes('id="accountBtn"')&&html.includes('id="accountMenu"'),
   'Broken or missing account header on '+page);
- assert.ok(html.includes('app.js?v=40'),'Stale/missing shared authentication script on '+page);
+ assert.ok(html.includes('app.js?v=41'),'Stale/missing shared authentication script on '+page);
 }
 assert.ok(pagesSource['friends.html'].includes('friends.js?v=12'));
 for(const id of ['copyInviteBtn','inviteLink','invitationNotice','friendSearch','searchBtn'])
@@ -78,7 +78,7 @@ assert.ok(migration.includes('crilo_owner_delete_profile_run')&&
  migration.includes("IF p_source='official' THEN")&&
  migration.includes("USING ERRCODE='22023'"),
  'Legacy official-score deletion must be rejected at the database boundary');
-assert.ok(pagesSource['support.html'].includes('app.js?v=40'),
+assert.ok(pagesSource['support.html'].includes('app.js?v=41'),
  'Support page must connect to shared sign-in rather than show a disconnected header');
 console.log('PASS: '+pages.length+' site pages and '+checkedLinks+' internal asset/route links resolve.');
 console.log('PASS: sign-in headers and friend invitation/copy actions are connected.');
