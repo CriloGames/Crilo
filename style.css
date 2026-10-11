@@ -1494,3 +1494,19 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 .account-wrap:has(> #accountBtn[aria-busy="true"])::before{
  width:100%;right:0
 }
+
+/* Leaderboard duck counters use the original Classic from Meet the Ducks,
+   never the OS-specific duck emoji. Scale it like an icon, not an illustration. */
+.leader-duck-icon{display:inline-block;vertical-align:middle;object-fit:contain;flex:none;max-width:none}
+.leader-tabs-wrap .leader-tab[data-tab="ducks"]{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.leader-tabs-wrap .leader-duck-icon-tab{width:24px;height:23px}
+.leader-duck-value{display:inline-flex;align-items:center;justify-content:center;gap:.12em;max-width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}
+.leader-duck-icon-count{width:1.18em;height:1.12em}
+.best-score .leader-duck-value{font-size:1em;line-height:1;gap:.12em}
+.best-score .leader-duck-icon-count{width:1.3em;height:1.18em}
+.leader-duck-score{font-variant-numeric:tabular-nums;white-space:nowrap}
+.leader-duck-score .leader-duck-value{justify-content:flex-end}
+@media(max-width:600px){
+ .leader-tabs-wrap .leader-duck-icon-tab{width:21px;height:20px}
+ .leader-duck-score .leader-duck-icon-count{width:1.15em;height:1.12em}
+}
