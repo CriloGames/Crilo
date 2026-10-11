@@ -11,7 +11,7 @@
   const params=new URLSearchParams(location.search);
   const profileId=params.get('id');
   const esc=value=>Crilo.esc(String(value??''));
-  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,shownSpins=0,busy=false,lifetimeSpins=null;
+  let currentId='',requestId=0,runOffset=0,runExhausted=false,queue=[],shown=0,shownSpins=0,busy=false,lifetimeSpins=null,lastDay='';
 
   function scoreTier(score){
     const bands=window.CriloRarity?.scoreBands;
@@ -144,6 +144,10 @@
       const next=queue.splice(0,PAGE);
       if(shown===0)list.textContent='';
       for(const item of next){
+        if(item.date!==lastDay){
+          list.insertAdjacentHTML('beforeend','<h3 class="spin-history-day">'+esc(item.date)+'</h3>');
+          lastDay=item.date;
+        }
         list.insertAdjacentHTML('beforeend',rowHTML(item));
         if(!item.legacy)shownSpins++;
       }
@@ -180,7 +184,7 @@
     const id=profileId||Crilo.user?.id||'';
     if(id===currentId)return;
     const token=++requestId;
-    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;shownSpins=0;busy=false;lifetimeSpins=null;
+    currentId=id;runOffset=0;runExhausted=false;queue=[];shown=0;shownSpins=0;busy=false;lifetimeSpins=null;lastDay='';
     pager.hidden=true;ending.hidden=true;
     counter.textContent='Loading…';
     list.innerHTML='<p class="spin-history-message">Fetching official spins…</p>';
