@@ -9,7 +9,7 @@ const music=fs.readFileSync(path.join(root,'shape-of-sound.html'),'utf8');
 assert.equal((html.match(/id="supportPayLink"/g)||[]).length,1,'Exactly one checkout');
 assert.equal((html.match(/data-amount="/g)||[]).length,4,'Four voluntary tip options');
 assert.ok(html.includes('href="index.html#more-games"'),'Back to main site link');
-assert.ok(html.includes('support-pastel.css?v=10'),'Refresh site-matched decorative CSS');
+assert.ok(html.includes('support-pastel.css?v=11'),'Refresh site-matched decorative CSS');
 assert.ok(html.includes('family=Manrope')&&css.includes('font-family:"Manrope"'),'Keep readable familiar typography');
 assert.ok(html.includes('class="crilo-shape-field"')&&html.includes('aria-hidden="true"'),'Artwork must be decorative');
 assert.equal((html.match(/class="crilo-mini-wheel wheel-/g)||[]).length,8,'Eight small wheel motifs');
