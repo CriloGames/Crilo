@@ -40,7 +40,7 @@ assert.ok(domain.includes("slider:Number($('priceSlider').value)"),'Send slider,
 assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=11'));
 assert.ok(profile.includes(".eq('is_verified',true)")&&profile.includes(".eq('is_verified',false)"));
 assert.ok(profile.includes('Legacy / local (unverified)'), 'Legacy scores must be visibly untrusted');
-assert.ok(profilePage.includes('profile.js?v=97'));
+assert.ok(profilePage.includes('profile.js?v=98'));
 assert.match(owner,/CREATE UNIQUE INDEX IF NOT EXISTS crilo_exactly_one_owner_guard/);
 assert.match(owner,/WHERE is_owner IS TRUE/);
 assert.match(owner,/REVOKE UPDATE \(account_code,username_changed_at\)/);
