@@ -35,9 +35,17 @@ const blocks=src.slice(src.indexOf('function duckCountHTML('),src.indexOf('async
  src.slice(src.indexOf('function renderDuckLeaders('),src.indexOf('async function loadBadges()'));
 assert.ok(blocks.includes('function duckCountHTML')&&blocks.includes('function renderDuckLeaders'));
 const elements=new Map();
+function makeElement(){
+ let text='',html='';
+ const el={dataset:{},style:{},classList:{add(){},remove(){}}};
+ Object.defineProperties(el,{
+  textContent:{get:()=>text,set:v=>{text=String(v);html='';}},
+  innerHTML:{get:()=>html,set:v=>{html=String(v);text='';}}
+ });
+ return el;
+}
 const $=id=>{
- if(!elements.has(id))elements.set(id,{textContent:'',innerHTML:'',dataset:{},style:{},
-  classList:{add(){},remove(){}}});
+ if(!elements.has(id))elements.set(id,makeElement());
  return elements.get(id);
 };
 const env={
