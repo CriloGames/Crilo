@@ -1,107 +1,91 @@
-/* Read-only profile spin history regression; no browser or database writes. */
+/* Personal Daily leaderboard regression. Read-only fixtures; no live writes. */
 'use strict';
 const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const path=require('node:path');
-const vm=require('node:vm');
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../..');
 const src=fs.readFileSync(path.join(root,'spin-history.js'),'utf8');
 const css=fs.readFileSync(path.join(root,'spin-history.css'),'utf8');
 const html=fs.readFileSync(path.join(root,'profile.html'),'utf8');
 assert.ok(html.indexOf('id="spinHistoryHeading"')<html.indexOf('How Much Was the Domain?'));
-assert.match(html,/spin-history\.js\?v=5/);
-assert.match(html,/spin-history\.css\?v=4/);
-for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic']){
- assert.ok(css.includes('.spin-history-item[data-rarity="'+rarity+'"]'),'Missing color '+rarity);
+assert.match(html,/spin-history\.js\?v=7/);
+assert.match(html,/spin-history\.css\?v=6/);
+assert.match(html,/Your completed Daily runs, newest first/);
+for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic'])
+ assert.ok(css.includes('.spin-history-item[data-rarity="'+rarity+'"]'),'Missing tier '+rarity);
+assert.match(css,/border:4px solid #17191e/);
+assert.ok(!src.includes('results.map'),'History must render Dailies, not spin events');
+
+const bands=[{key:'trash',max:6},{key:'common',max:24},{key:'uncommon',max:48},
+ {key:'rare',max:92},{key:'epic',max:141},{key:'anomaly',max:300},{key:'mythic',max:Infinity}];
+function run(id,spins=3,opts={}){
+ return {id,user_id:'player',is_test:false,daily_period:'2026-10-'+String(11-id%10).padStart(2,'0'),
+  created_at:new Date(Date.UTC(2026,9,11-id%10)).toISOString(),
+  score:spins*3,spins,upgrades:1,doubles:0,ducks:2,results:Array.from({length:spins},()=>({type:'duck'})),
+  verified_spin_session_id:'verified',drawing:null,...opts};
 }
-function run(id,values,date='2026-10-09'){
- return {id,user_id:'player',created_at:new Date(Date.UTC(2026,9,10-id)).toISOString(),
-  daily_period:date,score:values.length,spins:values.length,
-  results:values.map(points=>({type:'num',points})),is_test:false};
-}
-const bands=[
- {key:'trash',max:6},{key:'common',max:24},{key:'uncommon',max:48},
- {key:'rare',max:92},{key:'epic',max:141},{key:'anomaly',max:300},
- {key:'mythic',max:Infinity}
-];
-async function scenario(name,runs,counts,{expectLegacy=false,expectMore=false}={}){
+async function scenario(name,runs,pages,{more=false}={}){
  const elements=new Map(),calls=[],listeners={};
  function element(id){
   if(elements.has(id))return elements.get(id);
   const obj={id,innerHTML:'',textContent:'',disabled:false,hidden:false,
-   handlers:{},classList:{add(){},remove(){}},
-   addEventListener(name,fn){this.handlers[name]=fn},
+   handlers:{},classList:{add(){},remove(){}},setAttribute(){},
+   addEventListener(event,fn){this.handlers[event]=fn},
    insertAdjacentHTML(where,value){assert.equal(where,'beforeend');this.innerHTML+=value}};
   elements.set(id,obj);return obj;
  }
- const sorted=runs.slice().sort((a,b)=>b.created_at.localeCompare(a.created_at));
  const db={from(table){
   assert.equal(table,'daily_runs');
-  const filters={};
-  const query={fields:'',select(fields){query.fields=fields;return query},
-   eq(key,val){filters[key]=val;return query},
-   order(){return query},
-   range(start,end){
-    calls.push({start,end,fields:query.fields,...filters});
-    const found=sorted.filter(x=>x.user_id===filters.user_id&&x.is_test===filters.is_test);
-    const rows=found.slice(start,end+1);
-    return Promise.resolve({data:query.fields==='spins'?rows.map(x=>({spins:x.spins})):rows,error:null});
+  const filters={};let fields='';
+  const q={select(x){fields=x;return q},eq(k,v){filters[k]=v;return q},
+   order(){return q},range(a,b){
+    calls.push({a,b,fields,...filters});
+    const items=runs.filter(x=>x.user_id===filters.user_id&&x.is_test===filters.is_test)
+      .sort((a,b)=>String(b.daily_period).localeCompare(String(a.daily_period))||
+        String(b.created_at).localeCompare(String(a.created_at))||b.id-a.id);
+    const rows=items.slice(a,b+1);
+    return Promise.resolve({data:fields==='spins'?rows.map(x=>({spins:x.spins})):rows,error:null});
    }};
-  return query;
+  return q;
  }};
- const ctx={document:{getElementById:element},
-  window:{addEventListener(name,cb){listeners[name]=cb},CriloRarity:{scoreBands:bands}},
+ const ctx={document:{getElementById:element},window:{addEventListener(k,fn){listeners[k]=fn},CriloRarity:{scoreBands:bands}},
   Crilo:{user:{id:'player'},esc:x=>String(x??'').replace(/&/g,'&amp;').replace(/</g,'&lt;')},
   criloDB:db,location:{search:''},URLSearchParams,console};
  vm.runInNewContext(src,ctx,{filename:'spin-history.js'});
- async function flush(){for(let i=0;i<30;i++)await Promise.resolve();}
+ async function flush(){for(let i=0;i<40;i++)await Promise.resolve()}
  await flush();
- const entryCount=()=> (element('spinHistoryList').innerHTML.match(/<article class="spin-history-item/g)||[]).length;
+ const history=()=>element('spinHistoryList').innerHTML;
+ const count=()=> (history().match(/<article class="spin-history-item"/g)||[]).length;
  const official=runs.filter(x=>x.user_id==='player'&&!x.is_test);
- const expectedTotal=official.reduce((n,r)=>n+(Number(r.spins)||0),0);
- const expectedLifetimeLabel=expectedTotal.toLocaleString('en-US')+' spin'+(expectedTotal===1?'':'s')+' total';
- const assertLifetime=phase=>assert.equal(element('spinHistoryCount').textContent,
-  expectedLifetimeLabel,name+' total changed '+phase);
- assert.equal(entryCount(),counts[0],name+' initial 5');
- assertLifetime('after initial history load');
- assert.ok(calls.every(c=>c.user_id==='player'&&c.is_test===false),name+' privacy filter');
- assert.ok(calls.some(c=>c.fields.includes('drawing')),name+' must load saved wheel art');
- if(entryCount()>0)assert.ok(element('spinHistoryList').innerHTML.includes('default-wheel.svg'),
-   name+' must show blank wheel when no drawing was saved');
- for(let i=1;i<counts.length;i++){
-  assert.equal(element('spinHistoryPager').hidden,false,name+' load button before '+i);
+ const total=official.reduce((sum,row)=>sum+Number(row.spins||0),0);
+ const label=total.toLocaleString('en-US')+' spin'+(total===1?'':'s')+' total';
+ assert.equal(count(),pages[0],name+' initial Daily cards');
+ assert.equal(element('spinHistoryCount').textContent,label,name+' lifetime spin count');
+ assert.ok(calls.every(c=>c.user_id==='player'&&c.is_test===false),name+' excludes owner Test Runs');
+ assert.ok(calls.some(c=>c.fields.includes('score,spins')&&c.fields.includes('drawing')),name+' must use Daily scores and art');
+ assert.ok(!history().includes('DUCK!')&&!history().includes('Landed '),name+' must not render spin events');
+ assert.ok(!history().includes('Badge earned'),name+' must not render achievements');
+ if(count())assert.ok(history().includes('blank-wheel.svg'),name+' blank artwork must be blank');
+ for(let i=1;i<pages.length;i++){
+  assert.equal(element('spinHistoryPager').hidden,false,name+' should show Load More');
   await element('spinHistoryMore').handlers.click();
-  assert.equal(entryCount(),counts[i],name+' after page '+i);
-  assertLifetime('after loading page '+i);
+  await flush();
+  assert.equal(count(),pages[i],name+' page '+i);
+  assert.equal(element('spinHistoryCount').textContent,label);
  }
- assert.equal(element('spinHistoryPager').hidden,!expectMore,name+' pager end');
- assertLifetime('at end of pagination');
- assert.ok(calls.some(c=>c.fields==='spins'),name+' must independently fetch lifetime spins');
- const expectedReal=official.reduce((n,r)=>n+(r.results?.length||0),0);
- const shouldDuck=expectedReal>5&&!expectMore; // Duck appears only after reaching the final page.
- assert.equal(element('spinHistoryEnd').hidden,!shouldDuck,name+' duck end');
- assert.equal((element('spinHistoryList').innerHTML.match(/data-rarity="mythic"/g)||[]).length>0,
-  runs.some(r=>r.score>=301),name+' mythic rarity') ;
- if(expectLegacy)assert.ok(element('spinHistoryList').innerHTML.includes('individual spins were not saved'));
- console.log('PASS '+name+': '+entryCount()+' history records, '+calls.length+' DB fetches, duck='+shouldDuck);
+ assert.equal(element('spinHistoryPager').hidden,!more,name+' pager state');
+ assert.ok(calls.some(c=>c.fields==='spins'),name+' independent lifetime count');
+ console.log('PASS '+name+': '+count()+' Dailies / '+total+' lifetime spins');
 }
 (async()=>{
- await scenario('zero official runs',[],[0]);
- await scenario('four spins',[run(1,[1,2,3,4])],[4]);
- await scenario('five spins',[run(1,[1,2,3,4,5])],[5]);
- await scenario('six spins',[run(1,[1,2,3,4,5,6])],[5,6]);
- await scenario('multi-run page boundary',Array.from({length:12},(_,i)=>run(i+1,[30,30,30])),
-  [5,10,15,20,25,30,35,36]);
- const legacy={id:90,user_id:'player',created_at:'2026-09-01T00:00:00Z',
-  daily_period:'2026-08-31',score:864,spins:11,results:null,is_test:false};
- await scenario('legacy saved Daily and excluded Test Run',[
-  run(1,[1,1,1,1,1,10,10,10,10,10,10]),legacy,
-  {...run(3,[301]),is_test:true}
- ],[5,10,12],{expectLegacy:true});
- const many=Array.from({length:501},(_,i)=>run(i+1,[1]));
- await scenario('501 official Dailies total across two 500-row chunks',
-  [...many,{...run(999,[1,1,1]),is_test:true}],[5],{expectMore:true});
- const thousandPlus=Array.from({length:1001},(_,i)=>run(i+1,[1]));
- await scenario('1001 official Dailies total across three 500-row chunks',
-  [...thousandPlus,{...run(1002,[1,1,1]),is_test:true}],[5,10,15],{expectMore:true});
-})().catch(err=>{console.error(err);process.exitCode=1});
+ await scenario('zero Dailies',[],[0]);
+ await scenario('one 10-spin Daily',[run(1,10,{score:23})],[1]);
+ await scenario('five daily runs',Array.from({length:5},(_,i)=>run(i+1)),[5]);
+ await scenario('six daily runs',Array.from({length:6},(_,i)=>run(i+1)),[5,6]);
+ await scenario('twelve daily runs',Array.from({length:12},(_,i)=>run(i+1)),[5,10,12]);
+ await scenario('legacy Daily preserved, Test Run excluded',[
+  run(1,10,{score:23,verified_spin_session_id:null,drawing:'data:image/png;base64,Zm9v'}),
+  run(2,4),run(3,3,{is_test:true})
+ ],[2]);
+ await scenario('501 Dailies counted beyond first 500',Array.from({length:501},(_,i)=>run(i+1,1)),[5],{more:true});
+ await scenario('1001 Dailies counted beyond 1000',Array.from({length:1001},(_,i)=>run(i+1,1)),[5,10],{more:true});
+})().catch(error=>{console.error(error);process.exitCode=1});
