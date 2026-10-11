@@ -1,0 +1,123 @@
+/* The Shape of Sound — independent free game, isolated from PayPal checkout. */
+.sound-page{padding-top:24px}
+.sound-page .support-back{width:min(1060px,100%);margin-bottom:20px}
+.sound-lab{max-width:1060px;margin:0 auto 78px;color:var(--text,#23252b)}
+.sound-heading{text-align:center;margin:8px auto 26px;max-width:720px}
+.sound-eyebrow{font-size:11px;letter-spacing:.2em;font-weight:850;color:var(--muted,#777);text-transform:uppercase}
+.sound-heading h1{font-size:clamp(43px,7vw,77px);line-height:1.04;letter-spacing:-.075em;font-weight:900;margin:14px 0 14px}
+.sound-heading h1 em{font-style:normal;background:linear-gradient(110deg,#eaa1a0,#d4a9dd 45%,#94cbb7 85%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.sound-heading p{max-width:570px;margin:0 auto;color:var(--muted,#6c6c73);font-size:15px;line-height:1.75}
+.sound-heading .sound-free{display:inline-flex;gap:7px;align-items:center;padding:7px 12px;border:1px solid var(--line,#e6e6e6);border-radius:40px;background:var(--panel,#fff);color:var(--muted,#676b71);margin-top:19px;font-size:11px;font-weight:750;letter-spacing:.025em}
+.sound-heading .sound-free:before{content:'';width:7px;height:7px;background:#99c7a8;border-radius:50%}
+.sound-app{background:var(--panel,#fff);border:1px solid var(--line,#ebebeb);border-radius:26px;padding:15px;box-shadow:0 18px 60px rgba(59,51,74,.065);overflow:hidden}
+.sound-toolbar{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:6px 8px 15px;flex-wrap:wrap}
+.sound-toolbar-left,.sound-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sound-button{display:inline-flex;justify-content:center;align-items:center;gap:6px;min-height:39px;padding:9px 14px;border:1px solid var(--line,#ddd);border-radius:12px;background:var(--panel,#fff);color:var(--text,#25262c);font:750 12px/1.2 inherit;cursor:pointer;transition:background .15s,transform .15s,border-color .15s;white-space:nowrap}
+.sound-button:hover:not(:disabled){background:var(--soft,#f4f4f4);transform:translateY(-1px)}
+.sound-button:active:not(:disabled){transform:translateY(0)}
+.sound-button:focus-visible,.sound-blob:focus-visible{outline:3px solid #9fa9ea;outline-offset:3px}
+.sound-button:disabled{opacity:.38;cursor:not-allowed}
+.sound-button-primary{background:#262831;border-color:#262831;color:#fff;min-width:142px}
+.sound-button-primary:hover:not(:disabled){background:#393b47}
+.sound-button-soft{background:var(--soft,#f7f5f5)}
+.sound-button-subtle{color:var(--muted,#676b71);font-size:12px}
+.sound-muted-text{font-size:11px;color:var(--muted,#747780);font-weight:650}
+.sound-stage{position:relative;height:clamp(370px,52vw,535px);min-height:370px;overflow:hidden;border:1px solid #e7e3e8;border-radius:20px;isolation:isolate;background:radial-gradient(circle at 18% 17%,rgba(247,206,209,.38),transparent 34%),radial-gradient(circle at 84% 78%,rgba(194,224,211,.4),transparent 36%),radial-gradient(circle at 60% 13%,rgba(205,199,244,.32),transparent 33%),#fbfaf8;touch-action:pan-y}
+[data-theme=dark] .sound-stage{background:radial-gradient(circle at 20% 20%,rgba(202,112,132,.16),transparent 33%),radial-gradient(circle at 82% 83%,rgba(136,191,159,.1),transparent 36%),#272831;border-color:#42434c}
+.sound-stage:before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.55;background-image:radial-gradient(#b1aabc 0.7px,transparent .7px);background-size:27px 27px;mask-image:linear-gradient(to bottom,transparent 3%,#000 40%,transparent 95%)}
+.sound-stage:after{content:'';position:absolute;inset:0;pointer-events:none;border:7px solid rgba(255,255,255,.38);border-radius:inherit}
+.sound-stage-scribble{position:absolute;opacity:.37;pointer-events:none;user-select:none;font-size:37px;color:#cbb3d8;font-weight:300;z-index:0}
+.sound-scribble-one{top:13%;left:5%;transform:rotate(22deg)}
+.sound-scribble-two{bottom:11%;right:9%;transform:rotate(-14deg);font-size:47px;color:#dca99e}
+.sound-scribble-three{top:11%;right:21%;font-size:17px;color:#a6c5b3}
+.sound-corner{position:absolute;bottom:14px;left:18px;color:#9995a1;font-size:10px;letter-spacing:.04em;pointer-events:none;z-index:4}
+.sound-counter{position:absolute;top:15px;right:17px;border:1px solid rgba(150,146,155,.14);border-radius:50px;background:rgba(255,255,255,.72);padding:6px 10px;font:700 11px/1.2 inherit;color:#77737b;z-index:5;pointer-events:none}
+.sound-objects{position:absolute;inset:0;z-index:2;pointer-events:none}
+.sound-playhead{position:absolute;top:0;bottom:0;left:0%;width:2px;z-index:1;pointer-events:none;opacity:0;background:linear-gradient(to bottom,transparent,#aca2c9 22%,#aca2c9 77%,transparent);box-shadow:0 0 22px rgba(154,139,200,.3);transition:left .075s linear}
+.sound-stage.is-looping .sound-playhead{opacity:.72}
+.sound-playhead:before{content:'';position:absolute;top:0;left:-3px;width:8px;height:8px;background:#aca2c9;border-radius:50%}
+.sound-blob{position:absolute;display:flex;align-items:center;justify-content:center;flex-direction:column;transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;outline:0;overflow:visible;z-index:3}
+.sound-blob:active,.sound-stage.is-interacting .sound-blob.is-selected{cursor:grabbing}
+.sound-blob-halo{position:absolute;inset:-14px;border-radius:50%;background:var(--blob-color);opacity:.0;filter:blur(16px);transition:opacity .2s;pointer-events:none}
+.sound-blob:hover .sound-blob-halo,.sound-blob.is-selected .sound-blob-halo{opacity:.18}
+.sound-blob-body{position:absolute;inset:0;display:grid;place-items:center;border-radius:44% 56% 59% 41% / 51% 45% 55% 49%;background:linear-gradient(139deg,var(--blob-light),var(--blob-color) 88%);box-shadow:inset 6px 6px 20px rgba(255,255,255,.5),inset -9px -10px 22px rgba(255,255,255,.16),0 14px 22px rgba(55,44,60,.11);border:1px solid rgba(255,255,255,.53);animation:soundBreathe 5s ease-in-out infinite;transition:filter .16s,box-shadow .16s}
+.sound-blob:nth-child(2n) .sound-blob-body{animation-delay:-2s;border-radius:58% 42% 43% 57% / 43% 55% 45% 57%}
+.sound-blob:nth-child(3n) .sound-blob-body{animation-delay:-3s;border-radius:48% 52% 36% 64% / 54% 43% 57% 46%}
+.sound-blob:nth-child(4n) .sound-blob-body{animation-delay:-1s;border-radius:40% 60% 57% 43% / 55% 54% 46% 45%}
+.sound-blob-sheen{position:absolute;inset:11% 14% auto 17%;height:30%;border-radius:50%;background:linear-gradient(170deg,rgba(255,255,255,.72),transparent);transform:rotate(-18deg);pointer-events:none}
+.sound-blob-wave{position:relative;z-index:1;color:rgba(70,58,80,.7);font-size:clamp(28px,4vw,48px);font-family:Georgia,serif;line-height:1;font-weight:400;filter:drop-shadow(0 1px 1px #fff6);pointer-events:none}
+.sound-blob-caption{position:absolute;bottom:-25px;left:50%;transform:translateX(-50%);white-space:nowrap;font:750 11px/1.3 inherit;color:#6d6672;background:rgba(255,255,255,.7);border:1px solid rgba(162,151,167,.14);border-radius:15px;padding:3px 8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:5}
+.sound-blob.is-selected .sound-blob-body{box-shadow:inset 6px 6px 20px rgba(255,255,255,.49),inset -9px -10px 20px rgba(255,255,255,.14),0 0 0 3px rgba(255,255,255,.95),0 0 0 5px rgba(142,123,165,.53),0 15px 28px rgba(55,44,60,.15)}
+.sound-blob.is-target .sound-blob-body{filter:brightness(1.13) saturate(1.15);box-shadow:0 0 0 6px rgba(155,132,190,.26),0 0 25px rgba(155,132,190,.35)}
+.sound-blob.is-sounding .sound-blob-body{animation:soundPling .52s cubic-bezier(.22,1.5,.52,1)}
+.sound-blob.is-sounding .sound-blob-halo{animation:soundRipple .6s ease-out}
+.sound-mixed .sound-blob-wave{font-size:38px;transform:rotate(-13deg)}
+.sound-handle{display:none;position:absolute;width:32px;height:32px;border-radius:50%;background:#fff;color:#6b5d77;border:1px solid rgba(121,109,137,.29);box-shadow:0 3px 9px #0002;z-index:6;place-items:center;font:700 17px/1 Arial;cursor:ew-resize;touch-action:none;user-select:none}
+.sound-blob.is-selected .sound-handle{display:grid}
+.sound-handle-x{right:-18px;top:50%;transform:translateY(-50%)}
+.sound-handle-y{bottom:-20px;left:50%;transform:translateX(-50%);cursor:ns-resize}
+.sound-discovery{position:absolute;left:50%;top:21px;z-index:7;transform:translate(-50%,-8px);opacity:0;pointer-events:none;background:rgba(48,44,59,.86);border-radius:40px;color:#fff;padding:9px 16px;font-size:12px;font-weight:750;transition:opacity .24s,transform .24s;white-space:nowrap}
+.sound-discovery.is-visible{transform:translate(-50%,0);opacity:1}
+.sound-status{min-height:29px;padding:15px 8px 4px;text-align:center;font-size:12px;line-height:1.55;color:var(--muted,#75747b)}
+.sound-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:4px 6px 6px}
+.sound-tempo{display:flex;align-items:center;gap:11px;flex-wrap:wrap;color:var(--muted,#777);font-size:12px}
+.sound-tempo label{font-weight:750}
+.sound-tempo input{width:120px;accent-color:#ae95cd;cursor:pointer;min-height:28px}
+.sound-tempo-value{min-width:57px;text-align:right;font-variant-numeric:tabular-nums}
+.sound-key{color:var(--muted,#89848c);font-size:11px;line-height:1.6}
+.sound-inspector{display:grid;grid-template-columns:1.2fr 1fr auto;align-items:center;gap:16px;margin:15px 3px 2px;padding:17px 19px;background:var(--soft,#f8f8f8);border:1px solid var(--line,#e8e8e8);border-radius:16px}
+.sound-inspector[hidden]{display:none!important}
+.sound-selection{min-height:52px;display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;font-size:12px;line-height:1.5;color:var(--muted,#777)}
+.sound-selection[hidden]{display:none!important}
+.sound-inspector-name{font-size:15px;font-weight:850;letter-spacing:-.01em}
+.sound-inspector-caption{margin:3px 0 0;font-size:11px;color:var(--muted,#777);line-height:1.45}
+.sound-sliders{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.sound-sliders label{display:grid;gap:5px;color:var(--muted,#777);font-size:11px;font-weight:750}
+.sound-sliders input{width:100%;accent-color:#ab9bc9;cursor:pointer}
+.sound-inspector-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+.sound-inspector-actions .sound-button{font-size:11px;min-height:35px;padding:7px 10px}
+.sound-how{text-align:center;margin:19px auto 0;max-width:820px;color:var(--muted,#787781);font-size:12px;line-height:1.8}
+.sound-how strong{color:var(--text,#333)}
+.sound-game-divider{height:1px;background:var(--line,#eaeaea);max-width:560px;margin:0 auto 47px}
+.sound-support-label{text-align:center;font:850 11px/1.3 inherit;letter-spacing:.17em;color:var(--muted,#777);margin-bottom:16px}
+.sound-page .support-card{width:min(560px,100%);margin:0 auto}
+.sound-page .support-card h2{font-size:20px;margin:0 0 15px}
+.sound-page .support-card .support-symbol{font-size:32px}
+@keyframes soundBreathe{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.035) rotate(2deg)}}
+@keyframes soundPling{0%{transform:scale(1)}37%{transform:scale(1.16)}77%{transform:scale(.96)}100%{transform:scale(1)}}
+@keyframes soundRipple{0%{opacity:.3;transform:scale(.75)}75%{opacity:.12;transform:scale(1.42)}100%{opacity:0;transform:scale(1.52)}}
+@media(max-width:760px){
+  .sound-lab{margin-bottom:58px}
+  .sound-heading h1{margin:11px 0}
+  .sound-heading p{font-size:14px}
+  .sound-app{padding:10px;border-radius:20px}
+  .sound-toolbar{padding:5px 4px 12px;gap:7px}
+  .sound-toolbar-left,.sound-toolbar-right{gap:6px}
+  .sound-button{padding:9px 10px;min-height:39px;font-size:11px}
+  .sound-button-primary{min-width:126px}
+  .sound-stage{height:440px;border-radius:15px}
+  .sound-inspector{grid-template-columns:1fr;gap:12px;padding:15px}
+  .sound-inspector-actions{justify-content:flex-start}
+  .sound-bottom{gap:6px}
+}
+@media(max-width:420px){
+  .sound-page{padding:18px 10px 65px}
+  .sound-heading h1{font-size:43px}
+  .sound-heading p{font-size:13px}
+  .sound-toolbar{align-items:stretch}
+  .sound-toolbar-left{flex:1;justify-content:center}
+  .sound-toolbar-right{flex:1;justify-content:center}
+  .sound-button-primary{min-width:145px}
+  .sound-stage{height:465px}
+  .sound-handle{width:30px;height:30px}
+  .sound-blob-caption{font-size:10px;bottom:-24px}
+  .sound-blob-wave{font-size:31px}
+  .sound-counter{top:12px;right:9px;font-size:9px}
+  .sound-corner{bottom:9px;left:9px;font-size:9px}
+  .sound-tempo{width:100%;justify-content:space-between}
+  .sound-key{width:100%;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .sound-blob-body,.sound-blob.is-sounding .sound-blob-body,.sound-blob.is-sounding .sound-blob-halo{animation:none!important}
+  .sound-playhead,.sound-button,.sound-discovery{transition:none!important}
+}
