@@ -81,6 +81,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    }
    await page.locator('#pixelStudioBtn').click();
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
+   // Isolate Pixel Studio strokes from the marks just drawn in Daily Wheel.
+   await page.locator('#pixelClear').click();
    await exercise(page,'#pixelCanvas',true);
    await page.locator('#pixelClose').click();
    assert.deepEqual(errors,[],'Runtime error on '+width+'px: '+errors.join('; '));
