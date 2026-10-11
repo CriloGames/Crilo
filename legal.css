@@ -41,12 +41,106 @@ html[data-theme="dark"] .crilo-legal-copy{color:#919ba7}
 .crilo-legal-outro a:hover{text-decoration:underline}
 @media(max-width:600px){.crilo-legal-main{padding:32px 15px 8px}.crilo-legal-paper{border-radius:17px;padding:23px 20px}.crilo-legal-topbar{height:59px}.crilo-legal-section p,.crilo-legal-section li{font-size:13px;line-height:1.75}.crilo-legal-section h2{gap:9px}.crilo-legal-nav{gap:7px 9px;font-size:11px}}
 
-/* Compact homepage footer: tip, legal links, copyright, walking beetle. */
-.crilo-site-footer{box-sizing:border-box;width:100%;max-width:1060px;margin:20px auto 0;padding:24px 22px 0;border-top:1px solid var(--line,#e9e9e9);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.crilo-site-footer .crilo-support-link{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;max-width:100%;width:max-content;min-height:36px;margin:0 auto 14px;padding:0 14px;border:1px solid var(--line,#e3e4e4);border-radius:999px;background:var(--panel,#fff);color:var(--muted,#777);font-size:12px;font-weight:750;line-height:1.4;text-decoration:none}
-.crilo-site-footer .crilo-support-link:hover{border-color:#bfcac5;background:var(--soft,#f7faf8);color:var(--text,#17191e)}
-.crilo-site-footer .crilo-home-legal{width:100%;max-width:100%;margin:0 auto;text-align:center}
-.crilo-site-footer .crilo-legal-nav{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px 14px;width:100%;margin:0 auto;text-align:center}
-.crilo-site-footer .crilo-legal-copy{display:block;width:100%;margin:7px auto 0;text-align:center;font-size:11px;line-height:1.5;float:none}
-.crilo-site-footer .crilo-beetle-track{width:100%;align-self:stretch;flex:none;margin-top:12px}
-@media(max-width:500px){.crilo-site-footer{padding:20px 14px 0;margin-top:10px}.crilo-site-footer .crilo-support-link{margin-bottom:12px}.crilo-site-footer .crilo-legal-nav{gap:7px 10px;font-size:11px}.crilo-site-footer .crilo-beetle-track{margin-top:7px}}
+/* Full-width homepage footer. Center the three rows as one group, then let
+   the decorative beetle walk on a separate edge-to-edge bottom rail. */
+.crilo-site-footer{
+ box-sizing:border-box;
+ width:100%;
+ max-width:none;
+ margin:18px 0 0;
+ padding:16px 0 0;
+ border-top:1px solid var(--line,#e8e8e8);
+ display:block;
+ text-align:center;
+}
+.crilo-site-footer .crilo-footer-content{
+ box-sizing:border-box;
+ width:100%;
+ max-width:740px;
+ margin:0 auto;
+ padding:0 20px;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+}
+.crilo-site-footer .crilo-support-link{
+ position:relative;z-index:1;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ flex:none;
+ width:max-content;
+ max-width:100%;
+ min-height:34px;
+ box-sizing:border-box;
+ padding:6px 16px;
+ margin:0 auto 9px;
+ border:1px solid var(--line,#e3e4e4);
+ border-radius:999px;
+ background:var(--panel,#fff);
+ color:var(--muted,#777);
+ font-size:12px;
+ line-height:1.35;
+ font-weight:750;
+ text-align:center;
+ text-decoration:none;
+}
+.crilo-site-footer .crilo-support-link:hover{
+ color:var(--text,#17191e);
+ background:var(--soft,#f7faf8);
+ border-color:#a7b9b0;
+ text-decoration:none;
+}
+.crilo-site-footer .crilo-home-legal{
+ width:100%;
+ max-width:100%;
+ margin:0 auto;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ text-align:center;
+}
+.crilo-site-footer .crilo-legal-nav{
+ width:100%;
+ margin:0 auto;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ flex-wrap:wrap;
+ gap:6px 12px;
+ text-align:center;
+ font-size:12px;
+}
+.crilo-site-footer .crilo-legal-copy{
+ display:block;
+ width:100%;
+ margin:5px auto 0;
+ padding:0;
+ float:none;
+ text-align:center;
+ font-size:11px;
+ line-height:1.35;
+}
+.crilo-site-footer .crilo-beetle-track{
+ width:100%;
+ max-width:none;
+ margin:0;
+ padding:0;
+ height:41px;
+ box-sizing:border-box;
+ position:relative;
+ left:0;
+ align-self:auto;
+ flex:none;
+}
+/* Width is always the viewport, including desktop: the existing
+   criloBeetlePatrol animation therefore reaches within 8px of both edges. */
+@media(max-width:500px){
+ .crilo-site-footer{margin-top:12px;padding-top:14px}
+ .crilo-site-footer .crilo-footer-content{padding:0 12px}
+ .crilo-site-footer .crilo-support-link{min-height:32px;margin-bottom:7px;font-size:11px}
+ .crilo-site-footer .crilo-legal-nav{font-size:11px;gap:5px 9px}
+ .crilo-site-footer .crilo-beetle-track{height:40px}
+}
