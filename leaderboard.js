@@ -17,6 +17,11 @@ function scoreRarity(value){
  const band=window.CriloRarity?.scoreBands?.find(item=>score<=item.max);
  return band?.key||'';
 }
+// Preserve the exact stored drawing, or show the user's genuinely blank canvas.
+function drawingSrc(drawing){
+ return typeof drawing==='string'&&/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]+$/.test(drawing)
+  ?drawing:'blank-wheel.svg';
+}
 function setBestScoreRarity(value){
  const tier=value===null?'':scoreRarity(value);
  if(tier)$('bestScore').dataset.scoreRarity=tier;
@@ -185,8 +190,8 @@ function render(runs,pm){
  $('bestUser').style.color=bp?.name_color||'';
  $('bestStats').textContent=`${best.spins} spins • ${best.upgrades} upgrades • ${best.doubles} doubles • ${best.ducks} ducks`;
  $('bestDrawing').classList.remove('hidden');
- $('bestDrawing').src=best.drawing||'default-wheel.svg';
- $('bestDrawing').alt=best.drawing?'Top player wheel artwork':'Top player blank wheel';
+ $('bestDrawing').src=drawingSrc(best.drawing);
+ $('bestDrawing').alt=drawingSrc(best.drawing)==='blank-wheel.svg'?'Top player blank drawing':'Top player wheel artwork';
  const medals=['🥇','🥈','🥉'];
  const canModerate=Boolean(Crilo.profile?.is_owner);
  $('leaderList').innerHTML=runs.map((r,i)=>{
@@ -203,7 +208,7 @@ function render(runs,pm){
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
-   <button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${r.drawing||'default-wheel.svg'}" alt="${r.drawing?'Player artwork':'Blank wheel'}"></button>
+   <button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>`;
  }).join('');
  document.querySelectorAll('.mini-wheel').forEach(b=>b.addEventListener('click',()=>{
