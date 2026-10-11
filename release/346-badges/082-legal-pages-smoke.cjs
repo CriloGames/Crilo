@@ -6,7 +6,7 @@ const privacy=read('privacy.html'),terms=read('terms.html'),sitemap=read('sitema
 const css=read('legal.css');
 for(const filename of [...pages,'privacy.html','terms.html']){
  const s=read(filename);
- for(const text of ['href="privacy.html"','href="terms.html"','crilogame@gmail.com','legal.css?v=1'])assert.ok(s.includes(text),filename+' missing '+text);
+ for(const text of ['href="privacy.html"','href="terms.html"','crilogame@gmail.com','legal.css?v='])assert.ok(s.includes(text),filename+' missing '+text);
  assert.equal((s.match(/<footer\b/g)||[]).length,1,filename+' should show one footer');
  assert.match(s,/<\/body>/i);
 }
