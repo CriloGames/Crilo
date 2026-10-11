@@ -115,7 +115,7 @@
   function size(blob){
     const w=Math.max(1,stage.clientWidth),h=Math.max(1,stage.clientHeight);
     const normal=clamp(w*.146,78,132);
-    const density=Math.sqrt(w*h/Math.max(8,blobs.length))*.73;
+    const density=Math.sqrt(w*h/Math.max(8,blobs.length))*.58;
     const base=Math.min(normal,Math.max(44,density));
     return {w:Math.round(base*blob.sx),h:Math.round(base*.91*blob.sy)};
   }
