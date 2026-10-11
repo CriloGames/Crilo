@@ -1548,3 +1548,20 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 @media(prefers-reduced-motion:reduce){
  .leader-tabs-wrap .leader-tab::after{transition:none}
 }
+
+/* Quiet header navigation hover — deliberately finer than leaderboard tabs.
+   Pseudo-element never participates in layout or shifts the header. */
+.topbar nav a{position:relative}
+.topbar nav a::after{
+ content:"";position:absolute;left:20%;right:20%;bottom:-4px;
+ height:1px;border-radius:99px;background:currentColor;
+ opacity:0;transform:scaleX(.65);transform-origin:center;
+ pointer-events:none;transition:transform .18s ease,opacity .18s ease
+}
+@media(hover:hover){
+ .topbar nav a:hover::after{opacity:.38;transform:scaleX(1)}
+}
+.topbar nav a:focus-visible::after{opacity:.42;transform:scaleX(1)}
+@media(prefers-reduced-motion:reduce){
+ .topbar nav a::after{transition:none}
+}
