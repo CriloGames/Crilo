@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /moderation.html
+Disallow: /settings.html
+Disallow: /owner-analytics.html
+Disallow: /private-nsfw-qa.html
+Disallow: /owner-dataset-lab.html
+Disallow: /badge-art-audit.html
+Disallow: /badge-preview-
+Sitemap: https://crilo.fun/sitemap.xml
