@@ -70,7 +70,7 @@ async function load(){
  else q=q.order('score',{ascending:false}).limit(100);
  const official=await q;
  if(official.error){$('leaderList').innerHTML='<div class="empty-state">Could not load leaderboard: '+Crilo.esc(official.error.message)+'</div>';return}
- const runs=(official.data||[]).filter(run=>!isLegacyPreviewRun(run).map(r=>({...r,_source:'official'}));
+ const runs=(official.data||[]).filter(run=>!isLegacyPreviewRun(run)).map(r=>({...r,_source:'official'}));
  if(tab==='records')runs.sort((a,b)=>b.spins-a.spins||b.score-a.score);
  else if(tab==='ducks')runs.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);
  else runs.sort((a,b)=>b.score-a.score);
