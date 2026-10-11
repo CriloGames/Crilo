@@ -158,6 +158,8 @@ jobs:
         run: node release/346-badges/063-wheel-proof-canonicalization-smoke.cjs
       - name: Enforce verified-account eligibility on all server Daily paths
         run: node release/346-badges/064-wheel-verified-account-smoke.cjs
+      - name: Exclude known historical preview runs from competitive lifetime points
+        run: node release/346-badges/065-legacy-competitive-points-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
       - name: Verify redesigned pastel tip page and standalone music game
