@@ -141,6 +141,8 @@ jobs:
         run: node release/346-badges/053-owner-mfa-security-smoke.cjs
       - name: Verify free Shape of Sound interaction and separate checkout
         run: node release/346-badges/055-sound-shapes-smoke.cjs
+      - name: Verify Night Shift flashlight puzzle and optional tip access
+        run: node release/346-badges/057-night-shift-smoke.cjs
       - name: Verify all four hosted PayPal tip links and amount-selector behavior
         run: node release/346-badges/054-support-paypal-checkout-smoke.cjs
       - name: Audit all page links, friend invites, badge triggers and owner controls

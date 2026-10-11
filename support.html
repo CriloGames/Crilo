@@ -1,7 +1,69 @@
 <!doctype html>
-<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="The Shape of Sound is a free little sound experiment. Stretch, move, and mix colorful sounds. Optional support for Crilo lives below."><title>The Shape of Sound — Crilo</title><link rel="stylesheet" href="style.css?v=97"><link rel="stylesheet" href="sound-shapes.css?v=4"></head>
+<html lang="en" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="The Shape of Sound is a free little sound experiment. Stretch, move, and mix colorful sounds. Optional support for Crilo lives below."><title>The Shape of Sound — Crilo</title><link rel="stylesheet" href="style.css?v=97"><link rel="stylesheet" href="sound-shapes.css?v=4"><link rel="stylesheet" href="night-shift.css?v=1"></head>
 <body class="sound-only-page"><header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a></nav><div class="header-actions"><div class="account-wrap"><button class="account-btn" id="accountBtn" type="button">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div></header>
 <main class="support-main sound-page"><a href="index.html" class="support-back">← Back to Crilo</a>
+<section class="night-shift" id="nightShift" aria-labelledby="nightTitle">
+  <div class="night-heading">
+    <div class="night-heading-copy">
+      <p class="night-kicker"><span class="night-live-dot" aria-hidden="true"></span> CRILO AFTER HOURS · A LITTLE FLASHLIGHT GAME</p>
+      <h1 id="nightTitle">Keep Crilo Spinning<span class="night-title-tag">NIGHT SHIFT</span></h1>
+      <p>The arcade closed. Something is still moving. Find two clues, then wake up the broken wheel. <strong>Nothing scary can hurt you.</strong></p>
+    </div>
+    <div class="night-menu">
+      <button id="nightSoundToggle" class="night-tool" type="button" aria-pressed="false">♫ Sound off</button>
+      <button id="nightLights" class="night-skip" type="button">Turn on lights · See tips</button>
+    </div>
+  </div>
+  <div class="night-room-wrap">
+    <div class="night-room" id="nightScene" role="group" aria-label="Dark abandoned duck arcade. Move a mouse or tap to aim the flashlight. Find the duck shelf and security monitor, then select the star on the wheel.">
+      <div class="night-wall" aria-hidden="true"></div>
+      <div class="night-wall-strip" aria-hidden="true"></div>
+      <div class="night-pipes" aria-hidden="true"><i></i><i></i></div>
+      <div class="night-lamp" aria-hidden="true"><i></i></div>
+      <div class="night-floor" aria-hidden="true"></div>
+      <div class="night-crilo-sign" aria-hidden="true">CRILO<span>ARCADE</span></div>
+      <div class="night-duck-shadow" aria-hidden="true"><span class="night-shadow-eye"></span><span class="night-shadow-eye"></span><span class="night-shadow-beak"></span></div>
+      <button class="night-object night-shelf" type="button" data-night-clue="duck" aria-label="Inspect the abandoned duck prize shelf" aria-pressed="false">
+        <span class="night-shelf-heading">PRIZE COUNTER <i>02</i></span>
+        <span class="night-shelf-top"></span>
+        <span class="night-toy" aria-hidden="true"><i class="night-toy-head"><i class="night-toy-eye"></i><i class="night-toy-eye"></i><i class="night-toy-beak"></i></i><i class="night-toy-body"></i></span>
+        <span class="night-shelf-base"></span>
+        <span class="night-shelf-label">INSPECT</span>
+      </button>
+      <button class="night-object night-monitor" type="button" data-night-clue="monitor" aria-label="Inspect the flickering security monitor" aria-pressed="false">
+        <span class="night-monitor-screen"><span class="night-screen-heading">CAM 04 · WHEEL ROOM</span><span class="night-screen-glyphs">☠ ☠ ✦<span>☠ ☠ ☠</span></span><span class="night-screen-static"></span></span>
+        <span class="night-monitor-base"></span><span class="night-monitor-label">INSPECT</span>
+      </button>
+      <div class="night-wheel-area" aria-label="Damaged wheel with five skulls and one safe star">
+        <span class="night-wheel-sign">WHEEL 06 <span>CAUTION</span></span>
+        <div class="night-wheel" id="nightWheel">
+          <div class="night-wheel-disc" aria-hidden="true"></div>
+          <button class="night-wheel-symbol night-symbol-1" data-night-wheel="danger" aria-label="Try skull symbol one" type="button">☠</button>
+          <button class="night-wheel-symbol night-symbol-2" data-night-wheel="danger" aria-label="Try skull symbol two" type="button">☠</button>
+          <button class="night-wheel-symbol night-symbol-3" data-night-wheel="danger" aria-label="Try skull symbol three" type="button">☠</button>
+          <button class="night-wheel-symbol night-symbol-4" data-night-wheel="danger" aria-label="Try skull symbol four" type="button">☠</button>
+          <button class="night-wheel-symbol night-symbol-5" data-night-wheel="danger" aria-label="Try skull symbol five" type="button">☠</button>
+          <button class="night-wheel-symbol night-symbol-safe" data-night-wheel="safe" aria-label="Try the single glowing star symbol" type="button">✦</button>
+          <span class="night-wheel-hub" aria-hidden="true"></span>
+        </div>
+        <span class="night-wheel-base" aria-hidden="true"></span>
+      </div>
+      <div class="night-room-grain" aria-hidden="true"></div>
+      <div class="night-ambient-dim" aria-hidden="true"></div>
+      <div class="night-flashlight" aria-hidden="true"></div>
+      <div class="night-scare-flash" aria-hidden="true"></div>
+      <div class="night-light-over" aria-hidden="true"><span>THE LIGHTS ARE BACK.</span><small>WELL. MOST OF THEM.</small></div>
+    </div>
+    <div class="night-statusbar">
+      <span class="night-progress" id="nightProgress">CLUES 0 / 2</span>
+      <p id="nightStatus" role="status" aria-live="polite">Move your flashlight. Tap the duck shelf and the flickering monitor.</p>
+      <button class="night-replay" id="nightReplay" type="button" hidden>↺ Play again</button>
+    </div>
+  </div>
+  <div class="night-tip-mount" id="nightTipMount" hidden aria-label="Optional tip station"></div>
+  <p class="night-fineprint">Just a free little horror experiment. <strong>Finding the lights doesn't earn rewards.</strong> You can turn them on anytime to see optional tips.</p>
+</section>
+
 <section class="sound-lab" aria-labelledby="soundTitle">
   <header class="sound-heading">
     <div class="sound-eyebrow">A LITTLE INTERNET EXPERIMENT · NO RULES, JUST NOISE</div>
@@ -72,7 +134,7 @@
   <p class="support-intro">This little experiment (and everything else on Crilo) is free for everyone. If you enjoyed it and want to support future games and upkeep, you can leave a tip. Absolutely no pressure.</p>
 <div class="support-divider"></div><h2>Choose a one-time tip</h2><div class="support-amounts" role="group" aria-label="Tip amount"><button class="support-amount selected" type="button" data-amount="2" aria-pressed="true">$2</button><button class="support-amount" type="button" data-amount="5" aria-pressed="false">$5</button><button class="support-amount" type="button" data-amount="10" aria-pressed="false">$10</button><button class="support-amount" type="button" data-amount="custom" aria-pressed="false">Custom</button></div><p class="support-selected" id="tipSummary" aria-live="polite">Your tip: $2.00 · One time</p>
 <div class="support-checkout"><p class="support-checkout-heading">Secure one-time tip</p><a class="support-pay support-paypal support-checkout-link" id="supportPayLink" href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84" target="_blank" rel="noopener noreferrer" aria-label="Continue to secure PayPal checkout for a $2 tip">Continue to secure checkout ↗</a><p class="support-pending">Checkout is handled securely by PayPal. PayPal, Venmo, and debit or credit card options may appear depending on your location and eligibility. For Custom, choose your amount on PayPal.</p></div><p class="support-fine">Tips are voluntary, are not charitable tax-deductible donations, and don't affect gameplay or your odds.</p></section></main>
-<script src="sound-shapes.js?v=2"></script>
+<script src="night-shift.js?v=1"></script><script src="sound-shapes.js?v=2"></script>
 <script>(function(){
   const links=Object.freeze({
     '2':'https://www.paypal.com/ncp/payment/75LUCY8GEAF84',

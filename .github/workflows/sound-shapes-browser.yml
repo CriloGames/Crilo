@@ -4,9 +4,12 @@ on:
     branches: [main]
     paths:
       - 'sound-shapes.js'
+      - 'night-shift.js'
+      - 'night-shift.css'
       - 'sound-shapes.css'
       - 'support.html'
       - 'release/346-badges/056-sound-shapes-browser.cjs'
+      - 'release/346-badges/057-night-shift-smoke.cjs'
       - '.github/workflows/sound-shapes-browser.yml'
   workflow_dispatch:
 permissions:

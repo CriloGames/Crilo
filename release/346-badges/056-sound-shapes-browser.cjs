@@ -60,6 +60,43 @@ async function main(){
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.goto(url,{waitUntil:'domcontentloaded'});
   await page.locator('.sound-blob').first().waitFor({state:'visible'});
+  // Horror-lite room has a free skip path; every game action is independent
+  // from checkout and remains usable with pointer, keyboard, or touch.
+  check(await page.locator('#nightShift').isVisible(),scenario.name+' Night Shift missing');
+  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' tip station should start unrevealed');
+  check(await page.locator('#nightLights').isVisible(),scenario.name+' skip button must always be visible');
+  const roomDims=await page.evaluate(()=>{
+    const scene=document.getElementById('nightScene').getBoundingClientRect();
+    const wheel=document.getElementById('nightWheel').getBoundingClientRect();
+    return {scene:scene.toJSON(),wheel:wheel.toJSON(),vw:innerWidth,sw:document.documentElement.scrollWidth};
+  });
+  check(roomDims.sw<=roomDims.vw+2,scenario.name+' Night Shift viewport overflow');
+  check(roomDims.wheel.left>=roomDims.scene.left-2&&roomDims.wheel.right<=roomDims.scene.right+2&&
+    roomDims.wheel.top>=roomDims.scene.top-2&&roomDims.wheel.bottom<=roomDims.scene.bottom+2,
+    scenario.name+' Night Shift wheel clipped '+JSON.stringify(roomDims));
+  if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
+    const dark=await page.locator('#nightScene').screenshot({type:'jpeg',quality:52});
+    console.log('NIGHT_SHIFT_DARK_B64 '+scenario.name+' '+dark.toString('base64'));
+  }
+  await page.locator('[data-night-wheel="safe"]').click();
+  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' wheel should need clues');
+  await page.locator('[data-night-clue="duck"]').click();
+  check((await page.locator('#nightProgress').innerText()).includes('1 / 2'),scenario.name+' first clue not counted');
+  await page.locator('[data-night-clue="monitor"]').click();
+  check((await page.locator('#nightProgress').innerText()).includes('2 / 2'),scenario.name+' second clue not counted');
+  await page.locator('[data-night-wheel="danger"]').first().click();
+  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' danger symbol should not reveal tips');
+  await page.locator('[data-night-wheel="safe"]').click();
+  check(await page.locator('#nightShift').evaluate(el=>el.classList.contains('is-lit')),scenario.name+' lights did not come on');
+  check(await page.locator('#supportPayLink').isVisible(),scenario.name+' tip checkout should be visible after reveal');
+  if(scenario.name==='desktop-wide'||scenario.name==='iphone-portrait'){
+    const lit=await page.locator('#nightShift').screenshot({type:'jpeg',quality:52});
+    console.log('NIGHT_SHIFT_LIT_B64 '+scenario.name+' '+lit.toString('base64'));
+  }
+  await page.locator('#nightReplay').click();
+  check(await page.locator('#nightTipMount').isHidden(),scenario.name+' replay did not restore the dark room');
+  await page.locator('#nightLights').click();
+  check(await page.locator('#supportPayLink').isVisible(),scenario.name+' direct skip did not reveal optional tips');
   const layout=await page.evaluate(()=>{
    const stage=document.getElementById('soundStage').getBoundingClientRect();
    const blobs=[...document.querySelectorAll('.sound-blob')].map(el=>el.getBoundingClientRect());

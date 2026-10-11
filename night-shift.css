@@ -1,0 +1,152 @@
+/* Night Shift: flashlight horror-lite above the free Shape of Sound game. */
+.night-shift{width:100%;max-width:1100px;margin:0 auto 44px;scroll-margin-top:90px}
+.night-shift [hidden]{display:none!important}
+.night-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:10px 0 17px}
+.night-heading-copy{flex:1;min-width:0}
+.night-kicker{display:flex;align-items:center;gap:9px;letter-spacing:.17em;font-size:10px;font-weight:900;color:#86748b;margin:0 0 10px}
+.night-live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#a2c7b3;box-shadow:0 0 0 4px #eaf4ee;flex-shrink:0}
+.night-heading h1{margin:0 0 9px;font-size:clamp(29px,4.4vw,49px);letter-spacing:-.057em;line-height:1.03;font-weight:900}
+.night-heading p:not(.night-kicker){font-size:13px;line-height:1.5;color:#77747d;margin:0;max-width:670px}
+.night-heading p strong{color:#66586e;font-weight:750}
+.night-title-tag{display:inline-block;font-size:10px;letter-spacing:.14em;vertical-align:middle;margin:0 0 5px 12px;border:1px solid #d9c8da;border-radius:100px;padding:7px 10px;background:#f4eff5;color:#806e87;white-space:nowrap}
+.night-menu{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;align-items:center}
+.night-menu button,.night-replay{font:750 12px/1.2 inherit;cursor:pointer;border-radius:12px;min-height:43px;padding:10px 13px;touch-action:manipulation}
+.night-tool{border:1px solid #d8d1de;background:#fff;color:#36323c}
+.night-skip{border:1px solid #25242c;background:#25242c;color:#fff;font-weight:800}
+.night-skip:disabled{background:#d4e8da;border-color:#d4e8da;color:#365744;cursor:default}
+.night-menu button:focus-visible,.night-replay:focus-visible,.night-object:focus-visible,.night-wheel-symbol:focus-visible{outline:3px solid #a8bfed;outline-offset:4px}
+.night-room-wrap{border:1px solid #2a2c38;border-radius:23px;background:#151923;box-shadow:0 19px 45px rgba(20,24,36,.15);overflow:hidden}
+.night-room{--beam-x:50%;--beam-y:52%;height:clamp(340px,55svh,565px);position:relative;isolation:isolate;overflow:hidden;touch-action:pan-y;background:linear-gradient(#2d3546 0 73%,#141821 74% 100%);color:#dce5dd;user-select:none;-webkit-user-select:none}
+.night-wall{position:absolute;inset:0 0 25%;background:repeating-linear-gradient(90deg,transparent 0 19%,#19233215 19% 19.3%),linear-gradient(170deg,#323a4c,#1e2635 67%,#293040)}
+.night-wall-strip{position:absolute;left:0;right:0;top:73%;height:2.5%;background:#111922;box-shadow:0 5px 3px #10141a}
+.night-floor{position:absolute;inset:75% 0 0;background:repeating-linear-gradient(92deg,transparent 0 16%,#0f101950 16% 16.3%),linear-gradient(170deg,#29242e,#141720 68%);transform-origin:center top}
+.night-pipes{position:absolute;top:0;left:8%;right:4%;height:17%;display:flex;gap:12px;opacity:.6}
+.night-pipes i{display:block;height:54%;border:3px solid #515767;border-top:0;border-radius:0 0 14px 14px}
+.night-pipes i:first-child{width:35%}.night-pipes i:last-child{margin-left:auto;width:21%;height:72%}
+.night-lamp{position:absolute;top:0;left:49%;height:15%;width:3px;background:#111924}
+.night-lamp i{position:absolute;bottom:0;left:-20px;width:43px;height:25px;border-radius:45% 45% 18% 18%;border:2px solid #3e4c53;background:#293138;box-shadow:0 6px 15px #91e2bd14}
+.night-crilo-sign{position:absolute;top:18%;left:39%;font-size:clamp(22px,4vw,51px);font-weight:950;letter-spacing:.24em;transform:rotate(-3deg);color:#abb9ae42;text-shadow:1px 2px 0 #121b23}
+.night-crilo-sign span{display:block;font-size:10px;letter-spacing:.42em;text-align:center;margin-top:-3px}
+.night-duck-shadow{position:absolute;right:4%;top:7%;width:13%;height:30%;opacity:.4;filter:blur(1.5px);background:#0e131b;border-radius:46% 43% 49% 45%;transform:rotate(-8deg);transition:opacity .14s,transform .18s}
+.night-shadow-eye{position:absolute;top:40%;left:29%;width:10%;height:8%;border-radius:50%;background:#c8d7aa;box-shadow:0 0 11px #b4d3bb7a}
+.night-shadow-eye:nth-child(2){left:60%}
+.night-shadow-beak{position:absolute;top:55%;left:37%;width:32%;height:18%;background:#111a20;clip-path:polygon(0 0,100% 0,50% 95%)}
+.night-object{position:absolute;display:block;border:0;background:transparent;color:inherit;cursor:pointer;font:inherit;text-align:center;touch-action:manipulation}
+.night-object:hover,.night-object:focus-visible{filter:brightness(1.28)}
+.night-object.is-found{filter:drop-shadow(0 0 13px #9bd6bc66)}
+.night-shelf{left:6%;top:40%;width:21%;height:44%;min-width:100px}
+.night-shelf-heading{position:absolute;top:0;left:0;right:0;background:#3b3e4c;color:#c7c0a4;letter-spacing:.12em;font-size:clamp(8px,.85vw,12px);font-weight:850;padding:7px 2px;border:2px solid #151924;border-radius:5px 5px 0 0}
+.night-shelf-heading i{font-style:normal;color:#c9aaa5;margin-left:8px}
+.night-shelf-top{position:absolute;left:4%;right:4%;top:25%;height:5%;background:#181a25;box-shadow:0 5px 0 #737a7766}
+.night-shelf-base{position:absolute;left:0;right:0;bottom:10%;height:9%;background:linear-gradient(#454252,#1f242d);border:2px solid #10131c;border-radius:4px}
+.night-shelf-label{position:absolute;left:0;right:0;bottom:0;font-size:10px;letter-spacing:.16em;color:#b2b8b9}
+.night-toy{position:absolute;left:26%;top:25%;width:48%;height:57%;transition:transform .25s;transform:rotate(11deg)}
+.night-toy-head{position:absolute;left:8%;top:0;width:83%;height:62%;border-radius:48% 49% 42% 45%;background:linear-gradient(140deg,#d9d5b0,#9a9e87);border:3px solid #494d50}
+.night-toy-body{position:absolute;left:6%;top:48%;width:89%;height:47%;border-radius:47% 43% 30% 32%;background:#adb6a0;border:3px solid #4e5354}
+.night-toy-eye{position:absolute;left:24%;top:39%;width:12%;height:12%;background:#202a2c;border-radius:50%}
+.night-toy-eye:nth-child(2){left:63%}
+.night-toy-beak{position:absolute;left:40%;top:55%;width:30%;height:23%;background:#bf897c;clip-path:polygon(5% 0,100% 35%,10% 100%)}
+.night-shelf.is-found .night-toy{transform:rotate(-17deg) translateY(-4px)}
+.night-monitor{left:30%;top:44%;width:19%;min-width:94px;height:37%}
+.night-monitor-screen{position:absolute;inset:0 1% 22%;background:linear-gradient(130deg,#273b3c,#16232b);border:9px solid #22252e;outline:2px solid #585b60;border-radius:12px 12px 6px 6px;box-shadow:0 6px 0 #11151f,inset 0 0 16px #1aa68f3d;overflow:hidden}
+.night-screen-heading{display:block;margin:12% 3% 10%;color:#7fd4ae;font-size:clamp(7px,.8vw,11px);font-family:monospace;letter-spacing:.08em}
+.night-screen-glyphs{display:block;color:#afdeca;font-size:clamp(12px,2.5vw,27px);line-height:1.05}
+.night-screen-glyphs>span{display:block}
+.night-screen-static{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 4px,#c2e8d407 4px 5px);pointer-events:none}
+.night-monitor-base{position:absolute;top:78%;left:38%;width:24%;height:15%;background:#363a46;border-bottom:5px solid #0d1118}
+.night-monitor-label{position:absolute;bottom:1%;width:100%;left:0;font-size:10px;letter-spacing:.14em;color:#adb6b5}
+.night-wheel-area{position:absolute;right:7%;bottom:9%;width:29%;aspect-ratio:1.18;display:flex;align-items:center;justify-content:center}
+.night-wheel-sign{position:absolute;z-index:2;top:-13%;font-size:clamp(9px,1vw,13px);font-weight:900;letter-spacing:.13em;color:#f1e5d3}
+.night-wheel-sign span{color:#f3a2a1;margin-left:8px}
+.night-wheel{position:relative;width:min(79%,270px);aspect-ratio:1;border-radius:50%;border:7px solid #161d26;box-shadow:0 0 0 3px #656a73,0 10px 22px #0009;animation:night-wheel-wobble 7s ease-in-out infinite;transform-origin:center}
+.night-wheel-disc{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -30deg,#403840 0 59deg,#5d4c55 60deg 119deg,#333640 120deg 179deg,#51434b 180deg 239deg,#354b46 240deg 299deg,#4e3e48 300deg 359deg);box-shadow:inset 0 0 27px #080b13}
+.night-wheel-symbol{position:absolute;z-index:2;border:0;background:#10182091;color:#d3bdbf;display:grid;place-items:center;border-radius:50%;height:27%;width:27%;font-size:clamp(12px,2vw,25px);cursor:pointer;touch-action:manipulation}
+.night-wheel-symbol:hover,.night-wheel-symbol:focus-visible{background:#282c3e;color:#fff}
+.night-symbol-1{top:8%;left:37%}.night-symbol-2{top:23%;right:8%}.night-symbol-3{bottom:19%;right:9%}
+.night-symbol-4{bottom:6%;left:35%}.night-symbol-5{bottom:22%;left:8%}
+.night-symbol-safe{top:22%;left:8%;color:#c4efd4;background:#315348;border:1px solid #719d85;box-shadow:0 0 15px #a7e6b56b}
+.night-wheel-hub{position:absolute;left:40%;top:40%;width:20%;height:20%;border-radius:50%;background:#242a35;border:3px solid #76747c;pointer-events:none;z-index:2}
+.night-wheel-base{position:absolute;bottom:-8%;width:51%;height:10%;border-radius:8px;background:#22232d;box-shadow:0 5px 0 #0f101a}
+.night-room-grain{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:.22;background:repeating-linear-gradient(0deg,#fff1 0 1px,transparent 1px 5px)}
+.night-ambient-dim{position:absolute;inset:0;z-index:5;pointer-events:none;background:#03050dcc;transition:opacity 1s}
+.night-flashlight{position:absolute;inset:0;z-index:6;pointer-events:none;background:radial-gradient(circle clamp(112px,19vw,230px) at var(--beam-x) var(--beam-y),transparent 0%,#080b1726 51%,#02040bba 81%,#02040beb 100%);transition:opacity 1s}
+.night-scare-flash{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:radial-gradient(circle at 88% 21%,#c0e6c33a,transparent 48%),#af283626}
+.night-light-over{position:absolute;z-index:8;left:50%;top:17%;transform:translateX(-50%) translateY(5px);display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;opacity:0;pointer-events:none;transition:opacity 1s,transform 1s;white-space:nowrap}
+.night-light-over span{font-size:clamp(14px,2.7vw,29px);letter-spacing:.14em;font-weight:950;text-shadow:0 2px 15px #191724}
+.night-light-over small{font-size:10px;letter-spacing:.3em;color:#b1d7c8}
+.night-shift.is-spooked .night-scare-flash{animation:night-flash .75s steps(2,end) 1}
+.night-shift.is-spooked .night-duck-shadow{opacity:.94;transform:rotate(7deg) translateX(-5px)}
+.night-shift.wheel-ready .night-symbol-safe{animation:night-good-glow 2.3s ease-in-out infinite}
+.night-shift.is-lit .night-ambient-dim{opacity:0}
+.night-shift.is-lit .night-flashlight{opacity:0}
+.night-shift.is-lit .night-light-over{opacity:1;transform:translateX(-50%) translateY(0)}
+.night-shift.is-lit .night-crilo-sign{color:#d3e5c2;text-shadow:0 0 18px #bce5ab9c}
+.night-shift.is-lit .night-room{background:#445454}
+.night-statusbar{display:flex;align-items:center;gap:12px;padding:13px 17px;min-height:58px;background:#171b27;color:#bec3c8}
+.night-progress{flex:0 0 auto;border:1px solid #4a535c;background:#2d3541;padding:8px 10px;border-radius:8px;font-size:10px;letter-spacing:.13em;font-weight:850;white-space:nowrap;color:#c7decf}
+.night-statusbar p{min-width:0;flex:1;margin:0;font-size:12px;line-height:1.45;color:#cbd2d1}
+.night-replay{border:1px solid #6a6d73;background:#262d39;color:#e3e7e3;flex-shrink:0}
+.night-tip-mount{padding:18px 17px 0;background:#edf2ed;border-radius:0 0 22px 22px}
+.night-tip-mount[hidden]{display:none!important}
+.night-tip-mount .support-card.sound-tipbar{margin:0 auto;padding:17px;box-shadow:none;background:linear-gradient(115deg,#fff0e9,#fff8ec 54%,#edf6f2)}
+.night-tip-mount .support-card h2{font-size:20px}
+.night-fineprint{margin:12px auto 0;text-align:center;font-size:11px;color:#81828a;line-height:1.5}
+.night-fineprint strong{color:#686370}
+.night-shift+.sound-lab{padding-top:23px;border-top:1px solid #e5e5e8}
+@keyframes night-wheel-wobble{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(11deg)}}
+@keyframes night-good-glow{50%{box-shadow:0 0 25px #a7f9ccdd;transform:scale(1.09)}}
+@keyframes night-flash{0%,15%,65%{opacity:0}20%,40%{opacity:.8}45%,55%{opacity:.25}70%,90%{opacity:.55}100%{opacity:0}}
+@media(max-width:700px){
+ .night-heading{flex-direction:column;align-items:flex-start;gap:11px}
+ .night-heading h1{font-size:clamp(27px,6vw,41px)}
+ .night-menu{width:100%;justify-content:stretch}
+ .night-menu .night-skip{flex:1}
+ .night-room{height:clamp(330px,53svh,520px)}
+ .night-wheel-area{width:37%;right:4%;bottom:16%}
+ .night-shelf{width:25%;left:5%}
+ .night-monitor{width:24%;left:31%}
+ .night-crilo-sign{left:40%;top:24%}
+ .night-duck-shadow{width:17%;top:9%}
+ .night-tip-mount{padding:12px 9px 0}
+}
+@media(max-width:520px){
+ .night-shift{margin-bottom:32px;scroll-margin-top:80px}
+ .night-heading{margin:8px 0 13px}
+ .night-heading h1{font-size:clamp(24px,7.3vw,34px)}
+ .night-title-tag{font-size:8px;padding:6px 8px;margin-left:8px;margin-bottom:3px}
+ .night-heading p:not(.night-kicker){font-size:11px}
+ .night-kicker{font-size:9px;letter-spacing:.095em;gap:6px}
+ .night-menu button{min-height:42px;padding:8px 10px;font-size:11px}
+ .night-room-wrap{border-radius:17px}
+ .night-room{height:420px;touch-action:pan-y}
+ .night-crilo-sign{left:42%;top:20%;font-size:19px}
+ .night-shelf{left:2.5%;top:39%;width:28%;min-width:0;height:37%}
+ .night-shelf-heading{font-size:7px;padding:4px 0}
+ .night-shelf-label,.night-monitor-label{font-size:7px}
+ .night-monitor{left:31%;top:45%;width:27%;min-width:0;height:30%}
+ .night-monitor-screen{border-width:5px}
+ .night-screen-heading{font-size:7px}
+ .night-screen-glyphs{font-size:13px}
+ .night-wheel-area{right:1%;bottom:18%;width:44%}
+ .night-wheel{width:94%;border-width:5px}
+ .night-wheel-symbol{font-size:15px}
+ .night-wheel-sign{font-size:8px;top:-12%}
+ .night-duck-shadow{right:4%;top:7%;height:23%;width:16%}
+ .night-statusbar{flex-wrap:wrap;gap:7px;padding:11px 12px;align-items:center}
+ .night-statusbar p{flex:1 1 calc(100% - 110px);font-size:11px}
+ .night-progress{padding:7px 8px;font-size:9px}
+ .night-replay{margin-left:auto;min-height:38px}
+ .night-light-over{top:11%}
+ .night-light-over span{font-size:12px}
+ .night-light-over small{font-size:8px}
+ .night-fineprint{font-size:10px}
+}
+@media(max-width:350px){
+ .night-menu{flex-direction:column;align-items:stretch}
+ .night-title-tag{display:block;width:max-content;margin:7px 0 0}
+ .night-room{height:370px}
+}
+@media(prefers-reduced-motion:reduce){
+ .night-wheel,.night-shift.wheel-ready .night-symbol-safe,.night-shift.is-spooked .night-scare-flash{animation:none!important}
+ .night-ambient-dim,.night-flashlight,.night-light-over,.night-duck-shadow{transition:none!important}
+}
