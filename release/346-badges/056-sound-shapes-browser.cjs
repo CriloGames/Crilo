@@ -249,7 +249,7 @@ async function main(){
     return {
       hidden:field.getAttribute('aria-hidden'),
       wheelCount:wheels.length,
-      wedgeCount:template?.querySelectorAll('path[fill]').length||0,
+      wedgeCount:template?.querySelectorAll('.wheel-disc > path[fill]').length||0,
       reuse:wheels.filter(el=>el.querySelector('use')?.getAttribute('href')==='#criloMiniWheel').length,
       sizes,
       ducks:field.querySelectorAll('.crilo-duck').length,
