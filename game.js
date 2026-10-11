@@ -676,9 +676,12 @@ function insidePaintArea(canvas,event){
  if(!inside)return false;
  if(canvas===drawing){
   // The actual wheel drawing surface is a circle, not its square bounding box.
-  const dx=(event.clientX-rect.left-rect.width/2)/(rect.width/2);
-  const dy=(event.clientY-rect.top-rect.height/2)/(rect.height/2);
-  return dx*dx+dy*dy<=1;
+  // CSS rotation expands getBoundingClientRect() but not the round canvas.
+  // Its true diameter is the untransformed clientWidth.
+  const radius=(canvas.clientWidth||rect.width)/2;
+  const dx=event.clientX-rect.left-rect.width/2;
+  const dy=event.clientY-rect.top-rect.height/2;
+  return dx*dx+dy*dy<=radius*radius;
  }
  return true;
 }
@@ -695,7 +698,17 @@ function history(from,to){if(drawingLocked||!from.length)return;to.push(dctx.get
 $('undoDrawing').onclick=()=>history(undoStack,redoStack);$('redoDrawing').onclick=()=>history(redoStack,undoStack);
 $('drawMode').onchange=e=>{drawMode=e.target.value;drawWheel()};
 document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{stopDrawing();drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>x.classList.toggle('active',x===b))});
-function point(e){const r=drawing.getBoundingClientRect(),x=(e.clientX-r.left)*200/r.width,y=(e.clientY-r.top)*200/r.height;if(drawMode==='spin'){const a=-rotation,c=100,dx=x-c,dy=y-c;return{x:c+dx*Math.cos(a)-dy*Math.sin(a),y:c+dx*Math.sin(a)+dy*Math.cos(a)}}return{x,y}}
+function point(e){
+ const r=drawing.getBoundingClientRect(),side=drawing.clientWidth||r.width;
+ // Work from the unrotated circular diameter, never its expanded rotated box.
+ const x=100+(e.clientX-r.left-r.width/2)*200/side;
+ const y=100+(e.clientY-r.top-r.height/2)*200/side;
+ if(drawMode==='spin'){
+  const a=-rotation,c=100,dx=x-c,dy=y-c;
+  return{x:c+dx*Math.cos(a)-dy*Math.sin(a),y:c+dx*Math.sin(a)+dy*Math.cos(a)};
+ }
+ return{x,y};
+}
 function fill(x,y){const w=200,img=dctx.getImageData(0,0,w,w),d=img.data,xx=Math.max(0,Math.min(199,Math.floor(x))),yy=Math.max(0,Math.min(199,Math.floor(y))),start=yy*w+xx,src=Array.from(d.slice(start*4,start*4+4)),hex=$('drawColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255],seen=new Uint8Array(w*w),q=[start];if(src.every((v,i)=>v===col[i]))return false;seen[start]=1;for(let head=0;head<q.length;head++){const n=q[head],o=n*4;if(!src.every((v,i)=>Math.abs(d[o+i]-v)<24))continue;for(let j=0;j<4;j++)d[o+j]=col[j];const x=n%w,y=Math.floor(n/w);for(const v of [x>0?n-1:-1,x<199?n+1:-1,y>0?n-w:-1,y<199?n+w:-1])if(v>=0&&!seen[v]){seen[v]=1;q.push(v)}}dctx.putImageData(img,0,0);return true}
 drawing.addEventListener('pointerdown',e=>{
  if(drawingLocked||activeDrawingPointer!==null||!insidePaintArea(drawing,e)||
