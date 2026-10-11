@@ -11,7 +11,7 @@ function installFakeDaily(){
    const date=new Date(Date.now()-22*3600000).toISOString().slice(0,10);
    const daily={
     id:93,user_id:'11111111-1111-4111-8111-111111111111',is_test:false,
-    daily_period:date,created_at:new Date().toISOString(),score:23,spins:3,
+    daily_period:date,created_at:new Date().toISOString(),score:23,spins:10,
     upgrades:0,doubles:0,ducks:1,verified_spin_session_id:'proof',
     drawing:null,results:[{type:'num',points:3},{type:'duck',points:0},{type:'num',points:20}]
    };
@@ -48,8 +48,14 @@ function installFakeDaily(){
     await page.goto(base+'/'+pageFile,{waitUntil:'domcontentloaded'});
     const image=pageFile==='leaderboard.html'?page.locator('#bestDrawing'):page.locator('.spin-history-wheel img').first();
     await image.waitFor({state:'visible',timeout:10000});
-    assert.equal(await image.getAttribute('src'),'default-wheel.svg','Blank wheel must always appear');
+    assert.equal(await image.getAttribute('src'),'blank-wheel.svg','Blank drawing must show a white wheel with no fake artwork');
     assert.ok(await image.evaluate(el=>el.complete&&el.naturalWidth>0),'SVG failed to load');
+    const white=await image.evaluate(el=>{
+      const canvas=document.createElement('canvas');canvas.width=10;canvas.height=10;
+      const ctx=canvas.getContext('2d');ctx.drawImage(el,0,0,10,10);
+      return [...ctx.getImageData(5,5,1,1).data];
+    });
+    assert.deepEqual(white,[255,255,255,255],'Blank wheel center must be pure white, with no colored segments');
     const rim=pageFile==='leaderboard.html'?page.locator('#bestDrawing'):page.locator('.spin-history-wheel').first();
     const border=await rim.evaluate(el=>({width:getComputedStyle(el).borderTopWidth,color:getComputedStyle(el).borderTopColor}));
     assert.equal(border.color,'rgb(23, 25, 30)','Wheel needs original black rim');
@@ -61,19 +67,20 @@ function installFakeDaily(){
      await btn.click();
      assert.ok(await btn.locator('img').evaluate(el=>el.getAnimations().length>0),'Leaderboard wheel did not spin');
     }else{
-     await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===3);
-     assert.equal(await page.locator('.spin-history-item').count(),3,'Expected three real spins');
+     await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===1);
+     assert.equal(await page.locator('.spin-history-item').count(),1,'Ten spins must display as one scored Daily');
      const text=await page.locator('#spinHistoryList').innerText();
-     assert.ok(text.includes('DUCK!')&&text.includes('Landed 3 points'),'Actual spin outcomes missing');
-     assert.equal(await page.locator('.spin-history-wheel').count(),3);
-     assert.equal(await page.locator('.spin-history-day').count(),1,'Spins must be grouped by Daily');
+     assert.ok(text.includes('10 spins')&&text.includes('23'),'Daily card must show saved spin count and final score');
+     assert.ok(!text.includes('DUCK!')&&!text.includes('Landed '),'Do not show individual spin or badge-like events');
+     assert.equal(await page.locator('.spin-history-wheel').count(),1);
+     assert.equal(await page.locator('.spin-history-status').count(),1,'Daily run metadata should be visible');
      assert.ok(!(await page.locator('#spinHistoryList').innerText()).includes('Badge earned'),'Spin history must not show badge unlocks');
      await page.locator('.spin-history-wheel').first().click();
      assert.ok(await image.evaluate(el=>el.getAnimations().length>0),'History wheel did not spin');
     }
     assert.deepEqual(errors,[],pageFile+' runtime errors');
     checked++;
-    console.log('PASS blank wheel and prior spin events '+pageFile+' '+width+'px');
+    console.log('PASS blank drawing and one scored Daily '+pageFile+' '+width+'px');
     await page.close();
    }
    await ctx.close();
