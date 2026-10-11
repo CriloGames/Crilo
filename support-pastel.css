@@ -2,8 +2,8 @@
    Deliberately composed flat-color op-art, like a small-run risograph poster.
    Five ink colors, visible paper, strong lines. No glossy gradients or glass UI. */
 :root{
- --paper:#f5f1e9;--ink:#30313b;--coral:#ef9e8f;--lilac:#c5b7dd;
- --mint:#b8d9d1;--butter:#f6da9c;--blue:#b9cbe5;
+ --paper:#faf9f5;--ink:#30313b;--coral:#ffb8d2;--lilac:#dfc8f6;
+ --mint:#c9f1df;--butter:#ffd86b;--blue:#9bd9ef;
  font-family:"Manrope",system-ui,-apple-system,sans-serif;color-scheme:light;
 }
 *{box-sizing:border-box}
@@ -15,76 +15,64 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset
  position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;
  min-height:100svh;padding:74px 20px 65px;isolation:isolate;overflow:hidden;background:var(--paper)
 }
-.print-field{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.paper-grain{
- position:absolute;inset:0;opacity:.15;
- background-image:radial-gradient(#665f6240 .65px,transparent .9px);
- background-size:8px 8px;mix-blend-mode:multiply
-}
-.poster-orbit{
- position:absolute;aspect-ratio:1;border:3px solid var(--ink);border-radius:50%;
- background:repeating-conic-gradient(
-  from -16deg,var(--coral) 0deg 16deg,var(--paper) 16deg 19deg,
-  var(--lilac) 19deg 35deg,var(--paper) 35deg 38deg,
-  var(--mint) 38deg 54deg,var(--paper) 54deg 57deg);
- display:grid;place-items:center
-}
-.orbit-left{width:min(55vw,700px);min-width:470px;left:-19%;top:10%;
- transform:rotate(-16deg);animation:orbit-turn 110s linear infinite}
-.orbit-right{
- width:min(38vw,510px);min-width:330px;right:-15%;bottom:-24%;
- background:repeating-conic-gradient(from 18deg,var(--butter) 0deg 20deg,var(--paper) 20deg 23deg,
-  var(--mint) 23deg 43deg,var(--paper) 43deg 46deg,
-  var(--blue) 46deg 66deg,var(--paper) 66deg 69deg);
- animation:orbit-turn 145s linear infinite reverse
-}
-.orbit-core{position:relative;display:block;width:43%;aspect-ratio:1;border:3px solid var(--ink);
- border-radius:50%;background:var(--paper);box-shadow:0 0 0 17px var(--paper),0 0 0 20px var(--ink)}
-.orbit-core::before{content:"";position:absolute;inset:15%;border:3px solid var(--ink);border-radius:50%}
-.orbit-core::after{content:"";position:absolute;inset:41%;background:var(--coral);border-radius:50%}
-.orbit-right .orbit-core::after{background:var(--mint)}
-.orbit-notch{position:absolute;width:18%;height:8%;background:var(--ink);left:45%;top:-4%;transform:rotate(14deg)}
-.poster-loop{
- position:absolute;right:2%;top:-13%;width:min(35vw,530px);min-width:280px;
- height:340px;border:39px solid var(--mint);border-radius:49% 50% 46% 53%;
- transform:rotate(28deg)
-}
-.poster-loop::before{
- content:"";position:absolute;inset:17px;border:3px solid var(--ink);border-radius:50%
-}
-.poster-loop span{position:absolute;width:44px;height:44px;top:15%;left:18%;border-radius:50%;background:var(--coral);border:2px solid var(--ink)}
-.poster-loop i{position:absolute;width:90px;height:13px;left:30%;bottom:20%;background:var(--ink);transform:rotate(-28deg)}
-.poster-stripes{
- position:absolute;right:-4%;top:32%;width:clamp(225px,28vw,430px);height:clamp(270px,30vw,480px);
- border:3px solid var(--ink);
- background:repeating-linear-gradient(-29deg,var(--butter) 0 29px,var(--ink) 29px 32px,
-  var(--paper) 32px 55px,var(--lilac) 55px 82px,var(--ink) 82px 85px);
- clip-path:polygon(5% 0,100% 0,100% 100%,0 100%);
- transform:rotate(-10deg)
-}
-.poster-stripes span{position:absolute;left:18%;top:26%;width:64%;aspect-ratio:1;border:3px solid var(--ink);border-radius:50%;background:var(--coral)}
-.poster-stripes span::after{content:"";position:absolute;inset:29%;border-radius:50%;background:var(--paper);border:3px solid var(--ink)}
-.poster-checks{
- position:absolute;left:-5%;bottom:-13%;width:clamp(220px,30vw,470px);
- height:clamp(195px,28vw,420px);
- border:3px solid var(--ink);border-radius:52% 48% 36% 64%/45% 58% 42% 55%;
- background:conic-gradient(var(--ink) 25%,var(--butter) 0 50%,var(--ink) 0 75%,var(--butter) 0);
- background-size:62px 62px;transform:rotate(-18deg)
-}
-.poster-sun{
- position:absolute;left:27%;bottom:-17%;width:clamp(180px,27vw,420px);aspect-ratio:1;
- border:3px solid var(--ink);border-radius:50%;
- background:repeating-radial-gradient(circle,var(--coral) 0 17px,var(--paper) 17px 21px,
-  var(--lilac) 21px 36px,var(--ink) 36px 39px)
-}
-.poster-sun span{position:absolute;inset:38%;border:3px solid var(--ink);border-radius:50%;background:var(--butter)}
-.poster-swoop{position:absolute;left:10%;bottom:12%;width:min(43vw,640px);height:270px;transform:rotate(-19deg)}
-.field-mark{position:absolute;font-family:inherit;font-size:11px;letter-spacing:.16em;font-weight:800;color:var(--ink)}
-.mark-top{top:25%;right:11%;transform:rotate(90deg);transform-origin:right}
-.mark-bottom{bottom:8%;right:4%;transform:rotate(-90deg);transform-origin:right}
-.print-star{position:absolute;font-size:78px;line-height:1;color:var(--ink)}
-.star-left{top:9%;left:44%;transform:rotate(-14deg)}
-.star-right{right:23%;bottom:8%;font-size:46px;transform:rotate(20deg)}
+/* Tiny editions of the actual 12-segment Daily Wheel, plus Crilo play motifs.
+   All graphics remain decorative and never cover payment controls. */
+.crilo-shape-field{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;isolation:isolate}
+.wheel-symbols{position:absolute;width:0;height:0;overflow:hidden}
+.crilo-mini-wheel{position:absolute;display:block;width:var(--wheel-size);height:auto;aspect-ratio:120/125;
+  overflow:visible;filter:drop-shadow(2px 3px 0 #17191e12);transform:rotate(var(--wheel-turn,0deg))}
+.wheel-one{--wheel-size:105px;left:4.3%;top:12%;--wheel-turn:-12deg}
+.wheel-two{--wheel-size:83px;right:12%;top:8%;--wheel-turn:14deg}
+.wheel-three{--wheel-size:72px;left:18%;top:39%;--wheel-turn:-18deg}
+.wheel-four{--wheel-size:106px;right:3%;top:39%;--wheel-turn:18deg}
+.wheel-five{--wheel-size:86px;left:6%;bottom:14%;--wheel-turn:-17deg}
+.wheel-six{--wheel-size:75px;right:19%;bottom:11%;--wheel-turn:12deg}
+.wheel-seven{--wheel-size:59px;left:35%;top:3%;--wheel-turn:-6deg}
+.wheel-eight{--wheel-size:66px;right:36%;bottom:5%;--wheel-turn:12deg}
+.crilo-pill,.crilo-blob,.crilo-ring,.crilo-badge,.crilo-spark,.crilo-duck,.crilo-number{
+ position:absolute;display:block}
+.crilo-pill{border-radius:999px;border:2px solid #17191e;box-shadow:4px 4px 0 #17191e13}
+.pill-one{width:143px;height:40px;left:16%;top:12%;background:#ffb8d2;transform:rotate(-16deg)}
+.pill-two{width:124px;height:34px;right:18%;top:24%;background:#c8f4bd;transform:rotate(20deg)}
+.pill-three{width:111px;height:39px;left:3%;top:53%;background:#fff0a8;transform:rotate(16deg)}
+.pill-four{width:138px;height:34px;right:7%;bottom:28%;background:#c6dcff;transform:rotate(-18deg)}
+.pill-five{width:103px;height:31px;left:27%;bottom:8%;background:#aee9f4;transform:rotate(-6deg)}
+.pill-six{width:100px;height:29px;right:32%;top:6%;background:#efc5ef;transform:rotate(24deg)}
+.crilo-blob{border:2px solid #17191e;box-shadow:5px 5px 0 #17191e15}
+.blob-one{width:112px;height:83px;top:7%;left:-3%;background:#c9f1df;border-radius:40% 60% 56% 44% / 59% 46% 54% 41%;transform:rotate(-14deg)}
+.blob-two{width:91px;height:86px;right:1%;top:10%;background:#fff0a8;border-radius:45% 55% 36% 64% / 55% 44% 56% 45%;transform:rotate(15deg)}
+.blob-three{width:118px;height:91px;left:10%;bottom:0%;background:#c6dcff;border-radius:43% 57% 61% 39% / 44% 54% 46% 56%;transform:rotate(-9deg)}
+.blob-four{width:102px;height:93px;right:-2%;bottom:3%;background:#ffb8d2;border-radius:47% 53% 60% 40% / 47% 60% 40% 53%}
+.blob-five{width:75px;height:66px;right:29%;top:29%;background:#c8f4bd;border-radius:47% 53% 36% 64% / 51% 43% 57% 49%;transform:rotate(22deg)}
+.crilo-ring{border-radius:50%;border:8px solid var(--ring-color,#dfc8f6)}
+.ring-one{width:97px;height:97px;right:16%;top:44%;--ring-color:#efc5ef;transform:rotate(17deg)}
+.ring-two{width:63px;height:63px;left:28%;bottom:23%;--ring-color:#aee9f4}
+.ring-three{width:58px;height:58px;right:28%;bottom:32%;--ring-color:#ffd86b}
+.crilo-spark{font-size:clamp(25px,3.5vw,57px);line-height:1;color:#17191e}
+.spark-one{left:26%;top:26%;transform:rotate(-13deg)}
+.spark-two{right:28%;top:14%;color:#9d80bc;transform:rotate(10deg)}
+.spark-three{right:8%;top:60%;color:#17191e;font-size:34px}
+.spark-four{left:7%;bottom:33%;color:#9d80bc;font-size:42px}
+.spark-five{left:39%;bottom:12%;font-size:24px}
+.crilo-badge{display:grid;place-items:center;border-radius:15px;border:2px solid #17191e;
+ padding:6px 12px;font-family:system-ui,sans-serif;font-size:18px;font-weight:950;color:#17191e;
+ box-shadow:3px 4px 0 #17191e21;letter-spacing:-.04em}
+.badge-one{top:29%;left:6%;background:#efc5ef;transform:rotate(-14deg)}
+.badge-two{top:58%;right:12%;background:#c8f4bd;transform:rotate(11deg)}
+.badge-three{bottom:19%;left:17%;background:#ffd86b;transform:rotate(9deg);font-size:15px}
+.crilo-duck{width:80px;aspect-ratio:86/68;transform:rotate(var(--duck-tilt,0deg))}
+.crilo-duck svg{display:block;width:100%;height:100%}
+.duck-one{left:10%;top:25%;--duck-tilt:-10deg}
+.duck-two{right:19%;top:35%;--duck-tilt:9deg;width:68px}
+.duck-three{right:6%;bottom:12%;--duck-tilt:-13deg;width:72px}
+.crilo-number{display:grid;place-items:center;border:2px solid #17191e;border-radius:50%;
+ background:var(--num-color,#ffd86b);color:#17191e;font:950 18px/1 system-ui,sans-serif;
+ width:50px;height:50px;box-shadow:3px 4px 0 #17191e12}
+.number-one{left:30%;top:16%;--num-color:#c9f1df;transform:rotate(-13deg)}
+.number-two{right:31%;bottom:16%;--num-color:#ffb8d2;transform:rotate(9deg)}
+.number-three{right:9%;bottom:37%;--num-color:#fff0a8}
+.paper-grain{position:absolute;inset:0;opacity:.09;pointer-events:none;
+ background-image:radial-gradient(#665f6240 .55px,transparent .85px);background-size:8px 8px;mix-blend-mode:multiply}
 .support-back{
  position:absolute;top:22px;left:25px;z-index:20;
  padding:7px 0;border-bottom:2px solid var(--ink);
@@ -137,28 +125,55 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset
  background:var(--paper);padding:4px 7px;margin:0;text-align:center
 }
 .page-signature span{font-size:13px;padding-left:6px}
-@keyframes orbit-turn{to{transform:rotate(344deg)}}
 @media(max-width:980px){
- .orbit-left{left:-36%}.orbit-right{right:-28%}.poster-loop{right:-9%}
- .poster-stripes{right:-20%}.poster-sun{left:18%}
+ .pill-one{left:10%}.pill-two{right:8%}
+ .ring-one{right:5%}.wheel-two{right:6%}
+ .duck-two{right:7%}
 }
 @media(max-width:700px){
  .pastel-world{padding:83px 19px 65px;min-height:100svh}
  .support-back{top:14px;left:17px;font-size:12px}
- .orbit-left{min-width:350px;width:440px;top:2%;left:-325px}
- .orbit-right{min-width:290px;width:335px;right:-250px;bottom:-11%}
- .poster-loop{width:320px;min-width:0;height:250px;right:-188px;top:-9%;border-width:27px}
- .poster-stripes{right:-213px;top:25%;width:305px;height:340px}
- .poster-checks{width:230px;height:230px;bottom:-11%;left:-122px}
- .poster-sun{width:245px;left:25%;bottom:-20%}
- .poster-swoop{width:310px;height:180px;left:-150px;bottom:17%}
- .star-left{font-size:48px;top:13%;left:69%}.star-right{font-size:31px;right:7%;bottom:12%}
- .field-mark{display:none}
  .tip-card{width:min(100%,450px);padding:27px 25px 25px;box-shadow:7px 7px 0 var(--lilac)}
  .tip-card h1{font-size:clamp(40px,9vw,53px)}
  .card-eyebrow{margin-bottom:29px}
  .tip-subtitle{margin-bottom:23px}
  .page-signature{font-size:8px;bottom:13px}
+ .wheel-one{--wheel-size:78px;left:-10px;top:13%}
+ .wheel-two{--wheel-size:67px;right:2%;top:12%}
+ .wheel-three{--wheel-size:55px;left:-15px;top:41%}
+ .wheel-four{--wheel-size:78px;right:-22px;top:49%}
+ .wheel-five{--wheel-size:70px;left:-4px;bottom:13%}
+ .wheel-six{--wheel-size:61px;right:6%;bottom:11%}
+ .wheel-seven{--wheel-size:48px;left:37%;top:5%}
+ .wheel-eight{--wheel-size:50px;right:36%;bottom:3%}
+ .pill-one{width:95px;height:26px;left:22%;top:10%}
+ .pill-two{width:84px;height:25px;right:3%;top:30%}
+ .pill-three{width:87px;height:26px;left:-29px;top:64%}
+ .pill-four{width:91px;height:28px;right:-17px;bottom:28%}
+ .pill-five{width:72px;height:23px;left:20%;bottom:5%}
+ .pill-six{width:66px;height:22px;right:13%;top:7%}
+ .blob-one{width:85px;height:70px;left:-49px;top:7%}
+ .blob-two{width:65px;height:64px;right:-21px;top:21%}
+ .blob-three{width:85px;height:72px;left:-34px;bottom:0%}
+ .blob-four{width:81px;height:70px;right:-48px;bottom:3%}
+ .blob-five{width:57px;height:51px;right:-31px;top:37%}
+ .ring-one{width:63px;height:63px;right:-28px;top:41%;border-width:6px}
+ .ring-two{width:46px;height:46px;left:7%;bottom:27%;border-width:6px}
+ .ring-three{width:40px;height:40px;right:14%;bottom:6%;border-width:6px}
+ .spark-one{left:9%;top:31%;font-size:24px}
+ .spark-two{right:13%;top:5%;font-size:27px}
+ .spark-three{right:-8px;top:65%;font-size:22px}
+ .spark-four{left:-1%;bottom:37%;font-size:24px}
+ .spark-five{left:43%;bottom:3%;font-size:21px}
+ .badge-one{top:27%;left:-26px;padding:4px 7px;font-size:12px;border-radius:8px}
+ .badge-two{top:72%;right:-25px;padding:4px 9px;font-size:13px;border-radius:8px}
+ .badge-three{bottom:16%;left:13%;padding:4px 8px;font-size:11px;border-radius:7px}
+ .duck-one{left:-16px;top:21%;width:59px}
+ .duck-two{right:-18px;top:32%;width:56px}
+ .duck-three{right:5%;bottom:18%;width:56px}
+ .number-one{left:27%;top:3%;width:35px;height:35px;font-size:13px}
+ .number-two{right:28%;bottom:16%;width:36px;height:36px;font-size:13px}
+ .number-three{right:-11px;bottom:36%;width:34px;height:34px;font-size:12px}
 }
 @media(max-width:390px){
  .pastel-world{padding:67px 16px 56px}
@@ -176,14 +191,13 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--ink);outline-offset
  .pastel-world{padding-top:42px;padding-bottom:20px}
  .tip-card{width:420px;padding:16px 23px 15px}
  .card-eyebrow{margin-bottom:10px}
- .tip-card h1{font-size:37px;margin-bottom:8px}.tip-card h1 span{display:inline}
+ .tip-card h1{font-size:37px;margin-bottom:8px}
+ .tip-card h1 span{display:inline}
  .tip-subtitle{margin-bottom:10px;font-size:11px}
- .support-amount{min-height:38px}
- .support-pay{min-height:41px}
+ .support-amount{min-height:38px}.support-pay{min-height:41px}
  .support-selected{margin-top:12px}.support-fine{margin-top:6px;padding-top:6px}
  .page-signature{display:none}
 }
 @media(prefers-reduced-motion:reduce){
- .poster-orbit{animation:none!important}
  .support-pay,.support-amount,.support-back{transition:none!important}
 }

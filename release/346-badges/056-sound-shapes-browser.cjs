@@ -233,49 +233,56 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  // Designed, flat-color print study: composition, navigation and absence of glossy UI.
+  // Site-matched decoration: actual 12-section Crilo wheel miniatures and recognizable game shapes.
   check(await tipPage.locator('.toy-shape, .shape-toolbar, #stackProgress, [data-add-shape]').count()===0,
-    scenario.name+' retired Stack Lab gameplay reappeared');
+    scenario.name+' old block-stacking game reappeared');
   check(await tipPage.locator('.support-back').getAttribute('href')==='index.html#more-games',
-    scenario.name+' missing back-to-Crilo link');
+    scenario.name+' back link to homepage missing');
   const art=await tipPage.evaluate(()=>{
     const field=document.getElementById('printField');
     const card=document.querySelector('.tip-card');
     const back=document.querySelector('.support-back');
-    const orbit=document.querySelector('.poster-orbit');
-    const r=card.getBoundingClientRect(),n=back.getBoundingClientRect();
+    const template=document.getElementById('criloMiniWheel');
+    const wheels=[...field.querySelectorAll('.crilo-mini-wheel')];
+    const sizes=wheels.map(el=>el.getBoundingClientRect().width);
+    const cr=card.getBoundingClientRect(),br=back.getBoundingClientRect();
     return {
       hidden:field.getAttribute('aria-hidden'),
-      orbits:document.querySelectorAll('.poster-orbit').length,
-      loop:document.querySelectorAll('.poster-loop').length,
-      stripes:document.querySelectorAll('.poster-stripes').length,
-      swoop:document.querySelectorAll('.poster-swoop path').length,
-      marks:document.querySelectorAll('.field-mark').length,
-      grain:document.querySelectorAll('.paper-grain').length,
-      composition:getComputedStyle(orbit).backgroundImage,
-      ink:getComputedStyle(card).borderTopColor,
-      paper:getComputedStyle(card).backgroundColor,
-      cardZ:Number(getComputedStyle(card).zIndex),
+      wheelCount:wheels.length,
+      wedgeCount:template?.querySelectorAll('path[fill]').length||0,
+      reuse:wheels.filter(el=>el.querySelector('use')?.getAttribute('href')==='#criloMiniWheel').length,
+      sizes,
+      ducks:field.querySelectorAll('.crilo-duck').length,
+      pills:field.querySelectorAll('.crilo-pill').length,
+      dots:field.querySelectorAll('.crilo-blob').length,
+      badges:field.querySelectorAll('.crilo-badge').length,
+      rewards:[...field.querySelectorAll('.crilo-badge span')].map(el=>el.textContent),
       artZ:Number(getComputedStyle(field).zIndex),
+      cardZ:Number(getComputedStyle(card).zIndex),
+      paper:getComputedStyle(card).backgroundColor,
       radius:getComputedStyle(card).borderRadius,
-      card:r.toJSON(),back:n.toJSON(),
+      card:cr.toJSON(),back:br.toJSON(),
       payVisible:document.getElementById('supportPayLink').getBoundingClientRect().width>120,
-      animation:getComputedStyle(orbit).animationName,
     };
   });
-  check(art.hidden==='true'&&art.orbits===2&&art.loop===1&&art.stripes===1&&art.swoop===3&&art.marks===2&&art.grain===1,
-    scenario.name+' authored op-art composition incomplete '+JSON.stringify(art));
-  check(art.composition.includes('conic-gradient')&&art.paper==='rgb(255, 253, 249)'&&
-    art.cardZ>art.artZ&&art.radius==='5px',
-    scenario.name+' flat printed card/style not in effect '+JSON.stringify(art));
+  check(art.hidden==='true'&&art.wheelCount===8&&art.wedgeCount===12&&art.reuse===8,
+    scenario.name+' mini official wheel artwork missing '+JSON.stringify(art));
+  check(art.sizes.every(n=>n>=35&&n<=110)&&Math.max(...art.sizes)-Math.min(...art.sizes)>=15,
+    scenario.name+' wheel accents became too large or uniformly sized '+JSON.stringify(art));
+  check(art.ducks===3&&art.pills>=6&&art.dots>=5&&art.badges===3&&
+    ['×2','+2','UP!'].every(x=>art.rewards.includes(x)),
+    scenario.name+' Crilo motifs incomplete '+JSON.stringify(art));
+  check(art.cardZ>art.artZ&&art.paper==='rgb(255, 253, 249)'&&art.radius==='5px',
+    scenario.name+' checkout card lost its foreground design '+JSON.stringify(art));
   check(art.card.width<=485&&art.back.width>60&&art.payVisible,
-    scenario.name+' main donation controls missing '+JSON.stringify(art));
+    scenario.name+' donation form or back link missing '+JSON.stringify(art));
   check(art.back.left>=0&&art.back.top>=0&&art.back.right<=scenario.width+2,
     scenario.name+' back link clipped '+JSON.stringify(art));
   await tipPage.emulateMedia({reducedMotion:'reduce'});
-  const noMotion=await tipPage.locator('.poster-orbit').first().evaluate(el=>getComputedStyle(el).animationName);
-  check(noMotion==='none',scenario.name+' reduced-motion setting failed to freeze the op-art');
+  check(await tipPage.locator('.crilo-mini-wheel').first().evaluate(el=>getComputedStyle(el).animationName)==='none',
+    scenario.name+' motion preference not respected');
   await tipPage.emulateMedia({reducedMotion:'no-preference'});
+
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,
