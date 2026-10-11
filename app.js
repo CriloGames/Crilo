@@ -300,6 +300,9 @@
     }
   });
 
+  // Keep the account label hidden until the primary session restore completes.
+  // An earlier INITIAL_SESSION callback may still be pending.
+  let authHeaderReady=false;
   function renderAccount(){
     // Owner-only navigation is also checked server-side by the moderation RPCs.
     const nav=document.querySelector('.topbar nav');
@@ -324,13 +327,21 @@
     }
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn) return;
-    if(!Crilo.user){ btn.textContent='SIGN IN'; btn.style.color=''; return; }
-    btn.textContent=Crilo.profile?.username || 'ACCOUNT';
-    btn.style.color=Crilo.profile?.name_color || '';
-    if(menu){
-      menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
-      $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); location.href='index.html';});
+    if(!Crilo.user){
+      btn.textContent='SIGN IN';
+      btn.style.color='';
+      if(menu){menu.classList.add('hidden');menu.replaceChildren();}
+    }else{
+      btn.textContent=Crilo.profile?.username || 'ACCOUNT';
+      btn.style.color=Crilo.profile?.name_color || '';
+      if(menu){
+        menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
+        $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); location.href='index.html';});
+      }
     }
+    // An empty, reserved header slot is better than a false SIGN IN flash.
+    btn.style.visibility=authHeaderReady?'visible':'hidden';
+    btn.setAttribute('aria-busy',String(!authHeaderReady));
   }
 
   document.addEventListener('click',e=>{
@@ -426,6 +437,15 @@
       }
     }
     await loadIdentity();
+    authHeaderReady=true;
+    renderAccount();
   }
-  initializeAuth().catch(error=>console.error('Crilo auth initialization:',error));
+  initializeAuth().catch(error=>{
+    console.error('Crilo auth initialization:',error);
+    // Do not leave guests with a permanently hidden account control.
+    authHeaderReady=true;
+    Crilo.user=null;
+    Crilo.profile=null;
+    renderAccount();
+  });
 })();

@@ -6,6 +6,8 @@ on:
       - 'game.js'
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'
       - 'release/346-badges/087-signed-in-controls-browser.cjs'
+      - 'release/346-badges/091-no-signin-flash-browser.cjs'
+      - 'moderation.html'
       - 'release/346-badges/078-daily-drawing-storage-chromium.cjs'
       - 'share-result.js'
       - 'official-daily-total.js'
@@ -69,6 +71,8 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Verify customizable profile icon save and public display in Chromium
         run: node release/346-badges/089-profile-icon-browser.cjs
+      - name: Verify no brief SIGN IN flash while a page restores authentication
+        run: node release/346-badges/091-no-signin-flash-browser.cjs
       - name: Test authenticated account settings, Friends, Ducks and owner-only menus without live writes
         run: node release/346-badges/087-signed-in-controls-browser.cjs
       - name: Exercise actual wheel page with synthetic signed-in browser
