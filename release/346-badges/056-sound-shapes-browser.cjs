@@ -233,91 +233,47 @@ async function main(){
   check(await tipPage.locator('#nightShift').count()===0&&await tipPage.locator('#soundStage').count()===0,
     scenario.name+' old games still on donation page');
   check(await tipPage.locator('#accountBtn').count()===0,scenario.name+' account sign-in still on donation page');
-  // Interactive Stack Lab: distinct solids, proportional resizing, physics and score.
-  const initialCount=await tipPage.locator('.toy-shape').count();
-  const expectedStarter=scenario.width<570?3:scenario.width<900?4:6;
-  check(initialCount===expectedStarter,scenario.name+' starter shapes should be visible and varied');
-  check(await tipPage.locator('[data-depth-layer]').count()===0,
-    scenario.name+' artificial depth options must be removed');
-  check(await tipPage.locator('.shape-back').getAttribute('href')==='index.html#more-games',
-    scenario.name+' back-to-home navigation missing');
-  check(await tipPage.locator('#stackProgress').isVisible(),
-    scenario.name+' stacking game HUD missing');
-  const first=await tipPage.evaluate(()=>{
-    const board=document.getElementById('shapeCanvas').getBoundingClientRect();
-    const first=[...document.querySelectorAll('.toy-shape')].map(el=>el.getBoundingClientRect());
-    const card=document.querySelector('.tip-card').getBoundingClientRect();
-    const hud=document.querySelector('.stack-hud').getBoundingClientRect();
-    return {height:board.height,card:card.toJSON(),hud:hud.toJSON(),shapes:first.map(r=>r.toJSON()),
-      pageHeight:document.documentElement.scrollHeight,viewportHeight:innerHeight};
-  });
-  check(first.shapes.every(r=>r.y>=0&&r.bottom<=Math.max(first.viewportHeight+20,first.height)),
-    scenario.name+' initial shapes start below screen '+JSON.stringify(first));
-  check(first.pageHeight<=Math.max(first.viewportHeight+135,730),
-    scenario.name+' stacking page remains unnecessarily tall '+JSON.stringify(first));
-  for(const kind of ['cube','slab','cylinder','sphere','prism','arch']){
-    await tipPage.locator('[data-add-shape="'+kind+'"]').click();
-    check(await tipPage.locator('.toy-shape.type-'+kind).count()>=1,
-      scenario.name+' add '+kind+' failed');
-  }
-  const front=await tipPage.evaluate(()=>{
+  // Optically rich donation background: artwork is decorative and never blocks checkout.
+  check(await tipPage.locator('.toy-shape, .shape-toolbar, #stackProgress, [data-add-shape]').count()===0,
+    scenario.name+' deleted Stack Lab gameplay still present');
+  check(await tipPage.locator('.support-back').getAttribute('href')==='index.html#more-games',
+    scenario.name+' direct link back to the main game is missing');
+  const art=await tipPage.evaluate(()=>{
+    const scene=document.getElementById('dreamscape');
     const card=document.querySelector('.tip-card');
-    const canvas=document.getElementById('shapeCanvas');
-    const toolbar=document.querySelector('.shape-toolbar');
-    const cubes=[...document.querySelectorAll('.toy-shape')];
-    return {card:Number(getComputedStyle(card).zIndex),
-      field:Number(getComputedStyle(canvas).zIndex),
-      toolbar:Number(getComputedStyle(toolbar).zIndex),
-      depthGroups:document.querySelectorAll('[data-depth-layer]').length,
-      topFaces:cubes.filter(n=>n.querySelector('.toy-top')&&n.querySelector('.toy-side')&&n.querySelector('.toy-front')).length,
-      total:cubes.length};
+    const back=document.querySelector('.support-back');
+    const portals=[...document.querySelectorAll('.portal')];
+    const wheels=[...document.querySelectorAll('.op-wheel')];
+    const ribbons=[...document.querySelectorAll('.art-wave')];
+    const cardRect=card.getBoundingClientRect();
+    const backRect=back.getBoundingClientRect();
+    return {
+      hidden:scene.getAttribute('aria-hidden'),
+      portals:portals.length,wheels:wheels.length,ribbons:ribbons.length,
+      svg:document.querySelectorAll('.flow-art path').length,
+      orbs:document.querySelectorAll('.glass-orb').length,
+      palette:getComputedStyle(portals[0]).backgroundImage,
+      cardZ:getComputedStyle(card).zIndex,
+      sceneZ:getComputedStyle(scene).zIndex,
+      card:cardRect.toJSON(),back:backRect.toJSON(),
+      visiblePay:document.getElementById('supportPayLink').getBoundingClientRect().width>120,
+      theme:getComputedStyle(document.querySelector('.pastel-world')).backgroundImage,
+      animation:getComputedStyle(portals[0]).animationName
+    };
   });
-  check(front.depthGroups===0&&front.card>front.field&&front.toolbar>front.card&&front.topFaces===front.total,
-    scenario.name+' 3D geometry or protected tip card missing '+JSON.stringify(front));
-  // Exercise the mouse/touch pointer gesture on a fresh square block.
-  await tipPage.locator('[data-add-shape="cube"]').click();
-  const toy=tipPage.locator('.toy-shape.selected');
-  await toy.scrollIntoViewIfNeeded();
-  const box=await toy.boundingBox();
-  check(!!box,scenario.name+' selected shape missing');
-  const x=box.x+box.width*.50,y=box.y+box.height*.48;
-  await tipPage.mouse.move(x,y);
-  await tipPage.mouse.down();
-  await tipPage.mouse.move(x+22,y+8,{steps:5});
-  await tipPage.mouse.up();
-  const moved=await toy.boundingBox();
-  check(Math.abs(moved.x-box.x)>=10,scenario.name+' dragging does not reposition toys');
-  const resize=toy.locator('.toy-handle.at-se');
-  await resize.scrollIntoViewIfNeeded();
-  const beforeResize=await toy.boundingBox();
-  const hb=await resize.boundingBox();
-  check(!!hb,scenario.name+' missing corner handle');
-  await tipPage.mouse.move(hb.x+hb.width/2,hb.y+hb.height/2);
-  await tipPage.mouse.down();
-  await tipPage.mouse.move(hb.x+hb.width/2+20,hb.y+hb.height/2+20,{steps:5});
-  await tipPage.mouse.up();
-  const afterResize=await toy.boundingBox();
-  check(afterResize.width>beforeResize.width+6 && afterResize.height>beforeResize.height+6,
-    scenario.name+' proportional resize gesture failed '+JSON.stringify({beforeResize,afterResize}));
-  check(Math.abs(afterResize.width/afterResize.height-beforeResize.width/beforeResize.height)<.07,
-    scenario.name+' block was stretched or squished during resizing');
-  await tipPage.waitForFunction(()=>document.querySelector('.toy-shape.selected')?.dataset.resting==='true',
-    null,{timeout:4500});
-  check(await toy.getAttribute('data-resting')==='true',
-    scenario.name+' physics did not settle the shape on a support');
-  await tipPage.locator('#shapeDelete').click();
-  check(await tipPage.locator('.toy-shape').count()===initialCount+6,
-    scenario.name+' remove selected block failed');
-  await tipPage.locator('#shapeReset').click();
-  check(await tipPage.locator('.toy-shape').count()===expectedStarter,
-    scenario.name+' new pile did not reset the game');
-  check(await tipPage.locator('#stackCelebrate').evaluate(el=>!el.classList.contains('celebrate')),
-    scenario.name+' stale celebration stayed on screen after reset');
-  check(await tipPage.locator('#stackProgress').isVisible(),
-    scenario.name+' score HUD disappeared after reset');
-  await tipPage.locator('#shapeSurprise').click();
-  check(await tipPage.locator('.toy-shape').count()===expectedStarter+1,
-    scenario.name+' surprise drop did not work');
+  check(art.hidden==='true'&&art.portals===2&&art.wheels===2&&art.ribbons===3&&art.svg>=8&&art.orbs===2,
+    scenario.name+' optical composition missing layers '+JSON.stringify(art));
+  check(art.palette.includes('conic-gradient')&&art.theme.includes('gradient')&&
+    Number(art.cardZ)>Number(art.sceneZ),
+    scenario.name+' background texture or frontmost checkout missing '+JSON.stringify(art));
+  check(art.card.width<=520&&art.back.width>60&&art.visiblePay,
+    scenario.name+' readable foreground controls missing '+JSON.stringify(art));
+  check(art.back.left>=0&&art.back.top>=0&&art.back.right<=scenario.width+2,
+    scenario.name+' navigation back is clipped '+JSON.stringify(art));
+  await tipPage.emulateMedia({reducedMotion:'reduce'});
+  const noMotion=await tipPage.locator('.portal').first().evaluate(el=>getComputedStyle(el).animationName);
+  check(noMotion==='none',scenario.name+' reduced-motion preference does not stop rotating illusion');
+  await tipPage.emulateMedia({reducedMotion:'no-preference'});
   const typeStyles=await tipPage.evaluate(()=>({
     family:getComputedStyle(document.querySelector('.tip-card h1')).fontFamily,
     headlineWeight:getComputedStyle(document.querySelector('.tip-card h1')).fontWeight,

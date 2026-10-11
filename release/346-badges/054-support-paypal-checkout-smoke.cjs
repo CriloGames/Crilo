@@ -15,7 +15,7 @@ assert.ok(html.includes('rel="noopener noreferrer"'),'External checkout tab must
 assert.ok(html.includes('aria-live="polite"'),'Selected tip should be announced accessibly');
 assert.ok(!html.includes('Payments aren\'t connected yet'),'Old disabled checkout notice remains');
 assert.ok(!html.includes('id="customAmount"'),'Do not collect a custom amount that PayPal cannot receive');
-assert.ok(style.includes('.support-pay{display:flex;justify-content:center'),'Checkout CTA must be visibly enabled');
+assert.ok(style.includes('.support-pay{display:flex;align-items:center;justify-content:center'),'Checkout CTA must be visibly enabled');
 const script=html.match(/<script>\(function\(\)\{[\s\S]*?\}\)\(\);<\/script>/);
 assert.ok(script,'Cannot locate PayPal checkout selector script');
 class Element{

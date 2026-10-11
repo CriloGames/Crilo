@@ -78,8 +78,8 @@ assert.ok(migration.includes('crilo_owner_delete_profile_run')&&
  migration.includes("IF p_source='official' THEN")&&
  migration.includes("USING ERRCODE='22023'"),
  'Legacy official-score deletion must be rejected at the database boundary');
-assert.ok(pagesSource['support.html'].includes('support-pastel.js?v=6'),
- 'Support page must load its independent decorative code, not a fake sign-in header');
+assert.ok(pagesSource['support.html'].includes('support-pastel.js?v=7'),
+ 'Support page must load its lightweight decorative effect, not a fake sign-in header');
 assert.ok(pagesSource['shape-of-sound.html'].includes('sound-shapes.js?v=2'),
  'The free music game must have its own functioning page');
 assert.ok(pagesSource['index.html'].includes('href="shape-of-sound.html"'),

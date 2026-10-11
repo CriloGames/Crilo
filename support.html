@@ -3,63 +3,79 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#ffffff">
-<meta name="description" content="Keep Crilo Spinning! A tiny optional tip in a big world of cute, colorful pastel shapes.">
-<title>Keep Crilo Spinning ♡</title>
+<meta name="theme-color" content="#f2e7fa">
+<meta name="description" content="Keep Crilo Spinning — a little corner of color and an entirely optional way to support Crilo.">
+<title>Keep Crilo Spinning — Crilo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="support-pastel.css?v=7">
+<link rel="stylesheet" href="support-pastel.css?v=8">
 </head>
 <body>
 <main class="pastel-world" aria-labelledby="supportHeading">
-  <div class="shape-canvas stacking-playfield" id="shapeCanvas" aria-label="Interactive 3D shape playground"></div>
-  <header class="shape-toolbar" aria-label="Stack Lab controls">
-    <a class="shape-back" href="index.html#more-games" aria-label="Back to Crilo home">← Crilo</a>
-    <div class="toolbar-title"><strong>Stack Lab</strong><span>Build a tower. Reach the next star.</span></div>
-    <div class="shape-palette" role="group" aria-label="Choose a solid 3D shape">
-      <button type="button" data-add-shape="cube"><i class="palette-icon cube"></i>Cube</button>
-      <button type="button" data-add-shape="slab"><i class="palette-icon slab"></i>Slab</button>
-      <button type="button" data-add-shape="cylinder"><i class="palette-icon cylinder"></i>Cylinder</button>
-      <button type="button" data-add-shape="sphere"><i class="palette-icon sphere"></i>Ball</button>
-      <button type="button" data-add-shape="prism"><i class="palette-icon prism"></i>Prism</button>
-      <button type="button" data-add-shape="arch"><i class="palette-icon arch"></i>Arch</button>
-    </div>
-    <div class="shape-tools">
-      <button type="button" class="utility-tool shape-surprise" id="shapeSurprise">✦ Surprise drop</button>
-      <button type="button" class="utility-tool" id="shapeDelete" disabled>Remove</button>
-      <button type="button" class="utility-tool" id="shapeReset">New pile</button>
-    </div>
-  </header>
-  <div class="stack-hud" aria-label="Stacking challenge">
-    <span class="stack-hud-title">STACK TO THE STAR</span>
-    <span id="stackProgress" aria-live="polite">Tower 0 / 3</span>
-    <div class="stack-track" aria-hidden="true"><span id="stackFill"></span></div>
-    <span id="stackBest">Best 0</span>
+  <div class="dreamscape" id="dreamscape" aria-hidden="true">
+    <div class="light-pool pool-pink"></div>
+    <div class="light-pool pool-blue"></div>
+    <div class="light-pool pool-lemon"></div>
+    <div class="portal portal-left"><div class="portal-iris"></div></div>
+    <div class="portal portal-right"><div class="portal-iris"></div></div>
+    <svg class="flow-art" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ribbon-one" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#ffcf9c"/><stop offset="32%" stop-color="#faa4bc"/>
+          <stop offset="65%" stop-color="#d4a5fa"/><stop offset="100%" stop-color="#a6cbff"/>
+        </linearGradient>
+        <linearGradient id="ribbon-two" x1="0%" y1="0%" x2="100%" y2="40%">
+          <stop offset="0%" stop-color="#a6e2d0"/><stop offset="44%" stop-color="#9bd4f0"/>
+          <stop offset="74%" stop-color="#c9b2ff"/><stop offset="100%" stop-color="#f8b8d3"/>
+        </linearGradient>
+        <linearGradient id="ribbon-three" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#f6e18f"/><stop offset="47%" stop-color="#ffc59f"/>
+          <stop offset="100%" stop-color="#e8a9e4"/>
+        </linearGradient>
+      </defs>
+      <g class="art-wave wave-one" fill="none" stroke-linecap="round">
+        <path d="M-230,580 C65,105 250,115 455,322 C665,550 505,827 750,859 C998,894 1146,232 1698,300" stroke="#ab87d9" stroke-width="145" opacity=".14" transform="translate(16,25)"/>
+        <path d="M-230,580 C65,105 250,115 455,322 C665,550 505,827 750,859 C998,894 1146,232 1698,300" stroke="url(#ribbon-one)" stroke-width="126"/>
+        <path d="M-230,564 C65,89 250,99 455,306 C665,534 505,811 750,843 C998,878 1146,216 1698,284" stroke="#fffaf5" stroke-width="9" opacity=".48"/>
+      </g>
+      <g class="art-wave wave-two" fill="none" stroke-linecap="round">
+        <path d="M-220,170 C225,490 442,90 763,157 C1075,215 1067,703 1318,722 C1500,737 1640,480 1850,470" stroke="#7287c5" opacity=".12" stroke-width="118" transform="translate(8,22)"/>
+        <path d="M-220,170 C225,490 442,90 763,157 C1075,215 1067,703 1318,722 C1500,737 1640,480 1850,470" stroke="url(#ribbon-two)" stroke-width="108"/>
+        <path d="M-220,157 C225,477 442,77 763,144 C1075,202 1067,690 1318,709 C1500,724 1640,467 1850,457" stroke="#fff" stroke-width="7" opacity=".42"/>
+      </g>
+      <g class="art-wave wave-three" fill="none" stroke-linecap="round">
+        <path d="M-220,920 C300,648 442,1120 845,997 C1120,914 1264,845 1812,1038" stroke="url(#ribbon-three)" stroke-width="176" opacity=".92"/>
+        <path d="M-220,890 C300,618 442,1090 845,967 C1120,884 1264,815 1812,1008" stroke="#fff" stroke-width="9" opacity=".4"/>
+      </g>
+    </svg>
+    <div class="op-wheel op-wheel-a"><span></span></div>
+    <div class="op-wheel op-wheel-b"><span></span></div>
+    <div class="glass-orb orb-top"></div>
+    <div class="glass-orb orb-bottom"></div>
+    <div class="sparkle spark-a">✳</div>
+    <div class="sparkle spark-b">✦</div>
+    <div class="sparkle spark-c">✳</div>
+    <div class="sparkle spark-d">✦</div>
+    <div class="light-grain"></div>
   </div>
-  <p class="shape-hint">Choose a shape to drop it · Drag to stack · Pull a corner to resize proportionally</p>
-  <div class="stack-floor" aria-hidden="true"></div>
-  <div class="stack-celebration" aria-hidden="true" id="stackCelebrate">✦ Next star unlocked! ✦</div>
-  <p id="shapeStatus" class="visually-hidden" role="status" aria-live="polite"></p>
+  <a class="support-back" href="index.html#more-games">← Back to Crilo</a>
   <section class="tip-card" aria-label="Optional one-time support for Crilo">
-    <span class="card-ribbon" aria-hidden="true">✦ A LITTLE LOVE FOR CRILO ✦</span>
-    <span class="card-sticker one" aria-hidden="true">✿</span>
-    <span class="card-sticker two" aria-hidden="true">✦</span>
-    <span class="card-sticker three" aria-hidden="true">✿</span>
-    <span class="card-sticker four" aria-hidden="true">✧</span>
-    <div class="cute-stamp" aria-hidden="true"><span class="heart">♥</span><span class="eyes">••</span><span class="smile"></span></div>
-    <h1 id="supportHeading">Keep Crilo <span>Spinning!</span></h1>
-    <p class="tip-subtitle">A tiny tip, if you'd like. Always optional, always appreciated. ♡</p>
+    <div class="card-emblem" aria-hidden="true"><span>✳</span></div>
+    <p class="card-eyebrow">A LITTLE LOVE FOR CRILO</p>
+    <h1 id="supportHeading">Keep Crilo <span>Spinning.</span></h1>
+    <p class="tip-subtitle">A tiny tip, if you'd like. Completely optional — Crilo stays free either way.</p>
     <div class="tip-choices" role="group" aria-label="Choose a one-time tip amount">
       <button class="support-amount selected" type="button" data-amount="2" aria-pressed="true">$2</button>
       <button class="support-amount" type="button" data-amount="5" aria-pressed="false">$5</button>
       <button class="support-amount" type="button" data-amount="10" aria-pressed="false">$10</button>
       <button class="support-amount" type="button" data-amount="custom" aria-pressed="false">Custom</button>
     </div>
-    <a id="supportPayLink" class="support-pay support-checkout-link" href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84" target="_blank" rel="noopener noreferrer" aria-label="Continue to secure PayPal checkout for a $2 tip">Tip with PayPal <span class="arrow" aria-hidden="true">↗</span></a>
+    <a id="supportPayLink" class="support-pay support-checkout-link" href="https://www.paypal.com/ncp/payment/75LUCY8GEAF84" target="_blank" rel="noopener noreferrer" aria-label="Continue to secure PayPal checkout for a $2 tip"><span>Tip with PayPal</span><span class="arrow" aria-hidden="true">↗</span></a>
     <p class="support-selected" id="tipSummary" aria-live="polite">Your tip: $2.00 · One time</p>
     <p class="support-fine">Secure checkout on PayPal. Tips are voluntary, are not charitable tax-deductible donations, and don't affect gameplay or your odds.</p>
   </section>
+  <p class="page-signature">MADE TO KEEP THE INTERNET A LITTLE WEIRDER <span aria-hidden="true">✳</span></p>
 </main>
 <script>(function(){
   const links=Object.freeze({
@@ -107,6 +123,6 @@
   buttons.forEach(button=>button.addEventListener('click',()=>choose(button.dataset.amount)));
   choose('2');
 })();</script>
-<script src="support-pastel.js?v=6"></script>
+<script src="support-pastel.js?v=7"></script>
 <script>if(location.hash==='#shape-of-sound')location.replace('shape-of-sound.html');</script>
 </body></html>
