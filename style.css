@@ -1470,3 +1470,27 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 ::view-transition-old(crilo-stable-header),
 ::view-transition-new(crilo-stable-header){animation-duration:0s}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:0s}
+
+/* Header controls: info → bell → username. An absent info button must never
+   move the bell or account to the left. No reserved blank username gutter. */
+.topbar .header-actions{justify-content:flex-end;gap:7px}
+.topbar .account-wrap{
+ width:max-content;max-width:min(220px,35vw);min-width:0;flex:0 1 auto
+}
+.topbar #accountBtn{
+ display:block;box-sizing:border-box;width:max-content;max-width:100%;
+ min-width:0!important;padding:8px 0;text-align:right;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.topbar #friendBellWrap{flex:0 0 36px;order:0}
+.topbar .header-actions #helpBtn{flex:0 0 36px;order:-1}
+.topbar .account-wrap{order:1}
+@media(max-width:600px){
+ .topbar .header-actions{gap:6px}
+ .topbar .account-wrap{width:max-content;max-width:min(170px,32vw)}
+ .topbar #accountBtn{padding:7px 0;max-width:100%}
+}
+/* Keep the pre-auth placeholder inside the actual label footprint. */
+.account-wrap:has(> #accountBtn[aria-busy="true"])::before{
+ width:100%;right:0
+}
