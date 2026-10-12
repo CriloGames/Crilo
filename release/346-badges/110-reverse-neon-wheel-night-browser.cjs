@@ -43,8 +43,10 @@ function luminance(pixel){
     async function scoreCentered(selector,parentSelector,values){
      for(const value of values){
       await page.locator(selector).evaluate((el,text)=>{el.textContent=text},value);
-      if(value.match(/\d/))await page.waitForFunction(sel=>
-       !!document.querySelector(sel)?.querySelector('.crilo-score-bob-digit'),selector);
+      // Continuous bobbing was intentionally removed; plain, steady digits
+      // should still be centered in their rarity-colored frames.
+      assert.equal(await page.locator(selector+' .crilo-score-bob-digit').count(),0,
+       selector+' must not recreate the retired score bobbing effect');
       const centered=await page.locator(selector).evaluate((el,pSel)=>{
        const rect=el.getBoundingClientRect();
        const range=document.createRange();range.selectNodeContents(el);
@@ -108,6 +110,20 @@ function luminance(pixel){
       assert.ok(box.shadow.includes('inset'),'The live score needs reverse-neon inward glow');
       assert.ok(parseFloat(box.border)>=1,'The live score must keep its rarity frame');
      }
+     // A final spin may briefly settle into its score frame. Its CSS
+     // animation is finite and never rewrites the displayed number.
+     await page.locator('#wheelScorePanel').evaluate(el=>{
+      el.dataset.rarity='rare';el.classList.add('crilo-final-settle');
+     });
+     const finish=await page.locator('#score').evaluate(el=>({
+      name:el.getAnimations().map(a=>a.animationName||''),
+      label:el.textContent,
+      width:el.getBoundingClientRect().width
+     }));
+     assert.ok(finish.name.includes('crilo-final-score-settle'),
+      'A final spin should have a subtle, finite score settle animation');
+     assert.ok(finish.width>10,'Final score box must remain visible');
+     await page.locator('#wheelScorePanel').evaluate(el=>el.classList.remove('crilo-final-settle'));
      await page.locator('#result').evaluate(el=>{
       el.classList.remove('hidden');el.dataset.rarity='mythic';
      });
