@@ -401,6 +401,12 @@ function setDrawingPanelMode(mode){
  const finished=mode==='complete'||mode==='guest-complete'||mode==='test-complete';
  panel.classList.toggle('daily-finished',finished);
  panel.classList.toggle('draw-unavailable',mode==='unavailable');
+ // Do not leave the Pen or Fill button selected beneath the translucent
+ // completed-state scrim. Restore the actual tool on the next editable run.
+ panel.querySelectorAll('.drawing-tool').forEach(button=>{
+  button.classList.toggle('active',!finished&&mode!=='unavailable'&&button.dataset.tool===drawTool);
+  button.setAttribute('aria-pressed',String(!finished&&mode!=='unavailable'&&button.dataset.tool===drawTool));
+ });
  const copy={
   ready:['Draw on your wheel','Draw until your first spin. The instant you press SPIN, your doodle locks for the entire run.'],
   locked:['Drawing locked for this run','Your artwork is saved for this run. You can draw again when your next run begins.'],
@@ -758,7 +764,7 @@ function snapshot(){undoStack.push(dctx.getImageData(0,0,200,200));if(undoStack.
 function history(from,to){if(drawingLocked||!from.length)return;to.push(dctx.getImageData(0,0,200,200));dctx.putImageData(from.pop(),0,0)}
 $('undoDrawing').onclick=()=>history(undoStack,redoStack);$('redoDrawing').onclick=()=>history(redoStack,undoStack);
 $('drawMode').onchange=e=>{drawMode=e.target.value;drawWheel()};
-document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{stopDrawing();drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>x.classList.toggle('active',x===b))});
+document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{if(drawingLocked)return;stopDrawing();drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b))})});
 function point(e){
  const r=drawing.getBoundingClientRect(),side=drawing.clientWidth||r.width;
  // Work from the unrotated circular diameter, never its expanded rotated box.
