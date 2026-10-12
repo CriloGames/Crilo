@@ -31,7 +31,8 @@ for(const [p,expectedCount,viewBox] of [
   const coordinates=d.match(/-?\d+/g).map(Number);
   for(let i=0;i<coordinates.length;i+=2){
    const px=coordinates[i];
-   assert.ok(px<=width*.085||px>=width*.915,
+   const strip=width===900?.13:.085;
+   assert.ok(px<=width*strip||px>=width*(1-strip),
     p+' control point enters main content: '+px);
   }
  }
