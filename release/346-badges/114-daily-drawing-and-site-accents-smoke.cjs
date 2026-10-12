@@ -80,7 +80,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=11/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=12/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=92/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
@@ -146,5 +146,14 @@ assert.match(js,/ready:\['Drawing Studio','Draw in the center before your first 
  'New compact Drawing Studio instructions must be used');
 assert.match(html,/Inappropriate drawings may result in an account ban\./,
  'Account moderation warning must remain visible');
+
+assert.match(css,/\/\* Subtle polish without increasing the compact panel's padding/,
+ 'Compact polish should preserve the panel height');
+assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\):not\(\.daily-finished\):not\(\.locked-panel\) \{[\s\S]*?background:linear-gradient/,
+ 'Ready editor should keep its soft warm pastel finish');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>\.recent-colors \{[\s\S]*?justify-content:flex-start/,
+ 'Recent colors should line up with the toolbar rather than float right');
+assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.draw-unavailable\):not\(\.daily-finished\):not\(\.locked-panel\)/,
+ 'Warm drawing studio polish needs a quiet dark mode counterpart');
 
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
