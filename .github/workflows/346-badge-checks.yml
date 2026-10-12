@@ -146,6 +146,7 @@ jobs:
           node --check badge-sets.js
           node --check owner-profile-scores.js
           node --check game.js
+          node --check release/346-badges/104-drawing-editor-regression-browser.cjs
           node --check rarity-system.js
           node --check badge-events.js
           node --check profile.js
