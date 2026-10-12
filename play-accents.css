@@ -95,3 +95,137 @@ body.wheel-session-fit .wheel-stage::before{
   #more-games::before{left:12px;width:73px;height:34px;border-top-left-radius:25px}
   #more-games::after{right:12px;width:80px;height:35px;border-bottom-right-radius:25px}
 }
+
+
+/* Site-wide border-following traces. Each picks only a corner or a short
+   horizontal/vertical segment; no complete outlines, fixed overlays, or new
+   hit targets. These stay outside the content padding of their host cards. */
+:is(
+ .leader-main .best-card,
+ .leader-main .leader-panel,
+ .duck-page .duck-progress,
+ .collection-page .collection-heading,
+ .collection-page .collection-list,
+ .page-shell .profile-card,
+ .page-shell .settings-list>.settings-card,
+ .page-shell .friend-card,
+ .crilo-legal-main .crilo-legal-paper,
+ .crilo-review-page .crilo-review-scan-box,
+ .crilo-review-page .crilo-review-list,
+ .analytics-main .analytics-controls,
+ .analytics-main .analytics-table-scroll,
+ .beetle-lab .beetle-demo-card,
+ .sound-page .sound-app,
+ .shell #gameScreen .card,
+ .shell .personal-bests,
+ .pastel-world .tip-card
+){position:relative}
+
+/* First short arc: left/top; applied to alternate cards per page. */
+:is(
+ .leader-main .best-card,
+ .duck-page .duck-progress,
+ .collection-page .collection-heading,
+ .page-shell .profile-card:first-of-type,
+ .page-shell .settings-list>.settings-card:first-child,
+ .page-shell .friend-card:first-child,
+ .crilo-legal-main .crilo-legal-paper,
+ .crilo-review-page .crilo-review-scan-box,
+ .analytics-main .analytics-controls,
+ .beetle-lab .beetle-demo-card:first-child,
+ .sound-page .sound-app,
+ .shell #gameScreen .card
+)::before{
+ content:"";position:absolute;pointer-events:none;z-index:1;
+ top:-6px;left:-6px;box-sizing:border-box;
+ width:var(--accent-span,112px);height:var(--accent-turn,43px);
+ border-top:2.5px solid var(--accent-ink,var(--play-line-mint));
+ border-left:2.5px solid var(--accent-ink,var(--play-line-mint));
+ border-top-left-radius:var(--accent-radius,30px);
+}
+/* Opposite short arc: bottom/right, stopping well before the next element. */
+:is(
+ .leader-main .leader-panel,
+ .collection-page .collection-list,
+ .page-shell .profile-card:last-of-type,
+ .page-shell .settings-list>.settings-card:last-child,
+ .page-shell .friend-card:last-child,
+ .crilo-legal-main .crilo-legal-paper,
+ .crilo-review-page .crilo-review-list,
+ .analytics-main .analytics-table-scroll,
+ .beetle-lab .beetle-demo-card:last-child,
+ .sound-page .sound-app,
+ .shell #gameScreen .card,
+ .shell .personal-bests,
+ .pastel-world .tip-card
+)::after{
+ content:"";position:absolute;pointer-events:none;z-index:1;
+ right:-6px;bottom:-6px;box-sizing:border-box;
+ width:var(--accent-end-span,87px);height:var(--accent-end-turn,35px);
+ border-right:2.5px solid var(--accent-end-ink,var(--play-line-blue));
+ border-bottom:2.5px solid var(--accent-end-ink,var(--play-line-blue));
+ border-bottom-right-radius:var(--accent-end-radius,29px);
+}
+/* Distribute different lengths and subtle colors, not repetitive brackets. */
+.leader-main .best-card{--accent-span:131px;--accent-turn:47px;--accent-ink:var(--play-line-peach)}
+.leader-main .leader-panel{--accent-end-span:111px;--accent-end-ink:var(--play-line-lilac)}
+.duck-page .duck-progress{--accent-span:105px;--accent-ink:var(--play-line-blue)}
+.collection-page .collection-heading{--accent-span:75px;--accent-turn:27px;--accent-ink:var(--play-line-lilac)}
+.collection-page .collection-list{--accent-end-span:96px;--accent-end-ink:var(--play-line-mint)}
+.page-shell .profile-card{--accent-span:119px;--accent-ink:var(--play-line-pink);--accent-end-ink:var(--play-line-blue)}
+.page-shell .settings-list>.settings-card:first-child{--accent-span:84px;--accent-ink:var(--play-line-mint)}
+.page-shell .settings-list>.settings-card:last-child{--accent-end-span:129px;--accent-end-ink:var(--play-line-lilac)}
+.page-shell .friend-card{--accent-span:91px;--accent-end-span:105px;--accent-ink:var(--play-line-peach)}
+.crilo-legal-main .crilo-legal-paper{--accent-span:137px;--accent-turn:50px;--accent-ink:var(--play-line-mint);--accent-end-span:114px;--accent-end-ink:var(--play-line-lilac)}
+.crilo-review-page .crilo-review-scan-box{--accent-span:87px;--accent-ink:var(--play-line-peach)}
+.crilo-review-page .crilo-review-list{--accent-end-span:119px;--accent-end-ink:var(--play-line-mint)}
+.analytics-main .analytics-controls{--accent-span:92px;--accent-ink:var(--play-line-blue)}
+.analytics-main .analytics-table-scroll{--accent-end-span:103px;--accent-end-ink:var(--play-line-peach)}
+.beetle-lab .beetle-demo-card{--accent-span:80px;--accent-end-span:101px;--accent-ink:var(--play-line-mint);--accent-end-ink:var(--play-line-pink)}
+.sound-page .sound-app{--accent-span:126px;--accent-turn:43px;--accent-ink:var(--play-line-lilac);--accent-end-span:98px;--accent-end-ink:var(--play-line-mint)}
+.shell #gameScreen .card{--accent-span:112px;--accent-ink:var(--play-line-mint);--accent-end-span:97px;--accent-end-ink:var(--play-line-pink)}
+.shell .personal-bests{--accent-end-span:84px;--accent-end-ink:var(--play-line-blue)}
+.pastel-world .tip-card{--accent-end-span:73px;--accent-end-turn:30px;--accent-end-ink:var(--play-line-mint)}
+
+/* A finished Daily looks unavailable, but stays legible and keeps its artwork.
+   Owner test mode calls unlockDrawing() to restore the original white panel. */
+#drawPanel.daily-finished{
+ opacity:1!important;background:#f1f2f4;border-color:#d9dde2;
+ color:#525a67;box-shadow:none;
+}
+#drawPanel.daily-finished>div:first-child strong{color:#49515d}
+#drawPanel.daily-finished #drawPanelDescription{color:#727a85}
+#drawPanel.daily-finished .draw-actions,
+#drawPanel.daily-finished .recent-colors{opacity:.64}
+#drawPanel.daily-finished :is(button,select,input):disabled{cursor:not-allowed}
+#drawPanel.draw-unavailable{opacity:1!important;background:#f5f5f7}
+html[data-theme="dark"] #drawPanel.daily-finished{
+ background:#292d35;border-color:#454d59;color:#e0e4ea
+}
+html[data-theme="dark"] #drawPanel.daily-finished>div:first-child strong{color:#e5e8ef}
+html[data-theme="dark"] #drawPanel.daily-finished #drawPanelDescription{color:#bbc2ce}
+html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
+
+@media(max-width:600px){
+ /* Shorter corner runs where cards sit close to the viewport edge. */
+ :is(
+  .leader-main .best-card,.duck-page .duck-progress,
+  .collection-page .collection-heading,.page-shell .profile-card:first-of-type,
+  .page-shell .settings-list>.settings-card:first-child,
+  .page-shell .friend-card:first-child,.crilo-legal-main .crilo-legal-paper,
+  .crilo-review-page .crilo-review-scan-box,.analytics-main .analytics-controls,
+  .beetle-lab .beetle-demo-card:first-child,.sound-page .sound-app,
+  .shell #gameScreen .card
+ )::before{top:-4px;left:-4px;width:min(var(--accent-span,112px),81px);
+   height:30px;border-top-left-radius:22px}
+ :is(
+  .leader-main .leader-panel,.collection-page .collection-list,
+  .page-shell .profile-card:last-of-type,
+  .page-shell .settings-list>.settings-card:last-child,
+  .page-shell .friend-card:last-child,.crilo-legal-main .crilo-legal-paper,
+  .crilo-review-page .crilo-review-list,.analytics-main .analytics-table-scroll,
+  .beetle-lab .beetle-demo-card:last-child,.sound-page .sound-app,
+  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card
+ )::after{right:-4px;bottom:-4px;width:min(var(--accent-end-span,87px),77px);
+   height:29px;border-bottom-right-radius:22px}
+}
