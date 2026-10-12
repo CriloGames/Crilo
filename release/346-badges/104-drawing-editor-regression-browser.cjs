@@ -18,11 +18,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   assert.ok(rect,'Canvas '+id+' not shown');
   await page.mouse.click(rect.x+rect.width*x/200,rect.y+rect.height*y/200);
  };
- const color=async(page,button,hex)=>{
-  await page.locator('#'+button).click();
-  assert.ok(await page.locator('#drawColorModal').isVisible(),'Color picker missing');
-  await page.locator('#colorPickerInput').fill(hex);
-  await page.locator('#colorPickerDone').click();
+ const color=async(page,input,hex)=>{
+  assert.equal(await page.locator('#'+input).getAttribute('type'),'color','Native color palette missing');
+  await page.locator('#'+input).fill(hex);
+  assert.equal(await page.locator('#'+input).inputValue(),hex,'Native color change failed');
  };
  let cases=0;
  try{
@@ -42,16 +41,22 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     ctx.clearRect(0,0,200,200);ctx.beginPath();ctx.strokeStyle='#000000';
     ctx.lineWidth=6;ctx.moveTo(100,0);ctx.lineTo(100,200);ctx.stroke();
    });
-   // Modal shields the canvas; tapping outside the picker dismisses it but
-   // MUST NOT also leave a mark on the drawing underneath.
-   await page.locator('#drawColorPickerBtn').click();
+   // A native color palette suspends drawing until it is committed.
+   // Synthetic pointer event avoids opening a real OS picker in headless CI.
+   assert.equal(await page.locator('#drawColorModal').count(),0,'Custom picker modal must be removed');
+   await page.locator('#drawColor').evaluate(input=>input.dispatchEvent(
+    new PointerEvent('pointerdown',{bubbles:true,pointerId:92,pointerType:'mouse',button:0})));
    const before=await pixel(page,'drawing',150,100);
-   await point(page,'drawing',150,100);
+   await page.locator('#drawing').evaluate(canvas=>{
+    const b=canvas.getBoundingClientRect();
+    canvas.dispatchEvent(new PointerEvent('pointerdown',{
+     pointerId:92,pointerType:'mouse',button:0,bubbles:true,
+     clientX:b.left+b.width*.75,clientY:b.top+b.height*.5
+    }));
+   });
    assert.deepEqual(await pixel(page,'drawing',150,100),before,
-    'Canvas painted through color picker at '+width+'px');
-   if(await page.locator('#drawColorModal').isVisible())
-    await page.locator('#colorPickerDone').click();
-   await color(page,'drawColorPickerBtn','#ee3344');
+    'Drawing continued while native color palette was active at '+width+'px');
+   await color(page,'drawColor','#ee3344');
    await page.locator('.drawing-tool[data-tool="fill"]').click();
    await point(page,'drawing',150,100);
    assert.deepEqual((await pixel(page,'drawing',150,100)).slice(0,3),[238,51,68],
@@ -66,7 +71,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
    assert.equal((await pixel(page,'pixelCanvas',150,100))[0],238,
     'Opening Pixel Studio lost existing main drawing');
-   await color(page,'pixelColorPickerBtn','#3366ee');
+   await color(page,'pixelColor','#3366ee');
    await page.locator('.pixel-tool[data-pixel-tool="fill"]').click();
    await point(page,'pixelCanvas',50,100);
    assert.deepEqual((await pixel(page,'pixelCanvas',50,100)).slice(0,3),[51,102,238],
@@ -75,7 +80,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Pixel fill leaked into invisible corners');
    assert.equal(await page.locator('#pixelRecentSwatches button').count(),2,
     'Both surfaces should share run-scoped recent colors');
-   await page.locator('#pixelColorPickerBtn').click();
+   await page.locator('#pixelColor').evaluate(input=>input.dispatchEvent(
+    new PointerEvent('pointerdown',{bubbles:true,pointerId:93,pointerType:'mouse',button:0})));
    const beforePicker=await pixel(page,'pixelCanvas',170,100);
    await page.locator('#pixelCanvas').evaluate(canvas=>{
     const b=canvas.getBoundingClientRect();
@@ -86,14 +92,14 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    });
    assert.deepEqual(await pixel(page,'pixelCanvas',170,100),beforePicker,
     'Pixel Studio accepted a drawing event while color picker was open');
-   await page.locator('#colorPickerDone').click();
+   await color(page,'pixelColor','#3366ee');
    await page.locator('#pixelExit').click();
    assert.equal((await pixel(page,'drawing',50,100))[2],238,
     'Exit discarded edits instead of saving them to the wheel');
    await page.locator('#pixelStudioBtn').click();
    assert.equal((await pixel(page,'pixelCanvas',50,100))[2],238,
     'Reopening Studio did not restore the last saved drawing');
-   // Done and Escape should also commit, not reset.
+   // Exit and Escape both commit automatically; no separate save button.
    await page.locator('.pixel-tool[data-pixel-tool="pen"]').click();
    await point(page,'pixelCanvas',160,110);
    const blueNear=async id=>page.locator('#'+id).evaluate(canvas=>{
@@ -103,10 +109,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     return count;
    });
    assert.ok(await blueNear('pixelCanvas')>0,'Pixel pen did not draw at requested point');
-   await page.locator('#pixelClose').click();
-   assert.ok(await blueNear('drawing')>0,'Done did not save new pixel paint');
+   await page.locator('#pixelExit').click();
+   assert.ok(await blueNear('drawing')>0,'Exit did not save new pixel paint');
    // Main and Studio must be fully two-way editable before the first spin.
-   await color(page,'drawColorPickerBtn','#26a269');
+   await color(page,'drawColor','#26a269');
    await page.locator('.drawing-tool[data-tool="pen"]').click();
    await point(page,'drawing',170,100);
    assert.equal((await pixel(page,'drawing',170,100))[1],162,'Main pen did not edit saved Studio drawing');
@@ -115,12 +121,13 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Main drawing update missing when Studio reopens');
    assert.equal(await page.locator('#pixelRecentSwatches button').count(),3,
     'Recent colors should include colors from both drawing modes');
+   assert.equal(await page.locator('#pixelClose').count(),0,'Extra Pixel Studio Save / Done button must be removed');
    await page.keyboard.press('Escape');
    assert.equal(await page.locator('#pixelStudioModal').isVisible(),false,
     'Esc should safely save and exit Studio');
    assert.equal((await pixel(page,'drawing',170,100))[1],162,'Escape lost the drawing');
    assert.deepEqual(errors,[],'Browser errors at '+width+'px');
-   console.log('PASS circular fills, protected picker, recent colors, Exit/Done/Escape, two-way editing '+width+'px');
+   console.log('PASS circular fills, protected picker, recent colors, Exit/Escape, two-way editing '+width+'px');
    cases++;
    await context.close();
   }
