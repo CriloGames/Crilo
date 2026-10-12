@@ -229,3 +229,26 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  )::after{right:-4px;bottom:-4px;width:min(var(--accent-end-span,87px),77px);
    height:29px;border-bottom-right-radius:22px}
 }
+
+
+/* Minimal corners for the read-only badge gallery and self-contained owner
+   utility screens, which do not use the normal card/page-shell layout. */
+body>.filters,body>section{position:relative}
+body>.filters::after,body>section:last-of-type::after{
+ content:"";position:absolute;box-sizing:border-box;pointer-events:none;
+ right:-4px;bottom:-4px;width:89px;height:32px;
+ border-right:2.5px solid var(--play-line-lilac);
+ border-bottom:2.5px solid var(--play-line-lilac);
+ border-bottom-right-radius:24px;
+}
+body>section:first-of-type::before{
+ content:"";position:absolute;box-sizing:border-box;pointer-events:none;
+ left:-4px;top:-4px;width:73px;height:28px;
+ border-left:2.5px solid var(--play-line-mint);
+ border-top:2.5px solid var(--play-line-mint);
+ border-top-left-radius:23px;
+}
+@media(max-width:600px){
+ body>.filters::after,body>section:last-of-type::after{right:0;bottom:0;width:62px;height:27px}
+ body>section:first-of-type::before{left:0;top:0;width:56px;height:24px}
+}
