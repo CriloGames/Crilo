@@ -44,6 +44,7 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'score-motion.js'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'privacy.html'
@@ -104,6 +105,7 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'score-motion.js'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'moderation.html'
@@ -154,6 +156,7 @@ jobs:
           node --check badge-sets.js
           node --check owner-profile-scores.js
           node --check game.js
+          node --check score-motion.js
           node --check release/346-badges/107-auth-document-refresh-browser.cjs
           node --check release/346-badges/104-drawing-editor-regression-browser.cjs
           node --check rarity-system.js
