@@ -30,7 +30,10 @@ function luminance(pixel){
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
       await page.locator('link[href="top-score-row.css?v=2"]').count(),1,
-      'Leaderboard must load its classic horizontal hero layout');
+      'Leaderboard must load its polished horizontal hero layout');
+    if(path==='leaderboard.html') assert.equal(
+      await page.locator('script[src="top-score-fit.js?v=1"]').count(),1,
+      'Leaderboard must resize large scores without altering their value');
     if(path==='index.html'){
      await page.locator('#wheel').waitFor({state:'visible'});
      const pixel=()=>page.locator('#wheel').evaluate(el=>{
@@ -126,6 +129,15 @@ function luminance(pixel){
      assert.ok(top.shadow.includes('inset'),'Keep reverse-neon rarity number frame');
      assert.ok(top.bg.includes('gradient'),'Keep classic pastel hero background');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
+     // A large official score must shrink within its card, not displace the wheel.
+     await page.locator('#bestScore').evaluate(el=>{el.textContent='12,345,678'});
+     await page.waitForFunction(()=>document.querySelector('#bestScore').dataset.digits==='8',null,{timeout:3000});
+     const score8=await page.locator('#bestScore').evaluate(el=>({
+      width:el.getBoundingClientRect().width,font:parseFloat(getComputedStyle(el).fontSize),
+      content:el.textContent
+     }));
+     assert.equal(score8.content,'12,345,678','Score shrinking must not change saved points');
+     assert.ok(score8.width<width*.8,'Eight digit score overflows the phone view');
      const extra=await page.locator('.best-card').evaluate(el=>{
       const s=getComputedStyle(el),heading=getComputedStyle(el.querySelector('#bestHeading'));
       const pill=getComputedStyle(el.querySelector('#bestStats'));

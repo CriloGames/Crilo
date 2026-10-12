@@ -37,7 +37,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        '</div><small class="leader-score-secondary">Score '+score+' · MYTHIC</small></div></div>'+
        '<button class="mini-wheel" type="button"><img src="blank-wheel.svg" alt="Wheel drawing"></button></div>';
      const top=document.getElementById('bestScore');
-     top.textContent='90,734';top.dataset.scoreRarity='rare';top.dataset.digits='5';
+     top.textContent='90,734';top.dataset.scoreRarity='rare';
      const wheel=document.getElementById('bestDrawing');
      wheel.src='blank-wheel.svg';wheel.classList.remove('hidden');
     },theme);
@@ -52,6 +52,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       left:rect.left,right:rect.right,parentLeft:parent?.left,parentRight:parent?.right,
       text:el.textContent,font:css.fontSize};
     });
+    await page.waitForFunction(()=>document.querySelector('#bestScore').dataset.digits==='5',null,{timeout:3000});
     const row=await get('#leaderList .leader-score'),best=await get('#bestScore');
     assert.ok(['block','inline-block'].includes(row.display),'Score has only a clean frame');
     assert.ok(row.shadow.includes('inset'),'Reverse-neon scores need an inward, not outward, glow');
