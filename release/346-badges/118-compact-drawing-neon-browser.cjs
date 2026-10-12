@@ -234,6 +234,19 @@ const controls=[
     'Moving the inner neon may not offset it from the drawing');
    assert.ok(ring[2].innerHalo.includes('blur(3px)'),
     'Inner halo must stay narrow enough to keep color off the drawing');
+   const centerBorder=await page.locator('#drawing').evaluate(el=>{
+    const css=getComputedStyle(el),wheel=el.parentElement.getBoundingClientRect();
+    const rect=el.getBoundingClientRect();
+    return {shadow:css.boxShadow,ratio:rect.width/wheel.width,
+     circleRadius:rect.width/2,outlineOuterRadius:rect.width/2+4};
+   });
+   assert.ok(centerBorder.shadow.includes('0px 0px 0px 1px')&&
+    centerBorder.shadow.includes('0px 0px 0px 4px'),
+    'Black circular outline must begin 1px past the drawing edge, without a 7px white spacer');
+   assert.ok(Math.abs(centerBorder.ratio-.34)<=.01,
+    'Black outline adjustment must not change the drawing canvas dimensions');
+   assert.ok(ring[2].radialGap-4>=9,
+    'Black outline must remain visibly separate from the outer pastel trim');
    const lightOpacity=Number(ring[0].opacity);
    await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
    const darkOpacity=Number(await page.locator('#wheelNeonOuter').evaluate(el=>getComputedStyle(el).opacity));
