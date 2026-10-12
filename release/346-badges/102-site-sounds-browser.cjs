@@ -25,10 +25,10 @@ const code=fs.readFileSync('site-sounds.js','utf8');
       '<button class="new-badge-item">First badge</button></details>'+
     '<div id="next"></div></body></html>');
    await page.evaluate(()=>{
-    window.__notes=0;window.__started=0;window.__contexts=0;window.__sfxSetting='on';
+    window.__notes=0;window.__started=0;window.__contexts=0;window.__sfxSetting=null;window.__writes=0;
     Object.defineProperty(window,'localStorage',{configurable:true,value:{
      getItem:()=>window.__sfxSetting,
-     setItem:(_k,v)=>{window.__sfxSetting=v}
+     setItem:(_k,v)=>{window.__sfxSetting=v;window.__writes++}
     }});
     class FakeAC{
      constructor(){window.__contexts++;this.state='running';this.currentTime=0;this.destination={}}
@@ -45,6 +45,10 @@ const code=fs.readFileSync('site-sounds.js','utf8');
     window.Crilo={profile:{sound_enabled:true}};
    });
    await page.addScriptTag({content:code});
+   const initial=await page.evaluate(()=>({pref:window.__sfxSetting,writes:window.__writes,
+    enabled:window.CriloSFX.enabled()}));
+   assert.deepEqual(initial,{pref:'on',writes:1,enabled:true},
+    width+'px new visitor should silently start with persistent sound ON');
    const stats=()=>page.evaluate(()=>({n:window.__notes,started:window.__started,c:window.__contexts}));
    assert.deepEqual(await stats(),{n:0,started:0,c:0},width+'px must start silent');
    await page.locator('#spinButton').click();
@@ -80,8 +84,24 @@ const code=fs.readFileSync('site-sounds.js','utf8');
    await page.locator('#link').click();
    assert.ok((await stats()).n>muted,width+'px unmute should restore sounds');
    assert.equal((await stats()).c,1,width+'px one shared audio context');
+   const returning=await browser.newPage({viewport:{width,height:820}});
+   await returning.setContent('<!doctype html><button id="existing">Saved off</button>');
+   await returning.evaluate(()=>{
+    window.__savedSound='off';window.__mutedWrites=0;
+    Object.defineProperty(window,'localStorage',{configurable:true,value:{
+     getItem:()=>window.__savedSound,
+     setItem:()=>{window.__mutedWrites++}
+    }});
+   });
+   await returning.addScriptTag({content:code});
+   assert.deepEqual(await returning.evaluate(()=>({
+    pref:window.__savedSound,writes:window.__mutedWrites,
+    enabled:window.CriloSFX.enabled()
+   })),{pref:'off',writes:0,enabled:false},
+    width+'px returning muted player must stay muted');
+   await returning.close();
    cases++;
-   console.log('PASS Site SFX UI '+width+'px: no autoplay, gestures, badge, independent audio, mute and restore');
+   console.log('PASS Site SFX UI '+width+'px: default ON, no autoplay, gestures, saved OFF and account preferences');
    await page.close();
   }
   console.log('SITE_SOUNDS_BROWSER_PASS '+cases+' viewport scenarios');

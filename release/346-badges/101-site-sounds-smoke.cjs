@@ -21,7 +21,7 @@ assert.match(code,/const SPECS=Object\.freeze/);
 assert.ok(!/fetch\(|XMLHttpRequest|\.mp3|\.wav|\.ogg/i.test(code),
  'All site audio must be synthesized, not network-fetched');
 const events={},elements={};
-let notes=0,created=0,started=0,storeValue='on';
+let notes=0,created=0,started=0,storeValue=null,storeWrites=0;
 class FakeElement {
  constructor(selectors){this.selectors=selectors}
  matches(query){return query.split(',').some(x=>this.selectors.includes(x.trim()))}
@@ -42,12 +42,17 @@ class FakeAudio {
  }
  resume(){return Promise.resolve()}
 }
-const fakeWindow={AudioContext:FakeAudio,localStorage:{getItem:()=>storeValue},Crilo:{profile:{sound_enabled:true}}};
+const fakeWindow={AudioContext:FakeAudio,localStorage:{
+ getItem:()=>storeValue,
+ setItem:(key,value)=>{assert.equal(key,'crilo_sound');storeValue=value;storeWrites++}
+},Crilo:{profile:{sound_enabled:true}}};
 const fakeDocument={hidden:false,
  getElementById:()=>null,
  addEventListener:(name,fn)=>{events[name]=fn}};
 vm.runInNewContext(code,{document:fakeDocument,window:fakeWindow,Element:FakeElement});
 const sound=fakeWindow.CriloSFX;
+assert.equal(storeValue,'on','First-ever visitors must default to sound ON');
+assert.equal(storeWrites,1,'First-visit preference should persist exactly once');
 assert.equal(created,0,'Creating the site script must not initialize audio');
 assert.equal(notes,0,'No passive autoplay on startup');
 assert.equal(sound.enabled(),true);
@@ -84,4 +89,11 @@ const afterWheel=notes;action(tab);assert.ok(notes>afterWheel,'Tabs should have 
 action(tab);
 assert.ok(notes<=afterWheel+6,'Duplicate immediate clicks should be throttled');
 assert.equal(sound.play('not-a-real-cue'),false);
+// Returning players' explicit OFF is never reset during another page load.
+let mutedWrites=0;
+const mutedWindow={AudioContext:FakeAudio,Crilo:{profile:{sound_enabled:true}},
+ localStorage:{getItem:()=> 'off',setItem:()=>{mutedWrites++}}};
+vm.runInNewContext(code,{document:fakeDocument,window:mutedWindow,Element:FakeElement});
+assert.equal(mutedWrites,0,'Returning muted visitors must never be switched ON');
+assert.equal(mutedWindow.CriloSFX.enabled(),false,'Returning OFF preference must win');
 console.log('SITE_SOUND_SMOKE_PASS 17 audio motifs, 14 entry points, no autoplay, muted and dedicated-audio isolation');

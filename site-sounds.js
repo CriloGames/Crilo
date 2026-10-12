@@ -23,7 +23,15 @@
   success:[[587,0,.12,.022,'sine',659],[783,.11,.19,.020,'sine',880],[1047,.23,.21,.018,'sine',1175]],
   error:  [[290,0,.14,.018,'triangle',220],[240,.10,.18,.016,'sine',200]]
  });
- const safeStore=() => {try{return window.localStorage?.getItem('crilo_sound')}catch{return null}};
+ const SOUND_KEY='crilo_sound';
+ // First-ever visitors start with sound ON; store it explicitly so pages
+ // and sound-producing games agree. Never overwrite a previously saved OFF.
+ // Browser autoplay rules still mean nothing plays until an interaction.
+ try{
+  const store=window.localStorage;
+  if(store?.getItem(SOUND_KEY)==null)store.setItem(SOUND_KEY,'on');
+ }catch{ /* Private browsing can block storage; unsaved default stays ON. */ }
+ const safeStore=() => {try{return window.localStorage?.getItem(SOUND_KEY)}catch{return null}};
  function enabled(){
   return safeStore()!=='off' && window.Crilo?.profile?.sound_enabled!==false;
  }
