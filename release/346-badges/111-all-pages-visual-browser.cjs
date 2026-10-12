@@ -77,12 +77,23 @@ const pages=[
          getComputedStyle(document.body).backgroundImage+' '+
          getComputedStyle(document.querySelector('main')).backgroundImage),
         first:before.borderTopStyle,second:after.borderBottomStyle,
+        third:after.borderTopStyle,
+        firstTop:parseFloat(before.top),firstLeft:parseFloat(before.left),
+        thirdTop:parseFloat(after.top),thirdLeft:parseFloat(after.left),
         clip:before.pointerEvents,noOverflow:document.documentElement.scrollWidth<=innerWidth+2
        };
       },name);
       assert.equal(ribbons.freeArt,false,'Floating backgrounds must be removed');
       assert.equal(ribbons.first,'solid','Missing layered upper border ribbon');
-      assert.equal(ribbons.second,'solid','Missing layered lower border ribbon');
+      if(width>1180){
+       assert.equal(ribbons.third,'solid','Third stacked stroke missing on wide screen');
+       assert.ok(ribbons.thirdTop<ribbons.firstTop &&
+        ribbons.thirdLeft<ribbons.firstLeft,'Third stroke must sit outside first border');
+      }else{
+       assert.equal(ribbons.second,'solid','Missing outer lower corner stroke');
+      }
+      assert.ok(ribbons.firstTop<0&&ribbons.firstLeft<0,
+       'Upper strokes must stay outside the box, not overlay content');
       assert.equal(ribbons.clip,'none','Ribbon must not intercept interactions');
       assert.equal(ribbons.noOverflow,true,'Accent introduces overflow');
      }
