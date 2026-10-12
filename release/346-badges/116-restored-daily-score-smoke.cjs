@@ -7,16 +7,21 @@ const root=path.resolve(__dirname,'../..');
 const source=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const start=source.indexOf('function update(){');
 const end=source.indexOf('// The music and visual letter pops',start);
+const recapStart=source.indexOf('function showDailyRecap(');
+const recapEnd=source.indexOf('function renderResult(',recapStart);
 const loaded=source.indexOf('async function checkPlayed(){');
 const stop=source.indexOf('function open(id)',loaded);
-assert.ok(start>=0&&end>start&&loaded>=0&&stop>loaded,
+assert.ok(start>=0&&end>start&&recapStart>=0&&recapEnd>recapStart&&loaded>=0&&stop>loaded,
  'Real score-update and Daily restoration functions must be present');
 const list=()=>({items:new Set(),add(v){this.items.add(v)},remove(v){this.items.delete(v)},
  contains(v){return this.items.has(v)},toggle(v,enabled){enabled?this.add(v):this.remove(v)}});
 const mk=()=>({textContent:'',hidden:false,dataset:{},classList:list(),
  attrs:{},setAttribute(k,v){this.attrs[k]=v}});
 const ids=['score','wheelScorePanel','scoreTier','scoreTierHint','scoreTierText',
- 'spins','level','duckCount','playedPanel','playedText','spinButton'];
+ 'spins','level','duckCount','playedPanel','playedText','spinButton',
+ 'message','dailyCompleteDetails','completedDailyScore','completedDailyRarity',
+ 'completedDailyCountdown','ownerCompleteRecap','ownerCompleteScore','ownerCompleteNext',
+ 'resultNextCountdown'];
 const nodes=Object.fromEntries(ids.map(k=>[k,mk()]));
 const eyebrow=mk(),playedHeading=mk();
 nodes.wheelScorePanel.querySelector=s=>s==='.wheel-score-eyebrow'?eyebrow:null;
@@ -46,7 +51,8 @@ const sandbox={
 const setup=`let user={id:'signed-in-user'},profile={is_owner:false};
 let officialRun=null,started=false,isTest=false,guestRun=false;
 let results=[],score=0,spins=5,multiplier=1,ducks=0;`;
-const code=setup+'\n'+source.slice(start,end)+'\n'+source.slice(loaded,stop)+
+const code=setup+'\n'+source.slice(start,end)+'\n'+
+ source.slice(recapStart,recapEnd)+'\n'+source.slice(loaded,stop)+
  ';({update,checkPlayed,setState(v){'+
  'if("started" in v)started=v.started;'+
  'if("isTest" in v)isTest=v.isTest;'+
@@ -57,7 +63,7 @@ const code=setup+'\n'+source.slice(start,end)+'\n'+source.slice(loaded,stop)+
  'if("spins" in v)spins=v.spins;'+
  'if("multiplier" in v)multiplier=v.multiplier;'+
  'if("ducks" in v)ducks=v.ducks;'+
- '},getSaved(){return officialRun}})';
+ '},getSaved(){return officialRun},showDailyRecap})';
 const api=vm.runInNewContext(code,sandbox);
 (async()=>{
  api.update();
@@ -68,7 +74,13 @@ const api=vm.runInNewContext(code,sandbox);
  assert.equal(queryCount,1,'Saved official Daily must be fetched once');
  assert.equal(lockCount,1,'Completed Daily drawing must stay locked');
  assert.equal(panelMode,'complete');
- assert.equal(nodes.playedText.textContent,'You scored 69 this Daily.');
+ assert.equal(nodes.playedText.textContent,'Your result is saved. You’re all set for today.');
+ assert.equal(nodes.dailyCompleteDetails.classList.contains('hidden'),false);
+ assert.equal(nodes.completedDailyScore.textContent,'69');
+ assert.equal(nodes.completedDailyRarity.textContent,'RARE');
+ assert.equal(nodes.completedDailyRarity.dataset.rarity,'rare');
+ assert.equal(nodes.message.classList.contains('hidden'),true,
+  'Logged-in complete result should not display guest signup messaging');
  assert.equal(nodes.score.textContent,'69','Wheel score must match saved Daily');
  assert.equal(eyebrow.textContent,'DAILY SCORE');
  assert.equal(nodes.wheelScorePanel.dataset.rarity,'rare');
@@ -79,6 +91,9 @@ const api=vm.runInNewContext(code,sandbox);
  assert.equal(nodes.level.textContent,'×9','Two saved upgrades must restore displayed values');
  assert.equal(nodes.duckCount.textContent,2);
  assert.equal(api.getSaved().score,69);
+ api.showDailyRecap(null);
+ assert.equal(nodes.dailyCompleteDetails.classList.contains('hidden'),true,
+  'Starting a different run must clear the previous recap');
  api.setState({isTest:true,started:true,score:7,spins:3,multiplier:2,ducks:1,
   results:[{type:'num'}]});
  api.update();
@@ -102,5 +117,5 @@ const api=vm.runInNewContext(code,sandbox);
  assert.equal(beginCount,0,'Restoring a saved Daily must not start a new run');
  assert.match(source,/officialRun=\{\.\.\.payload,is_test:false\};\s*update\(\)/,
   'Saving an official Daily must immediately update its completed HUD');
- console.log('RESTORED_DAILY_SCORE_PASS: saved 69 and RARE, zero remaining spins, owner Test isolation, new Daily reset, blocked score safety');
+ console.log('RESTORED_DAILY_SCORE_PASS: saved 69 and RARE, inline recap, no signup prompt, owner Test isolation, new Daily reset');
 })().catch(error=>{console.error(error);process.exitCode=1});
