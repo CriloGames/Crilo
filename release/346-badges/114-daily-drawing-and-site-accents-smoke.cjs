@@ -117,8 +117,12 @@ assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?dis
  'Finished editor must become visible after wheel spin');
 assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\) \{[\s\S]*?grid-template-columns:minmax\(180px,220px\) minmax\(0,1fr\)/,
  'Both drawing states should use the same compact desktop tracks');
-assert.match(css,/@media \(max-width:830px\)/,
- 'Drawing Studio should stack on tablet and phones');
+assert.match(css,/@media \(min-width:601px\) and \(max-width:830px\)/,
+ 'Tablet layouts keep completion copy left of the toolbar');
+assert.match(css,/@media \(max-width:600px\)/,
+ 'Only narrow phone widths should stack the drawing toolbar');
+assert.match(css,/width:132px; \/\* Fits the label and native arrow without unused space\. \*\//,
+ 'The spin mode dropdown should not contain unused horizontal space');
 assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear beside Pen and Fill');
 assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
  'Eraser must clear alpha rather than paint opaque white');
