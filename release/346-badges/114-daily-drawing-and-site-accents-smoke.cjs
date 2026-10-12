@@ -47,8 +47,8 @@ api.lockDrawing();api.setDrawingPanelMode('test-complete');
 assert.equal(nodes.drawPanelTitle.textContent,'Test Run finished');
 api.unlockDrawing();
 assert.equal(nodes.drawPanelTitle.textContent,'Draw on your wheel');
-assert.match(js,/if\(data\)\{lockDrawing\(\);setDrawingPanelMode\('complete'\)/,
- 'Reloading a saved Daily must lock even blank drawing');
+assert.match(js,/if\(data\)\{lockDrawing\(\);setDrawingPanelMode\(data\.blocked\?'unavailable':'complete'\)/,
+ 'Reloading a saved Daily must lock even blank drawing, without mislabeling blocked runs');
 assert.match(js,/setDrawingPanelMode\(guestRun\?'guest-complete':isTest\?'test-complete':'complete'\)/,
  'Run completion must show the right user/owner/guest state');
 assert.match(js,/function startTest\([^)]*\)\{[^\n]*unlockDrawing\(\)/,
