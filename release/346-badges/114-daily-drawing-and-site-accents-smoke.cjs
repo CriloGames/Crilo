@@ -187,7 +187,7 @@ assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Do
  'Studio must expose both spin modes, matching the wheel');
 assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\s*\{/,
  'Studio spin selector needs compact scoped styling');
-assert.match(pixelCss,/@media\\(max-width:600px\\)[\\s\\S]*?#pixelStudioModal \\.pixel-studio-tools \\.drawing-color-value/,
+assert.match(pixelCss,/@media\(max-width:600px\)[\s\S]*?#pixelStudioModal \.pixel-studio-tools \.drawing-color-value/,
  'Mobile Pixel Studio color swatch should shrink so all four trailing tools fit');
 assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
  'Studio spin selector must have accessible mobile sizing');
