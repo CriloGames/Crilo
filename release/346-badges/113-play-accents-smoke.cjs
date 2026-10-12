@@ -1,74 +1,40 @@
 'use strict';
-/* Border ribbon regression: all pastel strokes must hug existing panels. */
+/* Regression: the experimental pastel border lines have been retired.
+   Every page stays undecorated; only Play loads the Daily disabled state. */
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
-const css=read('play-accents.css'),wheel=read('game.js'),home=read('index.html');
-assert.match(home,/href="play-accents\.css\?v=\d+"/);
-for(const target of ['#drawPanel','#more-games .game-card',
- '.leader-main .best-card','.leader-main .leader-panel',
- '.duck-page .duck-progress','.page-shell .settings-card',
- '.page-shell .profile-card','.crilo-legal-main .crilo-legal-paper',
- '.pastel-world .tip-card','.sound-page .sound-app',
- '.shell #gameScreen .card']){
- assert.ok(css.includes(target),'Missing border host: '+target);
+const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
+ 'profile.html','settings.html','friends.html','support.html',
+ 'shape-of-sound.html','domain/index.html','privacy.html','terms.html',
+ 'moderation.html','beetle-tricks.html','owner-analytics.html',
+ 'badge-art-audit.html','owner-dataset-lab.html','private-nsfw-qa.html'];
+for(const page of pages){
+ const html=read(page);
+ assert.doesNotMatch(html,/play-accents\.css/,
+  page+' must not load former decorative borders');
+ assert.doesNotMatch(html,/pastel-(?:space|play)-traces(?:-night)?\.svg/,
+  page+' must not use free-floating ornament art');
+ if(page==='index.html'){
+  assert.match(html,/href="daily-drawing-state\.css\?v=\d+"/,
+   'Only the Play page needs the finished-Daily overlay styles');
+  assert.doesNotMatch(html,/class="draw-finished-overlay"/,
+   'Remove the old completion text overlay element');
+ }else{
+  assert.doesNotMatch(html,/daily-drawing-state\.css/,
+   page+' should not load drawing-only styles');
+ }
 }
-assert.ok(css.includes('pointer-events:none'),'Accent edges cannot intercept input');
-assert.ok(css.includes('border-top-left-radius:calc(var(--trace-radius'),
- 'Top rail must bend around real border radii');
-assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius'),
- 'Bottom rail must turn around actual corners');
-assert.ok(css.includes('--trace-head:76%')&&css.includes('--trace-tail:73%'),
- 'Long and short edge segments must be varied');
-assert.ok(css.includes('top:-5px;left:-5px')&&css.includes('right:-5px;bottom:-5px'),
- 'Both accent anchors must sit beyond the outside edge of their cards');
-assert.ok(css.includes('background:none;')&&!css.includes('background:linear-gradient('),
- 'Remove all former inside-the-card inset gradients');
-assert.ok(css.includes('filter:var(--trace-head-stack,none)')&&
- css.includes('filter:var(--trace-tail-stack,none)'),
- 'Default accents must stay single, not doubled on every card');
-assert.ok(css.includes('--trace-head-stack:drop-shadow(-6px -6px')&&
- css.includes('--trace-tail-stack:drop-shadow(6px 6px'),
- 'Only selected cards should have lighter strokes outside darker inner strokes');
-assert.ok(css.includes('.hero .played-panel')&&
- css.includes('.sound-page .sound-inspector'),
- 'More existing bordered boxes should have asymmetric accents');
-assert.ok(css.includes('.page-shell .badge-card')&&
- css.includes('.analytics-main .analytics-cards > *')&&
- css.includes('.sound-page .support-card')&&
- css.includes('.collection-page .collection-card'),
- 'Expanded coverage must include actual bordered badge, analytics, set and game support cards');
-assert.ok(!css.includes('.collection-page .collection-list')&&
- !css.includes('.analytics-main .analytics-controls'),
- 'Do not draw detached lines around unbordered collection or analytics containers');
-assert.ok(css.includes('.collection-page .collection-card{position:relative;overflow:visible}')&&
- css.includes(':nth-child(7n + 1)::after')&&css.includes(':nth-child(7n + 3)::before'),
- 'The varied seven-card pattern must include true one-line cards');
-assert.ok(css.includes(':nth-child(7n + 2)::after')&&
- css.includes(':nth-child(7n + 5)::before'),
- 'Stacked variants must hide opposite corners so they are not all doubled');
-assert.ok(css.includes(':nth-child(7n + 6)'),
- 'Occasional three-line combinations should remain available');
-assert.ok(css.includes('.sound-page .sound-app{overflow:visible}'),
- 'Sound app should show exterior lines while its separate stage still clips gameplay');
-for(const key of ['--play-line-mint-deep','#8ab9a5','--play-line-blue-deep',
- '--play-line-lilac-deep','--play-line-peach-deep','--play-line-pink-deep']){
- assert.ok(css.includes(key),'Missing darker inner color pairing: '+key);
-}
-assert.ok(css.includes('color-mix(in srgb,var(--trace-first')&&
- css.includes('color-mix(in srgb,var(--trace-last'),
- 'Darker inner strokes must use corresponding outer pastel hues');
-assert.ok(css.includes('--trace-third:37%')&&css.includes('top:-19px;left:-19px'),
- 'Some cards should have three exterior strokes of unequal length');
-assert.ok(css.includes('@media(max-width:600px)'),'Narrow-phone rules must be present');
-assert.ok(css.includes('html[data-theme="dark"]'),'Muted dark-mode colors must be present');
-assert.doesNotMatch(css,/pastel-(?:space|play)-traces(?:-night)?\.svg/,
- 'Floating SVG ornament backgrounds should no longer be referenced');
-assert.doesNotMatch(css,/\b(?:position:\s*fixed|animation:|box-shadow:)\b/,
- 'Decorations must stay static and noninteractive');
-for(const color of ['#c9f1df','#9bd9ef','#dfc8f6','#ffc8a8','#ffb8d2']){
- assert.ok(wheel.includes(color),'Color outside wheel palette: '+color);
- assert.ok(css.includes(color),'Accent palette lost '+color);
-}
-console.log('PLAY_ACCENTS_PASS: mixed single, double and triple edge accents, theme and responsive safety');
+assert.ok(!fs.existsSync(path.join(root,'play-accents.css')),
+ 'Delete the unused line stylesheet, not merely hide it');
+const css=read('daily-drawing-state.css');
+assert.doesNotMatch(css,/--play-line-|--trace-|border-top-left-radius:calc\(/,
+ 'The drawing state stylesheet cannot revive decorative ribbons');
+assert.doesNotMatch(css,/drop-shadow\(/,
+ 'No layered pastel edge effects');
+assert.match(css,/#drawPanel\.daily-finished::after\{/,
+ 'The finished state should use a single translucent scrim');
+assert.match(css,/pointer-events:none/,
+ 'Scrim must never intercept interaction');
+console.log('NO_PASTEL_LINES_PASS: 18 pages clean; only Play has a text-free inactive editor');
