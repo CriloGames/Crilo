@@ -49,7 +49,7 @@
       '<div class="spin-history-meta">'+esc(details)+'</div></div>'+
       '<div class="spin-history-side"><strong>'+esc(fmt(run.score))+
       ' <small>PTS</small></strong></div>'+
-      '<button type="button" class="spin-history-wheel" title="Spin this Daily wheel" aria-label="Spin wheel for '+esc(date)+'">'+
+      '<button type="button" class="spin-history-wheel" title="Expand this Daily drawing" aria-label="Expand wheel drawing for '+esc(date)+'">'+
       '<img src="'+src+'" alt="'+(blank?'Blank drawing':'Saved wheel drawing')+'"></button></article>';
   }
   async function fetchRuns(id){
@@ -184,9 +184,7 @@
   }
   list.addEventListener?.('click',event=>{
     const wheel=event.target.closest?.('.spin-history-wheel');
-    const image=wheel?.querySelector('img');
-    if(image)image.animate([{transform:'rotate(0deg)'},{transform:'rotate(1440deg)'}],
-      {duration:2300,easing:'cubic-bezier(.1,.65,.2,1)'});
+    if(wheel)window.CriloWheelPreview?.openFrom(wheel);
   });
   button.addEventListener('click',()=>showNext(currentId,requestId));
   window.addEventListener('crilo-auth-ready',begin);
