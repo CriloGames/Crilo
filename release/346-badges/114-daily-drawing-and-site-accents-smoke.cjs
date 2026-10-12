@@ -60,6 +60,8 @@ assert.ok(html.includes('id="drawPanelTitle"')&&html.includes('id="drawPanelDesc
 assert.ok(css.includes('#drawPanel.daily-finished')&&
  css.includes('html[data-theme="dark"] #drawPanel.daily-finished'),
  'Finished panel must be light gray with a matching subdued night appearance');
+assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important;visibility:visible!important;opacity:1!important/,
+ 'Completed editor must become visible after wheel-run-active hides drawing controls');
 const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','settings.html','friends.html','support.html',
  'shape-of-sound.html','domain/index.html','privacy.html','terms.html',
