@@ -8,5 +8,5 @@ a.match(sql,/WHERE d\.is_test=false/);
 a.match(js,/select\(fields\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
 a.match(js,/\.select\('user_id,ducks,[^']+'\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
 a.match(js,/Older unverified scores remain in personal history/);
-a.match(html,/leaderboard\.js\?v=48/);
+a.match(html,/leaderboard\.js\?v=49/);
 console.log('PASS: all competitive wheel score, spin, duck and lifetime-point rankings require server-backed run proofs.');

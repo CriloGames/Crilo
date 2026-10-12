@@ -4,7 +4,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const src=fs.readFileSync('leaderboard.js','utf8');
 const page=fs.readFileSync('leaderboard.html','utf8');
-assert.match(page,/leaderboard\.js\?v=48/);
+assert.match(page,/leaderboard\.js\?v=49/);
 assert.match(src,/revision!==loadRevision/);
 assert.ok(page.includes('role="group" aria-label="Leaderboard categories"'),'Category group should be labelled');
 assert.ok(page.includes('id="leaderDescription" aria-live="polite"'),'Category updates should be announced');
