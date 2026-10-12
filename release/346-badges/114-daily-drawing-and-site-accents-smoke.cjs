@@ -72,8 +72,14 @@ assert.match(html,/id="drawPanelDescription" role="status" aria-live="polite"/,
  'Completion information must remain accessible');
 assert.match(html,/id="drawCompleteNote" class="draw-complete-note" aria-hidden="true"/,
  'Visible status must be inside the drawing panel rather than over the canvas');
-assert.match(html,/daily-drawing-state\.css\?v=2/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=3/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=87/,'Play must load the updated state and viewport logic');
+assert.doesNotMatch(html,/score-motion\\.(?:css|js)\\?v=\\d+/,
+ 'Play page must not load the repeating score-digit bobbing assets');
+assert.match(css,/#wheelScorePanel \\.wheel-score-amount\\{[\\s\\S]*?font-size:clamp\\(35px,4\\.3vw,49px\\)/,
+ 'Play score should be a little smaller on desktop');
+assert.match(css,/@media\\(max-width:700px\\)\\{[\\s\\S]*?#wheelScorePanel \\.wheel-score-amount\\{[\\s\\S]*?font-size:clamp\\(31px,7\\.5vw,43px\\)/,
+ 'Play score should be slightly smaller on phones');
 assert.match(js,/const desktopCap=viewportWidth>=1024/,
  'Wheel size must be calculated once with a more compact desktop cap');
 assert.match(css,/\.hero #playedPanel\{margin-top:11px;padding:15px 18px\}/,
