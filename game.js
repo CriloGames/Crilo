@@ -720,8 +720,33 @@ async function showNewBadges(prior){
  $('dailyBadgePreviewClose').onclick=()=>dialog.close();
  dialog.onclick=event=>{if(event.target===dialog)dialog.close()};
 }
+/* Share one completed-state summary across restored official runs, guest
+   Dailies and the owner's completed-Daily selector. Scores come from the
+   existing saved record; neither Test Runs nor removed Dailies appear here. */
+function showDailyRecap(record,mode='official'){
+ const amount=Number(record?.score);
+ const ready=!!record&&!record.blocked&&Number.isFinite(amount)&&amount>=0&&
+   (mode==='official'||mode==='guest');
+ const row=$('dailyCompleteDetails');
+ row?.classList.toggle('hidden',!ready);
+ const owner=ready&&mode==='official'&&!!profile?.is_owner;
+ $('ownerCompleteRecap')?.classList.toggle('hidden',!owner);
+ if(!ready)return;
+ const band=window.CriloRarity?.scoreBands?.find(item=>amount<=item.max);
+ const tier=String(band?.key||'trash').toUpperCase();
+ $('completedDailyScore').textContent=fmt(amount);
+ $('completedDailyRarity').textContent=tier;
+ $('completedDailyRarity').dataset.rarity=tier.toLowerCase();
+ if(owner)$('ownerCompleteScore').textContent=fmt(amount)+' points · '+tier;
+}
+function syncDailyCountdown(clock){
+ $('completedDailyCountdown').textContent=clock;
+ $('resultNextCountdown').textContent=clock;
+ $('ownerCompleteNext').textContent='Next Daily in '+clock;
+}
 function renderResult(r){
  $('newBadgePanel').classList.add('hidden');
+ $('resultNextDaily').classList.add('hidden');
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
