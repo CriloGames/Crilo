@@ -52,7 +52,7 @@ html[data-theme="dark"]{
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::before{
- content:"";position:absolute;z-index:1;pointer-events:none;
+ content:"";display:block;position:absolute;z-index:1;pointer-events:none;
  box-sizing:border-box;top:-9px;left:-9px;
  width:min(var(--trace-head,57%),calc(100% - 18px));
  height:var(--trace-head-turn,43px);
@@ -79,7 +79,7 @@ html[data-theme="dark"]{
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::after{
- content:"";position:absolute;z-index:1;pointer-events:none;
+ content:"";display:block;position:absolute;z-index:1;pointer-events:none;
  box-sizing:border-box;right:-9px;bottom:-9px;
  width:min(var(--trace-tail,37%),calc(100% - 18px));
  height:var(--trace-tail-turn,38px);
