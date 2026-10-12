@@ -35,12 +35,12 @@ html[data-theme="dark"]{
  #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
- .collection-page .collection-heading,.collection-page .collection-list,
+ .collection-page .collection-card:nth-child(2n+1),.collection-page .collection-card:nth-child(2n),
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.analytics-main .analytics-cards > .analytics-card:nth-child(even),.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
  .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
@@ -54,12 +54,12 @@ html[data-theme="dark"]{
  #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
- .collection-page .collection-heading,.collection-page .collection-list,
+ .collection-page .collection-card:nth-child(2n+1),.collection-page .collection-card:nth-child(2n),
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.analytics-main .analytics-cards > .analytics-card:nth-child(even),.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
  .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
@@ -82,12 +82,12 @@ html[data-theme="dark"]{
  #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
- .collection-page .collection-heading,.collection-page .collection-list,
+ .collection-page .collection-card:nth-child(2n+1),.collection-page .collection-card:nth-child(2n),
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.analytics-main .analytics-cards > .analytics-card:nth-child(even),.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
  .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
@@ -140,11 +140,11 @@ html[data-theme="dark"]{
  --trace-head:44%;--trace-tail:29%;--trace-head-turn:24px;--trace-tail-turn:26px;
  --trace-first:var(--play-line-mint);--trace-last:var(--play-line-pink);
 }
-.collection-page .collection-heading{
+.collection-page .collection-card:nth-child(2n+1){
  --trace-head:71%;--trace-tail:28%;--trace-head-turn:28px;
  --trace-first:var(--play-line-lilac);--trace-last:var(--play-line-blue);
 }
-.collection-page .collection-list{
+.collection-page .collection-card:nth-child(2n){
  --trace-head:34%;--trace-tail:64%;--trace-tail-echo:143px;
  --trace-first:var(--play-line-mint);--trace-last:var(--play-line-pink);
 }
@@ -178,10 +178,10 @@ html[data-theme="dark"]{
 .crilo-review-page .crilo-review-list{
  --trace-head:33%;--trace-tail:70%;--trace-last:var(--play-line-mint);
 }
-.analytics-main .analytics-controls{
+.analytics-main .analytics-cards > .analytics-card:nth-child(odd){
  --trace-head:66%;--trace-tail:40%;--trace-first:var(--play-line-blue);
 }
-.analytics-main .analytics-table-scroll{
+.analytics-main .analytics-cards > .analytics-card:nth-child(even){
  --trace-head:35%;--trace-tail:61%;--trace-last:var(--play-line-peach);
 }
 .beetle-lab .beetle-demo-card{
@@ -229,7 +229,7 @@ body>.filters,body>section{
    darker inside line. No inset graphics are drawn across content. */
 :is(
  #drawPanel,.leader-main .leader-panel,.duck-page .duck-progress,
- .collection-page .collection-list,.page-shell .settings-card:nth-child(even),
+ .collection-page .collection-card:nth-child(2n),.page-shell .settings-card:nth-child(even),
  .page-shell .friend-card:nth-child(odd),.crilo-legal-main .crilo-legal-paper,
  .beetle-lab .beetle-demo-card:nth-child(even),
  .sound-page .sound-app,.shell #gameScreen .card
@@ -240,7 +240,7 @@ body>.filters,body>section{
  #more-games .game-card:nth-of-type(2n),.leader-main .best-card,
  .page-shell .profile-card,.page-shell .stats-grid .stat-tile:nth-child(3n),
  .page-shell .settings-card:nth-child(odd),
- .analytics-main .analytics-controls,.shell .personal-bests
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.shell .personal-bests
 ){
  --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac)));
 }
@@ -249,7 +249,7 @@ body>.filters,body>section{
    and a short outer line. Other cards get two layers on opposite corners. */
 :is(
  #drawPanel,.leader-main .best-card,
- .collection-page .collection-list,.sound-page .sound-app,
+ .sound-page .sound-app,
  .crilo-legal-main .crilo-legal-paper
 )::after{
  top:-19px;left:-19px;right:auto;bottom:auto;
@@ -266,9 +266,6 @@ body>.filters,body>section{
 .leader-main .best-card{
  --trace-head-stack:drop-shadow(-6px -6px 0 var(--play-line-peach));
  --trace-third:31%;--trace-third-turn:61px;--trace-third-color:var(--play-line-pink);
-}
-.collection-page .collection-list{
- --trace-third:18%;--trace-third-turn:51px;--trace-third-color:var(--play-line-peach)
 }
 .sound-page .sound-app{
  --trace-third:35%;--trace-third-turn:62px;--trace-third-color:var(--play-line-blue)
@@ -305,7 +302,7 @@ body>.filters,body>section{
 @media(max-width:1180px){
  :is(
  #drawPanel,.leader-main .best-card,
- .collection-page .collection-list,.sound-page .sound-app,
+ .sound-page .sound-app,
  .crilo-legal-main .crilo-legal-paper
  )::after{
   top:auto;left:auto;right:-4px;bottom:-4px;
@@ -334,6 +331,21 @@ body>.filters,body>section{
  --trace-radius:18px;--trace-head:41%;--trace-tail:64%;
  --trace-first:var(--play-line-peach);--trace-last:var(--play-line-mint);
 }
+
+/* Badge sets and analytics use real bordered cards, never unbordered group
+   containers. Alternate corners so adjacent cards in tight grids do not
+   surround one another with too many strokes. Preserve details toggles. */
+.collection-page .collection-card{position:relative;overflow:visible}
+.collection-page .collection-card:nth-child(even)::before,
+.collection-page .collection-card:nth-child(odd)::after{content:none}
+.analytics-main .analytics-cards > .analytics-card{
+ --trace-head-stack:none;--trace-tail-stack:none;
+}
+.analytics-main .analytics-cards > .analytics-card:nth-child(even)::before,
+.analytics-main .analytics-cards > .analytics-card:nth-child(odd)::after{
+ content:none;
+}
+
 /* Preserve the Daily-complete layout; remove the Pen/Fill state as well as
    its dark paint, so no selectable black rectangle leaks through the scrim. */
 #drawPanel .draw-finished-overlay{display:none}
@@ -386,11 +398,11 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  :is(
  #drawPanel,#more-games .game-card,.hero .played-panel,.leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
- .collection-page .collection-heading,.collection-page .collection-list,
+ .collection-page .collection-card:nth-child(2n+1),.collection-page .collection-card:nth-child(2n),
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.page-shell .badge-card,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.analytics-main .analytics-cards > .analytics-card:nth-child(even),.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
@@ -403,11 +415,11 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  :is(
  #drawPanel,#more-games .game-card,.hero .played-panel,.leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
- .collection-page .collection-heading,.collection-page .collection-list,
+ .collection-page .collection-card:nth-child(2n+1),.collection-page .collection-card:nth-child(2n),
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.page-shell .badge-card,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.analytics-main .analytics-cards > .analytics-card:nth-child(even),.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
