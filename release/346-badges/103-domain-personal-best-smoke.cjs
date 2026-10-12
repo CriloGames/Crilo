@@ -7,7 +7,7 @@ const page=fs.readFileSync('profile.html','utf8');
 const domain=fs.readFileSync('domain/game.js','utf8');
 const domainPage=fs.readFileSync('domain/index.html','utf8');
 assert.match(page,/profile\.js\?v=100/);
-assert.match(domainPage,/game\.js\?v=12/);
+assert.match(domainPage,/game\.js\?v=13/);
 assert.match(profile,/\.eq\('game_key','domain'\)\.order\('score',\{ascending:false\}\)\.limit\(25\)/);
 assert.ok(!profile.includes('Legacy / local (unverified)'));
 assert.ok(!profile.includes('No server-verified Domain scores yet'));
