@@ -65,6 +65,18 @@ const pages=[
       name+' '+theme+' '+width+'px clipped input(s)');
      assert.deepEqual(ui.tiny,[],
       name+' '+theme+' '+width+'px tiny buttons');
+     if(name==='private-nsfw-qa.html'){
+      const night=await page.evaluate(()=>({
+       mode:document.documentElement.dataset.theme,
+       bg:getComputedStyle(document.body).backgroundColor,
+       section:getComputedStyle(document.querySelector('section')).backgroundColor
+      }));
+      assert.equal(night.mode,theme,'Private QA should follow Crilo theme setting');
+      if(theme==='dark'){
+       assert.equal(night.bg,'rgb(27, 31, 41)','Private QA body too bright in dark mode');
+       assert.equal(night.section,'rgb(38, 44, 56)','Private QA card too bright in dark mode');
+      }
+     }
      assert.deepEqual(errors,[],name+' '+theme+' '+width+'px script errors');
      checks+=5;
      await page.close();
