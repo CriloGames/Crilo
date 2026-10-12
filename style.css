@@ -1663,3 +1663,63 @@ html[data-theme="dark"] #pixelStudioModal #pixelDrawMode {
     height:32px!important;
   }
 }
+
+/* Pixel Studio: keep the complete tool strip in a single, comfortably
+   spaced row on desktop. The drawing canvas remains its original size. */
+#pixelStudioModal .pixel-studio-card {
+  width:min(96vw,900px);
+}
+#pixelStudioModal .pixel-studio-tools {
+  gap:6px;
+  justify-content:center;
+}
+#pixelStudioModal .pixel-studio-tools>.small-btn {
+  flex:0 0 auto;
+  padding:9px 10px;
+  min-height:40px;
+  white-space:nowrap;
+  font-size:13px;
+  border-radius:10px;
+}
+#pixelStudioModal .pixel-studio-tools>label {
+  flex:0 0 auto;
+  white-space:nowrap;
+}
+#pixelStudioModal .pixel-studio-tools>label:not(.native-paint-picker):not(.pixel-spin-mode) {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+}
+#pixelStudioModal #pixelSize {
+  min-width:98px;
+  width:98px;
+  padding:7px 5px;
+  font-size:13px;
+}
+#pixelStudioModal .pixel-studio-tools .native-paint-picker {
+  gap:4px;
+  min-height:40px;
+  padding:2px 5px 2px 8px;
+}
+#pixelStudioModal .pixel-studio-tools .drawing-color-value {
+  width:35px!important;
+  min-width:35px!important;
+  height:33px!important;
+}
+#pixelStudioModal #pixelDrawMode {
+  width:113px;
+  min-width:113px;
+  max-width:113px;
+  min-height:40px;
+  padding:6px 6px;
+}
+@media(min-width:1000px) {
+  #pixelStudioModal .pixel-studio-tools {
+    flex-wrap:nowrap;
+  }
+}
+@media(max-width:700px) {
+  #pixelStudioModal #pixelSize {font-size:16px;min-width:102px;width:102px}
+  #pixelStudioModal #pixelDrawMode {font-size:16px;min-width:125px;width:125px;max-width:125px}
+  #pixelStudioModal .pixel-studio-tools {justify-content:flex-start;flex-wrap:wrap}
+}
