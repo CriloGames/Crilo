@@ -1,0 +1,211 @@
+/* Calm, consistent dark surfaces across Drawing Review and standalone games.
+   Scoped to dark mode. Player drawings and the underlying game mechanics stay intact. */
+html[data-theme="dark"] .crilo-review-page{
+ --card:#242934;--soft:#2b303b;--line:#454c58;--text:#e8ebf1;--muted:#b5bcc8;
+ color:var(--text);
+}
+html[data-theme="dark"] :is(.crilo-review-overview>div,.crilo-review-scan-box,
+ .crilo-review-row,.crilo-review-findings,.crilo-review-detail,
+ .crilo-example-teach,.crilo-warning-decision){
+ background:#252a34;
+ border-color:#49515e;
+ color:#e7eaf1;
+}
+html[data-theme="dark"] .crilo-review-page .crilo-review-overview>div,
+html[data-theme="dark"] .crilo-review-page .crilo-review-row{
+ box-shadow:0 2px 9px rgba(0,0,0,.12);
+}
+html[data-theme="dark"] .crilo-review-overview strong,
+html[data-theme="dark"] .crilo-review-player strong,
+html[data-theme="dark"] .crilo-review-scan-top strong,
+html[data-theme="dark"] .crilo-review-list-header h2,
+html[data-theme="dark"] .crilo-review-detail h2,
+html[data-theme="dark"] .crilo-example-teach strong{
+ color:#edf0f5;
+}
+html[data-theme="dark"] .crilo-review-overview>div:nth-child(2) strong{color:#d991a0}
+html[data-theme="dark"] :is(.crilo-review-player small,.crilo-review-score,
+ .crilo-review-rank,.crilo-review-overview small,.crilo-review-page .crilo-review-sub,
+ .crilo-review-scan-stages,.crilo-review-explainer,.crilo-review-explainer summary,
+ .crilo-review-feed-status,.crilo-review-list-header .muted,
+ .crilo-review-scan-box #reviewScanStatus,.crilo-review-detail #reviewDetailMeta,
+ .crilo-review-page .muted,.crilo-review-pagination span){
+ color:#bbc2ce!important;
+}
+html[data-theme="dark"] .crilo-review-scan-box p,
+html[data-theme="dark"] .crilo-review-scan-visual,
+html[data-theme="dark"] .crilo-review-reasons,
+html[data-theme="dark"] .crilo-review-findings p,
+html[data-theme="dark"] .crilo-review-show-tests,
+html[data-theme="dark"] .crilo-review-explainer[open],
+html[data-theme="dark"] .crilo-review-controls label,
+html[data-theme="dark"] .crilo-warning-decision label,
+html[data-theme="dark"] .crilo-example-teach label{color:#e0e4ed!important}
+html[data-theme="dark"] .crilo-review-row:hover,
+html[data-theme="dark"] .crilo-review-row:focus-visible{
+ background:#303747;border-color:#8d9cac;
+}
+html[data-theme="dark"] .crilo-review-suspected{
+ background:#37302f;border-color:#896352;
+}
+html[data-theme="dark"] .crilo-review-state{
+ background:#483139;color:#ecc1cb;
+}
+html[data-theme="dark"] :is(.crilo-review-controls select,
+ .crilo-review-detail select,.crilo-review-filters select,
+ .crilo-review-page .small-btn,.crilo-review-detail .small-btn){
+ background:#303643;
+ color:#e8ebf2;
+ border:1px solid #636d7c;
+}
+html[data-theme="dark"] :is(.crilo-review-controls select,
+ .crilo-review-detail select,.crilo-review-filters select){color-scheme:dark}
+html[data-theme="dark"] :is(.crilo-review-scan-controls .small-btn,
+ .crilo-review-page .small-btn):hover:not(:disabled){
+ background:#3b4352;color:#f4f5fa;
+}
+html[data-theme="dark"] .crilo-review-remove{
+ background:#4b3c2c!important;border-color:#957552!important;color:#f0d3aa!important;
+}
+html[data-theme="dark"] .crilo-review-ban{
+ background:#50313b!important;border-color:#ae6a7d!important;color:#f5c0ce!important;
+}
+html[data-theme="dark"] .crilo-review-state[data-state="normal"]{
+ background:#34404b;color:#d8e1ec;
+}
+html[data-theme="dark"] .crilo-review-detail .crilo-review-findings,
+html[data-theme="dark"] .crilo-review-detail .crilo-example-teach{
+ background:#2a303c;border-color:#505969;
+}
+/* Drawing thumbnail remains white so white paper art is not altered. */
+html[data-theme="dark"] .crilo-review-thumbnail{
+ background:white;border-color:#777f8c;color:#4d5765;
+}
+html[data-theme="dark"] .crilo-review-detail #reviewLargeDrawing{
+ background:#fff;border-color:#717987;
+}
+html[data-theme="dark"] .crilo-review-page input[type="checkbox"],
+html[data-theme="dark"] .crilo-review-detail input[type="checkbox"]{
+ accent-color:#8cbaa8;
+}
+/* More Games menu itself is not another bright panel. */
+html[data-theme="dark"] #more-games :is(.game-card,.more-game-card,.game-icon){
+ background:#2a303b;border-color:#535c68;color:#e6e8ef;
+}
+/* Keep Crilo Spinning is a standalone print-art page; darken its paper and
+   decoration without re-coloring any player art or changing payment behavior. */
+html[data-theme="dark"]:has(.pastel-world){
+ --paper:#1b1f29;--ink:#e5e8ef;--coral:#a56d85;
+ --lilac:#655477;--mint:#668e7e;--butter:#aa945a;--blue:#62879b;
+ color-scheme:dark;
+}
+html[data-theme="dark"] :is(body:has(.pastel-world),.pastel-world){
+ background:#1b1f29;color:#e5e8ef;
+}
+html[data-theme="dark"] .tip-card{
+ background:#292d39;border-color:#9099aa;
+ box-shadow:9px 9px 0 #463d56;color:#e5e8ef;
+}
+html[data-theme="dark"] .tip-card h1,
+html[data-theme="dark"] .tip-card .card-eyebrow{color:#eef0f5}
+html[data-theme="dark"] .tip-card h1 span{color:#c6a5d0}
+html[data-theme="dark"] :is(.tip-subtitle,.eyebrow-no,.support-selected,.support-fine){
+ color:#c2c7d1;
+}
+html[data-theme="dark"] .support-fine{border-color:#555967}
+html[data-theme="dark"] .support-amount{
+ color:#f4f0f5;border-color:#8790a0;
+ background:#393642;
+}
+html[data-theme="dark"] .support-amount:nth-child(1){background:#523941}
+html[data-theme="dark"] .support-amount:nth-child(2){background:#454057}
+html[data-theme="dark"] .support-amount:nth-child(3){background:#344c47}
+html[data-theme="dark"] .support-amount:nth-child(4){background:#534935}
+html[data-theme="dark"] .support-amount.selected{box-shadow:3px 3px 0 #c4cad4}
+html[data-theme="dark"] .support-pay{
+ background:#71485d;border-color:#a4a6b4;color:#f4e9ef;
+ box-shadow:5px 5px 0 #141923;
+}
+html[data-theme="dark"] .support-back{
+ background:#1b1f29;color:#d9dee8;border-color:#9ea6b5;
+}
+html[data-theme="dark"] .page-signature{
+ background:#1b1f29;color:#b9c0cd;
+}
+html[data-theme="dark"] .crilo-shape-field{
+ filter:brightness(.66) saturate(.7);
+}
+html[data-theme="dark"] .support-pay:hover{background:#84566b}
+/* Shape of Sound: preserve the colorful playable blobs, soften the chrome. */
+html[data-theme="dark"] .sound-app{
+ background:#242a34;border-color:#505966;
+ box-shadow:0 12px 30px rgba(0,0,0,.14);
+}
+html[data-theme="dark"] .sound-stage{
+ border-color:#515767;background:#272b36;
+}
+html[data-theme="dark"] .sound-stage::after{border-color:rgba(199,204,218,.12)}
+html[data-theme="dark"] .sound-counter{
+ background:#343b49;color:#e1e5ee;border-color:#566073;
+}
+html[data-theme="dark"] .sound-blob-caption{
+ background:#353b48;color:#e8e9f0;
+}
+html[data-theme="dark"] .sound-inspector{
+ background:#2b303b;border-color:#515966;
+}
+html[data-theme="dark"] .sound-button-primary{
+ background:#45465c;border-color:#6c718a;color:#f1f0f9;
+}
+html[data-theme="dark"] .sound-button-soft,
+html[data-theme="dark"] .sound-button:not(.sound-button-primary){
+ background:#333948;border-color:#586071;color:#e8ebf2;
+}
+html[data-theme="dark"] .sound-button:hover:not(:disabled){background:#454c60}
+/* Beetle trick experiments have their own inline light-only stylesheet. */
+html[data-theme="dark"] body:has(.beetle-lab){background:#191e26;color:#e8ebf2}
+html[data-theme="dark"] .beetle-lab-header p,
+html[data-theme="dark"] .beetle-lab-note,
+html[data-theme="dark"] .beetle-lab-status,
+html[data-theme="dark"] .beetle-demo-card p,
+html[data-theme="dark"] .beetle-demo-foot,
+html[data-theme="dark"] .beetle-demo-index{color:#b7c0cd}
+html[data-theme="dark"] .beetle-lab-back{
+ background:#2e3642;color:#e4e9f3;border-color:#626b78;
+}
+html[data-theme="dark"] .beetle-lab-toolbar button{
+ background:#3c564b;color:#eaf3ee;border-color:#7f9c8d;
+}
+html[data-theme="dark"] .beetle-demo-card{
+ background:#282f39;border-color:#505c69;
+ box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+html[data-theme="dark"] .beetle-demo-stage{
+ background:linear-gradient(#33413d,#273830);border-color:#5c7367;
+}
+html[data-theme="dark"] .beetle-demo-baseline{background:#303b4b;border-color:#627186}
+html[data-theme="dark"] .beetle-demo-tag{
+ background:#354b40;color:#b7ddc9;
+}
+html[data-theme="dark"] .beetle-demo-baseline .beetle-demo-tag{
+ background:#3a4456;color:#cad9f0;
+}
+/* Domain guessing changes its light background every round via inline JS.
+   Dark-mode override must win over that inline light tint without touching RNG. */
+html[data-theme="dark"] body:has(.domain-actions){
+ --ink:#e8ebf2;--muted:#b9c2ce;
+ --card:#29323f;--line:rgba(205,214,225,.22);
+ --shadow:0 12px 36px rgba(0,0,0,.17);
+ color:#e8ebf2;background:#1c2430!important;
+}
+html[data-theme="dark"] body:has(.domain-actions) :is(.card,.score-pill,.personal-bests,
+ .result-row,.reveal-grid>div,.help-circle,.domain-help){
+ background:#2a3442;color:#e8ebf2;
+ border-color:#505d70;
+}
+html[data-theme="dark"] body:has(.domain-actions) .primary{
+ background:#4a526d;color:#f5f5fb;
+}
+html[data-theme="dark"] body:has(.domain-actions) .help-steps b{
+ background:#58647e;color:#fff;
+}
