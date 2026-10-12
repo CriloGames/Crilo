@@ -48,7 +48,10 @@ const controls=[
     'All nine active tools visible at '+width);
    assert.ok(ready.disabled.every(x=>!x),'All nine tools enabled before spin at '+width);
    assert.ok(ready.overflow<=2,'Active panel horizontal overflow at '+width);
-   if(width>830)assert.ok(ready.tools.x>=ready.copy.right-2,
+   const modeWidth=await page.locator('#drawMode').evaluate(el=>el.getBoundingClientRect().width);
+   if(width>700)assert.ok(modeWidth<=137,'Mode selector has unwanted whitespace at '+width);
+   else assert.ok(modeWidth<=158,'Native mobile mode selector should remain compact');
+   if(width>600)assert.ok(ready.tools.x>=ready.copy.right-2,
     'Desktop editor should keep instructions left and controls right');
    else assert.ok(ready.tools.y>=ready.copy.bottom-2,
     'Phone/tablet editor should stack instructions over tools');
