@@ -121,11 +121,24 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Main drawing update missing when Studio reopens');
    assert.equal(await page.locator('#pixelRecentSwatches button').count(),3,
     'Recent colors should include colors from both drawing modes');
+   // Escape must commit a fresh, previously unsaved Studio stroke, not
+   // merely preserve what was already on the main canvas.
+   await color(page,'pixelColor','#bb44aa');
+   await page.locator('.pixel-tool[data-pixel-tool="pen"]').click();
+   await point(page,'pixelCanvas',145,125);
+   const pinkCount=async id=>page.locator('#'+id).evaluate(canvas=>{
+    const d=canvas.getContext('2d').getImageData(141,121,8,8).data;
+    let count=0;for(let i=0;i<d.length;i+=4)
+     if(d[i]===187&&d[i+1]===68&&d[i+2]===170&&d[i+3]===255)count++;
+    return count;
+   });
+   assert.ok(await pinkCount('pixelCanvas')>0,'Fresh Studio stroke did not paint');
    assert.equal(await page.locator('#pixelClose').count(),0,'Extra Pixel Studio Save / Done button must be removed');
    await page.keyboard.press('Escape');
    assert.equal(await page.locator('#pixelStudioModal').isVisible(),false,
     'Esc should safely save and exit Studio');
-   assert.equal((await pixel(page,'drawing',170,100))[1],162,'Escape lost the drawing');
+   assert.equal((await pixel(page,'drawing',170,100))[1],162,'Escape lost the earlier drawing');
+   assert.ok(await pinkCount('drawing')>0,'Escape erased fresh unsaved Pixel Studio artwork');
    assert.deepEqual(errors,[],'Browser errors at '+width+'px');
    console.log('PASS circular fills, protected picker, recent colors, Exit/Escape, two-way editing '+width+'px');
    cases++;
