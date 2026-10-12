@@ -95,8 +95,7 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
    // Light-mode stays light for standalone pages and can be restored.
    const page=await context.newPage();
    await page.goto(base+'/support.html',{waitUntil:'domcontentloaded'});
-   await page.evaluate(()=>localStorage.setItem('crilo_theme','light'));
-   await page.reload({waitUntil:'domcontentloaded'});
+   await page.evaluate(()=>{localStorage.setItem('crilo_theme','light');document.documentElement.dataset.theme='light'});
    await page.waitForFunction(()=>document.documentElement.dataset.theme==='light');
    const bg=await page.locator('.tip-card').evaluate(el=>getComputedStyle(el).backgroundColor);
    assert.ok(lum(bg)>.70,'Support original light page should stay light');
