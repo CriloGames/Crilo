@@ -80,7 +80,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=10/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=11/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=92/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
@@ -123,6 +123,12 @@ assert.match(css,/@media \(max-width:600px\)/,
  'Only narrow phone widths should stack the drawing toolbar');
 assert.match(css,/width:132px; \/\* Fits the label and native arrow without unused space\. \*\//,
  'The spin mode dropdown should not contain unused horizontal space');
+assert.match(css,/\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>div:first-child \{[\s\S]*?grid-row:1;/,
+ 'Locked completion label should sit in the same vertical row as the controls');
+assert.match(css,/\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?grid-row:1;/,
+ 'Locked toolbar must be vertically centered beside the completion message');
+assert.match(css,/@media \(max-width:600px\) \{[\s\S]*?\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?grid-row:2;/,
+ 'Locked controls must stack beneath completion copy on narrow phones');
 assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear beside Pen and Fill');
 assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
  'Eraser must clear alpha rather than paint opaque white');
