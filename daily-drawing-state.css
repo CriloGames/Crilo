@@ -180,167 +180,228 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  #playedPanel .played-completion-copy{flex:1 1 calc(100% - 57px)}
  #playedPanel>a.small-btn,#playedPanel .crilo-share-trigger{flex:1 1 130px;text-align:center}
 }
-/* The finished drawing toolbox remains recognizable, but much shallower.
-   Keep Pen, Fill, Studio and all other tools disabled and visibly gray. */
-#drawPanel.daily-finished{padding:7px 12px!important;gap:5px!important;margin-top:10px!important;margin-bottom:12px!important}
-#drawPanel.daily-finished>div:first-child{min-height:32px}
-#drawPanel.daily-finished .draw-complete-note{gap:7px}
-#drawPanel.daily-finished .draw-complete-symbol{flex-basis:24px;width:24px;height:24px;border-radius:8px}
-#drawPanel.daily-finished .draw-actions{gap:5px 7px;align-items:center}
-#drawPanel.daily-finished .draw-actions .small-btn{padding:6px 8px;font-size:11px;line-height:1.3}
-#drawPanel.daily-finished #drawMode{padding:6px 7px;font-size:11px}
-#drawPanel.daily-finished .native-paint-picker{padding:2px 5px}
-#drawPanel.daily-finished .recent-colors{display:none!important}
-@media(max-width:700px){
- #drawPanel.daily-finished{padding:7px 10px!important;gap:4px!important}
- #drawPanel.daily-finished .draw-actions{justify-content:center;gap:5px}
- #drawPanel.daily-finished>div:first-child{min-height:30px}
- #drawPanel.daily-finished .draw-complete-copy small{font-size:10.5px}
+/* Shared compact Drawing Studio layout. Active, first-spin locked and
+   completed panels use the same tracks; disabled state never hides tools. */
+.hero #drawPanel:not(.draw-unavailable) {
+  display:grid!important;
+  grid-template-columns:minmax(180px,220px) minmax(0,1fr);
+  grid-template-rows:auto auto;
+  align-items:center;
+  width:min(980px,100%);
+  max-width:980px;
+  box-sizing:border-box;
+  column-gap:12px!important;
+  row-gap:4px!important;
+  padding:8px 12px!important;
+  margin:10px auto 12px!important;
 }
-
-/* Compact Drawing Studio: preserve every active tool but lay its header,
-   buttons, and recent swatches into one shallow two-track strip on desktop. */
-.hero #drawPanel:not(.daily-finished):not(.draw-unavailable){
- display:grid;grid-template-columns:minmax(185px,235px) minmax(0,1fr);
- grid-template-rows:auto auto;column-gap:12px;row-gap:3px;
- align-items:center;max-width:980px;padding:8px 12px;
- margin:11px auto 12px;
+.hero #drawPanel:not(.draw-unavailable)>div:first-child {
+  grid-column:1;
+  grid-row:1 / span 2;
+  min-width:0;
+  min-height:0;
+  align-self:center;
+  text-align:left;
+  justify-content:flex-start;
 }
-#drawPanel:not(.daily-finished)>div:first-child{
- grid-column:1;grid-row:1/3;align-self:center;text-align:left;
+#drawPanel:not(.daily-finished) #drawPanelTitle {
+  font-size:14px;
+  line-height:1.2;
+  letter-spacing:-.015em;
 }
-#drawPanel:not(.daily-finished) #drawPanelTitle{
- font-size:14px;line-height:1.2;
+#drawPanel:not(.daily-finished) #drawPanelDescription {
+  display:block;
+  font-size:11.5px;
+  line-height:1.35;
+  margin-top:4px;
 }
-#drawPanel:not(.daily-finished) #drawPanelDescription{
- font-size:11px;line-height:1.3;margin-top:3px;
+#drawPanel:not(.daily-finished) #drawSafetyNote {
+  display:block;
+  font-size:10.5px;
+  line-height:1.3;
+  margin-top:4px;
 }
-#drawPanel:not(.daily-finished) #drawSafetyNote{
- font-size:10px;line-height:1.25;margin-top:3px;
-}
-#drawPanel:not(.daily-finished)>.draw-actions{
- grid-column:2;grid-row:1;width:100%;min-width:0;
- justify-content:center;gap:5px 6px;
-}
-#drawPanel:not(.daily-finished) .draw-actions .small-btn{
- padding:7px 9px;min-height:36px;font-size:11px;line-height:1.3;
-}
-#drawPanel:not(.daily-finished) .draw-tool-group{gap:4px}
-#drawPanel:not(.daily-finished) #drawMode{
- padding:7px 5px;max-width:155px;min-height:36px;font-size:11px;
-}
-#drawPanel:not(.daily-finished) .native-paint-picker{
- min-height:36px;padding:2px 6px;gap:4px;
-}
-#drawPanel:not(.daily-finished) .native-paint-picker input[type=color]{
- width:33px;height:30px;
-}
-#drawPanel:not(.daily-finished)>.recent-colors{
- grid-column:2;grid-row:2;min-width:0;padding:0;
- gap:6px;align-items:center;justify-content:center;
-}
-#drawPanel:not(.daily-finished)>.recent-colors>strong{font-size:10px}
-#drawPanel:not(.daily-finished) .recent-color-swatches{gap:4px}
-
-/* Completed Daily: a single shallow success strip with the recognizable,
-   inactive primary tools. Secondary tools disappear only while locked and
-   return unchanged when a new run unlocks the editor. */
-.hero #drawPanel.daily-finished{
- display:grid!important;grid-template-columns:minmax(0,1fr) auto;
- grid-template-rows:auto;align-items:center;
- max-width:980px;gap:8px!important;
- padding:6px 12px!important;margin:8px auto 10px!important;
-}
-#drawPanel.daily-finished>div:first-child{
- grid-column:1;grid-row:1;min-width:0;min-height:30px;
- justify-content:flex-start;
-}
-#drawPanel.daily-finished .draw-complete-note{
- width:100%;min-width:0;justify-content:flex-start;margin:0;
-}
-#drawPanel.daily-finished .draw-actions{
- grid-column:2;grid-row:1;width:auto;min-width:0;
- display:flex;justify-content:flex-end;flex-wrap:nowrap;
- gap:4px!important;
-}
-#drawPanel.daily-finished .draw-tool-group{gap:4px}
-#drawPanel.daily-finished .draw-actions #drawMode{
- display:none!important;
-}
-#drawPanel.daily-finished .draw-actions .small-btn{
- font-size:11px;line-height:1.2;min-height:32px;
- padding:6px 8px;
-}
-/* The locked toolbar retains the named essentials, while their inputs
-   remain disabled until a fresh Daily or Test Run begins. */
-#drawPanel.daily-finished .draw-actions .native-paint-picker{
- display:inline-flex!important;min-height:32px;padding:2px 5px;
- font-size:11px;gap:4px;opacity:.75;
-}
-#drawPanel.daily-finished .draw-actions .native-paint-picker input[type=color]{
- width:30px;height:26px;
-}
-#drawPanel.daily-finished .draw-actions #clearDrawing{
- display:inline-flex!important;align-items:center;justify-content:center;
-}
-#playedPanel>a.small-btn{
- color:#592d88;font-weight:850;min-height:39px;
- display:inline-flex;align-items:center;justify-content:center;
-}
-#playedPanel .crilo-share-trigger{min-height:39px}
-html[data-theme="dark"] #playedPanel>a.small-btn{color:#c7a9e9}
-
-@media(max-width:830px){
- .hero #drawPanel:not(.daily-finished):not(.draw-unavailable){
-  display:flex;flex-direction:column;gap:5px;
-  padding:9px 11px;
- }
- #drawPanel:not(.daily-finished)>div:first-child{
-  width:100%;text-align:center;
- }
- #drawPanel:not(.daily-finished)>.draw-actions{
-  justify-content:center;
- }
- #drawPanel:not(.daily-finished)>.recent-colors{
+.hero #drawPanel:not(.draw-unavailable)>.draw-actions {
+  grid-column:2;
+  grid-row:1;
   width:100%;
- }
- .hero #drawPanel.daily-finished{
-  grid-template-columns:1fr;gap:3px!important;
-  padding:6px 10px!important;
- }
- #drawPanel.daily-finished>div:first-child{
-  grid-column:1;grid-row:1;justify-content:center;min-height:29px;
- }
- #drawPanel.daily-finished .draw-complete-note{
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px 6px!important;
+}
+#drawPanel:not(.draw-unavailable) .draw-tool-group {
+  display:inline-flex;
+  flex-shrink:0;
+  align-items:center;
+  gap:4px;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
+  padding:6px 8px;
+  min-height:34px;
+  font-size:11px;
+  line-height:1.3;
+  white-space:nowrap;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
+  display:inline-block!important;
+  flex:0 0 auto;
+  width:161px;
+  max-width:100%;
+  min-height:34px;
+  padding:6px 7px;
+  font-size:11px;
+  line-height:1.3;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
+  display:inline-flex!important;
+  min-height:34px;
+  padding:2px 6px;
+  gap:4px;
+  font-size:11px;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker>span {
+  font-size:11px;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
+  width:31px!important;
+  min-width:31px!important;
+  height:28px!important;
+  padding:2px!important;
+}
+#drawPanel:not(.draw-unavailable)>.recent-colors {
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+  width:100%;
+  padding:0;
+  gap:6px;
+  justify-content:flex-end;
+  align-items:center;
+}
+#drawPanel:not(.draw-unavailable)>.recent-colors>strong {
+  font-size:10px;
+}
+#drawPanel:not(.draw-unavailable) .recent-color-swatches {gap:4px}
+#drawPanel:not(.draw-unavailable) .recent-color-swatch {
+  width:23px;
+  height:23px;
+  flex-basis:23px;
+}
+
+/* Every control, including the existing #drawMode, remains visible while
+   the first spin or completed Daily has disabled the editor. */
+#drawPanel.locked-panel>.recent-colors {display:none!important}
+.hero #drawPanel.locked-panel:not(.draw-unavailable) {
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto;
+}
+#drawPanel.locked-panel:not(.daily-finished) {
+  background:#eff0f2;
+  border-color:#dfe2e6;
+}
+#drawPanel.locked-panel:not(.daily-finished) .drawing-tool,
+#drawPanel.locked-panel:not(.daily-finished) .drawing-tool.active {
+  background:#f2f3f5!important;
+  color:#747c87!important;
+  border-color:#d5d9df!important;
+  box-shadow:none!important;
+}
+#drawPanel.locked-panel:not(.daily-finished) .draw-actions {opacity:.8}
+#drawPanel.locked-panel :is(button,select,input):disabled {cursor:not-allowed}
+#drawPanel.daily-finished .draw-actions,
+#drawPanel.daily-finished .recent-colors {opacity:.92}
+#drawPanel.daily-finished .draw-actions .native-paint-picker {opacity:.82}
+#drawPanel.daily-finished .draw-complete-note {
+  justify-content:flex-start;
+  width:100%;
+  margin:0;
+  gap:7px;
+}
+#drawPanel.daily-finished .draw-complete-symbol {
+  flex-basis:24px;
+  width:24px;
+  height:24px;
+  border-radius:8px;
+}
+#drawPanel.daily-finished .draw-actions #clearDrawing {
+  display:inline-flex!important;
   justify-content:center;
- }
- #drawPanel.daily-finished .draw-actions{
-  grid-column:1;grid-row:2;justify-content:center;
-  flex-wrap:wrap;max-width:100%;
- }
+  align-items:center;
 }
-@media(max-width:450px){
- #drawPanel:not(.daily-finished) #drawPanelDescription{font-size:10.5px}
- #drawPanel:not(.daily-finished) .draw-actions .small-btn{
-  padding:7px 8px;min-height:37px;
- }
- #drawPanel.daily-finished .draw-complete-copy strong{font-size:12px}
- #drawPanel.daily-finished .draw-complete-copy small{font-size:10px}
- #drawPanel.daily-finished .draw-actions .small-btn{
-  padding:6px 7px;min-height:32px;font-size:10.5px;
- }
+html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) {
+  background:#292d35;
+  border-color:#414952;
 }
+html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) .drawing-tool {
+  background:#353941!important;
+  color:#a9b1bd!important;
+  border-color:#505864!important;
+}
+#playedPanel>a.small-btn {
+  color:#592d88;
+  font-weight:850;
+  min-height:39px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+#playedPanel .crilo-share-trigger {min-height:39px}
+html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 
-/* Active runs preserve editor space during spinning; after the terminal spin,
-   override the old flex placeholder with this compact visible grid. */
-body.wheel-run-active .hero #drawPanel.daily-finished{
- display:grid!important;
- visibility:visible!important;opacity:1!important;
- pointer-events:none;
+/* Tablet and phone: the description and tools stack, never overflow.
+   The wrapping tool groups remain together so they stay recognizable. */
+@media (max-width:830px) {
+  .hero #drawPanel:not(.draw-unavailable) {
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    column-gap:0!important;
+    row-gap:6px!important;
+    padding:8px 10px!important;
+  }
+  .hero #drawPanel:not(.draw-unavailable)>div:first-child {
+    grid-column:1;
+    grid-row:1;
+    width:100%;
+    min-height:0;
+    text-align:left;
+  }
+  .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
+    grid-column:1;
+    grid-row:2;
+    justify-content:center;
+    max-width:100%;
+  }
+  .hero #drawPanel:not(.draw-unavailable)>.recent-colors {
+    grid-column:1;
+    grid-row:3;
+    justify-content:center;
+  }
+  #drawPanel.daily-finished .draw-complete-note {justify-content:flex-start}
 }
-
-@media(max-width:450px){
- #drawPanel.daily-finished .draw-actions .native-paint-picker{min-height:30px;padding:2px 4px}
- #drawPanel.daily-finished .draw-actions .native-paint-picker input[type=color]{width:27px;height:25px}
- #drawPanel.daily-finished .draw-actions #clearDrawing{min-height:31px}
+@media (max-width:450px) {
+  #drawPanel:not(.daily-finished) #drawPanelDescription {font-size:11px}
+  #drawPanel:not(.daily-finished) #drawSafetyNote {font-size:10px}
+  #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
+    font-size:10.5px;
+    padding:6px 7px;
+    min-height:32px;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
+    width:155px;
+    min-height:32px;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
+    min-height:32px;
+    padding:2px 5px;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
+    width:29px!important;
+    min-width:29px!important;
+    height:26px!important;
+  }
 }
