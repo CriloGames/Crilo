@@ -7,6 +7,13 @@
  --play-line-lilac:#dfc8f6;
  --play-line-peach:#ffc8a8;
  --play-line-pink:#ffb8d2;
+ /* Each matching inner ribbon is a deeper tint of its outer pastel. */
+ --play-line-mint-deep:#8ab9a5;
+ --play-line-blue-deep:#6aa9c0;
+ --play-line-lilac-deep:#a88cc9;
+ --play-line-peach-deep:#d9a184;
+ --play-line-pink-deep:#cd829f;
+ --trace-shade-ink:#364251;
 }
 html[data-theme="dark"]{
  --play-line-mint:#628477;
@@ -14,6 +21,12 @@ html[data-theme="dark"]{
  --play-line-lilac:#76668f;
  --play-line-peach:#8d695b;
  --play-line-pink:#795f72;
+ --play-line-mint-deep:#3e6555;
+ --play-line-blue-deep:#365966;
+ --play-line-lilac-deep:#564a72;
+ --play-line-peach-deep:#66483d;
+ --play-line-pink-deep:#594456;
+ --trace-shade-ink:#10151d;
 }
 
 /* These are existing cards or panels with real boundaries. Nothing is
@@ -24,12 +37,12 @@ html[data-theme="dark"]{
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
- .page-shell .stats-grid .stat-tile,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
+ .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,
  body>.filters,body>section
@@ -43,24 +56,25 @@ html[data-theme="dark"]{
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
- .page-shell .stats-grid .stat-tile,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
+ .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::before{
  content:"";display:block;position:absolute;z-index:1;pointer-events:none;
- box-sizing:border-box;top:-9px;left:-9px;
- width:min(var(--trace-head,57%),calc(100% - 18px));
+ box-sizing:border-box;top:-5px;left:-5px;
+ width:min(var(--trace-head,57%),calc(100% - 10px));
  height:var(--trace-head-turn,43px);
- border-top:2.5px solid var(--trace-first,var(--play-line-mint));
- border-left:2.5px solid var(--trace-first,var(--play-line-mint));
- border-top-left-radius:calc(var(--trace-radius,22px) + 9px);
+ /* The DARKER stroke hugs the card. A lighter matching copy lives 6px out. */
+ border-top:2.5px solid var(--trace-first-deep,color-mix(in srgb,var(--trace-first,var(--play-line-mint)) 68%,var(--trace-shade-ink)));
+ border-left:2.5px solid var(--trace-first-deep,color-mix(in srgb,var(--trace-first,var(--play-line-mint)) 68%,var(--trace-shade-ink)));
+ border-top-left-radius:calc(var(--trace-radius,22px) + 5px);
  background:none;
- filter:var(--trace-head-stack,none);
+ filter:var(--trace-head-stack,drop-shadow(-6px -6px 0 var(--trace-first,var(--play-line-mint))));
 }
 /* A second ribbon follows the opposite outer corner. Some cards repurpose
    this segment as a third, shorter line beside the first two. */
@@ -70,24 +84,24 @@ html[data-theme="dark"]{
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
- .page-shell .stats-grid .stat-tile,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  .crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
+ .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::after{
  content:"";display:block;position:absolute;z-index:1;pointer-events:none;
- box-sizing:border-box;right:-9px;bottom:-9px;
- width:min(var(--trace-tail,37%),calc(100% - 18px));
+ box-sizing:border-box;right:-5px;bottom:-5px;
+ width:min(var(--trace-tail,37%),calc(100% - 10px));
  height:var(--trace-tail-turn,38px);
- border-right:2.5px solid var(--trace-last,var(--play-line-lilac));
- border-bottom:2.5px solid var(--trace-last,var(--play-line-lilac));
- border-bottom-right-radius:calc(var(--trace-radius,22px) + 9px);
+ border-right:2.5px solid var(--trace-last-deep,color-mix(in srgb,var(--trace-last,var(--play-line-lilac)) 68%,var(--trace-shade-ink)));
+ border-bottom:2.5px solid var(--trace-last-deep,color-mix(in srgb,var(--trace-last,var(--play-line-lilac)) 68%,var(--trace-shade-ink)));
+ border-bottom-right-radius:calc(var(--trace-radius,22px) + 5px);
  background:none;
- filter:var(--trace-tail-stack,none);
+ filter:var(--trace-tail-stack,drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac))));
 }
 
 /* Chosen, nonrepeating lengths: some ribbons travel more than halfway
@@ -211,8 +225,8 @@ body>.filters,body>section{
  --trace-first:var(--play-line-mint);--trace-last:var(--play-line-peach);
 }
 
-/* A second line copies only the painted partial border, shifted OUTWARD.
-   Drop-shadow acts on the corner stroke itself, not the entire card. */
+/* On selected panels vary outer hues and lengths without brightening the
+   darker inside line. No inset graphics are drawn across content. */
 :is(
  #drawPanel,.leader-main .leader-panel,.duck-page .duck-progress,
  .collection-page .collection-list,.page-shell .settings-card:nth-child(even),
@@ -220,7 +234,7 @@ body>.filters,body>section{
  .beetle-lab .beetle-demo-card:nth-child(even),
  .sound-page .sound-app,.shell #gameScreen .card
 ){
- --trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first-echo,var(--play-line-blue)));
+ --trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first,var(--play-line-mint)));
 }
 :is(
  #more-games .game-card:nth-of-type(2n),.leader-main .best-card,
@@ -228,30 +242,29 @@ body>.filters,body>section{
  .page-shell .settings-card:nth-child(odd),
  .analytics-main .analytics-controls,.shell .personal-bests
 ){
- --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last-echo,var(--play-line-peach)));
+ --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac)));
 }
 
-/* Selective three-line stacks: two corner-hugging strokes from ::before,
-   then a deliberately shorter, more distant third line via ::after.
-   Other cards keep differently sized accents on opposing corners. */
+/* Selective three-line stacks: darker inner line, lighter middle line,
+   and a short outer line. Other cards get two layers on opposite corners. */
 :is(
  #drawPanel,.leader-main .best-card,
  .collection-page .collection-list,.sound-page .sound-app,
  .crilo-legal-main .crilo-legal-paper
 )::after{
- top:-23px;left:-23px;right:auto;bottom:auto;
- width:min(var(--trace-third,27%),calc(100% - 46px));
+ top:-19px;left:-19px;right:auto;bottom:auto;
+ width:min(var(--trace-third,27%),calc(100% - 38px));
  height:var(--trace-third-turn,53px);
  border:0;
  border-top:2px solid var(--trace-third-color,var(--play-line-pink));
  border-left:2px solid var(--trace-third-color,var(--play-line-pink));
- border-top-left-radius:calc(var(--trace-radius,22px) + 23px);
+ border-top-left-radius:calc(var(--trace-radius,22px) + 19px);
  border-bottom-right-radius:0;
  filter:none;
 }
 #drawPanel{--trace-third:37%;--trace-third-turn:68px;--trace-third-color:var(--play-line-peach)}
 .leader-main .best-card{
- --trace-head-stack:drop-shadow(-6px -6px 0 var(--play-line-mint));
+ --trace-head-stack:drop-shadow(-6px -6px 0 var(--play-line-peach));
  --trace-third:31%;--trace-third-turn:61px;--trace-third-color:var(--play-line-pink);
 }
 .collection-page .collection-list{
@@ -267,7 +280,7 @@ body>.filters,body>section{
 /* A small number of additional framed surfaces, leaving header/navigation,
    active game controls, and score art unmodified. */
 :is(
- .page-shell .stats-grid .stat-tile,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  #more-games .game-card,
  .page-shell .settings-card,
  .page-shell .friend-card
@@ -277,7 +290,7 @@ body>.filters,body>section{
  --trace-last:var(--play-line-mint);
 }
 :is(
- .page-shell .stats-grid .stat-tile,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
  #more-games .game-card,
  .page-shell .settings-card,
  .page-shell .friend-card
@@ -306,6 +319,21 @@ body>.filters,body>section{
  }
 }
 
+/* Additional asymmetry on repeated card grids; no global button or modal rules. */
+.page-shell .badge-card:nth-child(2n+1),
+.analytics-main .analytics-cards > :nth-child(3n+2){
+ --trace-head:72%;--trace-tail:21%;
+ --trace-first:var(--play-line-lilac);--trace-last:var(--play-line-mint);
+}
+.page-shell .badge-card:nth-child(2n),
+.analytics-main .analytics-cards > :nth-child(3n+1){
+ --trace-head:28%;--trace-tail:69%;
+ --trace-first:var(--play-line-peach);--trace-last:var(--play-line-blue);
+}
+.sound-page .support-card{
+ --trace-radius:18px;--trace-head:41%;--trace-tail:64%;
+ --trace-first:var(--play-line-peach);--trace-last:var(--play-line-mint);
+}
 /* Preserve the Daily-complete layout; remove the Pen/Fill state as well as
    its dark paint, so no selectable black rectangle leaks through the scrim. */
 #drawPanel .draw-finished-overlay{display:none}
@@ -360,10 +388,10 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
- .page-shell .stats-grid .stat-tile,.crilo-legal-main .crilo-legal-paper,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
- .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
+ .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
  )::before{
@@ -377,10 +405,10 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
- .page-shell .stats-grid .stat-tile,.crilo-legal-main .crilo-legal-paper,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
- .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
- .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
+ .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,.analytics-main .analytics-cards > *,
+ .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,.sound-page .support-card,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
  )::after{
