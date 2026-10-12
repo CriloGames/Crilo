@@ -1,0 +1,110 @@
+'use strict';
+/* A completed official Daily must populate the Play HUD from daily_runs, not
+   from the untouched local score of zero. No real credentials or DB calls. */
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const root=path.resolve(__dirname,'../..');
+const source=fs.readFileSync(path.join(root,'game.js'),'utf8');
+const start=source.indexOf('function update(){');
+const end=source.indexOf('// The music and visual letter pops',start);
+const loaded=source.indexOf('async function checkPlayed(){');
+const stop=source.indexOf('function open(id)',loaded);
+assert.ok(start>=0&&end>start&&loaded>=0&&stop>loaded,
+ 'Real score-update and Daily restoration functions must be present');
+const list=()=>({items:new Set(),add(v){this.items.add(v)},remove(v){this.items.delete(v)},
+ contains(v){return this.items.has(v)},toggle(v,enabled){enabled?this.add(v):this.remove(v)}});
+const mk=()=>({textContent:'',hidden:false,dataset:{},classList:list(),
+ attrs:{},setAttribute(k,v){this.attrs[k]=v}});
+const ids=['score','wheelScorePanel','scoreTier','scoreTierHint','scoreTierText',
+ 'spins','level','duckCount','playedPanel','playedText','spinButton'];
+const nodes=Object.fromEntries(ids.map(k=>[k,mk()]));
+const eyebrow=mk(),playedHeading=mk();
+nodes.wheelScorePanel.querySelector=s=>s==='.wheel-score-eyebrow'?eyebrow:null;
+nodes.playedPanel.querySelector=s=>s==='strong'?playedHeading:null;
+let drawCount=0,lockCount=0,beginCount=0,panelMode='',queryCount=0;
+const saved={score:69,spins:7,upgrades:2,doubles:1,ducks:2,drawing:null,daily_period:'2026-10-12'};
+const query={
+ select(columns){assert.match(columns,/score,spins,upgrades,doubles,ducks/);return this},
+ eq(){return this},
+ async maybeSingle(){queryCount++;return{data:{...saved},error:null}}
+};
+const sandbox={
+ window:{CriloRarity:{scoreBands:[
+ {key:'trash',max:6},{key:'common',max:24},{key:'uncommon',max:48},
+ {key:'rare',max:92},{key:'epic',max:141},{key:'anomaly',max:300},
+ {key:'mythic',max:Infinity}]}},
+ $:id=>nodes[id]||null,fmt:n=>String(Number(n)||0),
+ drawWheel(){drawCount++},lockDrawing(){lockCount++},
+ setDrawingPanelMode(mode){panelMode=mode},
+ beginRun(){beginCount++},
+ Crilo:{dailyPeriod(){return'2026-10-12'}},
+ criloDB:{
+  async rpc(name){assert.equal(name,'crilo_my_daily_penalty');return{data:null,error:null}},
+  from(name){assert.equal(name,'daily_runs');return query}
+ }
+};
+const setup=`let user={id:'signed-in-user'},profile={is_owner:false};
+let officialRun=null,started=false,isTest=false,guestRun=false;
+let results=[],score=0,spins=5,multiplier=1,ducks=0;`;
+const code=setup+'\n'+source.slice(start,end)+'\n'+source.slice(loaded,stop)+
+ ';({update,checkPlayed,setState(v){for(const [k,x] of Object.entries(v))'+
+ 'eval(k+\u0027=x\u0027)},getSaved(){return officialRun}})';
+/* Use a direct named setter instead of eval to keep the harness unambiguous. */
+const safe=code.replace(
+ 'setState(v){for(const [k,x] of Object.entries(v))eval(k+\u0027=x\u0027)}',
+ 'setState(v){if("started" in v)started=v.started;'+
+ 'if("isTest" in v)isTest=v.isTest;'+
+ 'if("guestRun" in v)guestRun=v.guestRun;'+
+ 'if("officialRun" in v)officialRun=v.officialRun;'+
+ 'if("results" in v)results=v.results;'+
+ 'if("score" in v)score=v.score;'+
+ 'if("spins" in v)spins=v.spins;'+
+ 'if("multiplier" in v)multiplier=v.multiplier;'+
+ 'if("ducks" in v)ducks=v.ducks;}'
+);
+const api=vm.runInNewContext(safe,sandbox);
+(async()=>{
+ api.update();
+ assert.equal(nodes.score.textContent,'0');
+ assert.equal(nodes.wheelScorePanel.dataset.rarity,'unrevealed');
+ assert.equal(nodes.scoreTierHint.hidden,false);
+ await api.checkPlayed();
+ assert.equal(queryCount,1,'Saved official Daily must be fetched once');
+ assert.equal(lockCount,1,'Completed Daily drawing must stay locked');
+ assert.equal(panelMode,'complete');
+ assert.equal(nodes.playedText.textContent,'You scored 69 this Daily.');
+ assert.equal(nodes.score.textContent,'69','Wheel score must match saved Daily');
+ assert.equal(eyebrow.textContent,'DAILY SCORE');
+ assert.equal(nodes.wheelScorePanel.dataset.rarity,'rare');
+ assert.equal(nodes.scoreTierText.textContent,'RARE');
+ assert.equal(nodes.scoreTier.hidden,false);
+ assert.equal(nodes.scoreTierHint.hidden,true,'Do not prompt a new spin on completed Daily');
+ assert.equal(nodes.spins.textContent,0,'Completed Daily has no remaining spins');
+ assert.equal(nodes.level.textContent,'×9','Two saved upgrades must restore displayed values');
+ assert.equal(nodes.duckCount.textContent,2);
+ assert.equal(api.getSaved().score,69);
+ api.setState({isTest:true,started:true,score:7,spins:3,multiplier:2,ducks:1,
+  results:[{type:'num'}]});
+ api.update();
+ assert.equal(nodes.score.textContent,'7','Owner Test Run must not inherit Daily score');
+ assert.equal(eyebrow.textContent,'CURRENT SCORE');
+ assert.equal(nodes.spins.textContent,3);
+ api.setState({isTest:false,started:true,officialRun:null,score:0,spins:5,
+  multiplier:1,ducks:0,results:[]});
+ api.update();
+ assert.equal(nodes.score.textContent,'0','New Daily must start at zero');
+ assert.equal(nodes.scoreTierHint.hidden,false,'New Daily must keep neutral unrevealed tier');
+ api.setState({started:false,officialRun:{score:0,upgrades:0,ducks:0}});
+ api.update();
+ assert.equal(nodes.wheelScorePanel.dataset.rarity,'trash',
+  'A valid saved zero-point Daily is completed, not unrevealed');
+ api.setState({officialRun:{score:0,blocked:true},results:[]});
+ api.update();
+ assert.equal(nodes.wheelScorePanel.dataset.rarity,'unrevealed',
+  'Moderation-blocked Dailies must not reveal a removed score');
+ assert.ok(drawCount>=5);
+ assert.equal(beginCount,0,'Restoring a saved Daily must not start a new run');
+ assert.match(source,/officialRun=\{\.\.\.payload,is_test:false\};\s*update\(\)/,
+  'Saving an official Daily must immediately update its completed HUD');
+ console.log('RESTORED_DAILY_SCORE_PASS: saved 69 and RARE, zero remaining spins, owner Test isolation, new Daily reset, blocked score safety');
+})().catch(error=>{console.error(error);process.exitCode=1});
