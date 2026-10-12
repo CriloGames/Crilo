@@ -795,7 +795,16 @@ window.addEventListener('crilo-auth-ready',async e=>{
   $('message').textContent='Choose Official Daily or Test Run to begin.';
  }
  if(!profile){open('profileModal');return}
- if(guestRun&&(started||!$('result').classList.contains('hidden')))return;
+ if(guestRun&&(started||!$('result').classList.contains('hidden'))){
+  // Signing in mid-guest-run cannot convert that attempt to an official
+  // Daily. Explain the distinction instead of saying "Sign up" to a user
+  // who is already signed in.
+  $('message').classList.remove('hidden');
+  $('message').textContent=started?
+   'Guest run in progress. Your next official Daily will be saved to your account.':
+   'Guest run finished. Future official Dailies will be saved to your account.';
+  return;
+ }
  $('message').classList.remove('hidden');
  $('message').textContent='Checking your Daily…';
  await DuckWorld.load(criloDB,user);
