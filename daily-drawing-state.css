@@ -231,11 +231,20 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   width:100%;
   min-width:0;
   display:flex!important;
-  flex-direction:row;
+  flex-direction:column;
   flex-wrap:nowrap;
-  align-items:center;
+  align-items:stretch;
   justify-content:center;
-  gap:4px!important;
+  gap:3px!important;
+}
+#drawPanel:not(.draw-unavailable) .draw-toolbar-main {
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  flex-wrap:nowrap;
+  gap:4px;
+  width:100%;
+  min-width:0;
 }
 #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
   /* Both DOM wrappers flatten into a single row, without touching listeners. */
@@ -285,40 +294,51 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   height:24px!important;
   padding:1px!important;
 }
+/* Five recent swatches occupy their OWN compact, right-aligned line.
+   They never participate in toolbar width calculation or escape the panel. */
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-colors {
-  width:auto;
-  min-width:0;
-  flex:1 1 40px;
+  box-sizing:border-box;
   display:none;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  height:23px;
+  flex:0 0 23px;
   align-items:center;
-  justify-content:flex-start;
-  overflow:hidden;
-  padding:0;
+  justify-content:flex-end;
+  gap:6px;
+  padding:0 2px 0 0;
   margin:0;
+  overflow:hidden;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-colors.has-colors {
   display:flex;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-colors>strong {
-  position:absolute;
-  width:1px;
-  height:1px;
-  overflow:hidden;
-  clip:rect(0,0,0,0);
+  display:inline-block;
+  position:static;
+  width:auto;
+  height:auto;
+  margin:0;
+  overflow:visible;
+  clip:auto;
   white-space:nowrap;
+  font-weight:700;
+  font-size:10px;
+  line-height:1.1;
+  color:var(--muted,#777984);
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-color-swatches {
-  min-width:0;
-  max-width:100%;
-  min-height:23px;
   display:flex;
-  flex-wrap:nowrap;
+  min-width:0;
+  max-width:calc(5 * 22px + 4 * 5px);
+  min-height:22px;
+  flex:0 1 auto;
   align-items:center;
-  justify-content:flex-start;
-  gap:4px;
-  overflow-x:auto;
-  overflow-y:hidden;
-  scrollbar-width:thin;
+  justify-content:flex-end;
+  gap:5px;
+  flex-wrap:nowrap;
+  overflow:hidden;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-color-swatch {
   width:22px;
@@ -434,8 +454,13 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
   .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
     grid-column:1;
     grid-row:2;
+    align-items:stretch;
+    flex-wrap:nowrap;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-toolbar-main {
     justify-content:flex-start;
     flex-wrap:wrap;
+    gap:5px;
   }
 }
 @media (max-width:600px) {
