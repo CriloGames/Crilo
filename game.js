@@ -764,7 +764,7 @@ function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.cl
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
 function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
-function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;$('resetCountdown').textContent=`NEXT DAILY ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
+function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;const clock=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;$('resetCountdown').textContent='NEXT DAILY '+clock;syncDailyCountdown(clock);if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('storage',event=>{
  if(event.key!==GUEST_DAILY_STORAGE_KEY||user||isTest)return;
  if(guestDailyClaimedHere&&!guestOwnsDaily()){
@@ -774,7 +774,26 @@ window.addEventListener('storage',event=>{
   guestDailyLocked();
  }
 });
-window.addEventListener('crilo-auth-ready',async e=>{user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;$('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);if(profile?.is_owner){$('spinButton').classList.add('hidden');$('message').textContent='Choose Official Daily or Test Run to begin.';}if(!user){$('message').textContent='Play for free! Sign up to save future Daily runs.';if(!started&&$('result').classList.contains('hidden'))beginRun();return}if(!profile){open('profileModal');return}if(guestRun&&(started||!$('result').classList.contains('hidden')))return;await DuckWorld.load(criloDB,user);await checkPlayed()});window.addEventListener('crilo-signin-request',()=>open('authModal'));
+window.addEventListener('crilo-auth-ready',async e=>{
+ user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;
+ $('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);
+ if(!user){
+  $('message').classList.remove('hidden');
+  $('message').textContent='Play for free! Sign up to save future Daily runs.';
+  if(!started&&$('result').classList.contains('hidden'))beginRun();
+  return;
+ }
+ if(profile?.is_owner){
+  $('spinButton').classList.add('hidden');
+  $('message').textContent='Choose Official Daily or Test Run to begin.';
+ }
+ if(!profile){open('profileModal');return}
+ if(guestRun&&(started||!$('result').classList.contains('hidden')))return;
+ $('message').classList.remove('hidden');
+ $('message').textContent='Checking your Daily…';
+ await DuckWorld.load(criloDB,user);
+ await checkPlayed();
+});window.addEventListener('crilo-signin-request',()=>open('authModal'));
 window.addEventListener('crilo-auth-error',e=>{open('authModal');$('authStatus').textContent='Sign-in failed: '+(e.detail?.message||'Please request a new email link.');});
 $('retrySaveBtn').addEventListener('click',async()=>{
  if(isTest||guestRun||!user||!serverSessionId||finalSaveInProgress)return;
