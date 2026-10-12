@@ -782,7 +782,7 @@ const recentPaintColors=[];
 function renderRecentPaintColors(){
  for(const [hostId,kind] of [['drawRecentSwatches','main'],['pixelRecentSwatches','pixel']]){
   const host=$(hostId);
-  if(!host)continue;
+  if(!host||typeof host.appendChild!=='function')continue;
   host.replaceChildren();
   if(!recentPaintColors.length){
    const hint=document.createElement('span');
@@ -812,8 +812,8 @@ function resetRecentPaintColors(){recentPaintColors.length=0;renderRecentPaintCo
 function setActivePaintColor(value){
  if(!/^#[a-fA-F0-9]{6}$/.test(String(value)))return;
  $('drawColor').value=value;$('pixelColor').value=value;
- $('drawColorPickerBtn').style.setProperty('--current-paint-color',value);
- $('pixelColorPickerBtn').style.setProperty('--current-paint-color',value);
+ $('drawColorPickerBtn').style?.setProperty?.('--current-paint-color',value);
+ $('pixelColorPickerBtn').style?.setProperty?.('--current-paint-color',value);
  $('colorPickerInput').value=value;
 }
 function isDrawingColorPickerOpen(){return !$('drawColorModal').classList.contains('hidden')}
