@@ -24,7 +24,7 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
   for(const width of [390,1280]){
    const context=await browser.newContext({viewport:{width,height:860}});
    await context.addInitScript({content:
-    "localStorage.setItem('crilo_theme','dark');"+mockSupabase.replace('loggedIn:false','loggedIn:true')});
+    "localStorage.setItem('crilo_theme','dark');"+mockSupabase.replace('loggedIn:false','loggedIn:true').replace("theme:'light'","theme:'dark'")});
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,r=>
     r.fulfill({status:200,contentType:'text/javascript',body:''}));
    await context.route(/^https:\/\/(?!crilo\.fun)/,r=>r.abort());
@@ -39,7 +39,7 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
     await page.goto(base+'/'+item.url,{waitUntil:'domcontentloaded'});
     assert.equal(await page.locator('link[href$="night-pages.css?v=1"]').count(),1,
       item.url+' must load shared night palette');
-    await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark');
+    await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark',null,{timeout:5000});
     if(item.url==='moderation.html'){
      await page.locator('#drawingReviewList').evaluate(el=>{
       el.innerHTML='<button class="crilo-review-row" type="button">'+
