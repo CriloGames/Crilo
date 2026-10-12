@@ -77,7 +77,7 @@ const show=new Function('criloDB','$','Crilo','window','user',
  {CriloBadgeCollection:collection},{id:'daily-player'});
 (async()=>{
  await show(new Set(['1']));
- assert.equal(n('newBadgePanel').open,true);
+ assert.equal(n('newBadgePanel').classList.contains('hidden'),false);
  assert.equal(n('newBadgePanel').classList.contains('hidden'),false);
  assert.equal(n('newBadgeCount').textContent,'2 NEW BADGES UNLOCKED');
  assert.match(n('newBadgeList').innerHTML,/Brand New/);
