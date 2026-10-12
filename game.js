@@ -840,14 +840,17 @@ for(const id of ['drawColor','pixelColor']){
   if(activeColorPicker===id)activeColorPicker=null;
  });
 }
+// Intercept Escape during capture, before app.js's generic popup closer
+// would hide Pixel Studio without copying its edited canvas to the wheel.
 document.addEventListener('keydown',event=>{
  if(event.key!=='Escape')return;
- // Escape dismisses an open native chooser first, without destroying Studio.
- if(isDrawingColorPickerOpen()){closeDrawingColorPicker();return}
+ // Escape dismisses a native palette first, preserving the Studio artwork.
+ if(isDrawingColorPickerOpen()){event.preventDefault();closeDrawingColorPicker();return}
  if(!$('pixelStudioModal').classList.contains('hidden')){
-  event.preventDefault();pixelClose();
+  event.preventDefault();
+  pixelClose();
  }
-});
+},true);
 setActivePaintColor($('drawColor').value);
 renderRecentPaintColors();
 let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null,pixelPointerId=null;
