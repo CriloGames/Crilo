@@ -23,7 +23,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      const page=await context.newPage(),errors=[];
      page.on('pageerror',e=>errors.push(e.message));
      await page.goto(base+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
-     assert.equal(await page.locator('link[href="score-motion.css?v=1"]').count(),1,
+     assert.equal(await page.locator('link[href="score-motion.css?v=2"]').count(),1,
       path+' should load scoreboard motion styles only once');
      let selectors;
      if(path==='index.html'){
@@ -63,7 +63,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       }else{
        assert.equal(actual.name,'criloScoreSway',selector+' should sway constantly');
        assert.equal(actual.animation,true,selector+' CSS animation was missing');
-       assert.ok(actual.last-actual.first>5,selector+' must visibly drift left/right');
+       const needed=width<=520&&selector.includes('leader-score')?7:13;
+       assert.ok(actual.last-actual.first>=needed,selector+' must drift at least '+needed+'px left/right');
        assert.ok(Math.abs(actual.widthBefore-actual.widthAfter)<.1,
         selector+' must not reflow score columns');
       }

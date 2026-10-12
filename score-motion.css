@@ -1,16 +1,42 @@
-/* Gently drifting scores: no layout reflow or rarity-color changes. */
+/* Slow, continuously drifting scoreboard typography. Each score moves by
+   transform only: no number jumps, rarity changes, layout shifts or wheel resizing. */
 @keyframes criloScoreSway {
-  0%,100% { transform:translate3d(-3px,0,0); }
-  50% { transform:translate3d(3px,-1px,0); }
+  0%, 100% { transform:translate3d(var(--crilo-score-left,-7px),1px,0); }
+  50% { transform:translate3d(var(--crilo-score-right,7px),-2px,0); }
 }
 .wheel-score-amount,#finalScore,#bestScore,#leaderList .leader-score {
+  --crilo-score-left:-7px;
+  --crilo-score-right:7px;
   animation:criloScoreSway 6.8s ease-in-out infinite;
-  transform-origin:center center;
+  transform-origin:50% 50%;
 }
-/* Avoid a perfectly synchronized line of numbers. */
+.wheel-score-amount {
+  --crilo-score-left:-10px;
+  --crilo-score-right:10px;
+  animation-duration:7.2s;
+}
+#finalScore {
+  --crilo-score-left:-9px;
+  --crilo-score-right:9px;
+  animation-duration:7s;
+}
+#bestScore {
+  --crilo-score-left:-9px;
+  --crilo-score-right:9px;
+  animation-duration:7.2s;
+}
+#leaderList .leader-score {animation-duration:6.8s}
+/* Scores should float independently rather than moving in lockstep. */
 #leaderList .leader-row:nth-child(4n + 2) .leader-score {animation-delay:-1.7s}
 #leaderList .leader-row:nth-child(4n + 3) .leader-score {animation-delay:-3.4s}
 #leaderList .leader-row:nth-child(4n + 4) .leader-score {animation-delay:-5.1s}
+/* Keep tightly packed phone leaderboard scores fully within their columns. */
+@media (max-width:520px) {
+  #leaderList .leader-score {--crilo-score-left:-4px;--crilo-score-right:4px}
+  .wheel-score-amount {--crilo-score-left:-8px;--crilo-score-right:8px}
+  #finalScore,#bestScore {--crilo-score-left:-7px;--crilo-score-right:7px}
+}
+/* Respect players who request minimized animation at OS/browser level. */
 @media (prefers-reduced-motion:reduce) {
   .wheel-score-amount,#finalScore,#bestScore,#leaderList .leader-score {
     animation:none!important;
