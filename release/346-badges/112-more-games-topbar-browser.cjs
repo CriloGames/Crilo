@@ -56,8 +56,21 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        assert.equal(await page.locator('#soundMute').getAttribute('aria-pressed'),
         theme==='dark'?'false':'true','Sound game should follow the saved mute preference');
       }else{
+       assert.equal(await page.locator(game.info).getAttribute('aria-expanded'),'true',
+        'Domain Info button should announce expanded state');
+       assert.equal(await page.evaluate(()=>document.activeElement?.id),'closeHelp',
+        'Opening Domain Help must focus its Close button');
+       await page.keyboard.press('Tab');
+       assert.equal(await page.evaluate(()=>document.activeElement?.id),'closeHelp',
+        'Tab must not escape the Domain instructions dialog');
+       await page.keyboard.press('Escape');
+       assert.ok(await page.locator(game.modal).isHidden(),'Escape should dismiss Domain Help');
+       assert.equal(await page.locator(game.info).getAttribute('aria-expanded'),'false');
+       assert.equal(await page.evaluate(()=>document.activeElement?.id),'helpBtn',
+        'Closing Domain Help must restore focus');
+       await page.locator(game.info).click();
        await page.locator(game.close).click();
-       assert.ok(await page.locator(game.modal).isHidden(),'Domain help close must work');
+       assert.ok(await page.locator(game.modal).isHidden(),'Domain close button must work');
        assert.equal(await page.locator('.domain-score-line #score').count(),1,
         'Domain score remains on the game page, not crammed into its header');
       }
@@ -110,6 +123,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        game.url+' '+width+'px header control clipped '+JSON.stringify(ui));
       const bg=Number((ui.bg.match(/rgba?\((\d+)/)||[])[1]);
       assert.ok(theme==='dark'?bg<70:bg>160,'Header has wrong '+theme+' palette '+ui.bg);
+      const wordmarkRose=await header.locator('.brand').evaluate(el=>
+       getComputedStyle(el).getPropertyValue('--crilo-logo-rose').trim());
+      assert.equal(wordmarkRose,theme==='dark'?'#d9bcc7':'#5a414f',
+       game.url+' must share the main Crilo wordmark in '+theme+' mode');
       assert.deepEqual(errors,[],game.url+' runtime errors');
       cases++;
       await page.close();
