@@ -60,8 +60,17 @@ async function moderateRun(id,source){
  await load();
 }
 $('leaderList')?.addEventListener('click',e=>{
- const btn=e.target.closest('.owner-remove-run');
+ const wheel=e.target.closest?.('.mini-wheel');
+ if(wheel){window.CriloWheelPreview?.openFrom(wheel);return}
+ const btn=e.target.closest?.('.owner-remove-run');
  if(btn)moderateRun(btn.dataset.id,btn.dataset.source);
+});
+$('bestDrawing')?.addEventListener('click',()=>window.CriloWheelPreview?.openFrom($('bestDrawing')));
+$('bestDrawing')?.addEventListener('keydown',e=>{
+ if(e.key==='Enter'||e.key===' '){
+  e.preventDefault();
+  window.CriloWheelPreview?.openFrom($('bestDrawing'));
+ }
 });
 function periodDaysAgo(n){const d=new Date(Date.now()-n*86400000),shifted=new Date(d.getTime()-22*3600000);return shifted.toISOString().slice(0,10)}
 async function load(){
@@ -220,13 +229,10 @@ function render(runs,pm){
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
-   <button class="mini-wheel" title="Spin wheel" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
+   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>`;
  }).join('');
- document.querySelectorAll('.mini-wheel').forEach(b=>b.addEventListener('click',()=>{
-  const img=b.querySelector('img');
-  img.animate([{transform:'rotate(0deg)'},{transform:'rotate(1440deg)'}],{duration:2300,easing:'cubic-bezier(.1,.65,.2,1)'});
- }));
+
 }
 document.querySelectorAll('.leader-tab').forEach(b=>{
  b.setAttribute?.('aria-pressed',b.dataset.tab===tab?'true':'false');
