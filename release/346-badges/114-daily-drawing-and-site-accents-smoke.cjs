@@ -5,6 +5,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const root=path.resolve(__dirname,'../..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const js=read('game.js'),html=read('index.html'),css=read('daily-drawing-state.css');
+const pixelCss=read('style.css');
 const begin=js.indexOf('function setDrawingPanelMode(mode){');
 const end=js.indexOf('async function spin()',begin);
 assert.ok(begin>=0&&end>begin,'Drawing editor state functions missing');
@@ -177,5 +178,40 @@ assert.match(html,/Inappropriate art risks an account ban\./,
  'Shortened account-ban warning must remain visible');
 assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finished\):not\(\.locked-panel\):not\(\.draw-unavailable\)/,
  'Dark mode styling must remain present');
+
+/* Pixel Studio uses the SAME Center Spin setting, even after closing via
+   Exit or Escape. Its selector stays in the header, outside the art tools. */
+assert.match(html,/<div class="pixel-header-actions"><label class="pixel-spin-mode" for="pixelDrawMode">/,
+ 'Spin / Don’t spin selector belongs alongside Pixel Studio Exit');
+assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Don’t spin<\/option><option value="spin">Spin<\/option>/,
+ 'Studio must expose both spin modes, matching the wheel');
+assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\{/,
+ 'Studio spin selector needs compact scoped styling');
+assert.match(pixelCss,/@media \(max-width:560px\)[\s\S]*?#pixelStudioModal \.pixel-studio-header\{flex-wrap:wrap/,
+ 'Studio title, spin mode and Exit must fit on mobile');
+assert.match(html,/style\.css\?v=118/,'Updated Pixel Studio CSS must be served');
+assert.match(html,/game\.js\?v=97/,'Synced Pixel Studio mode JS must be served');
+const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
+const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
+assert.ok(startSpin>=0&&endSpin>startSpin,'Shared spin mode handler not present');
+const spinNodes={drawMode:{value:'stationary'},pixelDrawMode:{value:'stationary'}};
+const spinBox={drawMode:'stationary',wheelPaints:0,
+ $:key=>spinNodes[key],drawWheel(){spinBox.wheelPaints++}};
+const spinApi=vm.runInNewContext(js.slice(startSpin,endSpin)+
+ ';({setCenterDrawingSpinMode})',spinBox);
+spinNodes.pixelDrawMode.value='spin';
+spinNodes.pixelDrawMode.onchange({target:spinNodes.pixelDrawMode});
+assert.equal(spinBox.drawMode,'spin','Studio Spin must update the game state');
+assert.equal(spinNodes.drawMode.value,'spin','Studio Spin must update the main selector');
+assert.equal(spinNodes.pixelDrawMode.value,'spin','The Studio selector must retain its choice');
+spinNodes.drawMode.value='stationary';
+spinNodes.drawMode.onchange({target:spinNodes.drawMode});
+assert.equal(spinBox.drawMode,'stationary','Main Don’t spin must update game state');
+assert.equal(spinNodes.pixelDrawMode.value,'stationary','Main selection must update Studio');
+assert.equal(spinBox.wheelPaints,2,'Each change must update the real wheel');
+assert.match(js,/function pixelOpen\(\)\{[\s\S]*?\$\('pixelDrawMode'\)\.value=drawMode;[\s\S]*?\$\('pixelStudioModal'\)\.classList\.remove\('hidden'\)/,
+ 'Opening Studio must show the current wheel setting');
+assert.match(js,/function pixelClose\(\)\{[\s\S]*?setCenterDrawingSpinMode\(\$\('pixelDrawMode'\)\.value\);[\s\S]*?\$\('pixelStudioModal'\)\.classList\.add\('hidden'\)/,
+ 'Exit and Escape must commit the selected spin mode without resetting it');
 
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
