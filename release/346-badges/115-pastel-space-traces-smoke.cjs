@@ -30,13 +30,22 @@ assert.ok(css.includes('min(var(--trace-tail,37%),calc(100% - 10px))'),
 assert.ok(css.includes('pointer-events:none'));
 assert.ok(css.includes('--trace-head:76%')&&css.includes('--trace-tail:73%'),
  'Border stroke lengths vary by surface');
-assert.ok(css.includes('filter:var(--trace-head-stack,drop-shadow(-6px -6px 0 var(--trace-first')&&
- css.includes('filter:var(--trace-tail-stack,drop-shadow(6px 6px 0 var(--trace-last'),
- 'Lighter outer lines must be painted on each card, outside dark inner lines');
+assert.ok(css.includes('filter:var(--trace-head-stack,none)')&&
+ css.includes('filter:var(--trace-tail-stack,none)'),
+ 'Cards must not default to double strokes everywhere');
+assert.ok(css.includes('--trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first')&&
+ css.includes('--trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last'),
+ 'Selected double strokes must keep the lighter line outside the dark inner line');
+for(const pattern of ['7n + 1','7n + 2','7n + 3','7n + 5','7n + 6','7n + 7']){
+ assert.ok(css.includes(':nth-child('+pattern+')'),
+  'Missing deterministic variety: '+pattern);
+}
+assert.ok(css.includes('display:none!important'),
+ 'Some corners must be intentionally absent, making true one-line cards');
 assert.ok(css.includes('top:-19px;left:-19px')&&css.includes('--trace-third:37%'),
  'Selected cards must support three offset lines with asymmetric lengths');
 assert.ok(css.includes('@media(max-width:1180px)'),
  'Tablet and phone must suppress wide three-line offsets');
 assert.ok(css.includes('html[data-theme="dark"]'));
 assert.ok(css.includes('@media(max-width:600px)'));
-console.log('PASTEL_BORDER_RIBBONS_PASS: no freehand SVGs, layered card borders only, responsive and both themes');
+console.log('PASTEL_BORDER_RIBBONS_PASS: varied one, two and three line cards, border-only safety, both themes');
