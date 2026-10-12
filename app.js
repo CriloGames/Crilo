@@ -1,5 +1,7 @@
 (() => {
   const $ = id => document.getElementById(id);
+  // Standalone Domain uses a subdirectory; user menus must still point to the site root.
+  const siteRoot = location.pathname.startsWith('/domain/') ? '../' : '';
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   window.Crilo = { $, esc, user:null, profile:null };
 
@@ -104,7 +106,7 @@
       wrap=document.createElement('div');
       wrap.id='friendBellWrap';
       wrap.className='crilo-notification-wrap';
-      wrap.innerHTML='<button id="friendBellBtn" class="circle-btn" type="button" aria-label="Notifications" aria-expanded="false" title="Notifications"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" class="crilo-notification-count hidden"></span></button><section id="friendBellPanel" class="crilo-notification-panel hidden" aria-label="Notifications"><div class="crilo-notification-title">NOTIFICATIONS</div><div id="friendBellItems"></div><a class="crilo-notification-footer" href="friends.html">VIEW ALL FRIEND REQUESTS →</a></section>';
+      wrap.innerHTML='<button id="friendBellBtn" class="circle-btn" type="button" aria-label="Notifications" aria-expanded="false" title="Notifications"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" class="crilo-notification-count hidden"></span></button><section id="friendBellPanel" class="crilo-notification-panel hidden" aria-label="Notifications"><div class="crilo-notification-title">NOTIFICATIONS</div><div id="friendBellItems"></div><a class="crilo-notification-footer" href="'+siteRoot+'friends.html">VIEW ALL FRIEND REQUESTS →</a></section>';
       host.insertBefore(wrap,host.querySelector('.account-wrap'));
       document.getElementById('friendBellBtn').addEventListener('click',()=>{
         const panel=document.getElementById('friendBellPanel');
@@ -145,7 +147,7 @@
        '<small>'+relativeTime(n.created_at)+(n.read_at?' · READ':' · NEW')+'</small></span></button>'
     ).join('');
     const friendsHTML=requests.map(req=>
-      '<a class="crilo-notification-item" href="friends.html"><span class="crilo-notification-icon">↗</span><span><span class="crilo-notification-copy"><b>'+esc(names[req.sender_id]||'A PLAYER')+'</b> SENT YOU A FRIEND REQUEST</span><small>'+relativeTime(req.created_at)+'</small></span></a>'
+      '<a class="crilo-notification-item" href="'+siteRoot+'friends.html"><span class="crilo-notification-icon">↗</span><span><span class="crilo-notification-copy"><b>'+esc(names[req.sender_id]||'A PLAYER')+'</b> SENT YOU A FRIEND REQUEST</span><small>'+relativeTime(req.created_at)+'</small></span></a>'
     ).join('');
     items.innerHTML=penaltyHTML+friendsHTML||
      '<div class="crilo-notification-empty">You’re all caught up. No new notifications.</div>';
@@ -334,14 +336,14 @@
   };
   function renderAccount(){
     // Owner-only navigation is also checked server-side by the moderation RPCs.
-    const nav=document.querySelector('.topbar nav');
+    const nav=document.querySelector('body:not(.crilo-standalone) .topbar nav');
     if(nav){
       let link=nav.querySelector('#ownerDrawingNav');
       if(Crilo.profile?.is_owner){
         if(!link){
           link=document.createElement('a');
           link.id='ownerDrawingNav';
-          link.href='moderation.html';
+          link.href=siteRoot+'moderation.html';
           link.textContent='DRAWING REVIEW';
           nav.appendChild(link);
         }
@@ -365,7 +367,7 @@
       btn.textContent=Crilo.profile?.username || 'ACCOUNT';
       btn.style.color=Crilo.profile?.name_color || '';
       if(menu){
-        menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
+        menu.innerHTML=`<a href="${siteRoot}profile.html">Statistics</a><a href="${siteRoot}friends.html">Friends</a><a href="${siteRoot}settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
         $('menuSignOut')?.addEventListener('click',async()=>{
           const control=$('menuSignOut');control.disabled=true;
           try{await Crilo.signOut()}

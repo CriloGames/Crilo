@@ -4,6 +4,7 @@
 (()=>{
 'use strict';
 const KEY='crilo-header-preview-v1',AGE=3*60*60*1000;
+const siteRoot=location.pathname.startsWith('/domain/')?'../':'';
 const validName=s=>typeof s==='string'&&/^[A-Za-z0-9_]{2,20}$/.test(s);
 const validColor=s=>typeof s==='string'&&/^#[\da-fA-F]{6}$/.test(s);
 function read(){
@@ -24,13 +25,14 @@ function store(info){
  try{sessionStorage.setItem(KEY,JSON.stringify(info))}catch{}
 }
 function ownerLink(){
+ if(document.body?.classList.contains('crilo-standalone'))return null;
  const nav=document.querySelector('.topbar nav');
  if(!nav)return null;
  let link=nav.querySelector('#ownerDrawingNav');
  if(!link){
   link=document.createElement('a');
   link.id='ownerDrawingNav';link.className='crilo-owner-review-link';
-  link.href='moderation.html';link.textContent='DRAWING REVIEW';
+  link.href=siteRoot+'moderation.html';link.textContent='DRAWING REVIEW';
   nav.appendChild(link);
  }
  link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
@@ -42,7 +44,7 @@ function ensureBell(host=document.querySelector('.header-actions')){
  if(!wrap){
   wrap=document.createElement('div');wrap.id='friendBellWrap';
   wrap.className='crilo-notification-wrap';
-  wrap.innerHTML='<button id="friendBellBtn" class="circle-btn" type="button" aria-label="Notifications" aria-expanded="false" title="Notifications"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" class="crilo-notification-count hidden"></span></button><section id="friendBellPanel" class="crilo-notification-panel hidden" aria-label="Notifications"><div class="crilo-notification-title">NOTIFICATIONS</div><div id="friendBellItems"></div><a class="crilo-notification-footer" href="friends.html">VIEW ALL FRIEND REQUESTS →</a></section>';
+  wrap.innerHTML='<button id="friendBellBtn" class="circle-btn" type="button" aria-label="Notifications" aria-expanded="false" title="Notifications"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="friendBellCount" class="crilo-notification-count hidden"></span></button><section id="friendBellPanel" class="crilo-notification-panel hidden" aria-label="Notifications"><div class="crilo-notification-title">NOTIFICATIONS</div><div id="friendBellItems"></div><a class="crilo-notification-footer" href="'+siteRoot+'friends.html">VIEW ALL FRIEND REQUESTS →</a></section>';
   host.insertBefore(wrap,host.querySelector('.account-wrap'));
  }
  const button=wrap.querySelector('#friendBellBtn');
