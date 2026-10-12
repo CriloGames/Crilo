@@ -48,6 +48,31 @@ const controls=[
     'All nine active tools visible at '+width);
    assert.ok(ready.disabled.every(x=>!x),'All nine tools enabled before spin at '+width);
    assert.ok(ready.overflow<=2,'Active panel horizontal overflow at '+width);
+   assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
+    'none','Empty recent-colors hint should not add an awkward extra row');
+   if(width>=691){
+    const rows=await page.evaluate(()=>{
+     const y=id=>document.querySelector(id).getBoundingClientRect().top;
+     return {studio:y('#pixelStudioBtn'),pen:y('[data-tool="pen"]'),
+      history:y('#undoDrawing'),mode:y('#drawMode'),
+      color:y('.native-paint-picker'),clear:y('#clearDrawing')};
+    });
+    assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5,
+     'Studio, pen group and history should share first row at '+width);
+    assert.ok(Math.abs(rows.mode-rows.color)<5&&Math.abs(rows.mode-rows.clear)<5,
+     'Mode, color and clear should share second row at '+width);
+    assert.ok(rows.mode-rows.studio>=28,
+     'Second tool row should be distinctly aligned at '+width);
+   }
+   await page.evaluate(()=>window.recordPaintColor('#ee7799'));
+   assert.equal(await page.locator('#drawRecentSwatches button').count(),1,
+    'Painting should reveal a usable recent color');
+   assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
+    'flex','Recent swatches should become visible after painting');
+   await page.evaluate(()=>window.resetRecentPaintColors());
+   assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
+    'none','Clearing run colors should restore the compact toolbar');
+
    const modeWidth=await page.locator('#drawMode').evaluate(el=>el.getBoundingClientRect().width);
    if(width>700)assert.ok(modeWidth<=137,'Mode selector has unwanted whitespace at '+width);
    else assert.ok(modeWidth<=158,'Native mobile mode selector should remain compact');
