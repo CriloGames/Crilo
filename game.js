@@ -417,10 +417,8 @@ function setDrawingPanelMode(mode){
  };
  const lines=copy[mode]||copy.ready;
  title.textContent=lines[0];description.textContent=lines[1];
- // Visual overlay is decorative; the existing live status remains the
- // accessible announcement of the next Daily / private Test Run state.
- const overlay=$('drawPanelOverlayTitle');
- if(overlay)overlay.textContent=finished?lines[0]:'';
+ // Keep the accessible status for screen readers without displaying a
+ // centered completion message on top of the inactive drawing controls.
  note?.classList.toggle('hidden',finished||mode==='unavailable');
 }
 function setDrawingEditorDisabled(disabled){
