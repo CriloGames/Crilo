@@ -80,14 +80,15 @@ for(const scenario of [
   document,window,id=>id==='spinButton'?button:null,cb=>cb(),false);
  script.fitPlayViewport(); // Called on site load, long before the first SPIN.
  const budget=Math.max(scenario.w<=700?225:250,scenario.below);
- const expected=Math.max(140,Math.floor(Math.min(640,scenario.w-24,
+ const desktopCap=scenario.w>=1024?Math.min(570,Math.floor(scenario.h*.55)):640;
+ const expected=Math.max(140,Math.floor(Math.min(desktopCap,scenario.w-24,
   scenario.h-scenario.header-budget-40)));
  assert.equal(size,expected,scenario.label+' initial diameter');
  assert.ok(size<=scenario.w-24,scenario.label+' horizontally clipped');
  assert.ok(scenario.header+size+budget+40<=scenario.h+1||
   (size===140&&scenario.h<scenario.header+budget+180),
   scenario.label+' full SPIN button should fit');
- if(scenario.label==='Maximized laptop')assert.ok(size>=520,'Tall laptop should get a clearly larger drawing wheel');
+ if(scenario.label==='Maximized laptop')assert.ok(size>=480,'Tall laptop should retain a comfortably large drawing wheel');
  if(scenario.label==='iPhone SE')assert.ok(size>=210,'Small iPhone wheel should gain drawing space');
  const firstSize=size;
  script.alignPlayViewport(); // Mode selection scrolls without resizing.
