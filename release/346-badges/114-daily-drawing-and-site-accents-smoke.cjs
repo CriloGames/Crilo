@@ -216,4 +216,54 @@ assert.match(js,/function pixelOpen\(\)\{[\s\S]*?\$\('pixelDrawMode'\)\.value=dr
 assert.match(js,/function pixelClose\(\)\{[\s\S]*?setCenterDrawingSpinMode\(\$\('pixelDrawMode'\)\.value\);[\s\S]*?\$\('pixelStudioModal'\)\.classList\.add\('hidden'\)/,
  'Exit and Escape must commit the selected spin mode without resetting it');
 
+/* Pixel Studio must paint like the main wheel, not stamp square pixel cells. */
+assert.match(html,/Brush size <select id="pixelSize">/,
+ 'Pixel Studio should describe brush widths rather than pixel blocks');
+assert.match(html,/style\.css\?v=123/,'Smooth Pixel Studio canvas CSS must be cache-busted');
+assert.match(html,/game\.js\?v=98/,'Smooth Pixel Studio brush code must be cache-busted');
+assert.match(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:auto;/,
+ 'The enlarged Pixel Studio canvas must use smooth, not pixelated, scaling');
+assert.doesNotMatch(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:pixelated/,
+ 'Nearest-neighbor upscaling must not be applied to Pixel Studio artwork');
+assert.match(js,/function pixelFill\(p\)\{\s*const w=CANVAS_SIDE,x=Math\.floor\(p\.x\),y=Math\.floor\(p\.y\);/,
+ 'Flood fill must continue using integer pixel indices with smooth pointer coordinates');
+const brushStart=js.indexOf('function pixelBrushWidth(){');
+const brushEnd=js.indexOf('function pixelFill(p){',brushStart);
+assert.ok(brushStart>=0&&brushEnd>brushStart,'Smooth Pixel Studio brush functions are missing');
+const brushCalls=[],brushInputs={size:'2',color:'#4466cc'};
+const fakeBrushCtx={
+ save(){},restore(){},beginPath(){},
+ arc(x,y,r){brushCalls.push({action:'arc',x,y,r})},
+ moveTo(x,y){brushCalls.push({action:'move',x,y})},
+ lineTo(x,y){brushCalls.push({action:'line',x,y})},
+ fill(){brushCalls.push({action:'fill',mode:this.globalCompositeOperation,color:this.fillStyle})},
+ stroke(){brushCalls.push({action:'stroke',mode:this.globalCompositeOperation,
+  color:this.strokeStyle,width:this.lineWidth,cap:this.lineCap,join:this.lineJoin})}
+};
+const brushVars={pixelTool:'pen',pixelCtx:fakeBrushCtx,$:id=>({value:
+ id==='pixelSize'?brushInputs.size:brushInputs.color})};
+const brushApi=vm.runInNewContext(js.slice(brushStart,brushEnd)+
+ ';({pixelBrushWidth,pixelPaint,pixelLine})',brushVars);
+for(const [input,expected] of [['1',2],['2',6],['4',10],['8',16]]){
+ brushInputs.size=input;
+ assert.equal(brushApi.pixelBrushWidth(),expected,'Brush size preset is wrong for '+input);
+}
+brushInputs.size='2';
+brushApi.pixelPaint({x:31.25,y:47.75});
+brushApi.pixelLine({x:31.25,y:47.75},{x:62.5,y:74.25});
+assert.ok(brushCalls.some(c=>c.action==='arc'&&c.x===31.25&&c.y===47.75&&c.r===3),
+ 'Pencil dab must be a smooth round dot at the real subpixel position');
+assert.ok(brushCalls.some(c=>c.action==='stroke'&&c.width===6&&
+ c.cap==='round'&&c.join==='round'&&c.mode==='source-over'),
+ 'Pencil segments should match the main drawing round six-pixel stroke');
+assert.ok(brushCalls.some(c=>c.action==='line'&&c.x===62.5&&c.y===74.25),
+ 'Brush must draw continuous line segments rather than square pixel blocks');
+brushVars.pixelTool='erase';
+brushApi.pixelPaint({x:15,y:25});
+brushApi.pixelLine({x:15,y:25},{x:27,y:35});
+assert.equal(brushCalls.filter(c=>c.action==='fill').at(-1).mode,'destination-out',
+ 'The soft round eraser must remove alpha, not paint white');
+assert.equal(brushCalls.filter(c=>c.action==='stroke').at(-1).mode,'destination-out',
+ 'Continuous eraser strokes must clear pixels and remain round');
+
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
