@@ -185,7 +185,7 @@ assert.match(html,/<label class="native-paint-picker" for="pixelColor">[\s\S]*?<
  'Spin / Don’t spin selector must sit immediately after Color in Pixel Studio tools');
 assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Don’t spin<\/option><option value="spin">Spin<\/option>/,
  'Studio must expose both spin modes, matching the wheel');
-assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\{/,
+assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\s*\{/,
  'Studio spin selector needs compact scoped styling');
 assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
  'Studio spin selector must have accessible mobile sizing');
