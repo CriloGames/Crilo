@@ -39,7 +39,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  await win.__auditLoadTotalPoints(0);
  assert.equal(called,1);
  assert.equal(fromCalled,0);
- assert.equal(get('bestScore').textContent,'1,000 pts');
+ assert.equal(get('bestScore').textContent,'1,000');
  assert.equal(get('bestHeading').textContent,'ALL-TIME POINTS LEADER');
  assert.match(get('leaderDescription').textContent,/server-verified official Dailies/);
  assert.ok(!('scoreRarity' in get('bestScore').dataset));
@@ -51,6 +51,6 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  assert.match(html,/>🥈<\/div>/);
  assert.doesNotMatch(html,/data-score-rarity/);
  assert.match(html,/30 official Dailies played/);
- assert.match(html,/>800 <small class="leader-total-units">pts<\/small>/);
+ assert.match(html,/>800<\/div><small class="leader-total-units">pts<\/small>/);
  console.log('PASS: public all-time official points, ties, per-player aggregation, no rarity or client run paging');
 })().catch(e=>{console.error(e);process.exitCode=1});
