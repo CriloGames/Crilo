@@ -45,7 +45,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      return{display:css.display,position:css.position,border:css.borderTopColor,
       shadow:css.boxShadow,color:css.color,contentBefore:getComputedStyle(el,'::before').content,
       decoration:getComputedStyle(el,'::after').content,
-      animations:el.getAnimations({subtree:true}).filter(a=>a.playState==='running').length,
+      animations:el.getAnimations({subtree:true}).filter(a=>a.playState==='running'&&
+       a.effect?.getKeyframes().some(frame=>frame.transform&&frame.transform!=='none')).length,
       left:rect.left,right:rect.right,parentLeft:parent?.left,parentRight:parent?.right,
       text:el.textContent,font:css.fontSize};
     });
