@@ -72,8 +72,7 @@ assert.match(html,/id="drawPanelDescription" role="status" aria-live="polite"/,
  'Completion information must remain accessible');
 assert.match(html,/id="drawCompleteNote" class="draw-complete-note" aria-hidden="true"/,
  'Visible status must be inside the drawing panel rather than over the canvas');
-for(const id of ['dailyCompleteDetails','completedDailyScore','completedDailyRarity',
- 'completedDailyCountdown','ownerCompleteRecap','ownerCompleteScore',
+for(const id of ['ownerCompleteRecap','ownerCompleteScore',
  'ownerCompleteNext','resultNextDaily','resultNextCountdown']){
  assert.ok(html.includes('id="'+id+'"'),'Missing completed-run summary element '+id);
 }
@@ -81,8 +80,12 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=4/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=89/,'Play must load the updated state and viewport logic');
+assert.match(html,/daily-drawing-state\.css\?v=5/,'Play must use updated drawing stylesheet');
+assert.match(html,/game\.js\?v=90/,'Play must load the updated state and viewport logic');
+assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
+ 'No redundant completion tiles should remain in the page');
+assert.ok(css.includes('#drawPanel.daily-finished .recent-colors{display:none!important}'),
+ 'Finished drawing tools should take less vertical room');
 assert.ok(!html.includes('score-motion.js')&&!html.includes('score-motion.css'),
  'Play page must not load the repeating score-digit bobbing assets');
 assert.ok(css.includes('#wheelScorePanel .wheel-score-amount{')&&

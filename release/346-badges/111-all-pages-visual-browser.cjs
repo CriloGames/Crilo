@@ -83,31 +83,29 @@ const pages=[
        'Home score is too large for mobile: '+number.font+'px');
       assert.equal(number.bobbing,0,'Score contains unwanted bobbing digit markup');
       assert.equal(number.animation,false,'Home score has repeating bobbing motion');
-      // Preview a completed Daily without making any Supabase writes. Every
-      // summary value should remain readable on iPhone, iPad and desktop.
+      // The completed Daily is a single, compact confirmation. The saved
+      // score, rarity, and reset timer live elsewhere, not in three tiles.
       const completion=await page.evaluate(()=>{
        const panel=document.getElementById('playedPanel');
-       const summary=document.getElementById('dailyCompleteDetails');
-       panel.classList.remove('hidden');summary.classList.remove('hidden');
-       document.getElementById('completedDailyScore').textContent='69';
-       document.getElementById('completedDailyRarity').textContent='RARE';
-       document.getElementById('completedDailyCountdown').textContent='23:59:59';
-       const items=[...summary.querySelectorAll('.daily-complete-stat')];
-       const rects=items.map(el=>el.getBoundingClientRect());
-       const data={items:items.length,
-        visible:rects.every(r=>r.width>20&&r.height>20),
-        fits:rects.every(r=>r.left>=-2&&r.right<=innerWidth+2),
-        overflow:document.documentElement.scrollWidth>innerWidth+2,
-        gap:getComputedStyle(summary).gap};
-       summary.classList.add('hidden');panel.classList.add('hidden');
+       panel.classList.remove('hidden');
+       const share=document.getElementById('criloSharePlayed');
+       share?.classList.remove('hidden');
+       const actions=[...panel.querySelectorAll('a.small-btn,.crilo-share-trigger')];
+       const data={oldTiles:!!document.getElementById('dailyCompleteDetails'),
+        actions:actions.map(el=>({text:el.textContent.trim(),
+         left:el.getBoundingClientRect().left,
+         right:el.getBoundingClientRect().right,
+         width:el.getBoundingClientRect().width})),
+        overflow:document.documentElement.scrollWidth>innerWidth+2};
+       share?.classList.add('hidden');panel.classList.add('hidden');
        return data;
       });
-      assert.equal(completion.items,3,'Completed Daily summary needs three fields');
-      assert.equal(completion.visible,true,'Score, rarity and countdown must be visible');
-      assert.equal(completion.fits,true,
-       'Completed Daily recap clips at '+width+'px '+theme);
-      assert.equal(completion.overflow,false,
-       'Completed Daily recap creates horizontal scroll');
+      assert.equal(completion.oldTiles,false,'The success card must not repeat score/rarity/countdown');
+      assert.equal(completion.actions.length,2,'Keep Leaderboard and Share score actions');
+      assert.ok(completion.actions.every(action=>action.left>=-2&&
+       action.right<=width+2&&action.width>=20),
+       'The completed card actions should fit at '+width+'px '+theme);
+      assert.equal(completion.overflow,false,'The completion card must not cause horizontal overflow');
 
       const result=await page.evaluate(()=>{
        const panel=document.getElementById('drawPanel');
