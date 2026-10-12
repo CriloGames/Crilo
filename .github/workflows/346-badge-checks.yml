@@ -37,7 +37,7 @@ on:
       - 'beetle-tricks.html'
       - 'bug-beetle.js'
       - 'style.css'
-      - 'play-accents.css'
+      - 'daily-drawing-state.css'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -114,7 +114,7 @@ on:
       - 'beetle-tricks.html'
       - 'bug-beetle.js'
       - 'style.css'
-      - 'play-accents.css'
+      - 'daily-drawing-state.css'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -170,11 +170,11 @@ jobs:
         run: node release/346-badges/090-profile-icon-static-smoke.cjs
       - name: Verify all Crilo UI sounds and sound preference protections
         run: node release/346-badges/101-site-sounds-smoke.cjs
-      - name: Check interrupted pastel Play strokes, themes and wheel fit
+      - name: Confirm removed pastel lines across all pages
         run: node release/346-badges/113-play-accents-smoke.cjs
-      - name: Verify completed Daily drawing locks and site-wide pastel accents
+      - name: Verify disabled Daily editor and owner Test Run reset
         run: node release/346-badges/114-daily-drawing-and-site-accents-smoke.cjs
-      - name: Check layered border ribbons and removal of free-floating accents
+      - name: Check clean translucent Daily state in both themes
         run: node release/346-badges/115-pastel-space-traces-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
