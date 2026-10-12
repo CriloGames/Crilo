@@ -9,6 +9,9 @@ button,select{border-radius:9px;border:1px solid #aaa;padding:10px;font:inherit;
 button:disabled{opacity:.5;cursor:not-allowed}.primary{background:#b9e8d3;border-color:#89c3a8}
 canvas{display:block;width:min(100%,400px);aspect-ratio:1;background:white;border:2px solid #c9c4bf;border-radius:8px;touch-action:none;cursor:crosshair;image-rendering:auto}
 .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0}
+.controls label{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0;max-width:100%}
+.controls label select,.controls label input{min-width:0;max-width:100%}
+@media(max-width:380px){body{padding:16px}section{padding:14px}.controls label{width:100%}.controls label select,.controls label input{width:100%}}
 small{color:#656168}.tiles{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .tiles img{width:70px;height:70px;border:1px solid #bbb;border-radius:6px;background:white}
 #status{font-weight:600}.note{background:#f7f0fc;padding:12px;border-radius:8px}
