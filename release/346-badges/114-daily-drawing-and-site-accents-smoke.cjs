@@ -53,6 +53,8 @@ assert.match(js,/setDrawingPanelMode\(guestRun\?'guest-complete':isTest\?'test-c
  'Run completion must show the right user/owner/guest state');
 assert.match(js,/function startTest\([^)]*\)\{[^\n]*unlockDrawing\(\)/,
  'Each owner test must reset the editor and its visual state');
+assert.match(js,/if\(drawingLocked\)\{\s*dctx\.clearRect\(0,0,drawing\.width,drawing\.height\);\s*showDrawPlaceholder\(\);undoStack=\[\];redoStack=\[\];\s*\}\s*unlockDrawing\(\);/,
+ 'Fresh Dailies must clear prior artwork and fully unlock the drawing panel');
 assert.ok(html.includes('id="drawPanelTitle"')&&html.includes('id="drawPanelDescription" role="status"'),
  'Screen readers must be notified when drawing availability changes');
 assert.ok(css.includes('#drawPanel.daily-finished')&&
