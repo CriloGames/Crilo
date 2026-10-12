@@ -58,8 +58,21 @@ function installFakeDaily(){
     assert.deepEqual(white,[255,255,255,255],'Blank wheel center must be pure white, with no colored segments');
     const rim=pageFile==='leaderboard.html'?page.locator('#bestDrawing'):page.locator('.spin-history-wheel').first();
     const border=await rim.evaluate(el=>({width:getComputedStyle(el).borderTopWidth,color:getComputedStyle(el).borderTopColor}));
-    assert.equal(border.color,'rgb(23, 25, 30)','Wheel needs original black rim');
-    assert.ok(parseFloat(border.width)>=4,'Wheel rim must be at least 4px');
+    if(pageFile==='leaderboard.html'){
+     // The hero adds a white mat and lavender outline outside the actual
+     // player artwork. Blank-wheel.svg remains white and its saved pixels
+     // are never repainted or altered.
+     assert.equal(border.color,'rgb(255, 255, 255)',
+      'Hero artwork must have the white inner mat shown in the Crilo mockup');
+     const ring=await rim.evaluate(el=>({style:getComputedStyle(el).outlineStyle,
+      width:getComputedStyle(el).outlineWidth,color:getComputedStyle(el).outlineColor}));
+     assert.equal(ring.style,'solid','The hero needs a clear outer frame');
+     assert.ok(parseFloat(ring.width)>=3,'Outer lavender ring must be visible');
+     assert.notEqual(ring.color,'rgb(255, 255, 255)','Ring must stand apart from white paper');
+    }else{
+     assert.equal(border.color,'rgb(23, 25, 30)','History wheel needs original black rim');
+    }
+    assert.ok(parseFloat(border.width)>=4,'Wheel frame must be at least 4px');
     if(pageFile==='leaderboard.html'){
      await page.waitForFunction(()=>document.querySelectorAll('.leader-list .mini-wheel').length>0);
      const btn=page.locator('#leaderList .mini-wheel');
