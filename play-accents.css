@@ -1,0 +1,97 @@
+/* Crilo Play · quiet pastel traces
+   Intentional broken strokes, not additional card outlines.
+   These decorations have no hit area and do not change gameplay geometry. */
+:root{
+  --play-line-mint:#c9f1df;
+  --play-line-blue:#9bd9ef;
+  --play-line-lilac:#dfc8f6;
+  --play-line-peach:#ffc8a8;
+  --play-line-pink:#ffb8d2;
+}
+html[data-theme="dark"]{
+  /* Desaturated companions to the dark-mode wheel rather than neon accents. */
+  --play-line-mint:#628477;
+  --play-line-blue:#597b80;
+  --play-line-lilac:#76668f;
+  --play-line-peach:#8d695b;
+  --play-line-pink:#795f72;
+}
+
+/* The drawing card gets only two short strokes that turn at its actual
+   rounded corners. The remaining edges deliberately stay white. */
+#drawPanel{position:relative}
+#drawPanel::before,
+#drawPanel::after{
+  content:"";position:absolute;box-sizing:border-box;
+  pointer-events:none;z-index:0;
+}
+#drawPanel::before{
+  top:-9px;left:-9px;width:118px;height:46px;
+  border-top:2.5px solid var(--play-line-mint);
+  border-left:2.5px solid var(--play-line-mint);
+  border-top-left-radius:27px;
+}
+#drawPanel::after{
+  right:-9px;bottom:-9px;width:96px;height:39px;
+  border-right:2.5px solid var(--play-line-lilac);
+  border-bottom:2.5px solid var(--play-line-lilac);
+  border-bottom-right-radius:27px;
+}
+
+/* Two incomplete hairline arcs echo the wheel's circular silhouette.
+   The mask keeps the center entirely clear for the wheel and drawing.
+   Session-fit sizing follows the real, dynamically sized wheel. */
+.wheel-stage::before{
+  content:"";position:absolute;left:50%;top:50%;
+  width:min(630px,calc(88vw + 26px));aspect-ratio:1;
+  transform:translate(-50%,-50%);border-radius:50%;
+  pointer-events:none;z-index:0;opacity:.92;
+  background:conic-gradient(from 201deg,
+    transparent 0deg 20deg,
+    var(--play-line-blue) 20deg 47deg,
+    transparent 47deg 170deg,
+    var(--play-line-pink) 170deg 197deg,
+    transparent 197deg 360deg);
+  -webkit-mask:radial-gradient(farthest-side,
+    transparent calc(100% - 7px),
+    #000 calc(100% - 6px) calc(100% - 3px),
+    transparent calc(100% - 2px));
+  mask:radial-gradient(farthest-side,
+    transparent calc(100% - 7px),
+    #000 calc(100% - 6px) calc(100% - 3px),
+    transparent calc(100% - 2px));
+}
+.wheel-stage .wheel-wrap{z-index:1}
+body.wheel-session-fit .wheel-stage::before{
+  width:min(666px,calc(100vw - 4px),calc(var(--crilo-wheel-fit,320px) + 26px));
+}
+
+/* The cards in More Games pick up one interrupted bend at each outer end.
+   Each accent stops early instead of framing an entire game card. */
+#more-games{position:relative}
+#more-games::before,
+#more-games::after{
+  content:"";position:absolute;box-sizing:border-box;
+  pointer-events:none;z-index:0;
+}
+#more-games::before{
+  top:48px;left:10px;width:111px;height:45px;
+  border-top:2.5px solid var(--play-line-peach);
+  border-left:2.5px solid var(--play-line-peach);
+  border-top-left-radius:32px;
+}
+#more-games::after{
+  right:10px;bottom:17px;width:121px;height:47px;
+  border-right:2.5px solid var(--play-line-blue);
+  border-bottom:2.5px solid var(--play-line-blue);
+  border-bottom-right-radius:32px;
+}
+#more-games .game-card{position:relative;z-index:1}
+
+@media(max-width:600px){
+  /* Keep the ends entirely in the side gutters on 320px iPhones. */
+  #drawPanel::before{top:-7px;left:-7px;width:77px;height:34px;border-top-left-radius:24px}
+  #drawPanel::after{right:-7px;bottom:-7px;width:73px;height:32px;border-bottom-right-radius:24px}
+  #more-games::before{left:12px;width:73px;height:34px;border-top-left-radius:25px}
+  #more-games::after{right:12px;width:80px;height:35px;border-bottom-right-radius:25px}
+}
