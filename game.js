@@ -51,7 +51,7 @@ function update(){
    savedDaily?savedDaily.ducks:savedGuest.state?.ducks)||0):ducks;
  drawWheel();
 }
-// The music and visual letter pops share one exact note timeline.
+// Seven rarity-specific finishing sounds; the visual seal is intentionally shorter.
 // Each entry is [pitch, start offset, length, volume, wave, optional glide].
 const CRILO_FINAL_RARITY_NOTES={
  trash:[[294,0,.20,.022,'triangle',185],[196,.20,.34,.025,'sine',131]],
@@ -64,61 +64,27 @@ const CRILO_FINAL_RARITY_NOTES={
 };
 let lastFinalAnimationMs=0,finalCelebrationId=0;
 function resetFinalCelebration(){
- // Restore plain, accessible text; never leave a resized HUD behind when
- // an owner starts another Test Run or a new Daily begins.
+ // A new Daily or owner Test Run starts with a still, unaltered score.
  finalCelebrationId++;
- for(const id of ['score','scoreTierText']){
-  const node=$(id);
-  if(node?.classList?.contains('crilo-final-animate')){
-   const original=node.getAttribute('aria-label');
-   node.textContent=original||node.textContent;
-   node.removeAttribute('aria-label');
-   node.classList.remove('crilo-final-animate');
-   node.style.minWidth='';
-  }
- }
+ $('wheelScorePanel')?.classList.remove('crilo-final-settle');
  lastFinalAnimationMs=0;
 }
 function playFinalScoreWave(tier){
  resetFinalCelebration();
- // Respect OS reduced-motion even if the player's sound is enabled.
- if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return 0;
- const notes=CRILO_FINAL_RARITY_NOTES[String(tier||'').toLowerCase()]||CRILO_FINAL_RARITY_NOTES.common;
- const lastNote=notes.at(-1),melodySpan=lastNote[1];
- const glyphs=[
-  {el:$('score'),type:'digit'},
-  {el:$('scoreTierText'),type:'letter'}
- ];
- let maxEnd=0;
- for(const {el,type} of glyphs){
-  if(!el)return 0;
-  const original=el.textContent,characters=[...original];
-  if(!characters.length)continue;
-  // Higher rarities stretch the wave naturally with their longer melodies;
-  // short Common/Trash melodies still give each letter room to breathe.
-  const spread=Math.max(melodySpan,(characters.length-1)*(type==='letter'?.09:.095));
-  const before=el.getBoundingClientRect().width;
-  const output=characters.map((character,index)=>{
-   const node=document.createElement('span');
-   node.textContent=character;
-   node.setAttribute('aria-hidden','true');
-   node.className='crilo-final-glyph '+(type==='digit'?'crilo-final-digit':'crilo-final-letter');
-   if(/[A-Za-z0-9]/.test(character)){
-    const delay=Math.round(220+(characters.length===1?0:index/(characters.length-1)*spread*1000));
-    node.style.setProperty('--crilo-pop-delay',delay+'ms');
-    maxEnd=Math.max(maxEnd,delay+(type==='digit'?620:530));
-   }
-   return node;
-  });
-  el.setAttribute('aria-label',original);
-  el.classList.add('crilo-final-animate');
-  el.style.minWidth=before+'px';
-  el.replaceChildren(...output);
- }
- const thisCelebration=++finalCelebrationId;
- lastFinalAnimationMs=maxEnd;
- setTimeout(()=>{if(finalCelebrationId===thisCelebration)resetFinalCelebration();},maxEnd+100);
- return maxEnd;
+ const panel=$('wheelScorePanel');
+ // No ceremony when score is unrevealed, or when motion is disabled.
+ if(!panel||panel.dataset.rarity!==String(tier||'').toLowerCase()||
+    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return 0;
+ // Never split or rewrite digits: the saved number and its accessible text
+ // stay unchanged. Restart only when an actual last spin is confirmed.
+ void panel.offsetWidth;
+ panel.classList.add('crilo-final-settle');
+ const current=++finalCelebrationId;
+ lastFinalAnimationMs=880;
+ setTimeout(()=>{
+  if(current===finalCelebrationId)panel.classList.remove('crilo-final-settle');
+ },940);
+ return lastFinalAnimationMs;
 }
 function sound(kind,tier=null){
  if(profile?.sound_enabled===false||localStorage.getItem('crilo_sound')==='off')return;

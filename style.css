@@ -33,45 +33,49 @@
 .wheel-score-hint{display:inline-flex;align-items:center;justify-content:center;margin-top:3px;padding:6px 11px;border:1px solid transparent;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:.04em;line-height:1.1;color:var(--muted)}
 .wheel-score-rarity-dot{width:6px;height:6px;border-radius:50%;background:var(--score-accent)}
 
-/* Final-score celebration: glyphs swell one at a time on the rarity melody.
-   Only transforms animate, never font-size/line-height or the HUD's bounds. */
-.wheel-score-amount.crilo-final-animate,
-#scoreTierText.crilo-final-animate{
- display:inline-flex;
- justify-content:center;
- align-items:baseline;
- white-space:nowrap;
- overflow:visible;
-}
-.crilo-final-glyph{
- display:inline-block;
+/* Final spin: a small ink-and-frame sign-off. No letter-by-letter bounce,
+   persistent bobbing, width change, or extra UI. Only the completed wheel. */
+.wheel-score.crilo-final-settle .wheel-score-amount{
  position:relative;
- transform-origin:50% 72%;
- white-space:pre;
- backface-visibility:hidden;
+ animation:crilo-final-score-settle .78s cubic-bezier(.2,.7,.2,1) both;
 }
-.crilo-final-digit{
- animation:crilo-final-score-pop .62s cubic-bezier(.18,.78,.15,1) both;
- animation-delay:var(--crilo-pop-delay,0ms);
+.wheel-score.crilo-final-settle .wheel-score-amount::before{
+ content:"";position:absolute;inset:-4px;border:1px solid var(--score-accent);
+ border-radius:20px;pointer-events:none;
+ animation:crilo-final-frame-ink .78s ease-out both;
 }
-.crilo-final-letter{
- animation:crilo-final-rarity-wave .53s cubic-bezier(.18,.78,.2,1) both;
- animation-delay:var(--crilo-pop-delay,0ms);
+.wheel-score.crilo-final-settle .wheel-score-amount::after{
+ content:"";position:absolute;left:50%;bottom:-9px;width:21px;height:3px;
+ border-radius:99px;background:var(--score-accent);pointer-events:none;
+ animation:crilo-final-underline .84s ease-out both;
 }
-@keyframes crilo-final-score-pop{
- 0%,100%{transform:translateY(0) scale(1)}
- 29%{transform:translateY(-.085em) scale(1.22)}
- 54%{transform:translateY(.012em) scale(.965)}
- 75%{transform:translateY(-.018em) scale(1.035)}
+.wheel-score.crilo-final-settle .wheel-score-rarity{
+ animation:crilo-final-rarity-rest .78s ease-out both;
 }
-@keyframes crilo-final-rarity-wave{
- 0%,100%{transform:translateY(0) scale(1)}
- 27%{transform:translateY(-.14em) scale(1.36)}
- 57%{transform:translateY(.018em) scale(.96)}
- 77%{transform:translateY(-.025em) scale(1.055)}
+@keyframes crilo-final-score-settle{
+ 0%{transform:translateY(-5px) scale(1.04)}
+ 44%{transform:translateY(1px) scale(.992)}
+ 100%{transform:translateY(0) scale(1)}
+}
+@keyframes crilo-final-frame-ink{
+ 0%,22%{transform:scale(.97);opacity:0}
+ 42%{opacity:.27}
+ 100%{transform:scale(1.04);opacity:0}
+}
+@keyframes crilo-final-underline{
+ 0%,24%{transform:translateX(-50%) scaleX(.2);opacity:0}
+ 58%{transform:translateX(-50%) scaleX(1);opacity:.38}
+ 100%{transform:translateX(-50%) scaleX(.45);opacity:0}
+}
+@keyframes crilo-final-rarity-rest{
+ 0%,22%{opacity:.66}
+ 100%{opacity:1}
 }
 @media(prefers-reduced-motion:reduce){
- .crilo-final-digit,.crilo-final-letter{animation:none!important}
+ .wheel-score.crilo-final-settle .wheel-score-amount,
+ .wheel-score.crilo-final-settle .wheel-score-amount::before,
+ .wheel-score.crilo-final-settle .wheel-score-amount::after,
+ .wheel-score.crilo-final-settle .wheel-score-rarity{animation:none!important}
 }
 
 .wheel-hud .wheel-counts{display:flex;gap:clamp(18px,7vw,65px);justify-content:center;align-items:center;margin:22px auto 18px}

@@ -82,7 +82,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
 assert.match(html,/daily-drawing-state\.css\?v=4/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=88/,'Play must load the updated state and viewport logic');
+assert.match(html,/game\.js\?v=89/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('score-motion.js')&&!html.includes('score-motion.css'),
  'Play page must not load the repeating score-digit bobbing assets');
 assert.ok(css.includes('#wheelScorePanel .wheel-score-amount{')&&
