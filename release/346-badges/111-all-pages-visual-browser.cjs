@@ -65,25 +65,26 @@ const pages=[
       name+' '+theme+' '+width+'px clipped input(s)');
      assert.deepEqual(ui.tiny,[],
       name+' '+theme+' '+width+'px tiny buttons');
-     // The freeform curls must be restricted to real page gutters.
-     // On phones they must not add clickable layers or touch the game UI.
-     if(name==='index.html'&&(width===1280||width===1600)){
-      const art=await page.evaluate(()=>({
-       wide:getComputedStyle(document.body).backgroundImage,
-       hero:getComputedStyle(document.querySelector('.hero')).backgroundImage
-      }));
-      if(width===1600)assert.ok(art.wide.includes(theme==='dark'
-       ?'pastel-space-traces-night.svg':'pastel-space-traces.svg'),
-       'Wide Play ornaments missing in '+theme+' mode');
-      if(width===1280)assert.ok(art.hero.includes(theme==='dark'
-       ?'pastel-play-traces-night.svg':'pastel-play-traces.svg'),
-       'Medium Play ornaments missing in '+theme+' mode');
-     }
-     if(name==='leaderboard.html'&&width===1600){
-      const art=await page.evaluate(()=>getComputedStyle(document.body).backgroundImage);
-      assert.ok(art.includes(theme==='dark'
-       ?'pastel-space-traces-night.svg':'pastel-space-traces.svg'),
-       'Leaderboard has no quiet gutter art in '+theme+' mode');
+     // Layered pastel ribbons stay tied to a real bordered element.
+     // They cannot become body/hero backgrounds or cover any controls.
+     if(name==='index.html'||name==='leaderboard.html'){
+      const ribbons=await page.evaluate((route)=>{
+       const target=document.querySelector(route==='index.html'?'#drawPanel':'.best-card');
+       const before=getComputedStyle(target,'::before');
+       const after=getComputedStyle(target,'::after');
+       return{
+        freeArt:/pastel-(?:space|play)-traces/.test(
+         getComputedStyle(document.body).backgroundImage+' '+
+         getComputedStyle(document.querySelector('main')).backgroundImage),
+        first:before.borderTopStyle,second:after.borderBottomStyle,
+        clip:before.pointerEvents,noOverflow:document.documentElement.scrollWidth<=innerWidth+2
+       };
+      },name);
+      assert.equal(ribbons.freeArt,false,'Floating backgrounds must be removed');
+      assert.equal(ribbons.first,'solid','Missing layered upper border ribbon');
+      assert.equal(ribbons.second,'solid','Missing layered lower border ribbon');
+      assert.equal(ribbons.clip,'none','Ribbon must not intercept interactions');
+      assert.equal(ribbons.noOverflow,true,'Accent introduces overflow');
      }
      if(name==='private-nsfw-qa.html'){
       const night=await page.evaluate(()=>({
