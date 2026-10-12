@@ -25,9 +25,12 @@ assert.ok(css.includes('top:-5px;left:-5px')&&css.includes('right:-5px;bottom:-5
  'Both accent anchors must sit beyond the outside edge of their cards');
 assert.ok(css.includes('background:none;')&&!css.includes('background:linear-gradient('),
  'Remove all former inside-the-card inset gradients');
-assert.ok(css.includes('filter:var(--trace-head-stack,drop-shadow(-6px -6px')&&
- css.includes('filter:var(--trace-tail-stack,drop-shadow(6px 6px'),
- 'Optional stacked strokes should copy only the painted OUTSIDE edges');
+assert.ok(css.includes('filter:var(--trace-head-stack,none)')&&
+ css.includes('filter:var(--trace-tail-stack,none)'),
+ 'Default accents must stay single, not doubled on every card');
+assert.ok(css.includes('--trace-head-stack:drop-shadow(-6px -6px')&&
+ css.includes('--trace-tail-stack:drop-shadow(6px 6px'),
+ 'Only selected cards should have lighter strokes outside darker inner strokes');
 assert.ok(css.includes('.hero .played-panel')&&
  css.includes('.sound-page .sound-inspector'),
  'More existing bordered boxes should have asymmetric accents');
@@ -40,8 +43,13 @@ assert.ok(!css.includes('.collection-page .collection-list')&&
  !css.includes('.analytics-main .analytics-controls'),
  'Do not draw detached lines around unbordered collection or analytics containers');
 assert.ok(css.includes('.collection-page .collection-card{position:relative;overflow:visible}')&&
- css.includes('.collection-card:nth-child(even)::before'),
- 'Set-card strokes must stay visible while alternating corners to prevent overlap');
+ css.includes(':nth-child(7n + 1)::after')&&css.includes(':nth-child(7n + 3)::before'),
+ 'The varied seven-card pattern must include true one-line cards');
+assert.ok(css.includes(':nth-child(7n + 2)::after')&&
+ css.includes(':nth-child(7n + 5)::before'),
+ 'Stacked variants must hide opposite corners so they are not all doubled');
+assert.ok(css.includes(':nth-child(7n + 6)'),
+ 'Occasional three-line combinations should remain available');
 assert.ok(css.includes('.sound-page .sound-app{overflow:visible}'),
  'Sound app should show exterior lines while its separate stage still clips gameplay');
 for(const key of ['--play-line-mint-deep','#8ab9a5','--play-line-blue-deep',
@@ -63,4 +71,4 @@ for(const color of ['#c9f1df','#9bd9ef','#dfc8f6','#ffc8a8','#ffb8d2']){
  assert.ok(wheel.includes(color),'Color outside wheel palette: '+color);
  assert.ok(css.includes(color),'Accent palette lost '+color);
 }
-console.log('PLAY_ACCENTS_PASS: rounded border layers, echo lines, long/short segments, theme and responsive safety');
+console.log('PLAY_ACCENTS_PASS: mixed single, double and triple edge accents, theme and responsive safety');
