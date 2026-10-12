@@ -77,9 +77,17 @@ const pages=[
        panel.classList.add('daily-finished');
        const scrim=getComputedStyle(panel,'::after');
        const text=getComputedStyle(panel.firstElementChild);
+       const completeNote=document.getElementById('drawCompleteNote');
+       const noteStyle=getComputedStyle(completeNote);
+       const descStyle=getComputedStyle(document.getElementById('drawPanelDescription'));
+       const wheel=document.querySelector('.wheel-wrap').getBoundingClientRect();
        const outcome={
         scrim:scrim.backgroundColor,intercepts:scrim.pointerEvents,
         content:scrim.content,headingOpacity:text.opacity,
+        noteVisible:noteStyle.display!=='none',
+        noteText:completeNote.textContent,
+        originalStatusClipped:descStyle.position==='absolute',
+        wheelDiameter:wheel.width,
         removedText:!document.querySelector('.draw-finished-overlay'),
         overflow:document.documentElement.scrollWidth>window.innerWidth+2
        };
@@ -87,12 +95,21 @@ const pages=[
        return outcome;
       });
       assert.equal(result.missing,undefined,'Drawing panel missing');
-      assert.equal(result.scrim,'rgba(215, 219, 225, 0.43)',
-       'Finished editor should be gently gray with controls visible behind it');
+      assert.equal(result.scrim,theme==='dark'?'rgba(55, 60, 70, 0.39)':
+       'rgba(215, 219, 225, 0.43)',
+       'Finished editor should be gently gray in '+theme+' mode');
       assert.equal(result.intercepts,'none','Scrim must not capture clicks');
-      assert.equal(result.headingOpacity,'0','No visible text inside completed editor');
+      assert.equal(result.headingOpacity,'1','Lock label must remain readable above gray panel');
+      assert.ok(result.noteVisible&&result.noteText.includes('Daily complete'),
+       'Completed editor should explain its disabled state immediately');
+      assert.equal(result.originalStatusClipped,true,
+       'Hidden duplicate screen-reader status should remain available');
       assert.equal(result.removedText,true,'Old centered completion text remains');
       assert.equal(result.overflow,false,'Finished panel scrim causes overflow');
+      if(width>=1024){
+       assert.ok(result.wheelDiameter<=Math.min(570,850*.55)+2,
+        'Desktop wheel should fit above the score and completed-run actions');
+      }
      }else{
       assert.equal(await page.locator('link[href*="daily-drawing-state.css"]').count(),0,
        'Non-Play pages should not load the drawing-only stylesheet');
