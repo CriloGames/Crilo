@@ -417,8 +417,18 @@ function setDrawingPanelMode(mode){
  };
  const lines=copy[mode]||copy.ready;
  title.textContent=lines[0];description.textContent=lines[1];
- // Keep the accessible status for screen readers without displaying a
- // centered completion message on top of the inactive drawing controls.
+ // A compact visible lock explanation is shown in the panel instead of
+ // floating over the controls. Keep the existing live status accessible.
+ const completedHeading=$('drawCompleteHeading'),completedDetail=$('drawCompleteDetail');
+ if(completedHeading&&completedDetail){
+  const labels={
+   complete:['Daily complete · Drawing locked','A fresh canvas opens with your next Daily.'],
+   'guest-complete':['Guest Daily complete · Drawing locked','A fresh canvas opens after the next Daily reset.'],
+   'test-complete':['Test Run finished · Drawing locked','Start another Test Run for a fresh canvas.']
+  };
+  const label=labels[mode]||labels.complete;
+  completedHeading.textContent=label[0];completedDetail.textContent=label[1];
+ }
  note?.classList.toggle('hidden',finished||mode==='unavailable');
 }
 function setDrawingEditorDisabled(disabled){
