@@ -73,6 +73,27 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
      const original=await page.locator('#pixelStudioBtn').evaluate(el=>getComputedStyle(el).backgroundColor);
      assert.ok(lum(original)>.7,'Light theme Pixel Studio styling changed');
     }
+    if(path==='owner-analytics.html'){
+     await page.locator('#analyticsReport').evaluate(el=>el.classList.remove('hidden'));
+     await page.locator('#analyticsSummary').evaluate(el=>{
+      el.innerHTML='<div class="analytics-card"><span>Verified Dailies</span><strong>123</strong></div>';
+     });
+     for(const selector of ['.analytics-card','.analytics-card span',
+       '.analytics-controls select','.analytics-table th','.analytics-note']){
+      const colors=await page.locator(selector).first().evaluate(el=>{
+       const s=getComputedStyle(el);let ancestor=el,bg=s.backgroundColor;
+       while(ancestor&&(bg==='transparent'||bg==='rgba(0, 0, 0, 0)')){
+        ancestor=ancestor.parentElement;
+        bg=ancestor?getComputedStyle(ancestor).backgroundColor:'rgb(23, 25, 30)';
+       }
+       return{fg:s.color,bg};
+      });
+      assert.ok(lum(colors.bg)<.16,selector+' is too bright at night');
+      assert.ok(contrast(colors.fg,colors.bg)>=4.5,
+       selector+' owner Growth contrast failed: '+colors.fg+' on '+colors.bg);
+      cases++;
+     }
+    }
     assert.deepEqual(errors,[],'Browser script errors '+path+' '+width);
     cases++;await page.close();
    }

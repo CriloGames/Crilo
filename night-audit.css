@@ -1,0 +1,56 @@
+/* Nighttime owner previews: keep the artwork and drawing paper unmodified.
+   This file loads only on the Badge Artwork Audit and private Dataset Lab. */
+html[data-theme="dark"]{
+ color-scheme:dark;background:#1b1f29;color:#e8ebf1;
+}
+html[data-theme="dark"] body{color:#e8ebf1}
+html[data-theme="dark"] a{color:#bfcdf5}
+html[data-theme="dark"] p,
+html[data-theme="dark"] small{color:#bac3d0}
+html[data-theme="dark"] :is(input,select,button){
+ color-scheme:dark;background:#303745;color:#eef0f6;border-color:#697487;
+}
+html[data-theme="dark"] :is(input,select,button):focus-visible,
+html[data-theme="dark"] a:focus-visible{
+ outline:2px solid #afc3ec;outline-offset:3px;
+}
+html[data-theme="dark"] button:hover:not(:disabled){
+ background:#40495a;color:#f6f7fa;
+}
+html[data-theme="dark"] button:disabled{opacity:.65}
+html[data-theme="dark"] button.primary{
+ background:#35564a;border-color:#719c85;color:#eef8f1;
+}
+html[data-theme="dark"] button.primary:hover:not(:disabled){background:#416956}
+html[data-theme="dark"] section{
+ background:#262c38;border-color:#4c5666;color:#e9edf4;
+}
+html[data-theme="dark"] .note{
+ background:#333044;color:#e5deef;border:1px solid #605777;
+}
+html[data-theme="dark"] .tile{
+ background:color-mix(in srgb,var(--accent) 8%,#282f3a);
+ border-color:#586270;color:#e9edf3;
+ box-shadow:2px 3px 0 #11161f;
+}
+html[data-theme="dark"] .tile[data-rarity="trash"]{--accent:#dfba8a}
+html[data-theme="dark"] .tile[data-rarity="common"]{--accent:#c1c9d5}
+html[data-theme="dark"] .tile[data-rarity="uncommon"]{--accent:#9bcfb4}
+html[data-theme="dark"] .tile[data-rarity="rare"]{--accent:#a2c3ed}
+html[data-theme="dark"] .tile[data-rarity="epic"]{--accent:#c0afe8}
+html[data-theme="dark"] .tile[data-rarity="anomaly"]{--accent:#e5b196}
+html[data-theme="dark"] .tile[data-rarity="mythic"]{--accent:#e0afd3}
+html[data-theme="dark"] .tile .name{color:#eef0f5}
+html[data-theme="dark"] .tile .description{color:#cad0da}
+html[data-theme="dark"] .tile .key{color:#b4bfce}
+html[data-theme="dark"] .tile.locked{
+ opacity:1;filter:saturate(.55);border-style:dashed;
+}
+html[data-theme="dark"] .empty{border-color:#758194;color:#dce1ea}
+html[data-theme="dark"] .error{background:#3a2a30;border-color:#ad7887}
+html[data-theme="dark"] .checkbox input{accent-color:#8cbba8}
+/* Canvases and saved previews use white paper, including in night mode. */
+html[data-theme="dark"] canvas,
+html[data-theme="dark"] .tiles img{
+ background:white;border-color:#8d96a4;
+}

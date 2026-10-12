@@ -18,6 +18,8 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
   {url:'beetle-tricks.html',selector:'.beetle-demo-card',text:'.beetle-demo-card h2'},
   {url:'shape-of-sound.html',selector:'.sound-app',text:'.sound-heading h1'},
   {url:'domain/',selector:'.card',text:'.question'},
+  {url:'badge-art-audit.html',selector:'.tile',text:'.name'},
+  {url:'owner-dataset-lab.html',selector:'section',text:'h2'},
  ];
  let tests=0;
  try{
@@ -37,8 +39,13 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
      await page.route('**/moderation-feedback.js',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
     }
     await page.goto(base+'/'+item.url,{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('link[href$="night-pages.css?v=1"]').count(),1,
-      item.url+' must load shared night palette');
+    if(item.url==='badge-art-audit.html'){
+     await page.locator('#gallery').evaluate(el=>{el.innerHTML='<article class="tile" data-rarity="rare"><div class="name">Rare drawing</div><div class="description">Description</div><div class="rarity">rare</div></article>'});
+    }
+    const nightSheet=['badge-art-audit.html','owner-dataset-lab.html'].includes(item.url)
+     ? 'night-audit.css?v=1' : 'night-pages.css?v=1';
+    assert.equal(await page.locator('link[href$="'+nightSheet+'"]').count(),1,
+      item.url+' must load its shared night palette');
     await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark',null,{timeout:5000});
     if(item.url==='moderation.html'){
      await page.locator('#drawingReviewList').evaluate(el=>{
@@ -66,6 +73,17 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
      });
      assert.ok(contrast(filter.fg,filter.bg)>=4.5,'Drawing review filter illegible');
      tests+=2;
+     await page.locator('#reviewLightbox').evaluate(el=>el.classList.remove('hidden'));
+     for(const selector of ['.crilo-review-detail','#reviewViolationReason',
+       '.crilo-warning-decision','.crilo-review-remove','.crilo-review-ban']){
+      const colors=await page.locator(selector).first().evaluate(el=>{
+       const s=getComputedStyle(el);return{fg:s.color,bg:s.backgroundColor};
+      });
+      assert.ok(lum(colors.bg)<.19,selector+' is too bright in owner dialog');
+      assert.ok(contrast(colors.fg,colors.bg)>=4.5,
+       selector+' is unreadable in owner dialog: '+colors.fg+' on '+colors.bg);
+      tests++;
+     }
     }else{
      const card=await page.locator(item.selector).first().evaluate(el=>{
       const s=getComputedStyle(el);return{fg:s.color,bg:s.backgroundColor};
@@ -83,6 +101,18 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
      const count=await page.locator('.support-amount').count();
      assert.equal(count,4,'Support amount choices unexpectedly changed');
      tests+=2;
+    }
+    if(item.url==='badge-art-audit.html'){
+     const rarity=await page.locator('.tile .rarity').evaluate(el=>({
+      fg:getComputedStyle(el).color,bg:getComputedStyle(el.closest('.tile')).backgroundColor
+     }));
+     assert.ok(contrast(rarity.fg,rarity.bg)>=4.5,'Badge rarity text must be readable');
+     tests++;
+    }
+    if(item.url==='owner-dataset-lab.html'){
+     const paper=await page.locator('canvas').first().evaluate(el=>getComputedStyle(el).backgroundColor);
+     assert.ok(lum(paper)>.9,'Artwork canvas must retain white paper in night mode');
+     tests++;
     }
     if(item.url==='beetle-tricks.html'){
      assert.ok(await page.locator('.beetle-demo-card').count()>=5,'Beetle tricks must all remain present');
