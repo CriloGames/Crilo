@@ -21,17 +21,28 @@ assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius'),
  'Bottom rail must turn around actual corners');
 assert.ok(css.includes('--trace-head:76%')&&css.includes('--trace-tail:73%'),
  'Long and short edge segments must be varied');
-assert.ok(css.includes('top:-9px;left:-9px')&&css.includes('right:-9px;bottom:-9px'),
+assert.ok(css.includes('top:-5px;left:-5px')&&css.includes('right:-5px;bottom:-5px'),
  'Both accent anchors must sit beyond the outside edge of their cards');
 assert.ok(css.includes('background:none;')&&!css.includes('background:linear-gradient('),
  'Remove all former inside-the-card inset gradients');
-assert.ok(css.includes('filter:var(--trace-head-stack,none)')&&
- css.includes('filter:var(--trace-tail-stack,none)'),
+assert.ok(css.includes('filter:var(--trace-head-stack,drop-shadow(-6px -6px')&&
+ css.includes('filter:var(--trace-tail-stack,drop-shadow(6px 6px'),
  'Optional stacked strokes should copy only the painted OUTSIDE edges');
 assert.ok(css.includes('.hero .played-panel')&&
  css.includes('.sound-page .sound-inspector'),
  'More existing bordered boxes should have asymmetric accents');
-assert.ok(css.includes('--trace-third:37%')&&css.includes('top:-23px;left:-23px'),
+assert.ok(css.includes('.page-shell .badge-card')&&
+ css.includes('.analytics-main .analytics-cards > *')&&
+ css.includes('.sound-page .support-card'),
+ 'Expanded accent coverage must include badge cards, analytics and game support');
+for(const key of ['--play-line-mint-deep','#8ab9a5','--play-line-blue-deep',
+ '--play-line-lilac-deep','--play-line-peach-deep','--play-line-pink-deep']){
+ assert.ok(css.includes(key),'Missing darker inner color pairing: '+key);
+}
+assert.ok(css.includes('color-mix(in srgb,var(--trace-first')&&
+ css.includes('color-mix(in srgb,var(--trace-last'),
+ 'Darker inner strokes must use corresponding outer pastel hues');
+assert.ok(css.includes('--trace-third:37%')&&css.includes('top:-19px;left:-19px'),
  'Some cards should have three exterior strokes of unequal length');
 assert.ok(css.includes('@media(max-width:600px)'),'Narrow-phone rules must be present');
 assert.ok(css.includes('html[data-theme="dark"]'),'Muted dark-mode colors must be present');
