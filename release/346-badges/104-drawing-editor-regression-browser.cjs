@@ -84,6 +84,24 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Main recent colors should show paint actually used');
    await page.locator('#pixelStudioBtn').click();
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
+   assert.equal(await page.locator('#pixelDrawMode').inputValue(),'stationary',
+    'Pixel Studio spin setting must reflect the main wheel on first open');
+   const originalToolbarBox=await page.locator('.pixel-studio-tools').boundingBox();
+   await page.locator('#pixelDrawMode').selectOption('spin');
+   assert.equal(await page.locator('#drawMode').inputValue(),'spin',
+    'Changing Pixel Studio to Spin must immediately update the wheel setting');
+   assert.equal(await page.locator('#pixelDrawMode').inputValue(),'spin',
+    'Pixel Studio must retain the newly selected spin mode');
+   const spinToolbarBox=await page.locator('.pixel-studio-tools').boundingBox();
+   assert.ok(Math.abs(originalToolbarBox.y-spinToolbarBox.y)<=1&&
+    Math.abs(originalToolbarBox.height-spinToolbarBox.height)<=1,
+    'Changing spin mode must not shift or resize the Pixel Studio tool row');
+   assert.ok(await page.locator('#pixelDrawMode').isVisible(),
+    'Pixel Studio spin selector must remain visible at '+width+'px');
+   assert.ok(await page.locator('#pixelExit').isVisible(),
+    'Pixel Studio Exit must remain visible at '+width+'px');
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
+    'New Pixel Studio control causes horizontal overflow at '+width+'px');
    assert.equal((await pixel(page,'pixelCanvas',150,100))[0],238,
     'Opening Pixel Studio lost existing main drawing');
    await color(page,'pixelColor','#3366ee');
@@ -109,9 +127,16 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Pixel Studio accepted a drawing event while color picker was open');
    await color(page,'pixelColor','#3366ee');
    await page.locator('#pixelExit').click();
+   assert.equal(await page.locator('#drawMode').inputValue(),'spin',
+    'Exit must preserve Spin selected inside Pixel Studio');
    assert.equal((await pixel(page,'drawing',50,100))[2],238,
     'Exit discarded edits instead of saving them to the wheel');
    await page.locator('#pixelStudioBtn').click();
+   assert.equal(await page.locator('#pixelDrawMode').inputValue(),'spin',
+    'Reopening Pixel Studio must reflect Spin saved by Exit');
+   await page.locator('#pixelDrawMode').selectOption('stationary');
+   assert.equal(await page.locator('#drawMode').inputValue(),'stationary',
+    'Changing back to Don’t spin must synchronize the main selector');
    assert.equal((await pixel(page,'pixelCanvas',50,100))[2],238,
     'Reopening Studio did not restore the last saved drawing');
    // Exit and Escape both commit automatically; no separate save button.
@@ -125,6 +150,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    });
    assert.ok(await blueNear('pixelCanvas')>0,'Pixel pen did not draw at requested point');
    await page.locator('#pixelExit').click();
+   assert.equal(await page.locator('#drawMode').inputValue(),'stationary',
+    'Exit must preserve Don’t spin selected inside Pixel Studio');
    assert.ok(await blueNear('drawing')>0,'Exit did not save new pixel paint');
    // Main and Studio must be fully two-way editable before the first spin.
    await color(page,'drawColor','#26a269');
@@ -140,7 +167,10 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.locator('#redoDrawing').click();
    assert.equal((await pixel(page,'drawing',170,100))[3],0,'Redo must erase again');
    await page.locator('#undoDrawing').click();
+   await page.locator('#drawMode').selectOption('spin');
    await page.locator('#pixelStudioBtn').click();
+   assert.equal(await page.locator('#pixelDrawMode').inputValue(),'spin',
+    'Main wheel spin setting must be shown when Studio opens');
    assert.equal((await pixel(page,'pixelCanvas',170,100))[1],162,
     'Main drawing update missing when Studio reopens');
    assert.equal(await page.locator('#pixelRecentSwatches button').count(),3,
@@ -169,6 +199,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.keyboard.press('Escape');
    assert.equal(await page.locator('#pixelStudioModal').isVisible(),false,
     'Esc should safely save and exit Studio');
+   assert.equal(await page.locator('#drawMode').inputValue(),'spin',
+    'Escape must preserve the spin choice saved inside Pixel Studio');
    assert.equal((await pixel(page,'drawing',170,100))[1],162,'Escape lost the earlier drawing');
    assert.ok(await pinkCount('drawing')>0,'Escape erased fresh unsaved Pixel Studio artwork');
    await page.locator('#clearDrawing').click();
