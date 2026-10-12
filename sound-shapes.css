@@ -245,7 +245,6 @@
 }
 
 /* Crilo Shape of Sound — two organized tool rows (desktop, tablet, mobile). */
-body.sound-only-page .topbar .header-actions{display:none!important}
 .sound-app .sound-toolbar{
   display:grid;
   grid-template-columns:max-content minmax(0,1fr);
