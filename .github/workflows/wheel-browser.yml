@@ -67,6 +67,7 @@ on:
       - 'night-audit.css'
       - 'badge-art-audit.html'
       - 'owner-dataset-lab.html'
+      - 'private-nsfw-qa.html'
       - 'owner-analytics.css'
       - 'theme-bridge.js'
       - 'release/346-badges/110-night-pages-browser.cjs'
