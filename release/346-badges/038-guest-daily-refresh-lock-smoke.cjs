@@ -159,7 +159,9 @@ function mount({period='2026-10-10',signedIn=false,owner=false,
  assert.equal(read().score,10);
  const completed=mount();await completed.ready();
  assert.equal(completed.get('spinButton').classList.contains('hidden'),true);
- assert.match(completed.get('playedText').textContent,/10 points/);
+ assert.equal(completed.get('score').textContent,'10',
+  'Completed guest score should remain visible above the wheel');
+ assert.match(completed.get('playedText').textContent,/next reset/);
  const next=mount({period:'2026-10-11'});await next.ready();
  assert.equal(next.get('spinButton').classList.contains('hidden'),false);
  await next.spin();
