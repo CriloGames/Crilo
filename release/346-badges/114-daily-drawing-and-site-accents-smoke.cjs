@@ -67,6 +67,12 @@ assert.ok(css.includes('#drawPanel.daily-finished')&&
  'Finished panel must be light gray with a matching subdued night appearance');
 assert.match(css,/#drawPanel\.daily-finished>\.draw-finished-overlay\{[\s\S]*?align-items:center;justify-content:center/,
  'Completion overlay must be centered over the editing tools');
+assert.match(css,/background:rgba\(221,224,230,\.77\);color:#925e69/,
+ 'Light-mode overlay should reveal disabled tools under dusty pastel-red text');
+assert.match(css,/background:rgba\(41,46,55,\.79\);color:#d5a0a8/,
+ 'Dark-mode overlay must remain muted and transparent');
+assert.match(css,/font-size:clamp\(19px,2\.3vw,27px\)/,
+ 'Completion title should be smaller than the previous oversized heading');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important;visibility:visible!important;opacity:1!important/,
  'Completed editor must become visible after wheel-run-active hides drawing controls');
 const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
@@ -75,7 +81,7 @@ const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'moderation.html','beetle-tricks.html','owner-analytics.html',
  'badge-art-audit.html','owner-dataset-lab.html','private-nsfw-qa.html'];
 for(const p of pages){
- const link=(p.startsWith('domain/')?'../':'')+'play-accents.css?v='+(p==='index.html'?'4':'3');
+ const link=(p.startsWith('domain/')?'../':'')+'play-accents.css?v=5';
  assert.ok(read(p).includes('href="'+link+'"'),p+' has no shared accent stylesheet');
 }
 assert.equal(read('CNAME').trim(),'crilo.fun');
