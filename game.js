@@ -385,7 +385,7 @@ if(spins<=0){
 }}
 function hideDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.add('hidden')}
 function showDrawPlaceholder(){document.getElementById('drawPlaceholder')?.classList.remove('hidden')}
-function lockDrawing(){stopDrawing();stopPixelStroke();closeDrawingColorPicker();hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('drawColorPickerBtn').disabled=true;$('pixelStudioBtn').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
+function lockDrawing(){stopDrawing();stopPixelStroke();closeDrawingColorPicker();hideDrawPlaceholder();if(drawingLocked)return;drawingLocked=true;$('wheelWrap').classList.add('locked');$('drawPanel').classList.add('locked-panel');$('clearDrawing').disabled=true;$('drawColor').disabled=true;$('pixelStudioBtn').disabled=true;$('drawMode').disabled=true;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=true)}
 async function spin(){if(spinning||spins<=0)return;
  if(!profile&&user){$('message').textContent='Loading your account. Please wait.';return;}
  if(profile?.is_owner&&!ownerModeChosen){$('message').textContent='Choose Official Daily or Test Run before spinning.';$('spinButton').classList.add('hidden');return;}
@@ -641,7 +641,7 @@ async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();co
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
-function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('pixelStudioBtn').disabled=false;$('drawColorPickerBtn').disabled=false;$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun(true)}
+function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');drawingLocked=false;dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];$('drawPanel').classList.remove('locked-panel');$('pixelStudioBtn').disabled=false;$('drawMode').disabled=false;document.querySelectorAll('.drawing-tool').forEach(b=>b.disabled=false);$('clearDrawing').disabled=false;$('drawColor').disabled=false;beginRun(true)}
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;$('resetCountdown').textContent=`NEXT DAILY ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('storage',event=>{
  if(event.key!==GUEST_DAILY_STORAGE_KEY||user||isTest)return;
@@ -746,17 +746,23 @@ drawing.addEventListener('pointerdown',e=>{
 });
 drawing.addEventListener('pointermove',e=>{
  if(!painting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==activeDrawingPointer)return;
- if(!insidePaintArea(drawing,e)||
-    (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
+ if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0){
   stopDrawing(e);return;
  }
+ if(!insidePaintArea(drawing,e)){last=null;return}
  const p=point(e);
  dctx.strokeStyle=$('drawColor').value;dctx.lineWidth=6;
  dctx.lineCap='round';dctx.lineJoin='round';
- dctx.beginPath();dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke();last=p;
+ dctx.beginPath();
+ if(last===null){dctx.fillStyle=$('drawColor').value;dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill()}
+ else{dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke()}
+ last=p;
 });
-for(const type of ['pointerup','pointercancel','lostpointercapture','pointerleave'])
+for(const type of ['pointerup','pointercancel','lostpointercapture'])
  drawing.addEventListener(type,stopDrawing);
+drawing.addEventListener('pointerleave',e=>{
+ if(e.pointerId===activeDrawingPointer)last=null;
+});
 document.addEventListener('pointerup',stopDrawing);
 document.addEventListener('pointercancel',stopDrawing);
 const pixelCanvas=$('pixelCanvas'),pixelCtx=pixelCanvas.getContext('2d',{willReadFrequently:true});
@@ -809,37 +815,36 @@ function recordPaintColor(value){
  renderRecentPaintColors();
 }
 function resetRecentPaintColors(){recentPaintColors.length=0;renderRecentPaintColors()}
+// Use the browser's ordinary native color palette, not a second color modal.
+// Keep drawing suspended until the chooser closes or loses focus.
+let activeColorPicker=null;
 function setActivePaintColor(value){
  if(!/^#[a-fA-F0-9]{6}$/.test(String(value)))return;
  $('drawColor').value=value;$('pixelColor').value=value;
- $('drawColorPickerBtn').style?.setProperty?.('--current-paint-color',value);
- $('pixelColorPickerBtn').style?.setProperty?.('--current-paint-color',value);
- $('colorPickerInput').value=value;
 }
-function isDrawingColorPickerOpen(){return !$('drawColorModal').classList.contains('hidden')}
-function closeDrawingColorPicker(){
- $('drawColorModal').classList.add('hidden');
- $('drawColorPickerBtn').setAttribute('aria-expanded','false');
- $('pixelColorPickerBtn').setAttribute('aria-expanded','false');
+function isDrawingColorPickerOpen(){return activeColorPicker!==null}
+function closeDrawingColorPicker(){activeColorPicker=null}
+for(const id of ['drawColor','pixelColor']){
+ const input=$(id);
+ input.addEventListener('pointerdown',()=>{
+  stopDrawing();stopPixelStroke();activeColorPicker=id;
+ });
+ input.addEventListener('click',()=>{activeColorPicker=id});
+ input.addEventListener('input',event=>setActivePaintColor(event.target.value));
+ input.addEventListener('change',event=>{
+  setActivePaintColor(event.target.value);
+  // The browser might retain focus even after a native palette is dismissed.
+  activeColorPicker=null;
+ });
+ input.addEventListener('blur',()=>{
+  if(activeColorPicker===id)activeColorPicker=null;
+ });
 }
-function openDrawingColorPicker(which){
- if(drawingLocked)return;
- stopDrawing();stopPixelStroke();
- setActivePaintColor(which==='pixel'?$('pixelColor').value:$('drawColor').value);
- $('drawColorModal').classList.remove('hidden');
- $(which==='pixel'?'pixelColorPickerBtn':'drawColorPickerBtn').setAttribute('aria-expanded','true');
-}
-$('drawColorPickerBtn').addEventListener('click',()=>openDrawingColorPicker('main'));
-$('pixelColorPickerBtn').addEventListener('click',()=>openDrawingColorPicker('pixel'));
-$('colorPickerInput').addEventListener('input',event=>setActivePaintColor(event.target.value));
-$('colorPickerDone').addEventListener('click',closeDrawingColorPicker);
-$('drawColorModal').addEventListener('click',event=>{
- if(event.target===$('drawColorModal'))closeDrawingColorPicker();
-});
 document.addEventListener('keydown',event=>{
  if(event.key!=='Escape')return;
- if(isDrawingColorPickerOpen()){event.preventDefault();closeDrawingColorPicker()}
- else if(!$('pixelStudioModal').classList.contains('hidden')){
+ // Escape dismisses an open native chooser first, without destroying Studio.
+ if(isDrawingColorPickerOpen()||document.activeElement?.type==='color')return;
+ if(!$('pixelStudioModal').classList.contains('hidden')){
   event.preventDefault();pixelClose();
  }
 });
@@ -856,7 +861,6 @@ function pixelSave(){pixelHistory.push(pixelCtx.getImageData(0,0,200,200));if(pi
 function pixelOpen(){if(drawingLocked)return;stopDrawing();pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);setActivePaintColor($('drawColor').value);$('pixelStudioModal').classList.remove('hidden')}
 function pixelClose(){if($('pixelStudioModal').classList.contains('hidden'))return;closeDrawingColorPicker();stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);setActivePaintColor($('pixelColor').value);$('pixelStudioModal').classList.add('hidden')}
 $('pixelStudioBtn').addEventListener('click',pixelOpen);
-$('pixelClose').addEventListener('click',pixelClose);
 $('pixelExit').addEventListener('click',pixelClose);
 $('pixelStudioModal').addEventListener('click',event=>{
  if(event.target===$('pixelStudioModal')&&!isDrawingColorPickerOpen())pixelClose();
@@ -900,14 +904,20 @@ pixelCanvas.addEventListener('pointerdown',e=>{
 });
 pixelCanvas.addEventListener('pointermove',e=>{
  if(!pixelPainting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==pixelPointerId)return;
- if(!insidePaintArea(pixelCanvas,e)||
-    (e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
+ if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
   stopPixelStroke(e);return;
  }
- const p=pixelPoint(e);pixelLine(pixelLast,p);pixelLast=p;
+ if(!insidePaintArea(pixelCanvas,e)){pixelLast=null;return}
+ const p=pixelPoint(e);
+ if(pixelLast===null)pixelPaint(p);
+ else pixelLine(pixelLast,p);
+ pixelLast=p;
 });
-for(const type of ['pointerup','pointercancel','lostpointercapture','pointerleave'])
+for(const type of ['pointerup','pointercancel','lostpointercapture'])
  pixelCanvas.addEventListener(type,stopPixelStroke);
+pixelCanvas.addEventListener('pointerleave',e=>{
+ if(e.pointerId===pixelPointerId)pixelLast=null;
+});
 document.addEventListener('pointerup',stopPixelStroke);
 document.addEventListener('pointercancel',stopPixelStroke);
 window.addEventListener('blur',()=>{stopDrawing();stopPixelStroke()});
