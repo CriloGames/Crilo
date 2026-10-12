@@ -44,6 +44,16 @@ const controls=[
     };
    },controls);
    const ready=await state();
+   if(width>840){
+    const copyLines=await page.evaluate(()=>{
+     const count=id=>{const range=document.createRange();
+      range.selectNodeContents(document.getElementById(id));
+      return range.getClientRects().length;};
+     return {instructions:count('drawPanelDescription'),warning:count('drawSafetyNote')};
+    });
+    assert.deepEqual(copyLines,{instructions:1,warning:1},
+     'Desktop Drawing Studio text must be exactly one line per message at '+width);
+   }
    assert.ok(ready.present&&ready.visible.every(Boolean),
     'All nine active tools visible at '+width);
    assert.ok(ready.disabled.every(x=>!x),'All nine tools enabled before spin at '+width);
@@ -88,19 +98,20 @@ const controls=[
     const rect=id=>document.querySelector(id).getBoundingClientRect();
     const swatches=[...document.querySelectorAll('#drawRecentSwatches button')];
     const panel=rect('#drawPanel'),strip=rect('#drawRecentColors'),
-     toolbar=rect('.draw-toolbar-main');
-    return {stripRight:strip.right,panelRight:panel.right,
-     stripLeft:strip.left,panelLeft:panel.left,
+     intro=rect('#drawPanel>div:first-child'),warning=rect('#drawSafetyNote');
+    return {stripRight:strip.right,panelRight:panel.right,introRight:intro.right,
+     stripLeft:strip.left,panelLeft:panel.left,introLeft:intro.left,
      swatchRights:swatches.map(x=>x.getBoundingClientRect().right),
-     toolbarBottom:toolbar.bottom,stripTop:strip.top,
+     warningBottom:warning.bottom,stripTop:strip.top,stripBottom:strip.bottom,introBottom:intro.bottom,
      docOverflow:document.documentElement.scrollWidth-innerWidth};
    });
-   assert.ok(colorLayout.stripRight<=colorLayout.panelRight+1&&
-    colorLayout.stripLeft>=colorLayout.panelLeft-1&&
-    colorLayout.swatchRights.every(right=>right<=colorLayout.panelRight+1),
-    'Five recent colors must stay within the Drawing Studio at '+width);
-   assert.ok(colorLayout.stripTop>=colorLayout.toolbarBottom-2,
-    'Recent colors must sit BELOW the flat drawing buttons at '+width);
+   assert.ok(colorLayout.stripRight<=colorLayout.introRight+1&&
+    colorLayout.stripLeft>=colorLayout.introLeft-1&&
+    colorLayout.swatchRights.every(right=>right<=colorLayout.introRight+1),
+    'Five recent colors must stay inside the LEFT text section at '+width);
+   assert.ok(colorLayout.stripTop>=colorLayout.warningBottom-2&&
+    colorLayout.stripBottom<=colorLayout.introBottom+1,
+    'Recent colors must sit below the warning, not next to the buttons at '+width);
    assert.ok(colorLayout.docOverflow<=2,
     'Five colors may not produce horizontal overflow at '+width);
    const afterColors=await page.locator('#clearDrawing').boundingBox();
