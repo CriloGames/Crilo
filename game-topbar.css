@@ -116,3 +116,8 @@ html[data-theme="dark"] .crilo-game-info-close{
  .crilo-game-topbar .circle-btn{width:34px;height:34px}
  .crilo-game-topbar .crilo-game-settings{min-height:34px;padding:6px 8px}
 }
+
+/* Keep the inline audio-settings hint legible and on-screen on narrow phones. */
+.sound-heading .sound-free{flex-wrap:wrap;justify-content:center;max-width:100%;text-align:center;line-height:1.5}
+.sound-heading .sound-free a{color:#365f82;font-weight:850;text-decoration:underline;text-underline-offset:2px}
+html[data-theme="dark"] .sound-heading .sound-free a{color:#b2d3ef}
