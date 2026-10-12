@@ -935,8 +935,12 @@ function renderRecentPaintColors(){
  for(const [hostId,kind] of [['drawRecentSwatches','main'],['pixelRecentSwatches','pixel']]){
   const host=$(hostId);
   if(!host||typeof host.appendChild!=='function')continue;
+  // Hide the empty strip on the Daily editor; keep Pixel Studio's own hint.
+  if(kind==='main'&&host.parentElement)
+   host.parentElement.classList.toggle('has-colors',recentPaintColors.length>0);
   host.replaceChildren();
   if(!recentPaintColors.length){
+   if(kind==='main')continue;
    const hint=document.createElement('span');
    hint.className='recent-colors-empty';hint.textContent='Colors you paint with will appear here';
    host.appendChild(hint);continue;
