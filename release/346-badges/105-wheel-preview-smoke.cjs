@@ -12,7 +12,7 @@ for(const [name,html] of [['leaderboard',leader],['Statistics',profile]]){
  assert.match(html,/wheel-preview\.js\?v=1/,'No shared expanded drawing behavior in '+name);
  assert.equal((html.match(/wheel-preview\.js\?v=1/g)||[]).length,1,'Double-loaded viewer in '+name);
 }
-assert.match(leader,/leaderboard\.js\?v=48/);
+assert.match(leader,/leaderboard\.js\?v=49/);
 assert.match(profile,/spin-history\.js\?v=10/);
 assert.ok(leader.includes('id="bestDrawing"'),'Top score art remains');
 assert.match(leader,/id="bestDrawing"[^>]+role="button"[^>]+tabindex="0"/);
