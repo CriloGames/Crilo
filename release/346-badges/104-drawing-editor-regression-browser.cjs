@@ -96,8 +96,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    // Done and Escape should also commit, not reset.
    await page.locator('.pixel-tool[data-pixel-tool="pen"]').click();
    await point(page,'pixelCanvas',160,110);
+   const blueNear=async id=>page.locator('#'+id).evaluate(canvas=>{
+    const d=canvas.getContext('2d').getImageData(152,102,16,16).data;
+    let count=0;for(let i=0;i<d.length;i+=4)
+     if(d[i]===51&&d[i+1]===102&&d[i+2]===238&&d[i+3]===255)count++;
+    return count;
+   });
+   assert.ok(await blueNear('pixelCanvas')>0,'Pixel pen did not draw at requested point');
    await page.locator('#pixelClose').click();
-   assert.equal((await pixel(page,'drawing',160,110))[2],238,'Done did not save new pixel paint');
+   assert.ok(await blueNear('drawing')>0,'Done did not save new pixel paint');
    // Main and Studio must be fully two-way editable before the first spin.
    await color(page,'drawColorPickerBtn','#26a269');
    await page.locator('.drawing-tool[data-tool="pen"]').click();
