@@ -98,25 +98,30 @@ const controls=[
     const rect=id=>document.querySelector(id).getBoundingClientRect();
     const swatches=[...document.querySelectorAll('#drawRecentSwatches button')];
     const panel=rect('#drawPanel'),strip=rect('#drawRecentColors'),
-     intro=rect('#drawPanel>div:first-child'),warning=rect('#drawSafetyNote');
+     intro=rect('#drawPanel>div:first-child'),title=rect('#drawPanelTitle');
     return {stripRight:strip.right,panelRight:panel.right,introRight:intro.right,
      stripLeft:strip.left,panelLeft:panel.left,introLeft:intro.left,
      swatchRights:swatches.map(x=>x.getBoundingClientRect().right),
-     warningBottom:warning.bottom,stripTop:strip.top,stripBottom:strip.bottom,introBottom:intro.bottom,
+     titleTop:title.top,stripTop:strip.top,stripBottom:strip.bottom,titleBottom:title.bottom,
+     introHeight:intro.height,panelHeight:panel.height,
      docOverflow:document.documentElement.scrollWidth-innerWidth};
    });
    assert.ok(colorLayout.stripRight<=colorLayout.introRight+1&&
     colorLayout.stripLeft>=colorLayout.introLeft-1&&
     colorLayout.swatchRights.every(right=>right<=colorLayout.introRight+1),
     'Five recent colors must stay inside the LEFT text section at '+width);
-   assert.ok(colorLayout.stripTop>=colorLayout.warningBottom-2&&
-    colorLayout.stripBottom<=colorLayout.introBottom+1,
-    'Recent colors must sit below the warning, not next to the buttons at '+width);
+   assert.ok(Math.abs(colorLayout.stripTop-colorLayout.titleTop)<=3&&
+    colorLayout.stripBottom<=colorLayout.titleBottom+5,
+    'Five recent colors must sit beside the Drawing Studio heading at '+width);
+   assert.ok(Math.abs(colorLayout.panelHeight-ready.panel.height)<=2&&
+    Math.abs(colorLayout.introHeight-ready.copy.height)<=2,
+    'Recent colors may not increase the panel or text-column height at '+width);
    assert.ok(colorLayout.docOverflow<=2,
     'Five colors may not produce horizontal overflow at '+width);
    const afterColors=await page.locator('#clearDrawing').boundingBox();
-   assert.ok(Math.abs(afterColors.x-beforeColors.x)<=2,
-    'New color swatches may not move Clear or the toolbar at '+width);
+   assert.ok(Math.abs(afterColors.x-beforeColors.x)<=2&&
+    Math.abs(afterColors.y-beforeColors.y)<=2,
+    'Saved colors may not shift the Drawing Studio toolbar at '+width);
    await page.evaluate(()=>window.resetRecentPaintColors());
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
     'none','Clearing run colors should restore the compact toolbar');
