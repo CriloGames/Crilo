@@ -64,8 +64,21 @@ function installFakeDaily(){
      await page.waitForFunction(()=>document.querySelectorAll('.leader-list .mini-wheel').length>0);
      const btn=page.locator('#leaderList .mini-wheel');
      assert.equal(await btn.count(),1,'Blank drawing must still have wheel button');
+     assert.equal(await page.locator('#criloWheelPreview').isVisible(),false,'Wheel preview starts closed');
      await btn.click();
-     assert.ok(await btn.locator('img').evaluate(el=>el.getAnimations().length>0),'Leaderboard wheel did not spin');
+     assert.equal(await btn.locator('img').evaluate(el=>el.getAnimations().length),0,'Thumbnail must not spin on opening');
+     assert.ok(await page.locator('#criloWheelPreview').isVisible(),'Leaderboard wheel did not expand');
+     assert.equal(await page.locator('.crilo-wheel-preview-image').getAttribute('src'),'blank-wheel.svg',
+      'Enlarged leaderboard wheel changed the blank drawing');
+     await page.locator('.crilo-wheel-preview-spin').click();
+     assert.equal(await page.locator('.crilo-wheel-preview-spin').getAttribute('data-spins'),'1',
+      'Clicking the enlarged leaderboard wheel must spin it');
+     await page.locator('.crilo-wheel-preview-close').click();
+     assert.equal(await page.locator('#criloWheelPreview').isVisible(),false,'Preview close button failed');
+     await page.locator('#bestDrawing').click();
+     assert.ok(await page.locator('#criloWheelPreview').isVisible(),'Top player drawing should also expand');
+     await page.keyboard.press('Escape');
+     assert.equal(await page.locator('#criloWheelPreview').isVisible(),false,'Escape should close enlarged leaderboard drawing');
     }else{
      await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===1);
      assert.equal(await page.locator('.spin-history-item').count(),1,'Ten spins must display as one scored Daily');
@@ -81,7 +94,18 @@ function installFakeDaily(){
      assert.ok(!/Verified Daily|Earlier Daily/.test(text),'Daily cards should not show verification labels');
      assert.ok(!(await page.locator('#spinHistoryList').innerText()).includes('Badge earned'),'Spin history must not show badge unlocks');
      await page.locator('.spin-history-wheel').first().click();
-     assert.ok(await image.evaluate(el=>el.getAnimations().length>0),'History wheel did not spin');
+     assert.equal(await image.evaluate(el=>el.getAnimations().length),0,'History thumbnail must not spin on opening');
+     assert.ok(await page.locator('#criloWheelPreview').isVisible(),'History drawing did not expand');
+     assert.equal(await page.locator('.crilo-wheel-preview-image').getAttribute('src'),'blank-wheel.svg',
+      'Expanded History drawing should remain truly blank');
+     await page.locator('.crilo-wheel-preview-spin').click();
+     assert.equal(await page.locator('.crilo-wheel-preview-spin').getAttribute('data-spins'),'1',
+      'Enlarged History wheel must spin when clicked');
+     await page.locator('.crilo-wheel-preview-spin').click();
+     assert.equal(await page.locator('.crilo-wheel-preview-spin').getAttribute('data-spins'),'2',
+      'Enlarged History wheel must be replayable');
+     await page.keyboard.press('Escape');
+     assert.equal(await page.locator('#criloWheelPreview').isVisible(),false,'Escape should close enlarged History artwork');
     }
     assert.deepEqual(errors,[],pageFile+' runtime errors');
     checked++;
