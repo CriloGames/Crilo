@@ -1,5 +1,5 @@
 'use strict';
-/* The score display is a static Crilo mini arcade readout, not an animated pill.
+/* The leaderboard score display is a static rarity-colored number in a simple box.
    Real Chromium renders mobile/tablet/desktop, light/dark, tiers and owner rows. */
 const assert=require('node:assert/strict'),http=require('node:http');
 const {chromium}=require('playwright');
@@ -20,7 +20,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(origin+'/leaderboard.html',{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('link[href="arcade-scores.css?v=1"]').count(),1);
+    assert.equal(await page.locator('link[href="arcade-scores.css?v=2"]').count(),1);
     assert.equal(await page.locator('script[src^="score-motion.js"]').count(),0,
       'Leaderboard must never run the per-digit bobbing script');
     assert.equal(await page.locator('link[href^="score-motion.css"]').count(),0,
@@ -33,8 +33,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        '<div class="rank">1</div>'+
        '<div class="leader-player"><a class="leader-name" href="profile.html">CriloPlayer</a><span class="leader-mini">5 spins · 2 ducks</span></div>'+
        '<div class="leader-score-actions"><button class="owner-remove-run" type="button">Remove</button>'+
-       '<div class="leader-score" data-score-rarity="mythic">'+score+
-       '<small class="leader-score-secondary">Score '+score+' · MYTHIC</small></div></div>'+
+       '<div class="leader-score-wrap"><div class="leader-score" data-score-rarity="mythic">'+score+
+       '</div><small class="leader-score-secondary">Score '+score+' · MYTHIC</small></div></div>'+
        '<button class="mini-wheel" type="button"><img src="blank-wheel.svg" alt="Wheel drawing"></button></div>';
      const top=document.getElementById('bestScore');
      top.textContent='90,734';top.dataset.scoreRarity='rare';
@@ -51,15 +51,14 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       text:el.textContent,font:css.fontSize};
     });
     const row=await get('#leaderList .leader-score'),best=await get('#bestScore');
-    assert.ok(['flex','inline-flex'].includes(row.display),
-      'Arcade screens should be flex containers (flex children are blockified by CSS)');
-    assert.ok(row.shadow.includes('inset'),'Scores need an inset screen rim');
-    assert.ok(row.shadow.includes('rgb'),'Scores need visible frame and depth');
-    assert.ok(row.contentBefore.includes('C R I L O'),'Branding should be distinct from RNGdle');
-    assert.ok(row.decoration.includes('●'),'Arcade readout should have tiny status lights');
+    assert.ok(['block','inline-block'].includes(row.display),'Score has only a clean frame');
+    assert.ok(!row.shadow.includes('inset'),'No layered arcade screen should remain');
+    assert.ok(row.shadow.includes('rgb'),'Score box should have a soft shadow');
+    assert.ok(['none','normal'].includes(row.contentBefore),'Remove extra CRILO lettering');
+    assert.ok(['none','normal'].includes(row.decoration),'Remove decorative status lights');
     assert.equal(row.animations,0,'No leaderboard bouncing whatsoever');
     assert.equal(best.animations,0,'Top-score number must remain still');
-    assert.ok(row.text.startsWith('9,876,543,210'),'Long score was altered');
+    assert.equal(row.text,'9,876,543,210','Only the score belongs inside the box');
     assert.ok(best.text.includes('90,734'),'Top score was altered');
     assert.equal(theme==='dark'?best.color:'rgb(49, 122, 192)',best.color,
       'Light rare score should keep the existing rarity ink');

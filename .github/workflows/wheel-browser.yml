@@ -57,6 +57,8 @@ on:
       - 'wheel-preview.css'
       - 'score-motion.css'
       - 'arcade-scores.css'
+      - 'dark-comfort.css'
+      - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
       - 'daily-badges.css'
@@ -96,7 +98,9 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
-      - name: Verify Crilo arcade score displays, rarity accents and no leaderboard bobbing
+      - name: Verify soft dark mode and Pixel Studio color contrast
+        run: node release/346-badges/109-dark-comfort-browser.cjs
+      - name: Verify minimal rarity score boxes and no leaderboard bobbing
         run: node release/346-badges/108-arcade-scores-browser.cjs
       - name: Verify slow score movement, tier colors and reduced-motion on all devices
         run: node release/346-badges/106-score-motion-browser.cjs
