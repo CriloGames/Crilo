@@ -1,6 +1,6 @@
 'use strict';
 /* Regression for the Play score: no continuous bobbing, slightly smaller
-   numbers, and the original one-time final-spin celebration intact.
+   numbers, and the new finite final-score frame seal respecting reduced motion.
    Use isolated Chromium with mock auth only. */
 const assert=require('node:assert/strict'),http=require('node:http');
 const {chromium}=require('playwright');
@@ -55,23 +55,23 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      assert.equal(result.wrapped,0,'Unexpected bobbing digits on '+selector);
      assert.equal(result.bobbing,false,'Continuous score bobbing on '+selector);
     }
-    // The original end-of-run flourish is a distinct, nonrepeating effect.
-    await score.evaluate(el=>{
-     el.classList.add('crilo-final-animate');
-     el.innerHTML='<span class="crilo-final-glyph crilo-final-digit">9</span>';
+    // The one-time finish now lands the intact score in a rarity frame,
+    // rather than splitting its digits into animated characters.
+    await page.locator('#wheelScorePanel').evaluate(el=>{
+     el.dataset.rarity='rare';el.classList.add('crilo-final-settle');
     });
-    if(!reduced){
-     const motion=await page.locator('#score .crilo-final-digit').evaluate(el=>
-      getComputedStyle(el).animationName);
-     assert.ok(motion.includes('crilo-final-score-pop'),
-      'One-time final spin celebration must remain available');
-    }
+    const motion=await score.evaluate(el=>getComputedStyle(el).animationName);
+    if(!reduced)assert.ok(motion.includes('crilo-final-score-settle'),
+     'One-time final score seal must animate on motion-enabled devices');
+    else assert.equal(motion,'none','Reduced-motion users get a still score');
+    assert.equal(await score.textContent(),'12,345',
+     'One-time effect must never replace or rearrange saved digits');
     assert.equal(await page.locator('#score .crilo-score-bob-digit').count(),0);
     assert.deepEqual(errors,[],'Page errors at '+width);
     checks++;await context.close();
    }
   }
   console.log('STATIC_HOME_SCORE_BROWSER_PASS '+checks+
-   ' viewport/preference combinations, no bobbing, smaller font, final flourish retained');
+   ' viewport/preference combinations, no bobbing, smaller font, finite rarity-frame finish retained');
  }finally{await browser.close();await new Promise(done=>server.close(done))}
 })().catch(err=>{console.error('STATIC_HOME_SCORE_BROWSER_FAIL',err);process.exitCode=1});
