@@ -35,8 +35,8 @@ html[data-theme="dark"]{
  body>.filters,body>section
 ){position:relative}
 
-/* First ribbon wraps the actual top-left rounded border. The inset second
-   stroke is intentionally shorter and a different pastel. */
+/* First ribbon follows the card's top-left rim entirely OUTSIDE its border.
+   Selected cards can add a second external copy without entering the card. */
 :is(
  #drawPanel,#more-games .game-card,
  .leader-main .best-card,.leader-main .leader-panel,
@@ -53,18 +53,17 @@ html[data-theme="dark"]{
  .pastel-world .tip-card,body>.filters,body>section
 )::before{
  content:"";position:absolute;z-index:1;pointer-events:none;
- box-sizing:border-box;top:-6px;left:-6px;
- width:min(var(--trace-head,57%),calc(100% - 12px));
+ box-sizing:border-box;top:-9px;left:-9px;
+ width:min(var(--trace-head,57%),calc(100% - 18px));
  height:var(--trace-head-turn,43px);
  border-top:2.5px solid var(--trace-first,var(--play-line-mint));
  border-left:2.5px solid var(--trace-first,var(--play-line-mint));
- border-top-left-radius:calc(var(--trace-radius,22px) + 6px);
- background:linear-gradient(var(--trace-first-echo,var(--play-line-blue)),
- var(--trace-first-echo,var(--play-line-blue))) 24px 9px /
- min(var(--trace-head-echo,100px),calc(100% - 31px)) 2px no-repeat;
+ border-top-left-radius:calc(var(--trace-radius,22px) + 9px);
+ background:none;
+ filter:var(--trace-head-stack,none);
 }
-/* Second ribbon embraces the opposite corner, with a staggered echo
-   alongside the lower border. The gaps keep these from becoming a frame. */
+/* A second ribbon follows the opposite outer corner. Some cards repurpose
+   this segment as a third, shorter line beside the first two. */
 :is(
  #drawPanel,#more-games .game-card,
  .leader-main .best-card,.leader-main .leader-panel,
@@ -81,15 +80,14 @@ html[data-theme="dark"]{
  .pastel-world .tip-card,body>.filters,body>section
 )::after{
  content:"";position:absolute;z-index:1;pointer-events:none;
- box-sizing:border-box;right:-6px;bottom:-6px;
- width:min(var(--trace-tail,37%),calc(100% - 12px));
+ box-sizing:border-box;right:-9px;bottom:-9px;
+ width:min(var(--trace-tail,37%),calc(100% - 18px));
  height:var(--trace-tail-turn,38px);
  border-right:2.5px solid var(--trace-last,var(--play-line-lilac));
  border-bottom:2.5px solid var(--trace-last,var(--play-line-lilac));
- border-bottom-right-radius:calc(var(--trace-radius,22px) + 6px);
- background:linear-gradient(var(--trace-last-echo,var(--play-line-peach)),
- var(--trace-last-echo,var(--play-line-peach))) right 24px bottom 9px /
- min(var(--trace-tail-echo,76px),calc(100% - 31px)) 2px no-repeat;
+ border-bottom-right-radius:calc(var(--trace-radius,22px) + 9px);
+ background:none;
+ filter:var(--trace-tail-stack,none);
 }
 
 /* Chosen, nonrepeating lengths: some ribbons travel more than halfway
@@ -195,6 +193,102 @@ body>.filters,body>section{
  --trace-head:56%;--trace-tail:34%;--trace-first:var(--play-line-mint);
 }
 
+
+/* A second line copies only the painted partial border, shifted OUTWARD.
+   Drop-shadow acts on the corner stroke itself, not the entire card. */
+:is(
+ #drawPanel,.leader-main .leader-panel,.duck-page .duck-progress,
+ .collection-page .collection-list,.page-shell .settings-card:nth-child(even),
+ .page-shell .friend-card:nth-child(odd),.crilo-legal-main .crilo-legal-paper,
+ .beetle-lab .beetle-demo-card:nth-child(even),
+ .sound-page .sound-app,.shell #gameScreen .card
+){
+ --trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first-echo,var(--play-line-blue)));
+}
+:is(
+ #more-games .game-card:nth-of-type(2n),.leader-main .best-card,
+ .page-shell .profile-card,.page-shell .stats-grid .stat-tile:nth-child(3n),
+ .page-shell .settings-card:nth-child(odd),
+ .analytics-main .analytics-controls,.shell .personal-bests
+){
+ --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last-echo,var(--play-line-peach)));
+}
+
+/* Selective three-line stacks: two corner-hugging strokes from ::before,
+   then a deliberately shorter, more distant third line via ::after.
+   Other cards keep differently sized accents on opposing corners. */
+:is(
+ #drawPanel,.leader-main .best-card,
+ .collection-page .collection-list,.sound-page .sound-app,
+ .crilo-legal-main .crilo-legal-paper
+)::after{
+ top:-23px;left:-23px;right:auto;bottom:auto;
+ width:min(var(--trace-third,27%),calc(100% - 46px));
+ height:var(--trace-third-turn,53px);
+ border:0;
+ border-top:2px solid var(--trace-third-color,var(--play-line-pink));
+ border-left:2px solid var(--trace-third-color,var(--play-line-pink));
+ border-top-left-radius:calc(var(--trace-radius,22px) + 23px);
+ border-bottom-right-radius:0;
+ filter:none;
+}
+#drawPanel{--trace-third:37%;--trace-third-turn:68px;--trace-third-color:var(--play-line-peach)}
+.leader-main .best-card{
+ --trace-head-stack:drop-shadow(-6px -6px 0 var(--play-line-mint));
+ --trace-third:31%;--trace-third-turn:61px;--trace-third-color:var(--play-line-pink);
+}
+.collection-page .collection-list{
+ --trace-third:18%;--trace-third-turn:51px;--trace-third-color:var(--play-line-peach)
+}
+.sound-page .sound-app{
+ --trace-third:35%;--trace-third-turn:62px;--trace-third-color:var(--play-line-blue)
+}
+.crilo-legal-main .crilo-legal-paper{
+ --trace-third:22%;--trace-third-turn:46px;--trace-third-color:var(--play-line-pink)
+}
+
+/* A small number of additional framed surfaces, leaving header/navigation,
+   active game controls, and score art unmodified. */
+:is(
+ .page-shell .stats-grid .stat-tile,
+ #more-games .game-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card
+):nth-child(3n+2){
+ --trace-head:72%;--trace-tail:19%;
+ --trace-first:var(--play-line-peach);
+ --trace-last:var(--play-line-mint);
+}
+:is(
+ .page-shell .stats-grid .stat-tile,
+ #more-games .game-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card
+):nth-child(4n+1){
+ --trace-head:25%;--trace-tail:63%;
+ --trace-first:var(--play-line-blue);
+ --trace-last:var(--play-line-pink);
+}
+
+/* Thin mobile gutters cannot support a 23px third offset safely; keep one
+   short stroke at each corner instead. This avoids iPhone horizontal overflow. */
+@media(max-width:600px){
+ :is(
+ #drawPanel,.leader-main .best-card,
+ .collection-page .collection-list,.sound-page .sound-app,
+ .crilo-legal-main .crilo-legal-paper
+ )::after{
+  top:auto;left:auto;right:-4px;bottom:-4px;
+  width:min(var(--trace-tail,37%),calc(100% - 8px));
+  height:min(var(--trace-tail-turn,38px),27px);
+  border:0;
+  border-right:2.5px solid var(--trace-last,var(--play-line-lilac));
+  border-bottom:2.5px solid var(--trace-last,var(--play-line-lilac));
+  border-bottom-right-radius:calc(var(--trace-radius,22px) + 4px);
+  filter:none;
+ }
+}
+
 /* Preserve the Daily-complete layout; remove the Pen/Fill state as well as
    its dark paint, so no selectable black rectangle leaks through the scrim. */
 #drawPanel .draw-finished-overlay{display:none}
@@ -257,9 +351,9 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  body>.filters,body>section
  )::before{
   top:-4px;left:-4px;width:min(var(--trace-head,57%),calc(100% - 8px));
-  height:min(var(--trace-head-turn,43px),32px);
+  height:min(var(--trace-head-turn,43px),30px);
   border-top-left-radius:calc(var(--trace-radius,22px) + 4px);
-  background-size:min(var(--trace-head-echo,100px),calc(100% - 31px)) 2px;
+  filter:none;
  }
  :is(
  #drawPanel,#more-games .game-card,.leader-main .best-card,.leader-main .leader-panel,
@@ -274,9 +368,9 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  body>.filters,body>section
  )::after{
   right:-4px;bottom:-4px;width:min(var(--trace-tail,37%),calc(100% - 8px));
-  height:min(var(--trace-tail-turn,38px),29px);
+  height:min(var(--trace-tail-turn,38px),27px);
   border-bottom-right-radius:calc(var(--trace-radius,22px) + 4px);
-  background-size:min(var(--trace-tail-echo,76px),calc(100% - 31px)) 2px;
+  filter:none;
  }
  #drawPanel.daily-finished>.draw-finished-overlay{padding:13px 20px;border-radius:15px}
  #drawPanel.daily-finished .draw-finished-overlay strong{
