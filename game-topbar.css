@@ -239,3 +239,61 @@ html[data-theme="dark"] .crilo-standalone #criloSharedAuthModal .text-input{
   width:auto;max-width:none;max-height:calc(100dvh - 140px);overflow-y:auto;
  }
 }
+
+
+/* Match the main Crilo wordmark on both standalone games. Domain intentionally
+   does not load the full site stylesheet, so its logo needs this shared rule. */
+@supports ((-webkit-background-clip:text) or (background-clip:text)){
+ .crilo-game-topbar .brand{
+  --crilo-logo-ink:#15171c;
+  --crilo-logo-rose:#5a414f;
+  --crilo-logo-gold:#675638;
+  --crilo-logo-green:#40614e;
+  --crilo-logo-blue:#405c73;
+  --crilo-logo-violet:#60496a;
+  background-image:linear-gradient(110deg,
+   var(--crilo-logo-ink) 0%,var(--crilo-logo-ink) 39%,
+   var(--crilo-logo-rose) 43%,var(--crilo-logo-gold) 46%,
+   var(--crilo-logo-green) 49%,var(--crilo-logo-blue) 52%,
+   var(--crilo-logo-violet) 55%,var(--crilo-logo-ink) 60%,
+   var(--crilo-logo-ink) 100%);
+  background-size:260% 100%;
+  background-position:100% 50%;
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  animation:criloLogoSheen 10s ease-in-out infinite;
+ }
+ html[data-theme="dark"] .crilo-game-topbar .brand{
+  --crilo-logo-ink:#f2f3f5;
+  --crilo-logo-rose:#d9bcc7;
+  --crilo-logo-gold:#e5d1ad;
+  --crilo-logo-green:#bcdac8;
+  --crilo-logo-blue:#b5d1e4;
+  --crilo-logo-violet:#d0c0e1;
+ }
+ @keyframes criloLogoSheen{
+  0%,15%{background-position:100% 50%}
+  60%,100%{background-position:0% 50%}
+ }
+ @media(prefers-reduced-motion:reduce){
+  .crilo-game-topbar .brand{
+   animation:none;background-image:none;
+   -webkit-text-fill-color:currentColor;
+  }
+ }
+}
+
+/* The Domain page does not load style.css; mirror the quiet link hover there. */
+.crilo-game-topbar nav a{position:relative}
+.crilo-game-topbar nav a::after{
+ content:"";position:absolute;left:20%;right:20%;bottom:-4px;
+ height:1px;border-radius:99px;background:currentColor;
+ opacity:0;transform:scaleX(.65);transition:opacity .2s ease,transform .2s ease;
+}
+@media(hover:hover){
+ .crilo-game-topbar nav a:hover::after{opacity:.38;transform:scaleX(1)}
+}
+.crilo-game-topbar nav a:focus-visible::after{opacity:.42;transform:scaleX(1)}
+@media(prefers-reduced-motion:reduce){
+ .crilo-game-topbar nav a::after{transition:none}
+}
