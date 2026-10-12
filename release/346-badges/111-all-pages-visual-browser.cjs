@@ -118,6 +118,31 @@ const pages=[
       assert.equal(ribbons.clip,'none','Ribbon must not intercept interactions');
       assert.equal(ribbons.noOverflow,true,'Accent introduces overflow');
      }
+     if(name==='index.html'){
+      // Two neighboring More Games cards must NOT carry identical double
+      // outlines. The first is top-accented, the second uses the other corner.
+      const variations=await page.locator('#more-games .game-card').evaluateAll(cards=>
+       cards.map(card=>{
+        const before=getComputedStyle(card,'::before');
+        const after=getComputedStyle(card,'::after');
+        return{
+         upper:before.display!=='none',
+         lower:after.display!=='none',
+         stacked:before.filter.includes('drop-shadow')||
+          after.filter.includes('drop-shadow')
+        };
+       })
+      );
+      assert.equal(variations.length,2,'Both More Games entries should be present');
+      assert.notDeepEqual(variations[0],variations[1],
+       'Adjacent More Games cards need different accent arrangements');
+      assert.ok(variations.some(item=>!item.upper||!item.lower),
+       'At least one More Games card must have a SINGLE accent');
+      if(width>600){
+       assert.ok(variations.some(item=>item.stacked),
+        'At least one More Games card should retain a deliberate layered accent');
+      }
+     }
      if(name==='private-nsfw-qa.html'){
       const night=await page.evaluate(()=>({
        mode:document.documentElement.dataset.theme,
