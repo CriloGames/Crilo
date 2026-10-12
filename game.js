@@ -815,7 +815,17 @@ function stopDrawing(event){
 function snapshot(){undoStack.push(dctx.getImageData(0,0,200,200));if(undoStack.length>25)undoStack.shift();redoStack=[]}
 function history(from,to){if(drawingLocked||!from.length)return;to.push(dctx.getImageData(0,0,200,200));dctx.putImageData(from.pop(),0,0)}
 $('undoDrawing').onclick=()=>history(undoStack,redoStack);$('redoDrawing').onclick=()=>history(redoStack,undoStack);
-$('drawMode').onchange=e=>{drawMode=e.target.value;drawWheel()};
+// Both drawing editors share one mode. Changing either selector updates the
+// wheel immediately; closing Pixel Studio never resets the player's choice.
+function setCenterDrawingSpinMode(mode){
+ if(mode!=='stationary'&&mode!=='spin')return;
+ drawMode=mode;
+ $('drawMode').value=mode;
+ $('pixelDrawMode').value=mode;
+ drawWheel();
+}
+$('drawMode').onchange=e=>setCenterDrawingSpinMode(e.target.value);
+$('pixelDrawMode').onchange=e=>setCenterDrawingSpinMode(e.target.value);
 document.querySelectorAll('.drawing-tool').forEach(b=>b.onclick=()=>{if(drawingLocked)return;stopDrawing();drawTool=b.dataset.tool;document.querySelectorAll('.drawing-tool').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b))})});
 function point(e){
  const r=drawing.getBoundingClientRect(),side=drawing.clientWidth||r.width;
@@ -1028,8 +1038,8 @@ function stopPixelStroke(event){
  try{if(pixelCanvas.hasPointerCapture?.(id))pixelCanvas.releasePointerCapture(id)}catch(error){console.warn('Pixel pointer release:',error)}
 }
 function pixelSave(){pixelHistory.push(pixelCtx.getImageData(0,0,200,200));if(pixelHistory.length>30)pixelHistory.shift()}
-function pixelOpen(){if(drawingLocked)return;stopDrawing();pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);setActivePaintColor($('drawColor').value);$('pixelStudioModal').classList.remove('hidden')}
-function pixelClose(){if($('pixelStudioModal').classList.contains('hidden'))return;closeDrawingColorPicker();stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);setActivePaintColor($('pixelColor').value);$('pixelStudioModal').classList.add('hidden')}
+function pixelOpen(){if(drawingLocked)return;stopDrawing();pixelHistory=[];pixelCtx.clearRect(0,0,200,200);pixelCtx.drawImage(drawing,0,0);setActivePaintColor($('drawColor').value);$('pixelDrawMode').value=drawMode;$('pixelStudioModal').classList.remove('hidden')}
+function pixelClose(){if($('pixelStudioModal').classList.contains('hidden'))return;closeDrawingColorPicker();stopPixelStroke();hideDrawPlaceholder();snapshot();dctx.clearRect(0,0,200,200);dctx.drawImage(pixelCanvas,0,0);setActivePaintColor($('pixelColor').value);setCenterDrawingSpinMode($('pixelDrawMode').value);$('pixelStudioModal').classList.add('hidden')}
 $('pixelStudioBtn').addEventListener('click',pixelOpen);
 $('pixelExit').addEventListener('click',pixelClose);
 $('pixelStudioModal').addEventListener('click',event=>{
