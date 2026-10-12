@@ -183,7 +183,7 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 /* Compact Drawing Studio: short text, fixed one-row tools and a reserved five-color slot. */
 .hero #drawPanel:not(.draw-unavailable) {
   display:grid!important;
-  grid-template-columns:minmax(220px,250px) minmax(0,1fr);
+  grid-template-columns:minmax(210px,220px) minmax(0,1fr);
   grid-template-rows:auto;
   align-items:center;
   width:min(980px,100%);
@@ -301,13 +301,13 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   position:static;
   box-sizing:border-box;
   display:flex!important;
-  flex:0 0 106px;
-  width:106px;
-  min-width:106px;
-  max-width:106px;
+  flex:0 0 86px;
+  width:86px;
+  min-width:86px;
+  max-width:86px;
   min-height:30px;
   height:30px;
-  padding:0 0 0 5px;
+  padding:0 0 0 3px;
   margin:0;
   align-items:center;
   justify-content:flex-end;
@@ -328,15 +328,15 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 #drawPanel:not(.draw-unavailable) .draw-toolbar-main .recent-color-swatches {
   box-sizing:content-box;
   display:flex;
-  flex:0 0 101px;
-  width:101px;
-  max-width:101px;
-  min-width:101px;
-  min-height:17px;
-  height:17px;
+  flex:0 0 82px;
+  width:82px;
+  max-width:82px;
+  min-width:82px;
+  min-height:14px;
+  height:14px;
   padding:0;
   margin:0;
-  gap:4px;
+  gap:3px;
   align-items:center;
   justify-content:flex-start;
   flex-wrap:nowrap;
@@ -346,10 +346,10 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 #drawPanel:not(.draw-unavailable) .draw-toolbar-main .recent-color-empty-slot {
   box-sizing:border-box;
   display:block;
-  width:17px;
-  min-width:17px;
-  height:17px;
-  flex:0 0 17px;
+  width:14px;
+  min-width:14px;
+  height:14px;
+  flex:0 0 14px;
   border-radius:50%;
   margin:0;
 }
