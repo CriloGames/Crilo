@@ -38,6 +38,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        '<button class="mini-wheel" type="button"><img src="blank-wheel.svg" alt="Wheel drawing"></button></div>';
      const top=document.getElementById('bestScore');
      top.textContent='90,734';top.dataset.scoreRarity='rare';
+     const wheel=document.getElementById('bestDrawing');
+     wheel.src='blank-wheel.svg';wheel.classList.remove('hidden');
     },theme);
     const get=selector=>page.locator(selector).evaluate(el=>{
      const css=getComputedStyle(el),rect=el.getBoundingClientRect(),
@@ -60,6 +62,13 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     assert.equal(best.animations,0,'Top-score number must remain still');
     assert.equal(row.text,'9,876,543,210','Only the score belongs inside the box');
     assert.ok(best.text.includes('90,734'),'Top score was altered');
+    const horizontal=await page.locator('#bestScore').evaluate(el=>{
+     const n=el.getBoundingClientRect(),
+      w=document.getElementById('bestDrawing').getBoundingClientRect();
+     return{gap:w.left-n.right,y:Math.abs((n.top+n.bottom)/2-(w.top+w.bottom)/2)};
+    });
+    assert.ok(horizontal.gap>5,'Score and artwork must be side by side on '+width);
+    assert.ok(horizontal.y<2,'Score and artwork must share a center line on '+width);
     assert.equal(theme==='dark'?best.color:'rgb(49, 122, 192)',best.color,
       'Light rare score should keep the existing rarity ink');
     assert.equal(await page.locator('.leader-score-secondary').innerText(),

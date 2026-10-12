@@ -1,0 +1,62 @@
+/* Classic Crilo top-run presentation: score left, player drawing right.
+   Only the layout changes. The rarity-colored reverse-neon number is inherited
+   from rarity-score-frames.css, and the drawing stays clickable. */
+.best-card .best-feature-row{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ align-items:center;
+ justify-items:center;
+ column-gap:clamp(12px,3vw,36px);
+ max-width:530px;
+ margin:20px auto 15px;
+ min-width:0;
+}
+.best-card .best-feature-row #bestScore{
+ display:block;
+ width:fit-content;
+ max-width:100%;
+ min-width:0;
+ margin:0 auto;
+ padding:10px 17px 12px;
+ font-size:clamp(34px,4.9vw,64px);
+ line-height:1.12;
+ text-align:center;
+ overflow-wrap:anywhere;
+}
+.best-card .best-feature-row #bestDrawing{
+ display:block;
+ width:min(100%,178px);
+ height:auto;
+ aspect-ratio:1;
+ margin:0 auto;
+ object-fit:contain;
+ cursor:zoom-in;
+}
+.best-card .best-feature-row #bestDrawing.hidden{display:none!important}
+/* Other leaderboard categories don't have a drawing. Center their score. */
+.best-card .best-feature-row:has(#bestDrawing.hidden){
+ grid-template-columns:minmax(0,1fr);
+}
+.best-card .best-user{margin-top:7px}
+.best-card .best-stats{margin-top:8px;line-height:1.5}
+@media(max-width:700px){
+ .best-card .best-feature-row{
+  column-gap:clamp(8px,3vw,18px);
+  margin:15px auto 12px;
+ }
+ .best-card .best-feature-row #bestScore{
+  font-size:clamp(27px,7vw,48px);
+  padding:8px 11px 10px;
+  border-radius:13px;
+ }
+ .best-card .best-feature-row #bestDrawing{
+  width:min(100%,142px);
+ }
+}
+@media(max-width:390px){
+ .best-card .best-feature-row #bestScore{
+  font-size:clamp(24px,7.3vw,32px);
+  padding:7px 9px 9px;
+ }
+ .best-card .best-feature-row #bestDrawing{width:min(100%,112px)}
+}

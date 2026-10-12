@@ -28,6 +28,9 @@ function luminance(pixel){
     await page.goto(root+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
     assert.equal(await page.locator('link[href="rarity-score-frames.css?v=2"]').count(),1,
       path+' did not load reversed-neon scoreboard');
+    if(path==='leaderboard.html') assert.equal(
+      await page.locator('link[href="top-score-row.css?v=1"]').count(),1,
+      'Leaderboard must load its classic horizontal hero layout');
     if(path==='index.html'){
      await page.locator('#wheel').waitFor({state:'visible'});
      const pixel=()=>page.locator('#wheel').evaluate(el=>{
@@ -89,20 +92,35 @@ function luminance(pixel){
      assert.equal(score.text,'92');
      assert.ok(score.shadow.includes('inset'),'Leaderboard needs inward glow');
      assert.ok(['none','normal'].includes(score.before),'No labels inside box');
+     await page.locator('#bestScore').evaluate(el=>{el.textContent='69';el.dataset.scoreRarity='rare'});
+     await page.locator('#bestDrawing').evaluate(el=>{el.src='blank-wheel.svg';el.classList.remove('hidden')});
      const top=await page.locator('#bestScore').evaluate(el=>{
-      const s=getComputedStyle(el),r=el.getBoundingClientRect();
-      const card=el.closest('.best-card').getBoundingClientRect();
+      const score=el.getBoundingClientRect();
+      const art=document.getElementById('bestDrawing').getBoundingClientRect();
+      const s=getComputedStyle(el);
       return{font:parseFloat(s.fontSize),display:s.display,
-       centered:Math.abs((r.left+r.right)/2-(card.left+card.right)/2),
+       scoreX:score.left,scoreRight:score.right,
+       scoreY:(score.top+score.bottom)/2,
+       artX:art.left,artRight:art.right,
+       artY:(art.top+art.bottom)/2,
        shadow:s.boxShadow,bg:getComputedStyle(el.closest('.best-card')).backgroundImage,
        overflow:document.documentElement.scrollWidth-innerWidth};
      });
-     assert.ok(top.font>=40,"Original large Today's Top number sizing must return");
-     assert.equal(top.display,'block','The top score must use the classic hero layout');
-     assert.ok(top.centered<3,"Today's Top score must stay centered");
-     assert.ok(top.shadow.includes('inset'),'Keep new reverse-neon rarity number change');
-     assert.ok(top.bg.includes('gradient'),'Keep original pastel Today’s Top card');
+     assert.ok(top.font>=24,'Keep a readable large top score on every device');
+     assert.equal(top.display,'block','Top score must remain a number box');
+     assert.ok(top.scoreRight+5<top.artX,
+      'Top score belongs on the LEFT, drawing on the RIGHT, not stacked');
+     assert.ok(Math.abs(top.scoreY-top.artY)<2,
+      'Score and wheel must share one horizontal centerline');
+     assert.ok(top.shadow.includes('inset'),'Keep reverse-neon rarity number frame');
+     assert.ok(top.bg.includes('gradient'),'Keep classic pastel hero background');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
+     await page.locator('#bestDrawing').evaluate(el=>el.classList.add('hidden'));
+     const centered=await page.locator('#bestScore').evaluate(el=>{
+      const b=el.getBoundingClientRect(),c=el.closest('.best-card').getBoundingClientRect();
+      return Math.abs((b.left+b.right)/2-(c.left+c.right)/2);
+     });
+     assert.ok(centered<3,'Categories without a drawing should center the score');
 
      await page.evaluate(()=>document.documentElement.dataset.theme='dark');
      const night=await page.locator('#leaderList .leader-score').evaluate(el=>getComputedStyle(el).boxShadow);

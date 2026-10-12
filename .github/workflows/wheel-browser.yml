@@ -58,6 +58,7 @@ on:
       - 'score-motion.css'
       - 'arcade-scores.css'
       - 'rarity-score-frames.css'
+      - 'top-score-row.css'
       - 'release/346-badges/110-reverse-neon-wheel-night-browser.cjs'
       - 'dark-comfort.css'
       - 'night-pages.css'
