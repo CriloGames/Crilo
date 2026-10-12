@@ -304,7 +304,7 @@ jobs:
         run: node release/346-badges/036-owner-warning-penalty-smoke.cjs
       - name: Verify auth email links, large button and pastel template
         run: node emails/check-templates.cjs
-      - name: Verify synchronized final score digit pops and rarity letter wave
+      - name: Verify restrained final-score frame seal and reduced-motion cleanup
         run: node release/346-badges/040-final-rarity-wave-smoke.cjs
       - name: Verify last-spin rarity fanfare and bonus-spin silence
         run: node release/346-badges/039-final-rarity-audio-smoke.cjs

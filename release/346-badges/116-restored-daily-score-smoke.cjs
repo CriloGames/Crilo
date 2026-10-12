@@ -6,7 +6,7 @@ const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.resolve(__dirname,'../..');
 const source=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const start=source.indexOf('function update(){');
-const end=source.indexOf('// The music and visual letter pops',start);
+const end=source.indexOf('const CRILO_FINAL_RARITY_NOTES=',start);
 const recapStart=source.indexOf('function showDailyRecap(');
 const recapEnd=source.indexOf('function renderResult(',recapStart);
 const loaded=source.indexOf('async function checkPlayed(){');
