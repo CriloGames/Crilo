@@ -394,8 +394,8 @@ function setDrawingPanelMode(mode){
   button.setAttribute('aria-pressed',String(mode==='ready'&&button.dataset.tool===drawTool));
  });
  const copy={
-  ready:['Drawing Studio','Draw before spinning. Your drawing locks on the first spin.'],
-  locked:['Drawing locked for this run','Your artwork is saved for this run. You can draw again when your next run begins.'],
+  ready:['Drawing Studio','Draw first. Your first spin locks the drawing.'],
+  locked:['Drawing locked','Your artwork is saved for this run.'],
   complete:["Today's Daily is complete",'Nice spin! Your drawing is saved. A new canvas opens with your next Daily.'],
   'guest-complete':["Today's guest Daily is complete",'Your drawing is locked until the next Daily reset. Sign in to save future runs.'],
   'test-complete':['Test Run finished','Your test drawing is locked. Start another Test Run to draw again.'],
