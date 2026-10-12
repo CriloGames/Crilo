@@ -113,3 +113,30 @@ html[data-theme="dark"] .best-card #bestScore{
  #finalScore{padding:8px 15px}
  .spin-history-side .spin-history-score{font-size:20px;padding:6px 11px 7px;border-radius:12px}
 }
+
+/* Preserve the original spacious Today's Top hero-card presentation.
+   Keep its sole visual upgrade: one rarity-colored, reverse-neon number. */
+.best-card #bestScore{
+ display:block;
+ width:fit-content;
+ max-width:100%;
+ min-width:0;
+ min-height:0;
+ margin:14px auto 16px;
+ padding:9px 20px 12px;
+ border-radius:17px;
+ font-size:clamp(44px,6.2vw,64px);
+ font-weight:1000;
+ letter-spacing:-.055em;
+ line-height:1.08;
+ text-align:center;
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+@media(max-width:700px){
+ .best-card #bestScore{
+  font-size:clamp(40px,10.4vw,54px);
+  margin:12px auto 14px;
+  padding:8px 15px 10px;
+ }
+}

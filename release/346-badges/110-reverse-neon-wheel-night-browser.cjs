@@ -26,7 +26,7 @@ function luminance(pixel){
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
-    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=1"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=2"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='index.html'){
      await page.locator('#wheel').waitFor({state:'visible'});
@@ -89,6 +89,21 @@ function luminance(pixel){
      assert.equal(score.text,'92');
      assert.ok(score.shadow.includes('inset'),'Leaderboard needs inward glow');
      assert.ok(['none','normal'].includes(score.before),'No labels inside box');
+     const top=await page.locator('#bestScore').evaluate(el=>{
+      const s=getComputedStyle(el),r=el.getBoundingClientRect();
+      const card=el.closest('.best-card').getBoundingClientRect();
+      return{font:parseFloat(s.fontSize),display:s.display,
+       centered:Math.abs((r.left+r.right)/2-(card.left+card.right)/2),
+       shadow:s.boxShadow,bg:getComputedStyle(el.closest('.best-card')).backgroundImage,
+       overflow:document.documentElement.scrollWidth-innerWidth};
+     });
+     assert.ok(top.font>=40,'Original large Today's Top number sizing must return');
+     assert.equal(top.display,'block','The top score must use the classic hero layout');
+     assert.ok(top.centered<3,'Today's Top score must stay centered');
+     assert.ok(top.shadow.includes('inset'),'Keep new reverse-neon rarity number change');
+     assert.ok(top.bg.includes('gradient'),'Keep original pastel Today’s Top card');
+     assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
+
      await page.evaluate(()=>document.documentElement.dataset.theme='dark');
      const night=await page.locator('#leaderList .leader-score').evaluate(el=>getComputedStyle(el).boxShadow);
      assert.ok(night.includes('inset'),'Leaderboard dark version must have inward glow');
