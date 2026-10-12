@@ -12,7 +12,7 @@ assert.ok(!html.includes('badge-medal.svg')&&!html.includes('🏅'),'All-Time Ba
 assert.ok(css.includes('.leader-tabs-wrap .leader-tab-icon-duck'),'Classic duck tab alignment must remain');
 assert.match(html,/data-tab="ducks"><img class="leader-tab-icon leader-tab-icon-duck leader-duck-icon leader-duck-icon-tab" src="duck-classic\.svg"/);
 assert.match(html,/leaderboard\.js\?v=47/);
-assert.match(html,/style\.css\?v=115/);
+assert.match(html,/style\.css\?v=114/);
 assert.ok(!src.includes('🦆')&&!html.includes('🦆'),'Native duck emoji still present');
 assert.ok(css.includes('.leader-duck-icon-count')&&css.includes('.leader-duck-icon-tab'));
 assert.match(svg,/viewBox="0 0 100 90"/);
