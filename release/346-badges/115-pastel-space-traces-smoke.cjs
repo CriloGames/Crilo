@@ -29,7 +29,7 @@ assert.ok(css.includes('filter:var(--trace-head-stack,none)'),
  'Some strokes must have exterior stacked copies');
 assert.ok(css.includes('top:-23px;left:-23px')&&css.includes('--trace-third:37%'),
  'Selected cards must support three offset lines with asymmetric lengths');
-assert.ok(css.includes('@media(max-width:1024px)'),
+assert.ok(css.includes('@media(max-width:1180px)'),
  'Tablet and phone must suppress wide three-line offsets');
 assert.ok(css.includes('html[data-theme="dark"]'));
 assert.ok(css.includes('@media(max-width:600px)'));
