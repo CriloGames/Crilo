@@ -42,6 +42,8 @@ assert.ok(!css.includes('.collection-page .collection-list')&&
 assert.ok(css.includes('.collection-page .collection-card{position:relative;overflow:visible}')&&
  css.includes('.collection-card:nth-child(even)::before'),
  'Set-card strokes must stay visible while alternating corners to prevent overlap');
+assert.ok(css.includes('.sound-page .sound-app{overflow:visible}'),
+ 'Sound app should show exterior lines while its separate stage still clips gameplay');
 for(const key of ['--play-line-mint-deep','#8ab9a5','--play-line-blue-deep',
  '--play-line-lilac-deep','--play-line-peach-deep','--play-line-pink-deep']){
  assert.ok(css.includes(key),'Missing darker inner color pairing: '+key);
