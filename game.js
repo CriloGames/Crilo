@@ -904,7 +904,7 @@ pixelCanvas.addEventListener('pointerdown',e=>{
 });
 pixelCanvas.addEventListener('pointermove',e=>{
  if(!pixelPainting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==pixelPointerId)return;
- if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0)){
+ if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0){
   stopPixelStroke(e);return;
  }
  if(!insidePaintArea(pixelCanvas,e)){pixelLast=null;return}
