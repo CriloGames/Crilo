@@ -23,8 +23,12 @@ function update(){
  // Owner Test Runs and new Dailies always use their active in-memory values.
  const savedDaily=!started&&!isTest&&!guestRun&&officialRun&&!officialRun.blocked&&
    Number.isFinite(Number(officialRun.score))?officialRun:null;
- const displayedScore=savedDaily?Number(savedDaily.score):score;
- const revealed=results.length>0||!!savedDaily; // No tier before a resolved Daily.
+ const guestRecord=!user&&!started&&!isTest?guestDailyRecord():null;
+ const savedGuest=guestRecord?.status==='complete'&&
+   Number.isFinite(Number(guestRecord.score))?guestRecord:null;
+ const savedResult=savedDaily||savedGuest;
+ const displayedScore=savedResult?Number(savedResult.score):score;
+ const revealed=results.length>0||!!savedResult; // No tier before a resolved Daily.
  const band=window.CriloRarity?.scoreBands?.find(b=>displayedScore<=b.max)||
    {key:'trash',label:'TRASH'};
  const tier=String(band.key||'trash').toLowerCase();
@@ -35,14 +39,16 @@ function update(){
  $('scoreTierText').textContent=revealed?tier.toUpperCase():'';
  $('scoreTier').setAttribute('aria-label',revealed?'Score rarity: '+tier:'Score rarity not yet revealed');
  const heading=$('wheelScorePanel').querySelector('.wheel-score-eyebrow');
- if(heading)heading.textContent=savedDaily?'DAILY SCORE':'CURRENT SCORE';
- $('spins').textContent=savedDaily?0:spins;
- // The saved row has upgrades, not the final multiplier. Reconstruct the
- // displayed value only; never alter gameplay state or the wheel segments.
- const savedUpgrades=savedDaily?Math.max(0,Math.trunc(Number(savedDaily.upgrades)||0)):0;
+ if(heading)heading.textContent=savedDaily?'DAILY SCORE':savedGuest?'GUEST SCORE':'CURRENT SCORE';
+ $('spins').textContent=savedResult?0:spins;
+ // Saved results contain upgrade counts, not their final multiplier.
+ // Rebuild displayed values only; never change the wheel's actual state.
+ const savedUpgrades=savedResult?Math.max(0,Math.trunc(Number(
+   savedDaily?savedDaily.upgrades:savedGuest.state?.upgrades)||0)):0;
  const savedMultiplier=Math.min(Number.MAX_SAFE_INTEGER,3**Math.min(32,savedUpgrades));
- $('level').textContent='×'+fmt(savedDaily?savedMultiplier:multiplier);
- $('duckCount').textContent=savedDaily?Math.max(0,Number(savedDaily.ducks)||0):ducks;
+ $('level').textContent='×'+fmt(savedResult?savedMultiplier:multiplier);
+ $('duckCount').textContent=savedResult?Math.max(0,Number(
+   savedDaily?savedDaily.ducks:savedGuest.state?.ducks)||0):ducks;
  drawWheel();
 }
 // The music and visual letter pops share one exact note timeline.
@@ -242,6 +248,7 @@ function guestDailyLocked(){
  }else if(saved.status==='complete'){
   guestDailyShow('A new guest Daily opens at the next reset.','Guest Daily complete');
   showDailyRecap(saved,'guest');
+  update();
  }else{
   guestDailyShow(saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)?
    'This Daily is already open in another tab. Refresh this page to continue the same run.':
