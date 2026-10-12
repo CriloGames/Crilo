@@ -29,7 +29,7 @@ function luminance(pixel){
     assert.equal(await page.locator('link[href="rarity-score-frames.css?v=2"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
-      await page.locator('link[href="top-score-row.css?v=2"]').count(),1,
+      await page.locator('link[href="top-score-row.css?v=3"]').count(),1,
       'Leaderboard must load its polished horizontal hero layout');
     if(path==='leaderboard.html') assert.equal(
       await page.locator('script[src="top-score-fit.js?v=1"]').count(),1,
@@ -122,10 +122,19 @@ function luminance(pixel){
      });
      assert.ok(top.font>=24,'Keep a readable large top score on every device');
      assert.ok(['flex','block'].includes(top.display),'Top score must remain a number box');
-     assert.ok(top.scoreRight+5<top.artX,
-      'Top score belongs on the LEFT, drawing on the RIGHT, not stacked');
-     assert.ok(Math.abs(top.scoreY-top.artY)<2,
-      'Score and wheel must share one horizontal centerline');
+     if(width<=440){
+      const vertical=await page.locator('#bestScore').evaluate(el=>{
+       const a=el.getBoundingClientRect(),b=document.getElementById('bestDrawing').getBoundingClientRect();
+       return{gap:b.top-a.bottom,center:Math.abs((a.left+a.right)/2-(b.left+b.right)/2)};
+      });
+      assert.ok(vertical.gap>=5,'Phone hero should stack rather than squash the drawing');
+      assert.ok(vertical.center<3,'Phone score and drawing need one centerline');
+     }else{
+      assert.ok(top.scoreRight+5<top.artX,
+       'Desktop score belongs on the LEFT, drawing on the RIGHT');
+      assert.ok(Math.abs(top.scoreY-top.artY)<2,
+       'Desktop score and wheel must share one horizontal centerline');
+     }
      assert.ok(top.shadow.includes('inset'),'Keep reverse-neon rarity number frame');
      assert.ok(top.bg.includes('gradient'),'Keep classic pastel hero background');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
@@ -146,6 +155,7 @@ function luminance(pixel){
        artWidth:el.querySelector('#bestDrawing').getBoundingClientRect().width};
      });
      assert.ok(extra.width<=width,'Top score hero too wide at '+width);
+     if(width>=768)assert.ok(extra.width<=635,'Leaderboard hero should match compact reference sizing');
      assert.ok(extra.artWidth>=100,'Drawing became too small at '+width);
      assert.ok(extra.bg.includes('gradient'),'Top score hero lost pastel treatment');
      await page.locator('#bestDrawing').evaluate(el=>el.classList.add('hidden'));

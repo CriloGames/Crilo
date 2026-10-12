@@ -3,58 +3,59 @@
    Use rarity-score-frames.css for the ONLY score box + its inward colored glow. */
 
 .best-card{
- width:min(100%,800px);
- max-width:800px;
- padding:clamp(21px,3.8vw,37px) clamp(18px,4.1vw,44px) clamp(24px,3.7vw,36px);
- border-radius:clamp(22px,3vw,32px);
+ margin:22px auto 28px;
+ width:min(100%,632px);
+ max-width:632px;
+ padding:23px 25px 23px;
+ border-radius:24px;
  background:linear-gradient(129deg,#fff9dc 0%,#f8faee 52%,#eaf6fd 100%);
  border:1px solid #d8e0e6;
- box-shadow:0 16px 42px rgba(37,47,62,.075);
+ box-shadow:0 10px 27px rgba(37,47,62,.075);
  overflow:hidden;
 }
 .best-card .best-crown{
  display:flex;
  justify-content:center;
  align-items:center;
- gap:13px;
+ gap:10px;
  width:max-content;
  max-width:100%;
- margin:0 auto 12px;
+ margin:0 auto 8px;
  color:#e5b54d;
 }
 .best-card .best-crown::before,.best-card .best-crown::after{
  content:"";
  display:block;
- width:35px;
- height:5px;
+ width:26px;
+ height:3px;
  border-radius:999px;
  background:rgba(219,194,144,.36);
 }
-.best-card .best-crown svg{display:block;flex-shrink:0}
+.best-card .best-crown svg{display:block;flex-shrink:0;width:23px;height:20px}
 .best-card #bestHeading{
- font-size:clamp(17px,2.35vw,25px);
+ font-size:clamp(15px,1.8vw,19px);
  letter-spacing:.135em;
  line-height:1.23;
  color:#304359;
  font-weight:950;
 }
 .best-card #leaderDescription{
- font-size:clamp(13px,1.55vw,17px);
+ font-size:clamp(12px,1.3vw,14px);
  line-height:1.45;
  max-width:680px;
  color:#758295;
- margin:11px auto 0;
+ margin:8px auto 0;
  padding:0;
 }
 .best-card .best-feature-row{
  display:grid;
- grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
- column-gap:clamp(17px,4vw,52px);
+ grid-template-columns:minmax(0,1fr) minmax(0,170px);
+ column-gap:clamp(13px,3vw,24px);
  align-items:center;
  justify-items:stretch;
- width:min(100%,690px);
- max-width:690px;
- margin:clamp(22px,3vw,30px) auto 19px;
+ width:min(100%,490px);
+ max-width:490px;
+ margin:18px auto 14px;
  min-width:0;
 }
 .best-card .best-score-stage,
@@ -72,8 +73,8 @@
  content:"";
  position:absolute;
  left:0;
- width:clamp(16px,3vw,31px);
- height:7px;
+ width:16px;
+ height:4px;
  border-radius:999px;
  background:color-mix(in srgb,var(--leader-tier-ink,#599fd4) 36%,#9dcaf0);
  transform:rotate(48deg);
@@ -88,13 +89,13 @@
  align-items:center;
  width:fit-content;
  max-width:calc(100% - 25px);
- min-width:clamp(125px,17vw,188px);
- min-height:clamp(106px,15vw,157px);
+ min-width:123px;
+ min-height:96px;
  margin:0 auto;
- padding:clamp(14px,2.6vw,23px) clamp(18px,3.2vw,34px);
- font-size:clamp(43px,5.8vw,82px);
+ padding:12px 17px;
+ font-size:clamp(34px,4.6vw,58px);
  line-height:1;
- border-radius:clamp(20px,2.7vw,28px);
+ border-radius:20px;
  border-width:2px;
  letter-spacing:-.055em;
  font-variant-numeric:tabular-nums;
@@ -119,8 +120,8 @@
  position:absolute;
  left:0;
  bottom:15%;
- width:22px;
- height:22px;
+ width:13px;
+ height:13px;
  background:#f0c556;
  clip-path:polygon(50% 0%,63% 36%,100% 50%,63% 64%,50% 100%,37% 64%,0% 50%,37% 36%);
  opacity:.8;
@@ -140,17 +141,17 @@
 }
 .best-card .best-feature-row #bestDrawing{
  display:block;
- width:min(100% - 24px,236px);
- max-width:236px;
+ width:min(100% - 20px,158px);
+ max-width:158px;
  height:auto;
  aspect-ratio:1;
  margin:0 auto;
  background:#fff;
- border:6px solid #fff;
- outline:4px solid #9a89d8;
+ border:4px solid #fff;
+ outline:3px solid #9a89d8;
  border-radius:50%;
  object-fit:contain;
- box-shadow:0 10px 24px rgba(83,76,115,.12),0 0 0 1px rgba(77,64,109,.2);
+ box-shadow:0 7px 19px rgba(83,76,115,.12),0 0 0 1px rgba(77,64,109,.2);
  cursor:zoom-in;
  transition:box-shadow .15s ease;
 }
@@ -176,7 +177,7 @@
 .best-card .best-user{
  margin:8px auto 0;
  max-width:100%;
- font-size:clamp(22px,3.25vw,34px);
+ font-size:clamp(20px,2.6vw,27px);
  font-weight:950;
  letter-spacing:-.04em;
  line-height:1.2;
@@ -188,14 +189,14 @@
  display:block;
  width:fit-content;
  max-width:100%;
- margin:14px auto 0;
- padding:11px clamp(12px,2.5vw,24px);
+ margin:10px auto 0;
+ padding:9px 15px;
  border:1px solid rgba(137,176,217,.37);
  background:rgba(255,255,255,.52);
  border-radius:999px;
  color:#586577;
  line-height:1.45;
- font-size:clamp(12px,1.45vw,15px);
+ font-size:clamp(12px,1.2vw,14px);
  font-weight:600;
  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
  white-space:normal;
@@ -276,4 +277,39 @@ html[data-theme="dark"] .best-card .best-art-stage::after{background:#c8a15c}
 }
 @media(prefers-reduced-motion:reduce){
  .best-card .best-feature-row #bestDrawing{transition:none}
+}
+
+
+/* Small-screen orientation: at phone widths keep the real wheel big enough
+   to understand and tap, rather than squeezing two tiny columns together. */
+@media(max-width:440px){
+ .best-card{width:min(100%,375px);padding:17px 12px 19px;border-radius:20px}
+ .best-card .best-crown{margin-bottom:7px}
+ .best-card #bestHeading{font-size:16px}
+ .best-card #leaderDescription{font-size:12px}
+ .best-card .best-feature-row{
+  grid-template-columns:minmax(0,1fr);
+  width:min(100%,275px);
+  max-width:275px;
+  row-gap:14px;
+  margin:14px auto 12px;
+ }
+ .best-card .best-feature-row #bestScore{
+  min-width:121px;
+  min-height:78px;
+  padding:10px 13px;
+  border-radius:18px;
+  font-size:clamp(32px,9vw,40px);
+ }
+ .best-card .best-feature-row #bestScore[data-digits="5"]{font-size:clamp(27px,7.3vw,34px)}
+ .best-card .best-feature-row #bestScore[data-digits="6"]{font-size:clamp(22px,6.4vw,29px)}
+ .best-card .best-feature-row #bestScore[data-digits="7"]{font-size:clamp(19px,5.4vw,26px)}
+ .best-card .best-feature-row #bestScore[data-digits="8"]{font-size:clamp(17px,4.4vw,22px)}
+ .best-card .best-feature-row #bestScore[data-digits="9"]{font-size:clamp(14px,3.8vw,19px)}
+ .best-card .best-feature-row #bestScore[data-digits="long"]{font-size:clamp(12px,3.2vw,16px)}
+ .best-card .best-feature-row #bestDrawing{width:min(100%,128px);max-width:128px}
+ .best-card .best-score-stage::before,.best-card .best-score-stage::after,
+ .best-card .best-art-stage::before,.best-card .best-art-stage::after{display:none}
+ .best-card .best-user{margin-top:6px;font-size:clamp(20px,6vw,24px)}
+ .best-card .best-stats{margin-top:9px;padding:8px 12px;border-radius:17px;font-size:12px}
 }
