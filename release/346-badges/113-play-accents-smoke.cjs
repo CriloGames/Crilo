@@ -37,4 +37,4 @@ assert.match(css,/#drawPanel\.daily-finished::after\{/,
  'The finished state should use a single translucent scrim');
 assert.match(css,/pointer-events:none/,
  'Scrim must never intercept interaction');
-console.log('NO_PASTEL_LINES_PASS: 18 pages clean; only Play has a text-free inactive editor');
+console.log('NO_PASTEL_LINES_PASS: 18 pages clean; only Play shows a compact disabled editor notice');
