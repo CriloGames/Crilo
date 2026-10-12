@@ -37,7 +37,7 @@ assert.match(scores,/GRANT EXECUTE ON FUNCTION public\.crilo_submit_domain_score
 assert.ok(domain.includes("rpc('crilo_submit_domain_score'"),'Game must use server-approved score RPC');
 assert.ok(!/from\(['"]game_scores['"]\)\.insert/.test(domain),'Never let browser write Domain leaderboard rows');
 assert.ok(domain.includes("slider:Number($('priceSlider').value)"),'Send slider, not a claimed points total');
-assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=12'));
+assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=13'));
 assert.ok(profile.includes(".eq('game_key','domain').order('score',{ascending:false}).limit(25)"),'Personal Domain history must include all stored scores');
 assert.ok(!profile.includes('Legacy / local (unverified)')&&!profile.includes('No server-verified Domain scores yet'), 'Personal Domain scores should not display verification labels');
 assert.ok(profilePage.includes('profile.js?v=100'));
