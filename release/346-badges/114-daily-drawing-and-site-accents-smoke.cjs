@@ -68,7 +68,7 @@ const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'moderation.html','beetle-tricks.html','owner-analytics.html',
  'badge-art-audit.html','owner-dataset-lab.html','private-nsfw-qa.html'];
 for(const p of pages){
- const link=p.startsWith('domain/')?'../play-accents.css?v=2':'play-accents.css?v=2';
+ const link=p.startsWith('domain/')?'../play-accents.css?v=3':'play-accents.css?v=3';
  assert.ok(read(p).includes('href="'+link+'"'),p+' has no shared accent stylesheet');
 }
 assert.equal(read('CNAME').trim(),'crilo.fun');
