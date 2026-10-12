@@ -152,6 +152,10 @@ assert.ok(html.includes('Up to five recently used drawing colors'),
  'Recent colors should have an accessible description');
 assert.ok(html.indexOf('id="drawRecentColors"')<html.indexOf('id="drawCompleteNote"'),
  'Saved colors belong in the left introduction, not beside Clear');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-colors \{[\s\S]*?position:absolute;[\s\S]*?top:0;[\s\S]*?right:0;/,
+ 'Up to five colors should sit beside the heading without adding height');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \{[\s\S]*?position:relative;/,
+ 'Recent colors should be positioned relative to the left text section');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-color-swatch \{[\s\S]*?width:17px;/,
  'Five saved colors should be small enough to fit beneath the text');
 assert.match(css,/font-size:9\.1px;/,
