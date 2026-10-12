@@ -1604,3 +1604,56 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 .native-paint-picker input:disabled{cursor:default;opacity:.5}
 html[data-theme="dark"] .native-paint-picker{background:var(--panel,#1a1c21);border-color:var(--line,#30333a);color:var(--text,#fff)}
 html[data-theme="dark"] .native-paint-picker>span{color:var(--text,#fff)}
+
+/* Pixel Studio: shared Center Spin setting lives beside Exit. This is scoped
+   to the modal header and never changes the compact Daily drawing toolbar. */
+#pixelStudioModal .pixel-spin-mode{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:36px;
+  padding:3px 5px 3px 9px;
+  box-sizing:border-box;
+  border:1px solid #e2dbe8;
+  border-radius:11px;
+  background:#faf7ff;
+  color:#423b4b;
+  white-space:nowrap;
+  font-size:12px;
+  font-weight:750;
+}
+#pixelStudioModal #pixelDrawMode{
+  display:block;
+  box-sizing:border-box;
+  width:112px;
+  max-width:112px;
+  min-height:29px;
+  padding:4px 5px;
+  border:1px solid #ded6e7;
+  border-radius:8px;
+  background:#fff;
+  color:#24212c;
+  font:inherit;
+  font-size:12px;
+  cursor:pointer;
+}
+#pixelStudioModal #pixelDrawMode:focus-visible{
+  outline:2px solid #ab96da;
+  outline-offset:2px;
+}
+html[data-theme="dark"] #pixelStudioModal .pixel-spin-mode{
+  background:#302c3b;
+  color:#e8e0f2;
+  border-color:#51465e;
+}
+html[data-theme="dark"] #pixelStudioModal #pixelDrawMode{
+  background:#292b34;
+  color:#e8eaf0;
+  border-color:#5d5268;
+}
+@media (max-width:560px){
+  #pixelStudioModal .pixel-studio-header{flex-wrap:wrap;gap:6px}
+  #pixelStudioModal .pixel-studio-header>div:first-child{min-width:0;flex:1 1 100%}
+  #pixelStudioModal .pixel-header-actions{width:100%;justify-content:flex-end}
+  #pixelStudioModal #pixelDrawMode{font-size:16px}
+}
