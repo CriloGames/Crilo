@@ -1048,13 +1048,46 @@ $('pixelStudioModal').addEventListener('click',event=>{
 document.querySelectorAll('.pixel-tool').forEach(b=>b.addEventListener('click',()=>{stopPixelStroke();pixelTool=b.dataset.pixelTool;document.querySelectorAll('.pixel-tool').forEach(x=>x.classList.toggle('active',x===b))}));
 $('pixelUndo').addEventListener('click',()=>{if(pixelHistory.length)pixelCtx.putImageData(pixelHistory.pop(),0,0)});
 $('pixelClear').addEventListener('click',()=>{pixelSave();pixelCtx.clearRect(0,0,200,200)});
-function pixelPoint(e){const r=pixelCanvas.getBoundingClientRect();return{x:Math.max(0,Math.min(199,Math.floor((e.clientX-r.left)*200/r.width))),y:Math.max(0,Math.min(199,Math.floor((e.clientY-r.top)*200/r.height)))}}
-function pixelPaint(p){const size=Number($('pixelSize').value),x=Math.floor(p.x/size)*size,y=Math.floor(p.y/size)*size;if(pixelTool==='erase')pixelCtx.clearRect(x,y,size,size);else{pixelCtx.fillStyle=$('pixelColor').value;pixelCtx.fillRect(x,y,size,size)}}
-function pixelLine(a,b){const dx=b.x-a.x,dy=b.y-a.y,steps=Math.max(Math.abs(dx),Math.abs(dy));for(let i=0;i<=steps;i++)pixelPaint({x:a.x+dx*i/(steps||1),y:a.y+dy*i/(steps||1)})}
+function pixelPoint(e){
+ const r=pixelCanvas.getBoundingClientRect();
+ // Preserve subpixel pointer positions so round strokes stay as smooth as
+ // the main drawing, even when the 200px canvas is displayed much larger.
+ return {
+  x:Math.max(0,Math.min(199.999,(e.clientX-r.left)*200/r.width)),
+  y:Math.max(0,Math.min(199.999,(e.clientY-r.top)*200/r.height))
+ };
+}
+// Pixel Studio edits the same 200px artwork as the main wheel. Use the same
+// antialiased, round-capped brush instead of snapping to square pixel blocks.
+function pixelBrushWidth(){
+ return ({1:2,2:6,4:10,8:16})[Number($('pixelSize').value)]||6;
+}
+function pixelPaint(p){
+ pixelCtx.save();
+ pixelCtx.globalCompositeOperation=pixelTool==='erase'?'destination-out':'source-over';
+ pixelCtx.fillStyle=pixelTool==='erase'?'#000000':$('pixelColor').value;
+ pixelCtx.beginPath();
+ pixelCtx.arc(p.x,p.y,pixelBrushWidth()/2,0,Math.PI*2);
+ pixelCtx.fill();
+ pixelCtx.restore();
+}
+function pixelLine(a,b){
+ pixelCtx.save();
+ pixelCtx.globalCompositeOperation=pixelTool==='erase'?'destination-out':'source-over';
+ pixelCtx.strokeStyle=pixelTool==='erase'?'#000000':$('pixelColor').value;
+ pixelCtx.lineWidth=pixelBrushWidth();
+ pixelCtx.lineCap='round';
+ pixelCtx.lineJoin='round';
+ pixelCtx.beginPath();
+ pixelCtx.moveTo(a.x,a.y);
+ pixelCtx.lineTo(b.x,b.y);
+ pixelCtx.stroke();
+ pixelCtx.restore();
+}
 function pixelFill(p){
- const w=CANVAS_SIDE;
- if(!insideCirclePixel(p.x,p.y))return false;
- const img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=p.y*w+p.x;
+ const w=CANVAS_SIDE,x=Math.floor(p.x),y=Math.floor(p.y);
+ if(!insideCirclePixel(x,y))return false;
+ const img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=y*w+x;
  const src=Array.from(d.slice(start*4,start*4+4)),hex=$('pixelColor').value;
  const col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
  if(src.every((v,i)=>v===col[i]))return false;
