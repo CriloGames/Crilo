@@ -1,0 +1,15 @@
+/* Read-only drawing lightbox shared by Leaderboard and Spin History. */
+.crilo-wheel-preview-dialog{padding:0;border:0;background:transparent;max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);overflow:visible;color:#17191e}
+.crilo-wheel-preview-dialog::backdrop{background:rgba(24,26,31,.64);backdrop-filter:blur(5px)}
+.crilo-wheel-preview-card{box-sizing:border-box;width:min(540px,calc(100vw - 28px));max-height:calc(100dvh - 28px);overflow:auto;background:linear-gradient(155deg,#fffaf0,#f5f0ff);border:2px solid #17191e;border-radius:26px;padding:clamp(15px,3.5vw,26px);box-shadow:8px 8px 0 rgba(23,25,30,.18);text-align:center}
+.crilo-wheel-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;text-align:left;margin-bottom:clamp(12px,2.7vh,22px)}
+.crilo-wheel-preview-kicker{font-weight:900;font-size:10px;letter-spacing:.17em;color:#82768c}
+.crilo-wheel-preview-head h2{font-size:clamp(19px,3vw,25px);letter-spacing:-.035em;margin:4px 0 0;color:#17191e}
+.crilo-wheel-preview-close{border:1.5px solid #17191e;background:#fff;color:#17191e;border-radius:50%;width:40px;height:40px;display:grid;place-items:center;flex:0 0 40px;font-size:26px;line-height:1;cursor:pointer}
+.crilo-wheel-preview-spin{width:min(100%,470px,48dvh);aspect-ratio:1;display:block;margin:auto;padding:0;border:5px solid #17191e;border-radius:50%;overflow:hidden;background:#fff;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 0 0 6px #fff,0 8px 20px #17191e1b}
+.crilo-wheel-preview-image{width:100%;height:100%;object-fit:contain;border-radius:50%;display:block;pointer-events:none}
+.crilo-wheel-preview-hint{font-size:12px;font-weight:750;color:#777083;margin:22px 0 2px}
+.crilo-wheel-preview-close:focus-visible,.crilo-wheel-preview-spin:focus-visible,#bestDrawing[role="button"]:focus-visible{outline:3px solid #7c6abc;outline-offset:5px}
+#bestDrawing[role="button"]{cursor:zoom-in}
+@media(max-width:480px){.crilo-wheel-preview-card{border-radius:21px;padding:16px}.crilo-wheel-preview-spin{width:min(100%,440px,50dvh)}.crilo-wheel-preview-hint{margin-top:18px}}
+@media(prefers-reduced-motion:reduce){.crilo-wheel-preview-close,.crilo-wheel-preview-spin{transition:none}}
