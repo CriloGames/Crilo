@@ -71,6 +71,18 @@ const pages=[
      if(name==='index.html'){
       assert.equal(await page.locator('link[href*="daily-drawing-state.css"]').count(),1,
        'Play must retain its dedicated completed-editor styles');
+      assert.equal(await page.locator('script[src*="score-motion.js"]').count(),0,
+       'Play score should not use continuous per-digit animations');
+      const number=await page.locator('#score').evaluate(el=>({
+       font:parseFloat(getComputedStyle(el).fontSize),
+       bobbing:el.querySelectorAll('.crilo-score-bob-digit').length,
+       animation:el.getAnimations().some(a=>a.id==='criloScoreDigitBob')
+      }));
+      assert.ok(number.font<=49.5,'Home score is too large: '+number.font+'px');
+      if(width<=700)assert.ok(number.font<=43.5,
+       'Home score is too large for mobile: '+number.font+'px');
+      assert.equal(number.bobbing,0,'Score contains unwanted bobbing digit markup');
+      assert.equal(number.animation,false,'Home score has repeating bobbing motion');
       const result=await page.evaluate(()=>{
        const panel=document.getElementById('drawPanel');
        if(!panel)return{missing:true};
