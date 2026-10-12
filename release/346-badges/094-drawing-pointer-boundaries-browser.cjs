@@ -53,16 +53,30 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   await page.mouse.move(cx+box.width*.2,cy-box.height*.14);
   assert.ok(await paintedPixels(page,canvasId)>resumed,'Fresh pointerdown did not restart drawing');
   await page.mouse.up();
-  // The active pointer must be cancelled by blur with the button still down.
+  // Losing browser focus suspends the stroke, but if the LEFT button is
+  // still held on return, drawing resumes without connecting over the gap.
   await page.mouse.move(cx,cy);await page.mouse.down();
   await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
   const beforeBlur=await paintedPixels(page,canvasId);
-  await page.mouse.move(cx+10,cy+10);
-  assert.equal(await paintedPixels(page,canvasId),beforeBlur,
-   'Window blur must cancel active drawing');
+  await page.mouse.move(cx+box.width*.13,cy+box.height*.17);
+  assert.ok(await paintedPixels(page,canvasId)>beforeBlur,
+   'Held mouse button should resume drawing after a window blur');
   await page.mouse.up();
+  const afterRelease=await paintedPixels(page,canvasId);
+  await page.mouse.move(cx+box.width*.17,cy+box.height*.13);
+  assert.equal(await paintedPixels(page,canvasId),afterRelease,
+   'Hover after returning from blur must never leave ghost strokes');
+  // Releasing OUTSIDE the page must not leave an armed paint stroke.
+  await page.mouse.move(cx,cy);await page.mouse.down();
+  await page.mouse.move(outsideX,outsideY);
+  await page.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  await page.mouse.up();
+  const releasedOutside=await paintedPixels(page,canvasId);
+  await page.mouse.move(cx+box.width*.1,cy-box.height*.19);
+  assert.equal(await paintedPixels(page,canvasId),releasedOutside,
+   'Mouse released outside the page must not paint on return');
   cases++;
-  console.log('PASS '+selector+' pointer exit, re-entry, release and blur');
+  console.log('PASS '+selector+' pointer exit, held return, blur and off-page release');
  }
  try{
   for(const width of [390,768,1280]){
