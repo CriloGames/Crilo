@@ -47,6 +47,8 @@ on:
       - 'arcade-scores.css'
       - 'rarity-score-frames.css'
       - 'dark-comfort.css'
+      - 'night-pages.css'
+      - 'theme-bridge.js'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
@@ -113,6 +115,8 @@ on:
       - 'arcade-scores.css'
       - 'rarity-score-frames.css'
       - 'dark-comfort.css'
+      - 'night-pages.css'
+      - 'theme-bridge.js'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
@@ -166,6 +170,8 @@ jobs:
           node --check badge-sets.js
           node --check owner-profile-scores.js
           node --check game.js
+          node --check theme-bridge.js
+          node --check release/346-badges/110-night-pages-browser.cjs
           node --check score-motion.js
           node --check release/346-badges/108-arcade-scores-browser.cjs
           node --check release/346-badges/110-reverse-neon-wheel-night-browser.cjs

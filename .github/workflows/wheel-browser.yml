@@ -60,6 +60,10 @@ on:
       - 'rarity-score-frames.css'
       - 'release/346-badges/110-reverse-neon-wheel-night-browser.cjs'
       - 'dark-comfort.css'
+      - 'night-pages.css'
+      - 'theme-bridge.js'
+      - 'release/346-badges/110-night-pages-browser.cjs'
+      - 'domain/style.css'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
@@ -100,6 +104,8 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
+      - name: Check accessible Drawing Review, Support and every standalone game's dark mode
+        run: node release/346-badges/110-night-pages-browser.cjs
       - name: Verify soft dark mode and Pixel Studio color contrast
         run: node release/346-badges/109-dark-comfort-browser.cjs
       - name: Verify reverse-neon number displays and darker wheel on phone tablet desktop
