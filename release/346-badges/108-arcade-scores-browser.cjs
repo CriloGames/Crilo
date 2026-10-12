@@ -50,7 +50,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       text:el.textContent,font:css.fontSize};
     });
     const row=await get('#leaderList .leader-score'),best=await get('#bestScore');
-    assert.equal(row.display,'inline-flex','Scores should resemble mini recessed arcade screens');
+    assert.ok(['flex','inline-flex'].includes(row.display),
+      'Arcade screens should be flex containers (flex children are blockified by CSS)');
     assert.ok(row.shadow.includes('inset'),'Scores need an inset screen rim');
     assert.ok(row.shadow.includes('rgb'),'Scores need visible frame and depth');
     assert.ok(row.contentBefore.includes('C R I L O'),'Branding should be distinct from RNGdle');
