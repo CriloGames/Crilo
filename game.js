@@ -554,6 +554,13 @@ function beginRun(alignPlay=false){
   }
   if(guestDailyLocked())return;
  }
+ // A genuinely new run must never inherit a disabled editor from a prior
+ // guest, official Daily, or completed owner Test Run.
+ if(drawingLocked){
+  dctx.clearRect(0,0,drawing.width,drawing.height);
+  showDrawPlaceholder();undoStack=[];redoStack=[];
+ }
+ unlockDrawing();
  document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();resetRecentPaintColors();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;setDrawingPanelMode('ready');update();if(alignPlay)alignPlayViewport()}
 // Save only the image needed for the public Daily. WebP is optional: browsers
 // without it, or drawings that are already smaller as PNG, keep the original.
