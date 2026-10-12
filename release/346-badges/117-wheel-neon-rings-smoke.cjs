@@ -13,9 +13,9 @@ assert.match(css,/\.wheel-neon-outer\s*\{inset:1\.05%\}/);
 assert.match(css,/\.wheel-neon-inner\s*\{inset:calc\(33% - 15px\);z-index:4\}/);
 assert.match(css,/conic-gradient\(/);
 assert.match(css,/mask-image:radial-gradient/);
-assert.match(css,/inset:calc\\(33% - 15px\\)/,
+assert.match(css,/inset:calc\(33% - 15px\)/,
  'Inner neon should keep a fixed 15px radial offset from the 34% drawing canvas');
-assert.match(css,/\\.wheel-neon-inner::after\\s*\\{[\\s\\S]*?transparent calc\\(100% - 6px\\)/,
+assert.match(css,/\.wheel-neon-inner::after\s*\{[\s\S]*?transparent calc\(100% - 6px\)/,
  'Restrict the inner halo to avoid drifting across the artwork');
 assert.match(css,/@keyframes criloWheelNeonColors/);
 assert.match(css,/hue-rotate\(360deg\)/);
