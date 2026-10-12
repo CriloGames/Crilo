@@ -34,6 +34,12 @@
       session=data?.session||null;
     }
     if(generation!==identityGeneration)return;
+    // The active user's wheel, color palette and private UI belong to the
+    // current document. A real account change must start a fresh document,
+    // not swap identities inside a painted canvas or open modal.
+    if(authHeaderReady&&(session?.user?.id||null)!==(Crilo.user?.id||null)){
+      navigateAfterAuth(Boolean(session?.user));return;
+    }
 
     // Keep the previous stable account header in place until ALL checks end.
     // Auth ban checks, not local display state, still decide eligibility.
@@ -309,7 +315,23 @@
   // It only supplies paint during a cross-document navigation.
   // Keep the account label hidden until the primary session restore completes.
   // An earlier INITIAL_SESSION callback may still be pending.
-  let authHeaderReady=false;
+  let authHeaderReady=false,authNavigationPending=false;
+  function navigateAfterAuth(signedIn){
+    if(authNavigationPending)return;
+    authNavigationPending=true;
+    // This cache paints the header before Supabase can verify the session.
+    // It must never briefly show the previous account after a transition.
+    window.CriloHeaderContinuity?.clear();
+    if(signedIn||/\/(?:index\.html)?$/.test(location.pathname))location.reload();
+    else location.replace('/index.html');
+  }
+  // Both the header and Settings use this path so signing out reliably
+  // destroys any in-memory art, palette, dialogs and owner controls.
+  window.Crilo.signOut=async()=>{
+    const {error}=await criloDB.auth.signOut();
+    if(error)throw error;
+    navigateAfterAuth(false);
+  };
   function renderAccount(){
     // Owner-only navigation is also checked server-side by the moderation RPCs.
     const nav=document.querySelector('.topbar nav');
@@ -344,7 +366,15 @@
       btn.style.color=Crilo.profile?.name_color || '';
       if(menu){
         menu.innerHTML=`<a href="profile.html">Statistics</a><a href="friends.html">Friends</a><a href="settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
-        $('menuSignOut')?.addEventListener('click', async()=>{await criloDB.auth.signOut(); window.CriloHeaderContinuity?.clear(); location.href='index.html';});
+        $('menuSignOut')?.addEventListener('click',async()=>{
+          const control=$('menuSignOut');control.disabled=true;
+          try{await Crilo.signOut()}
+          catch(error){
+            console.error('Could not sign out of Crilo:',error);
+            control.disabled=false;
+            window.alert?.('Sign out failed. Please try again.');
+          }
+        });
       }
     }
     // An empty, reserved header slot is better than a false SIGN IN flash.
@@ -388,7 +418,12 @@
     }
   }
   window.addEventListener('focus', syncSession);
-  window.addEventListener('pageshow', syncSession);
+  window.addEventListener('pageshow',event=>{
+    // Browser back/forward cache can otherwise re-display the canvas,
+    // name or color picker from a pre-logout document without reloading.
+    if(event.persisted){location.reload();return}
+    syncSession();
+  });
   document.addEventListener('visibilitychange', () => {
     if(!document.hidden) syncSession();
   });
@@ -403,9 +438,15 @@
     if(event==='INITIAL_SESSION')return;
     if(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='USER_UPDATED'){
       if(!session?.user||!authHeaderReady)return;
-      if(Crilo.user?.id===session.user.id&&Crilo.profile)return;
+      if((Crilo.user?.id||null)!==session.user.id){
+        navigateAfterAuth(true);return;
+      }
+      if(Crilo.profile)return;
       setTimeout(()=>loadIdentity(session),0);
     }else if(event==='SIGNED_OUT'){
+      if(authHeaderReady&&Crilo.user){
+        navigateAfterAuth(false);return;
+      }
       window.CriloHeaderContinuity?.clear();
       ++identityGeneration;
       Crilo.user=null;Crilo.profile=null;
