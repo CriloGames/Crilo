@@ -100,6 +100,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Pixel Studio spin selector must remain visible at '+width+'px');
    assert.ok(await page.locator('#pixelExit').isVisible(),
     'Pixel Studio Exit must remain visible at '+width+'px');
+   const spinPosition=await page.evaluate(()=>{
+    const box=selector=>document.querySelector(selector).getBoundingClientRect();
+    return {color:box('#pixelColor').right,mode:box('#pixelDrawMode').left,
+      undo:box('#pixelUndo').left,headerMode:!!document.querySelector('.pixel-header-actions #pixelDrawMode')};
+   });
+   assert.equal(spinPosition.headerMode,false,'Spin selector must not occupy the Pixel Studio header');
+   assert.ok(spinPosition.mode>=spinPosition.color-2&&spinPosition.mode<=spinPosition.undo+2,
+    'Spin selector must follow Color before Undo in the Pixel Studio toolbar');
+
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
     'New Pixel Studio control causes horizontal overflow at '+width+'px');
    assert.equal((await pixel(page,'pixelCanvas',150,100))[0],238,
