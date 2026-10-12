@@ -81,9 +81,10 @@ async function homeCase(blocked){
   }
  };
  const f=new Function('$','user','profile','criloDB','Crilo','beginRun',
+  'showDailyRecap','update','lockDrawing','setDrawingPanelMode',
   'let officialRun=null;'+runFunction+'; return checkPlayed')(
    $, {id:'u1'},{is_owner:false},criloDB,{dailyPeriod:()=> '2026-10-10'},
-   ()=>{starts++});
+   ()=>{starts++},()=>{},()=>{},()=>{},()=>{});
  await f();
  return {starts,nodes:$};
 }
