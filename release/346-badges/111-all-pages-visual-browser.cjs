@@ -18,7 +18,7 @@ const pages=[
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  let checks=0;
  try{
-  for(const width of [320,390,768,1280]){
+  for(const width of [320,390,768,1280,1600]){
    for(const theme of ['light','dark']){
     const context=await browser.newContext({viewport:{width,height:850},reducedMotion:'reduce'});
     await context.addInitScript({content:'localStorage.setItem("crilo_theme","'+theme+'");'+mockSupabase});
@@ -65,6 +65,26 @@ const pages=[
       name+' '+theme+' '+width+'px clipped input(s)');
      assert.deepEqual(ui.tiny,[],
       name+' '+theme+' '+width+'px tiny buttons');
+     // The freeform curls must be restricted to real page gutters.
+     // On phones they must not add clickable layers or touch the game UI.
+     if(name==='index.html'&&(width===1280||width===1600)){
+      const art=await page.evaluate(()=>({
+       wide:getComputedStyle(document.body).backgroundImage,
+       hero:getComputedStyle(document.querySelector('.hero')).backgroundImage
+      }));
+      if(width===1600)assert.ok(art.wide.includes(theme==='dark'
+       ?'pastel-space-traces-night.svg':'pastel-space-traces.svg'),
+       'Wide Play ornaments missing in '+theme+' mode');
+      if(width===1280)assert.ok(art.hero.includes(theme==='dark'
+       ?'pastel-play-traces-night.svg':'pastel-play-traces.svg'),
+       'Medium Play ornaments missing in '+theme+' mode');
+     }
+     if(name==='leaderboard.html'&&width===1600){
+      const art=await page.evaluate(()=>getComputedStyle(document.body).backgroundImage);
+      assert.ok(art.includes(theme==='dark'
+       ?'pastel-space-traces-night.svg':'pastel-space-traces.svg'),
+       'Leaderboard has no quiet gutter art in '+theme+' mode');
+     }
      if(name==='private-nsfw-qa.html'){
       const night=await page.evaluate(()=>({
        mode:document.documentElement.dataset.theme,
@@ -85,6 +105,6 @@ const pages=[
    }
   }
   console.log('CRILO_ALL_PAGES_VISUAL_PASS '+checks+' checks across '+pages.length+
-   ' pages, 4 widths, 2 themes');
+   ' pages, 5 widths, 2 themes');
  }finally{await browser.close();await new Promise(done=>server.close(done))}
 })().catch(e=>{console.error('CRILO_ALL_PAGES_VISUAL_FAIL',e);process.exitCode=1});
