@@ -16,7 +16,7 @@ const controls=[
  let browser;
  try{
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  for(const width of [375,390,768,1280]){
+  for(const width of [375,390,600,601,768,1280]){
    const context=await browser.newContext({viewport:{width,height:900}});
    await context.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,route=>
@@ -50,12 +50,16 @@ const controls=[
    assert.ok(ready.overflow<=2,'Active panel horizontal overflow at '+width);
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
     'none','Empty recent-colors hint should not add an awkward extra row');
-   if(width>=691){
+   if(width>600){
     const rows=await page.evaluate(()=>{
-     const y=id=>document.querySelector(id).getBoundingClientRect().top;
+     const rect=id=>document.querySelector(id).getBoundingClientRect();
+     const y=id=>rect(id).top;
      return {studio:y('#pixelStudioBtn'),pen:y('[data-tool="pen"]'),
       history:y('#undoDrawing'),mode:y('#drawMode'),
-      color:y('.native-paint-picker'),clear:y('#clearDrawing')};
+      color:y('.native-paint-picker'),clear:y('#clearDrawing'),
+      firstGap:rect('.draw-toolbar-primary .draw-tool-group').left-rect('#pixelStudioBtn').right,
+      secondGap:rect('.draw-toolbar-primary .draw-tool-group:last-child').left-
+       rect('.draw-toolbar-primary .draw-tool-group').right};
     });
     assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5,
      'Studio, pen group and history should share first row at '+width);
@@ -63,6 +67,9 @@ const controls=[
      'Mode, color and clear should share second row at '+width);
     assert.ok(rows.mode-rows.studio>=28,
      'Second tool row should be distinctly aligned at '+width);
+    assert.ok(rows.firstGap>=0&&rows.firstGap<=10&&
+     rows.secondGap>=0&&rows.secondGap<=10,
+     'Main tool groups should stay close together, without huge grid gaps at '+width);
    }
    await page.evaluate(()=>window.recordPaintColor('#ee7799'));
    assert.equal(await page.locator('#drawRecentSwatches button').count(),1,
