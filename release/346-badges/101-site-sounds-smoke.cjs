@@ -10,10 +10,10 @@ const primary=['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'privacy.html','terms.html','owner-analytics.html','moderation.html'];
 for(const path of primary){
  const html=fs.readFileSync(path,'utf8');
- assert.match(html,/site-sounds\.js\?v=1/,path+' missing site audio');
- assert.equal((html.match(/site-sounds\.js\?v=1/g)||[]).length,1,path+' has duplicate audio scripts');
+ assert.match(html,/site-sounds\.js\?v=2/,path+' missing site audio');
+ assert.equal((html.match(/site-sounds\.js\?v=2/g)||[]).length,1,path+' has duplicate audio scripts');
 }
-assert.match(fs.readFileSync('domain/index.html','utf8'),/\.\.\/site-sounds\.js\?v=1/);
+assert.match(fs.readFileSync('domain/index.html','utf8'),/\.\.\/site-sounds\.js\?v=2/);
 assert.doesNotMatch(fs.readFileSync('shape-of-sound.html','utf8'),/site-sounds\.js/,
  'The musical playground must not overlay synthetic UI clicks on its instruments');
 assert.match(code,/window\.CriloSFX=Object\.freeze/);
