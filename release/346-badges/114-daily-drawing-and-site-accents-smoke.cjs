@@ -81,7 +81,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=18/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=19/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=98/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
@@ -128,8 +128,10 @@ assert.match(css,/width:122px;/,
  'Center mode selector should shrink a little without hiding its selection');
 assert.match(css,/font-size:10\.3px;/,
  'Buttons should be slightly smaller');
-assert.match(css,/@media \(max-width:840px\)/,
- 'Below desktop size, drawing instructions should stack above the controls');
+assert.match(css,/@media \(max-width:780px\)/,
+ 'Only narrow layouts should stack the drawing instructions and controls');
+assert.match(css,/@media \(min-width:781px\) and \(max-width:900px\)/,
+ 'Laptop-size screens should retain compact side-by-side Drawing Studio columns');
 assert.match(css,/@media \(max-width:600px\)/,
  'Phone controls must wrap safely');
 assert.doesNotMatch(css,/grid-template-columns:max-content max-content max-content;/,
