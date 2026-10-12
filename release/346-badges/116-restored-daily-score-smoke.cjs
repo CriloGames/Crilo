@@ -47,12 +47,8 @@ const setup=`let user={id:'signed-in-user'},profile={is_owner:false};
 let officialRun=null,started=false,isTest=false,guestRun=false;
 let results=[],score=0,spins=5,multiplier=1,ducks=0;`;
 const code=setup+'\n'+source.slice(start,end)+'\n'+source.slice(loaded,stop)+
- ';({update,checkPlayed,setState(v){for(const [k,x] of Object.entries(v))'+
- 'eval(k+\u0027=x\u0027)},getSaved(){return officialRun}})';
-/* Use a direct named setter instead of eval to keep the harness unambiguous. */
-const safe=code.replace(
- 'setState(v){for(const [k,x] of Object.entries(v))eval(k+\u0027=x\u0027)}',
- 'setState(v){if("started" in v)started=v.started;'+
+ ';({update,checkPlayed,setState(v){'+
+ 'if("started" in v)started=v.started;'+
  'if("isTest" in v)isTest=v.isTest;'+
  'if("guestRun" in v)guestRun=v.guestRun;'+
  'if("officialRun" in v)officialRun=v.officialRun;'+
@@ -60,9 +56,9 @@ const safe=code.replace(
  'if("score" in v)score=v.score;'+
  'if("spins" in v)spins=v.spins;'+
  'if("multiplier" in v)multiplier=v.multiplier;'+
- 'if("ducks" in v)ducks=v.ducks;}'
-);
-const api=vm.runInNewContext(safe,sandbox);
+ 'if("ducks" in v)ducks=v.ducks;'+
+ '},getSaved(){return officialRun}})';
+const api=vm.runInNewContext(code,sandbox);
 (async()=>{
  api.update();
  assert.equal(nodes.score.textContent,'0');
