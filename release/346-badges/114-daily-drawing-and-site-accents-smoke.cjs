@@ -80,8 +80,8 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=16/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=94/,'Play must load the updated state and viewport logic');
+assert.match(html,/daily-drawing-state\.css\?v=17/,'Play must use updated drawing stylesheet');
+assert.match(html,/game\.js\?v=95/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {display:none!important}'),
@@ -115,7 +115,7 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
-assert.match(css,/grid-template-columns:minmax\(210px,230px\) minmax\(0,1fr\)/,
+assert.match(css,/grid-template-columns:minmax\(220px,250px\) minmax\(0,1fr\)/,
  'Copy and tools should fit side by side on desktop');
 assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?flex-direction:column;/,
  'Toolbar and recent color strip should sit on separate rows');
@@ -140,9 +140,9 @@ assert.ok(html.includes('class="draw-toolbar-row draw-toolbar-primary"')&&
  'Keep existing tool groups and bindings intact');
 assert.ok(html.includes('data-tool="eraser"'),
  'Eraser must remain beside Pen and Fill');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions \.recent-colors\.has-colors \{[\s\S]*?display:flex/,
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-colors\.has-colors \{[\s\S]*?display:flex/,
  'Recent swatches only appear after painting');
-assert.match(css,/max-width:calc\(5 \* 22px \+ 4 \* 5px\)/,
+assert.match(css,/max-width:calc\(5 \* 17px \+ 4 \* 4px\)/,
  'Recent swatches cannot push the toolbar beyond five fixed color circles');
 assert.match(js,/if\(recentPaintColors\.length>5\)recentPaintColors\.length=5/,
  'Color history must be capped at five colors');
@@ -150,7 +150,13 @@ assert.ok(html.includes('class="draw-toolbar-main"'),
  'Toolbar controls must be grouped before the separate recent-colors strip');
 assert.ok(html.includes('Up to five recently used drawing colors'),
  'Recent colors should have an accessible description');
-assert.match(js,/ready:\['Drawing Studio','Draw before spinning\. Your drawing locks on the first spin\.'\]/,
+assert.ok(html.indexOf('id="drawRecentColors"')<html.indexOf('id="drawCompleteNote"'),
+ 'Saved colors belong in the left introduction, not beside Clear');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-color-swatch \{[\s\S]*?width:17px;/,
+ 'Five saved colors should be small enough to fit beneath the text');
+assert.match(css,/font-size:9\.1px;/,
+ 'Short warning should remain visually subordinate to the Drawing Studio title');
+assert.match(js,/ready:\['Drawing Studio','Draw first\. Your first spin locks the drawing\.'\]/,
  'Shorter first-spin explanation should be retained');
 assert.match(js,/host\.parentElement\.classList\.toggle\('has-colors',recentPaintColors\.length>0\)/,
  'Recent swatch container must track actually used colors');
@@ -160,7 +166,7 @@ assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out'
  'Eraser must remain genuinely transparent');
 assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
  'Locked Pen and Fill buttons must not look active');
-assert.match(html,/Inappropriate drawings risk an account ban\./,
+assert.match(html,/Inappropriate art risks an account ban\./,
  'Shortened account-ban warning must remain visible');
 assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finished\):not\(\.locked-panel\):not\(\.draw-unavailable\)/,
  'Dark mode styling must remain present');
