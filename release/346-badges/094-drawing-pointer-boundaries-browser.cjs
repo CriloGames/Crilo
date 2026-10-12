@@ -35,21 +35,23 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   // Mouse button remains held: travel beyond the real drawing boundary.
   await page.mouse.move(outsideX,outsideY);
   const left=await paintedPixels(page,canvasId);
-  await page.mouse.move(cx,cy);
-  assert.equal(await paintedPixels(page,canvasId),left,
-   'Returning after exit without new pointerdown must not join or resume the line');
+  // A held drag resumes on re-entry with a new stroke, but never bridges
+  // across the off-canvas area or continues after the button is released.
+  await page.mouse.move(cx-box.width*.18,cy+box.height*.16);
+  const resumed=await paintedPixels(page,canvasId);
+  assert.ok(resumed>left,'Held pointer did not resume when re-entering the canvas');
   await page.mouse.up();
   await page.mouse.move(insideX,cy);
-  assert.equal(await paintedPixels(page,canvasId),left,
+  assert.equal(await paintedPixels(page,canvasId),resumed,
    'An ordinary hover must never paint');
   // A deliberate new press must start a new stroke.
   // Use a clear region, separate from the original center stroke.
   // Even after a 45° transform these offsets remain inside the actual
   // circular canvas, not merely its expanded bounding rectangle.
-  await page.mouse.move(cx-box.width*.18,cy+box.height*.16);
+  await page.mouse.move(cx+box.width*.12,cy-box.height*.14);
   await page.mouse.down();
-  await page.mouse.move(cx-box.width*.10,cy+box.height*.16);
-  assert.ok(await paintedPixels(page,canvasId)>left,'Fresh pointerdown did not restart drawing');
+  await page.mouse.move(cx+box.width*.2,cy-box.height*.14);
+  assert.ok(await paintedPixels(page,canvasId)>resumed,'Fresh pointerdown did not restart drawing');
   await page.mouse.up();
   // The active pointer must be cancelled by blur with the button still down.
   await page.mouse.move(cx,cy);await page.mouse.down();
@@ -86,7 +88,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    // Isolate Pixel Studio strokes from the marks just drawn in Daily Wheel.
    await page.locator('#pixelClear').click();
    await exercise(page,'#pixelCanvas',true);
-   await page.locator('#pixelClose').click();
+   await page.locator('#pixelExit').click();
    assert.deepEqual(errors,[],'Runtime error on '+width+'px: '+errors.join('; '));
    await context.close();
   }
