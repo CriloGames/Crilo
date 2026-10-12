@@ -248,7 +248,7 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
   display:inline-block!important;
   flex:0 0 auto;
-  width:161px;
+  width:132px; /* Fits the label and native arrow without unused space. */
   max-width:100%;
   min-height:34px;
   padding:6px 7px;
@@ -353,9 +353,20 @@ html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) .drawing-to
 #playedPanel .crilo-share-trigger {min-height:39px}
 html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 
-/* Tablet and phone: the description and tools stack, never overflow.
-   The wrapping tool groups remain together so they stay recognizable. */
-@media (max-width:830px) {
+/* Mid-size windows keep the completion copy LEFT of the tools. The toolbar
+   wraps inside the right column instead of jumping underneath the copy. */
+@media (min-width:601px) and (max-width:830px) {
+  .hero #drawPanel:not(.draw-unavailable) {
+    grid-template-columns:minmax(185px,205px) minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:10px!important;
+  }
+  .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
+    justify-content:flex-start;
+  }
+}
+/* Narrow phones stack the description above the tools without overflow. */
+@media (max-width:600px) {
   .hero #drawPanel:not(.draw-unavailable) {
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto auto auto;
@@ -382,6 +393,10 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
     justify-content:center;
   }
   #drawPanel.daily-finished .draw-complete-note {justify-content:flex-start}
+}
+@media (max-width:700px) {
+  /* Keep the native selector readable at 16px to avoid iPhone auto-zoom. */
+  #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {width:155px}
 }
 @media (max-width:450px) {
   #drawPanel:not(.daily-finished) #drawPanelDescription {font-size:11px}
