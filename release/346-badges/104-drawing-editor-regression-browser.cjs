@@ -108,6 +108,35 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    assert.equal(spinPosition.headerMode,false,'Spin selector must not occupy the Pixel Studio header');
    assert.ok(spinPosition.mode>=spinPosition.color-2&&spinPosition.mode<=spinPosition.undo+2,
     'Spin selector must follow Color before Undo in the Pixel Studio toolbar');
+   const pixelRowLayout=await page.evaluate(()=>{
+    const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+    const y=selector=>rect(selector).top+rect(selector).height/2;
+    const tools=rect('.pixel-studio-tools'),modal=rect('.pixel-studio-card');
+    return {
+     colorY:y('.pixel-studio-tools .native-paint-picker'),
+     modeY:y('#pixelDrawMode'),undoY:y('#pixelUndo'),clearY:y('#pixelClear'),
+     pencilY:y('.pixel-tool[data-pixel-tool="pen"]'),
+     headerHasOnlyExit:document.querySelectorAll('.pixel-header-actions button,.pixel-header-actions select').length===1,
+     modeInsideTools:!!document.querySelector('.pixel-studio-tools #pixelDrawMode'),
+     overflow:document.documentElement.scrollWidth-innerWidth,
+     toolsRight:tools.right,modalRight:modal.right
+    };
+   });
+   assert.ok(pixelRowLayout.headerHasOnlyExit&&pixelRowLayout.modeInsideTools,
+    'Only Exit belongs in the Pixel Studio header; Spin belongs alongside tools');
+   assert.ok(pixelRowLayout.overflow<=2&&pixelRowLayout.toolsRight<=pixelRowLayout.modalRight+1,
+    'Pixel Studio tool row must stay inside the modal on '+width+'px');
+   assert.ok(Math.abs(pixelRowLayout.colorY-pixelRowLayout.modeY)<=7,
+    'Color and Spin must be side by side rather than on separate lines on '+width+'px');
+   if(width<=390){
+    assert.ok(Math.abs(pixelRowLayout.modeY-pixelRowLayout.undoY)<=7&&
+     Math.abs(pixelRowLayout.undoY-pixelRowLayout.clearY)<=7,
+     'Narrow phone layout should keep Spin, Undo and Clear together on one row');
+   }else{
+    assert.ok(Math.abs(pixelRowLayout.pencilY-pixelRowLayout.modeY)<=7&&
+     Math.abs(pixelRowLayout.modeY-pixelRowLayout.undoY)<=7,
+     'Desktop Pixel Studio drawing controls should occupy one toolbar row');
+   }
 
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
     'New Pixel Studio control causes horizontal overflow at '+width+'px');
