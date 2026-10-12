@@ -264,12 +264,24 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  gap:4px!important;
 }
 #drawPanel.daily-finished .draw-tool-group{gap:4px}
-#drawPanel.daily-finished .draw-actions :is(#drawMode,.native-paint-picker,#clearDrawing){
+#drawPanel.daily-finished .draw-actions #drawMode{
  display:none!important;
 }
 #drawPanel.daily-finished .draw-actions .small-btn{
  font-size:11px;line-height:1.2;min-height:32px;
  padding:6px 8px;
+}
+/* The locked toolbar retains the named essentials, while their inputs
+   remain disabled until a fresh Daily or Test Run begins. */
+#drawPanel.daily-finished .draw-actions .native-paint-picker{
+ display:inline-flex!important;min-height:32px;padding:2px 5px;
+ font-size:11px;gap:4px;opacity:.75;
+}
+#drawPanel.daily-finished .draw-actions .native-paint-picker input[type=color]{
+ width:30px;height:26px;
+}
+#drawPanel.daily-finished .draw-actions #clearDrawing{
+ display:inline-flex!important;align-items:center;justify-content:center;
 }
 #playedPanel>a.small-btn{
  color:#592d88;font-weight:850;min-height:39px;
@@ -304,6 +316,7 @@ html[data-theme="dark"] #playedPanel>a.small-btn{color:#c7a9e9}
  }
  #drawPanel.daily-finished .draw-actions{
   grid-column:1;grid-row:2;justify-content:center;
+  flex-wrap:wrap;max-width:100%;
  }
 }
 @media(max-width:450px){
@@ -324,4 +337,10 @@ body.wheel-run-active .hero #drawPanel.daily-finished{
  display:grid!important;
  visibility:visible!important;opacity:1!important;
  pointer-events:none;
+}
+
+@media(max-width:450px){
+ #drawPanel.daily-finished .draw-actions .native-paint-picker{min-height:30px;padding:2px 4px}
+ #drawPanel.daily-finished .draw-actions .native-paint-picker input[type=color]{width:27px;height:25px}
+ #drawPanel.daily-finished .draw-actions #clearDrawing{min-height:31px}
 }

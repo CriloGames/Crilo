@@ -851,6 +851,14 @@ function fill(x,y){
  dctx.putImageData(img,0,0);
  return true;
 }
+function drawDot(p){
+ dctx.save();
+ dctx.globalCompositeOperation=drawTool==='eraser'?'destination-out':'source-over';
+ dctx.fillStyle=drawTool==='eraser'?'#000000':$('drawColor').value;
+ dctx.beginPath();dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();
+ dctx.restore();
+ if(drawTool!=='eraser')recordPaintColor($('drawColor').value);
+}
 drawing.addEventListener('pointerdown',e=>{
  if(drawingLocked||isDrawingColorPickerOpen()||activeDrawingPointer!==null||!insidePaintArea(drawing,e)||
     (e.pointerType==='mouse'&&e.button!==0))return;
@@ -860,8 +868,7 @@ drawing.addEventListener('pointerdown',e=>{
  if(drawTool==='fill'){if(fill(p.x,p.y)){recordPaintColor($('drawColor').value);if(!isTest&&!guestRun)usedFillOnOfficial=true}return}
  resumeMainStroke=false;activeDrawingPointer=e.pointerId;activeDrawingType=e.pointerType;painting=true;last=p;
  try{drawing.setPointerCapture(e.pointerId)}catch(error){stopDrawing(e);return}
- dctx.fillStyle=$('drawColor').value;dctx.beginPath();
- dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();recordPaintColor($('drawColor').value);
+ drawDot(p);
 });
 drawing.addEventListener('pointermove',e=>{
  // A window switch may release pointer capture without releasing the mouse
@@ -881,11 +888,15 @@ drawing.addEventListener('pointermove',e=>{
  }
  if(!insidePaintArea(drawing,e)){last=null;return}
  const p=point(e);
- dctx.strokeStyle=$('drawColor').value;dctx.lineWidth=6;
- dctx.lineCap='round';dctx.lineJoin='round';
- dctx.beginPath();
- if(last===null){dctx.fillStyle=$('drawColor').value;dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill()}
- else{dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke()}
+ if(last===null)drawDot(p);
+ else{
+  dctx.save();
+  dctx.globalCompositeOperation=drawTool==='eraser'?'destination-out':'source-over';
+  dctx.strokeStyle=drawTool==='eraser'?'#000000':$('drawColor').value;
+  dctx.lineWidth=6;dctx.lineCap='round';dctx.lineJoin='round';
+  dctx.beginPath();dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke();
+  dctx.restore();
+ }
  last=p;
 });
 for(const type of ['pointerup','pointercancel'])

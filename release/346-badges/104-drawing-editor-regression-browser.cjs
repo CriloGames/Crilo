@@ -35,6 +35,21 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    page.on('pageerror',err=>errors.push(err.message));
    await page.goto(base+'/index.html',{waitUntil:'domcontentloaded',timeout:16000});
    await page.waitForFunction(()=>window.Crilo?.user&&document.getElementById('drawing')?.width===200);
+   // Keep these three essential controls visible even after locking.
+   const essential=await page.locator('#drawPanel').evaluate(panel=>{
+    const els=[panel.querySelector('#drawColor'),
+      panel.querySelector('[data-tool="eraser"]'),
+      panel.querySelector('#clearDrawing')];
+    if(!els.every(Boolean))return {present:false};
+    const ready=els.every(el=>getComputedStyle(el).display!=='none');
+    panel.classList.add('daily-finished');
+    const finished=els.every(el=>getComputedStyle(el).display!=='none'&&el.getBoundingClientRect().width>0);
+    const overflow=document.documentElement.scrollWidth>innerWidth+2;
+    panel.classList.remove('daily-finished');
+    return {present:true,ready,finished,overflow};
+   });
+   assert.deepEqual(essential,{present:true,ready:true,finished:true,overflow:false},
+    'Color, Eraser and Clear must remain on the compact panel at '+width+'px');
    // Force one true edge-to-edge divider across the visible circle.
    await page.locator('#drawing').evaluate(canvas=>{
     const ctx=canvas.getContext('2d');
@@ -116,6 +131,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await page.locator('.drawing-tool[data-tool="pen"]').click();
    await point(page,'drawing',170,100);
    assert.equal((await pixel(page,'drawing',170,100))[1],162,'Main pen did not edit saved Studio drawing');
+   await page.locator('.drawing-tool[data-tool="eraser"]').click();
+   await point(page,'drawing',170,100);
+   assert.equal((await pixel(page,'drawing',170,100))[3],0,
+    'Eraser must clear transparency, not leave opaque white paint');
+   await page.locator('#undoDrawing').click();
+   assert.equal((await pixel(page,'drawing',170,100))[1],162,'Undo must restore erased pixels');
+   await page.locator('#redoDrawing').click();
+   assert.equal((await pixel(page,'drawing',170,100))[3],0,'Redo must erase again');
+   await page.locator('#undoDrawing').click();
    await page.locator('#pixelStudioBtn').click();
    assert.equal((await pixel(page,'pixelCanvas',170,100))[1],162,
     'Main drawing update missing when Studio reopens');
@@ -147,6 +171,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Esc should safely save and exit Studio');
    assert.equal((await pixel(page,'drawing',170,100))[1],162,'Escape lost the earlier drawing');
    assert.ok(await pinkCount('drawing')>0,'Escape erased fresh unsaved Pixel Studio artwork');
+   await page.locator('#clearDrawing').click();
+   assert.equal((await pixel(page,'drawing',170,100))[3],0,'Clear must empty the active drawing');
    assert.deepEqual(errors,[],'Browser errors at '+width+'px');
    console.log('PASS circular fills, protected picker, recent colors, Exit/Escape, two-way editing '+width+'px');
    cases++;

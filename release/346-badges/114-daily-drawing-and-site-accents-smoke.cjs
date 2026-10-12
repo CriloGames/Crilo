@@ -80,8 +80,8 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=7/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=90/,'Play must load the updated state and viewport logic');
+assert.match(html,/daily-drawing-state\.css\?v=8/,'Play must use updated drawing stylesheet');
+assert.match(html,/game\.js\?v=91/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.daily-finished .recent-colors{display:none!important}'),
@@ -119,8 +119,15 @@ assert.match(css,/\.hero #drawPanel\.daily-finished\{[\s\S]*?grid-template-colum
  'Finished desktop editor should use one shallow row');
 assert.match(css,/\.hero #drawPanel:not\(\.daily-finished\):not\(\.draw-unavailable\)\{/,
  'Ready editor should use the compact split toolbar');
-assert.match(css,/#drawPanel\.daily-finished \.draw-actions :is\(#drawMode,\.native-paint-picker,#clearDrawing\)/,
- 'Only completed Dailies may collapse secondary inactive tools');
+assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear next to Pen and Fill');
+assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
+ 'Eraser must clear alpha, not paint opaque white');
+assert.match(css,/#drawPanel\.daily-finished \.draw-actions #drawMode\{/,
+ 'Only the mode selector is hidden when the Daily is finished');
+assert.match(css,/#drawPanel\.daily-finished \.draw-actions \.native-paint-picker\{/,
+ 'Color must remain visible after Daily completion');
+assert.match(css,/#drawPanel\.daily-finished \.draw-actions #clearDrawing\{/,
+ 'Clear must remain visible after Daily completion');
 
 
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
