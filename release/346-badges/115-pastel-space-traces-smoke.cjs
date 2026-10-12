@@ -12,22 +12,28 @@ assert.doesNotMatch(css,/(?:^|\n)\s*(?:body|\.hero|\.wheel-stage)::(?:before|aft
  'No decorative free-floating elements outside card borders');
 assert.doesNotMatch(css,/pastel-(?:space|play)-traces(?:-night)?\.svg/,
  'Obsolete freeform SVGs must not be used');
-for(const border of ['border-top:2.5px solid','border-left:2.5px solid',
- 'border-right:2.5px solid','border-bottom:2.5px solid']){
- assert.ok(css.includes(border),'Missing edge-following ribbon: '+border);
+for(const border of ['border-top:2.5px solid var(--trace-first-deep',
+ 'border-left:2.5px solid var(--trace-first-deep',
+ 'border-right:2.5px solid var(--trace-last-deep',
+ 'border-bottom:2.5px solid var(--trace-last-deep']){
+ assert.ok(css.includes(border),'Nearest stroke must be dark: '+border);
 }
-assert.ok(css.includes('border-top-left-radius:calc(var(--trace-radius,22px) + 9px)'));
-assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius,22px) + 9px)'));
-assert.ok(css.includes('min(var(--trace-head,57%),calc(100% - 18px))'),
+assert.ok(css.includes('--trace-shade-ink:#364251')&&
+ css.includes('--trace-shade-ink:#10151d'),
+ 'Darkening colors must work in both light and dark modes');
+assert.ok(css.includes('border-top-left-radius:calc(var(--trace-radius,22px) + 5px)'));
+assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius,22px) + 5px)'));
+assert.ok(css.includes('min(var(--trace-head,57%),calc(100% - 10px))'),
  'Long side traces must be capped to their actual card');
-assert.ok(css.includes('min(var(--trace-tail,37%),calc(100% - 18px))'),
+assert.ok(css.includes('min(var(--trace-tail,37%),calc(100% - 10px))'),
  'Short traces must be capped to their actual card');
 assert.ok(css.includes('pointer-events:none'));
 assert.ok(css.includes('--trace-head:76%')&&css.includes('--trace-tail:73%'),
  'Border stroke lengths vary by surface');
-assert.ok(css.includes('filter:var(--trace-head-stack,none)'),
- 'Some strokes must have exterior stacked copies');
-assert.ok(css.includes('top:-23px;left:-23px')&&css.includes('--trace-third:37%'),
+assert.ok(css.includes('filter:var(--trace-head-stack,drop-shadow(-6px -6px 0 var(--trace-first')&&
+ css.includes('filter:var(--trace-tail-stack,drop-shadow(6px 6px 0 var(--trace-last'),
+ 'Lighter outer lines must be painted on each card, outside dark inner lines');
+assert.ok(css.includes('top:-19px;left:-19px')&&css.includes('--trace-third:37%'),
  'Selected cards must support three offset lines with asymmetric lengths');
 assert.ok(css.includes('@media(max-width:1180px)'),
  'Tablet and phone must suppress wide three-line offsets');
