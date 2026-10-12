@@ -790,7 +790,7 @@ window.addEventListener('crilo-auth-ready',async e=>{
   if(!started&&$('result').classList.contains('hidden'))beginRun();
   return;
  }
- if(profile?.is_owner){
+ if(profile?.is_owner&&!guestRun){
   $('spinButton').classList.add('hidden');
   $('message').textContent='Choose Official Daily or Test Run to begin.';
  }
