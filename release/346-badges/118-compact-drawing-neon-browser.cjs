@@ -16,7 +16,7 @@ const controls=[
  let browser;
  try{
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  for(const width of [375,390,600,601,768,1280]){
+  for(const width of [375,390,600,601,768,840,900,1280]){
    const context=await browser.newContext({viewport:{width,height:900}});
    await context.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,route=>
@@ -50,7 +50,7 @@ const controls=[
    assert.ok(ready.overflow<=2,'Active panel horizontal overflow at '+width);
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
     'none','Empty recent-colors hint should not add an awkward extra row');
-   if(width>600){
+   if(width>840){
     const rows=await page.evaluate(()=>{
      const rect=id=>document.querySelector(id).getBoundingClientRect();
      const y=id=>rect(id).top;
@@ -62,11 +62,10 @@ const controls=[
        rect('.draw-toolbar-primary .draw-tool-group').right};
     });
     assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5,
-     'Studio, pen group and history should share first row at '+width);
-    assert.ok(Math.abs(rows.mode-rows.color)<5&&Math.abs(rows.mode-rows.clear)<5,
-     'Mode, color and clear should share second row at '+width);
-    assert.ok(rows.mode-rows.studio>=28,
-     'Second tool row should be distinctly aligned at '+width);
+     'Studio, pen and undo groups must share one flat row at '+width);
+    assert.ok(Math.abs(rows.studio-rows.mode)<5&&Math.abs(rows.mode-rows.color)<5&&
+     Math.abs(rows.mode-rows.clear)<5,
+     'Dropdown, color and clear should align with all other tools at '+width);
     assert.ok(rows.firstGap>=0&&rows.firstGap<=10&&
      rows.secondGap>=0&&rows.secondGap<=10,
      'Main tool groups should stay close together, without huge grid gaps at '+width);
@@ -81,9 +80,9 @@ const controls=[
     'none','Clearing run colors should restore the compact toolbar');
 
    const modeWidth=await page.locator('#drawMode').evaluate(el=>el.getBoundingClientRect().width);
-   if(width>700)assert.ok(modeWidth<=137,'Mode selector has unwanted whitespace at '+width);
+   if(width>600)assert.ok(modeWidth<=125,'Mode selector has unwanted whitespace at '+width);
    else assert.ok(modeWidth<=158,'Native mobile mode selector should remain compact');
-   if(width>600)assert.ok(ready.tools.x>=ready.copy.right-2,
+   if(width>840)assert.ok(ready.tools.x>=ready.copy.right-2,
     'Desktop editor should keep instructions left and controls right');
    else assert.ok(ready.tools.y>=ready.copy.bottom-2,
     'Phone/tablet editor should stack instructions over tools');
@@ -98,7 +97,7 @@ const controls=[
    assert.equal(locked.mode,'spin','Existing dropdown selection lost on lock');
    assert.equal(locked.selected,0,'A drawing tool still looks selected after first spin');
    assert.ok(locked.overflow<=2,'First-spin locked panel overflows at '+width);
-   if(width>600)assert.ok(
+   if(width>840)assert.ok(
     Math.abs((locked.copy.y+locked.copy.height/2)-(locked.tools.y+locked.tools.height/2))<=12,
     'Locked instructions and controls should be vertically centered together at '+width);
    else assert.ok(locked.tools.y>=locked.copy.bottom-2,
@@ -114,7 +113,7 @@ const controls=[
     'Completed Daily must leave all nine tools disabled at '+width);
    assert.equal(finished.mode,'spin','Completed Daily changed selected drawMode');
    assert.ok(finished.overflow<=2,'Finished panel horizontal overflow at '+width);
-   if(width>600)assert.ok(
+   if(width>840)assert.ok(
     Math.abs((finished.copy.y+finished.copy.height/2)-(finished.tools.y+finished.tools.height/2))<=12,
     'Finished message and toolbar must share a centered row at '+width);
    else assert.ok(finished.tools.y>=finished.copy.bottom-2,
