@@ -56,6 +56,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       const actual=await page.locator(selector).evaluate(el=>{
        const glyphs=[...el.querySelectorAll(':scope > .crilo-score-bob-digit')];
        const before=el.getBoundingClientRect().width,text=el.textContent;
+       const fontSize=parseFloat(getComputedStyle(glyphs[0]).fontSize);
        const animations=glyphs.slice(0,2).map(x=>x.getAnimations().find(a=>a.id==='criloScoreDigitBob'));
        if(!animations[0])return{active:false,before,text,digits:glyphs.length};
        const [a,b]=animations;
@@ -73,7 +74,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        const atNextRise=sample(365+125);
        const after=el.getBoundingClientRect().width;
        a.cancel();b.cancel();
-       return{active:true,before,after,text,digits:glyphs.length,
+       return{active:true,before,after,text,fontSize,digits:glyphs.length,
         timingA,timingB,frames,atRise,atDown,atNextRise};
       });
       assert.ok(actual.text.startsWith('12,345'),'Score text changed');
@@ -84,7 +85,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        assert.equal(actual.timingB.delay-actual.timingA.delay,365,
         'Second digit must wait its full turn');
        assert.ok(actual.timingA.duration<3600,'The wave should be faster than before');
-       assert.ok(actual.frames[1].transform.includes('-.07em'),'Digit height must be smaller');
+       assert.ok(Math.abs(actual.atRise.y)<actual.fontSize*.085,
+        'Digit height must be below 8.5% of its font size');
        assert.ok(actual.frames[2].offset*actual.timingA.duration<
         actual.timingB.delay,'First digit must finish BEFORE next starts');
        assert.ok(actual.atRise.y < -.5,'First digit must rise');
