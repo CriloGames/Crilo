@@ -27,6 +27,7 @@ const eyebrow=mk(),playedHeading=mk();
 nodes.wheelScorePanel.querySelector=s=>s==='.wheel-score-eyebrow'?eyebrow:null;
 nodes.playedPanel.querySelector=s=>s==='strong'?playedHeading:null;
 let drawCount=0,lockCount=0,beginCount=0,panelMode='',queryCount=0;
+let guestSaved=null;
 const saved={score:69,spins:7,upgrades:2,doubles:1,ducks:2,drawing:null,daily_period:'2026-10-12'};
 const query={
  select(columns){assert.match(columns,/score,spins,upgrades,doubles,ducks/);return this},
@@ -41,6 +42,7 @@ const sandbox={
  $:id=>nodes[id]||null,fmt:n=>String(Number(n)||0),
  drawWheel(){drawCount++},lockDrawing(){lockCount++},
  setDrawingPanelMode(mode){panelMode=mode},
+ guestDailyRecord(){return guestSaved},
  beginRun(){beginCount++},
  Crilo:{dailyPeriod(){return'2026-10-12'}},
  criloDB:{
@@ -55,6 +57,8 @@ const code=setup+'\n'+source.slice(start,end)+'\n'+
  source.slice(recapStart,recapEnd)+'\n'+source.slice(loaded,stop)+
  ';({update,checkPlayed,setState(v){'+
  'if("started" in v)started=v.started;'+
+ 'if("user" in v)user=v.user;'+
+ 'if("profile" in v)profile=v.profile;'+
  'if("isTest" in v)isTest=v.isTest;'+
  'if("guestRun" in v)guestRun=v.guestRun;'+
  'if("officialRun" in v)officialRun=v.officialRun;'+
@@ -63,7 +67,7 @@ const code=setup+'\n'+source.slice(start,end)+'\n'+
  'if("spins" in v)spins=v.spins;'+
  'if("multiplier" in v)multiplier=v.multiplier;'+
  'if("ducks" in v)ducks=v.ducks;'+
- '},getSaved(){return officialRun},showDailyRecap})';
+ '},getSaved(){return officialRun},showDailyRecap,syncDailyCountdown})';
 const api=vm.runInNewContext(code,sandbox);
 (async()=>{
  api.update();
@@ -91,6 +95,21 @@ const api=vm.runInNewContext(code,sandbox);
  assert.equal(nodes.level.textContent,'×9','Two saved upgrades must restore displayed values');
  assert.equal(nodes.duckCount.textContent,2);
  assert.equal(api.getSaved().score,69);
+ api.syncDailyCountdown('01:23:45');
+ assert.equal(nodes.completedDailyCountdown.textContent,'01:23:45');
+ assert.equal(nodes.ownerCompleteNext.textContent,'Next Daily in 01:23:45');
+ assert.equal(nodes.resultNextCountdown.textContent,'01:23:45');
+ api.setState({profile:{is_owner:true}});
+ api.showDailyRecap(saved,'official');
+ assert.equal(nodes.ownerCompleteRecap.classList.contains('hidden'),false,
+  'Owner should see official Daily score beside private Test Run choice');
+ assert.equal(nodes.ownerCompleteScore.textContent,'69 points · RARE');
+ api.setState({profile:{is_owner:false}});
+ api.showDailyRecap({score:0,blocked:true},'blocked');
+ assert.equal(nodes.dailyCompleteDetails.classList.contains('hidden'),true,
+  'Removed Dailies must not show a celebratory score recap');
+ assert.equal(nodes.ownerCompleteRecap.classList.contains('hidden'),true);
+ api.showDailyRecap(saved,'official');
  api.showDailyRecap(null);
  assert.equal(nodes.dailyCompleteDetails.classList.contains('hidden'),true,
   'Starting a different run must clear the previous recap');
@@ -113,9 +132,25 @@ const api=vm.runInNewContext(code,sandbox);
  api.update();
  assert.equal(nodes.wheelScorePanel.dataset.rarity,'unrevealed',
   'Moderation-blocked Dailies must not reveal a removed score');
+ // Completed guest progress is explicitly labeled, never treated as an
+ // official leaderboard entry or shown as an untouched starting score.
+ guestSaved={status:'complete',score:12,state:{upgrades:1,ducks:3}};
+ api.setState({user:null,officialRun:null,started:false,guestRun:false,
+  isTest:false,results:[],score:0,spins:5,multiplier:1,ducks:0});
+ api.update();
+ assert.equal(nodes.score.textContent,'12');
+ assert.equal(eyebrow.textContent,'GUEST SCORE');
+ assert.equal(nodes.wheelScorePanel.dataset.rarity,'common');
+ assert.equal(nodes.spins.textContent,0);
+ assert.equal(nodes.level.textContent,'×3');
+ assert.equal(nodes.duckCount.textContent,3);
+ api.showDailyRecap(guestSaved,'guest');
+ assert.equal(nodes.completedDailyScore.textContent,'12');
+ assert.equal(nodes.completedDailyRarity.textContent,'COMMON');
+ assert.equal(nodes.ownerCompleteRecap.classList.contains('hidden'),true);
  assert.ok(drawCount>=5);
  assert.equal(beginCount,0,'Restoring a saved Daily must not start a new run');
  assert.match(source,/officialRun=\{\.\.\.payload,is_test:false\};\s*update\(\)/,
   'Saving an official Daily must immediately update its completed HUD');
- console.log('RESTORED_DAILY_SCORE_PASS: saved 69 and RARE, inline recap, no signup prompt, owner Test isolation, new Daily reset');
+ console.log('RESTORED_DAILY_SCORE_PASS: official/guest score recaps, owner view, shared reset countdown, removed-run guard');
 })().catch(error=>{console.error(error);process.exitCode=1});
