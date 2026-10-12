@@ -18,19 +18,31 @@ if(typeof MutationObserver!=='undefined'&&document.documentElement){
   .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 }
 function update(){
- const revealed=results.length>0; // Only a resolved spin counts, not a SPIN click.
- const band=window.CriloRarity?.scoreBands?.find(b=>score<=b.max)||
+ // When a completed Daily is reopened, show its saved server-side score
+ // rather than the fresh wheel's default 0 and five remaining spins.
+ // Owner Test Runs and new Dailies always use their active in-memory values.
+ const savedDaily=!started&&!isTest&&!guestRun&&officialRun&&!officialRun.blocked&&
+   Number.isFinite(Number(officialRun.score))?officialRun:null;
+ const displayedScore=savedDaily?Number(savedDaily.score):score;
+ const revealed=results.length>0||!!savedDaily; // No tier before a resolved Daily.
+ const band=window.CriloRarity?.scoreBands?.find(b=>displayedScore<=b.max)||
    {key:'trash',label:'TRASH'};
  const tier=String(band.key||'trash').toLowerCase();
- $('score').textContent=fmt(score);
+ $('score').textContent=fmt(displayedScore);
  $('wheelScorePanel').dataset.rarity=revealed?tier:'unrevealed';
  $('scoreTier').hidden=!revealed;
  $('scoreTierHint').hidden=revealed;
  $('scoreTierText').textContent=revealed?tier.toUpperCase():'';
  $('scoreTier').setAttribute('aria-label',revealed?'Score rarity: '+tier:'Score rarity not yet revealed');
- $('spins').textContent=spins;
- $('level').textContent='×'+fmt(multiplier);
- $('duckCount').textContent=ducks;
+ const heading=$('wheelScorePanel').querySelector('.wheel-score-eyebrow');
+ if(heading)heading.textContent=savedDaily?'DAILY SCORE':'CURRENT SCORE';
+ $('spins').textContent=savedDaily?0:spins;
+ // The saved row has upgrades, not the final multiplier. Reconstruct the
+ // displayed value only; never alter gameplay state or the wheel segments.
+ const savedUpgrades=savedDaily?Math.max(0,Math.trunc(Number(savedDaily.upgrades)||0)):0;
+ const savedMultiplier=Math.min(Number.MAX_SAFE_INTEGER,3**Math.min(32,savedUpgrades));
+ $('level').textContent='×'+fmt(savedDaily?savedMultiplier:multiplier);
+ $('duckCount').textContent=savedDaily?Math.max(0,Number(savedDaily.ducks)||0):ducks;
  drawWheel();
 }
 // The music and visual letter pops share one exact note timeline.
@@ -655,6 +667,7 @@ if(isTest){
  }
  if(priorBadges)await showNewBadges(priorBadges);
  officialRun={...payload,is_test:false};
+ update(); // Immediately show the completed DAILY SCORE.
  
 }
 }finally{finalSaveInProgress=false}
@@ -717,7 +730,10 @@ function renderResult(r){
  $('rarityOdds').textContent=r.explanation;
  $('statSpins').textContent=totalSpins;$('statUpgrades').textContent=upgrades;$('statDoubles').textContent=doubles;$('statDucks').textContent=ducks;$('statExtra').textContent=extraSpins;$('statBestRoll').textContent=fmt(bestRollPoints)
 }
-async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data:penalty,error:penaltyError}=await criloDB.rpc('crilo_my_daily_penalty',{p_period:period});if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);const {data:played}=await criloDB.from('daily_runs').select('score,spins,upgrades,doubles,ducks,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;if(profile?.is_owner){$('ownerDailyChoiceBtn').disabled=!!data;$('ownerDailyChoiceBtn').title=data?'Official Daily already completed for this period.':'Play your one official Daily.';}if(data){lockDrawing();setDrawingPanelMode(data.blocked?'unavailable':'complete');$('playedPanel').querySelector('strong').textContent='Official Daily complete';if(profile?.is_owner){$('ownerRunControls').classList.add('hidden');$('ownerSaveRunBtn').textContent='Play Test Run';$('ownerRunModeHint').textContent='Official Daily complete. Private test runs do not count toward rankings or badges.';}$('playedPanel').classList.remove('hidden');$('playedText').textContent=data.blocked?'This Daily was removed for '+data.reason+'. Your score and points were removed, your current streak was reset, and your account received its one official warning. You cannot replay this Daily period.':`You scored ${Number(data.score).toLocaleString()} this Daily.`;$('spinButton').classList.add('hidden');if(profile?.is_owner){$('playedPanel').classList.add('hidden');$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='✓';$('ownerRunModeHint').textContent=(data.blocked?'This Daily is locked after an owner removal. Private Test Runs remain available.':`Official Daily completed — ${Number(data.score).toLocaleString()} points. Test runs are private.`);$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=true;$('ownerDailyChoiceBtn').textContent=data.blocked?'Daily Run — Locked':'Daily Run — Completed';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('hidden');$('ownerRunControls').classList.add('owner-daily-finished');}if(data.drawing){hideDrawPlaceholder();const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else if(!profile?.is_owner)beginRun();else{$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='↻';$('ownerRunModeHint').textContent='Daily Run counts toward rankings and badges. Test Run is private.';$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=false;$('ownerDailyChoiceBtn').textContent='Daily Run';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('owner-daily-finished');$('spinButton').classList.add('hidden');$('ownerRunControls').classList.remove('hidden');$('ownerActiveMode').classList.add('hidden');$('message').textContent='Choose Daily Run or Test Run before spinning.';}}
+async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data:penalty,error:penaltyError}=await criloDB.rpc('crilo_my_daily_penalty',{p_period:period});if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);const {data:played}=await criloDB.from('daily_runs').select('score,spins,upgrades,doubles,ducks,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;
+// Refresh the score HUD from the same database row as the completed-Daily card.
+if(data)update();
+if(profile?.is_owner){$('ownerDailyChoiceBtn').disabled=!!data;$('ownerDailyChoiceBtn').title=data?'Official Daily already completed for this period.':'Play your one official Daily.';}if(data){lockDrawing();setDrawingPanelMode(data.blocked?'unavailable':'complete');$('playedPanel').querySelector('strong').textContent='Official Daily complete';if(profile?.is_owner){$('ownerRunControls').classList.add('hidden');$('ownerSaveRunBtn').textContent='Play Test Run';$('ownerRunModeHint').textContent='Official Daily complete. Private test runs do not count toward rankings or badges.';}$('playedPanel').classList.remove('hidden');$('playedText').textContent=data.blocked?'This Daily was removed for '+data.reason+'. Your score and points were removed, your current streak was reset, and your account received its one official warning. You cannot replay this Daily period.':`You scored ${Number(data.score).toLocaleString()} this Daily.`;$('spinButton').classList.add('hidden');if(profile?.is_owner){$('playedPanel').classList.add('hidden');$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='✓';$('ownerRunModeHint').textContent=(data.blocked?'This Daily is locked after an owner removal. Private Test Runs remain available.':`Official Daily completed — ${Number(data.score).toLocaleString()} points. Test runs are private.`);$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=true;$('ownerDailyChoiceBtn').textContent=data.blocked?'Daily Run — Locked':'Daily Run — Completed';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('hidden');$('ownerRunControls').classList.add('owner-daily-finished');}if(data.drawing){hideDrawPlaceholder();const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else if(!profile?.is_owner)beginRun();else{$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='↻';$('ownerRunModeHint').textContent='Daily Run counts toward rankings and badges. Test Run is private.';$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=false;$('ownerDailyChoiceBtn').textContent='Daily Run';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('owner-daily-finished');$('spinButton').classList.add('hidden');$('ownerRunControls').classList.remove('hidden');$('ownerActiveMode').classList.add('hidden');$('message').textContent='Choose Daily Run or Test Run before spinning.';}}
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
 async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
