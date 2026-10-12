@@ -172,6 +172,8 @@ jobs:
         run: node release/346-badges/101-site-sounds-smoke.cjs
       - name: Check interrupted pastel Play strokes, themes and wheel fit
         run: node release/346-badges/113-play-accents-smoke.cjs
+      - name: Verify completed Daily drawing locks and site-wide pastel accents
+        run: node release/346-badges/114-daily-drawing-and-site-accents-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
           node --check site-sounds.js
