@@ -33,8 +33,15 @@ assert.ok(css.includes('.hero .played-panel')&&
  'More existing bordered boxes should have asymmetric accents');
 assert.ok(css.includes('.page-shell .badge-card')&&
  css.includes('.analytics-main .analytics-cards > *')&&
- css.includes('.sound-page .support-card'),
- 'Expanded accent coverage must include badge cards, analytics and game support');
+ css.includes('.sound-page .support-card')&&
+ css.includes('.collection-page .collection-card'),
+ 'Expanded coverage must include actual bordered badge, analytics, set and game support cards');
+assert.ok(!css.includes('.collection-page .collection-list')&&
+ !css.includes('.analytics-main .analytics-controls'),
+ 'Do not draw detached lines around unbordered collection or analytics containers');
+assert.ok(css.includes('.collection-page .collection-card{position:relative;overflow:visible}')&&
+ css.includes('.collection-card:nth-child(even)::before'),
+ 'Set-card strokes must stay visible while alternating corners to prevent overlap');
 for(const key of ['--play-line-mint-deep','#8ab9a5','--play-line-blue-deep',
  '--play-line-lilac-deep','--play-line-peach-deep','--play-line-pink-deep']){
  assert.ok(css.includes(key),'Missing darker inner color pairing: '+key);
