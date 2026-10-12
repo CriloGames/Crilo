@@ -74,7 +74,7 @@ html[data-theme="dark"]{
  border-left:2.5px solid var(--trace-first-deep,color-mix(in srgb,var(--trace-first,var(--play-line-mint)) 68%,var(--trace-shade-ink)));
  border-top-left-radius:calc(var(--trace-radius,22px) + 5px);
  background:none;
- filter:var(--trace-head-stack,drop-shadow(-6px -6px 0 var(--trace-first,var(--play-line-mint))));
+ filter:var(--trace-head-stack,none);
 }
 /* A second ribbon follows the opposite outer corner. Some cards repurpose
    this segment as a third, shorter line beside the first two. */
@@ -101,7 +101,7 @@ html[data-theme="dark"]{
  border-bottom:2.5px solid var(--trace-last-deep,color-mix(in srgb,var(--trace-last,var(--play-line-lilac)) 68%,var(--trace-shade-ink)));
  border-bottom-right-radius:calc(var(--trace-radius,22px) + 5px);
  background:none;
- filter:var(--trace-tail-stack,drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac))));
+ filter:var(--trace-tail-stack,none);
 }
 
 /* Chosen, nonrepeating lengths: some ribbons travel more than halfway
@@ -225,24 +225,14 @@ body>.filters,body>section{
  --trace-first:var(--play-line-mint);--trace-last:var(--play-line-peach);
 }
 
-/* On selected panels vary outer hues and lengths without brightening the
-   darker inside line. No inset graphics are drawn across content. */
+/* Default: one unstacked stroke per selected corner. Layering is a deliberate
+   exception, not the default. A stable seven-card rhythm makes adjacent cards
+   look different without jittering on every page load. */
 :is(
- #drawPanel,.leader-main .leader-panel,.duck-page .duck-progress,
- .collection-page .collection-card:nth-child(2n),.page-shell .settings-card:nth-child(even),
- .page-shell .friend-card:nth-child(odd),.crilo-legal-main .crilo-legal-paper,
- .beetle-lab .beetle-demo-card:nth-child(even),
- .sound-page .sound-app,.shell #gameScreen .card
+ #drawPanel,.leader-main .best-card,.sound-page .sound-app,
+ .crilo-legal-main .crilo-legal-paper
 ){
  --trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first,var(--play-line-mint)));
-}
-:is(
- #more-games .game-card:nth-of-type(2n),.leader-main .best-card,
- .page-shell .profile-card,.page-shell .stats-grid .stat-tile:nth-child(3n),
- .page-shell .settings-card:nth-child(odd),
- .analytics-main .analytics-cards > .analytics-card:nth-child(odd),.shell .personal-bests
-){
- --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac)));
 }
 
 /* Selective three-line stacks: darker inner line, lighter middle line,
@@ -332,19 +322,134 @@ body>.filters,body>section{
  --trace-first:var(--play-line-peach);--trace-last:var(--play-line-mint);
 }
 
-/* Badge sets and analytics use real bordered cards, never unbordered group
-   containers. Alternate corners so adjacent cards in tight grids do not
-   surround one another with too many strokes. Preserve details toggles. */
-.collection-page .collection-card{position:relative;overflow:visible}
-.collection-page .collection-card:nth-child(even)::before,
-.collection-page .collection-card:nth-child(odd)::after{content:none}
-.analytics-main .analytics-cards > .analytics-card{
+/* Seven-position visual rhythm on actual cards:
+   1 single upper; 2 double upper; 3 single lower; 4 opposite singles;
+   5 double lower; 6 double upper + single lower; 7 single upper.
+   The variation is deterministic, so redraws never flicker or reposition.
+   Accent-only pseudo-elements never become clickable. */
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+){--trace-head-stack:none;--trace-tail-stack:none}
+
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 2),
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 6){
+ --trace-head-stack:drop-shadow(-6px -6px 0 var(--trace-first,var(--play-line-mint)));
+}
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 5){
+ --trace-tail-stack:drop-shadow(6px 6px 0 var(--trace-last,var(--play-line-lilac)));
+}
+
+/* Hide only decorative pseudo-lines, not the cards or their real content.
+   Important ensures the original ID-weighted :is() host rule doesn't force
+   every card to display both corners. */
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 1)::after,
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 2)::after,
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 7)::after{
+ display:none!important;
+}
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 3)::before,
+:is(
+ #more-games .game-card,
+ .collection-page .collection-card,
+ .page-shell .settings-card,
+ .page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,
+ .page-shell .badge-card,
+ .analytics-main .analytics-card,
+ .duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+):nth-child(7n + 5)::before{
+ display:none!important;
+}
+/* Unique singletons also vary, rather than sharing the same double outline. */
+.hero .played-panel::after,
+.pastel-world .tip-card::after{display:none!important}
+.shell .personal-bests::before,
+.crilo-review-page .crilo-review-list::before{display:none!important}
+.leader-main .leader-panel{
  --trace-head-stack:none;--trace-tail-stack:none;
 }
-.analytics-main .analytics-cards > .analytics-card:nth-child(even)::before,
-.analytics-main .analytics-cards > .analytics-card:nth-child(odd)::after{
- content:none;
-}
+.duck-page .duck-progress::after{display:none!important}
+.sound-page .sound-inspector::before{display:none!important}
+.collection-page .collection-card{position:relative;overflow:visible}
 
 /* Shape of Sound keeps all moving blobs clipped by its own .sound-stage;
    allowing the surrounding app card to show exterior ribbons cannot let
@@ -399,6 +504,17 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 
 /* Mobile keeps the traces inside a card's own available width; no big
    floating curves, viewport bleed, hitboxes, or extra horizontal scrolling. */
+/* On narrow mobile widths single outlines are favored over stacked pairs.
+   Important: the app still has generous invisible touch areas around controls. */
+@media(max-width:600px){
+ :is(
+ #more-games .game-card,.collection-page .collection-card,
+ .page-shell .settings-card,.page-shell .friend-card,
+ .page-shell .stats-grid .stat-tile,.page-shell .badge-card,
+ .analytics-main .analytics-card,.duck-page .duck-card,
+ .beetle-lab .beetle-demo-card
+ ){--trace-head-stack:none;--trace-tail-stack:none}
+}
 @media(max-width:600px){
  :is(
  #drawPanel,#more-games .game-card,.hero .played-panel,.leader-main .best-card,.leader-main .leader-panel,
