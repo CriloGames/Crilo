@@ -1589,3 +1589,14 @@ html[data-theme="dark"] .account-wrap:has(> #accountBtn[aria-busy="true"])::befo
 #colorPickerInput{width:88px;height:62px;border:0;background:transparent;cursor:pointer;padding:2px}
 .draw-color-card #colorPickerDone{background:#17191e;color:#fff;border-color:#17191e;width:100%}
 @media(max-width:520px){.pixel-header-actions{gap:5px}.pixel-header-actions .small-btn{padding:9px 11px;font-size:12px}.recent-colors{gap:7px}.recent-color-swatches{gap:6px}.pixel-recent-colors{margin-bottom:12px}}
+
+
+/* Color editing: show the native color swatch/palette directly, not a custom dialog. */
+.drawing-color-value{display:inline-block!important;width:42px!important;height:38px!important;min-width:42px;border:1px solid #d8d4dc!important;border-radius:10px;background:#fff!important;padding:3px!important;cursor:pointer;vertical-align:middle}
+.native-paint-picker{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid #e0dde5;border-radius:11px;background:#fff;color:#17191e;padding:3px 6px 3px 10px;font-size:12px;font-weight:850;white-space:nowrap;min-height:42px}
+.native-paint-picker>span{font-size:12px;color:#17191e}
+.native-paint-picker input[type=color]{appearance:auto;-webkit-appearance:auto}
+.native-paint-picker:focus-within{outline:2px solid #9e85cb;outline-offset:2px}
+.native-paint-picker input:disabled{cursor:default;opacity:.5}
+html[data-theme="dark"] .native-paint-picker{background:var(--panel,#1a1c21);border-color:var(--line,#30333a);color:var(--text,#fff)}
+html[data-theme="dark"] .native-paint-picker>span{color:var(--text,#fff)}
