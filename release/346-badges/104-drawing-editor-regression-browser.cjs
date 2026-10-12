@@ -124,6 +124,18 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    });
    assert.ok(pixelRowLayout.headerHasOnlyExit&&pixelRowLayout.modeInsideTools,
     'Only Exit belongs in the Pixel Studio header; Spin belongs alongside tools');
+   if(width>=768){
+    const rowRects=await page.locator('.pixel-studio-tools').evaluate(row=>{
+     const rs=[...row.children].map(el=>el.getBoundingClientRect());
+     const box=row.getBoundingClientRect();
+     return {top:Math.max(...rs.map(r=>r.top))-Math.min(...rs.map(r=>r.top)),
+      right:Math.max(...rs.map(r=>r.right)),rowRight:box.right,
+      height:box.height};
+    });
+    assert.ok(rowRects.top<=7&&rowRects.right<=rowRects.rowRight+1&&rowRects.height<=52,
+     'Pixel Studio toolbar must stay on one row, with Clear visible at '+width+'px');
+   }
+
    assert.ok(pixelRowLayout.overflow<=2&&pixelRowLayout.toolsRight<=pixelRowLayout.modalRight+1,
     'Pixel Studio tool row must stay inside the modal on '+width+'px');
    assert.ok(Math.abs(pixelRowLayout.colorY-pixelRowLayout.modeY)<=7,
@@ -134,8 +146,9 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      'Narrow phone layout should keep Spin, Undo and Clear together on one row');
    }else{
     assert.ok(Math.abs(pixelRowLayout.pencilY-pixelRowLayout.modeY)<=7&&
-     Math.abs(pixelRowLayout.modeY-pixelRowLayout.undoY)<=7,
-     'Desktop Pixel Studio drawing controls should occupy one toolbar row');
+     Math.abs(pixelRowLayout.modeY-pixelRowLayout.undoY)<=7&&
+     Math.abs(pixelRowLayout.undoY-pixelRowLayout.clearY)<=7,
+     'Pixel Studio Pencil through Clear must all fit on one toolbar row');
    }
 
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),
