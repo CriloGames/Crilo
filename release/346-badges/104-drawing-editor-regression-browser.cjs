@@ -49,6 +49,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await point(page,'drawing',150,100);
    assert.deepEqual(await pixel(page,'drawing',150,100),before,
     'Canvas painted through color picker at '+width+'px');
+   if(await page.locator('#drawColorModal').isVisible())
+    await page.locator('#colorPickerDone').click();
    await color(page,'drawColorPickerBtn','#ee3344');
    await page.locator('.drawing-tool[data-tool="fill"]').click();
    await point(page,'drawing',150,100);
