@@ -204,6 +204,10 @@ const controls=[
     const paint=document.querySelector('#drawing');
     const bounds=paint.getBoundingClientRect();
     const top=document.elementFromPoint(bounds.left+bounds.width/2,bounds.top+bounds.height/2);
+    const wheelBox=document.querySelector('#wheelWrap').getBoundingClientRect();
+    const ringBox=inner.getBoundingClientRect();
+    const ringCenter={x:ringBox.left+ringBox.width/2,y:ringBox.top+ringBox.height/2};
+    const drawingCenter={x:bounds.left+bounds.width/2,y:bounds.top+bounds.height/2};
     return [outer,inner].map(el=>({
      animation:getComputedStyle(el).animationName,
      pointer:getComputedStyle(el).pointerEvents,
@@ -211,12 +215,25 @@ const controls=[
      mask:getComputedStyle(el,'::before').maskImage,
      glow:getComputedStyle(el,'::after').filter,
      opacity:getComputedStyle(el).opacity
-    })).concat([{paintClickTarget:top===paint}]);
+    })).concat([{
+     paintClickTarget:top===paint,
+     wheelWidth:wheelBox.width,
+     radialGap:(ringBox.width-bounds.width)/2,
+     ringCenter,drawingCenter,
+     innerHalo:getComputedStyle(inner,'::after').filter
+    }]);
    });
    assert.ok(ring.slice(0,2).every(r=>r.animation==='criloWheelNeonColors'&&
     r.pointer==='none'&&r.transform==='none'&&r.mask!=='none'&&r.glow.includes('blur(')),
     'Neon must animate independently from the wheel, using a colored halo');
    assert.ok(ring[2].paintClickTarget,'Neon may not cover or steal canvas clicks');
+   assert.ok(Math.abs(ring[2].radialGap-15)<=1.1,
+    'Inner neon must sit 15px outside the artwork edge on wheel '+ring[2].wheelWidth+'px');
+   assert.ok(Math.abs(ring[2].ringCenter.x-ring[2].drawingCenter.x)<=1.1&&
+    Math.abs(ring[2].ringCenter.y-ring[2].drawingCenter.y)<=1.1,
+    'Moving the inner neon may not offset it from the drawing');
+   assert.ok(ring[2].innerHalo.includes('blur(3px)'),
+    'Inner halo must stay narrow enough to keep color off the drawing');
    const lightOpacity=Number(ring[0].opacity);
    await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
    const darkOpacity=Number(await page.locator('#wheelNeonOuter').evaluate(el=>getComputedStyle(el).opacity));
