@@ -72,7 +72,23 @@ const pages=[
        const target=document.querySelector(route==='index.html'?'#drawPanel':'.best-card');
        const before=getComputedStyle(target,'::before');
        const after=getComputedStyle(target,'::after');
+       // Read actual rendered pixels because CSS color-mix() may be serialized
+       // as either rgb() or color(srgb) by Chromium.
+       const probe=document.createElement('canvas');
+       probe.width=probe.height=1;
+       const ctx=probe.getContext('2d',{willReadFrequently:true});
+       function luminance(color){
+        ctx.clearRect(0,0,1,1);ctx.fillStyle='#000';
+        ctx.fillStyle=color;ctx.fillRect(0,0,1,1);
+        const d=ctx.getImageData(0,0,1,1).data;
+        return .2126*d[0]+.7152*d[1]+.0722*d[2];
+       }
+       const outside=getComputedStyle(target).getPropertyValue('--trace-first').trim()||
+        getComputedStyle(target).getPropertyValue('--play-line-mint').trim();
        return{
+        innerLuminance:luminance(before.borderTopColor),
+        outerLuminance:luminance(outside),
+        headFilter:before.filter,
         freeArt:/pastel-(?:space|play)-traces/.test(
          getComputedStyle(document.body).backgroundImage+' '+
          getComputedStyle(document.querySelector('main')).backgroundImage),
@@ -85,6 +101,11 @@ const pages=[
       },name);
       assert.equal(ribbons.freeArt,false,'Floating backgrounds must be removed');
       assert.equal(ribbons.first,'solid','Missing layered upper border ribbon');
+      assert.ok(ribbons.innerLuminance+5<ribbons.outerLuminance,
+       'The line closest to the box must be darker than its outer pastel at '+
+        name+' '+width+' '+theme+': '+JSON.stringify(ribbons));
+      if(width>600)assert.ok(ribbons.headFilter.includes('drop-shadow'),
+       'Wider cards should carry an extra light stroke outside the darker rim');
       if(width>1180){
        assert.equal(ribbons.third,'solid','Third stacked stroke missing on wide screen');
        assert.ok(ribbons.thirdTop<ribbons.firstTop &&
