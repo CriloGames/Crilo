@@ -16,7 +16,7 @@ const controls=[
  let browser;
  try{
   browser=await chromium.launch({headless:true,args:['--no-sandbox']});
-  for(const width of [375,390,600,601,768,840,900,1280]){
+  for(const width of [375,390,600,601,760,780,781,800,820,840,900,1280]){
    const context=await browser.newContext({viewport:{width,height:900}});
    await context.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,route=>
@@ -44,7 +44,22 @@ const controls=[
     };
    },controls);
    const ready=await state();
-   if(width>840){
+   if(width>=781&&width<=900){
+    const geometry=await page.evaluate(()=>{
+     const copy=document.querySelector('#drawPanel>div:first-child').getBoundingClientRect();
+     const tools=document.querySelector('.draw-actions').getBoundingClientRect();
+     const first=document.querySelector('#pixelStudioBtn').getBoundingClientRect();
+     return {copyRight:copy.right,firstLeft:first.left,
+      sameRow:Math.abs(copy.top-tools.top)<=30,
+      innerOverflow:document.querySelector('#drawPanel').scrollWidth-
+       document.querySelector('#drawPanel').clientWidth};
+    });
+    assert.ok(geometry.sameRow&&geometry.firstLeft>=geometry.copyRight-1,
+     'Medium-width Drawing Studio must be side by side without button overlap at '+width);
+    assert.ok(geometry.innerOverflow<=2,
+     'Medium-width Drawing Studio must fit inside the panel at '+width);
+   }
+   if(width>=1000){
     const copyLines=await page.evaluate(()=>{
      const count=id=>{const range=document.createRange();
       range.selectNodeContents(document.getElementById(id));
@@ -81,7 +96,7 @@ const controls=[
     'Unpainted slots must not be clickable');
    const clearBefore=await page.locator('#clearDrawing').boundingBox();
    const modeBefore=await page.locator('#drawMode').boundingBox();
-   if(width>840){
+   if(width>=781){
     const rows=await page.evaluate(()=>{
      const rect=id=>document.querySelector(id).getBoundingClientRect();
      const y=id=>rect(id).top;
@@ -151,7 +166,7 @@ const controls=[
    const modeWidth=await page.locator('#drawMode').evaluate(el=>el.getBoundingClientRect().width);
    if(width>600)assert.ok(modeWidth<=125,'Mode selector has unwanted whitespace at '+width);
    else assert.ok(modeWidth<=158,'Native mobile mode selector should remain compact');
-   if(width>840)assert.ok(ready.tools.x>=ready.copy.right-2,
+   if(width>=781)assert.ok(ready.tools.x>=ready.copy.right-2,
     'Desktop editor should keep instructions left and controls right');
    else assert.ok(ready.tools.y>=ready.copy.bottom-2,
     'Phone/tablet editor should stack instructions over tools');
@@ -166,7 +181,7 @@ const controls=[
    assert.equal(locked.mode,'spin','Existing dropdown selection lost on lock');
    assert.equal(locked.selected,0,'A drawing tool still looks selected after first spin');
    assert.ok(locked.overflow<=2,'First-spin locked panel overflows at '+width);
-   if(width>840)assert.ok(
+   if(width>=781)assert.ok(
     Math.abs((locked.copy.y+locked.copy.height/2)-(locked.tools.y+locked.tools.height/2))<=12,
     'Locked instructions and controls should be vertically centered together at '+width);
    else assert.ok(locked.tools.y>=locked.copy.bottom-2,
@@ -182,7 +197,7 @@ const controls=[
     'Completed Daily must leave all nine tools disabled at '+width);
    assert.equal(finished.mode,'spin','Completed Daily changed selected drawMode');
    assert.ok(finished.overflow<=2,'Finished panel horizontal overflow at '+width);
-   if(width>840)assert.ok(
+   if(width>=781)assert.ok(
     Math.abs((finished.copy.y+finished.copy.height/2)-(finished.tools.y+finished.tools.height/2))<=12,
     'Finished message and toolbar must share a centered row at '+width);
    else assert.ok(finished.tools.y>=finished.copy.bottom-2,
