@@ -231,3 +231,11 @@ html[data-theme="dark"] .crilo-standalone #criloSharedAuthModal .text-input{
  .crilo-game-topbar .circle-btn{width:34px;height:34px}
  .crilo-game-topbar .account-wrap{max-width:32vw}
 }
+
+/* The bell dropdown belongs to the viewport, never beyond a narrow phone edge. */
+@media(max-width:700px){
+ .crilo-game-topbar .crilo-notification-panel{
+  position:fixed;top:120px;left:12px;right:12px;
+  width:auto;max-width:none;max-height:calc(100dvh - 140px);overflow-y:auto;
+ }
+}

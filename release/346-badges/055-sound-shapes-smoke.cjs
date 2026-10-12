@@ -31,7 +31,7 @@ assert.ok(!css.includes('body.sound-only-page .topbar .header-actions{display:no
  'Do not hide Info and Settings buttons on the standalone sound page');
 assert.ok(html.includes('id="gameInfoBtn"')&&html.includes('href="settings.html"'),
  'Sound game must show an information button and working Settings link');
-assert.ok(html.includes('class="sound-only-page"'),'Sound page needs scoped header class');
+assert.ok(html.includes('class="sound-only-page crilo-standalone"'),'Sound page needs scoped header class');
 assert.ok(homepage.includes('id="soundHomeGame" href="shape-of-sound.html"'),'Homepage needs direct link to independent Shape of Sound');
 assert.ok(homepage.indexOf('id="soundHomeGame"')<homepage.indexOf('href="domain/"'),
  'Shape of Sound must be immediately before Domain');

@@ -72,6 +72,9 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        assert.ok(await bell.isVisible(),'Authenticated notification bell missing');
        await bell.click();
        assert.ok(await page.locator('#friendBellPanel').isVisible(),'Notification panel failed to open');
+       const dropdown=await page.locator('#friendBellPanel').boundingBox();
+       assert.ok(dropdown.x>=-2 && dropdown.x+dropdown.width<=width+2,
+        'Friend notifications clipped outside viewport on '+width+'px: '+JSON.stringify(dropdown));
        const friendFooter=await page.locator('.crilo-notification-footer').getAttribute('href');
        assert.equal(friendFooter,game.root+'friends.html','Friends bell link points outside site root');
        await bell.click();
