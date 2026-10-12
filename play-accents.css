@@ -258,3 +258,34 @@ body>section:first-of-type::before{
  body>.filters::after,body>section:last-of-type::after{right:0;bottom:0;width:62px;height:27px}
  body>section:first-of-type::before{left:0;top:0;width:56px;height:24px}
 }
+
+
+/* The completed drawing area is an unavailable workspace, not a faint heading
+   above editable-looking controls. Keep its original footprint and pastel rails. */
+#drawPanel .draw-finished-overlay{display:none}
+#drawPanel.daily-finished{background:#e7e9ed!important;border-color:#cdd2d9}
+#drawPanel.daily-finished>div:first-child{opacity:0}
+#drawPanel.daily-finished>.draw-finished-overlay{
+ display:flex;position:absolute;inset:2px;z-index:3;
+ align-items:center;justify-content:center;box-sizing:border-box;
+ padding:18px 24px;border-radius:16px;
+ background:rgba(216,219,224,.88);color:#444b56;
+ text-align:center;pointer-events:none;
+}
+#drawPanel.daily-finished .draw-finished-overlay strong{
+ display:block;max-width:100%;font-size:clamp(21px,3.1vw,34px);
+ font-weight:900;letter-spacing:-.035em;line-height:1.2;
+ text-wrap:balance;overflow-wrap:normal;
+}
+html[data-theme="dark"] #drawPanel.daily-finished{
+ background:#2b303a!important;border-color:#535b67
+}
+html[data-theme="dark"] #drawPanel.daily-finished>.draw-finished-overlay{
+ background:rgba(41,46,55,.91);color:#eef0f4
+}
+@media(max-width:600px){
+ #drawPanel.daily-finished>.draw-finished-overlay{padding:13px 20px;border-radius:15px}
+ #drawPanel.daily-finished .draw-finished-overlay strong{
+  font-size:clamp(19px,5.9vw,27px);line-height:1.25
+ }
+}
