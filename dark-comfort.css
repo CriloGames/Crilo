@@ -1,0 +1,139 @@
+/* Comfort dark mode for Crilo's shared pages, controls, and drawing editor.
+   Preserve pale wheel drawing canvases; mute surrounding UI, not player art. */
+html[data-theme="dark"]{
+ color-scheme:dark;
+ --bg:#17191e;--panel:#232630;--soft:#2c303a;
+ --line:#40454f;--text:#e9eaf0;--muted:#b1b7c2;
+ --shadow:rgba(0,0,0,.24);
+}
+/* Replace light-mode gradients, overly bright badges and washed-out copy. */
+html[data-theme="dark"] .best-card{
+ background:linear-gradient(145deg,#282d37,#252e38);
+ border-color:#434853;box-shadow:0 10px 32px #0003;
+}
+html[data-theme="dark"] :is(.best-description,.best-stats,.sub,.leader-mini,.rarity-method,
+ .draw-panel>div:first-child>span,.wheel-score-eyebrow,.recent-colors>strong,
+ .recent-colors-empty,.pixel-hint,.pixel-studio-header p,
+ .rarest-run-card p,.rarest-run-detail span,.stat-info-card p){color:#b5bac6}
+html[data-theme="dark"] :is(.draw-panel .drawing-safety-note,
+ .pixel-studio-card .pixel-safety-note){color:#d3aaac}
+html[data-theme="dark"] :is(.circle-btn,.small-btn,.tiny-btn,.owner-tools-button){
+ background:#2b303a;color:#e9eaf0;border-color:#505661;
+}
+html[data-theme="dark"] :is(.small-btn,.tiny-btn,.circle-btn):hover:not(:disabled){
+ background:#363d49;color:#f0f1f7;
+}
+/* Pixel Studio shortcut previously had nearly white text on pale lavender. */
+html[data-theme="dark"] .draw-actions #pixelStudioBtn{
+ background:#393347;color:#e9dff5;border-color:#695b80;
+ box-shadow:inset 0 1px 0 rgba(233,223,245,.08);
+}
+html[data-theme="dark"] .draw-actions #pixelStudioBtn:hover:not(:disabled){
+ background:#453b57;color:#f3ebfb;border-color:#87729d;
+}
+html[data-theme="dark"] .drawing-tool.active{
+ background:#55506b;color:#fff4ff;border-color:#7a7194;
+}
+html[data-theme="dark"] :is(#drawMode,.draw-panel select,.pixel-studio-tools select){
+ background:#303542;border:1px solid #5b626e;color:#ecedf3;color-scheme:dark;
+}
+html[data-theme="dark"] .draw-panel :is(.small-btn,select):disabled{opacity:.66}
+/* Pixel Studio is not a .modal-card; its old bright dialog ignored dark mode. */
+html[data-theme="dark"] .pixel-studio-card{
+ background:#242831;border:1px solid #4a505c;
+ color:#e8eaf0;box-shadow:0 20px 58px #0005;
+}
+html[data-theme="dark"] .pixel-studio-card :is(h2,.pixel-studio-tools label){color:#e8eaf0}
+html[data-theme="dark"] .pixel-studio-card .pixel-tool.active{
+ background:#4e4865;border-color:#8b7ca2;color:#f7eeff;
+}
+html[data-theme="dark"] .pixel-studio-card .small-btn:not(.active){
+ background:#323743;border-color:#555c6c;color:#e8eaf0;
+}
+html[data-theme="dark"] .pixel-studio-card .small-btn:hover:not(:disabled){
+ background:#424858;color:#f0f0f6;
+}
+html[data-theme="dark"] .pixel-studio-card .pixel-tool.active:hover:not(:disabled){
+ background:#5d5375;
+}
+html[data-theme="dark"] .pixel-studio-card .pixel-canvas-wrap{border-color:#8f97a6}
+html[data-theme="dark"] .native-paint-picker{
+ background:#303542;border-color:#5b626e;color:#e9eaf0;
+}
+html[data-theme="dark"] .native-paint-picker>span{color:#e9eaf0}
+html[data-theme="dark"] .drawing-color-value{
+ background:#303542!important;border-color:#666b79!important;
+}
+html[data-theme="dark"] .paint-color-button{
+ background:#303542;color:#e8eaf0;border-color:#5b626e;
+}
+html[data-theme="dark"] :is(.paint-color-dot,.recent-color-swatch){border-color:#a5adba}
+html[data-theme="dark"] .draw-color-card{
+ background:#252933;color:#e8eaf0;
+ border-color:#5c6471;box-shadow:0 20px 65px #0006;
+}
+html[data-theme="dark"] .draw-color-card p{color:#b9c0cb}
+html[data-theme="dark"] .draw-color-card #colorPickerDone{
+ background:#4b465f;border-color:#77708c;color:#f5efff;
+}
+/* Replace other intense light-only colors with desaturated night finishes. */
+html[data-theme="dark"] .test-banner{
+ background:#443e2e;color:#e8d9a8;border-color:#7b7155;box-shadow:3px 3px 0 #242128;
+}
+html[data-theme="dark"] .reset-chip{background:#30343d;color:#dee2eb}
+html[data-theme="dark"] .game-icon{
+ background:#343949;color:#e1e4ee;border-color:#666e7b;box-shadow:3px 3px 0 #1b202a;
+}
+html[data-theme="dark"] :is(.how-grid>div,.rarest-run-detail,.owner-tools){
+ background:#292d37;color:#e7e9ef;border-color:#464b58;
+}
+html[data-theme="dark"] .featured-slot.featured-editable{
+ background:#292d37;border-color:#5c6074;color:#e6e7f0;
+}
+html[data-theme="dark"] .featured-slot.featured-editable:hover{
+ background:#333744;border-color:#736986;
+}
+html[data-theme="dark"] .featured-slot b{color:#e7e9ef}
+html[data-theme="dark"] .stat-tile.stat-rarity{
+ --rarity-bg:#2b303a;--rarity-border:#505866;--rarity-ink:#d5d9e2;
+ background:color-mix(in srgb,var(--rarity-ink) 5%,#292e38);
+ border-color:var(--rarity-border);
+}
+html[data-theme="dark"] .stat-rarity-common{--rarity-ink:#c1c7d1;--rarity-border:#555c68}
+html[data-theme="dark"] .stat-rarity-uncommon{--rarity-ink:#97c9ae;--rarity-border:#527467}
+html[data-theme="dark"] .stat-rarity-rare{--rarity-ink:#98bce4;--rarity-border:#526d91}
+html[data-theme="dark"] .stat-rarity-epic{--rarity-ink:#baa5dd;--rarity-border:#71618a}
+html[data-theme="dark"] .stat-rarity-legendary{--rarity-ink:#cfb978;--rarity-border:#82724d}
+html[data-theme="dark"] .stat-rarity-mythic{--rarity-ink:#da9fc1;--rarity-border:#815b75}
+html[data-theme="dark"] .wheel-score[data-rarity="unrevealed"]{--score-accent:#a6aebb}
+html[data-theme="dark"] .wheel-score[data-rarity="trash"]{--score-accent:#d0a578}
+html[data-theme="dark"] .wheel-score[data-rarity="common"]{--score-accent:#b0b8c4}
+html[data-theme="dark"] .wheel-score[data-rarity="uncommon"]{--score-accent:#8cbfa4}
+html[data-theme="dark"] .wheel-score[data-rarity="rare"]{--score-accent:#93b5da}
+html[data-theme="dark"] .wheel-score[data-rarity="epic"]{--score-accent:#b5a0d7}
+html[data-theme="dark"] .wheel-score[data-rarity="anomaly"]{--score-accent:#d29c7f}
+html[data-theme="dark"] .wheel-score[data-rarity="mythic"]{--score-accent:#d6a0cb}
+html[data-theme="dark"] .wheel-score-rarity{
+ background:color-mix(in srgb,var(--score-accent) 11%,#252a33);
+ border-color:color-mix(in srgb,var(--score-accent) 36%,#424954);
+ color:var(--score-accent);
+}
+html[data-theme="dark"] .new-badge-panel{
+ background:#272631;border-color:#5b5069;
+}
+html[data-theme="dark"] .new-badge-list .badge-top-chip.new-badge-item{
+ background:color-mix(in srgb,var(--crilo-badge-accent) 11%,#262a33)!important;
+ border-color:color-mix(in srgb,var(--crilo-badge-accent) 37%,#4b505c);
+}
+html[data-theme="dark"] .new-badge-item-copy strong{color:#e9eaf0}
+html[data-theme="dark"] .new-badge-item-copy p{color:#b6bdc8}
+html[data-theme="dark"] :is(.badge-top-chip,.collection-tile:not(.locked),
+ .featured-slot.featured-filled){
+ background:color-mix(in srgb,var(--crilo-badge-accent,#718097) 10%,#282d36)!important;
+}
+html[data-theme="dark"] :is(.badge-top-chip b,.collection-tile b,
+ .collection-tile-description){color:#e6e8ef}
+html[data-theme="dark"] .collection-tile:not(.locked) small{color:#c6cbd5}
+html[data-theme="dark"] :is(.leader-tab,.pixel-tool,.small-btn,.primary):focus-visible{
+ outline:2px solid #99a8d4;outline-offset:2px;
+}
