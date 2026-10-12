@@ -189,7 +189,7 @@ assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\{/,
  'Studio spin selector needs compact scoped styling');
 assert.match(pixelCss,/@media \(max-width:560px\)[\s\S]*?#pixelStudioModal \.pixel-studio-header\{flex-wrap:wrap/,
  'Studio title, spin mode and Exit must fit on mobile');
-assert.match(html,/style\.css\?v=118/,'Updated Pixel Studio CSS must be served');
+assert.match(html,/style\.css\?v=119/,'Updated Pixel Studio CSS must be served');
 assert.match(html,/game\.js\?v=97/,'Synced Pixel Studio mode JS must be served');
 const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
 const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
