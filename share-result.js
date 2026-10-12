@@ -4,7 +4,7 @@
  const byId=id=>document.getElementById(id);
  const esc=s=>String(s??'');
  const number=n=>Math.max(0,Number(n)||0);
- let report=null,dialog=null,canvas=null,notice=null,busy=false;
+ let report=null,dialog=null,canvas=null,notice=null,busy=false,shareImageBlob=null,shareRevision=0;
  const font=(weight,size)=>weight+' '+size+'px system-ui, -apple-system, sans-serif';
  function addButton(parent,id,text){
   const btn=document.createElement('button');btn.type='button';btn.id=id;
@@ -67,17 +67,29 @@
   }catch(e){notice.textContent='Copy was blocked. Try Share or Save image.'}
  }
  async function saveImage(){
-  try{const blob=await outputBlob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='crilo-daily-'+report.daily_period+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notice.textContent='Image saved.';window.CriloMetrics?.track('share_result')}
+  try{const blob=shareImageBlob||await outputBlob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='crilo-daily-'+report.daily_period+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notice.textContent='Image saved.';window.CriloMetrics?.track('share_result')}
   catch(e){notice.textContent='Image could not be saved.'}
  }
- async function nativeShare(){
+ function nativeShare(){
+  // Safari's Web Share API requires a live user gesture. Do not await canvas
+  // serialization before calling navigator.share(), as doing so can consume
+  // the gesture and silently break the native share sheet on iPhones.
+  if(!navigator.share){copyText();return}
   try{
-   const blob=await outputBlob(),file=new File([blob],'crilo-daily.png',{type:'image/png'});
-   if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({title:'Crilo Daily Wheel',text:description(),files:[file]})}
-   else if(navigator.share){await navigator.share({title:'Crilo Daily Wheel',text:description(),url:'https://crilo.fun/'})}
-   else {await copyText();return}
-   window.CriloMetrics?.track('share_result');notice.textContent='Shared!';
-  }catch(e){if(e.name!=='AbortError')notice.textContent='Sharing unavailable here. Try Copy result or Save image.'}
+   let payload={title:'Crilo Daily Wheel',text:description(),url:'https://crilo.fun/'};
+   if(shareImageBlob&&typeof File==='function'){
+    const file=new File([shareImageBlob],'crilo-daily.png',{type:'image/png'});
+    if(navigator.canShare?.({files:[file]}))
+     payload={title:'Crilo Daily Wheel',text:description(),files:[file]};
+   }
+   Promise.resolve(navigator.share(payload)).then(()=>{
+    window.CriloMetrics?.track('share_result');notice.textContent='Shared!';
+   }).catch(error=>{
+    if(error?.name!=='AbortError')notice.textContent='Sharing unavailable here. Try Copy result or Save image.';
+   });
+  }catch(error){
+   if(error?.name!=='AbortError')notice.textContent='Sharing unavailable here. Try Copy result or Save image.';
+  }
  }
  async function show(){
   if(busy)return;busy=true;
@@ -95,7 +107,14 @@
     byId('message').textContent='Your verified Daily is not saved yet. Try again after it finishes.';
     return;
    }
-   report=data;ensureDialog();notice.textContent='';draw();dialog.showModal();
+   report=data;ensureDialog();notice.textContent='';draw();
+   // Prepare the image while the user reads the preview, rather than
+   // starting an asynchronous export inside the later Share button click.
+   const revision=++shareRevision;
+   shareImageBlob=null;
+   outputBlob().then(blob=>{if(revision===shareRevision)shareImageBlob=blob})
+    .catch(error=>{console.warn('Image share preparation unavailable:',error)});
+   dialog.showModal();
   }catch(e){console.warn('Crilo sharing unavailable:',e)}finally{busy=false}
  }
  function sync(){
