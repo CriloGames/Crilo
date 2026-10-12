@@ -19,7 +19,7 @@ html[data-theme="dark"]{
 /* These are existing cards or panels with real boundaries. Nothing is
    positioned against the viewport, and no strokes cross the play area. */
 :is(
- #drawPanel,#more-games .game-card,
+ #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
@@ -29,7 +29,7 @@ html[data-theme="dark"]{
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
  .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,
  body>.filters,body>section
@@ -38,7 +38,7 @@ html[data-theme="dark"]{
 /* First ribbon follows the card's top-left rim entirely OUTSIDE its border.
    Selected cards can add a second external copy without entering the card. */
 :is(
- #drawPanel,#more-games .game-card,
+ #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
@@ -48,7 +48,7 @@ html[data-theme="dark"]{
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
  .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::before{
@@ -65,7 +65,7 @@ html[data-theme="dark"]{
 /* A second ribbon follows the opposite outer corner. Some cards repurpose
    this segment as a third, shorter line beside the first two. */
 :is(
- #drawPanel,#more-games .game-card,
+ #drawPanel,#more-games .game-card,.hero .played-panel,
  .leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
@@ -75,7 +75,7 @@ html[data-theme="dark"]{
  .crilo-review-page .crilo-review-scan-box,.crilo-review-list,
  .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
  .beetle-lab .beetle-demo-card,
- .sound-page .sound-app,.sound-page .sound-tipbar,
+ .sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
  .shell #gameScreen .card,.shell .personal-bests,
  .pastel-world .tip-card,body>.filters,body>section
 )::after{
@@ -194,6 +194,23 @@ body>.filters,body>section{
 }
 
 
+
+/* More actual bordered panels receive restrained, asymmetric outside rails. */
+.hero .played-panel{
+ --trace-radius:18px;--trace-head:71%;--trace-tail:26%;
+ --trace-head-turn:36px;--trace-tail-turn:27px;
+ --trace-first:var(--play-line-blue);--trace-last:var(--play-line-pink);
+}
+.hero .played-panel:nth-of-type(even){
+ --trace-head:29%;--trace-tail:63%;
+ --trace-first:var(--play-line-peach);--trace-last:var(--play-line-lilac);
+}
+.sound-page .sound-inspector{
+ --trace-radius:16px;--trace-head:24%;--trace-tail:65%;
+ --trace-head-turn:29px;--trace-tail-turn:27px;
+ --trace-first:var(--play-line-mint);--trace-last:var(--play-line-peach);
+}
+
 /* A second line copies only the painted partial border, shifted OUTWARD.
    Drop-shadow acts on the corner stroke itself, not the entire card. */
 :is(
@@ -270,9 +287,9 @@ body>.filters,body>section{
  --trace-last:var(--play-line-pink);
 }
 
-/* Thin mobile gutters cannot support a 23px third offset safely; keep one
+/* Narrow gutters cannot support a 23px third offset safely; keep one
    short stroke at each corner instead. This avoids iPhone horizontal overflow. */
-@media(max-width:600px){
+@media(max-width:1024px){
  :is(
  #drawPanel,.leader-main .best-card,
  .collection-page .collection-list,.sound-page .sound-app,
@@ -339,14 +356,14 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
    floating curves, viewport bleed, hitboxes, or extra horizontal scrolling. */
 @media(max-width:600px){
  :is(
- #drawPanel,#more-games .game-card,.leader-main .best-card,.leader-main .leader-panel,
+ #drawPanel,#more-games .game-card,.hero .played-panel,.leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
  .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
- .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,
+ .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
  )::before{
@@ -356,14 +373,14 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   filter:none;
  }
  :is(
- #drawPanel,#more-games .game-card,.leader-main .best-card,.leader-main .leader-panel,
+ #drawPanel,#more-games .game-card,.hero .played-panel,.leader-main .best-card,.leader-main .leader-panel,
  .duck-page .duck-progress,.duck-page .duck-collection-grid .duck-card,
  .collection-page .collection-heading,.collection-page .collection-list,
  .page-shell .profile-card,.page-shell .settings-card,.page-shell .friend-card,
  .page-shell .stats-grid .stat-tile,.crilo-legal-main .crilo-legal-paper,
  .crilo-review-page .crilo-review-scan-box,.crilo-review-page .crilo-review-list,
  .analytics-main .analytics-controls,.analytics-main .analytics-table-scroll,
- .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,
+ .beetle-lab .beetle-demo-card,.sound-page .sound-app,.sound-page .sound-tipbar,.sound-page .sound-inspector,
  .shell #gameScreen .card,.shell .personal-bests,.pastel-world .tip-card,
  body>.filters,body>section
  )::after{
