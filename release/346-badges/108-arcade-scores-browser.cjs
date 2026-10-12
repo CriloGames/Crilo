@@ -52,7 +52,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     });
     const row=await get('#leaderList .leader-score'),best=await get('#bestScore');
     assert.ok(['block','inline-block'].includes(row.display),'Score has only a clean frame');
-    assert.ok(!row.shadow.includes('inset'),'No layered arcade screen should remain');
+    assert.ok(row.shadow.includes('inset'),'Reverse-neon scores need an inward, not outward, glow');
     assert.ok(row.shadow.includes('rgb'),'Score box should have a soft shadow');
     assert.ok(['none','normal'].includes(row.contentBefore),'Remove extra CRILO lettering');
     assert.ok(['none','normal'].includes(row.decoration),'Remove decorative status lights');
