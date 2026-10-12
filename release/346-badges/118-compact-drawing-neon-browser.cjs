@@ -58,8 +58,29 @@ const controls=[
     'All nine active tools visible at '+width);
    assert.ok(ready.disabled.every(x=>!x),'All nine tools enabled before spin at '+width);
    assert.ok(ready.overflow<=2,'Active panel horizontal overflow at '+width);
+   const toolbarPositions=()=>page.evaluate(()=>{
+    const panel=document.querySelector('#drawPanel');
+    const ids=['#pixelStudioBtn','[data-tool="pen"]','[data-tool="fill"]',
+     '[data-tool="eraser"]','#undoDrawing','#redoDrawing','#clearDrawing',
+     '#drawMode','.native-paint-picker','#drawRecentColors'];
+    return {
+     height:panel.getBoundingClientRect().height,
+     viewportOverflow:document.documentElement.scrollWidth-innerWidth,
+     positions:ids.map(id=>{
+      const rect=document.querySelector(id).getBoundingClientRect();
+      return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,right:rect.right};
+     })
+    };
+   });
+   const beforePaint=await toolbarPositions();
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
-    'none','Empty recent-colors hint should not add an awkward extra row');
+    'flex','Five recent-color slots must be reserved before painting');
+   assert.equal(await page.locator('#drawRecentSwatches .recent-color-empty-slot').count(),5,
+    'Before painting, five placeholder slots must maintain toolbar geometry');
+   assert.equal(await page.locator('#drawRecentSwatches button').count(),0,
+    'Unpainted slots must not be clickable');
+   const clearBefore=await page.locator('#clearDrawing').boundingBox();
+   const modeBefore=await page.locator('#drawMode').boundingBox();
    if(width>840){
     const rows=await page.evaluate(()=>{
      const rect=id=>document.querySelector(id).getBoundingClientRect();
@@ -67,64 +88,65 @@ const controls=[
      return {studio:y('#pixelStudioBtn'),pen:y('[data-tool="pen"]'),
       history:y('#undoDrawing'),mode:y('#drawMode'),
       color:y('.native-paint-picker'),clear:y('#clearDrawing'),
+      recent:y('#drawRecentColors'),
+      redoRight:rect('#redoDrawing').right,
+      clearLeft:rect('#clearDrawing').left,
+      clearRight:rect('#clearDrawing').right,
+      modeLeft:rect('#drawMode').left,
+      colorRight:rect('.native-paint-picker').right,
+      recentLeft:rect('#drawRecentColors').left,
       firstGap:rect('.draw-toolbar-primary .draw-tool-group').left-rect('#pixelStudioBtn').right,
       secondGap:rect('.draw-toolbar-primary .draw-tool-group:last-child').left-
        rect('.draw-toolbar-primary .draw-tool-group').right};
     });
-    assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5,
-     'Studio, pen and undo groups must share one flat row at '+width);
-    assert.ok(Math.abs(rows.studio-rows.mode)<5&&Math.abs(rows.mode-rows.color)<5&&
-     Math.abs(rows.mode-rows.clear)<5,
-     'Dropdown, color and clear should align with all other tools at '+width);
+    assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5&&
+     Math.abs(rows.mode-rows.color)<5&&Math.abs(rows.clear-rows.mode)<5&&
+     Math.abs(rows.recent-rows.mode)<5,
+     'Every control and reserved swatch slot must form one flat row at '+width);
+    assert.ok(rows.clearLeft>=rows.redoRight-1&&
+     rows.modeLeft>=rows.clearRight-1&&
+     rows.recentLeft>=rows.colorRight-1,
+     'Clear must follow Undo/Redo before the selector, with swatches after Color at '+width);
     assert.ok(rows.firstGap>=0&&rows.firstGap<=10&&
      rows.secondGap>=0&&rows.secondGap<=10,
-     'Main tool groups should stay close together, without huge grid gaps at '+width);
+     'Drawing tools must stay grouped with no large empty gaps at '+width);
    }
    await page.evaluate(()=>window.recordPaintColor('#ee7799'));
    assert.equal(await page.locator('#drawRecentSwatches button').count(),1,
-    'Painting should reveal a usable recent color');
-   assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
-    'flex','Recent swatches should become visible after painting');
-   const beforeColors=await page.locator('#clearDrawing').boundingBox();
+    'The first painted color should replace exactly one placeholder');
+   assert.equal(await page.locator('#drawRecentSwatches .recent-color-empty-slot').count(),4,
+    'Four empty slots must remain after the first color');
    await page.evaluate(()=>{
     for(const hex of ['#112233','#223344','#334455','#445566','#556677','#667788','#778899'])
      window.recordPaintColor(hex);
    });
    assert.equal(await page.locator('#drawRecentSwatches button').count(),5,
-    'A maximum of five recent paint colors should be rendered at '+width);
+    'Only the five most recently used colors should appear at '+width);
+   assert.equal(await page.locator('#drawRecentSwatches .recent-color-empty-slot').count(),0,
+    'Five filled slots should replace all placeholders');
    assert.equal(await page.locator('#pixelRecentSwatches button').count(),5,
-    'Pixel Studio should share the same capped five-color palette at '+width);
-   const colorLayout=await page.evaluate(()=>{
-    const rect=id=>document.querySelector(id).getBoundingClientRect();
-    const swatches=[...document.querySelectorAll('#drawRecentSwatches button')];
-    const panel=rect('#drawPanel'),strip=rect('#drawRecentColors'),
-     intro=rect('#drawPanel>div:first-child'),title=rect('#drawPanelTitle');
-    return {stripRight:strip.right,panelRight:panel.right,introRight:intro.right,
-     stripLeft:strip.left,panelLeft:panel.left,introLeft:intro.left,
-     swatchRights:swatches.map(x=>x.getBoundingClientRect().right),
-     titleTop:title.top,stripTop:strip.top,stripBottom:strip.bottom,titleBottom:title.bottom,
-     introHeight:intro.height,panelHeight:panel.height,
-     docOverflow:document.documentElement.scrollWidth-innerWidth};
-   });
-   assert.ok(colorLayout.stripRight<=colorLayout.introRight+1&&
-    colorLayout.stripLeft>=colorLayout.introLeft-1&&
-    colorLayout.swatchRights.every(right=>right<=colorLayout.introRight+1),
-    'Five recent colors must stay inside the LEFT text section at '+width);
-   assert.ok(Math.abs(colorLayout.stripTop-colorLayout.titleTop)<=3&&
-    colorLayout.stripBottom<=colorLayout.titleBottom+5,
-    'Five recent colors must sit beside the Drawing Studio heading at '+width);
-   assert.ok(Math.abs(colorLayout.panelHeight-ready.panel.height)<=2&&
-    Math.abs(colorLayout.introHeight-ready.copy.height)<=2,
-    'Recent colors may not increase the panel or text-column height at '+width);
-   assert.ok(colorLayout.docOverflow<=2,
-    'Five colors may not produce horizontal overflow at '+width);
-   const afterColors=await page.locator('#clearDrawing').boundingBox();
-   assert.ok(Math.abs(afterColors.x-beforeColors.x)<=2&&
-    Math.abs(afterColors.y-beforeColors.y)<=2,
-    'Saved colors may not shift the Drawing Studio toolbar at '+width);
+    'Pixel Studio should use the same five most recent colors at '+width);
+   const afterPaint=await toolbarPositions();
+   assert.ok(Math.abs(afterPaint.height-beforePaint.height)<=1,
+    'Adding saved colors must not change drawing panel height at '+width);
+   for(let i=0;i<beforePaint.positions.length;i++){
+    const a=beforePaint.positions[i],b=afterPaint.positions[i];
+    assert.ok(Math.abs(a.x-b.x)<=1&&Math.abs(a.y-b.y)<=1&&
+     Math.abs(a.width-b.width)<=1&&Math.abs(a.height-b.height)<=1,
+     'Adding colors moved toolbar element '+i+' at '+width);
+   }
+   const colorRight=afterPaint.positions[9].right;
+   const panelRight=await page.locator('#drawPanel').evaluate(el=>el.getBoundingClientRect().right);
+   assert.ok(colorRight<=panelRight+1,
+    'Reserved swatch area must remain inside Drawing Studio at '+width);
+   assert.ok(afterPaint.viewportOverflow<=2,
+    'Five saved colors may not cause horizontal page overflow at '+width);
    await page.evaluate(()=>window.resetRecentPaintColors());
-   assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
-    'none','Clearing run colors should restore the compact toolbar');
+   assert.equal(await page.locator('#drawRecentSwatches .recent-color-empty-slot').count(),5,
+    'Reset should restore five inert color slots');
+   const afterReset=await toolbarPositions();
+   assert.ok(Math.abs(afterReset.height-beforePaint.height)<=1,
+    'Resetting saved colors must not change panel height at '+width);
 
    const modeWidth=await page.locator('#drawMode').evaluate(el=>el.getBoundingClientRect().width);
    if(width>600)assert.ok(modeWidth<=125,'Mode selector has unwanted whitespace at '+width);
