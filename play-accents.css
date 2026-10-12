@@ -294,7 +294,7 @@ html[data-theme="dark"] #drawPanel.daily-finished>.draw-finished-overlay{
 /* Extra freehand pastel lines belong to negative space only: no absolute
    overlays, pointer targets, scrollbars or animation. Their SVG paths remain
    inside narrow side strips and never enter the central playable column. */
-@media (min-width:1380px){
+@media (min-width:1480px){
   body:has(.topbar):not(:has(.pastel-world)){
     background-image:url("pastel-space-traces.svg")!important;
     background-size:100% 1120px;
@@ -307,7 +307,7 @@ html[data-theme="dark"] #drawPanel.daily-finished>.draw-finished-overlay{
 }
 /* For medium desktop widths, only Play has enough space inside its own
    centered hero to safely show a second set of small, meandering strokes. */
-@media (min-width:980px) and (max-width:1379px){
+@media (min-width:980px) and (max-width:1479px){
   body:has(#wheelWrap) .hero{
     background-image:url("pastel-play-traces.svg");
     background-repeat:no-repeat;
