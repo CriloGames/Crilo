@@ -176,6 +176,8 @@ jobs:
         run: node release/346-badges/114-daily-drawing-and-site-accents-smoke.cjs
       - name: Check clean translucent Daily state in both themes
         run: node release/346-badges/115-pastel-space-traces-smoke.cjs
+      - name: Confirm saved Daily score and rarity reload correctly
+        run: node release/346-badges/116-restored-daily-score-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
           node --check site-sounds.js
