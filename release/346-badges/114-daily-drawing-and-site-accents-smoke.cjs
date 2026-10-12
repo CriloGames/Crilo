@@ -80,11 +80,11 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=13/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=14/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=93/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
-assert.ok(css.includes('#drawPanel.locked-panel>.recent-colors {display:none!important}'),
+assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {display:none!important}'),
  'Finished drawing tools should take less vertical room');
 assert.ok(!html.includes('score-motion.js')&&!html.includes('score-motion.css'),
  'Play page must not load the repeating score-digit bobbing assets');
@@ -115,51 +115,46 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
-assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\) \{[\s\S]*?grid-template-columns:minmax\(280px,300px\) minmax\(0,1fr\)/,
- 'Both drawing states should use the same compact desktop tracks');
-assert.match(css,/@media \(min-width:691px\) and \(max-width:830px\)/,
- 'Tablet layouts keep completion copy left of the toolbar');
-assert.match(css,/@media \(max-width:690px\)/,
- 'Only narrow phone widths should stack the drawing toolbar');
-assert.match(css,/width:132px; \/\* Fits the label and native arrow without unused space\. \*\//,
- 'The spin mode dropdown should not contain unused horizontal space');
-assert.match(css,/\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>div:first-child \{[\s\S]*?grid-row:1;/,
- 'Locked completion label should sit in the same vertical row as the controls');
-assert.match(css,/\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?grid-row:1;/,
- 'Locked toolbar must be vertically centered beside the completion message');
-assert.match(css,/@media \(max-width:690px\) \{[\s\S]*?\.hero #drawPanel\.locked-panel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?grid-row:2;/,
- 'Locked controls must stack beneath completion copy on narrow phones');
-assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear beside Pen and Fill');
-assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
- 'Eraser must clear alpha rather than paint opaque white');
+assert.match(css,/grid-template-columns:minmax\(225px,252px\) minmax\(0,1fr\)/,
+ 'Ready and locked panels use the same balanced desktop tracks');
+assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?flex-direction:column/,
+ 'Editor buttons must be arranged in real grouped rows, not wide auto-sized grid tracks');
+assert.doesNotMatch(css,/grid-template-columns:max-content max-content max-content/,
+ 'Old uneven tool grid must be removed');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-row \{[\s\S]*?display:flex/,
+ 'Each toolbar row must flex its related controls together');
+assert.match(css,/@media \(max-width:600px\)/,
+ 'Phone layouts must stack the drawing instructions and tool groups');
+assert.match(css,/@media \(min-width:601px\) and \(max-width:830px\)/,
+ 'Tablet toolbar must remain compact');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions #drawMode \{[\s\S]*?display:inline-block!important/,
- 'The same original mode dropdown must remain visible while locked');
-assert.doesNotMatch(css,/#drawPanel\.daily-finished \.draw-actions #drawMode\s*\{\s*display:none/,
- 'No completed drawing rule may hide the mode selector');
+ 'Original Center stays still / Center spins select must remain visible');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions \.native-paint-picker \{/,
- 'Color must remain visible after Daily completion');
+ 'Color picker must be visible in both tool states');
 assert.match(css,/#drawPanel\.daily-finished \.draw-actions #clearDrawing \{/,
- 'Clear must remain visible after Daily completion');
-assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
- 'Locked tools must not show the active Pen/Fill state');
-assert.match(js,/ready:\['Drawing Studio','Draw in the center before your first spin\. Your drawing locks when you spin\.'\]/,
- 'New compact Drawing Studio instructions must be used');
-assert.match(html,/Inappropriate drawings may result in an account ban\./,
- 'Account moderation warning must remain visible');
-
-assert.match(css,/grid-template-columns:max-content max-content max-content;/,
- 'Drawing controls should have three intentional alignment columns');
-assert.match(css,/grid-template-rows:34px 34px;/,
- 'Drawing tools should form two compact predictable rows');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>\.recent-colors\.has-colors \{display:flex\}/,
- 'Recent swatches should only appear when used');
+ 'Clear must remain visible on the completed Daily');
+assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear beside Pen and Fill');
+assert.ok(html.includes('class="draw-toolbar-row draw-toolbar-primary"'),
+ 'Pixel Studio, Pen, Fill, Eraser, Undo and Redo need one contiguous group');
+assert.ok(html.includes('class="draw-toolbar-row draw-toolbar-secondary"'),
+ 'The existing dropdown, Color, Clear and optional swatches need a second row');
+assert.ok(html.indexOf('id="drawRecentColors"')>html.indexOf('class="draw-toolbar-row draw-toolbar-secondary"'),
+ 'Recent colors should share space with the lower controls');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions \.recent-colors\.has-colors \{\s*display:flex/,
+ 'Recent swatches appear only after drawing');
 assert.match(js,/host\.parentElement\.classList\.toggle\('has-colors',recentPaintColors\.length>0\)/,
- 'Recent color strip visibility should track actual painted colors');
+ 'Main recent swatch container tracks actual drawn colors');
 assert.match(js,/if\(kind==='main'\)continue;/,
- 'Daily editor should not render empty placeholder text');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\):not\(\.daily-finished\):not\(\.locked-panel\) \{[\s\S]*?background:#fffdfb/,
- 'Active Drawing Studio should have a calm warm background');
-assert.match(css,/@media \(max-width:690px\) \{[\s\S]*?display:flex;[\s\S]*?flex-wrap:wrap;/,
- 'Narrow screens should wrap rather than overflow the two-row desktop grid');
+ 'Empty recent-colors help text must not stretch the toolbar');
+assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
+ 'Eraser must be genuinely transparent');
+assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
+ 'Locked tools must not retain their active Pen/Fill appearance');
+assert.match(js,/ready:\['Drawing Studio','Draw in the center before your first spin\. Your drawing locks when you spin\.'\]/,
+ 'Drawing Studio instructions should remain clear');
+assert.match(html,/Inappropriate drawings may result in an account ban\./,
+ 'Safety warning must remain visible');
+assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finished\):not\(\.locked-panel\):not\(\.draw-unavailable\)/,
+ 'Active editor needs a subdued dark theme');
 
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
