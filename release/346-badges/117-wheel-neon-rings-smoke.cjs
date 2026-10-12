@@ -1,0 +1,21 @@
+'use strict';
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../..');
+const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'wheel-neon-rings.css'),'utf8');
+const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
+assert.match(html,/href="wheel-neon-rings\.css\?v=1"/);
+for(const id of ['wheelNeonOuter','wheelNeonInner'])
+ assert.match(html,new RegExp('id="'+id+'"[^>]*aria-hidden="true"'));
+assert.match(html,/<canvas id="drawing"[^>]+><\/canvas><span class="wheel-neon-ring wheel-neon-outer"/);
+assert.match(css,/\.wheel-neon-outer\{inset:1\.05%\}/);
+assert.match(css,/\.wheel-neon-inner\{inset:32\.3%;z-index:4\}/);
+assert.match(css,/conic-gradient\(/);
+assert.match(css,/mask-image:radial-gradient/);
+assert.match(css,/@keyframes criloWheelNeonColors/);
+assert.match(css,/hue-rotate\(360deg\)/);
+assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
+assert.match(css,/pointer-events:none/);
+assert.match(game,/function drawWheel\(\)/);
+console.log('WHEEL_NEON_RINGS_PASS: two animated pastel rings without wheel or canvas changes');

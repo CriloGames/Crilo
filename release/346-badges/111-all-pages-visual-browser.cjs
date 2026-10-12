@@ -73,6 +73,33 @@ const pages=[
        'Play must retain its dedicated completed-editor styles');
       assert.equal(await page.locator('script[src*="score-motion.js"]').count(),0,
        'Play score should not use continuous per-digit animations');
+      assert.equal(await page.locator('link[href*="wheel-neon-rings.css"]').count(),1);
+      const neon=await page.evaluate(()=>{
+       const wrap=document.getElementById('wheelWrap')?.getBoundingClientRect();
+       const draw=document.getElementById('drawing')?.getBoundingClientRect();
+       const outer=document.getElementById('wheelNeonOuter');
+       const inner=document.getElementById('wheelNeonInner');
+       if(!wrap||!draw||!outer||!inner)return{missing:true};
+       const o=outer.getBoundingClientRect(),i=inner.getBoundingClientRect();
+       return {
+        w:wrap.width,d:draw.width,o:o.width,i:i.width,
+        oc:Math.abs((o.left+o.right)/2-(wrap.left+wrap.right)/2),
+        ic:Math.abs((i.top+i.bottom)/2-(draw.top+draw.bottom)/2),
+        pointers:[getComputedStyle(outer).pointerEvents,getComputedStyle(inner).pointerEvents],
+        animation:getComputedStyle(outer).animationName,
+        mask:getComputedStyle(outer,'::before').maskImage,
+        overflow:document.documentElement.scrollWidth>innerWidth+2
+       };
+      });
+      assert.equal(neon.missing,undefined,'Missing wheel neon decoration');
+      assert.ok(neon.o>neon.w*.95&&neon.o<neon.w,'Outer glow should hug wheel rim');
+      assert.ok(neon.i>neon.d&&neon.i<neon.d+neon.w*.05,
+       'Inner glow should sit in the drawing border, not cover artwork');
+      assert.ok(neon.oc<2&&neon.ic<2,'Neon rings must remain concentric');
+      assert.deepEqual(neon.pointers,['none','none'],'Neon cannot block pen touches');
+      assert.equal(neon.animation,'none','Reduced-motion should stop neon movement');
+      assert.match(neon.mask,/radial-gradient/,'Neon must mask over drawing');
+      assert.equal(neon.overflow,false,'Neon must not cause horizontal overflow');
       const number=await page.locator('#score').evaluate(el=>({
        font:parseFloat(getComputedStyle(el).fontSize),
        bobbing:el.querySelectorAll('.crilo-score-bob-digit').length,

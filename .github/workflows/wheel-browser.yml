@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'game.js'
+      - 'wheel-neon-rings.css'
+      - 'release/346-badges/117-wheel-neon-rings-smoke.cjs'
       - 'site-sounds.js'
       - 'release/346-badges/102-site-sounds-browser.cjs'
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'

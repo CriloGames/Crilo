@@ -38,6 +38,8 @@ on:
       - 'bug-beetle.js'
       - 'style.css'
       - 'daily-drawing-state.css'
+      - 'wheel-neon-rings.css'
+      - 'release/346-badges/117-wheel-neon-rings-smoke.cjs'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -115,6 +117,8 @@ on:
       - 'bug-beetle.js'
       - 'style.css'
       - 'daily-drawing-state.css'
+      - 'wheel-neon-rings.css'
+      - 'release/346-badges/117-wheel-neon-rings-smoke.cjs'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -178,6 +182,8 @@ jobs:
         run: node release/346-badges/115-pastel-space-traces-smoke.cjs
       - name: Confirm saved Daily score and rarity reload correctly
         run: node release/346-badges/116-restored-daily-score-smoke.cjs
+      - name: Check animated pastel wheel trims and drawing safety
+        run: node release/346-badges/117-wheel-neon-rings-smoke.cjs
       - name: Verify restrained final-score frame seal and reduced-motion cleanup
         run: node release/346-badges/040-final-rarity-wave-smoke.cjs
       - name: Verify last-spin rarity fanfare and bonus-spin silence
