@@ -9,6 +9,6 @@ for(const fn of ['crilo_begin_server_spin_session','crilo_server_spin','crilo_ge
  assert.ok(at>=0&&end>at,'Missing '+fn);
  assert.ok(sql.slice(at,end).includes('PERFORM public.crilo_wheel_assert_unique_email();'),'No alias check: '+fn);
 }
-assert.match(html,/game\.js\?v=77/);
+assert.match(html,/game\.js\?v=78/);
 assert.match(game,/Gmail alias already linked/);
 console.log('PASS: Gmail plus/dot alias accounts cannot independently farm official Daily Wheel runs.');

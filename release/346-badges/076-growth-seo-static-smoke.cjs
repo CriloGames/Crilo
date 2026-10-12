@@ -11,9 +11,9 @@ for(const p of ['index.html','leaderboard.html','ducks.html','badge-sets.html','
  assert.match(html,/twitter:card" content="summary_large_image"/,p);
 }
 assert.ok(fs.existsSync('crilo-social-preview.png'));
-assert.match(home,/share-result\.js\?v=1/);
-assert.match(home,/public-metrics\.js\?v=1/);
-assert.match(home,/share-result\.css\?v=1/);
+assert.match(home,/share-result\.js\?v=2/);
+assert.match(home,/public-metrics\.js\?v=2/);
+assert.match(home,/share-result\.css\?v=2/);
 assert.match(read('share-result.js'),/verified_spin_session_id/);
 assert.match(read('share-result.js'),/!data\?\.verified_spin_session_id/);
 assert.match(read('settings.html'),/growthSettingsCard/);
