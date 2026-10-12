@@ -17,11 +17,16 @@ const makeNode=()=>({textContent:'',disabled:false,classList:makeClassList()});
 const names=['drawPanel','drawPanelTitle','drawPanelDescription','drawSafetyNote','drawPanelOverlayTitle','wheelWrap'];
 const nodes=Object.fromEntries(names.map(n=>[n,makeNode()]));
 const buttons=Array.from({length:9},makeNode);
+const tools=buttons.slice(0,2);
+tools[0].dataset={tool:'pen'};tools[1].dataset={tool:'fill'};
+tools[0].classList.add('active');
+tools.forEach(button=>button.setAttribute=(key,value)=>{button[key]=value});
 nodes.drawPanel.querySelectorAll=sel=>{
- assert.equal(sel,'button,input,select');return buttons;
+ if(sel==='button,input,select')return buttons;
+ assert.equal(sel,'.drawing-tool');return tools;
 };
 const sandbox={
- $:id=>nodes[id],drawingLocked:false,
+ $:id=>nodes[id],drawingLocked:false,drawTool:'pen',
  stopDrawing(){},stopPixelStroke(){},closeDrawingColorPicker(){},hideDrawPlaceholder(){}
 };
 const code=js.slice(from,to);
@@ -36,12 +41,18 @@ assert.ok(nodes.drawPanel.classList.contains('locked-panel'));
 api.setDrawingPanelMode('complete');
 assert.equal(nodes.drawPanelTitle.textContent,"Today's Daily is complete");
 assert.equal(nodes.drawPanelOverlayTitle.textContent,"Today's Daily is complete");
+assert.ok(tools.every(button=>!button.classList.contains('active')),
+ 'Completed Daily must clear all selected drawing tools');
+assert.ok(tools.every(button=>button['aria-pressed']==='false'),
+ 'Completed Daily must expose no pressed drawing tool');
 assert.ok(nodes.drawPanel.classList.contains('daily-finished'));
 assert.ok(buttons.every(b=>b.disabled));
 api.unlockDrawing();
 assert.equal(api.isLocked(),false);
 assert.equal(nodes.drawPanelTitle.textContent,'Draw on your wheel');
 assert.equal(nodes.drawPanel.classList.contains('daily-finished'),false);
+assert.ok(tools[0].classList.contains('active')&&!tools[1].classList.contains('active'),
+ 'New Test Runs must restore Pen selection');
 assert.equal(nodes.drawPanelOverlayTitle.textContent,'');
 assert.equal(nodes.drawPanel.classList.contains('locked-panel'),false);
 assert.equal(nodes.wheelWrap.classList.contains('locked'),false);
@@ -67,6 +78,8 @@ assert.ok(css.includes('#drawPanel.daily-finished')&&
  'Finished panel must be light gray with a matching subdued night appearance');
 assert.match(css,/#drawPanel\.daily-finished>\.draw-finished-overlay\{[\s\S]*?align-items:center;justify-content:center/,
  'Completion overlay must be centered over the editing tools');
+assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?background:#f1f1f4!important/,
+ 'A stale active class cannot leak black into finished editor');
 assert.match(css,/background:rgba\(221,224,230,\.77\);color:#925e69/,
  'Light-mode overlay should reveal disabled tools under dusty pastel-red text');
 assert.match(css,/background:rgba\(41,46,55,\.79\);color:#d5a0a8/,
@@ -81,7 +94,7 @@ const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'moderation.html','beetle-tricks.html','owner-analytics.html',
  'badge-art-audit.html','owner-dataset-lab.html','private-nsfw-qa.html'];
 for(const p of pages){
- const link=(p.startsWith('domain/')?'../':'')+'play-accents.css?v=5';
+ const link=(p.startsWith('domain/')?'../':'')+'play-accents.css?v=6';
  assert.ok(read(p).includes('href="'+link+'"'),p+' has no shared accent stylesheet');
 }
 assert.equal(read('CNAME').trim(),'crilo.fun');
