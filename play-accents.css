@@ -209,7 +209,7 @@ body>.filters,body>section{
 #drawPanel.daily-finished .drawing-tool,
 #drawPanel.daily-finished .drawing-tool.active{
  background:#f1f1f4!important;color:#a0a4ad!important;
- border-color:#d9dae0!important;box-shadow:none!important;
+ border-color:#d9dae0!important;
 }
 #drawPanel.daily-finished>.draw-finished-overlay{
  display:flex;position:absolute;inset:2px;z-index:3;
@@ -234,7 +234,7 @@ html[data-theme="dark"] #drawPanel.daily-finished{
 html[data-theme="dark"] #drawPanel.daily-finished .drawing-tool,
 html[data-theme="dark"] #drawPanel.daily-finished .drawing-tool.active{
  background:#343944!important;color:#8f97a3!important;
- border-color:#4b535e!important;box-shadow:none!important;
+ border-color:#4b535e!important;
 }
 html[data-theme="dark"] #drawPanel.daily-finished>.draw-finished-overlay{
  background:rgba(41,46,55,.79);color:#d5a0a8;
