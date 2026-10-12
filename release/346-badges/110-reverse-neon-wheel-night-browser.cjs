@@ -26,16 +26,53 @@ function luminance(pixel){
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
-    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=2"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=3"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
-      await page.locator('link[href="top-score-row.css?v=3"]').count(),1,
+      await page.locator('link[href="top-score-row.css?v=4"]').count(),1,
       'Leaderboard must load its polished horizontal hero layout');
     if(path==='leaderboard.html') assert.equal(
       await page.locator('script[src="top-score-fit.js?v=1"]').count(),1,
       'Leaderboard must resize large scores without altering their value');
     if(path==='index.html'){
      await page.locator('#wheel').waitFor({state:'visible'});
+
+    // Measure both the numerical text and its OUTER FRAME using Chromium's
+    // actual layout boxes. This catches accidental negative tracking, a
+    // displaced single '0', animated glyph drift and oversized score chips.
+    async function scoreCentered(selector,parentSelector,values){
+     for(const value of values){
+      await page.locator(selector).evaluate((el,text)=>{el.textContent=text},value);
+      if(value.match(/\d/))await page.waitForFunction(sel=>
+       !!document.querySelector(sel)?.querySelector('.crilo-score-bob-digit'),selector);
+      const centered=await page.locator(selector).evaluate((el,pSel)=>{
+       const rect=el.getBoundingClientRect();
+       const range=document.createRange();range.selectNodeContents(el);
+       const glyphs=range.getBoundingClientRect();
+       const parent=el.closest(pSel),stage=parent?.getBoundingClientRect();
+       const css=getComputedStyle(el);
+       return{
+        digits:(el.textContent||'').trim(),
+        textDelta:Math.abs((glyphs.left+glyphs.right-rect.left-rect.right)/2),
+        frameDelta:stage?Math.abs((rect.left+rect.right-stage.left-stage.right)/2):null,
+        tracking:css.letterSpacing,
+        frameWidth:rect.width,viewport:innerWidth,
+        overflow:document.documentElement.scrollWidth-innerWidth
+       };
+      },parentSelector);
+      assert.ok(centered.textDelta<=2.5,
+       selector+' digits '+value+' are not centered within their frame: '+JSON.stringify(centered));
+      assert.ok(centered.frameDelta<=2.5,
+       selector+' frame '+value+' does not line up with its slot: '+JSON.stringify(centered));
+      assert.ok(centered.overflow<=2,
+       selector+' causes horizontal overflow at '+width+'px');
+     }
+    }
+
+     await scoreCentered('#score','.wheel-score',['0','7','69','1,234']);
+     await page.locator('#result').evaluate(el=>el.classList.remove('hidden'));
+     await scoreCentered('#finalScore','#result',['0','69','1,234']);
+
      const pixel=()=>page.locator('#wheel').evaluate(el=>{
       const ctx=el.getContext('2d');
       return [...ctx.getImageData(375,68,1,1).data];
@@ -135,6 +172,21 @@ function luminance(pixel){
       assert.ok(Math.abs(top.scoreY-top.artY)<2,
        'Desktop score and wheel must share one horizontal centerline');
      }
+     const heroCenter=await page.locator('#bestScore').evaluate(el=>{
+      const box=el.getBoundingClientRect(),stage=el.closest('.best-score-stage').getBoundingClientRect();
+      const range=document.createRange();range.selectNodeContents(el);
+      const ink=range.getBoundingClientRect();
+      return{frame:Math.abs((box.left+box.right-stage.left-stage.right)/2),
+       ink:Math.abs((ink.left+ink.right-box.left-box.right)/2)};
+     });
+     assert.ok(heroCenter.frame<2.5&&heroCenter.ink<2.5,
+      'Leaderboard hero rarity number must be centered: '+JSON.stringify(heroCenter));
+     const miniCenter=await page.locator('#leaderList .leader-score').evaluate(el=>{
+      const box=el.getBoundingClientRect(),range=document.createRange();
+      range.selectNodeContents(el);const ink=range.getBoundingClientRect();
+      return Math.abs((ink.left+ink.right-box.left-box.right)/2);
+     });
+     assert.ok(miniCenter<2.5,'Leaderboard number inside its chip is off center');
      assert.ok(top.shadow.includes('inset'),'Keep reverse-neon rarity number frame');
      assert.ok(top.bg.includes('gradient'),'Keep classic pastel hero background');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');

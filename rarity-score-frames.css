@@ -18,11 +18,18 @@
   0 2px 5px rgba(31,40,55,.065);
  text-shadow:none;
  font-variant-numeric:tabular-nums;
+ /* Negative tracking shortened the inline advance without centering the
+    visible glyph. Keep both one-digit and multi-digit scores truly balanced. */
+ letter-spacing:0;
+ text-align:center;
  transform:none;
 }
 .wheel-score-amount{
  --crilo-glow-ink:var(--score-accent,#7b8796);
- display:inline-block;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ align-self:center;
  margin:4px auto 0;
  padding:7px 18px 10px;
  min-height:1.2em;
@@ -30,7 +37,10 @@
  line-height:1.16;
 }
 #finalScore{
- display:table;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ width:max-content;
  margin:12px auto 15px;
  padding:10px 21px;
  border-radius:17px;
