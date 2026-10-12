@@ -180,24 +180,25 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  #playedPanel .played-completion-copy{flex:1 1 calc(100% - 57px)}
  #playedPanel>a.small-btn,#playedPanel .crilo-share-trigger{flex:1 1 130px;text-align:center}
 }
-/* Shared compact Drawing Studio layout. Active, first-spin locked and
-   completed panels use the same tracks; disabled state never hides tools. */
+/* Drawing Studio: one balanced description column and two genuine flex rows.
+   Explicit row wrappers prevent CSS grid's widest-child column sizing from
+   separating related controls by giant gaps. This replaces the old grid. */
 .hero #drawPanel:not(.draw-unavailable) {
   display:grid!important;
-  grid-template-columns:minmax(280px,300px) minmax(0,1fr);
-  grid-template-rows:auto auto;
+  grid-template-columns:minmax(225px,252px) minmax(0,1fr);
+  grid-template-rows:auto;
   align-items:center;
   width:min(980px,100%);
   max-width:980px;
   box-sizing:border-box;
-  column-gap:14px!important;
-  row-gap:4px!important;
+  column-gap:12px!important;
+  row-gap:0!important;
   padding:8px 12px!important;
   margin:10px auto 12px!important;
 }
 .hero #drawPanel:not(.draw-unavailable)>div:first-child {
   grid-column:1;
-  grid-row:1 / span 2;
+  grid-row:1;
   min-width:0;
   min-height:0;
   align-self:center;
@@ -206,63 +207,72 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 }
 #drawPanel:not(.daily-finished) #drawPanelTitle {
   font-size:14px;
-  line-height:1.2;
-  letter-spacing:-.015em;
+  line-height:1.18;
+  font-weight:900;
+  letter-spacing:-.02em;
+  color:var(--text,#202127);
 }
 #drawPanel:not(.daily-finished) #drawPanelDescription {
   display:block;
-  font-size:11.5px;
-  line-height:1.35;
+  font-size:11px;
+  line-height:1.32;
   margin-top:4px;
+  color:var(--muted,#747881);
 }
 #drawPanel:not(.daily-finished) #drawSafetyNote {
   display:block;
-  font-size:10.5px;
+  font-size:10px;
   line-height:1.3;
-  margin-top:4px;
+  margin-top:5px;
+  font-weight:600;
+  color:#916c73;
 }
 .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
   grid-column:2;
   grid-row:1;
   width:100%;
   min-width:0;
-  display:grid;
-  grid-template-columns:max-content max-content max-content;
-  grid-template-rows:34px 34px;
-  align-content:center;
-  align-items:center;
-  justify-content:start;
-  justify-items:start;
-  gap:5px 8px!important;
+  display:flex!important;
+  flex-direction:column;
+  flex-wrap:nowrap;
+  align-items:stretch;
+  justify-content:center;
+  gap:6px!important;
 }
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>#pixelStudioBtn {grid-column:1;grid-row:1}
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>.draw-tool-group:nth-child(2) {grid-column:2;grid-row:1}
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>.draw-tool-group:nth-child(3) {grid-column:3;grid-row:1}
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>#drawMode {grid-column:1;grid-row:2}
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>.native-paint-picker {grid-column:2;grid-row:2}
-.hero #drawPanel:not(.draw-unavailable)>.draw-actions>#clearDrawing {grid-column:3;grid-row:2}
+#drawPanel:not(.draw-unavailable) .draw-toolbar-row {
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  flex-wrap:nowrap;
+  gap:6px;
+  min-width:0;
+  width:100%;
+}
 #drawPanel:not(.draw-unavailable) .draw-tool-group {
   display:inline-flex;
-  flex-shrink:0;
   align-items:center;
+  flex:0 0 auto;
   gap:4px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
-  padding:6px 6px;
   min-height:34px;
+  padding:6px 7px;
   font-size:11px;
-  line-height:1.3;
+  line-height:1.2;
+  border-radius:10px;
   white-space:nowrap;
+  flex:0 0 auto;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
   display:inline-block!important;
-  flex:0 0 auto;
-  width:132px; /* Fits the label and native arrow without unused space. */
+  width:135px;
   max-width:100%;
   min-height:34px;
   padding:6px 7px;
   font-size:11px;
-  line-height:1.3;
+  line-height:1.2;
+  border-radius:10px;
+  flex:0 0 135px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
   display:inline-flex!important;
@@ -270,122 +280,67 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   padding:2px 6px;
   gap:4px;
   font-size:11px;
+  border-radius:10px;
+  flex:0 0 auto;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker>span {
   font-size:11px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
-  width:31px!important;
-  min-width:31px!important;
-  height:28px!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:27px!important;
   padding:2px!important;
 }
-#drawPanel:not(.draw-unavailable)>.recent-colors {
-  grid-column:2;
-  grid-row:2;
+#drawPanel:not(.draw-unavailable) .draw-actions .recent-colors {
+  width:auto;
   min-width:0;
-  width:100%;
-  padding:0;
-  gap:7px;
+  flex:1 1 40px;
   display:none;
-  justify-content:flex-start;
   align-items:center;
-}
-#drawPanel:not(.draw-unavailable)>.recent-colors.has-colors {display:flex}
-#drawPanel:not(.draw-unavailable)>.recent-colors>strong {
-  font-size:10px;
-}
-#drawPanel:not(.draw-unavailable) .recent-color-swatches {gap:4px}
-#drawPanel:not(.draw-unavailable) .recent-color-swatch {
-  width:23px;
-  height:23px;
-  flex-basis:23px;
-}
-
-/* Deliberate two-row toolkit: quiet surfaces and real color swatches,
-   rather than a full-width row followed by empty placeholder text. */
-.hero #drawPanel:not(.draw-unavailable):not(.daily-finished):not(.locked-panel) {
-  background:#fffdfb;
-  border-color:#e7e3e5;
-  box-shadow:0 3px 12px rgba(34,30,37,.035);
-}
-#drawPanel:not(.daily-finished) #drawPanelTitle {
-  font-weight:900;
-  letter-spacing:-.025em;
-  color:var(--text,#202127);
-}
-#drawPanel:not(.daily-finished) #drawPanelDescription {
-  color:var(--muted,#747881);
-  line-height:1.34;
-}
-#drawPanel:not(.daily-finished) #drawSafetyNote {
-  color:#906a72;
-  font-weight:600;
-  line-height:1.3;
-}
-#drawPanel:not(.draw-unavailable) .draw-actions .small-btn,
-#drawPanel:not(.draw-unavailable) .draw-actions #drawMode,
-#drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
-  border-radius:10px;
-}
-#drawPanel:not(.locked-panel):not(.draw-unavailable) .draw-actions .small-btn:not(.active):not(:disabled):hover {
-  border-color:#bfb3d5;
-  background-color:#faf7ff;
-}
-#drawPanel:not(.draw-unavailable)>.recent-colors>strong {
-  color:var(--muted,#70727b);
-  font-size:10px;
-  font-weight:800;
-}
-#drawPanel:not(.draw-unavailable) .recent-color-swatches {
-  min-height:23px;
   justify-content:flex-start;
+  overflow:hidden;
+  padding:0;
+  margin:0;
 }
-#drawPanel:not(.draw-unavailable) .recent-color-swatch {
-  border-color:#aaa3ae;
+#drawPanel:not(.draw-unavailable) .draw-actions .recent-colors.has-colors {
+  display:flex;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .recent-colors>strong {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .recent-color-swatches {
+  min-width:0;
+  max-width:100%;
+  min-height:23px;
+  display:flex;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:flex-start;
+  gap:4px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:thin;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions .recent-color-swatch {
+  width:22px;
+  height:22px;
+  flex:0 0 22px;
+  border-color:#aba3b3;
   box-shadow:none;
 }
-#drawPanel:not(.draw-unavailable) .draw-actions :is(button,select,input):focus-visible {
-  outline:2px solid #a48fcf;
-  outline-offset:2px;
+/* Active and completed states keep the identical geometry. */
+.hero #drawPanel:not(.daily-finished):not(.locked-panel):not(.draw-unavailable) {
+  background:#fffdfb;
+  border-color:#e8e2e5;
+  box-shadow:0 3px 13px rgba(33,28,37,.035);
 }
-html[data-theme="dark"] .hero #drawPanel:not(.draw-unavailable):not(.daily-finished):not(.locked-panel) {
-  background:#292b32;
-  border-color:#454652;
-  box-shadow:none;
-}
-html[data-theme="dark"] #drawPanel:not(.daily-finished) #drawSafetyNote {color:#c29da5}
-html[data-theme="dark"] #drawPanel:not(.locked-panel):not(.draw-unavailable) .draw-actions .small-btn:not(.active):not(:disabled):hover {
-  background:#353341;
-  border-color:#756784;
-}
-
-/* The completion note must not span the empty recent-colors row.
-   Align BOTH the message and the disabled toolbar in the same grid row:
-   this removes the large blank area below a top-aligned toolbar. */
-.hero #drawPanel.locked-panel:not(.draw-unavailable) {
-  grid-template-rows:auto;
-}
-.hero #drawPanel.locked-panel:not(.draw-unavailable)>div:first-child {
-  grid-row:1;
-  align-self:center;
-}
-.hero #drawPanel.locked-panel:not(.draw-unavailable)>.draw-actions {
-  grid-row:1;
-  align-self:center;
-}
-#drawPanel.daily-finished .draw-complete-copy strong {
-  font-size:12.5px;
-  line-height:1.22;
-}
-#drawPanel.daily-finished .draw-complete-copy small {
-  font-size:10.5px;
-  line-height:1.35;
-}
-
-/* Every control, including the existing #drawMode, remains visible while
-   the first spin or completed Daily has disabled the editor. */
-#drawPanel.locked-panel>.recent-colors {display:none!important}
+#drawPanel.locked-panel .recent-colors {display:none!important}
 .hero #drawPanel.locked-panel:not(.draw-unavailable) {
   display:grid!important;
   visibility:visible!important;
@@ -405,26 +360,47 @@ html[data-theme="dark"] #drawPanel:not(.locked-panel):not(.draw-unavailable) .dr
 }
 #drawPanel.locked-panel:not(.daily-finished) .draw-actions {opacity:.8}
 #drawPanel.locked-panel :is(button,select,input):disabled {cursor:not-allowed}
-#drawPanel.daily-finished .draw-actions,
-#drawPanel.daily-finished .recent-colors {opacity:.92}
+#drawPanel.daily-finished .draw-actions {opacity:.92}
 #drawPanel.daily-finished .draw-actions .native-paint-picker {opacity:.82}
 #drawPanel.daily-finished .draw-complete-note {
   justify-content:flex-start;
+  gap:7px;
   width:100%;
   margin:0;
-  gap:7px;
 }
 #drawPanel.daily-finished .draw-complete-symbol {
-  flex-basis:24px;
+  flex:0 0 24px;
   width:24px;
   height:24px;
   border-radius:8px;
 }
+#drawPanel.daily-finished .draw-complete-copy strong {
+  font-size:12.5px;
+  line-height:1.22;
+}
+#drawPanel.daily-finished .draw-complete-copy small {
+  font-size:10.5px;
+  line-height:1.35;
+}
 #drawPanel.daily-finished .draw-actions #clearDrawing {
   display:inline-flex!important;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
 }
+#drawPanel:not(.locked-panel):not(.draw-unavailable) .draw-actions .small-btn:not(.active):not(:disabled):hover {
+  background:#faf7ff;
+  border-color:#bfb3d5;
+}
+#drawPanel:not(.draw-unavailable) .draw-actions :is(button,select,input):focus-visible {
+  outline:2px solid #a48fcf;
+  outline-offset:2px;
+}
+html[data-theme="dark"] .hero #drawPanel:not(.daily-finished):not(.locked-panel):not(.draw-unavailable) {
+  background:#292b32;
+  border-color:#454652;
+  box-shadow:none;
+}
+html[data-theme="dark"] #drawPanel:not(.daily-finished) #drawSafetyNote {color:#c29da5}
 html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) {
   background:#292d35;
   border-color:#414952;
@@ -433,6 +409,10 @@ html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) .drawing-to
   background:#353941!important;
   color:#a9b1bd!important;
   border-color:#505864!important;
+}
+html[data-theme="dark"] #drawPanel:not(.locked-panel):not(.draw-unavailable) .draw-actions .small-btn:not(.active):not(:disabled):hover {
+  background:#353341;
+  border-color:#756784;
 }
 #playedPanel>a.small-btn {
   color:#592d88;
@@ -445,71 +425,60 @@ html[data-theme="dark"] #drawPanel.locked-panel:not(.daily-finished) .drawing-to
 #playedPanel .crilo-share-trigger {min-height:39px}
 html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 
-/* Mid-size windows keep the completion copy LEFT of the tools. The toolbar
-   wraps inside the right column instead of jumping underneath the copy. */
-@media (min-width:691px) and (max-width:830px) {
+/* Tablet: retain two tidy rows on the right by narrowing the copy column. */
+@media (min-width:601px) and (max-width:830px) {
   .hero #drawPanel:not(.draw-unavailable) {
-    grid-template-columns:minmax(195px,215px) minmax(0,1fr);
-    grid-template-rows:auto auto;
+    grid-template-columns:minmax(180px,205px) minmax(0,1fr);
     column-gap:10px!important;
   }
+  #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
+    padding-inline:6px;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
+    gap:5px;
+  }
 }
-/* Narrow phones stack the description above the tools without overflow. */
-@media (max-width:690px) {
+/* Phones: instructions above two compact tool groups; no clipping. */
+@media (max-width:600px) {
   .hero #drawPanel:not(.draw-unavailable) {
     grid-template-columns:minmax(0,1fr);
-    grid-template-rows:auto auto auto;
-    column-gap:0!important;
-    row-gap:6px!important;
+    grid-template-rows:auto auto;
+    row-gap:7px!important;
     padding:8px 10px!important;
   }
   .hero #drawPanel:not(.draw-unavailable)>div:first-child {
     grid-column:1;
     grid-row:1;
     width:100%;
-    min-height:0;
     text-align:left;
   }
-  .hero #drawPanel:not(.draw-unavailable)>.draw-actions,
-  .hero #drawPanel.locked-panel:not(.draw-unavailable)>.draw-actions {
+  .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
     grid-column:1;
     grid-row:2;
-    display:flex;
+  }
+  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
     flex-wrap:wrap;
-    justify-content:flex-start;
-    gap:5px 6px!important;
-    max-width:100%;
-  }
-  .hero #drawPanel:not(.draw-unavailable)>.recent-colors {
-    grid-column:1;
-    grid-row:3;
-    justify-content:center;
-  }
-  #drawPanel.daily-finished .draw-complete-note {justify-content:flex-start}
-}
-@media (max-width:700px) {
-  /* Keep the native selector readable at 16px to avoid iPhone auto-zoom. */
-  #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {width:155px}
-}
-@media (max-width:450px) {
-  #drawPanel:not(.daily-finished) #drawPanelDescription {font-size:11px}
-  #drawPanel:not(.daily-finished) #drawSafetyNote {font-size:10px}
-  #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
-    font-size:10.5px;
-    padding:6px 7px;
-    min-height:32px;
+    gap:5px;
   }
   #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
+    font-size:16px;
     width:155px;
+    flex:0 0 155px;
+    min-height:34px;
+  }
+}
+@media (max-width:400px) {
+  #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
+    font-size:10.5px;
+    padding:6px 5px;
     min-height:32px;
   }
-  #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
-    min-height:32px;
-    padding:2px 5px;
-  }
+  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {gap:4px}
+  #drawPanel:not(.draw-unavailable) .draw-tool-group {gap:3px}
+  #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {min-height:32px}
   #drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
-    width:29px!important;
-    min-width:29px!important;
+    width:28px!important;
+    min-width:28px!important;
     height:26px!important;
   }
 }
