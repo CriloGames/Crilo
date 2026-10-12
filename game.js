@@ -940,7 +940,16 @@ function renderRecentPaintColors(){
    host.parentElement.classList.toggle('has-colors',recentPaintColors.length>0);
   host.replaceChildren();
   if(!recentPaintColors.length){
-   if(kind==='main')continue;
+   if(kind==='main'){
+    // Five inert placeholders reserve the swatch slots before the first color.
+    for(let i=0;i<5;i++){
+     const slot=document.createElement('span');
+     slot.className='recent-color-empty-slot';
+     slot.setAttribute('aria-hidden','true');
+     host.appendChild(slot);
+    }
+    continue;
+   }
    const hint=document.createElement('span');
    hint.className='recent-colors-empty';hint.textContent='Colors you paint with will appear here';
    host.appendChild(hint);continue;
@@ -952,6 +961,14 @@ function renderRecentPaintColors(){
    button.setAttribute('aria-label','Use recent color '+hex);
    button.addEventListener('click',()=>setActivePaintColor(hex));
    host.appendChild(button);
+  }
+  if(kind==='main'){
+   for(let i=recentPaintColors.length;i<5;i++){
+    const slot=document.createElement('span');
+    slot.className='recent-color-empty-slot';
+    slot.setAttribute('aria-hidden','true');
+    host.appendChild(slot);
+   }
   }
  }
 }
