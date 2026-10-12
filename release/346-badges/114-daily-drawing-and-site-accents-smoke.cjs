@@ -31,7 +31,7 @@ const sandbox={
 const api=vm.runInNewContext(js.slice(begin,end)+
  ';({setDrawingPanelMode,lockDrawing,unlockDrawing,isLocked:()=>drawingLocked})',sandbox);
 api.setDrawingPanelMode('ready');
-assert.equal(nodes.drawPanelTitle.textContent,'Draw on your wheel');
+assert.equal(nodes.drawPanelTitle.textContent,'Drawing Studio');
 api.lockDrawing();
 assert.ok(api.isLocked()&&buttons.every(b=>b.disabled),
  'All editor controls, including Undo/Redo, must be locked');
@@ -47,7 +47,7 @@ assert.ok(tools.every(b=>!b.classList.contains('active')&&b['aria-pressed']==='f
 assert.ok(buttons.every(b=>b.disabled),'Completion controls must remain disabled');
 api.unlockDrawing();
 assert.ok(!api.isLocked()&&!nodes.drawPanel.classList.contains('daily-finished'));
-assert.equal(nodes.drawPanelTitle.textContent,'Draw on your wheel');
+assert.equal(nodes.drawPanelTitle.textContent,'Drawing Studio');
 assert.ok(buttons.every(b=>!b.disabled),'New owner Test Run must re-enable controls');
 assert.ok(tools[0].classList.contains('active'),'New run must restore Pen selection');
 api.lockDrawing();api.setDrawingPanelMode('test-complete');
@@ -55,7 +55,7 @@ assert.equal(nodes.drawPanelTitle.textContent,'Test Run finished');
 assert.equal(nodes.drawCompleteHeading.textContent,'Test Run finished · Drawing locked');
 assert.match(nodes.drawCompleteDetail.textContent,/another Test Run/);
 api.unlockDrawing();
-assert.equal(nodes.drawPanelTitle.textContent,'Draw on your wheel');
+assert.equal(nodes.drawPanelTitle.textContent,'Drawing Studio');
 api.lockDrawing();api.setDrawingPanelMode('guest-complete');
 assert.ok(nodes.drawPanel.classList.contains('daily-finished'));
 assert.equal(nodes.drawCompleteHeading.textContent,'Guest Daily complete · Drawing locked');
@@ -80,8 +80,8 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=8/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=91/,'Play must load the updated state and viewport logic');
+assert.match(html,/daily-drawing-state\.css\?v=9/,'Play must use updated drawing stylesheet');
+assert.match(html,/game\.js\?v=92/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.daily-finished .recent-colors{display:none!important}'),
@@ -115,19 +115,26 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
-assert.match(css,/\.hero #drawPanel\.daily-finished\{[\s\S]*?grid-template-columns:minmax\(0,1fr\) auto/,
- 'Finished desktop editor should use one shallow row');
-assert.match(css,/\.hero #drawPanel:not\(\.daily-finished\):not\(\.draw-unavailable\)\{/,
- 'Ready editor should use the compact split toolbar');
-assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear next to Pen and Fill');
+assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\) \{[\s\S]*?grid-template-columns:minmax\(180px,220px\) minmax\(0,1fr\)/,
+ 'Both drawing states should use the same compact desktop tracks');
+assert.match(css,/@media \(max-width:830px\)/,
+ 'Drawing Studio should stack on tablet and phones');
+assert.ok(html.includes('data-tool="eraser"'),'Eraser must appear beside Pen and Fill');
 assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
- 'Eraser must clear alpha, not paint opaque white');
-assert.match(css,/#drawPanel\.daily-finished \.draw-actions #drawMode\{/,
- 'Only the mode selector is hidden when the Daily is finished');
-assert.match(css,/#drawPanel\.daily-finished \.draw-actions \.native-paint-picker\{/,
+ 'Eraser must clear alpha rather than paint opaque white');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions #drawMode \{[\s\S]*?display:inline-block!important/,
+ 'The same original mode dropdown must remain visible while locked');
+assert.doesNotMatch(css,/#drawPanel\.daily-finished \.draw-actions #drawMode\s*\{\s*display:none/,
+ 'No completed drawing rule may hide the mode selector');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-actions \.native-paint-picker \{/,
  'Color must remain visible after Daily completion');
-assert.match(css,/#drawPanel\.daily-finished \.draw-actions #clearDrawing\{/,
+assert.match(css,/#drawPanel\.daily-finished \.draw-actions #clearDrawing \{/,
  'Clear must remain visible after Daily completion');
-
+assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
+ 'Locked tools must not show the active Pen/Fill state');
+assert.match(js,/ready:\['Drawing Studio','Draw in the center before your first spin\. Your drawing locks when you spin\.'\]/,
+ 'New compact Drawing Studio instructions must be used');
+assert.match(html,/Inappropriate drawings may result in an account ban\./,
+ 'Account moderation warning must remain visible');
 
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
