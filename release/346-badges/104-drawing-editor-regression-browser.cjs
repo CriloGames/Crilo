@@ -84,6 +84,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Main recent colors should show paint actually used');
    await page.locator('#pixelStudioBtn').click();
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
+   assert.equal(await page.locator('#pixelCanvas').evaluate(el=>getComputedStyle(el).imageRendering),
+    'auto','Enlarged Pixel Studio art should be smoothly interpolated, not pixelated');
    assert.equal(await page.locator('#pixelDrawMode').inputValue(),'stationary',
     'Pixel Studio spin setting must reflect the main wheel on first open');
    const originalToolbarBox=await page.locator('.pixel-studio-tools').boundingBox();
@@ -200,6 +202,17 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     return count;
    });
    assert.ok(await blueNear('pixelCanvas')>0,'Pixel pen did not draw at requested point');
+   const smoothEdge=await page.locator('#pixelCanvas').evaluate(canvas=>{
+    const pixels=canvas.getContext('2d').getImageData(152,102,16,16).data;
+    let feathered=0;
+    for(let i=0;i<pixels.length;i+=4)
+     if(pixels[i]===51&&pixels[i+1]===102&&pixels[i+2]===238&&
+        pixels[i+3]>0&&pixels[i+3]<255)feathered++;
+    return feathered;
+   });
+   assert.ok(smoothEdge>0,
+    'Studio pencil must produce anti-aliased edges, not solid square pixel blocks');
+
    await page.locator('#pixelExit').click();
    assert.equal(await page.locator('#drawMode').inputValue(),'stationary',
     'Exit must preserve Don’t spin selected inside Pixel Studio');
