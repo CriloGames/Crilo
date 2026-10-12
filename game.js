@@ -796,6 +796,7 @@ window.addEventListener('crilo-auth-ready',async e=>{
  }
  if(!profile){open('profileModal');return}
  if(guestRun&&(started||!$('result').classList.contains('hidden'))){
+  $('guestSaveNotice').classList.add('hidden');
   // Signing in mid-guest-run cannot convert that attempt to an official
   // Daily. Explain the distinction instead of saying "Sign up" to a user
   // who is already signed in.
