@@ -1,0 +1,118 @@
+/* Shared, responsive header for Crilo's standalone More Games pages.
+   No leaderboard or duck navigation on these small independent games. */
+.crilo-game-topbar{
+ position:sticky;top:0;z-index:35;box-sizing:border-box;width:100%;
+ min-height:68px;height:auto!important;display:flex;align-items:center;
+ justify-content:flex-start;gap:clamp(14px,2.7vw,35px);
+ padding:12px clamp(14px,2vw,26px);
+ background:rgba(255,255,255,.94);border-bottom:1px solid #e6e8ed;
+ backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);
+ color:#191c23;
+}
+.crilo-game-topbar .brand{
+ flex:none;color:#181a1f;font-size:22px;font-weight:950;
+ letter-spacing:.12em;text-decoration:none;line-height:1.3;
+}
+.crilo-game-topbar nav{
+ display:flex;align-items:center;gap:clamp(12px,2.5vw,28px);min-width:0;
+}
+.crilo-game-topbar nav a{
+ text-decoration:none;color:#414956;letter-spacing:.045em;
+ font-size:13px;font-weight:800;white-space:nowrap;
+}
+.crilo-game-topbar nav a:is(:hover,.active){color:#171b22}
+.crilo-game-topbar nav a.active{
+ text-decoration:underline;text-underline-offset:8px;text-decoration-thickness:2px;
+}
+.crilo-game-topbar .header-actions{
+ margin-left:auto;display:flex;align-items:center;gap:9px;min-width:0;
+}
+.crilo-game-topbar .circle-btn{
+ flex:none;width:36px;height:36px;display:grid;place-items:center;
+ font:900 17px/1 system-ui,sans-serif;color:#242a35;
+ border:1px solid #d9e0e6;border-radius:50%;background:#f5f7f9;
+ cursor:pointer;
+}
+.crilo-game-topbar .crilo-game-settings{
+ display:inline-flex;gap:6px;align-items:center;justify-content:center;
+ min-height:36px;padding:7px 12px;border:1px solid #d9e0e6;
+ border-radius:999px;background:#f5f7f9;
+ color:#242a35;font-size:12px;font-weight:850;letter-spacing:.035em;
+ white-space:nowrap;text-decoration:none;
+}
+.crilo-game-topbar .crilo-game-settings svg{width:16px;height:16px;flex:none}
+.crilo-game-topbar .circle-btn:hover,
+.crilo-game-topbar .crilo-game-settings:hover{background:#e8f3ee;border-color:#95b9a6}
+.crilo-game-topbar :is(a,button):focus-visible{
+ outline:3px solid #8aa8e9;outline-offset:3px;
+}
+.crilo-game-topbar .score-pill{
+ flex:none;padding:7px 11px;white-space:nowrap;border-radius:999px;
+ background:#edf2f8;border:1px solid #d5dfe9;color:#36475c;
+ font-size:12px;font-weight:850;font-variant-numeric:tabular-nums;
+}
+/* Shape of Sound's non-invasive information dialog. */
+.crilo-game-info-backdrop{
+ position:fixed;inset:0;z-index:100;display:grid;place-items:center;
+ padding:18px;background:rgba(17,22,30,.52);backdrop-filter:blur(5px);
+}
+.crilo-game-info-backdrop[hidden]{display:none!important}
+.crilo-game-info-card{
+ position:relative;width:min(480px,100%);max-height:min(88vh,670px);
+ overflow:auto;padding:clamp(21px,4vw,32px);
+ background:#fffefb;border:1px solid #d9e1e7;border-radius:24px;
+ box-shadow:0 20px 65px rgba(19,27,37,.25);color:#242831;
+}
+.crilo-game-info-card h2{margin:0 42px 12px 0;font-size:clamp(23px,4vw,29px)}
+.crilo-game-info-card p,.crilo-game-info-card li{line-height:1.55;color:#526075}
+.crilo-game-info-card ul{padding-left:22px;margin:12px 0 18px}
+.crilo-game-info-card li+li{margin-top:7px}
+.crilo-game-info-close{
+ position:absolute;right:16px;top:15px;width:35px;height:35px;
+ display:grid;place-items:center;border:1px solid #d9e1e7;
+ border-radius:50%;background:#f2f5f8;color:#27303c;
+ font-size:23px;cursor:pointer;
+}
+.crilo-game-info-card a{color:#365f95;font-weight:850}
+.crilo-game-info-card :is(a,button):focus-visible{outline:3px solid #8aa8e9;outline-offset:3px}
+html[data-theme="dark"] .crilo-game-topbar{
+ background:rgba(25,29,36,.96);border-color:#4b5665;color:#e7eaf0;
+}
+html[data-theme="dark"] .crilo-game-topbar .brand{color:#f2f3f5}
+html[data-theme="dark"] .crilo-game-topbar nav a{color:#cbd2dd}
+html[data-theme="dark"] .crilo-game-topbar nav a:is(:hover,.active){color:#f4f6fa}
+html[data-theme="dark"] .crilo-game-topbar :is(.circle-btn,.crilo-game-settings){
+ background:#303946;border-color:#5b687a;color:#e9eef6;
+}
+html[data-theme="dark"] .crilo-game-topbar :is(.circle-btn,.crilo-game-settings):hover{
+ background:#3c524b;border-color:#86a895;
+}
+html[data-theme="dark"] .crilo-game-topbar .score-pill{
+ background:#303b4b;border-color:#66788c;color:#e5edf6;
+}
+html[data-theme="dark"] .crilo-game-info-card{
+ background:#292f3b;color:#eff2f7;border-color:#657184;
+}
+html[data-theme="dark"] .crilo-game-info-card :is(p,li){color:#d0d8e2}
+html[data-theme="dark"] .crilo-game-info-card a{color:#abcdf8}
+html[data-theme="dark"] .crilo-game-info-close{
+ background:#394453;color:#f0f4f7;border-color:#657184;
+}
+@media(max-width:650px){
+ .crilo-game-topbar{flex-wrap:wrap;column-gap:12px;row-gap:8px;padding:10px 14px}
+ .crilo-game-topbar nav{
+  order:3;width:100%;gap:23px;justify-content:center;padding-top:3px;
+ }
+ .crilo-game-topbar nav a{font-size:12px}
+ .crilo-game-topbar .header-actions{gap:7px}
+ .crilo-game-topbar .crilo-game-settings{padding:7px 9px}
+ .crilo-game-topbar .crilo-game-settings .crilo-settings-word{display:none}
+ .crilo-game-topbar .score-pill{padding:7px 9px}
+}
+@media(max-width:370px){
+ .crilo-game-topbar .brand{font-size:19px}
+ .crilo-game-topbar{padding-inline:11px;column-gap:7px}
+ .crilo-game-topbar .header-actions{gap:5px}
+ .crilo-game-topbar .circle-btn{width:34px;height:34px}
+ .crilo-game-topbar .crilo-game-settings{min-height:34px;padding:6px 8px}
+}

@@ -81,6 +81,9 @@ on:
       - 'badge-sets.html'
       - 'support.html'
       - 'shape-of-sound.html'
+      - 'game-topbar.css'
+      - 'game-topbar.js'
+      - 'release/346-badges/112-more-games-topbar-browser.cjs'
       - 'sound-shapes.js'
       - 'domain/game.js'
       - 'domain/index.html'
@@ -110,6 +113,8 @@ jobs:
         run: node release/346-badges/102-site-sounds-browser.cjs
       - name: Inspect every launch page for overflow broken images clipped controls and runtime errors
         run: node release/346-badges/111-all-pages-visual-browser.cjs
+      - name: Verify More Games headers Info Settings sound preference and responsive design
+        run: node release/346-badges/112-more-games-topbar-browser.cjs
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices

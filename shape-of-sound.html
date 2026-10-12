@@ -7,9 +7,9 @@
 <title>The Shape of Sound — Crilo</title>
 <link rel="stylesheet" href="style.css?v=114">
 <link rel="stylesheet" href="sound-shapes.css?v=4">
-<link rel="stylesheet" href="legal.css?v=7"><link rel="stylesheet" href="dark-comfort.css?v=1"><link rel="stylesheet" href="night-pages.css?v=1"></head>
+<link rel="stylesheet" href="legal.css?v=7"><link rel="stylesheet" href="dark-comfort.css?v=1"><link rel="stylesheet" href="night-pages.css?v=1"><link rel="stylesheet" href="game-topbar.css?v=1"></head>
 <body class="sound-only-page">
-<header class="topbar"><a class="brand" href="index.html">CRILO</a><nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a></nav></header>
+<header class="topbar crilo-game-topbar"><a class="brand" href="index.html">CRILO</a><nav aria-label="Game navigation"><a href="index.html">PLAY</a><a class="active" href="index.html#more-games">MORE GAMES</a></nav><div class="header-actions"><button type="button" class="circle-btn" id="gameInfoBtn" aria-label="How to play The Shape of Sound" title="How to play" aria-haspopup="dialog" aria-expanded="false">?</button><a class="crilo-game-settings" href="settings.html" aria-label="Settings" title="Settings"><span aria-hidden="true" style="font-size:18px;line-height:1">⚙</span><span class="crilo-settings-word">SETTINGS</span></a></div></header>
 <main class="support-main sound-page">
 <a class="support-back" href="index.html#more-games">← Back to Crilo</a>
 <section class="sound-lab" id="shape-of-sound" aria-labelledby="soundTitle">
@@ -17,7 +17,7 @@
     <div class="sound-eyebrow">A LITTLE INTERNET EXPERIMENT · NO RULES, JUST NOISE</div>
     <h1 id="soundTitle">The Shape of <em>Sound.</em></h1>
     <p>What does a sound look like? What happens when you stretch it, move it, or smoosh it into another sound? There's only one way to find out.</p>
-    <span class="sound-free">Best with sound on</span>
+    <span class="sound-free">Best with sound on · <a href="settings.html">Turn on sound in Settings</a></span>
     
   </header>
   <div class="sound-app" aria-label="Interactive sound playground">
@@ -76,5 +76,20 @@
   <p class="sound-how"><strong>Try this:</strong> Tap a sound to hear it. Drag one shape on top of another to combine them. Use the little arrow handles or the sliders to stretch a shape. Press <strong>Play the room</strong> and rearrange the sounds to make your own looping melody. Headphones make it even nicer.</p>
 </section>
 </main>
-<script src="sound-shapes.js?v=2"></script>
+<div class="crilo-game-info-backdrop" id="gameInfoModal" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle" hidden>
+ <section class="crilo-game-info-card">
+  <button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close game instructions">×</button>
+  <h2 id="gameInfoTitle">The Shape of Sound</h2>
+  <p>Make your own tiny sound garden. There are no scores or time limits.</p>
+  <ul>
+   <li>Tap a shape to hear it. Drag it around to change when it plays and its pitch.</li>
+   <li>Stretch with the arrow handles, or adjust the sliders after selecting a shape.</li>
+   <li>Drop two shapes together to mix them. You can split a mixture again.</li>
+   <li>Press <strong>Play the room</strong> to hear your sounds as a looping melody.</li>
+  </ul>
+  <p>Not hearing anything? Use the Sound button in the game, or <a href="settings.html">turn sound on in Settings</a>. Your browser may require a tap before audio plays.</p>
+ </section>
+</div>
+<script src="game-topbar.js?v=1"></script>
+<script src="sound-shapes.js?v=3"></script>
 <script src="public-metrics.js?v=1"></script><footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 Crilo</small></footer></body></html>

@@ -80,7 +80,11 @@
   arrangePage();
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
   const round=(n)=>Math.round(n*1000)/1000;
-  let idSeq=0,blobs=[],selected=null,interaction=null,muted=false,audio=null,master=null;
+  // Honor Crilo's stored sound preference. A click on this game's own Sound
+  // button can still override it for the current playground session.
+  let savedMute=false;
+  try{savedMute=localStorage.getItem('crilo_sound')==='off'}catch(_){}
+  let idSeq=0,blobs=[],selected=null,interaction=null,muted=savedMute,audio=null,master=null;
   let loopTimer=null,stepIndex=0,nextStepTime=0,loopStartTime=0,tempo=104;
   let discoveryTimer=null;
   function newBlob(kind,x,y,sx,sy,parts){
