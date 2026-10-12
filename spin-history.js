@@ -47,8 +47,8 @@
     return '<article class="spin-history-item" data-rarity="'+tier+'">'+
       '<div class="spin-history-detail"><div class="spin-history-event">'+esc(date)+'</div>'+
       '<div class="spin-history-meta">'+esc(details)+'</div></div>'+
-      '<div class="spin-history-side"><strong>'+esc(fmt(run.score))+
-      ' <small>PTS</small></strong></div>'+
+      '<div class="spin-history-side"><strong class="spin-history-score">'+esc(fmt(run.score))+
+      '</strong><small class="spin-history-units">PTS</small></div>'+
       '<button type="button" class="spin-history-wheel" title="Expand this Daily drawing" aria-label="Expand wheel drawing for '+esc(date)+'">'+
       '<img src="'+src+'" alt="'+(blank?'Blank drawing':'Saved wheel drawing')+'"></button></article>';
   }

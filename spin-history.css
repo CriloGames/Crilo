@@ -68,3 +68,5 @@
  .spin-history-heading{flex-wrap:wrap}
  .spin-history-totals{align-items:flex-start;text-align:left}
 }
+
+/* Number-only rarity chips and standalone units are supplied by rarity-score-frames.css. */
