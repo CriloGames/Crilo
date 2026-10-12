@@ -97,9 +97,9 @@ function luminance(pixel){
        shadow:s.boxShadow,bg:getComputedStyle(el.closest('.best-card')).backgroundImage,
        overflow:document.documentElement.scrollWidth-innerWidth};
      });
-     assert.ok(top.font>=40,'Original large Today's Top number sizing must return');
+     assert.ok(top.font>=40,"Original large Today's Top number sizing must return");
      assert.equal(top.display,'block','The top score must use the classic hero layout');
-     assert.ok(top.centered<3,'Today's Top score must stay centered');
+     assert.ok(top.centered<3,"Today's Top score must stay centered");
      assert.ok(top.shadow.includes('inset'),'Keep new reverse-neon rarity number change');
      assert.ok(top.bg.includes('gradient'),'Keep original pastel Today’s Top card');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
