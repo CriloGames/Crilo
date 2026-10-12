@@ -40,6 +40,8 @@ on:
       - 'duck-classic.svg'
       - 'release/346-badges/096-classic-duck-leaderboard-smoke.cjs'
       - 'leaderboard.js'
+      - 'wheel-preview.js'
+      - 'wheel-preview.css'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'privacy.html'
@@ -96,6 +98,8 @@ on:
       - 'duck-classic.svg'
       - 'release/346-badges/096-classic-duck-leaderboard-smoke.cjs'
       - 'leaderboard.js'
+      - 'wheel-preview.js'
+      - 'wheel-preview.css'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'moderation.html'
@@ -151,6 +155,7 @@ jobs:
           node --check badge-events.js
           node --check profile.js
           node --check leaderboard.js
+          node --check wheel-preview.js
           node --check badge-collection.js
           node --check badge-sets.js
           node --check spin-history.js
@@ -163,6 +168,8 @@ jobs:
           node --check moderation-genital-review.js
           node --check moderation-example-features.js
           node --check moderation-feedback.js
+      - name: Keep enlarged wheel drawing views separate from small-wheel click-to-spin
+        run: node release/346-badges/105-wheel-preview-smoke.cjs
       - name: Render Domain personal Top 5 without confusing verification labels
         run: node release/346-badges/103-domain-personal-best-smoke.cjs
       - name: Reject fabricated Domain results and unauthorized score or owner edits
