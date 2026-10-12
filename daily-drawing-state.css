@@ -465,7 +465,7 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
     column-gap:8px!important;
   }
   #drawPanel:not(.draw-unavailable) .draw-toolbar-main {
-    gap:3px;
+    gap:2px;
     justify-content:flex-end;
   }
   #drawPanel:not(.draw-unavailable) .draw-tool-group {gap:2px}
