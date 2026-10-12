@@ -11,7 +11,50 @@
 }
 /* Keep the live region available to screen readers; the visual panel itself
    contains no completion message. The run-complete section explains the state. */
-#drawPanel.daily-finished>div:first-child{opacity:0}
+/* The compact lock notice sits ABOVE the gray wash, not on top of the
+   buttons. The original aria-live description is visually hidden, never
+   removed from assistive technology. */
+#drawPanel .draw-complete-note{display:none}
+#drawPanel.daily-finished>div:first-child{
+  opacity:1!important;
+  position:relative;z-index:4;
+  min-height:54px;
+  display:flex;align-items:center;justify-content:center;
+}
+#drawPanel.daily-finished #drawPanelTitle,
+#drawPanel.daily-finished #drawPanelDescription,
+#drawPanel.daily-finished #drawSafetyNote{
+  position:absolute!important;
+  width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;
+  overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important;border:0!important;
+}
+#drawPanel.daily-finished .draw-complete-note{
+  display:flex;align-items:center;justify-content:center;
+  gap:10px;width:min(100%,450px);margin:auto;
+  color:#6f515b;text-align:left;line-height:1.3;
+}
+#drawPanel.daily-finished .draw-complete-symbol{
+  display:grid;place-items:center;flex:0 0 27px;
+  width:27px;height:27px;margin:0;
+  border-radius:9px;background:#d4e6dd;color:#406a56;
+  font-size:15px;font-weight:900;
+}
+#drawPanel.daily-finished .draw-complete-copy{
+  display:flex;flex-direction:column;align-items:flex-start;
+  gap:2px;min-width:0;max-width:100%;
+}
+#drawPanel.daily-finished .draw-complete-copy strong{
+  font-size:clamp(13px,1.3vw,15px);
+  line-height:1.3;font-weight:850;letter-spacing:-.01em;
+  color:#74535e;
+}
+#drawPanel.daily-finished .draw-complete-copy small{
+  display:block;font-size:11.5px;line-height:1.45;
+  color:#6e737c;font-weight:600;
+}
 #drawPanel.daily-finished .draw-actions,
 #drawPanel.daily-finished .recent-colors{opacity:.92}
 #drawPanel.daily-finished :is(button,select,input):disabled{cursor:not-allowed}
@@ -52,10 +95,42 @@ html[data-theme="dark"] #drawPanel.daily-finished .drawing-tool.active{
   border-color:#505864!important;
   box-shadow:none!important;
 }
+html[data-theme="dark"] #drawPanel.daily-finished .draw-complete-note{color:#e5cbd2}
+html[data-theme="dark"] #drawPanel.daily-finished .draw-complete-copy strong{color:#dcb4c0}
+html[data-theme="dark"] #drawPanel.daily-finished .draw-complete-copy small{color:#b9c0ca}
+html[data-theme="dark"] #drawPanel.daily-finished .draw-complete-symbol{
+  background:#354e47;color:#c0decb;
+}
 html[data-theme="dark"] #drawPanel.daily-finished::after{
   background:rgba(55,60,70,.39);
 }
 html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 @media(max-width:600px){
   #drawPanel.daily-finished::after{border-radius:17px}
+  #drawPanel.daily-finished>div:first-child{min-height:52px}
+  #drawPanel.daily-finished .draw-complete-note{
+    max-width:100%;gap:8px;padding:0 2px;
+  }
+  #drawPanel.daily-finished .draw-complete-copy strong{font-size:13px}
+  #drawPanel.daily-finished .draw-complete-copy small{font-size:11px}
+}
+
+/* Give the wheel, score and completed-run actions a more compact vertical
+   rhythm on desktops without touching pixel studio, game logic, or the
+   canvas dimensions while a spin is in progress. */
+@media(min-width:701px){
+  .hero{padding-top:clamp(24px,3.5vh,40px)}
+  .hero .sub{margin-bottom:16px}
+  .hero #drawPanel{margin:16px auto 18px;gap:11px;padding:12px 16px}
+  .hero .wheel-hud{margin:6px auto 4px}
+  .hero .wheel-hud .wheel-counts{margin:10px auto 7px}
+  .hero .wheel-score{gap:2px}
+  .hero .message{margin-top:5px;min-height:18px}
+  .hero #playedPanel{margin-top:11px;padding:15px 18px}
+  .hero #result{margin-top:15px;padding-top:17px}
+}
+@media(max-width:700px){
+  .hero #drawPanel{margin:17px auto 22px}
+  .hero .wheel-hud .wheel-counts{margin:11px auto 10px}
+  .hero #playedPanel{margin-top:13px}
 }
