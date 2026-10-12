@@ -160,7 +160,33 @@ $('nextButton').addEventListener('click',nextRound);
 $('playAgainButton').addEventListener('click',restart);
 init();
 
-$('helpBtn').addEventListener('click',()=>$('helpModal').classList.remove('hidden'));
-$('closeHelp').addEventListener('click',()=>$('helpModal').classList.add('hidden'));
-$('helpModal').addEventListener('click',e=>{if(e.target===$('helpModal'))$('helpModal').classList.add('hidden')});
+// Keep the game-specific Help modal usable with a keyboard or screen reader.
+const helpButton=$('helpBtn'),helpModal=$('helpModal'),helpClose=$('closeHelp');
+let helpReturnFocus=null;
+function openHelp(){
+  helpReturnFocus=document.activeElement;
+  helpModal.classList.remove('hidden');
+  helpButton.setAttribute('aria-expanded','true');
+  helpClose.focus();
+}
+function dismissHelp(){
+  helpModal.classList.add('hidden');
+  helpButton.setAttribute('aria-expanded','false');
+  if(helpReturnFocus?.isConnected)helpReturnFocus.focus();
+  else helpButton.focus();
+}
+helpButton.addEventListener('click',openHelp);
+helpClose.addEventListener('click',dismissHelp);
+helpModal.addEventListener('click',e=>{if(e.target===helpModal)dismissHelp()});
+document.addEventListener('keydown',e=>{
+  if(helpModal.classList.contains('hidden'))return;
+  if(e.key==='Escape'){e.preventDefault();dismissHelp();return}
+  if(e.key!=='Tab')return;
+  const reachable=[...helpModal.querySelectorAll('a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+    .filter(el=>el.getClientRects().length);
+  if(!reachable.length){e.preventDefault();helpModal.focus();return}
+  const first=reachable[0],last=reachable[reachable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+});
 renderBests();
