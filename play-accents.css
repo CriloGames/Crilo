@@ -289,7 +289,7 @@ body>.filters,body>section{
 
 /* Narrow gutters cannot support a 23px third offset safely; keep one
    short stroke at each corner instead. This avoids iPhone horizontal overflow. */
-@media(max-width:1024px){
+@media(max-width:1180px){
  :is(
  #drawPanel,.leader-main .best-card,
  .collection-page .collection-list,.sound-page .sound-app,
