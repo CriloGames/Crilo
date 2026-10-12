@@ -389,6 +389,7 @@ async function main(){
   await home.locator('#soundHomeGame').click();
   check(home.url().endsWith('/shape-of-sound.html'),
     scenario.name+' sound game card failed to navigate directly to its own game');
+  await home.locator('#shape-of-sound').waitFor({state:'visible',timeout:15000});
   check(await home.locator('#shape-of-sound').isVisible(),
     scenario.name+' Shape of Sound anchor target missing');
   console.log('PASS_HOME '+scenario.name+' — Shape of Sound navigates to standalone game without overflow');
