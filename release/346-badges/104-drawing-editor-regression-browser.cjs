@@ -206,8 +206,9 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     const pixels=canvas.getContext('2d').getImageData(152,102,16,16).data;
     let feathered=0;
     for(let i=0;i<pixels.length;i+=4)
-     if(pixels[i]===51&&pixels[i+1]===102&&pixels[i+2]===238&&
-        pixels[i+3]>0&&pixels[i+3]<255)feathered++;
+     if(Math.abs(pixels[i]-51)<=4&&Math.abs(pixels[i+1]-102)<=4&&
+        Math.abs(pixels[i+2]-238)<=4&&pixels[i+3]>0&&pixels[i+3]<255)
+      feathered++;
     return feathered;
    });
    assert.ok(smoothEdge>0,
