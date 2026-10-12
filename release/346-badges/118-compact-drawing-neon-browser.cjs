@@ -227,12 +227,12 @@ const controls=[
     r.pointer==='none'&&r.transform==='none'&&r.mask!=='none'&&r.glow.includes('blur(')),
     'Neon must animate independently from the wheel, using a colored halo');
    assert.ok(ring[2].paintClickTarget,'Neon may not cover or steal canvas clicks');
-   assert.ok(Math.abs(ring[2].radialGap-15)<=1.1,
-    'Inner neon must sit 15px outside the artwork edge on wheel '+ring[2].wheelWidth+'px');
+   assert.ok(Math.abs(ring[2].radialGap-7.5)<=1.1,
+    'Inner neon should hug the black rim at 7.5px from canvas on wheel '+ring[2].wheelWidth+'px');
    assert.ok(Math.abs(ring[2].ringCenter.x-ring[2].drawingCenter.x)<=1.1&&
     Math.abs(ring[2].ringCenter.y-ring[2].drawingCenter.y)<=1.1,
     'Moving the inner neon may not offset it from the drawing');
-   assert.ok(ring[2].innerHalo.includes('blur(3px)'),
+   assert.ok(ring[2].innerHalo.includes('blur(2px)'),
     'Inner halo must stay narrow enough to keep color off the drawing');
    const centerBorder=await page.locator('#drawing').evaluate(el=>{
     const css=getComputedStyle(el),wheel=el.parentElement.getBoundingClientRect();
@@ -245,8 +245,8 @@ const controls=[
     'Black circular outline must begin 1px past the drawing edge, without a 7px white spacer');
    assert.ok(Math.abs(centerBorder.ratio-.34)<=.01,
     'Black outline adjustment must not change the drawing canvas dimensions');
-   assert.ok(ring[2].radialGap-4>=9,
-    'Black outline must remain visibly separate from the outer pastel trim');
+   assert.ok(ring[2].radialGap-4>=3&&ring[2].radialGap-4<=4.5,
+    'Pastel rim must touch just outside the black outline, without a wide white gap');
    const lightOpacity=Number(ring[0].opacity);
    await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
    const darkOpacity=Number(await page.locator('#wheelNeonOuter').evaluate(el=>getComputedStyle(el).opacity));
