@@ -73,7 +73,7 @@ assert.match(html,/id="drawPanelDescription" role="status" aria-live="polite"/,
 assert.match(html,/id="drawCompleteNote" class="draw-complete-note" aria-hidden="true"/,
  'Visible status must be inside the drawing panel rather than over the canvas');
 assert.match(html,/daily-drawing-state\.css\?v=2/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=86/,'Play must load the updated state and viewport logic');
+assert.match(html,/game\.js\?v=87/,'Play must load the updated state and viewport logic');
 assert.match(js,/const desktopCap=viewportWidth>=1024/,
  'Wheel size must be calculated once with a more compact desktop cap');
 assert.match(css,/\.hero #playedPanel\{margin-top:11px;padding:15px 18px\}/,
