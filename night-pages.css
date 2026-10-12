@@ -209,3 +209,12 @@ html[data-theme="dark"] body:has(.domain-actions) .primary{
 html[data-theme="dark"] body:has(.domain-actions) .help-steps b{
  background:#58647e;color:#fff;
 }
+
+/* Drawing Review owner navigation must not stay pink-on-pink in night mode. */
+html[data-theme="dark"] .topbar nav a.crilo-owner-review-link{
+ background:#4b303c;color:#f4cad5;border:1px solid #956674;
+ text-shadow:none;box-shadow:none;
+}
+html[data-theme="dark"] .topbar nav a.crilo-owner-review-link:is(:hover,.active){
+ background:#603947;color:#fff0f4;border-color:#b87a8e;
+}
