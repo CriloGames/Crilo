@@ -58,7 +58,7 @@ assert.ok(!app.includes('Owner security · 2FA'),'Owner 2FA shortcut belongs in 
 assert.ok(app.includes('<a href="settings.html">Settings</a>'),'Account menu must retain Settings for owner MFA access');
 for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','friends.html','settings.html','moderation.html']){
- assert.ok(load(page).includes('app.js?v=47'),'New site-wide account menu not loaded on '+page);
+ assert.ok(load(page).includes('app.js?v=48'),'New site-wide account menu not loaded on '+page);
 }
 console.log('PASS: Twenty owner moderation RPCs require signed AAL2 and a verified TOTP factor.');
 console.log('PASS: Ban, unban and owner-account deletion Edge Functions require the same database check.');
