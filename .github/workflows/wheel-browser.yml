@@ -7,6 +7,7 @@ on:
       - 'site-sounds.js'
       - 'release/346-badges/102-site-sounds-browser.cjs'
       - 'release/346-badges/086-site-wide-interactions-browser.cjs'
+      - 'release/346-badges/111-all-pages-visual-browser.cjs'
       - 'release/346-badges/087-signed-in-controls-browser.cjs'
       - 'release/346-badges/091-no-signin-flash-browser.cjs'
       - 'release/346-badges/107-auth-document-refresh-browser.cjs'
@@ -106,6 +107,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Confirm sound palette, badge reveal, silent startup and audio opt-out on four devices
         run: node release/346-badges/102-site-sounds-browser.cjs
+      - name: Inspect every launch page for overflow broken images clipped controls and runtime errors
+        run: node release/346-badges/111-all-pages-visual-browser.cjs
       - name: Audit all public navigation, tabs, modals, donations and game buttons on mobile and desktop
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
