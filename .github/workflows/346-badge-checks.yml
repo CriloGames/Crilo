@@ -37,6 +37,7 @@ on:
       - 'beetle-tricks.html'
       - 'bug-beetle.js'
       - 'style.css'
+      - 'play-accents.css'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -113,6 +114,7 @@ on:
       - 'beetle-tricks.html'
       - 'bug-beetle.js'
       - 'style.css'
+      - 'play-accents.css'
       - 'daily-badges.css'
       - 'leaderboard.html'
       - 'badge-medal.svg'
@@ -168,6 +170,8 @@ jobs:
         run: node release/346-badges/090-profile-icon-static-smoke.cjs
       - name: Verify all Crilo UI sounds and sound preference protections
         run: node release/346-badges/101-site-sounds-smoke.cjs
+      - name: Check interrupted pastel Play strokes, themes and wheel fit
+        run: node release/346-badges/113-play-accents-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
           node --check site-sounds.js
