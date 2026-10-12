@@ -1,5 +1,14 @@
 <!doctype html><html lang="en"><head><link rel="icon" type="image/x-icon" href="/favicon.ico"><link rel="icon" type="image/png" sizes="48x48" href="/favicon.png"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crilo — Private NSFWJS QA</title><style>body{font:16px/1.5 system-ui;background:#fffaf2;color:#202128;max-width:780px;margin:30px auto;padding:18px}section{background:white;border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}button,input{padding:10px;font:inherit}button{border-radius:8px;cursor:pointer}table{border-collapse:collapse;width:100%;}td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}</style></head><body>
+<title>Crilo — Private NSFWJS QA</title><style>body{font:16px/1.5 system-ui;background:#fffaf2;color:#202128;max-width:780px;margin:30px auto;padding:18px}section{background:white;border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}button,input{padding:10px;font:inherit}button{border-radius:8px;cursor:pointer}table{border-collapse:collapse;width:100%;}td,th{padding:8px;border-bottom:1px solid #eee;text-align:left}
+/* Keep private QA controls inside narrow phones and allow wide tables to scroll. */
+*,*::before,*::after{box-sizing:border-box}
+body{width:100%;max-width:780px;margin:20px auto;padding:clamp(12px,4vw,18px)}
+section{padding:clamp(12px,3vw,20px)}
+section label{display:block;max-width:100%;overflow-wrap:anywhere}
+input[type=file]{display:block;max-width:100%;width:100%;min-width:0;padding:8px 0}
+#results{max-width:100%;overflow-x:auto}
+button{max-width:100%}
+</style></head><body>
 <a href="moderation.html">← Owner review</a><h1>Private NSFWJS QA</h1>
 <p>Research-only test of NSFWJS against your existing Crilo drawings. The images stay on your device: this page sends no images, scores, or labels to Crilo, GitHub, or NSFWJS. It downloads public JavaScript and model weights from the CDN. No moderation or bans.</p>
 <section><label>Choose your private labeled JSON export <input type="file" id="source" accept="application/json,.json"></label><p id="status" role="status">Choose your existing crilo-labeled-private file.</p><button id="start" disabled>Evaluate locally</button></section><section><h2>Aggregate results</h2><div id="results">No results yet.</div></section>
