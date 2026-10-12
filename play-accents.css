@@ -269,7 +269,7 @@ body>section:first-of-type::before{
  display:flex;position:absolute;inset:2px;z-index:3;
  align-items:center;justify-content:center;box-sizing:border-box;
  padding:18px 24px;border-radius:16px;
- background:rgba(216,219,224,.88);color:#444b56;
+ background:rgba(216,219,224,.96);color:#444b56;
  text-align:center;pointer-events:none;
 }
 #drawPanel.daily-finished .draw-finished-overlay strong{
@@ -281,7 +281,7 @@ html[data-theme="dark"] #drawPanel.daily-finished{
  background:#2b303a!important;border-color:#535b67
 }
 html[data-theme="dark"] #drawPanel.daily-finished>.draw-finished-overlay{
- background:rgba(41,46,55,.91);color:#eef0f4
+ background:rgba(41,46,55,.96);color:#eef0f4
 }
 @media(max-width:600px){
  #drawPanel.daily-finished>.draw-finished-overlay{padding:13px 20px;border-radius:15px}
