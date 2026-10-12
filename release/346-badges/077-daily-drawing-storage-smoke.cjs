@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs');
 const game=fs.readFileSync('game.js','utf8'),html=fs.readFileSync('index.html','utf8');
-assert.match(html,/game\.js\?v=80/);
+assert.match(html,/game\.js\?v=81/);
 assert.match(game,/function optimizedDailyDrawing\(canvas,isBlank\)/);
 assert.match(game,/if\(isBlank\)return null;/);
 assert.match(game,/toDataURL\('image\/webp',0\.96\)/);
