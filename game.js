@@ -665,7 +665,7 @@ $('retrySaveBtn').addEventListener('click',async()=>{
 });
 $('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>open('authModal'));$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
-let painting=false,last=null,activeDrawingPointer=null;
+let painting=false,last=null,activeDrawingPointer=null,activeDrawingType=null,resumeMainStroke=false;
 // Pointer capture can keep sending moves outside a canvas. Never join a stroke
 // across its boundary, even if the pointer later re-enters while held down.
 function insidePaintArea(canvas,event){
@@ -688,7 +688,7 @@ function insidePaintArea(canvas,event){
 function stopDrawing(event){
  if(activeDrawingPointer===null)return;
  if(event?.pointerId!==undefined&&event.pointerId!==activeDrawingPointer)return;
- const id=activeDrawingPointer;activeDrawingPointer=null;painting=false;last=null;
+ const id=activeDrawingPointer;activeDrawingPointer=null;activeDrawingType=null;painting=false;last=null;resumeMainStroke=false;
  try{if(drawing.hasPointerCapture?.(id))drawing.releasePointerCapture(id)}catch(error){
   console.warn('Drawing pointer release:',error);
  }
@@ -739,12 +739,23 @@ drawing.addEventListener('pointerdown',e=>{
  hideDrawPlaceholder();
  const p=point(e);snapshot();
  if(drawTool==='fill'){if(fill(p.x,p.y)){recordPaintColor($('drawColor').value);if(!isTest&&!guestRun)usedFillOnOfficial=true}return}
- activeDrawingPointer=e.pointerId;painting=true;last=p;
+ resumeMainStroke=false;activeDrawingPointer=e.pointerId;activeDrawingType=e.pointerType;painting=true;last=p;
  try{drawing.setPointerCapture(e.pointerId)}catch(error){stopDrawing(e);return}
  dctx.fillStyle=$('drawColor').value;dctx.beginPath();
  dctx.arc(p.x,p.y,3,0,Math.PI*2);dctx.fill();recordPaintColor($('drawColor').value);
 });
 drawing.addEventListener('pointermove',e=>{
+ // A window switch may release pointer capture without releasing the mouse
+ // button. Rejoin ONLY if a real mouse move still reports the left button
+ // down. If it was released outside, the first hover clears this permission.
+ if(!painting&&resumeMainStroke){
+  if(e.pointerType==='mouse'&&(e.buttons&1)===1&&!drawingLocked&&
+      !isDrawingColorPickerOpen()&&insidePaintArea(drawing,e)){
+   resumeMainStroke=false;painting=true;activeDrawingPointer=e.pointerId;
+   activeDrawingType=e.pointerType;last=null;
+   try{drawing.setPointerCapture(e.pointerId)}catch(error){stopDrawing(e);return}
+  }else if(e.pointerType==='mouse'&&(e.buttons&1)===0)resumeMainStroke=false;
+ }
  if(!painting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==activeDrawingPointer)return;
  if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0){
   stopDrawing(e);return;
@@ -758,8 +769,13 @@ drawing.addEventListener('pointermove',e=>{
  else{dctx.moveTo(last.x,last.y);dctx.lineTo(p.x,p.y);dctx.stroke()}
  last=p;
 });
-for(const type of ['pointerup','pointercancel','lostpointercapture'])
+for(const type of ['pointerup','pointercancel'])
  drawing.addEventListener(type,stopDrawing);
+drawing.addEventListener('lostpointercapture',event=>{
+ const canResume=painting&&event.pointerId===activeDrawingPointer&&activeDrawingType==='mouse';
+ stopDrawing(event);
+ if(canResume&&!drawingLocked&&!isDrawingColorPickerOpen())resumeMainStroke=true;
+});
 drawing.addEventListener('pointerleave',e=>{
  if(e.pointerId===activeDrawingPointer)last=null;
 });
@@ -853,11 +869,11 @@ document.addEventListener('keydown',event=>{
 },true);
 setActivePaintColor($('drawColor').value);
 renderRecentPaintColors();
-let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null,pixelPointerId=null;
+let pixelTool='pen',pixelPainting=false,pixelHistory=[],pixelLast=null,pixelPointerId=null,pixelPointerType=null,resumePixelStroke=false;
 function stopPixelStroke(event){
  if(pixelPointerId===null)return;
  if(event?.pointerId!==undefined&&event.pointerId!==pixelPointerId)return;
- const id=pixelPointerId;pixelPointerId=null;pixelPainting=false;pixelLast=null;
+ const id=pixelPointerId;pixelPointerId=null;pixelPointerType=null;pixelPainting=false;pixelLast=null;resumePixelStroke=false;
  try{if(pixelCanvas.hasPointerCapture?.(id))pixelCanvas.releasePointerCapture(id)}catch(error){console.warn('Pixel pointer release:',error)}
 }
 function pixelSave(){pixelHistory.push(pixelCtx.getImageData(0,0,200,200));if(pixelHistory.length>30)pixelHistory.shift()}
@@ -901,11 +917,19 @@ pixelCanvas.addEventListener('pointerdown',e=>{
  e.preventDefault();pixelSave();
  const p=pixelPoint(e);
  if(pixelTool==='fill'){if(pixelFill(p)){recordPaintColor($('pixelColor').value);if(!isTest&&!guestRun)usedFillOnOfficial=true}return}
- pixelPointerId=e.pointerId;pixelPainting=true;pixelLast=p;
+ resumePixelStroke=false;pixelPointerId=e.pointerId;pixelPointerType=e.pointerType;pixelPainting=true;pixelLast=p;
  try{pixelCanvas.setPointerCapture(e.pointerId)}catch(error){stopPixelStroke(e);return}
  pixelPaint(p);if(pixelTool!=='erase')recordPaintColor($('pixelColor').value);
 });
 pixelCanvas.addEventListener('pointermove',e=>{
+ if(!pixelPainting&&resumePixelStroke){
+  if(e.pointerType==='mouse'&&(e.buttons&1)===1&&!drawingLocked&&
+      !isDrawingColorPickerOpen()&&insidePaintArea(pixelCanvas,e)){
+   resumePixelStroke=false;pixelPainting=true;pixelPointerId=e.pointerId;
+   pixelPointerType=e.pointerType;pixelLast=null;
+   try{pixelCanvas.setPointerCapture(e.pointerId)}catch(error){stopPixelStroke(e);return}
+  }else if(e.pointerType==='mouse'&&(e.buttons&1)===0)resumePixelStroke=false;
+ }
  if(!pixelPainting||drawingLocked||isDrawingColorPickerOpen()||e.pointerId!==pixelPointerId)return;
  if(e.pointerType!=='touch'&&typeof e.buttons==='number'&&(e.buttons&1)===0){
   stopPixelStroke(e);return;
@@ -916,16 +940,35 @@ pixelCanvas.addEventListener('pointermove',e=>{
  else pixelLine(pixelLast,p);
  pixelLast=p;
 });
-for(const type of ['pointerup','pointercancel','lostpointercapture'])
+for(const type of ['pointerup','pointercancel'])
  pixelCanvas.addEventListener(type,stopPixelStroke);
+pixelCanvas.addEventListener('lostpointercapture',event=>{
+ const canResume=pixelPainting&&event.pointerId===pixelPointerId&&pixelPointerType==='mouse';
+ stopPixelStroke(event);
+ if(canResume&&!drawingLocked&&!isDrawingColorPickerOpen())resumePixelStroke=true;
+});
 pixelCanvas.addEventListener('pointerleave',e=>{
  if(e.pointerId===pixelPointerId)pixelLast=null;
 });
 document.addEventListener('pointerup',stopPixelStroke);
 document.addEventListener('pointercancel',stopPixelStroke);
-window.addEventListener('blur',()=>{stopDrawing();stopPixelStroke()});
-document.addEventListener('visibilitychange',()=>{
- if(document.hidden){stopDrawing();stopPixelStroke()}
+// Resume after a real focus change only while the original left mouse
+// button remains down; never infer this from focus alone.
+function suspendHeldStrokes(){
+ const main=painting&&activeDrawingType==='mouse';
+ const pixel=pixelPainting&&pixelPointerType==='mouse';
+ stopDrawing();stopPixelStroke();
+ if(main&&!drawingLocked&&!isDrawingColorPickerOpen())resumeMainStroke=true;
+ if(pixel&&!drawingLocked&&!isDrawingColorPickerOpen())resumePixelStroke=true;
+}
+window.addEventListener('blur',suspendHeldStrokes);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendHeldStrokes()});
+document.addEventListener('pointerup',()=>{resumeMainStroke=false;resumePixelStroke=false});
+document.addEventListener('pointercancel',()=>{resumeMainStroke=false;resumePixelStroke=false});
+document.addEventListener('pointermove',event=>{
+ if(event.pointerType==='mouse'&&(event.buttons&1)===0){
+  resumeMainStroke=false;resumePixelStroke=false;
+ }
 });
 
 resetSegments();update();fitPlayViewport();
