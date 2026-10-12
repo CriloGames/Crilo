@@ -66,6 +66,12 @@ const controls=[
    assert.equal(locked.mode,'spin','Existing dropdown selection lost on lock');
    assert.equal(locked.selected,0,'A drawing tool still looks selected after first spin');
    assert.ok(locked.overflow<=2,'First-spin locked panel overflows at '+width);
+   if(width>600)assert.ok(
+    Math.abs((locked.copy.y+locked.copy.height/2)-(locked.tools.y+locked.tools.height/2))<=12,
+    'Locked instructions and controls should be vertically centered together at '+width);
+   else assert.ok(locked.tools.y>=locked.copy.bottom-2,
+    'Locked tools should stack below instructions on phones at '+width);
+
    assert.ok(Math.abs(locked.panel.height-ready.panel.height)<75,
     'First-spin lock caused a large layout shift at '+width);
    await page.evaluate(()=>window.setDrawingPanelMode('complete'));
@@ -76,6 +82,12 @@ const controls=[
     'Completed Daily must leave all nine tools disabled at '+width);
    assert.equal(finished.mode,'spin','Completed Daily changed selected drawMode');
    assert.ok(finished.overflow<=2,'Finished panel horizontal overflow at '+width);
+   if(width>600)assert.ok(
+    Math.abs((finished.copy.y+finished.copy.height/2)-(finished.tools.y+finished.tools.height/2))<=12,
+    'Finished message and toolbar must share a centered row at '+width);
+   else assert.ok(finished.tools.y>=finished.copy.bottom-2,
+    'Completed Daily tools should stack below message on phones at '+width);
+
    assert.ok(Math.abs(finished.panel.height-ready.panel.height)<80,
     'Completed Daily should be approximately as compact as ready at '+width);
    await page.evaluate(()=>{
