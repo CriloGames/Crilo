@@ -16,15 +16,21 @@ for(const border of ['border-top:2.5px solid','border-left:2.5px solid',
  'border-right:2.5px solid','border-bottom:2.5px solid']){
  assert.ok(css.includes(border),'Missing edge-following ribbon: '+border);
 }
-assert.ok(css.includes('border-top-left-radius:calc(var(--trace-radius,22px) + 6px)'));
-assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius,22px) + 6px)'));
-assert.ok(css.includes('min(var(--trace-head,57%),calc(100% - 12px))'),
+assert.ok(css.includes('border-top-left-radius:calc(var(--trace-radius,22px) + 9px)'));
+assert.ok(css.includes('border-bottom-right-radius:calc(var(--trace-radius,22px) + 9px)'));
+assert.ok(css.includes('min(var(--trace-head,57%),calc(100% - 18px))'),
  'Long side traces must be capped to their actual card');
-assert.ok(css.includes('min(var(--trace-tail,37%),calc(100% - 12px))'),
+assert.ok(css.includes('min(var(--trace-tail,37%),calc(100% - 18px))'),
  'Short traces must be capped to their actual card');
 assert.ok(css.includes('pointer-events:none'));
-assert.ok(css.includes('--trace-head-echo:195px')&&css.includes('--trace-tail-echo:149px'),
- 'Layered echo lengths must vary between panels');
+assert.ok(css.includes('--trace-head:76%')&&css.includes('--trace-tail:73%'),
+ 'Border stroke lengths vary by surface');
+assert.ok(css.includes('filter:var(--trace-head-stack,none)'),
+ 'Some strokes must have exterior stacked copies');
+assert.ok(css.includes('top:-23px;left:-23px')&&css.includes('--trace-third:37%'),
+ 'Selected cards must support three offset lines with asymmetric lengths');
+assert.ok(css.includes('@media(max-width:1024px)'),
+ 'Tablet and phone must suppress wide three-line offsets');
 assert.ok(css.includes('html[data-theme="dark"]'));
 assert.ok(css.includes('@media(max-width:600px)'));
 console.log('PASTEL_BORDER_RIBBONS_PASS: no freehand SVGs, layered card borders only, responsive and both themes');
