@@ -8,10 +8,10 @@
  const font=(weight,size)=>weight+' '+size+'px system-ui, -apple-system, sans-serif';
  function addButton(parent,id,text){
   const btn=document.createElement('button');btn.type='button';btn.id=id;
-  btn.className='primary crilo-share-trigger hidden';btn.textContent=text;parent?.append(btn);
+  btn.className='primary crilo-share-trigger hidden';btn.textContent=text;if(id==='criloShareResult')parent?.prepend(btn);else parent?.append(btn);
   btn.addEventListener('click',show);return btn;
  }
- const resultBtn=addButton(document.querySelector('#result .result-actions'),'criloShareResult','Share my score ↗');
+ const resultBtn=addButton(document.querySelector('#result .result-actions'),'criloShareResult','Share my Daily ↗');
  const replayBtn=addButton(byId('playedPanel'),'criloSharePlayed','Share score ↗');
  if(!resultBtn||!replayBtn)return;
  function ensureDialog(){
@@ -19,7 +19,7 @@
   dialog=document.createElement('dialog');dialog.id='criloShareDialog';dialog.className='crilo-share-dialog';
   dialog.innerHTML='<div class="crilo-share-head"><strong>SHARE YOUR DAILY</strong><button type="button" id="criloShareClose" aria-label="Close">×</button></div>'+
    '<canvas id="criloShareCanvas" width="1080" height="1080" aria-label="Preview of your Crilo Daily score card"></canvas>'+
-   '<p class="crilo-share-hint">Your drawing, username, and other account information are never added to this card.</p>'+
+   '<p class="crilo-share-hint">Share the score card, save it as an image, or copy a link to challenge friends. Your drawing and username stay private.</p>'+
    '<div class="crilo-share-actions"><button type="button" id="criloShareCopy">Copy result</button><button type="button" id="criloShareSave">Save image</button><button type="button" id="criloShareNative">Share ↗</button></div>'+
    '<p id="criloShareNotice" role="status" aria-live="polite"></p>';
   document.body.append(dialog);
