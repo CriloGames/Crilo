@@ -90,7 +90,7 @@ async function main(){
      await page.locator('#pixelStudioBtn').click();assert.ok(await page.locator('#pixelStudioModal').isVisible(),'Pixel Studio failed to open');
      await page.locator('#pixelUndo').click();
      await page.locator('#pixelClear').click();
-     await page.locator('#pixelClose').click();assert.ok(await page.locator('#pixelStudioModal').isHidden(),'Pixel Studio close failed');
+     await page.locator('#pixelExit').click();assert.ok(await page.locator('#pixelStudioModal').isHidden(),'Pixel Studio close failed');
      await page.locator('#bugBeetle').click();assert.ok(await page.locator('#bugReportModal').isVisible(),'Bug-report beetle did not open');
      await page.locator('#bugClose').click();assert.ok(await page.locator('#bugReportModal').isHidden(),'Bug report did not close');
      ok('Home nav, Help, sign-in, Pixel Studio and beetle modal '+width);
