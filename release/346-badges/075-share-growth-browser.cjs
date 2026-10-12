@@ -39,6 +39,24 @@ async function scenario(browser,{signedIn,completed,verified,played=false}){
   const dl=page.waitForEvent('download');
   await page.locator('#criloShareSave').click();
   assert.match((await dl).suggestedFilename(),/crilo-daily-2026-10-11\.png/);
+  // Native sharing must happen within the Share button's original gesture.
+  await page.evaluate(()=>{
+   Object.defineProperty(navigator,'canShare',{configurable:true,value:payload=>!!payload.files?.length});
+   Object.defineProperty(navigator,'share',{configurable:true,value:payload=>{
+    window.__qaNativeShare={
+     activated:!!navigator.userActivation?.isActive,
+     filename:payload.files?.[0]?.name||null,
+     score:payload.text
+    };
+    return Promise.resolve();
+   }});
+  });
+  await page.locator('#criloShareNative').click();
+  await page.waitForFunction(()=>!!window.__qaNativeShare);
+  const native=await page.evaluate(()=>window.__qaNativeShare);
+  assert.equal(native.activated,true,'Native share must run inside the click gesture');
+  assert.equal(native.filename,'crilo-daily.png','Native sharing should send the generated image');
+  assert.ok(native.score.includes('142 points'),'Native sharing must preserve the verified score');
  }else{
   await page.waitForFunction(()=>document.getElementById('message').textContent.includes('not saved yet'));
   assert.equal(await page.locator('#criloShareDialog').count(),0,'No proof must not create a fake share card');
