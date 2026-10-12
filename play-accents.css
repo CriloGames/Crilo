@@ -346,6 +346,11 @@ body>.filters,body>section{
  content:none;
 }
 
+/* Shape of Sound keeps all moving blobs clipped by its own .sound-stage;
+   allowing the surrounding app card to show exterior ribbons cannot let
+   gameplay objects escape the playfield. */
+.sound-page .sound-app{overflow:visible}
+
 /* Preserve the Daily-complete layout; remove the Pen/Fill state as well as
    its dark paint, so no selectable black rectangle leaks through the scrim. */
 #drawPanel .draw-finished-overlay{display:none}
