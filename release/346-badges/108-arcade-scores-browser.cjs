@@ -37,7 +37,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        '</div><small class="leader-score-secondary">Score '+score+' · MYTHIC</small></div></div>'+
        '<button class="mini-wheel" type="button"><img src="blank-wheel.svg" alt="Wheel drawing"></button></div>';
      const top=document.getElementById('bestScore');
-     top.textContent='90,734';top.dataset.scoreRarity='rare';
+     top.textContent='90,734';top.dataset.scoreRarity='rare';top.dataset.digits='5';
      const wheel=document.getElementById('bestDrawing');
      wheel.src='blank-wheel.svg';wheel.classList.remove('hidden');
     },theme);
@@ -69,6 +69,12 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     });
     assert.ok(horizontal.gap>5,'Score and artwork must be side by side on '+width);
     assert.ok(horizontal.y<2,'Score and artwork must share a center line on '+width);
+    const hero=await page.locator('#bestScore').evaluate(el=>{
+     const s=getComputedStyle(el),r=el.getBoundingClientRect();
+     return{font:parseFloat(s.fontSize),width:r.width,card:el.closest('.best-card').getBoundingClientRect().width};
+    });
+    assert.ok(hero.font>=20,'Longish score too small to read on '+width);
+    assert.ok(hero.width<hero.card*.65,'Score box swallows player artwork on '+width);
     assert.equal(theme==='dark'?best.color:'rgb(49, 122, 192)',best.color,
       'Light rare score should keep the existing rarity ink');
     assert.equal(await page.locator('.leader-score-secondary').innerText(),

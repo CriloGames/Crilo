@@ -1,62 +1,279 @@
-/* Classic Crilo top-run presentation: score left, player drawing right.
-   Only the layout changes. The rarity-colored reverse-neon number is inherited
-   from rarity-score-frames.css, and the drawing stays clickable. */
+/* The Daily hero: an inviting, balanced celebration of the actual top run.
+   The player artwork and its click-to-preview behavior are untouched.
+   Use rarity-score-frames.css for the ONLY score box + its inward colored glow. */
+
+.best-card{
+ width:min(100%,800px);
+ max-width:800px;
+ padding:clamp(21px,3.8vw,37px) clamp(18px,4.1vw,44px) clamp(24px,3.7vw,36px);
+ border-radius:clamp(22px,3vw,32px);
+ background:linear-gradient(129deg,#fff9dc 0%,#f8faee 52%,#eaf6fd 100%);
+ border:1px solid #d8e0e6;
+ box-shadow:0 16px 42px rgba(37,47,62,.075);
+ overflow:hidden;
+}
+.best-card .best-crown{
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ gap:13px;
+ width:max-content;
+ max-width:100%;
+ margin:0 auto 12px;
+ color:#e5b54d;
+}
+.best-card .best-crown::before,.best-card .best-crown::after{
+ content:"";
+ display:block;
+ width:35px;
+ height:5px;
+ border-radius:999px;
+ background:rgba(219,194,144,.36);
+}
+.best-card .best-crown svg{display:block;flex-shrink:0}
+.best-card #bestHeading{
+ font-size:clamp(17px,2.35vw,25px);
+ letter-spacing:.135em;
+ line-height:1.23;
+ color:#304359;
+ font-weight:950;
+}
+.best-card #leaderDescription{
+ font-size:clamp(13px,1.55vw,17px);
+ line-height:1.45;
+ max-width:680px;
+ color:#758295;
+ margin:11px auto 0;
+ padding:0;
+}
 .best-card .best-feature-row{
  display:grid;
- grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+ column-gap:clamp(17px,4vw,52px);
  align-items:center;
- justify-items:center;
- column-gap:clamp(12px,3vw,36px);
- max-width:530px;
- margin:20px auto 15px;
+ justify-items:stretch;
+ width:min(100%,690px);
+ max-width:690px;
+ margin:clamp(22px,3vw,30px) auto 19px;
  min-width:0;
 }
-.best-card .best-feature-row #bestScore{
- display:block;
- width:fit-content;
- max-width:100%;
+.best-card .best-score-stage,
+.best-card .best-art-stage{
+ position:relative;
+ display:grid;
+ place-items:center;
  min-width:0;
+ width:100%;
+ isolation:isolate;
+}
+/* Quiet, hand-drawn-looking emphasis without an animated light show. */
+.best-card .best-score-stage::before,
+.best-card .best-score-stage::after{
+ content:"";
+ position:absolute;
+ left:0;
+ width:clamp(16px,3vw,31px);
+ height:7px;
+ border-radius:999px;
+ background:color-mix(in srgb,var(--leader-tier-ink,#599fd4) 36%,#9dcaf0);
+ transform:rotate(48deg);
+ opacity:.75;
+ pointer-events:none;
+}
+.best-card .best-score-stage::before{top:18%}
+.best-card .best-score-stage::after{bottom:18%;transform:rotate(-35deg)}
+.best-card .best-feature-row #bestScore{
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ width:fit-content;
+ max-width:calc(100% - 25px);
+ min-width:clamp(125px,17vw,188px);
+ min-height:clamp(106px,15vw,157px);
  margin:0 auto;
- padding:10px 17px 12px;
- font-size:clamp(34px,4.9vw,64px);
- line-height:1.12;
- text-align:center;
+ padding:clamp(14px,2.6vw,23px) clamp(18px,3.2vw,34px);
+ font-size:clamp(43px,5.8vw,82px);
+ line-height:1;
+ border-radius:clamp(20px,2.7vw,28px);
+ border-width:2px;
+ letter-spacing:-.055em;
+ font-variant-numeric:tabular-nums;
+ white-space:nowrap;
+ overflow-wrap:normal;
+ text-shadow:none;
+}
+/* Count size rather than game rules: additional digits must not push the
+   artwork off-screen. Not applied to the small leaderboard list chips. */
+.best-card .best-feature-row #bestScore[data-digits="5"]{font-size:clamp(35px,4.4vw,63px)}
+.best-card .best-feature-row #bestScore[data-digits="6"]{font-size:clamp(28px,3.8vw,54px)}
+.best-card .best-feature-row #bestScore[data-digits="7"]{font-size:clamp(24px,3.1vw,45px)}
+.best-card .best-feature-row #bestScore[data-digits="8"]{font-size:clamp(20px,2.7vw,36px)}
+.best-card .best-feature-row #bestScore[data-digits="9"]{font-size:clamp(17px,2.3vw,31px)}
+.best-card .best-feature-row #bestScore[data-digits="long"]{
+ font-size:clamp(13px,1.8vw,24px);
+ white-space:normal;
  overflow-wrap:anywhere;
+}
+.best-card .best-art-stage::before{
+ content:"";
+ position:absolute;
+ left:0;
+ bottom:15%;
+ width:22px;
+ height:22px;
+ background:#f0c556;
+ clip-path:polygon(50% 0%,63% 36%,100% 50%,63% 64%,50% 100%,37% 64%,0% 50%,37% 36%);
+ opacity:.8;
+ pointer-events:none;
+}
+.best-card .best-art-stage::after{
+ content:"";
+ position:absolute;
+ right:0;
+ top:19%;
+ width:10px;
+ height:10px;
+ border-radius:50%;
+ background:#f0c556;
+ opacity:.7;
+ pointer-events:none;
 }
 .best-card .best-feature-row #bestDrawing{
  display:block;
- width:min(100%,178px);
+ width:min(100% - 24px,236px);
+ max-width:236px;
  height:auto;
  aspect-ratio:1;
  margin:0 auto;
+ background:#fff;
+ border:6px solid #fff;
+ outline:4px solid #9a89d8;
+ border-radius:50%;
  object-fit:contain;
+ box-shadow:0 10px 24px rgba(83,76,115,.12),0 0 0 1px rgba(77,64,109,.2);
  cursor:zoom-in;
+ transition:box-shadow .15s ease;
+}
+.best-card .best-feature-row #bestDrawing:hover{
+ box-shadow:0 13px 26px rgba(83,76,115,.2),0 0 0 1px rgba(77,64,109,.2);
+}
+.best-card .best-feature-row #bestDrawing:focus-visible{
+ outline:4px solid #6485d1;
+ outline-offset:5px;
 }
 .best-card .best-feature-row #bestDrawing.hidden{display:none!important}
-/* Other leaderboard categories don't have a drawing. Center their score. */
 .best-card .best-feature-row:has(#bestDrawing.hidden){
  grid-template-columns:minmax(0,1fr);
+ max-width:380px;
 }
-.best-card .best-user{margin-top:7px}
-.best-card .best-stats{margin-top:8px;line-height:1.5}
+.best-card .best-feature-row:has(#bestDrawing.hidden) .best-art-stage{
+ display:none;
+}
+.best-card .best-feature-row:has(#bestDrawing.hidden) .best-score-stage::before,
+.best-card .best-feature-row:has(#bestDrawing.hidden) .best-score-stage::after{
+ display:none;
+}
+.best-card .best-user{
+ margin:8px auto 0;
+ max-width:100%;
+ font-size:clamp(22px,3.25vw,34px);
+ font-weight:950;
+ letter-spacing:-.04em;
+ line-height:1.2;
+ color:#376fae;
+ overflow-wrap:anywhere;
+ text-shadow:0 1px 0 rgba(255,255,255,.55);
+}
+.best-card .best-stats{
+ display:block;
+ width:fit-content;
+ max-width:100%;
+ margin:14px auto 0;
+ padding:11px clamp(12px,2.5vw,24px);
+ border:1px solid rgba(137,176,217,.37);
+ background:rgba(255,255,255,.52);
+ border-radius:999px;
+ color:#586577;
+ line-height:1.45;
+ font-size:clamp(12px,1.45vw,15px);
+ font-weight:600;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+html[data-theme="dark"] .best-card{
+ background:linear-gradient(130deg,#292b36 0%,#252e37 60%,#253541 100%);
+ border-color:#4d5668;
+ box-shadow:0 13px 33px rgba(0,0,0,.2);
+}
+html[data-theme="dark"] .best-card .best-crown{color:#d6ad60}
+html[data-theme="dark"] .best-card .best-crown::before,
+html[data-theme="dark"] .best-card .best-crown::after{background:rgba(212,179,108,.22)}
+html[data-theme="dark"] .best-card #bestHeading{color:#e7ecf5}
+html[data-theme="dark"] .best-card #leaderDescription{color:#c0c8d3}
+html[data-theme="dark"] .best-card .best-user{
+ color:#b8cdec;
+ text-shadow:0 1px 0 rgba(0,0,0,.2);
+}
+html[data-theme="dark"] .best-card .best-stats{
+ background:rgba(61,74,90,.65);
+ border-color:#566a80;
+ color:#d8e0ec;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
+ outline-color:#9282c4;
+ border-color:#e9e9f0;
+ box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+html[data-theme="dark"] .best-card .best-art-stage::before,
+html[data-theme="dark"] .best-card .best-art-stage::after{background:#c8a15c}
 @media(max-width:700px){
+ .best-card{padding:23px 15px 25px}
  .best-card .best-feature-row{
-  column-gap:clamp(8px,3vw,18px);
-  margin:15px auto 12px;
+  column-gap:clamp(11px,3.6vw,22px);
+  margin:19px auto 15px;
  }
  .best-card .best-feature-row #bestScore{
-  font-size:clamp(27px,7vw,48px);
-  padding:8px 11px 10px;
-  border-radius:13px;
+  min-width:0;
+  min-height:clamp(75px,16vw,115px);
+  max-width:calc(100% - 16px);
+  padding:12px clamp(8px,2.2vw,18px);
+  font-size:clamp(30px,7vw,49px);
+  border-radius:17px;
  }
+ .best-card .best-feature-row #bestScore[data-digits="5"]{font-size:clamp(24px,5.7vw,40px)}
+ .best-card .best-feature-row #bestScore[data-digits="6"]{font-size:clamp(20px,4.7vw,34px)}
+ .best-card .best-feature-row #bestScore[data-digits="7"]{font-size:clamp(17px,4vw,28px)}
+ .best-card .best-feature-row #bestScore[data-digits="8"]{font-size:clamp(15px,3.5vw,25px)}
+ .best-card .best-feature-row #bestScore[data-digits="9"]{font-size:clamp(13px,3vw,21px)}
+ .best-card .best-feature-row #bestScore[data-digits="long"]{font-size:clamp(12px,2.5vw,17px)}
  .best-card .best-feature-row #bestDrawing{
-  width:min(100%,142px);
+  width:min(100% - 18px,160px);
+  border-width:4px;
+  outline-width:3px;
  }
+ .best-card .best-score-stage::before,
+ .best-card .best-score-stage::after{height:5px;width:12px}
+ .best-card .best-art-stage::before{width:13px;height:13px}
+ .best-card .best-art-stage::after{width:7px;height:7px}
+ .best-card .best-stats{border-radius:18px}
 }
-@media(max-width:390px){
- .best-card .best-feature-row #bestScore{
-  font-size:clamp(24px,7.3vw,32px);
-  padding:7px 9px 9px;
+@media(max-width:370px){
+ .best-card{padding-left:12px;padding-right:12px}
+ .best-card .best-feature-row{
+  grid-template-columns:minmax(0,1fr) minmax(0,.95fr);
+  column-gap:9px;
  }
- .best-card .best-feature-row #bestDrawing{width:min(100%,112px)}
+ .best-card .best-feature-row #bestScore{
+  font-size:30px;
+  min-height:72px;
+  padding:9px 7px;
+ }
+ .best-card .best-feature-row #bestDrawing{width:min(100% - 12px,130px)}
+ .best-card .best-score-stage::before,
+ .best-card .best-score-stage::after{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .best-card .best-feature-row #bestDrawing{transition:none}
 }

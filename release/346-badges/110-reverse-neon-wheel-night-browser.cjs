@@ -29,7 +29,7 @@ function luminance(pixel){
     assert.equal(await page.locator('link[href="rarity-score-frames.css?v=2"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
-      await page.locator('link[href="top-score-row.css?v=1"]').count(),1,
+      await page.locator('link[href="top-score-row.css?v=2"]').count(),1,
       'Leaderboard must load its classic horizontal hero layout');
     if(path==='index.html'){
      await page.locator('#wheel').waitFor({state:'visible'});
@@ -94,6 +94,17 @@ function luminance(pixel){
      assert.ok(['none','normal'].includes(score.before),'No labels inside box');
      await page.locator('#bestScore').evaluate(el=>{el.textContent='69';el.dataset.scoreRarity='rare'});
      await page.locator('#bestDrawing').evaluate(el=>{el.src='blank-wheel.svg';el.classList.remove('hidden')});
+     assert.equal(await page.locator('.best-card .best-crown svg').count(),1,
+      'Celebratory topper must be decorative SVG, not player art');
+     await page.locator('#bestDrawing').evaluate(async el=>{
+      await el.decode();
+      const before=el.getBoundingClientRect(),first=el.currentSrc;
+      el.src='default-wheel.svg';await el.decode();
+      const after=el.getBoundingClientRect();
+      if(first===el.currentSrc)throw Error('Best run art is hardcoded');
+      if(Math.abs(after.width-before.width)>1||Math.abs(after.height-before.height)>1)
+       throw Error('Changing artwork resized the top-run frame');
+     });
      const top=await page.locator('#bestScore').evaluate(el=>{
       const score=el.getBoundingClientRect();
       const art=document.getElementById('bestDrawing').getBoundingClientRect();
@@ -115,6 +126,16 @@ function luminance(pixel){
      assert.ok(top.shadow.includes('inset'),'Keep reverse-neon rarity number frame');
      assert.ok(top.bg.includes('gradient'),'Keep classic pastel hero background');
      assert.ok(top.overflow<=2,'Top card caused mobile horizontal overflow');
+     const extra=await page.locator('.best-card').evaluate(el=>{
+      const s=getComputedStyle(el),heading=getComputedStyle(el.querySelector('#bestHeading'));
+      const pill=getComputedStyle(el.querySelector('#bestStats'));
+      return{width:el.getBoundingClientRect().width,bg:s.backgroundImage,
+       heading:heading.color, pillBackground:pill.backgroundColor,
+       artWidth:el.querySelector('#bestDrawing').getBoundingClientRect().width};
+     });
+     assert.ok(extra.width<=width,'Top score hero too wide at '+width);
+     assert.ok(extra.artWidth>=100,'Drawing became too small at '+width);
+     assert.ok(extra.bg.includes('gradient'),'Top score hero lost pastel treatment');
      await page.locator('#bestDrawing').evaluate(el=>el.classList.add('hidden'));
      const centered=await page.locator('#bestScore').evaluate(el=>{
       const b=el.getBoundingClientRect(),c=el.closest('.best-card').getBoundingClientRect();
