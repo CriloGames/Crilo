@@ -180,18 +180,16 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  #playedPanel .played-completion-copy{flex:1 1 calc(100% - 57px)}
  #playedPanel>a.small-btn,#playedPanel .crilo-share-trigger{flex:1 1 130px;text-align:center}
 }
-/* Drawing Studio: one balanced description column and two genuine flex rows.
-   Explicit row wrappers prevent CSS grid's widest-child column sizing from
-   separating related controls by giant gaps. This replaces the old grid. */
+/* Drawing Studio: one flat toolbar on desktop with compact controls and clear copy. */
 .hero #drawPanel:not(.draw-unavailable) {
   display:grid!important;
-  grid-template-columns:minmax(225px,252px) minmax(0,1fr);
+  grid-template-columns:minmax(210px,230px) minmax(0,1fr);
   grid-template-rows:auto;
   align-items:center;
   width:min(980px,100%);
   max-width:980px;
   box-sizing:border-box;
-  column-gap:12px!important;
+  column-gap:10px!important;
   row-gap:0!important;
   padding:8px 12px!important;
   margin:10px auto 12px!important;
@@ -214,7 +212,7 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 }
 #drawPanel:not(.daily-finished) #drawPanelDescription {
   display:block;
-  font-size:11px;
+  font-size:10.7px;
   line-height:1.32;
   margin-top:4px;
   color:var(--muted,#747881);
@@ -233,64 +231,59 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   width:100%;
   min-width:0;
   display:flex!important;
-  flex-direction:column;
+  flex-direction:row;
   flex-wrap:nowrap;
-  align-items:stretch;
+  align-items:center;
   justify-content:center;
-  gap:6px!important;
+  gap:4px!important;
 }
 #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
-  display:flex;
-  align-items:center;
-  justify-content:flex-start;
-  flex-wrap:nowrap;
-  gap:6px;
-  min-width:0;
-  width:100%;
+  /* Both DOM wrappers flatten into a single row, without touching listeners. */
+  display:contents!important;
 }
 #drawPanel:not(.draw-unavailable) .draw-tool-group {
   display:inline-flex;
   align-items:center;
   flex:0 0 auto;
-  gap:4px;
+  gap:3px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
-  min-height:34px;
-  padding:6px 7px;
-  font-size:11px;
+  min-height:30px;
+  padding:5px 5px;
+  font-size:10.3px;
   line-height:1.2;
-  border-radius:10px;
+  border-radius:9px;
   white-space:nowrap;
   flex:0 0 auto;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
   display:inline-block!important;
-  width:135px;
+  width:122px;
   max-width:100%;
-  min-height:34px;
-  padding:6px 7px;
-  font-size:11px;
+  min-height:30px;
+  padding:5px 4px;
+  font-size:10.3px;
   line-height:1.2;
-  border-radius:10px;
-  flex:0 0 135px;
+  border-radius:9px;
+  flex:0 0 122px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {
   display:inline-flex!important;
-  min-height:34px;
-  padding:2px 6px;
-  gap:4px;
-  font-size:11px;
-  border-radius:10px;
+  min-height:30px;
+  padding:2px 4px;
+  gap:3px;
+  font-size:10.3px;
+  border-radius:9px;
   flex:0 0 auto;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker>span {
-  font-size:11px;
+  font-size:10.3px;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
-  width:30px!important;
-  min-width:30px!important;
-  height:27px!important;
-  padding:2px!important;
+  width:24px!important;
+  min-width:24px!important;
+  height:24px!important;
+  padding:1px!important;
 }
 #drawPanel:not(.draw-unavailable) .draw-actions .recent-colors {
   width:auto;
@@ -425,26 +418,12 @@ html[data-theme="dark"] #drawPanel:not(.locked-panel):not(.draw-unavailable) .dr
 #playedPanel .crilo-share-trigger {min-height:39px}
 html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 
-/* Tablet: retain two tidy rows on the right by narrowing the copy column. */
-@media (min-width:601px) and (max-width:830px) {
-  .hero #drawPanel:not(.draw-unavailable) {
-    grid-template-columns:minmax(180px,205px) minmax(0,1fr);
-    column-gap:10px!important;
-  }
-  #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
-    padding-inline:6px;
-  }
-  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
-    gap:5px;
-  }
-}
-/* Phones: instructions above two compact tool groups; no clipping. */
-@media (max-width:600px) {
+/* Tablet retains the same flat controls below the copy; narrow phones wrap. */
+@media (max-width:840px) {
   .hero #drawPanel:not(.draw-unavailable) {
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto auto;
-    row-gap:7px!important;
-    padding:8px 10px!important;
+    row-gap:6px!important;
   }
   .hero #drawPanel:not(.draw-unavailable)>div:first-child {
     grid-column:1;
@@ -455,30 +434,24 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
   .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
     grid-column:1;
     grid-row:2;
-  }
-  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {
+    justify-content:flex-start;
     flex-wrap:wrap;
-    gap:5px;
   }
+}
+@media (max-width:600px) {
+  .hero #drawPanel:not(.draw-unavailable) {padding:8px 10px!important}
   #drawPanel:not(.draw-unavailable) .draw-actions #drawMode {
     font-size:16px;
+    min-height:34px;
     width:155px;
     flex:0 0 155px;
-    min-height:34px;
   }
 }
 @media (max-width:400px) {
   #drawPanel:not(.draw-unavailable) .draw-actions .small-btn {
-    font-size:10.5px;
-    padding:6px 5px;
-    min-height:32px;
+    font-size:10px;
+    min-height:30px;
+    padding:5px 4px;
   }
-  #drawPanel:not(.draw-unavailable) .draw-toolbar-row {gap:4px}
   #drawPanel:not(.draw-unavailable) .draw-tool-group {gap:3px}
-  #drawPanel:not(.draw-unavailable) .draw-actions .native-paint-picker {min-height:32px}
-  #drawPanel:not(.draw-unavailable) .draw-actions .drawing-color-value {
-    width:28px!important;
-    min-width:28px!important;
-    height:26px!important;
-  }
 }
