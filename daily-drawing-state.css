@@ -148,3 +148,76 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   .hero .wheel-hud .wheel-counts{margin:11px auto 10px}
   .hero #playedPanel{margin-top:13px}
 }
+
+
+/* A calm, self-contained ending: final score + rarity + next reset occupy
+   one visible recap, with the leaderboard and share actions alongside.
+   The existing score above the wheel remains the main score display. */
+#playedPanel{max-width:770px;align-items:center;justify-content:flex-start;
+ gap:12px 15px;padding:16px 19px;margin-top:12px;text-align:left}
+#playedPanel .played-check{align-self:flex-start;flex:0 0 40px;width:40px;height:40px}
+#playedPanel .played-completion-copy{flex:1 1 295px;min-width:0;text-align:left}
+#playedPanel .played-completion-copy>strong{display:block;font-size:17px;letter-spacing:-.025em}
+#playedPanel .played-completion-copy>#playedText{display:block;margin-top:3px;
+ font-size:12px;line-height:1.4;color:var(--muted,#777)}
+#playedPanel>a.small-btn{margin:0;white-space:nowrap}
+#playedPanel .crilo-share-trigger{margin:0;white-space:nowrap}
+#playedPanel .daily-complete-details{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:7px;max-width:475px;margin:10px 0 0
+}
+#playedPanel .daily-complete-stat{
+ min-width:0;padding:8px 10px;border-radius:11px;
+ background:var(--soft,#f7f7f7);border:1px solid var(--line,#e9e9e9);
+ text-align:center;
+}
+#playedPanel .daily-complete-stat>span{
+ display:block;margin:0;font-size:9px;line-height:1.2;font-weight:900;
+ letter-spacing:.11em;color:var(--muted,#777)
+}
+#playedPanel .daily-complete-stat>strong{
+ display:block;margin:5px 0 0;font-size:clamp(13px,1.4vw,17px);
+ line-height:1.2;font-weight:900;color:var(--text,#15171c);
+ white-space:nowrap;font-variant-numeric:tabular-nums
+}
+#completedDailyRarity[data-rarity="trash"]{color:#97612d!important}
+#completedDailyRarity[data-rarity="common"]{color:#747f8f!important}
+#completedDailyRarity[data-rarity="uncommon"]{color:#278364!important}
+#completedDailyRarity[data-rarity="rare"]{color:#397bc3!important}
+#completedDailyRarity[data-rarity="epic"]{color:#8556be!important}
+#completedDailyRarity[data-rarity="anomaly"]{color:#b75c31!important}
+#completedDailyRarity[data-rarity="mythic"]{color:#bb4ba1!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="trash"]{color:#d0ad83!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="common"]{color:#bec6cf!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="uncommon"]{color:#8fbea9!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="rare"]{color:#98b9df!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="epic"]{color:#b5a1d6!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="anomaly"]{color:#d8a287!important}
+html[data-theme="dark"] #completedDailyRarity[data-rarity="mythic"]{color:#d5a1c8!important}
+#ownerRunControls .owner-complete-recap{
+ display:flex;align-items:center;flex-wrap:wrap;gap:6px 13px;margin-top:9px;
+ font-size:12px;line-height:1.3;color:var(--muted,#777);
+ font-variant-numeric:tabular-nums;
+}
+#ownerRunControls .owner-complete-recap>strong{
+ color:var(--text,#15171c);font-weight:900;letter-spacing:0
+}
+#ownerRunControls .owner-complete-recap>span{margin:0;font-size:12px;color:var(--muted,#777)}
+#result .result-next-daily{
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ margin:10px auto 7px;padding:7px 12px;
+ width:fit-content;max-width:100%;border-radius:999px;
+ background:var(--soft,#f7f7f7);border:1px solid var(--line,#e7e7e7);
+ color:var(--muted,#777);font-size:11px;font-weight:800
+}
+#result .result-next-daily strong{font-size:12px;font-weight:900;
+ font-variant-numeric:tabular-nums;color:var(--text,#15171c)}
+@media(max-width:700px){
+ #playedPanel{padding:14px;gap:10px 12px}
+ #playedPanel .played-completion-copy{flex:1 1 calc(100% - 57px)}
+ #playedPanel .daily-complete-details{max-width:100%;gap:5px}
+ #playedPanel .daily-complete-stat{padding:8px 4px}
+ #playedPanel .daily-complete-stat>span{font-size:8px;letter-spacing:.07em}
+ #playedPanel .daily-complete-stat>strong{font-size:clamp(11px,3vw,15px)}
+ #playedPanel>a.small-btn,#playedPanel .crilo-share-trigger{flex:1 1 130px;text-align:center}
+}
