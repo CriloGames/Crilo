@@ -174,7 +174,7 @@ jobs:
         run: node release/346-badges/113-play-accents-smoke.cjs
       - name: Verify completed Daily drawing locks and site-wide pastel accents
         run: node release/346-badges/114-daily-drawing-and-site-accents-smoke.cjs
-      - name: Check freehand background ornaments and responsive safety
+      - name: Check layered border ribbons and removal of free-floating accents
         run: node release/346-badges/115-pastel-space-traces-smoke.cjs
       - name: Check production JavaScript syntax
         run: |
