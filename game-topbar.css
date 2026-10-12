@@ -125,7 +125,7 @@ html[data-theme="dark"] .sound-heading .sound-free a{color:#b2d3ef}
 
 /* Identical Crilo navigation anatomy: brand, Play, More Games, Help, bell, user.
    The existing app.js + header-continuity.js own all authenticated behavior. */
-.crilo-game-topbar{min-height:68px;gap:38px;padding:0 24px;z-index:60;
+.crilo-game-topbar{min-height:68px;gap:38px;padding:0 24px;z-index:30;
  background:rgba(255,255,255,.94);border-bottom:1px solid #e8e8e8}
 .crilo-game-topbar .brand{font-size:22px;font-weight:950;letter-spacing:.12em}
 .crilo-game-topbar nav{gap:28px}

@@ -87,8 +87,11 @@ async function main(){
   for(const control of controls.controls)check(
     control.left>=controls.toolbar.left-2&&control.right<=controls.toolbar.right+2,
     scenario.name+' toolbar button was clipped '+JSON.stringify(controls));
-  check(await page.locator('#accountBtn').count()===0,
-    scenario.name+' standalone sound game should not require a sign-in button');
+  check(await page.locator('#accountBtn').count()===1 &&
+    await page.locator('#gameInfoBtn').count()===1,
+    scenario.name+' must show the shared account and game Info controls');
+  check(await page.locator('#soundStage').isVisible(),
+    scenario.name+' music room must remain freely playable without sign-in');
   const organization=await page.evaluate(()=>{
     const toolbar=document.querySelector('.sound-toolbar').getBoundingClientRect();
     const left=document.querySelector('.sound-toolbar-left').getBoundingClientRect();
