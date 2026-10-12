@@ -115,10 +115,10 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
-assert.match(css,/grid-template-columns:minmax\(220px,250px\) minmax\(0,1fr\)/,
+assert.match(css,/grid-template-columns:minmax\(210px,220px\) minmax\(0,1fr\)/,
  'Copy and tools should fit side by side on desktop');
 assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\)>\.draw-actions \{[\s\S]*?flex-direction:column;/,
- 'Toolbar and recent color strip should sit on separate rows');
+ 'Original drawing toolbar remains together in a stable row');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \{[\s\S]*?display:flex;/,
  'All original toolbar controls must share one horizontal line');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-row \{[\s\S]*?display:contents!important;/,
@@ -142,18 +142,18 @@ assert.ok(html.includes('data-tool="eraser"'),
  'Eraser must remain beside Pen and Fill');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-colors \{[\s\S]*?display:flex!important/,
  'Recent swatch area must stay rendered even before painting');
-assert.match(css,/max-width:101px;/,
+assert.match(css,/max-width:82px;/,
  'Five recent swatch circles must fit their reserved width');
 assert.match(js,/if\(recentPaintColors\.length>5\)recentPaintColors\.length=5/,
  'Color history must be capped at five colors');
 assert.ok(html.includes('class="draw-toolbar-main"'),
- 'Toolbar controls must be grouped before the separate recent-colors strip');
+ 'Toolbar controls must remain grouped with the reserved swatch strip');
 assert.ok(html.includes('Up to five recently used drawing colors'),
  'Recent colors should have an accessible description');
 assert.ok(html.indexOf('id="clearDrawing"')<html.indexOf('id="drawMode"')&&
  html.indexOf('id="drawColor"')<html.indexOf('id="drawRecentColors"'),
  'Clear belongs beside Undo/Redo and recent swatches must replace Clear at the far right');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-colors \{[\s\S]*?flex:0 0 106px;/,
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-colors \{[\s\S]*?flex:0 0 86px;/,
  'Recent colors reserve exactly the same toolbar width with zero through five colors');
 assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-color-empty-slot \{[\s\S]*?border:/,
  'Empty placeholder circles should keep the recent swatch strip full');
@@ -167,8 +167,8 @@ assert.match(js,/ready:\['Drawing Studio','Draw first\. Your first spin locks th
  'Shorter first-spin explanation should be retained');
 assert.match(js,/host\.parentElement\.classList\.toggle\('has-colors',recentPaintColors\.length>0\)/,
  'Recent swatch container must track actually used colors');
-assert.match(js,/if\(kind==='main'\)continue;/,
- 'Do not display an empty recent colors placeholder');
+assert.match(js,/if\(kind==='main'\)\{/,
+ 'Main toolbar should render inert placeholders while history is empty');
 assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out':'source-over'/,
  'Eraser must remain genuinely transparent');
 assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
