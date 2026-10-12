@@ -65,83 +65,37 @@ const pages=[
       name+' '+theme+' '+width+'px clipped input(s)');
      assert.deepEqual(ui.tiny,[],
       name+' '+theme+' '+width+'px tiny buttons');
-     // Layered pastel ribbons stay tied to a real bordered element.
-     // They cannot become body/hero backgrounds or cover any controls.
-     if(name==='index.html'||name==='leaderboard.html'){
-      const ribbons=await page.evaluate((route)=>{
-       const target=document.querySelector(route==='index.html'?'#drawPanel':'.best-card');
-       const before=getComputedStyle(target,'::before');
-       const after=getComputedStyle(target,'::after');
-       // Read actual rendered pixels because CSS color-mix() may be serialized
-       // as either rgb() or color(srgb) by Chromium.
-       const probe=document.createElement('canvas');
-       probe.width=probe.height=1;
-       const ctx=probe.getContext('2d',{willReadFrequently:true});
-       function luminance(color){
-        ctx.clearRect(0,0,1,1);ctx.fillStyle='#000';
-        ctx.fillStyle=color;ctx.fillRect(0,0,1,1);
-        const d=ctx.getImageData(0,0,1,1).data;
-        return .2126*d[0]+.7152*d[1]+.0722*d[2];
-       }
-       const outside=getComputedStyle(target).getPropertyValue('--trace-first').trim()||
-        getComputedStyle(target).getPropertyValue('--play-line-mint').trim();
-       return{
-        innerLuminance:luminance(before.borderTopColor),
-        outerLuminance:luminance(outside),
-        headFilter:before.filter,
-        freeArt:/pastel-(?:space|play)-traces/.test(
-         getComputedStyle(document.body).backgroundImage+' '+
-         getComputedStyle(document.querySelector('main')).backgroundImage),
-        first:before.borderTopStyle,second:after.borderBottomStyle,
-        third:after.borderTopStyle,
-        firstTop:parseFloat(before.top),firstLeft:parseFloat(before.left),
-        thirdTop:parseFloat(after.top),thirdLeft:parseFloat(after.left),
-        clip:before.pointerEvents,noOverflow:document.documentElement.scrollWidth<=innerWidth+2
-       };
-      },name);
-      assert.equal(ribbons.freeArt,false,'Floating backgrounds must be removed');
-      assert.equal(ribbons.first,'solid','Missing layered upper border ribbon');
-      assert.ok(ribbons.innerLuminance+5<ribbons.outerLuminance,
-       'The line closest to the box must be darker than its outer pastel at '+
-        name+' '+width+' '+theme+': '+JSON.stringify(ribbons));
-      if(width>600)assert.ok(ribbons.headFilter.includes('drop-shadow'),
-       'Wider cards should carry an extra light stroke outside the darker rim');
-      if(width>1180){
-       assert.equal(ribbons.third,'solid','Third stacked stroke missing on wide screen');
-       assert.ok(ribbons.thirdTop<ribbons.firstTop &&
-        ribbons.thirdLeft<ribbons.firstLeft,'Third stroke must sit outside first border');
-      }else{
-       assert.equal(ribbons.second,'solid','Missing outer lower corner stroke');
-      }
-      assert.ok(ribbons.firstTop<0&&ribbons.firstLeft<0,
-       'Upper strokes must stay outside the box, not overlay content');
-      assert.equal(ribbons.clip,'none','Ribbon must not intercept interactions');
-      assert.equal(ribbons.noOverflow,true,'Accent introduces overflow');
-     }
+     // The experimental decorative lines must be absent on every page.
+     assert.equal(await page.locator('link[href*="play-accents.css"]').count(),0,
+      name+' should not load the retired border-line stylesheet');
      if(name==='index.html'){
-      // Two neighboring More Games cards must NOT carry identical double
-      // outlines. The first is top-accented, the second uses the other corner.
-      const variations=await page.locator('#more-games .game-card').evaluateAll(cards=>
-       cards.map(card=>{
-        const before=getComputedStyle(card,'::before');
-        const after=getComputedStyle(card,'::after');
-        return{
-         upper:before.display!=='none',
-         lower:after.display!=='none',
-         stacked:before.filter.includes('drop-shadow')||
-          after.filter.includes('drop-shadow')
-        };
-       })
-      );
-      assert.equal(variations.length,2,'Both More Games entries should be present');
-      assert.notDeepEqual(variations[0],variations[1],
-       'Adjacent More Games cards need different accent arrangements');
-      assert.ok(variations.some(item=>!item.upper||!item.lower),
-       'At least one More Games card must have a SINGLE accent');
-      if(width>600){
-       assert.ok(variations.some(item=>item.stacked),
-        'At least one More Games card should retain a deliberate layered accent');
-      }
+      assert.equal(await page.locator('link[href*="daily-drawing-state.css"]').count(),1,
+       'Play must retain its dedicated completed-editor styles');
+      const result=await page.evaluate(()=>{
+       const panel=document.getElementById('drawPanel');
+       if(!panel)return{missing:true};
+       panel.classList.add('daily-finished');
+       const scrim=getComputedStyle(panel,'::after');
+       const text=getComputedStyle(panel.firstElementChild);
+       const outcome={
+        scrim:scrim.backgroundColor,intercepts:scrim.pointerEvents,
+        content:scrim.content,headingOpacity:text.opacity,
+        removedText:!document.querySelector('.draw-finished-overlay'),
+        overflow:document.documentElement.scrollWidth>window.innerWidth+2
+       };
+       panel.classList.remove('daily-finished');
+       return outcome;
+      });
+      assert.equal(result.missing,undefined,'Drawing panel missing');
+      assert.equal(result.scrim,'rgba(215, 219, 225, 0.43)',
+       'Finished editor should be gently gray with controls visible behind it');
+      assert.equal(result.intercepts,'none','Scrim must not capture clicks');
+      assert.equal(result.headingOpacity,'0','No visible text inside completed editor');
+      assert.equal(result.removedText,true,'Old centered completion text remains');
+      assert.equal(result.overflow,false,'Finished panel scrim causes overflow');
+     }else{
+      assert.equal(await page.locator('link[href*="daily-drawing-state.css"]').count(),0,
+       'Non-Play pages should not load the drawing-only stylesheet');
      }
      if(name==='private-nsfw-qa.html'){
       const night=await page.evaluate(()=>({
