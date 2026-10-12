@@ -181,15 +181,15 @@ assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finis
 
 /* Pixel Studio uses the SAME Center Spin setting, even after closing via
    Exit or Escape. Its selector stays in the header, outside the art tools. */
-assert.match(html,/<div class="pixel-header-actions"><label class="pixel-spin-mode" for="pixelDrawMode">/,
- 'Spin / Don’t spin selector belongs alongside Pixel Studio Exit');
+assert.match(html,/<label class="native-paint-picker" for="pixelColor">[\s\S]*?<\/label><label class="pixel-spin-mode" for="pixelDrawMode">/,
+ 'Spin / Don’t spin selector must sit immediately after Color in Pixel Studio tools');
 assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Don’t spin<\/option><option value="spin">Spin<\/option>/,
  'Studio must expose both spin modes, matching the wheel');
 assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\{/,
  'Studio spin selector needs compact scoped styling');
-assert.match(pixelCss,/@media \(max-width:560px\)[\s\S]*?#pixelStudioModal \.pixel-studio-header\{flex-wrap:wrap/,
- 'Studio title, spin mode and Exit must fit on mobile');
-assert.match(html,/style\.css\?v=119/,'Updated Pixel Studio CSS must be served');
+assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
+ 'Studio spin selector must have accessible mobile sizing');
+assert.match(html,/style\.css\?v=120/,'Updated Pixel Studio CSS must be served');
 assert.match(html,/game\.js\?v=97/,'Synced Pixel Studio mode JS must be served');
 const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
 const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
