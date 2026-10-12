@@ -1,38 +1,60 @@
-/* The outer trim follows the 620px wheel's dark rim; the inner trim
-   hugs the white border of the 34%-diameter editable center canvas.
-   Neither element is part of the rotating wheel or user artwork. */
-.wheel-wrap .wheel-neon-ring{
- position:absolute;display:block;z-index:3;border-radius:50%;
- pointer-events:none;user-select:none;
- --spectrum:conic-gradient(from -30deg,#ffd7ef 0deg,#d4c5ff 48deg,
-  #a8e9ff 102deg,#b9f4dc 166deg,#fff0ac 221deg,
-  #ffcade 283deg,#d8ccff 325deg,#ffd7ef 360deg);
- animation:criloWheelNeonColors 19s linear infinite;
+/* Pastel neon is anchored to the stationary wheel wrapper, never the rotating
+   wheel canvas or the player's drawing. The glow cannot intercept input. */
+.wheel-wrap .wheel-neon-ring {
+  position:absolute;
+  display:block;
+  z-index:3;
+  border-radius:50%;
+  pointer-events:none;
+  user-select:none;
+  --spectrum:conic-gradient(from -30deg,
+    #ffd7ef 0deg,#d4c5ff 48deg,#a8e9ff 102deg,
+    #b9f4dc 166deg,#fff0ac 221deg,#ffcade 283deg,
+    #d8ccff 325deg,#ffd7ef 360deg);
+  animation:criloWheelNeonColors 19s linear infinite;
 }
-.wheel-wrap .wheel-neon-outer{inset:1.05%}
-.wheel-wrap .wheel-neon-inner{inset:32.3%;z-index:4}
-.wheel-wrap .wheel-neon-ring::before,.wheel-wrap .wheel-neon-ring::after{
- content:"";position:absolute;inset:0;border-radius:50%;
- background:var(--spectrum);pointer-events:none;
+.wheel-wrap .wheel-neon-outer {inset:1.05%}
+.wheel-wrap .wheel-neon-inner {inset:32.3%;z-index:4}
+.wheel-wrap .wheel-neon-ring::before,
+.wheel-wrap .wheel-neon-ring::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  pointer-events:none;
+  background:var(--spectrum);
 }
-.wheel-wrap .wheel-neon-ring::before{
- -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 3.2px),#000 calc(100% - 2.4px));
- mask-image:radial-gradient(farthest-side,transparent calc(100% - 3.2px),#000 calc(100% - 2.4px));
- opacity:.98;
+/* A clean, slightly thicker multicolor tube. Keep the middle transparent. */
+.wheel-wrap .wheel-neon-ring::before {
+  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 4.9px),#000 calc(100% - 4.2px));
+  mask-image:radial-gradient(farthest-side,transparent calc(100% - 4.9px),#000 calc(100% - 4.2px));
+  opacity:1;
+  filter:drop-shadow(0 0 3px rgba(255,255,255,.65));
 }
-.wheel-wrap .wheel-neon-ring::after{
- -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 6px),#000 calc(100% - 1px));
- mask-image:radial-gradient(farthest-side,transparent calc(100% - 8px),#000 calc(100% - 6px),#000 calc(100% - 1px));
- filter:blur(clamp(3px,1.2vw,8px));opacity:.68;
+/* Colored bloom straddles the rim and reaches just outside the wheel. */
+.wheel-wrap .wheel-neon-ring::after {
+  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 10px),#000 calc(100% - 1px));
+  mask-image:radial-gradient(farthest-side,transparent calc(100% - 13px),#000 calc(100% - 10px),#000 calc(100% - 1px));
+  filter:blur(clamp(5px,1.15vw,9px)) brightness(1.22);
+  opacity:.93;
 }
-.wheel-wrap .wheel-neon-inner::before{opacity:.95}
-.wheel-wrap .wheel-neon-inner::after{opacity:.63;filter:blur(4px)}
-@keyframes criloWheelNeonColors{
- from{filter:hue-rotate(0deg)}
- to{filter:hue-rotate(360deg)}
+.wheel-wrap .wheel-neon-inner::before {
+  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 4.3px),#000 calc(100% - 3.7px));
+  mask-image:radial-gradient(farthest-side,transparent calc(100% - 4.3px),#000 calc(100% - 3.7px));
 }
-html[data-theme="dark"] .wheel-wrap .wheel-neon-outer{opacity:.72}
-html[data-theme="dark"] .wheel-wrap .wheel-neon-inner{opacity:.82}
-@media(prefers-reduced-motion:reduce){
- .wheel-wrap .wheel-neon-ring{animation:none!important;filter:none!important}
+.wheel-wrap .wheel-neon-inner::after {
+  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 7px),#000 calc(100% - 1px));
+  mask-image:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 7px),#000 calc(100% - 1px));
+  filter:blur(5px) brightness(1.14);
+  opacity:.82;
+}
+@keyframes criloWheelNeonColors {
+  from {filter:hue-rotate(0deg)}
+  to {filter:hue-rotate(360deg)}
+}
+/* Night mode keeps the pastel aura rather than a high-contrast LED effect. */
+html[data-theme="dark"] .wheel-wrap .wheel-neon-outer {opacity:.70}
+html[data-theme="dark"] .wheel-wrap .wheel-neon-inner {opacity:.72}
+@media (prefers-reduced-motion:reduce) {
+  .wheel-wrap .wheel-neon-ring {animation:none!important}
 }
