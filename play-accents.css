@@ -191,7 +191,7 @@ body.wheel-session-fit .wheel-stage::before{
    Owner test mode calls unlockDrawing() to restore the original white panel. */
 #drawPanel.daily-finished{
  opacity:1!important;background:#f1f2f4;border-color:#d9dde2;
- color:#525a67;box-shadow:none;
+ color:#525a67;
 }
 #drawPanel.daily-finished>div:first-child strong{color:#49515d}
 #drawPanel.daily-finished #drawPanelDescription{color:#727a85}
