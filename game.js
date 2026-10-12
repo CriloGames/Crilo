@@ -843,7 +843,7 @@ for(const id of ['drawColor','pixelColor']){
 document.addEventListener('keydown',event=>{
  if(event.key!=='Escape')return;
  // Escape dismisses an open native chooser first, without destroying Studio.
- if(isDrawingColorPickerOpen()||document.activeElement?.type==='color')return;
+ if(isDrawingColorPickerOpen()){closeDrawingColorPicker();return}
  if(!$('pixelStudioModal').classList.contains('hidden')){
   event.preventDefault();pixelClose();
  }
