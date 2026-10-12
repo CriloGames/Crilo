@@ -26,10 +26,18 @@ for(const [p,expectedCount,viewBox] of [
   assert.ok(first,p+' must use an absolute starting point');
   const x=Number(first[1]);
   assert.ok(x<=width*.16||x>=width*.84,p+' line originates inside gutter');
+  // All control points must remain in the same outside strip: a curve
+  // starting at the edge could otherwise sweep across a button or heading.
+  const coordinates=d.match(/-?\d+/g).map(Number);
+  for(let i=0;i<coordinates.length;i+=2){
+   const px=coordinates[i];
+   assert.ok(px<=width*.085||px>=width*.915,
+    p+' control point enters main content: '+px);
+  }
  }
 }
-assert.match(css,/@media \(min-width:1380px\)/,'Gutter art must not appear on narrow pages');
-assert.match(css,/@media \(min-width:980px\) and \(max-width:1379px\)/,
+assert.match(css,/@media \(min-width:1480px\)/,'Gutter art must not appear on narrow pages');
+assert.match(css,/@media \(min-width:980px\) and \(max-width:1479px\)/,
  'Play-only ornaments must stay in the spacious medium desktop layout');
 assert.ok(css.includes('background-repeat:repeat-y')&&css.includes('background-repeat:no-repeat'),
  'Large side art repeats vertically, while Play-only art does not');
