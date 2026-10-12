@@ -22,7 +22,15 @@ $('saveIdentity').onclick=()=>save();
 $('lightBtn').onclick=()=>savePreference({theme:'light'});
 $('darkBtn').onclick=()=>savePreference({theme:'dark'});
 $('soundBtn').onclick=()=>savePreference({sound_enabled:!(p?.sound_enabled??true)});
-$('signOutBtn').onclick=async()=>{await criloDB.auth.signOut();location.href='index.html'};$('deleteBtn').onclick=async()=>{
+$('signOutBtn').onclick=async()=>{
+ const btn=$('signOutBtn');btn.disabled=true;
+ try{await Crilo.signOut()}
+ catch(error){
+  console.error('Crilo Settings sign-out failed:',error);
+  $('identityStatus').textContent='Could not sign out: '+(error?.message||'Please try again.');
+  btn.disabled=false;
+ }
+};$('deleteBtn').onclick=async()=>{
  if(!Crilo.user){$('deleteStatus').textContent='Please sign in first.';return}
  const confirmation=prompt('Permanently delete your Crilo account, scores, badges, ducks, and friends? This cannot be undone. Type DELETE to confirm:');
  if(confirmation===null)return;
