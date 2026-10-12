@@ -57,6 +57,8 @@ on:
       - 'wheel-preview.css'
       - 'score-motion.css'
       - 'arcade-scores.css'
+      - 'rarity-score-frames.css'
+      - 'release/346-badges/110-reverse-neon-wheel-night-browser.cjs'
       - 'dark-comfort.css'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
@@ -100,6 +102,8 @@ jobs:
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
       - name: Verify soft dark mode and Pixel Studio color contrast
         run: node release/346-badges/109-dark-comfort-browser.cjs
+      - name: Verify reverse-neon number displays and darker wheel on phone tablet desktop
+        run: node release/346-badges/110-reverse-neon-wheel-night-browser.cjs
       - name: Verify minimal rarity score boxes and no leaderboard bobbing
         run: node release/346-badges/108-arcade-scores-browser.cjs
       - name: Verify slow score movement, tier colors and reduced-motion on all devices

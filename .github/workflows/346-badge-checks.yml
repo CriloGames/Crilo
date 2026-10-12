@@ -45,6 +45,7 @@ on:
       - 'wheel-preview.css'
       - 'score-motion.css'
       - 'arcade-scores.css'
+      - 'rarity-score-frames.css'
       - 'dark-comfort.css'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
@@ -110,6 +111,7 @@ on:
       - 'wheel-preview.css'
       - 'score-motion.css'
       - 'arcade-scores.css'
+      - 'rarity-score-frames.css'
       - 'dark-comfort.css'
       - 'release/346-badges/109-dark-comfort-browser.cjs'
       - 'release/346-badges/108-arcade-scores-browser.cjs'
@@ -166,6 +168,7 @@ jobs:
           node --check game.js
           node --check score-motion.js
           node --check release/346-badges/108-arcade-scores-browser.cjs
+          node --check release/346-badges/110-reverse-neon-wheel-night-browser.cjs
           node --check release/346-badges/109-dark-comfort-browser.cjs
           node --check release/346-badges/107-auth-document-refresh-browser.cjs
           node --check release/346-badges/104-drawing-editor-regression-browser.cjs
