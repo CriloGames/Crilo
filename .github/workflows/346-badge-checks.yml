@@ -42,6 +42,7 @@ on:
       - 'leaderboard.js'
       - 'wheel-preview.js'
       - 'wheel-preview.css'
+      - 'score-motion.css'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'privacy.html'
@@ -100,6 +101,7 @@ on:
       - 'leaderboard.js'
       - 'wheel-preview.js'
       - 'wheel-preview.css'
+      - 'score-motion.css'
       - 'leaderboard-tabs.js'
       - 'index.html'
       - 'moderation.html'
@@ -155,6 +157,7 @@ jobs:
           node --check badge-events.js
           node --check profile.js
           node --check leaderboard.js
+          node --check release/346-badges/106-score-motion-browser.cjs
           node --check wheel-preview.js
           node --check badge-collection.js
           node --check badge-sets.js

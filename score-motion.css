@@ -1,0 +1,19 @@
+/* Gently drifting scores: no layout reflow or rarity-color changes. */
+@keyframes criloScoreSway {
+  0%,100% { transform:translate3d(-3px,0,0); }
+  50% { transform:translate3d(3px,-1px,0); }
+}
+.wheel-score-amount,#finalScore,#bestScore,#leaderList .leader-score {
+  animation:criloScoreSway 6.8s ease-in-out infinite;
+  transform-origin:center center;
+}
+/* Avoid a perfectly synchronized line of numbers. */
+#leaderList .leader-row:nth-child(4n + 2) .leader-score {animation-delay:-1.7s}
+#leaderList .leader-row:nth-child(4n + 3) .leader-score {animation-delay:-3.4s}
+#leaderList .leader-row:nth-child(4n + 4) .leader-score {animation-delay:-5.1s}
+@media (prefers-reduced-motion:reduce) {
+  .wheel-score-amount,#finalScore,#bestScore,#leaderList .leader-score {
+    animation:none!important;
+    transform:none!important;
+  }
+}

@@ -54,6 +54,8 @@ on:
       - 'leaderboard.html'
       - 'wheel-preview.js'
       - 'wheel-preview.css'
+      - 'score-motion.css'
+      - 'release/346-badges/106-score-motion-browser.cjs'
       - 'badge-sets.js'
       - 'badge-sets.html'
       - 'support.html'
@@ -89,6 +91,8 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
+      - name: Verify slow score movement, tier colors and reduced-motion on all devices
+        run: node release/346-badges/106-score-motion-browser.cjs
       - name: Verify owner Daily counts and older-history pagination on mobile and desktop
         run: node release/346-badges/097-owner-daily-history-browser.cjs
       - name: Verify customizable profile icon save and public display in Chromium
