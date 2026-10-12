@@ -197,3 +197,123 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
  #drawPanel.daily-finished>div:first-child{min-height:30px}
  #drawPanel.daily-finished .draw-complete-copy small{font-size:10.5px}
 }
+
+/* Compact Drawing Studio: preserve every active tool but lay its header,
+   buttons, and recent swatches into one shallow two-track strip on desktop. */
+.hero #drawPanel:not(.daily-finished):not(.draw-unavailable){
+ display:grid;grid-template-columns:minmax(185px,235px) minmax(0,1fr);
+ grid-template-rows:auto auto;column-gap:12px;row-gap:3px;
+ align-items:center;max-width:980px;padding:8px 12px;
+ margin:11px auto 12px;
+}
+#drawPanel:not(.daily-finished)>div:first-child{
+ grid-column:1;grid-row:1/3;align-self:center;text-align:left;
+}
+#drawPanel:not(.daily-finished) #drawPanelTitle{
+ font-size:14px;line-height:1.2;
+}
+#drawPanel:not(.daily-finished) #drawPanelDescription{
+ font-size:11px;line-height:1.3;margin-top:3px;
+}
+#drawPanel:not(.daily-finished) #drawSafetyNote{
+ font-size:10px;line-height:1.25;margin-top:3px;
+}
+#drawPanel:not(.daily-finished)>.draw-actions{
+ grid-column:2;grid-row:1;width:100%;min-width:0;
+ justify-content:center;gap:5px 6px;
+}
+#drawPanel:not(.daily-finished) .draw-actions .small-btn{
+ padding:7px 9px;min-height:36px;font-size:11px;line-height:1.3;
+}
+#drawPanel:not(.daily-finished) .draw-tool-group{gap:4px}
+#drawPanel:not(.daily-finished) #drawMode{
+ padding:7px 5px;max-width:155px;min-height:36px;font-size:11px;
+}
+#drawPanel:not(.daily-finished) .native-paint-picker{
+ min-height:36px;padding:2px 6px;gap:4px;
+}
+#drawPanel:not(.daily-finished) .native-paint-picker input[type=color]{
+ width:33px;height:30px;
+}
+#drawPanel:not(.daily-finished)>.recent-colors{
+ grid-column:2;grid-row:2;min-width:0;padding:0;
+ gap:6px;align-items:center;justify-content:center;
+}
+#drawPanel:not(.daily-finished)>.recent-colors>strong{font-size:10px}
+#drawPanel:not(.daily-finished) .recent-color-swatches{gap:4px}
+
+/* Completed Daily: a single shallow success strip with the recognizable,
+   inactive primary tools. Secondary tools disappear only while locked and
+   return unchanged when a new run unlocks the editor. */
+.hero #drawPanel.daily-finished{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto;
+ grid-template-rows:auto;align-items:center;
+ max-width:980px;gap:8px!important;
+ padding:6px 12px!important;margin:8px auto 10px!important;
+}
+#drawPanel.daily-finished>div:first-child{
+ grid-column:1;grid-row:1;min-width:0;min-height:30px;
+ justify-content:flex-start;
+}
+#drawPanel.daily-finished .draw-complete-note{
+ width:100%;min-width:0;justify-content:flex-start;margin:0;
+}
+#drawPanel.daily-finished .draw-actions{
+ grid-column:2;grid-row:1;width:auto;min-width:0;
+ display:flex;justify-content:flex-end;flex-wrap:nowrap;
+ gap:4px!important;
+}
+#drawPanel.daily-finished .draw-tool-group{gap:4px}
+#drawPanel.daily-finished .draw-actions :is(#drawMode,.native-paint-picker,#clearDrawing){
+ display:none!important;
+}
+#drawPanel.daily-finished .draw-actions .small-btn{
+ font-size:11px;line-height:1.2;min-height:32px;
+ padding:6px 8px;
+}
+#playedPanel>a.small-btn{
+ color:#592d88;font-weight:850;min-height:39px;
+ display:inline-flex;align-items:center;justify-content:center;
+}
+#playedPanel .crilo-share-trigger{min-height:39px}
+html[data-theme="dark"] #playedPanel>a.small-btn{color:#c7a9e9}
+
+@media(max-width:830px){
+ .hero #drawPanel:not(.daily-finished):not(.draw-unavailable){
+  display:flex;flex-direction:column;gap:5px;
+  padding:9px 11px;
+ }
+ #drawPanel:not(.daily-finished)>div:first-child{
+  width:100%;text-align:center;
+ }
+ #drawPanel:not(.daily-finished)>.draw-actions{
+  justify-content:center;
+ }
+ #drawPanel:not(.daily-finished)>.recent-colors{
+  width:100%;
+ }
+ .hero #drawPanel.daily-finished{
+  grid-template-columns:1fr;gap:3px!important;
+  padding:6px 10px!important;
+ }
+ #drawPanel.daily-finished>div:first-child{
+  grid-column:1;grid-row:1;justify-content:center;min-height:29px;
+ }
+ #drawPanel.daily-finished .draw-complete-note{
+  justify-content:center;
+ }
+ #drawPanel.daily-finished .draw-actions{
+  grid-column:1;grid-row:2;justify-content:center;
+ }
+}
+@media(max-width:450px){
+ #drawPanel:not(.daily-finished) #drawPanelDescription{font-size:10.5px}
+ #drawPanel:not(.daily-finished) .draw-actions .small-btn{
+  padding:7px 8px;min-height:37px;
+ }
+ #drawPanel.daily-finished .draw-complete-copy strong{font-size:12px}
+ #drawPanel.daily-finished .draw-complete-copy small{font-size:10px}
+ #drawPanel.daily-finished .draw-actions .small-btn{
+  padding:6px 7px;min-height:32px;font-size:10.5px;
+ }
+}

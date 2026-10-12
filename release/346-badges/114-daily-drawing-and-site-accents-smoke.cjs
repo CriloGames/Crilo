@@ -80,7 +80,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=5/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=6/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=90/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
@@ -115,5 +115,11 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
+assert.match(css,/\.hero #drawPanel\.daily-finished\{[\s\S]*?grid-template-columns:minmax\(0,1fr\) auto/,
+ 'Finished desktop editor should use one shallow row');
+assert.match(css,/\.hero #drawPanel:not\(\.daily-finished\):not\(\.draw-unavailable\)\{/,
+ 'Ready editor should use the compact split toolbar');
+assert.match(css,/#drawPanel\.daily-finished \.draw-actions :is\(#drawMode,\.native-paint-picker,#clearDrawing\)/,
+ 'Only completed Dailies may collapse secondary inactive tools');
 assert.equal(read('CNAME').trim(),'crilo.fun');
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
