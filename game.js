@@ -390,11 +390,11 @@ function setDrawingPanelMode(mode){
  // Do not leave the Pen or Fill button selected beneath the translucent
  // completed-state scrim. Restore the actual tool on the next editable run.
  panel.querySelectorAll('.drawing-tool').forEach(button=>{
-  button.classList.toggle('active',!finished&&mode!=='unavailable'&&button.dataset.tool===drawTool);
-  button.setAttribute('aria-pressed',String(!finished&&mode!=='unavailable'&&button.dataset.tool===drawTool));
+  button.classList.toggle('active',mode==='ready'&&button.dataset.tool===drawTool);
+  button.setAttribute('aria-pressed',String(mode==='ready'&&button.dataset.tool===drawTool));
  });
  const copy={
-  ready:['Draw on your wheel','Draw until your first spin. The instant you press SPIN, your doodle locks for the entire run.'],
+  ready:['Drawing Studio','Draw in the center before your first spin. Your drawing locks when you spin.'],
   locked:['Drawing locked for this run','Your artwork is saved for this run. You can draw again when your next run begins.'],
   complete:["Today's Daily is complete",'Nice spin! Your drawing is saved. A new canvas opens with your next Daily.'],
   'guest-complete':["Today's guest Daily is complete",'Your drawing is locked until the next Daily reset. Sign in to save future runs.'],
