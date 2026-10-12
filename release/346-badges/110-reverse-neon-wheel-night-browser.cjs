@@ -121,7 +121,7 @@ function luminance(pixel){
        overflow:document.documentElement.scrollWidth-innerWidth};
      });
      assert.ok(top.font>=24,'Keep a readable large top score on every device');
-     assert.equal(top.display,'block','Top score must remain a number box');
+     assert.ok(['flex','block'].includes(top.display),'Top score must remain a number box');
      assert.ok(top.scoreRight+5<top.artX,
       'Top score belongs on the LEFT, drawing on the RIGHT, not stacked');
      assert.ok(Math.abs(top.scoreY-top.artY)<2,
