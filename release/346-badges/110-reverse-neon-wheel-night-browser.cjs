@@ -52,7 +52,7 @@ function luminance(pixel){
       'The wheel itself must get noticeably softer in dark mode: '+daylight+' -> '+nighttime);
      assert.deepEqual(await page.locator('#drawing').evaluate(el=>({
       content:el.toDataURL(),background:getComputedStyle(el).backgroundColor
-     })),center,'Dark-wheel repaint must never change the user's drawing canvas');
+     })),center,'Night wheel must preserve the existing drawing canvas');
      for(const rarity of ['trash','common','uncommon','rare','epic','anomaly','mythic']){
       await page.locator('#wheelScorePanel').evaluate((el,tier)=>{el.dataset.rarity=tier},rarity);
       const box=await page.locator('#score').evaluate(el=>{
