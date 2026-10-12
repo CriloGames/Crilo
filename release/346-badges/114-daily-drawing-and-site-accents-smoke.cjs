@@ -80,12 +80,12 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=17/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=95/,'Play must load the updated state and viewport logic');
+assert.match(html,/daily-drawing-state\.css\?v=18/,'Play must use updated drawing stylesheet');
+assert.match(html,/game\.js\?v=96/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
-assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {display:none!important}'),
- 'Finished drawing tools should take less vertical room');
+assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {visibility:hidden!important}'),
+ 'Locked drawing must reserve recent swatch space without showing colors');
 assert.ok(!html.includes('score-motion.js')&&!html.includes('score-motion.css'),
  'Play page must not load the repeating score-digit bobbing assets');
 assert.ok(css.includes('#wheelScorePanel .wheel-score-amount{')&&
@@ -140,24 +140,27 @@ assert.ok(html.includes('class="draw-toolbar-row draw-toolbar-primary"')&&
  'Keep existing tool groups and bindings intact');
 assert.ok(html.includes('data-tool="eraser"'),
  'Eraser must remain beside Pen and Fill');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-colors\.has-colors \{[\s\S]*?display:flex/,
- 'Recent swatches only appear after painting');
-assert.match(css,/max-width:calc\(5 \* 17px \+ 4 \* 4px\)/,
- 'Recent swatches cannot push the toolbar beyond five fixed color circles');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-colors \{[\s\S]*?display:flex!important/,
+ 'Recent swatch area must stay rendered even before painting');
+assert.match(css,/max-width:101px;/,
+ 'Five recent swatch circles must fit their reserved width');
 assert.match(js,/if\(recentPaintColors\.length>5\)recentPaintColors\.length=5/,
  'Color history must be capped at five colors');
 assert.ok(html.includes('class="draw-toolbar-main"'),
  'Toolbar controls must be grouped before the separate recent-colors strip');
 assert.ok(html.includes('Up to five recently used drawing colors'),
  'Recent colors should have an accessible description');
-assert.ok(html.indexOf('id="drawRecentColors"')<html.indexOf('id="drawCompleteNote"'),
- 'Saved colors belong in the left introduction, not beside Clear');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-colors \{[\s\S]*?position:absolute;[\s\S]*?top:0;[\s\S]*?right:0;/,
- 'Up to five colors should sit beside the heading without adding height');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \{[\s\S]*?position:relative;/,
- 'Recent colors should be positioned relative to the left text section');
-assert.match(css,/#drawPanel:not\(\.draw-unavailable\)>div:first-child \.recent-color-swatch \{[\s\S]*?width:17px;/,
- 'Five saved colors should be small enough to fit beneath the text');
+assert.ok(html.indexOf('id="clearDrawing"')<html.indexOf('id="drawMode"')&&
+ html.indexOf('id="drawColor"')<html.indexOf('id="drawRecentColors"'),
+ 'Clear belongs beside Undo/Redo and recent swatches must replace Clear at the far right');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-colors \{[\s\S]*?flex:0 0 106px;/,
+ 'Recent colors reserve exactly the same toolbar width with zero through five colors');
+assert.match(css,/#drawPanel:not\(\.draw-unavailable\) \.draw-toolbar-main \.recent-color-empty-slot \{[\s\S]*?border:/,
+ 'Empty placeholder circles should keep the recent swatch strip full');
+assert.match(css,/#drawPanel\.locked-panel \.recent-colors \{visibility:hidden!important\}/,
+ 'Locking artwork must hide swatches without collapsing their allocated space');
+assert.match(js,/slot\.className='recent-color-empty-slot'/,
+ 'Client must render inert placeholders for unused recent slots');
 assert.match(css,/font-size:9\.1px;/,
  'Short warning should remain visually subordinate to the Drawing Studio title');
 assert.match(js,/ready:\['Drawing Studio','Draw first\. Your first spin locks the drawing\.'\]/,
