@@ -1,20 +1,13 @@
-/* Gentle, independent vertical bobbing in a left-to-right digit wave.
-   Only each digit animates; the score container remains perfectly stationary. */
-@keyframes criloScoreDigitBob {
-  0%,100% {transform:translate3d(0,0,0)}
-  27% {transform:translate3d(0,-.13em,0)}
-  52% {transform:translate3d(0,.025em,0)}
-  75% {transform:translate3d(0,0,0)}
+/* Numbers stay fixed in their columns. Their individual digits gently
+   rise 0.07em and settle fully before the neighboring digit starts. */
+.crilo-score-bob-digit{
+ display:inline-block;
+ white-space:pre;
+ transform-origin:50% 75%;
+ backface-visibility:hidden;
 }
-.crilo-score-bob-digit {
-  display:inline-block;
-  white-space:pre;
-  transform-origin:50% 75%;
-  backface-visibility:hidden;
-  animation:criloScoreDigitBob 3.6s ease-in-out infinite;
-}
-/* The existing final-spin pop-and-melody sequence takes precedence. */
-.crilo-final-animate .crilo-score-bob-digit{animation:none}
+/* Never interrupt the existing last-spin rarity melody celebration. */
+.crilo-final-animate .crilo-score-bob-digit{transform:none}
 @media(prefers-reduced-motion:reduce){
- .crilo-score-bob-digit{animation:none!important;transform:none!important}
+ .crilo-score-bob-digit{transform:none!important}
 }

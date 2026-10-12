@@ -1,6 +1,7 @@
 'use strict';
-/* Real Chromium: verify independent Y-axis digit waves with staggered starts,
-   score updates, full text, rarity, final-run pops and reduced-motion safety. */
+/* Real Chromium regression: smaller, quicker, NON-overlapping digit bobs.
+   Verify wave phase timing, nonmoving X, score updates, end-run celebration,
+   unchanged rarity ink, mobile overflow and reduced-motion preferences. */
 const assert=require('node:assert/strict'),http=require('node:http');
 const {chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
@@ -22,12 +23,12 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     await context.route(/^https:\/\/(?!crilo\.fun)/,route=>route.abort());
     for(const path of ['index.html','leaderboard.html']){
      const page=await context.newPage(),errors=[];
-     page.on('pageerror',err=>errors.push(err.message));
+     page.on('pageerror',e=>errors.push(e.message));
      await page.goto(base+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
-     assert.equal(await page.locator('link[href="score-motion.css?v=3"]').count(),1,
-      'CSS must load exactly once on '+path);
-     assert.equal(await page.locator('script[src="score-motion.js?v=1"]').count(),1,
-      'JS digit animator must load exactly once on '+path);
+     assert.equal(await page.locator('link[href="score-motion.css?v=4"]').count(),1,
+      'Bobbing CSS must load exactly once on '+path);
+     assert.equal(await page.locator('script[src="score-motion.js?v=2"]').count(),1,
+      'Digit animator must load exactly once on '+path);
      let selectors;
      if(path==='index.html'){
       await page.locator('#score').waitFor({state:'visible'});
@@ -54,65 +55,73 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
        selector);
       const actual=await page.locator(selector).evaluate(el=>{
        const glyphs=[...el.querySelectorAll(':scope > .crilo-score-bob-digit')];
-       const before=el.getBoundingClientRect().width;
-       const text=el.textContent;
-       const first=getComputedStyle(glyphs[0]);
-       const a=glyphs[0].getAnimations().find(x=>x.animationName==='criloScoreDigitBob');
-       const b=glyphs[1].getAnimations().find(x=>x.animationName==='criloScoreDigitBob');
-       if(!a)return{active:false,name:first.animationName,before,text,digits:glyphs.length};
-       a.pause();b.pause();a.currentTime=0;b.currentTime=0;
-       const x0=new DOMMatrix(getComputedStyle(glyphs[0]).transform).m41;
-       a.currentTime=972;
-       const upper=new DOMMatrix(getComputedStyle(glyphs[0]).transform);
-       b.currentTime=972;
-       const following=new DOMMatrix(getComputedStyle(glyphs[1]).transform);
+       const before=el.getBoundingClientRect().width,text=el.textContent;
+       const animations=glyphs.slice(0,2).map(x=>x.getAnimations().find(a=>a.id==='criloScoreDigitBob'));
+       if(!animations[0])return{active:false,before,text,digits:glyphs.length};
+       const [a,b]=animations;
+       a.pause();b.pause();
+       const timingA=a.effect.getTiming(),timingB=b.effect.getTiming();
+       const frames=a.effect.getKeyframes();
+       const sample=t=>{
+        a.currentTime=t;b.currentTime=t;
+        const first=new DOMMatrix(getComputedStyle(glyphs[0]).transform);
+        const second=new DOMMatrix(getComputedStyle(glyphs[1]).transform);
+        return{x:first.m41,y:first.m42,x2:second.m41,y2:second.m42};
+       };
+       const atRise=sample(125);
+       const atDown=sample(285);
+       const atNextRise=sample(365+125);
        const after=el.getBoundingClientRect().width;
        a.cancel();b.cancel();
-       return{active:true,name:first.animationName,before,after,text,digits:glyphs.length,
-        x0,x:upper.m41,y:upper.m42,followingY:following.m42,
-        delay1:glyphs[0].style.animationDelay,delay2:glyphs[1].style.animationDelay};
+       return{active:true,before,after,text,digits:glyphs.length,
+        timingA,timingB,frames,atRise,atDown,atNextRise};
       });
-      assert.ok(actual.text.startsWith('12,345'),'Score text was modified by animation');
+      assert.ok(actual.text.startsWith('12,345'),'Score text changed');
       if(reduced){
        assert.equal(actual.active,false,'Reduced motion must disable '+selector);
-       assert.equal(actual.name,'none','Reduced motion CSS did not apply');
       }else{
-       assert.equal(actual.active,true,'Missing glyph animation '+selector);
-       assert.equal(actual.name,'criloScoreDigitBob');
-       assert.ok(actual.y < -1,'Number must bob upward, not slide sideways');
-       assert.ok(Math.abs(actual.x-actual.x0)<.1,'Digits must not move horizontally');
-       assert.ok(actual.followingY>actual.y+.15,'Later digit must follow after the earlier one');
-       assert.equal(actual.delay1,'0s');assert.equal(actual.delay2,'0.22s');
-       assert.ok(Math.abs(actual.before-actual.after)<.1,'Wave changed score column width');
+       assert.equal(actual.active,true,'Missing digit bob '+selector);
+       assert.equal(actual.timingB.delay-actual.timingA.delay,365,
+        'Second digit must wait its full turn');
+       assert.ok(actual.timingA.duration<3600,'The wave should be faster than before');
+       assert.ok(actual.frames[1].transform.includes('-.07em'),'Digit height must be smaller');
+       assert.ok(actual.frames[2].offset*actual.timingA.duration<
+        actual.timingB.delay,'First digit must finish BEFORE next starts');
+       assert.ok(actual.atRise.y < -.5,'First digit must rise');
+       assert.ok(actual.atRise.y2===0,'Second digit must stay down during first rise');
+       assert.ok(Math.abs(actual.atRise.y)<12,'Bounce height must be subtle');
+       assert.ok(Math.abs(actual.atDown.y)<.2&&Math.abs(actual.atDown.y2)<.2,
+        'Both digits must settle before next begins');
+       assert.ok(actual.atNextRise.y2<-.5,'Second digit must rise only after first settles');
+       assert.ok(Math.abs(actual.atNextRise.y)<.2,
+        'First digit must remain down during second rise');
+       assert.ok(Math.abs(actual.atRise.x)<.1&&Math.abs(actual.atRise.x2)<.1,
+        'Digits must never move sideways');
+       assert.ok(Math.abs(actual.before-actual.after)<.1,'Wave changed column width');
       }
      }
      if(path==='index.html'){
-      // Actual score updates still replace the complete number.
       await page.locator('#score').evaluate(el=>el.textContent='987');
       await page.waitForFunction(()=>document.querySelectorAll('#score > .crilo-score-bob-digit').length===3);
       assert.equal(await page.locator('#score').innerText(),'987');
-      // The terminal celebration owns the score markup until its class ends.
       await page.locator('#score').evaluate(el=>{
        el.classList.add('crilo-final-animate');
        el.innerHTML='<span class="crilo-final-glyph crilo-final-digit">9</span>';
       });
       await page.waitForTimeout(50);
       assert.equal(await page.locator('#score .crilo-score-bob-digit').count(),0,
-       'Idle wave must not overwrite final-spin glyph pops');
+       'Idle wave must not override the original final-spin celebration');
       await page.locator('#score').evaluate(el=>{
        el.textContent='987';el.classList.remove('crilo-final-animate');
       });
       await page.waitForFunction(()=>document.querySelectorAll('#score > .crilo-score-bob-digit').length===3);
-      assert.equal(await page.locator('#score').innerText(),'987');
      }else{
       const color=await page.locator('#leaderList .leader-score').evaluate(el=>getComputedStyle(el).color);
-      assert.equal(color,'rgb(49, 122, 192)','Rare tier score color changed');
-      const metadata=await page.locator('.leader-score-secondary').innerText();
-      assert.equal(metadata,'Score 42 · RARE','Nested leaderboard text was altered');
+      assert.equal(color,'rgb(49, 122, 192)','Rarity color must not change');
+      assert.equal(await page.locator('.leader-score-secondary').innerText(),'Score 42 · RARE');
       await page.locator('#leaderList .leader-score').evaluate(el=>el.innerHTML='578');
       await page.waitForFunction(()=>document.querySelectorAll('.leader-score > .crilo-score-bob-digit').length===3);
       assert.equal(await page.locator('.leader-score').innerText(),'578');
-      // Preserve illustrated Duck leaderboard markup rather than flattening images.
       await page.locator('#leaderList .leader-score').evaluate(el=>{
        el.innerHTML='<img src="duck-classic.svg" alt="duck"> 7';
       });
@@ -121,14 +130,13 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       assert.equal(await page.locator('.leader-score .crilo-score-bob-digit').count(),0);
      }
      const dim=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:innerWidth}));
-     assert.ok(dim.width<=dim.viewport+2,'Score animation overflowed at '+width+'px');
-     assert.deepEqual(errors,[],'Browser errors '+path+' at '+width+'px');
-     cases++;
-     await page.close();
+     assert.ok(dim.width<=dim.viewport+2,'Score overflow at '+width+'px');
+     assert.deepEqual(errors,[],'JavaScript errors '+path+' '+width+'px');
+     cases++;await page.close();
     }
     await context.close();
    }
   }
-  console.log('SCORE_MOTION_BROWSER_PASS '+cases+' responsive, accessible per-digit wave cases');
+  console.log('SCORE_MOTION_BROWSER_PASS '+cases+' sequential wave tests');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(err=>{console.error('SCORE_MOTION_BROWSER_FAIL',err);process.exitCode=1});
