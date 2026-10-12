@@ -82,7 +82,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
 assert.match(html,/daily-drawing-state\.css\?v=18/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=96/,'Play must load the updated state and viewport logic');
+assert.match(html,/game\.js\?v=97/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {visibility:hidden!important}'),
