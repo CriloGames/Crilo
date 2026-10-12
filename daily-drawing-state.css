@@ -404,7 +404,8 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
     min-height:0;
     text-align:left;
   }
-  .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
+  .hero #drawPanel:not(.draw-unavailable)>.draw-actions,
+  .hero #drawPanel.locked-panel:not(.draw-unavailable)>.draw-actions {
     grid-column:1;
     grid-row:2;
     justify-content:center;
