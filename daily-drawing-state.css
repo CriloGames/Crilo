@@ -115,6 +115,20 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   #drawPanel.daily-finished .draw-complete-copy small{font-size:11px}
 }
 
+/* Play-only score: slightly more compact, steady digits. Score rarity and
+   final-spin celebration remain unchanged; no infinite bobbing animation. */
+#wheelScorePanel .wheel-score-amount{
+ font-size:clamp(35px,4.3vw,49px);
+ padding:6px 15px 8px;
+ line-height:1.14;
+}
+@media(max-width:700px){
+ #wheelScorePanel .wheel-score-amount{
+  font-size:clamp(31px,7.5vw,43px);
+  padding:5px 12px 7px;
+ }
+}
+
 /* Give the wheel, score and completed-run actions a more compact vertical
    rhythm on desktops without touching pixel studio, game logic, or the
    canvas dimensions while a spin is in progress. */
