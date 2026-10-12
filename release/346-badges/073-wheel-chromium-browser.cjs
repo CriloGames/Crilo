@@ -103,7 +103,19 @@ function fakeAuth(mode){
      }
      return{data:null,error:null};
     },
-    then(resolve,reject){return Promise.resolve({data:[],error:null}).then(resolve,reject)}
+    then(resolve,reject){
+     let rows=[];
+     if(backend.mode==='badge-rewards'&&backend.saves.length){
+      const tiers=['mythic','rare','common','anomaly','uncommon','epic','trash'];
+      if(table==='user_badges')rows=tiers.map((tier,i)=>({badge_id:i+500}));
+      if(table==='badges')rows=tiers.map((tier,i)=>({
+       id:i+500,badge_key:'qa_'+tier,name:'QA '+tier,
+       description:'A synthetic '+tier+' badge',category:'Wheel moments',
+       requirement:{rarity:tier},is_secret:false
+      }));
+     }
+     return Promise.resolve({data:rows,error:null}).then(resolve,reject);
+    }
    };
    return q;
   }
@@ -119,7 +131,8 @@ async function run(){
    {name:'lost-spin-response',mode:'lost-spin',width:390,height:844},
    {name:'rejected-save-retry',mode:'reject-save',width:390,height:844},
    {name:'committed-save-lost-response',mode:'lost-save',width:1280,height:850},
-   {name:'authoritative-early-terminal',mode:'forced-terminal',width:390,height:844}
+   {name:'authoritative-early-terminal',mode:'forced-terminal',width:390,height:844},
+   {name:'badge-rewards',mode:'badge-rewards',width:390,height:844}
   ];
   for(const sc of scenarios){
    const context=await browser.newContext({viewport:{width:sc.width,height:sc.height}});
@@ -174,13 +187,31 @@ async function run(){
      assert.equal(await page.locator('#retrySaveBtn').isVisible(),false);
     }
    }
+   if(sc.name==='badge-rewards'){
+    await page.locator('#newBadgeList .new-badge-item').first().waitFor();
+    assert.equal(await page.locator('#newBadgePanel').isVisible(),true,
+     'Newly earned badges must be visible without a click');
+    assert.equal(await page.locator('#newBadgePanel').evaluate(el=>el.tagName),'SECTION',
+     'New badges cannot be hidden inside a details dropdown');
+    assert.equal(await page.locator('#newBadgePanel summary').count(),0,
+     'Badge list must not be a collapsible summary');
+    const ordered=await page.locator('#newBadgeList .new-badge-item').evaluateAll(
+     items=>items.map(item=>item.dataset.badgeRarity));
+    assert.deepEqual(ordered,['trash','common','uncommon','rare','epic','anomaly','mythic'],
+     'Newly earned badges must be organized from lowest tier to Mythic');
+    assert.equal(await page.locator('#newBadgeCount').innerText(),'7 NEW BADGES UNLOCKED');
+    await page.locator('#newBadgeList [data-badge-rarity="rare"]').click();
+    assert.equal(await page.locator('#dailyBadgePreviewDialog').isVisible(),true,
+     'Sorted badge rewards must keep their interactive details');
+    await page.locator('#dailyBadgePreviewClose').click();
+   }
    assert.equal(errors.filter(x=>/ReferenceError|TypeError|SyntaxError|finalSaveInProgress/.test(x)).length,0,
     sc.name+' browser error: '+JSON.stringify(errors));
    console.log('PASS '+sc.name+' ('+sc.width+'x'+sc.height+')');
    passed++;await context.close();
   }
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
- assert.equal(passed,5);
- console.log('PASS: 5 real Chromium browser flows with synthetic login and intercepted backend; zero production data changed.');
+ assert.equal(passed,6);
+ console.log('PASS: 6 real Chromium browser flows with automatic badge rewards ordered by rarity; zero production writes.');
 }
 run().catch(error=>{console.error(error);process.exitCode=1;try{server.close()}catch{}});

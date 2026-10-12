@@ -600,9 +600,16 @@ async function showNewBadges(prior){
  if(badgeError||!badges?.length)return;
  const collection=window.CriloBadgeCollection;
  const rarity=b=>collection?.rarity(b)||String(b.requirement?.rarity||'common').toLowerCase();
+ // Display new rewards from lowest to highest rarity, independent of
+ // whatever order the database returned. Trash (if awarded) precedes Common.
+ const order=collection?.rarityOrder||['trash','common','uncommon','rare','epic','anomaly','mythic'];
+ const ranks=new Map(order.map((tier,index)=>[tier,index]));
+ const sorted=badges.slice().sort((a,b)=>
+  (ranks.get(rarity(a))??1)-(ranks.get(rarity(b))??1)||
+  String(a.name||'').localeCompare(String(b.name||'')));
  const byKey=new Map(badges.map(b=>[String(b.badge_key),b]));
  $('newBadgeCount').textContent=badges.length+' NEW BADGE'+(badges.length===1?'':'S')+' UNLOCKED';
- $('newBadgeList').innerHTML=badges.map(b=>{
+ $('newBadgeList').innerHTML=sorted.map(b=>{
   const tier=rarity(b),label=Crilo.esc(String(b.name||'Badge'));
   return '<button type="button" class="badge-top-chip new-badge-item"'+
    ' data-badge-key="'+Crilo.esc(String(b.badge_key))+
@@ -613,7 +620,7 @@ async function showNewBadges(prior){
    '<p>'+Crilo.esc(b.description||'')+'</p></span>'+
    '<span class="new-badge-open" aria-hidden="true">↗</span></button>';
  }).join('');
- $('newBadgePanel').classList.remove('hidden');$('newBadgePanel').open=true;
+ $('newBadgePanel').classList.remove('hidden');
  const list=$('newBadgeList'),dialog=$('dailyBadgePreviewDialog');
  list.onclick=event=>{
   const button=event.target.closest?.('button[data-badge-key]');
@@ -628,7 +635,7 @@ async function showNewBadges(prior){
  dialog.onclick=event=>{if(event.target===dialog)dialog.close()};
 }
 function renderResult(r){
- $('newBadgePanel').classList.add('hidden');$('newBadgePanel').open=false;
+ $('newBadgePanel').classList.add('hidden');
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';

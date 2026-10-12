@@ -1,0 +1,8 @@
+/* Newly unlocked Daily badges are visible immediately, never a dropdown. */
+.new-badge-panel-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 14px;padding:15px 17px 13px;text-align:left}
+.new-badge-panel-header h3{font-size:clamp(13px,2.4vw,16px);line-height:1.3;font-weight:950;letter-spacing:.035em;color:#794ca0;margin:0}
+.new-badge-order{font-size:10px;font-weight:850;letter-spacing:.08em;color:#77647f;text-transform:uppercase}
+.new-badge-panel .new-badge-list{padding-top:2px}
+html[data-theme="dark"] .new-badge-panel-header h3{color:#ddc2ff}
+html[data-theme="dark"] .new-badge-order{color:#aca3b7}
+@media(max-width:520px){.new-badge-panel-header{padding:14px 13px 11px}.new-badge-order{font-size:9px}}

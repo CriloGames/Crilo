@@ -55,6 +55,7 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'daily-badges.css'
       - 'release/346-badges/106-score-motion-browser.cjs'
       - 'badge-sets.js'
       - 'badge-sets.html'
