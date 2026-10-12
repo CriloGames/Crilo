@@ -26,10 +26,9 @@
 }
 .wheel-score-amount{
  --crilo-glow-ink:var(--score-accent,#7b8796);
- display:inline-flex;
- align-items:center;
- justify-content:center;
+ display:inline-block;
  align-self:center;
+ text-align:center;
  margin:4px auto 0;
  padding:7px 18px 10px;
  min-height:1.2em;
@@ -37,10 +36,8 @@
  line-height:1.16;
 }
 #finalScore{
- display:flex;
- align-items:center;
- justify-content:center;
- width:max-content;
+ display:table;
+ text-align:center;
  margin:12px auto 15px;
  padding:10px 21px;
  border-radius:17px;

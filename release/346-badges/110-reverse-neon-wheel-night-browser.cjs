@@ -53,6 +53,7 @@ function luminance(pixel){
        const css=getComputedStyle(el);
        return{
         digits:(el.textContent||'').trim(),
+        rendered:el.innerText,
         textDelta:Math.abs((glyphs.left+glyphs.right-rect.left-rect.right)/2),
         frameDelta:stage?Math.abs((rect.left+rect.right-stage.left-stage.right)/2):null,
         tracking:css.letterSpacing,
@@ -60,6 +61,8 @@ function luminance(pixel){
         overflow:document.documentElement.scrollWidth-innerWidth
        };
       },parentSelector);
+      assert.equal(centered.rendered,value,
+       selector+' should render every digit on one line without inserted line breaks');
       assert.ok(centered.textDelta<=2.5,
        selector+' digits '+value+' are not centered within their frame: '+JSON.stringify(centered));
       assert.ok(centered.frameDelta<=2.5,
