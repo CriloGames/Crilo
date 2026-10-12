@@ -14,7 +14,9 @@
   animation:criloWheelNeonColors 19s linear infinite;
 }
 .wheel-wrap .wheel-neon-outer {inset:1.05%}
-.wheel-wrap .wheel-neon-inner {inset:32.3%;z-index:4}
+/* The canvas occupies 33–67% of the wheel. Center the neon 15px beyond
+   its edge inside the surrounding white rim, at every responsive wheel size. */
+.wheel-wrap .wheel-neon-inner {inset:calc(33% - 15px);z-index:4}
 .wheel-wrap .wheel-neon-ring::before,
 .wheel-wrap .wheel-neon-ring::after {
   content:"";
@@ -43,9 +45,10 @@
   mask-image:radial-gradient(farthest-side,transparent calc(100% - 4.3px),#000 calc(100% - 3.7px));
 }
 .wheel-wrap .wheel-neon-inner::after {
-  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 7px),#000 calc(100% - 1px));
-  mask-image:radial-gradient(farthest-side,transparent calc(100% - 9px),#000 calc(100% - 7px),#000 calc(100% - 1px));
-  filter:blur(5px) brightness(1.14);
+  -webkit-mask-image:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 4.5px),#000 calc(100% - 1px));
+  mask-image:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 4.5px),#000 calc(100% - 1px));
+  /* Keep the inner halo entirely in the white rim, away from player art. */
+  filter:blur(3px) brightness(1.14);
   opacity:.82;
 }
 @keyframes criloWheelNeonColors {
