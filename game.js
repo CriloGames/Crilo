@@ -231,6 +231,7 @@ function guestDailyShow(message,title='Guest Daily paused'){
  $('playedPanel').querySelector('strong').textContent=title;
  $('playedText').textContent=message;
  $('message').textContent=message;
+ showDailyRecap(null);
 }
 function guestDailyLocked(){
  if(user||isTest||guestDailyClaimedHere)return false;
@@ -239,8 +240,8 @@ function guestDailyLocked(){
  if(saved.storageUnavailable){
   guestDailyShow('Allow this site to save browser data to play as a guest, or sign in.','Browser storage required');
  }else if(saved.status==='complete'){
-  guestDailyShow('You scored '+Number(saved.score||0).toLocaleString()+
-   ' points. Your guest Daily is complete. Come back at the next reset.','Guest Daily complete');
+  guestDailyShow('A new guest Daily opens at the next reset.','Guest Daily complete');
+  showDailyRecap(saved,'guest');
  }else{
   guestDailyShow(saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)?
    'This Daily is already open in another tab. Refresh this page to continue the same run.':
@@ -596,7 +597,7 @@ function beginRun(alignPlay=false){
   showDrawPlaceholder();undoStack=[];redoStack=[];
  }
  unlockDrawing();
- document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();resetRecentPaintColors();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;setDrawingPanelMode('ready');update();if(alignPlay)alignPlayViewport()}
+ document.body?.classList?.remove('wheel-run-active');serverSessionId=null;$('retrySaveBtn').classList.add('hidden');$('retrySaveBtn').disabled=false;DuckWorld.clear();if(!user)guestRun=true;else guestRun=false;$('guestSaveNotice').classList.add('hidden');started=true;score=0;spins=5;multiplier=1;upgrades=0;doubles=0;ducks=0;totalSpins=0;numbersLanded=0;extraSpins=0;bestRollPoints=0;bestRollLabel='';rotation=0;results=[];runProbability=1;resetSegments();resetRecentPaintColors();$('result').classList.add('hidden');$('playedPanel').classList.add('hidden');$('resultNextDaily').classList.add('hidden');showDailyRecap(null);$('message').classList.remove('hidden');$('spinButton').classList.remove('hidden');$('spinButton').disabled=false;setDrawingPanelMode('ready');update();if(alignPlay)alignPlayViewport()}
 // Save only the image needed for the public Daily. WebP is optional: browsers
 // without it, or drawings that are already smaller as PNG, keep the original.
 function optimizedDailyDrawing(canvas,isBlank){
@@ -611,7 +612,7 @@ function optimizedDailyDrawing(canvas,isBlank){
 }
 async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;try{DuckWorld.clear(); $('spinButton').disabled=true;started=false;
  setDrawingPanelMode(guestRun?'guest-complete':isTest?'test-complete':'complete');
- const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
+ const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultNextDaily').classList.remove('hidden');$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
  // Guest drawings stay in guest-only storage; owner Test Runs retain their
  // original PNG behavior. Official runs use the smaller safe representation.
  drawingData=isTest?drawing.toDataURL('image/png'):optimizedDailyDrawing(drawing,drawingIsBlank);
@@ -658,7 +659,7 @@ if(isTest){
  $('message').textContent='Private test run saved. It does not count toward leaderboards, badges, or official Dailies.';
  $('replayTestBtn').classList.remove('hidden');
 }else{
- $('message').textContent='Official Daily saved. See how you ranked.';
+ $('resultNextDaily').classList.remove('hidden');$('message').textContent='Official Daily saved. See how you ranked.';
  if(window.CriloBadgeEvents){
   await window.CriloBadgeEvents.track('daily_run_screen');
   await window.CriloBadgeEvents.track('daily_results');
