@@ -55,7 +55,9 @@ assert.ok(ui.includes('textContent=data.totp.secret'),
 assert.ok(!ui.includes('localStorage'),'Never put authenticator secrets in local storage');
 assert.ok(settings.includes('owner-mfa.js?v=2'));
 assert.ok(!app.includes('Owner security · 2FA'),'Owner 2FA shortcut belongs in Settings, not the account dropdown');
-assert.ok(app.includes('<a href="settings.html">Settings</a>'),'Account menu must retain Settings for owner MFA access');
+assert.ok(app.includes('<a href="${siteRoot}settings.html">Settings</a>') &&
+ app.includes("location.pathname.startsWith('/domain/') ? '../' : ''"),
+ 'Account menu must retain Settings for owner MFA access on both root and Domain pages');
 for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html',
  'profile.html','friends.html','settings.html','moderation.html']){
  assert.ok(load(page).includes('app.js?v=48'),'New site-wide account menu not loaded on '+page);
