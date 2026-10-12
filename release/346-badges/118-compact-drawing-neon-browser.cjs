@@ -75,6 +75,37 @@ const controls=[
     'Painting should reveal a usable recent color');
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
     'flex','Recent swatches should become visible after painting');
+   const beforeColors=await page.locator('#clearDrawing').boundingBox();
+   await page.evaluate(()=>{
+    for(const hex of ['#112233','#223344','#334455','#445566','#556677','#667788','#778899'])
+     window.recordPaintColor(hex);
+   });
+   assert.equal(await page.locator('#drawRecentSwatches button').count(),5,
+    'A maximum of five recent paint colors should be rendered at '+width);
+   assert.equal(await page.locator('#pixelRecentSwatches button').count(),5,
+    'Pixel Studio should share the same capped five-color palette at '+width);
+   const colorLayout=await page.evaluate(()=>{
+    const rect=id=>document.querySelector(id).getBoundingClientRect();
+    const swatches=[...document.querySelectorAll('#drawRecentSwatches button')];
+    const panel=rect('#drawPanel'),strip=rect('#drawRecentColors'),
+     toolbar=rect('.draw-toolbar-main');
+    return {stripRight:strip.right,panelRight:panel.right,
+     stripLeft:strip.left,panelLeft:panel.left,
+     swatchRights:swatches.map(x=>x.getBoundingClientRect().right),
+     toolbarBottom:toolbar.bottom,stripTop:strip.top,
+     docOverflow:document.documentElement.scrollWidth-innerWidth};
+   });
+   assert.ok(colorLayout.stripRight<=colorLayout.panelRight+1&&
+    colorLayout.stripLeft>=colorLayout.panelLeft-1&&
+    colorLayout.swatchRights.every(right=>right<=colorLayout.panelRight+1),
+    'Five recent colors must stay within the Drawing Studio at '+width);
+   assert.ok(colorLayout.stripTop>=colorLayout.toolbarBottom-2,
+    'Recent colors must sit BELOW the flat drawing buttons at '+width);
+   assert.ok(colorLayout.docOverflow<=2,
+    'Five colors may not produce horizontal overflow at '+width);
+   const afterColors=await page.locator('#clearDrawing').boundingBox();
+   assert.ok(Math.abs(afterColors.x-beforeColors.x)<=2,
+    'New color swatches may not move Clear or the toolbar at '+width);
    await page.evaluate(()=>window.resetRecentPaintColors());
    assert.equal(await page.locator('#drawRecentColors').evaluate(el=>getComputedStyle(el).display),
     'none','Clearing run colors should restore the compact toolbar');
