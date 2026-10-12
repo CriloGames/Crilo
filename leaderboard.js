@@ -122,7 +122,7 @@ async function loadTotalPoints(revision){
  }
  const leader=entries[0];
  const fmt=n=>Number(n||0).toLocaleString();
- $('bestScore').textContent=fmt(leader.total_points)+' pts';
+ $('bestScore').textContent=fmt(leader.total_points);
  $('bestUser').textContent=leader.username||'Crilo player';
  $('bestUser').style.color=leader.name_color||'';
  $('bestStats').textContent=fmt(leader.official_runs)+' official Dailies played · lifetime points';
@@ -136,8 +136,8 @@ async function loadTotalPoints(revision){
    '" style="color:'+safeColor(entry.name_color)+'">'+
    Crilo.esc(entry.username||'Crilo player')+'</a>'+
    '<span class="leader-mini">'+fmt(entry.official_runs)+' official Dailies played</span>'+
-   '</div><div class="leader-score">'+fmt(entry.total_points)+
-   ' <small class="leader-total-units">pts</small></div></div>';
+   '</div><div class="leader-score-wrap"><div class="leader-score">'+fmt(entry.total_points)+
+   '</div><small class="leader-total-units">pts</small></div></div>';
  }).join('');
 }
 function duckCountHTML(value){
@@ -185,7 +185,7 @@ function renderBadgeLeaders(entries,profiles){
  setBestScoreRarity(null); // A badge count cannot be classified as a score.
  $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Gameplay badges earned from official play. Exploration badges still count in your personal collection, but not in rankings. Ties share a rank.';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
- const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString()+' badges';$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
+ const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString();$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
@@ -204,7 +204,7 @@ function render(runs,pm){
   return;
  }
  const best=runs[0],bp=pm.get(best.user_id);
- $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString()+' spins':
+ $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString():
   Number(best.score).toLocaleString();
  if(tab==='ducks')$('bestScore').innerHTML=duckCountHTML(best.ducks);
  $('bestUser').textContent=bp?.username||'Crilo player';
@@ -217,18 +217,18 @@ function render(runs,pm){
  const canModerate=Boolean(Crilo.profile?.is_owner);
  $('leaderList').innerHTML=runs.map((r,i)=>{
   const p=pm.get(r.user_id);
-  const metric=tab==='records'?`${Number(r.spins).toLocaleString()} spins`:
+  const metric=tab==='records'?Number(r.spins).toLocaleString():
    tab==='ducks'?duckCountHTML(r.ducks):Number(r.score).toLocaleString();
   const tier=scoreRarity(r.score);
   const scoreAttr=scoreBoard&&tier?` data-score-rarity="${tier}" title="${tier.toUpperCase()} final score"`:'';
   const secondary=tab==='records'&&tier?
-   `<small class="leader-score-secondary" data-score-rarity="${tier}">Score ${Number(r.score).toLocaleString()} · ${tier.toUpperCase()}</small>`:'';
+   `<small class="leader-score-secondary" data-score-rarity="${tier}">Spins · Score ${Number(r.score).toLocaleString()} · ${tier.toUpperCase()}</small>`:'';
   const remove=canModerate?
    `<button type="button" class="owner-remove-run" data-id="${Crilo.esc(r.id)}" data-source="${r._source}" title="Remove score and drawing">Remove</button>`:'';
   return `<div class="leader-row score-run-row${canModerate?' owner-moderated':''}">
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
-   <div class="leader-score-actions">${remove}<div class="leader-score"${scoreAttr}>${metric}${secondary}</div></div>
+   <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
    <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>`;
  }).join('');
