@@ -459,7 +459,7 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 
 /* Laptop and narrower desktop windows: keep the copy to the LEFT.
    The old 840px breakpoint stacked the editor even when the tools fit. */
-@media (min-width:761px) and (max-width:900px) {
+@media (min-width:781px) and (max-width:900px) {
   .hero #drawPanel:not(.draw-unavailable) {
     grid-template-columns:minmax(150px,175px) minmax(0,1fr);
     column-gap:8px!important;
@@ -484,7 +484,7 @@ html[data-theme="dark"] #playedPanel>a.small-btn {color:#c7a9e9}
 }
 /* Stack only when the viewport truly cannot hold the two columns.
    At small sizes controls can wrap without being cut off. */
-@media (max-width:760px) {
+@media (max-width:780px) {
   .hero #drawPanel:not(.draw-unavailable) {
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto auto;
