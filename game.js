@@ -535,7 +535,12 @@ function fitPlayViewport(){
  const reservedBelow=viewportWidth<=700?225:250;
  const belowWheel=Math.max(reservedBelow,measuredBelow);
  const room=viewportHeight-headerHeight-belowWheel-40;
- const diameter=Math.max(140,Math.floor(Math.min(640,viewportWidth-24,room)));
+ // Short desktop viewports need a little more room for the rarity score,
+ // run counters, and completion actions. Keep the generous 640px cap on
+ // phones/tablets; choose the diameter once BEFORE a spin starts.
+ const desktopCap=viewportWidth>=1024
+  ?Math.min(570,Math.floor(viewportHeight*.55)):640;
+ const diameter=Math.max(140,Math.floor(Math.min(desktopCap,viewportWidth-24,room)));
  body.style.setProperty('--crilo-wheel-fit',diameter+'px');
  playLayoutWidth=viewportWidth;playLayoutHeight=viewportHeight;
 }
