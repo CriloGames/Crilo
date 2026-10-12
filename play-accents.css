@@ -198,6 +198,12 @@ body.wheel-session-fit .wheel-stage::before{
 #drawPanel.daily-finished .draw-actions,
 #drawPanel.daily-finished .recent-colors{opacity:.64}
 #drawPanel.daily-finished :is(button,select,input):disabled{cursor:not-allowed}
+/* The spinning viewport hides locked drawing tools to avoid a layout jump.
+   Reveal ONLY the finished message; don't show editable controls mid-spin. */
+body.wheel-run-active #drawPanel.daily-finished{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ pointer-events:none;
+}
 #drawPanel.draw-unavailable{opacity:1!important;background:#f5f5f7}
 html[data-theme="dark"] #drawPanel.daily-finished{
  background:#292d35;border-color:#454d59;color:#e0e4ea
