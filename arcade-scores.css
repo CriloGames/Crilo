@@ -1,0 +1,157 @@
+/* CRILO • Mini arcade readouts: solid toy-console frames, not neon number pills.
+   Static on scroll. Rarity lives in the soft inset rim + small status lights. */
+.leader-panel .leader-score,
+.best-card #bestScore{
+ --arcade-shell:#cde9df;
+ --arcade-light:#82bda6;
+ --arcade-stroke:#28333d;
+ position:relative;
+ display:inline-flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ box-sizing:border-box;
+ width:max-content;
+ max-width:100%;
+ min-height:57px;
+ padding:9px 17px 10px;
+ border:1.5px solid var(--arcade-stroke);
+ border-radius:13px;
+ background:linear-gradient(165deg,#fffef9 0%,#faf8ee 100%);
+ box-shadow:inset 0 0 0 4px var(--arcade-shell),
+  inset 0 0 0 5px rgba(29,39,48,.13),
+  inset 0 7px 12px rgba(40,50,58,.035),
+  0 3px 0 var(--arcade-stroke),0 6px 12px rgba(30,41,55,.09);
+ text-align:center;
+ font-variant-numeric:tabular-nums;
+ font-weight:950;
+ line-height:1.2;
+ letter-spacing:-.035em;
+ color:#202735;
+ vertical-align:middle;
+ transition:box-shadow .18s ease,background .18s ease;
+}
+.leader-panel .leader-score{
+ font-size:clamp(16px,2vw,21px);
+ white-space:nowrap;
+}
+.best-card #bestScore{
+ font-size:clamp(27px,5.4vw,47px);
+ min-height:96px;
+ min-width:140px;
+ padding:13px 23px 15px;
+ margin:10px auto 19px;
+ border-radius:18px;
+}
+.leader-panel .leader-score::before,
+.best-card #bestScore::before{
+ content:"C R I L O";
+ display:block;
+ flex:none;
+ margin:0 0 3px;
+ font-size:8px;
+ letter-spacing:.06em;
+ font-weight:900;
+ line-height:1;
+ color:#65716e;
+}
+.best-card #bestScore::before{font-size:10px;margin-bottom:6px}
+.leader-panel .leader-score::after,
+.best-card #bestScore::after{
+ content:"●  ━  ●";
+ display:block;
+ flex:none;
+ font-size:8px;
+ letter-spacing:1px;
+ font-weight:900;
+ line-height:1;
+ margin-top:4px;
+ color:var(--arcade-light);
+}
+.best-card #bestScore::after{margin-top:8px;font-size:10px}
+.leader-panel .leader-score-secondary{
+ color:var(--leader-tier-ink,#79828c);
+ text-transform:none;
+ font-size:10px;
+ font-weight:800;
+ max-width:100%;
+ white-space:normal;
+ line-height:1.25;
+ letter-spacing:0;
+ padding:3px 4px 0;
+}
+.leader-panel .leader-score[data-score-rarity="trash"],
+.best-card #bestScore[data-score-rarity="trash"]{--arcade-shell:#f2dfc6;--arcade-light:#d8aa70}
+.leader-panel .leader-score[data-score-rarity="common"],
+.best-card #bestScore[data-score-rarity="common"]{--arcade-shell:#dde5ea;--arcade-light:#acbdcb}
+.leader-panel .leader-score[data-score-rarity="uncommon"],
+.best-card #bestScore[data-score-rarity="uncommon"]{--arcade-shell:#ccebdd;--arcade-light:#73ba9b}
+.leader-panel .leader-score[data-score-rarity="rare"],
+.best-card #bestScore[data-score-rarity="rare"]{--arcade-shell:#d2e8fa;--arcade-light:#82b8e4}
+.leader-panel .leader-score[data-score-rarity="epic"],
+.best-card #bestScore[data-score-rarity="epic"]{--arcade-shell:#e7d9f7;--arcade-light:#bb9de2}
+.leader-panel .leader-score[data-score-rarity="anomaly"],
+.best-card #bestScore[data-score-rarity="anomaly"]{--arcade-shell:#fae1cd;--arcade-light:#e7a87a}
+.leader-panel .leader-score[data-score-rarity="mythic"],
+.best-card #bestScore[data-score-rarity="mythic"]{--arcade-shell:#f5d9eb;--arcade-light:#dc93c2}
+/* Keep Crilo's score-tier ink on actual scored runs. Accent, not frame,
+   distinguishes tiers; non-score duck/badge counts use neutral navy. */
+.leader-panel .leader-score[data-score-rarity],
+.best-card #bestScore[data-score-rarity]{color:var(--leader-tier-ink)}
+.leader-panel .leader-score[data-score-rarity]::before,
+.best-card #bestScore[data-score-rarity]::before{color:#65716e}
+.leader-panel .leader-score[data-score-rarity]::after,
+.best-card #bestScore[data-score-rarity]::after{color:var(--arcade-light)}
+/* A small passive light change on pointer hover — never continuous bobbing
+   or horizontal shimmer across a crowded ranking. */
+@media(hover:hover){
+ .leader-panel .leader-row:hover .leader-score,
+ .best-card:hover #bestScore{
+  box-shadow:inset 0 0 0 4px var(--arcade-shell),
+   inset 0 0 0 5px rgba(29,39,48,.13),
+   inset 0 7px 12px rgba(40,50,58,.035),
+   0 3px 0 var(--arcade-stroke),0 7px 17px rgba(37,72,85,.17);
+ }
+}
+html[data-theme="dark"] .leader-panel .leader-score,
+html[data-theme="dark"] .best-card #bestScore{
+ --arcade-stroke:#b6c5ca;
+ background:linear-gradient(165deg,#26323c,#1c2832);
+ box-shadow:inset 0 0 0 4px color-mix(in srgb,var(--arcade-shell) 27%,#24313b),
+  inset 0 0 0 5px rgba(230,238,241,.12),
+  0 3px 0 #121a23,0 6px 12px rgba(0,0,0,.3);
+ color:#f5f7f6;
+}
+html[data-theme="dark"] .leader-panel .leader-score[data-score-rarity],
+html[data-theme="dark"] .best-card #bestScore[data-score-rarity]{color:var(--leader-tier-dark)}
+html[data-theme="dark"] .leader-panel .leader-score::before,
+html[data-theme="dark"] .best-card #bestScore::before{color:#b4c5c9}
+html[data-theme="dark"] .leader-panel .leader-score-secondary{color:#d6dfe4}
+@media(max-width:600px){
+ .leader-panel .leader-score{
+  padding:8px 12px 9px;
+  min-height:52px;
+  font-size:clamp(16px,4.3vw,19px);
+ }
+ .best-card #bestScore{
+  max-width:100%;
+  min-height:78px;
+  min-width:0;
+  padding:12px 17px;
+  font-size:clamp(24px,8vw,43px);
+ }
+ .leader-row.score-run-row .leader-score-actions{
+  min-width:0;
+ }
+ .leader-row.score-run-row.owner-moderated .leader-score-actions{
+  flex-wrap:wrap;
+ }
+}
+@media(max-width:360px){
+ .leader-panel .leader-score{padding:7px 10px 8px;font-size:15px}
+ .leader-panel .leader-score::before{font-size:7px}
+ .leader-row.score-run-row .leader-score-actions{max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .leader-panel .leader-score,.best-card #bestScore{transition:none}
+}

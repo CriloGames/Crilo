@@ -44,6 +44,8 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'arcade-scores.css'
+      - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
       - 'leaderboard-tabs.js'
       - 'index.html'
@@ -105,6 +107,8 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'arcade-scores.css'
+      - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
       - 'leaderboard-tabs.js'
       - 'index.html'
@@ -157,6 +161,7 @@ jobs:
           node --check owner-profile-scores.js
           node --check game.js
           node --check score-motion.js
+          node --check release/346-badges/108-arcade-scores-browser.cjs
           node --check release/346-badges/107-auth-document-refresh-browser.cjs
           node --check release/346-badges/104-drawing-editor-regression-browser.cjs
           node --check rarity-system.js

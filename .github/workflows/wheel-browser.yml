@@ -56,6 +56,8 @@ on:
       - 'wheel-preview.js'
       - 'wheel-preview.css'
       - 'score-motion.css'
+      - 'arcade-scores.css'
+      - 'release/346-badges/108-arcade-scores-browser.cjs'
       - 'score-motion.js'
       - 'daily-badges.css'
       - 'release/346-badges/106-score-motion-browser.cjs'
@@ -94,6 +96,8 @@ jobs:
         run: node release/346-badges/086-site-wide-interactions-browser.cjs
       - name: Check real blank drawings and one Daily per history row across devices
         run: node release/346-badges/093-blank-wheel-history-browser.cjs
+      - name: Verify Crilo arcade score displays, rarity accents and no leaderboard bobbing
+        run: node release/346-badges/108-arcade-scores-browser.cjs
       - name: Verify slow score movement, tier colors and reduced-motion on all devices
         run: node release/346-badges/106-score-motion-browser.cjs
       - name: Verify owner Daily counts and older-history pagination on mobile and desktop

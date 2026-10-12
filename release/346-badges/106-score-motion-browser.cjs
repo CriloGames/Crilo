@@ -21,7 +21,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
      route=>route.fulfill({status:200,contentType:'text/javascript',body:''}));
     await context.route(/^https:\/\/(?!crilo\.fun)/,route=>route.abort());
-    for(const path of ['index.html','leaderboard.html']){
+    for(const path of ['index.html']){
      const page=await context.newPage(),errors=[];
      page.on('pageerror',e=>errors.push(e.message));
      await page.goto(base+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
