@@ -82,7 +82,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
 assert.match(html,/daily-drawing-state\.css\?v=18/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=97/,'Play must load the updated state and viewport logic');
+assert.match(html,/game\.js\?v=98/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {visibility:hidden!important}'),
@@ -191,8 +191,8 @@ assert.match(pixelCss,/@media\(max-width:600px\)[\s\S]*?#pixelStudioModal \.pixe
  'Mobile Pixel Studio color swatch should shrink so all four trailing tools fit');
 assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
  'Studio spin selector must have accessible mobile sizing');
-assert.match(html,/style\.css\?v=122/,'Updated Pixel Studio CSS must be served');
-assert.match(html,/game\.js\?v=97/,'Synced Pixel Studio mode JS must be served');
+assert.match(html,/style\.css\?v=123/,'Updated Pixel Studio CSS must be served');
+assert.match(html,/game\.js\?v=98/,'Synced Pixel Studio mode JS must be served');
 const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
 const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
 assert.ok(startSpin>=0&&endSpin>startSpin,'Shared spin mode handler not present');
