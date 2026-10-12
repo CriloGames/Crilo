@@ -115,7 +115,7 @@ assert.match(css,/#drawPanel\.daily-finished \.drawing-tool\.active\{[\s\S]*?bac
  'A stale active Pen button cannot bleed through');
 assert.match(css,/body\.wheel-run-active #drawPanel\.daily-finished\{[\s\S]*?display:flex!important/,
  'Finished editor must become visible after wheel spin');
-assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\) \{[\s\S]*?grid-template-columns:minmax\(180px,220px\) minmax\(0,1fr\)/,
+assert.match(css,/\.hero #drawPanel:not\(\.draw-unavailable\) \{[\s\S]*?grid-template-columns:minmax\(240px,250px\) minmax\(0,1fr\)/,
  'Both drawing states should use the same compact desktop tracks');
 assert.match(css,/@media \(min-width:601px\) and \(max-width:830px\)/,
  'Tablet layouts keep completion copy left of the toolbar');
