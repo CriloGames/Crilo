@@ -504,6 +504,24 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
 
 /* Mobile keeps the traces inside a card's own available width; no big
    floating curves, viewport bleed, hitboxes, or extra horizontal scrolling. */
+/* Phone-sized game tiles alternate the edge they decorate: the second
+   tile has one lower-right stroke rather than repeating the first tile's top. */
+@media(max-width:600px){
+ :is(#more-games .game-card,.collection-page .collection-card,
+  .page-shell .settings-card,.page-shell .friend-card,
+  .page-shell .badge-card,.page-shell .stats-grid .stat-tile,
+  .analytics-main .analytics-card,.duck-page .duck-card,
+  .beetle-lab .beetle-demo-card):nth-child(7n + 2)::before{
+  display:none!important;
+ }
+ :is(#more-games .game-card,.collection-page .collection-card,
+  .page-shell .settings-card,.page-shell .friend-card,
+  .page-shell .badge-card,.page-shell .stats-grid .stat-tile,
+  .analytics-main .analytics-card,.duck-page .duck-card,
+  .beetle-lab .beetle-demo-card):nth-child(7n + 2)::after{
+  display:block!important;
+ }
+}
 /* On narrow mobile widths single outlines are favored over stacked pairs.
    Important: the app still has generous invisible touch areas around controls. */
 @media(max-width:600px){
