@@ -4,7 +4,14 @@
 const assert=require('node:assert/strict'),http=require('node:http');
 const {chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
-function rgb(s){const m=s.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/);if(!m)throw Error('Not rgb: '+s);return m.slice(1,4).map(Number)}
+function rgb(s){
+ const m=s.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+ if(m)return m.slice(1,4).map(Number);
+ // Chromium serializes color-mix() computed colors using CSS Color 4 syntax.
+ const srgb=s.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/);
+ if(srgb)return srgb.slice(1,4).map(v=>Math.round(Number(v)*255));
+ throw Error('Unsupported CSS color: '+s);
+}
 function lum(s){const v=rgb(s).map(n=>{const x=n/255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4});return .2126*v[0]+.7152*v[1]+.0722*v[2]}
 function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(Math.min(aa,bb)+.05)}
 (async()=>{
@@ -23,7 +30,7 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
  ];
  let tests=0;
  try{
-  for(const width of [390,1280]){
+  for(const width of [390,768,1280]){
    const context=await browser.newContext({viewport:{width,height:860}});
    await context.addInitScript({content:
     "localStorage.setItem('crilo_theme','dark');"+mockSupabase.replace('loggedIn:false','loggedIn:true').replace("theme:'light'","theme:'dark'")});

@@ -21,7 +21,7 @@ function contrast(a,b){const aa=lum(a),bb=lum(b);return (Math.max(aa,bb)+.05)/(M
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  let cases=0;
  try{
-  for(const width of [390,1280]){
+  for(const width of [390,768,1280]){
    const context=await browser.newContext({viewport:{width,height:860}});
    await context.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
