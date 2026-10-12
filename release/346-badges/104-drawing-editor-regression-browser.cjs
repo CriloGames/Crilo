@@ -134,6 +134,14 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    });
    assert.ok(await pinkCount('pixelCanvas')>0,'Fresh Studio stroke did not paint');
    assert.equal(await page.locator('#pixelClose').count(),0,'Extra Pixel Studio Save / Done button must be removed');
+   // First Escape dismisses the color chooser, not the editor or artwork.
+   await page.locator('#pixelColor').evaluate(input=>input.dispatchEvent(
+    new PointerEvent('pointerdown',{bubbles:true,pointerId:96,pointerType:'mouse',button:0})));
+   await page.keyboard.press('Escape');
+   assert.equal(await page.locator('#pixelStudioModal').isVisible(),true,
+    'Escape while choosing a color unexpectedly closed Pixel Studio');
+   assert.ok(await pinkCount('pixelCanvas')>0,'Dismissing color chooser deleted unsaved artwork');
+   // The next Escape leaves Studio and must commit that stroke to the wheel.
    await page.keyboard.press('Escape');
    assert.equal(await page.locator('#pixelStudioModal').isVisible(),false,
     'Esc should safely save and exit Studio');
