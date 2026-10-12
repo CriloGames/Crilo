@@ -90,6 +90,17 @@ function installOwnerDailies(){
    assert.equal(await page.locator('.spin-history-wheel').count(),5);
    assert.ok((await page.locator('.spin-history-wheel img[src="blank-wheel.svg"]').count())>=4,'Unpainted wheels changed');
    assert.ok((await page.locator('.spin-history-wheel img[src^="data:image/png;base64,"]').count())>=1,'Saved artwork changed');
+   const paintedWheel=page.locator('.spin-history-wheel img[src^="data:image/png;base64,"]').first();
+   const originalSrc=await paintedWheel.getAttribute('src');
+   await paintedWheel.click();
+   assert.ok(await page.locator('#criloWheelPreview').isVisible(),'Saved artwork must expand in the preview');
+   assert.equal(await page.locator('.crilo-wheel-preview-image').getAttribute('src'),originalSrc,
+    'Expanded artwork must use the exact stored drawing, not a substitute');
+   await page.locator('.crilo-wheel-preview-spin').click();
+   assert.equal(await page.locator('.crilo-wheel-preview-spin').getAttribute('data-spins'),'1',
+    'Enlarged saved drawing did not spin when clicked');
+   await page.locator('.crilo-wheel-preview-close').click();
+   assert.equal(await paintedWheel.getAttribute('src'),originalSrc,'Closing preview must not alter artwork');
    assert.equal(await page.locator('#spinHistoryCount').innerText(),'5 Dailies completed');
    const horizontal=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,viewport:innerWidth}));
    assert.ok(horizontal.scroll<=horizontal.viewport+2,'Statistics page overflow at '+width+'px');
