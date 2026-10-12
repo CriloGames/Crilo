@@ -13,6 +13,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   return [...canvas.getContext('2d').getImageData(p.x,p.y,1,1).data];
  },{x,y});
  const point=async(page,id,x,y)=>{
+  await page.locator('#'+id).scrollIntoViewIfNeeded();
   const rect=await page.locator('#'+id).boundingBox();
   assert.ok(rect,'Canvas '+id+' not shown');
   await page.mouse.click(rect.x+rect.width*x/200,rect.y+rect.height*y/200);
