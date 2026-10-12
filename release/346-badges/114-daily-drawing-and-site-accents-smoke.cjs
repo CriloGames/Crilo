@@ -84,7 +84,7 @@ assert.match(html,/daily-drawing-state\.css\?v=9/,'Play must use updated drawing
 assert.match(html,/game\.js\?v=92/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
-assert.ok(css.includes('#drawPanel.daily-finished .recent-colors{display:none!important}'),
+assert.ok(css.includes('#drawPanel.locked-panel>.recent-colors {display:none!important}'),
  'Finished drawing tools should take less vertical room');
 assert.ok(!html.includes('score-motion.js')&&!html.includes('score-motion.css'),
  'Play page must not load the repeating score-digit bobbing assets');
