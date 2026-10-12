@@ -317,3 +317,11 @@ html[data-theme="dark"] #playedPanel>a.small-btn{color:#c7a9e9}
   padding:6px 7px;min-height:32px;font-size:10.5px;
  }
 }
+
+/* Active runs preserve editor space during spinning; after the terminal spin,
+   override the old flex placeholder with this compact visible grid. */
+body.wheel-run-active .hero #drawPanel.daily-finished{
+ display:grid!important;
+ visibility:visible!important;opacity:1!important;
+ pointer-events:none;
+}
