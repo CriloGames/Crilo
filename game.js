@@ -971,7 +971,7 @@ async function claimFinishedGuestDaily(){
   return false;
  }finally{guestClaimInProgress=false}
 }
-window.addEventListener('crilo-auth-ready',async e=>{
+async function handleDailyAuth(e){
  user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;
  $('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);
  if(!user){
@@ -1011,7 +1011,15 @@ window.addEventListener('crilo-auth-ready',async e=>{
  $('message').textContent='Checking your Daily…';
  await DuckWorld.load(criloDB,user);
  await checkPlayed();
-});window.addEventListener('crilo-signin-request',()=>open('authModal'));
+};
+window.addEventListener('crilo-auth-ready',handleDailyAuth);
+// A restored login can finish before the large gameplay bundle evaluates.
+// Rehydrate once even if we missed that early auth-ready event.
+if(Crilo.authResolved){
+ handleDailyAuth({detail:{user:Crilo.user,profile:Crilo.profile}})
+  .catch(error=>console.warn('Daily rehydration failed',error));
+}
+window.addEventListener('crilo-signin-request',()=>open('authModal'));
 window.addEventListener('crilo-auth-error',e=>{open('authModal');$('authStatus').textContent='Sign-in failed: '+(e.detail?.message||'Please request a new email link.');});
 $('reviewDailyBtn').addEventListener('click',toggleDailyReview);
 $('retrySaveBtn').addEventListener('click',async()=>{
