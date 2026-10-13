@@ -40,7 +40,8 @@ for(const file of ['magic-link.html','confirm-signup.html','invite-user.html']){
   assert.ok(html.includes(color),'Wheel preview palette missing '+color+': '+file);
  assert.ok(!/<script\b|<iframe\b|@import|data:image\/|cid:/i.test(html),
   'No scripts or insecure data-image URLs: '+file);
- assert.ok(html.includes("Didn't request this email?"),'Security notice missing: '+file);
+ const privacyText=file==='invite-user.html'?"Didn't expect an invitation?":"Didn't request this email?";
+ assert.ok(html.includes(privacyText),'Security notice missing: '+file);
  assert.ok(html.length<25000,'Template too large: '+file);
 }
 const invite=fs.readFileSync(path.join(__dirname,'invite-user.html'),'utf8');

@@ -1,0 +1,21 @@
+name: Check Crilo email templates
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'emails/**'
+      - '.github/workflows/email-templates.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  template-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Magic Link, Confirm Signup and Invite user
+        run: node emails/check-templates.cjs
