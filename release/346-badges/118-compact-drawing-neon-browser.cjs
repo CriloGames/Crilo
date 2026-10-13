@@ -44,6 +44,15 @@ const controls=[
     };
    },controls);
    const ready=await state();
+   if(width>=781) {
+    const warningRows=await page.evaluate(()=>{
+     const r=document.createRange(),el=document.getElementById('drawSafetyNote');
+     r.selectNodeContents(el);
+     return r.getClientRects().length;
+    });
+    assert.equal(warningRows,1,
+     'Ban warning must be one line beside tools without enlarging the drawing area at '+width);
+   }
    if(width>=781&&width<=900){
     const geometry=await page.evaluate(()=>{
      const copy=document.querySelector('#drawPanel>div:first-child').getBoundingClientRect();
