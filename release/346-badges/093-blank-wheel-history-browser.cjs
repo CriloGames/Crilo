@@ -72,7 +72,7 @@ function installFakeDaily(){
     }else{
      assert.equal(border.color,'rgb(23, 25, 30)','History wheel needs original black rim');
     }
-    assert.ok(parseFloat(border.width)>=4,'Wheel frame must be at least 4px');
+    assert.ok(parseFloat(border.width)>=4,'Wheel frame must be at least 4px: '+pageFile+' '+width+'px, got '+JSON.stringify(border));
     if(pageFile==='leaderboard.html'){
      await page.waitForFunction(()=>document.querySelectorAll('.leader-list .mini-wheel').length>0);
      const btn=page.locator('#leaderList .mini-wheel');
