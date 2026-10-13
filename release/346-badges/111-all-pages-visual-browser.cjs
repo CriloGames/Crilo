@@ -93,8 +93,10 @@ const pages=[
       });
       assert.equal(neon.missing,undefined,'Missing wheel neon decoration');
       assert.ok(neon.o>neon.w*.95&&neon.o<neon.w,'Outer glow should hug wheel rim');
-      assert.ok(neon.i>neon.d&&neon.i<neon.d+neon.w*.05,
-       'Inner glow should sit in the drawing border, not cover artwork');
+      // The 4px drawing outline uses a fixed-pixel neon offset; a wheel-size
+      // percentage tolerance incorrectly fails for narrow but valid wheels.
+      assert.ok(neon.i>neon.d+10&&neon.i<neon.d+18,
+       'Inner glow should sit immediately outside the black drawing border');
       assert.ok(neon.oc<2&&neon.ic<2,'Neon rings must remain concentric');
       assert.deepEqual(neon.pointers,['none','none'],'Neon cannot block pen touches');
       assert.equal(neon.animation,'none','Reduced-motion should stop neon movement');
