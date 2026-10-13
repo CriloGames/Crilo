@@ -1,190 +1,115 @@
-/* Guest Daily resume regression: in-memory browsers, no production writes.
- * node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs
- */
+/* Server-authoritative guest Daily, refresh and claim smoke test. */
 'use strict';
-const assert=require('node:assert/strict');
-const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
-const game=fs.readFileSync(path.resolve(__dirname,'../../game.js'),'utf8');
-const KEY='crilo_guest_daily_v1';
-const DRAWING='data:image/png;base64,'+'a'.repeat(120);
-const backing=new Map([['crilo_sound','off']]);
-const storage={
- getItem:k=>backing.has(k)?backing.get(k):null,
- setItem:(k,v)=>backing.set(k,String(v))
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const game=fs.readFileSync('game.js','utf8');
+const KEY='crilo_guest_daily_v1',TOKEN='a'.repeat(64);
+const storage=new Map([['crilo_sound','off']]);
+const localStorage={
+ getItem:k=>storage.has(k)?storage.get(k):null,
+ setItem:(k,v)=>storage.set(k,String(v)),
+ removeItem:k=>storage.delete(k)
 };
-const read=()=>JSON.parse(backing.get(KEY));
-const clean=x=>JSON.parse(JSON.stringify(x));
-function mount({period='2026-10-10',signedIn=false,owner=false,
- store=storage,random=[0],deferAnimation=false}={}){
- const els=new Map(),events={},queued=[],randoms=[...random];
- let drawnImage=null,spawned=0,clock=0;
- function get(id){
+const segments=[
+ {type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},
+ {type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},
+ {type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}
+];
+let beginCount=0,claimed=0,remote=null,official=null,guestSpinCalls=0;
+const clone=x=>JSON.parse(JSON.stringify(x));
+function remoteState(){
+ return{period:'2026-10-12',score:remote.score,remaining_spins:remote.remaining_spins,
+  spin_count:remote.spin_count,multiplier:1,upgrades:0,doubles:0,ducks:0,
+  numbers_landed:remote.spin_count,extra_spins:0,segments:clone(segments),
+  results:clone(remote.results),finished:remote.remaining_spins===0,claimed:!!claimed};
+}
+function mount(signed=false){
+ const els=new Map(),events={};let clock=0;
+ const get=id=>{
   if(els.has(id))return els.get(id);
   const classes=new Set(['hidden']);
-  const classList={
-   add:s=>classes.add(s),remove:s=>classes.delete(s),contains:s=>classes.has(s),
-   toggle:(s,on)=>{if(on===undefined)on=!classes.has(s);if(on)classes.add(s);else classes.delete(s);return !!on;}
-  };
-  const ctx=new Proxy({
-   getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),
-   clearRect:()=>{},drawImage:img=>{drawnImage=img.src;}
-  },{get:(target,prop)=>target[prop]||(()=>{})});
-  const el={
-   id,disabled:false,hidden:false,open:false,value:'',textContent:'',classList,
-   dataset:{},style:{},width:200,height:200,innerHTML:'',
-   getContext:()=>ctx,toDataURL:()=>DRAWING,
-   addEventListener:(name,cb)=>{el['on_'+name]=cb;},
-   querySelector:()=>get(id+'-child'),querySelectorAll:()=>[],
-   setAttribute:()=>{},getAttribute:(key)=>el.attrs?.[key]||null,
-   removeAttribute:(key)=>{if(el.attrs)delete el.attrs[key];},
-   replaceChildren:(...nodes)=>{el.children=nodes;el.textContent=nodes.map(n=>n.textContent).join('');},
-   getBoundingClientRect:()=>({left:0,top:0,bottom:200,width:200,height:200})
-  };
-  els.set(id,el);return el;
- }
- const identity=signedIn?{id:owner?'owner':'account'}:null;
- const profile=identity?{id:identity.id,is_owner:owner,sound_enabled:false}:null;
- const Crilo={dailyPeriod:()=>period,nextReset:()=>new Date(Date.now()+86400000),user:identity,profile};
- const document={getElementById:get,querySelectorAll:()=>[],querySelector:()=>get('query'),
-  createElement:()=>({textContent:'',className:'',style:{setProperty(){}},setAttribute(){}}),
-  addEventListener:()=>{},body:{classList:{add:()=>{},remove:()=>{}},style:{setProperty:()=>{}}},
-  documentElement:{clientWidth:900}};
- const window={addEventListener:(n,cb)=>{events[n]=cb;},CriloBadgeEvents:{track:async()=>true}};
+  const classList={add:x=>classes.add(x),remove:x=>classes.delete(x),
+   contains:x=>classes.has(x),toggle:(x,v)=>{if(v===undefined)v=!classes.has(x);if(v)classes.add(x);else classes.delete(x);return v}};
+  const canvasContext=new Proxy({
+   getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),drawImage(){},clearRect(){}
+  },{get:(t,k)=>t[k]||(()=>{})});
+  const node={id,disabled:false,hidden:false,value:'',open:false,textContent:'',innerHTML:'',
+   style:{},dataset:{},classList,width:200,height:200,
+   getContext:()=>canvasContext,toDataURL:()=>('data:image/png;base64,'+'a'.repeat(300)),
+   addEventListener:(name,fn)=>node['on_'+name]=fn,
+   querySelector:()=>get(id+'-child'),querySelectorAll:()=>[],setAttribute(){},
+   replaceChildren(){},getBoundingClientRect:()=>({left:0,top:0,width:200,height:200,bottom:200})};
+  els.set(id,node);return node;
+ };
+ const user=signed?{id:'account'}:null,profile=user?{id:user.id,is_owner:false,sound_enabled:false}:null;
+ const Crilo={user,profile,dailyPeriod:()=> '2026-10-12',nextReset:()=>new Date(Date.now()+86400000)};
+ const calls=[];
  const db={
-  auth:{getSession:async()=>({data:{session:identity?{user:identity}:null}})},
-  rpc:async name=>{
+  auth:{getSession:async()=>({data:{session:user?{user}:null}})},
+  rpc:async(name,args)=>{
+   calls.push({name,args});
+   if(name==='crilo_guest_begin'){
+    beginCount++;remote={score:0,spin_count:0,remaining_spins:5,results:[]};
+    return{data:{token:TOKEN,period:'2026-10-12'},error:null};
+   }
+   if(name==='crilo_guest_state')return{data:remoteState(),error:null};
+   if(name==='crilo_guest_spin'){
+    guestSpinCalls++;
+    assert.equal(args.p_token,TOKEN);
+    const rec={type:'num',base:2,points:2,segments:12,probability:2/12};
+    remote.score+=2;remote.spin_count++;remote.remaining_spins--;
+    remote.results.push(rec);
+    return{data:{outcome_index:0,outcome:clone(rec),score:remote.score,
+      remaining_spins:remote.remaining_spins,spin_count:remote.spin_count,
+      segments:clone(segments),finished:remote.remaining_spins===0},error:null};
+   }
+   if(name==='crilo_claim_guest_daily'){
+    assert.equal(args.p_token,TOKEN);
+    assert.equal(remote.remaining_spins,0);
+    claimed++;
+    official={score:remote.score,spins:remote.spin_count,upgrades:0,doubles:0,ducks:0,drawing:null,daily_period:'2026-10-12'};
+    return{data:{status:'saved',score:official.score,run_id:901,period:'2026-10-12'},error:null};
+   }
    if(name==='crilo_my_daily_penalty')return{data:{blocked:false},error:null};
-   return{data:null,error:{message:'Unexpected signed-in RPC '+name}};
+   return{data:null,error:{message:'Unexpected RPC '+name}};
   },
-  from:()=>({select(){return this},eq(){return this},
-   maybeSingle:async()=>({data:null,error:null})})
+  from:table=>({
+   select(){return this},eq(){return this},
+   maybeSingle:async()=>({data:table==='daily_runs'?official:null,error:null})
+  })
  };
- const raf=cb=>{
-  if(deferAnimation){queued.push(cb);return;}
-  clock+=3200;cb(clock);
- };
- class ImageMock{
-  set src(value){this._src=value;if(this.onload)this.onload();}
-  get src(){return this._src;}
- }
+ const document={getElementById:get,querySelectorAll:()=>[],querySelector:()=>get('q'),
+  createElement:()=>({textContent:'',className:'',style:{setProperty(){}},setAttribute(){}}),
+  addEventListener(){},body:{classList:{add(){},remove(){}},style:{setProperty(){}}},
+  documentElement:{clientWidth:900}};
+ const window={addEventListener:(name,fn)=>events[name]=fn,CriloBadgeEvents:{track:async()=>true}};
  const sandbox={window,document,Crilo,criloDB:db,
-  DuckWorld:{clear:()=>{},load:async()=>{},spawn:()=>{spawned++;return{};},playSound:()=>{}},
+  DuckWorld:{clear(){},load:async()=>{},spawn:()=>({}),playSound(){}},
   CriloRarity:{classify:()=>({label:'COMMON',color:'common',probability:.5,odds:2,explanation:'test'})},
-  localStorage:store,location:{origin:'https://crilo.fun',pathname:'/index.html'},
-  console:{log:()=>{},warn:()=>{},error:()=>{}},
-  Image:ImageMock,setInterval:()=>0,setTimeout:()=>0,
-  performance:{now:()=>clock},Math:Object.assign(Object.create(Math),
-   {random:()=>randoms.length?randoms.shift():0}),
-  requestAnimationFrame:raf};
- const ctx=vm.createContext(sandbox);
- vm.runInContext(game,ctx,{filename:'game.js',timeout:2000});
- async function ready(){await events['crilo-auth-ready']({detail:{user:identity,profile}});}
- return {get,events,ready,spin:()=>get('spinButton').on_click(),
-  flush:()=>{const tasks=queued.splice(0);deferAnimation=false;for(const cb of tasks){clock+=3200;cb(clock);}},
-  get drawnImage(){return drawnImage},get spawned(){return spawned}};
+  localStorage,location:{origin:'https://crilo.fun',pathname:'/index.html'},
+  console:{log(){},warn(){},error(){}},Image:class{set src(v){this._src=v;this.onload?.()}get src(){return this._src}},
+  setInterval:()=>0,setTimeout:()=>0,performance:{now:()=>clock},
+  Math,requestAnimationFrame:fn=>{clock+=3200;fn(clock)}};
+ vm.runInNewContext(game,sandbox,{timeout:2500});
+ return{get,calls,ready:()=>events['crilo-auth-ready']({detail:{user,profile}}),
+  spin:()=>get('spinButton').on_click()};
 }
 (async()=>{
- const first=mount();await first.ready();
- assert.equal(backing.has(KEY),false,'Just opening the wheel never consumes a Daily');
- await first.spin();
- assert.equal(read().status,'started');
- assert.equal(read().version,2);
- assert.equal(read().pending,null);
- assert.equal(read().state.totalSpins,1);
- assert.equal(read().state.spins,4);
- assert.equal(read().state.score,2);
- assert.equal(read().state.drawing,DRAWING);
- assert.equal(read().state.results.length,1);
- const snap=clean(read().state);
- const reloaded=mount();await reloaded.ready();
- assert.equal(reloaded.get('playedPanel').classList.contains('hidden'),true);
- assert.equal(reloaded.get('spinButton').classList.contains('hidden'),false);
- assert.equal(reloaded.get('spins').textContent,4);
- assert.equal(reloaded.get('score').textContent,'2');
- assert.equal(reloaded.get('wheelWrap').classList.contains('locked'),true);
- assert.equal(reloaded.drawnImage,DRAWING);
- assert.deepEqual(clean(read().state.results),snap.results,'Outcome history must be unchanged');
- assert.deepEqual(clean(read().state.segments),snap.segments,'Wheel slices must be unchanged');
- assert.match(reloaded.get('message').textContent,/Welcome back/);
- await reloaded.spin();
- assert.equal(read().state.totalSpins,2);
- assert.equal(read().state.score,4);
-
- // Refresh after outcome selection but before the wheel animation ends.
- // The old tab must not be able to overwrite the resumed state.
- backing.delete(KEY);
- const interrupted=mount({deferAnimation:true,random:[0,.28,.3,.1,.2,.3,.4,.5,.6]});
- await interrupted.ready();await interrupted.spin();
- assert.equal(read().status,'started');
- assert.equal(read().pending.index,3,'Queued outcome should be upgrade');
- assert.equal(read().state.totalSpins,0,'Snapshot remains pre-spin until committed outcome is applied');
- assert.equal(read().pending.upgradeBases.length,5);
- const chosen=clean(read().pending.upgradeBases);
- const during=mount();await during.ready();
- assert.equal(read().pending,null,'Reload must commit chosen outcome exactly once');
- assert.equal(read().state.totalSpins,1);
- assert.equal(read().state.upgrades,1);
- assert.equal(read().state.multiplier,3);
- assert.equal(read().state.spins,5,'Upgrade refunds the spin');
- assert.deepEqual(clean(read().state.segments.slice(-5).map(x=>x.base)),chosen);
- const stable=JSON.stringify(read());
- interrupted.flush();
- assert.equal(JSON.stringify(read()),stable,'The older tab must not overwrite resumed progress');
-
- // Special wheel actions and all counters survive a reload unchanged.
- backing.delete(KEY);
- const specials=mount({random:[0,.1,0,.88,0,.53,0,.29,0,0,.1,.2,.3,.4]});
- await specials.ready();
- for(let i=0;i<4;i++)await specials.spin();
- const withSpecials=clean(read().state);
- assert.equal(withSpecials.ducks,1);
- assert.equal(withSpecials.doubles,1);
- assert.equal(withSpecials.upgrades,1);
- assert.equal(withSpecials.extraSpins,2);
- assert.equal(withSpecials.multiplier,3);
- assert.equal(withSpecials.spins,6);
- assert.deepEqual(withSpecials.results.map(r=>r.type),['duck','double','spins','upgrade']);
- const specialReload=mount();await specialReload.ready();
- assert.equal(specialReload.get('spins').textContent,6);
- assert.equal(specialReload.get('level').textContent,'×3');
- assert.equal(specialReload.get('duckCount').textContent,1);
- assert.equal(specialReload.spawned,1,'Restored ducks must visibly reappear');
- assert.deepEqual(clean(read().state),withSpecials,'No special-run mutation during restore');
-
- // Finished runs still lock, while the next period has a new guest Daily.
- backing.delete(KEY);
- const finishing=mount();await finishing.ready();
- for(let i=0;i<5;i++)await finishing.spin();
- assert.equal(read().status,'complete');
- assert.equal(read().score,10);
- const completed=mount();await completed.ready();
- assert.equal(completed.get('spinButton').classList.contains('hidden'),true);
- assert.equal(completed.get('score').textContent,'10',
-  'Completed guest score should remain visible above the wheel');
- assert.match(completed.get('playedText').textContent,/next reset/);
- const next=mount({period:'2026-10-11'});await next.ready();
- assert.equal(next.get('spinButton').classList.contains('hidden'),false);
- await next.spin();
- assert.equal(read().period,'2026-10-11');
-
- // Signed-in official and owner test selection must ignore guest browser saves.
- const signed=mount({signedIn:true});await signed.ready();
- assert.equal(signed.get('spinButton').classList.contains('hidden'),false);
- const owner=mount({signedIn:true,owner:true});await owner.ready();
- assert.equal(owner.get('ownerRunControls').classList.contains('hidden'),false);
-
- // Unrestorable legacy attempts and blocked storage fail CLOSED.
- backing.set(KEY,JSON.stringify({period:'2026-10-10',status:'started'}));
- const legacy=mount();await legacy.ready();
- assert.equal(legacy.get('spinButton').classList.contains('hidden'),true);
- assert.match(legacy.get('playedText').textContent,/cannot be restored/);
- const denied=mount({store:{getItem(){throw Error('disabled');},setItem(){throw Error('disabled');}}});
- await denied.ready();
- assert.equal(denied.get('spinButton').classList.contains('hidden'),true);
- assert.match(denied.get('playedText').textContent,/Allow this site/);
-
- console.log('PASS: guest spin, artwork, entire wheel and counters restored unchanged.');
- console.log('PASS: mid-animation pending upgrade is committed once without reroll.');
- console.log('PASS: stale tab cannot overwrite; completed run and next period correct.');
- console.log('PASS: owner/sign-in isolated, legacy and broken-storage fail closed.');
-})().catch(error=>{console.error(error);process.exitCode=1;});
+ const guest=mount();await guest.ready();assert.equal(beginCount,0,'Guest session starts only on first spin');
+ await guest.spin();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(beginCount,1);assert.equal(guestSpinCalls,1);
+ const persisted=JSON.parse(storage.get(KEY));
+ assert.equal(persisted.version,3);assert.equal(persisted.verifiedToken,TOKEN);
+ assert.equal(persisted.state.score,2);assert.equal(persisted.state.totalSpins,1);
+ const restored=mount();await restored.ready();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(restored.get('score').textContent,'2','Reload uses server score');
+ assert.equal(beginCount,1,'Reload cannot restart the verified guest Daily');
+ for(let i=1;i<5;i++){await restored.spin();await new Promise(resolve=>setImmediate(resolve))}
+ assert.equal(JSON.parse(storage.get(KEY)).status,'complete');
+ assert.equal(remote.score,10);assert.equal(guestSpinCalls,5);assert.equal(claimed,0);
+ const signed=mount(true);await signed.ready();await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(claimed,1,'Completed guest Daily auto-claimed at sign in');
+ assert.equal(official.score,10);assert.equal(storage.has(KEY),false);
+ assert.match(signed.get('message').textContent,/saved|Daily/i);
+ await signed.ready();assert.equal(claimed,1,'Claim cannot repeat');
+ console.log('GUEST_CLAIM_SMOKE_PASS server spins, reload, completed transfer, idempotent sign-in');
+})().catch(error=>{console.error('GUEST_CLAIM_SMOKE_FAIL',error);process.exitCode=1});

@@ -1,0 +1,20 @@
+name: Verified guest Daily claim
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'game.js'
+      - 'index.html'
+      - 'release/346-badges/038-guest-daily-refresh-lock-smoke.cjs'
+      - '.github/workflows/guest-daily-claim.yml'
+  workflow_dispatch:
+jobs:
+  guest-daily-claim:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check client syntax
+        run: node --check game.js
+      - name: Test server-backed guest spin, reload and sign-in claim
+        run: node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs

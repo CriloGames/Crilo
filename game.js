@@ -149,14 +149,16 @@ function pop(text){const p=$('eventPop');p.textContent=text;p.classList.remove('
 function addDuck(){ducks++;$('duckCount').textContent=ducks;return DuckWorld.spawn()}
 
 function bump(){const w=$('wheelWrap');w.classList.remove('upgrade-bump');void w.offsetWidth;w.classList.add('upgrade-bump')}
-// Guest Daily state is browser-local, not server-verified. A run's chosen
-// outcome is committed before wheel animation so refreshing mid-spin cannot
-// reroll it. Other tabs take over the same saved run, never start a new one.
+// Guest Daily identity and artwork are stored locally, but the server
+// selects every spin and stores the authoritative score/counters. The one-time
+// guest ticket is required to claim the run after sign-in. Other tabs adopt
+// the same ticket rather than getting another attempt.
 const GUEST_DAILY_STORAGE_KEY='crilo_guest_daily_v1';
-const GUEST_DAILY_SCHEMA=2;
+const GUEST_DAILY_SCHEMA=3;
 const guestTabId=String(Date.now())+'-'+Math.random().toString(36).slice(2);
 let guestDailyClaimedHere=false,guestDailyClaimedPeriod=null;
 let guestDrawingData='',guestPendingUpgradeBases=null;
+function guestProofRecord(){try{return JSON.parse(localStorage.getItem(GUEST_DAILY_STORAGE_KEY)||'null')}catch{return null}}
 function guestDailyRecord(){
  try{
   const raw=localStorage.getItem(GUEST_DAILY_STORAGE_KEY);
@@ -212,7 +214,9 @@ function guestDailyLocked(){
  if(saved.storageUnavailable){
   guestDailyShow('Allow this site to save browser data to play as a guest, or sign in.','Browser storage required');
  }else if(saved.status==='complete'){
-  guestDailyShow('A new guest Daily opens at the next reset.','Guest Daily complete');
+  guestDailyShow(saved.version===GUEST_DAILY_SCHEMA?
+   'Sign in to claim this completed Daily for your account. A new guest Daily opens at the next reset.':
+   'This older guest Daily was not server-verified and cannot be claimed.','Guest Daily complete');
   showDailyRecap(saved,'guest');
   update();
  }else{
@@ -242,15 +246,21 @@ function guestSaveOrPause(pending=null){
   'Guest Daily paused');
  return false;
 }
-function claimGuestDaily(){
+async function claimGuestDaily(){
  if(guestDailyClaimedHere)return guestOwnsDaily();
  if(guestDailyLocked())return false;
  try{
   guestDrawingData=drawing.toDataURL('image/png');
   if(!guestDrawingData.startsWith('data:image/png;base64,'))throw Error('Could not preserve drawing');
+  const {data:proof,error:proofError}=await criloDB.rpc('crilo_guest_begin');
+  if(proofError||!proof?.token||proof.period!==Crilo.dailyPeriod())
+   throw proofError||new Error('Guest spin proof could not be created');
   const startedAt=new Date().toISOString();
-  const record={version:GUEST_DAILY_SCHEMA,period:Crilo.dailyPeriod(),status:'started',
-   tabId:guestTabId,startedAt,pending:null,state:guestDailyState()};
+  const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;
+  let drawingIsBlank=true;
+  for(let i=3;i<pixels.length;i+=4)if(pixels[i]!==0){drawingIsBlank=false;break}
+  const record={version:GUEST_DAILY_SCHEMA,period:proof.period,status:'started',
+   verifiedToken:proof.token,drawingIsBlank,tabId:guestTabId,startedAt,pending:null,state:guestDailyState()};
   localStorage.setItem(GUEST_DAILY_STORAGE_KEY,JSON.stringify(record));
   if(localStorage.getItem(GUEST_DAILY_STORAGE_KEY)!==JSON.stringify(record))
    throw Error('Guest Daily storage unavailable');
@@ -270,7 +280,7 @@ function completeGuestDaily(){
  guestDailyClaimedHere=false;
 }
 function restoreGuestDaily(saved){
- if(saved.version!==GUEST_DAILY_SCHEMA||saved.status!=='started'||!guestDailyValid(saved.state))return false;
+ if(saved.version!==GUEST_DAILY_SCHEMA||saved.status!=='started'||!saved.verifiedToken||!guestDailyValid(saved.state))return false;
  const previous=saved.state;
  try{
   // Take ownership of this already-started run so the old tab cannot write
@@ -301,28 +311,42 @@ function restoreGuestDaily(saved){
  image.src=guestDrawingData;
  for(let i=0;i<Math.min(ducks,15);i++)DuckWorld.spawn();
  update();
- // A refresh after the outcome was selected but before animation finished
- // must RESOLVE that exact same outcome, including random upgrade additions.
- if(saved.pending){
-  const p=saved.pending;
-  if(!Number.isInteger(p.index)||p.index<0||p.index>=segments.length||
-     !Number.isFinite(p.rotation)||!Array.isArray(p.upgradeBases)){
-   guestDailyShow('Your saved spin is invalid and cannot be rerolled.','Guest Daily paused');
-   return true;
+ // A refresh rechecks the authoritative guest session, never a browser-picked
+ // pending outcome. No client-side results are trusted for leaderboard claims.
+ restoreGuestServerState().then(state=>{
+  if(!guestOwnsDaily())return;
+  if(state.finished){$('message').textContent='Your guest spin was restored.';endRun();}
+  else{
+   $('message').textContent='Your verified guest Daily was restored — '+spins+' spins remaining.';
+   saveGuestDaily();
   }
-  guestPendingUpgradeBases=p.upgradeBases.slice();
-  rotation=p.rotation;spins--;totalSpins++;
-  resolve(segments[p.index]);
-  guestPendingUpgradeBases=null;
- }else{
-  $('message').textContent='Welcome back! Your guest Daily was restored — '+
-   spins+' spin'+(spins===1?'':'s')+' remaining.';
- }
+ }).catch(error=>{
+  console.warn('Server guest restore failed',error);
+  guestDailyShow('Your guest progress could not be verified. Reconnect and refresh.','Verification unavailable');
+ });
  return true;
 }
 function guestUpgradeChoices(){
  const pool=[1,1,2,2,3,3,5,5,8,10],count=4+Math.min(upgrades+1,8);
  return Array.from({length:count},()=>pool[Math.floor(Math.random()*pool.length)]);
+}
+async function restoreGuestServerState(){
+ const saved=guestProofRecord();
+ if(!saved?.verifiedToken||saved.version!==GUEST_DAILY_SCHEMA)throw new Error('Missing server guest ticket');
+ const {data:state,error}=await criloDB.rpc('crilo_guest_state',{p_token:saved.verifiedToken});
+ if(error||!state||state.claimed||state.period!==saved.period)throw error||new Error('Invalid guest server state');
+ score=Number(state.score);spins=Number(state.remaining_spins);
+ multiplier=Number(state.multiplier);upgrades=Number(state.upgrades);doubles=Number(state.doubles);
+ ducks=Number(state.ducks);totalSpins=Number(state.spin_count);
+ numbersLanded=Number(state.numbers_landed);extraSpins=Number(state.extra_spins);
+ segments=serverSegments(state.segments);
+ results=(state.results||[]).map(r=>({...r,label:r.type==='num'?fmt(Number(r.points)||0):
+  ({duck:'DUCK',upgrade:'UP! ↑',spins:'+2',double:'×2'}[r.type]||r.type)}));
+ runProbability=results.reduce((p,r)=>p*Number(r.probability||1),1);
+ bestRollPoints=results.reduce((p,r)=>Math.max(p,Number(r.points)||0),0);
+ const best=results.find(r=>Number(r.points)===bestRollPoints);
+ bestRollLabel=best?.type==='double'?'×2':best?.type==='num'?'+'+fmt(bestRollPoints):'';
+ update();return state;
 }
 const officialServerMode=()=>Boolean(user&&!guestRun&&!isTest);
 function serverSegments(items){
@@ -355,7 +379,7 @@ function rarity(){return CriloRarity.classify(score)}
 function recordBest(points,labelText){if(points>bestRollPoints){bestRollPoints=Math.round(points);bestRollLabel=labelText}}
 function resolve(s,serverReply=null){if(guestRun&&!guestOwnsDaily()){guestDailyShow('This guest Daily is open in another tab. Refresh here to resume the saved run.');return;}const p=serverReply?Number(serverReply.outcome.probability):outcomeProbability(s);runProbability*=p;let points=0;if(s.type==='num'){points=serverReply?Number(serverReply.outcome.points):s.base*multiplier;score+=points;numbersLanded++;recordBest(points,'+'+fmt(points));$('message').textContent='+'+fmt(points);sound('num')}
 if(s.type==='double'){points=serverReply?Number(serverReply.outcome.points):score;score*=2;spins++;doubles++;recordBest(points,'×2');pop('×2!');$('message').textContent='DOUBLE — score ×2 and this spin is free.';sound('double')}
-if(s.type==='upgrade'){multiplier=serverReply?Math.min(Number.MAX_SAFE_INTEGER,multiplier*3):multiplier*3;upgrades++;spins++;addNumbers();bump();pop('UP! ↑');$('message').textContent='UPGRADE — number values ×3. The wheel grew.';sound('upgrade')}
+if(s.type==='upgrade'){multiplier=serverReply?Math.min(Number.MAX_SAFE_INTEGER,multiplier*3):multiplier*3;upgrades++;spins++;if(!serverReply)addNumbers();bump();pop('UP! ↑');$('message').textContent='UPGRADE — number values ×3. The wheel grew.';sound('upgrade')}
 if(s.type==='spins'){spins+=2;extraSpins+=2;pop('+2!');$('message').textContent='+2 SPINS';sound('spins')}
 if(s.type==='duck'){spins++;const duck=addDuck();pop('DUCK!');$('message').textContent='DUCK — free spin. A little friend has arrived.';DuckWorld.playSound(duck)}
 results.push(serverReply?{...serverReply.outcome,label:label(s)}:{type:s.type,label:label(s),base:s.base||null,points:Math.round(points),segments:segments.length,probability:p});
@@ -397,7 +421,7 @@ function setDrawingPanelMode(mode){
   ready:['Drawing Studio','Draw first. Your first spin locks the drawing.'],
   locked:['Drawing locked','Your artwork is saved for this run.'],
   complete:["Today's Daily is complete",'Nice spin! Your drawing is saved. A new canvas opens with your next Daily.'],
-  'guest-complete':["Today's guest Daily is complete",'Your drawing is locked until the next Daily reset. Sign in to save future runs.'],
+  'guest-complete':["Today's guest Daily is complete",'Your drawing is locked. Sign in to claim this Daily, including your score and badges.'],
   'test-complete':['Test Run finished','Your test drawing is locked. Start another Test Run to draw again.'],
   unavailable:['Drawing unavailable','You can draw again when your next Daily becomes available.']
  };
@@ -453,12 +477,31 @@ async function spin(){if(spinning||spins<=0)return;
   $('spinButton').disabled=false;
  }
  if(!started){guestRun=!user; if(user&&!profile){open('profileModal');return}beginRun();}
- if(guestRun&&!isTest&&!guestDailyClaimedHere&&!claimGuestDaily())return;
+ if(guestRun&&!isTest&&!guestDailyClaimedHere&&!await claimGuestDaily())return;
  if(guestRun&&!guestOwnsDaily()){guestDailyShow('Your guest Daily moved to another tab. Refresh to resume.');return;}
 lockDrawing();
 // Keep the same diameter, counters and scroll position for every SPIN.
 spinning=true;$('spinButton').disabled=true;
 let officialReply=null;
+if(guestRun&&!isTest){
+ try{
+  const lastCount=totalSpins;
+  const state=await restoreGuestServerState();
+  if(state.finished){spinning=false;await endRun();return;}
+  if(Number(state.spin_count)>lastCount){
+   spinning=false;$('spinButton').disabled=false;saveGuestDaily();
+   $('message').textContent='Your previous guest spin was restored. Press SPIN to continue.';
+   return;
+  }
+  const {data,error}=await criloDB.rpc('crilo_guest_spin',{p_token:guestProofRecord()?.verifiedToken});
+  if(error||!data)throw error||new Error('No verified guest outcome');
+  officialReply=data;
+ }catch(error){
+  spinning=false;$('spinButton').disabled=false;
+  $('message').textContent='Could not verify this guest spin. Reconnect and try again.';
+  console.warn('Verified guest spin failed',error);return;
+ }
+}
 if(officialServerMode()){
  try{
   // Recover any completed server spin before making another irreversible request.
@@ -492,9 +535,9 @@ if(officialServerMode()){
 const N=segments.length,a=Math.PI*2/N,index=officialReply?Number(officialReply.outcome_index):Math.floor(Math.random()*N),target=index*a+a/2-Math.PI/2,current=((rotation%(Math.PI*2))+Math.PI*2)%(Math.PI*2);let desired=(-Math.PI/2-target)%(Math.PI*2);if(desired<0)desired+=Math.PI*2;let delta=desired-current;if(delta<0)delta+=Math.PI*2;const start=rotation,end=rotation+Math.PI*2*(5+Math.floor(Math.random()*3))+delta,t0=performance.now(),dur=2800;let lastTick=-1;
 if(guestRun&&!isTest){
  const outcome=segments[index];
- const pending={index,rotation:end,upgradeBases:outcome.type==='upgrade'?guestUpgradeChoices():[]};
+ const pending={index,rotation:end,upgradeBases:[],verified:true};
  if(!guestSaveOrPause(pending))return;
- guestPendingUpgradeBases=pending.upgradeBases;
+ guestPendingUpgradeBases=null;
 }
 spins--;totalSpins++;update();$('message').textContent='...';
 function anim(t){let p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,4);rotation=start+(end-start)*ease;const tick=Math.floor(rotation/a);if(tick!==lastTick){lastTick=tick;sound('tick')}drawWheel();if(p<1)requestAnimationFrame(anim);else{rotation=end;spinning=false;resolve(segments[index],officialReply);if(spins>0)$('spinButton').disabled=false}}requestAnimationFrame(anim)}
@@ -558,7 +601,7 @@ function beginRun(alignPlay=false){
  resetFinalCelebration();
  if(!user&&!isTest){
   const saved=guestDailyRecord();
-  if(saved?.status==='started'&&saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)){
+  if(saved?.status==='started'&&saved.version===GUEST_DAILY_SCHEMA&&saved.verifiedToken&&guestDailyValid(saved.state)){
    if(restoreGuestDaily(saved))return;
   }
   if(guestDailyLocked())return;
@@ -585,7 +628,7 @@ function optimizedDailyDrawing(canvas,isBlank){
 }
 async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;try{DuckWorld.clear(); $('spinButton').disabled=true;started=false;
  setDrawingPanelMode(guestRun?'guest-complete':isTest?'test-complete':'complete');
- const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);showGuestBadgePreview(r);$('resultNextDaily').classList.remove('hidden');$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
+ const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);showGuestBadgePreview(r);$('resultNextDaily').classList.remove('hidden');$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest Daily complete! Sign in to save this score, badges, and leaderboard place.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));if(user&&profile)await claimFinishedGuestDaily();return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
  // Guest drawings stay in guest-only storage; owner Test Runs retain their
  // original PNG behavior. Official runs use the smaller safe representation.
  drawingData=isTest?drawing.toDataURL('image/png'):optimizedDailyDrawing(drawing,drawingIsBlank);
@@ -671,7 +714,7 @@ function showGuestBadgePreview(r){
    '<small>'+safeTier.toUpperCase()+' · PREVIEW ONLY</small>'+
    '<p>Your final score would qualify for this score-tier badge in an official Daily.</p></span></div>'+
   '<p class="guest-badge-disclaimer">Guest runs do not earn or save badges. '+
-  'Sign in to collect them during a future official Daily. This guest run cannot be claimed later.</p>';
+  'Sign in to claim this completed guest Daily and earn any badges it qualifies for. Badges are not awarded until the claim succeeds.</p>';
  panel.classList.remove('hidden');
 }
 // Only compare badge IDs before/after this official Daily. Badge rules and
@@ -796,6 +839,49 @@ window.addEventListener('storage',event=>{
   guestDailyLocked();
  }
 });
+let guestClaimInProgress=false;
+async function claimFinishedGuestDaily(){
+ if(guestClaimInProgress||!user||!profile)return false;
+ const saved=guestProofRecord();
+ if(!saved||saved.status!=='complete'||saved.version!==GUEST_DAILY_SCHEMA||!saved.verifiedToken)return false;
+ guestClaimInProgress=true;
+ $('message').classList.remove('hidden');
+ $('message').textContent='Saving your completed guest Daily to your account…';
+ try{
+  const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);
+  const priorBadges=before.error?null:new Set((before.data||[]).map(x=>String(x.badge_id)));
+  const isBlank=Boolean(saved.drawingIsBlank);
+  const {data,error}=await criloDB.rpc('crilo_claim_guest_daily',{
+   p_token:saved.verifiedToken,
+   p_drawing:isBlank?null:saved.state?.drawing,
+   p_drawing_is_blank:isBlank
+  });
+  if(error||!data||!['saved','already_saved'].includes(data.status))
+   throw error||new Error('The server did not confirm your guest run');
+  localStorage.removeItem(GUEST_DAILY_STORAGE_KEY);
+  guestDailyClaimedHere=false;guestDailyClaimedPeriod=null;guestRun=false;
+  close('guestFinishModal');close('authModal');
+  $('guestSaveNotice').classList.add('hidden');
+  $('message').textContent='Guest Daily saved! Your score now counts toward leaderboards, stats and badges.';
+  try{
+   if(data.status==='saved'&&window.CriloBadgeEvents){
+    await window.CriloBadgeEvents.track('daily_run_screen');
+    await window.CriloBadgeEvents.track('daily_results');
+    if(!isBlank)await window.CriloBadgeEvents.track('drawing_mark');
+   }
+   if(data.status==='saved'&&priorBadges)await showNewBadges(priorBadges);
+  }catch(badgeError){console.warn('Claim succeeded; follow-up badge event not confirmed',badgeError)}
+  $('guestClaimRetryBtn')?.classList.add('hidden');
+  try{await DuckWorld.load(criloDB,user)}catch(loadError){console.warn('Duck refresh pending',loadError)}
+  await checkPlayed();
+  return true;
+ }catch(error){
+  console.warn('Guest Daily claim failed',error);
+  $('message').textContent='Guest run preserved, but not yet saved: '+
+   (error?.message||'Please sign in and try again.');
+  return false;
+ }finally{guestClaimInProgress=false}
+}
 window.addEventListener('crilo-auth-ready',async e=>{
  user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;
  $('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);
@@ -810,6 +896,17 @@ window.addEventListener('crilo-auth-ready',async e=>{
   $('message').textContent='Choose Official Daily or Test Run to begin.';
  }
  if(!profile){open('profileModal');return}
+ if(await claimFinishedGuestDaily())return;
+ const unclaimed=guestProofRecord();
+ if(unclaimed?.status==='complete'&&unclaimed.version===GUEST_DAILY_SCHEMA&&unclaimed.verifiedToken){
+  $('guestSaveNotice').classList.remove('hidden');
+  $('guestClaimRetryBtn').classList.remove('hidden');
+  $('guestSignupBtn').classList.add('hidden');
+  return; // Never start an official Daily while its guest claim is unresolved.
+ }
+ if(unclaimed?.status==='complete'&&unclaimed.version!==GUEST_DAILY_SCHEMA){
+  $('message').textContent='This older guest run has no server proof and cannot be added to competitive rankings.';
+ }
  if(guestRun&&(started||!$('result').classList.contains('hidden'))){
   $('guestSaveNotice').classList.add('hidden');
   // Signing in mid-guest-run cannot convert that attempt to an official
@@ -817,8 +914,8 @@ window.addEventListener('crilo-auth-ready',async e=>{
   // who is already signed in.
   $('message').classList.remove('hidden');
   $('message').textContent=started?
-   'Guest run in progress. Your next official Daily will be saved to your account.':
-   'Guest run finished. Future official Dailies will be saved to your account.';
+   'Finish this verified guest Daily to save it to your account.':
+   'The guest Daily is preserved, but its claim has not finished.';
   return;
  }
  $('message').classList.remove('hidden');
@@ -836,7 +933,11 @@ $('retrySaveBtn').addEventListener('click',async()=>{
   await endRun();
  }catch(err){$('message').textContent='Could not restore completed server spins: '+(err?.message||'Please try again.');$('retrySaveBtn').disabled=false;console.error('Save retry failed',err)}
 });
-$('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>open('authModal'));$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+$('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),open=panel.classList.toggle('hidden')===false;$('rarityInfoBtn').setAttribute('aria-expanded',String(open))});$('spinButton').addEventListener('click',spin);$('guestSignupBtn').addEventListener('click',()=>{
+ if(user&&profile){claimFinishedGuestDaily();return}
+ open('authModal');
+});
+$('guestClaimRetryBtn').addEventListener('click',()=>claimFinishedGuestDaily());$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null,activeDrawingPointer=null,activeDrawingType=null,resumeMainStroke=false;
 // Pointer capture can keep sending moves outside a canvas. Never join a stroke
