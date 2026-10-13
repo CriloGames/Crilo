@@ -5,7 +5,7 @@ const game=fs.readFileSync('game.js','utf8');
 const app=fs.readFileSync('app.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 assert.match(html,/app\.js\?v=56/);
-assert.match(html,/game\.js\?v=109/);
+assert.match(html,/game\.js\?v=110/);
 assert.match(html,/\bid="emailInput"[^>]*type="email"[^>]*autocomplete="email"/);
 assert.match(game,/emailInput'\)\.addEventListener\('keydown'/);
 const section=(src,start,end)=>{const a=src.indexOf(start),b=src.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,'Find '+start);return src.slice(a,b);};
