@@ -182,10 +182,12 @@ function luminance(pixel){
       // The polished compact hero intentionally keeps score LEFT of artwork.
       const compact=await page.locator('#bestScore').evaluate(el=>{
        const a=el.getBoundingClientRect(),b=document.getElementById('bestDrawing').getBoundingClientRect();
-       return{gap:b.left-a.right,center:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)};
+       const scoreStage=el.closest('.best-score-stage').getBoundingClientRect();
+       const artStage=document.querySelector('.best-art-stage').getBoundingClientRect();
+       return{gap:b.left-a.right,center:Math.abs((scoreStage.top+scoreStage.bottom)/2-(artStage.top+artStage.bottom)/2)};
       });
       assert.ok(compact.gap>=4,'Phone hero score should sit beside the wheel: '+JSON.stringify(compact));
-      assert.ok(compact.center<5,'Phone hero score and drawing should align vertically: '+JSON.stringify(compact));
+      assert.ok(compact.center<5,'Phone hero score and art stages should align vertically: '+JSON.stringify(compact));
      }else{
       assert.ok(top.scoreRight+5<top.artX,
        'Desktop score belongs on the LEFT, drawing on the RIGHT');
