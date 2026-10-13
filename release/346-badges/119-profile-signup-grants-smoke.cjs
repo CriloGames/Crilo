@@ -11,7 +11,9 @@ const end=game.indexOf('function startTest(',start);
 assert.ok(start>=0&&end>start,'Profile signup handler not found');
 const source=game.slice(start,end);
 assert.doesNotMatch(source,/\.upsert\s*\(/,'New profiles must not update the protected id column');
-assert.match(index,/game\.js\?v=112/,'The signup fix must bypass existing game.js caches');
+const gameVersion=index.match(/game\.js\?v=(\d+)/);
+assert.ok(gameVersion&&Number(gameVersion[1])>=112,
+ 'The signup fix must bypass existing game.js caches');
 function setup(mode,returnPath=''){
  const returnClasses=new Set(['hidden']);
  const returnLink={href:'',textContent:'',classList:{
