@@ -89,7 +89,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false,saveFailure='none
  const context={window,document,Crilo,criloDB:db,DuckWorld:ducks,
   CriloRarity:{classify:score=>({label:score>300?'MYTHIC':'COMMON',color:'common',
    probability:.5,odds:2,explanation:'fixture'})},
-  localStorage:{getItem:()=> 'off'},location:{origin:'https://crilo.fun',pathname:'/index.html'},
+  localStorage:{getItem:()=> 'off'},location:{origin:'https://crilo.fun',pathname:'/index.html'},URLSearchParams,
   setInterval:()=>0,setTimeout:()=>0,requestAnimationFrame,performance:perf,
   console:{error:(...args)=>errors.push(args),warn:()=>{},log:()=>{}},Image:class{}};
  vm.runInNewContext(game,context,{filename:'game.js',timeout:1200});
