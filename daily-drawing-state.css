@@ -1,3 +1,11 @@
+/* The account header may be ready before the server has verified whether
+   this period's Daily is finished. Reserve the editor's layout space, but
+   never paint editable controls while that authoritative check is pending. */
+html.crilo-daily-pending body #drawPanel{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
 /* Crilo Daily drawing state.
    Intentionally no decorative borders or accent lines anywhere on the site.
    A completed run quietly dims the editor while leaving its controls visible. */

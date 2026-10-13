@@ -1058,6 +1058,7 @@ async function claimFinishedGuestDaily(){
  }finally{guestClaimInProgress=false}
 }
 async function handleDailyAuth(e){
+ try{
  user=e.detail.user;profile=e.detail.profile;ownerModeChosen=!profile?.is_owner;
  $('ownerRunControls').classList.toggle('hidden',!profile?.is_owner);
  if(!user){
@@ -1097,6 +1098,19 @@ async function handleDailyAuth(e){
  $('message').textContent='Checking your Daily…';
  await DuckWorld.load(criloDB,user);
  await checkPlayed();
+ }catch(error){
+  // A failed completion check must never expose an apparently playable
+  // Daily. Keep the editor locked until a successful reload can verify it.
+  console.warn('Daily initialization failed',error);
+  lockDrawing();
+  setDrawingPanelMode('unavailable');
+  $('spinButton').classList.add('hidden');
+  $('message').textContent='Could not check your Daily. Please refresh to try again.';
+ }finally{
+  // The signed-in header and Daily data resolve independently. Do not let
+  // the first visible frame show an unlocked editor for a completed run.
+  document.documentElement?.classList?.remove('crilo-daily-pending');
+ }
 };
 window.addEventListener('crilo-auth-ready',handleDailyAuth);
 // A restored login can finish before the large gameplay bundle evaluates.

@@ -1,0 +1,33 @@
+name: No Daily editor flash after refresh
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'daily-drawing-state.css'
+      - 'release/346-badges/141-daily-editor-first-paint-browser.cjs'
+      - '.github/workflows/daily-editor-first-paint.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check game.js
+          node --check release/346-badges/141-daily-editor-first-paint-browser.cjs
+          node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/141-daily-editor-first-paint-browser.cjs
