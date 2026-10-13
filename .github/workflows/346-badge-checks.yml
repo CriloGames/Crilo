@@ -170,6 +170,8 @@ jobs:
           node-version: '22'
       - name: Verify privacy notice, terms, sitemap and responsive public contact links
         run: node release/346-badges/082-legal-pages-smoke.cjs
+      - name: Verify new profiles save without protected-column update grants
+        run: node release/346-badges/119-profile-signup-grants-smoke.cjs
       - name: Check safe profile-icon UI and server-side settings allowlists
         run: node release/346-badges/090-profile-icon-static-smoke.cjs
       - name: Verify all Crilo UI sounds and sound preference protections
@@ -291,8 +293,6 @@ jobs:
         run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
         run: node release/346-badges/041-shared-signin-pages-smoke.cjs
-      - name: Verify new profiles save without protected-column update grants
-        run: node release/346-badges/119-profile-signup-grants-smoke.cjs
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
