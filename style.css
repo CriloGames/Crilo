@@ -1724,3 +1724,22 @@ html[data-theme="dark"] #pixelStudioModal #pixelDrawMode {
   #pixelStudioModal #pixelDrawMode {font-size:16px;min-width:125px;width:125px;max-width:125px}
   #pixelStudioModal .pixel-studio-tools {justify-content:flex-start;flex-wrap:wrap}
 }
+
+/* Unified dark-mode Drawing Review navigation across every shared Crilo tab. */
+/* The generic html[data-theme=dark] nav text rule has higher specificity
+   than the light pink owner link. Override BOTH together, including focus,
+   so the label always contrasts with its background on every shared page. */
+html[data-theme="dark"] .topbar nav a.crilo-owner-review-link,
+html[data-theme="dark"] .topbar nav a.crilo-owner-review-link:visited {
+  background:#432f39;
+  color:#f7e2e8;
+  border-color:#916473;
+  text-shadow:none;
+  -webkit-text-fill-color:#f7e2e8;
+}
+html[data-theme="dark"] .topbar nav a.crilo-owner-review-link:is(:hover,:focus-visible,.active) {
+  background:#563845;
+  color:#fff1f5;
+  border-color:#b37b8b;
+  -webkit-text-fill-color:#fff1f5;
+}
