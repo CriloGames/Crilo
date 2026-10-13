@@ -4,10 +4,10 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const src=fs.readFileSync('leaderboard.js','utf8');
 const page=fs.readFileSync('leaderboard.html','utf8');
-assert.match(page,/leaderboard\.js\?v=49/);
+assert.match(page,/leaderboard\.js\?v=\d+/);
 assert.match(src,/revision!==loadRevision/);
 assert.ok(page.includes('role="group" aria-label="Leaderboard categories"'),'Category group should be labelled');
-assert.ok(page.includes('id="leaderDescription" aria-live="polite"'),'Category updates should be announced');
+assert.ok(!page.includes('id="leaderDescription"'),'Removed leaderboard descriptions should stay removed');
 assert.match(src,/href="profile\.html\?id=/);
 function deferred(){
  let resolve;const promise=new Promise(r=>{resolve=r});
@@ -53,7 +53,7 @@ async function scenario(name,fromTab,toTab){
   (key==='crilo_gameplay_badge_leaders'?requests.badges:requests.points).push(d);
   return d.promise;
  }
- const ctx={window:{addEventListener(){},CriloRarity:{scoreBands:[]}},
+ const ctx={window:{addEventListener(){},CriloRarity:{scoreBands:[]},CriloNameColors:{paint(el,profile){el.textContent=profile?.username||'Crilo player'},markup(profile){return String(profile?.username||'Crilo player')}}},
    document:{getElementById:el,querySelectorAll:q=>q==='.leader-tab'?[...buttons.values()]:[]},
    Crilo:{esc:x=>String(x??''),dailyPeriod:()=> '2026-10-11',profile:null},
    criloDB:{from:query,rpc},Date,Number,Map,Set,Math,encodeURIComponent,
