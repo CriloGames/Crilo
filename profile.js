@@ -401,7 +401,9 @@ if(!badgeDataReady){
  return;
 }
 const topBadges=collection.bestEarned(activeBadges,earned||[],50);
-const previewByKey=new Map(topBadges.map(b=>[String(b.badge_key),b]));
+const earnedPreviewIds=new Set((earned||[]).map(row=>String(row.badge_id)));
+const previewByKey=new Map(activeBadges.filter(b=>earnedPreviewIds.has(String(b.id)))
+ .map(b=>[String(b.badge_key),b]));
 const collectionGroups=collection.sets(activeBadges,earned||[]);
 const gallery=$('badgeGrid');
 gallery.innerHTML=topBadges.length?topBadges.map(b=>{
@@ -417,12 +419,9 @@ gallery.innerHTML=topBadges.length?topBadges.map(b=>{
 const badgeDialog=$('badgePreviewDialog');
 const badgeClose=$('badgePreviewClose');
 let badgePreviewTrigger=null;
-gallery.onclick=event=>{
- const pressed=event.target.closest?.('button.badge-top-chip[data-badge-key]');
- if(!pressed)return;
- const badge=previewByKey.get(pressed.dataset.badgeKey);
- if(!badge)return;
- badgePreviewTrigger=pressed;
+const openBadgePreview=(badge,trigger)=>{
+ if(!badge||!earnedPreviewIds.has(String(badge.id)))return;
+ badgePreviewTrigger=trigger;
  $('badgePreviewCard').innerHTML=collection.tileHTML(badge,true,Crilo.esc,{expanded:true,interactive:false});
  const set=collectionGroups.find(g=>g.category===badge.category);
  $('badgePreviewSetName').textContent=(set?.name||String(badge.category||'Badge Collection'))+' · UNLOCKED';
@@ -432,6 +431,11 @@ gallery.onclick=event=>{
  $('badgePreviewOpenSet').href='badge-sets.html?'+query.toString();
  badgeDialog.showModal();
  badgeClose.focus();
+};
+gallery.onclick=event=>{
+ const pressed=event.target.closest?.('button.badge-top-chip[data-badge-key]');
+ if(!pressed)return;
+ openBadgePreview(previewByKey.get(pressed.dataset.badgeKey),pressed);
 };
 badgeClose.onclick=()=>badgeDialog.close();
 badgeDialog.onclose=()=>badgePreviewTrigger?.focus({preventScroll:true});
@@ -448,10 +452,13 @@ const featuredCard=position=>{
  const id=featuredIds.get(position);
  const b=id&&earnedIds.has(id)?bm.get(id):null;
  const rarity=b?collection.rarity(b):'none';
- const title=b?'Change '+b.name+' featured badge':'Choose an earned badge for slot '+position;
- return '<button type="button" class="featured-slot '+(mine?'featured-editable ':'')+
+ const title=b?(mine?'Change '+b.name+' featured badge':'View '+b.name+' badge details'):
+   'Choose an earned badge for slot '+position;
+ const clickable=mine||!!b;
+ return '<button type="button" class="featured-slot '+(mine?'featured-editable ':b?'featured-viewable ':'')+
    (b?'featured-filled':'featured-empty')+'" data-badge-rarity="'+rarity+
-   '" data-position="'+position+'" '+(mine?'title="'+Crilo.esc(title)+'" aria-label="'+Crilo.esc(title)+'"':'disabled')+'>'+
+   '" data-position="'+position+'"'+(b?' data-badge-key="'+Crilo.esc(String(b.badge_key))+'"':'')+
+   (clickable?' title="'+Crilo.esc(title)+'" aria-label="'+Crilo.esc(title)+'"':' disabled')+'>'+
    (b?'<b>'+Crilo.esc(b.name)+'</b><small>'+Crilo.esc(rarity.toUpperCase())+'</small>':
    mine?'<span class="featured-empty-label"><span aria-hidden="true">+</span> Choose badge</span>':
    '<span>Empty badge slot</span>')+'</button>';
@@ -459,6 +466,14 @@ const featuredCard=position=>{
 const featuredRow=$('featuredBadges');
 const renderFeatured=()=>{featuredRow.innerHTML=Array.from({length:5},(_,i)=>featuredCard(i+1)).join('')};
 renderFeatured();
+if(!mine){
+ // Other players' earned featured badges are viewable but never editable.
+ featuredRow.onclick=event=>{
+  const slot=event.target.closest?.('button.featured-viewable[data-badge-key]');
+  if(!slot||!featuredRow.contains(slot))return;
+  openBadgePreview(previewByKey.get(slot.dataset.badgeKey),slot);
+ };
+}
 if(mine){
  const dialog=$('featuredPicker'),grid=$('featuredBadgeOptions');
  const choiceInput=$('featuredBadgeSelect'),search=$('featuredBadgeSearch');

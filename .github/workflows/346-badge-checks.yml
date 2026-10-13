@@ -172,6 +172,10 @@ jobs:
         run: node release/346-badges/082-legal-pages-smoke.cjs
       - name: Verify new profiles save without protected-column update grants
         run: node release/346-badges/119-profile-signup-grants-smoke.cjs
+      - name: Verify featured badges on other players remain view-only and clickable
+        run: node release/346-badges/133-public-featured-badge-preview-smoke.cjs
+      - name: Validate original five-slot featured badge picker
+        run: node release/346-badges/017-featured-earned-badges-smoke.cjs
       - name: Check safe profile-icon UI and server-side settings allowlists
         run: node release/346-badges/090-profile-icon-static-smoke.cjs
       - name: Verify all Crilo UI sounds and sound preference protections

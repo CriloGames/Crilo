@@ -179,8 +179,9 @@ html[data-theme="dark"] .collection-tile.locked .collection-tile-description{col
  line-height:1.25;letter-spacing:-.02em;color:#17191e;overflow-wrap:anywhere}
 .featured-slot.featured-filled small{font-size:10px;font-weight:900;letter-spacing:.10em;
  color:color-mix(in srgb,var(--crilo-badge-accent) 75%,#15171c)}
-.featured-slot.featured-editable:hover{transform:translateY(-2px)}
-.featured-slot.featured-editable:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
+.featured-slot.featured-editable:hover,.featured-slot.featured-viewable:hover{transform:translateY(-2px)}
+.featured-slot.featured-viewable{cursor:pointer}
+.featured-slot.featured-editable:focus-visible,.featured-slot.featured-viewable:focus-visible{outline:3px solid #78a7dc;outline-offset:3px}
 /* The original native select couldn't show the rarity colors. */
 .featured-picker-card{width:min(720px,calc(100vw - 28px));max-width:720px;
  max-height:min(85dvh,800px);overflow:hidden;display:flex;flex-direction:column;gap:0;
