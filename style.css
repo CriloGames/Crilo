@@ -1819,3 +1819,25 @@ html[data-theme="dark"] .topbar nav a.crilo-owner-review-link:is(:hover,:focus-v
  #pixelStudioModal #pixelUndo{grid-column:9/11}
  #pixelStudioModal #pixelClear{grid-column:11/13}
 }
+
+/* Keep the full Pixel Studio toolbar on one row at common tablet widths.
+   Drawing size and original 1/2/4/8px brush presets are unchanged. */
+@media(min-width:768px) and (max-width:999px){
+ #pixelStudioModal .pixel-studio-tools{flex-wrap:nowrap;gap:4px}
+ #pixelStudioModal .pixel-studio-tools>.small-btn{padding:8px 5px;font-size:12px}
+ #pixelStudioModal .pixel-studio-tools>label:not(.native-paint-picker):not(.pixel-spin-mode){
+  gap:3px;font-size:11px;
+ }
+ #pixelStudioModal #pixelSize{
+  width:80px;min-width:80px;max-width:80px;padding:6px 3px;font-size:12px;
+ }
+ #pixelStudioModal .pixel-studio-tools .native-paint-picker{
+  gap:3px;padding:2px 3px;min-height:40px;
+ }
+ #pixelStudioModal .pixel-studio-tools .drawing-color-value{
+  width:30px!important;min-width:30px!important;height:30px!important;
+ }
+ #pixelStudioModal #pixelDrawMode{
+  width:115px;min-width:115px;max-width:115px;padding:5px 4px;font-size:12px;
+ }
+}

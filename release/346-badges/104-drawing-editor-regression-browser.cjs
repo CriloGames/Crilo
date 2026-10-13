@@ -141,7 +141,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       height:box.height};
     });
     assert.ok(rowRects.top<=7&&rowRects.right<=rowRects.rowRight+1&&rowRects.height<=52,
-     'Pixel Studio toolbar must stay on one row, with Clear visible at '+width+'px');
+     'Pixel Studio toolbar must stay on one row at '+width+'px: '+JSON.stringify(rowRects));
    }
 
    assert.ok(pixelRowLayout.overflow<=2&&pixelRowLayout.toolsRight<=pixelRowLayout.modalRight+1,

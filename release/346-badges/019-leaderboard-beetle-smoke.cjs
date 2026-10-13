@@ -11,7 +11,7 @@ const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
-assert.match(html,/style\.css\?v=126/);
+assert.match(html,/style\.css\?v=127/);
 assert.ok(html.includes('rarity-system.js?v=10')&&html.includes('leaderboard-tabs.js?v=2')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=52'),'Leaderboard scripts must load in the expected order');
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
