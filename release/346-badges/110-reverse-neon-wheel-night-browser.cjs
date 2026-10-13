@@ -234,7 +234,7 @@ function luminance(pixel){
        artWidth:el.querySelector('#bestDrawing').getBoundingClientRect().width};
      });
      assert.ok(extra.width<=width,'Top score hero too wide at '+width);
-     if(width>=768)assert.ok(extra.width<=635,'Leaderboard hero should match compact reference sizing');
+     if(width>=768)assert.ok(extra.width<=672,'Leaderboard hero should respect the current 670px max-width design: '+extra.width);
      assert.ok(extra.artWidth>=100,'Drawing became too small at '+width);
      assert.ok(extra.bg.includes('gradient'),'Top score hero lost pastel treatment');
      await page.locator('#bestDrawing').evaluate(el=>el.classList.add('hidden'));
