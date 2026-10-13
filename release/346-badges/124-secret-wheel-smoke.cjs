@@ -18,6 +18,8 @@ assert.match(wheel,/crilo_secret_wheel_spin/);
 assert.match(wheel,/crilo_secret_wheel_status/);
 assert.match(wheel,/last_slot/);
 assert.match(wheel,/new_win/);
+assert.match(wheel,/secretWheelAwardText/,'Reward text reflects saved cosmetic equipment');
+assert.match(home,/id="secretWheelAwardText"/,'Reward text is available in the dialog');
 assert.match(wheel,/i<1000/);
 assert.doesNotMatch(wheel,/Math\.random\s*\(/);
 assert.match(css,/html\[data-theme="dark"\]/);
