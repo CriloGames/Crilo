@@ -63,6 +63,51 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    }
    await context.close();
   }
+
+  // Simulated win path only: entirely mocked Supabase, no production account or award.
+  // This ensures the win notification and settings editor integrate correctly.
+  const winContext=await browser.newContext({viewport:{width:1120,height:860},reducedMotion:'reduce'});
+  const winningMock=mockSupabase+String.raw\`
+   window.__qa.loggedIn=true;
+   const savedClient=window.supabase.createClient;
+   window.supabase.createClient=(...args)=>{
+    const db=savedClient(...args),oldRpc=db.rpc;
+    db.rpc=async(name,payload)=>{
+     if(name==='crilo_secret_wheel_status')return {data:{
+      signed_in:true,spins_used:localStorage.getItem('greenMockWon')==='yes'?1:0,
+      won:localStorage.getItem('greenMockWon')==='yes'},error:null};
+     if(name==='crilo_secret_wheel_spin'){
+      localStorage.setItem('greenMockWon','yes');
+      return {data:{signed_in:true,spins_used:1,won:true,last_slot:0,spins_taken:1,new_win:true},error:null};
+     }
+     if(name==='crilo_secret_wheel_set_name_colors'){
+      return {data:{username:'CriloQA',name_letter_colors:payload.p_colors},error:null};
+     }
+     return oldRpc(name,payload);
+    };
+    return db;
+   };
+  \`;
+  await winContext.addInitScript({content:winningMock});
+  await winContext.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
+   request=>request.fulfill({status:200,contentType:'text/javascript',body:''}));
+  await winContext.route(/^https:\/\/(?!crilo\.fun)/,request=>request.abort());
+  const winner=await winContext.newPage();
+  await winner.goto(base+'/index.html',{waitUntil:'domcontentloaded'});
+  await winner.waitForFunction(()=>Boolean(window.Crilo?.user?.id),{timeout:12000});
+  await winner.locator('#secretWheelEntry').click();
+  await winner.locator('#secretWheelSpin').click();
+  await winner.locator('#secretWheelWinToast').waitFor({state:'visible',timeout:5000});
+  assert.equal(await winner.locator('#secretWheelAward').isVisible(),true);
+  await winner.goto(base+'/settings.html',{waitUntil:'domcontentloaded'});
+  await winner.locator('#letterColors').waitFor({state:'visible',timeout:12000});
+  assert.equal(await winner.locator('#letterColorsGrid input[type=color]').count(),7);
+  await winner.locator('#letterColorsGrid input[type=color]').first().fill('#ff0000');
+  await winner.locator('#letterColorsSave').click();
+  await winner.waitForFunction(()=>document.querySelector('#letterColorsStatus')?.textContent.includes('saved'),{timeout:5000});
+  checks+=2;
+  await winContext.close();
+
   console.log('SECRET_WHEEL_BROWSER_PASS '+checks+' pages and viewport scenarios');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
 })().catch(error=>{console.error('SECRET_WHEEL_BROWSER_FAIL',error);process.exitCode=1});
