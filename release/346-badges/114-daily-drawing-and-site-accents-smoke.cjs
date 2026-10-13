@@ -82,7 +82,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
 assert.match(html,/daily-drawing-state\.css\?v=20/,'Play must use updated drawing stylesheet');
-assert.match(html,/game\.js\?v=98/,'Play must load the updated state and viewport logic');
+assert.match(html,/game\.js\?v=99/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
 assert.ok(css.includes('#drawPanel.locked-panel .recent-colors {visibility:hidden!important}'),
@@ -193,8 +193,8 @@ assert.match(pixelCss,/@media\(max-width:600px\)[\s\S]*?#pixelStudioModal \.pixe
  'Mobile Pixel Studio color swatch should shrink so all four trailing tools fit');
 assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
  'Studio spin selector must have accessible mobile sizing');
-assert.match(html,/style\.css\?v=123/,'Updated Pixel Studio CSS must be served');
-assert.match(html,/game\.js\?v=98/,'Synced Pixel Studio mode JS must be served');
+assert.match(html,/style\.css\?v=124/,'Updated Pixel Studio CSS must be served');
+assert.match(html,/game\.js\?v=99/,'Synced Pixel Studio mode JS must be served');
 const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
 const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
 assert.ok(startSpin>=0&&endSpin>startSpin,'Shared spin mode handler not present');
@@ -218,15 +218,15 @@ assert.match(js,/function pixelOpen\(\)\{[\s\S]*?\$\('pixelDrawMode'\)\.value=dr
 assert.match(js,/function pixelClose\(\)\{[\s\S]*?setCenterDrawingSpinMode\(\$\('pixelDrawMode'\)\.value\);[\s\S]*?\$\('pixelStudioModal'\)\.classList\.add\('hidden'\)/,
  'Exit and Escape must commit the selected spin mode without resetting it');
 
-/* Pixel Studio must paint like the main wheel, not stamp square pixel cells. */
+/* Original-size Pixel Studio brushes retain slightly softened round strokes. */
 assert.match(html,/Brush size <select id="pixelSize">/,
  'Pixel Studio should describe brush widths rather than pixel blocks');
-assert.match(html,/style\.css\?v=123/,'Smooth Pixel Studio canvas CSS must be cache-busted');
-assert.match(html,/game\.js\?v=98/,'Smooth Pixel Studio brush code must be cache-busted');
-assert.match(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:auto;/,
- 'The enlarged Pixel Studio canvas must use smooth, not pixelated, scaling');
-assert.doesNotMatch(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:pixelated/,
- 'Nearest-neighbor upscaling must not be applied to Pixel Studio artwork');
+assert.match(html,/style\.css\?v=124/,'Smooth Pixel Studio canvas CSS must be cache-busted');
+assert.match(html,/game\.js\?v=99/,'Smooth Pixel Studio brush code must be cache-busted');
+assert.match(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:pixelated;filter:blur\(\.45px\);/,
+ 'Enlarged Pixel Studio artwork should be sharper with only subtle edge softness');
+assert.doesNotMatch(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:auto;/,
+ 'Excessively soft bilinear scaling should not return');
 assert.match(js,/function pixelFill\(p\)\{\s*const w=CANVAS_SIDE,x=Math\.floor\(p\.x\),y=Math\.floor\(p\.y\);/,
  'Flood fill must continue using integer pixel indices with smooth pointer coordinates');
 const brushStart=js.indexOf('function pixelBrushWidth(){');
@@ -246,18 +246,18 @@ const brushVars={pixelTool:'pen',pixelCtx:fakeBrushCtx,$:id=>({value:
  id==='pixelSize'?brushInputs.size:brushInputs.color})};
 const brushApi=vm.runInNewContext(js.slice(brushStart,brushEnd)+
  ';({pixelBrushWidth,pixelPaint,pixelLine})',brushVars);
-for(const [input,expected] of [['1',2],['2',6],['4',10],['8',16]]){
+for(const [input,expected] of [['1',1],['2',2],['4',4],['8',8]]){
  brushInputs.size=input;
  assert.equal(brushApi.pixelBrushWidth(),expected,'Brush size preset is wrong for '+input);
 }
 brushInputs.size='2';
 brushApi.pixelPaint({x:31.25,y:47.75});
 brushApi.pixelLine({x:31.25,y:47.75},{x:62.5,y:74.25});
-assert.ok(brushCalls.some(c=>c.action==='arc'&&c.x===31.25&&c.y===47.75&&c.r===3),
+assert.ok(brushCalls.some(c=>c.action==='arc'&&c.x===31.25&&c.y===47.75&&c.r===1),
  'Pencil dab must be a smooth round dot at the real subpixel position');
-assert.ok(brushCalls.some(c=>c.action==='stroke'&&c.width===6&&
+assert.ok(brushCalls.some(c=>c.action==='stroke'&&c.width===2&&
  c.cap==='round'&&c.join==='round'&&c.mode==='source-over'),
- 'Pencil segments should match the main drawing round six-pixel stroke');
+ 'Pencil should use original two-pixel Small brush and keep rounded edges');
 assert.ok(brushCalls.some(c=>c.action==='line'&&c.x===62.5&&c.y===74.25),
  'Brush must draw continuous line segments rather than square pixel blocks');
 brushVars.pixelTool='erase';
