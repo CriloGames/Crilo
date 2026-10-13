@@ -42,3 +42,29 @@
 }
 /* Avoid accidental text clipping/overlaps while preserving username colors. */
 .topbar nav a{white-space:nowrap}
+/* Center and evenly distribute links only when navigation moves to its own
+   row. Preserve the original one-row desktop composition. */
+@media(min-width:701px){
+ .topbar.crilo-header-stacked nav{
+  justify-content:space-evenly!important;
+  column-gap:clamp(12px,2vw,30px)!important;
+  row-gap:12px!important;
+  padding-inline:clamp(2px,.8vw,12px);
+  box-sizing:border-box;
+ }
+}
+@media(max-width:700px){
+ /* Narrowed browser windows and zoomed desktop tabs share the mobile layout.
+    Keep the tab rows centered instead of left-justified. */
+ .topbar nav{
+  display:flex;
+  width:100%;
+  justify-content:space-evenly;
+  flex-wrap:wrap;
+  align-items:center;
+  column-gap:clamp(9px,2.2vw,18px);
+  row-gap:10px;
+  padding-inline:2px;
+  box-sizing:border-box;
+ }
+}

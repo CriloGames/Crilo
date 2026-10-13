@@ -27,7 +27,7 @@ const intercept=`(function(){
  let checks=0;
  try{
  for(const owner of [false,true]){
-  for(const width of [780,940,1024,1120,1440]){
+  for(const width of [430,620,700,701,780,940,1024,1120,1440]){
    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
    const fake=mockSupabase.replace('loggedIn:false','loggedIn:true')
      .replace('is_owner:false','is_owner:'+(owner?'true':'false'));
@@ -66,10 +66,38 @@ const intercept=`(function(){
     return{inline:el.classList.contains('crilo-header-inline'),
      stacked:el.classList.contains('crilo-header-stacked'),room,needed,
      navTop:nav.getBoundingClientRect().top,brandTop:brand.getBoundingClientRect().top,
-     right:document.documentElement.scrollWidth,width:innerWidth};
+     right:document.documentElement.scrollWidth,width:innerWidth,
+     navigation:(()=>{
+       const rect=nav.getBoundingClientRect();
+       const links=[...nav.querySelectorAll('a')].filter(a=>getComputedStyle(a).display!=='none')
+         .map(a=>a.getBoundingClientRect());
+       const rows=[];
+       for(const link of links){
+         let row=rows.find(group=>Math.abs(group[0].top-link.top)<5);
+         if(!row){row=[];rows.push(row);}
+         row.push(link);
+       }
+       return{
+         justify:getComputedStyle(nav).justifyContent,
+         centers:rows.map(row=>{
+           const left=Math.min(...row.map(link=>link.left));
+           const right=Math.max(...row.map(link=>link.right));
+           return Math.abs((left-rect.left)-(rect.right-right));
+         }),
+         overflow:links.some(link=>link.left<rect.left-2||link.right>rect.right+2)
+       };
+     })()};
    });
    assert.ok(layout.right<=layout.width+2,'Page overflow '+JSON.stringify(layout));
-   if(layout.needed<=layout.room-2){
+   if(layout.stacked||width<=700){
+     assert.equal(layout.navigation.justify,'space-evenly',
+      'Compact nav must distribute links: '+JSON.stringify(layout));
+     assert.ok(layout.navigation.centers.every(n=>n<5),
+      'Compact nav rows should appear centered: '+JSON.stringify(layout));
+     assert.equal(layout.navigation.overflow,false,
+      'Compact nav tabs overflow: '+JSON.stringify(layout));
+   }
+   if(width>700&&layout.needed<=layout.room-2){
     assert.equal(layout.inline,true,'Early forced navigation wrap '+JSON.stringify(layout));
     assert.ok(Math.abs(layout.navTop-layout.brandTop)<18,'Navbar not on top row');
    }
