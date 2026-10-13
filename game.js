@@ -218,6 +218,7 @@ function guestDailyLocked(){
    'Sign in to claim this completed Daily for your account. A new guest Daily opens at the next reset.':
    'This older guest Daily was not server-verified and cannot be claimed.','Guest Daily complete');
   showDailyRecap(saved,'guest');
+  if(guestDailyValid(saved.state))$('reviewDailyBtn').classList.remove('hidden');
   update();
  }else{
   guestDailyShow(saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)?
@@ -838,7 +839,10 @@ async function showSavedDailyBadges(record){
 }
 async function toggleDailyReview(){
  const btn=$('reviewDailyBtn');
- if(reviewBusy||!user||!officialRun||officialRun.blocked||(isTest&&started))return;
+ const guestRecord=!user?guestDailyRecord():null;
+ const guestFinished=!!guestRecord&&guestRecord.status==='complete'&&guestDailyValid(guestRecord.state);
+ const officialSaved=!!user&&!!officialRun&&!officialRun.blocked;
+ if(reviewBusy||(!officialSaved&&!guestFinished)||(isTest&&started))return;
  if(!$('result').classList.contains('hidden')){
   $('result').classList.add('hidden');
   btn.setAttribute('aria-expanded','false');
@@ -847,18 +851,20 @@ async function toggleDailyReview(){
  }
  reviewBusy=true;btn.disabled=true;
  try{
-  const saved=officialRun;
-  const amount=Number(saved.score);
-  const band=window.CriloRarity?.scoreBands?.find(item=>amount<=item.max);
-  const tier=String(band?.key||'trash');
-  renderResult({
-   color:tier,
-   label:saved.rarity_label||tier.toUpperCase(),
-   explanation:'Estimated rarity of your saved Daily.'
-  },saved);
-  $('resultEyebrow').textContent='YOUR OFFICIAL DAILY';
+  const saved=guestFinished?{
+   score:guestRecord.score,spins:guestRecord.spins,
+   upgrades:guestRecord.state.upgrades,doubles:guestRecord.state.doubles,
+   ducks:guestRecord.state.ducks,extra_spins:guestRecord.state.extraSpins,
+   best_roll_points:guestRecord.state.bestRollPoints,results:guestRecord.state.results
+  }:officialRun;
+  const r=window.CriloRarity.classify(Number(saved.score)||0);
+  renderResult(r,saved);
+  $('resultEyebrow').textContent=guestFinished?'GUEST DAILY COMPLETE':'YOUR OFFICIAL DAILY';
   $('resultNextDaily').classList.remove('hidden');
-  await showSavedDailyBadges(saved);
+  if(guestFinished){
+   showGuestBadgePreview(r);
+   $('guestSaveNotice').classList.remove('hidden');
+  }else await showSavedDailyBadges(saved);
   btn.setAttribute('aria-expanded','true');
   btn.firstChild.textContent='HIDE DAILY REVIEW ';
   $('result').scrollIntoView?.({behavior:'smooth',block:'start'});
@@ -893,9 +899,11 @@ function renderResult(r,stored=null){
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
  $('finalScore').textContent=fmt(number('score',score));
  $('rarityLabel').textContent=saved?.rarity_label||r.label;
- const savedOdds=Number(saved?.rarity_odds);
- $('rarityOdds').textContent=saved&&Number.isFinite(savedOdds)&&savedOdds>0?
-   '≈ 1 in '+Math.max(1,Math.round(savedOdds)).toLocaleString('en-US'):r.explanation;
+ const savedTail=Number(saved?.rarity_score);
+ $('rarityOdds').textContent=saved&&saved.rarity_score!==null&&saved.rarity_score!==undefined&&
+   Number.isFinite(savedTail)&&savedTail>=0&&savedTail<=1?
+    (savedTail*100).toFixed(2)+'% of simulated runs scored at least this high.':
+    r.explanation;
  $('statSpins').textContent=number('spins',totalSpins);
  $('statUpgrades').textContent=number('upgrades',upgrades);
  $('statDoubles').textContent=number('doubles',doubles);
@@ -905,7 +913,7 @@ function renderResult(r,stored=null){
    Math.max(value,Number(spin?.points)||0),0):bestRollPoints;
  $('statBestRoll').textContent=fmt(number('best_roll_points',best));
 }
-async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data:penalty,error:penaltyError}=await criloDB.rpc('crilo_my_daily_penalty',{p_period:period});if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);const {data:played}=await criloDB.from('daily_runs').select('id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_odds,results,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;showDailyRecap(data,data?.blocked?'blocked':'official');
+async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data:penalty,error:penaltyError}=await criloDB.rpc('crilo_my_daily_penalty',{p_period:period});if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);const {data:played}=await criloDB.from('daily_runs').select('id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_score,rarity_odds,results,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;showDailyRecap(data,data?.blocked?'blocked':'official');
  $('reviewDailyBtn').classList.toggle('hidden',!data||!!data.blocked);
  if(!data||data.blocked){
   $('result').classList.add('hidden');

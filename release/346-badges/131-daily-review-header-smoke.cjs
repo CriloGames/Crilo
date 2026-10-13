@@ -8,7 +8,7 @@ assert.match(home,/id="reviewDailyBtn"[^>]*class="small-btn daily-review-btn hid
 assert.match(home,/aria-controls="result"/);
 assert.match(home,/daily-review\.css\?v=\d+/);
 assert.match(game,/function renderResult\(r,stored=null\)/);
-assert.match(game,/id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_odds,results,drawing,daily_period/);
+assert.match(game,/id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_score,rarity_odds,results,drawing,daily_period/);
 assert.match(game,/async function showSavedDailyBadges\(record\)/);
 assert.match(game,/\.eq\('run_id',record\.id\)/);
 assert.match(game,/await showNewBadges\(prior,\{review:true\}\)/);
