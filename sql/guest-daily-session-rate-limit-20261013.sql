@@ -120,7 +120,7 @@ BEGIN
  VALUES(extensions.digest(decode(token,'hex'),'sha256'),period,
  '[{"type":"num","base":2},{"type":"duck"},{"type":"num","base":1},{"type":"upgrade"},{"type":"num","base":3},{"type":"num","base":1},{"type":"spins"},{"type":"num","base":5},{"type":"duck"},{"type":"num","base":2},{"type":"double"},{"type":"num","base":1}]'::jsonb);
  RETURN jsonb_build_object('token',token,'period',period);
-END $function$
+END $function$;
 REVOKE EXECUTE ON FUNCTION public.crilo_guest_begin() FROM PUBLIC,authenticated;
 GRANT EXECUTE ON FUNCTION public.crilo_guest_begin() TO anon,service_role;
 COMMIT;
