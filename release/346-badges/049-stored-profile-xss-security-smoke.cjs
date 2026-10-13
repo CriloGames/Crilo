@@ -13,7 +13,10 @@ assert.ok(leaderboard.includes("const safeColor = value => /^#[0-9a-fA-F]{6}$/.t
 assert.ok(!leaderboard.includes("name_color||'inherit'"),'Unsafe value was interpolated in leaderboard HTML');
 assert.ok(friends.includes("/^#[0-9a-fA-F]{6}$/.test(p.name_color||'')"));
 assert.ok(!friends.includes("name_color||'inherit'"),'Unsafe value was interpolated in Friends HTML');
-assert.ok(profile.includes(".style.color=p.name_color||''"),'Profile assigns CSS through a DOM style property');
+const app=load('app.js');
+assert.ok(profile.includes("CriloNameColors.paint($('profileName'),p)"),'Profile uses the validated username renderer');
+assert.match(app,/element\.style\.color=\/\^#\[0-9A-Fa-f\]\{6\}\$\//,'Username base colors are validated before CSS assignment');
+assert.match(app,/colors\.every\(color=>typeof color==='string'/,'Per-letter colors must be hex-validated');
 const safeColor = val=>/^#[0-9a-fA-F]{6}$/.test(String(val||''))?String(val):'inherit';
 for(const s of ['" onmouseover="alert(1)','red;position:fixed','#abcdeg','url(javascript:bad)','<script>']){
  assert.equal(safeColor(s),'inherit','Injected color must not enter HTML attributes');
