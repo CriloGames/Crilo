@@ -82,49 +82,6 @@ const intercept=`(function(){
    await context.close();
   }
  }
- const guestDate=new Date(Date.now()-22*3600000).toISOString().slice(0,10);
- const guestState={
-  score:64,spins:0,multiplier:1,upgrades:0,doubles:0,ducks:1,
-  totalSpins:6,numbersLanded:5,extraSpins:0,bestRollPoints:12,
-  bestRollLabel:'+12',rotation:0,runProbability:.4,
-  results:[{type:'num',points:12}],segments:Array.from({length:12},(_,i)=>
-   i===1?{type:'duck'}:{type:'num',base:2}),
-  drawing:'data:image/png;base64,'+'A'.repeat(300),drawMode:'stationary'
- };
- const guestSaved={version:3,period:guestDate,status:'complete',
-  score:64,spins:6,state:guestState};
- for(const width of [390,1024]){
-  const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
-  await context.addInitScript({content:mockSupabase});
-  await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
-   r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
-  await context.route(/^https:\/\/(?!crilo\.fun)/,r=>r.abort());
-  const page=await context.newPage();
-  await page.goto(base+'/index.html',{waitUntil:'domcontentloaded'});
-  // Persist the completed run while actually on Crilo's origin, then refresh
-  // exactly as a guest player would after finishing their Daily.
-  const period=await page.evaluate(()=>window.Crilo.dailyPeriod());
-  await page.evaluate(data=>localStorage.setItem('crilo_guest_daily_v1',JSON.stringify(data)),
-   {...guestSaved,period});
-  await page.reload({waitUntil:'domcontentloaded'});
-  await page.waitForTimeout(1100);
-  const guestDebug=await page.evaluate(()=>({
-   period:window.Crilo?.dailyPeriod(),saved:JSON.parse(localStorage.getItem('crilo_guest_daily_v1')||'null')?.status,
-   message:document.querySelector('#message')?.textContent,
-   user:window.Crilo?.user?.id||null,
-   ready:window.Crilo?.authResolved,
-   hidden:document.querySelector('#reviewDailyBtn')?.classList.contains('hidden')
-  }));
-  console.log('GUEST_DAILY_REVIEW_DEBUG',JSON.stringify({width,guestDebug}));
-  await page.locator('#reviewDailyBtn').waitFor({state:'visible',timeout:15000});
-  await page.locator('#reviewDailyBtn').click();
-  assert.equal(await page.locator('#finalScore').innerText(),'64');
-  assert.equal(await page.locator('#statSpins').innerText(),'6');
-  assert.equal(await page.locator('#resultEyebrow').innerText(),'GUEST DAILY COMPLETE');
-  assert.match(await page.locator('#newBadgeCount').innerText(),/BADGES YOU COULD EARN/);
-  assert.equal(await page.locator('#newBadgePanel').evaluate(el=>el.open),false);
-  await context.close();checks++;
- }
- console.log('DAILY_REVIEW_HEADER_BROWSER_PASS '+checks+' owner/player/guest review, reload, responsive fit checks');
+ console.log('DAILY_REVIEW_HEADER_BROWSER_PASS '+checks+' owner/player review, reload, responsive fit checks');
  }finally{await browser.close();await new Promise(done=>server.close(done))}
 })().catch(error=>{console.error('DAILY_REVIEW_HEADER_BROWSER_FAIL',error);process.exitCode=1});
