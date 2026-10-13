@@ -1,0 +1,36 @@
+name: Drawing center-mode parity
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'center-drawing-modes.css'
+      - 'release/346-badges/128-center-mode-parity-smoke.cjs'
+      - 'release/346-badges/129-center-mode-parity-browser.cjs'
+      - '.github/workflows/center-mode-parity.yml'
+  workflow_dispatch:
+jobs:
+  syntax-and-sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate drawing mode wiring
+        run: |
+          node --check game.js
+          node release/346-badges/128-center-mode-parity-smoke.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Test synchronized selectors in responsive layouts
+        run: node release/346-badges/129-center-mode-parity-browser.cjs

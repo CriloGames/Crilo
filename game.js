@@ -290,7 +290,7 @@ function restoreGuestDaily(saved){
  bestRollLabel=previous.bestRollLabel||'';rotation=previous.rotation;
  runProbability=previous.runProbability;
  results=previous.results.map(r=>({...r}));segments=previous.segments.map(v=>({...v}));
- drawMode=previous.drawMode;$('drawMode').value=drawMode;
+ setCenterDrawingSpinMode(previous.drawMode);
  $('guestSaveNotice').classList.add('hidden');
  $('result').classList.add('hidden');$('playedPanel').classList.add('hidden');
  $('spinButton').classList.remove('hidden');$('spinButton').disabled=false;

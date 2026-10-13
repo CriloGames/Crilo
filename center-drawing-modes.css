@@ -1,0 +1,52 @@
+/* Keep both drawing-center modes visually consistent while preserving
+   each toolbar's established sizing, order and responsive wrapping. */
+#drawPanel .center-drawing-spin-select,
+#pixelStudioModal .center-drawing-spin-select {
+  box-sizing:border-box;
+  border:1px solid #ded6e7;
+  border-radius:10px;
+  background:#fff;
+  color:#24212c;
+  font-family:inherit;
+  font-weight:inherit;
+  cursor:pointer;
+  white-space:nowrap;
+  text-overflow:clip;
+}
+#drawPanel .center-drawing-spin-select:focus-visible,
+#pixelStudioModal .center-drawing-spin-select:focus-visible {
+  outline:2px solid #ab96da;
+  outline-offset:2px;
+}
+html[data-theme="dark"] #drawPanel .center-drawing-spin-select,
+html[data-theme="dark"] #pixelStudioModal .center-drawing-spin-select {
+  background:#292b34;
+  color:#e8eaf0;
+  border-color:#5d5268;
+}
+/* Pixel Studio's original 113px fit the abbreviated "Spin" labels but
+   clips the same full wording used in the main board. Expand only this
+   dropdown, not the toolbar's neighbors or the editor canvas. */
+#pixelStudioModal #pixelDrawMode.center-drawing-spin-select {
+  width:155px;
+  min-width:155px;
+  max-width:155px;
+  min-height:40px;
+  padding:6px 8px;
+  font-size:12px;
+}
+@media(max-width:700px){
+  #pixelStudioModal #pixelDrawMode.center-drawing-spin-select {
+    width:174px;
+    min-width:174px;
+    max-width:174px;
+    font-size:16px; /* iPhone: prevent native input focus zoom */
+  }
+}
+@media(max-width:360px){
+  #pixelStudioModal #pixelDrawMode.center-drawing-spin-select {
+    width:165px;
+    min-width:165px;
+    max-width:165px;
+  }
+}
