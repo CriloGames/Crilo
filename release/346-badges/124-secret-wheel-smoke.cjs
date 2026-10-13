@@ -28,7 +28,7 @@ a.match(css,/secret-needle-burst/);
 a.match(css,/prefers-reduced-motion/);
 a.match(css,/html\[data-theme="dark"\]/);
 a.match(ambient,/crilo-fake-wheel/);
-a.match(ambient,/pointer-events/);
+a.match(ambient,/crilo-real-wheel/,'One real entry must be distinguished from decorative wheels');
 a.match(ambient,/count.*?Math\.max/);
 a.match(ambientCss,/pointer-events:none/);
 a.match(ambientCss,/pointer-events:auto/);
