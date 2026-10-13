@@ -68,10 +68,42 @@ const db={from(table){
     catalog.filter(b=>b.id!==1),error:null}).then(cb)}};
  return q;
 }};
-const start=home.indexOf('async function showNewBadges(prior){'),
-      stop=home.indexOf('function renderResult(r){',start);
+const start=home.indexOf('async function showNewBadges('),
+      stop=home.indexOf('/* Share one completed-state summary',start);
 assert.ok(start>=0&&stop>start);
-const show=new Function('criloDB','$','Crilo','window','user',
+const show=new Function('criloDB','
+ home.slice(start,stop)+';return showNewBadges')(
+ db,n,{dailyPeriod:()=> '2026-10-12',esc:x=>String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')},
+ {CriloBadgeCollection:collection},{id:'daily-player'},{setItem(){}},false);
+(async()=>{
+ await show(new Set(['1']));
+ assert.equal(n('newBadgePanel').classList.contains('hidden'),false);
+ assert.equal(n('newBadgePanel').classList.contains('hidden'),false);
+ assert.equal(n('newBadgeCount').textContent,'2 BADGES EARNED');
+ assert.match(n('newBadgeList').innerHTML,/Brand New/);
+ assert.match(n('newBadgeList').innerHTML,/Second Reward/);
+ assert.doesNotMatch(n('newBadgeList').innerHTML,/Previously Earned/);
+ assert.match(n('newBadgeList').innerHTML,/data-badge-rarity="rare"/);
+ assert.match(n('newBadgeList').innerHTML,/data-badge-rarity="epic"/);
+ const event={target:{closest:()=>({dataset:{badgeKey:'fresh'}})}};
+ n('newBadgeList').onclick(event);
+ assert.equal(n('dailyBadgePreviewDialog').open,true);
+ assert.match(n('dailyBadgePreviewCard').innerHTML,/Complete a new Daily/);
+ assert.match(n('dailyBadgePreviewCard').innerHTML,/data-badge-rarity="rare"/);
+ assert.match(n('dailyBadgePreviewOpenSet').href,/badge=fresh/);
+ n('dailyBadgePreviewClose').onclick();
+ assert.equal(n('dailyBadgePreviewDialog').open,false);
+ assert.ok(queries.some(q=>q[0]==='badges'&&q[1]==='in'&&q[3].length===2),
+  'Only newly earned badge IDs should be looked up');
+ // When a Daily awards none, report zero new badges explicitly.
+
+ await show(new Set(['1','2','3']));
+ assert.equal(n('newBadgeCount').textContent,'NO NEW BADGES THIS DAILY');
+ assert.equal(n('newBadgeList').textContent,'No new badges were awarded on this run.');
+ console.log('PASS: only post-Daily new badges in rarity dropdown and exact Stats preview');
+ console.log('PASS: no Test Run badge awarding, no stat tiles for difficult leaderboard placements');
+})().catch(error=>{console.error(error);process.exitCode=1});
+,'Crilo','window','user','localStorage','isTest',
  home.slice(start,stop)+';return showNewBadges')(
  db,n,{esc:x=>String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')},
  {CriloBadgeCollection:collection},{id:'daily-player'});
