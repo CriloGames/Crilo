@@ -61,7 +61,7 @@ function fixture(earnedCount,preFeatured=[]){
   return {data:name==='get_crilo_player_stats'?[{}]:{},error:null};
  }};
  const win={addEventListener:(n,fn)=>{events[n]=fn},
-  CriloRarity:{classify:()=>({label:'common'})},CriloBadgeEvents:{track(){}}};
+  CriloRarity:{classify:()=>({label:'common'})},CriloNameColors:{paint(){}},CriloBadgeEvents:{track(){}}};
  const ctx={window:win,document:{getElementById:node,
   createElement:()=>node('created'),querySelectorAll:()=>[]},
   location:{search:''},URLSearchParams,Crilo:{user:{id:user.id},profile:user,esc},

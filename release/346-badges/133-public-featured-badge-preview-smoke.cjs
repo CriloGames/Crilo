@@ -46,7 +46,7 @@ function fixture({mine=false,featuredBadge=badges[0],missingBadge=false}={}){
   return {data:name==='get_crilo_player_stats'?[{}]:{},error:null};
  }};
  const context={window:{addEventListener(name,fn){events[name]=fn},
-  CriloRarity:{classify:()=>({label:'common'})}},
+  CriloRarity:{classify:()=>({label:'common'})},CriloNameColors:{paint(){}}},
   document:{getElementById:node,querySelectorAll:()=>[],createElement:()=>node('created')},
   location:{search:mine?'':'?id=profile-owner'},URLSearchParams,
   Crilo:{user:viewer,profile:viewer,esc:escape},criloDB:db,

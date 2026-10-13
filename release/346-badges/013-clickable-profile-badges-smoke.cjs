@@ -46,7 +46,7 @@ function fixture(batch){
   return q;
  },rpc:async name=>({data:name==='get_crilo_player_stats'?[{}]:{},error:null})};
  const win={addEventListener:(name,handler)=>{events[name]=handler},
-  CriloRarity:{classify:()=>({label:'common'})}};
+  CriloRarity:{classify:()=>({label:'common'})},CriloNameColors:{paint(){}}};
  const ctx={window:win,document:{getElementById:element,createElement:()=>element('created'),querySelectorAll:()=>[]},
   location:{search:''},URLSearchParams,Crilo:{user:{id:'qa-player'},profile:user,esc},criloDB:db,
   localStorage:{getItem:()=>null},console,confirm:()=>false};
