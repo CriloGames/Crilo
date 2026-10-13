@@ -130,21 +130,27 @@ function fitHeader(){
  const bar=document.querySelector('.topbar');
  if(!bar||!bar.querySelector('nav')||!bar.querySelector('.header-actions'))return;
  if(innerWidth<=700){
-  bar.classList.remove('crilo-header-inline','crilo-header-stacked');
-  return; // Keep existing phone layout.
+  bar.classList.remove('crilo-header-inline','crilo-header-compact','crilo-header-stacked');
+  return;
  }
- bar.classList.remove('crilo-header-stacked');
- bar.classList.add('crilo-header-inline');
  const nav=bar.querySelector('nav'),brand=bar.querySelector('.brand');
  const actions=bar.querySelector('.header-actions');
- const css=getComputedStyle(bar);
- const available=bar.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
- const gap=parseFloat(css.columnGap)||0;
- const needed=(brand?.getBoundingClientRect().width||0)+
-  nav.scrollWidth+actions.scrollWidth+2*gap+5;
- const fits=needed<=available;
- bar.classList.toggle('crilo-header-inline',fits);
- bar.classList.toggle('crilo-header-stacked',!fits);
+ const fits=()=>{
+  const css=getComputedStyle(bar);
+  const available=bar.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
+  const gap=parseFloat(css.columnGap)||0;
+  const needed=(brand?.getBoundingClientRect().width||0)+
+   nav.scrollWidth+actions.scrollWidth+2*gap+5;
+  return needed<=available;
+ };
+ // Maximize comfortable tab spacing while retaining a one-row header.
+ bar.classList.remove('crilo-header-stacked','crilo-header-compact');
+ bar.classList.add('crilo-header-inline');
+ if(fits())return;
+ bar.classList.add('crilo-header-compact');
+ if(fits())return;
+ bar.classList.remove('crilo-header-inline','crilo-header-compact');
+ bar.classList.add('crilo-header-stacked');
 }
 function scheduleHeaderFit(){
  if(fitQueued)return;

@@ -27,7 +27,7 @@ const intercept=`(function(){
  let checks=0;
  try{
  for(const owner of [false,true]){
-  for(const width of [430,620,700,701,780,940,1024,1120,1440]){
+  for(const width of [375,430,620,700,701,780,940,1024,1120,1160,1280,1440]){
    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
    const fake=mockSupabase.replace('loggedIn:false','loggedIn:true')
      .replace('is_owner:false','is_owner:'+(owner?'true':'false'));
@@ -64,7 +64,8 @@ const intercept=`(function(){
     const room=el.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
     const needed=brand.getBoundingClientRect().width+nav.scrollWidth+actions.scrollWidth+gap*2+5;
     return{inline:el.classList.contains('crilo-header-inline'),
-     stacked:el.classList.contains('crilo-header-stacked'),room,needed,
+     stacked:el.classList.contains('crilo-header-stacked'),
+     compact:el.classList.contains('crilo-header-compact'),room,needed,
      navTop:nav.getBoundingClientRect().top,brandTop:brand.getBoundingClientRect().top,
      right:document.documentElement.scrollWidth,width:innerWidth,
      navigation:(()=>{
@@ -84,6 +85,7 @@ const intercept=`(function(){
            const right=Math.max(...row.map(link=>link.right));
            return Math.abs((left-rect.left)-(rect.right-right));
          }),
+         gaps:rows.flatMap(row=>row.slice(1).map((link,i)=>link.left-row[i].right)),
          overflow:links.some(link=>link.left<rect.left-2||link.right>rect.right+2)
        };
      })()};
@@ -96,6 +98,17 @@ const intercept=`(function(){
       'Compact nav rows should appear centered: '+JSON.stringify(layout));
      assert.equal(layout.navigation.overflow,false,
       'Compact nav tabs overflow: '+JSON.stringify(layout));
+   }
+   if(layout.inline){
+     const gaps=layout.navigation.gaps;
+     assert.ok(gaps.every(g=>g>=8),
+      'Header tabs squeezed together: '+JSON.stringify(layout));
+     if(!layout.compact){
+       assert.ok(gaps.every(g=>g>=15),
+        'Comfortable tab spacing missing: '+JSON.stringify(layout));
+     }
+     assert.ok(gaps.length<=1||Math.max(...gaps)-Math.min(...gaps)<2,
+      'Header gaps are not uniform: '+JSON.stringify(layout));
    }
    if(width>700&&layout.needed<=layout.room-2){
     assert.equal(layout.inline,true,'Early forced navigation wrap '+JSON.stringify(layout));
