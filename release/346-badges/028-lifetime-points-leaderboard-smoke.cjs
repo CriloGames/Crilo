@@ -51,7 +51,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  assert.equal(fromCalled,1,'One profile color read is allowed; Daily rows must not be queried');
  assert.equal(get('bestScore').textContent,'1,000');
  assert.equal(get('bestHeading').textContent,'ALL-TIME POINTS LEADER');
- assert.match(get('leaderDescription').textContent,/server-verified official Dailies/);
+ assert.match(get('bestStats').textContent,/official Dailies played · lifetime points/);
  assert.ok(!('scoreRarity' in get('bestScore').dataset));
  const html=get('leaderList').innerHTML;
  assert.match(html,/Winner/);
