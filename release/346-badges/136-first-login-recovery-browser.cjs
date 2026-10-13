@@ -73,17 +73,28 @@ sdk=patch(sdk,"signInWithOtp:async()=>({data:{},error:null}),",
     '/friends.html?invite=test123');
    await page2.locator('#profileModal').waitFor({state:'visible',timeout:10000});
    await page2.locator('#usernameInput').fill('NewPlayer');
+   await page2.evaluate(()=>{window.__signupOriginalDocument=true});
+   const existingTabs=first.pages().length;
    await page2.locator('#saveProfileBtn').click();
-   await page2.waitForURL(url=>url.pathname==='/friends.html'&&url.searchParams.get('invite')==='test123',{timeout:15000});
    await page2.waitForFunction(()=>window.Crilo?.profile?.username==='NewPlayer',{timeout:12000});
    assert.equal(await page2.locator('#accountBtn').innerText(),'NewPlayer');
+   assert.equal(new URL(page2.url()).pathname,'/index.html','Username confirmation stays on Play');
+   assert.equal(await page2.evaluate(()=>window.__signupOriginalDocument),true,'Username confirmation must not reload');
+   assert.equal(first.pages().length,existingTabs,'Username confirmation must not open another tab');
+   assert.equal(await page2.locator('#profileModal').isHidden(),true,'Onboarding dialog closes after saving');
+   assert.equal(await page2.locator('#signupReturnLink').getAttribute('href'),'/friends.html?invite=test123');
+   assert.equal(await page2.locator('#signupReturnLink').isVisible(),true);
    assert.equal(await page2.evaluate(()=>sessionStorage.getItem('crilo_signup_return')),null);
+   // The invitation is accessible only by clicking the optional link.
+   await page2.locator('#signupReturnLink').click();
+   await page2.waitForURL(url=>url.pathname==='/friends.html'&&url.searchParams.get('invite')==='test123',{timeout:15000});
+   await page2.waitForFunction(()=>window.Crilo?.profile?.username==='NewPlayer',{timeout:10000});
    await page2.goto(base+'/leaderboard.html',{waitUntil:'domcontentloaded'});
    await page2.waitForFunction(()=>window.Crilo?.profile?.username==='NewPlayer',{timeout:10000});
    assert.equal(new URL(page2.url()).pathname,'/leaderboard.html','Returning players must stay on their page');
    assert.deepEqual(errors,[],'Browser runtime errors '+width+'px');
    await first.close();
-   console.log('AUTH_FIRST_RUN_BROWSER_PASS '+width+'px: email, retry, account setup and friend-invite return');
+   console.log('AUTH_FIRST_RUN_BROWSER_PASS '+width+'px: same-document username onboarding, optional invite return, no extra tabs');
   }
  }finally{
   await browser.close();

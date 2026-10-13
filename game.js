@@ -969,21 +969,29 @@ async function saveProfile(){
       return;
     }
     close('profileModal');
+    // Finish signup in this document: keep the wheel and any guest run intact.
+    // This refresh paints the username and emits crilo-auth-ready to activate
+    // the signed-in Daily without refreshing or opening another browser tab.
     await Crilo.refreshIdentity();
-    // If the account was created from a leaderboard, friends invitation or
-    // another game, finish onboarding before returning to that exact page.
     let returnPath='';
     try{
       returnPath=sessionStorage.getItem('crilo_signup_return')||'';
       sessionStorage.removeItem('crilo_signup_return');
     }catch{}
-    if(returnPath.startsWith('/')&&!returnPath.startsWith('//')&&
-       !returnPath.includes('\\')&&returnPath.length<=1024&&
-       returnPath!==location.pathname+location.search){
-      location.replace(returnPath);
-      return;
+    const returnLink=$('signupReturnLink');
+    if(returnLink){
+      // Invitations and other previous pages remain available by choice,
+      // rather than automatically navigating away after username confirmation.
+      const valid=returnPath.startsWith('/')&&!returnPath.startsWith('//')&&
+        !returnPath.includes('\\')&&returnPath.length<=1024&&
+        returnPath!==location.pathname+location.search;
+      returnLink.classList.toggle('hidden',!valid);
+      if(valid){
+        returnLink.href=returnPath;
+        returnLink.textContent=returnPath.startsWith('/friends.html?invite=')?
+          'Continue to your friend invitation →':'Return to where you started →';
+      }else returnLink.removeAttribute('href');
     }
-    location.reload();
   }catch(error){
     $('profileStatus').textContent=error?.message||'Could not save username. Please try again.';
   }finally{
