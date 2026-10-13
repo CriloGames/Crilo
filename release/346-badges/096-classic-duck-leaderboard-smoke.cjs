@@ -11,8 +11,8 @@ assert.match(html,/data-tab="badges"><span class="leader-tab-label">ALL-TIME BAD
 assert.ok(!html.includes('badge-medal.svg')&&!html.includes('🏅'),'All-Time Badges must be text only');
 assert.ok(css.includes('.leader-tabs-wrap .leader-tab-icon-duck'),'Classic duck tab alignment must remain');
 assert.match(html,/data-tab="ducks"><img class="leader-tab-icon leader-tab-icon-duck leader-duck-icon leader-duck-icon-tab" src="duck-classic\.svg"/);
-assert.match(html,/leaderboard\.js\?v=49/);
-assert.match(html,/style\.css\?v=114/);
+assert.match(html,/leaderboard\.js\?v=\d+/,'Leaderboard script remains versioned');
+assert.match(html,/style\.css\?v=\d+/,'Stylesheet remains versioned');
 assert.ok(!src.includes('🦆')&&!html.includes('🦆'),'Native duck emoji still present');
 assert.ok(css.includes('.leader-duck-icon-count')&&css.includes('.leader-duck-icon-tab'));
 assert.match(svg,/viewBox="0 0 100 90"/);
@@ -49,6 +49,10 @@ const $=id=>{
 };
 const env={
  $,Crilo:{esc:s=>String(s??'')},safeColor:x=>x,
+ window:{CriloNameColors:{
+  paint(el,profile){el.textContent=profile?.username||'Crilo player'},
+  markup(profile){return String(profile?.username||'Crilo player')}
+ }},
  setBestScoreRarity:score=>assert.equal(score,null),Map,Number,Math
 };
 vm.createContext(env);
