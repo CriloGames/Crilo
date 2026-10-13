@@ -218,7 +218,6 @@ function guestDailyLocked(){
    'Sign in to claim this completed Daily for your account. A new guest Daily opens at the next reset.':
    'This older guest Daily was not server-verified and cannot be claimed.','Guest Daily complete');
   showDailyRecap(saved,'guest');
-  if(guestDailyValid(saved.state))$('reviewDailyBtn').classList.remove('hidden');
   update();
  }else{
   guestDailyShow(saved.version===GUEST_DAILY_SCHEMA&&guestDailyValid(saved.state)?
@@ -839,10 +838,7 @@ async function showSavedDailyBadges(record){
 }
 async function toggleDailyReview(){
  const btn=$('reviewDailyBtn');
- const guestRecord=!user?guestDailyRecord():null;
- const guestFinished=!!guestRecord&&guestRecord.status==='complete'&&guestDailyValid(guestRecord.state);
- const officialSaved=!!user&&!!officialRun&&!officialRun.blocked;
- if(reviewBusy||(!officialSaved&&!guestFinished)||(isTest&&started))return;
+ if(reviewBusy||!user||!officialRun||officialRun.blocked||(isTest&&started))return;
  if(!$('result').classList.contains('hidden')){
   $('result').classList.add('hidden');
   btn.setAttribute('aria-expanded','false');
@@ -851,20 +847,12 @@ async function toggleDailyReview(){
  }
  reviewBusy=true;btn.disabled=true;
  try{
-  const saved=guestFinished?{
-   score:guestRecord.score,spins:guestRecord.spins,
-   upgrades:guestRecord.state.upgrades,doubles:guestRecord.state.doubles,
-   ducks:guestRecord.state.ducks,extra_spins:guestRecord.state.extraSpins,
-   best_roll_points:guestRecord.state.bestRollPoints,results:guestRecord.state.results
-  }:officialRun;
+  const saved=officialRun;
   const r=window.CriloRarity.classify(Number(saved.score)||0);
   renderResult(r,saved);
-  $('resultEyebrow').textContent=guestFinished?'GUEST DAILY COMPLETE':'YOUR OFFICIAL DAILY';
+  $('resultEyebrow').textContent='YOUR OFFICIAL DAILY';
   $('resultNextDaily').classList.remove('hidden');
-  if(guestFinished){
-   showGuestBadgePreview(r);
-   $('guestSaveNotice').classList.remove('hidden');
-  }else await showSavedDailyBadges(saved);
+  await showSavedDailyBadges(saved);
   btn.setAttribute('aria-expanded','true');
   btn.firstChild.textContent='HIDE DAILY REVIEW ';
   $('result').scrollIntoView?.({behavior:'smooth',block:'start'});
@@ -985,8 +973,7 @@ async function handleDailyAuth(e){
  if(!user){
   $('message').classList.remove('hidden');
   $('message').textContent='Play for free! Sign up to save future Daily runs.';
-  if(guestDailyRecord()?.status==='complete')guestDailyLocked();
-  else if(!started&&$('result').classList.contains('hidden'))beginRun();
+  if(!started&&$('result').classList.contains('hidden'))beginRun();
   return;
  }
  if(profile?.is_owner&&!guestRun){
