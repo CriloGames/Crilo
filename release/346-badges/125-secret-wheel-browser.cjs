@@ -67,7 +67,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   // Simulated win path only: entirely mocked Supabase, no production account or award.
   // This ensures the win notification and settings editor integrate correctly.
   const winContext=await browser.newContext({viewport:{width:1120,height:860},reducedMotion:'reduce'});
-  const winningMock=mockSupabase+String.raw\`
+  const winningMock=mockSupabase+String.raw`
    window.__qa.loggedIn=true;
    const savedClient=window.supabase.createClient;
    window.supabase.createClient=(...args)=>{
@@ -87,7 +87,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     };
     return db;
    };
-  \`;
+  `;
   await winContext.addInitScript({content:winningMock});
   await winContext.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
    request=>request.fulfill({status:200,contentType:'text/javascript',body:''}));
