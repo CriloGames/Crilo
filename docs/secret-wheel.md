@@ -1,34 +1,39 @@
-# The Green Needle — hidden wheel
+# The Green Needle — hidden wheel (October 2026)
 
-A small, low-contrast wheel-shaped Easter egg floats in the unused whitespace just above **More Games** on the home page. Clicking it opens a free side-game. It is deliberately separate from the official Daily and never writes to `daily_runs`, scores, streaks, rankings, or owner Test Runs.
+## Experience
 
-## Rules
+The single interactive Easter-egg wheel is hidden among many small, low-contrast wheel decorations across Crilo. The decoys are irregularly spaced and sized, are not interactive, and cannot award anything. The sole working hidden wheel is on Play. All are deliberately subtle, including in dark mode and on phones.
 
-- Every verified, signed-in account receives **1,000 lifetime attempts**, never replenished by refresh, clearing storage, changing names, or new Daily periods.
-- Each attempt has exactly **one of 1,000 equal server-selected slots**. Slot `0` is the sole green WIN. At most one prize is awarded per account.
-- A single click calls `crilo_secret_wheel_spin(p_count => 1)`. Quick ×10 requests up to ten independently resolved attempts in one atomic transaction and stops immediately if one wins.
-- One spin has a **0.1%** success probability. The chance of winning at least once during all 1,000 attempts is `1 - (999/1000)^1000 ≈ 63.23%`. Winning is not guaranteed.
-- The wheel’s visual rotation and the thin green WIN stripe are driven **from the server-selected slot** after the server replies. Animation never decides the outcome.
+Opening the Green Needle shows a one-in-one-thousand wheel with a **single SPIN button**. The game is free, has **unlimited lifetime spins**, never shows a Quick ×10 option, and always resolves exactly one spin per click. There is no reset period and no cap. Each spin has an independent **0.1%** winning chance; after a win, players may continue spinning for fun.
 
-## Rewards
+The server returns the result for every spin. JavaScript only animates the wheel to that result. The first winning spin triggers an accessible prize notification and a confetti animation (honoring reduced-motion settings).
 
-A winner receives the secret **The Green Needle** badge (badge key `secret_wheel_green_needle`, Mythic, category **Exploration & onboarding**) plus the **Mint Orbit** mint-green, star-accented profile halo, automatically equipped on first win. Winners can equip/unequip the halo on their profile; public visitors see the equipped halo. The 346 original badge definitions are left intact, making a 347th badge. The new exploration badge does **not** affect competitive badge leaderboards.
+## Prize
 
-## Security and persistence
+The original **The Green Needle** Mythic secret badge remains the badge prize. Its key is \`secret_wheel_green_needle\`.
 
-Production Supabase migration: `secret_green_needle_wheel_prizes`.
+The cosmetic is now **individually chosen username letter colors**. The old Mint Orbit profile halo is no longer loaded. The new color editor is hidden in Settings within the "Display name & color" card until the database has confirmed that the account won. A winner can choose a color for each character, preview the design and save via an entitlement-checked RPC. The account header, public profile, friends and leaderboards render the earned colors, escaped and validated against the saved username. If a username is changed, the color editor can update its selection for the new characters; an invalid-length saved array falls back to the player's normal single color.
 
-- `public.crilo_secret_wheel_state`: one row per player, `spins_used <= 1000`, `won`, `equipped`, time of win. RLS allows authenticated users to read their own row. Direct client insert/update/delete is revoked.
-- `crilo_secret_wheel_spin(integer)`: security-definer RPC. Checks confirmed, nonanonymous identity, account ban, 1–10 requested spins. Uses row-level locking to prevent concurrent overspending or duplicate awards, then draws a server-side integer 0–999 for each attempt. Adds the event, badge, and cosmetic in the same transaction.
-- `crilo_secret_wheel_status()`: the signed-in player's persistent attempts and unlock status.
-- `crilo_secret_wheel_equip(boolean)`: authenticated winner-only cosmetic state change.
-- `crilo_secret_wheel_public_cosmetic(uuid)`: public read-only equipped state of a profile, no private spin data.
-- The existing `crilo_v3_record_event` was amended to **reject** `secret_wheel_win` from arbitrary callers. Only a real winning spin inserts that event, then the normal V3 badge award gate validates its persistent proof.
+## Database
 
-## Front-end
+Supabase migration \`secret_wheel_unlimited_single_spin_letter_color_reward\`:
+- The former 1,000-spin check was removed, \`spins_used\` is now a nonnegative \`bigint\`, and previously recorded attempts are preserved.
+- \`crilo_secret_wheel_spin(p_count integer default 1)\` **rejects every requested count other than one**. It authenticates a verified account, checks bans, serializes spins for a player with a row lock, and chooses one of 1,000 outcomes server-side. Only the **first** green outcome inserts the existing server-verifiable \`secret_wheel_win\` event and grants the secret badge. Subsequent spins cannot duplicate the award.
+- \`crilo_secret_wheel_status()\` returns \`signed_in\`, \`spins_used\`, and \`won\`; it never reports a cap or time-to-reset.
+- \`profiles.name_letter_colors\` stores the chosen per-character hex colors (or null when unused).
+- \`crilo_secret_wheel_set_name_colors(jsonb)\` is a verified-account, server-checked winner-only function. The input must be a JSON array of valid \`#RRGGBB\` colors with exactly one entry per current username character. The RPC locks the profile while checking and saving. Normal browser sessions cannot directly update the profile column or wheel-state table.
 
-- `index.html`, `secret-wheel.js`, `secret-wheel.css`: discovery point, modal, 1,000-tick canvas and spinner, light/dark/mobile support.
-- `profile.html`, `secret-wheel-profile.js`, `secret-wheel-profile.css`: permanent, toggleable Mint Orbit cosmetic.
-- `release/346-badges/124-secret-wheel-smoke.cjs` and `.github/workflows/secret-wheel.yml`: isolated syntax/integration checks. They cannot guarantee an authenticated full browser win path without a fixture account.
+No secret spin writes to Daily runs, leaderboard points, owner Test Runs, or Daily streaks. The secret badge remains in the exploration category, not competitive badge rankings.
 
-To inspect data without changing player progress: query `crilo_secret_wheel_state` and the new V3 event/badge rows. Never manually grant the client event to simulate winning: that would bypass the real random roll and is intentionally blocked through the public RPC.
+## Source and regression tests
+
+- \`secret-wheel.js\`, \`secret-wheel.css\`: server-based single-spin UI, win notification, confetti, win details.
+- \`secret-wheel-ambient.js\`, \`secret-wheel-ambient.css\`: visible-only decoys and the single hidden clickable entry, scattered on Crilo pages.
+- \`app.js\`: loads ambient wheels and includes an escaped, validated per-letter name renderer.
+- \`settings.html\`, \`settings.js\`, \`secret-name-colors.css\`: winner-only per-letter editor.
+- \`profile.js\`, \`leaderboard.js\`, \`friends.js\`: public name colors; no old halo.
+- \`release/346-badges/124-secret-wheel-smoke.cjs\`: static integration regression.
+- \`release/346-badges/125-secret-wheel-browser.cjs\`: unauthenticated Chromium checks of decoys, accessibility, layout and locked settings over multiple viewport widths.
+- \`.github/workflows/secret-wheel.yml\`: CI execution.
+
+The isolated browser QA checks **do not demonstrate a genuine signed-in winning spin**; that requires a verified test account and a real server-generated result. The client cannot force a win.

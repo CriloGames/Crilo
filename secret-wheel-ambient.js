@@ -38,7 +38,7 @@
     const y=top+(band+.22+rand()*.55)*span/count;
     const side=(band%2===0)?'left':'right';
     const edge=mobile?2+rand()*9:8+rand()*Math.min(55,Math.max(18,(vw-1020)/2));
-    const size=mobile?11+rand()*9:13+rand()*17;
+    const size=node===real?(mobile?25:27):(mobile?11+rand()*9:13+rand()*17);
     const left=side==='left'?edge:vw-edge-size;
     node.hidden=false;node.style.top=Math.round(y)+'px';
     node.style.left=Math.round(Math.max(1,left))+'px';
