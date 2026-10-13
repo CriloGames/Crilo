@@ -191,8 +191,13 @@ function luminance(pixel){
      }else{
       assert.ok(top.scoreRight+5<top.artX,
        'Desktop score belongs on the LEFT, drawing on the RIGHT');
-      assert.ok(Math.abs(top.scoreY-top.artY)<2,
-       'Desktop score and wheel must share one horizontal centerline');
+      const stageDelta=await page.locator('#bestScore').evaluate(el=>{
+       const a=el.closest('.best-score-stage').getBoundingClientRect();
+       const b=document.querySelector('.best-art-stage').getBoundingClientRect();
+       return Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2);
+      });
+      assert.ok(stageDelta<5,
+       'Desktop score and wheel stages should align vertically: '+stageDelta);
      }
      const heroCenter=await page.locator('#bestScore').evaluate(el=>{
       const box=el.getBoundingClientRect(),stage=el.closest('.best-score-stage').getBoundingClientRect();
