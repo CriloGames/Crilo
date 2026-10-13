@@ -124,7 +124,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  const context={window,document,Crilo,criloDB:db,DuckWorld:ducks,
   CriloRarity:{scoreBands:trueScoreBands,classify:score=>({label:score>300?'MYTHIC':'COMMON',color:'common',
    probability:.5,odds:2,explanation:'fixture'})},
-  localStorage:{getItem:()=> 'off'},location:{origin:'https://crilo.fun',pathname:'/index.html'},
+  localStorage:{getItem:()=> 'off'},location:{origin:'https://crilo.fun',pathname:'/index.html'},URLSearchParams,
   setInterval:()=>0,setTimeout:()=>0,requestAnimationFrame,performance:perf,Math:Object.assign(Object.create(Math),{random:()=>0}),
   console:{error:(...args)=>errors.push(args),warn:()=>{},log:()=>{}},Image:class{}};
  const instrumented=game.replace(/\n\}\)\(\);\s*$/, '\nwindow.__criloScoreTest=n=>{score=n;update()};\n})();');

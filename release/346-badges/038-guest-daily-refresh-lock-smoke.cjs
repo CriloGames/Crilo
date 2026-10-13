@@ -85,7 +85,7 @@ function mount(signed=false){
  const sandbox={window,document,Crilo,criloDB:db,
   DuckWorld:{clear(){},load:async()=>{},spawn:()=>({}),playSound(){}},
   CriloRarity:{classify:()=>({label:'COMMON',color:'common',probability:.5,odds:2,explanation:'test'})},
-  localStorage,location:{origin:'https://crilo.fun',pathname:'/index.html'},
+  localStorage,location:{origin:'https://crilo.fun',pathname:'/index.html'},URLSearchParams,
   console:{log(){},warn(){},error(){}},Image:class{set src(v){this._src=v;this.onload?.()}get src(){return this._src}},
   setInterval:()=>0,setTimeout:()=>0,performance:{now:()=>clock},
   Math,requestAnimationFrame:fn=>{clock+=3200;fn(clock)}};
