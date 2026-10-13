@@ -50,6 +50,15 @@ sdk=patch(sdk,"signInWithOtp:async()=>({data:{},error:null}),",
    assert.equal(sends[1][2].email,'new@example.test');
    assert.equal(sends[1][2].options.emailRedirectTo,base+'/index.html');
    assert.equal(await page.locator('#sendLinkBtn').isEnabled(),true);
+   // An expired verification link should display an actionable error and
+   // let the player request a new link without losing the page.
+   const expired=await context.newPage();
+   expired.on('pageerror',e=>errors.push(e.message));
+   await expired.goto(base+'/index.html?error_description=Your%20link%20has%20expired',
+    {waitUntil:'domcontentloaded'});
+   await expired.locator('#accountBtn[aria-busy="false"]').waitFor();
+   await expired.locator('#authModal').waitFor({state:'visible',timeout:5000});
+   assert.match(await expired.locator('#authStatus').innerText(),/expired/i);
    await context.close();
    const first=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
    await first.addInitScript({content:"sessionStorage.setItem('__qaSignedIn','yes');"+sdk});
