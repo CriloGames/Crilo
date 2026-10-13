@@ -1,0 +1,30 @@
+name: Public featured badge details
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'profile.html'
+      - 'profile.js'
+      - 'badge-collection.css'
+      - 'badge-collection.js'
+      - 'release/346-badges/133-public-featured-badge-preview-smoke.cjs'
+      - 'release/346-badges/134-public-featured-badge-browser.cjs'
+      - '.github/workflows/public-featured-badges.yml'
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check profile.js
+          node --check release/346-badges/134-public-featured-badge-browser.cjs
+          node release/346-badges/133-public-featured-badge-preview-smoke.cjs
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/134-public-featured-badge-browser.cjs
