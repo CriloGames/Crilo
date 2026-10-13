@@ -1057,10 +1057,10 @@ function pixelPoint(e){
   y:Math.max(0,Math.min(199.999,(e.clientY-r.top)*200/r.height))
  };
 }
-// Pixel Studio edits the same 200px artwork as the main wheel. Use the same
-// antialiased, round-capped brush instead of snapping to square pixel blocks.
+// Keep the original Pixel Studio brush widths (1 / 2 / 4 / 8 pixels)
+// while retaining slightly softened, round-capped stroke edges.
 function pixelBrushWidth(){
- return ({1:2,2:6,4:10,8:16})[Number($('pixelSize').value)]||6;
+ return ({1:1,2:2,4:4,8:8})[Number($('pixelSize').value)]||2;
 }
 function pixelPaint(p){
  pixelCtx.save();
