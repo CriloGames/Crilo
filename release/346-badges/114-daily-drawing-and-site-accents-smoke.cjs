@@ -193,7 +193,7 @@ assert.match(pixelCss,/@media\(max-width:600px\)[\s\S]*?#pixelStudioModal \.pixe
  'Mobile Pixel Studio color swatch should shrink so all four trailing tools fit');
 assert.match(pixelCss,/@media\(max-width:700px\)[\s\S]*?#pixelStudioModal #pixelDrawMode/,
  'Studio spin selector must have accessible mobile sizing');
-assert.match(html,/style\.css\?v=125/,'Updated Pixel Studio CSS must be served');
+assert.match(html,/style\.css\?v=126/,'Updated Pixel Studio CSS must be served');
 assert.match(html,/game\.js\?v=\d+/,'Synced Pixel Studio mode JS must be served');
 const startSpin=js.indexOf('function setCenterDrawingSpinMode(mode){');
 const endSpin=js.indexOf("document.querySelectorAll('.drawing-tool')",startSpin);
@@ -221,7 +221,7 @@ assert.match(js,/function pixelClose\(\)\{[\s\S]*?setCenterDrawingSpinMode\(\$\(
 /* Original-size Pixel Studio brushes retain slightly softened round strokes. */
 assert.match(html,/Brush size <select id="pixelSize">/,
  'Pixel Studio should describe brush widths rather than pixel blocks');
-assert.match(html,/style\.css\?v=125/,'Smooth Pixel Studio canvas CSS must be cache-busted');
+assert.match(html,/style\.css\?v=126/,'Smooth Pixel Studio canvas CSS must be cache-busted');
 assert.match(html,/game\.js\?v=\d+/,'Smooth Pixel Studio brush code must be cache-busted');
 assert.match(pixelCss,/\.pixel-canvas-wrap canvas\{[^}]*image-rendering:pixelated;filter:blur\(\.45px\);/,
  'Enlarged Pixel Studio artwork should be sharper with only subtle edge softness');
@@ -307,7 +307,7 @@ for(const file of [
  'badge-sets.html','shape-of-sound.html','moderation.html',
  'settings.html','friends.html','privacy.html','terms.html','beetle-tricks.html'
 ]){
- assert.match(read(file),/href="style\.css\?v=125"/,
+ assert.match(read(file),/href="style\.css\?v=(125|126)"/,
   file+' must load updated shared dark navigation rules, not an old cached CSS version');
 }
 

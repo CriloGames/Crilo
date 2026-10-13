@@ -72,7 +72,11 @@ function installFakeDaily(){
     }else{
      assert.equal(border.color,'rgb(23, 25, 30)','History wheel needs original black rim');
     }
-    assert.ok(parseFloat(border.width)>=4,'Wheel frame must be at least 4px: '+pageFile+' '+width+'px, got '+JSON.stringify(border));
+    // Leaderboard's 3px white mat has its own lavender outline; the
+    // History thumbnails retain the original 4px black wheel border.
+    const minimum=pageFile==='leaderboard.html'?3:4;
+    assert.ok(parseFloat(border.width)>=minimum,
+     'Unexpected '+pageFile+' '+width+'px wheel rim: '+JSON.stringify(border));
     if(pageFile==='leaderboard.html'){
      await page.waitForFunction(()=>document.querySelectorAll('.leader-list .mini-wheel').length>0);
      const btn=page.locator('#leaderList .mini-wheel');

@@ -200,6 +200,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Reopening Studio did not restore the last saved drawing');
    // Exit and Escape both commit automatically; no separate save button.
    await page.locator('.pixel-tool[data-pixel-tool="pen"]').click();
+   // The original Medium brush is 4px, with an opaque center and soft edge.
+   await page.locator('#pixelSize').selectOption('4');
    await point(page,'pixelCanvas',160,110);
    const blueNear=async id=>page.locator('#'+id).evaluate(canvas=>{
     const d=canvas.getContext('2d').getImageData(152,102,16,16).data;
@@ -211,14 +213,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    const smoothEdge=await page.locator('#pixelCanvas').evaluate(canvas=>{
     const pixels=canvas.getContext('2d').getImageData(152,102,16,16).data;
     let feathered=0;
-    for(let i=0;i<pixels.length;i+=4)
-     if(Math.abs(pixels[i]-51)<=4&&Math.abs(pixels[i+1]-102)<=4&&
-        Math.abs(pixels[i+2]-238)<=4&&pixels[i+3]>0&&pixels[i+3]<255)
-      feathered++;
+    for(let i=0;i<pixels.length;i+=4){
+     // Blue pen over opaque red keeps alpha=255; the edge mixes their RGB.
+     if(pixels[i]>51&&pixels[i]<238&&pixels[i+1]>51&&pixels[i+1]<102&&
+        pixels[i+2]>68&&pixels[i+2]<238&&pixels[i+3]===255)feathered++;
+    }
     return feathered;
    });
    assert.ok(smoothEdge>0,
-    'Fine Pixel Studio strokes should still have softly antialiased edges');
+    'Pixel Studio pen needs subtle antialiasing over existing paint');
 
    await page.locator('#pixelExit').click();
    assert.equal(await page.locator('#drawMode').inputValue(),'stationary',
