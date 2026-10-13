@@ -54,6 +54,8 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
      assert.equal(await page.locator('#secretWheelFast').count(),0,'No quick ×10 option');
      assert.equal(await page.locator('#secretWheelRemaining').count(),0,'No attempt limit');
      assert.equal(await page.locator('#secretWheelSpinCount').count(),1);
+     assert.equal(await page.locator('#secretWheelRankings').isVisible(),false,
+      'Only winners can see Green Needle rankings');
     }
     if(target==='ducks.html'){
      assert.match(await page.locator('#duckStatus').innerText(),/Log in to see your ducks/i);
@@ -87,6 +89,15 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       localStorage.setItem('greenMockWon','yes');
       return {data:{signed_in:true,spins_used:1,won:true,last_slot:0,spins_taken:1,new_win:true},error:null};
      }
+     if(name==='crilo_secret_wheel_leaderboard'){
+      const descending=payload?.p_order==='most';
+      const entries=descending?
+       [{rank:1,user_id:'a',username:'LateWinner',name_color:'#aabbcc',spins:902,name_letter_colors:null},
+        {rank:2,user_id:'b',username:'CriloQA',name_color:'#2f8761',spins:3,name_letter_colors:null,is_you:true}]:
+       [{rank:1,user_id:'b',username:'CriloQA',name_color:'#2f8761',spins:3,name_letter_colors:null,is_you:true},
+        {rank:2,user_id:'a',username:'LateWinner',name_color:'#aabbcc',spins:902,name_letter_colors:null}];
+      return {data:{order:payload.p_order,players:entries},error:null};
+     }
      if(name==='crilo_secret_wheel_set_name_colors'){
       return {data:{username:'CriloQA',name_letter_colors:payload.p_colors},error:null};
      }
@@ -105,6 +116,18 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   await winner.locator('#secretWheelEntry').click();
   await winner.locator('#secretWheelSpin').click();
   await winner.locator('#secretWheelWinToast').waitFor({state:'visible',timeout:5000});
+  assert.equal(await winner.locator('#secretWheelSpin').isDisabled(),true,'Winner cannot spin again');
+  assert.match(await winner.locator('#secretWheelSpin').innerText(),/YOU WON/);
+  await winner.locator('#secretWheelWinToast button').click();
+  if(!(await winner.locator('#secretWheelRankings').evaluate(el=>el.open)))
+   await winner.locator('#secretWheelRankings summary').click();
+  await winner.locator('#secretWheelRankList li').first().waitFor({state:'visible',timeout:5000});
+  assert.equal(await winner.locator('#secretWheelRankList li').count(),2);
+  assert.match(await winner.locator('#secretWheelRankList li').first().innerText(),/CriloQA/);
+  await winner.locator('[data-needle-order="most"]').click();
+  await winner.waitForFunction(()=>document.querySelector('#secretWheelRankList li')?.textContent.includes('LateWinner'),{timeout:5000});
+  assert.equal(await winner.locator('#secretWheelRankings').isVisible(),true);
+
   assert.equal(await winner.locator('#secretWheelAward').isVisible(),true);
   await winner.goto(base+'/settings.html',{waitUntil:'domcontentloaded'});
   await winner.locator('#letterColors').waitFor({state:'visible',timeout:12000});
@@ -112,7 +135,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
   await winner.locator('#letterColorsGrid input[type=color]').first().fill('#ff0000');
   await winner.locator('#letterColorsSave').click();
   await winner.waitForFunction(()=>document.querySelector('#letterColorsStatus')?.textContent.includes('saved'),{timeout:5000});
-  checks+=2;
+  checks+=4;
   await winContext.close();
 
   console.log('SECRET_WHEEL_BROWSER_PASS '+checks+' pages and viewport scenarios');

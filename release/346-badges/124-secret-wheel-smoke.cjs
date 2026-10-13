@@ -20,6 +20,18 @@ a.match(home,/id="secretWheelWinToast"/);
 a.match(home,/settings\.html#letterColors/);
 a.match(home,/secret-wheel\.js\?v=\d+/);
 a.match(wheel,/crilo_secret_wheel_spin/);
+a.match(wheel,/crilo_secret_wheel_leaderboard/,'Winner-only leaderboard must use its server RPC');
+a.match(wheel,/state\.won\?\x27✓ YOU WON\x27/,'Won spin button shows permanent lock');
+a.match(wheel,/spinBtn\.disabled=!state\.signed_in\|\|spinning\|\|state\.won/);
+a.match(wheel,/p_order:order/,'Sort preference must reach the server');
+a.match(wheel,/playSound\(data\.new_win\?\x27win\x27:\x27miss\x27\)/,'Minimal result sounds');
+a.match(wheel,/sound_enabled!==false/,'Sound obeys account setting');
+a.match(home,/id="secretWheelRankings" hidden/);
+a.match(home,/data-needle-order="least"/);
+a.match(home,/data-needle-order="most"/);
+a.match(home,/id="secretWheelRankList"/);
+a.doesNotMatch(read('leaderboard.html'),/secretWheelRankings|secretWheelRankList/,'Keep secret leaderboard inside the secret modal only');
+
 a.match(wheel,/p_count:1/);
 a.match(wheel,/crilo_secret_wheel_status/);
 a.match(wheel,/new_win/);

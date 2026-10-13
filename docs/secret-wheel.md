@@ -4,7 +4,7 @@
 
 The single interactive Easter-egg wheel is hidden among many small, low-contrast wheel decorations across Crilo. The decoys are irregularly spaced and sized, are not interactive, and cannot award anything. The sole working hidden wheel is on Play. All are deliberately subtle, including in dark mode and on phones.
 
-Opening the Green Needle shows a one-in-one-thousand wheel with a **single SPIN button**. The game is free, has **unlimited lifetime spins**, never shows a Quick ×10 option, and always resolves exactly one spin per click. There is no reset period and no cap. Each spin has an independent **0.1%** winning chance; after a win, players may continue spinning for fun.
+Opening the Green Needle shows a one-in-one-thousand wheel with a **single SPIN button**. The game is free, has **unlimited lifetime spins**, never shows a Quick ×10 option, and always resolves exactly one spin per click. There is no reset period or attempt cap **before the first win**. Each spin has an independent **0.1%** winning chance; after a win, the server permanently disables further spins.
 
 The server returns the result for every spin. JavaScript only animates the wheel to that result. The first winning spin triggers an accessible prize notification and a confetti animation (honoring reduced-motion settings).
 
@@ -37,3 +37,11 @@ No secret spin writes to Daily runs, leaderboard points, owner Test Runs, or Dai
 - \`.github/workflows/secret-wheel.yml\`: CI execution.
 
 The isolated browser QA checks **do not demonstrate a genuine signed-in winning spin**; that requires a verified test account and a real server-generated result. The client cannot force a win.
+
+## October 2026 winner leaderboard and audio
+
+The **Green Needle dialog only** reveals an expandable winner leaderboard *directly below the spin button* once the current account's award is verified. Its two tabs, **Least Spins** and **Most Spins**, sort winners by the number of individual spins required to hit green. Each returns at most **250** server-ranked winners. Rankings are not embedded in the public Crilo leaderboards or other pages. The spin button becomes permanently disabled and reads **✓ YOU WON**.
+
+Supabase migration `green_needle_winner_locked_top_250_leaderboards` adds `winning_spin_count` (persistent integer count on the exact winning attempt), changes the server spin RPC to reject further attempts once `won=true` and implements `crilo_secret_wheel_leaderboard(p_order)`, callable only by authenticated winners. The leaderboard output includes the player's chosen display colors when available. Sorting ties by win timestamp and account ID is deterministic. Previously recorded winners (if any) have a best-effort backfill from their recorded total; post-win spins made before this change cannot be reconstructed exactly.
+
+Minimal Web Audio cues: a soft start tone, a quiet landing tone and a short two-note win sound. There is **no repetitive ticking**. The game respects site-level mute and `sound_enabled` settings. The badge and per-letter name-color prize remain unchanged.
