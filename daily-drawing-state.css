@@ -225,6 +225,11 @@ html[data-theme="dark"] #drawPanel.draw-unavailable{background:#292d35}
   margin-top:3px;
   font-weight:600;
   color:#916c73;
+  white-space:nowrap;
+}
+/* Allow wrapping on especially narrow screens rather than overflow. */
+@media (max-width:360px) {
+  #drawPanel:not(.daily-finished) #drawSafetyNote {white-space:normal}
 }
 .hero #drawPanel:not(.draw-unavailable)>.draw-actions {
   grid-column:2;
