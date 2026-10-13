@@ -209,7 +209,11 @@ function render(runs,pm){
  if(tab==='ducks')$('bestScore').innerHTML=duckCountHTML(best.ducks);
  $('bestUser').textContent=bp?.username||'Crilo player';
  $('bestUser').style.color=bp?.name_color||'';
- $('bestStats').textContent=`${best.spins} spins • ${best.upgrades} upgrades • ${best.doubles} doubles • ${best.ducks} ducks`;
+ $('bestStats').innerHTML=[
+  ['Spins',best.spins],['Upgrades',best.upgrades],['Doubles',best.doubles],['Ducks',best.ducks]
+ ].map(([label,value])=>'<span class="best-metric"><strong>'+
+  Math.max(0,Number(value)||0).toLocaleString('en-US')+
+  '</strong><span>'+label+'</span></span>').join('');
  $('bestDrawing').classList.remove('hidden');
  $('bestDrawing').src=drawingSrc(best.drawing);
  $('bestDrawing').alt=drawingSrc(best.drawing)==='blank-wheel.svg'?'Top player blank drawing':'Top player wheel artwork';

@@ -313,3 +313,204 @@ html[data-theme="dark"] .best-card .best-art-stage::after{background:#c8a15c}
  .best-card .best-user{margin-top:6px;font-size:clamp(20px,6vw,24px)}
  .best-card .best-stats{margin-top:9px;padding:8px 12px;border-radius:17px;font-size:12px}
 }
+
+
+/* 2026-10: feature the winner as one coherent player-and-artwork pairing.
+   Presentation only: keep the rarity score frame, untouched player image, and preview. */
+.best-card{
+ width:min(100%,670px);
+ max-width:670px;
+ margin:22px auto 28px;
+ padding:24px clamp(17px,4vw,34px) 22px;
+ background:
+  radial-gradient(ellipse at 3% 0%,rgba(255,244,190,.49),transparent 48%),
+  radial-gradient(ellipse at 100% 100%,rgba(213,235,255,.50),transparent 55%),
+  linear-gradient(125deg,#fffdf1 0%,#f8fbf7 54%,#f2f8fe 100%);
+ border:1px solid #d9e3e9;
+ border-radius:27px;
+ box-shadow:0 12px 36px rgba(55,74,96,.07);
+}
+.best-card .best-crown{margin-bottom:9px}
+.best-card #bestHeading{
+ font-size:clamp(16px,2vw,20px);
+ letter-spacing:.12em;
+ line-height:1.28;
+}
+.best-card #leaderDescription{margin-top:8px}
+.best-card .best-feature-row{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ align-items:center;
+ justify-items:center;
+ width:min(100%,475px);
+ max-width:475px;
+ gap:clamp(15px,3vw,26px);
+ margin:21px auto 19px;
+}
+.best-card .best-score-stage{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:14px;
+}
+.best-card .best-feature-row #bestScore{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ box-sizing:border-box;
+ width:fit-content;
+ min-width:140px;
+ min-height:104px;
+ max-width:100%;
+ padding:14px 21px;
+ margin:0;
+ font-size:clamp(37px,4.8vw,58px);
+ line-height:1.08;
+ font-weight:950;
+ letter-spacing:0;
+ border-radius:19px;
+ white-space:nowrap;
+ overflow-wrap:normal;
+}
+.best-card .best-feature-row #bestScore[data-digits="5"]{font-size:clamp(33px,4.1vw,51px)}
+.best-card .best-feature-row #bestScore[data-digits="6"]{font-size:clamp(28px,3.5vw,43px)}
+.best-card .best-feature-row #bestScore[data-digits="7"]{font-size:clamp(23px,3vw,36px)}
+.best-card .best-feature-row #bestScore[data-digits="8"]{font-size:clamp(19px,2.5vw,30px)}
+.best-card .best-feature-row #bestScore[data-digits="9"]{font-size:clamp(16px,2.2vw,27px)}
+.best-card .best-feature-row #bestScore[data-digits="long"]{
+ font-size:clamp(13px,1.8vw,20px);
+ white-space:normal;
+ overflow-wrap:anywhere;
+}
+.best-card .best-user{
+ margin:0;
+ max-width:100%;
+ color:#477fb8;
+ font-size:clamp(19px,2.6vw,25px);
+ font-weight:900;
+ line-height:1.2;
+ letter-spacing:-.025em;
+ overflow-wrap:anywhere;
+ text-align:center;
+}
+.best-card .best-feature-row #bestDrawing{
+ width:min(100% - 25px,168px);
+ max-width:168px;
+ border:4px solid #fff;
+ outline:3px solid #9c8fda;
+ outline-offset:3px;
+ box-shadow:0 8px 23px rgba(91,83,139,.13),0 0 0 8px rgba(171,157,219,.11);
+}
+.best-card .best-feature-row:has(#bestDrawing.hidden){
+ grid-template-columns:minmax(0,1fr);
+ max-width:380px;
+ margin-bottom:16px;
+}
+.best-card .best-stats{margin:0 auto}
+.best-card .best-stats:has(.best-metric){
+ display:grid;
+ grid-template-columns:repeat(4,minmax(0,1fr));
+ align-items:stretch;
+ width:min(100%,522px);
+ max-width:522px;
+ padding:11px 7px;
+ border-radius:17px;
+ background:rgba(255,255,255,.62);
+ border:1px solid rgba(158,184,209,.42);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.75);
+}
+.best-card .best-metric{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ min-width:0;
+ gap:2px;
+ padding:2px 4px;
+ line-height:1.15;
+ white-space:normal;
+}
+.best-card .best-metric + .best-metric{border-left:1px solid rgba(148,166,188,.27)}
+.best-card .best-metric strong{
+ display:block;
+ color:#354c67;
+ font-size:clamp(17px,2.3vw,21px);
+ font-weight:900;
+ font-variant-numeric:tabular-nums;
+}
+.best-card .best-metric span{
+ display:block;
+ color:#748399;
+ font-size:10px;
+ font-weight:800;
+ letter-spacing:.045em;
+ text-transform:uppercase;
+}
+html[data-theme="dark"] .best-card{
+ background:
+  radial-gradient(ellipse at 4% 0%,rgba(115,102,78,.16),transparent 49%),
+  radial-gradient(ellipse at 98% 100%,rgba(78,112,143,.13),transparent 56%),
+  linear-gradient(125deg,#2c2d38,#272e38 56%,#293640);
+ border-color:#495666;
+ box-shadow:0 12px 32px rgba(0,0,0,.19);
+}
+html[data-theme="dark"] .best-card .best-user{color:#b8cdec}
+html[data-theme="dark"] .best-card .best-stats:has(.best-metric){
+ background:rgba(55,65,79,.72);
+ border-color:#526073;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+html[data-theme="dark"] .best-card .best-metric + .best-metric{border-left-color:#516073}
+html[data-theme="dark"] .best-card .best-metric strong{color:#e5ecf5}
+html[data-theme="dark"] .best-card .best-metric span{color:#b9c7d9}
+html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
+ border-color:#e8e9ef;
+ outline-color:#9b8ccf;
+ box-shadow:0 9px 23px rgba(0,0,0,.17),0 0 0 8px rgba(163,152,205,.085);
+}
+@media(max-width:540px){
+ .best-card{padding:21px 15px 20px;border-radius:23px}
+ .best-card .best-feature-row{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  width:min(100%,380px);
+  max-width:380px;
+  gap:14px;
+  margin:18px auto 17px;
+ }
+ .best-card .best-score-stage{gap:12px}
+ .best-card .best-feature-row #bestScore{
+  min-width:112px;
+  min-height:83px;
+  max-width:100%;
+  padding:10px 12px;
+  font-size:clamp(32px,8vw,43px);
+  border-radius:16px;
+ }
+ .best-card .best-feature-row #bestScore[data-digits="5"]{font-size:clamp(23px,6.2vw,34px)}
+ .best-card .best-feature-row #bestScore[data-digits="6"]{font-size:clamp(20px,5.3vw,29px)}
+ .best-card .best-feature-row #bestScore[data-digits="7"]{font-size:clamp(17px,4.5vw,25px)}
+ .best-card .best-feature-row #bestScore[data-digits="8"]{font-size:clamp(15px,3.8vw,22px)}
+ .best-card .best-feature-row #bestScore[data-digits="9"]{font-size:clamp(13px,3.4vw,19px)}
+ .best-card .best-feature-row #bestScore[data-digits="long"]{font-size:clamp(12px,2.9vw,16px)}
+ .best-card .best-user{font-size:clamp(17px,5vw,22px)}
+ .best-card .best-feature-row #bestDrawing{
+  width:min(100% - 19px,148px);
+  max-width:148px;
+  border-width:3px;
+  outline-width:3px;
+ }
+ .best-card .best-stats:has(.best-metric){padding:10px 4px}
+ .best-card .best-metric strong{font-size:18px}
+ .best-card .best-metric span{font-size:9px;letter-spacing:0}
+ .best-card .best-score-stage::before,.best-card .best-score-stage::after,
+ .best-card .best-art-stage::before,.best-card .best-art-stage::after{display:none}
+}
+@media(max-width:340px){
+ .best-card{padding:18px 11px}
+ .best-card .best-feature-row{gap:8px}
+ .best-card .best-feature-row #bestScore{min-width:0;min-height:73px;padding:9px 8px}
+ .best-card .best-feature-row #bestDrawing{width:min(100% - 10px,126px)}
+ .best-card .best-stats:has(.best-metric){grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}
+ .best-card .best-metric:nth-child(3){border-left:none}
+}
