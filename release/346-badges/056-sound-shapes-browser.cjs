@@ -59,6 +59,26 @@ async function main(){
   await page.route(/\/(?:app|supabase-config)\.js(?:\?.*)?$/,route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.goto(url,{waitUntil:'domcontentloaded'});
+  // Diagnose genuine paint/layout regressions before Playwright's visibility timeout.
+  const boot=await page.evaluate(()=>{
+   const ids=['shape-of-sound','soundStage','soundObjects'];
+   const measure=el=>{
+    if(!el)return null;
+    const c=getComputedStyle(el),r=el.getBoundingClientRect();
+    return {tag:el.tagName,className:el.className,
+     display:c.display,visibility:c.visibility,opacity:c.opacity,
+     width:r.width,height:r.height,x:r.x,y:r.y,
+     offsetWidth:el.offsetWidth,offsetHeight:el.offsetHeight,
+     inlineWidth:el.style.width,inlineHeight:el.style.height,
+     hidden:el.hidden};
+   };
+   return{blobs:document.querySelectorAll('.sound-blob').length,
+    ancestors:ids.map(id=>({id,...measure(document.getElementById(id))})),
+    firstBlob:measure(document.querySelector('.sound-blob')),
+    styles:[...document.styleSheets].map(s=>s.href?.split('/').pop()||'inline'),
+    readyState:document.readyState,viewport:[innerWidth,innerHeight]};
+  });
+  console.log('SOUND_BOOT_DIAGNOSTIC '+scenario.name+' '+JSON.stringify(boot));
   await page.locator('.sound-blob').first().waitFor({state:'visible'});
   check(await page.locator('#shape-of-sound').isVisible(),scenario.name+' standalone sound game missing');
   check(await page.locator('#supportPayLink').count()===0,scenario.name+' sound game unexpectedly contains checkout');
