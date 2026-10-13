@@ -9,7 +9,7 @@
  const remaining=$('secretWheelRemaining'),single=$('secretWheelSpin'),
        fast=$('secretWheelFast'),reward=$('secretWheelAward');
  let state={signed_in:false,spins_used:0,spins_left:1000,won:false,equipped:false};
- let spinning=false,rotation=0,openFocus=null,requestToken=0;
+ let spinning=false,rotation=27,openFocus=null,requestToken=0;
  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches||false;
  function paint(){
   const c=canvas.getContext('2d');if(!c)return;
