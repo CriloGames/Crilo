@@ -63,8 +63,8 @@ function nodeFactory(){
   if(!nodes.has(id)){
    const flags=new Set(['hidden']);
    nodes.set(id,{textContent:'',disabled:false,title:'',
-    classList:{add:x=>flags.add(x),remove:x=>flags.delete(x),contains:x=>flags.has(x)},
-    querySelector:()=>({textContent:''})});
+    classList:{add:x=>flags.add(x),remove:x=>flags.delete(x),contains:x=>flags.has(x),toggle:(x,on)=>on?flags.add(x):flags.delete(x)},
+    setAttribute(k,v){this[k]=v},querySelector:()=>({textContent:''})});
   }
   return nodes.get(id);
  };
