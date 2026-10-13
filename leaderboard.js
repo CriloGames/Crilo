@@ -94,7 +94,7 @@ async function load(){
  const visible=runs.slice(0,100);
  const ids=[...new Set(visible.map(r=>r.user_id))];
  let profiles=[];
- if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,is_owner').in('id',ids);if(revision!==loadRevision)return;profiles=result.data||[]}
+ if(ids.length){const result=await criloDB.from('profiles').select('id,username,name_color,name_letter_colors,is_owner').in('id',ids);if(revision!==loadRevision)return;profiles=result.data||[]}
  render(visible,new Map(profiles.map(p=>[p.id,p])));
 }
 // One aggregated row per player, from the database over every official Daily.
@@ -110,6 +110,10 @@ async function loadTotalPoints(revision){
   return;
  }
  const entries=data||[];
+ const {data:pointProfileColors}=await criloDB.from('profiles')
+  .select('id,name_letter_colors').in('id',entries.map(item=>item.user_id));
+ if(revision!==loadRevision)return;
+ const pointsColors=new Map((pointProfileColors||[]).map(x=>[x.id,x.name_letter_colors]));
  setBestScoreRarity(null); // cumulative points are NOT one Daily's score tier.
  $('bestHeading').textContent='ALL-TIME POINTS LEADER';
  $('bestDrawing').classList.add('hidden');
@@ -122,8 +126,7 @@ async function loadTotalPoints(revision){
  const leader=entries[0];
  const fmt=n=>Number(n||0).toLocaleString();
  $('bestScore').textContent=fmt(leader.total_points);
- $('bestUser').textContent=leader.username||'Crilo player';
- $('bestUser').style.color=leader.name_color||'';
+ window.CriloNameColors.paint($('bestUser'),{...leader,name_letter_colors:pointsColors.get(leader.user_id)});
  $('bestStats').textContent=fmt(leader.official_runs)+' official Dailies played · lifetime points';
  // Competition ranks: scores tied for first share #1; next player is #3.
  $('leaderList').innerHTML=entries.map((entry,index)=>{
@@ -133,7 +136,7 @@ async function loadTotalPoints(revision){
    '<div class="rank">'+icon+'</div><div class="leader-player">'+
    '<a class="leader-name" href="profile.html?id='+encodeURIComponent(entry.user_id)+
    '" style="color:'+safeColor(entry.name_color)+'">'+
-   Crilo.esc(entry.username||'Crilo player')+'</a>'+
+   window.CriloNameColors.markup({...entry,name_letter_colors:pointsColors.get(entry.user_id)})+'</a>'+
    '<span class="leader-mini">'+fmt(entry.official_runs)+' official Dailies played</span>'+
    '</div><div class="leader-score-wrap"><div class="leader-score">'+fmt(entry.total_points)+
    '</div><small class="leader-total-units">pts</small></div></div>';
@@ -158,7 +161,7 @@ async function loadDucks(revision){
  }
  const entries=[...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count||a.user_id.localeCompare(b.user_id)).slice(0,100);
  const ids=entries.map(x=>x.user_id);let profiles=[];
- if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color').in('id',ids);if(revision!==loadRevision)return;profiles=data||[]}
+ if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color,name_letter_colors').in('id',ids);if(revision!==loadRevision)return;profiles=data||[]}
  renderDuckLeaders(entries,new Map(profiles.map(p=>[p.id,p])));
 }
 function renderDuckLeaders(entries,profiles){
@@ -167,8 +170,8 @@ function renderDuckLeaders(entries,profiles){
  $('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);
- $('bestScore').innerHTML=duckCountHTML(best.count);$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Ducks collected across all official Daily runs';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score leader-duck-score">'+duckCountHTML(e.count)+'</div></div>'}).join('');
+ $('bestScore').innerHTML=duckCountHTML(best.count);window.CriloNameColors.paint($('bestUser'),p);$('bestStats').textContent='Ducks collected across all official Daily runs';
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score leader-duck-score">'+duckCountHTML(e.count)+'</div></div>'}).join('');
 }
 async function loadBadges(revision){
  $('leaderList').innerHTML='<div class="empty-state">Loading gameplay badge collectors…</div>';
@@ -176,15 +179,20 @@ async function loadBadges(revision){
  if(revision!==loadRevision)return;
  if(error){$('leaderList').innerHTML='<div class="empty-state">Badge rankings unavailable: '+Crilo.esc(error.message)+'</div>';return}
  const entries=(data||[]).map(x=>({user_id:x.user_id,count:Number(x.gameplay_badges)||0}));
- const profiles=new Map((data||[]).map(x=>[x.user_id,{username:x.username,name_color:x.name_color}]));
+ const {data:badgeInkRows}=await criloDB.from('profiles').select('id,name_letter_colors')
+ .in('id',entries.map(x=>x.user_id));
+ if(revision!==loadRevision)return;
+ const badgeInk=new Map((badgeInkRows||[]).map(x=>[x.id,x.name_letter_colors]));
+ const profiles=new Map((data||[]).map(x=>[x.user_id,{
+  username:x.username,name_color:x.name_color,name_letter_colors:badgeInk.get(x.user_id)}]));
  renderBadgeLeaders(entries,profiles);
 }
 function renderBadgeLeaders(entries,profiles){
  setBestScoreRarity(null); // A badge count cannot be classified as a score.
  $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
- const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString();$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
+ const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString();window.CriloNameColors.paint($('bestUser'),p);$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
@@ -203,8 +211,7 @@ function render(runs,pm){
  $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString():
   Number(best.score).toLocaleString();
  if(tab==='ducks')$('bestScore').innerHTML=duckCountHTML(best.ducks);
- $('bestUser').textContent=bp?.username||'Crilo player';
- $('bestUser').style.color=bp?.name_color||'';
+ window.CriloNameColors.paint($('bestUser'),bp);
  $('bestStats').innerHTML=[
   ['Spins',best.spins],['Upgrades',best.upgrades],['Doubles',best.doubles],['Ducks',best.ducks]
  ].map(([label,value])=>'<span class="best-metric"><strong>'+
@@ -227,7 +234,7 @@ function render(runs,pm){
    `<button type="button" class="owner-remove-run" data-id="${Crilo.esc(r.id)}" data-source="${r._source}" title="Remove score and drawing">Remove</button>`:'';
   return `<div class="leader-row score-run-row${canModerate?' owner-moderated':''}">
    <div class="rank">${medals[i]||i+1}</div>
-   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${Crilo.esc(p?.username||'Crilo player')}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
+   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini">${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks${r._source==='test'?' · PRIVATE RUN':''}</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
    <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>`;

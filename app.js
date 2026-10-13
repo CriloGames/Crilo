@@ -5,6 +5,35 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   window.Crilo = { $, esc, user:null, profile:null };
 
+  // Fixed-format, database-owned username ink. Never treat player text as HTML.
+  window.CriloNameColors={
+    valid(profile){
+      const name=String(profile?.username||'');
+      const colors=profile?.name_letter_colors;
+      return name.length>0&&Array.isArray(colors)&&colors.length===name.length&&
+       colors.every(color=>typeof color==='string'&&/^#[0-9A-Fa-f]{6}$/.test(color));
+    },
+    markup(profile){
+      const name=String(profile?.username||'Crilo player');
+      if(!this.valid(profile))return esc(name);
+      return [...name].map((letter,index)=>'<span style="color:'+
+       profile.name_letter_colors[index]+'">'+esc(letter)+'</span>').join('');
+    },
+    paint(element,profile){
+      if(!element)return;
+      element.style.color=/^#[0-9A-Fa-f]{6}$/.test(profile?.name_color||'')?profile.name_color:'';
+      if(this.valid(profile))element.innerHTML=this.markup(profile);
+      else element.textContent=String(profile?.username||'Crilo player');
+    }
+  };
+  // Shared, harmless, randomized wheel decorations on public-facing Crilo pages.
+  // A single real wheel exists only on the Play page; every other copy is inert.
+  const ambient=document.createElement('script');
+  ambient.src=siteRoot+'secret-wheel-ambient.js?v=1';
+  ambient.defer=true;
+  document.head.append(ambient);
+
+
   // Client-side feedback only; the Supabase trigger is the authoritative guard.
   window.Crilo.validateUsername = (value) => {
     const name = String(value || '').trim();
@@ -72,7 +101,7 @@
     let nextProfile=null;
     if(nextUser){
       const {data,error}=await criloDB.from('profiles')
-        .select('id,username,name_color,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')
+        .select('id,username,name_color,name_letter_colors,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')
         .eq('id',nextUser.id).maybeSingle();
       if(generation!==identityGeneration)return;
       if(error)console.error('Crilo profile error:',error);
@@ -364,8 +393,7 @@
     }else{
       if(authHeaderReady&&Crilo.profile?.id===Crilo.user.id)
         window.CriloHeaderContinuity?.save(Crilo.user,Crilo.profile);
-      btn.textContent=Crilo.profile?.username || 'ACCOUNT';
-      btn.style.color=Crilo.profile?.name_color || '';
+      window.CriloNameColors.paint(btn,Crilo.profile||{username:'ACCOUNT'});
       if(menu){
         menu.innerHTML=`<a href="${siteRoot}profile.html">Statistics</a><a href="${siteRoot}friends.html">Friends</a><a href="${siteRoot}settings.html">Settings</a><button id="menuSignOut">Sign out</button>`;
         $('menuSignOut')?.addEventListener('click',async()=>{
@@ -387,7 +415,7 @@
   document.addEventListener('click',e=>{
     const btn=$('accountBtn'), menu=$('accountMenu');
     if(!btn||!menu) return;
-    if(e.target===btn){
+    if(btn.contains(e.target)){
       if(!Crilo.user){ window.dispatchEvent(new CustomEvent('crilo-signin-request')); return; }
       menu.classList.toggle('hidden');
     } else if(!menu.contains(e.target)) menu.classList.add('hidden');
