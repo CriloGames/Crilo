@@ -1096,9 +1096,11 @@ window.addEventListener('crilo-signin-request',()=>open('authModal'));
 window.addEventListener('crilo-auth-error',e=>{open('authModal');$('authStatus').textContent='Sign-in failed: '+(e.detail?.message||'Please request a new email link.');});
  // A callback may resolve before this large gameplay script registers its
  // listener. Recover failed/expired links from the URL in either order.
- const authQuery=new URLSearchParams(location.search);
- const authHash=new URLSearchParams((location.hash||'').replace(/^#/,''));
- const earlyAuthError=authQuery.get('error_description')||authHash.get('error_description');
+ // All shipped browsers support URLSearchParams; the guard also keeps the
+ // legacy no-DOM wheel simulators independent of browser URL globals.
+ const callbackParams=typeof URLSearchParams==='function'?
+  [new URLSearchParams(location.search||''),new URLSearchParams((location.hash||'').replace(/^#/,''))]:[];
+ const earlyAuthError=callbackParams.map(params=>params.get('error_description')).find(Boolean);
  if(earlyAuthError){
   open('authModal');
   $('authStatus').textContent='Sign-in failed: '+earlyAuthError+'. Please request a new link.';
