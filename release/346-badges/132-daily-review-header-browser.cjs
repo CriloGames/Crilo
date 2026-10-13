@@ -37,17 +37,6 @@ const intercept=`(function(){
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+'/index.html',{waitUntil:'domcontentloaded'});
-   await page.waitForTimeout(1600);
-   const diagnostics=await page.evaluate(()=>({
-    auth:window.Crilo?.user?.id||null,
-    profile:window.Crilo?.profile?.username||null,
-    ready:window.Crilo?.authResolved,
-    title:document.querySelector('#playedPanel')?.textContent?.slice(0,120),
-    message:document.querySelector('#message')?.textContent,
-    reviewHidden:document.querySelector('#reviewDailyBtn')?.classList.contains('hidden'),
-    requests:window.__qa?.requests?.filter(x=>x[0]==='daily_runs'||x[0]==='rpc')?.slice(-12)
-   }));
-   console.log('REVIEW_DEBUG',JSON.stringify({owner,width,diagnostics}));
    await page.locator('#reviewDailyBtn').waitFor({state:'visible',timeout:15000});
    await page.waitForFunction(()=>document.getElementById('accountBtn')?.getAttribute('aria-busy')==='false');
    assert.equal(await page.locator('#result').isVisible(),false,'Do not auto-show saved Daily');
