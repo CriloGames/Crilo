@@ -912,7 +912,45 @@ if(data)update();
 if(profile?.is_owner){$('ownerDailyChoiceBtn').disabled=!!data;$('ownerDailyChoiceBtn').title=data?'Official Daily already completed for this period.':'Play your one official Daily.';}if(data){lockDrawing();setDrawingPanelMode(data.blocked?'unavailable':'complete');$('message').classList.add('hidden');$('playedPanel').querySelector('strong').textContent=data.blocked?'Official Daily removed':'Official Daily complete';if(profile?.is_owner){$('ownerRunControls').classList.add('hidden');$('ownerSaveRunBtn').textContent='Play Test Run';$('ownerRunModeHint').textContent='Official Daily complete. Private test runs do not count toward rankings or badges.';}$('playedPanel').classList.remove('hidden');$('playedText').textContent=data.blocked?'This Daily was removed for '+data.reason+'. Your score and points were removed, your current streak was reset, and your account received its one official warning. You cannot replay this Daily period.':'Your result is saved. You’re all set for today.';$('spinButton').classList.add('hidden');if(profile?.is_owner){$('playedPanel').classList.add('hidden');$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='✓';$('ownerRunModeHint').textContent=(data.blocked?'This Daily is locked after an owner removal. Private Test Runs remain available.':'Official Daily saved. Test Runs remain private.');$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=true;$('ownerDailyChoiceBtn').textContent=data.blocked?'Daily Run — Locked':'Daily Run — Completed';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('hidden');$('ownerRunControls').classList.add('owner-daily-finished');}if(data.drawing){hideDrawPlaceholder();const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else if(!profile?.is_owner){beginRun();$('message').textContent='Your Daily is ready. Press SPIN when you’re ready.';}else{$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='↻';$('ownerRunModeHint').textContent='Daily Run counts toward rankings and badges. Test Run is private.';$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=false;$('ownerDailyChoiceBtn').textContent='Daily Run';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('owner-daily-finished');$('spinButton').classList.add('hidden');$('ownerRunControls').classList.remove('hidden');$('ownerActiveMode').classList.add('hidden');$('message').textContent='Choose Daily Run or Test Run before spinning.';}}
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
 async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
-async function saveProfile(){const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;const usernameError=Crilo.validateUsername(username);if(usernameError){$('profileStatus').textContent=usernameError;return}const {error}=await criloDB.from('profiles').upsert({id:user.id,username,name_color},{onConflict:'id'});if(error){$('profileStatus').textContent=error.code==='23505'?'That username is taken.':error.message;return}close('profileModal');await Crilo.refreshIdentity();location.reload()}
+async function saveProfile(){
+  const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;
+  const usernameError=Crilo.validateUsername(username);
+  if(usernameError){$('profileStatus').textContent=usernameError;return;}
+  if(!user?.id){$('profileStatus').textContent='Your sign-in is still loading. Please try again.';return;}
+  const button=$('saveProfileBtn');
+  button.disabled=true;
+  $('profileStatus').textContent='Saving your name…';
+  try{
+    // PostgreSQL grants INSERT on these three columns, but intentionally
+    // denies UPDATE on id and protected profile fields. An upsert attempts
+    // UPDATE(id), yielding "permission denied for table profiles".
+    let {error}=await criloDB.from('profiles').insert({id:user.id,username,name_color});
+    if(error?.code==='23505'){
+      // A competing session might have created this same user's row already.
+      // Update only editable fields; RLS ensures it belongs to the user.
+      const {data:existing,error:lookupError}=await criloDB.from('profiles')
+        .select('id').eq('id',user.id).maybeSingle();
+      if(lookupError)error=lookupError;
+      else if(existing?.id===user.id){
+        const updated=await criloDB.from('profiles')
+          .update({username,name_color}).eq('id',user.id);
+        error=updated.error;
+      }
+    }
+    if(error){
+      $('profileStatus').textContent=error.code==='23505'?
+        'That username is taken.':(error.message||'Could not save username. Please try again.');
+      return;
+    }
+    close('profileModal');
+    await Crilo.refreshIdentity();
+    location.reload();
+  }catch(error){
+    $('profileStatus').textContent=error?.message||'Could not save username. Please try again.';
+  }finally{
+    button.disabled=false;
+  }
+}
 function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;const clock=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;$('resetCountdown').textContent='NEXT DAILY '+clock;syncDailyCountdown(clock);if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('storage',event=>{

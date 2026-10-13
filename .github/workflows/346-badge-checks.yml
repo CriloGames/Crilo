@@ -291,6 +291,8 @@ jobs:
         run: node release/346-badges/043-site-connections-smoke.cjs
       - name: Verify sign-in works on all pages with account headers
         run: node release/346-badges/041-shared-signin-pages-smoke.cjs
+      - name: Verify new profiles save without protected-column update grants
+        run: node release/346-badges/119-profile-signup-grants-smoke.cjs
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
       - name: Render all 346 profile badges and earned states
