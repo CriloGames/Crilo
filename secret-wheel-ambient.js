@@ -98,12 +98,15 @@
     // Disperse attempts across the whole width. Most positions are not at
     // the margins, and a failed placement is simply left invisible.
     for(let attempt=0;attempt<75;attempt++){
-     const s=mobile?13+Math.floor(rand()*13):14+Math.floor(rand()*19);
+     const s=mobile?10+Math.floor(rand()*12):13+Math.floor(rand()*20);
      const wide=Math.max(1,vw-s-12);
-     const column=(i*5+attempt*3)%9;
+     const column=(i*5+attempt*4)%9;
      const center=(column+.32+rand()*.36)/9;
      const x=Math.round(6+wide*center);
-     const y=Math.round(Math.max(top,Math.min(height-bottom-s,yCenter+(rand()-.5)*Math.min(140,bands/count))));
+     const candidateY=attempt<48
+      ? yCenter+(rand()-.5)*Math.min(175,bands/count*1.2)
+      : top+rand()*Math.max(5,bands-s);
+     const y=Math.round(Math.max(top,Math.min(height-bottom-s,candidateY)));
      const crop=collision(x,y,s,blocks);
      if(!crop||crop.area<.54)continue;
      if(placed.some(p=>Math.abs(p.x-x)<(p.s+s)*.75&&Math.abs(p.y-y)<(p.s+s)*1.25))continue;
