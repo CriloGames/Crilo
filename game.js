@@ -906,7 +906,16 @@ function renderResult(r,stored=null){
    Math.max(value,Number(spin?.points)||0),0):bestRollPoints;
  $('statBestRoll').textContent=fmt(number('best_roll_points',best));
 }
-async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();const {data:penalty,error:penaltyError}=await criloDB.rpc('crilo_my_daily_penalty',{p_period:period});if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);const {data:played}=await criloDB.from('daily_runs').select('id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_score,rarity_odds,results,drawing,daily_period').eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle();const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;showDailyRecap(data,data?.blocked?'blocked':'official');
+async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();
+ // Independent authoritative reads happen together so slow connections
+ // do not add the penalty round trip to the saved-Daily lookup.
+ const [{data:penalty,error:penaltyError},{data:played,error:playedError}]=await Promise.all([
+  criloDB.rpc('crilo_my_daily_penalty',{p_period:period}),
+  criloDB.from('daily_runs').select('id,score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,rarity_label,rarity_score,rarity_odds,results,drawing,daily_period')
+   .eq('user_id',user.id).eq('daily_period',period).eq('is_test',false).maybeSingle()
+ ]);
+ if(penaltyError)console.warn('Daily eligibility check:',penaltyError.message);
+ if(playedError)throw playedError;const data=penalty?.blocked?{score:0,drawing:null,blocked:true,reason:penalty.reason}:played;officialRun=data||null;showDailyRecap(data,data?.blocked?'blocked':'official');
  $('reviewDailyBtn').classList.toggle('hidden',!data||!!data.blocked);
  if(!data||data.blocked){
   $('result').classList.add('hidden');
@@ -1096,8 +1105,11 @@ async function handleDailyAuth(e){
  }
  $('message').classList.remove('hidden');
  $('message').textContent='Checking your Daily…';
- await DuckWorld.load(criloDB,user);
+ // Daily eligibility must resolve before any optional duck collection fetch.
+ // A slow duck fetch must not delay painting the completed drawing state.
  await checkPlayed();
+ Promise.resolve().then(()=>DuckWorld.load(criloDB,user))
+  .catch(error=>console.warn('Duck collection refresh pending',error));
  }catch(error){
   // A failed completion check must never expose an apparently playable
   // Daily. Keep the editor locked until a successful reload can verify it.
@@ -1110,6 +1122,7 @@ async function handleDailyAuth(e){
   // The signed-in header and Daily data resolve independently. Do not let
   // the first visible frame show an unlocked editor for a completed run.
   document.documentElement?.classList?.remove('crilo-daily-pending');
+  $('drawPanel')?.removeAttribute?.('inert');
  }
 };
 window.addEventListener('crilo-auth-ready',handleDailyAuth);

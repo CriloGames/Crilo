@@ -1,10 +1,44 @@
-/* The account header may be ready before the server has verified whether
-   this period's Daily is finished. Reserve the editor's layout space, but
-   never paint editable controls while that authoritative check is pending. */
-html.crilo-daily-pending body #drawPanel{
-  visibility:hidden!important;
+/* Paint the locked checking state from the first frame, instead of
+   hiding the whole editor while auth and Daily queries complete. The final
+   playable/finished state is still decided by the server, not browser storage. */
+html.crilo-daily-pending #drawPanel{
+  visibility:visible!important;
   pointer-events:none!important;
+  background:#eff0f2!important;
+  border-color:#dfe2e6!important;
 }
+html[data-theme="dark"].crilo-daily-pending #drawPanel{
+  background:#292d35!important;
+  border-color:#414952!important;
+}
+html.crilo-daily-pending #drawPanel .draw-actions{
+  opacity:.42!important;
+  filter:grayscale(.7);
+}
+html.crilo-daily-pending #drawPanel :is(#drawRecentColors,#drawRecentSwatches,.recent-colors,.recent-color-swatches){
+  visibility:hidden!important;
+}
+html.crilo-daily-pending #drawPanel :is(#drawPanelTitle,#drawPanelDescription,#drawSafetyNote,.draw-complete-note){
+  visibility:hidden!important;
+}
+html.crilo-daily-pending #drawPanel>div:first-child{
+  position:relative;
+}
+html.crilo-daily-pending #drawPanel>div:first-child::after{
+  content:"Checking your Daily…";
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#69717e;
+  font-size:13px;
+  font-weight:750;
+  line-height:1.4;
+  text-align:center;
+  pointer-events:none;
+}
+html[data-theme="dark"].crilo-daily-pending #drawPanel>div:first-child::after{color:#bac1cd}
 
 /* Crilo Daily drawing state.
    Intentionally no decorative borders or accent lines anywhere on the site.

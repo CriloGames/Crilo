@@ -49,14 +49,26 @@ const cases=[{name:'finished',data:{score:823,spins:6,ducks:2,upgrades:1,doubles
      waiting:document.documentElement.classList.contains('crilo-daily-pending'),
      lookupFinished:window.__dailyLookupFinished,
      visibility:getComputedStyle(document.querySelector('#drawPanel')).visibility,
-     interactive:getComputedStyle(document.querySelector('#drawPanel')).pointerEvents
+     interactive:getComputedStyle(document.querySelector('#drawPanel')).pointerEvents,
+     inert:document.querySelector('#drawPanel').hasAttribute('inert'),
+     swatches:getComputedStyle(document.querySelector('#drawRecentColors')).visibility,
+     message:getComputedStyle(document.querySelector('#drawPanel>div:first-child'),'::after').content,
+     background:getComputedStyle(document.querySelector('#drawPanel')).backgroundColor
    }));
    assert.equal(before.waiting,true,'Keep pending class until data confirmed: '+scenario.name);
    assert.equal(before.lookupFinished,false,'Lookup resolved before the first-paint assertion');
-   assert.equal(before.visibility,'hidden','Editor flashed before completion lookup: '+scenario.name);
+   assert.equal(before.visibility,'visible','The panel should never disappear while checking: '+scenario.name);
    assert.equal(before.interactive,'none','Editor was interactive during lookup: '+scenario.name);
+   assert.equal(before.inert,true,'Inputs must be inert until Daily is verified');
+   assert.equal(before.swatches,'hidden','Saved circles flashed during reload: '+scenario.name);
+   assert.match(before.message,/Checking your Daily/,'Temporary text must not claim the drawing is unlocked');
+   assert.notEqual(before.background,'rgb(255, 255, 255)','The first visible editor must look locked');
    await page.waitForFunction(()=>window.__dailyLookupFinished&&!document.documentElement.classList.contains('crilo-daily-pending'),{timeout:15000});
    assert.equal(await page.locator('#drawPanel').evaluate(e=>getComputedStyle(e).visibility),'visible');
+   assert.equal(await page.locator('#drawPanel').getAttribute('inert'),null,'Remove inert only after Daily is verified');
+   const finalSwatches=await page.locator('#drawRecentColors').evaluate(e=>getComputedStyle(e).visibility);
+   assert.equal(finalSwatches,scenario.name==='finished'?'hidden':'visible',
+    'Only a new Daily may show recent colors');
    assert.equal(await page.locator('#drawPanel').evaluate(e=>e.classList.contains('daily-finished')),scenario.name==='finished',
      'Editor should have final verified state before being revealed');
    if(scenario.name==='finished'){
@@ -78,6 +90,7 @@ const cases=[{name:'finished',data:{score:823,spins:6,ducks:2,upgrades:1,doubles
   await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!document.documentElement.classList.contains('crilo-daily-pending'),{timeout:15000});
   assert.equal(await page.locator('#drawPanel').isVisible(),true);
+  assert.equal(await page.locator('#drawPanel').getAttribute('inert'),null);
   assert.equal(await page.locator('#spinButton').isVisible(),true);
   await context.close();checks++;
   console.log('CRILO_DAILY_FIRST_PAINT_OK '+checks+' signed-in and guest refresh checks');
