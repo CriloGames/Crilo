@@ -14,6 +14,13 @@ for(const filename of [...pages,'privacy.html','terms.html']){
 assert.match(read('index.html'),/class="crilo-auth-legal"/);
 assert.match(read('index.html'),/class="crilo-beetle-track"/);
 assert.match(read('index.html'),/legal\.css\?v=6/,'Balanced footer layout must bypass cached CSS');
+assert.match(read('index.html'),/© 2026 CriloGames\. All rights reserved\./,'Owner copyright notice must appear on homepage');
+assert.match(read('LICENSE'),/Copyright \(c\) 2026 CriloGames/);
+assert.match(read('LICENSE'),/PROPRIETARY SOURCE CODE AND ASSETS/);
+assert.match(read('LICENSE'),/Third-party libraries/);
+assert.match(read('README.md'),/© 2026 CriloGames\. All rights reserved\./);
+assert.match(read('README.md'),/\[LICENSE\]\(LICENSE\)/);
+assert.match(read('CNAME'),/^crilo\.fun\s*$/,'Copyright changes must not change the live domain');
 const footer=read('index.html').split('<footer class="crilo-site-footer"')[1].split('</footer>')[0];
 const nav=footer.split('<nav class="crilo-legal-nav"')[1].split('</nav>')[0];
 assert.equal((nav.match(/<a /g)||[]).length,3,'Footer must have exactly three legal links');
@@ -32,7 +39,7 @@ for(const filename of secondary){
  const foot=file.match(/<footer\b[^>]*>[\s\S]*?<\/footer>/)?.[0] || '';
  assert.ok(foot.startsWith('<footer class="crilo-simple-footer" aria-label="Crilo footer">'),filename+' footer does not use shared layout');
  assert.ok(foot.includes(sharedNav),filename+' footer links differ from the homepage design');
- assert.ok(foot.includes('<small class="crilo-legal-copy">© 2026 Crilo</small>'),filename+' missing copyright');
+ assert.ok(foot.includes('<small class="crilo-legal-copy">© 2026 CriloGames. All rights reserved.</small>'),filename+' missing copyright');
  assert.match(file,/legal\.css\?v=7/,filename+' needs fresh shared footer stylesheet');
  assert.equal((foot.match(/<a /g)||[]).length,3,filename+' should retain exactly three legal links');
  assert.ok(!foot.includes('aria-hidden="true">·'),filename+' still has decorative separator dots');
@@ -44,7 +51,7 @@ assert.ok(read('index.html').includes('class="crilo-beetle-track"'),'Homepage be
 
 assert.match(read('index.html'),/id="bugBeetle"/);
 for(const p of [privacy,terms]){
- assert.match(p,/Last updated October 11, 2026/);
+ assert.match(p,/Last updated October (11|12), 2026/);
  assert.match(p,/class="crilo-legal-paper"/);
  assert.doesNotMatch(p,/support@crilo\.fun/);
 }
@@ -54,6 +61,8 @@ assert.match(privacy,/Global Privacy Control/);
 assert.match(privacy,/do not submit a persistent visitor ID/);
 assert.match(privacy,/Delete Account/);
 assert.match(terms,/Do not cheat/);
+assert.match(terms,/CriloGames reserves rights in original, copyrightable Crilo source code/);
+assert.match(terms,/players’ rights in their own drawings and submissions/);
 assert.match(terms,/Tips through PayPal are completely voluntary/);
 assert.match(sitemap,/https:\/\/crilo\.fun\/privacy\.html/);
 assert.match(sitemap,/https:\/\/crilo\.fun\/terms\.html/);
