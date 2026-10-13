@@ -85,6 +85,7 @@ function createPage(home=false){
 }
 (async()=>{
  const page=createPage();
+ await new Promise(resolve=>setImmediate(resolve));
  page.click();
  assert.equal(page.created.length,1,'Header sign-in should create modal on other pages');
  const modal=page.created[0];
@@ -129,6 +130,7 @@ function createPage(home=false){
  assert.equal(modal.classList.contains('hidden'),true,'Signed-in button must not reopen login');
  assert.equal(page.menu.classList.contains('hidden'),false,'Signed-in button opens account menu');
  const home=createPage(true);
+ await new Promise(resolve=>setImmediate(resolve));
  home.click();
  assert.equal(home.created.length,0,'Do not duplicate home page existing auth modal');
  console.log('PASS: all eight header pages load shared sign-in code.');
