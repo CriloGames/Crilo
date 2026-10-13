@@ -112,7 +112,6 @@ async function loadTotalPoints(revision){
  const entries=data||[];
  setBestScoreRarity(null); // cumulative points are NOT one Daily's score tier.
  $('bestHeading').textContent='ALL-TIME POINTS LEADER';
- $('leaderDescription').textContent='Points from server-verified official Dailies. Older unverified scores remain in personal history, but do not affect rankings.';
  $('bestDrawing').classList.add('hidden');
  if(!entries.length){
   $('bestScore').textContent='—';$('bestUser').textContent='No points recorded yet';
@@ -165,7 +164,6 @@ async function loadDucks(revision){
 function renderDuckLeaders(entries,profiles){
  setBestScoreRarity(null); // Duck totals are counts, never final-score tiers.
  $('bestHeading').textContent='ALL-TIME DUCK COLLECTORS';
- $('leaderDescription').textContent='Ducks collected in server-verified official Dailies. Private tests and legacy unverified runs do not count. Ties share a rank.';
  $('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);
@@ -183,16 +181,14 @@ async function loadBadges(revision){
 }
 function renderBadgeLeaders(entries,profiles){
  setBestScoreRarity(null); // A badge count cannot be classified as a score.
- $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('leaderDescription').textContent='Gameplay badges earned from official play. Exploration badges still count in your personal collection, but not in rankings. Ties share a rank.';$('bestDrawing').classList.add('hidden');
+ $('bestHeading').textContent='ALL-TIME BADGE COLLECTORS';$('bestDrawing').classList.add('hidden');
  if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No badges earned yet';$('bestStats').textContent='Earn badges by playing.';$('leaderList').innerHTML='<div class="empty-state">No badges earned yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString();$('bestUser').textContent=p?.username||'Crilo player';$('bestUser').style.color=p?.name_color||'';$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+Crilo.esc(p?.username||'Crilo player')+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function render(runs,pm){
  const headings={today:'TODAY’S TOP SCORE',week:'WEEKLY TOP SCORE',all:'ALL-TIME TOP SCORE',records:'LONGEST DAILY RUN',badges:'ALL-TIME BADGE COLLECTORS',ducks:'ALL-TIME DUCK RECORD'};
- const descriptions={today:'The highest verified score from today’s official Daily.',week:'The highest verified score from the last seven Daily periods.',all:'The highest server-verified official Daily score. Legacy runs remain in personal histories.',records:'Most spins in one verified Daily run. Score breaks ties.',badges:'Players ranked by gameplay badges; client-reported exploration badges are excluded.',ducks:'The most ducks collected in a single run.'};
  $('bestHeading').textContent=headings[tab];
- $('leaderDescription').textContent=descriptions[tab];
  const scoreBoard=tab==='today'||tab==='week'||tab==='all';
  setBestScoreRarity(scoreBoard&&runs.length?runs[0].score:null);
  if(!runs.length){
