@@ -36,10 +36,11 @@ assert.ok(game.includes('resetSegments();update();fitPlayViewport();'),
  'Fit the wheel on initial page load before Daily/Test starts');
 assert.ok(!game.includes('document.body?.classList?.add(\'wheel-run-active\')'),
  'A SPIN must never switch to a second wheel layout');
-assert.ok(!game.includes('scrollIntoView'),'No smooth scroll when spinning');
+// A manual saved-Daily Review is allowed to scroll its result into view.
 const spinArea=game.slice(game.indexOf('lockDrawing();\n// Keep the same diameter'),
  game.indexOf('spinning=true;',game.indexOf('lockDrawing();\n// Keep the same diameter')));
-assert.ok(spinArea&&!spinArea.includes('fitPlayViewport(')&&!spinArea.includes('scrollTo('));
+assert.ok(spinArea&&!spinArea.includes('fitPlayViewport(')&&!spinArea.includes('scrollTo(')&&!spinArea.includes('scrollIntoView('),
+ 'Spin itself must not resize the wheel or scroll the page');
 assert.ok(game.includes('Math.abs((window.innerWidth||0)-playLayoutWidth)>18'));
 assert.ok(game.includes('window.innerWidth>700&&Math.abs(h-playLayoutHeight)>70'));
 
