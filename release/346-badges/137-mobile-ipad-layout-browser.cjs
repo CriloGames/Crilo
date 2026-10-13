@@ -107,11 +107,15 @@ const examine=()=>{
          if(studio.card[0]< -2||studio.card[1]>width+2||studio.toolsOverflow>4||studio.outside.length)
           failures.push({name,width,role,studio});
          counts.studio++;
+         // Close the full-screen Studio before testing the account dialog.
+         // Otherwise Playwright waits for the modal to stop intercepting
+         // the header click, which is expected behavior, not a layout bug.
+         await page.locator('#pixelExit').click({timeout:5000});
         }
        }
       }
       if(name==='index.html'&&!signed){
-       await page.locator('#accountBtn').click();
+       await page.locator('#accountBtn').click({timeout:5000});
        const modal=await page.evaluate(examine);
        if(modal.scroll.length||modal.clipped.length)failures.push({name,width,role,modal});
        counts.modal++;
