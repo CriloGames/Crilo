@@ -25,7 +25,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     await page.waitForTimeout(120);
     const data=await page.evaluate(()=>{
      const fake=[...document.querySelectorAll('.crilo-fake-wheel:not([hidden])')];
-     const real=[...document.querySelectorAll('#more-games #secretWheelEntry')];
+     const real=[...document.querySelectorAll('.duck-page #secretWheelEntry')];
      return{
       scrollWidth:document.documentElement.scrollWidth,
       viewport:innerWidth,
@@ -34,7 +34,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       sizes:[...new Set(fake.map(el=>Math.round(el.getBoundingClientRect().width)))].length,
       realCount:real.length,
       realClickable:real.length===1&&getComputedStyle(real[0]).pointerEvents==='auto',
-      realInMoreGames:real.length===1&&real[0].parentElement?.id==='more-games',
+      realInDuckPage:real.length===1&&real[0].closest('.duck-page')!==null,
       central:fake.filter(el=>{const r=el.getBoundingClientRect();return r.left>innerWidth*.17&&r.right<innerWidth*.83}).length,
       sameSize:fake.every(el=>el.getBoundingClientRect().width===fake[0].getBoundingClientRect().width)
      };
@@ -44,21 +44,20 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     assert.ok(data.none,'Decorative wheels must not be clickable');
     assert.ok(data.sizes>=2,'Decorative wheels must not look uniform');
     assert.ok(data.central>=1,'Decorations must also occupy interior whitespace, not just page edges: '+target);
-    assert.equal(data.realCount,target==='index.html'?1:0,'Exactly one live entry on Play');
+    assert.equal(data.realCount,target==='ducks.html'?1:0,'Entry must exist on Ducks only');
     if(target==='index.html'){
-     assert.equal(data.realClickable,true,'Real tiny wheel must be accessible');
-     assert.equal(data.realInMoreGames,true,'Green Needle must stay beside More Games on Play');
-     await page.locator('#secretWheelEntry').click();
-     assert.equal(await page.locator('#secretWheelDialog').evaluate(x=>x.open),true);
-     assert.equal(await page.locator('#secretWheelSpin').isDisabled(),true,'Guest must not spin');
-     assert.equal(await page.locator('#secretWheelFast').count(),0,'No quick ×10 option');
-     assert.equal(await page.locator('#secretWheelRemaining').count(),0,'No attempt limit');
-     assert.equal(await page.locator('#secretWheelSpinCount').count(),1);
-     assert.equal(await page.locator('#secretWheelRankings').isVisible(),false,
-      'Only winners can see Green Needle rankings');
+     assert.equal(await page.locator('#secretWheelEntry').count(),0,'Playable Green Needle must not be on Play');
+     assert.equal(await page.locator('#secretWheelDialog').count(),0);
     }
     if(target==='ducks.html'){
      assert.match(await page.locator('#duckStatus').innerText(),/Log in to see your ducks/i);
+     assert.equal(data.realInDuckPage,true,'Green Needle location is below duck collection');
+     assert.equal(await page.locator('#secretWheelEntry').isVisible(),false,'Guests cannot see Green Needle');
+     assert.equal(await page.locator('#secretWheelEntry').isDisabled(),true,'Guests cannot activate Green Needle');
+     assert.equal(await page.locator('#secretWheelSpin').isDisabled(),true);
+     assert.equal(await page.locator('#secretWheelFast').count(),0);
+     assert.equal(await page.locator('#secretWheelSpinCount').count(),1);
+     assert.equal(await page.locator('#secretWheelRankings').isVisible(),false);
     }
     if(target==='settings.html'){
      assert.equal(await page.locator('#letterColors').isVisible(),false,'Prize remains locked for guests');
@@ -111,8 +110,9 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    request=>request.fulfill({status:200,contentType:'text/javascript',body:''}));
   await winContext.route(/^https:\/\/(?!crilo\.fun)/,request=>request.abort());
   const winner=await winContext.newPage();
-  await winner.goto(base+'/index.html',{waitUntil:'domcontentloaded'});
+  await winner.goto(base+'/ducks.html',{waitUntil:'domcontentloaded'});
   await winner.waitForFunction(()=>Boolean(window.Crilo?.user?.id),{timeout:12000});
+  await winner.locator('#secretWheelEntry').waitFor({state:'visible',timeout:10000});
   await winner.locator('#secretWheelEntry').click();
   await winner.locator('#secretWheelSpin').click();
   await winner.locator('#secretWheelWinToast').waitFor({state:'visible',timeout:5000});

@@ -121,7 +121,7 @@
   if(!state.won&&ranks.open)ranks.open=false;
   if(state.won)ranks.querySelector('summary').textContent=
    '✦ WINNER LEADERBOARD · TOP 250';
-  $('secretWheelSignIn').hidden=state.signed_in;
+
   reward.hidden=!state.won;
   if(state.won)$('secretWheelAwardText').textContent=
    'Unlocked: The Green Needle secret badge and individual display-name letter colors. Customize each letter in Settings.';
@@ -205,7 +205,16 @@
    spinning=false;stage.classList.remove('is-spinning');render();
   }
  }
+ function syncEntry(){
+  const signedIn=Boolean(window.Crilo?.user?.id);
+  entry.hidden=!signedIn;entry.disabled=!signedIn;
+  entry.setAttribute('aria-hidden',String(!signedIn));
+  entry.tabIndex=signedIn?0:-1;
+  if(!signedIn&&dialog.open)dialog.close();
+  return signedIn;
+ }
  function open(){
+  if(!syncEntry())return;
   openFocus=document.activeElement;
   if(!dialog.open)dialog.showModal();
   status.dataset.custom='';render();refresh();
@@ -218,12 +227,7 @@
  spinBtn.addEventListener('click',spin);
  $('secretWheelToastClose').addEventListener('click',()=>{toast.hidden=true;
   (state.won?ranks.querySelector('summary'):spinBtn).focus({preventScroll:true})});
- $('secretWheelSignIn').addEventListener('click',()=>{
-  dialog.close();
-  const auth=$('authModal');
-  if(auth){auth.classList.remove('hidden');auth.querySelector('#emailInput')?.focus();}
-  else $('accountBtn')?.click();
- });
- window.addEventListener('crilo-auth-ready',()=>{requestToken++;if(dialog.open)refresh()});
- paint();render();
+
+ window.addEventListener('crilo-auth-ready',()=>{requestToken++;if(syncEntry()&&dialog.open)refresh()});
+ syncEntry();paint();render();
 })();
