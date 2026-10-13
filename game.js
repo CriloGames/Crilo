@@ -985,7 +985,8 @@ async function handleDailyAuth(e){
  if(!user){
   $('message').classList.remove('hidden');
   $('message').textContent='Play for free! Sign up to save future Daily runs.';
-  if(!started&&$('result').classList.contains('hidden'))beginRun();
+  if(guestDailyRecord()?.status==='complete')guestDailyLocked();
+  else if(!started&&$('result').classList.contains('hidden'))beginRun();
   return;
  }
  if(profile?.is_owner&&!guestRun){
