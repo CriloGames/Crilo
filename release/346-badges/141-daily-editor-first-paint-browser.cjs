@@ -37,8 +37,9 @@ const cases=[{name:'finished',data:{score:823,spins:6,ducks:2,upgrades:1,doubles
      };
    })();`;
    await context.addInitScript({content:fake+intercept});
-   await context.route(/^https:\\/\\/(cdn\\.jsdelivr\\.net|unpkg\\.com)\\//,r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
-   await context.route(/^https:\\/\\/(?!crilo\\.fun)/,r=>r.abort());
+   await context.route('https://**/*',r=>r.abort());
+   await context.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
+   await context.route('https://unpkg.com/**',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
    const page=await context.newPage(),errors=[];
    page.on('pageerror',e=>errors.push(e.message));
    await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
@@ -70,8 +71,9 @@ const cases=[{name:'finished',data:{score:823,spins:6,ducks:2,upgrades:1,doubles
   // Guest Daily is still immediately available after normal guest auth.
   const context=await browser.newContext({viewport:{width:390,height:800}});
   await context.addInitScript({content:mockSupabase});
-  await context.route(/^https:\\/\\/(cdn\\.jsdelivr\\.net|unpkg\\.com)\\//,r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
-  await context.route(/^https:\\/\\/(?!crilo\\.fun)/,r=>r.abort());
+  await context.route('https://**/*',r=>r.abort());
+   await context.route('https://cdn.jsdelivr.net/**',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
+   await context.route('https://unpkg.com/**',r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   const page=await context.newPage();
   await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>!document.documentElement.classList.contains('crilo-daily-pending'),{timeout:15000});
