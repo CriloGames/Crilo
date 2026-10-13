@@ -188,18 +188,20 @@ async function run(){
     }
    }
    if(sc.name==='badge-rewards'){
+    await page.locator('#newBadgePanel').waitFor({state:'visible'});
+    assert.equal(await page.locator('#newBadgePanel').evaluate(el=>el.tagName),'DETAILS',
+     'Awarded badges belong to the compact expandable panel');
+    assert.equal(await page.locator('#newBadgePanel').evaluate(el=>el.open),false,
+     'The badge list starts collapsed after finishing a Daily');
+    assert.equal(await page.locator('#newBadgePanel summary').isVisible(),true,
+     'The badge rewards summary must remain immediately visible');
+    await page.locator('#newBadgePanel summary').click();
     await page.locator('#newBadgeList .new-badge-item').first().waitFor();
-    assert.equal(await page.locator('#newBadgePanel').isVisible(),true,
-     'Newly earned badges must be visible without a click');
-    assert.equal(await page.locator('#newBadgePanel').evaluate(el=>el.tagName),'SECTION',
-     'New badges cannot be hidden inside a details dropdown');
-    assert.equal(await page.locator('#newBadgePanel summary').count(),0,
-     'Badge list must not be a collapsible summary');
     const ordered=await page.locator('#newBadgeList .new-badge-item').evaluateAll(
      items=>items.map(item=>item.dataset.badgeRarity));
     assert.deepEqual(ordered,['trash','common','uncommon','rare','epic','anomaly','mythic'],
      'Newly earned badges must be organized from lowest tier to Mythic');
-    assert.equal(await page.locator('#newBadgeCount').innerText(),'7 NEW BADGES UNLOCKED');
+    assert.equal(await page.locator('#newBadgeCount').innerText(),'7 BADGES EARNED');
     await page.locator('#newBadgeList [data-badge-rarity="rare"]').click();
     assert.equal(await page.locator('#dailyBadgePreviewDialog').isVisible(),true,
      'Sorted badge rewards must keep their interactive details');
