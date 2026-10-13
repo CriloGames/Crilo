@@ -21,7 +21,7 @@ const ids=['score','wheelScorePanel','scoreTier','scoreTierHint','scoreTierText'
  'spins','level','duckCount','playedPanel','playedText','spinButton',
  'message','dailyCompleteDetails','completedDailyScore','completedDailyRarity',
  'completedDailyCountdown','ownerCompleteRecap','ownerCompleteScore','ownerCompleteNext',
- 'resultNextCountdown'];
+ 'resultNextCountdown','reviewDailyBtn','result'];
 const nodes=Object.fromEntries(ids.map(k=>[k,mk()]));
 const eyebrow=mk(),playedHeading=mk();
 nodes.wheelScorePanel.querySelector=s=>s==='.wheel-score-eyebrow'?eyebrow:null;
