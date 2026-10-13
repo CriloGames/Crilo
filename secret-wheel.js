@@ -50,6 +50,7 @@
   single.disabled=locked;fast.disabled=locked;
   fast.textContent=left>0&&left<10?'QUICK ×'+left:'QUICK ×10';
   reward.hidden=!state.won;
+  if(state.won)$('secretWheelAwardText').textContent='Unlocked: The Green Needle secret badge and the Mint Orbit profile halo. Mint Orbit is '+(state.equipped?'equipped.':'unequipped. You can toggle it on your profile.');
   if(state.won){
    status.textContent='The needle landed on green. Your rewards are saved!';
   }else if(!state.signed_in){
