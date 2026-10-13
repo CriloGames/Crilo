@@ -11,9 +11,10 @@ Project: `mqozqigwkobnhijvvboy`
 3. Set the subject to **Your Crilo sign-in link**.
 4. Replace the HTML body with the complete contents of [magic-link.html](./magic-link.html). Click **Save**.
 5. **Optional:** Only if you use a separate **Confirm signup** email, select that template. Set its subject to **Welcome to Crilo — confirm your email**, replace the HTML body with [confirm-signup.html](./confirm-signup.html), then click **Save**. You do **not** need to paste both HTML files into the same Supabase template.
-6. Send a real sign-in link from [crilo.fun](https://crilo.fun) to a testing email address. Check Gmail and iPhone Mail if available, then click the CTA to verify it returns you to Crilo signed in.
+6. To customize **Invite user**, select **Invite user**, set its subject to **You're invited to Crilo**, replace the HTML body with [invite-user.html](./invite-user.html), and click **Save**. This third template is only sent when you explicitly invite someone through Supabase's invitation flow.
+7. Send a real sign-in link from [crilo.fun](https://crilo.fun) to a testing email address. Check Gmail and iPhone Mail if available, then click the CTA to verify it returns you to Crilo signed in.
 
-Both emails use the supported **`{{ .ConfirmationURL }}`** variable. Leave it unchanged; do not replace it with `https://crilo.fun` or another generic URL because the unique one-time verification token is required.
+All three emails use the supported **`{{ .ConfirmationURL }}`** variable. Leave it unchanged; do not replace it with `https://crilo.fun` or another generic URL because the unique one-time verification token is required.
 
 The main CTA is a full-width yellow button inside the message card, approximately 70 px tall on modern mail apps, with a prominent black border and dark text. A smaller plain-link alternative is provided. The layout uses inline, table-based styling for Gmail, Apple Mail and Outlook; no external fonts, scripts, or tracking pixels are required. The wheel itself is now a real **PNG image hosted in the public Crilo GitHub repository**, because Gmail and several other email apps strip the CSS gradients used by the original wheel. Email recipients who disable remote images will need to choose **Display images**; an email template cannot override that setting.
 
@@ -23,7 +24,8 @@ The main CTA is a full-width yellow button inside the message card, approximatel
 
 - `magic-link.html`: regular passwordless sign-in (the primary flow for Crilo).
 - `confirm-signup.html`: matches the design for first-time accounts that receive a confirmation email.
-- This only changes email presentation. It does not change Supabase Auth sessions, redirect URLs, account creation, or daily-run logic.
+- `invite-user.html`: branded invitation sent when someone is explicitly invited to create an account.
+- These only change email presentation. They do not change Supabase Auth sessions, redirect URLs, account creation, or daily-run logic.
 
 ## Current rollout status
 

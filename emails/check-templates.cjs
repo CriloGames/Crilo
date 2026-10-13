@@ -5,7 +5,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path');
 const wheelUrl='https://cdn.jsdelivr.net/gh/CriloGames/Crilo@main/emails/crilo-wheel-all-pastel.png';
-for(const file of ['magic-link.html','confirm-signup.html']){
+for(const file of ['magic-link.html','confirm-signup.html','invite-user.html']){
  const html=fs.readFileSync(path.join(__dirname,file),'utf8');
  assert.ok(html.startsWith('<!doctype html>'),'Complete HTML document: '+file);
  assert.ok(html.includes('name="viewport"'),'Mobile-friendly viewport: '+file);
@@ -43,4 +43,11 @@ for(const file of ['magic-link.html','confirm-signup.html']){
  assert.ok(html.includes("Didn't request this email?"),'Security notice missing: '+file);
  assert.ok(html.length<25000,'Template too large: '+file);
 }
-console.log('PASS: Magic Link and signup email contain one centered wheel image background with colorful fallback, safe Supabase links, pastel accents and oversized centered button.');
+const invite=fs.readFileSync(path.join(__dirname,'invite-user.html'),'utf8');
+assert.ok(invite.includes("You're invited to Crilo.")&&invite.includes('Accept invitation'),
+ 'Invitation must use the Crilo-specific title and action');
+assert.ok(invite.includes('one-time invitation link')&&invite.includes('Open your invitation link'),
+ 'Invitation fallback and privacy text must reflect the correct action');
+assert.ok(!invite.includes('Confirm email &amp; play'),
+ 'Invitation must not pretend to be a signup confirmation');
+console.log('PASS: Magic Link, signup and invitation emails preserve the branded pastel wheel, accessible CTA and valid Supabase confirmation links.');
