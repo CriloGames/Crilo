@@ -44,6 +44,7 @@ function createPage(home=false){
  nodeMap.set('accountBtn',account);nodeMap.set('accountMenu',menu);
  if(home)nodeMap.set('authModal',new Fake('authModal'));
  const document={
+  head:{append(){}},
   documentElement:{dataset:{},style:{}},body:new Fake('body'),hidden:false,
   getElementById:(id)=>nodeMap.get(id)||null,createElement:id=>new Fake(id),
   querySelector:(sel)=>sel==='.modal-backdrop:not(.hidden)'?

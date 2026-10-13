@@ -31,7 +31,7 @@ for(const page of pages.filter(p=>!['domain/index.html','support.html','shape-of
   'Broken or missing account header on '+page);
  assert.ok(html.includes('app.js?v=55'),'Stale/missing shared authentication script on '+page);
 }
-assert.ok(pagesSource['friends.html'].includes('friends.js?v=12'));
+assert.ok(pagesSource['friends.html'].includes('friends.js?v=14'));
 for(const id of ['copyInviteBtn','inviteLink','invitationNotice','friendSearch','searchBtn'])
  assert.ok(pagesSource['friends.html'].includes('id="'+id+'"'),'Friends control missing: '+id);
 const friends=load('friends.js'),app=load('app.js');
@@ -60,7 +60,7 @@ for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html
  'profile.html','settings.html','domain/index.html'])
  assert.ok(pagesSource[page].includes('badge-events.js?v=4'),
   'Updated badge exploration listeners not loaded on '+page);
-assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=7'),
+assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=8'),
  'Collection trigger cache must be current');
 for(const id of ['ownerScoreManager','ownerScoreList','ownerScoreStatus'])
  assert.ok(pagesSource['profile.html'].includes('id="'+id+'"'),
