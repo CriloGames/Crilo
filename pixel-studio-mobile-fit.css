@@ -1,0 +1,12 @@
+/* Crilo Pixel Studio — narrow-screen dialog fit.
+   The modal overlay has its own padding. Use border-box sizing so the
+   Studio never extends beyond an iPhone viewport. Its brush sizes,
+   tools, drawing resolution and desktop layout remain unchanged. */
+@media(max-width:600px){
+ #pixelStudioModal .pixel-studio-card{
+  box-sizing:border-box;
+  width:min(100%,900px);
+  max-width:100%;
+  min-width:0;
+ }
+}

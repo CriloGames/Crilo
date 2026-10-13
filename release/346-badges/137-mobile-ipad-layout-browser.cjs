@@ -5,6 +5,11 @@
 const http=require('node:http'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
+const fs=require('node:fs');
+const indexSource=fs.readFileSync('index.html','utf8');
+assert.match(indexSource,/pixel-studio-mobile-fit\.css\?v=1/,'The new mobile fit fix must be cache-busted and loaded on Play');
+const fitSource=fs.readFileSync('pixel-studio-mobile-fit.css','utf8');
+assert.match(fitSource,/#pixelStudioModal \.pixel-studio-card\{/);
 const pages=['index.html','leaderboard.html','ducks.html','badge-sets.html','profile.html',
  'settings.html','friends.html','support.html','shape-of-sound.html','domain/',
  'moderation.html','owner-analytics.html','privacy.html','terms.html'];
