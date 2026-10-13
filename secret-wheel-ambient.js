@@ -29,7 +29,7 @@ function boot(){
   wheel.innerHTML=glyph;layer.append(wheel);
   nodes.push({el:wheel,visible:false,x:0,y:0,size:0,pending:null,version:0});
  }
- let scheduled=false,lastSignature='',layoutCount=0;
+ let scheduled=false;
  function blockers(height){
   const set=new Set(document.querySelectorAll(protectedSelectors));
   // Text-only fragments are often larger than their enclosing visible glyphs.
@@ -80,9 +80,9 @@ function boot(){
   };
   // Long crossings could drift behind artwork. Fade first, then gently
   // reposition, instead of dragging a wheel across a block of text.
-  if(node.visible&&Math.hypot(previous.x-loc.x,previous.y-loc.y)>65){
+  if(node.visible&&Math.hypot(previous.x-loc.x,previous.y-loc.y)>22){
    el.classList.remove('is-visible');
-   node.pending=setTimeout(()=>{node.pending=null;reveal()},240+(index%6)*90);
+   node.pending=setTimeout(()=>{node.pending=null;reveal()},720+(index%6)*90);
   }else reveal();
  }
  function layout(){
@@ -91,13 +91,9 @@ function boot(){
   const height=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,650);
   layer.style.height=height+'px';
   const signature=location.pathname+':'+Math.round(width)+':'+Math.round(height/40);
+  // Always reassess visible content, even when dimensions are unchanged.
+  // Positions remain deterministic: no jarring rerolls.
   const blocks=blockers(height);
-  // The same viewport and page should not reroll decorations on every
-  // asynchronous update to the score, ducks, or leaderboard.
-  if(signature===lastSignature&&layoutCount>0&&layoutCount%5!==0){
-   layoutCount++;return;
-  }
-  lastSignature=signature;layoutCount++;
   let seed=0x1d7e74a2;
   for(let i=0;i<signature.length;i++)seed=Math.imul(seed^signature.charCodeAt(i),16777619);
   const rand=()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296};
@@ -139,7 +135,7 @@ function boot(){
  }
  const main=document.querySelector('main');
  if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
- window.CriloAmbientWheels={refresh:()=>{lastSignature='';schedule()}};
+ window.CriloAmbientWheels={refresh:schedule};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
