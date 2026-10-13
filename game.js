@@ -585,7 +585,7 @@ function optimizedDailyDrawing(canvas,isBlank){
 }
 async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;try{DuckWorld.clear(); $('spinButton').disabled=true;started=false;
  setDrawingPanelMode(guestRun?'guest-complete':isTest?'test-complete':'complete');
- const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);$('resultNextDaily').classList.remove('hidden');$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
+ const r=rarity();if(guestRun){completeGuestDaily();renderResult(r);showGuestBadgePreview(r);$('resultNextDaily').classList.remove('hidden');$('resultEyebrow').textContent='GUEST RUN COMPLETE';$('message').textContent='Guest run complete. Sign up to save future rolls — this one cannot be saved.';$('guestSaveNotice').classList.remove('hidden');$('replayTestBtn').classList.add('hidden');setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs));return}let drawingData=null;const pixels=dctx.getImageData(0,0,drawing.width,drawing.height).data;let drawingIsBlank=true;for(let i=3;i<pixels.length;i+=4){if(pixels[i]!==0){drawingIsBlank=false;break}}
  // Guest drawings stay in guest-only storage; owner Test Runs retain their
  // original PNG behavior. Official runs use the smaller safe representation.
  drawingData=isTest?drawing.toDataURL('image/png'):optimizedDailyDrawing(drawing,drawingIsBlank);
@@ -640,24 +640,72 @@ if(isTest){
   if(usedFillOnOfficial)await window.CriloBadgeEvents.track('drawing_canvas');
  }
  if(priorBadges)await showNewBadges(priorBadges);
+ else{
+  $('newBadgePanel').open=false;
+  $('newBadgePanel').classList.remove('hidden');
+  $('newBadgeCount').textContent='BADGE RESULTS UNAVAILABLE';
+  $('newBadgeOrder').textContent='OFFICIAL DAILY';
+  $('newBadgeList').textContent='Unable to check the badges earned during this run.';
+ }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
  
 }
 }finally{finalSaveInProgress=false}
 }
+// Guests cannot be granted server badges. Only show a clearly labeled
+// score-tier preview, never an awarded badge or saved achievement.
+function showGuestBadgePreview(r){
+ const tier=String(r?.color||'trash').toLowerCase();
+ const allowed=['trash','common','uncommon','rare','epic','anomaly','mythic'];
+ const safeTier=allowed.includes(tier)?tier:'trash';
+ const title=safeTier[0].toUpperCase()+safeTier.slice(1)+' Score';
+ const panel=$('newBadgePanel');
+ panel.open=false;
+ panel.classList.add('guest-badge-mode');
+ $('newBadgeCount').textContent='BADGES YOU COULD EARN';
+ $('newBadgeOrder').textContent='GUEST PREVIEW · NOT AWARDED';
+ $('newBadgeList').innerHTML=
+  '<div class="badge-top-chip new-badge-item guest-badge-item" data-badge-rarity="'+safeTier+'">'+
+   '<span class="new-badge-item-copy"><strong>'+title+'</strong>'+
+   '<small>'+safeTier.toUpperCase()+' · PREVIEW ONLY</small>'+
+   '<p>Your final score would qualify for this score-tier badge in an official Daily.</p></span></div>'+
+  '<p class="guest-badge-disclaimer">Guest runs do not earn or save badges. '+
+  'Sign in to collect them during a future official Daily. This guest run cannot be claimed later.</p>';
+ panel.classList.remove('hidden');
+}
 // Only compare badge IDs before/after this official Daily. Badge rules and
 // award timing remain server-side; Owner Test Runs never reach this path.
 async function showNewBadges(prior){
+ const panel=$('newBadgePanel');
+ panel.open=false;
+ panel.classList.remove('guest-badge-mode');
+ $('newBadgeCount').textContent='CHECKING BADGES EARNED';
+ $('newBadgeOrder').textContent='OFFICIAL DAILY';
+ $('newBadgeList').textContent='Checking your official Daily awards…';
+ panel.classList.remove('hidden');
  const {data:earned,error}=await criloDB.from('user_badges')
   .select('badge_id').eq('user_id',user.id);
- if(error)return;
+ if(error){
+  $('newBadgeCount').textContent='BADGE RESULTS UNAVAILABLE';
+  $('newBadgeList').textContent='Could not load badge results. Try Badge Collections later.';
+  return;
+ }
  const ids=[...new Set((earned||[]).map(x=>String(x.badge_id)))]
   .filter(id=>!prior.has(id));
- if(!ids.length)return;
+ if(!ids.length){
+  $('newBadgeCount').textContent='NO NEW BADGES THIS DAILY';
+  $('newBadgeOrder').textContent='OFFICIAL DAILY';
+  $('newBadgeList').textContent='No new badges were awarded on this run.';
+  return;
+ }
  const {data:badges,error:badgeError}=await criloDB.from('badges')
   .select('id,badge_key,name,description,category,requirement,is_secret').in('id',ids);
- if(badgeError||!badges?.length)return;
+ if(badgeError||!badges?.length){
+  $('newBadgeCount').textContent='BADGE DETAILS UNAVAILABLE';
+  $('newBadgeList').textContent='Badges were awarded, but their details could not be loaded.';
+  return;
+ }
  const collection=window.CriloBadgeCollection;
  const rarity=b=>collection?.rarity(b)||String(b.requirement?.rarity||'common').toLowerCase();
  // Display new rewards from lowest to highest rarity, independent of
@@ -668,7 +716,8 @@ async function showNewBadges(prior){
   (ranks.get(rarity(a))??1)-(ranks.get(rarity(b))??1)||
   String(a.name||'').localeCompare(String(b.name||'')));
  const byKey=new Map(badges.map(b=>[String(b.badge_key),b]));
- $('newBadgeCount').textContent=badges.length+' NEW BADGE'+(badges.length===1?'':'S')+' UNLOCKED';
+ $('newBadgeCount').textContent=badges.length+' BADGE'+(badges.length===1?'':'S')+' EARNED';
+ $('newBadgeOrder').textContent='SORTED BY RARITY';
  $('newBadgeList').innerHTML=sorted.map(b=>{
   const tier=rarity(b),label=Crilo.esc(String(b.name||'Badge'));
   return '<button type="button" class="badge-top-chip new-badge-item"'+
@@ -714,7 +763,12 @@ function syncDailyCountdown(clock){
  $('ownerCompleteNext').textContent='Next Daily in '+clock;
 }
 function renderResult(r){
- $('newBadgePanel').classList.add('hidden');
+ const badgePanel=$('newBadgePanel');
+ badgePanel.open=false;
+ badgePanel.classList.add('hidden');
+ badgePanel.classList.remove('guest-badge-mode');
+ $('newBadgeList').replaceChildren();
+ $('newBadgeOrder').textContent='SORTED BY RARITY';
  $('resultNextDaily').classList.add('hidden');
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;

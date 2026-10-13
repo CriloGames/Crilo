@@ -1,0 +1,77 @@
+
+/* Completed-run badges: native, collapsed-by-default details for both guests
+   and signed-in players. Styling is presentation only; rewards stay server-side. */
+#newBadgePanel{
+ margin:18px 0 20px;
+ border:1.5px solid #d9cceb;
+ border-radius:17px;
+ overflow:hidden;
+ background:color-mix(in srgb,#f1e9ff 49%,var(--panel,#fff));
+ box-shadow:0 2px 11px rgba(91,66,124,.055);
+ color:var(--text,#181c22);
+ text-align:left;
+}
+#newBadgePanel.hidden{display:none!important}
+#newBadgePanel>summary.new-badge-panel-header{
+ display:flex;align-items:center;gap:12px;
+ padding:15px 17px;list-style:none;
+ font:inherit;font-size:13px;font-weight:900;letter-spacing:.02em;
+ cursor:pointer;color:var(--text,#222);
+ min-height:28px;
+}
+#newBadgePanel>summary::-webkit-details-marker{display:none}
+#newBadgePanel #newBadgeCount{flex:1;min-width:0;overflow-wrap:anywhere}
+#newBadgePanel .new-badge-order{
+ font-size:10px;font-weight:850;letter-spacing:.065em;color:#8a719e;
+ text-align:right;line-height:1.3;
+}
+#newBadgePanel .new-badge-chevron{
+ color:#9073af;font-size:22px;line-height:1;font-weight:750;
+ transition:transform .2s ease;display:inline-block;flex-shrink:0;
+}
+#newBadgePanel[open] .new-badge-chevron{transform:rotate(180deg)}
+#newBadgePanel>summary:focus-visible{outline:2px solid #8c76bb;outline-offset:-3px}
+#newBadgePanel>summary:hover{background:rgba(157,133,194,.075)}
+#newBadgePanel .new-badge-list{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,205px),1fr));
+ gap:10px;padding:4px 15px 16px;
+}
+#newBadgePanel .new-badge-list:has(>p:only-child){
+ display:block;font-size:12px;color:var(--muted,#6f6f78);
+}
+#newBadgePanel .guest-badge-item{
+ display:flex;min-width:0;align-items:flex-start;box-sizing:border-box;
+ padding:14px;border:1.5px solid var(--crilo-badge-accent,#a5a0b1);
+ border-radius:13px;background:var(--crilo-badge-pale,#f4effa);
+}
+#newBadgePanel .guest-badge-item .new-badge-item-copy strong{
+ font-size:15px;color:var(--text,#17191e)
+}
+#newBadgePanel .guest-badge-item .new-badge-item-copy small{
+ font-size:10px;color:var(--crilo-badge-accent,#68606f);
+ font-weight:850;letter-spacing:.05em;
+}
+#newBadgePanel .guest-badge-disclaimer{
+ grid-column:1/-1;margin:0;color:var(--muted,#777);
+ font-size:12px;line-height:1.5;
+}
+#newBadgePanel.guest-badge-mode{
+ background:color-mix(in srgb,#eaf2ff 35%,var(--panel,#fff));
+ border-color:#cbd9eb;
+}
+html[data-theme="dark"] #newBadgePanel{
+ background:var(--panel,#1a1c21);border-color:#494459;
+ box-shadow:none;
+}
+html[data-theme="dark"] #newBadgePanel.guest-badge-mode{border-color:#42536b}
+html[data-theme="dark"] #newBadgePanel .new-badge-order{color:#b6abc9}
+html[data-theme="dark"] #newBadgePanel .new-badge-chevron{color:#c5b1e2}
+html[data-theme="dark"] #newBadgePanel .guest-badge-item{
+ background:color-mix(in srgb,var(--crilo-badge-pale,#8c7f9f) 18%,var(--panel,#1a1c21));
+}
+@media(max-width:520px){
+ #newBadgePanel>summary.new-badge-panel-header{padding:13px;gap:7px}
+ #newBadgePanel .new-badge-order{font-size:9px;max-width:110px}
+ #newBadgePanel .new-badge-list{grid-template-columns:minmax(0,1fr);padding:3px 12px 13px}
+}
+@media(prefers-reduced-motion:reduce){#newBadgePanel .new-badge-chevron{transition:none}}

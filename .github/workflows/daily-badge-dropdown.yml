@@ -1,0 +1,35 @@
+name: Daily badge dropdown
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'game.js'
+      - 'index.html'
+      - 'daily-badge-dropdown.css'
+      - 'release/346-badges/126-daily-badge-dropdown-smoke.cjs'
+      - 'release/346-badges/127-daily-badge-dropdown-browser.cjs'
+      - '.github/workflows/daily-badge-dropdown.yml'
+  workflow_dispatch:
+jobs:
+  static-and-logic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: JavaScript syntax check
+        run: node --check game.js
+      - name: Simulate signed-in and guest badge displays
+        run: node release/346-badges/126-daily-badge-dropdown-smoke.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Check responsive badge dropdown interaction
+        run: node release/346-badges/127-daily-badge-dropdown-browser.cjs
