@@ -12,7 +12,7 @@ for(const id of ['wheelNeonOuter','wheelNeonInner'])
 assert.match(html,/<canvas id="drawing"[^>]+><\/canvas><span class="wheel-neon-ring wheel-neon-outer"/);
 assert.match(style,/\.wheel-wrap canvas#drawing\{[^}]*width:34%;height:34%;left:33%;top:33%;[^}]*box-shadow:0 0 0 1px #fff,0 0 0 4px #17191e;/,
  'Black drawing outline must start only 1px outside usable canvas and remain 3px wide');
-assert.match(html,/href="style\.css\?v=124"/,
+assert.match(html,/href="style\.css\?v=125"/,
  'Updated drawing border stylesheet must be cache-busted');
 assert.match(css,/\.wheel-neon-outer\s*\{inset:1\.05%\}/);
 assert.match(css,/\.wheel-neon-inner\s*\{inset:calc\(33% - 7\.5px\);z-index:4\}/);
