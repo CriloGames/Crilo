@@ -1,0 +1,31 @@
+name: Mobile and iPad layout audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'style.css'
+      - 'header-fit.css'
+      - 'game-topbar.css'
+      - 'top-score-row.css'
+      - 'leaderboard.html'
+      - 'index.html'
+      - 'badge-collection.css'
+      - 'profile.html'
+      - 'release/346-badges/137-mobile-ipad-layout-browser.cjs'
+      - '.github/workflows/mobile-ipad-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  responsive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/137-mobile-ipad-layout-browser.cjs
