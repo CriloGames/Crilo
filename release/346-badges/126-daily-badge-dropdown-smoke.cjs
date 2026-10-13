@@ -29,7 +29,7 @@ function $(id){if(!elements.has(id)){
   classList:{items:new Set(['hidden']),add(v){this.items.add(v)},remove(v){this.items.delete(v)},contains(v){return this.items.has(v)}}
  };elements.set(id,node);
 }return elements.get(id)}
-const ctx={$,window:{CriloBadgeCollection:{
+const ctx={$,isTest:false,window:{CriloBadgeCollection:{
  rarity:b=>b.requirement?.rarity||'common',
  rarityOrder:['trash','common','uncommon','rare','epic','anomaly','mythic'],
  tileHTML:()=>'<p>Badge preview</p>'
