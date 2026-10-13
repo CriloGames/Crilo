@@ -911,7 +911,33 @@ async function checkPlayed(){if(!user)return;const period=Crilo.dailyPeriod();co
 if(data)update();
 if(profile?.is_owner){$('ownerDailyChoiceBtn').disabled=!!data;$('ownerDailyChoiceBtn').title=data?'Official Daily already completed for this period.':'Play your one official Daily.';}if(data){lockDrawing();setDrawingPanelMode(data.blocked?'unavailable':'complete');$('message').classList.add('hidden');$('playedPanel').querySelector('strong').textContent=data.blocked?'Official Daily removed':'Official Daily complete';if(profile?.is_owner){$('ownerRunControls').classList.add('hidden');$('ownerSaveRunBtn').textContent='Play Test Run';$('ownerRunModeHint').textContent='Official Daily complete. Private test runs do not count toward rankings or badges.';}$('playedPanel').classList.remove('hidden');$('playedText').textContent=data.blocked?'This Daily was removed for '+data.reason+'. Your score and points were removed, your current streak was reset, and your account received its one official warning. You cannot replay this Daily period.':'Your result is saved. You’re all set for today.';$('spinButton').classList.add('hidden');if(profile?.is_owner){$('playedPanel').classList.add('hidden');$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='✓';$('ownerRunModeHint').textContent=(data.blocked?'This Daily is locked after an owner removal. Private Test Runs remain available.':'Official Daily saved. Test Runs remain private.');$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=true;$('ownerDailyChoiceBtn').textContent=data.blocked?'Daily Run — Locked':'Daily Run — Completed';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('hidden');$('ownerRunControls').classList.add('owner-daily-finished');}if(data.drawing){hideDrawPlaceholder();const img=new Image();img.onload=()=>{dctx.clearRect(0,0,drawing.width,drawing.height);dctx.drawImage(img,0,0,drawing.width,drawing.height);drawingLocked=true;$('wheelWrap').classList.add('locked')};img.src=data.drawing}}else if(!profile?.is_owner){beginRun();$('message').textContent='Your Daily is ready. Press SPIN when you’re ready.';}else{$('ownerRunControls').querySelector('strong').textContent='Choose your run';$('ownerRunControls').querySelector('.played-check').textContent='↻';$('ownerRunModeHint').textContent='Daily Run counts toward rankings and badges. Test Run is private.';$('ownerDailyChoiceBtn').classList.remove('hidden');$('ownerDailyChoiceBtn').disabled=false;$('ownerDailyChoiceBtn').textContent='Daily Run';$('ownerSaveRunBtn').textContent='Test Run';$('ownerRunControls').classList.remove('owner-daily-finished');$('spinButton').classList.add('hidden');$('ownerRunControls').classList.remove('hidden');$('ownerActiveMode').classList.add('hidden');$('message').textContent='Choose Daily Run or Test Run before spinning.';}}
 function open(id){$(id)?.classList.remove('hidden')}function close(id){$(id)?.classList.add('hidden')}
-async function sendMagicLink(){const email=$('emailInput').value.trim();if(!email){$('authStatus').textContent='Enter your email first.';return}$('sendLinkBtn').disabled=true;const {error}=await criloDB.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});$('sendLinkBtn').disabled=false;$('authStatus').textContent=error?error.message:'Check your email for the sign-in link.'}
+async function sendMagicLink(){
+  const input=$('emailInput'),button=$('sendLinkBtn'),status=$('authStatus');
+  if(button.disabled)return;
+  const email=input.value.trim();
+  if(!email||!input.checkValidity()){
+    status.textContent='Enter a valid email address.';
+    input.focus();
+    return;
+  }
+  button.disabled=true;
+  status.textContent='Sending your Crilo sign-in link…';
+  try{
+    // This is also the sign-up flow: Supabase sends Confirm Signup to new
+    // accounts and Magic Link to returning players.
+    const {error}=await criloDB.auth.signInWithOtp({
+      email,options:{emailRedirectTo:location.origin+location.pathname}
+    });
+    status.textContent=error?
+      'Could not send your link: '+error.message:
+      'Check your email for your Crilo sign-in or confirmation link.';
+  }catch(error){
+    status.textContent='Could not send your link: '+
+      (error?.message||'Please try again.');
+  }finally{
+    button.disabled=false;
+  }
+}
 async function saveProfile(){
   const username=$('usernameInput').value.trim(),name_color=$('nameColorInput').value;
   const usernameError=Crilo.validateUsername(username);
@@ -944,6 +970,19 @@ async function saveProfile(){
     }
     close('profileModal');
     await Crilo.refreshIdentity();
+    // If the account was created from a leaderboard, friends invitation or
+    // another game, finish onboarding before returning to that exact page.
+    let returnPath='';
+    try{
+      returnPath=sessionStorage.getItem('crilo_signup_return')||'';
+      sessionStorage.removeItem('crilo_signup_return');
+    }catch{}
+    if(returnPath.startsWith('/')&&!returnPath.startsWith('//')&&
+       !returnPath.includes('\\')&&returnPath.length<=1024&&
+       returnPath!==location.pathname+location.search){
+      location.replace(returnPath);
+      return;
+    }
     location.reload();
   }catch(error){
     $('profileStatus').textContent=error?.message||'Could not save username. Please try again.';
@@ -1069,7 +1108,10 @@ $('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),o
  if(user&&profile){claimFinishedGuestDaily();return}
  open('authModal');
 });
-$('guestClaimRetryBtn').addEventListener('click',()=>claimFinishedGuestDaily());$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+$('guestClaimRetryBtn').addEventListener('click',()=>claimFinishedGuestDaily());$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);
+ $('emailInput').addEventListener('keydown',event=>{
+  if(event.key==='Enter'){event.preventDefault();sendMagicLink();}
+ });$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null,activeDrawingPointer=null,activeDrawingType=null,resumeMainStroke=false;
 // Pointer capture can keep sending moves outside a canvas. Never join a stroke

@@ -1,0 +1,44 @@
+name: Auth signup and returning login
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'game.js'
+      - 'index.html'
+      - 'supabase-config.js'
+      - 'auth-first-paint.js'
+      - 'release/346-badges/135-first-login-recovery-smoke.cjs'
+      - 'release/346-badges/136-first-login-recovery-browser.cjs'
+      - '.github/workflows/auth-signup-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  auth-static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check app.js
+          node --check game.js
+          node release/346-badges/041-shared-signin-pages-smoke.cjs
+          node release/346-badges/119-profile-signup-grants-smoke.cjs
+          node release/346-badges/135-first-login-recovery-smoke.cjs
+          node emails/check-templates.cjs
+  auth-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/136-first-login-recovery-browser.cjs

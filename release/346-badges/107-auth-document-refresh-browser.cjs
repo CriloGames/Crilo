@@ -42,7 +42,7 @@ const authScript=
    el.getContext('2d').getImageData(100,100,1,1).data[3]>0));
  }
  async function clean(page){
-  assert.equal(await page.locator('#drawColor').inputValue(),'#222222',
+  assert.equal(await page.locator('#drawColor').inputValue(),'#000000',
    'Color picker leaked from a previous account');
   assert.equal(await page.locator('#drawing').evaluate(el=>
    el.getContext('2d').getImageData(100,100,1,1).data[3]),0,

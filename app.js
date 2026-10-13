@@ -100,16 +100,35 @@
     }
 
     const nextUser=session?.user||null;
-    let nextProfile=null;
+    let nextProfile=null,profileReadFailed=false;
     if(nextUser){
       const {data,error}=await criloDB.from('profiles')
         .select('id,username,name_color,name_letter_colors,theme,sound_enabled,is_owner,account_code,avatar_symbol,avatar_background,avatar_ink')
         .eq('id',nextUser.id).maybeSingle();
       if(generation!==identityGeneration)return;
-      if(error)console.error('Crilo profile error:',error);
+      if(error){
+        console.error('Crilo profile error:',error);
+        profileReadFailed=true;
+      }
       nextProfile=data||null;
     }
     if(generation!==identityGeneration)return;
+    // A real Supabase user may not have completed username setup yet.
+    // The editable profile dialog lives on Play, so guide new users there
+    // before showing account features on any other page. Do not mistake
+    // a transient database read failure for an incomplete signup.
+    if(nextUser&&!nextProfile&&!profileReadFailed&&
+       location.pathname!=='/'&&location.pathname!=='/index.html'){
+      try{
+        const originPath=location.pathname+location.search;
+        if(originPath.startsWith('/')&&!originPath.startsWith('//')&&
+           !originPath.includes('\\')&&originPath.length<=1024){
+          sessionStorage.setItem('crilo_signup_return',originPath);
+        }
+      }catch{}
+      location.replace('/index.html');
+      return;
+    }
     Crilo.user=nextUser;
     Crilo.profile=nextProfile;
     if(nextProfile?.theme)applyTheme(nextProfile.theme);
@@ -353,6 +372,9 @@
   function navigateAfterAuth(signedIn){
     if(authNavigationPending)return;
     authNavigationPending=true;
+    if(!signedIn){
+      try{sessionStorage.removeItem('crilo_signup_return')}catch{}
+    }
     // This cache paints the header before Supabase can verify the session.
     // It must never briefly show the previous account after a transition.
     window.CriloHeaderContinuity?.clear();
