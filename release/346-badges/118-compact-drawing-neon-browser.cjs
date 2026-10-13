@@ -2,6 +2,18 @@
 /* Headless Chromium: no real auth or official Daily writes. */
 const assert=require('node:assert/strict');
 const http=require('node:http');
+const fs=require('node:fs'),path=require('node:path');
+// Instrument only the locally served browser fixture, never the shipped code.
+const gameSource=fs.readFileSync(path.resolve(__dirname,'../../game.js'),'utf8');
+const qaGame=gameSource.replace(/\}\)\(\);\s*$/,[
+ 'window.lockDrawing=lockDrawing;',
+ 'window.unlockDrawing=unlockDrawing;',
+ 'window.setDrawingPanelMode=setDrawingPanelMode;',
+ 'window.recordPaintColor=recordPaintColor;',
+ 'window.resetRecentPaintColors=resetRecentPaintColors;',
+ '})();'
+].join('\n'));
+assert.notEqual(qaGame,gameSource,'Game QA injection needs the real IIFE ending');
 const {chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
 const controls=[
@@ -19,6 +31,9 @@ const controls=[
   for(const width of [375,390,600,601,760,780,781,800,820,840,900,1280]){
    const context=await browser.newContext({viewport:{width,height:900}});
    await context.addInitScript({content:mockSupabase.replace('loggedIn:false','loggedIn:true')});
+   await context.route('**/game.js*',route=>route.fulfill({
+    status:200,contentType:'text/javascript',body:qaGame
+   }));
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,route=>
     route.fulfill({status:200,contentType:'text/javascript',body:''}));
    await context.route(/^https:\/\/(?!crilo\.fun)/,route=>route.abort());
@@ -181,7 +196,8 @@ const controls=[
     'Phone/tablet editor should stack instructions over tools');
    await page.locator('#drawMode').selectOption('spin');
    await page.evaluate(()=>{
-    document.body.classList.add('wheel-run-active','wheel-session-fit');
+    // The temporary active-spin class hides the entire panel by design.
+    // Test the real locked/disabled editor layout without that transition.
     window.lockDrawing();
    });
    const locked=await state();
