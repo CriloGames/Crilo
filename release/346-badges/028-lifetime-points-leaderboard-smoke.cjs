@@ -26,8 +26,18 @@ const db={rpc:async(name,args)=>{
   {user_id:'u2',username:'Friend',name_color:'#222222',total_points:800,official_runs:10},
   {user_id:'u3',username:'Friend Two',name_color:'#222222',total_points:800,official_runs:12}
  ],error:null};
- },from(){fromCalled++;throw Error('Leaderboard should not perform client-side points aggregation')}};
-const win={addEventListener(){}},document={
+ },from(table){
+  fromCalled++;
+  assert.equal(table,'profiles','Client must never aggregate daily_runs for lifetime points');
+  return {select(columns){
+   assert.equal(columns,'id,name_letter_colors');
+   return {in(key,ids){
+    assert.equal(key,'id');assert.equal(ids.length,3);
+    return Promise.resolve({data:[],error:null});
+   }};
+  }};
+ }};
+const win={addEventListener(){},CriloNameColors:{paint(el,p){el.textContent=p?.username||'Crilo player'},markup(p){return String(p?.username||'Crilo player')}}},document={
  getElementById:get,querySelectorAll:()=>[]};
 const Crilo={profile:{is_owner:false},esc:x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;')};
 const modified=script.replace(/load\(\)\}\)\(\);\s*$/,
@@ -38,7 +48,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
 (async()=>{
  await win.__auditLoadTotalPoints(0);
  assert.equal(called,1);
- assert.equal(fromCalled,0);
+ assert.equal(fromCalled,1,'One profile color read is allowed; Daily rows must not be queried');
  assert.equal(get('bestScore').textContent,'1,000');
  assert.equal(get('bestHeading').textContent,'ALL-TIME POINTS LEADER');
  assert.match(get('leaderDescription').textContent,/server-verified official Dailies/);
