@@ -21,7 +21,7 @@ function section(from,to){
  return game.slice(i,j);
 }
 const previewFunction=section('function showGuestBadgePreview(r){','// Only compare badge IDs');
-const awardsFunction=section('async function showNewBadges(prior){','/* Share one completed-state summary');
+const awardsFunction=section('async function showNewBadges(prior,{review=false}={}){','/* Share one completed-state summary');
 const elements=new Map();
 function $(id){if(!elements.has(id)){
  const node={
