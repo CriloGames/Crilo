@@ -95,13 +95,27 @@ const intercept=`(function(){
   score:64,spins:6,state:guestState};
  for(const width of [390,1024]){
   const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
-  await context.addInitScript({content:mockSupabase+
-   'localStorage.setItem("crilo_guest_daily_v1",'+JSON.stringify(JSON.stringify(guestSaved))+');'});
+  await context.addInitScript({content:mockSupabase});
   await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
    r=>r.fulfill({status:200,contentType:'text/javascript',body:''}));
   await context.route(/^https:\/\/(?!crilo\.fun)/,r=>r.abort());
   const page=await context.newPage();
   await page.goto(base+'/index.html',{waitUntil:'domcontentloaded'});
+  // Persist the completed run while actually on Crilo's origin, then refresh
+  // exactly as a guest player would after finishing their Daily.
+  const period=await page.evaluate(()=>window.Crilo.dailyPeriod());
+  await page.evaluate(data=>localStorage.setItem('crilo_guest_daily_v1',JSON.stringify(data)),
+   {...guestSaved,period});
+  await page.reload({waitUntil:'domcontentloaded'});
+  await page.waitForTimeout(1100);
+  const guestDebug=await page.evaluate(()=>({
+   period:window.Crilo?.dailyPeriod(),saved:JSON.parse(localStorage.getItem('crilo_guest_daily_v1')||'null')?.status,
+   message:document.querySelector('#message')?.textContent,
+   user:window.Crilo?.user?.id||null,
+   ready:window.Crilo?.authResolved,
+   hidden:document.querySelector('#reviewDailyBtn')?.classList.contains('hidden')
+  }));
+  console.log('GUEST_DAILY_REVIEW_DEBUG',JSON.stringify({width,guestDebug}));
   await page.locator('#reviewDailyBtn').waitFor({state:'visible',timeout:15000});
   await page.locator('#reviewDailyBtn').click();
   assert.equal(await page.locator('#finalScore').innerText(),'64');
