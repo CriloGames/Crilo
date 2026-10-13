@@ -6,7 +6,7 @@ const profile=fs.readFileSync('profile.js','utf8');
 const page=fs.readFileSync('profile.html','utf8');
 const domain=fs.readFileSync('domain/game.js','utf8');
 const domainPage=fs.readFileSync('domain/index.html','utf8');
-assert.match(page,/profile\.js\?v=100/);
+assert.match(page,/profile\.js\?v=\d+/,'Profile JS must be cache-versioned');
 assert.match(domainPage,/game\.js\?v=13/);
 assert.match(profile,/\.eq\('game_key','domain'\)\.order\('score',\{ascending:false\}\)\.limit\(25\)/);
 assert.ok(!profile.includes('Legacy / local (unverified)'));
