@@ -1,0 +1,36 @@
+name: Saved Daily review and responsive headers
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'header-continuity.js'
+      - 'header-fit.css'
+      - 'daily-review.css'
+      - 'release/346-badges/131-daily-review-header-smoke.cjs'
+      - 'release/346-badges/132-daily-review-header-browser.cjs'
+      - '.github/workflows/daily-review-header.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          node --check game.js
+          node --check header-continuity.js
+          node release/346-badges/131-daily-review-header-smoke.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/132-daily-review-header-browser.cjs

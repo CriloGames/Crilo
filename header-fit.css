@@ -1,0 +1,44 @@
+/* Prefer a compact, one-row banner while every item actually fits.
+   Only stack when the measured brand, links, and account controls cannot fit.
+   Keep the mobile layout defined in style.css unchanged. */
+@media(min-width:701px){
+ .topbar.crilo-header-inline{
+  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+  gap:clamp(10px,1.15vw,19px)!important;
+  padding:7px clamp(14px,1.6vw,24px)!important;
+  min-height:68px;
+ }
+ .topbar.crilo-header-inline .brand{
+  flex:0 0 auto;white-space:nowrap;
+ }
+ .topbar.crilo-header-inline nav{
+  display:flex;flex:0 0 auto;min-width:0;width:auto!important;
+  max-width:none;order:0!important;white-space:nowrap;
+  gap:clamp(8px,.9vw,17px)!important;
+  justify-content:center;flex-wrap:nowrap!important;
+ }
+ .topbar.crilo-header-inline nav a{
+  font-size:clamp(11px,.94vw,13px);
+  letter-spacing:.02em;white-space:nowrap;
+ }
+ .topbar.crilo-header-inline nav a.crilo-owner-review-link{
+  padding:9px clamp(8px,1vw,12px);
+  font-size:clamp(10px,.85vw,12px);
+ }
+ .topbar.crilo-header-inline .header-actions{
+  order:0;display:flex;align-items:center;flex:0 0 auto;margin-left:auto;
+  gap:clamp(4px,.55vw,7px)!important;
+ }
+ .topbar.crilo-header-stacked{
+  flex-wrap:wrap!important;gap:9px 15px!important;
+  padding:10px 18px!important;
+ }
+ .topbar.crilo-header-stacked nav{
+  order:3!important;width:100%!important;flex:1 0 100%;
+  justify-content:center!important;flex-wrap:wrap!important;
+  gap:clamp(9px,1.4vw,17px)!important;
+ }
+ .topbar.crilo-header-stacked .header-actions{margin-left:auto}
+}
+/* Avoid accidental text clipping/overlaps while preserving username colors. */
+.topbar nav a{white-space:nowrap}

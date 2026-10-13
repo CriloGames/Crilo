@@ -1,0 +1,16 @@
+/* Review is intentionally secondary and never restarts a Daily. */
+#reviewDailyBtn.daily-review-btn{
+ display:block;margin:14px auto 16px;max-width:max-content;
+ padding:10px 20px;border:1px solid #d6c5e5;border-radius:999px;
+ background:#f6f0fc;color:#403852;font-size:12px;font-weight:850;
+ letter-spacing:.035em;cursor:pointer;line-height:1.4;
+}
+#reviewDailyBtn.hidden{display:none!important}
+#reviewDailyBtn.daily-review-btn:hover{background:#ece2f8;border-color:#a88dca}
+#reviewDailyBtn.daily-review-btn:focus-visible{outline:2px solid #9268ba;outline-offset:3px}
+#reviewDailyBtn[aria-expanded="true"]{background:#ebe4f3}
+html[data-theme="dark"] #reviewDailyBtn.daily-review-btn{
+ background:#30283b;border-color:#6e5b7e;color:#e7d9f0
+}
+html[data-theme="dark"] #reviewDailyBtn.daily-review-btn:hover{background:#42334f}
+@media(prefers-reduced-motion:reduce){#reviewDailyBtn{transition:none!important}}

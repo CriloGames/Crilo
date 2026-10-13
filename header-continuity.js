@@ -122,6 +122,40 @@ function clear(){
  const button=document.getElementById('accountBtn');
  if(button)delete button.dataset.visualReady;
 }
-window.CriloHeaderContinuity={prime,save,updateCount,clear,ensureBell};
+// Measure the actual menu and account controls, not a fixed "small laptop"
+// breakpoint. Keep everything inline whenever it fits with readable spacing.
+let fitQueued=false;
+function fitHeader(){
+ fitQueued=false;
+ const bar=document.querySelector('.topbar');
+ if(!bar||!bar.querySelector('nav')||!bar.querySelector('.header-actions'))return;
+ if(innerWidth<=700){
+  bar.classList.remove('crilo-header-inline','crilo-header-stacked');
+  return; // Keep existing phone layout.
+ }
+ bar.classList.remove('crilo-header-stacked');
+ bar.classList.add('crilo-header-inline');
+ const nav=bar.querySelector('nav'),brand=bar.querySelector('.brand');
+ const actions=bar.querySelector('.header-actions');
+ const css=getComputedStyle(bar);
+ const available=bar.clientWidth-parseFloat(css.paddingLeft)-parseFloat(css.paddingRight);
+ const gap=parseFloat(css.columnGap)||0;
+ const needed=(brand?.getBoundingClientRect().width||0)+
+  nav.scrollWidth+actions.scrollWidth+2*gap+5;
+ const fits=needed<=available;
+ bar.classList.toggle('crilo-header-inline',fits);
+ bar.classList.toggle('crilo-header-stacked',!fits);
+}
+function scheduleHeaderFit(){
+ if(fitQueued)return;
+ fitQueued=true;requestAnimationFrame(fitHeader);
+}
+window.addEventListener('resize',scheduleHeaderFit,{passive:true});
+const headerNav=document.querySelector('.topbar nav');
+if(headerNav)new MutationObserver(scheduleHeaderFit).observe(headerNav,{childList:true,subtree:true});
+const accountButton=document.getElementById('accountBtn');
+if(accountButton)new MutationObserver(scheduleHeaderFit).observe(accountButton,{childList:true,subtree:true});
+window.CriloHeaderContinuity={prime,save,updateCount,clear,ensureBell,fitHeader:scheduleHeaderFit};
 prime();
+scheduleHeaderFit();
 })();
