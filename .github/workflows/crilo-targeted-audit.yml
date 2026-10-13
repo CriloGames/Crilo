@@ -4,6 +4,15 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/crilo-targeted-audit.yml'
+      - 'release/346-badges/**'
+      - 'profile.js'
+      - 'profile.html'
+      - 'index.html'
+      - 'badge-sets.html'
+      - 'leaderboard.html'
+      - 'style.css'
+      - 'badge-collection.css'
+      - 'badge-collection.js'
   workflow_dispatch:
 permissions:
   contents: read

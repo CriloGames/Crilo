@@ -80,7 +80,7 @@ async function run(awards){
  };
  const player={user:{id:'fixture-player'},profile,esc};
  const win={addEventListener:(name,cb)=>listeners[name]=cb,
-  CriloRarity:{classify:()=>({label:'common'})}};
+  CriloRarity:{classify:()=>({label:'common'})},CriloNameColors:{paint(){}}};
  const ctx={window:win,document:{
   getElementById,createElement:()=>getElementById('created'),querySelectorAll:()=>[]},
   location:{search:''},URLSearchParams,Crilo:player,criloDB:client,

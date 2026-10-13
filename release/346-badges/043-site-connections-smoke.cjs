@@ -29,7 +29,7 @@ for(const page of pages.filter(p=>!['domain/index.html','support.html','shape-of
  const html=pagesSource[page];
  assert.ok(html.includes('id="accountBtn"')&&html.includes('id="accountMenu"'),
   'Broken or missing account header on '+page);
- assert.ok(html.includes('app.js?v=48'),'Stale/missing shared authentication script on '+page);
+ assert.ok(html.includes('app.js?v=55'),'Stale/missing shared authentication script on '+page);
 }
 assert.ok(pagesSource['friends.html'].includes('friends.js?v=12'));
 for(const id of ['copyInviteBtn','inviteLink','invitationNotice','friendSearch','searchBtn'])
