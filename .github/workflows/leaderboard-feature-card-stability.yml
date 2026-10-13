@@ -1,0 +1,27 @@
+name: Leaderboard featured player layout stability
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leaderboard.html'
+      - 'top-score-row.css'
+      - 'leaderboard.js'
+      - 'top-score-fit.js'
+      - 'release/346-badges/139-leaderboard-feature-card-stability-browser.cjs'
+      - '.github/workflows/leaderboard-feature-card-stability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/139-leaderboard-feature-card-stability-browser.cjs

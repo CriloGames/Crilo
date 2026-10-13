@@ -507,3 +507,31 @@ html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
  .best-card .best-stats:has(.best-metric){grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}
  .best-card .best-metric:nth-child(3){border-left:none}
 }
+
+/* Leaderboard hero height lock: Today/Week/All-Time/Longest Runs display
+   an artwork and four metrics, while Points/Badges/Ducks hide the artwork
+   and show one line of text. The card must never resize between categories
+   or push the category tabs/list around while loading. */
+.best-card{
+ box-sizing:border-box;
+ height:408px;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:flex-start;
+}
+.best-card .best-crown,
+.best-card #bestHeading,
+.best-card .best-stats{flex:0 0 auto}
+.best-card .best-feature-row{
+ flex:1 1 auto;
+ min-height:0;
+}
+/* The phone's narrower score and artwork need slightly different reserved
+   room; use one fixed height within each viewport band. */
+@media(max-width:540px){
+ .best-card{height:385px}
+}
+@media(max-width:340px){
+ .best-card{height:415px}
+}
