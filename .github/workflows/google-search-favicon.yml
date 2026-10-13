@@ -1,0 +1,40 @@
+name: Google search favicon audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'favicon.png'
+      - 'favicon.ico'
+      - 'CNAME'
+      - 'robots.txt'
+      - 'index.html'
+      - 'leaderboard.html'
+      - 'ducks.html'
+      - 'friends.html'
+      - 'profile.html'
+      - 'settings.html'
+      - 'badge-sets.html'
+      - 'support.html'
+      - 'privacy.html'
+      - 'terms.html'
+      - 'shape-of-sound.html'
+      - 'beetle-tricks.html'
+      - 'moderation.html'
+      - 'owner-analytics.html'
+      - 'domain/index.html'
+      - 'release/346-badges/140-google-favicon-smoke.cjs'
+      - '.github/workflows/google-search-favicon.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  favicon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm canonical, Google-friendly, crawlable favicon
+        run: node release/346-badges/140-google-favicon-smoke.cjs
