@@ -73,7 +73,7 @@ const intercept=`(function(){
          .map(a=>a.getBoundingClientRect());
        const rows=[];
        for(const link of links){
-         let row=rows.find(group=>Math.abs(group[0].top-link.top)<5);
+         let row=rows.find(group=>Math.abs((group[0].top+group[0].height/2)-(link.top+link.height/2))<6);
          if(!row){row=[];rows.push(row);}
          row.push(link);
        }
