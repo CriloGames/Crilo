@@ -5,4 +5,4 @@
 };window.addEventListener('crilo-auth-ready',renderDucks);
 // Auth may finish before this deferred page script registers its listener.
 // Always paint the guest state immediately; a restored session paints progress later.
-renderDucks({detail:{user:Crilo.user||null}});})();
+if(Crilo.authResolved)renderDucks({detail:{user:Crilo.user||null}});})();

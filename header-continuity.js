@@ -3,17 +3,33 @@
  * Supabase re-verifies the user and owner role on every new page. */
 (()=>{
 'use strict';
-const KEY='crilo-header-preview-v1',AGE=3*60*60*1000;
+const KEY='crilo-header-preview-v2',AGE=3*60*60*1000;
 const siteRoot=location.pathname.startsWith('/domain/')?'../':'';
 const validName=s=>typeof s==='string'&&/^[A-Za-z0-9_]{2,20}$/.test(s);
 const validColor=s=>typeof s==='string'&&/^#[\da-fA-F]{6}$/.test(s);
+const validLetters=(name,letters)=>letters===null||
+ (Array.isArray(letters)&&letters.length===name.length&&letters.every(validColor));
+function paintName(button,info){
+ button.style.color=info.color;
+ if(!Array.isArray(info.letters)){
+  button.textContent=info.name;return;
+ }
+ const fragment=document.createDocumentFragment();
+ [...info.name].forEach((letter,index)=>{
+  const span=document.createElement('span');
+  span.textContent=letter;
+  span.style.color=info.letters[index];
+  fragment.append(span);
+ });
+ button.replaceChildren(fragment);
+}
 function read(){
  try{
   const raw=sessionStorage.getItem(KEY);
   if(!raw)return null;
   const data=JSON.parse(raw);
   if(!data||!Number.isFinite(data.time)||Date.now()-data.time>AGE||
-     data.time>Date.now()+60000||!validName(data.name)||!validColor(data.color)||
+     data.time>Date.now()+60000||!validName(data.name)||!validColor(data.color)||!validLetters(data.name,data.letters)||
      typeof data.owner!=='boolean'||!Number.isInteger(data.count)||data.count<0||
      data.count>999||typeof data.userId!=='string'||data.userId.length>100){
    sessionStorage.removeItem(KEY);return null;
@@ -68,8 +84,7 @@ function prime(){
  const bell=ensureBell();
  if(bell)bell.style.display=snapshot?'block':'none';
  if(!snapshot)return;
- button.textContent=snapshot.name;
- button.style.color=snapshot.color;
+ paintName(button,snapshot);
  button.style.visibility='visible';
  button.dataset.visualReady='true';
  button.setAttribute('aria-busy','true');
@@ -88,6 +103,7 @@ function save(user,profile){
  const old=read();
  const data={userId:user.id,name:profile.username,
   color:validColor(profile.name_color)?profile.name_color:'#17191e',
+  letters:validLetters(profile.username,profile.name_letter_colors)&&Array.isArray(profile.name_letter_colors)?[...profile.name_letter_colors]:null,
   owner:profile.is_owner===true,
   count:old?.userId===user.id?old.count:0,time:Date.now()};
  store(data);

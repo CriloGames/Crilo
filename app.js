@@ -3,7 +3,7 @@
   // Standalone Domain uses a subdirectory; user menus must still point to the site root.
   const siteRoot = location.pathname.startsWith('/domain/') ? '../' : '';
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-  window.Crilo = { $, esc, user:null, profile:null };
+  window.Crilo = { $, esc, user:null, profile:null, authResolved:false };
 
   // Fixed-format, database-owned username ink. Never treat player text as HTML.
   window.CriloNameColors={
@@ -84,6 +84,7 @@
           if(generation!==identityGeneration)return;
           Crilo.user=null;Crilo.profile=null;
           renderAccount();
+          Crilo.authResolved=true;
           window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
           return;
         }
@@ -92,7 +93,8 @@
         console.error('Crilo ban status check failed:',error);
         // Fail closed on a ban-check outage, never show authenticated actions.
         Crilo.user=null;Crilo.profile=null;renderAccount();
-        window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
+        Crilo.authResolved=true;
+          window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
         return;
       }
     }
@@ -112,6 +114,7 @@
     Crilo.profile=nextProfile;
     if(nextProfile?.theme)applyTheme(nextProfile.theme);
     renderAccount();
+    Crilo.authResolved=true;
     window.dispatchEvent(new CustomEvent('crilo-auth-ready',{
       detail:{user:Crilo.user,profile:Crilo.profile}
     }));
@@ -414,7 +417,7 @@
 
   document.addEventListener('click',e=>{
     const btn=$('accountBtn'), menu=$('accountMenu');
-    if(!btn||!menu) return;
+    if(!btn||!menu||!authHeaderReady) return;
     if(btn.contains(e.target)){
       if(!Crilo.user){ window.dispatchEvent(new CustomEvent('crilo-signin-request')); return; }
       menu.classList.toggle('hidden');
@@ -526,6 +529,7 @@
     await loadIdentity();
     authHeaderReady=true;
     renderAccount();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>window.CriloAuthFirstPaint?.reveal()));
   }
   initializeAuth().catch(error=>{
     console.error('Crilo auth initialization:',error);
@@ -533,6 +537,9 @@
     authHeaderReady=true;
     Crilo.user=null;
     Crilo.profile=null;
+    Crilo.authResolved=true;
     renderAccount();
+    window.dispatchEvent(new CustomEvent('crilo-auth-ready',{detail:{user:null,profile:null}}));
+    window.CriloAuthFirstPaint?.reveal();
   });
 })();

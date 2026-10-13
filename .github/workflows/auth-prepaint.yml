@@ -1,0 +1,30 @@
+name: Auth prepaint and per-letter colors
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app.js'
+      - 'header-continuity.js'
+      - 'auth-first-paint.js'
+      - '*.html'
+      - 'domain/index.html'
+      - 'release/346-badges/130-auth-prepaint-browser.cjs'
+      - '.github/workflows/auth-prepaint.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          node --check app.js
+          node --check header-continuity.js
+          node --check auth-first-paint.js
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify no guest flash and multicolored username on reload
+        run: node release/346-badges/130-auth-prepaint-browser.cjs

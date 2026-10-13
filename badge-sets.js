@@ -117,5 +117,5 @@
   });
 
   window.addEventListener('crilo-auth-ready',load);
-  load();
+  if(Crilo.authResolved)load();
 })();

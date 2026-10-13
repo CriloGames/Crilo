@@ -589,4 +589,4 @@ $('domainTop').innerHTML=best.length?best.map((v,i)=>
  '<span class="domain-score-bar"><i style="width:'+Math.min(100,Math.max(0,v/5000*100))+'%"></i></span></span>'+
  '<strong class="domain-score-number">'+v.toLocaleString('en-US')+'<small> / 5,000</small></strong></div>'
 ).join(''):'<p class="muted">No Domain scores yet. Play a game to set your first personal best.</p>';}
-window.addEventListener('crilo-auth-ready',load);load();})();
+window.addEventListener('crilo-auth-ready',load);if(Crilo.authResolved)load();})();
