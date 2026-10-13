@@ -10,7 +10,7 @@ const css=fs.readFileSync(path.join(root,'style.css'),'utf8');
 const game=fs.readFileSync(path.join(root,'game.js'),'utf8');
 const demo=fs.readFileSync(path.join(root,'beetle-tricks.html'),'utf8');
 assert.ok(/style\.css\?v=\d+/.test(html)&&/game\.js\?v=\d+/.test(html));
-assert.ok(demo.includes('style.css?v=83'));
+assert.ok(demo.includes('style.css?v=127'));
 assert.match(html,/name="viewport" content="width=device-width,initial-scale=1"/);
 assert.doesNotMatch(html,/user-scalable=no|maximum-scale=1/);
 assert.ok(html.indexOf('class="wheel-stage"')<html.indexOf('id="spinButton"'));
