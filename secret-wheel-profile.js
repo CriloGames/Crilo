@@ -4,7 +4,7 @@
  'use strict';
  const wrap=document.querySelector('.profile-icon-wrap'),
        button=document.getElementById('secretHaloToggle');
- if(!wrap||!button||!window.criloDB)return;
+ if(!wrap||!button||typeof criloDB==='undefined')return;
  const query=new URLSearchParams(location.search);
  let equipped=false,won=false,revision=0;
  async function load(){
