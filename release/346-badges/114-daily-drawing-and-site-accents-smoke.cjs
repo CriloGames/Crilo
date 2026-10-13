@@ -182,11 +182,11 @@ assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finis
  'Dark mode styling must remain present');
 
 /* Pixel Studio uses the SAME Center Spin setting, even after closing via
-   Exit or Escape. Its selector stays in the header, outside the art tools. */
+   Exit or Escape. Its selector stays beside Color in the normal tool row. */
 assert.match(html,/<label class="native-paint-picker" for="pixelColor">[\s\S]*?<\/label><label class="pixel-spin-mode" for="pixelDrawMode">/,
  'Spin / Don’t spin selector must sit immediately after Color in Pixel Studio tools');
-assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Don’t spin<\/option><option value="spin">Spin<\/option>/,
- 'Studio must expose both spin modes, matching the wheel');
+assert.match(html,/<select id="pixelDrawMode"[^>]*><option value="stationary">Center stays still<\/option><option value="spin">Center spins<\/option>/,
+ 'Studio must match the main wheel’s full center spin labels');
 assert.match(pixelCss,/#pixelStudioModal #pixelDrawMode\s*\{/,
  'Studio spin selector needs compact scoped styling');
 assert.match(pixelCss,/@media\(max-width:600px\)[\s\S]*?#pixelStudioModal \.pixel-studio-tools \.drawing-color-value/,
