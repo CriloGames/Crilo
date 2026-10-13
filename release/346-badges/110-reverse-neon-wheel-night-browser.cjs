@@ -179,12 +179,13 @@ function luminance(pixel){
      assert.ok(top.font>=24,'Keep a readable large top score on every device');
      assert.ok(['flex','block'].includes(top.display),'Top score must remain a number box');
      if(width<=440){
-      const vertical=await page.locator('#bestScore').evaluate(el=>{
+      // The polished compact hero intentionally keeps score LEFT of artwork.
+      const compact=await page.locator('#bestScore').evaluate(el=>{
        const a=el.getBoundingClientRect(),b=document.getElementById('bestDrawing').getBoundingClientRect();
-       return{gap:b.top-a.bottom,center:Math.abs((a.left+a.right)/2-(b.left+b.right)/2)};
+       return{gap:b.left-a.right,center:Math.abs((a.top+a.bottom)/2-(b.top+b.bottom)/2)};
       });
-      assert.ok(vertical.gap>=5,'Phone hero should stack rather than squash the drawing');
-      assert.ok(vertical.center<3,'Phone score and drawing need one centerline');
+      assert.ok(compact.gap>=4,'Phone hero score should sit beside the wheel: '+JSON.stringify(compact));
+      assert.ok(compact.center<5,'Phone hero score and drawing should align vertically: '+JSON.stringify(compact));
      }else{
       assert.ok(top.scoreRight+5<top.artX,
        'Desktop score belongs on the LEFT, drawing on the RIGHT');
