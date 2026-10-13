@@ -6,6 +6,8 @@ on:
       - 'game.js'
       - 'index.html'
       - 'release/346-badges/038-guest-daily-refresh-lock-smoke.cjs'
+      - 'release/346-badges/133-guest-rate-limit-smoke.cjs'
+      - 'sql/guest-daily-session-rate-limit-20261013.sql'
       - '.github/workflows/guest-daily-claim.yml'
   workflow_dispatch:
 jobs:
@@ -18,3 +20,5 @@ jobs:
         run: node --check game.js
       - name: Test server-backed guest spin, reload and sign-in claim
         run: node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs
+      - name: Test guest-session server-side throttling and error UI
+        run: node release/346-badges/133-guest-rate-limit-smoke.cjs

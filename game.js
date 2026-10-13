@@ -267,8 +267,13 @@ async function claimGuestDaily(){
   guestDailyClaimedHere=true;guestDailyClaimedPeriod=record.period;
   return true;
  }catch(error){
-  guestDailyShow('Guest play requires working browser storage to protect your Daily progress. Enable site storage or sign in.',
-   'Cannot save guest Daily');
+  if(error?.code==='GUEST_RATE_LIMIT'||/Too many (new )?guest Dailies/i.test(error?.message||'')){
+   guestDailyShow('Too many guest Dailies have been started from this connection. Please try again later. Existing saved guest runs can still be resumed.',
+    'Guest Daily temporarily limited');
+  }else{
+   guestDailyShow('Guest play requires working browser storage and an available connection. Enable site storage, reconnect, or sign in.',
+    'Cannot start guest Daily');
+  }
   return false;
  }
 }

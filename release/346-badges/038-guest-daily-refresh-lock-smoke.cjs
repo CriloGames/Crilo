@@ -22,7 +22,7 @@ function remoteState(){
   numbers_landed:remote.spin_count,extra_spins:0,segments:clone(segments),
   results:clone(remote.results),finished:remote.remaining_spins===0,claimed:!!claimed};
 }
-function mount(signed=false){
+function mount(signed=false,rateLimited=false){
  const els=new Map(),events={};let clock=0;
  const get=id=>{
   if(els.has(id))return els.get(id);
@@ -48,7 +48,9 @@ function mount(signed=false){
   rpc:async(name,args)=>{
    calls.push({name,args});
    if(name==='crilo_guest_begin'){
-    beginCount++;remote={score:0,spin_count:0,remaining_spins:5,results:[]};
+    beginCount++;
+    if(rateLimited)return {data:null,error:{code:'GUEST_RATE_LIMIT',message:'Too many new guest Dailies started from this connection.'}};
+    remote={score:0,spin_count:0,remaining_spins:5,results:[]};
     return{data:{token:TOKEN,period:'2026-10-12'},error:null};
    }
    if(name==='crilo_guest_state')return{data:remoteState(),error:null};
@@ -111,5 +113,8 @@ function mount(signed=false){
  assert.equal(official.score,10);assert.equal(storage.has(KEY),false);
  assert.match(signed.get('message').textContent,/saved|Daily/i);
  await signed.ready();assert.equal(claimed,1,'Claim cannot repeat');
+ const limited=mount(false,true);await limited.ready();await limited.spin();
+ assert.equal(limited.get('spinButton').disabled,true,'Denied guest start must not allow unverified spins');
+ assert.match(limited.get('message').textContent,/Too many guest Dailies/, 'Rate limit must have accurate player-facing message');
  console.log('GUEST_CLAIM_SMOKE_PASS server spins, reload, completed transfer, idempotent sign-in');
 })().catch(error=>{console.error('GUEST_CLAIM_SMOKE_FAIL',error);process.exitCode=1});
