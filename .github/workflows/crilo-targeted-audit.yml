@@ -1,0 +1,91 @@
+name: Crilo targeted safety and badge audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/crilo-targeted-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit permissions, spin proof, competition and public secrets
+        shell: bash
+        run: |
+          failures=0
+          for file in \
+            release/346-badges/100-deployed-secret-scanner.cjs \
+            release/346-badges/047-owner-score-security-smoke.cjs \
+            release/346-badges/053-owner-mfa-security-smoke.cjs \
+            release/346-badges/059-security-hardening-smoke.cjs \
+            release/346-badges/063-wheel-proof-canonicalization-smoke.cjs \
+            release/346-badges/064-wheel-verified-account-smoke.cjs \
+            release/346-badges/068-competitive-badges-smoke.cjs \
+            release/346-badges/069-wheel-gmail-alias-smoke.cjs; do
+            echo "::group::$file"
+            node "$file" || failures=$((failures+1))
+            echo "::endgroup::"
+          done
+          echo "Security checks failed: $failures"
+          test "$failures" -eq 0
+  badges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit badge counts, profile previews, featured awards and run history
+        shell: bash
+        run: |
+          failures=0
+          for file in \
+            release/346-badges/012-profile-rendering-smoke.cjs \
+            release/346-badges/013-clickable-profile-badges-smoke.cjs \
+            release/346-badges/014-spin-history-smoke.cjs \
+            release/346-badges/016-owner-test-scoreboard-smoke.cjs \
+            release/346-badges/017-featured-earned-badges-smoke.cjs \
+            release/346-badges/027-postdaily-badges-total-points-smoke.cjs \
+            release/346-badges/038-guest-daily-refresh-lock-smoke.cjs \
+            release/346-badges/126-daily-badge-dropdown-smoke.cjs \
+            release/346-badges/133-public-featured-badge-preview-smoke.cjs; do
+            echo "::group::$file"
+            node "$file" || failures=$((failures+1))
+            echo "::endgroup::"
+          done
+          echo "Badge/gameplay checks failed: $failures"
+          test "$failures" -eq 0
+  site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit links, responsive tabs, profile UI and documentation
+        shell: bash
+        run: |
+          failures=0
+          for file in \
+            release/346-badges/020-responsive-leaderboard-tabs-smoke.cjs \
+            release/346-badges/041-shared-signin-pages-smoke.cjs \
+            release/346-badges/043-site-connections-smoke.cjs \
+            release/346-badges/082-legal-pages-smoke.cjs \
+            release/346-badges/090-profile-icon-static-smoke.cjs \
+            release/346-badges/101-site-sounds-smoke.cjs \
+            release/346-badges/131-daily-review-header-smoke.cjs; do
+            echo "::group::$file"
+            node "$file" || failures=$((failures+1))
+            echo "::endgroup::"
+          done
+          echo "Site checks failed: $failures"
+          test "$failures" -eq 0
