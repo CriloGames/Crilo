@@ -81,7 +81,9 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=20/,'Play must use updated drawing stylesheet');
+const drawingStyleVersion=html.match(/daily-drawing-state\.css\?v=(\d+)/);
+assert.ok(drawingStyleVersion&&Number(drawingStyleVersion[1])>=20,
+ 'Play must use the updated drawing stylesheet');
 assert.match(html,/game\.js\?v=\d+/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
