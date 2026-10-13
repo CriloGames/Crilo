@@ -5,7 +5,9 @@ const game=fs.readFileSync('game.js','utf8');
 const app=fs.readFileSync('app.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
 assert.match(html,/app\.js\?v=56/);
-assert.match(html,/game\.js\?v=112/);
+const gameVersion=html.match(/game\.js\?v=(\d+)/);
+assert.ok(gameVersion&&Number(gameVersion[1])>=112,
+ 'Initial sign-in client must use a sufficiently recent game bundle');
 assert.match(html,/\bid="emailInput"[^>]*type="email"[^>]*autocomplete="email"/);
 assert.match(game,/emailInput'\)\.addEventListener\('keydown'/);
 const section=(src,start,end)=>{const a=src.indexOf(start),b=src.indexOf(end,a+start.length);assert.ok(a>=0&&b>a,'Find '+start);return src.slice(a,b);};
