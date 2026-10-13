@@ -84,8 +84,14 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     'Main recent colors should show paint actually used');
    await page.locator('#pixelStudioBtn').click();
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
-   assert.equal(await page.locator('#pixelCanvas').evaluate(el=>getComputedStyle(el).imageRendering),
-    'auto','Enlarged Pixel Studio art should be smoothly interpolated, not pixelated');
+   const studioImageStyle=await page.locator('#pixelCanvas').evaluate(el=>({
+    rendering:getComputedStyle(el).imageRendering,
+    filter:getComputedStyle(el).filter
+   }));
+   assert.equal(studioImageStyle.rendering,'pixelated',
+    'Enlarged Pixel Studio art should have clearer defined edges');
+   assert.ok(studioImageStyle.filter.includes('blur(0.45px)'),
+    'Pixel Studio should keep a subtle 0.45px softness');
    assert.equal(await page.locator('#pixelDrawMode').inputValue(),'stationary',
     'Pixel Studio spin setting must reflect the main wheel on first open');
    const originalToolbarBox=await page.locator('.pixel-studio-tools').boundingBox();
@@ -212,7 +218,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     return feathered;
    });
    assert.ok(smoothEdge>0,
-    'Studio pencil must produce anti-aliased edges, not solid square pixel blocks');
+    'Fine Pixel Studio strokes should still have softly antialiased edges');
 
    await page.locator('#pixelExit').click();
    assert.equal(await page.locator('#drawMode').inputValue(),'stationary',
