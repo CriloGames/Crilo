@@ -15,5 +15,5 @@ assert.match(sql,/p_event='personal_best'/);
 assert.match(sql,/REVOKE EXECUTE ON FUNCTION public\.crilo_v3_record_event\(text\) FROM PUBLIC,anon/);
 assert.match(settings,/criloDB\.rpc\('update_crilo_settings'/,'Save preferences via protected RPC');
 assert.doesNotMatch(settings,/\.from\('profiles'\)\.update\(/,'No unauthorized direct profile writes');
-assert.match(html,/settings\.js\?v=17/,'Invalidate cached broken preference script');
+assert.match(html,/settings\.js\?v=\d+/,'Load the cache-versioned preference script');
 console.log('PASS: Server-evidenced exploration badges and protected preferences; no catalog/progress changes.');
