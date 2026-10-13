@@ -272,4 +272,43 @@ assert.match(css,/#drawPanel:not\(\.daily-finished\) #drawSafetyNote \{[\s\S]*?w
  'The Drawing Studio ban warning should stay on one line on desktop');
 assert.match(css,/@media \(max-width:360px\) \{[\s\S]*?#drawSafetyNote \{white-space:normal\}/,
  'Very narrow phones must be allowed to wrap instead of overflowing');
+
+/* Site-wide owner navigation must remain readable in dark mode, and both
+   editors must start with pure black without overwriting chosen colors. */
+for(const id of ['drawColor','pixelColor']){
+ assert.match(html,new RegExp('id="'+id+'" type="color" value="#000000"'),
+  id+' should default to true black on first page load');
+}
+assert.match(js,/setActivePaintColor\(\$\('drawColor'\)\.value\);/,
+ 'The synchronized editor colors should still initialize from the main picker');
+assert.match(js,/function setActivePaintColor\(value\)\{[\s\S]*?\$\('drawColor'\)\.value=value;\$\('pixelColor'\)\.value=value;/,
+ 'Changing a color must continue to synchronize both drawing tools');
+assert.match(pixelCss,/html\[data-theme="dark"\] \.topbar nav a\.crilo-owner-review-link,/,
+ 'Shared Drawing Review dark-mode colors need higher specificity than generic nav text');
+assert.match(pixelCss,/background:#432f39;\s*color:#f7e2e8;\s*border-color:#916473;/,
+ 'Owner review in dark mode must use a subdued surface and readable pale text');
+assert.match(pixelCss,/\.crilo-owner-review-link:is\(:hover,:focus-visible,\.active\)/,
+ 'Drawing Review hover, focus, and active states must remain readable');
+const luminosity=hex=>{
+ const channels=hex.replace('#','').match(/../g).map(h=>parseInt(h,16)/255);
+ const values=channels.map(c=>c<=.04045?c/12.92:((c+.055)/1.055)**2.4);
+ return values[0]*.2126+values[1]*.7152+values[2]*.0722;
+};
+const contrast=(fg,bg)=>{
+ const a=luminosity(fg),b=luminosity(bg);
+ return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+};
+assert.ok(contrast('#f7e2e8','#432f39')>=4.5,
+ 'Dark Drawing Review navigation must exceed WCAG AA contrast (normal text)');
+assert.ok(contrast('#fff1f5','#563845')>=4.5,
+ 'Dark Drawing Review hover/active state must exceed WCAG AA contrast');
+for(const file of [
+ 'index.html','leaderboard.html','ducks.html','profile.html',
+ 'badge-sets.html','shape-of-sound.html','moderation.html',
+ 'settings.html','friends.html','privacy.html','terms.html','beetle-tricks.html'
+]){
+ assert.match(read(file),/href="style\.css\?v=125"/,
+  file+' must load updated shared dark navigation rules, not an old cached CSS version');
+}
+
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
