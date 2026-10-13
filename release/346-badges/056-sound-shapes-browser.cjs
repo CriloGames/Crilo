@@ -56,29 +56,19 @@ async function main(){
   console.log('START '+scenario.name+' '+scenario.width+'x'+scenario.height);
   page.on('pageerror',e=>{if(/sound-shapes|sound|null|undefined|ReferenceError|SyntaxError/.test(e.message))errors.push(e.message)});
   // Keep the sound sandbox independent from Crilo auth and third-party CDNs.
-  await page.route(/\/(?:app|supabase-config)\.js(?:\?.*)?$/,route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
+  // The real shared app resolves guest authentication and removes the
+  // first-paint veil. This isolated audio test stubs Supabase, so its app
+  // stub must resolve that same veil; otherwise all sounds stay hidden
+  // even though the sound engine has drawn them successfully.
+  await page.route(/\/(?:app|supabase-config)\.js(?:\?.*)?$/,route=>{
+   const isApp=/\/app\.js(?:\?|$)/.test(route.request().url());
+   return route.fulfill({status:200,contentType:'application/javascript',
+    body:isApp?'window.CriloAuthFirstPaint?.reveal();':''});
+  });
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.goto(url,{waitUntil:'domcontentloaded'});
-  // Diagnose genuine paint/layout regressions before Playwright's visibility timeout.
-  const boot=await page.evaluate(()=>{
-   const ids=['shape-of-sound','soundStage','soundObjects'];
-   const measure=el=>{
-    if(!el)return null;
-    const c=getComputedStyle(el),r=el.getBoundingClientRect();
-    return {tag:el.tagName,className:el.className,
-     display:c.display,visibility:c.visibility,opacity:c.opacity,
-     width:r.width,height:r.height,x:r.x,y:r.y,
-     offsetWidth:el.offsetWidth,offsetHeight:el.offsetHeight,
-     inlineWidth:el.style.width,inlineHeight:el.style.height,
-     hidden:el.hidden};
-   };
-   return{blobs:document.querySelectorAll('.sound-blob').length,
-    ancestors:ids.map(id=>({id,...measure(document.getElementById(id))})),
-    firstBlob:measure(document.querySelector('.sound-blob')),
-    styles:[...document.styleSheets].map(s=>s.href?.split('/').pop()||'inline'),
-    readyState:document.readyState,viewport:[innerWidth,innerHeight]};
-  });
-  console.log('SOUND_BOOT_DIAGNOSTIC '+scenario.name+' '+JSON.stringify(boot));
+  check(await page.evaluate(()=>!document.documentElement.classList.contains('crilo-auth-pending')),
+    scenario.name+' test guest auth must clear Crilo initial loading veil');
   await page.locator('.sound-blob').first().waitFor({state:'visible'});
   check(await page.locator('#shape-of-sound').isVisible(),scenario.name+' standalone sound game missing');
   check(await page.locator('#supportPayLink').count()===0,scenario.name+' sound game unexpectedly contains checkout');
