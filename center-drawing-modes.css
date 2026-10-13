@@ -13,6 +13,11 @@
   white-space:nowrap;
   text-overflow:clip;
 }
+/* The compact main toolbar has a more-specific original 9px rule.
+   Keep the corner treatment identical without changing control dimensions. */
+#drawPanel:not(.draw-unavailable) .draw-actions #drawMode.center-drawing-spin-select{
+  border-radius:10px;
+}
 #drawPanel .center-drawing-spin-select:focus-visible,
 #pixelStudioModal .center-drawing-spin-select:focus-visible {
   outline:2px solid #ab96da;
