@@ -81,7 +81,7 @@ assert.match(js,/function showDailyRecap\(record,mode='official'\)/,
  'Saved Daily recap helper must exist');
 assert.match(js,/function syncDailyCountdown\(clock\)/,
  'Countdown should reuse existing next-reset timer');
-assert.match(html,/daily-drawing-state\.css\?v=19/,'Play must use updated drawing stylesheet');
+assert.match(html,/daily-drawing-state\.css\?v=20/,'Play must use updated drawing stylesheet');
 assert.match(html,/game\.js\?v=98/,'Play must load the updated state and viewport logic');
 assert.ok(!html.includes('dailyCompleteDetails')&&!html.includes('completedDailyScore'),
  'No redundant completion tiles should remain in the page');
@@ -176,7 +176,7 @@ assert.match(js,/globalCompositeOperation=drawTool==='eraser'\?'destination-out'
  'Eraser must remain genuinely transparent');
 assert.match(js,/mode==='ready'&&button\.dataset\.tool===drawTool/,
  'Locked Pen and Fill buttons must not look active');
-assert.match(html,/Inappropriate art risks an account ban\./,
+assert.match(html,/Inappropriate art risks a ban\./,
  'Shortened account-ban warning must remain visible');
 assert.match(css,/html\[data-theme="dark"\] \.hero #drawPanel:not\(\.daily-finished\):not\(\.locked-panel\):not\(\.draw-unavailable\)/,
  'Dark mode styling must remain present');
@@ -268,4 +268,8 @@ assert.equal(brushCalls.filter(c=>c.action==='fill').at(-1).mode,'destination-ou
 assert.equal(brushCalls.filter(c=>c.action==='stroke').at(-1).mode,'destination-out',
  'Continuous eraser strokes must clear pixels and remain round');
 
+assert.match(css,/#drawPanel:not\(\.daily-finished\) #drawSafetyNote \{[\s\S]*?white-space:nowrap;/,
+ 'The Drawing Studio ban warning should stay on one line on desktop');
+assert.match(css,/@media \(max-width:360px\) \{[\s\S]*?#drawSafetyNote \{white-space:normal\}/,
+ 'Very narrow phones must be allowed to wrap instead of overflowing');
 console.log('DAILY_DRAWING_STATE_PASS: text-free translucent overlay, controls locked, owner Test resets, both themes');
