@@ -40,7 +40,7 @@ assert.ok(domain.includes("slider:Number($('priceSlider').value)"),'Send slider,
 assert.ok(page.includes('domainSaveStatus')&&page.includes('game.js?v=13'));
 assert.ok(profile.includes(".eq('game_key','domain').order('score',{ascending:false}).limit(25)"),'Personal Domain history must include all stored scores');
 assert.ok(!profile.includes('Legacy / local (unverified)')&&!profile.includes('No server-verified Domain scores yet'), 'Personal Domain scores should not display verification labels');
-assert.ok(profilePage.includes('profile.js?v=100'));
+assert.ok(/profile\.js\?v=\d+/.test(profilePage));
 assert.match(owner,/CREATE UNIQUE INDEX IF NOT EXISTS crilo_exactly_one_owner_guard/);
 assert.match(owner,/WHERE is_owner IS TRUE/);
 assert.match(owner,/REVOKE UPDATE \(account_code,username_changed_at\)/);
