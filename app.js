@@ -29,7 +29,7 @@
   // Shared, harmless, randomized wheel decorations on public-facing Crilo pages.
   // A single real wheel exists only on the Play page; every other copy is inert.
   const ambient=document.createElement('script');
-  ambient.src=siteRoot+'secret-wheel-ambient.js?v=1';
+  ambient.src=siteRoot+'secret-wheel-ambient.js?v=2';
   ambient.defer=true;
   document.head.append(ambient);
 

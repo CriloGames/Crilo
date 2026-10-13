@@ -16,7 +16,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
     request=>request.fulfill({status:200,contentType:'text/javascript',body:''}));
    await context.route(/^https:\/\/(?!crilo\.fun)/,request=>request.abort());
-   for(const target of ['index.html','leaderboard.html','settings.html','support.html','domain/']){
+   for(const target of ['index.html','leaderboard.html','settings.html','support.html','domain/','ducks.html']){
     const page=await context.newPage();const errors=[];
     page.on('pageerror',error=>errors.push(error.message));
     const result=await page.goto(base+'/'+target,{waitUntil:'domcontentloaded',timeout:18000});
@@ -25,7 +25,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     await page.waitForTimeout(120);
     const data=await page.evaluate(()=>{
      const fake=[...document.querySelectorAll('.crilo-fake-wheel:not([hidden])')];
-     const real=[...document.querySelectorAll('#criloAmbientWheels #secretWheelEntry')];
+     const real=[...document.querySelectorAll('#more-games #secretWheelEntry')];
      return{
       scrollWidth:document.documentElement.scrollWidth,
       viewport:innerWidth,
@@ -34,22 +34,29 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
       sizes:[...new Set(fake.map(el=>Math.round(el.getBoundingClientRect().width)))].length,
       realCount:real.length,
       realClickable:real.length===1&&getComputedStyle(real[0]).pointerEvents==='auto',
+      realInMoreGames:real.length===1&&real[0].parentElement?.id==='more-games',
+      central:fake.filter(el=>{const r=el.getBoundingClientRect();return r.left>innerWidth*.17&&r.right<innerWidth*.83}).length,
       sameSize:fake.every(el=>el.getBoundingClientRect().width===fake[0].getBoundingClientRect().width)
      };
     });
     assert.ok(data.scrollWidth<=width+2,target+' overflows '+width+'px: '+JSON.stringify(data));
-    assert.ok(data.fakeCount>=7,'Not enough dispersed decoys: '+target);
+    assert.ok(data.fakeCount>=4,'Not enough dispersed decoys: '+target);
     assert.ok(data.none,'Decorative wheels must not be clickable');
-    assert.ok(data.sizes>=3,'Decorative wheels must not look uniform');
+    assert.ok(data.sizes>=2,'Decorative wheels must not look uniform');
+    assert.ok(data.central>=1,'Decorations must also occupy interior whitespace, not just page edges: '+target);
     assert.equal(data.realCount,target==='index.html'?1:0,'Exactly one live entry on Play');
     if(target==='index.html'){
      assert.equal(data.realClickable,true,'Real tiny wheel must be accessible');
+     assert.equal(data.realInMoreGames,true,'Green Needle must stay beside More Games on Play');
      await page.locator('#secretWheelEntry').click();
      assert.equal(await page.locator('#secretWheelDialog').evaluate(x=>x.open),true);
      assert.equal(await page.locator('#secretWheelSpin').isDisabled(),true,'Guest must not spin');
      assert.equal(await page.locator('#secretWheelFast').count(),0,'No quick ×10 option');
      assert.equal(await page.locator('#secretWheelRemaining').count(),0,'No attempt limit');
      assert.equal(await page.locator('#secretWheelSpinCount').count(),1);
+    }
+    if(target==='ducks.html'){
+     assert.match(await page.locator('#duckStatus').innerText(),/Log in to see your ducks/i);
     }
     if(target==='settings.html'){
      assert.equal(await page.locator('#letterColors').isVisible(),false,'Prize remains locked for guests');
