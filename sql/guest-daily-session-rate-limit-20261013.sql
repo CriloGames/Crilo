@@ -51,13 +51,13 @@ BEGIN
  -- Resolve the proxy-provided client IP, not a browser-provided identifier.
  -- Cloudflare's connecting-IP is preferred. If absent, take the *last*
  -- forwarded hop rather than the spoofable first X-Forwarded-For entry.
- hdr := pg_catalog.coalesce(
-   pg_catalog.nullif(pg_catalog.current_setting('request.headers',true),'')::jsonb,
+ hdr := coalesce(
+   nullif(pg_catalog.current_setting('request.headers',true),'')::jsonb,
    '{}'::jsonb);
  forwarded := hdr->>'x-forwarded-for';
- client_ip := pg_catalog.coalesce(
-   pg_catalog.nullif(pg_catalog.btrim(hdr->>'cf-connecting-ip'),''),
-   pg_catalog.nullif(pg_catalog.btrim(
+ client_ip := coalesce(
+   nullif(pg_catalog.btrim(hdr->>'cf-connecting-ip'),''),
+   nullif(pg_catalog.btrim(
      pg_catalog.split_part(forwarded,',',
        pg_catalog.array_length(pg_catalog.string_to_array(forwarded,','),1))), ''));
  IF client_ip IS NULL OR pg_catalog.length(client_ip)>64 THEN
@@ -75,7 +75,7 @@ BEGIN
    RAISE EXCEPTION 'Guest protections temporarily unavailable' USING ERRCODE='42501';
  END IF;
  ip_key:=extensions.hmac(pg_catalog.convert_to(normalized_ip,'UTF8'),hmac_secret,'sha256');
- short_bucket:=pg_catalog.to_timestamp((pg_catalog.floor(pg_catalog.extract(epoch from now_at)/600)*600)::double precision);
+ short_bucket:=pg_catalog.to_timestamp((pg_catalog.floor(extract(epoch from now_at)/600)*600)::double precision);
  period:=((now_at AT TIME ZONE 'UTC')-interval '22 hours')::date;
  daily_bucket:=((period::timestamp+interval '22 hours') AT TIME ZONE 'UTC');
 
