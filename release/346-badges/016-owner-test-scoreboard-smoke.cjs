@@ -12,7 +12,7 @@ const historySource=fs.readFileSync(path.resolve(__dirname,'../../spin-history.j
 const scoreCSS=fs.readFileSync(path.resolve(__dirname,'../../style.css'),'utf8');
 const rarityWorld={};vm.runInNewContext(raritySource,{window:rarityWorld});
 const trueScoreBands=rarityWorld.CriloRarity.scoreBands;
-assert.match(indexHTML,/rarity-system\.js\?v=11/,'Homepage should load the updated rarity explanation');
+assert.match(indexHTML,/rarity-system\.js\?v=12/,'Homepage should load the updated rarity explanation');
 for(const score of [0,9,60,301]){
  const message=rarityWorld.CriloRarity.classify(score).explanation;
  assert.match(message,/^\d+\.\d{2}% of simulated runs scored at least this high\.$/);
@@ -20,8 +20,8 @@ for(const score of [0,9,60,301]){
 }
 assert.deepEqual(Array.from(trueScoreBands,b=>[b.key,b.min,b.max===Infinity?'infinity':b.max]),[
  ['trash',0,6],['common',7,24],['uncommon',25,48],
- ['rare',49,92],['epic',93,141],['anomaly',142,300],
- ['mythic',301,'infinity']
+ ['rare',49,92],['epic',93,141],['anomaly',142,318],
+ ['mythic',319,'infinity']
 ]);
 assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test Runs');
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');

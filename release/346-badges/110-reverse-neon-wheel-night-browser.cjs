@@ -29,7 +29,7 @@ function luminance(pixel){
     assert.equal(await page.locator('link[href="rarity-score-frames.css?v=3"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
-      await page.locator('link[href="top-score-row.css?v=6"]').count(),1,
+      await page.locator('link[href="top-score-row.css?v=7"]').count(),1,
       'Leaderboard must load its polished horizontal hero layout');
     if(path==='leaderboard.html') assert.equal(
       await page.locator('script[src="top-score-fit.js?v=1"]').count(),1,
