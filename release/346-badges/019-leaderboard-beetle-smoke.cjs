@@ -60,7 +60,7 @@ async function testBoard(){
   {id:'one',user_id:'p1',score:60,spins:6,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',_source:'official'},
   {id:'two',user_id:'p2',score:24,spins:8,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'},
   {id:'three',user_id:'p3',score:15,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,BBBB',_source:'official'},
-  {id:'four',user_id:'p4',score:301,spins:7,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'}
+  {id:'four',user_id:'p4',score:319,spins:7,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'}
  ];
  const profiles=new Map(samples.map(r=>[r.user_id,{username:r.user_id,name_color:'#111'}]));
  qa.setTab('week');
