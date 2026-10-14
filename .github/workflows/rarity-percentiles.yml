@@ -14,6 +14,7 @@ on:
       - 'release/346-badges/catalog-rules.json'
       - 'release/346-badges/138-rngdle-percentile-rarity.sql'
       - 'release/346-badges/139-rarity-percentiles-smoke.cjs'
+      - 'release/346-badges/140-rarity-colors-browser.cjs'
       - '.github/workflows/rarity-percentiles.yml'
   workflow_dispatch:
 permissions:
@@ -33,3 +34,16 @@ jobs:
           node --check badge-collection.js
           node --check game.js
           node release/346-badges/139-rarity-percentiles-smoke.cjs
+
+  color-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node release/346-badges/140-rarity-colors-browser.cjs

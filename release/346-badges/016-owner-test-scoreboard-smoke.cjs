@@ -157,8 +157,8 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  const pointsAndTiers=[
  [0,'trash'],[6,'trash'],[7,'common'],[24,'common'],
  [25,'uncommon'],[48,'uncommon'],[49,'rare'],[92,'rare'],
- [93,'epic'],[141,'epic'],[142,'anomaly'],[300,'anomaly'],
- [301,'mythic'],[999999,'mythic']
+ [93,'epic'],[141,'epic'],[142,'anomaly'],[318,'anomaly'],
+ [319,'mythic'],[999999,'mythic']
  ];
  for(const [score,tier] of pointsAndTiers){
   owner.window.__criloScoreTest(score);
