@@ -32,9 +32,10 @@ const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'catalog-rules.json
 const setsPage=fs.readFileSync(path.join(root,'badge-sets.html'),'utf8');
 assert.match(setsPage,/class="collection-info" id="collectionInfo"/,
  'A visible badge information button is required');
-for(const rarity of ['Trash','Common','Uncommon','Rare','Epic','Anomaly','Mythic']){
+for(const rarity of ['Common','Uncommon','Rare','Epic','Anomaly','Mythic']){
  assert.ok(setsPage.includes('>'+rarity+'</span>'),'Missing help-legend rarity '+rarity);
 }
+assert.ok(!setsPage.includes('>Trash</span>'),'Trash is a score tier, not a badge-drop tier');
 const profilePage=fs.readFileSync(path.join(root,'profile.html'),'utf8');
 const setsCssVersion=setsPage.match(/badge-collection\.css\?v=(\d+)/)?.[1];
 const profileCssVersion=profilePage.match(/badge-collection\.css\?v=(\d+)/)?.[1];
