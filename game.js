@@ -891,7 +891,7 @@ function renderResult(r,stored=null){
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
  $('finalScore').textContent=fmt(number('score',score));
- $('rarityLabel').textContent=saved?.rarity_label||r.label;
+ $('rarityLabel').textContent=r.label; // Current tier wins over historical saved labels.
  const savedTail=Number(saved?.rarity_score);
  $('rarityOdds').textContent=saved&&saved.rarity_score!==null&&saved.rarity_score!==undefined&&
    Number.isFinite(savedTail)&&savedTail>=0&&savedTail<=1?

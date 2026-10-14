@@ -2,7 +2,7 @@
   {
     "key": "v2_funny_score_21",
     "category": "Exact numbers",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "Twenty-One",
     "condition": "Reach exactly 21 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -11,7 +11,7 @@
   {
     "key": "v2_funny_score_42",
     "category": "Exact numbers",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Answer to Everything",
     "condition": "Reach exactly 42 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -20,7 +20,7 @@
   {
     "key": "v2_funny_score_67",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Six Seven",
     "condition": "Reach exactly 67 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -29,7 +29,7 @@
   {
     "key": "v2_funny_score_69",
     "category": "Exact numbers",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "Nice.",
     "condition": "Reach exactly 69 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -38,7 +38,7 @@
   {
     "key": "v2_funny_score_96",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Reverse Nice",
     "condition": "Reach exactly 96 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -47,7 +47,7 @@
   {
     "key": "v2_funny_score_99",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Almost a Hundred",
     "condition": "Reach exactly 99 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -56,7 +56,7 @@
   {
     "key": "v2_funny_score_111",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Triple Ones",
     "condition": "Reach exactly 111 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -65,7 +65,7 @@
   {
     "key": "v2_funny_score_123",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "One Two Three",
     "condition": "Reach exactly 123 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -74,7 +74,7 @@
   {
     "key": "v2_funny_score_222",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Epic",
     "name": "Triple Twos",
     "condition": "Reach exactly 222 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -83,7 +83,7 @@
   {
     "key": "v2_funny_score_333",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Epic",
     "name": "Triple Threes",
     "condition": "Reach exactly 333 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -92,7 +92,7 @@
   {
     "key": "v2_funny_score_404",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Anomaly",
     "name": "Score Not Found",
     "condition": "Reach exactly 404 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -101,7 +101,7 @@
   {
     "key": "v2_funny_score_420",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Anomaly",
     "name": "Blaze It",
     "condition": "Reach exactly 420 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -110,7 +110,7 @@
   {
     "key": "v2_funny_score_444",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Anomaly",
     "name": "Triple Fours",
     "condition": "Reach exactly 444 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -119,7 +119,7 @@
   {
     "key": "v2_funny_score_555",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Anomaly",
     "name": "Triple Fives",
     "condition": "Reach exactly 555 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -128,7 +128,7 @@
   {
     "key": "v2_funny_score_666",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Anomaly",
     "name": "Devil's Number",
     "condition": "Reach exactly 666 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -173,7 +173,7 @@
   {
     "key": "v2_funny_score_7",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Lucky Number Seven",
     "condition": "Reach exactly 7 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -182,7 +182,7 @@
   {
     "key": "v2_funny_score_10",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Perfect Ten",
     "condition": "Reach exactly 10 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -191,7 +191,7 @@
   {
     "key": "v2_funny_score_11",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Make a Wish",
     "condition": "Reach exactly 11 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -200,7 +200,7 @@
   {
     "key": "v2_funny_score_12",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "A Dozen",
     "condition": "Reach exactly 12 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -209,7 +209,7 @@
   {
     "key": "v2_funny_score_13",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Unlucky Thirteen",
     "condition": "Reach exactly 13 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -218,7 +218,7 @@
   {
     "key": "v2_funny_score_15",
     "category": "Exact numbers",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Quarter Hour",
     "condition": "Reach exactly 15 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -227,7 +227,7 @@
   {
     "key": "v2_funny_score_20",
     "category": "Exact numbers",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "Twenty Twenty",
     "condition": "Reach exactly 20 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -236,7 +236,7 @@
   {
     "key": "v2_funny_score_24",
     "category": "Exact numbers",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "Around the Clock",
     "condition": "Reach exactly 24 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -245,7 +245,7 @@
   {
     "key": "v2_funny_score_25",
     "category": "Exact numbers",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Quarter Century",
     "condition": "Reach exactly 25 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -254,7 +254,7 @@
   {
     "key": "v2_funny_score_30",
     "category": "Exact numbers",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "Thirty Flirty",
     "condition": "Reach exactly 30 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -263,7 +263,7 @@
   {
     "key": "v2_funny_score_33",
     "category": "Exact numbers",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Double Threes",
     "condition": "Reach exactly 33 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -272,7 +272,7 @@
   {
     "key": "v2_funny_score_50",
     "category": "Exact numbers",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "Half a Century",
     "condition": "Reach exactly 50 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -281,7 +281,7 @@
   {
     "key": "v2_funny_score_55",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Double Fives",
     "condition": "Reach exactly 55 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -290,7 +290,7 @@
   {
     "key": "v2_funny_score_66",
     "category": "Exact numbers",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "Double Sixes",
     "condition": "Reach exactly 66 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -299,7 +299,7 @@
   {
     "key": "v2_funny_score_70",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Seventy Up",
     "condition": "Reach exactly 70 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -308,7 +308,7 @@
   {
     "key": "v2_funny_score_77",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Double Lucky",
     "condition": "Reach exactly 77 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -317,7 +317,7 @@
   {
     "key": "v2_funny_score_88",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Double Eights",
     "condition": "Reach exactly 88 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -326,7 +326,7 @@
   {
     "key": "v2_funny_score_100",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Triple Digits",
     "condition": "Reach exactly 100 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -335,7 +335,7 @@
   {
     "key": "v2_funny_score_101",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Introduction to Numbers",
     "condition": "Reach exactly 101 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -344,7 +344,7 @@
   {
     "key": "v2_funny_score_200",
     "category": "Exact numbers",
-    "rarity": "Mythic",
+    "rarity": "Epic",
     "name": "Double Century",
     "condition": "Reach exactly 200 accumulated points at least once during an official Daily (final score may differ).",
     "rule": "hit_exact",
@@ -353,12 +353,13 @@
   {
     "key": "v2_score_rarity_trash",
     "category": "Score rarity",
-    "rarity": "Trash",
+    "rarity": "Uncommon",
     "name": "Trash Score",
     "condition": "Finish one official Daily with a final score of 0–6.",
     "rule": "score_band",
     "lower": 0,
-    "upper": 6
+    "upper": 6,
+    "probability_percent": 1.237
   },
   {
     "key": "v2_score_rarity_common",
@@ -368,57 +369,63 @@
     "condition": "Finish one official Daily with a final score of 7–24.",
     "rule": "score_band",
     "lower": 7,
-    "upper": 24
+    "upper": 24,
+    "probability_percent": 49.7661
   },
   {
     "key": "v2_score_rarity_uncommon",
     "category": "Score rarity",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Uncommon Score",
     "condition": "Finish one official Daily with a final score of 25–48.",
     "rule": "score_band",
     "lower": 25,
-    "upper": 48
+    "upper": 48,
+    "probability_percent": 24.5551
   },
   {
     "key": "v2_score_rarity_rare",
     "category": "Score rarity",
-    "rarity": "Rare",
+    "rarity": "Common",
     "name": "Rare Score",
     "condition": "Finish one official Daily with a final score of 49–92.",
     "rule": "score_band",
     "lower": 49,
-    "upper": 92
+    "upper": 92,
+    "probability_percent": 14.4894
   },
   {
     "key": "v2_score_rarity_epic",
     "category": "Score rarity",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Epic Score",
     "condition": "Finish one official Daily with a final score of 93–141.",
     "rule": "score_band",
     "lower": 93,
-    "upper": 141
+    "upper": 141,
+    "probability_percent": 4.9887
   },
   {
     "key": "v2_score_rarity_anomaly",
     "category": "Score rarity",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "Anomaly Score",
-    "condition": "Finish one official Daily with a final score of 142–300.",
+    "condition": "Finish one official Daily with a final score of 142–318.",
     "rule": "score_band",
     "lower": 142,
-    "upper": 300
+    "upper": 318,
+    "probability_percent": 3.9677
   },
   {
     "key": "v2_score_rarity_mythic",
     "category": "Score rarity",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Mythic Score",
-    "condition": "Finish one official Daily with a final score of at least 301.",
+    "condition": "Finish one official Daily with a final score of at least 319.",
     "rule": "score_band",
-    "lower": 301,
-    "upper": null
+    "lower": 319,
+    "upper": null,
+    "probability_percent": 0.996
   },
   {
     "key": "v2_duck_total_2",
@@ -433,7 +440,7 @@
   {
     "key": "v2_duck_total_3",
     "category": "Wheel Duck",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Duck Collector 3",
     "condition": "Land 3 Duck results during one official Daily.",
     "rule": "event_total",
@@ -443,7 +450,7 @@
   {
     "key": "v2_duck_total_4",
     "category": "Wheel Duck",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "Duck Collector 4",
     "condition": "Land 4 Duck results during one official Daily.",
     "rule": "event_total",
@@ -453,7 +460,7 @@
   {
     "key": "v2_duck_total_5",
     "category": "Wheel Duck",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Duck Collector 5",
     "condition": "Land 5 Duck results during one official Daily.",
     "rule": "event_total",
@@ -463,7 +470,7 @@
   {
     "key": "v2_duck_streak_2",
     "category": "Wheel Duck",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Duck Streak 2",
     "condition": "Land 2 consecutive Duck results during one official Daily.",
     "rule": "event_streak",
@@ -473,7 +480,7 @@
   {
     "key": "v2_duck_streak_3",
     "category": "Wheel Duck",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Duck Streak 3",
     "condition": "Land 3 consecutive Duck results during one official Daily.",
     "rule": "event_streak",
@@ -483,7 +490,7 @@
   {
     "key": "v2_duck_streak_4",
     "category": "Wheel Duck",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "Duck Streak 4",
     "condition": "Land 4 consecutive Duck results during one official Daily.",
     "rule": "event_streak",
@@ -503,7 +510,7 @@
   {
     "key": "v2_double_total_2",
     "category": "Wheel ×2",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "×2 Collector 2",
     "condition": "Land 2 ×2 results during one official Daily.",
     "rule": "event_total",
@@ -513,7 +520,7 @@
   {
     "key": "v2_double_total_3",
     "category": "Wheel ×2",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "×2 Collector 3",
     "condition": "Land 3 ×2 results during one official Daily.",
     "rule": "event_total",
@@ -523,7 +530,7 @@
   {
     "key": "v2_double_streak_2",
     "category": "Wheel ×2",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "×2 Streak 2",
     "condition": "Land 2 consecutive ×2 results during one official Daily.",
     "rule": "event_streak",
@@ -533,7 +540,7 @@
   {
     "key": "v2_double_streak_3",
     "category": "Wheel ×2",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "×2 Streak 3",
     "condition": "Land 3 consecutive ×2 results during one official Daily.",
     "rule": "event_streak",
@@ -553,7 +560,7 @@
   {
     "key": "v2_spins_total_2",
     "category": "Wheel +2 Spins",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "+2 Spins Collector 2",
     "condition": "Land 2 +2 Spins results during one official Daily.",
     "rule": "event_total",
@@ -563,7 +570,7 @@
   {
     "key": "v2_spins_total_3",
     "category": "Wheel +2 Spins",
-    "rarity": "Rare",
+    "rarity": "Uncommon",
     "name": "+2 Spins Collector 3",
     "condition": "Land 3 +2 Spins results during one official Daily.",
     "rule": "event_total",
@@ -573,7 +580,7 @@
   {
     "key": "v2_spins_total_4",
     "category": "Wheel +2 Spins",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "+2 Spins Collector 4",
     "condition": "Land 4 +2 Spins results during one official Daily.",
     "rule": "event_total",
@@ -583,7 +590,7 @@
   {
     "key": "v2_spins_streak_2",
     "category": "Wheel +2 Spins",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "+2 Spins Streak 2",
     "condition": "Land 2 consecutive +2 Spins results during one official Daily.",
     "rule": "event_streak",
@@ -593,7 +600,7 @@
   {
     "key": "v2_spins_streak_3",
     "category": "Wheel +2 Spins",
-    "rarity": "Mythic",
+    "rarity": "Rare",
     "name": "+2 Spins Streak 3",
     "condition": "Land 3 consecutive +2 Spins results during one official Daily.",
     "rule": "event_streak",
@@ -613,7 +620,7 @@
   {
     "key": "v2_upgrade_total_2",
     "category": "Wheel Upgrade",
-    "rarity": "Uncommon",
+    "rarity": "Common",
     "name": "Upgrade Collector 2",
     "condition": "Land 2 Upgrade results during one official Daily.",
     "rule": "event_total",
@@ -623,7 +630,7 @@
   {
     "key": "v2_upgrade_total_3",
     "category": "Wheel Upgrade",
-    "rarity": "Anomaly",
+    "rarity": "Uncommon",
     "name": "Upgrade Collector 3",
     "condition": "Land 3 Upgrade results during one official Daily.",
     "rule": "event_total",
@@ -633,7 +640,7 @@
   {
     "key": "v2_upgrade_streak_2",
     "category": "Wheel Upgrade",
-    "rarity": "Epic",
+    "rarity": "Uncommon",
     "name": "Upgrade Streak 2",
     "condition": "Land 2 consecutive Upgrade results during one official Daily.",
     "rule": "event_streak",

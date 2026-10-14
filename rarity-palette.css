@@ -1,0 +1,83 @@
+/* One rarity palette shared by Crilo's final scores, earned/locked
+   badges, featured badges, rarity legend and leaderboard. Scores have
+   seven tiers; individual badges have six (no Trash badge rarity).
+   Colors are Crilo pastels with a scarlet Mythic as in RNGdle. */
+:root{
+ --tier-trash:#8d531a;--tier-trash-pale:#f6e7d3;
+ --tier-common:#74808d;--tier-common-pale:#eceef2;
+ --tier-uncommon:#2c8955;--tier-uncommon-pale:#e1f4ea;
+ --tier-rare:#335fd4;--tier-rare-pale:#e1eefb;
+ --tier-epic:#7b40c4;--tier-epic-pale:#efe5ff;
+ --tier-anomaly:#c14a22;--tier-anomaly-pale:#ffe9df;
+ --tier-mythic:#bd2633;--tier-mythic-pale:#fce5e7;
+}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="trash"]{--crilo-badge-accent:var(--tier-trash);--crilo-badge-pale:var(--tier-trash-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="common"]{--crilo-badge-accent:var(--tier-common);--crilo-badge-pale:var(--tier-common-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="uncommon"]{--crilo-badge-accent:var(--tier-uncommon);--crilo-badge-pale:var(--tier-uncommon-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="rare"]{--crilo-badge-accent:var(--tier-rare);--crilo-badge-pale:var(--tier-rare-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="epic"]{--crilo-badge-accent:var(--tier-epic);--crilo-badge-pale:var(--tier-epic-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="anomaly"]{--crilo-badge-accent:var(--tier-anomaly);--crilo-badge-pale:var(--tier-anomaly-pale)}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="mythic"]{--crilo-badge-accent:var(--tier-mythic);--crilo-badge-pale:var(--tier-mythic-pale)}
+.collection-rarity-legend [data-rarity="common"]{--legend-color:var(--tier-common)}
+.collection-rarity-legend [data-rarity="uncommon"]{--legend-color:var(--tier-uncommon)}
+.collection-rarity-legend [data-rarity="rare"]{--legend-color:var(--tier-rare)}
+.collection-rarity-legend [data-rarity="epic"]{--legend-color:var(--tier-epic)}
+.collection-rarity-legend [data-rarity="anomaly"]{--legend-color:var(--tier-anomaly)}
+.collection-rarity-legend [data-rarity="mythic"]{--legend-color:var(--tier-mythic)}
+/* Shared result card, final score and reverse-neon finishing line. */
+#result[data-rarity="trash"]{--rarity-accent:var(--tier-trash);--rarity-bg:var(--tier-trash-pale);--crilo-result-accent:var(--tier-trash)}
+#result[data-rarity="common"]{--rarity-accent:var(--tier-common);--rarity-bg:var(--tier-common-pale);--crilo-result-accent:var(--tier-common)}
+#result[data-rarity="uncommon"]{--rarity-accent:var(--tier-uncommon);--rarity-bg:var(--tier-uncommon-pale);--crilo-result-accent:var(--tier-uncommon)}
+#result[data-rarity="rare"]{--rarity-accent:var(--tier-rare);--rarity-bg:var(--tier-rare-pale);--crilo-result-accent:var(--tier-rare)}
+#result[data-rarity="epic"]{--rarity-accent:var(--tier-epic);--rarity-bg:var(--tier-epic-pale);--crilo-result-accent:var(--tier-epic)}
+#result[data-rarity="anomaly"]{--rarity-accent:var(--tier-anomaly);--rarity-bg:var(--tier-anomaly-pale);--crilo-result-accent:var(--tier-anomaly)}
+#result[data-rarity="mythic"]{--rarity-accent:var(--tier-mythic);--rarity-bg:var(--tier-mythic-pale);--crilo-result-accent:var(--tier-mythic)}
+.wheel-score[data-rarity="trash"]{--score-accent:var(--tier-trash);--score-tint:var(--tier-trash-pale)}
+.wheel-score[data-rarity="common"]{--score-accent:var(--tier-common);--score-tint:var(--tier-common-pale)}
+.wheel-score[data-rarity="uncommon"]{--score-accent:var(--tier-uncommon);--score-tint:var(--tier-uncommon-pale)}
+.wheel-score[data-rarity="rare"]{--score-accent:var(--tier-rare);--score-tint:var(--tier-rare-pale)}
+.wheel-score[data-rarity="epic"]{--score-accent:var(--tier-epic);--score-tint:var(--tier-epic-pale)}
+.wheel-score[data-rarity="anomaly"]{--score-accent:var(--tier-anomaly);--score-tint:var(--tier-anomaly-pale)}
+.wheel-score[data-rarity="mythic"]{--score-accent:var(--tier-mythic);--score-tint:var(--tier-mythic-pale)}
+.help-rarity-row[data-rarity="trash"]{--help-accent:var(--tier-trash)}
+.help-rarity-row[data-rarity="common"]{--help-accent:var(--tier-common)}
+.help-rarity-row[data-rarity="uncommon"]{--help-accent:var(--tier-uncommon)}
+.help-rarity-row[data-rarity="rare"]{--help-accent:var(--tier-rare)}
+.help-rarity-row[data-rarity="epic"]{--help-accent:var(--tier-epic)}
+.help-rarity-row[data-rarity="anomaly"]{--help-accent:var(--tier-anomaly)}
+.help-rarity-row[data-rarity="mythic"]{--help-accent:var(--tier-mythic)}
+.stat-rarity-common{--rarity-ink:var(--tier-common)}
+.stat-rarity-uncommon{--rarity-ink:var(--tier-uncommon)}
+.stat-rarity-rare{--rarity-ink:var(--tier-rare)}
+.stat-rarity-epic{--rarity-ink:var(--tier-epic)}
+.stat-rarity-anomaly{--rarity-ink:var(--tier-anomaly);--rarity-bg:var(--tier-anomaly-pale)}
+.stat-rarity-mythic{--rarity-ink:var(--tier-mythic);--rarity-bg:var(--tier-mythic-pale)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="trash"]{--leader-tier-ink:var(--tier-trash)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="common"]{--leader-tier-ink:var(--tier-common)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="uncommon"]{--leader-tier-ink:var(--tier-uncommon)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="rare"]{--leader-tier-ink:var(--tier-rare)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="epic"]{--leader-tier-ink:var(--tier-epic)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="anomaly"]{--leader-tier-ink:var(--tier-anomaly)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="mythic"]{--leader-tier-ink:var(--tier-mythic);--leader-tier-dark:#f0a0a9}
+.spin-history-item[data-rarity="trash"]{--spin-rarity:var(--tier-trash)}
+.spin-history-item[data-rarity="common"]{--spin-rarity:var(--tier-common)}
+.spin-history-item[data-rarity="uncommon"]{--spin-rarity:var(--tier-uncommon)}
+.spin-history-item[data-rarity="rare"]{--spin-rarity:var(--tier-rare)}
+.spin-history-item[data-rarity="epic"]{--spin-rarity:var(--tier-epic)}
+.spin-history-item[data-rarity="anomaly"]{--spin-rarity:var(--tier-anomaly)}
+.spin-history-item[data-rarity="mythic"]{--spin-rarity:var(--tier-mythic)}
+html[data-theme="dark"]{
+ --tier-trash:#d1a679;--tier-common:#b6c1ce;
+ --tier-uncommon:#86c6a5;--tier-rare:#9cbbef;
+ --tier-epic:#c3a4ed;--tier-anomaly:#e7a084;--tier-mythic:#eda0aa;
+}
+html[data-theme="dark"] #result[data-rarity]{--rarity-bg:color-mix(in srgb,var(--rarity-accent) 15%,#1b1c24)}
+html[data-theme="dark"] #result[data-rarity="trash"]{--crilo-result-accent:var(--tier-trash)}
+html[data-theme="dark"] #result[data-rarity="common"]{--crilo-result-accent:var(--tier-common)}
+html[data-theme="dark"] #result[data-rarity="uncommon"]{--crilo-result-accent:var(--tier-uncommon)}
+html[data-theme="dark"] #result[data-rarity="rare"]{--crilo-result-accent:var(--tier-rare)}
+html[data-theme="dark"] #result[data-rarity="epic"]{--crilo-result-accent:var(--tier-epic)}
+html[data-theme="dark"] #result[data-rarity="anomaly"]{--crilo-result-accent:var(--tier-anomaly)}
+html[data-theme="dark"] #result[data-rarity="mythic"]{--crilo-result-accent:var(--tier-mythic)}
+html[data-theme="dark"] :is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity]{--leader-tier-dark:var(--leader-tier-ink)}
+html[data-theme="dark"] .stat-tile.stat-rarity{--rarity-bg:#23262c}

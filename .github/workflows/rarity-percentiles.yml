@@ -1,0 +1,35 @@
+name: Rarity percentiles and badge colors
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'rarity-system.js'
+      - 'badge-collection.js'
+      - 'game.js'
+      - 'rarity-palette.css'
+      - 'index.html'
+      - 'profile.html'
+      - 'leaderboard.html'
+      - 'badge-sets.html'
+      - 'release/346-badges/catalog-rules.json'
+      - 'release/346-badges/138-rngdle-percentile-rarity.sql'
+      - 'release/346-badges/139-rarity-percentiles-smoke.cjs'
+      - '.github/workflows/rarity-percentiles.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify script syntax and deterministic percentile boundaries
+        run: |
+          node --check rarity-system.js
+          node --check badge-collection.js
+          node --check game.js
+          node release/346-badges/139-rarity-percentiles-smoke.cjs

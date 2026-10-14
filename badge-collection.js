@@ -2,7 +2,8 @@
  * Uses database metadata; never awards badges or changes gameplay rules. */
 (() => {
   'use strict';
-  const rarityOrder=['trash','common','uncommon','rare','epic','anomaly','mythic'];
+  // Trash is a final-score percentile, not a badge-drop rarity.
+  const rarityOrder=['common','uncommon','rare','epic','anomaly','mythic'];
   const rank=Object.fromEntries(rarityOrder.map((name,index)=>[name,index]));
   const preferredCategories=[
     'Wheel combinations','Single-run challenges','Exact numbers','funny_score',
@@ -48,18 +49,30 @@
   const active=badges=>(badges||[]).filter(b=>b && b.category!=='legacy_score');
   const key=id=>String(id);
   const earnedMap=rows=>new Map((rows||[]).map(x=>[key(x.badge_id),x]));
+  const probability=badge=>{
+    const raw=badge?.requirement?.probability_percent;
+    const n=Number(raw);
+    return raw==null||raw===''||!Number.isFinite(n)||n<0||n>100?null:n;
+  };
+  const tierFromPercent=chance=>{
+    if(chance>10)return 'common';
+    if(chance>=1)return 'uncommon';
+    if(chance>=.1)return 'rare';
+    if(chance>=.01)return 'epic';
+    if(chance>=.001)return 'anomaly';
+    return 'mythic';
+  };
   const rarity=badge=>{
+    const chance=probability(badge);
+    if(chance!==null)return tierFromPercent(chance);
     const name=String(badge?.requirement?.rarity||'common').toLowerCase();
-    return Object.hasOwn(rank,name)?name:'common';
+    // Unmeasured challenges retain authored difficulty; Trash Score should
+    // eventually be treated as a percentage-based badge (not Trash rarity).
+    return Object.hasOwn(rank,name)?name:'uncommon';
   };
   // Rarity tier is the primary difficulty order. Compare numeric simulated
   // odds only if both badges have comparable probabilities in their metadata.
   // Otherwise do not pretend one same-tier badge is statistically harder.
-  const probability=badge=>{
-    const raw=badge?.requirement?.probability_percent;
-    const n=Number(raw);
-    return raw==null||raw===''||!Number.isFinite(n)||n<0?null:n;
-  };
   function compareDifficulty(a,b){
     const tier=rank[rarity(b)]-rank[rarity(a)];
     if(tier)return tier;
@@ -75,6 +88,8 @@
     const tier=rarity(badge);
     const title=hidden?'Hidden badge':String(badge.name||'');
     const status=owned?tier:'Locked · '+(hidden?'Secret':tier);
+    const chance=probability(badge);
+    const oddsNote=chance===null?'':(' · about '+Number(chance.toPrecision(5))+'% per Daily');
     const description=hidden?'Unlock to reveal this secret achievement.':
       String(badge.description||badge.requirement?.rule?.condition||'Complete this achievement to unlock it.');
     const expanded=Boolean(options.expanded);
@@ -84,7 +99,7 @@
       '" title="'+esc(description)+'"'+
       (interactive?' tabindex="0" role="button" aria-expanded="'+String(expanded)+
       '" aria-label="'+esc(title+'. '+status+'. '+description+' Tap to expand.')+'"':'')+'>'+
-      '<b>'+esc(title)+'</b><small>'+esc(status)+'</small>'+
+      '<b>'+esc(title)+'</b><small>'+esc(status+oddsNote)+'</small>'+
       '<p class="collection-tile-description">'+esc(description)+'</p></article>';
   }
   function bestEarned(badges,earnedRows,max=50){
@@ -112,8 +127,8 @@
         total,unlocked,percent:total?Math.round(unlocked/total*100):0,
         complete:total>0&&unlocked===total,
         badges:items.slice().sort((a,b)=>{
-          // Collection sets are a progression ladder: Trash (below Common),
-          // Common, Uncommon, Rare, Epic, Anomaly, Mythic.
+          // Badge ladder: Common, Uncommon, Rare, Epic, Anomaly, Mythic.
+          // Trash is a final-score tier, not an individual badge rarity.
           // Keep the profile preview's best-first ranking unchanged.
           const easier=compareDifficulty(b,a);
           if(easier!==0)return easier;

@@ -1,9 +1,10 @@
-/* Crilo score rarity: deterministic reference distribution from the same wheel rules.
-   A score's tail percentage = simulated runs with score >= it / reference runs. */
+/* Crilo score rarity: percentile bands calibrated against one million wheel
+   simulations with a fixed RNG seed. Integer-score ties prevent exact shares.
+   The displayed tail odds are estimated independently with 100k samples. */
 window.CriloRarity=(()=>{
  const COUNT=100000;
  const levels=[
-  {key:'mythic',label:'MYTHIC',max:1/90},
+  {key:'mythic',label:'MYTHIC',max:0.01},
   {key:'anomaly',label:'ANOMALY',max:0.05},
   {key:'epic',label:'EPIC',max:0.10},
   {key:'rare',label:'RARE',max:0.25},
@@ -11,14 +12,35 @@ window.CriloRarity=(()=>{
   {key:'common',label:'COMMON',max:0.99},
   {key:'trash',label:'TRASH',max:1}
  ];
+ // Individual BADGE rarity measures chance of earning a badge per Daily,
+ // unlike final SCORE rarity. The input is a percentage, not a fraction.
+ const badgeBands=[
+  {key:'common',min:10,label:'More than 10% of Dailies'},
+  {key:'uncommon',min:1,label:'1–10% of Dailies'},
+  {key:'rare',min:0.1,label:'0.1–1% of Dailies'},
+  {key:'epic',min:0.01,label:'0.01–0.1% of Dailies'},
+  {key:'anomaly',min:0.001,label:'0.001–0.01% of Dailies'},
+  {key:'mythic',min:0,label:'Under 0.001% of Dailies'}
+ ];
+ function badgeTierFromPercent(value){
+  if(value==null||value==='')return null;
+  const chance=Number(value);
+  if(!Number.isFinite(chance)||chance<0||chance>100)return null;
+  if(chance>10)return 'common';
+  if(chance>=1)return 'uncommon';
+  if(chance>=.1)return 'rare';
+  if(chance>=.01)return 'epic';
+  if(chance>=.001)return 'anomaly';
+  return 'mythic';
+ }
  const scoreBands=[
  {key:'trash',min:0,max:6},
  {key:'common',min:7,max:24},
  {key:'uncommon',min:25,max:48},
  {key:'rare',min:49,max:92},
  {key:'epic',min:93,max:141},
- {key:'anomaly',min:142,max:300},
- {key:'mythic',min:301,max:Infinity}
+ {key:'anomaly',min:142,max:318},
+ {key:'mythic',min:319,max:Infinity}
  ];
  let sorted;
  function sample(){
@@ -55,5 +77,5 @@ window.CriloRarity=(()=>{
    explanation:(tail*100).toFixed(2)+'% of simulated runs scored at least this high.'};
  }
  function thresholds(){return scoreBands.filter(b=>b.key!=='trash').map(b=>({label:b.key.toUpperCase(),minScore:b.min}));}
- return{classify,thresholds,levels,scoreBands};
+ return{classify,thresholds,levels,scoreBands,badgeBands,badgeTierFromPercent};
 })();
