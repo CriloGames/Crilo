@@ -66,7 +66,7 @@ assert.match(palette,/--tier-mythic:#bd2633/);
 assert.match(palette,/--tier-mythic:#eda0aa/);
 assert.match(palette,/\.badge-top-chip/);
 for(const path of ['index.html','profile.html','leaderboard.html','badge-sets.html'])
- assert.match(read(path),/rarity-palette\.css\?v=1/,'Rarity styles missing '+path);
+ assert.match(read(path),/rarity-palette\.css\?v=2/,'Rarity styles missing '+path);
 assert.match(read('index.html'),/Mythic<\/strong><small>319\+ points/);
 assert.match(read('index.html'),/Anomaly<\/strong><small>142–318 points/);
 assert.match(read('badge-sets.html'),/&lt;0\.001%/);

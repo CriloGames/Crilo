@@ -81,3 +81,15 @@ html[data-theme="dark"] #result[data-rarity="anomaly"]{--crilo-result-accent:var
 html[data-theme="dark"] #result[data-rarity="mythic"]{--crilo-result-accent:var(--tier-mythic)}
 html[data-theme="dark"] :is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity]{--leader-tier-dark:var(--leader-tier-ink)}
 html[data-theme="dark"] .stat-tile.stat-rarity{--rarity-bg:#23262c}
+
+/* Leaderboard score cards have ID-scoped and panel-scoped styles. Match
+   that specificity so the visible digits, not just custom props, use
+   the exact same rarity hue as the wheel and badge grid. */
+.best-card #bestScore[data-score-rarity="trash"],.leader-panel .leader-score[data-score-rarity="trash"]{--leader-tier-ink:var(--tier-trash);--crilo-glow-ink:var(--tier-trash);color:var(--tier-trash)}
+.best-card #bestScore[data-score-rarity="common"],.leader-panel .leader-score[data-score-rarity="common"]{--leader-tier-ink:var(--tier-common);--crilo-glow-ink:var(--tier-common);color:var(--tier-common)}
+.best-card #bestScore[data-score-rarity="uncommon"],.leader-panel .leader-score[data-score-rarity="uncommon"]{--leader-tier-ink:var(--tier-uncommon);--crilo-glow-ink:var(--tier-uncommon);color:var(--tier-uncommon)}
+.best-card #bestScore[data-score-rarity="rare"],.leader-panel .leader-score[data-score-rarity="rare"]{--leader-tier-ink:var(--tier-rare);--crilo-glow-ink:var(--tier-rare);color:var(--tier-rare)}
+.best-card #bestScore[data-score-rarity="epic"],.leader-panel .leader-score[data-score-rarity="epic"]{--leader-tier-ink:var(--tier-epic);--crilo-glow-ink:var(--tier-epic);color:var(--tier-epic)}
+.best-card #bestScore[data-score-rarity="anomaly"],.leader-panel .leader-score[data-score-rarity="anomaly"]{--leader-tier-ink:var(--tier-anomaly);--crilo-glow-ink:var(--tier-anomaly);color:var(--tier-anomaly)}
+.best-card #bestScore[data-score-rarity="mythic"],.leader-panel .leader-score[data-score-rarity="mythic"]{--leader-tier-ink:var(--tier-mythic);--crilo-glow-ink:var(--tier-mythic);color:var(--tier-mythic)}
+html[data-theme="dark"] .best-card #bestScore[data-score-rarity],html[data-theme="dark"] .leader-panel .leader-score[data-score-rarity]{color:var(--leader-tier-ink)}

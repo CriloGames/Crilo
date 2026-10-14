@@ -24,7 +24,7 @@ const dark={light:'#bd2633',dark:'#eda0aa'};
     const page=await ctx.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+name,{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('link[href="rarity-palette.css?v=1"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-palette.css?v=2"]').count(),1,
       'Missing shared rarity stylesheet on '+name);
     for(const theme of ['light','dark']){
      const data=await page.evaluate(({theme,scoreTiers,tiers})=>{

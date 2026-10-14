@@ -86,7 +86,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     assert.ok(hero.font>=20,'Longish score too small to read on '+width);
     assert.ok(hero.width<hero.card*.65,'Score box swallows player artwork on '+width);
     if(width>=768)assert.ok(hero.card<=672,'Top card must respect its 670px max-width');
-    assert.equal(theme==='dark'?best.color:'rgb(49, 122, 192)',best.color,
+    assert.equal(theme==='dark'?best.color:'rgb(51, 95, 212)',best.color,
       'Light rare score should keep the existing rarity ink');
     assert.equal(await page.locator('.leader-score-secondary').innerText(),
       'Score 9,876,543,210 · MYTHIC');
