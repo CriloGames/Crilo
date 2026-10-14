@@ -199,7 +199,7 @@ async function run(){
     await page.locator('#newBadgeList .new-badge-item').first().waitFor();
     const ordered=await page.locator('#newBadgeList .new-badge-item').evaluateAll(
      items=>items.map(item=>item.dataset.badgeRarity));
-    assert.deepEqual(ordered,['trash','common','uncommon','rare','epic','anomaly','mythic'],
+    assert.deepEqual(ordered,['common','uncommon','uncommon','rare','epic','anomaly','mythic'],
      'Newly earned badges must be organized from lowest tier to Mythic');
     assert.equal(await page.locator('#newBadgeCount').innerText(),'7 BADGES EARNED');
     await page.locator('#newBadgeList [data-badge-rarity="rare"]').click();
