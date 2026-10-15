@@ -34,21 +34,27 @@
    .filter(key=>Object.hasOwn(prizes,key));
   count.textContent=found.length+' / '+Object.keys(prizes).length+' found';
   list.replaceChildren();
-  for(const [key,[name,story]] of Object.entries(prizes)){
-   const won=found.includes(key);
+  // Display only earned items; don't create undiscovered placeholders.
+  for(const key of found){
+   const [name,story]=prizes[key];
    const item=document.createElement('li');
-   item.className=won?'crilo-curiosity-found':'crilo-curiosity-locked';
+   item.className='crilo-curiosity-found';
    const icon=document.createElement('span');
    icon.className='crilo-curiosity-symbol';icon.setAttribute('aria-hidden','true');
-   const art=won?window.CriloMysteryCuriosityIcon?.(key):'';
+   const art=window.CriloMysteryCuriosityIcon?.(key);
    if(art){icon.innerHTML=art;icon.classList.add('has-art')}
-   else icon.textContent=won?'✦':'?';
+   else icon.textContent='✦';
    const copy=document.createElement('span');
    const title=document.createElement('strong'),description=document.createElement('small');
-   title.textContent=won?name:'Undiscovered';
-   description.textContent=won?story:'A little mystery waiting to be found.';
+   title.textContent=name;description.textContent=story;
    copy.append(title,description);
    item.append(icon,copy);list.append(item);
+  }
+  if(!found.length){
+   const empty=document.createElement('li');
+   empty.className='crilo-curiosity-empty';
+   empty.textContent='No mysteries collected yet. Keep exploring Crilo for a surprise.';
+   list.append(empty);
   }
   box.hidden=false;
   open.setAttribute('aria-label','View Mystery Collection, '+found.length+' of six discovered');
