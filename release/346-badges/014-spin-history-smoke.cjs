@@ -66,7 +66,7 @@ async function check(label,days,expected){
  await flush();
  const count=()=> (el('spinHistoryList').innerHTML.match(/<article class="spin-history-item"/g)||[]).length;
  assert.equal(count(),Math.min(3,days.length),label+' first page');
- assert.equal(el('spinHistoryCount').textContent,days.length+' Dail'+(days.length===1?'y':'ies')+' completed');
+ assert.equal(el('spinHistoryCount').textContent,days.length.toLocaleString('en-US')+' Dail'+(days.length===1?'y':'ies')+' completed');
  assert.match(el('spinHistorySpinCount').textContent,/Test Runs excluded/);
  assert.ok(calls.every(c=>c.p_user==='owner'&&c.p_limit<=5));
  if(expected==='bonus'){
