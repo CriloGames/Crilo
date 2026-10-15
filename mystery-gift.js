@@ -38,9 +38,15 @@
  };
  function dismiss(restoreFocus=true){
   if(busy)return;
-  const hadModal=!modal.classList.contains('hidden')||!collectionModal.classList.contains('hidden');
+  const hadGift=!modal.classList.contains('hidden');
+  const hadModal=hadGift||!collectionModal.classList.contains('hidden');
   closeDialog(modal,false);closeDialog(collectionModal,false);
   if(hadModal&&restoreFocus&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
+  if(hadGift&&restoreFocus){
+   // If a signed-in player has bonus Dailies ready, show the continuation
+   // AFTER the rare surprise has been dismissed—not behind its popup.
+   window.dispatchEvent(new Event('crilo-mystery-closed'));
+  }
  }
  function setMode(mode){
   runMode=mode==='test'||mode==='bonus'?mode:'official';
