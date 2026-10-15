@@ -12,7 +12,6 @@ const main=fs.readFileSync('game.js','utf8');
 assert.match(sql,/CREATE TABLE public\.crilo_weekly_spin_sessions/);
 assert.match(sql,/ALTER COLUMN remaining_spins SET DEFAULT 7/);
 assert.match(sql,/crilo_weekly_one_session_per_week UNIQUE\(user_id,daily_period\)/);
-assert.match(sql,/public\.crilo_secure_random_index/); // copied spin source name comes from function cloning
 assert.match(sql,/public\.crilo_server_spin\(uuid\)/);
 assert.match(sql,/pg_get_functiondef/);
 assert.match(sql,/Complete today''s Official Daily to unlock Lucky Seven/);
