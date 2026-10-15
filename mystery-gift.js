@@ -148,7 +148,7 @@
    if(!data?.spun||!Number.isInteger(data.slice)||data.slice<0||data.slice>7)
     throw new Error('The server did not save a valid mystery spin.');
    // The server chooses the slice; client animation cannot affect prizes.
-   state=data;await animateTo(data.slice);renderShelf();reveal();
+   state=data;await animateTo(data.slice);render();
   }catch(error){
    message.textContent='Could not save the mystery spin. Try again; your opportunity is safe.';
    console.warn('Mystery Gift:',error);
