@@ -24,6 +24,19 @@ assert.deepEqual(Array.from(trueScoreBands,b=>[b.key,b.min,b.max===Infinity?'inf
  ['mythic',5441,14420],['divine',14421,'infinity']
 ]);
 assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test Runs');
+const ownerMigration=fs.readFileSync(path.resolve(__dirname,'149-owner-official-only-stats-and-badges.sql'),'utf8');
+const profilePage=fs.readFileSync(path.resolve(__dirname,'../../profile.html'),'utf8');
+const profileSource=fs.readFileSync(path.resolve(__dirname,'../../profile.js'),'utf8');
+assert.match(ownerMigration,/create or replace function public\.get_crilo_player_stats/i,'Owner statistics RPC must read official-only source');
+assert.match(ownerMigration,/public\.crilo_profile_metrics\(p\.id\)/,'Cached fallback derives from official Daily metrics');
+assert.match(ownerMigration,/where d\.user_id=p\.id and d\.is_test=false/i,'Cached fallback excludes Test Runs');
+assert.match(ownerMigration,/delete from public\.user_badges ub/i,'Cleanup handles proven test-linked badges');
+assert.match(ownerMigration,/d\.id=ub\.run_id and d\.is_test=true/i,'Cleanup cannot delete legitimate official badges');
+assert.doesNotMatch(ownerMigration,/delete from public\.daily_runs/i,'Do not delete official or owner Test Run history');
+assert.match(profilePage,/id="ownerStatsScope"/,'Owner profile discloses official-only scope');
+assert.match(profilePage,/profile\.js\?v=105/,'Owner profile page loads the latest official-only badge/stats display');
+assert.match(profileSource,/officialScope\.classList\.toggle\('hidden',p\.is_owner!==true\)/,'Scope label is limited to owner profiles');
+
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
