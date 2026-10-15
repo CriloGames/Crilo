@@ -1,0 +1,31 @@
+/* Extra Crilo Dailies: readable in both themes and on small screens. */
+.crilo-bonus-panel{max-width:670px;margin:17px auto 25px;border:1.5px solid var(--line,#ddd);
+ border-radius:20px;padding:18px 19px;background:var(--panel,#fff);color:var(--text,#27272b);
+ box-shadow:0 6px 22px var(--shadow,#0000000a)}
+.crilo-bonus-panel.hidden{display:none!important}
+.crilo-bonus-title{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.crilo-bonus-mark{display:grid;place-items:center;background:#e9effe;border:1.5px solid #1f2530;
+ width:43px;height:43px;border-radius:14px;font-size:22px;color:#24262d;flex:0 0 43px}
+.crilo-bonus-title h3{font-size:15px;font-weight:900;margin:0;letter-spacing:-.02em}
+.crilo-bonus-title p{font-size:12px;color:var(--muted,#777);margin:3px 0 0}
+.crilo-bonus-progress{font-size:12px;color:var(--muted,#777);line-height:1.4;margin:3px 0 11px}
+.crilo-bonus-slots{display:grid;gap:8px}
+.crilo-bonus-slot{display:flex;align-items:center;gap:12px;padding:10px 12px;
+ border-radius:12px;background:var(--soft,#f6f6f6);border:1px solid var(--line,#ddd)}
+.crilo-bonus-slot-copy{flex:1;min-width:0}
+.crilo-bonus-slot-copy strong{display:block;font-weight:850;font-size:12px}
+.crilo-bonus-slot-copy small{display:block;margin-top:4px;font-size:11px;
+ line-height:1.35;color:var(--muted,#888);overflow-wrap:anywhere}
+.crilo-bonus-play{flex:0 0 auto;min-width:78px;min-height:38px;cursor:pointer;
+ border:1.5px solid var(--text,#26272c);border-radius:11px;
+ background:var(--panel,#fff);color:var(--text,#26272c);
+ padding:9px 13px;font:850 12px/1.2 system-ui,sans-serif}
+.crilo-bonus-play:disabled{opacity:.46;cursor:default}
+.crilo-bonus-play:not(:disabled):hover{background:#e8e8f8;color:#21222b}
+.crilo-bonus-note{font-size:11px;line-height:1.6;color:var(--muted,#777);margin:12px 0 0}
+.crilo-bonus-message{font-size:12px;line-height:1.5;margin:7px 0 0;color:#b54649}
+@media(max-width:390px){
+ .crilo-bonus-panel{padding:14px 12px;margin:14px auto 20px}
+ .crilo-bonus-slot{gap:7px;padding:9px}
+ .crilo-bonus-play{min-width:66px;padding:8px 9px}
+}
