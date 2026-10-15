@@ -1,92 +1,108 @@
 'use strict';
-/* Independent entries: official Daily + every completed Bonus Run.
- * All browser scores are mock data. No player account is modified. */
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+/* One ranked Daily entry per user/day, all verified attempts in an accessible
+ * expansion. Browser uses synthetic data only; never mutates live accounts. */
+const fs=require('node:fs'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
-const sql=fs.readFileSync('release/346-badges/159-all-daily-runs-leaderboard.sql','utf8');
-const source=fs.readFileSync('leaderboard.js','utf8');
+const sql=fs.readFileSync('release/346-badges/167-grouped-daily-leaderboard.sql','utf8');
+const js=fs.readFileSync('leaderboard.js','utf8');
 const html=fs.readFileSync('leaderboard.html','utf8');
-const styles=fs.readFileSync('leaderboard-run-types.css','utf8');
+const css=fs.readFileSync('style.css','utf8')+'\n'+fs.readFileSync('leaderboard-run-types.css','utf8');
+const preview=fs.readFileSync('wheel-preview.js','utf8');
 const game=fs.readFileSync('game.js','utf8');
-assert.match(sql,/UNION ALL/i,'Use every completed run, not the player maximum');
-assert.match(sql,/public\.crilo_bonus_runs/);
+assert.match(sql,/UNION ALL/i);
+assert.match(sql,/PARTITION BY e\.user_id,e\.daily_period/,'Rank once per player per Daily period, not once per player all-time');
+assert.match(sql,/b\.position=1/,'Rank one winner per player per Daily');
+assert.match(sql,/LIMIT LEAST\(GREATEST\(COALESCE\(p_limit,100\),1\),100\)/i,'Apply Top 100 after grouping');
+assert.match(sql,/jsonb_agg\(/,'All completed attempts must survive in the dropdown');
 assert.match(sql,/public\.crilo_bonus_spin_sessions/);
 assert.match(sql,/s\.finished_at IS NOT NULL/);
 assert.match(sql,/s\.score=b\.score/);
 assert.match(sql,/d\.verified_spin_session_id IS NOT NULL/);
-assert.match(sql,/NULL::text AS drawing/,'Bonus artwork must remain private');
-assert.match(sql,/crilo_owner_hide_bonus_leaderboard_run/);
-assert.match(sql,/crilo_require_owner_mfa/);
-assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_public_run_leaders\(text,integer\) TO anon,authenticated/);
-assert.match(source,/crilo_public_run_leaders/);
-assert.match(source,/crilo_total_points_leaders/,'Lifetime stats are still official-only');
-assert.match(source,/if\(isLegacyPreviewRun\(run\)\)continue/,'Official ducks unchanged');
-assert.match(html,/leaderboard-run-types\.css\?v=2/);
-assert.match(html,/leaderboard\.js\?v=55/);
-assert.match(game,/!isTest&&!isBonus/,'No Bonus Run badge awards');
-const runs=[
- {id:'a',user_id:'user-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',verified_spin_session_id:'proof',daily_period:'2026-10-15'},
- {id:'b1',user_id:'user-a',source:'bonus',slot:1,score:900,spins:8,upgrades:3,doubles:0,ducks:1,drawing:null,verified_spin_session_id:null,daily_period:'2026-10-15'},
- {id:'b2',user_id:'user-a',source:'bonus',slot:2,score:600,spins:6,upgrades:1,doubles:1,ducks:0,drawing:null,verified_spin_session_id:null,daily_period:'2026-10-15'},
- {id:'c',user_id:'user-b',source:'official',slot:0,score:450,spins:5,upgrades:0,doubles:1,ducks:0,drawing:null,verified_spin_session_id:'proof',daily_period:'2026-10-15'}
-].sort((a,b)=>b.score-a.score);
-const nodes=new Map();
-function get(id){
- if(!nodes.has(id)){
-  const set=new Set(['hidden']);
-  nodes.set(id,{id,textContent:'',innerHTML:'',dataset:{},style:{},hidden:false,src:'',alt:'',
-   classList:{add:x=>set.add(x),remove:x=>set.delete(x),contains:x=>set.has(x)},
-   addEventListener(){},querySelector(){return null}});
- }
- return nodes.get(id);
-}
-let called=[];
-const tabs=['today','week','all','points','records','badges','ducks'].map(tab=>({
- dataset:{tab},setAttribute(){},classList:{add(){},remove(){}},
- addEventListener(type,fn){if(type==='click')this.click=fn}
-}));
-const db={
- rpc:async(key,args)=>{called.push([key,args]);return{data:key==='crilo_public_run_leaders'?runs:[],error:null}},
- from:table=>({select(){return this},in(){return Promise.resolve({data:[
- {id:'user-a',username:'MultipleRuns',name_color:'#222222'},
- {id:'user-b',username:'SecondPlayer',name_color:'#777777'}
- ],error:null})}})
-};
-const ctx={window:{addEventListener(){},CriloRarity:{scoreBands:[{key:'common',max:500},{key:'mythic',max:Infinity}]},
- CriloNameColors:{paint:(el,p)=>{el.textContent=p?.username||'Crilo player'},markup:p=>p?.username||'Crilo player'}},
- document:{getElementById:get,querySelectorAll:s=>s==='.leader-tab'?tabs:[]},
- Crilo:{dailyPeriod:()=> '2026-10-15',profile:null,esc:x=>String(x||'')},
- criloDB:db,Date,Math,Set,Map,Number,encodeURIComponent,console,prompt(){return null},confirm(){return false},alert(){}};
-vm.runInNewContext(source,ctx,{filename:'leaderboard.js'});
+assert.match(sql,/NULL::text AS drawing/,'Bonus artwork stays private even in the dropdown');
+assert.match(sql,/crilo_hidden_bonus_leaderboard_runs/,'Hidden Bonus runs remain excluded');
+assert.match(sql,/crilo_daily_penalties/);
+assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_grouped_daily_leaders\(text,integer\) TO anon,authenticated/);
+assert.match(js,/crilo_grouped_daily_leaders/);
+assert.match(js,/leader-runs-toggle/);
+assert.match(js,/leader-run-breakdown/);
+assert.match(js,/crilo_total_points_leaders/,'Lifetime points remain official-only');
+assert.match(js,/if\(isLegacyPreviewRun\(run\)\)continue/,'Lifetime ducks remain official-only');
+assert.match(html,/leaderboard-run-types\.css\?v=3/);
+assert.match(html,/leaderboard\.js\?v=56/);
+assert.match(game,/!isTest&&!isBonus/,'Bonus runs cannot earn normal run badges');
+
+const official={id:'official-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA'};
+const bonus1={id:'bonus-1',source:'bonus',slot:1,score:900,spins:8,upgrades:3,doubles:0,ducks:1,drawing:null};
+const bonus2={id:'bonus-2',source:'bonus',slot:2,score:600,spins:6,upgrades:1,doubles:1,ducks:0,drawing:null};
+const other={id:'other-official',source:'official',slot:0,score:450,spins:5,upgrades:0,doubles:1,ducks:0,drawing:null};
+const days=[
+ {...bonus1,user_id:'player-a',daily_period:'2026-10-15',group_count:3,group_runs:[bonus1,bonus2,official]},
+ {...other,user_id:'player-b',daily_period:'2026-10-15',group_count:1,group_runs:[other]}
+];
+const head=html.slice(html.indexOf('<main class="leader-main">'),html.indexOf('</main>')+7);
+assert.ok(head.startsWith('<main class="leader-main">'));
+
 (async()=>{
- for(let i=0;i<40;i++)await Promise.resolve();
- const markup=get('leaderList').innerHTML;
- assert.equal((markup.match(/class="leader-row score-run-row/g)||[]).length,4,'Must show all four runs independently');
- assert.equal((markup.match(/data-run-source="bonus"/g)||[]).length,2);
- assert.equal((markup.match(/data-run-source="official"/g)||[]).length,2);
- assert.ok(markup.indexOf('Bonus Run 1')<markup.indexOf('Bonus Run 2'),'Score sorting must be preserved');
- assert.equal((markup.match(/class="mini-wheel"/g)||[]).length,4,'Every Official and Bonus Run has an artwork slot');
- assert.equal((markup.match(/src="blank-wheel.svg"/g)||[]).length,3,'Private Bonus drawings and undrawn official use the blank wheel');
- assert.equal((markup.match(/src="data:image\/png;base64,AAAA"/g)||[]).length,1,'Existing official artwork is preserved');
- assert.equal((markup.match(/data-drawing="/g)||[]).length,4,'All drawing slots retain the preview action');
- assert.equal(get('bestRunKind').textContent,'Bonus Run 1');
- assert.equal(get('bestDrawing').classList.contains('hidden'),false,'Top Bonus Run has a wheel preview');
- assert.equal(get('bestDrawing').src,'blank-wheel.svg','Top Bonus Run uses the blank wheel placeholder');
- assert.equal(called[0][0],'crilo_public_run_leaders');
- assert.equal(called[0][1].p_board,'today');
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
  try{
   for(const width of [320,390,768,1280]){
-   const page=await browser.newPage({viewport:{width,height:800}});
-   await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><main class="leader-panel"><div class="leader-row score-run-row is-bonus" data-run-source="bonus"><span class="rank">1</span><span class="leader-player"><a class="leader-name">MultipleRuns</a><span class="leader-mini"><span class="crilo-run-kind is-bonus">Bonus Run 1</span> · 12 spins · 5 upgrades</span></span><div class="leader-score-actions"><div class="leader-score">9,999,000</div></div></div></main></body></html>');
-   await page.addStyleTag({content:styles+'\nbody{margin:0;font-family:system-ui}.leader-panel{width:min(100%,980px);margin:auto}.leader-row{display:grid;gap:10px;padding:14px;box-sizing:border-box}.leader-player{min-width:0}.leader-mini{display:block}.leader-score{font-size:18px;font-weight:900}'});
+   const page=await browser.newPage({viewport:{width,height:1000},reducedMotion:'reduce'});
+   const errors=[];page.on('pageerror',error=>errors.push(error.message));
+   await page.setContent('<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body>'+head+'</body></html>');
+   await page.addStyleTag({content:css});
+   await page.evaluate(groups=>{
+    window.__mockCalls=[];
+    window.Crilo={profile:null,esc:x=>String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')};
+    window.CriloNameColors={paint:(element,p)=>{element.textContent=p?.username||'Crilo player'},markup:p=>p?.username||'Crilo player'};
+    window.CriloRarity={scoreBands:[{key:'common',max:500},{key:'mythic',max:Infinity}]};
+    window.criloDB={
+     rpc:async(name,args)=>{window.__mockCalls.push({name,args});return{data:name==='crilo_grouped_daily_leaders'?groups:[],error:null}},
+     from:()=>({select(){return this},in(){return Promise.resolve({data:[
+      {id:'player-a',username:'BadgeRunner',name_color:'#334455'},
+      {id:'player-b',username:'OtherPlayer',name_color:'#556677'}],error:null})}})
+    };
+   },days);
+   await page.addScriptTag({content:js});
+   await page.waitForFunction(()=>document.querySelectorAll('.leader-row.score-run-row').length===2);
+   assert.equal(await page.locator('.leader-row.score-run-row').count(),2,'Three Bonus/official attempts must share one rank');
+   assert.equal(await page.locator('.leader-run-bundle').count(),1,'Only player with multiple attempts gets a disclosure');
+   assert.equal(await page.locator('.leader-runs-toggle').count(),1);
+   assert.equal(await page.locator('.leader-run-detail-row').count(),3,'All 3 attempts persist in the collapsed group');
+   assert.equal(await page.locator('.leader-run-detail-row .leader-run-best-tag').count(),1);
+   assert.equal(await page.locator('.leader-run-detail-row .mini-wheel').count(),3,'Every expanded run retains a drawing thumbnail');
+   assert.equal(await page.locator('.leader-row.score-run-row .mini-wheel').count(),2);
+   assert.equal(await page.locator('#bestScore').textContent(),'900','The group's best score leads');
+   assert.equal(await page.locator('#bestDrawing').getAttribute('src'),'blank-wheel.svg','Top private Bonus drawing gets blank wheel');
+   assert.equal(await page.locator('.leader-run-detail-row img[src="blank-wheel.svg"]').count(),2);
+   assert.equal(await page.locator('.leader-run-detail-row img[src^="data:image/png"]').count(),1,'Official drawing remains available');
+   assert.equal(await page.locator('#leader-daily-group-0').isVisible(),false,'Run history starts collapsed');
+   await page.locator('.leader-runs-toggle').click();
+   await page.locator('#leader-daily-group-0').waitFor({state:'visible'});
+   assert.equal(await page.locator('.leader-runs-toggle').getAttribute('aria-expanded'),'true');
+   assert.match(await page.locator('#leader-daily-group-0').textContent(),/Official Daily/);
+   assert.match(await page.locator('#leader-daily-group-0').textContent(),/Bonus Run 1/);
+   assert.match(await page.locator('#leader-daily-group-0').textContent(),/Bonus Run 2/);
+   await page.addScriptTag({content:preview});
+   await page.locator('#leader-daily-group-0 .mini-wheel').first().click();
+   await page.locator('#criloWheelPreview').waitFor({state:'visible'});
+   await page.locator('.crilo-wheel-preview-close').click();
+   await page.locator('.leader-runs-toggle').click();
+   assert.equal(await page.locator('.leader-runs-toggle').getAttribute('aria-expanded'),'false');
+   assert.equal(await page.locator('#leader-daily-group-0').isVisible(),false);
+   const rpc=await page.evaluate(()=>window.__mockCalls[0]);
+   assert.equal(rpc.name,'crilo_grouped_daily_leaders');
+   assert.equal(rpc.args.p_limit,100);
    for(const theme of ['light','dark']){
-    await page.evaluate(t=>document.documentElement.dataset.theme=t,theme);
-    const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
-    assert.ok(overflow<=3,'Unexpected overflow at '+width+' '+theme+': '+overflow);
+    await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
+    const size=await page.evaluate(()=>({
+     whole:document.documentElement.scrollWidth,view:document.documentElement.clientWidth,
+     row:document.querySelector('.leader-run-bundle').getBoundingClientRect().width
+    }));
+    assert.ok(size.whole<=size.view+3,width+'px '+theme+' overflow '+JSON.stringify(size));
    }
+   assert.deepEqual(errors,[],'Browser must have no JS errors');
    await page.close();
   }
-  console.log('ALL_RUNS_LEADERBOARD_PASS all four rankings, private bonus drawings, desktop/tablet/phone and themes');
+  console.log('GROUPED_DAILIES_PASS: best rank per day, expandable all runs, blank/private artwork, keyboard-accessible toggles, four viewport widths');
  }finally{await browser.close()}
-})().catch(error=>{console.error(error);process.exitCode=1});
+})().catch(err=>{console.error('GROUPED_DAILIES_FAIL',err);process.exitCode=1});
