@@ -1,0 +1,53 @@
+/* Small wandering discoveries follow the viewport on every Crilo page. */
+.crilo-wandering-find{position:fixed;z-index:850;bottom:clamp(75px,22vh,190px);left:18px;
+  width:61px;height:61px;display:flex;align-items:center;justify-content:center;padding:4px;
+  border:2px solid #363040;border-radius:21px;background:linear-gradient(135deg,#fffdf1,#e8e2ff);
+  color:#222634;box-shadow:0 5px 0 #3f334f36,0 9px 24px #1e1b3125;
+  cursor:pointer;animation:criloWanderIn .35s ease-out,criloWanderBob 4s ease-in-out .35s infinite;
+  transition:filter .15s,box-shadow .15s}
+.crilo-wandering-find[data-side="right"]{left:auto;right:18px}
+.crilo-wandering-find[data-height="middle"]{bottom:clamp(135px,39vh,350px)}
+.crilo-wandering-find:hover{filter:brightness(1.05);box-shadow:0 6px 0 #3f334f44,0 12px 30px #1e1b3136}
+.crilo-wandering-find:focus-visible{outline:4px solid #b6a2ee;outline-offset:4px}
+.crilo-wandering-find:disabled{opacity:.68;cursor:wait}
+.crilo-wandering-art{display:block;width:49px;height:49px;pointer-events:none}
+.crilo-wandering-tooltip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(5px);
+  min-width:max-content;max-width:min(75vw,240px);border:1px solid #a29ab7;border-radius:10px;
+  background:#fffdfb;color:#292736;padding:7px 11px;box-shadow:0 4px 12px #20203426;
+  font:850 12px/1.3 system-ui,sans-serif;pointer-events:none;
+  opacity:0;visibility:hidden;transition:opacity .14s,transform .14s}
+.crilo-wandering-find:hover .crilo-wandering-tooltip,
+.crilo-wandering-find:focus-visible .crilo-wandering-tooltip{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0)}
+.crilo-wandering-dialog{position:fixed;inset:0;box-sizing:border-box;width:min(92vw,390px);
+  max-height:calc(100dvh - 40px);overflow:auto;margin:auto;padding:0;border:0;border-radius:22px;
+  background:var(--panel,#fff);color:var(--text,#292b34);box-shadow:0 18px 68px #111a}
+.crilo-wandering-dialog::backdrop{background:#11111dbd;backdrop-filter:blur(3px)}
+.crilo-wandering-card{display:flex;position:relative;flex-direction:column;align-items:center;
+  padding:25px 22px 23px;text-align:center;gap:10px}
+.crilo-wandering-close{position:absolute;right:10px;top:8px;background:transparent;border:0;color:inherit;
+  border-radius:8px;padding:3px 10px;font:850 27px/1 system-ui;cursor:pointer}
+.crilo-wandering-close:hover{background:var(--soft,#f1f1f6)}
+.crilo-wandering-eyebrow{font:900 10px/1.4 system-ui,sans-serif;letter-spacing:.15em;color:var(--muted,#777)}
+.crilo-wandering-large-art{display:grid;place-items:center;width:96px;height:96px;
+  border:2px solid #d3bee9;border-radius:29px;background:linear-gradient(140deg,#fff8dc,#e5e2fa)}
+.crilo-wandering-large-art svg{width:77px;height:77px}
+.crilo-wandering-card h2{font:950 clamp(20px,4vw,25px)/1.2 system-ui,sans-serif;letter-spacing:-.03em;margin:4px 0 0}
+.crilo-wandering-card>p{margin:0;line-height:1.5;font-size:13px;max-width:300px}
+.crilo-wandering-card .crilo-wandering-result{font-weight:850;color:#398063;margin-top:8px}
+.crilo-wandering-card .crilo-wandering-note{font-size:11px;color:var(--muted,#777)}
+.crilo-wandering-link{display:inline-block;margin-top:4px;padding:10px 13px;font-size:12px;font-weight:850;
+  text-decoration:none;color:#4f3f78;border:1px solid #c7bee3;background:#f1ebff;border-radius:10px}
+.crilo-wandering-link:hover{text-decoration:underline}
+html[data-theme="dark"] .crilo-wandering-find{background:linear-gradient(135deg,#3c3d4b,#4c3f6d);border-color:#d5c8ea}
+html[data-theme="dark"] .crilo-wandering-tooltip{background:#2d2e3b;color:#f1edfa;border-color:#78708e}
+html[data-theme="dark"] .crilo-wandering-large-art{background:linear-gradient(140deg,#49404a,#453a5f);border-color:#777090}
+html[data-theme="dark"] .crilo-wandering-card .crilo-wandering-result{color:#a3e4c1}
+html[data-theme="dark"] .crilo-wandering-link{background:#443957;color:#eadcff;border-color:#766393}
+@media(max-width:600px){.crilo-wandering-find{width:53px;height:53px;border-radius:17px;left:11px}
+ .crilo-wandering-find[data-side="right"]{left:auto;right:11px}
+ .crilo-wandering-art,.crilo-wandering-art svg{width:42px;height:42px}
+ .crilo-wandering-find[data-height="middle"]{bottom:clamp(120px,35vh,270px)}}
+@keyframes criloWanderIn{from{opacity:0;scale:.75}to{opacity:1;scale:1}}
+@keyframes criloWanderBob{0%,100%{translate:0 0}50%{translate:0 -4px}}
+@media(prefers-reduced-motion:reduce){.crilo-wandering-find{animation:none;transition:none}
+ .crilo-wandering-tooltip{transition:none}}
