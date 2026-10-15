@@ -4,8 +4,10 @@ const game=fs.readFileSync('game.js','utf8'),rarity=fs.readFileSync('rarity-syst
 const items=JSON.parse(fs.readFileSync('release/346-badges/catalog-rules.json','utf8'));
 assert.match(game,/const twelve=\[\{type:'num',base:40\}/);
 assert.match(game,/segments=twelve\.concat\(twelve\.map/);
-assert.match(game,/const chord=2\*radialText\*Math\.sin\(a\/2\)/);
-assert.match(game,/ctx\.measureText\(text\)\.width<=maxLabelWidth/);
+assert.ok(game.includes('const initialChord=2*labelRadius*Math.sin(a/2)'), 'Wheel slices must compute text clearance');
+assert.ok(game.includes('const innerTextRadius=Math.max(innerLabelEdge,labelRadius-width/2)'), 'Text must fit the tapered wedge');
+assert.ok(game.includes('radialLabels=N>36'), 'Multi-upgrade wheel values must run radially');
+assert.ok(!game.includes('if(size>=8'), 'Wheel labels cannot disappear at an 8px cutoff');
 assert.match(game,/bases=\[20,20,40,40,60,60,80,80,120,160\]/);
 assert.match(game,/segments\.push\(\{type:'num',base\},\{type:'num',base\}\)/);
 assert.match(rarity,/segments\.push\(value,value\)/);
