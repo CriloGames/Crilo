@@ -51,6 +51,23 @@ function installOwnerDailies(){
    };
    return q;
   };
+  // Read-only new grouped history RPC. The five original Official Dailies
+  // and their 43 spins must remain visible, without owner Test Runs.
+  const originalRPC=db.rpc;
+  db.rpc=(name,args)=>{
+   if(name!=='crilo_grouped_spin_history')return originalRPC.call(db,name,args);
+   const official=runs.filter(r=>r.user_id===args.p_user&&!r.is_test);
+   const days=official.slice().sort((a,b)=>String(b.daily_period).localeCompare(String(a.daily_period)))
+    .map(r=>({daily_period:r.daily_period,run_count:1,
+     best:{...r,source:'official',slot:0},
+     runs:[{...r,source:'official',slot:0}]}));
+   return Promise.resolve({data:{
+    days:days.slice(args.p_offset,args.p_offset+args.p_limit),
+    total_dailies:days.length,official_dailies:official.length,
+    official_spins:official.reduce((sum,run)=>sum+run.spins,0),
+    bonus_runs:0
+   },error:null});
+  };
   return db;
  };
 }
