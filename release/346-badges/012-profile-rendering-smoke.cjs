@@ -109,7 +109,7 @@ async function run(awards){
  assert.ok(!html.includes('badge-set-head')&&!html.includes('badge-card locked'),
   'Profile should not render locked sets');
  assert.equal(getElementById('badgeProgress').textContent,
-  awards+' unique badges collected'+(awards>50?' · Best 50 shown':''));
+  awards+'/'+badges.length+' badges collected · Best 50 shown');
  assert.equal(getElementById('badgeSetsLink').href,'badge-sets.html?id=fixture-player');
  assert.match(getElementById('featuredBadges').innerHTML,/featured-slot/);
 
