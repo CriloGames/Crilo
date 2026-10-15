@@ -23,7 +23,9 @@ assert.deepEqual(Array.from(trueScoreBands,b=>[b.key,b.min,b.max===Infinity?'inf
  ['rare',861,1620],['epic',1621,2460],['anomaly',2461,5440],
  ['mythic',5441,14420],['divine',14421,'infinity']
 ]);
-assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test Runs');
+const historySql=fs.readFileSync(path.resolve(__dirname,'168-grouped-statistics-spin-history.sql'),'utf8');
+assert.match(historySource,/crilo_grouped_spin_history/,'Spin History uses read-only server-grouped Dailies');
+assert.match(historySql,/d.is_test=false/,'Spin History database excludes owner Test Runs');
 const ownerMigration=fs.readFileSync(path.resolve(__dirname,'149-owner-official-only-stats-and-badges.sql'),'utf8');
 const profilePage=fs.readFileSync(path.resolve(__dirname,'../../profile.html'),'utf8');
 const profileSource=fs.readFileSync(path.resolve(__dirname,'../../profile.js'),'utf8');
@@ -37,7 +39,9 @@ assert.match(profilePage,/id="ownerStatsScope"/,'Owner profile discloses officia
 assert.match(profilePage,/profile\.js\?v=105/,'Owner profile page loads the latest official-only badge/stats display');
 assert.match(profileSource,/officialScope\.classList\.toggle\('hidden',p\.is_owner!==true\)/,'Scope label is limited to owner profiles');
 
-assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
+assert.match(historySql,/public.daily_runs/,'Official Daily history is preserved');
+assert.match(historySql,/public.crilo_bonus_runs/,'Verified badge Bonus Runs join their Official Daily');
+assert.match(historySql,/NULL::text AS drawing/,'Bonus drawings cannot be publicly disclosed');
 assert.match(indexHTML,/id="wheelScorePanel"/);
 assert.match(indexHTML,/id="scoreTierText"/);
 assert.match(indexHTML,/game\.js\?v=\d+/);
