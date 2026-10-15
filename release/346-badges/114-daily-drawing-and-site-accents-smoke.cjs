@@ -309,7 +309,7 @@ for(const file of [
  'badge-sets.html','shape-of-sound.html','moderation.html',
  'settings.html','friends.html','privacy.html','terms.html','beetle-tricks.html'
 ]){
- assert.match(read(file),/href="style\.css\?v=(125|127)"/,
+ assert.match(read(file),/href="style\.css\?v=(125|127|128)"/,
   file+' must load updated shared dark navigation rules, not an old cached CSS version');
 }
 
