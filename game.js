@@ -474,7 +474,7 @@ update();
 // The final spin waits for verified Daily saving before its gift check.
 if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0){
  // Minimal isolated wheel tests may not load the optional Mystery module.
- if(window.CriloMysteryGift?.refresh)
+ if(window.CriloMysteryGift?.refresh||window.CriloDailyChallenges?.refresh)
   window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
    detail:{spinCount:totalSpins}
   }));
