@@ -763,7 +763,7 @@ if(isBonus){
   $('ownerDailyChoiceBtn').textContent='Daily Run — Completed';
   $('ownerSaveRunBtn').textContent='Test Run';
  }
- window.CriloBonusRuns?.refresh?.();
+ await window.CriloBonusRuns?.refresh?.({focus:true});
 }else if(isTest){
  $('message').textContent='Private test run saved. It does not count toward leaderboards, badges, or official Dailies.';
  $('replayTestBtn').classList.remove('hidden');
@@ -785,9 +785,10 @@ if(isBonus){
  }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
- window.CriloBonusRuns?.refresh?.();
- // The unranked mystery event checks eligibility only after official save.
- window.CriloMysteryGift?.refresh?.({autoOpen:true});
+ // A rare gift takes priority on top of the wheel; once it's closed,
+ // show the next available bonus run beneath the Daily result.
+ await window.CriloMysteryGift?.refresh?.({autoOpen:true});
+ await window.CriloBonusRuns?.refresh?.({focus:true});
  
 }
 }finally{finalSaveInProgress=false}
@@ -1167,8 +1168,8 @@ async function claimFinishedGuestDaily(){
   try{await DuckWorld.load(criloDB,user)}catch(loadError){console.warn('Duck refresh pending',loadError)}
   await checkPlayed();
   window.CriloMysteryGift?.setMode?.('official');
-  window.CriloMysteryGift?.refresh?.({autoOpen:data.status==='saved'});
-  window.CriloBonusRuns?.refresh?.();
+  await window.CriloMysteryGift?.refresh?.({autoOpen:data.status==='saved'});
+  await window.CriloBonusRuns?.refresh?.({focus:data.status==='saved'});
   return true;
  }catch(error){
   console.warn('Guest Daily claim failed',error);
