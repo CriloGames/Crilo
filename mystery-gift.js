@@ -1,14 +1,17 @@
-/* Crilo Mystery Gift: server-authoritative surprise after a verified Daily.
- * Pure bonus play. Never touches Daily Wheel state, points, badges, or spins. */
+/* Surprise Mystery Gift. Appears directly on the wheel after the first
+ * verified official Daily; collecting never changes rankings or badges. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
- const panel=$('criloMysteryPanel'),launch=$('criloMysteryOpen'),
-  progress=$('criloMysteryProgress'),modal=$('criloMysteryModal'),
-  close=$('criloMysteryClose'),canvas=$('criloMysteryWheel'),
+ const shortcut=$('criloMysteryShortcut'),shortcutLabel=$('criloMysteryShortcutLabel'),
+  shortcutBtn=$('criloMysteryShelfButton'),progress=$('criloMysteryProgress'),
+  modal=$('criloMysteryModal'),close=$('criloMysteryClose'),
+  collectionModal=$('criloMysteryShelfDialog'),collectionClose=$('criloMysteryShelfClose'),
+  reviewButton=$('criloMysteryReviewButton'),canvas=$('criloMysteryWheel'),
   spin=$('criloMysterySpin'),message=$('criloMysteryMessage'),
-  shelf=$('criloMysteryShelf'),title=$('criloMysteryTitle');
- if(!panel||!launch||!progress||!modal||!canvas||!spin||!message||!shelf||!title)return;
+  shelf=$('criloMysteryShelf'),title=$('criloMysteryTitle'),wheelWrap=$('wheelWrap');
+ if(!shortcut||!shortcutBtn||!progress||!modal||!close||!collectionModal||
+    !collectionClose||!reviewButton||!canvas||!spin||!message||!shelf||!title||!wheelWrap)return;
  const ctx=canvas.getContext('2d');
  const prizes={
   sleepy_duck:['The Napping Duck','This duck fell asleep halfway through saying quack.'],
@@ -18,33 +21,45 @@
   cloud_recipe:['Recipe for a Cloud','One pinch of fog, two drops of rain, and a very patient spoon.'],
   lost_button:['The Missing Button','Nobody remembers what this button used to do.']
  };
- let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official';
- const presentedThisPage=new Set();
- function presentationKey(){
-  const u=window.Crilo?.user?.id;
-  const period=state?.period;
-  return u&&period?'crilo-mystery-auto-presented:'+u+':'+period:null;
- }
- function popIfSurprise(){
-  if(runMode!=='official'||!state?.eligible||!state?.available||state?.spun||busy)return;
-  const key=presentationKey();
-  if(!key||presentedThisPage.has(key))return;
-  try{if(localStorage.getItem(key)==='1')return}
-  catch(error){/* Session storage may be disabled; page-level guard still applies. */}
-  presentedThisPage.add(key);
-  try{localStorage.setItem(key,'1')}catch(error){}
-  show(); // A real, server-selected gift opens automatically exactly once.
+ const names=Object.keys(prizes),presentedThisPage=new Set();
+ let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official',returnFocus=null;
+ const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+ const won=i=>i%2===0;
+ const openDialog=dialog=>{
+  returnFocus=document.activeElement;
+  dialog.classList.remove('hidden');
+  dialog.querySelector('[role="dialog"]')?.focus();
+ };
+ const closeDialog=(dialog,restoreFocus=true)=>{
+  dialog.classList.add('hidden');
+  if(restoreFocus&&returnFocus?.isConnected&&typeof returnFocus.focus==='function'){
+   returnFocus.focus({preventScroll:true});
+  }
+ };
+ function dismiss(restoreFocus=true){
+  if(busy)return;
+  const hadModal=!modal.classList.contains('hidden')||!collectionModal.classList.contains('hidden');
+  closeDialog(modal,false);closeDialog(collectionModal,false);
+  if(hadModal&&restoreFocus&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
  }
  function setMode(mode){
   runMode=mode==='test'||mode==='bonus'?mode:'official';
-  if(runMode!=='official'){
-   panel.classList.add('hidden');
-   if(!busy)dismiss();
-  }else render();
+  if(runMode!=='official'){shortcut.classList.add('hidden');dismiss(false)}
+  else render();
  }
- const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
- const won=i=>i%2===0;
- const names=Object.keys(prizes);
+ function presentationKey(){
+  const u=window.Crilo?.user?.id,p=state?.period;
+  return u&&p?'crilo-mystery-auto-presented:'+u+':'+p:null;
+ }
+ function popIfSurprise(){
+  if(runMode!=='official'||!state?.eligible||!state.available||state.spun||busy)return;
+  const key=presentationKey();
+  if(!key||presentedThisPage.has(key))return;
+  try{if(localStorage.getItem(key)==='1')return}catch(_){}
+  presentedThisPage.add(key);
+  try{localStorage.setItem(key,'1')}catch(_){}
+  showGift(true);
+ }
  function draw(){
   if(!ctx)return;
   const side=canvas.width,c=side/2,r=c-12,part=Math.PI/4;
@@ -67,20 +82,19 @@
   ctx.font='bold 22px system-ui,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
   ctx.fillStyle='#24262a';ctx.fillText('?',c,c);
  }
+
  function atSlice(i){return -(i+0.5)*Math.PI/4}
  function reveal(){
   if(!state)return;
   if(!state.available){
-   title.textContent='The Mystery Shelf';
-   message.textContent='No surprise gift appeared today. Come back after another Daily to discover more.';
-   spin.hidden=true;
-   return;
+   title.textContent='The Mystery Gift';
+   message.textContent='No gift appeared today.';
+   spin.hidden=true;return;
   }
   if(!state.spun){
-   title.textContent='The Mystery Gift';
+   title.textContent='A Mystery Gift!';
    message.textContent='Land on a golden star to open the gift. One chance per Daily.';
-   spin.hidden=false;spin.disabled=false;
-   return;
+   spin.hidden=false;spin.disabled=busy;return;
   }
   spin.hidden=true;
   if(state.prize&&prizes[state.prize]){
@@ -88,7 +102,7 @@
    message.textContent=prizes[state.prize][0]+' — '+prizes[state.prize][1];
   }else{
    title.textContent='Just missed!';
-   message.textContent='The little gift rattles, waves goodbye, and waddles away. Better luck next time.';
+   message.textContent='The gift rattles, waves goodbye, and waddles away. Better luck next time.';
   }
  }
  function renderShelf(){
@@ -96,14 +110,11 @@
   progress.textContent=discoveries.length+' / '+names.length+' mystery discoveries';
   shelf.replaceChildren();
   for(const key of names){
-   const found=discoveries.includes(key);
-   const item=document.createElement('div');
+   const found=discoveries.includes(key),item=document.createElement('div');
    item.className='crilo-mystery-item'+(found?' found':'');
-   const symbol=document.createElement('span');
-   symbol.className='crilo-mystery-item-symbol';
+   const symbol=document.createElement('span');symbol.className='crilo-mystery-item-symbol';
    symbol.textContent=found?'✦':'?';
-   const copy=document.createElement('span');
-   const label=document.createElement('strong');
+   const copy=document.createElement('span'),label=document.createElement('strong');
    label.textContent=found?prizes[key][0]:'Undiscovered';
    const description=document.createElement('small');
    description.textContent=found?prizes[key][1]:'Find this by opening a Mystery Gift.';
@@ -111,21 +122,23 @@
   }
  }
  function render(){
-  const eligible=runMode==='official'&&!!state?.eligible;
-  panel.classList.toggle('hidden',!eligible);
-  if(!eligible)return;
-  const available=!!state?.available;
-  launch.classList.toggle('hidden',!available);
-  launch.textContent=state.spun?'Review today\'s Mystery Gift':'Open today\'s Mystery Gift';
+  const visible=runMode==='official'&&!!window.Crilo?.user;
+  shortcut.classList.toggle('hidden',!visible);
+  if(!visible){dismiss(false);return}
+  const count=Array.isArray(state?.discovered)?state.discovered.filter(k=>names.includes(k)).length:0;
+  const waiting=!!(state?.eligible&&state?.available&&!state?.spun);
+  shortcut.classList.toggle('gift-ready',waiting);
+  shortcutLabel.textContent=waiting?'Mystery Gift waiting':count+' / '+names.length+' mysteries found';
+  shortcutBtn.setAttribute('aria-label',waiting?
+   'Open your unopened Mystery Gift':'View Mystery Collection, '+count+' of '+names.length+' discovered');
+  reviewButton.classList.toggle('hidden',!(state?.eligible&&state?.available&&state?.spun));
   renderShelf();
   if(!modal.classList.contains('hidden'))reveal();
  }
  async function refresh(options){
-  const autoOpen=options?.autoOpen===true;
-  const myToken=++token;
-  const active=window.Crilo?.user;
-  if(!active||typeof criloDB==='undefined'){
-   state=null;panel.classList.add('hidden');dismiss();return;
+  const autoOpen=options?.autoOpen===true,myToken=++token;
+  if(!window.Crilo?.user||typeof criloDB==='undefined'){
+   state=null;shortcut.classList.add('hidden');dismiss(false);return;
   }
   const {data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'});
   if(myToken!==token)return;
@@ -133,17 +146,21 @@
   state=data||null;render();
   if(autoOpen)popIfSurprise();
  }
- function show(){
-  // The Mystery Shelf remains browseable even when no gift appears today.
-  if(runMode!=='official'||!state?.eligible||busy)return;
-  modal.classList.remove('hidden');
+ function showGift(automatic=false){
+  if(runMode!=='official'||!state?.eligible||!state?.available||busy)return;
+  if(!collectionModal.classList.contains('hidden'))closeDialog(collectionModal,false);
   rotation=state.spun&&Number.isInteger(state.slice)?atSlice(state.slice):0;
-  draw();reveal();
-  close.focus();
+  draw();reveal();openDialog(modal);
+  if(automatic){
+   // After the result card appears below the wheel, bring the surprise wheel
+   // into view so the player genuinely notices the gift.
+   wheelWrap.scrollIntoView?.({block:'center',behavior:reduced()?'auto':'smooth'});
+  }
  }
- function dismiss(){
-  if(busy)return;
-  modal.classList.add('hidden');
+ function showCollection(){
+  if(runMode!=='official'||!window.Crilo?.user||busy)return;
+  if(!modal.classList.contains('hidden'))closeDialog(modal,false);
+  renderShelf();openDialog(collectionModal);
  }
  function animateTo(index){
   return new Promise(done=>{
@@ -183,12 +200,32 @@
    else spin.disabled=false;
   }
  }
- launch.addEventListener('click',show);
- $('criloMysteryShelfButton').addEventListener('click',show);
+
+ shortcutBtn.addEventListener('click',()=>{
+  if(state?.eligible&&state?.available&&!state.spun)showGift();
+  else showCollection();
+ });
+ reviewButton.addEventListener('click',()=>showGift());
  spin.addEventListener('click',play);
- close.addEventListener('click',dismiss);
+ close.addEventListener('click',()=>dismiss());
+ collectionClose.addEventListener('click',()=>dismiss());
  modal.addEventListener('click',e=>{if(e.target===modal)dismiss()});
- window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))dismiss()});
+ collectionModal.addEventListener('click',e=>{if(e.target===collectionModal)dismiss()});
+ window.addEventListener('keydown',e=>{
+  const current=!collectionModal.classList.contains('hidden')?collectionModal:
+   !modal.classList.contains('hidden')?modal:null;
+  if(!current)return;
+  if(e.key==='Escape'){e.preventDefault();dismiss();return}
+  if(e.key!=='Tab')return;
+  const focusable=[...current.querySelectorAll('button:not([disabled]):not([hidden])')].filter(x=>x.getClientRects().length);
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&(document.activeElement===first||!current.contains(document.activeElement))){
+   e.preventDefault();last.focus()
+  }else if(!e.shiftKey&&(document.activeElement===last||!current.contains(document.activeElement))){
+   e.preventDefault();first.focus()
+  }
+ });
  window.addEventListener('crilo-auth-ready',refresh);
  window.addEventListener('crilo-official-daily-saved',()=>refresh({autoOpen:true}));
  window.CriloMysteryGift={refresh,setMode};
