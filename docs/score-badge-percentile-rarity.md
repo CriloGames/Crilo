@@ -1,42 +1,18 @@
-# RNGdle-style rarity calibration for Crilo
+# Crilo 24-sector wheel and rarity (October 14, 2026)
 
-Crilo's seven **final-score** rarity bands follow RNGdle's published
-1% / 49% / 25% / 15% / 5% / 4% / 1% structure, but calculate the
-point boundaries from **Crilo's own wheel**, not RNGdle's entropy points.
+All 12 original outcomes are duplicated for 24 starting sectors: six 20s, four 40s, two 60s, two 80s, four Ducks, two ×2, two Upgrades and two +2 Spins. This preserves event odds exactly. Upgrades triple the number multiplier, refund the spin and add 2 identical sectors per random sample for each 4 + min(upgrades,8) additional number outcomes, drawn from [20,20,40,40,60,60,80,80,120,160].
 
-The fixed LCG seed `0xC4102026` and the current five-spin / upgrade /
-bonus-spin wheel are simulated for **1,000,000 runs** to derive the
-integer thresholds:
+Six million deterministic independent simulated Dailies (seed 0x22101026) estimated the score percentiles:
 
-| Final score tier | Score range | Reference frequency |
-|---|---:|---:|
-| Trash | 0–6 | 1.2370% |
-| Common | 7–24 | 49.7661% |
-| Uncommon | 25–48 | 24.5551% |
-| Rare | 49–92 | 14.4894% |
-| Epic | 93–141 | 4.9887% |
-| Anomaly | 142–318 | 3.9677% |
-| Mythic | 319+ | 0.9960% |
+| Rarity | Inclusive score interval | Simulated share |
+|:--|--:|--:|
+| Trash | 0–120 | 1.24030% |
+| Common | 121–440 | 48.96935% |
+| Uncommon | 441–860 | 25.22275% |
+| Rare | 861–1,620 | 14.64972% |
+| Epic | 1,621–2,460 | 4.99390% |
+| Anomaly | 2,461–5,440 | 3.92732% |
+| Mythic | 5,441–14,420 | 0.89677% |
+| Divine | 14,421+ | 0.09990% |
 
-Actual observed frequency varies; integer-score ties cannot be split
-between rarity categories. `rarity-system.js` estimates any individual
-score's tail probability with its smaller seeded 100,000-run reference.
-
-**Badge rarity** is a separate distribution, measured per official Daily:
-Common >10%; Uncommon 1–10%; Rare 0.1–1%; Epic 0.01–0.1%;
-Anomaly 0.001–0.01%; Mythic <0.001% (rarer than 1 in 100,000).
-There is **no Trash badge tier**.
-
-The 61 previously simulated event/number badges have actual
-`requirement.probability_percent` metadata and are reclassified from
-that measurement. The seven final-score achievement badges now have
-the 1-million-run band's frequency as their measured probability.
-The remaining streak, lifetime, social, exploration and unmeasured
-wheel-pattern achievements retain their authored *challenge difficulty*
-and should not be advertised as statistically calibrated until
-comparable per-run probability estimates are available.
-
-Migration `138-rngdle-percentile-rarity.sql` only changes
-`public.badges` requirement metadata / score-band conditions and the
-seven score-band badge descriptions. It does not revoke previous awards
-or alter verified player scores and leaderboards.
+Reachable scores normally increase by 20, so new reachable thresholds are 140, 460, 880, 1640, 2480, 5460, and 14440. Displayed odds are Monte Carlo estimates, not guaranteed prizes. Badge drop rarity remains a separate scale. Previously awarded badges are retained and legacy scores are recalculated from spin histories; old score-only rows without spin history are recorded in a private migration audit and scaled 20× as a documented approximation, not misrepresented as authoritative replays.

@@ -1,11 +1,11 @@
 'use strict';
-/* Browser audit of all six badge hues and seven score hues, light/dark,
+/* Browser audit of all seven badge hues and eight score hues, light/dark,
    phone/tablet/desktop. All network auth calls are mocked locally. */
 const assert=require('node:assert/strict'),http=require('node:http');
 const {chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
 const pages=['index.html','leaderboard.html','profile.html','badge-sets.html'];
-const tiers=['common','uncommon','rare','epic','anomaly','mythic'];
+const tiers=['common','uncommon','rare','epic','anomaly','mythic','divine'];
 const scoreTiers=['trash',...tiers];
 const dark={light:'#bd2633',dark:'#eda0aa'};
 (async()=>{
@@ -24,7 +24,7 @@ const dark={light:'#bd2633',dark:'#eda0aa'};
     const page=await ctx.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+name,{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('link[href="rarity-palette.css?v=2"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-palette.css?v=3"]').count(),1,
       'Missing shared rarity stylesheet on '+name);
     for(const theme of ['light','dark']){
      const data=await page.evaluate(({theme,scoreTiers,tiers})=>{
@@ -50,14 +50,14 @@ const dark={light:'#bd2633',dark:'#eda0aa'};
        overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};
      },{theme,scoreTiers,tiers});
      assert.equal(data.mythic,dark[theme],name+' '+theme+' Mythic must be red, not magenta');
-     assert.equal(Object.keys(data.badgeColors).length,6);
+     assert.equal(Object.keys(data.badgeColors).length,7);
      for(const tier of tiers)assert.ok(data.badgeColors[tier],
       name+' '+width+'px '+theme+' badge '+tier+' color is missing');
-     assert.equal(new Set(Object.values(data.badgeColors)).size,6,
+     assert.equal(new Set(Object.values(data.badgeColors)).size,7,
       name+' '+theme+' badge colors should all be distinguishable');
      if(name==='index.html'){
-      assert.equal(new Set(Object.values(data.resultColors)).size,7,
-       'Seven result colors should stay distinct on '+theme);
+      assert.equal(new Set(Object.values(data.resultColors)).size,8,
+       'Eight result colors should stay distinct on '+theme);
       assert.equal(data.resultColors.mythic,data.badgeColors.mythic,
        'Mythic score and badge must use the same hue');
      }

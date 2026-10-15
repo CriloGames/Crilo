@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'rarity-system.js'
+      - 'game.js'
+      - 'release/346-badges/catalog-rules.json'
+      - 'release/346-badges/141-wheel-24-smoke.cjs'
       - 'badge-collection.js'
       - 'game.js'
       - 'rarity-palette.css'
@@ -34,6 +37,7 @@ jobs:
           node --check badge-collection.js
           node --check game.js
           node release/346-badges/139-rarity-percentiles-smoke.cjs
+          node release/346-badges/141-wheel-24-smoke.cjs
 
   color-browser:
     runs-on: ubuntu-latest

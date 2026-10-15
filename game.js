@@ -8,10 +8,45 @@ const palette=['#ffd86b','#9bd9ef','#ffb8d2','#c6dcff','#c8f4bd','#efc5ef','#aee
 const paletteDark=["#80714c","#526d7d","#795f72","#657698","#59765e","#806486","#597b80","#8f794f","#628477","#76668f","#8d695b"];
 const wheelIsDark=()=>document.documentElement?.dataset?.theme==='dark';
 const fmt=n=>{n=Number(n)||0;if(n<1e3)return Math.round(n).toLocaleString();for(const [s,v] of [['Qa',1e15],['T',1e12],['B',1e9],['M',1e6],['K',1e3]])if(n>=v)return(n/v>=100?(n/v).toFixed(0):(n/v).toFixed(1)).replace('.0','')+s;return String(n)};
-function resetSegments(){segments=[{type:'num',base:2},{type:'duck',label:'DUCK'},{type:'num',base:1},{type:'upgrade',label:'UP! ↑'},{type:'num',base:3},{type:'num',base:1},{type:'spins',label:'+2'},{type:'num',base:5},{type:'duck',label:'DUCK'},{type:'num',base:2},{type:'double',label:'×2'},{type:'num',base:1}]}
+function resetSegments(){const twelve=[{type:'num',base:40},{type:'duck',label:'DUCK'},{type:'num',base:20},{type:'upgrade',label:'UP! ↑'},{type:'num',base:60},{type:'num',base:20},{type:'spins',label:'+2'},{type:'num',base:80},{type:'duck',label:'DUCK'},{type:'num',base:40},{type:'double',label:'×2'},{type:'num',base:20}];segments=twelve.concat(twelve.map(s=>({...s})))}
 function label(s){return s.type==='num'?fmt(s.base*multiplier):s.label}
 function drawDuckIcon(x,y,size){const dark=wheelIsDark();ctx.save();ctx.translate(x,y);ctx.strokeStyle=dark?'#25303c':'#17191e';ctx.lineWidth=Math.max(2,size*.08);ctx.fillStyle=dark?'#d3b575':'#ffe06a';ctx.beginPath();ctx.ellipse(-size*.08,size*.08,size*.34,size*.24,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.beginPath();ctx.arc(size*.22,-size*.13,size*.19,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#17191e';ctx.beginPath();ctx.arc(size*.28,-size*.17,size*.035,0,Math.PI*2);ctx.fill();ctx.fillStyle=dark?'#c58b6b':'#ff9d4d';ctx.beginPath();ctx.moveTo(size*.39,-size*.11);ctx.lineTo(size*.58,-size*.04);ctx.lineTo(size*.39,size*.01);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore()}
-function drawWheel(){const dark=wheelIsDark(),colors=dark?paletteDark:palette;const w=wheel.width,c=w/2,r=c-12,N=segments.length,a=Math.PI*2/N;ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);segments.forEach((s,i)=>{const st=i*a-Math.PI/2,en=st+a;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle=dark?'#384655':'#fff';ctx.lineWidth=4;ctx.stroke();const ang=st+a/2,tx=Math.cos(ang)*r*.69,ty=Math.sin(ang)*r*.69;if(s.type==='duck')drawDuckIcon(tx,ty,Math.max(34,Math.min(58,360/N)));else{ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);ctx.fillStyle=dark?'#f6f1ec':'#17191e';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`1000 ${Math.max(17,Math.min(s.type!=='num'?27:36,310/N))}px system-ui`;ctx.strokeStyle=dark?'rgba(24,29,38,.94)':'rgba(255,255,255,.8)';ctx.lineWidth=5;ctx.strokeText(label(s),0,0);ctx.fillText(label(s),0,0);ctx.restore()}});ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.strokeStyle=dark?'#9ba8b7':'#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();drawing.style.transform=drawMode==='spin'?('rotate('+rotation+'rad)'):'none'}
+function drawWheel(){
+ const dark=wheelIsDark(),colors=dark?paletteDark:palette;
+ const w=wheel.width,c=w/2,r=c-12,N=segments.length;
+ if(!N)return;
+ const a=Math.PI*2/N,radialText=r*.73;
+ // All labels must fit in the actual wedge at its current sector count.
+ const chord=2*radialText*Math.sin(a/2),maxLabelWidth=Math.max(0,chord-8);
+ ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);
+ segments.forEach((s,i)=>{
+  const st=i*a-Math.PI/2,en=st+a,ang=st+a/2;
+  ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();
+  ctx.fillStyle=colors[i%colors.length];ctx.fill();
+  ctx.strokeStyle=dark?'#384655':'#fff';ctx.lineWidth=Math.min(4,Math.max(1.3,chord*.07));ctx.stroke();
+  const tx=Math.cos(ang)*radialText,ty=Math.sin(ang)*radialText;
+  if(s.type==='duck'){
+   if(chord>=21)drawDuckIcon(tx,ty,Math.min(36,Math.max(12,maxLabelWidth*.64)));
+  }else if(maxLabelWidth>=8){
+   ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);
+   ctx.fillStyle=dark?'#f6f1ec':'#17191e';ctx.textAlign='center';ctx.textBaseline='middle';
+   const text=label(s);
+   let size=Math.min(s.type==='num'?32:24,Math.max(9,310/N));
+   ctx.font='900 '+size+'px system-ui';
+   const width=ctx.measureText(text).width;
+   if(width>maxLabelWidth){size=Math.min(size,size*maxLabelWidth/width);ctx.font='900 '+size+'px system-ui';}
+   if(size>=8&&ctx.measureText(text).width<=maxLabelWidth+.25){
+    ctx.strokeStyle=dark?'rgba(24,29,38,.94)':'rgba(255,255,255,.8)';
+    ctx.lineWidth=Math.min(3,Math.max(.6,size*.16));ctx.strokeText(text,0,0);
+    ctx.fillText(text,0,0);
+   }
+   ctx.restore();
+  }
+ });
+ ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);
+ ctx.strokeStyle=dark?'#9ba8b7':'#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();
+ drawing.style.transform=drawMode==='spin'?'rotate('+rotation+'rad)':'none';
+}
 // Theme changes repaint just the wheel colors without touching spin state or the drawing.
 if(typeof MutationObserver!=='undefined'&&document.documentElement){
  new MutationObserver(changes=>{if(changes.some(c=>c.attributeName==='data-theme'))drawWheel()})
@@ -60,7 +95,8 @@ const CRILO_FINAL_RARITY_NOTES={
  rare:[[523,0,.11,.025,'sine'],[659,.12,.12,.027,'triangle'],[784,.25,.17,.032,'sine'],[1047,.41,.32,.029,'sine']],
  epic:[[392,0,.16,.031,'triangle'],[523,.11,.17,.033,'triangle'],[659,.23,.17,.034,'triangle'],[784,.36,.22,.036,'sine'],[1047,.57,.38,.029,'sine']],
  anomaly:[[659,0,.24,.025,'triangle',988],[523,.17,.28,.027,'sine',392],[988,.36,.34,.028,'triangle',1568],[1319,.62,.47,.025,'sine',784]],
- mythic:[[262,0,.19,.033,'triangle'],[392,.12,.19,.034,'triangle'],[523,.25,.19,.035,'triangle'],[659,.39,.19,.035,'sine'],[784,.54,.24,.037,'triangle'],[1047,.73,.32,.037,'sine'],[1568,.97,.55,.034,'sine']]
+ mythic:[[262,0,.19,.033,'triangle'],[392,.12,.19,.034,'triangle'],[523,.25,.19,.035,'triangle'],[659,.39,.19,.035,'sine'],[784,.54,.24,.037,'triangle'],[1047,.73,.32,.037,'sine'],[1568,.97,.55,.034,'sine']],
+  divine:[[659,0,.22,.031,'sine'],[880,.16,.24,.032,'sine'],[1047,.38,.31,.034,'triangle'],[1319,.68,.38,.031,'sine'],[1760,1.0,.62,.027,'sine']]
 };
 let lastFinalAnimationMs=0,finalCelebrationId=0;
 function resetFinalCelebration(){
@@ -169,7 +205,7 @@ function guestDailyRecord(){
 }
 function guestDailyValid(s){
  const finite=n=>Number.isFinite(n)&&n>=0;
- return s&&typeof s==='object'&&Array.isArray(s.segments)&&s.segments.length>=12&&s.segments.length<=220&&
+ return s&&typeof s==='object'&&Array.isArray(s.segments)&&s.segments.length>=12&&s.segments.length<=500&&
   Array.isArray(s.results)&&s.results.length<=1000&&typeof s.drawing==='string'&&
   s.drawing.startsWith('data:image/png;base64,')&&s.drawing.length<2000000&&
   ['stationary','spin'].includes(s.drawMode)&&
@@ -332,7 +368,7 @@ function restoreGuestDaily(saved){
  return true;
 }
 function guestUpgradeChoices(){
- const pool=[1,1,2,2,3,3,5,5,8,10],count=4+Math.min(upgrades+1,8);
+ const pool=[20,20,40,40,60,60,80,80,120,160],count=2*(4+Math.min(upgrades+1,8));
  return Array.from({length:count},()=>pool[Math.floor(Math.random()*pool.length)]);
 }
 async function restoreGuestServerState(){
@@ -378,7 +414,7 @@ async function restoreOfficialServerState(){
  update();
  return s;
 }
-function addNumbers(){const count=4+Math.min(upgrades,8),bases=[1,1,2,2,3,3,5,5,8,10];for(let i=0;i<count;i++)segments.push({type:'num',base:guestRun&&guestPendingUpgradeBases?guestPendingUpgradeBases[i]:bases[Math.floor(Math.random()*bases.length)]})}
+function addNumbers(){const count=4+Math.min(upgrades,8),bases=[20,20,40,40,60,60,80,80,120,160];for(let i=0;i<count;i++){const base=guestRun&&guestPendingUpgradeBases?guestPendingUpgradeBases[2*i]:bases[Math.floor(Math.random()*bases.length)];segments.push({type:'num',base},{type:'num',base})}}
 function outcomeProbability(s){if(s.type==='num')return segments.filter(x=>x.type==='num'&&x.base===s.base).length/segments.length;return segments.filter(x=>x.type===s.type).length/segments.length}
 function rarity(){return CriloRarity.classify(score)}
 function recordBest(points,labelText){if(points>bestRollPoints){bestRollPoints=Math.round(points);bestRollLabel=labelText}}
@@ -705,7 +741,7 @@ if(isTest){
 // score-tier preview, never an awarded badge or saved achievement.
 function showGuestBadgePreview(r){
  const tier=String(r?.color||'trash').toLowerCase();
- const allowed=['trash','common','uncommon','rare','epic','anomaly','mythic'];
+ const allowed=['trash','common','uncommon','rare','epic','anomaly','mythic','divine'];
  const safeTier=allowed.includes(tier)?tier:'trash';
  const title=safeTier[0].toUpperCase()+safeTier.slice(1)+' Score';
  const panel=$('newBadgePanel');
@@ -762,7 +798,7 @@ async function showNewBadges(prior,{review=false}={}){
  const rarity=b=>collection?.rarity(b)||String(b.requirement?.rarity||'common').toLowerCase();
  // Display new rewards from lowest to highest rarity, independent of
  // whatever order the database returned. Trash (if awarded) precedes Common.
- const order=collection?.rarityOrder||['trash','common','uncommon','rare','epic','anomaly','mythic'];
+ const order=collection?.rarityOrder||['trash','common','uncommon','rare','epic','anomaly','mythic','divine'];
  const ranks=new Map(order.map((tier,index)=>[tier,index]));
  const sorted=badges.slice().sort((a,b)=>
   (ranks.get(rarity(a))??1)-(ranks.get(rarity(b))??1)||

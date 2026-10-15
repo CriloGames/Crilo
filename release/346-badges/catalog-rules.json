@@ -4,428 +4,428 @@
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Twenty-One",
-    "condition": "Reach exactly 21 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 420 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 21
+    "target": 420
   },
   {
     "key": "v2_funny_score_42",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Answer to Everything",
-    "condition": "Reach exactly 42 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 840 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 42
+    "target": 840
   },
   {
     "key": "v2_funny_score_67",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Six Seven",
-    "condition": "Reach exactly 67 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,340 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 67
+    "target": 1340
   },
   {
     "key": "v2_funny_score_69",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Nice.",
-    "condition": "Reach exactly 69 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,380 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 69
+    "target": 1380
   },
   {
     "key": "v2_funny_score_96",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Reverse Nice",
-    "condition": "Reach exactly 96 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,920 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 96
+    "target": 1920
   },
   {
     "key": "v2_funny_score_99",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Almost a Hundred",
-    "condition": "Reach exactly 99 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,980 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 99
+    "target": 1980
   },
   {
     "key": "v2_funny_score_111",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Triple Ones",
-    "condition": "Reach exactly 111 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 2,220 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 111
+    "target": 2220
   },
   {
     "key": "v2_funny_score_123",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "One Two Three",
-    "condition": "Reach exactly 123 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 2,460 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 123
+    "target": 2460
   },
   {
     "key": "v2_funny_score_222",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Triple Twos",
-    "condition": "Reach exactly 222 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 4,440 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 222
+    "target": 4440
   },
   {
     "key": "v2_funny_score_333",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Triple Threes",
-    "condition": "Reach exactly 333 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 6,660 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 333
+    "target": 6660
   },
   {
     "key": "v2_funny_score_404",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Score Not Found",
-    "condition": "Reach exactly 404 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 8,080 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 404
+    "target": 8080
   },
   {
     "key": "v2_funny_score_420",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Blaze It",
-    "condition": "Reach exactly 420 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 8,400 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 420
+    "target": 8400
   },
   {
     "key": "v2_funny_score_444",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Triple Fours",
-    "condition": "Reach exactly 444 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 8,880 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 444
+    "target": 8880
   },
   {
     "key": "v2_funny_score_555",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Triple Fives",
-    "condition": "Reach exactly 555 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 11,100 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 555
+    "target": 11100
   },
   {
     "key": "v2_funny_score_666",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Devil's Number",
-    "condition": "Reach exactly 666 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 13,320 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 666
+    "target": 13320
   },
   {
     "key": "v2_funny_score_777",
     "category": "Exact numbers",
     "rarity": "Mythic",
     "name": "Lucky Sevens",
-    "condition": "Reach exactly 777 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 15,540 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 777
+    "target": 15540
   },
   {
     "key": "v2_funny_score_888",
     "category": "Exact numbers",
     "rarity": "Mythic",
     "name": "Triple Eights",
-    "condition": "Reach exactly 888 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 17,760 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 888
+    "target": 17760
   },
   {
     "key": "v2_funny_score_999",
     "category": "Exact numbers",
     "rarity": "Mythic",
     "name": "Triple Nines",
-    "condition": "Reach exactly 999 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 19,980 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 999
+    "target": 19980
   },
   {
     "key": "v2_funny_score_5",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "High Five",
-    "condition": "Reach exactly 5 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 100 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 5
+    "target": 100
   },
   {
     "key": "v2_funny_score_7",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Lucky Number Seven",
-    "condition": "Reach exactly 7 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 140 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 7
+    "target": 140
   },
   {
     "key": "v2_funny_score_10",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Perfect Ten",
-    "condition": "Reach exactly 10 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 200 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 10
+    "target": 200
   },
   {
     "key": "v2_funny_score_11",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Make a Wish",
-    "condition": "Reach exactly 11 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 220 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 11
+    "target": 220
   },
   {
     "key": "v2_funny_score_12",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "A Dozen",
-    "condition": "Reach exactly 12 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 240 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 12
+    "target": 240
   },
   {
     "key": "v2_funny_score_13",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Unlucky Thirteen",
-    "condition": "Reach exactly 13 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 260 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 13
+    "target": 260
   },
   {
     "key": "v2_funny_score_15",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Quarter Hour",
-    "condition": "Reach exactly 15 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 300 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 15
+    "target": 300
   },
   {
     "key": "v2_funny_score_20",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Twenty Twenty",
-    "condition": "Reach exactly 20 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 400 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 20
+    "target": 400
   },
   {
     "key": "v2_funny_score_24",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Around the Clock",
-    "condition": "Reach exactly 24 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 480 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 24
+    "target": 480
   },
   {
     "key": "v2_funny_score_25",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Quarter Century",
-    "condition": "Reach exactly 25 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 500 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 25
+    "target": 500
   },
   {
     "key": "v2_funny_score_30",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Thirty Flirty",
-    "condition": "Reach exactly 30 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 600 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 30
+    "target": 600
   },
   {
     "key": "v2_funny_score_33",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Double Threes",
-    "condition": "Reach exactly 33 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 660 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 33
+    "target": 660
   },
   {
     "key": "v2_funny_score_50",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Half a Century",
-    "condition": "Reach exactly 50 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,000 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 50
+    "target": 1000
   },
   {
     "key": "v2_funny_score_55",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Double Fives",
-    "condition": "Reach exactly 55 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,100 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 55
+    "target": 1100
   },
   {
     "key": "v2_funny_score_66",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Double Sixes",
-    "condition": "Reach exactly 66 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,320 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 66
+    "target": 1320
   },
   {
     "key": "v2_funny_score_70",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Seventy Up",
-    "condition": "Reach exactly 70 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,400 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 70
+    "target": 1400
   },
   {
     "key": "v2_funny_score_77",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Double Lucky",
-    "condition": "Reach exactly 77 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,540 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 77
+    "target": 1540
   },
   {
     "key": "v2_funny_score_88",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Double Eights",
-    "condition": "Reach exactly 88 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 1,760 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 88
+    "target": 1760
   },
   {
     "key": "v2_funny_score_100",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Triple Digits",
-    "condition": "Reach exactly 100 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 2,000 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 100
+    "target": 2000
   },
   {
     "key": "v2_funny_score_101",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Introduction to Numbers",
-    "condition": "Reach exactly 101 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 2,020 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 101
+    "target": 2020
   },
   {
     "key": "v2_funny_score_200",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Double Century",
-    "condition": "Reach exactly 200 accumulated points at least once during an official Daily (final score may differ).",
+    "condition": "Reach exactly 4,000 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 200
+    "target": 4000
   },
   {
     "key": "v2_score_rarity_trash",
     "category": "Score rarity",
     "rarity": "Uncommon",
     "name": "Trash Score",
-    "condition": "Finish one official Daily with a final score of 0–6.",
+    "condition": "Finish one official Daily with a final score between 0 and 120.",
     "rule": "score_band",
     "lower": 0,
-    "upper": 6,
-    "probability_percent": 1.237
+    "upper": 120,
+    "probability_percent": 1.2403
   },
   {
     "key": "v2_score_rarity_common",
     "category": "Score rarity",
     "rarity": "Common",
     "name": "Common Score",
-    "condition": "Finish one official Daily with a final score of 7–24.",
+    "condition": "Finish one official Daily with a final score between 121 and 440.",
     "rule": "score_band",
-    "lower": 7,
-    "upper": 24,
-    "probability_percent": 49.7661
+    "lower": 121,
+    "upper": 440,
+    "probability_percent": 48.96935
   },
   {
     "key": "v2_score_rarity_uncommon",
     "category": "Score rarity",
     "rarity": "Common",
     "name": "Uncommon Score",
-    "condition": "Finish one official Daily with a final score of 25–48.",
+    "condition": "Finish one official Daily with a final score between 441 and 860.",
     "rule": "score_band",
-    "lower": 25,
-    "upper": 48,
-    "probability_percent": 24.5551
+    "lower": 441,
+    "upper": 860,
+    "probability_percent": 25.22275
   },
   {
     "key": "v2_score_rarity_rare",
     "category": "Score rarity",
     "rarity": "Common",
     "name": "Rare Score",
-    "condition": "Finish one official Daily with a final score of 49–92.",
+    "condition": "Finish one official Daily with a final score between 861 and 1,620.",
     "rule": "score_band",
-    "lower": 49,
-    "upper": 92,
-    "probability_percent": 14.4894
+    "lower": 861,
+    "upper": 1620,
+    "probability_percent": 14.64972
   },
   {
     "key": "v2_score_rarity_epic",
     "category": "Score rarity",
     "rarity": "Uncommon",
     "name": "Epic Score",
-    "condition": "Finish one official Daily with a final score of 93–141.",
+    "condition": "Finish one official Daily with a final score between 1,621 and 2,460.",
     "rule": "score_band",
-    "lower": 93,
-    "upper": 141,
-    "probability_percent": 4.9887
+    "lower": 1621,
+    "upper": 2460,
+    "probability_percent": 4.9939
   },
   {
     "key": "v2_score_rarity_anomaly",
     "category": "Score rarity",
     "rarity": "Uncommon",
     "name": "Anomaly Score",
-    "condition": "Finish one official Daily with a final score of 142–318.",
+    "condition": "Finish one official Daily with a final score between 2,461 and 5,440.",
     "rule": "score_band",
-    "lower": 142,
-    "upper": 318,
-    "probability_percent": 3.9677
+    "lower": 2461,
+    "upper": 5440,
+    "probability_percent": 3.92732
   },
   {
     "key": "v2_score_rarity_mythic",
     "category": "Score rarity",
     "rarity": "Rare",
     "name": "Mythic Score",
-    "condition": "Finish one official Daily with a final score of at least 319.",
+    "condition": "Finish one official Daily with a final score between 5,441 and 14,420.",
     "rule": "score_band",
-    "lower": 319,
-    "upper": null,
-    "probability_percent": 0.996
+    "lower": 5441,
+    "upper": 14420,
+    "probability_percent": 0.89677
   },
   {
     "key": "v2_duck_total_2",
@@ -652,234 +652,234 @@
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Just One",
-    "condition": "Reach exactly 1 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 20 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 1
+    "target": 20
   },
   {
     "key": "idea_exact_2",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Two of a Kind",
-    "condition": "Reach exactly 2 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 40 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 2
+    "target": 40
   },
   {
     "key": "idea_exact_3",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Three's Company",
-    "condition": "Reach exactly 3 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 60 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 3
+    "target": 60
   },
   {
     "key": "idea_exact_4",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Fantastic Four",
-    "condition": "Reach exactly 4 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 80 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 4
+    "target": 80
   },
   {
     "key": "idea_exact_6",
     "category": "Exact numbers",
     "rarity": "Common",
     "name": "Sixth Sense",
-    "condition": "Reach exactly 6 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 120 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 6
+    "target": 120
   },
   {
     "key": "idea_exact_8",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Eight Is Great",
-    "condition": "Reach exactly 8 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 160 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 8
+    "target": 160
   },
   {
     "key": "idea_exact_9",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Cloud Nine",
-    "condition": "Reach exactly 9 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 180 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 9
+    "target": 180
   },
   {
     "key": "idea_exact_14",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Two Weeks",
-    "condition": "Reach exactly 14 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 280 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 14
+    "target": 280
   },
   {
     "key": "idea_exact_16",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Sweet Sixteen",
-    "condition": "Reach exactly 16 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 320 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 16
+    "target": 320
   },
   {
     "key": "idea_exact_17",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Seventeen Again",
-    "condition": "Reach exactly 17 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 340 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 17
+    "target": 340
   },
   {
     "key": "idea_exact_18",
     "category": "Exact numbers",
     "rarity": "Uncommon",
     "name": "Finally Eighteen",
-    "condition": "Reach exactly 18 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 360 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 18
+    "target": 360
   },
   {
     "key": "idea_exact_19",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Nineteen Ninety-Nine-ish",
-    "condition": "Reach exactly 19 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 380 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 19
+    "target": 380
   },
   {
     "key": "idea_exact_22",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Double Deuces",
-    "condition": "Reach exactly 22 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 440 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 22
+    "target": 440
   },
   {
     "key": "idea_exact_23",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Twenty-Three",
-    "condition": "Reach exactly 23 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 460 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 23
+    "target": 460
   },
   {
     "key": "idea_exact_26",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Twenty-Six Letters",
-    "condition": "Reach exactly 26 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 520 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 26
+    "target": 520
   },
   {
     "key": "idea_exact_27",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Three Cubed",
-    "condition": "Reach exactly 27 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 540 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 27
+    "target": 540
   },
   {
     "key": "idea_exact_28",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "February Forever",
-    "condition": "Reach exactly 28 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 560 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 28
+    "target": 560
   },
   {
     "key": "idea_exact_32",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Thirty-Two Bits",
-    "condition": "Reach exactly 32 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 640 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 32
+    "target": 640
   },
   {
     "key": "idea_exact_34",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Thirty-Four",
-    "condition": "Reach exactly 34 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 680 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 34
+    "target": 680
   },
   {
     "key": "idea_exact_36",
     "category": "Exact numbers",
     "rarity": "Rare",
     "name": "Square Six",
-    "condition": "Reach exactly 36 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 720 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 36
+    "target": 720
   },
   {
     "key": "idea_exact_40",
     "category": "Exact numbers",
     "rarity": "Epic",
     "name": "Over the Hill",
-    "condition": "Reach exactly 40 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 800 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 40
+    "target": 800
   },
   {
     "key": "idea_exact_44",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Forty-Four",
-    "condition": "Reach exactly 44 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 880 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 44
+    "target": 880
   },
   {
     "key": "idea_exact_49",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "Seven Squared",
-    "condition": "Reach exactly 49 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 980 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 49
+    "target": 980
   },
   {
     "key": "idea_exact_60",
     "category": "Exact numbers",
     "rarity": "Anomaly",
     "name": "One Minute",
-    "condition": "Reach exactly 60 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 1,200 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 60
+    "target": 1200
   },
   {
     "key": "idea_exact_64",
     "category": "Exact numbers",
     "rarity": "Mythic",
     "name": "Sixty-Four Bits",
-    "condition": "Reach exactly 64 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 1,280 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 64
+    "target": 1280
   },
   {
     "key": "idea_exact_81",
     "category": "Exact numbers",
     "rarity": "Mythic",
     "name": "Nine Squared",
-    "condition": "Reach exactly 81 accumulated points at least once during one official Daily; the final score may be higher.",
+    "condition": "Reach exactly 1,620 accumulated points at least once during one official Daily; the final score may be higher.",
     "rule": "hit_exact",
-    "target": 81
+    "target": 1620
   },
   {
     "key": "idea_seq_94",
@@ -1515,7 +1515,7 @@
     "category": "Single-run challenges",
     "rarity": "Uncommon",
     "name": "Odd Squad",
-    "condition": "Land base-number 1, base-number 3, and base-number 5 at least once each during the same completed official Daily run.",
+    "condition": "Land base-number 20, base-number 60, and base-number 80 at least once each during the same completed official Daily run.",
     "rule": "challenge",
     "number": 149
   },
@@ -1524,7 +1524,7 @@
     "category": "Single-run challenges",
     "rarity": "Common",
     "name": "One Is Enough",
-    "condition": "Land base number 1 at least once in one official Daily.",
+    "condition": "Land base number 20 at least once in one official Daily.",
     "rule": "challenge",
     "number": 150
   },
@@ -1533,7 +1533,7 @@
     "category": "Single-run challenges",
     "rarity": "Common",
     "name": "Two by Two",
-    "condition": "Land base number 2 at least twice in one official Daily.",
+    "condition": "Land base number 40 at least twice in one official Daily.",
     "rule": "challenge",
     "number": 151
   },
@@ -1542,7 +1542,7 @@
     "category": "Single-run challenges",
     "rarity": "Common",
     "name": "Five Alive Again",
-    "condition": "Land base number 5 at least once in one official Daily.",
+    "condition": "Land base number 80 at least once in one official Daily.",
     "rule": "challenge",
     "number": 152
   },
@@ -1551,7 +1551,7 @@
     "category": "Single-run challenges",
     "rarity": "Epic",
     "name": "Triple Three",
-    "condition": "Land base number 3 at least three times in one official Daily.",
+    "condition": "Land base number 60 at least three times in one official Daily.",
     "rule": "challenge",
     "number": 153
   },
@@ -1560,7 +1560,7 @@
     "category": "Single-run challenges",
     "rarity": "Rare",
     "name": "No Ones",
-    "condition": "Finish an official Daily without landing on base number 1.",
+    "condition": "Finish an official Daily without landing on base number 20.",
     "rule": "challenge",
     "number": 154
   },
@@ -1569,7 +1569,7 @@
     "category": "Single-run challenges",
     "rarity": "Epic",
     "name": "All Ones",
-    "condition": "Land on base number 1 at least five times during one official Daily (not necessarily consecutive).",
+    "condition": "Land on base number 20 at least five times during one official Daily (not necessarily consecutive).",
     "rule": "challenge",
     "number": 155
   },
@@ -1587,7 +1587,7 @@
     "category": "Single-run challenges",
     "rarity": "Common",
     "name": "Quite a Turnaround",
-    "condition": "After at least one Upgrade, land a numerical spin worth 15 or more points.",
+    "condition": "After at least one Upgrade, land a numerical spin worth 300 or more points.",
     "rule": "challenge",
     "number": 157
   },
@@ -1596,7 +1596,7 @@
     "category": "Single-run challenges",
     "rarity": "Uncommon",
     "name": "Big Single Hit",
-    "condition": "Land a single numerical spin worth at least 30 points in one official Daily.",
+    "condition": "Land a single numerical spin worth at least 600 points in one official Daily.",
     "rule": "challenge",
     "number": 158
   },
@@ -2375,36 +2375,36 @@
     "category": "Opening & final spins",
     "rarity": "Common",
     "name": "Last Little One",
-    "condition": "Your final spin of an official Daily lands on a base number 1.",
+    "condition": "Your final spin of an official Daily lands on a base number 20.",
     "rule": "final_base",
-    "base": 1
+    "base": 20
   },
   {
     "key": "idea_edges_247",
     "category": "Opening & final spins",
     "rarity": "Uncommon",
     "name": "Last Little Two",
-    "condition": "Your final spin of an official Daily lands on a base number 2.",
+    "condition": "Your final spin of an official Daily lands on a base number 40.",
     "rule": "final_base",
-    "base": 2
+    "base": 40
   },
   {
     "key": "idea_edges_248",
     "category": "Opening & final spins",
     "rarity": "Uncommon",
     "name": "Last Little Three",
-    "condition": "Your final spin of an official Daily lands on a base number 3.",
+    "condition": "Your final spin of an official Daily lands on a base number 60.",
     "rule": "final_base",
-    "base": 3
+    "base": 60
   },
   {
     "key": "idea_edges_249",
     "category": "Opening & final spins",
     "rarity": "Uncommon",
     "name": "Last Big Five",
-    "condition": "Your final spin of an official Daily lands on a base number 5.",
+    "condition": "Your final spin of an official Daily lands on a base number 80.",
     "rule": "final_base",
-    "base": 5
+    "base": 80
   },
   {
     "key": "proposal_linear_001",
@@ -2511,9 +2511,9 @@
     "category": "Lifetime number slices",
     "rarity": "Uncommon",
     "name": "Base 1 Collector 25",
-    "condition": "Land the base-number 1 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 20 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 1,
+    "base": 20,
     "target": 25
   },
   {
@@ -2521,9 +2521,9 @@
     "category": "Lifetime number slices",
     "rarity": "Rare",
     "name": "Base 1 Collector 150",
-    "condition": "Land the base-number 1 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 20 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 1,
+    "base": 20,
     "target": 150
   },
   {
@@ -2531,9 +2531,9 @@
     "category": "Lifetime number slices",
     "rarity": "Uncommon",
     "name": "Base 2 Collector 25",
-    "condition": "Land the base-number 2 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 40 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 2,
+    "base": 40,
     "target": 25
   },
   {
@@ -2541,9 +2541,9 @@
     "category": "Lifetime number slices",
     "rarity": "Epic",
     "name": "Base 2 Collector 150",
-    "condition": "Land the base-number 2 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 40 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 2,
+    "base": 40,
     "target": 150
   },
   {
@@ -2551,9 +2551,9 @@
     "category": "Lifetime number slices",
     "rarity": "Uncommon",
     "name": "Base 3 Collector 25",
-    "condition": "Land the base-number 3 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 60 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 3,
+    "base": 60,
     "target": 25
   },
   {
@@ -2561,9 +2561,9 @@
     "category": "Lifetime number slices",
     "rarity": "Epic",
     "name": "Base 3 Collector 150",
-    "condition": "Land the base-number 3 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 60 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 3,
+    "base": 60,
     "target": 150
   },
   {
@@ -2571,9 +2571,9 @@
     "category": "Lifetime number slices",
     "rarity": "Uncommon",
     "name": "Base 5 Collector 25",
-    "condition": "Land the base-number 5 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 80 slice at least 25 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 5,
+    "base": 80,
     "target": 25
   },
   {
@@ -2581,9 +2581,9 @@
     "category": "Lifetime number slices",
     "rarity": "Epic",
     "name": "Base 5 Collector 150",
-    "condition": "Land the base-number 5 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
+    "condition": "Land the base-number 80 slice at least 150 times across completed official Daily runs (before Upgrade multipliers).",
     "rule": "lifetime_base",
-    "base": 5,
+    "base": 80,
     "target": 150
   },
   {
@@ -2636,9 +2636,9 @@
     "category": "Number slice patterns",
     "rarity": "Common",
     "name": "Ones in the Mix 2",
-    "condition": "Land at least 2 base-number 1 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 2 base-number 20 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 1,
+    "base": 20,
     "target": 2
   },
   {
@@ -2646,9 +2646,9 @@
     "category": "Number slice patterns",
     "rarity": "Common",
     "name": "Ones in the Mix 3",
-    "condition": "Land at least 3 base-number 1 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 3 base-number 20 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 1,
+    "base": 20,
     "target": 3
   },
   {
@@ -2656,11 +2656,11 @@
     "category": "Number slice patterns",
     "rarity": "Uncommon",
     "name": "Two Twos Together",
-    "condition": "Land base-number 2 on two consecutive actual spins during one completed official Daily run.",
+    "condition": "Land base-number 40 on two consecutive actual spins during one completed official Daily run.",
     "rule": "base_sequence",
     "pattern": [
-      2,
-      2
+      40,
+      40
     ]
   },
   {
@@ -2668,9 +2668,9 @@
     "category": "Number slice patterns",
     "rarity": "Uncommon",
     "name": "Twos in the Mix 3",
-    "condition": "Land at least 3 base-number 2 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 3 base-number 40 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 2,
+    "base": 40,
     "target": 3
   },
   {
@@ -2678,9 +2678,9 @@
     "category": "Number slice patterns",
     "rarity": "Uncommon",
     "name": "Threes in the Mix 2",
-    "condition": "Land at least 2 base-number 3 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 2 base-number 60 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 3,
+    "base": 60,
     "target": 2
   },
   {
@@ -2688,12 +2688,12 @@
     "category": "Number slice patterns",
     "rarity": "Mythic",
     "name": "Triple Threes in a Row",
-    "condition": "Land base-number 3 on three consecutive actual spins during one completed official Daily run.",
+    "condition": "Land base-number 60 on three consecutive actual spins during one completed official Daily run.",
     "rule": "base_sequence",
     "pattern": [
-      3,
-      3,
-      3
+      60,
+      60,
+      60
     ]
   },
   {
@@ -2701,9 +2701,9 @@
     "category": "Number slice patterns",
     "rarity": "Uncommon",
     "name": "Fives in the Mix 2",
-    "condition": "Land at least 2 base-number 5 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 2 base-number 80 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 5,
+    "base": 80,
     "target": 2
   },
   {
@@ -2711,9 +2711,9 @@
     "category": "Number slice patterns",
     "rarity": "Epic",
     "name": "Fives in the Mix 3",
-    "condition": "Land at least 3 base-number 5 slices during the same completed official Daily run (not necessarily consecutive).",
+    "condition": "Land at least 3 base-number 80 slices during the same completed official Daily run (not necessarily consecutive).",
     "rule": "base_total",
-    "base": 5,
+    "base": 80,
     "target": 3
   },
   {
@@ -2724,8 +2724,8 @@
     "condition": "Get consecutive number slices with base values 1 then 2 in one official Daily run; Upgrades do not change their base values.",
     "rule": "number_sequence",
     "pattern": [
-      1,
-      2
+      20,
+      40
     ]
   },
   {
@@ -2736,8 +2736,8 @@
     "condition": "Get consecutive number slices with base values 2 then 3 in one official Daily run; Upgrades do not change their base values.",
     "rule": "number_sequence",
     "pattern": [
-      2,
-      3
+      40,
+      60
     ]
   },
   {
@@ -2748,8 +2748,8 @@
     "condition": "Get consecutive number slices with base values 3 then 5 in one official Daily run; Upgrades do not change their base values.",
     "rule": "number_sequence",
     "pattern": [
-      3,
-      5
+      60,
+      80
     ]
   },
   {
@@ -2760,8 +2760,8 @@
     "condition": "Get consecutive number slices with base values 1 then 5 in one official Daily run; Upgrades do not change their base values.",
     "rule": "number_sequence",
     "pattern": [
-      1,
-      5
+      20,
+      80
     ]
   },
   {
@@ -2769,120 +2769,120 @@
     "category": "Wheel placement",
     "rarity": "Rare",
     "name": "Duck Opens, 1 Closes",
-    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 20 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "duck",
-    "last_base": 1
+    "last_base": 20
   },
   {
     "key": "proposal_linear_037",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Duck Opens, 2 Closes",
-    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 40 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "duck",
-    "last_base": 2
+    "last_base": 40
   },
   {
     "key": "proposal_linear_038",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Duck Opens, 5 Closes",
-    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands duck, and the final actual spin lands a base-number 80 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "duck",
-    "last_base": 5
+    "last_base": 80
   },
   {
     "key": "proposal_linear_039",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Double Opens, 1 Closes",
-    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 20 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "double",
-    "last_base": 1
+    "last_base": 20
   },
   {
     "key": "proposal_linear_040",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Double Opens, 2 Closes",
-    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 40 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "double",
-    "last_base": 2
+    "last_base": 40
   },
   {
     "key": "proposal_linear_041",
     "category": "Wheel placement",
     "rarity": "Anomaly",
     "name": "Double Opens, 5 Closes",
-    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands double, and the final actual spin lands a base-number 80 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "double",
-    "last_base": 5
+    "last_base": 80
   },
   {
     "key": "proposal_linear_042",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Bonus Opens, 1 Closes",
-    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 20 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "spins",
-    "last_base": 1
+    "last_base": 20
   },
   {
     "key": "proposal_linear_043",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Bonus Opens, 2 Closes",
-    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 40 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "spins",
-    "last_base": 2
+    "last_base": 40
   },
   {
     "key": "proposal_linear_044",
     "category": "Wheel placement",
     "rarity": "Anomaly",
     "name": "Bonus Opens, 5 Closes",
-    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands spins, and the final actual spin lands a base-number 80 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "spins",
-    "last_base": 5
+    "last_base": 80
   },
   {
     "key": "proposal_linear_045",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Upgrade Opens, 1 Closes",
-    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 1 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 20 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "upgrade",
-    "last_base": 1
+    "last_base": 20
   },
   {
     "key": "proposal_linear_046",
     "category": "Wheel placement",
     "rarity": "Epic",
     "name": "Upgrade Opens, 2 Closes",
-    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 2 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 40 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "upgrade",
-    "last_base": 2
+    "last_base": 40
   },
   {
     "key": "proposal_linear_047",
     "category": "Wheel placement",
     "rarity": "Anomaly",
     "name": "Upgrade Opens, 5 Closes",
-    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 5 slice (the last outcome must be a number).",
+    "condition": "On one official Daily, the first actual spin lands upgrade, and the final actual spin lands a base-number 80 slice (the last outcome must be a number).",
     "rule": "first_last",
     "first": "upgrade",
-    "last_base": 5
+    "last_base": 80
   },
   {
     "key": "proposal_linear_048",
@@ -3394,5 +3394,16 @@
       "num",
       "spins"
     ]
+  },
+  {
+    "key": "v2_score_rarity_divine",
+    "category": "Score rarity",
+    "rarity": "Epic",
+    "name": "Divine Score",
+    "condition": "Finish one official Daily with a final score of at least 14,421 points.",
+    "rule": "score_band",
+    "lower": 14421,
+    "upper": null,
+    "probability_percent": 0.0999
   }
 ]

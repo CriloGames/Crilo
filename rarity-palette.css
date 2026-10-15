@@ -9,7 +9,7 @@
  --tier-rare:#335fd4;--tier-rare-pale:#e1eefb;
  --tier-epic:#7b40c4;--tier-epic-pale:#efe5ff;
  --tier-anomaly:#c14a22;--tier-anomaly-pale:#ffe9df;
- --tier-mythic:#bd2633;--tier-mythic-pale:#fce5e7;
+ --tier-mythic:#bd2633;--tier-mythic-pale:#fce5e7;--tier-divine:#9b751e;--tier-divine-pale:#f8efcf;
 }
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="trash"]{--crilo-badge-accent:var(--tier-trash);--crilo-badge-pale:var(--tier-trash-pale)}
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="common"]{--crilo-badge-accent:var(--tier-common);--crilo-badge-pale:var(--tier-common-pale)}
@@ -69,7 +69,7 @@
 html[data-theme="dark"]{
  --tier-trash:#d1a679;--tier-common:#b6c1ce;
  --tier-uncommon:#86c6a5;--tier-rare:#9cbbef;
- --tier-epic:#c3a4ed;--tier-anomaly:#e7a084;--tier-mythic:#eda0aa;
+ --tier-epic:#c3a4ed;--tier-anomaly:#e7a084;--tier-mythic:#eda0aa;--tier-divine:#e1c781;--tier-divine-pale:#383426;
 }
 html[data-theme="dark"] #result[data-rarity]{--rarity-bg:color-mix(in srgb,var(--rarity-accent) 15%,#1b1c24)}
 html[data-theme="dark"] #result[data-rarity="trash"]{--crilo-result-accent:var(--tier-trash)}
@@ -93,3 +93,15 @@ html[data-theme="dark"] .stat-tile.stat-rarity{--rarity-bg:#23262c}
 .best-card #bestScore[data-score-rarity="anomaly"],.leader-panel .leader-score[data-score-rarity="anomaly"]{--leader-tier-ink:var(--tier-anomaly);--crilo-glow-ink:var(--tier-anomaly);color:var(--tier-anomaly)}
 .best-card #bestScore[data-score-rarity="mythic"],.leader-panel .leader-score[data-score-rarity="mythic"]{--leader-tier-ink:var(--tier-mythic);--crilo-glow-ink:var(--tier-mythic);color:var(--tier-mythic)}
 html[data-theme="dark"] .best-card #bestScore[data-score-rarity],html[data-theme="dark"] .leader-panel .leader-score[data-score-rarity]{color:var(--leader-tier-ink)}
+
+/* Divine: soft champagne gold, readable on pastel and dark surfaces. */
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"]{--crilo-badge-accent:var(--tier-divine);--crilo-badge-pale:var(--tier-divine-pale)}
+.collection-rarity-legend [data-rarity="divine"]{--legend-color:var(--tier-divine)}
+#result[data-rarity="divine"]{--rarity-accent:var(--tier-divine);--rarity-bg:var(--tier-divine-pale);--crilo-result-accent:var(--tier-divine)}
+.wheel-score[data-rarity="divine"]{--score-accent:var(--tier-divine);--score-tint:var(--tier-divine-pale)}
+.help-rarity-row[data-rarity="divine"]{--help-accent:var(--tier-divine)}
+.stat-rarity-divine{--rarity-ink:var(--tier-divine);--rarity-bg:var(--tier-divine-pale)}
+:is(.leader-score,.best-score,.leader-score-secondary)[data-score-rarity="divine"]{--leader-tier-ink:var(--tier-divine);--leader-tier-dark:#e1c781}
+.spin-history-item[data-rarity="divine"]{--spin-rarity:var(--tier-divine)}
+html[data-theme="dark"] #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
+.best-card #bestScore[data-score-rarity="divine"],.leader-panel .leader-score[data-score-rarity="divine"]{--leader-tier-ink:var(--tier-divine);--crilo-glow-ink:var(--tier-divine);color:var(--tier-divine)}

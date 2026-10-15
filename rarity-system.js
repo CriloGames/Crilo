@@ -4,13 +4,10 @@
 window.CriloRarity=(()=>{
  const COUNT=100000;
  const levels=[
-  {key:'mythic',label:'MYTHIC',max:0.01},
-  {key:'anomaly',label:'ANOMALY',max:0.05},
-  {key:'epic',label:'EPIC',max:0.10},
-  {key:'rare',label:'RARE',max:0.25},
-  {key:'uncommon',label:'UNCOMMON',max:0.50},
-  {key:'common',label:'COMMON',max:0.99},
-  {key:'trash',label:'TRASH',max:1}
+  {key:'divine',label:'DIVINE',max:0.001},{key:'mythic',label:'MYTHIC',max:0.01},
+  {key:'anomaly',label:'ANOMALY',max:0.05},{key:'epic',label:'EPIC',max:0.10},
+  {key:'rare',label:'RARE',max:0.25},{key:'uncommon',label:'UNCOMMON',max:0.50},
+  {key:'common',label:'COMMON',max:0.99},{key:'trash',label:'TRASH',max:1}
  ];
  // Individual BADGE rarity measures chance of earning a badge per Daily,
  // unlike final SCORE rarity. The input is a percentage, not a fraction.
@@ -34,13 +31,10 @@ window.CriloRarity=(()=>{
   return 'mythic';
  }
  const scoreBands=[
- {key:'trash',min:0,max:6},
- {key:'common',min:7,max:24},
- {key:'uncommon',min:25,max:48},
- {key:'rare',min:49,max:92},
- {key:'epic',min:93,max:141},
- {key:'anomaly',min:142,max:318},
- {key:'mythic',min:319,max:Infinity}
+  {key:'trash',min:0,max:120},{key:'common',min:121,max:440},
+  {key:'uncommon',min:441,max:860},{key:'rare',min:861,max:1620},
+  {key:'epic',min:1621,max:2460},{key:'anomaly',min:2461,max:5440},
+  {key:'mythic',min:5441,max:14420},{key:'divine',min:14421,max:Infinity}
  ];
  let sorted;
  function sample(){
@@ -50,7 +44,8 @@ window.CriloRarity=(()=>{
   const data=new Array(COUNT);
   for(let k=0;k<COUNT;k++){
    let left=5,score=0,multiplier=1,upgrades=0,steps=0;
-   const segments=[1,1,1,2,2,3,5,'double','upgrade','spins','duck','duck'];
+   const twelve=[20,20,20,40,40,60,80,'double','upgrade','spins','duck','duck'];
+   const segments=twelve.concat(twelve);
    while(left>0&&steps++<250){
     left--;
     const v=segments[Math.floor(rand()*segments.length)];
@@ -58,8 +53,8 @@ window.CriloRarity=(()=>{
     else if(v==='double'){score*=2;left++}
     else if(v==='upgrade'){
      multiplier*=3;left++;upgrades++;
-     const bases=[1,1,2,2,3,3,5,5,8,10];
-     for(let i=0;i<4+Math.min(upgrades,8);i++)segments.push(bases[Math.floor(rand()*bases.length)]);
+     const bases=[20,20,40,40,60,60,80,80,120,160];
+     for(let i=0;i<4+Math.min(upgrades,8);i++){const value=bases[Math.floor(rand()*bases.length)];segments.push(value,value)}
     }else if(v==='spins')left+=2;
     else left++;
    }

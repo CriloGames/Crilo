@@ -75,7 +75,7 @@ This page displays the current database catalog. The locked toggle previews how 
   [...new Set(rows.map(b=>b.category).filter(Boolean))].sort().forEach(value=>{
    const opt=document.createElement('option');opt.value=value;opt.textContent=label(value);category.append(opt);
   });
-  const ranks=['trash','common','uncommon','rare','epic','anomaly','mythic'];
+  const ranks=['trash','common','uncommon','rare','epic','anomaly','mythic','divine'];
   ranks.filter(value=>rows.some(b=>getRarity(b)===value)).forEach(value=>{
    const opt=document.createElement('option');opt.value=value;opt.textContent=value[0].toUpperCase()+value.slice(1);
    rarity.append(opt);

@@ -147,3 +147,7 @@ html[data-theme="dark"] .best-card #bestScore{
   padding:8px 15px 10px;
  }
 }
+
+#result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
+html[data-theme="dark"] #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
+html[data-theme="dark"] .spin-history-item[data-rarity="divine"]{--spin-rarity:var(--tier-divine)}

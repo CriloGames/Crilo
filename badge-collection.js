@@ -3,7 +3,7 @@
 (() => {
   'use strict';
   // Trash is a final-score percentile, not a badge-drop rarity.
-  const rarityOrder=['common','uncommon','rare','epic','anomaly','mythic'];
+  const rarityOrder=['common','uncommon','rare','epic','anomaly','mythic','divine'];
   const rank=Object.fromEntries(rarityOrder.map((name,index)=>[name,index]));
   const preferredCategories=[
     'Wheel combinations','Single-run challenges','Exact numbers','funny_score',

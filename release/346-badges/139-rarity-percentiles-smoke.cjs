@@ -7,16 +7,18 @@ const rworld={};
 vm.runInNewContext(read('rarity-system.js'),{window:rworld});
 const score=rworld.CriloRarity;
 const expected=[
- ['trash',0,6],['common',7,24],['uncommon',25,48],
- ['rare',49,92],['epic',93,141],['anomaly',142,318],['mythic',319,Infinity]
+ ['trash',0,120],['common',121,440],['uncommon',441,860],
+ ['rare',861,1620],['epic',1621,2460],['anomaly',2461,5440],
+ ['mythic',5441,14420],['divine',14421,Infinity]
 ];
 assert.deepEqual(JSON.parse(JSON.stringify(score.scoreBands.map(x=>[x.key,x.min,x.max]).map(row=>row.map(x=>x===Infinity?'Infinity':x)))),expected.map(row=>row.map(x=>x===Infinity?'Infinity':x)));
 for(const [tier,min,max] of expected){
  assert.equal(score.classify(min).color,tier,'Score floor '+tier);
  if(Number.isFinite(max))assert.equal(score.classify(max).color,tier,'Score ceiling '+tier);
 }
-assert.equal(score.classify(318).color,'anomaly');
-assert.equal(score.classify(319).color,'mythic');
+assert.equal(score.classify(5440).color,'anomaly');
+assert.equal(score.classify(5441).color,'mythic');
+assert.equal(score.classify(14421).color,'divine');
 assert.equal(score.levels.find(x=>x.key==='mythic').max,0.01);
 assert.equal(score.badgeBands.length,6,'Badge rarity excludes Trash');
 for(const [prob,expectedTier] of [
@@ -29,8 +31,8 @@ for(const bad of [null,-1,101,NaN,Infinity,''])assert.equal(score.badgeTierFromP
 const collectionWindow={};
 vm.runInNewContext(read('badge-collection.js'),{window:collectionWindow});
 const badges=collectionWindow.CriloBadgeCollection;
-assert.equal(badges.rarityOrder.length,6);
-assert.deepEqual(Array.from(badges.rarityOrder),['common','uncommon','rare','epic','anomaly','mythic']);
+assert.equal(badges.rarityOrder.length,7);
+assert.deepEqual(Array.from(badges.rarityOrder),['common','uncommon','rare','epic','anomaly','mythic','divine']);
 const mk=prob=>({name:'Probability example',badge_key:'example',category:'wheel',
  requirement:{rarity:'mythic',probability_percent:prob},description:'Test chance'});
 assert.equal(badges.rarity(mk(18.41335)),'common','Measured probability overrides old rarity');
@@ -44,10 +46,10 @@ assert.match(html,/data-badge-rarity="rare"/);
 assert.match(html,/about 0\.5262% per Daily/);
 assert.doesNotMatch(html,/MYTHIC/i);
 const definitions=JSON.parse(read('release/346-badges/catalog-rules.json'));
-assert.equal(definitions.length,346);
+assert.equal(definitions.length,347);
 const scoreBadges=definitions.filter(x=>x.rule==='score_band');
-assert.equal(scoreBadges.length,7);
-for(let i=0;i<7;i++){
+assert.equal(scoreBadges.length,8);
+for(let i=0;i<8;i++){
  const [tier,min,max]=expected[i];
  const info=scoreBadges.find(x=>x.key==='v2_score_rarity_'+tier);
  assert.ok(info,'Missing score badge '+tier);
@@ -64,11 +66,12 @@ assert.match(sql,/319/);
 const palette=read('rarity-palette.css');
 assert.match(palette,/--tier-mythic:#bd2633/);
 assert.match(palette,/--tier-mythic:#eda0aa/);
+assert.match(palette,/--tier-divine:#e1c781/);
 assert.match(palette,/\.badge-top-chip/);
 for(const path of ['index.html','profile.html','leaderboard.html','badge-sets.html'])
- assert.match(read(path),/rarity-palette\.css\?v=2/,'Rarity styles missing '+path);
-assert.match(read('index.html'),/Mythic<\/strong><small>319\+ points/);
-assert.match(read('index.html'),/Anomaly<\/strong><small>142–318 points/);
+ assert.match(read(path),/rarity-palette\.css\?v=3/,'Rarity styles missing '+path);
+assert.match(read('index.html'),/Divine<\/strong><small>14,440\+ points/);
+assert.match(read('index.html'),/Anomaly<\/strong><small>2,480–5,440 points/);
 assert.match(read('badge-sets.html'),/&lt;0\.001%/);
 assert.doesNotMatch(read('badge-sets.html'),/<span data-rarity="trash">/);
-console.log('RARITY_PERCENTILES_PASS: seven Crilo score bands, six badge chance bands, calibrated 346 catalog, legacy fallbacks, four page styles and read-only migration');
+console.log('RARITY_PERCENTILES_PASS: eight Crilo score bands, six badge chance bands, calibrated 346 catalog, legacy fallbacks, four page styles and read-only migration');
