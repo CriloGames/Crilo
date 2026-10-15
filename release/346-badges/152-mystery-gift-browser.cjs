@@ -51,7 +51,7 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
    await page.waitForFunction(()=>!!window.CriloMysteryGift,{timeout:7000});
    // The genuine Daily bundle normally clears this first-paint placeholder
    // after auth; this isolated component test deliberately stubs that bundle.
-   await page.evaluate(()=>document.documentElement.classList.remove('crilo-daily-pending'));
+   await page.evaluate(()=>document.documentElement.classList.remove('crilo-daily-pending','crilo-auth-pending'));
    const setServer=async(value)=>{
     await page.evaluate(v=>{
      window.__giftState=v;
