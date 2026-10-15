@@ -1,4 +1,4 @@
-name: Crilo 346-badge prelaunch checks
+name: Crilo badge prelaunch checks
 
 on:
   push:
@@ -299,9 +299,9 @@ jobs:
         run: node release/346-badges/041-shared-signin-pages-smoke.cjs
       - name: Run official-spin client regression tests
         run: node release/346-badges/009-client-flow-smoke.cjs
-      - name: Render all 346 profile badges and earned states
+      - name: Render all 347 catalog badges and earned states
         run: node release/346-badges/012-profile-rendering-smoke.cjs
-      - name: Open matching badge details for all 346 badge identities
+      - name: Open matching badge details for all 347 badge identities
         run: node release/346-badges/013-clickable-profile-badges-smoke.cjs
       - name: Check earned-only featured badges and rarity colors
         run: node release/346-badges/017-featured-earned-badges-smoke.cjs
@@ -359,19 +359,19 @@ jobs:
         run: node release/346-badges/015-beetle-trick-preview-smoke.cjs
       - name: Check active wheel viewport fit and synced beetle droppings
         run: node release/346-badges/018-wheel-viewport-poop-smoke.cjs
-      - name: Check 346 normalized badge keys and positive/negative fixtures
+      - name: Check 347 normalized badges and archived 215 run fixtures
         run: |
           node - <<'JS'
           const fs=require('node:fs'),assert=require('node:assert/strict');
           const defs=JSON.parse(fs.readFileSync('release/346-badges/catalog-rules.json'));
-          assert.equal(defs.length,346);
-          assert.equal(new Set(defs.map(b=>b.key)).size,346);
-          assert.equal(new Set(defs.map(b=>b.name)).size,346);
+          assert.equal(defs.length,347);
+          assert.equal(new Set(defs.map(b=>b.key)).size,347);
+          assert.equal(new Set(defs.map(b=>b.name)).size,347);
           assert.ok(defs.every(b=>b.rule&&b.condition&&b.rarity));
           const raw=JSON.parse(fs.readFileSync('release/346-badges/006-run-rule-fixtures.json'));
           const runKinds=new Set(['hit_exact','score_band','event_total','event_streak','sequence','challenge','first_event','final_base','spin_position','base_total','base_sequence','number_sequence','first_last','variety']);
           const expected=new Set(defs.filter(b=>runKinds.has(b.rule)).map(b=>b.key));
-          assert.equal(expected.size,215);
+          assert.equal(expected.size,216);
           assert.ok(Array.isArray(raw.fixtures));
           assert.equal(raw.fixtures.length,215);
           assert.equal(new Set(raw.fixtures.map(b=>b.badge_key)).size,215);
@@ -380,7 +380,10 @@ jobs:
             assert.ok(Array.isArray(f.positive) && f.positive.length>=5,'Missing positive '+f.badge_key);
             assert.ok(Array.isArray(f.negative) && f.negative.length>=5,'Missing negative '+f.badge_key);
           }
-          console.log('PASS: 346 unique definitions; 215 positive and negative wheel fixtures.');
+          assert.deepEqual([...expected].filter(key=>!new Set(raw.fixtures.map(f=>f.badge_key)).has(key)),['v2_score_rarity_divine']);
+          const divine=defs.find(b=>b.key==='v2_score_rarity_divine');
+          assert.equal(divine.lower,14421);
+          console.log('PASS: 347 badge definitions, 215 archived legacy fixtures and separately verified Divine score tier.');
           JS
 
   chromium-drawing-regression:
