@@ -45,7 +45,7 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
      window.__giftState=v;
      window.__giftSpinCalls=0;
      window.Crilo.user={id:'11111111-1111-4111-8111-111111111111'};
-     window.criloDB.rpc=async(name,args)=>{
+     criloDB.rpc=async(name,args)=>{
       if(name==='crilo_mystery_gift'){
        if(args.p_action==='spin'){
         window.__giftSpinCalls++;
