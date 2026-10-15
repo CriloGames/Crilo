@@ -1,6 +1,6 @@
 (() => {
 const $=id=>document.getElementById(id), wheel=$('wheel'),ctx=wheel.getContext('2d'),drawing=$('drawing'),dctx=drawing.getContext('2d');
-let guestRun=false,user=null,profile=null,started=false,spinning=false,drawingLocked=false,isTest=false,saveOwnerTest=false,officialRun=null,ownerModeChosen=false;
+let guestRun=false,user=null,profile=null,started=false,spinning=false,drawingLocked=false,isBonus=false,bonusSlot=0,isTest=false,saveOwnerTest=false,officialRun=null,ownerModeChosen=false;
 let serverSessionId=null,finalSaveInProgress=false;
 let drawMode='stationary',drawTool='pen',usedFillOnOfficial=false,undoStack=[],redoStack=[];let score=0,spins=5,multiplier=1,upgrades=0,doubles=0,ducks=0,totalSpins=0,numbersLanded=0,extraSpins=0,bestRollPoints=0,bestRollLabel='',rotation=0,segments=[],results=[],runProbability=1;
 const palette=['#ffd86b','#9bd9ef','#ffb8d2','#c6dcff','#c8f4bd','#efc5ef','#aee9f4','#fff0a8','#c9f1df','#dfc8f6','#ffc8a8'];
@@ -56,7 +56,7 @@ function update(){
  // When a completed Daily is reopened, show its saved server-side score
  // rather than the fresh wheel's default 0 and five remaining spins.
  // Owner Test Runs and new Dailies always use their active in-memory values.
- const savedDaily=!started&&!isTest&&!guestRun&&officialRun&&!officialRun.blocked&&
+ const savedDaily=!started&&!isTest&&!isBonus&&!guestRun&&officialRun&&!officialRun.blocked&&
    Number.isFinite(Number(officialRun.score))?officialRun:null;
  const guestRecord=!user&&!started&&!isTest?guestDailyRecord():null;
  const savedGuest=guestRecord?.status==='complete'&&
@@ -396,11 +396,11 @@ function serverSegments(items){
 }
 async function restoreOfficialServerState(){
  if(!serverSessionId){
-  const {data,error}=await criloDB.rpc('crilo_begin_server_spin_session');
+  const {data,error}=await criloDB.rpc(isBonus?'crilo_begin_bonus_spin_session':'crilo_begin_server_spin_session',isBonus?{p_slot:bonusSlot}:{});
   if(error||!data)throw error||new Error('Could not start an official spin session');
   serverSessionId=data;
  }
- const {data:s,error}=await criloDB.rpc('crilo_get_server_spin_state',{p_session:serverSessionId});
+ const {data:s,error}=await criloDB.rpc(isBonus?'crilo_get_bonus_spin_state':'crilo_get_server_spin_state',{p_session:serverSessionId});
  if(error||!s)throw error||new Error('Could not retrieve official spin state');
  score=Number(s.score);spins=Number(s.remaining_spins);multiplier=Number(s.multiplier);
  upgrades=Number(s.upgrades);doubles=Number(s.doubles);ducks=Number(s.ducks);
@@ -550,7 +550,7 @@ if(officialServerMode()){
   const state=await restoreOfficialServerState();
   if(state.finished){
    spinning=false;
-   $('message').textContent='Restoring your completed official Daily.';
+   $('message').textContent=isBonus?'Restoring your completed bonus run.':'Restoring your completed official Daily.';
    await endRun();return;
   }
   if(Number(state.spin_count)>priorLocalSpins){
@@ -560,7 +560,7 @@ if(officialServerMode()){
    return;
   }
   if(Number(state.spin_count)<priorLocalSpins)throw new Error('Server spin count decreased');
-  const {data,error}=await criloDB.rpc('crilo_server_spin',{p_session:serverSessionId});
+  const {data,error}=await criloDB.rpc(isBonus?'crilo_bonus_spin':'crilo_server_spin',{p_session:serverSessionId});
   if(error||!data)throw error||new Error('No authoritative spin response');
   officialReply=data;
  }catch(err){
@@ -673,7 +673,7 @@ async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;t
  // Guest drawings stay in guest-only storage; owner Test Runs retain their
  // original PNG behavior. Official runs use the smaller safe representation.
  drawingData=isTest?drawing.toDataURL('image/png'):optimizedDailyDrawing(drawing,drawingIsBlank);
- const draftKey=officialServerMode()&&user?.id?'crilo-pending-official-drawing-'+user.id:'';
+ const draftKey=officialServerMode()&&user?.id?(isBonus?'crilo-pending-bonus-drawing-'+user.id+'-'+bonusSlot:'crilo-pending-official-drawing-'+user.id):'';
  if(draftKey&&serverSessionId){try{
   const prior=JSON.parse(localStorage.getItem(draftKey)||'null');
   if(drawingIsBlank&&prior?.sessionId===serverSessionId&&typeof prior.drawing==='string'&&/^data:image\/(?:png|webp);base64,/.test(prior.drawing)){
@@ -682,7 +682,7 @@ async function endRun(){if(finalSaveInProgress)return;finalSaveInProgress=true;t
   localStorage.setItem?.(draftKey,JSON.stringify({sessionId:serverSessionId,drawing:drawingData,isBlank:drawingIsBlank}));
  }catch(err){console.warn('Could not cache Daily drawing',err)}}
  const payload={user_id:user.id,run_date:Crilo.dailyPeriod(),score:Math.round(score),spins:totalSpins,upgrades,doubles,ducks,drawing:drawingData,drawing_is_blank:drawingIsBlank,numbers_landed:numbersLanded,extra_spins:extraSpins,best_roll_points:bestRollPoints,best_roll_label:bestRollLabel,rarity_score:r.probability,rarity_label:r.label,rarity_odds:r.odds,results,...(officialServerMode()?{verified_spin_session_id:serverSessionId}:{})};let data=null,error=null;let priorBadges=null;
-if(!isTest){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>String(b.badge_id)));}
+if(!isTest&&!isBonus){const before=await criloDB.from('user_badges').select('badge_id').eq('user_id',user.id);if(!before.error)priorBadges=new Set((before.data||[]).map(b=>String(b.badge_id)));}
 if(isTest){
  // A Test Run must never fall through to official Daily storage, even if
  // ownership/session information becomes stale while the wheel is active.
@@ -693,10 +693,15 @@ if(isTest){
   error=response.error;
   if(!error)data={is_test:true,id:response.data};
  }
+}else if(isBonus){
+ const response=await criloDB.rpc('crilo_save_bonus_run',{
+  p_session:serverSessionId,p_drawing:drawingData
+ });
+ data=response.data;error=response.error;
 }else{
  const response=await criloDB.from('daily_runs').insert(payload).select('is_test,daily_period').single();
  data=response.data;error=response.error;
- if(error&&serverSessionId){
+ if(error&&serverSessionId&&!isBonus){
   // A lost HTTP response may hide a successful insert. Look up its immutable
   // server proof before retrying, to avoid duplicate-save confusion.
   const prior=await criloDB.from('daily_runs').select('id,daily_period').eq('user_id',user.id).eq('verified_spin_session_id',serverSessionId).maybeSingle();
@@ -712,7 +717,12 @@ if(error){
 }
 $('retrySaveBtn').classList.add('hidden');
 if(draftKey){try{localStorage.removeItem?.(draftKey)}catch(err){console.warn('Could not clear Daily drawing cache',err)}}
-if(isTest){
+if(isBonus){
+ $('message').textContent='Bonus Daily saved. Your result is unranked and does not count toward official statistics or badges.';
+ $('resultEyebrow').textContent='BONUS RUN COMPLETE';
+ $('newBadgePanel').classList.add('hidden');
+ window.CriloBonusRuns?.refresh?.();
+}else if(isTest){
  $('message').textContent='Private test run saved. It does not count toward leaderboards, badges, or official Dailies.';
  $('replayTestBtn').classList.remove('hidden');
 }else{
@@ -733,6 +743,7 @@ if(isTest){
  }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
+ window.CriloBonusRuns?.refresh?.();
  // The unranked mystery event checks eligibility only after official save.
  window.CriloMysteryGift?.refresh?.();
  
@@ -927,7 +938,7 @@ function renderResult(r,stored=null){
  $('resultNextDaily').classList.add('hidden');
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
- $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':'DAILY COMPLETE';
+ $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':isBonus?'BONUS RUN COMPLETE':'DAILY COMPLETE';
  $('finalScore').textContent=fmt(number('score',score));
  $('rarityLabel').textContent=r.label; // Current tier wins over historical saved labels.
  const savedTail=Number(saved?.rarity_score);
@@ -1050,7 +1061,20 @@ async function saveProfile(){
     button.disabled=false;
   }
 }
-function startTest(save=true){if(!profile?.is_owner||spinning)return;stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
+function startTest(save=true){if(!profile?.is_owner||spinning)return;isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
+function startBonusRun(slot){
+ if(!user||!profile||!officialRun||officialRun.blocked||started||spinning||
+    finalSaveInProgress||!Number.isInteger(slot)||slot<1||slot>4)return;
+ ownerModeChosen=true;isTest=false;isBonus=true;bonusSlot=slot;usedFillOnOfficial=false;
+ $('ownerRunControls').classList.add('hidden');
+ $('ownerActiveMode').classList.add('hidden');
+ $('testBanner').classList.add('hidden');
+ $('bonusModeBanner').textContent='BONUS DAILY '+slot+' — UNRANKED · NO BADGES';
+ $('bonusModeBanner').classList.remove('hidden');
+ beginRun(true);
+ $('message').textContent='Bonus Daily '+slot+': five starting spins, same wheel. Your official score stays unchanged.';
+}
+window.addEventListener('crilo-bonus-run-start',e=>startBonusRun(Number(e.detail?.slot)));
 function countdown(){const diff=Math.max(0,Crilo.nextReset()-new Date()),s=Math.floor(diff/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),sec=s%60;const clock=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;$('resetCountdown').textContent='NEXT DAILY '+clock;syncDailyCountdown(clock);if(diff<1000&&!(started&&!isTest&&!guestRun&&(totalSpins>0||spinning))&&!finalSaveInProgress&&!(!isTest&&!guestRun&&serverSessionId&&!officialRun))setTimeout(()=>location.reload(),1200)}setInterval(countdown,1000);countdown();
 window.addEventListener('storage',event=>{
  if(event.key!==GUEST_DAILY_STORAGE_KEY||user||isTest)return;
@@ -1097,6 +1121,7 @@ async function claimFinishedGuestDaily(){
   try{await DuckWorld.load(criloDB,user)}catch(loadError){console.warn('Duck refresh pending',loadError)}
   await checkPlayed();
   window.CriloMysteryGift?.refresh?.();
+  window.CriloBonusRuns?.refresh?.();
   return true;
  }catch(error){
   console.warn('Guest Daily claim failed',error);
@@ -1201,7 +1226,7 @@ $('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),o
 $('guestClaimRetryBtn').addEventListener('click',()=>claimFinishedGuestDaily());$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);
  $('emailInput').addEventListener('keydown',event=>{
   if(event.key==='Enter'){event.preventDefault();sendMagicLink();}
- });$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+ });$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null,activeDrawingPointer=null,activeDrawingType=null,resumeMainStroke=false;
 // Pointer capture can keep sending moves outside a canvas. Never join a stroke
