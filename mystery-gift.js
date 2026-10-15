@@ -18,7 +18,30 @@
   cloud_recipe:['Recipe for a Cloud','One pinch of fog, two drops of rain, and a very patient spoon.'],
   lost_button:['The Missing Button','Nobody remembers what this button used to do.']
  };
- let state=null,token=0,busy=false,animation=0,rotation=0;
+ let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official';
+ const presentedThisPage=new Set();
+ function presentationKey(){
+  const u=window.Crilo?.user?.id;
+  const period=state?.period;
+  return u&&period?'crilo-mystery-auto-presented:'+u+':'+period:null;
+ }
+ function popIfSurprise(){
+  if(runMode!=='official'||!state?.eligible||!state?.available||state?.spun||busy)return;
+  const key=presentationKey();
+  if(!key||presentedThisPage.has(key))return;
+  try{if(localStorage.getItem(key)==='1')return}
+  catch(error){/* Session storage may be disabled; page-level guard still applies. */}
+  presentedThisPage.add(key);
+  try{localStorage.setItem(key,'1')}catch(error){}
+  show(); // A real, server-selected gift opens automatically exactly once.
+ }
+ function setMode(mode){
+  runMode=mode==='test'||mode==='bonus'?mode:'official';
+  if(runMode!=='official'){
+   panel.classList.add('hidden');
+   if(!busy)dismiss();
+  }else render();
+ }
  const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const won=i=>i%2===0;
  const names=Object.keys(prizes);
@@ -88,7 +111,7 @@
   }
  }
  function render(){
-  const eligible=!!state?.eligible;
+  const eligible=runMode==='official'&&!!state?.eligible;
   panel.classList.toggle('hidden',!eligible);
   if(!eligible)return;
   const available=!!state?.available;
@@ -97,7 +120,8 @@
   renderShelf();
   if(!modal.classList.contains('hidden'))reveal();
  }
- async function refresh(){
+ async function refresh(options){
+  const autoOpen=options?.autoOpen===true;
   const myToken=++token;
   const active=window.Crilo?.user;
   if(!active||typeof criloDB==='undefined'){
@@ -107,10 +131,11 @@
   if(myToken!==token)return;
   if(error){console.warn('Mystery Gift status:',error.message);return}
   state=data||null;render();
+  if(autoOpen)popIfSurprise();
  }
  function show(){
   // The Mystery Shelf remains browseable even when no gift appears today.
-  if(!state?.eligible||busy)return;
+  if(runMode!=='official'||!state?.eligible||busy)return;
   modal.classList.remove('hidden');
   rotation=state.spun&&Number.isInteger(state.slice)?atSlice(state.slice):0;
   draw();reveal();
@@ -165,7 +190,7 @@
  modal.addEventListener('click',e=>{if(e.target===modal)dismiss()});
  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.classList.contains('hidden'))dismiss()});
  window.addEventListener('crilo-auth-ready',refresh);
- window.addEventListener('crilo-official-daily-saved',refresh);
- window.CriloMysteryGift={refresh};
+ window.addEventListener('crilo-official-daily-saved',()=>refresh({autoOpen:true}));
+ window.CriloMysteryGift={refresh,setMode};
  if(window.Crilo?.authResolved)refresh();
 })();
