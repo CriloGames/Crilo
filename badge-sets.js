@@ -29,7 +29,7 @@
     $('collectionNotice').textContent='Loading badge progress…';
     try{
       const requests=[
-        criloDB.from('badges').select('id,badge_key,name,description,category,requirement,is_secret,sort_order').order('sort_order')
+        criloDB.from('badges').select('id,badge_key,name,description,category,requirement,is_secret,sort_order,is_active,is_earnable').order('sort_order')
       ];
       if(userId){
         requests.push(criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',userId));
