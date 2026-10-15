@@ -54,7 +54,11 @@ const days=[
    assert.equal(await page.locator('.spin-history-subrun .spin-history-best-mark').count(),1);
    assert.match(await page.locator('.spin-history-runs').textContent(),/Bonus Run 1/);
    assert.match(await page.locator('.spin-history-runs').textContent(),/Bonus Run 2/);
-   assert.match(await page.locator('.spin-history-runs').textContent(),/Official Daily/);
+   assert.equal(await page.locator('.spin-history-item .spin-history-kind').count(),1,'Only top Bonus has a visible pill');
+   assert.equal(await page.locator('.spin-history-item').last().locator('.spin-history-kind').count(),0,'Official-only day has no pill');
+   assert.equal(await page.locator('.spin-history-subrun .spin-history-kind').count(),2,'Only expanded Bonuses have type pills');
+   assert.doesNotMatch(await page.locator('.spin-history-runs').textContent(),/Official Daily/,'Expanded Official Daily label is removed');
+   assert.equal(await page.locator('.spin-history-subrun .spin-history-wheel').last().getAttribute('aria-label').then(s=>s.includes('Official Daily')),true,'Official artwork retains accessible name');
    await page.locator('.spin-history-subrun .spin-history-wheel').first().click();
    await page.locator('#criloWheelPreview').waitFor({state:'visible'});
    assert.equal(await page.locator('.crilo-wheel-preview-image').getAttribute('src'),'blank-wheel.svg');

@@ -60,8 +60,10 @@
   const count=all.length,date=dayLabel(day),tier=scoreTier(best.score);
   const groupId='spin-history-day-'+index;
   const multiple=count>1;
-  const badge='<span class="spin-history-kind'+(best.source==='bonus'?' is-bonus':'')+'">'+
-   esc(runType(best))+'</span>';
+  // Official Daily is the default and needs no visual label. Only Bonus
+  // attempts keep a pill, as on the grouped Daily leaderboard.
+  const badge=best.source==='bonus'?
+   '<span class="spin-history-kind is-bonus">'+esc(runType(best))+'</span>':'';
   const toggle=multiple?'<button type="button" class="spin-history-expand" aria-expanded="false" aria-controls="'+groupId+'" data-count="'+count+'">'+
    '<span class="spin-history-expand-label">View all '+count+' runs</span><span class="spin-history-expand-arrow" aria-hidden="true">⌄</span></button>':'';
   const subrows=multiple?'<div id="'+groupId+'" class="spin-history-runs" hidden>'+
@@ -69,7 +71,8 @@
    all.map((run,j)=>{
     const isBest=String(best.id)===String(run.id)&&best.source===run.source;
     return '<div class="spin-history-subrun" data-rarity="'+scoreTier(run.score)+'">'+
-     '<div class="spin-history-subrun-detail"><span class="spin-history-kind'+(run.source==='bonus'?' is-bonus':'')+'">'+esc(runType(run))+'</span>'+
+     '<div class="spin-history-subrun-detail">'+
+     (run.source==='bonus'?'<span class="spin-history-kind is-bonus">'+esc(runType(run))+'</span>':'')+
      (isBest?'<span class="spin-history-best-mark">Best</span>':'')+
      '<small>'+esc(details(run))+'</small></div>'+
      '<div class="spin-history-subrun-score">'+esc(fmt(run.score))+' <small>PTS</small></div>'+
@@ -78,7 +81,8 @@
   return '<section class="spin-history-day">'+
    '<article class="spin-history-item" data-rarity="'+tier+'">'+
    '<div class="spin-history-detail"><div class="spin-history-event">'+esc(date)+'</div>'+
-   '<div class="spin-history-run-type">'+badge+(multiple?'<span class="spin-history-best-marker">Best of '+count+'</span>':'')+'</div>'+
+   (badge||multiple?'<div class="spin-history-run-type">'+badge+
+    (multiple?'<span class="spin-history-best-marker">Best of '+count+'</span>':'')+'</div>':'')+
    '<div class="spin-history-meta">'+esc(details(best))+'</div>'+toggle+'</div>'+
    '<div class="spin-history-side"><strong class="spin-history-score">'+esc(fmt(best.score))+
    '</strong><small class="spin-history-units">PTS</small></div>'+wheel(best,date)+'</article>'+
