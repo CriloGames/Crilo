@@ -472,10 +472,13 @@ update();
 // resolve() runs only after the wheel animation stops. A 2% Mystery Gift
 // can appear now, never while the wheel is still spinning.
 // The final spin waits for verified Daily saving before its gift check.
-if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0)
- window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
-  detail:{spinCount:totalSpins}
- }));
+if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0){
+ // Minimal isolated wheel tests may not load the optional Mystery module.
+ if(window.CriloMysteryGift?.refresh)
+  window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
+   detail:{spinCount:totalSpins}
+  }));
+}
 if(guestRun&&spins>0&&!guestSaveOrPause())return;
 if(spins<=0){
  // Classify only after the LAST resolved spin, after every extra-spin effect.
