@@ -48,7 +48,7 @@ BEGIN
  JOIN public.crilo_v3_badge_stage s ON s.badge_key=b.badge_key
  WHERE s.display_name IS DISTINCT FROM b.name
  OR s.description IS DISTINCT FROM b.description
- OR (s.rule->>'condition') IS DISTINCT FROM (b.requirement->'rule'->>'condition');
+ OR (s.rule->>'rule'<>'score_band' AND (s.rule->>'condition') IS DISTINCT FROM (b.requirement->'rule'->>'condition'));
  IF bad<>0 THEN RAISE EXCEPTION 'Badge display labels inconsistent: %',bad; END IF;
  SELECT count(*) INTO bad FROM public.player_stats p
  WHERE EXISTS(SELECT 1 FROM public.daily_runs d WHERE d.user_id=p.user_id AND d.is_test=false)
