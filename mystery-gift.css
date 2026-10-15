@@ -57,7 +57,7 @@
  padding:11px 17px;box-shadow:0 2px 0 #24252b}
 .crilo-mystery-spin:hover:not(:disabled),.crilo-mystery-review:hover:not(:disabled){filter:brightness(.96)}
 .crilo-mystery-spin:disabled{opacity:.5;cursor:wait}
-.crilo-mystery-spin[hidden],.crilo-mystery-review.hidden{display:none!important}
+.crilo-mystery-spin[hidden],.crilo-mystery-review[hidden],.crilo-mystery-review.hidden{display:none!important}
 /* The persistent collection is a TINY BUTTON, with its own shelf viewer.
    It is never printed as a large section beneath the Daily wheel. */
 .crilo-mystery-collection-modal{position:fixed;inset:0;z-index:1600;
@@ -96,3 +96,7 @@
 @media(prefers-reduced-motion:reduce){
  .crilo-mystery-shortcut button{transition:none}
 }
+
+/* Review collection only after opening a curiosity, never beforehand. */
+.crilo-mystery-dialog #criloMysteryOpenCollection{display:block;margin:12px auto 0;background:var(--soft,#f7f7fa);border-color:var(--line,#d8dce0);box-shadow:none}
+.crilo-mystery-dialog #criloMysteryOpenCollection[hidden]{display:none!important}
