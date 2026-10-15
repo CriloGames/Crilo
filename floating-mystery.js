@@ -23,7 +23,7 @@
   lost_button:'<rect x="9" y="7" width="32" height="36" rx="9" fill="#ead6f7"/><circle cx="25" cy="25" r="12" fill="#f7f1ff"/><circle cx="21" cy="21" r="2.2" fill="#826b9e" stroke="none"/><circle cx="29" cy="21" r="2.2" fill="#826b9e" stroke="none"/><circle cx="21" cy="29" r="2.2" fill="#826b9e" stroke="none"/><circle cx="29" cy="29" r="2.2" fill="#826b9e" stroke="none"/>'
  };
  const stylesheet=document.createElement('link');
- stylesheet.rel='stylesheet';stylesheet.href='floating-mystery.css?v=1';
+ stylesheet.rel='stylesheet';stylesheet.href='floating-mystery.css?v=2';
  document.head.append(stylesheet);
  const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
  const $=id=>document.getElementById(id);

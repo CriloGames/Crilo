@@ -28,7 +28,7 @@ assert.match(profile,/addEventListener\('crilo-mystery-discovered'/);
 for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','settings.html',
                    'friends.html','badge-sets.html','shape-of-sound.html','moderation.html','owner-analytics.html']){
  const html=fs.readFileSync(path,'utf8');
- assert.match(html,/floating-mystery\.js\?v=1/,path+' must allow page discoveries');
+ assert.match(html,/floating-mystery\.js\?v=2/,path+' must allow page discoveries');
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
