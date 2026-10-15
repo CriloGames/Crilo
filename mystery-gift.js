@@ -109,7 +109,8 @@
   state=data||null;render();
  }
  function show(){
-  if(!state?.available||busy)return;
+  // The Mystery Shelf remains browseable even when no gift appears today.
+  if(!state?.eligible||busy)return;
   modal.classList.remove('hidden');
   rotation=state.spun&&Number.isInteger(state.slice)?atSlice(state.slice):0;
   draw();reveal();
