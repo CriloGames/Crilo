@@ -212,7 +212,7 @@ function renderBadgeLeaders(entries,profiles){
  const best=entries[0],p=profiles.get(best.user_id);$('bestScore').textContent=best.count.toLocaleString();window.CriloNameColors.paint($('bestUser'),p);$('bestStats').textContent='Most gameplay badges earned from official Crilo play';
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
-function runLabel(r){return r._source==='bonus'?'Bonus Run '+Number(r.slot||0):'Official Daily'}
+function runLabel(r){return (r._source||r.source)==='bonus'?'Bonus Run '+Number(r.slot||0):'Official Daily'}
 function runGroupBreakdown(r,id,owner,scoreBoard){
  const runs=Array.isArray(r.group_runs)?r.group_runs:[];
  if(runs.length<2)return '';
