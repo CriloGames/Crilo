@@ -794,9 +794,9 @@ if(isBonus){
   $('newBadgeList').textContent='Unable to check the badges earned during this run.';
  }
  officialRun={...payload,is_test:false};
- // Refresh Challenge Stars only after this verified Official Daily is saved.
- void window.CriloDailyChallenges?.refresh?.();
  update(); // Immediately show the completed DAILY SCORE.
+ // Refresh server-awarded Challenge Stars only after official save.
+ void window.CriloDailyChallenges?.refresh?.();
  // A rare gift takes priority on top of the wheel; once it's closed,
  // show the next available bonus run beneath the Daily result.
  await window.CriloMysteryGift?.refresh?.({autoOpen:true});
