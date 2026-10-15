@@ -1,0 +1,30 @@
+name: Weekly Lucky Seven wheel and isolated scoring
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'weekly.html'
+      - 'weekly.js'
+      - 'weekly.css'
+      - 'weekly-home.css'
+      - 'index.html'
+      - 'release/346-badges/163-weekly-lucky-seven.sql'
+      - 'release/346-badges/164-weekly-lucky-seven-browser.cjs'
+      - '.github/workflows/weekly-lucky-seven.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check weekly.js
+      - run: node release/346-badges/164-weekly-lucky-seven-browser.cjs
