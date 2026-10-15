@@ -23,7 +23,7 @@ assert.match(gift,/CriloFloatingMystery\?\.complete/);
 assert.match(floating,/state==='complete'/);
 assert.match(floating,/type:'complete'/);
 assert.match(profile,/for\(const key of found\)/);
-assert.match(html,/mystery-profile\.js\?v=5/);
+assert.match(html,/mystery-profile\.js\?v=6/);
 const collection=html.match(/<section id="criloCuriosities"[\s\S]*?<\/dialog>/);
 assert.ok(collection);
 (async()=>{
