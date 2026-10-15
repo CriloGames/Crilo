@@ -153,7 +153,10 @@
   if(!window.Crilo?.user||typeof criloDB==='undefined'){
    state=null;shortcut.classList.add('hidden');dismiss(false);return;
   }
-  const {data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'});
+  let data,error;
+  try{
+   ({data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'}));
+  }catch(e){error=e}
   if(myToken!==token)return;
   if(error){console.warn('Mystery Gift status:',error.message);return}
   state=data||null;render();

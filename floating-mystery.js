@@ -27,7 +27,7 @@
  document.head.append(stylesheet);
  const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
  const $=id=>document.getElementById(id);
- let account=null,checked=false,request=0,claiming=false,spawn=null,node=null,dialog=null;
+ let account=null,checked=false,completed=false,request=0,claiming=false,spawn=null,node=null,dialog=null;
  const svg=key=>'<svg viewBox="0 0 50 50" width="49" height="49" aria-hidden="true" fill="none" stroke="#292b35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(shapes[key]||'')+'</svg>';
  // Use shared authored illustrations for unlocked Statistics curiosities.
  window.CriloMysteryCuriosityIcon=key=>Object.hasOwn(shapes,key)?svg(key):'';
@@ -37,6 +37,9 @@
   const msg=event.data;
   if(msg?.userId!==window.Crilo?.user?.id)return;
   if(msg?.type==='complete'){
+   // Invalidate any earlier in-flight "enter" result before it can
+   // resurrect a gift that was completed in another tab.
+   completed=true;checked=true;++request;
    removeFloating();
    window.dispatchEvent(new Event('crilo-mystery-discovered'));
   }else if(msg?.type==='claimed'){
@@ -91,6 +94,7 @@
    if(ticket!==request||window.Crilo?.user?.id!==owner||spawn?.spawn_id!==id)return;
    if(error)throw error;
    if(data?.state==='complete'){
+    completed=true;checked=true;++request;
     removeFloating();
     window.dispatchEvent(new Event('crilo-mystery-discovered'));
     return;
@@ -99,7 +103,10 @@
    const fresh=data.new_discovery===true,found=Number(data.discovered_count)||0;
    node?.remove();node=null;spawn=null;
    mysteryChannel?.postMessage({type:'claimed',userId:owner,spawnId:id});
-   if(found>=6)mysteryChannel?.postMessage({type:'complete',userId:owner});
+   if(found>=6){
+    completed=true;checked=true;++request;
+    mysteryChannel?.postMessage({type:'complete',userId:owner});
+   }
    window.dispatchEvent(new CustomEvent('crilo-mystery-discovered',{detail:{key}}));
    buildDetails(key,fresh,found);
   }catch(error){
@@ -130,11 +137,11 @@
  }
  async function onIdentity(){
   const id=window.Crilo?.user?.id||null;
-  if(!id){++request;account=null;checked=false;removeFloating();return}
-  if(id!==account){account=id;checked=false;removeFloating()}
+  if(!id){++request;account=null;checked=false;completed=false;removeFloating();return}
+  if(id!==account){account=id;checked=false;completed=false;removeFloating()}
   // Navigation is checked only once per page load and account. Scrolling,
   // tab focus and repeated auth events never reroll the 8% server check.
-  if(checked||typeof criloDB==='undefined')return;
+  if(checked||completed||typeof criloDB==='undefined')return;
   checked=true;const ticket=++request;
   try{
    const {data,error}=await criloDB.rpc('crilo_mystery_page_visit',{
@@ -142,8 +149,9 @@
    });
    if(ticket!==request||window.Crilo?.user?.id!==id)return;
    if(error)throw error;
-   if(data?.state==='complete')removeFloating();
-   else if(data?.state==='ready')showFloating(data);
+   if(data?.state==='complete'){
+    completed=true;checked=true;++request;removeFloating();
+   }else if(data?.state==='ready'&&!completed)showFloating(data);
   }catch(error){
    if(ticket===request)console.warn('Floating curiosity unavailable:',error);
   }
@@ -152,6 +160,8 @@
   complete(){
    const userId=window.Crilo?.user?.id;
    if(!userId)return;
+   // Also stop pending local page-entry callbacks and future same-page checks.
+   completed=true;checked=true;++request;
    removeFloating();
    mysteryChannel?.postMessage({type:'complete',userId});
   }

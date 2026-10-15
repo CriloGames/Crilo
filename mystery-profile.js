@@ -27,9 +27,16 @@
   // Show the actual Statistics tab while its saved discoveries load.
   box.hidden=false;
   count.textContent='Loading collection…';
-  const {data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'});
-  if(ticket!==serial)return;
-  if(error){console.warn('Curiosities unavailable:',error.message);count.textContent='Unavailable';return}
+  let data,error;
+  try{
+   ({data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'}));
+  }catch(e){error=e}
+  if(ticket!==serial||window.Crilo?.user?.id!==me)return;
+  if(error){
+   console.warn('Curiosities unavailable:',error.message);
+   count.textContent='Unable to load collection. Reopen Statistics to retry.';
+   return;
+  }
   const found=[...new Set(Array.isArray(data?.discovered)?data.discovered:[])]
    .filter(key=>Object.hasOwn(prizes,key));
   count.textContent=found.length+' / '+Object.keys(prizes).length+' found';
