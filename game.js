@@ -787,7 +787,7 @@ if(isBonus){
  update(); // Immediately show the completed DAILY SCORE.
  window.CriloBonusRuns?.refresh?.();
  // The unranked mystery event checks eligibility only after official save.
- window.CriloMysteryGift?.refresh?.();
+ window.CriloMysteryGift?.refresh?.({autoOpen:true});
  
 }
 }finally{finalSaveInProgress=false}
@@ -1106,10 +1106,11 @@ async function saveProfile(){
     button.disabled=false;
   }
 }
-function startTest(save=true){if(!profile?.is_owner||spinning)return;isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
+function startTest(save=true){if(!profile?.is_owner||spinning)return;window.CriloMysteryGift?.setMode?.('test');isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');stopDrawing();stopPixelStroke();ownerModeChosen=true;isTest=true;usedFillOnOfficial=false;saveOwnerTest=true;$('ownerActiveMode').textContent='TEST RUN — private, no leaderboard or badges';$('ownerActiveMode').classList.remove('hidden');$('ownerRunControls').classList.add('hidden');$('spinButton').classList.remove('hidden');$('testBanner').classList.remove('hidden');unlockDrawing();dctx.clearRect(0,0,drawing.width,drawing.height);showDrawPlaceholder();undoStack=[];redoStack=[];beginRun(true)}
 function startBonusRun(slot){
  if(!user||!profile||!officialRun||officialRun.blocked||started||spinning||
     finalSaveInProgress||!Number.isInteger(slot)||slot<1||slot>4)return;
+ window.CriloMysteryGift?.setMode?.('bonus');
  ownerModeChosen=true;isTest=false;isBonus=true;bonusSlot=slot;usedFillOnOfficial=false;
  $('ownerRunControls').classList.add('hidden');
  $('ownerActiveMode').classList.add('hidden');
@@ -1165,7 +1166,8 @@ async function claimFinishedGuestDaily(){
   $('guestClaimRetryBtn')?.classList.add('hidden');
   try{await DuckWorld.load(criloDB,user)}catch(loadError){console.warn('Duck refresh pending',loadError)}
   await checkPlayed();
-  window.CriloMysteryGift?.refresh?.();
+  window.CriloMysteryGift?.setMode?.('official');
+  window.CriloMysteryGift?.refresh?.({autoOpen:data.status==='saved'});
   window.CriloBonusRuns?.refresh?.();
   return true;
  }catch(error){
@@ -1271,7 +1273,7 @@ $('rarityInfoBtn').addEventListener('click',()=>{const panel=$('rarityMethod'),o
 $('guestClaimRetryBtn').addEventListener('click',()=>claimFinishedGuestDaily());$('guestFinishSignIn').addEventListener('click',()=>{close('guestFinishModal');open('authModal')});$('guestFinishDismiss').addEventListener('click',()=>close('guestFinishModal'));$('clearDrawing').addEventListener('click',()=>{if(!drawingLocked){snapshot();dctx.clearRect(0,0,drawing.width,drawing.height)}});$('helpBtn').addEventListener('click',()=>open('helpModal'));$('sendLinkBtn').addEventListener('click',sendMagicLink);
  $('emailInput').addEventListener('keydown',event=>{
   if(event.key==='Enter'){event.preventDefault();sendMagicLink();}
- });$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
+ });$('saveProfileBtn').addEventListener('click',saveProfile);$('replayTestBtn').addEventListener('click',()=>startTest(false));$('ownerSaveRunBtn').addEventListener('click',()=>startTest(true));$('ownerDailyChoiceBtn').addEventListener('click',()=>{if(!profile?.is_owner||officialRun||spinning)return;ownerModeChosen=true;window.CriloMysteryGift?.setMode?.('official');isBonus=false;bonusSlot=0;$('bonusModeBanner')?.classList.add('hidden');isTest=false;usedFillOnOfficial=false;saveOwnerTest=false;$('ownerActiveMode').textContent='OFFICIAL DAILY — counts toward leaderboard and badges';$('ownerActiveMode').classList.remove('hidden');$('testBanner').classList.add('hidden');$('ownerRunControls').classList.add('hidden');beginRun(true);$('message').textContent='OFFICIAL DAILY — this run counts toward the leaderboard and badges.';});document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>close(b.dataset.close)));
 
 let painting=false,last=null,activeDrawingPointer=null,activeDrawingType=null,resumeMainStroke=false;
 // Pointer capture can keep sending moves outside a canvas. Never join a stroke
