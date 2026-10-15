@@ -259,7 +259,8 @@ function render(runs,pm){
   const bonusBest=best._source==='bonus';
   bestRunKind.textContent=bonusBest?runLabel(best):'';
   bestRunKind.hidden=!bonusBest;
-  bestRunKind.classList.toggle('hidden',!bonusBest);
+  if(bonusBest)bestRunKind.classList.remove('hidden');
+  else bestRunKind.classList.add('hidden');
  }
  $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString():
   Number(best.score).toLocaleString();

@@ -28,7 +28,7 @@ assert.match(js,/leader-run-breakdown/);
 assert.match(js,/crilo_total_points_leaders/,'Lifetime points remain official-only');
 assert.match(js,/if\(isLegacyPreviewRun\(run\)\)continue/,'Lifetime ducks remain official-only');
 assert.match(html,/leaderboard-run-types\.css\?v=3/);
-assert.match(html,/leaderboard\.js\?v=58/);
+assert.match(html,/leaderboard\.js\?v=59/);
 assert.match(game,/!isTest&&!isBonus/,'Bonus runs cannot earn normal run badges');
 
 const official={id:'official-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA'};

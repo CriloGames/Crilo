@@ -16,5 +16,5 @@ a.match(ranked,/NULL::text AS drawing/);
 a.match(js,/\.select\('user_id,ducks,[^']+'\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
 a.match(js,/function isLegacyPreviewRun\(run\)/);
 a.match(js,/\.not\('verified_spin_session_id','is',null\)/);
-a.match(html,/leaderboard\.js\?v=58/);
+a.match(html,/leaderboard\.js\?v=59/);
 console.log('PASS: all competitive wheel score, spin, duck and lifetime-point rankings require server-backed run proofs.');

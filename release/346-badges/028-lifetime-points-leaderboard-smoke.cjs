@@ -7,7 +7,7 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const page=fs.readFileSync(path.join(root,'leaderboard.html'),'utf8');
 const profile=fs.readFileSync(path.join(root,'profile.js'),'utf8');
 assert.match(page,/data-tab="points">TOTAL POINTS/);
-assert.match(page,/leaderboard\.js\?v=58/);
+assert.match(page,/leaderboard\.js\?v=59/);
 assert.match(script,/if\(tab==='points'\)\{await loadTotalPoints\(revision\);return\}/);
 assert.match(script,/crilo_total_points_leaders/);
 assert.match(profile,/total_points\?\?s\.total_score/);
