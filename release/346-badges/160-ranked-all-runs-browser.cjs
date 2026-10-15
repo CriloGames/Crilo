@@ -71,7 +71,7 @@ assert.ok(head.startsWith('<main class="leader-main">'));
    assert.equal(await page.locator('.leader-run-detail-row .leader-run-best-tag').count(),1);
    assert.equal(await page.locator('.leader-run-detail-row .mini-wheel').count(),3,'Every expanded run retains a drawing thumbnail');
    assert.equal(await page.locator('.leader-row.score-run-row .mini-wheel').count(),2);
-   assert.equal(await page.locator('#bestScore').textContent(),'900','The group's best score leads');
+   assert.equal(await page.locator('#bestScore').textContent(),'900','Highest daily score leads the group');
    assert.equal(await page.locator('#bestDrawing').getAttribute('src'),'blank-wheel.svg','Top private Bonus drawing gets blank wheel');
    assert.equal(await page.locator('.leader-run-detail-row img[src="blank-wheel.svg"]').count(),2);
    assert.equal(await page.locator('.leader-run-detail-row img[src^="data:image/png"]').count(),1,'Official drawing remains available');
