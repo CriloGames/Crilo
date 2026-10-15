@@ -6,10 +6,18 @@ const fs=require('node:fs'),{chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
 const html=fs.readFileSync('index.html','utf8'),game=fs.readFileSync('game.js','utf8');
 const migration=fs.readFileSync('release/346-badges/153-badge-bonus-daily-runs.sql','utf8');
-assert.match(html,/bonus-runs\.js\?v=1/);
-assert.match(html,/bonus-runs\.css\?v=1/);
+assert.match(html,/bonus-runs\.js\?v=2/);
+assert.match(html,/bonus-runs\.css\?v=2/);
 assert.ok(html.includes('game.js?v='),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloBonusPanel"/);
+assert.ok(html.indexOf('id="criloBonusPanel"')>html.indexOf('id="result"'),
+ 'Continuation must appear after official results');
+assert.match(html,/id="criloBonusDetails"/);
+assert.match(html,/id="criloBonusPrimary"/);
+assert.ok(game.includes("CriloBonusRuns?.refresh?.({focus:true})"));
+assert.ok(game.includes("await window.CriloMysteryGift?.refresh?.({autoOpen:true})"));
+assert.doesNotMatch(html,/4 Daily Runs available per day/,
+ 'Old oversized bonus-run heading must be removed');
 assert.match(html,/id="bonusModeBanner"/);
 assert.match(game,/isBonus\?'crilo_bonus_spin':'crilo_server_spin'/);
 assert.match(game,/isBonus\?'crilo_get_bonus_spin_state':'crilo_get_server_spin_state'/);
@@ -55,6 +63,9 @@ function snapshot(badges,official=true,complete=[]){
   await page.evaluate(()=>{
    document.documentElement.classList.remove('crilo-daily-pending','crilo-auth-pending');
    window.Crilo.user={id:'11111111-1111-4111-8111-111111111111'};
+    window.Crilo.profile={id:'11111111-1111-4111-8111-111111111111'};
+    window.__bonusScrolls=0;
+    document.getElementById('criloBonusPanel').scrollIntoView=()=>window.__bonusScrolls++;
    window.__bonusEvents=[];
    window.addEventListener('crilo-bonus-run-start',e=>window.__bonusEvents.push(e.detail.slot));
    criloDB.rpc=async(name,args)=>{
@@ -71,17 +82,31 @@ function snapshot(badges,official=true,complete=[]){
    await page.evaluate(s=>{window.__bonusSnapshot=s;},s);
    await page.evaluate(()=>window.CriloBonusRuns.refresh());
   }
+  // A signed-in player without a completed profile cannot claim bonus unlocks.
+  await setStatus(snapshot(155,true));
+  await page.evaluate(()=>{window.Crilo.profile=null;});
+  await page.evaluate(()=>window.CriloBonusRuns.refresh());
+  assert.equal(await page.locator('#criloBonusPanel').isVisible(),false,
+   'A registered profile is required for bonus runs');
+  await page.evaluate(()=>{window.Crilo.profile={id:window.Crilo.user.id};});
   await setStatus(snapshot(155,false));
   assert.equal(await page.locator('#criloBonusPanel').isVisible(),false,
-   'Bonus should not show until official Daily is complete');
+   'Before an official Daily, bonus CTA must remain hidden');
   await setStatus(snapshot(45));
   assert.equal(await page.locator('#criloBonusPanel').isVisible(),true);
-  assert.match(await page.locator('#criloBonusProgress').textContent(),/5 more/);
-  assert.equal(await page.locator('#criloBonusList button:not([disabled])').count(),0);
+  assert.match(await page.locator('#criloBonusProgress').textContent(),/45 \/ 50/);
+  assert.equal(await page.locator('#criloBonusPrimary button').count(),0,
+   'No unlocked bonus means no playable primary action');
   await setStatus(snapshot(155,true,[1]));
-  assert.match(await page.locator('#criloBonusSummary').textContent(),/4 Daily Runs/);
+  assert.match(await page.locator('#criloBonusSummary').textContent(),/Keep playing/);
+  assert.match(await page.locator('#criloBonusProgress').textContent(),/155 \/ 200/);
+  assert.match(await page.locator('#criloBonusRemaining').textContent(),/2BONUS RUNS LEFT/);
+  assert.equal(await page.locator('#criloBonusPrimary button').count(),1,
+   'One single obvious next-play action');
   const buttons=page.locator('#criloBonusList button');
   assert.equal(await buttons.count(),4);
+  assert.equal(await page.locator('#criloBonusDetails').evaluate(el=>el.open),false,
+   'Other slots must start collapsed');
   assert.equal(await buttons.nth(0).isDisabled(),true);
   assert.equal(await buttons.nth(1).isEnabled(),true);
   assert.equal(await buttons.nth(2).isEnabled(),true);
@@ -89,7 +114,22 @@ function snapshot(badges,official=true,complete=[]){
   const rect=await page.locator('#criloBonusPanel').boundingBox();
   assert.ok(rect&&rect.x>=-2&&rect.x+rect.width<=width+2,
    'Clipped bonus UI at '+width+'px '+JSON.stringify(rect));
-  await buttons.nth(1).click();
+  await page.evaluate(()=>window.CriloBonusRuns.refresh({focus:true}));
+  await page.waitForFunction(()=>window.__bonusScrolls===1,{timeout:3000});
+  await page.evaluate(()=>{
+   document.getElementById('criloMysteryModal').classList.remove('hidden');
+   window.__bonusScrolls=0;
+  });
+  await page.evaluate(()=>window.CriloBonusRuns.refresh({focus:true}));
+  await page.waitForTimeout(490);
+  assert.equal(await page.evaluate(()=>window.__bonusScrolls),0,
+   'Never scroll away while the mystery gift is open');
+  await page.evaluate(()=>{
+   document.getElementById('criloMysteryModal').classList.add('hidden');
+   window.dispatchEvent(new Event('crilo-mystery-closed'));
+  });
+  await page.waitForFunction(()=>window.__bonusScrolls===1,{timeout:3000});
+  await page.locator('#criloBonusPrimary button').click();
   assert.deepEqual(await page.evaluate(()=>window.__bonusBegins),[2]);
   assert.deepEqual(await page.evaluate(()=>window.__bonusEvents),[2]);
   await ctx.close();count++;
