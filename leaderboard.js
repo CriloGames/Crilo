@@ -225,7 +225,7 @@ function runGroupBreakdown(r,id,owner,scoreBoard){
   const remove=owner?'<button type="button" class="owner-remove-run" data-id="'+Crilo.esc(String(entry.id||''))+
    '" data-source="'+(bonus?'bonus':'official')+'" title="Remove this run">Remove</button>':'';
   return '<div class="leader-run-detail-row">'+
-   '<div class="leader-run-detail-main"><span class="crilo-run-kind'+(bonus?' is-bonus':'')+'">'+kind+'</span>'+
+   '<div class="leader-run-detail-main">'+(bonus?'<span class="crilo-run-kind is-bonus">'+kind+'</span>':'')+
    (winner?'<span class="leader-run-best-tag">Best</span>':'')+
    '<small>'+Math.max(0,Number(entry.spins)||0)+' spins · '+
     Math.max(0,Number(entry.upgrades)||0)+' upgrades · '+
@@ -255,7 +255,12 @@ function render(runs,pm){
  }
  const best=runs[0],bp=pm.get(best.user_id);
  const bestRunKind=$('bestRunKind');
- if(bestRunKind){bestRunKind.textContent=runLabel(best);bestRunKind.hidden=false;bestRunKind.classList.remove('hidden')}
+ if(bestRunKind){
+  const bonusBest=best._source==='bonus';
+  bestRunKind.textContent=bonusBest?runLabel(best):'';
+  bestRunKind.hidden=!bonusBest;
+  bestRunKind.classList.toggle('hidden',!bonusBest);
+ }
  $('bestScore').textContent=tab==='records'?Number(best.spins).toLocaleString():
   Number(best.score).toLocaleString();
  if(tab==='ducks')$('bestScore').innerHTML=duckCountHTML(best.ducks);
@@ -288,7 +293,7 @@ function render(runs,pm){
   const more=group.length>1,groupId='leader-daily-group-'+i;
   return `${more?'<div class="leader-run-bundle">':''}<div class="leader-row score-run-row${bonus?' is-bonus':''}${canModerate?' owner-moderated':''}" data-run-source="${bonus?'bonus':'official'}">
    <div class="rank">${medals[i]||i+1}</div>
-   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini"><span class="crilo-run-kind${bonus?' is-bonus':''}">${runLabel(r)}</span> · ${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span>${more?'<button type="button" class="leader-runs-toggle" data-run-count="'+group.length+'" aria-expanded="false" aria-controls="'+groupId+'"><span class="leader-runs-toggle-label">View all '+group.length+' runs</span><span class="leader-runs-chevron" aria-hidden="true">⌄</span></button>':''}</div>
+   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini">${bonus?'<span class="crilo-run-kind is-bonus">'+runLabel(r)+'</span> · ':''}${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span>${more?'<button type="button" class="leader-runs-toggle" data-run-count="'+group.length+'" aria-expanded="false" aria-controls="'+groupId+'"><span class="leader-runs-toggle-label">View all '+group.length+' runs</span><span class="leader-runs-chevron" aria-hidden="true">⌄</span></button>':''}</div>
    <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
    <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>${more?runGroupBreakdown(r,groupId,canModerate,scoreBoard)+'</div>':''}`;
