@@ -112,23 +112,30 @@
   }
  }
  function renderShelf(){
-  const discoveries=Array.isArray(state?.discovered)?state.discovered.filter(k=>names.includes(k)):[];
-  progress.textContent=discoveries.length+' / '+names.length+' mystery discoveries';
+  const discovered=[...new Set(Array.isArray(state?.discovered)?state.discovered:[])]
+   .filter(key=>names.includes(key));
+  progress.textContent=discovered.length+' / '+names.length+' collected';
   shelf.replaceChildren();
-  for(const key of names){
-   const found=discoveries.includes(key),item=document.createElement('div');
-   item.className='crilo-mystery-item'+(found?' found':'');
+  for(const key of discovered){
+   const item=document.createElement('div');item.className='crilo-mystery-item found';
    const symbol=document.createElement('span');symbol.className='crilo-mystery-item-symbol';
-   symbol.textContent=found?'✦':'?';
+   const art=window.CriloMysteryCuriosityIcon?.(key);
+   if(art)symbol.innerHTML=art;
+   else symbol.textContent='✦';
    const copy=document.createElement('span'),label=document.createElement('strong');
-   label.textContent=found?prizes[key][0]:'Undiscovered';
-   const description=document.createElement('small');
-   description.textContent=found?prizes[key][1]:'Find this by opening a Mystery Gift.';
-   copy.append(label,description);item.append(symbol,copy);shelf.appendChild(item);
+   label.textContent=prizes[key][0];
+   const description=document.createElement('small');description.textContent=prizes[key][1];
+   copy.append(label,description);item.append(symbol,copy);shelf.append(item);
+  }
+  if(!discovered.length){
+   const empty=document.createElement('p');empty.className='crilo-mystery-empty';
+   empty.textContent='No mysteries collected yet.';
+   shelf.append(empty);
   }
  }
  function render(){
   const visible=runMode==='official'&&!!window.Crilo?.user;
+  if(state?.collection_complete&&!state?.spun&&!busy) dismiss();
   const waiting=visible&&!!(state?.eligible&&state.available&&!state.spun);
   // Only an already-triggered unopened event has a recovery button.
   // No public hint or permanent collection progress beneath the wheel.
@@ -194,10 +201,18 @@
   try{
    const {data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'spin'});
    if(error)throw error;
+   if(data?.collection_complete&&!data?.spun){
+    // A floating curiosity completed the six while the mini-wheel was open.
+    state=data;busy=false;render();return;
+   }
    if(!data?.spun||!Number.isInteger(data.slice)||data.slice<0||data.slice>7)
     throw new Error('The server did not save a valid mystery spin.');
    // The server chooses the slice; client animation cannot affect prizes.
    state=data;await animateTo(data.slice);render();
+   if(data.collection_complete){
+    window.CriloFloatingMystery?.complete?.();
+    window.dispatchEvent(new Event('crilo-mystery-discovered'));
+   }
   }catch(error){
    message.textContent='Could not save the mystery spin. Try again; your opportunity is safe.';
    console.warn('Mystery Gift:',error);
@@ -235,6 +250,10 @@
   }
  });
  window.addEventListener('crilo-auth-ready',refresh);
+ window.addEventListener('crilo-mystery-discovered',()=>{
+  // Another Mystery discovery may have completed the collection.
+  if(!busy)void refresh();
+ });
  window.addEventListener('crilo-official-wheel-stopped',()=>refresh({autoOpen:true}));
  window.addEventListener('crilo-official-daily-saved',()=>refresh({autoOpen:true}));
  window.CriloMysteryGift={refresh,setMode};
