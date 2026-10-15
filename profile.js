@@ -255,7 +255,7 @@ const badgeSymbol=b=>customTitleIcon(b)||scoreBadgeIcon(b)||namedBadgeIcon(b)||b
 
 const renderBadgeIcons=()=>{if(window.lucide?.createIcons)window.lucide.createIcons({attrs:{'stroke-width':1.65}})};
 
-async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,name_letter_colors,account_code,avatar_symbol,avatar_background,avatar_ink').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,requirement,is_secret,sort_order').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(25)]);if(!p){$('profileName').textContent='Player not found';return}
+async function load(){if(!target)target=Crilo.user?.id;if(!target){$('profileName').textContent='Sign in to see your statistics';return}const [{data:p},{data:stats,error:statsError},{data:metrics,error:metricsError},{data:badges,error:badgesError},{data:earned,error:earnedError},{data:featured},{data:domainScores}]=await Promise.all([criloDB.from('profiles').select('id,username,name_color,name_letter_colors,account_code,avatar_symbol,avatar_background,avatar_ink').eq('id',target).maybeSingle(),criloDB.rpc('get_crilo_player_stats',{target_user:target}),criloDB.rpc('crilo_profile_metrics',{p_user:target}),criloDB.from('badges').select('id,badge_key,name,description,category,requirement,is_secret,sort_order,is_active,is_earnable').order('sort_order'),criloDB.from('user_badges').select('badge_id,earned_at').eq('user_id',target),criloDB.from('featured_badges').select('badge_id,position').eq('user_id',target).order('position'),criloDB.from('game_scores').select('score').eq('user_id',target).eq('game_key','domain').order('score',{ascending:false}).limit(25)]);if(!p){$('profileName').textContent='Player not found';return}
  const warningHost=$('publicAccountWarning');
  if(warningHost){
   const {data:warning,error:warningError}=await criloDB.rpc('crilo_public_warning_status',{p_user:target});
@@ -393,7 +393,7 @@ const earnedCount=[...em.keys()].filter(id=>badgeCatalog.has(String(id))).length
 const badgeLink=$('badgeSetsLink');
 if(badgeLink)badgeLink.href='badge-sets.html'+(target?'?id='+encodeURIComponent(target):'');
 $('badgeProgress').textContent=badgeDataReady
- ? earnedCount+' unique badges collected'+(earnedCount>50?' · Best 50 shown':'')
+ ? earnedCount+'/'+activeBadges.length+' badges collected · Best 50 shown'
  : 'Badge data unavailable';
 if(!badgeDataReady){
  $('badgeGrid').textContent='Badges could not be loaded. Please refresh to try again.';
@@ -412,7 +412,7 @@ gallery.innerHTML=topBadges.length?topBadges.map(b=>{
  return '<button type="button" class="badge-top-chip" data-badge-rarity="'+rarity+
   '" data-badge-key="'+Crilo.esc(String(b.badge_key||''))+
   '" title="'+Crilo.esc(description)+'" aria-label="View '+Crilo.esc(b.name)+' badge details">'+
-  Crilo.esc(b.name)+'</button>';
+  collection.artHTML(b)+Crilo.esc(b.name)+'</button>';
 }).join(''):'<p class="badge-showcase-empty">No badges unlocked yet. Complete an official Daily to start your collection.</p>';
 // The same live 346-badge catalog powers both screens, so every earned preview
 // opens the exact detailed card shown in Badge Collections, not a separate copy.
@@ -459,7 +459,7 @@ const featuredCard=position=>{
    (b?'featured-filled':'featured-empty')+'" data-badge-rarity="'+rarity+
    '" data-position="'+position+'"'+(b?' data-badge-key="'+Crilo.esc(String(b.badge_key))+'"':'')+
    (clickable?' title="'+Crilo.esc(title)+'" aria-label="'+Crilo.esc(title)+'"':' disabled')+'>'+
-   (b?'<b>'+Crilo.esc(b.name)+'</b><small>'+Crilo.esc(rarity.toUpperCase())+'</small>':
+   (b?collection.artHTML(b)+'<b>'+Crilo.esc(b.name)+'</b><small>'+Crilo.esc(rarity.toUpperCase())+'</small>':
    mine?'<span class="featured-empty-label"><span aria-hidden="true">+</span> Choose badge</span>':
    '<span>Empty badge slot</span>')+'</button>';
 };
@@ -505,7 +505,7 @@ if(mine){
     '" data-badge-id="'+Crilo.esc(id)+'" data-badge-rarity="'+rarity+
     '" aria-pressed="'+(selectedNow?'true':'false')+'"'+
     (alreadyFeatured?' disabled aria-label="'+Crilo.esc(b.name)+', already featured in slot '+otherPosition+'"':'')+'>'+
-    '<span class="featured-pick-title">'+Crilo.esc(b.name)+'</span>'+
+    collection.artHTML(b)+'<span class="featured-pick-title">'+Crilo.esc(b.name)+'</span>'+
     '<span class="featured-pick-rarity">'+Crilo.esc(rarity.toUpperCase())+(selectedNow?' · SELECTED':'')+'</span>'+
     '<span class="featured-pick-description">'+Crilo.esc(b.description||'Earned achievement')+'</span>'+
     (alreadyFeatured?'<span class="featured-pick-used">✓ Already featured · Slot '+otherPosition+'</span>':'')+
