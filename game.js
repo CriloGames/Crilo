@@ -721,6 +721,15 @@ if(isBonus){
  $('message').textContent='Bonus Daily saved. Your result is unranked and does not count toward official statistics or badges.';
  $('resultEyebrow').textContent='BONUS RUN COMPLETE';
  $('newBadgePanel').classList.add('hidden');
+ $('bonusModeBanner').classList.add('hidden');
+ if(profile?.is_owner){
+  // Keep the established private owner Test Run choice available after a
+  // bonus run; the single official Daily remains greyed out.
+  $('ownerRunControls').classList.remove('hidden');
+  $('ownerDailyChoiceBtn').disabled=true;
+  $('ownerDailyChoiceBtn').textContent='Daily Run — Completed';
+  $('ownerSaveRunBtn').textContent='Test Run';
+ }
  window.CriloBonusRuns?.refresh?.();
 }else if(isTest){
  $('message').textContent='Private test run saved. It does not count toward leaderboards, badges, or official Dailies.';
@@ -939,6 +948,9 @@ function renderResult(r,stored=null){
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':isBonus?'BONUS RUN COMPLETE':'DAILY COMPLETE';
+ const leaderboardLink=$('result').querySelector('.result-actions a.primary');
+ if(leaderboardLink)leaderboardLink.textContent=isBonus?
+  'Official leaderboard — bonus excluded →':'See leaderboard →';
  $('finalScore').textContent=fmt(number('score',score));
  $('rarityLabel').textContent=r.label; // Current tier wins over historical saved labels.
  const savedTail=Number(saved?.rarity_score);
