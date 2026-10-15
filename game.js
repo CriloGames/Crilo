@@ -474,7 +474,7 @@ update();
 // The final spin waits for verified Daily saving before its gift check.
 if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0){
  // Minimal isolated wheel tests may not load the optional Mystery module.
- if(window.CriloMysteryGift?.refresh||window.CriloDailyChallenges?.refresh)
+ if(window.CriloMysteryGift?.refresh)
   window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
    detail:{spinCount:totalSpins}
   }));
@@ -795,8 +795,6 @@ if(isBonus){
  }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
- // Refresh server-awarded Challenge Stars only after official save.
- void window.CriloDailyChallenges?.refresh?.();
  // A rare gift takes priority on top of the wheel; once it's closed,
  // show the next available bonus run beneath the Daily result.
  await window.CriloMysteryGift?.refresh?.({autoOpen:true});
