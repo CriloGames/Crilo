@@ -73,7 +73,7 @@ assert.match(palette,/--tier-divine-pale:#111318/);
 assert.doesNotMatch(palette,/--tier-divine:#e1c781/);
 assert.match(palette,/\.badge-top-chip/);
 for(const path of ['index.html','profile.html','leaderboard.html','badge-sets.html'])
- assert.match(read(path),/rarity-palette\.css\?v=4/,'Rarity styles missing '+path);
+ assert.match(read(path),/rarity-palette\.css\?v=5/,'Rarity styles missing '+path);
 assert.match(read('index.html'),/Divine<\/strong><small>14,440\+ points/);
 assert.match(read('index.html'),/Anomaly<\/strong><small>2,480–5,440 points/);
 assert.match(read('badge-sets.html'),/&lt;0\.001%/);
@@ -103,8 +103,7 @@ const featuredDivine=divineKeys.map((badge_key,id)=>({
 }));
 assert.equal(badges.active([...featuredDivine,{id:101,is_active:false},{id:102,is_earnable:false}]).length,15);
 const arts=featuredDivine.map(x=>badges.artHTML(x));
-assert.ok(arts.every(x=>x.includes('<svg')),'All fifteen Divine badges need art');
-assert.equal(new Set(arts).size,15,'Each Divine badge needs distinct artwork');
+assert.ok(arts.every(x=>x===''),'All fifteen Divine badges must use text-only decals without icon artwork');
 const divineBeforeMythic=badges.bestEarned([
  {id:99,badge_key:'mythic',name:'Mythic',category:'Wheel',requirement:{rarity:'mythic'}},
  ...featuredDivine],[...featuredDivine.map(x=>({badge_id:x.id})),{badge_id:99}],50);
@@ -113,4 +112,4 @@ const divineBeforeMythic=badges.bestEarned([
 assert.match(read('profile.js'),/earnedCount\+'\/'\+activeBadges\.length\+' badges collected · Best 50 shown'/);
 assert.match(read('profile.js'),/is_active,is_earnable/);
 assert.match(read('badge-sets.js'),/is_active,is_earnable/);
-console.log('RARITY_PERCENTILES_PASS: eight score tiers, six chance bands plus Divine prestige, dynamic active collections, fifteen distinct Divine emblems');
+console.log('RARITY_PERCENTILES_PASS: eight score tiers, six chance bands plus Divine prestige, dynamic active collections, fifteen text-only Divine decals');

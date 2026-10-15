@@ -1,0 +1,30 @@
+name: Divine decals and Duck headwear
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ducks.js'
+      - 'badge-collection.js'
+      - 'rarity-palette.css'
+      - 'badge-collection.css'
+      - 'style.css'
+      - 'release/346-badges/157-divine-duck-decals-browser.cjs'
+      - '.github/workflows/divine-duck-decals.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  artwork:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check badge-collection.js
+      - run: node --check ducks.js
+      - run: node release/346-badges/157-divine-duck-decals-browser.cjs

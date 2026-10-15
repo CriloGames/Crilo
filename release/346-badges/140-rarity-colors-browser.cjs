@@ -24,7 +24,7 @@ const dark={light:'#bd2633',dark:'#eda0aa'};
     const page=await ctx.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+name,{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('link[href="rarity-palette.css?v=4"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-palette.css?v=5"]').count(),1,
       'Missing shared rarity stylesheet on '+name);
     for(const theme of ['light','dark']){
      const data=await page.evaluate(({theme,scoreTiers,tiers})=>{
@@ -56,7 +56,7 @@ const dark={light:'#bd2633',dark:'#eda0aa'};
        badgeColors,resultColors,divineInk,divineBackground,
        overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth};
      },{theme,scoreTiers,tiers});
-     assert.equal(data.divineInk,'rgb(245, 247, 255)',name+' Divine text must stay high-contrast');
+     assert.equal(data.divineInk,'rgb(248, 246, 255)',name+' Divine text must stay high-contrast');
      assert.match(data.divineBackground,/linear-gradient/,'Divine uses polished obsidian on '+name);
      assert.equal(data.mythic,dark[theme],name+' '+theme+' Mythic must be red, not magenta');
      assert.equal(Object.keys(data.badgeColors).length,7);
