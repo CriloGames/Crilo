@@ -56,7 +56,7 @@
   summary.textContent=next?'Keep playing':unlocked?'All spun out!':'More runs await';
   lead.textContent=next?'You earned another go at the wheel.':
     unlocked?'You finished your bonus runs for today. Nice spinning.':
-    'Earn 50 unique badges to unlock your first extra run.';
+    'Collect 50 unique badges to unlock your first free Bonus Run.';
   remaining.replaceChildren();
   const big=element('strong',null,String(Math.max(0,open.length)));
   const small=element('span',null,open.length===1?'BONUS RUN LEFT':'BONUS RUNS LEFT');
@@ -69,9 +69,9 @@
    primary.append(intro,makeButton(next,true));
   }else{
    const copy=element('div','crilo-bonus-primary-copy');
-   copy.append(element('strong',null,unlocked?'Finished for today':'First unlock: 50 badges'),
+   copy.append(element('strong',null,unlocked?'Finished for today':'First free Bonus Run: 50 badges'),
     element('span',null,unlocked?'Come back for more after the next Daily reset':
-      (50-count)+' more badges to go'));
+      (50-count)+' more unique badges to unlock it'));
    primary.append(copy,element('span','crilo-bonus-done',unlocked?'✓':'✦'));
   }
   const cap=Number(snapshot.next_unlock),maxed=unlocked>=4;
@@ -80,10 +80,10 @@
   const obtained=maxed?50:Math.max(0,Math.min(50,count-previous));
   const percentage=obtained/50*100;
   progress.textContent=maxed?
-   fmt(count)+' unique badges · All bonuses unlocked':
-   fmt(count)+' / '+fmt(threshold)+' unique badges to next run';
+   fmt(count)+' unique badges · All free Bonus Runs unlocked':
+   fmt(count)+' / '+fmt(threshold)+' unique badges to unlock your next free Bonus Run';
   track.setAttribute('aria-valuenow',String(obtained));
-  track.setAttribute('aria-valuetext',maxed?'All bonus runs unlocked':obtained+' of 50 badges');
+  track.setAttribute('aria-valuetext',maxed?'All free Bonus Runs unlocked':(threshold-count)+' more unique badges to unlock your next free Bonus Run');
   trackFill.style.width=percentage+'%';
   runsCount.textContent=completed+'/'+unlocked+' completed';
   list.replaceChildren();
