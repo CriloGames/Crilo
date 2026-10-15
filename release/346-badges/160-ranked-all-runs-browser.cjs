@@ -22,7 +22,7 @@ assert.match(source,/crilo_public_run_leaders/);
 assert.match(source,/crilo_total_points_leaders/,'Lifetime stats are still official-only');
 assert.match(source,/if\(isLegacyPreviewRun\(run\)\)continue/,'Official ducks unchanged');
 assert.match(html,/leaderboard-run-types\.css\?v=1/);
-assert.match(html,/leaderboard\.js\?v=53/);
+assert.match(html,/leaderboard\.js\?v=54/);
 assert.match(game,/!isTest&&!isBonus/,'No Bonus Run badge awards');
 const runs=[
  {id:'a',user_id:'user-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',verified_spin_session_id:'proof',daily_period:'2026-10-15'},

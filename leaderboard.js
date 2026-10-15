@@ -89,7 +89,7 @@ async function load(){
  const ranked=await criloDB.rpc('crilo_public_run_leaders',{p_board:tab,p_limit:100});
  if(revision!==loadRevision)return;
  if(ranked.error){$('leaderList').innerHTML='<div class="empty-state">Could not load leaderboard: '+Crilo.esc(ranked.error.message)+'</div>';return}
- const runs=(ranked.data||[]).filter(run=>!isLegacyPreviewRun(run))
+ const runs=(Array.isArray(ranked.data)?ranked.data:[]).filter(run=>!isLegacyPreviewRun(run))
   .map(r=>({...r,_source:r.source==='bonus'?'bonus':'official'}));
  if(tab==='records')runs.sort((a,b)=>b.spins-a.spins||b.score-a.score);
  else if(tab==='ducks')runs.sort((a,b)=>b.ducks-a.ducks||b.score-a.score);
