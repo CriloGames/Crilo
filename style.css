@@ -964,13 +964,14 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
  padding:10px clamp(8px,1vw,16px);margin:0;border:0;
  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
  -webkit-overflow-scrolling:touch;scrollbar-width:thin;
- scroll-snap-type:x proximity;scroll-padding-inline:10px;
+ /* Do not snap against native momentum at the final leaderboard tab. */
+ scroll-snap-type:none;overscroll-behavior-x:none;
 }
 .leader-tabs-wrap .leader-tab{
  flex:0 0 auto;min-width:max-content;max-width:none;white-space:nowrap;
  font-size:clamp(12px,1.13vw,18px);line-height:1.2;
  padding:12px clamp(10px,1.06vw,18px);
- scroll-snap-align:start;touch-action:manipulation;
+ scroll-snap-align:none;touch-action:manipulation;
 }
 .leader-tab-scroll{
  flex:0 0 36px;align-self:stretch;border:0;
@@ -1000,8 +1001,10 @@ html[data-theme="dark"] .leader-score[data-score-rarity],html[data-theme="dark"]
    large empty patch on the right. Overflow layouts remain left-aligned so
    the first item is always reachable by touch/trackpad and arrow controls. */
 @media(min-width:701px){
+ /* Fit and overflow must have identical tab widths. Changing font size while
+    toggling arrows causes a feedback loop right at the overflow threshold. */
+ .leader-tabs-wrap .leader-tab{font-size:clamp(14px,1.13vw,18px)}
  .leader-tabs-wrap.tabs-fit .leader-tabs{justify-content:space-evenly}
- .leader-tabs-wrap.tabs-fit .leader-tab{font-size:clamp(14px,1.13vw,18px)}
 }
 
 
