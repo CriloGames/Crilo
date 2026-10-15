@@ -93,7 +93,7 @@
    const copy=element('div','crilo-bonus-slot-copy');
    copy.append(element('strong',null,'Run '+slot.slot));
    copy.append(element('small',null,slot.saved?
-    fmt(slot.score)+' points · saved privately':
+    fmt(slot.score)+' points · on the leaderboard':
     slot.started?'In progress':
     slot.unlocked?'Ready when you are':
     'Unlock at '+(slot.slot*50)+' badges'));

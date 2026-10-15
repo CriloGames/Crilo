@@ -761,7 +761,7 @@ if(error){
 $('retrySaveBtn').classList.add('hidden');
 if(draftKey){try{localStorage.removeItem?.(draftKey)}catch(err){console.warn('Could not clear Daily drawing cache',err)}}
 if(isBonus){
- $('message').textContent='Bonus Daily saved. Your result is unranked and does not count toward official statistics or badges.';
+ $('message').textContent='Bonus Daily saved! Your score appears on the leaderboard. It does not count toward official statistics, streaks, or badges.';
  $('resultEyebrow').textContent='BONUS RUN COMPLETE';
  $('newBadgePanel').classList.add('hidden');
  $('bonusModeBanner').classList.add('hidden');
@@ -994,7 +994,7 @@ function renderResult(r,stored=null){
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':isBonus?'BONUS RUN COMPLETE':'DAILY COMPLETE';
  const leaderboardLink=$('result').querySelector?.('.result-actions a.primary');
  if(leaderboardLink)leaderboardLink.textContent=isBonus?
-  'Official leaderboard — bonus excluded →':'See leaderboard →';
+  'See Bonus Run on leaderboard →':'See leaderboard →';
  $('finalScore').textContent=fmt(number('score',score));
  $('rarityLabel').textContent=r.label; // Current tier wins over historical saved labels.
  const savedTail=Number(saved?.rarity_score);
@@ -1126,7 +1126,7 @@ function startBonusRun(slot){
  $('ownerRunControls').classList.add('hidden');
  $('ownerActiveMode').classList.add('hidden');
  $('testBanner').classList.add('hidden');
- $('bonusModeBanner').textContent='BONUS DAILY '+slot+' — UNRANKED · NO BADGES';
+ $('bonusModeBanner').textContent='BONUS DAILY '+slot+' — RANKED · NO BADGES';
  $('bonusModeBanner').classList.remove('hidden');
  beginRun(true);
  $('message').textContent='Bonus Daily '+slot+': five starting spins, same wheel. Your official score stays unchanged.';

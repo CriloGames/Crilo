@@ -12,7 +12,7 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
 assert.match(html,/style\.css\?v=128/);
-assert.ok(html.includes('rarity-system.js?v=14')&&html.includes('leaderboard-tabs.js?v=3')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=52'),'Leaderboard scripts must load in the expected order');
+assert.ok(html.includes('rarity-system.js?v=14')&&html.includes('leaderboard-tabs.js?v=3')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=53'),'Leaderboard scripts must load in the expected order');
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
  'Owner Tools panel and sample-preview button must not render for any user');
@@ -48,7 +48,7 @@ async function testBoard(){
  const q={select(){return this},eq(){return this},not(){return this},order(){return this},
   limit(){return this},gte(){return this},
   then(resolve){return Promise.resolve({data:[],error:null}).then(resolve)}};
- const db={from:()=>q};
+ const db={from:()=>q,rpc:async()=>({data:[],error:null})};
  const context={window,document,Crilo:crilo,criloDB:db,Date,Map,Math,console,encodeURIComponent};
  const instrumented=script.replace(/\}\)\(\);\s*$/,
    '\nwindow.__qaBoard={render,renderDuckLeaders,renderBadgeLeaders,setTab:v=>{tab=v}};})();');

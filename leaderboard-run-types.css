@@ -1,0 +1,11 @@
+/* Distinguish completed Official and Bonus Daily entries without changing the wheel. */
+.best-run-kind{display:inline-block;margin:7px auto 0;padding:5px 11px;border:1px solid #b8cbe0;border-radius:999px;background:#eaf3fc;color:#45698e;font:850 11px/1.2 system-ui,sans-serif}
+.best-run-kind.hidden,.best-run-kind[hidden],.leader-run-note.hidden{display:none!important}
+.leader-run-note{font:600 11.5px/1.5 system-ui,sans-serif;color:var(--muted,#747780);padding:12px 18px;margin:0;border-bottom:1px solid var(--line,#ddd);background:var(--soft,#f7f7f9)}
+.crilo-run-kind{display:inline-block;font:850 10px/1.3 system-ui,sans-serif;color:var(--text,#272932);background:var(--soft,#f1f2f4);border:1px solid var(--line,#d5d8dc);border-radius:999px;padding:2px 7px;white-space:nowrap}
+.crilo-run-kind.is-bonus{background:#eee8ff;color:#5b478e;border-color:#cdbbeb}
+.leader-row.score-run-row.is-bonus{grid-template-columns:50px minmax(0,1fr) auto}
+.leader-row.score-run-row.is-bonus .leader-score-actions{grid-column:3}
+html[data-theme="dark"] .crilo-run-kind.is-bonus{background:#322942;color:#e4d2ff;border-color:#554774}
+html[data-theme="dark"] .best-run-kind{background:#283649;color:#d7e4ff;border-color:#576b85}
+@media(max-width:600px){.leader-row.score-run-row.is-bonus{grid-template-columns:30px minmax(0,1fr) auto}.leader-row.score-run-row.is-bonus .leader-score-actions{grid-column:2;grid-row:2;justify-content:flex-start}.leader-run-note{padding:10px 12px}}

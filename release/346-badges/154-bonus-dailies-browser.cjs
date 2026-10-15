@@ -6,7 +6,7 @@ const fs=require('node:fs'),{chromium}=require('playwright');
 const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
 const html=fs.readFileSync('index.html','utf8'),game=fs.readFileSync('game.js','utf8');
 const migration=fs.readFileSync('release/346-badges/153-badge-bonus-daily-runs.sql','utf8');
-assert.match(html,/bonus-runs\.js\?v=3/);
+assert.match(html,/bonus-runs\.js\?v=4/);
 assert.match(html,/bonus-runs\.css\?v=2/);
 assert.ok(html.includes('game.js?v='),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloBonusPanel"/);
