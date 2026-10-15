@@ -101,7 +101,7 @@ assert.match(divineSource,/verified_spin_session_id is not null/,'Consistency mu
 const featuredDivine=divineKeys.map((badge_key,id)=>({
  id:id+1,badge_key,name:badge_key,category:'Score rarity',requirement:{rarity:'divine'},is_active:true,is_earnable:true
 }));
-assert.equal(badges.active([...featuredDivine,{id:7,is_active:false},{id:8,is_earnable:false}]).length,5);
+assert.equal(badges.active([...featuredDivine,{id:101,is_active:false},{id:102,is_earnable:false}]).length,15);
 const arts=featuredDivine.map(x=>badges.artHTML(x));
 assert.ok(arts.every(x=>x.includes('<svg')),'All fifteen Divine badges need art');
 assert.equal(new Set(arts).size,15,'Each Divine badge needs distinct artwork');
