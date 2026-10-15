@@ -1,0 +1,59 @@
+/* Crilo Mystery Gifts — optional surprise, entirely outside the ranked wheel. */
+.crilo-mystery-panel{max-width:620px;margin:16px auto 24px;padding:17px 20px;
+ border:1.5px solid var(--line,#dedde2);border-radius:18px;background:var(--panel,#fff);
+ box-shadow:0 5px 19px var(--shadow,#17191e10);text-align:left}
+.crilo-mystery-panel.hidden,.crilo-mystery-modal.hidden{display:none!important}
+.crilo-mystery-heading{display:flex;align-items:center;gap:12px}
+.crilo-mystery-icon{display:grid;place-items:center;flex:0 0 46px;width:46px;height:46px;
+ background:#ffedbd;border:1.5px solid #24252c;border-radius:14px;color:#28262d;font-size:26px}
+.crilo-mystery-copy{flex:1;min-width:0}
+.crilo-mystery-copy strong{display:block;font-size:15px;font-weight:950;color:var(--text,#24252c)}
+.crilo-mystery-copy span{display:block;font-size:12px;color:var(--muted,#737681);line-height:1.5}
+.crilo-mystery-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+.crilo-mystery-actions button,.crilo-mystery-spin{border:1.5px solid var(--line,#dedde2);
+ border-radius:11px;background:var(--soft,#f6f7f9);color:var(--text,#24252c);
+ font:850 12px/1.2 system-ui,sans-serif;padding:11px 13px;cursor:pointer}
+.crilo-mystery-actions .crilo-mystery-action{background:#fff0bf;border-color:#24252c;color:#222329}
+.crilo-mystery-actions button:hover:not(:disabled){filter:brightness(.965)}
+.crilo-mystery-actions button.hidden{display:none!important}
+.crilo-mystery-modal{position:fixed;inset:0;z-index:1500;background:#0b0b0cc9;
+ display:grid;place-items:center;padding:16px;overflow-y:auto}
+.crilo-mystery-dialog{position:relative;width:min(96vw,490px);max-height:min(94dvh,800px);
+ overflow:auto;border-radius:25px;background:var(--panel,#fff);color:var(--text,#222329);
+ box-shadow:0 20px 70px #0005;padding:25px clamp(16px,4vw,31px);
+ text-align:center;border:1px solid var(--line,#dfe2e5)}
+.crilo-mystery-close{position:absolute;right:13px;top:10px;border:0;background:transparent;
+ font:900 27px/1 system-ui,sans-serif;color:var(--text,#222);cursor:pointer;padding:8px}
+.crilo-mystery-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+ font-weight:900;color:var(--muted,#777);margin:0 0 9px}
+.crilo-mystery-dialog h2{font-size:clamp(22px,5vw,30px);margin:0 0 9px;letter-spacing:-.035em}
+.crilo-mystery-description{font-size:13px;line-height:1.55;color:var(--muted,#666);margin:0 auto 13px;max-width:390px}
+.crilo-mystery-wheel-wrap{position:relative;margin:8px auto 9px;width:min(270px,75vw)}
+.crilo-mystery-wheel-wrap canvas{display:block;width:100%;height:auto;aspect-ratio:1;filter:drop-shadow(0 5px 8px #0002)}
+.crilo-mystery-pointer{position:absolute;z-index:2;left:50%;top:1px;transform:translate(-50%,-18%);
+ width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;
+ border-top:30px solid #27272d;filter:drop-shadow(0 1px 1px #0003)}
+.crilo-mystery-message{min-height:41px;margin:8px 0 12px;font-size:14px;font-weight:750;line-height:1.5}
+.crilo-mystery-spin{min-width:170px;padding:13px 19px;background:#fff0bf;color:#24252b;
+ border:2px solid #24252b;box-shadow:0 3px 0 #24252b;font-size:14px}
+.crilo-mystery-spin:disabled{opacity:.5;cursor:wait}
+.crilo-mystery-collection-title{display:flex;align-items:center;justify-content:space-between;
+ gap:7px;padding-top:16px;margin:19px 0 9px;border-top:1px solid var(--line,#ddd);
+ font-size:12px;text-align:left;font-weight:900}
+.crilo-mystery-collection-title span{font-size:11px;color:var(--muted,#888)}
+.crilo-mystery-shelf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.crilo-mystery-item{display:flex;align-items:flex-start;text-align:left;gap:8px;padding:10px;
+ border:1px solid var(--line,#ddd);border-radius:12px;min-width:0;background:var(--soft,#f8f8f8);opacity:.58}
+.crilo-mystery-item.found{opacity:1}
+.crilo-mystery-item-symbol{flex:0 0 24px;width:24px;height:24px;display:grid;place-items:center;
+ background:#ebe9ed;color:#52525a;border-radius:8px;font-weight:900;font-size:15px}
+.crilo-mystery-item.found .crilo-mystery-item-symbol{background:#fff0bf;color:#39312b}
+.crilo-mystery-item strong{display:block;font-size:11px;line-height:1.3;overflow-wrap:anywhere}
+.crilo-mystery-item small{display:block;font-size:10px;line-height:1.45;color:var(--muted,#777);
+ margin-top:3px;overflow-wrap:anywhere}
+@media(max-width:375px){
+ .crilo-mystery-dialog{padding:23px 13px}
+ .crilo-mystery-shelf{grid-template-columns:1fr}
+ .crilo-mystery-item{padding:9px}
+}
+@media(prefers-reduced-motion:reduce){.crilo-mystery-wheel-wrap canvas{transition:none!important}}
