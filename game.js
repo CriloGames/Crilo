@@ -812,7 +812,7 @@ async function showNewBadges(prior,{review=false}={}){
    ' data-badge-key="'+Crilo.esc(String(b.badge_key))+
    '" data-badge-rarity="'+Crilo.esc(tier)+
    '" aria-label="Preview newly earned '+label+' badge">'+
-   '<span class="new-badge-item-copy"><strong>'+label+'</strong>'+
+   (collection?.artHTML?.(b)||'')+'<span class="new-badge-item-copy"><strong>'+label+'</strong>'+
    '<small>'+Crilo.esc(tier.toUpperCase())+' · UNLOCKED</small>'+
    '<p>'+Crilo.esc(b.description||'')+'</p></span>'+
    '<span class="new-badge-open" aria-hidden="true">↗</span></button>';
