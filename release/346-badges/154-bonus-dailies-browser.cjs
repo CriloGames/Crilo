@@ -8,7 +8,7 @@ const html=fs.readFileSync('index.html','utf8'),game=fs.readFileSync('game.js','
 const migration=fs.readFileSync('release/346-badges/153-badge-bonus-daily-runs.sql','utf8');
 assert.match(html,/bonus-runs\.js\?v=1/);
 assert.match(html,/bonus-runs\.css\?v=1/);
-assert.match(html,/game\.js\?v=119/);
+assert.match(html,/game\.js\?v=120/);
 assert.match(html,/id="criloBonusPanel"/);
 assert.match(html,/id="bonusModeBanner"/);
 assert.match(game,/isBonus\?'crilo_bonus_spin':'crilo_server_spin'/);
