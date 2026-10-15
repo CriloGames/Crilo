@@ -21,8 +21,8 @@ assert.ok(css.includes('@keyframes criloLogoSheen'),'Wordmark sweep keyframes mi
 assert.ok(css.includes('-webkit-text-fill-color:currentColor;'),
  'Reduced-motion fallback must keep the wordmark readable');
 
-assert.match(html,/style\.css\?v=127/);
-assert.match(html,/leaderboard-tabs\.js\?v=2/);
+assert.match(html,/style\.css\?v=128/);
+assert.match(html,/leaderboard-tabs\.js\?v=3/);
 assert.match(html,/id="leaderTabs"/);
 assert.match(html,/id="leaderTabPrev"/);
 assert.match(html,/id="leaderTabNext"/);
@@ -30,6 +30,13 @@ assert.equal((html.match(/class="leader-tab(?: active)?"/g)||[]).length,7);
 assert.match(css,/\.leader-tabs-wrap \.leader-tabs\{[\s\S]*?flex-wrap:nowrap/);
 assert.match(css,/\.leader-tabs-wrap \.leader-tab\{[\s\S]*?white-space:nowrap/);
 assert.match(css,/overflow-x:auto/);
+assert.match(css,/scroll-snap-type:none/,'Native scroll should not snap back at the end');
+assert.match(css,/overscroll-behavior-x:none/,'Prevent overscroll chaining and rubber-banding');
+assert.doesNotMatch(css,/\.leader-tabs-wrap\.tabs-fit \.leader-tab\{font-size:/,
+ 'Fit and overflow layouts cannot change intrinsic tab widths');
+assert.match(source,/const target=Math\.max\(0,Math\.min\(max,position\+direction\*distance\)\)/,
+ 'Arrows must clamp scroll targets before animating');
+
 assert.match(css,/\.topbar nav a::after\{/,'Top navigation hover indicator missing');
 assert.match(css,/\.topbar nav a:hover::after/,'Header hover style missing');
 assert.match(css,/\.topbar nav a:focus-visible::after/,'Keyboard focus indicator missing');
