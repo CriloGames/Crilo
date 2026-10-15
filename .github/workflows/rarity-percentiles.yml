@@ -38,6 +38,7 @@ jobs:
           node --check game.js
           node release/346-badges/139-rarity-percentiles-smoke.cjs
           node release/346-badges/141-wheel-24-smoke.cjs
+          node release/346-badges/146-wheel-24-labels-smoke.cjs
 
   color-browser:
     runs-on: ubuntu-latest
