@@ -733,6 +733,8 @@ if(isTest){
  }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
+ // The unranked mystery event checks eligibility only after official save.
+ window.CriloMysteryGift?.refresh?.();
  
 }
 }finally{finalSaveInProgress=false}
@@ -1094,6 +1096,7 @@ async function claimFinishedGuestDaily(){
   $('guestClaimRetryBtn')?.classList.add('hidden');
   try{await DuckWorld.load(criloDB,user)}catch(loadError){console.warn('Duck refresh pending',loadError)}
   await checkPlayed();
+  window.CriloMysteryGift?.refresh?.();
   return true;
  }catch(error){
   console.warn('Guest Daily claim failed',error);
