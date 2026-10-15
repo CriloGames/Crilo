@@ -51,7 +51,7 @@ const sandbox={
  }
 };
 const setup=`let user={id:'signed-in-user'},profile={is_owner:false};
-let officialRun=null,started=false,isTest=false,guestRun=false;
+let officialRun=null,started=false,isTest=false,isBonus=false,guestRun=false;
 let results=[],score=0,spins=5,multiplier=1,ducks=0;`;
 const code=setup+'\n'+source.slice(start,end)+'\n'+
  source.slice(recapStart,recapEnd)+'\n'+source.slice(loaded,stop)+
