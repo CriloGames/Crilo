@@ -79,18 +79,32 @@ assert.match(read('index.html'),/Anomaly<\/strong><small>2,480–5,440 points/);
 assert.match(read('badge-sets.html'),/&lt;0\.001%/);
 assert.doesNotMatch(read('badge-sets.html'),/<span data-rarity="trash">/);
 // Divine is intentionally separate from per-spin badge drop bands; each medal has a real rule.
-const divineKeys=['v2_score_rarity_divine','divine_beyond_mythic','divine_touched_by_wheel',
+const oldDivineKeys=['v2_score_rarity_divine','divine_beyond_mythic','divine_touched_by_wheel',
  'divine_heavenly_momentum','divine_consistency'];
+const newDivineKeys=[
+ 'divine_fourfold_fortune','divine_royal_flock','divine_perpetual_bonus',
+ 'divine_fifth_ascension','divine_sixfold_echo','divine_great_migration',
+ 'divine_celestial_jackpot','divine_perfect_orbit','divine_cosmic_alignment',
+ 'divine_twenty_thousand_suns'
+];
+const divineKeys=[...oldDivineKeys,...newDivineKeys];
+assert.equal(divineKeys.length,15);
 const divineSource=read('release/346-badges/147-divine-achievements.sql');
-for(const key of divineKeys)assert.ok(divineSource.includes(key),'Missing Divine badge '+key);
+const addedDivineSource=read('release/346-badges/148-ten-divine-wheel-feats.sql');
+for(const key of oldDivineKeys)assert.ok(divineSource.includes(key),'Missing existing Divine badge '+key);
+for(const key of newDivineKeys)assert.ok(addedDivineSource.includes(key),'Missing new Divine badge '+key);
+assert.match(addedDivineSource,/8,000,000 seeded/);
+assert.match(addedDivineSource,/on conflict \(badge_key\) do update/);
+assert.doesNotMatch(addedDivineSource,/(?:update|delete|truncate)\s+public\.(daily_runs|user_badges|profiles|crilo_spin_sessions)/i);
+assert.match(addedDivineSource,/"probability_percent"/,'Every new Divine has estimated odds');
 assert.match(divineSource,/verified_spin_session_id is not null/,'Consistency must use proven official runs');
 const featuredDivine=divineKeys.map((badge_key,id)=>({
  id:id+1,badge_key,name:badge_key,category:'Score rarity',requirement:{rarity:'divine'},is_active:true,is_earnable:true
 }));
 assert.equal(badges.active([...featuredDivine,{id:7,is_active:false},{id:8,is_earnable:false}]).length,5);
 const arts=featuredDivine.map(x=>badges.artHTML(x));
-assert.ok(arts.every(x=>x.includes('<svg')),'All five Divine badges need art');
-assert.equal(new Set(arts).size,5,'Each Divine badge needs distinct artwork');
+assert.ok(arts.every(x=>x.includes('<svg')),'All fifteen Divine badges need art');
+assert.equal(new Set(arts).size,15,'Each Divine badge needs distinct artwork');
 const divineBeforeMythic=badges.bestEarned([
  {id:99,badge_key:'mythic',name:'Mythic',category:'Wheel',requirement:{rarity:'mythic'}},
  ...featuredDivine],[...featuredDivine.map(x=>({badge_id:x.id})),{badge_id:99}],50);
@@ -99,4 +113,4 @@ const divineBeforeMythic=badges.bestEarned([
 assert.match(read('profile.js'),/earnedCount\+'\/'\+activeBadges\.length\+' badges collected · Best 50 shown'/);
 assert.match(read('profile.js'),/is_active,is_earnable/);
 assert.match(read('badge-sets.js'),/is_active,is_earnable/);
-console.log('RARITY_PERCENTILES_PASS: eight score tiers, six chance bands plus Divine prestige, dynamic active collections, five distinct Divine emblems');
+console.log('RARITY_PERCENTILES_PASS: eight score tiers, six chance bands plus Divine prestige, dynamic active collections, fifteen distinct Divine emblems');
