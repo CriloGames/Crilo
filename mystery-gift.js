@@ -47,6 +47,12 @@
  function atSlice(i){return -(i+0.5)*Math.PI/4}
  function reveal(){
   if(!state)return;
+  if(!state.available){
+   title.textContent='The Mystery Shelf';
+   message.textContent='No surprise gift appeared today. Come back after another Daily to discover more.';
+   spin.hidden=true;
+   return;
+  }
   if(!state.spun){
    title.textContent='The Mystery Gift';
    message.textContent='Land on a golden star to open the gift. One chance per Daily.';
