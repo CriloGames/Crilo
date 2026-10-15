@@ -55,5 +55,6 @@
  close.addEventListener('click',()=>modal.close());
  modal.addEventListener('click',e=>{if(e.target===modal)modal.close()});
  window.addEventListener('crilo-auth-ready',refresh);
+ window.addEventListener('crilo-mystery-discovered',refresh);
  if(window.Crilo?.authResolved)void refresh();
 })();
