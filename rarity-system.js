@@ -17,7 +17,8 @@ window.CriloRarity=(()=>{
   {key:'rare',min:0.1,label:'0.1–1% of Dailies'},
   {key:'epic',min:0.01,label:'0.01–0.1% of Dailies'},
   {key:'anomaly',min:0.001,label:'0.001–0.01% of Dailies'},
-  {key:'mythic',min:0,label:'Under 0.001% of Dailies'}
+  {key:'mythic',min:0,label:'Under 0.001% of Dailies'},
+  {key:'divine',min:null,label:'Special prestige achievements; conditions vary'}
  ];
  function badgeTierFromPercent(value){
   if(value==null||value==='')return null;
