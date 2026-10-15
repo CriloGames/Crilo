@@ -46,6 +46,7 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
     route=>route.fulfill({status:200,contentType:'text/javascript',body:''}));
    await context.route(/^https:\/\/(?!crilo\.fun)/,route=>route.abort());
    const page=await context.newPage();
+   page.setDefaultTimeout(8000);
    await page.goto(origin+'/index.html',{waitUntil:'domcontentloaded'});
    await page.waitForFunction(()=>!!window.CriloMysteryGift,{timeout:7000});
    // The genuine Daily bundle normally clears this first-paint placeholder
@@ -75,7 +76,15 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
    assert.equal(await page.locator('#criloMysteryPanel').isVisible(),false,
     width+'px cannot display Mystery Gift before verified official Daily');
    await setServer(stateFor(false));
-   assert.equal(await page.locator('#criloMysteryPanel').isVisible(),true);
+   const stateDebug=await page.evaluate(()=>{
+    const p=document.getElementById('criloMysteryPanel');
+    return {classes:p.className,display:getComputedStyle(p).display,
+     docClasses:document.documentElement.className,
+     user:!!window.Crilo?.user,mockState:window.__giftState,
+     ancestors:[p.parentElement?.id,p.parentElement?.parentElement?.id]};
+   });
+   assert.equal(await page.locator('#criloMysteryPanel').isVisible(),true,
+    width+'px mystery collection failed to appear '+JSON.stringify(stateDebug));
    assert.equal(await page.locator('#criloMysteryOpen').isVisible(),false,
     width+'px unavailable gift must not spin');
    await page.locator('#criloMysteryShelfButton').click();
