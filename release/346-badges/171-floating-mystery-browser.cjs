@@ -24,11 +24,14 @@ assert.match(css,/position:fixed/,'The little visitor must remain visible while 
 assert.match(css,/:hover \.crilo-wandering-tooltip/);
 assert.match(css,/:focus-visible \.crilo-wandering-tooltip/);
 assert.match(js,/crilo-mystery-discovered/);
+assert.match(js,/BroadcastChannel/,'Claimed visitors synchronize across tabs');
+assert.match(js,/window\.Crilo\?\.user\?\.id!==owner/,'Ignore stale claim responses after sign-out');
+assert.match(profile,/CriloMysteryCuriosityIcon/,'Private collection uses authored unique artwork');
 assert.match(profile,/addEventListener\('crilo-mystery-discovered'/);
 for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','settings.html',
                    'friends.html','badge-sets.html','shape-of-sound.html','moderation.html','owner-analytics.html']){
  const html=fs.readFileSync(path,'utf8');
- assert.match(html,/floating-mystery\.js\?v=2/,path+' must allow page discoveries');
+ assert.match(html,/floating-mystery\.js\?v=3/,path+' must allow page discoveries');
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
