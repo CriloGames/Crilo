@@ -29,7 +29,7 @@ assert.ok(!profile.includes("['Podiums',s.podium_finishes"));
 assert.ok(!profile.includes("['Top 10s',s.top_10_finishes"));
 assert.ok(profile.includes("['Total Points',statsError&&metricsError?"));
 assert.ok(profile.includes("'Total Points':'Your lifetime point total"));
-assert.ok(home.includes("if(!isTest){const before=await criloDB.from('user_badges')"));
+assert.ok(home.includes("if(!isTest&&!isBonus){const before=await criloDB.from('user_badges')"), 'Neither private Test Runs nor bonus Dailies may earn official badges');
 assert.ok(home.includes("if(priorBadges)await showNewBadges(priorBadges)"));
 assert.ok(home.includes("if(isTest){\n // A Test Run must never fall through"));
 assert.ok(!leader.includes("if(tab==='points')q="),
