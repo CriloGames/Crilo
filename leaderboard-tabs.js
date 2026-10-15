@@ -15,14 +15,21 @@
   wrap.classList.toggle('tabs-fit',fits);
   previous.hidden=next.hidden=fits;
   const remaining=Math.max(0,strip.scrollWidth-strip.clientWidth);
-  previous.disabled=fits||strip.scrollLeft<=2;
-  next.disabled=fits||strip.scrollLeft>=remaining-2;
+  // Read, but never write back, Safari's overscrolled scrollLeft values.
+  const position=Math.max(0,Math.min(remaining,strip.scrollLeft));
+  previous.disabled=fits||position<=2;
+  next.disabled=fits||position>=remaining-2;
  }
  function scroll(direction){
+  const max=Math.max(0,strip.scrollWidth-strip.clientWidth);
+  const position=Math.max(0,Math.min(max,strip.scrollLeft));
   const distance=Math.max(160,Math.round(strip.clientWidth*.72));
+  const target=Math.max(0,Math.min(max,position+direction*distance));
+  // Do not animate beyond either edge, where momentum and snap can conflict.
+  if(Math.abs(target-position)<1){update();return;}
   if(typeof strip.scrollBy==='function')
-   strip.scrollBy({left:direction*distance,behavior:'smooth'});
-  else strip.scrollLeft+=direction*distance;
+   strip.scrollBy({left:target-strip.scrollLeft,behavior:'smooth'});
+  else strip.scrollLeft=target;
   update();
  }
  previous.addEventListener('click',()=>scroll(-1));
