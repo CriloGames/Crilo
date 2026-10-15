@@ -1,5 +1,4 @@
-/* Surprise Mystery Gift. Appears directly on the wheel after the first
- * verified official Daily; collecting never changes rankings or badges. */
+/* Hidden server-verified rare Mystery Gift; no changes to ranked gameplay. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
@@ -21,8 +20,8 @@
   cloud_recipe:['Recipe for a Cloud','One pinch of fog, two drops of rain, and a very patient spoon.'],
   lost_button:['The Missing Button','Nobody remembers what this button used to do.']
  };
- const names=Object.keys(prizes),presentedThisPage=new Set();
- let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official',returnFocus=null;
+ const names=Object.keys(prizes),presentedThisPage=new Set(),collectionAction=$('criloMysteryOpenCollection');
+ let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official',returnFocus=null,collectionFromGift=false;
  const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const won=i=>i%2===0;
  const openDialog=dialog=>{
@@ -38,7 +37,8 @@
  };
  function dismiss(restoreFocus=true){
   if(busy)return;
-  const hadGift=!modal.classList.contains('hidden');
+  const hadGift=!modal.classList.contains('hidden')||collectionFromGift;
+  collectionFromGift=false;
   const hadModal=hadGift||!collectionModal.classList.contains('hidden');
   closeDialog(modal,false);closeDialog(collectionModal,false);
   if(hadModal&&restoreFocus&&returnFocus?.isConnected)returnFocus.focus({preventScroll:true});
@@ -95,20 +95,20 @@
   if(!state.available){
    title.textContent='The Mystery Gift';
    message.textContent='No gift appeared today.';
-   spin.hidden=true;return;
+   spin.hidden=true;collectionAction.hidden=true;return;
   }
   if(!state.spun){
    title.textContent='A Mystery Gift!';
-   message.textContent='Land on a golden star to open the gift. One chance per Daily.';
-   spin.hidden=false;spin.disabled=busy;return;
+   message.textContent='A golden star wins a collectible curiosity. These are just for fun: no extra points, spins, or leaderboard advantage.';
+   spin.hidden=false;spin.disabled=busy;collectionAction.hidden=true;return;
   }
-  spin.hidden=true;
+  spin.hidden=true;collectionAction.hidden=!state.prize;
   if(state.prize&&prizes[state.prize]){
    title.textContent='You opened it!';
-   message.textContent=prizes[state.prize][0]+' — '+prizes[state.prize][1];
+   message.textContent=prizes[state.prize][0]+' — '+prizes[state.prize][1]+' Saved to your Curiosities collection. Just for fun—your score and odds stay unchanged.';
   }else{
    title.textContent='Just missed!';
-   message.textContent='The gift rattles, waves goodbye, and waddles away. Better luck next time.';
+   message.textContent='The gift rattles, waves goodbye, and waddles away. No collectible this time; your Daily score is unchanged.';
   }
  }
  function renderShelf(){
@@ -129,14 +129,14 @@
  }
  function render(){
   const visible=runMode==='official'&&!!window.Crilo?.user;
-  shortcut.classList.toggle('hidden',!visible);
+  const waiting=visible&&!!(state?.eligible&&state.available&&!state.spun);
+  // Only an already-triggered unopened event has a recovery button.
+  // No public hint or permanent collection progress beneath the wheel.
+  shortcut.classList.toggle('hidden',!waiting);
   if(!visible){dismiss(false);return}
-  const count=Array.isArray(state?.discovered)?state.discovered.filter(k=>names.includes(k)).length:0;
-  const waiting=!!(state?.eligible&&state?.available&&!state?.spun);
   shortcut.classList.toggle('gift-ready',waiting);
-  shortcutLabel.textContent=waiting?'Mystery Gift waiting':count+' / '+names.length+' mysteries found';
-  shortcutBtn.setAttribute('aria-label',waiting?
-   'Open your unopened Mystery Gift':'View Mystery Collection, '+count+' of '+names.length+' discovered');
+  shortcutLabel.textContent='Open your surprise';
+  shortcutBtn.setAttribute('aria-label','Reopen your Mystery Gift');
   reviewButton.classList.toggle('hidden',!(state?.eligible&&state?.available&&state?.spun));
   renderShelf();
   if(!modal.classList.contains('hidden'))reveal();
@@ -166,6 +166,7 @@
  function showCollection(){
   if(runMode!=='official'||!window.Crilo?.user||busy)return;
   if(!modal.classList.contains('hidden'))closeDialog(modal,false);
+  collectionFromGift=!modal.classList.contains('hidden');
   renderShelf();openDialog(collectionModal);
  }
  function animateTo(index){
@@ -212,6 +213,7 @@
   else showCollection();
  });
  reviewButton.addEventListener('click',()=>showGift());
+ collectionAction?.addEventListener('click',showCollection);
  spin.addEventListener('click',play);
  close.addEventListener('click',()=>dismiss());
  collectionClose.addEventListener('click',()=>dismiss());
