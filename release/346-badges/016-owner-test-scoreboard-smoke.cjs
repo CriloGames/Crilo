@@ -12,7 +12,7 @@ const historySource=fs.readFileSync(path.resolve(__dirname,'../../spin-history.j
 const scoreCSS=fs.readFileSync(path.resolve(__dirname,'../../style.css'),'utf8');
 const rarityWorld={};vm.runInNewContext(raritySource,{window:rarityWorld});
 const trueScoreBands=rarityWorld.CriloRarity.scoreBands;
-assert.match(indexHTML,/rarity-system\.js\?v=13/,'Homepage should load the updated rarity explanation');
+assert.match(indexHTML,/rarity-system\.js\?v=14/,'Homepage should load the updated rarity explanation');
 for(const score of [0,9,60,301]){
  const message=rarityWorld.CriloRarity.classify(score).explanation;
  assert.match(message,/^\d+\.\d{2}% of simulated runs scored at least this high\.$/);
