@@ -106,46 +106,35 @@ html[data-theme="dark"] .best-card #bestScore[data-score-rarity],html[data-theme
 html[data-theme="dark"] #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
 .best-card #bestScore[data-score-rarity="divine"],.leader-panel .leader-score[data-score-rarity="divine"]{--leader-tier-ink:var(--tier-divine);--crilo-glow-ink:var(--tier-divine);color:var(--tier-divine)}
 
-/* Divine never inherits light pastel filling from generic tiers.
-   Keep this coherent across profile, public profiles, collections,
-   badge sets, daily results, notifications, and leaderboard. */
+/* Divine badge decals use the SAME geometry and typography as other rarity
+   pills/cards; only their muted indigo-lavender finish is specialized. */
 :root,html[data-theme="dark"]{
- --tier-divine:#d8e6ff;
- --tier-divine-pale:#111318;
- --crilo-divine-border:#d8e6ff;
- --crilo-divine-ink:#f5f7ff;
+  --crilo-divine-border:#aa9ad4;
+  --crilo-divine-ink:#f8f6ff;
 }
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot.featured-filled,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"],
 html[data-theme="dark"] :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot.featured-filled,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"]{
- --crilo-badge-accent:#d8e6ff;--crilo-badge-pale:#111318;
- background:linear-gradient(125deg,#111318,#1a1f26 57%,#111318)!important;
- color:#f5f7ff!important;
- border:1.5px solid #d8e6ff!important;
- box-shadow:inset 0 0 0 1px rgba(216,230,255,.18),
-  inset 0 0 13px rgba(154,194,248,.1),
-  0 0 8px rgba(180,216,255,.26)!important;
+  --crilo-badge-accent:#aa9ad4;--crilo-badge-pale:#1c1a29;
+  background:linear-gradient(120deg,#191821,#252139 55%,#1c192b)!important;
+  color:#f8f6ff!important;
+  border-color:#aa9ad4!important;
+  box-shadow:inset 0 3px 0 rgba(184,164,232,.23),
+    2px 3px 0 rgba(159,140,215,.42),
+    0 0 7px rgba(170,145,229,.15)!important;
 }
-[data-badge-rarity="divine"] :is(b,strong,small,.collection-tile-description,.featured-pick-title,.featured-pick-rarity){color:#f5f7ff!important}
+/* The preview chip retains the shared pill height, padding, radius and font. */
+.badge-top-chip[data-badge-rarity="divine"],
+html[data-theme="dark"] .badge-top-chip[data-badge-rarity="divine"]{
+  box-shadow:1px 2px 0 rgba(159,140,215,.42),
+    0 0 7px rgba(170,145,229,.15)!important;
+}
+[data-badge-rarity="divine"] :is(b,strong,small,.collection-tile-description,.featured-pick-title,.featured-pick-rarity,.featured-pick-description){color:#f8f6ff!important}
 .collection-tile.locked[data-badge-rarity="divine"]{opacity:.69}
 .collection-rarity-legend [data-rarity="divine"]{
- background:#111318!important;color:#f5f7ff!important;
- border:1px solid #d8e6ff!important;
- box-shadow:0 0 7px rgba(175,210,255,.25);
+  background:#1c1a29!important;color:#f8f6ff!important;
+  border:1px solid #aa9ad4!important;
+  box-shadow:1px 2px 0 rgba(159,140,215,.42);
 }
-.crilo-divine-art{
- display:inline-grid;place-items:center;flex:none;
- width:35px;height:35px;border:1px solid rgba(216,230,255,.82);
- border-radius:50%;background:#edf4ff;
- box-shadow:0 0 8px rgba(216,230,255,.3);
- vertical-align:middle;
-}
-.crilo-divine-art svg{display:block;width:31px;height:31px}
-.badge-top-chip .crilo-divine-art{width:22px;height:22px;margin-right:6px}
-.badge-top-chip .crilo-divine-art svg{width:19px;height:19px}
-.featured-slot .crilo-divine-art{margin:0 auto 4px}
-.featured-pick-option .crilo-divine-art{width:25px;height:25px;margin-right:7px}
-.featured-pick-option .crilo-divine-art svg{width:21px;height:21px}
-.collection-tile[data-badge-rarity="divine"] .crilo-divine-art{margin:0 0 5px}
 #result[data-rarity="divine"]{
  --rarity-bg:#111318;--rarity-accent:#d8e6ff;--crilo-result-accent:#d8e6ff;
 }

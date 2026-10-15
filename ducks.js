@@ -3,7 +3,27 @@ window.DuckWorld=(()=>{
 let catalog=[{id:1,slug:'classic',name:'Classic',tier:'Common',unlock_runs:0,appearance_weight:1000}],completed=0,spawned=0;
 const colors={classic:'#ffe076',blue:'#a9dafa',pink:'#ffc4db',mallard:'#a9cba0',duckling:'#fff1ab',snow:'#f8f8f1',fire:'#ffa473',ice:'#bdeaff',galaxy:'#b6a1e5'};
 const hats={cowboy:'<path d="M26 27L32 16H56L63 27M22 28Q44 34 68 28" fill="#bc9467" stroke="#453b35" stroke-width="3"/>',chef:'<path d="M29 27V17Q25 9 35 9Q45 2 53 10Q65 7 62 18V27Z" fill="#fff" stroke="#453b35" stroke-width="3"/>',wizard:'<path d="M28 27L46 5L63 27Z" fill="#ad95e0" stroke="#453b35" stroke-width="3"/>',royal:'<path d="M30 26L28 13L39 20L46 9L55 20L64 13L62 26Z" fill="#f4cc65" stroke="#453b35" stroke-width="3"/>',party:'<path d="M33 27L44 5L56 27Z" fill="#f8a2ca" stroke="#453b35" stroke-width="3"/>',pirate:'<path d="M27 27Q44 9 63 27Z" fill="#3e4057" stroke="#453b35" stroke-width="3"/>',astronaut:'<circle cx="47" cy="43" r="30" fill="none" stroke="#b4c9dd" stroke-width="7"/>',robot:'<path d="M30 28V15H62V28M46 15V7" fill="#c7d7dd" stroke="#453b35" stroke-width="3"/>',bee:'<path d="M30 53H65M37 62H64" stroke="#453b35" stroke-width="5"/>',angel:'<ellipse cx="46" cy="12" rx="16" ry="5" fill="none" stroke="#e4c474" stroke-width="3"/>',devil:'<path d="M30 27L28 13L40 23M55 23L66 13L64 27" fill="#f5a2a2" stroke="#453b35" stroke-width="3"/>',frog:'<circle cx="35" cy="26" r="8" fill="#9ad19a" stroke="#453b35" stroke-width="3"/><circle cx="59" cy="26" r="8" fill="#9ad19a" stroke="#453b35" stroke-width="3"/>'};
-function art(d){const fill=colors[d.slug]||'#ffe1a2';return '<svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke-linecap="round" stroke-linejoin="round"><path d="M28 70L26 78M44 70L45 79" stroke="#c88a58" stroke-width="4"/><path d="M13 55Q10 36 29 35Q41 28 49 39Q63 31 73 45Q82 61 66 72Q40 82 21 68Q14 63 13 55Z" fill="'+fill+'" stroke="#453b35" stroke-width="3.5"/><path d="M45 43Q49 25 64 26Q79 27 78 43Q78 53 65 56" fill="'+fill+'" stroke="#453b35" stroke-width="3.5"/><path d="M72 42Q84 40 91 45Q85 53 72 50Z" fill="#f7ab67" stroke="#453b35" stroke-width="3"/><path d="M27 54Q40 44 51 55Q44 65 32 63" fill="none" stroke="#aa9a74" stroke-width="2"/><circle cx="68" cy="37" r="3" fill="#453b35"/>'+(hats[d.slug]||'')+'</g></svg>'}
+// All headwear shares the same 100×90 SVG coordinate system and duck head anchor.
+// Each source anchor refers to the ORIGINAL (unchanged) accessory path geometry.
+// The small per-item vertical adjustments seat hats, eyes and halos naturally.
+const duckHeadAnchor={x:64,y:30};
+const headAccessoryAnchors={
+ cowboy:{x:45,y:28,dy:1},chef:{x:46,y:27,dy:1},
+ wizard:{x:45,y:27,dy:1},royal:{x:46,y:26},
+ party:{x:44.5,y:27},pirate:{x:45,y:27,dy:1},
+ astronaut:{x:47,y:43,dy:11},robot:{x:46,y:28,dy:1},
+ angel:{x:46,y:12,dy:-12},devil:{x:47,y:27},
+ frog:{x:47,y:26,dy:-3}
+};
+function accessoryArt(d){
+ const artwork=hats[d.slug];if(!artwork)return '';
+ const anchor=headAccessoryAnchors[d.slug];
+ // Bee's two stripes are BODY markings, not headwear: leave them untouched.
+ if(!anchor)return artwork;
+ const dx=duckHeadAnchor.x-anchor.x,dy=duckHeadAnchor.y-anchor.y+(anchor.dy||0);
+ return '<g class="duck-head-accessory" data-accessory="'+d.slug+'" transform="translate('+dx+' '+dy+')">'+artwork+'</g>';
+}
+function art(d){const fill=colors[d.slug]||'#ffe1a2';return '<svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g stroke-linecap="round" stroke-linejoin="round"><path d="M28 70L26 78M44 70L45 79" stroke="#c88a58" stroke-width="4"/><path d="M13 55Q10 36 29 35Q41 28 49 39Q63 31 73 45Q82 61 66 72Q40 82 21 68Q14 63 13 55Z" fill="'+fill+'" stroke="#453b35" stroke-width="3.5"/><path d="M45 43Q49 25 64 26Q79 27 78 43Q78 53 65 56" fill="'+fill+'" stroke="#453b35" stroke-width="3.5"/><path d="M72 42Q84 40 91 45Q85 53 72 50Z" fill="#f7ab67" stroke="#453b35" stroke-width="3"/><path d="M27 54Q40 44 51 55Q44 65 32 63" fill="none" stroke="#aa9a74" stroke-width="2"/><circle cx="68" cy="37" r="3" fill="#453b35"/>'+(accessoryArt(d))+'</g></svg>'}
 async function load(db,user){if(!db||!user)return;const [a,b]=await Promise.all([db.from('duck_types').select('id,slug,name,tier,unlock_runs,appearance_weight').order('id'),db.rpc('crilo_duck_progress')]);if(!a.error&&a.data?.length)catalog=a.data;if(!b.error&&b.data?.length)completed=Number(b.data[0].completed_dailies)||0;else console.warn('Duck progress unavailable',b.error)}
 function choose(){const available=catalog.filter(d=>d.unlock_runs<=completed);const list=available.length?available:[catalog[0]];let n=Math.random()*list.reduce((s,d)=>s+d.appearance_weight,0);for(const d of list){n-=d.appearance_weight;if(n<0)return d}return list[0]}
 const moving=new Set();
