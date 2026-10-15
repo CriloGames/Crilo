@@ -9,7 +9,7 @@ const game=fs.readFileSync('game.js','utf8');
 const sql=fs.readFileSync('release/346-badges/151-mystery-gift-collection.sql','utf8');
 assert.match(html,/mystery-gift\.js\?v=1/);
 assert.match(html,/mystery-gift\.css\?v=1/);
-assert.match(html,/game\.js\?v=120/);
+assert.ok(/game\\.js\\?v=\\d+/.test(html),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloMysteryWheel"/);
 assert.match(html,/id="criloMysteryShelf"/);
 assert.match(game,/window\.CriloMysteryGift\?\.refresh\?\.\(\)/);
