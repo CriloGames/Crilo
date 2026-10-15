@@ -6,6 +6,11 @@ on:
       - 'index.html'
       - 'game.js'
       - 'mystery-gift.js'
+      - 'mystery-profile.js'
+      - 'mystery-profile.css'
+      - 'profile.html'
+      - 'release/346-badges/157-mystery-gifts-hidden-spins.sql'
+      - 'release/346-badges/158-hidden-mystery-browser.cjs'
       - 'mystery-gift.css'
       - 'release/346-badges/151-mystery-gift-collection.sql'
       - 'release/346-badges/152-mystery-gift-browser.cjs'
@@ -26,4 +31,6 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.56.1
           npx playwright install --with-deps chromium
       - run: node --check mystery-gift.js
+      - run: node --check mystery-profile.js
+      - run: node release/346-badges/158-hidden-mystery-browser.cjs
       - run: node release/346-badges/152-mystery-gift-browser.cjs
