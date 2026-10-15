@@ -7,7 +7,7 @@ const shared=fs.readFileSync('badge-collection.js','utf8');
 const page=fs.readFileSync('profile.html','utf8');
 const css=fs.readFileSync('badge-collection.css','utf8');
 const defs=JSON.parse(fs.readFileSync('release/346-badges/catalog-rules.json','utf8'));
-assert.equal(defs.length,346);
+assert.equal(defs.length,347);
 assert.match(page,/profile\.js\?v=103/);
 assert.match(page,/badge-collection\.css\?v=10/);
 assert.match(css,/\.featured-slot\.featured-viewable\{cursor:pointer\}/);

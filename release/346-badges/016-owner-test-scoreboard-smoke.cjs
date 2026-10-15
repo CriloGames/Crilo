@@ -37,9 +37,9 @@ assert.match(scoreCSS,/\.wheel-score\[data-rarity="mythic"\]/);
 assert.match(scoreCSS,/\.wheel-hud \.wheel-counts/);
 assert.ok(game.includes("if(isTest){\n // A Test Run must never fall through"),'Test save must fail closed');
 const original=[
- {type:'num',base:40},{type:'duck'},{type:'num',base:400},{type:'upgrade'},
- {type:'num',base:60},{type:'num',base:400},{type:'spins'},{type:'num',base:80},
- {type:'duck'},{type:'num',base:40},{type:'double'},{type:'num',base:400}
+ {type:'num',base:40},{type:'duck'},{type:'num',base:20},{type:'upgrade'},
+ {type:'num',base:60},{type:'num',base:20},{type:'spins'},{type:'num',base:80},
+ {type:'duck'},{type:'num',base:40},{type:'double'},{type:'num',base:20}
 ];
 const defaults=original.concat(original);
 const pool=[20,20,40,40,60,60,80,80,120,160];
@@ -172,7 +172,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.equal(owner.els.get('scoreTier').hidden,true);
  assert.equal(owner.els.get('scoreTierHint').hidden,false);
  console.log('PASS: owner Test Run saved privately, zero official inserts, zero badge events, and all 16 rarity score boundaries.');
- const x=mockClient(Array.from({length:5},()=>({type:'num',base:400})));
+ const x=mockClient(Array.from({length:5},()=>({type:'num',base:20})));
  await x.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
  assert.equal(x.els.get('wheelScorePanel').dataset.rarity,'unrevealed','Official Daily starts neutral');
  for(let i=0;i<5;i++)await x.spin();
@@ -185,7 +185,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.equal(x.state.remaining_spins,0);
  const y=mockClient([
   {type:'duck'},{type:'double'},{type:'upgrade'},{type:'spins'},
-  ...Array.from({length:6},()=>({type:'num',base:400}))
+  ...Array.from({length:6},()=>({type:'num',base:20}))
  ]);
  await y.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
  assert.equal(y.els.get('wheelScorePanel').dataset.rarity,'unrevealed');
