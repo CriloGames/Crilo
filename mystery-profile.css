@@ -32,3 +32,8 @@
 .crilo-curiosity-locked{opacity:.65}
 .crilo-curiosity-locked .crilo-curiosity-symbol{background:var(--panel,#fff);color:var(--muted,#777);border:1px dashed var(--line,#ddd)}
 @media(max-width:580px){.crilo-curiosities-profile{padding:16px 14px}.crilo-curiosities-tab-head{align-items:flex-start;gap:9px}.crilo-curiosities-tab-head h2{font-size:18px}.crilo-curiosities-count{font-size:10px;padding:7px 9px}.crilo-curiosities-dialog ul{grid-template-columns:1fr}}
+
+/* Each discovered Mystery has its own matching little illustration. */
+.crilo-curiosity-symbol.has-art{flex-basis:35px;width:35px;height:35px;border:1px solid #cfc2e9;background:linear-gradient(135deg,#fff7df,#ebe7fc)}
+.crilo-curiosity-symbol.has-art svg{width:31px;height:31px;display:block}
+html[data-theme="dark"] .crilo-curiosity-symbol.has-art{background:linear-gradient(135deg,#484047,#494060);border-color:#82729c}

@@ -40,7 +40,9 @@
    item.className=won?'crilo-curiosity-found':'crilo-curiosity-locked';
    const icon=document.createElement('span');
    icon.className='crilo-curiosity-symbol';icon.setAttribute('aria-hidden','true');
-   icon.textContent=won?'✦':'?';
+   const art=won?window.CriloMysteryCuriosityIcon?.(key):'';
+   if(art){icon.innerHTML=art;icon.classList.add('has-art')}
+   else icon.textContent=won?'✦':'?';
    const copy=document.createElement('span');
    const title=document.createElement('strong'),description=document.createElement('small');
    title.textContent=won?name:'Undiscovered';

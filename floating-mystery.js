@@ -29,6 +29,15 @@
  const $=id=>document.getElementById(id);
  let account=null,checked=false,request=0,claiming=false,spawn=null,node=null,dialog=null;
  const svg=key=>'<svg viewBox="0 0 50 50" width="49" height="49" aria-hidden="true" fill="none" stroke="#292b35" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+(shapes[key]||'')+'</svg>';
+ // Use shared authored illustrations for unlocked Statistics curiosities.
+ window.CriloMysteryCuriosityIcon=key=>Object.hasOwn(shapes,key)?svg(key):'';
+ const mysteryChannel=typeof BroadcastChannel==='function'?
+  new BroadcastChannel('crilo-mystery-curiosity-v1'):null;
+ mysteryChannel?.addEventListener('message',event=>{
+  const msg=event.data;
+  if(msg?.type==='claimed'&&msg.userId===window.Crilo?.user?.id&&
+     msg.spawnId===spawn?.spawn_id)removeFloating();
+ });
  function removeFloating(){
   node?.remove();node=null;
   if(dialog?.open)dialog.close();
@@ -65,22 +74,27 @@
  }
  async function collect(){
   if(!spawn||claiming||!window.Crilo?.user)return;
+  const id=spawn.spawn_id,key=spawn.key,owner=window.Crilo.user.id,ticket=request;
   claiming=true;
   if(node)node.disabled=true;
   try{
-   const id=spawn.spawn_id,key=spawn.key;
    const {data,error}=await criloDB.rpc('crilo_mystery_page_visit',{
     p_action:'claim',p_page:page,p_spawn_id:id
    });
+   // Never show an earlier account's discovery after logout or switching.
+   if(ticket!==request||window.Crilo?.user?.id!==owner||spawn?.spawn_id!==id)return;
    if(error)throw error;
    if(data?.state!=='collected'||data.key!==key)throw Error('Could not verify discovery');
    const fresh=data.new_discovery===true,found=Number(data.discovered_count)||0;
    node?.remove();node=null;spawn=null;
+   mysteryChannel?.postMessage({type:'claimed',userId:owner,spawnId:id});
    window.dispatchEvent(new CustomEvent('crilo-mystery-discovered',{detail:{key}}));
    buildDetails(key,fresh,found);
   }catch(error){
-   console.warn('Floating curiosity:',error);
-   if(node){node.disabled=false;node.title='Could not save. Click again to retry.'}
+   if(ticket===request&&window.Crilo?.user?.id===owner){
+    console.warn('Floating curiosity:',error);
+    if(node){node.disabled=false;node.title='Could not save. Click again to retry.'}
+   }
   }finally{claiming=false}
  }
  function showFloating(data){
