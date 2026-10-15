@@ -1,0 +1,35 @@
+name: Wandering Mystery Curiosities
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'floating-mystery.js'
+      - 'floating-mystery.css'
+      - 'mystery-profile.js'
+      - 'release/346-badges/170-floating-mystery-curiosities.sql'
+      - 'release/346-badges/171-floating-mystery-browser.cjs'
+      - '.github/workflows/wandering-mystery.yml'
+      - 'index.html'
+      - 'leaderboard.html'
+      - 'profile.html'
+      - 'ducks.html'
+      - 'settings.html'
+      - 'friends.html'
+      - 'badge-sets.html'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  wandering:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check floating-mystery.js
+      - run: node release/346-badges/171-floating-mystery-browser.cjs
