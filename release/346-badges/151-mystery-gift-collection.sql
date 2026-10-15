@@ -111,7 +111,7 @@ begin
   v_spun := now();
  end if;
 
- select pg_catalog.coalesce(pg_catalog.jsonb_agg(c.prize_key order by c.first_found),'[]'::jsonb)
+ select coalesce(pg_catalog.jsonb_agg(c.prize_key order by c.first_found),'[]'::jsonb)
  into v_discovered
  from public.crilo_mystery_discoveries c where c.user_id=v_user;
  return pg_catalog.jsonb_build_object(
