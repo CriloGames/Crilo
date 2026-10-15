@@ -20,7 +20,8 @@ assert.equal(score.classify(5440).color,'anomaly');
 assert.equal(score.classify(5441).color,'mythic');
 assert.equal(score.classify(14421).color,'divine');
 assert.equal(score.levels.find(x=>x.key==='mythic').max,0.01);
-assert.equal(score.badgeBands.length,6,'Badge rarity excludes Trash');
+assert.equal(score.badgeBands.length,7,'Six probability bands plus explicit Divine prestige; Trash is a score only');
+assert.equal(score.badgeBands[6].key,'divine');
 for(const [prob,expectedTier] of [
  [50,'common'],[10.001,'common'],[10,'uncommon'],
  [1,'uncommon'],[.999999,'rare'],[.1,'rare'],
@@ -39,6 +40,7 @@ assert.equal(badges.rarity(mk(18.41335)),'common','Measured probability override
 assert.equal(badges.rarity(mk(.5262)),'rare','Measured rare is not Mythic');
 assert.equal(badges.rarity(mk(.0003667)),'mythic');
 assert.equal(badges.rarity({requirement:{rarity:'epic'}}),'epic','Unmeasured challenges preserve difficulty');
+assert.equal(badges.rarity({requirement:{rarity:'divine',probability_percent:.09335}}),'divine','Divine authored prestige outranks measured badge drop chance');
 assert.equal(badges.rarity({requirement:{rarity:'trash'}}),'uncommon','There is no Trash badge tier');
 const escape=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const html=badges.tileHTML(mk(.5262),true,escape,{expanded:true,interactive:false});
@@ -66,12 +68,33 @@ assert.match(sql,/319/);
 const palette=read('rarity-palette.css');
 assert.match(palette,/--tier-mythic:#bd2633/);
 assert.match(palette,/--tier-mythic:#eda0aa/);
-assert.match(palette,/--tier-divine:#e1c781/);
+assert.match(palette,/--tier-divine:#d8e6ff/);
+assert.match(palette,/--tier-divine-pale:#111318/);
+assert.doesNotMatch(palette,/--tier-divine:#e1c781/);
 assert.match(palette,/\.badge-top-chip/);
 for(const path of ['index.html','profile.html','leaderboard.html','badge-sets.html'])
- assert.match(read(path),/rarity-palette\.css\?v=3/,'Rarity styles missing '+path);
+ assert.match(read(path),/rarity-palette\.css\?v=4/,'Rarity styles missing '+path);
 assert.match(read('index.html'),/Divine<\/strong><small>14,440\+ points/);
 assert.match(read('index.html'),/Anomaly<\/strong><small>2,480–5,440 points/);
 assert.match(read('badge-sets.html'),/&lt;0\.001%/);
 assert.doesNotMatch(read('badge-sets.html'),/<span data-rarity="trash">/);
-console.log('RARITY_PERCENTILES_PASS: eight Crilo score bands, six badge chance bands, calibrated 346 catalog, legacy fallbacks, four page styles and read-only migration');
+// Divine is intentionally separate from per-spin badge drop bands; each medal has a real rule.
+const divineKeys=['v2_score_rarity_divine','divine_beyond_mythic','divine_touched_by_wheel',
+ 'divine_heavenly_momentum','divine_consistency'];
+const divineSource=read('release/346-badges/147-divine-achievements.sql');
+for(const key of divineKeys)assert.ok(divineSource.includes(key),'Missing Divine badge '+key);
+assert.match(divineSource,/verified_spin_session_id is not null/,'Consistency must use proven official runs');
+const featuredDivine=divineKeys.map((badge_key,id)=>({
+ id:id+1,badge_key,name:badge_key,category:'Score rarity',requirement:{rarity:'divine'},is_active:true,is_earnable:true
+}));
+assert.equal(badges.active([...featuredDivine,{id:7,is_active:false},{id:8,is_earnable:false}]).length,5);
+const arts=featuredDivine.map(x=>badges.artHTML(x));
+assert.ok(arts.every(x=>x.includes('<svg')),'All five Divine badges need art');
+assert.equal(new Set(arts).size,5,'Each Divine badge needs distinct artwork');
+assert.equal(badges.bestEarned([
+ {id:99,badge_key:'mythic',name:'Mythic',category:'Wheel',requirement:{rarity:'mythic'}},
+ ...featuredDivine],featuredDivine.map(x=>({badge_id:x.id})),50)[0].badge_key,'v2_score_rarity_divine');
+assert.match(read('profile.js'),/earnedCount\+'\/'\+activeBadges\.length\+' badges collected · Best 50 shown'/);
+assert.match(read('profile.js'),/is_active,is_earnable/);
+assert.match(read('badge-sets.js'),/is_active,is_earnable/);
+console.log('RARITY_PERCENTILES_PASS: eight score tiers, six chance bands plus Divine prestige, dynamic active collections, five distinct Divine emblems');
