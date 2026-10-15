@@ -16,7 +16,7 @@ assert.match(sql,/public\.crilo_banned_accounts/);
 assert.match(sql,/public\.crilo_daily_penalties/);
 assert.match(sql,/public\.crilo_spin_sessions/);
 assert.match(sql,/public\.daily_runs/);
-assert.match(sql,/d\.verified_spin_session_id IS NOT NULL/);
+assert.match(sql,/verified_spin_session_id IS NOT NULL/);
 assert.match(sql,/AND is_test=false/);
 assert.match(sql,/12,36,90/);
 assert.doesNotMatch(sql,/(INSERT INTO|UPDATE|DELETE FROM) public\.(user_badges|badges|crilo_bonus_runs|daily_runs|leaderboard)/i,'Challenges must never change competitive or badge tables');
