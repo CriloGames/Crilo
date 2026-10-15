@@ -1,0 +1,29 @@
+name: Mystery Gift gameplay and security
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'mystery-gift.js'
+      - 'mystery-gift.css'
+      - 'release/346-badges/151-mystery-gift-collection.sql'
+      - 'release/346-badges/152-mystery-gift-browser.cjs'
+      - '.github/workflows/mystery-gift.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mystery-gift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check mystery-gift.js
+      - run: node release/346-badges/152-mystery-gift-browser.cjs
