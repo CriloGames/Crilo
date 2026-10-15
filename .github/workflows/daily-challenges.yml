@@ -1,0 +1,30 @@
+name: Daily Challenges security and responsive gameplay
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'daily-challenges.js'
+      - 'daily-challenges.css'
+      - 'index.html'
+      - 'game.js'
+      - 'release/346-badges/161-daily-challenges.sql'
+      - 'release/346-badges/162-daily-challenges-browser.cjs'
+      - '.github/workflows/daily-challenges.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  challenges:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check daily-challenges.js
+      - run: node --check game.js
+      - run: node release/346-badges/162-daily-challenges-browser.cjs
