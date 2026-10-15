@@ -227,7 +227,8 @@ function render(runs,pm){
  ].map(([label,value])=>'<span class="best-metric"><strong>'+
   Math.max(0,Number(value)||0).toLocaleString('en-US')+
   '</strong><span>'+label+'</span></span>').join('');
- $('bestDrawing').classList.toggle('hidden',best._source==='bonus');
+ if(best._source==='bonus')$('bestDrawing').classList.add('hidden');
+ else $('bestDrawing').classList.remove('hidden');
  $('bestDrawing').src=drawingSrc(best.drawing);
  $('bestDrawing').alt=drawingSrc(best.drawing)==='blank-wheel.svg'?'Top player blank drawing':'Top player wheel artwork';
  const medals=['🥇','🥈','🥉'];
