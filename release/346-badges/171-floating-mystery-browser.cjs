@@ -31,7 +31,7 @@ assert.match(profile,/addEventListener\('crilo-mystery-discovered'/);
 for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','settings.html',
                    'friends.html','badge-sets.html','shape-of-sound.html','moderation.html','owner-analytics.html']){
  const html=fs.readFileSync(path,'utf8');
- assert.match(html,/floating-mystery\.js\?v=3/,path+' must allow page discoveries');
+ assert.match(html,/floating-mystery\.js\?v=4/,path+' must allow page discoveries');
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -111,6 +111,63 @@ for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','
   assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/Already in your Mystery Collection/);
   assert.equal(await page.locator('.crilo-wandering-dialog').getByRole('heading').textContent(),'An Absurdly Tiny Crown');
   await page.close();
+
+  // Same account in two real browser tabs: claiming on one hides the visitor
+  // in the other, and informs an open Statistics page to refresh its shelf.
+  const context=await browser.newContext({reducedMotion:'reduce'});
+  await context.route('https://test.crilo.fun/**',r=>r.fulfill({
+   status:200,contentType:'text/html',
+   body:'<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main>Crilo synthetic page</main></body></html>'
+  }));
+  const peers=[await context.newPage(),await context.newPage()];
+  for(const tab of peers){
+   await tab.goto('https://test.crilo.fun/index.html');
+   await tab.evaluate(()=>{
+    window.Crilo={authResolved:true,user:{id:'same-qa-player'}};
+    window.__received=0;
+    window.addEventListener('crilo-mystery-discovered',()=>window.__received++);
+    window.criloDB={rpc:async(name,args)=>({
+     data:args.p_action==='enter'?
+      {state:'ready',key:'cloud_recipe',spawn_id:'one-server-token'}:
+      {state:'collected',key:'cloud_recipe',new_discovery:true,discovered_count:1},
+     error:null
+    })};
+   });
+   await tab.addStyleTag({content:css});
+   await tab.addScriptTag({content:js});
+   await tab.locator('.crilo-wandering-find').waitFor({state:'visible'});
+  }
+  await peers[0].locator('.crilo-wandering-find').click();
+  await peers[1].locator('.crilo-wandering-find').waitFor({state:'detached'});
+  await peers[1].waitForFunction(()=>window.__received===1);
+  await context.close();
+
+  // An old async claim must not reveal private prize details after sign-out.
+  const signout=await browser.newPage({reducedMotion:'reduce'});
+  await signout.setContent('<!doctype html><html><head></head><body></body></html>');
+  await signout.evaluate(()=>{
+   window.Crilo={authResolved:true,user:{id:'session-a'}};
+   window.__finishClaim=null;
+   window.criloDB={rpc:async(name,args)=>{
+    if(args.p_action==='enter')return {data:{state:'ready',key:'tiny_crown',spawn_id:'late-token'},error:null};
+    return new Promise(resolve=>{window.__finishClaim=resolve});
+   }};
+  });
+  await signout.addStyleTag({content:css});
+  await signout.addScriptTag({content:js});
+  await signout.locator('.crilo-wandering-find').waitFor({state:'visible'});
+  await signout.locator('.crilo-wandering-find').click();
+  await signout.waitForFunction(()=>typeof window.__finishClaim==='function');
+  await signout.evaluate(()=>{
+   Crilo.user=null;
+   window.dispatchEvent(new Event('crilo-auth-ready'));
+   window.__finishClaim({data:{state:'collected',key:'tiny_crown',new_discovery:true,discovered_count:1},error:null});
+  });
+  await signout.waitForTimeout(100);
+  assert.equal(await signout.locator('.crilo-wandering-dialog').count(),0,'No claim popup after sign out');
+  assert.equal(await signout.locator('.crilo-wandering-find').count(),0,'No floating icon after sign out');
+  await signout.close();
+
   for(const key of keys)assert.match(js,new RegExp(''+key+'\\\\?'.replace('\\\\?','')),'Missing '+key);
   console.log('FLOATING_MYSTERY_PASS: six illustrations, verified collection, scroll positioning, hover and click, guest protection and '+tested+' responsive widths');
  }finally{await browser.close()}

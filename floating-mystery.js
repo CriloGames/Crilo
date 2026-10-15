@@ -35,8 +35,11 @@
   new BroadcastChannel('crilo-mystery-curiosity-v1'):null;
  mysteryChannel?.addEventListener('message',event=>{
   const msg=event.data;
-  if(msg?.type==='claimed'&&msg.userId===window.Crilo?.user?.id&&
-     msg.spawnId===spawn?.spawn_id)removeFloating();
+  if(msg?.type==='claimed'&&msg.userId===window.Crilo?.user?.id){
+   if(msg.spawnId===spawn?.spawn_id)removeFloating();
+   // A Statistics tab opened alongside the game refreshes its collection.
+   window.dispatchEvent(new Event('crilo-mystery-discovered'));
+  }
  });
  function removeFloating(){
   node?.remove();node=null;
