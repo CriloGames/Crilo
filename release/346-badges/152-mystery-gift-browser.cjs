@@ -12,8 +12,10 @@ assert.match(html,/mystery-gift\.css\?v=1/);
 assert.ok(html.includes('game.js?v='),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloMysteryWheel"/);
 assert.match(html,/id="criloMysteryShelf"/);
-assert.match(game,/window\.CriloMysteryGift\?\.refresh\?\.\(\)/);
+assert.match(game,/window\.CriloMysteryGift\?\.refresh\?\.\(\{autoOpen:true\}\)/);
 assert.match(sql,/and d\.is_test=false and d\.verified_spin_session_id is not null/i);
+assert.match(game,/CriloMysteryGift\?\.setMode\?\.\('test'\)/);
+assert.match(game,/CriloMysteryGift\?\.setMode\?\.\('bonus'\)/);
 assert.match(sql,/primary key \(user_id,daily_period\)/);
 assert.match(sql,/for update;/i);
 assert.match(sql,/v_slice := pg_catalog\.floor\(pg_catalog\.random\(\)\*8\)/);
@@ -94,6 +96,26 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
    // Close before testing today's gift.
    await page.locator('#criloMysteryClose').click();
    await setServer(stateFor(true));
+   // The user just completed a VERIFIED official Daily. The gift should
+   // automatically appear when that Daily was chosen by the server.
+   await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
+   assert.equal(await page.locator('#criloMysteryModal').isVisible(),true,
+    width+'px newly won Mystery Gift must open without a button click');
+   assert.equal(await page.locator('#criloMysterySpin').isVisible(),true,
+    'The small prize wheel should await the player spin');
+   await page.locator('#criloMysteryClose').click();
+   await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
+   assert.equal(await page.locator('#criloMysteryModal').isVisible(),false,
+    'Auto popup must not repeat for the same account and day');
+   await page.evaluate(()=>window.CriloMysteryGift.setMode('test'));
+   assert.equal(await page.locator('#criloMysteryPanel').isVisible(),false,
+    'Owner Test Runs must not show the Mystery Gift panel');
+   await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
+   assert.equal(await page.locator('#criloMysteryModal').isVisible(),false,
+    'Private Test Runs must not launch Mystery Gift popups');
+   await page.evaluate(()=>window.CriloMysteryGift.setMode('official'));
+   assert.equal(await page.locator('#criloMysteryPanel').isVisible(),true,
+    'Official Daily review restores the Mystery Gift collection');
    await page.locator('#criloMysteryOpen').click();
    const bounds=await page.locator('.crilo-mystery-dialog').boundingBox();
    assert.ok(bounds&&bounds.x>=-2&&bounds.x+bounds.width<=width+2,
