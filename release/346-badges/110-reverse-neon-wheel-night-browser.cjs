@@ -26,7 +26,7 @@ function luminance(pixel){
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     await page.goto(root+'/'+path,{waitUntil:'domcontentloaded',timeout:16000});
-    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=3"]').count(),1,
+    assert.equal(await page.locator('link[href="rarity-score-frames.css?v=4"]').count(),1,
       path+' did not load reversed-neon scoreboard');
     if(path==='leaderboard.html') assert.equal(
       await page.locator('link[href="top-score-row.css?v=7"]').count(),1,
