@@ -69,8 +69,8 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
     width+'px unavailable gift must not spin');
    await page.locator('#criloMysteryShelfButton').click();
    assert.equal(await page.locator('#criloMysteryModal').isVisible(),true);
-   assert.equal(await page.locator('#criloMysterySpin').isVisible(),true); 
-   // Available=false collection-only should not offer a playable wheel.
+   assert.equal(await page.locator('#criloMysterySpin').isVisible(),false);
+   // Available=false collection-only must not offer a playable wheel.
    // Close before testing today's gift.
    await page.locator('#criloMysteryClose').click();
    await setServer(stateFor(true));
