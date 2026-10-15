@@ -90,7 +90,7 @@ function installOwnerDailies(){
    await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===3);
    await page.waitForFunction(()=>document.getElementById('spinHistoryCount')?.textContent==='5 Dailies completed');
    assert.equal(await page.locator('#spinHistoryCount').innerText(),'5 Dailies completed');
-   assert.match(await page.locator('#spinHistorySpinCount').innerText(),/43 wheel spins in Dailies/);
+   assert.match(await page.locator('#spinHistorySpinCount').innerText(),/43 wheel spins in official Dailies/);
    assert.match(await page.locator('#spinHistorySpinCount').innerText(),/Test Runs excluded/);
    assert.equal(await page.locator('.spin-history-item').count(),3);
    assert.ok(await page.locator('#spinHistoryMore').isVisible(),'Older Dailies must be accessible');
