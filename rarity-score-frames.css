@@ -151,3 +151,19 @@ html[data-theme="dark"] .best-card #bestScore{
 #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
 html[data-theme="dark"] #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
 html[data-theme="dark"] .spin-history-item[data-rarity="divine"]{--spin-rarity:var(--tier-divine)}
+
+/* Obsidian Divine score presentation. A bright rim contrasts on either theme. */
+:is(.wheel-score-amount,#finalScore,.leader-score,.best-score,.spin-history-score)[data-score-rarity="divine"],
+.wheel-score[data-rarity="divine"] .wheel-score-amount,
+#result[data-rarity="divine"] #finalScore,
+.best-card #bestScore[data-score-rarity="divine"],
+.leader-panel .leader-score[data-score-rarity="divine"],
+.spin-history-item[data-rarity="divine"] .spin-history-score{
+ --crilo-glow-ink:#d8e6ff;
+ --crilo-glow-rim:#d8e6ff;
+ --crilo-glow-inner:rgba(170,210,255,.2);
+ color:#f5f7ff!important;
+ background:linear-gradient(135deg,#111318,#1a1f26 57%,#111318)!important;
+ border:1.5px solid #d8e6ff!important;
+ box-shadow:inset 0 0 10px rgba(170,210,255,.16),0 0 8px rgba(170,210,255,.24)!important;
+}
