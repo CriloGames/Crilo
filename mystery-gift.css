@@ -18,13 +18,13 @@
    Never changes the wheel's dimensions or position, segment probabilities,
    pointer, canvas resolution or hit testing while hidden. */
 .crilo-mystery-modal{
- position:absolute;inset:0;z-index:40;display:grid;place-items:center;
+ position:absolute;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
  overflow:visible;isolation:isolate;pointer-events:auto}
 .crilo-mystery-modal::before{
  content:"";position:absolute;inset:0;z-index:-1;border-radius:50%;
  background:rgba(16,18,26,.77);box-shadow:0 0 18px 5px rgba(17,18,23,.13)}
 .crilo-mystery-dialog{
- position:relative;box-sizing:border-box;min-width:0;
+ position:relative;box-sizing:border-box;min-width:0;flex:0 0 auto;
  width:min(87vw,385px);max-width:calc(100vw - 24px);
  background:var(--panel,#fff);color:var(--text,#24252b);
  border:2px solid var(--line,#d8dce0);border-radius:21px;
