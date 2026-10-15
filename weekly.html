@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="description" content="Lucky Seven: Crilo's once-a-week seven-spin wheel, collectible ribbon, and separate weekly leaderboard.">
+ <link rel="canonical" href="https://crilo.fun/weekly.html">
+ <link rel="icon" type="image/png" href="favicon.png">
+ <title>Lucky Seven — Crilo Weekly Bonus Round</title>
+ <script src="auth-first-paint.js?v=1"></script>
+ <link rel="stylesheet" href="style.css?v=128">
+ <link rel="stylesheet" href="dark-comfort.css?v=1">
+ <link rel="stylesheet" href="header-fit.css?v=3">
+ <link rel="stylesheet" href="weekly.css?v=1">
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="topbar">
+ <a class="brand" href="index.html">CRILO</a>
+ <nav><a href="index.html">PLAY</a><a href="leaderboard.html">LEADERBOARD</a><a href="ducks.html">DUCKS</a><a class="active" href="index.html#more-games">MORE GAMES</a></nav>
+ <div class="header-actions"><div class="account-wrap"><button class="account-btn" id="accountBtn" style="visibility:hidden" aria-busy="true">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div>
+</header>
+<script src="header-continuity.js?v=7"></script>
+<main class="weekly-main">
+ <section class="weekly-intro" aria-labelledby="weeklyTitle">
+  <span class="weekly-eyebrow">✦ EVERY WEEK IS A NEW CHANCE ✦</span>
+  <h1 id="weeklyTitle">Lucky <span>Seven.</span></h1>
+  <p>One extra wheel. Seven starting spins. A fresh weekly contest—and a little ribbon to keep.</p>
+  <div class="weekly-chips"><span>7 STARTING SPINS</span><span>1 PLAY PER WEEK</span><span>SEPARATE LEADERBOARD</span></div>
+  <div class="weekly-until">Next weekly reset in <strong id="weeklyCountdown" aria-live="off">—</strong></div>
+ </section>
+ <div class="weekly-layout">
+  <section class="weekly-game" aria-label="Weekly seven-spin wheel">
+   <div class="weekly-topline"><div><span class="weekly-overline">THE BONUS WHEEL</span><h2>Make seven count.</h2></div><span class="weekly-pill" id="weeklyWeekLabel">This week</span></div>
+   <div class="weekly-wheel-shell">
+    <span class="weekly-pointer" aria-hidden="true">▼</span>
+    <canvas id="weeklyWheel" width="600" height="600" role="img" aria-label="Lucky Seven wheel with server-verified spin outcomes"></canvas>
+   </div>
+   <div class="weekly-totals" aria-label="Your weekly wheel progress">
+    <div><small>SCORE</small><strong id="weeklyScore">0</strong></div>
+    <div><small>SPINS LEFT</small><strong id="weeklyRemaining">7</strong></div>
+    <div><small>SPINS TAKEN</small><strong id="weeklyTaken">0</strong></div>
+   </div>
+   <div class="weekly-controls">
+    <button class="weekly-button" type="button" id="weeklyStart" hidden>START YOUR WEEKLY</button>
+    <button class="weekly-button" type="button" id="weeklySpin" hidden disabled>SPIN THE WHEEL</button>
+    <button class="weekly-button" type="button" id="weeklySignIn" hidden>SIGN IN TO PLAY</button>
+    <a id="weeklyDailyLink" class="weekly-secondary" href="index.html" hidden>Complete today's Daily →</a>
+    <p id="weeklyStatus" class="weekly-status" role="status" aria-live="polite">Checking your weekly bonus…</p>
+   </div>
+   <section id="weeklyFinished" class="weekly-finish" hidden aria-label="Your completed weekly run">
+    <span class="weekly-ribbon" aria-hidden="true">✦</span>
+    <div><strong>Lucky Seven complete!</strong><p>Your score is saved to this week's separate leaderboard.</p><small>One collectible Lucky Seven ribbon earned.</small></div>
+   </section>
+  </section>
+  <aside class="weekly-side">
+   <section class="weekly-ribbon-card" aria-label="Weekly ribbon collection">
+    <span class="weekly-overline">YOUR WEEKLY KEEPSAKES</span><div class="weekly-ribbon-icon" aria-hidden="true">✦</div>
+    <h2>Little victories.</h2>
+    <p>Every completed weekly round earns one Lucky Seven ribbon. Collect them across weeks.</p>
+    <div class="weekly-ribbon-count"><strong id="weeklyRibbons">—</strong><span>ribbons collected</span></div>
+   </section>
+   <section class="weekly-leaderboard" aria-labelledby="weeklyLeadersTitle">
+    <div class="weekly-board-head"><div><span class="weekly-overline">THIS WEEK ONLY</span><h2 id="weeklyLeadersTitle">Weekly leaderboard</h2></div><span class="weekly-board-label">TOP 50</span></div>
+    <ol id="weeklyLeaders" class="weekly-leader-list"><li class="weekly-empty">Loading weekly scores…</li></ol>
+   </section>
+  </aside>
+ </div>
+ <section class="weekly-rules" aria-labelledby="weeklyRulesTitle">
+  <h2 id="weeklyRulesTitle">How it works</h2>
+  <div><p><strong>Play your Official Daily first.</strong> That unlocks this week's one Lucky Seven round for your account. You can resume it later in the same week.</p>
+  <p><strong>Seven spins to start.</strong> Number slices, ducks, upgrades, ×2 and +2 Spins follow the usual wheel rules. Each result comes from the verified server wheel.</p>
+  <p><strong>Separate from your Daily.</strong> The weekly scores have their own leaderboard, with no Daily badges, Challenge Stars, streak changes, or official points. A completed round earns one collectible ribbon.</p></div>
+ </section>
+ <a class="weekly-back" href="index.html">← Back to the Daily Wheel</a>
+</main>
+<footer class="crilo-simple-footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames. All rights reserved.</small></footer>
+<script src="supabase-config.js?v=20"></script>
+<script src="app.js?v=56"></script>
+<script src="weekly.js?v=1"></script>
+<script src="site-sounds.js?v=2"></script>
+</body>
+</html>
