@@ -16,9 +16,9 @@
 .crilo-mystery-actions .crilo-mystery-action{background:#fff0bf;border-color:#24252c;color:#222329}
 .crilo-mystery-actions button:hover:not(:disabled){filter:brightness(.965)}
 .crilo-mystery-actions button.hidden{display:none!important}
-.crilo-mystery-modal{position:fixed;inset:0;z-index:1500;background:#0b0b0cc9;
+.crilo-mystery-modal{position:fixed;inset:0;box-sizing:border-box;z-index:1500;background:#0b0b0cc9;
  display:grid;place-items:center;padding:16px;overflow-y:auto}
-.crilo-mystery-dialog{position:relative;width:min(96vw,490px);max-height:min(94dvh,800px);
+.crilo-mystery-dialog{position:relative;box-sizing:border-box;min-width:0;width:min(100%,490px);max-height:min(94dvh,800px);
  overflow:auto;border-radius:25px;background:var(--panel,#fff);color:var(--text,#222329);
  box-shadow:0 20px 70px #0005;padding:25px clamp(16px,4vw,31px);
  text-align:center;border:1px solid var(--line,#dfe2e5)}
