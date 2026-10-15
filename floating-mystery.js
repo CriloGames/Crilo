@@ -35,9 +35,12 @@
   new BroadcastChannel('crilo-mystery-curiosity-v1'):null;
  mysteryChannel?.addEventListener('message',event=>{
   const msg=event.data;
-  if(msg?.type==='claimed'&&msg.userId===window.Crilo?.user?.id){
+  if(msg?.userId!==window.Crilo?.user?.id)return;
+  if(msg?.type==='complete'){
+   removeFloating();
+   window.dispatchEvent(new Event('crilo-mystery-discovered'));
+  }else if(msg?.type==='claimed'){
    if(msg.spawnId===spawn?.spawn_id)removeFloating();
-   // A Statistics tab opened alongside the game refreshes its collection.
    window.dispatchEvent(new Event('crilo-mystery-discovered'));
   }
  });
@@ -87,10 +90,16 @@
    // Never show an earlier account's discovery after logout or switching.
    if(ticket!==request||window.Crilo?.user?.id!==owner||spawn?.spawn_id!==id)return;
    if(error)throw error;
+   if(data?.state==='complete'){
+    removeFloating();
+    window.dispatchEvent(new Event('crilo-mystery-discovered'));
+    return;
+   }
    if(data?.state!=='collected'||data.key!==key)throw Error('Could not verify discovery');
    const fresh=data.new_discovery===true,found=Number(data.discovered_count)||0;
    node?.remove();node=null;spawn=null;
    mysteryChannel?.postMessage({type:'claimed',userId:owner,spawnId:id});
+   if(found>=6)mysteryChannel?.postMessage({type:'complete',userId:owner});
    window.dispatchEvent(new CustomEvent('crilo-mystery-discovered',{detail:{key}}));
    buildDetails(key,fresh,found);
   }catch(error){
@@ -133,11 +142,20 @@
    });
    if(ticket!==request||window.Crilo?.user?.id!==id)return;
    if(error)throw error;
-   if(data?.state==='ready')showFloating(data);
+   if(data?.state==='complete')removeFloating();
+   else if(data?.state==='ready')showFloating(data);
   }catch(error){
    if(ticket===request)console.warn('Floating curiosity unavailable:',error);
   }
  }
+ window.CriloFloatingMystery={
+  complete(){
+   const userId=window.Crilo?.user?.id;
+   if(!userId)return;
+   removeFloating();
+   mysteryChannel?.postMessage({type:'complete',userId});
+  }
+ };
  window.addEventListener('crilo-auth-ready',onIdentity);
  if(window.Crilo?.authResolved)void onIdentity();
 })();
