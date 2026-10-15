@@ -24,7 +24,7 @@ const helper=new Function('$','window','setTimeout',source+
  '\nreturn {playFinalScoreWave,resetFinalCelebration,notes:CRILO_FINAL_RARITY_NOTES};')(
  key=>els[key],{matchMedia:()=>({matches:reducedMotion})},
  (callback,delay)=>{timers.push({callback,delay})});
-assert.equal(Object.keys(helper.notes).length,7,'Seven rarity sounds must remain');
+assert.equal(Object.keys(helper.notes).length,8,'Eight rarity sounds must remain');
 const duration=helper.playFinalScoreWave('common');
 assert.equal(duration,880,'Ending should not be a long animation');
 assert.equal(layouts,1,'A real final spin restarts its one-time effect');
@@ -69,4 +69,4 @@ assert.match(html,/game\.js\?v=\d+/);
 assert.ok(game.includes("if(spins<=0){")&&game.includes("playFinalScoreWave(rarity().color);"));
 assert.ok(game.includes("setTimeout(()=>{if(guestRun&&!user)open('guestFinishModal');},Math.max(0,lastFinalAnimationMs))"));
 console.log('PASS: score and tier stay unchanged through one restrained ending.');
-console.log('PASS: seven rarity levels, reduced motion, new runs and guest-delay cleanup.');
+console.log('PASS: eight rarity levels, reduced motion, new runs and guest-delay cleanup.');
