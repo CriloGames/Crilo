@@ -9,7 +9,7 @@
  --tier-rare:#335fd4;--tier-rare-pale:#e1eefb;
  --tier-epic:#7b40c4;--tier-epic-pale:#efe5ff;
  --tier-anomaly:#c14a22;--tier-anomaly-pale:#ffe9df;
- --tier-mythic:#bd2633;--tier-mythic-pale:#fce5e7;--tier-divine:#9b751e;--tier-divine-pale:#f8efcf;
+ --tier-mythic:#bd2633;--tier-mythic-pale:#fce5e7;--tier-divine:#d8e6ff;--tier-divine-pale:#111318;
 }
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="trash"]{--crilo-badge-accent:var(--tier-trash);--crilo-badge-pale:var(--tier-trash-pale)}
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="common"]{--crilo-badge-accent:var(--tier-common);--crilo-badge-pale:var(--tier-common-pale)}
@@ -69,7 +69,7 @@
 html[data-theme="dark"]{
  --tier-trash:#d1a679;--tier-common:#b6c1ce;
  --tier-uncommon:#86c6a5;--tier-rare:#9cbbef;
- --tier-epic:#c3a4ed;--tier-anomaly:#e7a084;--tier-mythic:#eda0aa;--tier-divine:#e1c781;--tier-divine-pale:#383426;
+ --tier-epic:#c3a4ed;--tier-anomaly:#e7a084;--tier-mythic:#eda0aa;--tier-divine:#d8e6ff;--tier-divine-pale:#111318;
 }
 html[data-theme="dark"] #result[data-rarity]{--rarity-bg:color-mix(in srgb,var(--rarity-accent) 15%,#1b1c24)}
 html[data-theme="dark"] #result[data-rarity="trash"]{--crilo-result-accent:var(--tier-trash)}
@@ -94,7 +94,7 @@ html[data-theme="dark"] .stat-tile.stat-rarity{--rarity-bg:#23262c}
 .best-card #bestScore[data-score-rarity="mythic"],.leader-panel .leader-score[data-score-rarity="mythic"]{--leader-tier-ink:var(--tier-mythic);--crilo-glow-ink:var(--tier-mythic);color:var(--tier-mythic)}
 html[data-theme="dark"] .best-card #bestScore[data-score-rarity],html[data-theme="dark"] .leader-panel .leader-score[data-score-rarity]{color:var(--leader-tier-ink)}
 
-/* Divine: soft champagne gold, readable on pastel and dark surfaces. */
+/* Divine: near-black polished enamel, restrained cool neon. */
 :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"]{--crilo-badge-accent:var(--tier-divine);--crilo-badge-pale:var(--tier-divine-pale)}
 .collection-rarity-legend [data-rarity="divine"]{--legend-color:var(--tier-divine)}
 #result[data-rarity="divine"]{--rarity-accent:var(--tier-divine);--rarity-bg:var(--tier-divine-pale);--crilo-result-accent:var(--tier-divine)}
@@ -105,3 +105,53 @@ html[data-theme="dark"] .best-card #bestScore[data-score-rarity],html[data-theme
 .spin-history-item[data-rarity="divine"]{--spin-rarity:var(--tier-divine)}
 html[data-theme="dark"] #result[data-rarity="divine"]{--crilo-result-accent:var(--tier-divine)}
 .best-card #bestScore[data-score-rarity="divine"],.leader-panel .leader-score[data-score-rarity="divine"]{--leader-tier-ink:var(--tier-divine);--crilo-glow-ink:var(--tier-divine);color:var(--tier-divine)}
+
+/* Divine never inherits light pastel filling from generic tiers.
+   Keep this coherent across profile, public profiles, collections,
+   badge sets, daily results, notifications, and leaderboard. */
+:root,html[data-theme="dark"]{
+ --tier-divine:#d8e6ff;
+ --tier-divine-pale:#111318;
+ --crilo-divine-border:#d8e6ff;
+ --crilo-divine-ink:#f5f7ff;
+}
+:is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot.featured-filled,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"],
+html[data-theme="dark"] :is(.badge-top-chip,.collection-tile,.badge-card,.featured-slot.featured-filled,.new-badge-item,.featured-pick-option)[data-badge-rarity="divine"]{
+ --crilo-badge-accent:#d8e6ff;--crilo-badge-pale:#111318;
+ background:linear-gradient(125deg,#111318,#1a1f26 57%,#111318)!important;
+ color:#f5f7ff!important;
+ border:1.5px solid #d8e6ff!important;
+ box-shadow:inset 0 0 0 1px rgba(216,230,255,.18),
+  inset 0 0 13px rgba(154,194,248,.1),
+  0 0 8px rgba(180,216,255,.26)!important;
+}
+[data-badge-rarity="divine"] :is(b,strong,small,.collection-tile-description,.featured-pick-title,.featured-pick-rarity){color:#f5f7ff!important}
+.collection-tile.locked[data-badge-rarity="divine"]{opacity:.69}
+.collection-rarity-legend [data-rarity="divine"]{
+ background:#111318!important;color:#f5f7ff!important;
+ border:1px solid #d8e6ff!important;
+ box-shadow:0 0 7px rgba(175,210,255,.25);
+}
+.crilo-divine-art{
+ display:inline-grid;place-items:center;flex:none;
+ width:35px;height:35px;border:1px solid rgba(216,230,255,.82);
+ border-radius:50%;background:#edf4ff;
+ box-shadow:0 0 8px rgba(216,230,255,.3);
+ vertical-align:middle;
+}
+.crilo-divine-art svg{display:block;width:31px;height:31px}
+.badge-top-chip .crilo-divine-art{width:22px;height:22px;margin-right:6px}
+.badge-top-chip .crilo-divine-art svg{width:19px;height:19px}
+.featured-slot .crilo-divine-art{margin:0 auto 4px}
+.featured-pick-option .crilo-divine-art{width:25px;height:25px;margin-right:7px}
+.featured-pick-option .crilo-divine-art svg{width:21px;height:21px}
+.collection-tile[data-badge-rarity="divine"] .crilo-divine-art{margin:0 0 5px}
+#result[data-rarity="divine"]{
+ --rarity-bg:#111318;--rarity-accent:#d8e6ff;--crilo-result-accent:#d8e6ff;
+}
+.wheel-score[data-rarity="divine"]{--score-accent:#d8e6ff;--score-tint:#111318}
+.stat-rarity-divine{--rarity-ink:#d8e6ff;--rarity-bg:#111318}
+.help-rarity-row[data-rarity="divine"]{--help-accent:#d8e6ff}
+@media(prefers-reduced-motion:reduce){
+ [data-badge-rarity="divine"],[data-rarity="divine"],[data-score-rarity="divine"]{animation:none!important;transition:none!important}
+}
