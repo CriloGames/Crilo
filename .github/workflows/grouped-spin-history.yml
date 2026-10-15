@@ -1,0 +1,32 @@
+name: Grouped Statistics Spin History
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'profile.html'
+      - 'spin-history.js'
+      - 'spin-history.css'
+      - 'release/346-badges/014-spin-history-smoke.cjs'
+      - 'release/346-badges/097-owner-daily-history-browser.cjs'
+      - 'release/346-badges/168-grouped-statistics-spin-history.sql'
+      - 'release/346-badges/169-grouped-spin-history-browser.cjs'
+      - '.github/workflows/grouped-spin-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check spin-history.js
+      - run: node release/346-badges/014-spin-history-smoke.cjs
+      - run: node release/346-badges/097-owner-daily-history-browser.cjs
+      - run: node release/346-badges/169-grouped-spin-history-browser.cjs
