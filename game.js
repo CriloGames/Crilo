@@ -469,6 +469,10 @@ if(serverReply){
  score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);
 }
 update();
+// Consume the 2% server-side mystery check once per completed official spin.
+// Final spins are checked after verified Daily saving in endRun().
+if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0)
+ void window.CriloMysteryGift?.refresh?.({autoOpen:true});
 if(guestRun&&spins>0&&!guestSaveOrPause())return;
 if(spins<=0){
  // Classify only after the LAST resolved spin, after every extra-spin effect.
