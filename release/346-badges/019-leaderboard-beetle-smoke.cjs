@@ -12,7 +12,7 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
 assert.match(html,/style\.css\?v=127/);
-assert.ok(html.includes('rarity-system.js?v=12')&&html.includes('leaderboard-tabs.js?v=2')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=52'),'Leaderboard scripts must load in the expected order');
+assert.ok(html.includes('rarity-system.js?v=13')&&html.includes('leaderboard-tabs.js?v=2')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=52'),'Leaderboard scripts must load in the expected order');
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
  'Owner Tools panel and sample-preview button must not render for any user');
@@ -24,7 +24,7 @@ assert.match(css,/@media\(max-width:600px\)\{[\s\S]*?\.leader-row\.score-run-row
 const rarityWorld={};
 vm.runInNewContext(rarityCode,{window:rarityWorld});
 const levels=Array.from(rarityWorld.CriloRarity.scoreBands,x=>x.key);
-assert.deepEqual(levels,['trash','common','uncommon','rare','epic','anomaly','mythic']);
+assert.deepEqual(levels,['trash','common','uncommon','rare','epic','anomaly','mythic','divine']);
 function mockNodes(){
  const nodes=new Map();
  const get=id=>{
@@ -57,10 +57,10 @@ async function testBoard(){
  const qa=window.__qaBoard;
  assert.ok(qa?.render,'Leaderboard renderer was not available');
  const samples=[
-  {id:'one',user_id:'p1',score:60,spins:6,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',_source:'official'},
-  {id:'two',user_id:'p2',score:24,spins:8,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'},
-  {id:'three',user_id:'p3',score:15,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,BBBB',_source:'official'},
-  {id:'four',user_id:'p4',score:319,spins:7,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'}
+  {id:'one',user_id:'p1',score:880,spins:6,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',_source:'official'},
+  {id:'two',user_id:'p2',score:200,spins:8,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'},
+  {id:'three',user_id:'p3',score:40,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,BBBB',_source:'official'},
+  {id:'four',user_id:'p4',score:6000,spins:7,upgrades:0,doubles:0,ducks:0,drawing:null,_source:'official'}
  ];
  const profiles=new Map(samples.map(r=>[r.user_id,{username:r.user_id,name_color:'#111'}]));
  qa.setTab('week');
