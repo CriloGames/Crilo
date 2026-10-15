@@ -1,0 +1,33 @@
+name: Ranked Official and Bonus Runs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leaderboard.js'
+      - 'leaderboard.html'
+      - 'leaderboard-run-types.css'
+      - 'game.js'
+      - 'bonus-runs.js'
+      - 'release/346-badges/159-all-daily-runs-leaderboard.sql'
+      - 'release/346-badges/160-ranked-all-runs-browser.cjs'
+      - '.github/workflows/ranked-all-runs.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ranked-runs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check leaderboard.js
+      - run: node --check game.js
+      - run: node release/346-badges/019-leaderboard-beetle-smoke.cjs
+      - run: node release/346-badges/098-leaderboard-tab-race-smoke.cjs
+      - run: node release/346-badges/160-ranked-all-runs-browser.cjs
