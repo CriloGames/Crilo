@@ -27,7 +27,7 @@ assert.ok(report.includes('createClient(SUPABASE_URL,SERVICE_KEY') &&
  'Service-role credentials belong in Edge secrets, never shipped JavaScript');
 assert.ok(harden.includes("ALTER FUNCTION crilo_badge_prelaunch.ping() SET search_path = '';"),
  'Missing applied search-path hardening migration');
-assert.ok(serverGate.includes('verified_spin_session_id')&&serverGate.includes('zy_crilo_verify_attached_spin_session')&&frontend.includes("rpc('crilo_server_spin'"),
+assert.ok(serverGate.includes('verified_spin_session_id')&&serverGate.includes('zy_crilo_verify_attached_spin_session')&&frontend.includes("'crilo_server_spin'")&&frontend.includes("'crilo_bonus_spin'"),
  'Official Daily outcomes must be server-authoritative');
 assert.ok(owner.includes("auth.jwt()->>'aal' IS DISTINCT FROM 'aal2'"),
  'Owner moderation requires elevated MFA');
