@@ -8,7 +8,7 @@ const html=fs.readFileSync('index.html','utf8');
 const game=fs.readFileSync('game.js','utf8');
 const sql=fs.readFileSync('release/346-badges/151-mystery-gift-collection.sql','utf8');
 assert.ok(html.includes('mystery-gift.js?v='),'Wheel popup gift script must load');
-assert.match(html,/mystery-gift\.css\?v=2/);
+assert.match(html,/mystery-gift\.css\?v=3/);
 assert.ok(html.includes('game.js?v='),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloMysteryWheel"/);
 assert.match(html,/id="criloMysteryShelf"/);
@@ -86,14 +86,8 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
    width+'px guest must not see collection');
   // History still visible on days when no official Daily has been completed.
   await setServer({eligible:false,available:false,spun:false,discovered:['sleepy_duck']});
-  assert.equal(await page.locator('#criloMysteryShortcut').isVisible(),true);
-  assert.match(await page.locator('#criloMysteryShortcutLabel').textContent(),/1 \/ 6/);
-  await page.locator('#criloMysteryShelfButton').click();
-  assert.equal(await page.locator('#criloMysteryShelfDialog').isVisible(),true);
-  assert.equal(await page.locator('#criloMysteryModal').isVisible(),false);
-  assert.match(await page.locator('#criloMysteryShelfDialog').textContent(),/Napping Duck/);
-  assert.equal(await page.locator('#criloMysteryReviewButton').isVisible(),false);
-  await page.locator('#criloMysteryShelfClose').click();
+  assert.equal(await page.locator('#criloMysteryShortcut').isVisible(),false,
+   'Previously found curiosities should not spoil the surprise on Daily');
   await setServer(stateFor(false));
   await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
   assert.equal(await page.locator('#criloMysteryModal').isVisible(),false,
@@ -141,17 +135,13 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
   assert.equal(await page.evaluate(()=>window.__giftSpinCalls),1);
   assert.match(await page.locator('#criloMysteryMessage').textContent(),/Napping Duck/);
   assert.equal(await page.locator('#criloMysterySpin').isVisible(),false);
-  await page.locator('#criloMysteryClose').click();
-  await page.locator('#criloMysteryShelfButton').click();
-  assert.equal(await page.locator('#criloMysteryShelfDialog').isVisible(),true,
-   'Completed gift shortcut should show the collection, not a giant card');
+  assert.equal(await page.locator('#criloMysteryShortcut').isVisible(),false,
+   'A claimed curiosity does not leave a permanent progress counter');
+  await page.locator('#criloMysteryOpenCollection').click();
+  assert.equal(await page.locator('#criloMysteryShelfDialog').isVisible(),true);
   assert.match(await page.locator('#criloMysteryProgress').textContent(),/1 \/ 6/);
-  await page.locator('#criloMysteryReviewButton').click();
-  assert.equal(await page.locator('#criloMysteryModal').isVisible(),true,
-   'Finished gift remains reviewable inside the wheel');
-  assert.equal(await page.locator('#criloMysterySpin').isVisible(),false,
-   'Review cannot produce another spin');
-  assert.equal(await page.evaluate(()=>window.__giftSpinCalls),1);
+  await page.locator('#criloMysteryShelfClose').click();
+  assert.equal(await page.evaluate(()=>window.__giftSpinCalls),1,'Mystery cannot reroll');
   await context.close();passes++;
  }
  console.log('MYSTERY_GIFT_BROWSER_PASS '+passes+
