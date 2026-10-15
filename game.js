@@ -15,33 +15,66 @@ function drawWheel(){
  const dark=wheelIsDark(),colors=dark?paletteDark:palette;
  const w=wheel.width,c=w/2,r=c-12,N=segments.length;
  if(!N)return;
- const a=Math.PI*2/N,radialText=r*.73;
- // All labels must fit in the actual wedge at its current sector count.
- const chord=2*radialText*Math.sin(a/2),maxLabelWidth=Math.max(0,chord-8);
+ const a=Math.PI*2/N;
+ // Ordinary wheels keep their familiar upright text. Once Upgrade adds
+ // enough wedges, writing around the circumference cannot fit full values:
+ // the old tangential labels shrank below 8px and disappeared completely.
+ // Switch to radial labels so values use each slice's LENGTH, not its width.
+ const radialLabels=N>36;
+ const innerLabelEdge=w*.17+13; // stay outside the 34%-diameter drawing
+ const outerLabelEdge=r-14;     // stay inside the outer wheel stroke
+ const labelRadius=radialLabels?(innerLabelEdge+outerLabelEdge)/2:r*.73;
+ const radialRoom=outerLabelEdge-innerLabelEdge;
+ const initialChord=2*labelRadius*Math.sin(a/2);
+ const wedgeStroke=Math.min(4,Math.max(1.3,initialChord*.07));
  ctx.clearRect(0,0,w,w);ctx.save();ctx.translate(c,c);ctx.rotate(rotation);
  segments.forEach((s,i)=>{
   const st=i*a-Math.PI/2,en=st+a,ang=st+a/2;
   ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,r,st,en);ctx.closePath();
   ctx.fillStyle=colors[i%colors.length];ctx.fill();
-  ctx.strokeStyle=dark?'#384655':'#fff';ctx.lineWidth=Math.min(4,Math.max(1.3,chord*.07));ctx.stroke();
-  const tx=Math.cos(ang)*radialText,ty=Math.sin(ang)*radialText;
-  if(s.type==='duck'){
-   if(chord>=21)drawDuckIcon(tx,ty,Math.min(36,Math.max(12,maxLabelWidth*.64)));
-  }else if(maxLabelWidth>=8){
-   ctx.save();ctx.translate(tx,ty);ctx.rotate(ang+Math.PI/2);
-   ctx.fillStyle=dark?'#f6f1ec':'#17191e';ctx.textAlign='center';ctx.textBaseline='middle';
-   const text=label(s);
-   let size=Math.min(s.type==='num'?32:24,Math.max(9,310/N));
+  ctx.strokeStyle=dark?'#384655':'#fff';ctx.lineWidth=wedgeStroke;ctx.stroke();
+  const tx=Math.cos(ang)*labelRadius,ty=Math.sin(ang)*labelRadius;
+  if(s.type==='duck'&&!radialLabels){
+   if(initialChord>=21)drawDuckIcon(tx,ty,Math.min(36,Math.max(12,(initialChord-8)*.64)));
+   return;
+  }
+  // On a crowded wheel the duck becomes a short radial word rather than
+  // vanishing along with the numbers, ×2, +2, and upgrade labels.
+  const text=s.type==='duck'?'DUCK':label(s);
+  if(!text)return;
+  ctx.save();ctx.translate(tx,ty);
+  ctx.rotate(radialLabels?(Math.cos(ang)<0?ang+Math.PI:ang):ang+Math.PI/2);
+  ctx.fillStyle=dark?'#f6f1ec':'#17191e';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  let size=radialLabels?
+   Math.min(s.type==='num'?23:20,Math.max(1,(initialChord-wedgeStroke-2)*.87)):
+   Math.min(s.type==='num'?32:24,Math.max(9,310/N));
+  for(let attempt=0;attempt<4;attempt++){
    ctx.font='900 '+size+'px system-ui';
    const width=ctx.measureText(text).width;
-   if(width>maxLabelWidth){size=Math.min(size,size*maxLabelWidth/width);ctx.font='900 '+size+'px system-ui';}
-   if(size>=8&&ctx.measureText(text).width<=maxLabelWidth+.25){
-    ctx.strokeStyle=dark?'rgba(24,29,38,.94)':'rgba(255,255,255,.8)';
-    ctx.lineWidth=Math.min(3,Math.max(.6,size*.16));ctx.strokeText(text,0,0);
-    ctx.fillText(text,0,0);
+   if(radialLabels){
+    // A tapered wedge is narrower at the inner end of the text.
+    // Fit BOTH the long radial label and its height at that inner edge.
+    const innerTextRadius=Math.max(innerLabelEdge,labelRadius-width/2);
+    const clearance=2*innerTextRadius*Math.sin(a/2)-wedgeStroke-1;
+    const fitted=Math.min(size,Math.max(1,clearance*.82),
+      Math.max(1,size*(radialRoom-8)/Math.max(width,1)));
+    if(fitted>=size-.05)break;
+    size=fitted;
+   }else{
+    const maxWidth=Math.max(1,initialChord-8);
+    if(width<=maxWidth+.25)break;
+    size=Math.max(1,size*maxWidth/Math.max(width,1));
    }
-   ctx.restore();
   }
+  // Never drop labels for falling under an arbitrary 8px cutoff.
+  // Abbreviated K/M/B values and radial alignment preserve readability
+  // through normal multi-upgrade runs without crossing neighboring slices.
+  ctx.font='900 '+size+'px system-ui';
+  ctx.strokeStyle=dark?'rgba(24,29,38,.94)':'rgba(255,255,255,.8)';
+  ctx.lineWidth=Math.min(2,Math.max(.25,size*.11));
+  ctx.strokeText(text,0,0);ctx.fillText(text,0,0);
+  ctx.restore();
  });
  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);
  ctx.strokeStyle=dark?'#9ba8b7':'#17191e';ctx.lineWidth=7;ctx.stroke();ctx.restore();
