@@ -51,3 +51,16 @@ html[data-theme="dark"] .crilo-wandering-link{background:#443957;color:#eadcff;b
 @keyframes criloWanderBob{0%,100%{translate:0 0}50%{translate:0 -4px}}
 @media(prefers-reduced-motion:reduce){.crilo-wandering-find,.crilo-wandering-art{animation:none;transition:none}
  .crilo-wandering-tooltip{transition:none}}
+
+/* Edge-aligned hover labels do not spill off a phone viewport. */
+.crilo-wandering-find[data-side="left"] .crilo-wandering-tooltip,
+.crilo-wandering-find:not([data-side="right"]) .crilo-wandering-tooltip{
+ left:0;right:auto;transform:translateY(5px)
+}
+.crilo-wandering-find[data-side="right"] .crilo-wandering-tooltip{
+ right:0;left:auto;transform:translateY(5px)
+}
+.crilo-wandering-find:hover .crilo-wandering-tooltip,
+.crilo-wandering-find:focus-visible .crilo-wandering-tooltip{
+ transform:translateY(0)
+}

@@ -72,6 +72,10 @@ for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','
    const tooltip=page.locator('.crilo-wandering-tooltip');
    assert.equal(await tooltip.textContent(),'The Napping Duck');
    assert.equal(await tooltip.evaluate(e=>getComputedStyle(e).visibility),'visible');
+   const labelBounds=await tooltip.boundingBox();
+   assert.ok(labelBounds.x>=-1&&labelBounds.x+labelBounds.width<=width+1,
+     'Hover label remains inside viewport at '+width+'px');
+
    await page.evaluate(()=>window.dispatchEvent(new Event('crilo-auth-ready')));
    assert.equal(await page.evaluate(()=>window.__float.calls.filter(x=>x.params.p_action==='enter').length),1,
     'Repeated auth and scroll events never reroll');

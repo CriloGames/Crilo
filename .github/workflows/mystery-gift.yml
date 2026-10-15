@@ -12,6 +12,8 @@ on:
       - 'release/346-badges/157-mystery-gifts-hidden-spins.sql'
       - 'release/346-badges/172-mystery-collection-completion.sql'
       - 'release/346-badges/173-mystery-six-complete-browser.cjs'
+      - 'release/346-badges/174-mystery-claim-hardening.sql'
+      - 'release/346-badges/175-mystery-edge-cases-browser.cjs'
       - 'release/346-badges/158-hidden-mystery-browser.cjs'
       - 'mystery-gift.css'
       - 'release/346-badges/151-mystery-gift-collection.sql'
@@ -36,4 +38,5 @@ jobs:
       - run: node --check mystery-profile.js
       - run: node release/346-badges/158-hidden-mystery-browser.cjs
       - run: node release/346-badges/173-mystery-six-complete-browser.cjs
+      - run: node release/346-badges/175-mystery-edge-cases-browser.cjs
       - run: node release/346-badges/152-mystery-gift-browser.cjs
