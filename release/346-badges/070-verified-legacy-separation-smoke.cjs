@@ -5,9 +5,16 @@ const js=fs.readFileSync('leaderboard.js','utf8');
 const html=fs.readFileSync('leaderboard.html','utf8');
 a.match(sql,/AND d\.verified_spin_session_id IS NOT NULL/);
 a.match(sql,/WHERE d\.is_test=false/);
-a.match(js,/select\(fields\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
+// Score leaderboards now use a secure joined Official+Bonus RPC.
+const ranked=fs.readFileSync('release/346-badges/159-all-daily-runs-leaderboard.sql','utf8');
+a.match(js,/crilo_public_run_leaders/);
+a.match(ranked,/d\.is_test=false AND d\.verified_spin_session_id IS NOT NULL/);
+a.match(ranked,/s\.finished_at IS NOT NULL/);
+a.match(ranked,/s\.score=b\.score/);
+a.match(ranked,/UNION ALL/);
+a.match(ranked,/NULL::text AS drawing/);
 a.match(js,/\.select\('user_id,ducks,[^']+'\)\.eq\('is_test',false\)\.not\('verified_spin_session_id','is',null\)/);
 a.match(js,/function isLegacyPreviewRun\(run\)/);
 a.match(js,/\.not\('verified_spin_session_id','is',null\)/);
-a.match(html,/leaderboard\.js\?v=52/);
+a.match(html,/leaderboard\.js\?v=54/);
 console.log('PASS: all competitive wheel score, spin, duck and lifetime-point rankings require server-backed run proofs.');
