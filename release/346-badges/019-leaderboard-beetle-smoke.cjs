@@ -12,7 +12,7 @@ const script=fs.readFileSync(path.join(root,'leaderboard.js'),'utf8');
 const beetle=fs.readFileSync(path.join(root,'bug-beetle.js'),'utf8');
 const rarityCode=fs.readFileSync(path.join(root,'rarity-system.js'),'utf8');
 assert.match(html,/style\.css\?v=128/);
-assert.ok(html.includes('rarity-system.js?v=14')&&html.includes('leaderboard-tabs.js?v=3')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=54'),'Leaderboard scripts must load in the expected order');
+assert.ok(html.includes('rarity-system.js?v=14')&&html.includes('leaderboard-tabs.js?v=3')&&html.includes('wheel-preview.js?v=1')&&html.includes('leaderboard.js?v=55'),'Leaderboard scripts must load in the expected order');
 assert.match(index,/bug-beetle\.js\?v=9/);
 assert.doesNotMatch(html,/ownerTools|previewToggle|previewBanner|OWNER TOOLS|Preview sample players/,
  'Owner Tools panel and sample-preview button must not render for any user');
@@ -71,12 +71,14 @@ async function testBoard(){
  assert.equal((list.match(/class="owner-remove-run"/g)||[]).length,4);
  const rows=list.split('<div class="leader-row score-run-row').slice(1);
  assert.equal(rows.length,4);
+ assert.equal((list.match(/class="mini-wheel"/g)||[]).length,4,'Official rows including empty drawings have wheels');
+ assert.equal((list.match(/src="blank-wheel.svg"/g)||[]).length,2,'No-drawing official rows display blank wheel');
  for(const row of rows){
   const remove=row.indexOf('class="owner-remove-run"');
   const score=row.indexOf('class="leader-score"');
   const art=row.indexOf('class="mini-wheel"');
   assert.ok(remove>=0&&remove<score,'Remove must be LEFT of score in the same actions group');
-  assert.ok(art===-1||score<art,'Artwork stays to the right of score');
+  assert.ok(art>=0&&score<art,'Every ranked run has artwork to the right of score');
  }
  qa.setTab('records');
  qa.render(samples,profiles);

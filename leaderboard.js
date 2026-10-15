@@ -227,10 +227,12 @@ function render(runs,pm){
  ].map(([label,value])=>'<span class="best-metric"><strong>'+
   Math.max(0,Number(value)||0).toLocaleString('en-US')+
   '</strong><span>'+label+'</span></span>').join('');
- if(best._source==='bonus')$('bestDrawing').classList.add('hidden');
- else $('bestDrawing').classList.remove('hidden');
- $('bestDrawing').src=drawingSrc(best.drawing);
- $('bestDrawing').alt=drawingSrc(best.drawing)==='blank-wheel.svg'?'Top player blank drawing':'Top player wheel artwork';
+ // Every ranked entry has an artwork slot. Private or absent artwork gets
+ // the same blank wheel placeholder instead of removing that slot.
+ const heroDrawing=drawingSrc(best.drawing);
+ $('bestDrawing').src=heroDrawing;
+ $('bestDrawing').alt=heroDrawing==='blank-wheel.svg'?'Top player blank drawing':'Top player wheel artwork';
+ $('bestDrawing').classList.remove('hidden');
  const medals=['🥇','🥈','🥉'];
  const canModerate=Boolean(Crilo.profile?.is_owner);
  $('leaderList').innerHTML=runs.map((r,i)=>{
@@ -248,7 +250,7 @@ function render(runs,pm){
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini"><span class="crilo-run-kind${bonus?' is-bonus':''}">${runLabel(r)}</span> · ${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span></div>
    <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
-   ${bonus?'':`<button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>`}
+   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
   </div>`;
  }).join('');
 

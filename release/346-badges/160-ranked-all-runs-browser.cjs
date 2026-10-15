@@ -21,8 +21,8 @@ assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_public_run_leaders\(te
 assert.match(source,/crilo_public_run_leaders/);
 assert.match(source,/crilo_total_points_leaders/,'Lifetime stats are still official-only');
 assert.match(source,/if\(isLegacyPreviewRun\(run\)\)continue/,'Official ducks unchanged');
-assert.match(html,/leaderboard-run-types\.css\?v=1/);
-assert.match(html,/leaderboard\.js\?v=54/);
+assert.match(html,/leaderboard-run-types\.css\?v=2/);
+assert.match(html,/leaderboard\.js\?v=55/);
 assert.match(game,/!isTest&&!isBonus/,'No Bonus Run badge awards');
 const runs=[
  {id:'a',user_id:'user-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA',verified_spin_session_id:'proof',daily_period:'2026-10-15'},
@@ -65,9 +65,13 @@ vm.runInNewContext(source,ctx,{filename:'leaderboard.js'});
  assert.equal((markup.match(/data-run-source="bonus"/g)||[]).length,2);
  assert.equal((markup.match(/data-run-source="official"/g)||[]).length,2);
  assert.ok(markup.indexOf('Bonus Run 1')<markup.indexOf('Bonus Run 2'),'Score sorting must be preserved');
- assert.equal((markup.match(/class="mini-wheel"/g)||[]).length,2,'Bonus drawings remain private');
+ assert.equal((markup.match(/class="mini-wheel"/g)||[]).length,4,'Every Official and Bonus Run has an artwork slot');
+ assert.equal((markup.match(/src="blank-wheel.svg"/g)||[]).length,3,'Private Bonus drawings and undrawn official use the blank wheel');
+ assert.equal((markup.match(/src="data:image\/png;base64,AAAA"/g)||[]).length,1,'Existing official artwork is preserved');
+ assert.equal((markup.match(/data-drawing="/g)||[]).length,4,'All drawing slots retain the preview action');
  assert.equal(get('bestRunKind').textContent,'Bonus Run 1');
- assert.ok(get('bestDrawing').classList.contains('hidden'));
+ assert.equal(get('bestDrawing').classList.contains('hidden'),false,'Top Bonus Run has a wheel preview');
+ assert.equal(get('bestDrawing').src,'blank-wheel.svg','Top Bonus Run uses the blank wheel placeholder');
  assert.equal(called[0][0],'crilo_public_run_leaders');
  assert.equal(called[0][1].p_board,'today');
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
