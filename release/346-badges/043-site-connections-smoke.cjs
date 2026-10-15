@@ -60,7 +60,7 @@ for(const page of ['index.html','leaderboard.html','ducks.html','badge-sets.html
  'profile.html','settings.html','domain/index.html'])
  assert.ok(pagesSource[page].includes('badge-events.js?v=4'),
   'Updated badge exploration listeners not loaded on '+page);
-assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=8'),
+assert.ok(pagesSource['badge-sets.html'].includes('badge-sets.js?v=9'),
  'Collection trigger cache must be current');
 for(const id of ['ownerScoreManager','ownerScoreList','ownerScoreStatus'])
  assert.ok(pagesSource['profile.html'].includes('id="'+id+'"'),
