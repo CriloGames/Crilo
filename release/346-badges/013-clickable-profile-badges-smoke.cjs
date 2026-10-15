@@ -13,7 +13,7 @@ assert.equal(catalog.length,347);
 assert.match(html,/id="badgePreviewDialog"/);
 assert.match(html,/id="badgePreviewClose"/);
 assert.match(html,/id="badgePreviewCard"/);
-assert.match(html,/badge-collection\.js\?v=6/);
+assert.match(html,/badge-collection\.js\?v=7/);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({
  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 })[c]);
