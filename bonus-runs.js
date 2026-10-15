@@ -5,9 +5,9 @@
  const panel=$('criloBonusPanel'),summary=$('criloBonusSummary'),list=$('criloBonusList'),
   progress=$('criloBonusProgress'),status=$('criloBonusStatus');
  if(!panel||!summary||!list||!progress||!status)return;
- let snapshot=null,serial=0,starting=false;
+ let snapshot=null,serial=0,starting=false,active=false;
  function render(){
-  panel.classList.toggle('hidden',!snapshot?.official_done);
+  panel.classList.toggle('hidden',active||!snapshot?.official_done);
   if(!snapshot?.official_done)return;
   const count=Number(snapshot.badge_count)||0;
   const unlocked=Number(snapshot.bonus_unlocked)||0;
@@ -42,7 +42,7 @@
  async function refresh(){
   const gen=++serial;
   if(!window.Crilo?.user||typeof criloDB==='undefined'){
-   snapshot=null;panel.classList.add('hidden');return;
+   snapshot=null;active=false;panel.classList.add('hidden');return;
   }
   const {data,error}=await criloDB.rpc('crilo_bonus_status');
   if(gen!==serial)return;
@@ -52,6 +52,7 @@
    return;
   }
   snapshot=data;
+  active=false;
   status.textContent='';
   render();
  }
@@ -66,7 +67,7 @@
    const {data,error}=await criloDB.rpc('crilo_begin_bonus_spin_session',{p_slot:number});
    if(error||!data)throw error||new Error('Bonus run unavailable');
    status.textContent='';
-   panel.classList.add('hidden');
+   active=true;panel.classList.add('hidden');
    window.dispatchEvent(new CustomEvent('crilo-bonus-run-start',{detail:{slot:number}}));
   }catch(error){
    status.textContent=error?.message||'Bonus run could not start. Try again.';
