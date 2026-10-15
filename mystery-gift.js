@@ -235,6 +235,7 @@
   }
  });
  window.addEventListener('crilo-auth-ready',refresh);
+ window.addEventListener('crilo-official-wheel-stopped',()=>refresh({autoOpen:true}));
  window.addEventListener('crilo-official-daily-saved',()=>refresh({autoOpen:true}));
  window.CriloMysteryGift={refresh,setMode};
  if(window.Crilo?.authResolved)refresh();

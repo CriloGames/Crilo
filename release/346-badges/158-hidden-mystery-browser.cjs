@@ -23,6 +23,8 @@ assert.match(gift,/shortcut\.classList\.toggle\('hidden',!waiting\)/,
  'Mystery should be invisible on Daily until a surprise actually appears');
 assert.doesNotMatch(gift,/count\+' \/ '\+names\.length\+' mysteries found'/);
 assert.match(game,/serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0/);
+assert.match(game,/crilo-official-wheel-stopped/);
+assert.match(gift,/addEventListener\('crilo-official-wheel-stopped'/);
 assert.match(profile,/id="criloCuriosities"/);
 assert.match(home,/id="criloMysteryOpenCollection" hidden/);
 const markup=profile.match(/<section id="criloCuriosities"[\s\S]*?<\/dialog>/);
@@ -47,14 +49,18 @@ assert.ok(markup,'Private Statistics shelf and dialog must exist');
     criloDB.rpc=async()=>({data:{discovered:[]},error:null});
     window.dispatchEvent(new Event('crilo-auth-ready'));
    });
-   assert.equal(await page.locator('#criloCuriosities').isVisible(),false,'Undiscovered feature must stay secret');
+   await page.locator('#criloCuriositiesOpen').waitFor({state:'visible'});
+   assert.match(await page.locator('#criloCuriositiesCount').textContent(),/0 \/ 6/);
    await page.evaluate(()=>{
     criloDB.rpc=async()=>({data:{discovered:['sleepy_duck','tiny_crown']},error:null});
     window.dispatchEvent(new Event('crilo-auth-ready'));
    });
    await page.locator('#criloCuriositiesOpen').waitFor({state:'visible'});
    await page.locator('#criloCuriositiesOpen').click();
-   assert.equal(await page.locator('#criloCuriositiesList li').count(),2,'Only earned collectibles are shown');
+   assert.equal(await page.locator('#criloCuriositiesList li').count(),6,'All six collection slots are shown');
+   assert.equal(await page.locator('#criloCuriositiesList li.crilo-curiosity-found').count(),2);
+   assert.equal(await page.locator('#criloCuriositiesList li.crilo-curiosity-locked').count(),4);
+   assert.match(await page.locator('#criloCuriositiesCount').textContent(),/2 \/ 6/);
    assert.match(await page.locator('#criloCuriositiesDialog').textContent(),/Napping Duck/);
    assert.doesNotMatch(await page.locator('#criloCuriositiesDialog').textContent(),/Backwards Map/);
    await page.locator('#criloCuriositiesClose').click();
@@ -65,6 +71,6 @@ assert.ok(markup,'Private Statistics shelf and dialog must exist');
    }
    await page.close();tested++;
   }
-  console.log('HIDDEN_MYSTERY_PASS: 2% official spins, no rerolls; private curiosities hidden until won; '+tested+' device widths');
+  console.log('HIDDEN_MYSTERY_PASS: 2% official spins, post-stop surprise; permanent private Statistics collection and '+tested+' device widths');
  }finally{await browser.close()}
 })().catch(error=>{console.error('HIDDEN_MYSTERY_FAIL',error);process.exitCode=1});

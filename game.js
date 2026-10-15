@@ -469,10 +469,13 @@ if(serverReply){
  score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);
 }
 update();
-// Consume the 2% server-side mystery check once per completed official spin.
-// Final spins are checked after verified Daily saving in endRun().
+// resolve() runs only after the wheel animation stops. A 2% Mystery Gift
+// can appear now, never while the wheel is still spinning.
+// The final spin waits for verified Daily saving before its gift check.
 if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0)
- void window.CriloMysteryGift?.refresh?.({autoOpen:true});
+ window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
+  detail:{spinCount:totalSpins}
+ }));
 if(guestRun&&spins>0&&!guestSaveOrPause())return;
 if(spins<=0){
  // Classify only after the LAST resolved spin, after every extra-spin effect.

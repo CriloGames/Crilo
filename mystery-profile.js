@@ -1,5 +1,5 @@
-/* Your Curiosities shelf is concealed until the player wins a mystery.
- * It is private to the signed-in owner of the Statistics profile. */
+/* Permanent Mystery Collection section on the player's own Statistics page.
+ * Only earned curiosities reveal names; no ranked gameplay changes. */
 (()=>{
  'use strict';
  const box=document.getElementById('criloCuriosities');
@@ -8,6 +8,7 @@
  const close=document.getElementById('criloCuriositiesClose');
  const modal=document.getElementById('criloCuriositiesDialog');
  const list=document.getElementById('criloCuriositiesList');
+ const count=document.getElementById('criloCuriositiesCount');
  // Existing six collectible curiosities. No rewards modify wheel gameplay.
  const prizes={
   sleepy_duck:['The Napping Duck','This duck fell asleep halfway through saying quack.'],
@@ -23,23 +24,32 @@
   const ticket=++serial,me=window.Crilo?.user?.id;
   const target=new URLSearchParams(location.search).get('id');
   if(!me||(target&&target!==me)){hide();return}
+  // Show the actual Statistics tab while its saved discoveries load.
+  box.hidden=false;
+  count.textContent='Loading collection…';
   const {data,error}=await criloDB.rpc('crilo_mystery_gift',{p_action:'status'});
   if(ticket!==serial)return;
-  if(error){console.warn('Curiosities unavailable:',error.message);hide();return}
+  if(error){console.warn('Curiosities unavailable:',error.message);count.textContent='Unavailable';return}
   const found=[...new Set(Array.isArray(data?.discovered)?data.discovered:[])]
    .filter(key=>Object.hasOwn(prizes,key));
-  if(!found.length){hide();return}
+  count.textContent=found.length+' / '+Object.keys(prizes).length+' found';
   list.replaceChildren();
-  for(const key of found){
-   const item=document.createElement('li'),title=document.createElement('strong');
-   const description=document.createElement('small');
-   title.textContent=prizes[key][0];
-   description.textContent=prizes[key][1];
-   item.append(title,description);
-   list.append(item);
+  for(const [key,[name,story]] of Object.entries(prizes)){
+   const won=found.includes(key);
+   const item=document.createElement('li');
+   item.className=won?'crilo-curiosity-found':'crilo-curiosity-locked';
+   const icon=document.createElement('span');
+   icon.className='crilo-curiosity-symbol';icon.setAttribute('aria-hidden','true');
+   icon.textContent=won?'✦':'?';
+   const copy=document.createElement('span');
+   const title=document.createElement('strong'),description=document.createElement('small');
+   title.textContent=won?name:'Undiscovered';
+   description.textContent=won?story:'A little mystery waiting to be found.';
+   copy.append(title,description);
+   item.append(icon,copy);list.append(item);
   }
   box.hidden=false;
-  open.setAttribute('aria-label','View '+found.length+' discovered curiosities');
+  open.setAttribute('aria-label','View Mystery Collection, '+found.length+' of six discovered');
  }
  open.addEventListener('click',()=>modal.showModal());
  close.addEventListener('click',()=>modal.close());
