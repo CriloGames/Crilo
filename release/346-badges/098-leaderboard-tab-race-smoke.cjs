@@ -50,7 +50,7 @@ async function scenario(name,fromTab,toTab){
  }
  function rpc(key){
   const d=deferred();
-  (key==='crilo_public_run_leaders'?requests.daily:key==='crilo_gameplay_badge_leaders'?requests.badges:requests.points).push(d);
+  (key==='crilo_grouped_daily_leaders'?requests.daily:key==='crilo_gameplay_badge_leaders'?requests.badges:requests.points).push(d);
   return d.promise;
  }
  const ctx={window:{addEventListener(){},CriloRarity:{scoreBands:[]},CriloNameColors:{paint(el,profile){el.textContent=profile?.username||'Crilo player'},markup(profile){return String(profile?.username||'Crilo player')}}},
