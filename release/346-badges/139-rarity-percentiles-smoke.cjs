@@ -91,9 +91,11 @@ assert.equal(badges.active([...featuredDivine,{id:7,is_active:false},{id:8,is_ea
 const arts=featuredDivine.map(x=>badges.artHTML(x));
 assert.ok(arts.every(x=>x.includes('<svg')),'All five Divine badges need art');
 assert.equal(new Set(arts).size,5,'Each Divine badge needs distinct artwork');
-assert.equal(badges.bestEarned([
+const divineBeforeMythic=badges.bestEarned([
  {id:99,badge_key:'mythic',name:'Mythic',category:'Wheel',requirement:{rarity:'mythic'}},
- ...featuredDivine],featuredDivine.map(x=>({badge_id:x.id})),50)[0].badge_key,'v2_score_rarity_divine');
+ ...featuredDivine],[...featuredDivine.map(x=>({badge_id:x.id})),{badge_id:99}],50);
+ assert.equal(badges.rarity(divineBeforeMythic[0]),'divine','Divine precedes Mythic');
+ assert.equal(divineBeforeMythic[divineBeforeMythic.length-1].badge_key,'mythic');
 assert.match(read('profile.js'),/earnedCount\+'\/'\+activeBadges\.length\+' badges collected · Best 50 shown'/);
 assert.match(read('profile.js'),/is_active,is_earnable/);
 assert.match(read('badge-sets.js'),/is_active,is_earnable/);
