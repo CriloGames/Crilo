@@ -34,6 +34,14 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
   for(const width of [320,390,768,1180]){
    const context=await browser.newContext({viewport:{width,height:860},reducedMotion:'reduce'});
    await context.addInitScript({content:mockSupabase});
+   // Isolate the real gift UI from unrelated Daily countdown / auth
+   // redirects while injecting synthetic verified-claim states.
+   for(const asset of ['app.js','game.js']){
+    await context.route('**/'+asset+'?v=*',route=>route.fulfill({
+     status:200,contentType:'text/javascript',
+     body:'window.Crilo=window.Crilo||{authResolved:false,user:null};'
+    }));
+   }
    await context.route(/^https:\/\/(cdn\.jsdelivr\.net|unpkg\.com)\//,
     route=>route.fulfill({status:200,contentType:'text/javascript',body:''}));
    await context.route(/^https:\/\/(?!crilo\.fun)/,route=>route.abort());
