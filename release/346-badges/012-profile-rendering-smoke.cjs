@@ -121,7 +121,7 @@ async function run(awards){
   assert.equal(displayed[i][2],esc(expected[i].badge_key),'Identity order '+i);
   assert.equal(displayed[i][3],esc(expected[i].name),'Name order '+i);
  }
- assert.ok(!/<svg|<img|badge-set-icon/.test(html),'Profile badges must have no symbols');
+ assert.ok(!/<img|badge-set-icon/.test(html),'Profile badge chips may only contain earned Divine emblems');
 
  // Run the actual collection page script with the same fixtures.
  vm.runInNewContext(setsSource,ctx,{filename:'badge-sets.js',timeout:1500});
@@ -138,7 +138,9 @@ async function run(awards){
   'All 347 badges must display their unlock instructions, not just hover titles');
  assert.ok(collection.includes(esc(badges[0].description)),
   'Unlock instructions must be escaped and visible inside the tile');
- assert.ok(!/<svg|<img|badge-set-icon/.test(collection),'Collection sets must be icon-free');
+ assert.ok(!/<img|badge-set-icon/.test(collection),'Collection sets do not use generic category artwork');
+assert.ok(!/<svg/.test(collection.replace(/<span class="crilo-divine-art"[\s\S]*?<\/span>/g,'')),
+ 'Only uniquely drawn Divine emblems may add collection SVGs');
  assert.equal(getElementById('setsCompleted').textContent,
   sets.filter(set=>set.complete).length+' / '+sets.length);
  console.log('PASS: '+awards+' earned; '+chipMatches.length+' Mythic-first profile tiles; '+
