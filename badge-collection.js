@@ -46,7 +46,7 @@
     'score':'Score Milestones',
     'wheel':'Wheel Moments'
   };
-  const active=badges=>(badges||[]).filter(b=>b && b.category!=='legacy_score');
+  const active=badges=>(badges||[]).filter(b=>b && b.category!=='legacy_score' && b.is_active!==false && b.is_earnable!==false);
   const key=id=>String(id);
   const earnedMap=rows=>new Map((rows||[]).map(x=>[key(x.badge_id),x]));
   const probability=badge=>{
@@ -63,6 +63,8 @@
     return 'mythic';
   };
   const rarity=badge=>{
+    // Divine is an explicitly earned prestige tier, not an inferred drop percentage.
+    if(String(badge?.requirement?.rarity||'').toLowerCase()==='divine')return 'divine';
     const chance=probability(badge);
     if(chance!==null)return tierFromPercent(chance);
     const name=String(badge?.requirement?.rarity||'common').toLowerCase();
@@ -80,6 +82,21 @@
     if(pa!==null&&pb!==null&&pa!==pb)return pa-pb;
     return 0;
   }
+
+  // Five individually drawn SVG emblems; no emoji or generic rarity icon reuse.
+  // Ink remains near-black on the pale medallion; the containing Divine tile is obsidian.
+  const divineScenes={
+    v2_score_rarity_divine:'<circle cx="24" cy="24" r="19" fill="#e1eafd"/><path d="M13 33l11-19 11 19H13Z" fill="#b9d4f4"/><path d="M18 29l6-10 6 10" fill="none"/><path d="M24 3v6M6 19l5 2m31-2-5 2"/>',
+    divine_beyond_mythic:'<path d="M5 39l10-15 7 8 10-21 11 28H5Z" fill="#d4d0f0"/><path d="m32 11 3 8-4 5-4-5Z" fill="#eff5ff"/><path d="m13 9 2 4 4 1-4 1-2 4-1-4-4-1 4-1Z" fill="#eedbb4"/>',
+    divine_touched_by_wheel:'<circle cx="22" cy="24" r="17" fill="#d9e9f1"/><path d="M22 7v34M5 24h34M10 12l24 24M10 36l24-24"/><circle cx="22" cy="24" r="5" fill="#f4e4b6"/><path d="M37 8v8m-4-4h8" stroke="#a5bde5"/><path d="m33 34 7-10 3 4-8 11" fill="#d9c8e8"/>',
+    divine_heavenly_momentum:'<path d="M6 38h36" stroke="#a5bed8"/><path d="M8 33l12-12 8 5L41 7" fill="none" stroke-width="3"/><path d="m31 7 10 0 0 10" fill="none"/><path d="m13 9 3 6 6 2-6 2-3 6-3-6-6-2 6-2Z" fill="#f3dfb2"/>',
+    divine_consistency:'<rect x="6" y="12" width="36" height="30" rx="4" fill="#e0ecf5"/><path d="M6 20h36M15 6v11m18-11v11"/><path d="m12 28 2 2 3-4m2 8 2 2 3-4m3-4 2 2 3-4m3 8 2 2 3-4" stroke="#89bda9" stroke-width="2"/><circle cx="24" cy="4" r="2" fill="#e9cf9e"/>'
+  };
+  const artHTML=badge=>{
+    const scene=divineScenes[String(badge?.badge_key||'')];
+    return scene?'<span class="crilo-divine-art" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="#111318" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+scene+'</svg></span>':'';
+  };
+
   // Single source of markup for the collection grid and profile badge detail.
   // Every badge uses its database key, rarity, description, and earned state.
   function tileHTML(badge,owned,escapeHTML,options={}){
@@ -99,7 +116,7 @@
       '" title="'+esc(description)+'"'+
       (interactive?' tabindex="0" role="button" aria-expanded="'+String(expanded)+
       '" aria-label="'+esc(title+'. '+status+'. '+description+' Tap to expand.')+'"':'')+'>'+
-      '<b>'+esc(title)+'</b><small>'+esc(status+oddsNote)+'</small>'+
+      artHTML(badge)+'<b>'+esc(title)+'</b><small>'+esc(status+oddsNote)+'</small>'+
       '<p class="collection-tile-description">'+esc(description)+'</p></article>';
   }
   function bestEarned(badges,earnedRows,max=50){
@@ -143,5 +160,5 @@
       return a.name.localeCompare(b.name);
     });
   }
-  window.CriloBadgeCollection={active,earnedMap,rarity,compareDifficulty,bestEarned,sets,tileHTML,rarityOrder};
+  window.CriloBadgeCollection={active,earnedMap,rarity,compareDifficulty,bestEarned,sets,tileHTML,artHTML,rarityOrder};
 })();
