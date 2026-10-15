@@ -82,7 +82,7 @@ for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','
    assert.equal(await page.evaluate(()=>window.__float.events),1,'Notify Statistics to refresh');
    assert.equal(await page.locator('.crilo-wandering-link').getAttribute('href'),'profile.html');
    await page.locator('.crilo-wandering-close').click();
-   assert.equal(await page.locator('.crilo-wandering-dialog').count(),0);
+   await page.locator('.crilo-wandering-dialog').waitFor({state:'detached'});
    for(const theme of ['light','dark']){
     await page.evaluate(theme=>document.documentElement.dataset.theme=theme,theme);
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);
