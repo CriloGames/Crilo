@@ -1,0 +1,30 @@
+name: Badge Bonus Daily browser and security
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'bonus-runs.js'
+      - 'bonus-runs.css'
+      - 'release/346-badges/153-badge-bonus-daily-runs.sql'
+      - 'release/346-badges/154-bonus-dailies-browser.cjs'
+      - '.github/workflows/bonus-dailies.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bonus-dailies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check game.js
+      - run: node --check bonus-runs.js
+      - run: node release/346-badges/154-bonus-dailies-browser.cjs
