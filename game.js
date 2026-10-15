@@ -948,7 +948,7 @@ function renderResult(r,stored=null){
  $('result').classList.remove('hidden');
  $('result').dataset.rarity=r.color;
  $('resultEyebrow').textContent=isTest?'TEST RUN COMPLETE':isBonus?'BONUS RUN COMPLETE':'DAILY COMPLETE';
- const leaderboardLink=$('result').querySelector('.result-actions a.primary');
+ const leaderboardLink=$('result').querySelector?.('.result-actions a.primary');
  if(leaderboardLink)leaderboardLink.textContent=isBonus?
   'Official leaderboard — bonus excluded →':'See leaderboard →';
  $('finalScore').textContent=fmt(number('score',score));
