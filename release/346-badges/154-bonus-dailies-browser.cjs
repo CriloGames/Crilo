@@ -95,11 +95,13 @@ function snapshot(badges,official=true,complete=[]){
   await setStatus(snapshot(45));
   assert.equal(await page.locator('#criloBonusPanel').isVisible(),true);
   assert.match(await page.locator('#criloBonusProgress').textContent(),/45 \/ 50/);
+  assert.match(await page.locator('#criloBonusProgress').textContent(),/unlock your next free Bonus Run/);
   assert.equal(await page.locator('#criloBonusPrimary button').count(),0,
    'No unlocked bonus means no playable primary action');
   await setStatus(snapshot(155,true,[1]));
   assert.match(await page.locator('#criloBonusSummary').textContent(),/Keep playing/);
   assert.match(await page.locator('#criloBonusProgress').textContent(),/155 \/ 200/);
+  assert.match(await page.locator('#criloBonusProgress').textContent(),/155 \/ 200 unique badges to unlock your next free Bonus Run/);
   assert.match(await page.locator('#criloBonusRemaining').textContent(),/2BONUS RUNS LEFT/);
   assert.equal(await page.locator('#criloBonusPrimary button').count(),1,
    'One single obvious next-play action');
