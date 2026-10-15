@@ -1,31 +1,93 @@
-/* Extra Crilo Dailies: readable in both themes and on small screens. */
-.crilo-bonus-panel{max-width:670px;margin:17px auto 25px;border:1.5px solid var(--line,#ddd);
- border-radius:20px;padding:18px 19px;background:var(--panel,#fff);color:var(--text,#27272b);
- box-shadow:0 6px 22px var(--shadow,#0000000a)}
+/* Bonus Runs: a small, obvious NEXT action after a verified account Daily.
+   No huge four-row locked-card stack on the main screen. */
+.crilo-bonus-panel{
+ box-sizing:border-box;width:min(100%,660px);margin:14px auto 23px;
+ padding:19px 22px 15px;border:1px solid var(--line,#dedee2);
+ border-radius:18px;background:var(--panel,#fff);color:var(--text,#212329);
+ box-shadow:0 5px 20px rgba(20,20,30,.035);text-align:left;
+ scroll-margin-top:clamp(18px,8vh,62px)}
 .crilo-bonus-panel.hidden{display:none!important}
-.crilo-bonus-title{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.crilo-bonus-mark{display:grid;place-items:center;background:#e9effe;border:1.5px solid #1f2530;
- width:43px;height:43px;border-radius:14px;font-size:22px;color:#24262d;flex:0 0 43px}
-.crilo-bonus-title h3{font-size:15px;font-weight:900;margin:0;letter-spacing:-.02em}
-.crilo-bonus-title p{font-size:12px;color:var(--muted,#777);margin:3px 0 0}
-.crilo-bonus-progress{font-size:12px;color:var(--muted,#777);line-height:1.4;margin:3px 0 11px}
-.crilo-bonus-slots{display:grid;gap:8px}
-.crilo-bonus-slot{display:flex;align-items:center;gap:12px;padding:10px 12px;
- border-radius:12px;background:var(--soft,#f6f6f6);border:1px solid var(--line,#ddd)}
+.crilo-bonus-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:13px}
+.crilo-bonus-heading-copy{min-width:0;flex:1}
+.crilo-bonus-eyebrow{display:block;font:850 10px/1.2 system-ui,sans-serif;
+ letter-spacing:.12em;color:var(--muted,#777);margin-bottom:5px}
+.crilo-bonus-heading h3{margin:0;font-size:clamp(20px,4vw,25px);line-height:1.18;
+ font-weight:900;letter-spacing:-.035em}
+.crilo-bonus-lead{margin:5px 0 0;color:var(--muted,#72757f);
+ font:500 12px/1.4 system-ui,sans-serif;max-width:350px}
+.crilo-bonus-count{display:grid;justify-items:center;align-content:center;
+ min-width:67px;padding:4px 7px;border-radius:11px;
+ background:var(--soft,#f7f7f9);color:var(--text,#28282c)}
+.crilo-bonus-count strong{font:900 24px/1.1 system-ui,sans-serif}
+.crilo-bonus-count span{font:800 8px/1.4 system-ui,sans-serif;letter-spacing:.045em;
+ text-align:center;color:var(--muted,#767883)}
+.crilo-bonus-primary{display:flex;align-items:center;justify-content:space-between;
+ gap:14px;margin:16px 0 12px;padding:12px 14px;
+ background:var(--soft,#f8f8f9);border:1px solid var(--line,#e6e6e8);
+ border-radius:13px;min-width:0}
+.crilo-bonus-primary-copy{flex:1;min-width:0}
+.crilo-bonus-primary-copy strong{display:block;font:850 13px/1.4 system-ui,sans-serif;
+ color:var(--text,#24242c)}
+.crilo-bonus-primary-copy span{display:block;font:500 11px/1.5 system-ui,sans-serif;
+ color:var(--muted,#75777e);margin-top:2px}
+.crilo-bonus-action{flex:0 0 auto;border:1.5px solid #24262c;border-radius:10px;
+ padding:11px 15px;background:#ffedb7;color:#22242b;
+ font:850 12px/1.2 system-ui,sans-serif;cursor:pointer;white-space:nowrap;
+ box-shadow:0 2px 0 #24262c}
+.crilo-bonus-action:hover:not(:disabled){background:#ffdf91}
+.crilo-bonus-action:focus-visible,.crilo-bonus-play:focus-visible,.crilo-bonus-details summary:focus-visible{
+ outline:3px solid #93c9ee;outline-offset:3px}
+.crilo-bonus-done{display:grid;place-items:center;width:32px;height:32px;
+ font:800 19px/1 system-ui,sans-serif;color:var(--muted,#777)}
+.crilo-bonus-footer{display:flex;align-items:flex-start;justify-content:space-between;
+ gap:14px;flex-wrap:wrap}
+.crilo-bonus-milestone{min-width:150px;flex:1 1 220px}
+.crilo-bonus-milestone>span{display:block;margin-bottom:7px;
+ font:650 11px/1.4 system-ui,sans-serif;color:var(--muted,#7a7b82)}
+.crilo-bonus-track{height:5px;width:100%;border-radius:20px;
+ background:var(--line,#e5e5e8);overflow:hidden}
+.crilo-bonus-track>span{display:block;height:100%;width:0;border-radius:20px;
+ background:#bda6eb;transition:width .25s ease}
+.crilo-bonus-details{margin:0;align-self:flex-start;flex:0 0 auto;min-width:106px;
+ font:750 11px/1.4 system-ui,sans-serif}
+.crilo-bonus-details summary{display:flex;align-items:center;justify-content:flex-end;
+ gap:5px;cursor:pointer;list-style:none;color:var(--text,#35343b);
+ padding:2px 0;white-space:nowrap}
+.crilo-bonus-details summary::-webkit-details-marker{display:none}
+.crilo-bonus-details summary span:not(.crilo-bonus-chevron){color:var(--muted,#777);font-weight:500}
+.crilo-bonus-chevron{display:inline-block;margin-left:3px;transition:transform .2s}
+.crilo-bonus-details[open] .crilo-bonus-chevron{transform:rotate(180deg)}
+.crilo-bonus-details[open]{flex:1 1 100%;width:100%;padding-top:8px}
+.crilo-bonus-details[open] summary{justify-content:flex-start}
+.crilo-bonus-slots{display:grid;gap:5px;margin-top:10px}
+.crilo-bonus-slot{display:flex;align-items:center;gap:11px;min-width:0;
+ padding:9px 11px;border-radius:10px;background:var(--soft,#f7f8fa);
+ border:1px solid var(--line,#e2e4e6)}
+.crilo-bonus-slot.is-locked{opacity:.64}
 .crilo-bonus-slot-copy{flex:1;min-width:0}
-.crilo-bonus-slot-copy strong{display:block;font-weight:850;font-size:12px}
-.crilo-bonus-slot-copy small{display:block;margin-top:4px;font-size:11px;
- line-height:1.35;color:var(--muted,#888);overflow-wrap:anywhere}
-.crilo-bonus-play{flex:0 0 auto;min-width:78px;min-height:38px;cursor:pointer;
- border:1.5px solid var(--text,#26272c);border-radius:11px;
- background:var(--panel,#fff);color:var(--text,#26272c);
- padding:9px 13px;font:850 12px/1.2 system-ui,sans-serif}
-.crilo-bonus-play:disabled{opacity:.46;cursor:default}
-.crilo-bonus-play:not(:disabled):hover{background:#e8e8f8;color:#21222b}
-.crilo-bonus-note{font-size:11px;line-height:1.6;color:var(--muted,#777);margin:12px 0 0}
-.crilo-bonus-message{font-size:12px;line-height:1.5;margin:7px 0 0;color:#b54649}
-@media(max-width:390px){
- .crilo-bonus-panel{padding:14px 12px;margin:14px auto 20px}
- .crilo-bonus-slot{gap:7px;padding:9px}
- .crilo-bonus-play{min-width:66px;padding:8px 9px}
+.crilo-bonus-slot-copy strong{font:800 12px/1.4 system-ui,sans-serif;display:block}
+.crilo-bonus-slot-copy small{font:500 10px/1.4 system-ui,sans-serif;color:var(--muted,#777);
+ display:block;margin-top:2px}
+.crilo-bonus-play{font:750 11px/1.3 system-ui,sans-serif;white-space:nowrap;
+ border:1px solid var(--line,#ddd);background:var(--panel,#fff);
+ color:var(--text,#222);border-radius:9px;padding:7px 11px;cursor:pointer}
+.crilo-bonus-play:not(:disabled):hover{border-color:#b1a1d8}
+.crilo-bonus-play:disabled,.crilo-bonus-action:disabled{opacity:.55;cursor:default}
+.crilo-bonus-note{font:500 10px/1.45 system-ui,sans-serif;
+ color:var(--muted,#777);margin:12px 0 0}
+.crilo-bonus-message{font:600 12px/1.4 system-ui,sans-serif;color:#b54a4a;margin:9px 0 0}
+.crilo-bonus-message:empty{display:none}
+@media(max-width:420px){
+ .crilo-bonus-panel{padding:15px 13px;margin:12px auto 19px}
+ .crilo-bonus-heading{gap:7px}
+ .crilo-bonus-count{min-width:59px}
+ .crilo-bonus-primary{padding:10px;gap:7px}
+ .crilo-bonus-action{padding:10px 10px;font-size:11px}
+ .crilo-bonus-footer{gap:8px}
+ .crilo-bonus-milestone{min-width:140px}
+ .crilo-bonus-details{align-self:stretch;flex:1 1 100%}
+ .crilo-bonus-details summary{justify-content:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+ .crilo-bonus-track>span,.crilo-bonus-chevron{transition:none}
 }
