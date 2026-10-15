@@ -1,4 +1,4 @@
-/* Run the production profile and collection JS against 346 realistic badge definitions.
+/* Run the production profile and collection JS against 347 realistic badge definitions.
  * Validates top-50 rarity ranking, set completion, all locked/earned tiles, and navigation. */
 'use strict';
 const fs=require('node:fs');
@@ -46,7 +46,7 @@ const badges=catalog.map((b,i)=>({
  category:b.category||'other',requirement:{rarity:b.rarity||'common'},
  is_secret:Boolean(b.is_secret),sort_order:i+1
 }));
-assert.equal(badges.length,346);
+assert.equal(badges.length,347);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({
  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 })[c]);
@@ -88,9 +88,9 @@ async function run(awards){
   localStorage:{getItem:()=>null},console,confirm:()=>false};
  vm.runInNewContext(modelSource,ctx,{filename:'badge-collection.js',timeout:1500});
  const model=win.CriloBadgeCollection;
- assert.equal(model.active(badges).length,346);
+ assert.equal(model.active(badges).length,347);
  const sets=model.sets(badges,rows);
- assert.equal(sets.reduce((n,set)=>n+set.total,0),346,'All definitions belong to one set');
+ assert.equal(sets.reduce((n,set)=>n+set.total,0),347,'All definitions belong to one set');
  assert.equal(sets.reduce((n,set)=>n+set.unlocked,0),awards,'All awards counted once');
  for(const set of sets){
   for(let i=1;i<set.badges.length;i++){
@@ -128,21 +128,21 @@ async function run(awards){
  await listeners['crilo-auth-ready']();
  const collection=getElementById('collectionSets').innerHTML;
  assert.equal((collection.match(/<details class="collection-card">/g)||[]).length,sets.length);
- assert.equal((collection.match(/<article class="collection-tile/g)||[]).length,346);
- assert.equal((collection.match(/tabindex="0" role="button" aria-expanded="false"/g)||[]).length,346,
+ assert.equal((collection.match(/<article class="collection-tile/g)||[]).length,347);
+ assert.equal((collection.match(/tabindex="0" role="button" aria-expanded="false"/g)||[]).length,347,
   'Compact tiles must support keyboard/touch expansion of full requirements');
- assert.equal((collection.match(/<article class="collection-tile locked"/g)||[]).length,346-awards);
+ assert.equal((collection.match(/<article class="collection-tile locked"/g)||[]).length,347-awards);
  assert.equal((collection.match(/<article class="collection-tile" data-badge-rarity=/g)||[]).length,awards,
   'Every earned badge must display using its own brighter rarity tile');
- assert.equal((collection.match(/<p class="collection-tile-description">/g)||[]).length,346,
-  'All 346 badges must display their unlock instructions, not just hover titles');
+ assert.equal((collection.match(/<p class="collection-tile-description">/g)||[]).length,347,
+  'All 347 badges must display their unlock instructions, not just hover titles');
  assert.ok(collection.includes(esc(badges[0].description)),
   'Unlock instructions must be escaped and visible inside the tile');
  assert.ok(!/<svg|<img|badge-set-icon/.test(collection),'Collection sets must be icon-free');
  assert.equal(getElementById('setsCompleted').textContent,
   sets.filter(set=>set.complete).length+' / '+sets.length);
  console.log('PASS: '+awards+' earned; '+chipMatches.length+' Mythic-first profile tiles; '+
-  sets.length+' expandable sets, 346 text-only collection tiles.');
+  sets.length+' expandable sets, 347 text-only collection tiles.');
 }
 (async()=>{
  await run(0);

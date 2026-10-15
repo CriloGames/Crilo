@@ -9,11 +9,12 @@ const localStorage={
  setItem:(k,v)=>storage.set(k,String(v)),
  removeItem:k=>storage.delete(k)
 };
-const segments=[
- {type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},
- {type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},
- {type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}
+const initial=[
+ {type:'num',base:40},{type:'duck'},{type:'num',base:20},{type:'upgrade'},
+ {type:'num',base:60},{type:'num',base:20},{type:'spins'},{type:'num',base:80},
+ {type:'duck'},{type:'num',base:40},{type:'double'},{type:'num',base:20}
 ];
+const segments=initial.concat(initial);
 let beginCount=0,claimed=0,remote=null,official=null,guestSpinCalls=0;
 const clone=x=>JSON.parse(JSON.stringify(x));
 function remoteState(){
@@ -30,7 +31,7 @@ function mount(signed=false,rateLimited=false){
   const classList={add:x=>classes.add(x),remove:x=>classes.delete(x),
    contains:x=>classes.has(x),toggle:(x,v)=>{if(v===undefined)v=!classes.has(x);if(v)classes.add(x);else classes.delete(x);return v}};
   const canvasContext=new Proxy({
-   getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),drawImage(){},clearRect(){}
+   getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),measureText:()=>({width:20}),drawImage(){},clearRect(){}
   },{get:(t,k)=>t[k]||(()=>{})});
   const node={id,disabled:false,hidden:false,value:'',open:false,textContent:'',innerHTML:'',
    style:{},dataset:{},classList,width:200,height:200,
@@ -57,8 +58,8 @@ function mount(signed=false,rateLimited=false){
    if(name==='crilo_guest_spin'){
     guestSpinCalls++;
     assert.equal(args.p_token,TOKEN);
-    const rec={type:'num',base:2,points:2,segments:12,probability:2/12};
-    remote.score+=2;remote.spin_count++;remote.remaining_spins--;
+    const rec={type:'num',base:40,points:40,segments:24,probability:4/24};
+    remote.score+=40;remote.spin_count++;remote.remaining_spins--;
     remote.results.push(rec);
     return{data:{outcome_index:0,outcome:clone(rec),score:remote.score,
       remaining_spins:remote.remaining_spins,spin_count:remote.spin_count,
@@ -101,16 +102,16 @@ function mount(signed=false,rateLimited=false){
  assert.equal(beginCount,1);assert.equal(guestSpinCalls,1);
  const persisted=JSON.parse(storage.get(KEY));
  assert.equal(persisted.version,3);assert.equal(persisted.verifiedToken,TOKEN);
- assert.equal(persisted.state.score,2);assert.equal(persisted.state.totalSpins,1);
+ assert.equal(persisted.state.score,40);assert.equal(persisted.state.totalSpins,1);
  const restored=mount();await restored.ready();await new Promise(resolve=>setImmediate(resolve));
- assert.equal(restored.get('score').textContent,'2','Reload uses server score');
+ assert.equal(restored.get('score').textContent,'40','Reload uses server score');
  assert.equal(beginCount,1,'Reload cannot restart the verified guest Daily');
  for(let i=1;i<5;i++){await restored.spin();await new Promise(resolve=>setImmediate(resolve))}
  assert.equal(JSON.parse(storage.get(KEY)).status,'complete');
- assert.equal(remote.score,10);assert.equal(guestSpinCalls,5);assert.equal(claimed,0);
+ assert.equal(remote.score,200);assert.equal(guestSpinCalls,5);assert.equal(claimed,0);
  const signed=mount(true);await signed.ready();await new Promise(resolve=>setImmediate(resolve));
  assert.equal(claimed,1,'Completed guest Daily auto-claimed at sign in');
- assert.equal(official.score,10);assert.equal(storage.has(KEY),false);
+ assert.equal(official.score,200);assert.equal(storage.has(KEY),false);
  assert.match(signed.get('message').textContent,/saved|Daily/i);
  await signed.ready();assert.equal(claimed,1,'Claim cannot repeat');
  const limited=mount(false,true);await limited.ready();await limited.spin();

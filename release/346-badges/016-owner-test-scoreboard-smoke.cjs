@@ -12,16 +12,16 @@ const historySource=fs.readFileSync(path.resolve(__dirname,'../../spin-history.j
 const scoreCSS=fs.readFileSync(path.resolve(__dirname,'../../style.css'),'utf8');
 const rarityWorld={};vm.runInNewContext(raritySource,{window:rarityWorld});
 const trueScoreBands=rarityWorld.CriloRarity.scoreBands;
-assert.match(indexHTML,/rarity-system\.js\?v=12/,'Homepage should load the updated rarity explanation');
+assert.match(indexHTML,/rarity-system\.js\?v=13/,'Homepage should load the updated rarity explanation');
 for(const score of [0,9,60,301]){
  const message=rarityWorld.CriloRarity.classify(score).explanation;
  assert.match(message,/^\d+\.\d{2}% of simulated runs scored at least this high\.$/);
  assert.ok(!message.includes('Score tier based on'),'Omit redundant simulation prefix');
 }
 assert.deepEqual(Array.from(trueScoreBands,b=>[b.key,b.min,b.max===Infinity?'infinity':b.max]),[
- ['trash',0,6],['common',7,24],['uncommon',25,48],
- ['rare',49,92],['epic',93,141],['anomaly',142,318],
- ['mythic',319,'infinity']
+ ['trash',0,120],['common',121,440],['uncommon',441,860],
+ ['rare',861,1620],['epic',1621,2460],['anomaly',2461,5440],
+ ['mythic',5441,14420],['divine',14421,'infinity']
 ]);
 assert.match(historySource,/\.eq\('is_test',false\)/,'Spin History excludes Test Runs');
 assert.match(historySource,/from\('daily_runs'\)/,'Spin History reads only official Daily rows');
@@ -36,12 +36,13 @@ assert.match(scoreCSS,/\.wheel-score-rarity\[hidden\],\.wheel-score-hint\[hidden
 assert.match(scoreCSS,/\.wheel-score\[data-rarity="mythic"\]/);
 assert.match(scoreCSS,/\.wheel-hud \.wheel-counts/);
 assert.ok(game.includes("if(isTest){\n // A Test Run must never fall through"),'Test save must fail closed');
-const defaults=[
- {type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},
- {type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},
- {type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}
+const original=[
+ {type:'num',base:40},{type:'duck'},{type:'num',base:400},{type:'upgrade'},
+ {type:'num',base:60},{type:'num',base:400},{type:'spins'},{type:'num',base:80},
+ {type:'duck'},{type:'num',base:40},{type:'double'},{type:'num',base:400}
 ];
-const pool=[1,1,2,2,3,3,5,5,8,10];
+const defaults=original.concat(original);
+const pool=[20,20,40,40,60,60,80,80,120,160];
 function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  const els=new Map(),events={};
  function element(id){
@@ -49,7 +50,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
   const states=new Set(['hidden']);
   const classList={add:x=>states.add(x),remove:x=>states.delete(x),contains:x=>states.has(x),
    toggle:x=>states.has(x)?(states.delete(x),false):(states.add(x),true)};
-  const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(200*200*4)})},{get:(o,p)=>o[p]??(()=>{})});
+  const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(200*200*4)}),measureText:()=>({width:22})},{get:(o,p)=>o[p]??(()=>{})});
   const attrs={};
   const el={id,classList,style:{},dataset:{},textContent:'',innerHTML:'',value:'',
    disabled:false,width:200,height:200,open:false,addEventListener:(name,cb)=>el['on_'+name]=cb,
@@ -95,7 +96,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
     if(kind.type==='double'){points=state.score;state.score*=2;state.doubles++;state.remaining_spins++;}
     if(kind.type==='spins'){state.remaining_spins+=2;state.extra_spins+=2;}
     if(kind.type==='upgrade'){state.multiplier*=3;state.upgrades++;state.remaining_spins++;
-      for(let i=0;i<4+Math.min(state.upgrades,8);i++)state.segments.push({type:'num',base:pool[0]});}
+      for(let i=0;i<4+Math.min(state.upgrades,8);i++)state.segments.push({type:'num',base:pool[0]},{type:'num',base:pool[0]});}
     const out={type:kind.type,base:kind.base??null,points,segments:state.segments.length,probability};
     state.results.push(out);state.finished=state.remaining_spins===0;
     if(lost){lost=false;return{error:{message:'Lost response'}};}
@@ -122,7 +123,7 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  let clock=0;const perf={now:()=>clock};
  const requestAnimationFrame=cb=>{clock+=3100;cb(clock);};
  const context={window,document,Crilo,criloDB:db,DuckWorld:ducks,
-  CriloRarity:{scoreBands:trueScoreBands,classify:score=>({label:score>300?'MYTHIC':'COMMON',color:'common',
+  CriloRarity:{scoreBands:trueScoreBands,classify:score=>({label:score>14420?'DIVINE':'COMMON',color:'common',
    probability:.5,odds:2,explanation:'fixture'})},
   localStorage:{getItem:()=> 'off'},location:{origin:'https://crilo.fun',pathname:'/index.html'},URLSearchParams,
   setInterval:()=>0,setTimeout:()=>0,requestAnimationFrame,performance:perf,Math:Object.assign(Object.create(Math),{random:()=>0}),
@@ -155,10 +156,10 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.equal(owner.els.get('wheelScorePanel').dataset.rarity,'common','Five num-2 spins reach Common score');
  assert.equal(owner.els.get('scoreTierText').textContent,'COMMON');
  const pointsAndTiers=[
- [0,'trash'],[6,'trash'],[7,'common'],[24,'common'],
- [25,'uncommon'],[48,'uncommon'],[49,'rare'],[92,'rare'],
- [93,'epic'],[141,'epic'],[142,'anomaly'],[318,'anomaly'],
- [319,'mythic'],[999999,'mythic']
+ [0,'trash'],[120,'trash'],[121,'common'],[440,'common'],
+ [441,'uncommon'],[860,'uncommon'],[861,'rare'],[1620,'rare'],
+ [1621,'epic'],[2460,'epic'],[2461,'anomaly'],[5440,'anomaly'],
+ [5441,'mythic'],[14420,'mythic'],[14421,'divine'],[999999,'divine']
  ];
  for(const [score,tier] of pointsAndTiers){
   owner.window.__criloScoreTest(score);
@@ -170,21 +171,21 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.equal(owner.els.get('wheelScorePanel').dataset.rarity,'unrevealed','Next owner Test run begins without Trash');
  assert.equal(owner.els.get('scoreTier').hidden,true);
  assert.equal(owner.els.get('scoreTierHint').hidden,false);
- console.log('PASS: owner Test Run saved privately, zero official inserts, zero badge events, and all 14 rarity score boundaries.');
- const x=mockClient(Array.from({length:5},()=>({type:'num',base:1})));
+ console.log('PASS: owner Test Run saved privately, zero official inserts, zero badge events, and all 16 rarity score boundaries.');
+ const x=mockClient(Array.from({length:5},()=>({type:'num',base:400})));
  await x.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
  assert.equal(x.els.get('wheelScorePanel').dataset.rarity,'unrevealed','Official Daily starts neutral');
  for(let i=0;i<5;i++)await x.spin();
  // The animation is synchronously mocked, but endRun saves asynchronously.
  await new Promise(setImmediate);
  assert.equal(x.saved.length,1,'One official run saved');
- assert.equal(x.saved[0].score,5);
+ assert.equal(x.saved[0].score,100);
  assert.equal(x.saved[0].verified_spin_session_id,'test-session');
  assert.equal(x.saved[0].spins,5);
  assert.equal(x.state.remaining_spins,0);
  const y=mockClient([
   {type:'duck'},{type:'double'},{type:'upgrade'},{type:'spins'},
-  ...Array.from({length:6},()=>({type:'num',base:1}))
+  ...Array.from({length:6},()=>({type:'num',base:400}))
  ]);
  await y.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
  assert.equal(y.els.get('wheelScorePanel').dataset.rarity,'unrevealed');
@@ -195,13 +196,13 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  await new Promise(setImmediate);
  assert.equal(y.saved.length,1,'All-special run saved only once');
  assert.equal(y.saved[0].spins,10);
- assert.equal(y.saved[0].score,18);
+ assert.equal(y.saved[0].score,360);
  assert.equal(y.saved[0].upgrades,1);
  assert.equal(y.saved[0].ducks,1);
  assert.equal(y.saved[0].doubles,1);
  assert.equal(y.saved[0].extra_spins,2);
  assert.equal(y.saved[0].verified_spin_session_id,'test-session');
- const z=mockClient([{type:'num',base:2},{type:'num',base:2}],{loseFirstReply:true});
+ const z=mockClient([{type:'num',base:40},{type:'num',base:40}],{loseFirstReply:true});
  await z.events['crilo-auth-ready']({detail:{user:{id:'player1'},profile:{id:'player1',is_owner:false,sound_enabled:false}}});
  await z.spin();
  assert.equal(z.state.spin_count,1);
@@ -209,5 +210,5 @@ function mockClient(outcomes,{loseFirstReply=false,owner=false}={}){
  assert.equal(z.state.spin_count,1,'Recovery must not consume a spin');
  await z.spin();
  assert.equal(z.state.spin_count,2,'Next real click consumes one spin');
- console.log('PASS: authoritative official run, server proof, recovery and seven-tier scoreboard.');
+ console.log('PASS: authoritative official run, server proof, recovery and eight-tier scoreboard.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

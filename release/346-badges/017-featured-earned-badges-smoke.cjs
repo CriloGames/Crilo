@@ -15,7 +15,7 @@ const badges=catalog.map((b,i)=>({
  category:b.category||'other',requirement:{rarity:b.rarity||'common'},
  is_secret:Boolean(b.is_secret),sort_order:i+1
 }));
-assert.equal(badges.length,346);
+assert.equal(badges.length,347);
 assert.match(html,/id="featuredBadgeOptions"/);
 assert.match(html,/id="featuredBadgeSearch"/);
 assert.match(html,/id="featuredClear"/);
@@ -79,7 +79,7 @@ function chooseBadge(instance,id){
   target:{closest:()=>({dataset:{badgeId:String(id)}})}});
 }
 async function run(){
- for(const count of [0,1,82,346]){
+ for(const count of [0,1,82,347]){
   const instance=fixture(count);
   await instance.events['crilo-auth-ready']();
   const rows=instance.node('featuredBadges').innerHTML;

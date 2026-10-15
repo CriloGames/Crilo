@@ -27,9 +27,11 @@ function fakeAuth(mode){
  const profile={id:'wheel-qa-user',username:'WheelQA',name_color:'#223344',theme:'light',sound_enabled:false,is_owner:false};
  const backend={
   mode,saves:[],saveAttempts:0,spinCount:0,sessionId:'synthetic-qa-session',lostSpin:false,
-  segments:[{type:'num',base:2},{type:'duck'},{type:'num',base:1},{type:'upgrade'},
-   {type:'num',base:3},{type:'num',base:1},{type:'spins'},{type:'num',base:5},
-   {type:'duck'},{type:'num',base:2},{type:'double'},{type:'num',base:1}],
+  segments:Array.from({length:2},()=>[
+   {type:'num',base:40},{type:'duck'},{type:'num',base:20},{type:'upgrade'},
+   {type:'num',base:60},{type:'num',base:20},{type:'spins'},{type:'num',base:80},
+   {type:'duck'},{type:'num',base:40},{type:'double'},{type:'num',base:20}
+  ]).flat(),
   results:[],score:0,remaining_spins:5,finished:false
  };
  window.__qaBackend=backend;
@@ -57,12 +59,12 @@ function fakeAuth(mode){
    if(name==='crilo_server_spin'){
     if(backend.finished)return{error:{message:'Session already completed'}};
     backend.spinCount++;
-    const points=1;
+    const points=20;
     backend.score+=points;
     backend.remaining_spins--;
     if(backend.mode==='forced-terminal')backend.remaining_spins=0;
     backend.finished=backend.remaining_spins===0;
-    const outcome={type:'num',base:1,points,segments:12,probability:.25};
+    const outcome={type:'num',base:20,points,segments:24,probability:.25};
     backend.results.push(outcome);
     const reply={outcome_index:2,outcome,score:backend.score,
      remaining_spins:backend.remaining_spins,spin_count:backend.spinCount,

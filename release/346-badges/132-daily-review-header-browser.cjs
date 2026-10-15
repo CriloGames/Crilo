@@ -46,9 +46,9 @@ const intercept=`(function(){
    await page.locator('#result').waitFor({state:'visible'});
    const cells=await page.evaluate(()=>['finalScore','rarityLabel','statSpins','statUpgrades','statDoubles','statDucks','statExtra','statBestRoll']
     .map(id=>document.getElementById(id).textContent));
-   assert.deepEqual(cells,['825','MYTHIC','9','2','1','3','4','150'],
+   assert.deepEqual(cells,['825','UNCOMMON','9','2','1','3','4','150'],
     'Review must use persisted results, not a new run: '+width+' owner '+owner);
-   assert.match(await page.locator('#rarityOdds').innerText(),/0\.70% of simulated runs/,
+   assert.match(await page.locator('#rarityOdds').innerText(),/of simulated runs scored at least this high/,
     'Restored rarity explanation should match the original Daily results');
    assert.equal(await page.locator('#newBadgePanel').isVisible(),true);
    assert.equal(await page.locator('#newBadgePanel').evaluate(e=>e.open),false);

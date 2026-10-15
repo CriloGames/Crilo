@@ -1,4 +1,4 @@
-/* Acceptance: any badge earned in the 346-item catalog can open the exact
+/* Acceptance: any badge earned in the 347-item catalog can open the exact
  * card shown in Badge Collections, with a deep link to that badge's set. */
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
@@ -9,11 +9,11 @@ const sharedSource=fs.readFileSync(path.join(root,'badge-collection.js'),'utf8')
 const setsSource=fs.readFileSync(path.join(root,'badge-sets.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'profile.html'),'utf8');
 const catalog=JSON.parse(fs.readFileSync(path.join(__dirname,'catalog-rules.json'),'utf8'));
-assert.equal(catalog.length,346);
+assert.equal(catalog.length,347);
 assert.match(html,/id="badgePreviewDialog"/);
 assert.match(html,/id="badgePreviewClose"/);
 assert.match(html,/id="badgePreviewCard"/);
-assert.match(html,/badge-collection\.js\?v=5/);
+assert.match(html,/badge-collection\.js\?v=6/);
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({
  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 })[c]);
@@ -127,6 +127,6 @@ async function verifyDeepLink(){
 (async()=>{
  const count=await verifyProfiles();
  await verifyDeepLink();
- assert.equal(count,346,'Not every possible earned badge was tested');
+ assert.equal(count,347,'Not every possible earned badge was tested');
  console.log('PASS: all '+count+' badges open the identical collection card; close/focus and deep-link expansion work.');
 })().catch(e=>{console.error(e);process.exitCode=1});
