@@ -35,8 +35,8 @@ assert.match(ownerMigration,/where d\.user_id=p\.id and d\.is_test=false/i,'Cach
 assert.match(ownerMigration,/delete from public\.user_badges ub/i,'Cleanup handles proven test-linked badges');
 assert.match(ownerMigration,/d\.id=ub\.run_id and d\.is_test=true/i,'Cleanup cannot delete legitimate official badges');
 assert.doesNotMatch(ownerMigration,/delete from public\.daily_runs/i,'Do not delete official or owner Test Run history');
-assert.match(profilePage,/id="ownerStatsScope"/,'Owner profile discloses official-only scope');
-assert.match(profilePage,/profile\.js\?v=105/,'Owner profile page loads the latest official-only badge/stats display');
+assert.match(profilePage,/id="ownerStatsScope"/,'Owner profile discloses official and Bonus stats while Test Runs stay excluded');
+assert.match(profilePage,/profile\.js\?v=106/,'Owner profile page loads the latest bonus-inclusive stats, official-only badge display');
 assert.match(profileSource,/officialScope\.classList\.toggle\('hidden',p\.is_owner!==true\)/,'Scope label is limited to owner profiles');
 
 assert.match(historySql,/public.daily_runs/,'Official Daily history is preserved');
