@@ -332,29 +332,37 @@ window.CriloNameColors.paint($('profileName'),p);window.CriloAvatar?.render($('a
 const {data:rarestOfficial,error:rarestError}=await criloDB.from('daily_runs')
  .select('score,spins,upgrades,doubles,ducks,extra_spins,best_roll_points,best_roll_label,daily_period,rarity_label,drawing')
  .eq('user_id',target).eq('is_test',false).order('score',{ascending:false}).limit(1).maybeSingle();
-if(rarestError)console.warn('Could not load official rarest run',rarestError);const rareScore=Number(rarestOfficial?.score??s.best_score??0);const rareTier=!(statsError&&metricsError)&&Number(s.official_runs||0)>0&&window.CriloRarity?CriloRarity.classify(rareScore):null;if(metricsError)console.warn('Updated player statistics unavailable; run profile-metrics-and-featured-badges.sql',metricsError);if(statsError&&metricsError)console.error('Player statistics unavailable',statsError);const vals=[['Total Points',statsError&&metricsError?'—':Number(s.total_points??s.total_score??0).toLocaleString()],['Official Dailies',statsError&&metricsError?'—':s.official_runs??0],['Best Score',statsError&&metricsError?'—':Number(s.best_score||0).toLocaleString()],['Average Score',statsError&&metricsError?'—':Number(s.average_score||0).toLocaleString()],['Current Streak',s.current_streak||0],['Longest Streak',s.longest_streak||0],['Total Spins',Number(s.total_spins||0).toLocaleString()],['Upgrades',Number(s.total_upgrades||0).toLocaleString()],['Doubles',Number(s.total_doubles||0).toLocaleString()],['Total Ducks',Number(s.total_ducks||0).toLocaleString()],['Extra Spins',Number(s.total_extra_spins||0).toLocaleString()],['Best Roll',Number(s.best_roll_points||0).toLocaleString()],['Rarest Run',rareTier?((rareTier.probability*100).toFixed(rareTier.probability<0.01?3:rareTier.probability<0.1?2:1)+'%'):'—']];$('statsGrid').innerHTML=vals.map(([k,v])=>`<div class="stat-tile ${k==='Total Points'?'stat-total-points':''} ${k==='Rarest Run'&&rareTier?'stat-rarity stat-rarity-'+rareTier.color:'' } ${k==='Rarest Run'&&rarestOfficial?'stat-rarity-clickable':''}" ${k==='Rarest Run'&&rarestOfficial?'role="button" tabindex="0" aria-label="View rarest official Daily run details"':''}><b>${v}</b><span>${k}</span>${k==='Rarest Run'&&rareTier?'<small class="stat-rarity-tier">'+Crilo.esc(rareTier.label)+'</small>':''}${k==='Rarest Run'&&rarestOfficial?'<small class="stat-rarity-hint">View run ↗</small>':''}</div>`).join('');const statDescriptions={
- 'Total Points':'Your lifetime point total, summed across every completed official Daily. Private Owner Test Runs and deleted official runs do not count.',
- 'Official Dailies':'Number of official Daily games you completed. Private owner test runs do not count.',
- 'Best Score':'Your highest score in a single official Daily.',
- 'Average Score':'Your average score across all completed official Dailies.',
+if(rarestError)console.warn('Could not load official rarest run',rarestError);
+const bestRun=s.best_run||null;
+const rarestRun=bestRun?{...bestRun,
+ drawing:bestRun.source==='official'&&String(bestRun.score)===String(rarestOfficial?.score)
+  ?rarestOfficial?.drawing:null}:rarestOfficial;
+const rareScore=Number(rarestRun?.score??s.best_score??0);
+const rareTier=!(statsError&&metricsError)&&Number(s.all_runs??s.official_runs??0)>0&&window.CriloRarity?CriloRarity.classify(rareScore):null;if(metricsError)console.warn('Updated player statistics unavailable; run profile-metrics-and-featured-badges.sql',metricsError);if(statsError&&metricsError)console.error('Player statistics unavailable',statsError);const vals=[['Total Points',statsError&&metricsError?'—':Number(s.total_points??s.total_score??0).toLocaleString()],['Official Dailies',statsError&&metricsError?'—':s.official_runs??0],['Bonus Runs',statsError&&metricsError?'—':s.bonus_runs??0],['Total Runs',statsError&&metricsError?'—':s.all_runs??s.official_runs??0],['Best Score',statsError&&metricsError?'—':Number(s.best_score||0).toLocaleString()],['Average Score',statsError&&metricsError?'—':Number(s.average_score||0).toLocaleString()],['Current Streak',s.current_streak||0],['Longest Streak',s.longest_streak||0],['Total Spins',Number(s.total_spins||0).toLocaleString()],['Upgrades',Number(s.total_upgrades||0).toLocaleString()],['Doubles',Number(s.total_doubles||0).toLocaleString()],['Total Ducks',Number(s.total_ducks||0).toLocaleString()],['Extra Spins',Number(s.total_extra_spins||0).toLocaleString()],['Best Roll',Number(s.best_roll_points||0).toLocaleString()],['Rarest Run',rareTier?((rareTier.probability*100).toFixed(rareTier.probability<0.01?3:rareTier.probability<0.1?2:1)+'%'):'—']];$('statsGrid').innerHTML=vals.map(([k,v])=>`<div class="stat-tile ${k==='Total Points'?'stat-total-points':''} ${k==='Rarest Run'&&rareTier?'stat-rarity stat-rarity-'+rareTier.color:'' } ${k==='Rarest Run'&&rarestRun?'stat-rarity-clickable':''}" ${k==='Rarest Run'&&rarestRun?'role="button" tabindex="0" aria-label="View rarest run details"':''}><b>${v}</b><span>${k}</span>${k==='Rarest Run'&&rareTier?'<small class="stat-rarity-tier">'+Crilo.esc(rareTier.label)+'</small>':''}${k==='Rarest Run'&&rarestRun?'<small class="stat-rarity-hint">View run ↗</small>':''}</div>`).join('');const statDescriptions={
+ 'Total Points':'Your lifetime point total across completed Official Dailies and eligible Bonus Runs. Owner Test Runs do not count.',
+ 'Official Dailies':'Number of Official Dailies completed. Bonus Runs and owner Test Runs do not increase this count.',
+ 'Bonus Runs':'Number of verified Bonus Runs completed. Bonus Runs count toward gameplay statistics but never award badges.',
+ 'Total Runs':'Completed Official Dailies and eligible Bonus Runs combined. Owner Test Runs are excluded.',
+ 'Best Score':'Your highest score in an Official Daily or eligible Bonus Run.',
+ 'Average Score':'Your average score across completed Official Dailies and eligible Bonus Runs.',
  'Current Streak':'Consecutive Daily periods you have played, including the current period if you have already completed it.',
  'Longest Streak':'Your longest consecutive streak of official Daily periods played.',
- 'Total Spins':'Total wheel spins across all your official Dailies.',
- 'Upgrades':'Total upgrade slices landed across all your official Dailies.',
- 'Doubles':'Total double slices landed across all your official Dailies.',
- 'Total Ducks':'Total ducks collected across all your official Dailies, not your single-day record.',
- 'Extra Spins':'Total bonus spins earned from the extra-spins wheel slice across official Dailies.',
- 'Best Roll':'Highest number of points earned from a single scoring spin across official Dailies.',
- 'Rarest Run':'Your highest-scoring official Daily, with its estimated score rarity. Select to see its full run details.',
+ 'Total Spins':'Total wheel spins across completed Official Dailies and eligible Bonus Runs.',
+ 'Upgrades':'Total upgrades across completed Official Dailies and eligible Bonus Runs.',
+ 'Doubles':'Total doubles across completed Official Dailies and eligible Bonus Runs.',
+ 'Total Ducks':'Total ducks collected across completed Official Dailies and eligible Bonus Runs.',
+ 'Extra Spins':'Total extra spins earned from wheel slices across completed Official and eligible Bonus Runs.',
+ 'Best Roll':'Highest number of points earned from one scoring spin across completed Official and eligible Bonus Runs.',
+ 'Rarest Run':'Your highest-scoring Official Daily or eligible Bonus Run, with estimated rarity. Bonus artwork stays private.',
  'Best Daily Rank':'Your best final position on a completed Daily leaderboard. The current Daily does not count until reset.',
  'Daily Wins':'Number of completed Daily leaderboards where your official score finished tied for 1st or alone in 1st. Today is excluded until reset.',
  'Podiums':'Number of completed Daily leaderboards where you finished in the top 3, including ties. Today is excluded until reset.',
  'Top 10s':'Number of completed Daily leaderboards where you finished in the top 10, including ties. Today is excluded until reset.'
 };
-if(rarestOfficial){
+if(rarestRun){
  const modal=$('rarestRunModal'),open=()=>{
-  const run=rarestOfficial,tier=window.CriloRarity?.classify(Number(run.score));
-  $('rarestRunTitle').textContent='Your rarest official Daily';
+  const run=rarestRun,tier=window.CriloRarity?.classify(Number(run.score));
+  $('rarestRunTitle').textContent=run.source==='bonus'?'Your rarest Bonus Run '+Math.max(0,Number(run.slot)||0):'Your rarest Official Daily';
   $('rarestRunScore').textContent=Number(run.score).toLocaleString()+' points';
   $('rarestRunRarity').textContent=tier?tier.label+' · About '+(tier.probability*100).toFixed(tier.probability<0.01?3:tier.probability<0.1?2:1)+'% of runs reach this score or higher':'';
   $('rarestRunDate').textContent='Daily: '+String(run.daily_period||'—');
@@ -372,7 +380,7 @@ if(rarestOfficial){
 }
 $('statsGrid').querySelectorAll('.stat-tile').forEach((tile,index)=>{
  const [name,value]=vals[index];
- if(name==='Rarest Run'&&rarestOfficial)return;
+ if(name==='Rarest Run'&&rarestRun)return;
  tile.classList.add('stat-explained');tile.tabIndex=0;tile.setAttribute('role','button');
  tile.setAttribute('aria-label','About '+name);
  const open=()=>{
