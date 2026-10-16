@@ -35,23 +35,23 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    page.on('pageerror',err=>errors.push(err.message));
    await page.goto(base+'/index.html',{waitUntil:'domcontentloaded',timeout:16000});
    await page.waitForFunction(()=>window.Crilo?.user&&document.getElementById('drawing')?.width===200);
-   // Main toolbar: Pen, Fill, Eraser, Pixel Studio, Undo/Redo.
-   // Eraser must be the control immediately left of Pixel Studio.
+   // Main toolbar: Pixel Studio > Eraser > Pen > Fill > Undo/Redo.
    const mainTools=await page.locator('.draw-toolbar-primary').evaluate(row=>{
     const studio=row.querySelector('#pixelStudioBtn');
-    const group=studio?.previousElementSibling;
+    const group=studio?.nextElementSibling;
     const labels=group?[...group.querySelectorAll('.drawing-tool')].map(b=>b.dataset.tool):[];
     const erase=group?.querySelector('[data-tool="eraser"]');
     const r=erase?.getBoundingClientRect(),p=studio?.getBoundingClientRect();
-    return {labels,groupPrecedesStudio:group?.classList.contains('draw-tool-group')===true,
-     eraserLast:erase===group?.lastElementChild,
-     eraserLeftOfStudio:!!r&&!!p&&r.right<=p.left+1,
+    return {labels,studioFirst:studio===row.firstElementChild,
+     groupFollowsStudio:group?.classList.contains('draw-tool-group')===true,
+     eraserFirst:erase===group?.firstElementChild,
+     eraserRightOfStudio:!!r&&!!p&&r.left>=p.right-1,
      noVerticalMismatch:!!r&&!!p&&Math.abs((r.top+r.bottom)/2-(p.top+p.bottom)/2)<7};
    });
    assert.deepEqual(mainTools,{
-    labels:['pen','fill','eraser'],groupPrecedesStudio:true,eraserLast:true,
-    eraserLeftOfStudio:true,noVerticalMismatch:true
-   },'Main Eraser must sit immediately before Pixel Studio at '+width+'px');
+    labels:['eraser','pen','fill'],studioFirst:true,groupFollowsStudio:true,
+    eraserFirst:true,eraserRightOfStudio:true,noVerticalMismatch:true
+   },'Main tools must read Pixel Studio > Eraser > Pen > Fill at '+width+'px');
    // Keep these three essential controls visible even after locking.
    const essential=await page.locator('#drawPanel').evaluate(panel=>{
     const els=[panel.querySelector('#drawColor'),
@@ -100,12 +100,13 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
    assert.equal(await page.locator('#drawRecentSwatches button').count(),1,
     'Main recent colors should show paint actually used');
    await page.locator('#pixelStudioBtn').click();
-   // Pixel Studio has no separate Studio button in its dialog: its Eraser
-   // should be the leftmost tool, before Pencil and Fill, including mobile.
+   // Pixel Studio: Eraser > Pen > Fill, including mobile.
    const pixelToolOrder=await page.locator('#pixelStudioModal .pixel-studio-tools').evaluate(row=>
     [...row.querySelectorAll('.pixel-tool')].map(tool=>tool.dataset.pixelTool));
    assert.deepEqual(pixelToolOrder,['erase','pen','fill'],
     'Pixel Studio Eraser must be leftmost at '+width+'px');
+   assert.deepEqual(await page.locator('#pixelStudioModal .pixel-tool').allTextContents(),
+    ['Eraser','Pen','Fill'],'Pixel Studio must say Pen, not Pencil at '+width+'px');
 
    await page.locator('#pixelCanvas').waitFor({state:'visible'});
    const studioImageStyle=await page.locator('#pixelCanvas').evaluate(el=>({
@@ -180,7 +181,7 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
     assert.ok(Math.abs(pixelRowLayout.pencilY-pixelRowLayout.modeY)<=7&&
      Math.abs(pixelRowLayout.modeY-pixelRowLayout.undoY)<=7&&
      Math.abs(pixelRowLayout.undoY-pixelRowLayout.clearY)<=7,
-     'Pixel Studio Pencil through Clear must all fit on one toolbar row');
+     'Pixel Studio Eraser through Clear must all fit on one toolbar row');
    }
 
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2),

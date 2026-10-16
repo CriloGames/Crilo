@@ -134,11 +134,11 @@ const controls=[
       modeLeft:rect('#drawMode').left,
       colorRight:rect('.native-paint-picker').right,
       recentLeft:rect('#drawRecentColors').left,
-      // Eraser is immediately before the Pixel Studio button, then Undo/Redo.
-      firstGap:rect('#pixelStudioBtn').left-
-       rect('.draw-toolbar-primary .draw-tool-group').right,
+      // Pixel Studio precedes Eraser, Pen and Fill, followed by Undo/Redo.
+      firstGap:rect('.draw-toolbar-primary .draw-tool-group').left-
+       rect('#pixelStudioBtn').right,
       secondGap:rect('.draw-toolbar-primary .draw-tool-group:last-child').left-
-       rect('#pixelStudioBtn').right};
+       rect('.draw-toolbar-primary .draw-tool-group').right};
     });
     assert.ok(Math.abs(rows.studio-rows.pen)<5&&Math.abs(rows.pen-rows.history)<5&&
      Math.abs(rows.mode-rows.color)<5&&Math.abs(rows.clear-rows.mode)<5&&
