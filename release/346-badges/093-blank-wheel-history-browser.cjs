@@ -5,16 +5,29 @@ const {serve,mockSupabase}=require('./086-site-wide-interactions-browser.cjs');
 function installFakeDaily(){
  const orig=window.supabase.createClient;
  window.supabase.createClient=(...args)=>{
-  const db=orig(...args),from=db.from;
+  const db=orig(...args),from=db.from,rpc=db.rpc;
+  const date=new Date(Date.now()-22*3600000).toISOString().slice(0,10);
+  const daily={
+   id:93,user_id:'11111111-1111-4111-8111-111111111111',is_test:false,
+   daily_period:date,created_at:new Date().toISOString(),score:23,spins:10,
+   upgrades:0,doubles:0,ducks:1,verified_spin_session_id:'proof',
+   drawing:null,results:[{type:'num',points:3},{type:'duck',points:0},{type:'num',points:20}]
+  };
+  // Both pages now consume grouped server-side RPCs. A daily_runs-only mock
+  // silently produces an empty leaderboard and hides #bestDrawing.
+  const official={...daily,source:'official'};
+  db.rpc=(name,args)=>{
+   if(name==='crilo_grouped_daily_leaders')return Promise.resolve({
+    data:[{...official,group_runs:[official]}],error:null
+   });
+   if(name==='crilo_grouped_spin_history')return Promise.resolve({
+    data:{days:[{daily_period:date,best:official,runs:[official]}],
+     total_dailies:1,official_dailies:1,official_spins:10,bonus_runs:0},error:null
+   });
+   return rpc.call(db,name,args);
+  };
   db.from=table=>{
    if(table!=='daily_runs')return from(table);
-   const date=new Date(Date.now()-22*3600000).toISOString().slice(0,10);
-   const daily={
-    id:93,user_id:'11111111-1111-4111-8111-111111111111',is_test:false,
-    daily_period:date,created_at:new Date().toISOString(),score:23,spins:10,
-    upgrades:0,doubles:0,ducks:1,verified_spin_session_id:'proof',
-    drawing:null,results:[{type:'num',points:3},{type:'duck',points:0},{type:'num',points:20}]
-   };
    let rows=[daily],fields='';
    const q={
     select(v){fields=v;return q},
@@ -100,7 +113,7 @@ function installFakeDaily(){
      await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===1);
      assert.equal(await page.locator('.spin-history-item').count(),1,'Ten spins must display as one scored Daily');
      await page.waitForFunction(()=>document.getElementById('spinHistoryCount')?.textContent==='1 Daily completed');
-     assert.match(await page.locator('#spinHistorySpinCount').innerText(),/10 wheel spins in Dailies/);
+     assert.match(await page.locator('#spinHistorySpinCount').innerText(),/10 wheel spins in official Dailies/);
      assert.ok(await page.locator('#spinHistoryPager').isHidden(),'One saved Daily cannot have older pages');
      assert.ok(await page.locator('#spinHistoryEnd').isVisible(),'Single saved Daily must show an explicit end');
      const text=await page.locator('#spinHistoryList').innerText();
