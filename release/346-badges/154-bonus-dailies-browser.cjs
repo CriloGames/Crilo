@@ -115,7 +115,7 @@ function snapshot(badges,official=true,complete=[]){
   assert.equal(await buttons.count(),4);
   assert.equal(await page.locator('#criloBonusDetails').evaluate(el=>el.open),false,
    'Other slots must start collapsed');
-  assert.match(await page.locator('#criloBonusList').innerText(),/leaderboard eligible/,
+  assert.match(await page.locator('#criloBonusList').textContent(),/leaderboard eligible/,
    'Saved Bonus Run is eligible for best-of-day ranking, not guaranteed its own position');
   assert.equal(await buttons.nth(0).isDisabled(),true);
   assert.equal(await buttons.nth(1).isEnabled(),true);
