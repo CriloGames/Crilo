@@ -10,6 +10,7 @@ on:
       - 'bonus-runs.js'
       - 'release/346-badges/159-all-daily-runs-leaderboard.sql'
       - 'release/346-badges/167-grouped-daily-leaderboard.sql'
+      - 'release/346-badges/098-leaderboard-tab-race-smoke.cjs'
       - 'release/346-badges/160-ranked-all-runs-browser.cjs'
       - '.github/workflows/ranked-all-runs.yml'
   workflow_dispatch:
