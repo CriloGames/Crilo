@@ -113,7 +113,7 @@ function installFakeDaily(){
      await page.waitForFunction(()=>document.querySelectorAll('.spin-history-item').length===1);
      assert.equal(await page.locator('.spin-history-item').count(),1,'Ten spins must display as one scored Daily');
      await page.waitForFunction(()=>document.getElementById('spinHistoryCount')?.textContent==='1 Daily completed');
-     assert.match(await page.locator('#spinHistorySpinCount').innerText(),/10 wheel spins in official Dailies/);
+     assert.match(await page.locator('#spinHistorySpinCount').innerText(),/10 wheel spins across Official and Bonus Runs/);
      assert.ok(await page.locator('#spinHistoryPager').isHidden(),'One saved Daily cannot have older pages');
      assert.ok(await page.locator('#spinHistoryEnd').isVisible(),'Single saved Daily must show an explicit end');
      const text=await page.locator('#spinHistoryList').innerText();
