@@ -51,7 +51,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  assert.equal(fromCalled,1,'One profile color read is allowed; Daily rows must not be queried');
  assert.equal(get('bestScore').textContent,'1,000');
  assert.equal(get('bestHeading').textContent,'ALL-TIME POINTS LEADER');
- assert.match(get('bestStats').textContent,/official Dailies played · lifetime points/);
+ assert.match(get('bestStats').textContent,/Official Dailies · points include eligible Bonus Runs/);
  assert.ok(!('scoreRarity' in get('bestScore').dataset));
  const html=get('leaderList').innerHTML;
  assert.match(html,/Winner/);
@@ -60,7 +60,7 @@ vm.runInNewContext(modified,{window:win,document,Crilo,criloDB:db,console,
  assert.match(html,/>🥇<\/div>/);
  assert.match(html,/>🥈<\/div>/);
  assert.doesNotMatch(html,/data-score-rarity/);
- assert.match(html,/30 official Dailies played/);
+ assert.match(html,/30 Official Dailies · includes Bonus Run points/);
  assert.match(html,/>800<\/div><small class="leader-total-units">pts<\/small>/);
- console.log('PASS: public all-time official points, ties, per-player aggregation, no rarity or client run paging');
+ console.log('PASS: public all-time Official + Bonus points, ties, per-player aggregation, no rarity or client run paging');
 })().catch(e=>{console.error(e);process.exitCode=1});
