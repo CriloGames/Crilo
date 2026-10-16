@@ -143,7 +143,7 @@ async function loadTotalPoints(revision){
  const fmt=n=>Number(n||0).toLocaleString();
  $('bestScore').textContent=fmt(leader.total_points);
  window.CriloNameColors.paint($('bestUser'),{...leader,name_letter_colors:pointsColors.get(leader.user_id)});
- $('bestStats').textContent=fmt(leader.official_runs)+' official Dailies played · lifetime points';
+ $('bestStats').textContent=fmt(leader.official_runs)+' Official Dailies · points include eligible Bonus Runs';
  // Competition ranks: scores tied for first share #1; next player is #3.
  $('leaderList').innerHTML=entries.map((entry,index)=>{
   const rank=entries.findIndex(x=>Number(x.total_points)===Number(entry.total_points))+1;
@@ -153,7 +153,7 @@ async function loadTotalPoints(revision){
    '<a class="leader-name" href="profile.html?id='+encodeURIComponent(entry.user_id)+
    '" style="color:'+safeColor(entry.name_color)+'">'+
    window.CriloNameColors.markup({...entry,name_letter_colors:pointsColors.get(entry.user_id)})+'</a>'+
-   '<span class="leader-mini">'+fmt(entry.official_runs)+' official Dailies played</span>'+
+   '<span class="leader-mini">'+fmt(entry.official_runs)+' Official Dailies · includes Bonus Run points</span>'+
    '</div><div class="leader-score-wrap"><div class="leader-score">'+fmt(entry.total_points)+
    '</div><small class="leader-total-units">pts</small></div></div>';
  }).join('');
@@ -166,29 +166,29 @@ function duckCountHTML(value){
 async function loadDucks(revision){
  $('bestRunKind')?.classList.add('hidden');
  $('leaderList').innerHTML='<div class="empty-state">Loading lifetime duck totals…</div>';
- const totals=new Map();let offset=0;
- // Fetch all official runs, not just the top 100 single-run results.
- while(true){
-  const {data,error}=await criloDB.from('daily_runs').select('user_id,ducks,daily_period,score,spins,upgrades,doubles,verified_spin_session_id').eq('is_test',false).not('verified_spin_session_id','is',null).order('id',{ascending:true}).range(offset,offset+999);
-  if(revision!==loadRevision)return;
-  if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
-  for(const run of data||[]){if(isLegacyPreviewRun(run))continue;totals.set(run.user_id,(totals.get(run.user_id)||0)+Number(run.ducks||0));}
-  if(!data||data.length<1000)break;
-  offset+=1000;
- }
- const entries=[...totals].map(([user_id,count])=>({user_id,count})).sort((a,b)=>b.count-a.count||a.user_id.localeCompare(b.user_id)).slice(0,100);
+ // Server aggregates Official and eligible Bonus Runs, never owner Test Runs.
+ const {data,error}=await criloDB.rpc('crilo_lifetime_duck_leaders',{p_limit:100});
+ if(revision!==loadRevision)return;
+ if(error){$('leaderList').innerHTML='<div class="empty-state">Could not load duck totals: '+Crilo.esc(error.message)+'</div>';return}
+ const entries=(Array.isArray(data)?data:[])
+  .map(row=>({user_id:row.user_id,count:Math.max(0,Number(row.ducks)||0)}))
+  .sort((x,y)=>y.count-x.count||x.user_id.localeCompare(y.user_id)).slice(0,100);
  const ids=entries.map(x=>x.user_id);let profiles=[];
- if(ids.length){const {data}=await criloDB.from('profiles').select('id,username,name_color,name_letter_colors').in('id',ids);if(revision!==loadRevision)return;profiles=data||[]}
+ if(ids.length){
+  const result=await criloDB.from('profiles').select('id,username,name_color,name_letter_colors').in('id',ids);
+  if(revision!==loadRevision)return;
+  profiles=result.data||[];
+ }
  renderDuckLeaders(entries,new Map(profiles.map(p=>[p.id,p])));
 }
 function renderDuckLeaders(entries,profiles){
  setBestScoreRarity(null); // Duck totals are counts, never final-score tiers.
  $('bestHeading').textContent='ALL-TIME DUCK COLLECTORS';
  $('bestDrawing').classList.add('hidden');
- if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete official Dailies to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
+ if(!entries.length){$('bestScore').textContent='—';$('bestUser').textContent='No ducks collected yet';$('bestStats').textContent='Complete Official Dailies or Bonus Runs to collect ducks.';$('leaderList').innerHTML='<div class="empty-state">No official Daily runs yet.</div>';return}
  const best=entries[0],p=profiles.get(best.user_id);
- $('bestScore').innerHTML=duckCountHTML(best.count);window.CriloNameColors.paint($('bestUser'),p);$('bestStats').textContent='Ducks collected across all official Daily runs';
- $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Total ducks from official Daily runs</span></div><div class="leader-score leader-duck-score">'+duckCountHTML(e.count)+'</div></div>'}).join('');
+ $('bestScore').innerHTML=duckCountHTML(best.count);window.CriloNameColors.paint($('bestUser'),p);$('bestStats').textContent='Ducks collected across Official and Bonus Runs';
+ $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Total ducks across Official and Bonus Runs</span></div><div class="leader-score leader-duck-score">'+duckCountHTML(e.count)+'</div></div>'}).join('');
 }
 async function loadBadges(revision){
  $('bestRunKind')?.classList.add('hidden');
