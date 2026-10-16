@@ -166,7 +166,8 @@ async function run(){
     await page.locator('#spinButton').click();
     await page.waitForFunction(()=>window.__qaBackend.finished&&window.__qaBackend.saves.length===1);
     assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].spins),1);
-    assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].score),1);
+    // The synthetic server's one terminal number awards 20, not the old 1 point.
+    assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].score),20);
     assert.equal(await page.evaluate(()=>window.__qaBackend.saves[0].drawing),null,'Blank official drawings must not be stored as empty PNGs');
    }else{
     for(let i=1;i<=5;i++){
