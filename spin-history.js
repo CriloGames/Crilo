@@ -14,7 +14,7 @@
  const esc=value=>Crilo.esc(String(value??''));
  const fmt=value=>Number.isFinite(Number(value))?Number(value).toLocaleString('en-US'):'—';
  let currentId='',requestId=0,shown=0,busy=false;
- let totalDailies=null,officialSpins=0,officialDailies=0,bonusRuns=0;
+ let totalDailies=null,officialSpins=0,bonusSpins=0,officialDailies=0,bonusRuns=0;
 
  function scoreTier(value){
   const score=Number(value),bands=window.CriloRarity?.scoreBands;
@@ -91,13 +91,13 @@
  function updateCount(){
   if(totalDailies===null){
    counter.textContent='Counting Dailies…';
-   spinCounter.textContent='Official Dailies only · Test Runs excluded';
+   spinCounter.textContent='Official and Bonus Runs · Test Runs excluded';
    return;
   }
   const title=fmt(totalDailies)+' Dail'+(totalDailies===1?'y':'ies')+' completed';
   counter.textContent=title;counter.setAttribute('aria-label',title);
-  spinCounter.textContent=fmt(officialSpins)+' wheel spin'+(officialSpins===1?'':'s')+
-   ' in official Dailies · '+fmt(bonusRuns)+' Bonus Run'+(bonusRuns===1?'':'s')+
+  spinCounter.textContent=fmt(officialSpins+bonusSpins)+' wheel spin'+((officialSpins+bonusSpins)===1?'':'s')+
+   ' across Official and Bonus Runs · '+fmt(bonusRuns)+' Bonus Run'+(bonusRuns===1?'':'s')+
    ' · Test Runs excluded';
  }
  function updatePager(){
@@ -128,6 +128,7 @@
    totalDailies=Math.max(0,Number(data.total_dailies)||0);
    officialDailies=Math.max(0,Number(data.official_dailies)||0);
    officialSpins=Math.max(0,Number(data.official_spins)||0);
+   bonusSpins=Math.max(0,Number(data.bonus_spins)||0);
    bonusRuns=Math.max(0,Number(data.bonus_runs)||0);
    const days=data.days;
    if(shown===0)list.textContent='';
@@ -159,10 +160,10 @@
   if(id===currentId)return;
   const token=++requestId;
   currentId=id;shown=0;busy=false;
-  totalDailies=null;officialDailies=0;officialSpins=0;bonusRuns=0;
+  totalDailies=null;officialDailies=0;officialSpins=0;bonusSpins=0;bonusRuns=0;
   pager.hidden=true;ending.hidden=true;
   counter.textContent='Loading…';
-  spinCounter.textContent='Official Dailies only · Test Runs excluded';
+  spinCounter.textContent='Official and Bonus Runs · Test Runs excluded';
   list.innerHTML='<p class="spin-history-message">Fetching completed Dailies…</p>';
   if(!id){
    list.innerHTML='<p class="spin-history-message">Sign in to see your Daily spin history.</p>';
