@@ -32,7 +32,7 @@ const days=[
     window.CriloRarity={scoreBands:[{key:'common',max:500},{key:'mythic',max:Infinity}]};
     window.criloDB={rpc:async(name,args)=>({
      data:{days:days.slice(args.p_offset,args.p_offset+args.p_limit),total_dailies:2,official_dailies:2,
-      official_spins:10,bonus_runs:2},error:null
+      official_spins:10,bonus_spins:16,bonus_runs:2},error:null
     })};
    },days);
    await page.addScriptTag({content:preview});
@@ -41,6 +41,7 @@ const days=[
    assert.equal(await page.locator('.spin-history-item').count(),2);
    assert.equal(await page.locator('.spin-history-expand').count(),1);
    assert.equal(await page.locator('.spin-history-score').first().textContent(),'2,100');
+   assert.match(await page.locator('#spinHistorySpinCount').textContent(),/26 wheel spins across Official and Bonus Runs/);
    assert.match(await page.locator('#spinHistorySpinCount').textContent(),/2 Bonus Runs/);
    assert.equal(await page.locator('.spin-history-runs').isVisible(),false);
    const button=page.locator('.spin-history-expand');
