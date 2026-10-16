@@ -5,7 +5,7 @@ const js=fs.readFileSync('spin-history.js','utf8');
 const html=fs.readFileSync('profile.html','utf8');
 const css=fs.readFileSync('spin-history.css','utf8');
 const sql=fs.readFileSync('release/346-badges/168-grouped-statistics-spin-history.sql','utf8');
-assert.match(html,/spin-history\.js\?v=13/);
+assert.match(html,/spin-history\.js\?v=14/);
 assert.match(html,/spin-history\.css\?v=9/);
 assert.match(html,/highest score each day/i);
 assert.match(js,/crilo_grouped_spin_history/);
