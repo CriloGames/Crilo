@@ -1,6 +1,6 @@
 /* Crilo bonus Dailies — account-only continuation below official results.
  * Server-verified Bonus scores compete for each player's best Daily leaderboard
- * entry, but only the Official Daily earns gameplay badges and lifetime stats. */
+ * entry and lifetime statistics; only Official Dailies award gameplay badges. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
