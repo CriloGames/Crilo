@@ -19,6 +19,12 @@ assert.ok(game.includes("await window.CriloMysteryGift?.refresh?.({autoOpen:true
 assert.doesNotMatch(html,/4 Daily Runs available per day/,
  'Old oversized bonus-run heading must be removed');
 assert.match(html,/id="bonusModeBanner"/);
+assert.match(html,/Your highest Official or Bonus score of the day counts toward the leaderboard/,
+ 'The next-run panel must explain how the highest eligible run gets ranked');
+assert.match(html,/Only your Official Daily earns badges and lifetime gameplay stats/,
+ 'Bonus Run rewards cannot be confused with official badge or lifetime progress');
+assert.doesNotMatch(html,/Bonus scores get their own leaderboard positions/,
+ 'One player cannot occupy several leaderboard positions for the same day');
 assert.match(game,/isBonus\?'crilo_bonus_spin':'crilo_server_spin'/);
 assert.match(game,/isBonus\?'crilo_get_bonus_spin_state':'crilo_get_server_spin_state'/);
 assert.match(game,/crilo_save_bonus_run/);
@@ -109,6 +115,8 @@ function snapshot(badges,official=true,complete=[]){
   assert.equal(await buttons.count(),4);
   assert.equal(await page.locator('#criloBonusDetails').evaluate(el=>el.open),false,
    'Other slots must start collapsed');
+  assert.match(await page.locator('#criloBonusList').innerText(),/leaderboard eligible/,
+   'Saved Bonus Run is eligible for best-of-day ranking, not guaranteed its own position');
   assert.equal(await buttons.nth(0).isDisabled(),true);
   assert.equal(await buttons.nth(1).isEnabled(),true);
   assert.equal(await buttons.nth(2).isEnabled(),true);
