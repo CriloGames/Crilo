@@ -9,6 +9,7 @@ const html=fs.readFileSync('leaderboard.html','utf8');
 const css=fs.readFileSync('style.css','utf8')+'\n'+fs.readFileSync('leaderboard-run-types.css','utf8');
 const preview=fs.readFileSync('wheel-preview.js','utf8');
 const game=fs.readFileSync('game.js','utf8');
+const bonusStatsSql=fs.readFileSync('release/346-badges/176-bonus-counts-in-stats.sql','utf8');
 assert.match(sql,/UNION ALL/i);
 assert.match(sql,/PARTITION BY e\.user_id,e\.daily_period/,'Rank once per player per Daily period, not once per player all-time');
 assert.match(sql,/b\.position=1/,'Rank one winner per player per Daily');
@@ -30,6 +31,13 @@ assert.match(js,/crilo_lifetime_duck_leaders/,'Lifetime ducks include eligible B
 assert.match(html,/leaderboard-run-types\.css\?v=3/);
 assert.match(html,/leaderboard\.js\?v=60/);
 assert.match(game,/!isTest&&!isBonus/,'Bonus runs cannot earn normal run badges');
+assert.match(bonusStatsSql,/CREATE OR REPLACE FUNCTION public\.crilo_profile_metrics/i);
+assert.match(bonusStatsSql,/CREATE OR REPLACE FUNCTION public\.crilo_total_points_leaders/i);
+assert.match(bonusStatsSql,/CREATE OR REPLACE FUNCTION public\.crilo_lifetime_duck_leaders/i);
+assert.match(bonusStatsSql,/public\.crilo_bonus_runs/i,'Only verified Bonus Runs add to lifetime statistics');
+assert.doesNotMatch(bonusStatsSql,/\bINSERT\s+INTO\s+public\.user_badges/i,
+ 'Gameplay statistics must not award Bonus Run badges');
+
 
 const official={id:'official-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA'};
 const bonus1={id:'bonus-1',source:'bonus',slot:1,score:900,spins:8,upgrades:3,doubles:0,ducks:1,drawing:null};
