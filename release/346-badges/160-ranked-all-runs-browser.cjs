@@ -28,7 +28,7 @@ assert.match(js,/leader-run-breakdown/);
 assert.match(js,/crilo_total_points_leaders/,'Lifetime points include verified Bonus Runs');
 assert.match(js,/crilo_lifetime_duck_leaders/,'Lifetime ducks include eligible Bonus Runs');
 assert.match(html,/leaderboard-run-types\.css\?v=3/);
-assert.match(html,/leaderboard\.js\?v=59/);
+assert.match(html,/leaderboard\.js\?v=60/);
 assert.match(game,/!isTest&&!isBonus/,'Bonus runs cannot earn normal run badges');
 
 const official={id:'official-a',source:'official',slot:0,score:100,spins:5,upgrades:0,doubles:0,ducks:0,drawing:'data:image/png;base64,AAAA'};
