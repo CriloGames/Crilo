@@ -25,8 +25,8 @@ assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.crilo_grouped_daily_leaders\
 assert.match(js,/crilo_grouped_daily_leaders/);
 assert.match(js,/leader-runs-toggle/);
 assert.match(js,/leader-run-breakdown/);
-assert.match(js,/crilo_total_points_leaders/,'Lifetime points remain official-only');
-assert.match(js,/if\(isLegacyPreviewRun\(run\)\)continue/,'Lifetime ducks remain official-only');
+assert.match(js,/crilo_total_points_leaders/,'Lifetime points include verified Bonus Runs');
+assert.match(js,/crilo_lifetime_duck_leaders/,'Lifetime ducks include eligible Bonus Runs');
 assert.match(html,/leaderboard-run-types\.css\?v=3/);
 assert.match(html,/leaderboard\.js\?v=59/);
 assert.match(game,/!isTest&&!isBonus/,'Bonus runs cannot earn normal run badges');
