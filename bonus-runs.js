@@ -1,5 +1,6 @@
 /* Crilo bonus Dailies — account-only continuation below official results.
- * Bonus scores are server-verified and separate from competitive Daily ranks. */
+ * Server-verified Bonus scores compete for each player's best Daily leaderboard
+ * entry, but only the Official Daily earns gameplay badges and lifetime stats. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
@@ -93,7 +94,7 @@
    const copy=element('div','crilo-bonus-slot-copy');
    copy.append(element('strong',null,'Run '+slot.slot));
    copy.append(element('small',null,slot.saved?
-    fmt(slot.score)+' points · on the leaderboard':
+    fmt(slot.score)+' points · leaderboard eligible':
     slot.started?'In progress':
     slot.unlocked?'Ready when you are':
     'Unlock at '+(slot.slot*50)+' badges'));
