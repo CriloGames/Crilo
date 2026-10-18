@@ -8,8 +8,8 @@
  bottom:30px;
  display:grid;
  place-items:center;
- width:30px;
- height:30px;
+ width:60px;
+ height:60px;
  margin:0;
  padding:0;
  background:transparent;
@@ -28,12 +28,15 @@
 .crilo-hidden-box::before{
  content:"";
  display:block;
- width:15px;
- height:15px;
+ width:30px;
+ height:30px;
  box-sizing:border-box;
+ /* Match the body pixel for pixel in both themes: no outline, shadow or edge. */
  background:var(--bg,#fff);
- border:1px solid color-mix(in srgb,var(--bg,#fff) 96%,var(--text,#15171c) 4%);
- border-radius:1px;
+ border:0;
+ border-radius:0;
+ outline:0;
+ box-shadow:none;
 }
 .crilo-hidden-box:hover,
 .crilo-hidden-box:active{
