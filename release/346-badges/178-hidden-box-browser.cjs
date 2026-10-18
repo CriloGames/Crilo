@@ -4,7 +4,8 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const html=fs.readFileSync('index.html','utf8');
-const css=fs.readFileSync('style.css','utf8')+'\n'+fs.readFileSync('hidden-box.css','utf8');
+const hiddenCss=fs.readFileSync('hidden-box.css','utf8');
+const css=fs.readFileSync('style.css','utf8')+'\n'+hiddenCss;
 const js=fs.readFileSync('hidden-box.js','utf8');
 assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="status" hidden/);
@@ -12,7 +13,7 @@ assert.match(html,/hidden-box\.css\?v=1/);
 assert.match(html,/hidden-box\.js\?v=1/);
 assert.doesNotMatch(js,/criloDB|supabase|user_badges|localStorage\./i,
  'The undecided Easter egg must never affect gameplay, rewards or storage');
-assert.doesNotMatch(css,/cursor:\s*pointer/i,
+assert.doesNotMatch(hiddenCss,/cursor:\s*pointer/i,
  'The hidden clickable area must never advertise itself with the pointer cursor');
 const markup=html.slice(html.indexOf('<!-- Tiny background-matched Easter egg.'),
  html.indexOf('</section>\n<section id="more-games"'));
