@@ -234,3 +234,24 @@
 @media(prefers-reduced-motion:reduce){
  .crilo-escape-player,.crilo-escape-cell.spark::after{transition:none!important;animation:none!important}
 }
+
+/* Move budgets get tighter as the player advances through 25 verified rooms. */
+.crilo-escape-budget-track{
+ height:6px;margin:-2px 0 11px;border-radius:20px;
+ overflow:hidden;background:var(--line,#ecebf0);
+}
+.crilo-escape-budget-track>span{
+ display:block;height:100%;width:0%;
+ border-radius:20px;background:#a78fe2;
+ transition:width .2s ease,background .2s ease;
+}
+.crilo-hidden-box-note.low-moves .crilo-escape-budget-track>span{background:#e89884}
+.crilo-hidden-box-note.low-moves #criloEscapeSlides{color:#c76e58}
+.crilo-escape-overlay.is-failure{
+ background:rgba(255,240,236,.97);
+}
+.crilo-escape-overlay.is-failure strong{color:#a84d4b}
+.crilo-escape-overlay.is-failure .crilo-escape-next{background:#ffdfbf}
+@media(prefers-reduced-motion:reduce){
+ .crilo-escape-budget-track>span{transition:none!important}
+}
