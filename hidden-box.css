@@ -20,7 +20,10 @@
  cursor:default!important;
  touch-action:manipulation;
  -webkit-tap-highlight-color:transparent;
- z-index:2;
+ z-index:24;
+ pointer-events:auto!important;
+ visibility:visible!important;
+ opacity:1!important;
 }
 .crilo-hidden-box::before{
  content:"";
@@ -51,7 +54,7 @@
  position:absolute;
  right:clamp(60px,calc(5vw + 40px),100px);
  bottom:30px;
- width:min(240px,calc(100% - 100px));
+ width:min(258px,calc(100% - 100px));
  text-align:left;
  padding:11px 13px;
  display:grid;
@@ -63,8 +66,70 @@
  color:var(--text,#15171c);
  font-size:12px;
  line-height:1.4;
- z-index:3;
+ z-index:25;
 }
 .crilo-hidden-box-note strong{font-size:12px}
 .crilo-hidden-box-note span{color:var(--muted,#777)}
 .crilo-hidden-box-note[hidden]{display:none!important}
+
+/* Opening the unnoticed square reveals a tiny decorative universe, not a game
+   reward. The star positions and messages only exist in this page's DOM. */
+.crilo-secret-stars{
+ position:relative;
+ display:block;
+ height:64px;
+ margin:4px 0 1px;
+ border:1px solid var(--line,#e5e5e5);
+ border-radius:11px;
+ overflow:hidden;
+ background:color-mix(in srgb,var(--soft,#f7f7f7) 75%,#d9e1fb 25%);
+}
+.crilo-secret-stars span{
+ position:absolute;
+ display:block;
+ width:7px;height:7px;
+ transform:rotate(45deg);
+ background:var(--crilo-secret-star,#c9b6ef);
+ border-radius:2px;
+ transition:top .32s ease,left .32s ease,background .32s ease,transform .32s ease;
+}
+.crilo-secret-stars span:nth-child(1){left:16%;top:24%;--crilo-secret-star:#e7b9cf}
+.crilo-secret-stars span:nth-child(2){left:37%;top:64%;--crilo-secret-star:#acb8ed}
+.crilo-secret-stars span:nth-child(3){left:58%;top:21%;--crilo-secret-star:#eccd98}
+.crilo-secret-stars span:nth-child(4){left:79%;top:55%;--crilo-secret-star:#b5d9ca}
+.crilo-secret-stars span:nth-child(5){left:86%;top:17%;width:4px;height:4px;--crilo-secret-star:#cbb6e8}
+.crilo-secret-stars span:nth-child(6){left:25%;top:74%;width:4px;height:4px;--crilo-secret-star:#a9cfdb}
+.crilo-hidden-box-note[data-phase="1"] .crilo-secret-stars span:nth-child(odd){
+ transform:rotate(90deg) scale(1.45);
+ top:44%;
+}
+.crilo-hidden-box-note[data-phase="0"] .crilo-secret-stars span:nth-child(even){
+ transform:rotate(12deg) scale(.8);
+}
+.crilo-hidden-box-note .crilo-secret-whisper{
+ min-height:32px;
+ color:var(--text,#15171c);
+ font-size:11px;
+ line-height:1.45;
+}
+.crilo-hidden-wish{
+ align-self:start;
+ justify-self:start;
+ margin-top:3px;
+ padding:5px 9px;
+ border:1px solid var(--line,#e5e5e5);
+ border-radius:8px;
+ background:var(--soft,#f7f7f7);
+ color:var(--text,#15171c);
+ font:750 11px/1.4 system-ui,sans-serif;
+}
+.crilo-hidden-wish:hover{background:color-mix(in srgb,var(--soft,#f7f7f7) 85%,#d2c0f4 15%)}
+.crilo-hidden-wish:focus-visible{outline:2px solid #b5a0e8;outline-offset:2px}
+.crilo-hidden-box-note .crilo-secret-footnote{
+ color:var(--muted,#777);
+ font-size:9px;
+ line-height:1.35;
+}
+@media(prefers-reduced-motion:reduce){
+ .crilo-secret-stars span{transition:none}
+}
