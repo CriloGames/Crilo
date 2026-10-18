@@ -53,7 +53,7 @@
  let room=0,moves=0,roomMoves=0,level=null,location={x:0,y:0};
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
  let activePointer=null,roomRoute='',clearedRoutes=Array(25).fill(null);
- let unlocked=false,equipped=true,syncing=false;
+ let unlocked=false,equipped=true,syncing=false,syncPending=false;
  const proofKey='crilo_escape_golden_guest_proof_v1';
  const equippedKey='crilo_escape_golden_equipped_v1';
  function safeRead(key){try{return localStorage.getItem(key);}catch{return null;}}
@@ -83,7 +83,8 @@
   applyCosmetic();
  }
  async function syncGoldenAccount(){
-  if(syncing||typeof criloDB==='undefined'||!criloDB?.auth)return;
+  if(typeof criloDB==='undefined'||!criloDB?.auth)return;
+  if(syncing){syncPending=true;return;}
   syncing=true;
   try{
    const {data:who,error:authError}=await criloDB.auth.getUser();
@@ -97,7 +98,10 @@
    const {data:awarded,error:claimError}=await criloDB.rpc('crilo_unlock_golden_box',{p_routes:proof});
    if(!claimError&&awarded===true){setUnlocked();}
   }catch{/* No interruption to Crilo login or gameplay on network errors. */}
-  finally{syncing=false;}
+  finally{
+   syncing=false;
+   if(syncPending){syncPending=false;void syncGoldenAccount();}
+  }
  }
 
  function cancelTransition(){
