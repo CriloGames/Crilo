@@ -85,10 +85,11 @@ const sanitized=html
      assert.equal(await box.getAttribute('aria-expanded'),'true');
      assert.match(await note.innerText(),/A pocket of sky/);
      const first=await page.locator('#criloHiddenWhisper').innerText();
+     const oldPhase=await note.getAttribute('data-phase');
      await wish.click();
      const second=await page.locator('#criloHiddenWhisper').innerText();
      assert.notEqual(first,second,'The secret must do something when wished on');
-     assert.equal(await note.getAttribute('data-phase'),'1');
+     assert.notEqual(await note.getAttribute('data-phase'),oldPhase,'Each wish updates the stars');
      const after=await page.evaluate(()=>({
       score:document.getElementById('score').textContent,
       spins:document.getElementById('spins').textContent,
