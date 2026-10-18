@@ -110,18 +110,13 @@
   moves+=roomMoves;
   location={x:active.x,y:active.y};
   collected=new Set();
-  const map=levels[room];
+  const stars=[];
   for(let y=0;y<9;y++)for(let x=0;x<9;x++){
-   if(map[y][x]==='*'){
-    const star=map[y][x];
-    void star;
-    // Map spark index ordering exactly matches replayRoute.
-    const index=[];
-    for(let yy=0;yy<9;yy++)for(let xx=0;xx<9;xx++)if(map[yy][xx]==='*')index.push(xx+','+yy);
-    const idx=index.indexOf(x+','+y);
-    if(active.mask&(1<<idx))collected.add(x+','+y);
-   }
+   if(levels[room][y][x]==='*')stars.push(x+','+y);
   }
+  stars.forEach((key,i)=>{
+   if(active.mask&(1<<i))collected.add(key);
+  });
   for(const cell of board.querySelectorAll('.crilo-escape-cell.spark')){
    cell.classList.toggle('collected',collected.has(cell.dataset.cell));
   }
@@ -189,6 +184,12 @@
   if(open){
    if(!initialized){
     if(!restoreProgress()){moves=0;clearedRoutes=Array(levels.length).fill(null);loadRoom(0,true);saveProgress();}
+   }else if(overlay.hidden&&roomRoute){
+    // A player may close the secret during the last movement animation.
+    // Resolve any interrupted win/loss when the box is reopened.
+    const state=replayRoute(room,roomRoute);
+    if(state?.escaped)finishRoom();
+    else if(state?.failed)failRoom();
    }
    applyCosmetic();
    void syncGoldenAccount();
