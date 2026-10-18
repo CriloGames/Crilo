@@ -165,7 +165,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     // Deliberately waste slides in Room 1. At zero moves, it must lose.
     for(let i=0;i<9;i++){
      await page.keyboard.press(i%2===0?'ArrowRight':'ArrowLeft');
-     await page.waitForTimeout(24);
+     await page.waitForTimeout(105);
     }
     assert.equal(await board.getAttribute('data-moves-left'),'0');
     assert.match(await overlay.innerText(),/OUT OF MOVES!/);
@@ -184,7 +184,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(await board.getAttribute('data-room'),String(room+1));
      for(const dir of routes[room]){
       await page.keyboard.press(key[dir]);
-      await page.waitForTimeout(24);
+      await page.waitForTimeout(105);
      }
      assert.equal(await board.getAttribute('data-sparks'),'3','Three sparks on room '+(room+1));
      await next.waitFor({state:'visible'});
