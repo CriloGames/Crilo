@@ -134,6 +134,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(styles.color,styles.background);
      await trigger.click();
      await panel.waitFor({state:'visible'});
+     await page.locator('#criloEscapeRestart').click();
      assert.equal(await board.getAttribute('data-room'),'1');
      assert.equal(await board.getAttribute('data-move-limit'),'9');
      assert.equal(await board.getAttribute('data-moves-left'),'9');
