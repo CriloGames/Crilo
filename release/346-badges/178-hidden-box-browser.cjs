@@ -231,6 +231,32 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
    assert.deepEqual(errors,[],'No JavaScript errors at '+width);
    await page.close();
   }
+  // Fresh browser context has no guest proof. An authenticated account with
+  // a server-owned award must still show Golden Box on another device.
+  const cloud=await browser.newPage({viewport:{width:390,height:780},reducedMotion:'reduce'});
+  const cloudErrors=[];cloud.on('pageerror',e=>cloudErrors.push(e.message));
+  await cloud.route('https://crilo.test/',route=>route.fulfill({status:200,contentType:'text/html',body:sanitized}));
+  await cloud.goto('https://crilo.test/',{waitUntil:'domcontentloaded'});
+  await cloud.addStyleTag({content:css});
+  await cloud.evaluate(()=>{
+   window.criloDB={
+    auth:{getUser:async()=>({data:{user:{id:'account-with-gold'}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+    from:(table)=>{
+     if(table!=='crilo_escape_cosmetics')throw Error('Unexpected table read: '+table);
+     return {select:()=>({eq:()=>({maybeSingle:async()=>({data:{golden_unlocked_at:'2026-10-18T00:00:00Z'},error:null})})})};
+    },
+    rpc:()=>{throw Error('Already unlocked account should not submit proof');}
+   };
+  });
+  await cloud.addScriptTag({content:js});
+  await cloud.locator('#criloHiddenBox').click();
+  await cloud.waitForFunction(()=>document.querySelector('#criloEscapeBoard')?.classList.contains('is-golden'));
+  assert.equal(await cloud.locator('#criloGoldenPanel').isVisible(),true);
+  assert.equal(await cloud.evaluate(()=>localStorage.getItem('crilo_escape_golden_guest_proof_v1')),null,
+   'A cloud-owned cosmetic does not require guest local proof');
+  assert.deepEqual(cloudErrors,[]);
+  await cloud.close();
+  console.log('GOLDEN_BOX_CLOUD_PASS: authenticated owner restores Golden Box on a fresh device');
   console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, progressive difficulty, loss/retry, 486-slide win, persistent gold cosmetic and replay, mobile, desktop, input parity, isolation');
  }finally{await browser.close()}
 })().catch(err=>{console.error('ESCAPE_BOX_25_FAIL',err);process.exitCode=1});
