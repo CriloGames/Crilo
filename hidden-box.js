@@ -1,5 +1,5 @@
-/* Escape the Box: a self-contained, twenty-five-room sliding puzzle.
- * No accounts, Daily scores, badges, backend requests or persistent storage. */
+/* Escape the Box: a 25-room puzzle with its own account-synced cosmetic.
+ * Gold never changes Crilo's regular badges, spins, Daily scores, or stats. */
 (()=>{
  'use strict';
  const $=id=>document.getElementById(id);
@@ -10,6 +10,7 @@
  const slidesLabel=$('criloEscapeSlides'),status=$('criloEscapeStatus');
  const budgetFill=$('criloEscapeBudgetFill');
  const restart=$('criloEscapeRestart'),close=$('criloEscapeClose');
+ const goldenPanel=$('criloGoldenPanel'),goldenToggle=$('criloGoldenToggle');
  if(!trigger||!panel||!shade||!board||!player||!overlay||!restart||!close)return;
 
  // Each room has exactly three sparks (*), one start (S), and one exit (E).
@@ -51,7 +52,53 @@
  const directions={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
  let room=0,moves=0,roomMoves=0,level=null,location={x:0,y:0};
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
- let activePointer=null;
+ let activePointer=null,roomRoute='',clearedRoutes=Array(25).fill(null);
+ let unlocked=false,equipped=true,syncing=false;
+ const proofKey='crilo_escape_golden_guest_proof_v1';
+ const equippedKey='crilo_escape_golden_equipped_v1';
+ function safeRead(key){try{return localStorage.getItem(key);}catch{return null;}}
+ function safeWrite(key,value){try{localStorage.setItem(key,value);}catch{/* no storage available */}}
+ function guestProof(){
+  try{
+   const arr=JSON.parse(safeRead(proofKey)||'null');
+   return Array.isArray(arr)&&arr.length===25&&arr.every(s=>typeof s==='string'&&/^[URDL]{1,30}$/.test(s))?arr:null;
+  }catch{return null;}
+ }
+ unlocked=!!guestProof();
+ equipped=safeRead(equippedKey)!=='white';
+ function applyCosmetic(){
+  board.classList.toggle('is-golden',unlocked&&equipped);
+  if(goldenPanel){
+   goldenPanel.hidden=!unlocked;
+   if(goldenToggle){
+    goldenToggle.textContent=equipped?'Use white box':'Use Golden Box';
+    goldenToggle.setAttribute('aria-pressed',String(unlocked&&equipped));
+   }
+  }
+ }
+ function setUnlocked(){
+  unlocked=true;
+  equipped=true;
+  safeWrite(equippedKey,'gold');
+  applyCosmetic();
+ }
+ async function syncGoldenAccount(){
+  if(syncing||typeof criloDB==='undefined'||!criloDB?.auth)return;
+  syncing=true;
+  try{
+   const {data:who,error:authError}=await criloDB.auth.getUser();
+   if(authError||!who?.user)return;
+   const {data:existing,error:lookupError}=await criloDB.from('crilo_escape_cosmetics')
+    .select('golden_unlocked_at').eq('user_id',who.user.id).maybeSingle();
+   if(lookupError)return;
+   if(existing?.golden_unlocked_at){if(!unlocked)setUnlocked();return;}
+   const proof=guestProof();
+   if(!proof)return;
+   const {data:awarded,error:claimError}=await criloDB.rpc('crilo_unlock_golden_box',{p_routes:proof});
+   if(!claimError&&awarded===true){setUnlocked();}
+  }catch{/* No interruption to Crilo login or gameplay on network errors. */}
+  finally{syncing=false;}
+ }
 
  function cancelTransition(){
   if(transitionTimer!==null){clearTimeout(transitionTimer);transitionTimer=null;}
@@ -63,6 +110,8 @@
   trigger.setAttribute('aria-expanded',String(open));
   if(open){
    if(!initialized)loadRoom(0,true);
+   applyCosmetic();
+   void syncGoldenAccount();
    close.focus({preventScroll:true});
   }else{
    cancelTransition();
@@ -110,7 +159,7 @@
  }
  function loadRoom(index,first=false){
   cancelTransition();
-  room=index;roomMoves=0;collected=new Set();
+  room=index;roomMoves=0;roomRoute='';collected=new Set();
   level=levels[index];
   initialized=true;
   overlay.hidden=true;
@@ -126,6 +175,7 @@
   void player.offsetWidth;
   player.classList.remove('no-motion');
   updateHud();
+  applyCosmetic();
   status.textContent=first?'Collect 3 sparks, then reach the exit.':'Room '+(room+1)+' · '+moveLimits[room]+' moves available.';
  }
  function resetRoom(){
@@ -146,15 +196,31 @@
  function finishRoom(){
   busy=true;
   const won=room===levels.length-1;
+  clearedRoutes[room]=roomRoute;
+  if(won){
+   const proof=clearedRoutes.slice();
+   if(proof.length===levels.length&&proof.every(s=>typeof s==='string'&&s.length>0)){
+    safeWrite(proofKey,JSON.stringify(proof));
+    setUnlocked();
+    void syncGoldenAccount();
+   }
+  }
   overlay.hidden=false;
   overlay.replaceChildren();
   const title=document.createElement('strong');
-  title.textContent=won?'YOU ESCAPED!':'ROOM CLEAR!';
+  title.textContent=won?'GOLDEN BOX UNLOCKED!':'ROOM CLEAR!';
+  if(won){
+   const prize=document.createElement('span');
+   prize.className='crilo-golden-prize';
+   prize.textContent='✦';
+   prize.setAttribute('aria-hidden','true');
+   overlay.append(prize);
+  }
   const detail=document.createElement('span');
   detail.textContent=won?levels.length+' rooms · '+moves+' slides':'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
-  next.textContent=won?'Play again':'Next room →';
+  next.textContent=won?'Play with Golden Box':'Next room →';
   next.addEventListener('click',()=>{
    if(won){moves=0;loadRoom(0,true);}
    else loadRoom(room+1);
@@ -194,6 +260,7 @@
   }
   if(distance===0)return false;
   moves++;roomMoves++;
+  roomRoute+=({up:'U',right:'R',down:'D',left:'L'})[dir];
   location={x,y};
   const duration=Math.min(420,110+distance*38);
   markPosition(x,y,duration);
@@ -221,6 +288,16 @@
  close.addEventListener('click',()=>setOpen(false));
  shade.addEventListener('click',()=>setOpen(false));
  restart.addEventListener('click',resetRoom);
+ goldenToggle?.addEventListener('click',()=>{
+  if(!unlocked)return;
+  equipped=!equipped;
+  safeWrite(equippedKey,equipped?'gold':'white');
+  applyCosmetic();
+ });
+ if(typeof criloDB!=='undefined'&&criloDB?.auth?.onAuthStateChange){
+  criloDB.auth.onAuthStateChange(()=>window.setTimeout(()=>{void syncGoldenAccount();},0));
+ }
+ applyCosmetic();
  panel.querySelectorAll('[data-secret-direction]').forEach(btn=>{
   btn.addEventListener('click',()=>slide(btn.dataset.secretDirection));
  });
