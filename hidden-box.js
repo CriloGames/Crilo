@@ -45,6 +45,7 @@
   player.style.setProperty('--x',String(x));
   player.style.setProperty('--y',String(y));
   player.style.setProperty('--slide-duration',duration+'ms');
+  player.style.transform='translate('+(x*100)+'%,'+(y*100)+'%)';
   player.dataset.x=String(x);player.dataset.y=String(y);
   board.dataset.position=x+','+y;
  }
@@ -73,7 +74,7 @@
     fragment.appendChild(cell);
    }
   }
-  board.replaceChildren(fragment,player);
+  board.replaceChildren(fragment,player,overlay);
  }
  function loadRoom(index,first=false){
   cancelTransition();
