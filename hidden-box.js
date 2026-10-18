@@ -45,10 +45,9 @@
    "#########/#...#*..#/#....##.#/#.S#.E*.#/#*.#....#/###....##/#.......#/#....#..#/#########"
   ].map(roomText=>roomText.split('/'))
  ];
- // "Par" is the shortest number of slides needed to collect every spark and exit.
- // The early rooms allow four extra slides; later rooms tighten to three or two.
+ // Exact shortest-path budgets; no extra moves on any of the 25 rooms.
  const parMoves=[5,9,12,14,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,24,24,25,27];
- const moveLimits=parMoves.map((par,index)=>par+(index<10?4:index<15?3:2));
+ const moveLimits=parMoves.slice();
  const directions={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
  let room=0,moves=0,roomMoves=0,level=null,location={x:0,y:0};
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
@@ -56,8 +55,83 @@
  let unlocked=false,equipped=true,syncing=false,syncPending=false;
  const proofKey='crilo_escape_golden_guest_proof_v1';
  const equippedKey='crilo_escape_golden_equipped_v1';
+ const progressKey='crilo_escape_progress_v2';
  function safeRead(key){try{return localStorage.getItem(key);}catch{return null;}}
  function safeWrite(key,value){try{localStorage.setItem(key,value);}catch{/* no storage available */}}
+ function saveProgress(){
+  // Only secret-maze values: do not write Daily, badges or account records.
+  safeWrite(progressKey,JSON.stringify({v:2,room,cleared:clearedRoutes.slice(0,room),route:roomRoute}));
+ }
+ // Replay persisted inputs rather than blindly trusting saved coordinates,
+ // spark counts, or room numbers. This also restores mid-room progress.
+ function replayRoute(index,route){
+  const map=levels[index];
+  let x=-1,y=-1,mask=0,escaped=false,valid=true,ex=-1,ey=-1;
+  const stars=[];
+  for(let yy=0;yy<9;yy++)for(let xx=0;xx<9;xx++){
+   const s=map[yy][xx];
+   if(s==='S'){x=xx;y=yy;}
+   else if(s==='*')stars.push(xx+','+yy);
+   else if(s==='E'){ex=xx;ey=yy;}
+  }
+  if(x<0||stars.length!==3||typeof route!=='string'||route.length>moveLimits[index]||/[^URDL]/.test(route))return null;
+  for(let i=0;i<route.length;i++){
+   const vector={U:[0,-1],R:[1,0],D:[0,1],L:[-1,0]}[route[i]];
+   let distance=0;
+   while(true){
+    const nx=x+vector[0],ny=y+vector[1];
+    if(!map[ny]||map[ny][nx]==='#'||map[ny][nx]===undefined)break;
+    x=nx;y=ny;distance++;
+    const star=stars.indexOf(x+','+y);
+    if(star>=0)mask|=1<<star;
+    if(x===ex&&y===ey&&mask===7){escaped=true;break;}
+   }
+   if(distance===0||(escaped&&i!==route.length-1)){valid=false;break;}
+  }
+  return valid?{x,y,mask,escaped,failed:route.length===moveLimits[index]&&!escaped}:null;
+ }
+ function restoreProgress(){
+  let saved;
+  try{saved=JSON.parse(safeRead(progressKey)||'null');}catch{return false;}
+  if(!saved||saved.v!==2||!Number.isInteger(saved.room)||saved.room<0||saved.room>=levels.length||
+   !Array.isArray(saved.cleared)||saved.cleared.length!==saved.room||
+   typeof saved.route!=='string')return false;
+  for(let i=0;i<saved.cleared.length;i++){
+   const result=replayRoute(i,saved.cleared[i]);
+   if(!result||!result.escaped)return false;
+  }
+  const active=replayRoute(saved.room,saved.route);
+  if(!active)return false;
+  clearedRoutes=[...saved.cleared,...Array(levels.length-saved.cleared.length).fill(null)];
+  moves=saved.cleared.reduce((total,r)=>total+r.length,0);
+  loadRoom(saved.room);
+  roomRoute=saved.route;
+  roomMoves=roomRoute.length;
+  moves+=roomMoves;
+  location={x:active.x,y:active.y};
+  collected=new Set();
+  const map=levels[room];
+  for(let y=0;y<9;y++)for(let x=0;x<9;x++){
+   if(map[y][x]==='*'){
+    const star=map[y][x];
+    void star;
+    // Map spark index ordering exactly matches replayRoute.
+    const index=[];
+    for(let yy=0;yy<9;yy++)for(let xx=0;xx<9;xx++)if(map[yy][xx]==='*')index.push(xx+','+yy);
+    const idx=index.indexOf(x+','+y);
+    if(active.mask&(1<<idx))collected.add(x+','+y);
+   }
+  }
+  for(const cell of board.querySelectorAll('.crilo-escape-cell.spark')){
+   cell.classList.toggle('collected',collected.has(cell.dataset.cell));
+  }
+  markPosition(location.x,location.y,0);
+  updateHud();
+  if(active.escaped)finishRoom();
+  else if(active.failed)failRoom();
+  else status.textContent='Progress restored · room '+(room+1)+'.';
+  return true;
+ }
  function guestProof(){
   try{
    const arr=JSON.parse(safeRead(proofKey)||'null');
@@ -113,7 +187,9 @@
   shade.hidden=!open;
   trigger.setAttribute('aria-expanded',String(open));
   if(open){
-   if(!initialized)loadRoom(0,true);
+   if(!initialized){
+    if(!restoreProgress()){moves=0;clearedRoutes=Array(levels.length).fill(null);loadRoom(0,true);saveProgress();}
+   }
    applyCosmetic();
    void syncGoldenAccount();
    close.focus({preventScroll:true});
@@ -185,6 +261,7 @@
  function resetRoom(){
   moves=Math.max(0,moves-roomMoves);
   loadRoom(room);
+  saveProgress();
   status.textContent='Try a different route!';
  }
  function tile(x,y){return level[y]?.[x]||'#'}
@@ -200,8 +277,9 @@
  function finishRoom(){
   busy=true;
   const won=room===levels.length-1;
+  const firstUnlock=won&&!unlocked;
   clearedRoutes[room]=roomRoute;
-  if(won){
+  if(won&&firstUnlock){
    const proof=clearedRoutes.slice();
    if(proof.length===levels.length&&proof.every(s=>typeof s==='string'&&s.length>0)){
     safeWrite(proofKey,JSON.stringify(proof));
@@ -209,11 +287,12 @@
     void syncGoldenAccount();
    }
   }
+  saveProgress();
   overlay.hidden=false;
   overlay.replaceChildren();
   const title=document.createElement('strong');
-  title.textContent=won?'GOLDEN BOX UNLOCKED!':'ROOM CLEAR!';
-  if(won){
+  title.textContent=won?(firstUnlock?'GOLDEN BOX UNLOCKED!':'YOU ESCAPED AGAIN!'):'ROOM CLEAR!';
+  if(firstUnlock){
    const prize=document.createElement('span');
    prize.className='crilo-golden-prize';
    prize.textContent='✦';
@@ -221,16 +300,20 @@
    overlay.append(prize);
   }
   const detail=document.createElement('span');
-  detail.textContent=won?levels.length+' rooms · '+moves+' slides':'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
+  detail.textContent=won?(firstUnlock?'One-time Golden Box cosmetic · '+moves+' slides':'Replay complete · no more rewards · '+moves+' slides'):'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
-  next.textContent=won?'Play with Golden Box':'Next room →';
+  next.textContent=won?'Play again · Room 1':'Next room →';
   next.addEventListener('click',()=>{
-   if(won){moves=0;loadRoom(0,true);}
-   else loadRoom(room+1);
+   if(won){
+    moves=0;
+    clearedRoutes=Array(levels.length).fill(null);
+    loadRoom(0,true);
+   }else loadRoom(room+1);
+   saveProgress();
   });
   overlay.append(title,detail,next);
-  status.textContent=won?'All '+levels.length+' rooms cleared in '+moves+' slides.':'Room '+(room+1)+' cleared.';
+  status.textContent=won?(firstUnlock?'Golden Box unlocked permanently! Replay any time.':'No extra rewards for replays. Start again at Room 1.'):'Room '+(room+1)+' cleared.';
   next.focus({preventScroll:true});
  }
  function failRoom(){
@@ -247,7 +330,8 @@
   retry.textContent='Retry room ↻';
   retry.addEventListener('click',resetRoom);
   overlay.append(title,detail,retry);
-  status.textContent='Out of moves. Try a shorter route.';
+  status.textContent='Out of moves. Retry for the exact shortest path.';
+  saveProgress();
   retry.focus({preventScroll:true});
  }
  function slide(dir){
@@ -269,6 +353,7 @@
   const duration=Math.min(420,110+distance*38);
   markPosition(x,y,duration);
   updateHud();
+  saveProgress();
   busy=true;
   transitionTimer=setTimeout(()=>{
    transitionTimer=null;busy=false;
