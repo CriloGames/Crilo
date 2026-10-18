@@ -96,6 +96,15 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     window.setTimeout=(f,ms,...args)=>original(f,Math.min(ms,5),...args);
    });
    await page.addScriptTag({content:js});
+   const reloadSecret=async()=>{
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.addStyleTag({content:css});
+    await page.evaluate(()=>{
+     const original=window.setTimeout.bind(window);
+     window.setTimeout=(fn,ms,...args)=>original(fn,Math.min(ms,5),...args);
+    });
+    await page.addScriptTag({content:js});
+   };
    const trigger=page.locator('#criloHiddenBox');
    const panel=page.locator('#criloHiddenBoxNote');
    const board=page.locator('#criloEscapeBoard');
@@ -160,6 +169,18 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      await board.dispatchEvent('pointerup',{pointerId:7,pointerType:'touch',clientX:180,clientY:100,button:0});
      await page.waitForTimeout(20);
      assert.notEqual(await board.getAttribute('data-position'),origin,'Swipe moves the character');
+     const savedPosition=await board.getAttribute('data-position');
+     const savedLeft=await board.getAttribute('data-moves-left');
+     const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_escape_progress_v2')));
+     assert.equal(saved.room,0);
+     assert.equal(saved.route.length,1,'Move persisted locally');
+     await reloadSecret();
+     assert.equal(await panel.isVisible(),false);
+     await trigger.click();
+     assert.equal(await board.getAttribute('data-position'),savedPosition,
+      'Returning to site restores mid-room character position');
+     assert.equal(await board.getAttribute('data-moves-left'),savedLeft,
+      'Returning does not reset move counter');
      assert.deepEqual(await state(),initial);
      await page.keyboard.press('Escape');
      assert.equal(await panel.isVisible(),false);
@@ -176,6 +197,10 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     }
     assert.equal(await board.getAttribute('data-moves-left'),'0');
     assert.match(await overlay.innerText(),/OUT OF MOVES!/);
+    await reloadSecret();
+    await trigger.click();
+    assert.match(await overlay.innerText(),/OUT OF MOVES!/,'Failed room restored on reload');
+    assert.equal(await board.getAttribute('data-moves-left'),'0');
     assert.equal(await page.locator('#criloGoldenPanel').isVisible(),false,'Losing never awards Gold');
     assert.match(await next.innerText(),/Retry room/);
     const failedPosition=await board.getAttribute('data-position');
@@ -230,6 +255,31 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     assert.equal(await page.locator('#criloGoldenPanel').isVisible(),true);
     assert.equal(await page.locator('#criloEscapeBoard').evaluate(el=>el.classList.contains('is-golden')),true);
     assert.equal(await page.locator('#criloEscapeBoard').getAttribute('data-room'),'1');
+    // Restore a completed first 24 rooms during a replay, then complete Room 25:
+    // replay is always playable, but never awards another Golden Box.
+    const replaySnapshot={v:2,room:24,
+     cleared:routes.slice(0,24).map(path=>path.map(dir=>({up:'U',right:'R',down:'D',left:'L'})[dir]).join('')),
+     route:''};
+    await page.evaluate(snapshot=>localStorage.setItem('crilo_escape_progress_v2',JSON.stringify(snapshot)),replaySnapshot);
+    await reloadSecret();
+    await trigger.click();
+    assert.equal(await board.getAttribute('data-room'),'25','Later rooms survive leaving and returning');
+    for(const dir of routes[24]){
+     await page.keyboard.press(key[dir]);
+     await page.waitForTimeout(105);
+    }
+    await next.waitFor({state:'visible'});
+    assert.match(await overlay.innerText(),/YOU ESCAPED AGAIN!/);
+    assert.match(await overlay.innerText(),/no more rewards/);
+    assert.equal(await overlay.locator('.crilo-golden-prize').count(),0,'Second win has no second prize');
+    assert.match(await next.innerText(),/Play again · Room 1/);
+    await next.click();
+    assert.equal(await board.getAttribute('data-room'),'1');
+    assert.equal(await board.getAttribute('data-slides'),'0');
+    assert.equal(await board.getAttribute('data-moves-left'),'5');
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_escape_progress_v2')).room),0,
+     'Restarting after a replay saves the new Room 1 run');
+    assert.deepEqual(await state(),initial,'Replays cannot affect Daily or badges');
    }
    assert.deepEqual(errors,[],'No JavaScript errors at '+width);
    await page.close();
@@ -260,6 +310,6 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
   assert.deepEqual(cloudErrors,[]);
   await cloud.close();
   console.log('GOLDEN_BOX_CLOUD_PASS: authenticated owner restores Golden Box on a fresh device');
-  console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, progressive difficulty, loss/retry, 486-slide win, persistent gold cosmetic and replay, mobile, desktop, input parity, isolation');
+  console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, exact par limits, saved unfinished rooms, loss/retry, one-time reward, replay, 486-slide win, mobile, desktop, input parity, isolation');
  }finally{await browser.close()}
 })().catch(err=>{console.error('ESCAPE_BOX_25_FAIL',err);process.exitCode=1});
