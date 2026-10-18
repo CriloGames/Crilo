@@ -14,10 +14,12 @@ assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="dialog" aria-modal="true"/);
 assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
-assert.match(html,/hidden-box\.css\?v=6/);
-assert.match(html,/hidden-box\.js\?v=5/);
-assert.doesNotMatch(js,/criloDB|supabase|user_badges|localStorage\.|sessionStorage\.|fetch\(|XMLHttpRequest|\.rpc\(/i,
- 'Hidden game must not access account, score, badges or storage');
+assert.match(html,/hidden-box\.css\?v=7/);
+assert.match(html,/hidden-box\.js\?v=6/);
+assert.match(js,/crilo_unlock_golden_box/,'Cosmetic claims must be verified by dedicated RPC');
+assert.match(js,/crilo_escape_cosmetics/,'Unlocks are stored separately from gameplay');
+assert.doesNotMatch(js,/\b(?:daily_runs|bonus_runs|user_badges|badge_events|leaderboard_scores|player_stats)\b|XMLHttpRequest|fetch\(/i,
+ 'Secret game cannot alter Crilo scores, badges or leaderboard state');
 const entranceStyles=hiddenCss.slice(hiddenCss.indexOf('.crilo-hidden-box{'),hiddenCss.indexOf('/* Escape the Box:'));
 assert.doesNotMatch(entranceStyles,/cursor:\s*pointer/i,'Entrance remains camouflaged');
 assert.match(entranceStyles,/cursor:default!important/);
@@ -83,7 +85,8 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
   for(const width of [320,390,768,1280]){
    const page=await browser.newPage({viewport:{width,height:800},reducedMotion:'reduce'});
    const errors=[];page.on('pageerror',error=>errors.push(error.message));
-   await page.setContent(sanitized,{waitUntil:'domcontentloaded'});
+   await page.route('https://crilo.test/',route=>route.fulfill({status:200,contentType:'text/html',body:sanitized}));
+   await page.goto('https://crilo.test/',{waitUntil:'domcontentloaded'});
    await page.addStyleTag({content:css});
    await page.evaluate(()=>{
     const original=window.setTimeout.bind(window);
@@ -134,6 +137,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(styles.color,styles.background);
      await trigger.click();
      await panel.waitFor({state:'visible'});
+     assert.equal(await page.locator('#criloGoldenPanel').isVisible(),false,'Gold remains locked before victory');
      await page.locator('#criloEscapeRestart').click();
      assert.equal(await board.getAttribute('data-room'),'1');
      assert.equal(await board.getAttribute('data-move-limit'),'9');
@@ -169,6 +173,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     }
     assert.equal(await board.getAttribute('data-moves-left'),'0');
     assert.match(await overlay.innerText(),/OUT OF MOVES!/);
+    assert.equal(await page.locator('#criloGoldenPanel').isVisible(),false,'Losing never awards Gold');
     assert.match(await next.innerText(),/Retry room/);
     const failedPosition=await board.getAttribute('data-position');
     await page.keyboard.press('ArrowUp');
@@ -189,22 +194,43 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(await board.getAttribute('data-sparks'),'3','Three sparks on room '+(room+1));
      await next.waitFor({state:'visible'});
      const text=await overlay.innerText();
-     assert.match(text,room===24?/YOU ESCAPED!/:/ROOM CLEAR!/,'Room '+(room+1));
+     assert.match(text,room===24?/GOLDEN BOX UNLOCKED!/:/ROOM CLEAR!/,'Room '+(room+1));
      if(room<24)await next.click();
     }
     assert.equal(await board.getAttribute('data-slides'),String(totalPar),'No wasted slides on shortest routes');
     assert.match(await overlay.innerText(),/25 rooms/);
+    assert.equal(await page.locator('.crilo-golden-prize').count(),1);
+    assert.equal(await page.locator('#criloGoldenPanel').isVisible(),true);
+    assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true);
+    const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_escape_golden_guest_proof_v1')));
+    assert.equal(saved.length,25,'Golden Box proof persists for guests');
     assert.deepEqual(await state(),initial,'Winning cannot affect Daily points or badges');
     await next.click();
     assert.equal(await board.getAttribute('data-room'),'1');
     assert.equal(await board.getAttribute('data-slides'),'0');
     assert.equal(await board.getAttribute('data-moves-left'),'9');
+    assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true,
+      'Golden Box stays equipped when replaying');
+    const toggle=page.locator('#criloGoldenToggle');
+    await toggle.click();
+    assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),false,
+      'Gold owner can switch back to original white cosmetic');
+    await toggle.click();
+    assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true);
     await page.locator('#criloEscapeClose').click();
     assert.equal(await panel.isVisible(),false);
+    // Refresh must preserve the earned Gold Box and equipped appearance.
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.addStyleTag({content:css});
+    await page.addScriptTag({content:js});
+    await page.locator('#criloHiddenBox').click();
+    assert.equal(await page.locator('#criloGoldenPanel').isVisible(),true);
+    assert.equal(await page.locator('#criloEscapeBoard').evaluate(el=>el.classList.contains('is-golden')),true);
+    assert.equal(await page.locator('#criloEscapeBoard').getAttribute('data-room'),'1');
    }
    assert.deepEqual(errors,[],'No JavaScript errors at '+width);
    await page.close();
   }
-  console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, progressive difficulty, loss/retry, 486-slide win, mobile, desktop, input parity, isolation');
+  console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, progressive difficulty, loss/retry, 486-slide win, persistent gold cosmetic and replay, mobile, desktop, input parity, isolation');
  }finally{await browser.close()}
 })().catch(err=>{console.error('ESCAPE_BOX_25_FAIL',err);process.exitCode=1});
