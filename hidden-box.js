@@ -1,4 +1,4 @@
-/* Escape the Box: a self-contained, five-room sliding puzzle.
+/* Escape the Box: a self-contained, twenty-five-room sliding puzzle.
  * No accounts, Daily scores, badges, backend requests or persistent storage. */
 (()=>{
  'use strict';
@@ -8,6 +8,7 @@
  const player=$('criloEscapePlayer'),overlay=$('criloEscapeOverlay');
  const roomLabel=$('criloEscapeRoom'),sparksLabel=$('criloEscapeSparks');
  const slidesLabel=$('criloEscapeSlides'),status=$('criloEscapeStatus');
+ const budgetFill=$('criloEscapeBudgetFill');
  const restart=$('criloEscapeRestart'),close=$('criloEscapeClose');
  if(!trigger||!panel||!shade||!board||!player||!overlay||!restart||!close)return;
 
@@ -18,8 +19,35 @@
   ["#########","#.#.....#","#.....S.#","#*###...#","#E......#","##......#","#.*.....#","#....*..#","#########"],
   ["#########","#..*..#.#","#....#*.#","#...#..##","##......#","#.SE*.#.#","#.......#","#..#....#","#########"],
   ["#########","##..*#..#","#......##","##..*...#","#*#.##..#","#.......#","##.....S#","##.E....#","#########"],
-  ["#########","#.##.*..#","#.#....##","###.....#","#.......#","#*##....#","#.#.#...#","##.S..E*#","#########"]
+  ["#########","#.##.*..#","#.#....##","###.....#","#.......#","#*##....#","#.#.#...#","##.S..E*#","#########"],
+  // The remaining rooms were checked with an independent shortest-path solver.
+  ...[
+   "#########/##.E.##.#/#....#..#/#*##.#.##/#.#*.#.##/#.#S##..#/###..#..#/##.#.*###/#########",
+   "#########/#*.##...#/#.E.*...#/##.#.S###/#####...#/#.#.*#..#/#.##...##/###.###.#/#########",
+   "#########/#..##.#.#/#.#..#.*#/##.#...##/#.#..E#.#/###S#...#/##.*##..#/#.#.##*##/#########",
+   "#########/#....#.*#/#.#E..S.#/#.*##..##/##.####.#/#..#..#.#/#.#####.#/#*###..##/#########",
+   "#########/##...#*.#/#.###*#.#/#####...#/#.##.#..#/#E..#..S#/#*#.#..##/###....##/#########",
+   "#########/###..####/#.*.#...#/#.##...##/#..E.#..#/#S.*##.##/#..#.#.*#/###.#.###/#########",
+   "#########/#E.##...#/#..*.*..#/##S##.###/#.##..#.#/##...#.##/#..##.###/#.*####.#/#########",
+   "#########/##.#.E.##/##*..#..#/#...#..S#/#.#..##*#/##...####/#.*####.#/#..##.#.#/#########",
+   "#########/######..#/#.E....##/###....##/#...#*.##/##...####/#..#.*..#/#.S*###.#/#########",
+   "#########/#*.#.E..#/##..##.##/#.#.#..##/#*#...###/#.....###/##...S#.#/##.*#####/#########",
+   "#########/###E....#/#.S*#.###/#..#.*###/#....#..#/##..#...#/###...#*#/##.###.##/#########",
+   "#########/#*###..##/#..#S...#/##..#...#/#.#.#..##/##......#/##.*.##*#/###E...##/#########",
+   "#########/#..#.####/####E..##/#*#...###/#...#..##/#.*##..##/#..#.#.S#/###.#*..#/#########",
+   "#########/##..S.#.#/#..#...##/#...##.##/#.#*##E##/#.##*.*.#/#....#..#/#.###...#/#########",
+   "#########/#E.#..*##/#...#.*.#/##....###/##.#...##/#..####*#/#S#.#...#/#.......#/#########",
+   "#########/##*.#..S#/#.#..#..#/##.#..*##/##...#.##/#...#...#/#E...##*#/####....#/#########",
+   "#########/####S...#/##......#/#..#.####/#.#..E###/#..##..*#/##*#...##/##.#.*.##/#########",
+   "#########/#..#.####/#..##...#/#.#.....#/#....S###/#E#.*#*.#/#..#.*#.#/#####...#/#########",
+   "#########/#*....#S#/#..#..*.#/##..##.##/#.#..E.##/##.#.#..#/#....##.#/#.#..#.*#/#########",
+   "#########/#...#*..#/#....##.#/#.S#.E*.#/#*.#....#/###....##/#.......#/#....#..#/#########"
+  ].map(roomText=>roomText.split('/'))
  ];
+ // "Par" is the shortest number of slides needed to collect every spark and exit.
+ // The early rooms allow four extra slides; later rooms tighten to three or two.
+ const parMoves=[5,9,12,14,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,24,24,25,27];
+ const moveLimits=parMoves.map((par,index)=>par+(index<10?4:index<15?3:2));
  const directions={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
  let room=0,moves=0,roomMoves=0,level=null,location={x:0,y:0};
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
@@ -52,7 +80,11 @@
  function updateHud(){
   roomLabel.textContent='ROOM '+(room+1)+' / '+levels.length;
   sparksLabel.textContent=collected.size+' / 3';
-  slidesLabel.textContent=String(moves);
+  slidesLabel.textContent=roomMoves+' / '+moveLimits[room];
+  if(budgetFill)budgetFill.style.width=(roomMoves/moveLimits[room]*100)+'%';
+  panel.classList.toggle('low-moves',moveLimits[room]-roomMoves<=2);
+  board.dataset.movesLeft=String(moveLimits[room]-roomMoves);
+  board.dataset.moveLimit=String(moveLimits[room]);
   board.dataset.room=String(room+1);
   board.dataset.sparks=String(collected.size);
   board.dataset.slides=String(moves);
@@ -82,6 +114,7 @@
   level=levels[index];
   initialized=true;
   overlay.hidden=true;
+  overlay.classList.remove('is-failure');
   for(let y=0;y<level.length;y++){
    const x=level[y].indexOf('S');
    if(x>=0){location={x,y};break;}
@@ -93,7 +126,7 @@
   void player.offsetWidth;
   player.classList.remove('no-motion');
   updateHud();
-  status.textContent=first?'Collect 3 sparks, then reach the exit.':'Room '+(room+1);
+  status.textContent=first?'Collect 3 sparks, then reach the exit.':'Room '+(room+1)+' · '+moveLimits[room]+' moves available.';
  }
  function resetRoom(){
   moves=Math.max(0,moves-roomMoves);
@@ -118,7 +151,7 @@
   const title=document.createElement('strong');
   title.textContent=won?'YOU ESCAPED!':'ROOM CLEAR!';
   const detail=document.createElement('span');
-  detail.textContent=won?'5 rooms · '+moves+' slides':'3 sparks collected';
+  detail.textContent=won?levels.length+' rooms · '+moves+' slides':'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
   next.textContent=won?'Play again':'Next room →';
@@ -127,8 +160,25 @@
    else loadRoom(room+1);
   });
   overlay.append(title,detail,next);
-  status.textContent=won?'All five rooms cleared in '+moves+' slides.':'Room '+(room+1)+' cleared.';
+  status.textContent=won?'All '+levels.length+' rooms cleared in '+moves+' slides.':'Room '+(room+1)+' cleared.';
   next.focus({preventScroll:true});
+ }
+ function failRoom(){
+  busy=true;
+  overlay.hidden=false;
+  overlay.replaceChildren();
+  overlay.classList.add('is-failure');
+  const title=document.createElement('strong');
+  title.textContent='OUT OF MOVES!';
+  const detail=document.createElement('span');
+  detail.textContent='Room '+(room+1)+' · '+collected.size+'/3 sparks';
+  const retry=document.createElement('button');
+  retry.type='button';retry.className='crilo-escape-next';
+  retry.textContent='Retry room ↻';
+  retry.addEventListener('click',resetRoom);
+  overlay.append(title,detail,retry);
+  status.textContent='Out of moves. Try a shorter route.';
+  retry.focus({preventScroll:true});
  }
  function slide(dir){
   if(panel.hidden||busy||overlay.hidden===false)return false;
@@ -152,6 +202,7 @@
   transitionTimer=setTimeout(()=>{
    transitionTimer=null;busy=false;
    if(escaped)finishRoom();
+   else if(roomMoves>=moveLimits[room])failRoom();
    else if(collected.size===3)status.textContent='Exit open! Slide through the door.';
    else status.textContent='';
   },duration+35);
