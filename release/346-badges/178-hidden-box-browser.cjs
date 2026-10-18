@@ -14,8 +14,10 @@ assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="dialog" aria-modal="true"/);
 assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
-assert.match(html,/hidden-box\.css\?v=7/);
-assert.match(html,/hidden-box\.js\?v=6/);
+assert.match(html,/Progress saves on this device/);
+assert.match(html,/one-time reward/);
+assert.match(html,/hidden-box\.css\?v=8/);
+assert.match(html,/hidden-box\.js\?v=7/);
 assert.match(js,/crilo_unlock_golden_box/,'Cosmetic claims must be verified by dedicated RPC');
 assert.match(js,/crilo_escape_cosmetics/,'Unlocks are stored separately from gameplay');
 assert.doesNotMatch(js,/\b(?:daily_runs|bonus_runs|user_badges|badge_events|leaderboard_scores|player_stats)\b|XMLHttpRequest|fetch\(/i,
@@ -70,12 +72,13 @@ const routes=levels.map((grid,index)=>{
  const route=shortest(grid);
  assert.ok(route,'Room '+(index+1)+' must be solvable');
  assert.equal(route.length,parMoves[index],'Exact minimum moves for room '+(index+1));
- assert.ok(route.length<=parMoves[index]+(index<10?4:index<15?3:2));
+ assert.equal(route.length,parMoves[index],'Every room must have exactly its minimum moves');
  if(index>0)assert.ok(parMoves[index]>=parMoves[index-1],'Rooms must grow harder');
  return route;
 });
 const totalPar=routes.reduce((n,r)=>n+r.length,0);
 assert.equal(totalPar,486,'Expected minimum for 25 rooms');
+assert.match(js,/moveLimits=parMoves\.slice\(\)/);
 
 const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
  .replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gi,'');
@@ -140,15 +143,15 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(await page.locator('#criloGoldenPanel').isVisible(),false,'Gold remains locked before victory');
      await page.locator('#criloEscapeRestart').click();
      assert.equal(await board.getAttribute('data-room'),'1');
-     assert.equal(await board.getAttribute('data-move-limit'),'9');
-     assert.equal(await board.getAttribute('data-moves-left'),'9');
+     assert.equal(await board.getAttribute('data-move-limit'),'5');
+     assert.equal(await board.getAttribute('data-moves-left'),'5');
      const origin=await board.getAttribute('data-position');
      await page.locator('[data-secret-direction="right"]').click();
      await page.waitForTimeout(20);
      assert.notEqual(await board.getAttribute('data-position'),origin);
-     assert.equal(await board.getAttribute('data-moves-left'),'8');
+     assert.equal(await board.getAttribute('data-moves-left'),'4');
      await page.locator('#criloEscapeRestart').click();
-     assert.equal(await board.getAttribute('data-moves-left'),'9');
+     assert.equal(await board.getAttribute('data-moves-left'),'5');
      await page.keyboard.press('ArrowDown');
      await page.waitForTimeout(20);
      assert.notEqual(await board.getAttribute('data-position'),origin);
@@ -167,7 +170,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     await trigger.click();
     await page.locator('#criloEscapeRestart').click();
     // Deliberately waste slides in Room 1. At zero moves, it must lose.
-    for(let i=0;i<9;i++){
+    for(let i=0;i<5;i++){
      await page.keyboard.press(i%2===0?'ArrowRight':'ArrowLeft');
      await page.waitForTimeout(105);
     }
@@ -181,7 +184,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
       'No movement allowed after losing');
     await next.click();
     assert.equal(await board.getAttribute('data-room'),'1');
-    assert.equal(await board.getAttribute('data-moves-left'),'9');
+    assert.equal(await board.getAttribute('data-moves-left'),'5');
     assert.equal(await board.getAttribute('data-slides'),'0');
     assert.deepEqual(await state(),initial,'Failure does not affect Daily state');
     // Finish all 25 levels using independently computed optimal routes.
@@ -208,7 +211,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     await next.click();
     assert.equal(await board.getAttribute('data-room'),'1');
     assert.equal(await board.getAttribute('data-slides'),'0');
-    assert.equal(await board.getAttribute('data-moves-left'),'9');
+    assert.equal(await board.getAttribute('data-moves-left'),'5');
     assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true,
       'Golden Box stays equipped when replaying');
     const toggle=page.locator('#criloGoldenToggle');
