@@ -301,7 +301,7 @@
    overlay.append(prize);
   }
   const detail=document.createElement('span');
-  detail.textContent=won?(firstUnlock?'One-time Golden Box cosmetic · '+moves+' slides':'Replay complete · no more rewards · '+moves+' slides'):'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
+  detail.textContent=won?(firstUnlock?'25 rooms · one-time Golden Box · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
   next.textContent=won?'Play again · Room 1':'Next room →';
