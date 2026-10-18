@@ -19,10 +19,10 @@ assert.ok(game.includes("await window.CriloMysteryGift?.refresh?.({autoOpen:true
 assert.doesNotMatch(html,/4 Daily Runs available per day/,
  'Old oversized bonus-run heading must be removed');
 assert.match(html,/id="bonusModeBanner"/);
-assert.match(html,/Your highest Official or Bonus score of the day counts toward the leaderboard/,
- 'The next-run panel must explain how the highest eligible run gets ranked');
-assert.match(html,/Only your Official Daily earns badges and lifetime gameplay stats/,
- 'Bonus Run rewards cannot be confused with official badge or lifetime progress');
+assert.match(html,/Official and Bonus Runs both count toward leaderboards and gameplay statistics/,
+ 'Both Official and Bonus Runs must count toward leaderboards and gameplay statistics');
+assert.match(html,/Only your Official Daily earns badges/,
+ 'Only Official Daily runs may earn badges; Bonus gameplay statistics still count');
 assert.doesNotMatch(html,/Bonus scores get their own leaderboard positions/,
  'One player cannot occupy several leaderboard positions for the same day');
 assert.match(game,/isBonus\?'crilo_bonus_spin':'crilo_server_spin'/);
