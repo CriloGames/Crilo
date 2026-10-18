@@ -12,12 +12,15 @@ const css=fs.readFileSync('style.css','utf8')+'\n'+
 const js=fs.readFileSync('hidden-box.js','utf8');
 assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="group"[^>]*hidden/);
-assert.match(html,/id="criloHiddenWish"/);
-assert.match(html,/hidden-box\.css\?v=3/);
-assert.match(html,/hidden-box\.js\?v=2/);
+assert.match(html,/id="criloChaosPoke"/);
+assert.match(html,/id="criloChaosStage"/);
+assert.doesNotMatch(html,/A pocket of sky|Make a wish/);
+assert.match(html,/hidden-box\.css\?v=4/);
+assert.match(html,/hidden-box\.js\?v=3/);
 assert.doesNotMatch(js,/criloDB|supabase|user_badges|localStorage\.|fetch\(/i,
  'The Easter egg must not interact with backend, account, scores, or storage');
-assert.doesNotMatch(hiddenCss,/cursor:\s*pointer/i,
+const triggerStyles=hiddenCss.slice(hiddenCss.indexOf('.crilo-hidden-box{'),hiddenCss.indexOf('.crilo-hidden-box-note{'));
+assert.doesNotMatch(triggerStyles,/cursor:\s*pointer/i,
  'The hidden click target must not advertise itself with a pointer cursor');
 assert.match(hiddenCss,/\.crilo-hidden-box\{[^}]*cursor:default!important/s,
  'Even when the Daily is locked, hover must leave the cursor unchanged');
@@ -35,7 +38,9 @@ const sanitized=html
    await page.addScriptTag({content:js});
    const box=page.locator('#criloHiddenBox');
    const note=page.locator('#criloHiddenBoxNote');
-   const wish=page.locator('#criloHiddenWish');
+   const poke=page.locator('#criloChaosPoke');
+   const stage=page.locator('#criloChaosStage');
+   const close=page.locator('#criloChaosClose');
    assert.equal(await box.count(),1);
    assert.equal(await note.isVisible(),false);
    assert.equal(await box.isEnabled(),true);
@@ -93,13 +98,22 @@ const sanitized=html
      await box.click({timeout:5000});
      await note.waitFor({state:'visible'});
      assert.equal(await box.getAttribute('aria-expanded'),'true');
-     assert.match(await note.innerText(),/A pocket of sky/);
-     const first=await page.locator('#criloHiddenWhisper').innerText();
-     const oldPhase=await note.getAttribute('data-phase');
-     await wish.click();
-     const second=await page.locator('#criloHiddenWhisper').innerText();
-     assert.notEqual(first,second,'The secret must do something when wished on');
-     assert.notEqual(await note.getAttribute('data-phase'),oldPhase,'Each wish updates the stars');
+     assert.match(await note.innerText(),/the box/);
+     assert.equal((await note.innerText()).includes('you found'),false,'No explanation copy');
+     const outcomes=new Set();
+     // All thirteen shuffled physical gags must be playable without scores or badges.
+     for(let n=0;n<13;n++){
+      await poke.click();
+      const action=await stage.getAttribute('data-effect');
+      assert.ok(action&&action!=='idle','A poke always produces a toy reaction');
+      outcomes.add(action);
+      assert.ok((await page.locator('#criloChaosAccessible').textContent()).length>8,
+       'Assistive tech gets a discreet description');
+      if(action==='confetti')assert.equal(await stage.locator('.crilo-chaos-confetti').count(),15);
+      if(action==='clone'||action==='bonk')assert.equal(await stage.locator('.crilo-chaos-extra.crilo-chaos-cube').count(),1);
+      if(action==='duck')assert.equal(await stage.locator('.crilo-chaos-duck').count(),1);
+     }
+     assert.equal(outcomes.size,13,'Every secret animation appears once per deck');
      const after=await page.evaluate(()=>({
       score:document.getElementById('score').textContent,
       spins:document.getElementById('spins').textContent,
@@ -112,6 +126,9 @@ const sanitized=html
      await box.focus();
      await box.press('Enter');
      assert.equal(await note.isVisible(),true,'Keyboard access '+mode+' '+theme);
+     await close.click();
+     assert.equal(await note.isVisible(),false,'Close button works');
+     await box.click();
      await page.locator('body').click({position:{x:10,y:140}});
      assert.equal(await note.isVisible(),false,'Dismiss click away');
     }
@@ -119,6 +136,6 @@ const sanitized=html
    assert.deepEqual(errors,[],'No homepage JS errors at '+width);
    await page.close();
   }
-  console.log('HIDDEN_BOX_BROWSER_PASS: complete real homepage, clickable pre/post Daily, 4 viewport widths, light/dark, safe stars, unchanged scores/badges');
+  console.log('HIDDEN_BOX_BROWSER_PASS: complete real homepage, clickable pre/post Daily, 4 viewport widths, light/dark, 13 unique toy actions, unchanged scores/badges');
  }finally{await browser.close()}
 })().catch(error=>{console.error('HIDDEN_BOX_BROWSER_FAIL',error);process.exitCode=1});
