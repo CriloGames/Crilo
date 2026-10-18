@@ -1,0 +1,70 @@
+/* An intentionally inconspicuous homepage Easter egg.
+   Match the page background in either theme; never advertise interactivity
+   with a pointer, highlight, transform or hover animation. */
+.hero{position:relative}
+.crilo-hidden-box{
+ position:absolute;
+ right:clamp(20px,5vw,56px);
+ bottom:30px;
+ display:grid;
+ place-items:center;
+ width:30px;
+ height:30px;
+ margin:0;
+ padding:0;
+ background:transparent;
+ border:0;
+ border-radius:0;
+ box-shadow:none;
+ color:inherit;
+ cursor:default!important;
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+ z-index:2;
+}
+.crilo-hidden-box::before{
+ content:"";
+ display:block;
+ width:15px;
+ height:15px;
+ box-sizing:border-box;
+ background:var(--bg,#fff);
+ border:1px solid color-mix(in srgb,var(--bg,#fff) 96%,var(--text,#15171c) 4%);
+ border-radius:1px;
+}
+.crilo-hidden-box:hover,
+.crilo-hidden-box:active{
+ cursor:default!important;
+ background:transparent;
+ border:0;
+ box-shadow:none;
+ transform:none;
+ filter:none;
+}
+.crilo-hidden-box:focus{outline:none}
+.crilo-hidden-box:focus-visible{
+ outline:2px solid var(--muted,#777);
+ outline-offset:1px;
+ border-radius:4px;
+}
+.crilo-hidden-box-note{
+ position:absolute;
+ right:clamp(60px,calc(5vw + 40px),100px);
+ bottom:30px;
+ width:min(240px,calc(100% - 100px));
+ text-align:left;
+ padding:11px 13px;
+ display:grid;
+ gap:3px;
+ background:var(--panel,#fff);
+ border:1px solid var(--line,#e5e5e5);
+ border-radius:12px;
+ box-shadow:0 5px 20px var(--shadow,rgba(0,0,0,.07));
+ color:var(--text,#15171c);
+ font-size:12px;
+ line-height:1.4;
+ z-index:3;
+}
+.crilo-hidden-box-note strong{font-size:12px}
+.crilo-hidden-box-note span{color:var(--muted,#777)}
+.crilo-hidden-box-note[hidden]{display:none!important}
