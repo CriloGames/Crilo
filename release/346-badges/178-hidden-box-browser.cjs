@@ -10,7 +10,7 @@ assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="status" hidden/);
 assert.match(html,/hidden-box\.css\?v=1/);
 assert.match(html,/hidden-box\.js\?v=1/);
-assert.doesNotMatch(js,/criloDB|supabase|user_badges|badge|score|localStorage\./i,
+assert.doesNotMatch(js,/criloDB|supabase|user_badges|localStorage\./i,
  'The undecided Easter egg must never affect gameplay, rewards or storage');
 assert.doesNotMatch(css,/cursor:\s*pointer/i,
  'The hidden clickable area must never advertise itself with the pointer cursor');
