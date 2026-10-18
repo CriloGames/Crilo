@@ -322,3 +322,12 @@
  .crilo-escape-board.is-golden .crilo-escape-character,
  .crilo-golden-prize{animation:none!important}
 }
+
+/* Short, always-visible reminder: runs resume locally and the Golden Box is one-time. */
+.crilo-escape-save-note{
+ margin:8px 0 0;padding:8px 10px;
+ border-radius:9px;border:1px dashed var(--line,#dedce5);
+ background:var(--soft,#f8f8fa);
+ font:650 10px/1.5 system-ui,sans-serif;
+ color:var(--muted,#72737e);
+}
