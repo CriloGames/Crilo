@@ -13,7 +13,7 @@ const js=fs.readFileSync('hidden-box.js','utf8');
 assert.match(html,/id="criloHiddenBox" class="crilo-hidden-box"/);
 assert.match(html,/id="criloHiddenBoxNote" role="group"[^>]*hidden/);
 assert.match(html,/id="criloHiddenWish"/);
-assert.match(html,/hidden-box\.css\?v=2/);
+assert.match(html,/hidden-box\.css\?v=3/);
 assert.match(html,/hidden-box\.js\?v=2/);
 assert.doesNotMatch(js,/criloDB|supabase|user_badges|localStorage\.|fetch\(/i,
  'The Easter egg must not interact with backend, account, scores, or storage');
@@ -40,7 +40,7 @@ const sanitized=html
    assert.equal(await note.isVisible(),false);
    assert.equal(await box.isEnabled(),true);
    const bounds=await box.boundingBox();
-   assert.ok(bounds&&bounds.width===30&&bounds.height===30,'Tiny hit target at '+width);
+   assert.ok(bounds&&bounds.width===60&&bounds.height===60,'Doubled 60px hit target at '+width);
    assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width,'Box on screen '+width);
 
    for(const mode of ['before','finished']){
@@ -64,6 +64,11 @@ const sanitized=html
        box:getComputedStyle(el,'::before').backgroundColor,
        cursor:getComputedStyle(el).cursor,
        tiny:getComputedStyle(el,'::before').width,
+       visibleHeight:getComputedStyle(el,'::before').height,
+       edgeStyle:getComputedStyle(el,'::before').borderStyle,
+       edgeWidth:getComputedStyle(el,'::before').borderTopWidth,
+       shadow:getComputedStyle(el,'::before').boxShadow,
+       buttonEdge:getComputedStyle(el).borderTopWidth,
        clickable:document.elementFromPoint(midpoint.x,midpoint.y)===el,
        inert:el.inert||el.closest('[inert]')!==null,
        disabled:el.disabled,
@@ -74,7 +79,12 @@ const sanitized=html
      });
      assert.equal(metrics.box,metrics.body,'Camouflage '+mode+' '+theme+' '+width);
      assert.equal(metrics.cursor,'default','Normal cursor '+mode+' '+theme);
-     assert.equal(metrics.tiny,'15px');
+     assert.equal(metrics.tiny,'30px');
+     assert.equal(metrics.visibleHeight,'30px','Secret square remains square');
+     assert.equal(metrics.edgeWidth,'0px','No border pixels may reveal the square');
+     assert.equal(metrics.edgeStyle,'none','No border style may reveal the square');
+     assert.equal(metrics.buttonEdge,'0px','No border on clickable area');
+     assert.equal(metrics.shadow,'none','No shadow may reveal the square');
      assert.ok(metrics.clickable,'The box must be the real pointer target: '+mode+' '+theme+' '+width);
      assert.equal(metrics.inert,false,'The box must not be made inert with the Daily');
      assert.equal(metrics.disabled,false);
