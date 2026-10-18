@@ -255,3 +255,70 @@
 @media(prefers-reduced-motion:reduce){
  .crilo-escape-budget-track>span{transition:none!important}
 }
+
+/* The Golden Box is strictly an Escape the Box cosmetic, never a Crilo badge. */
+.crilo-escape-board.is-golden .crilo-escape-character{
+ background:linear-gradient(145deg,#fff5b4 0%,#ffd253 43%,#eaa937 75%,#ffe9a0 100%);
+ border-color:#73511e;
+ box-shadow:2px 3px 0 #704817,0 0 0 2px rgba(255,218,101,.38),
+ 0 0 17px 3px rgba(255,194,45,.3);
+ animation:crilo-gold-shine 3.4s ease-in-out infinite;
+}
+.crilo-escape-board.is-golden .crilo-escape-character::before,
+.crilo-escape-board.is-golden .crilo-escape-character::after{
+ background:#ffdf79;border-color:#704817;
+}
+.crilo-escape-board.is-golden .crilo-escape-eye{background:#633d14}
+.crilo-escape-board.is-golden .crilo-escape-mouth{border-color:#633d14}
+@keyframes crilo-gold-shine{
+ 0%,100%{filter:brightness(1)}
+ 50%{filter:brightness(1.19)}
+}
+.crilo-golden-panel{
+ display:flex;align-items:center;gap:9px;
+ border:1px solid #dfbf69;border-radius:12px;
+ background:linear-gradient(110deg,#fff6d7,#ffe8ab 66%,#fff5d5);
+ padding:8px 9px;margin-top:12px;color:#543c16;
+}
+.crilo-golden-panel[hidden]{display:none!important}
+.crilo-golden-medal{
+ display:grid;place-items:center;width:31px;height:31px;
+ border:2px solid #7b5528;border-radius:9px;
+ background:linear-gradient(150deg,#fff8c2,#f8bf50);
+ box-shadow:2px 2px 0 #9c783a;color:#7b551f;font-size:24px;
+ flex:0 0 auto;
+}
+.crilo-golden-label{display:grid;gap:2px;min-width:0;flex:1}
+.crilo-golden-label strong{font:900 12px/1.2 system-ui,sans-serif}
+.crilo-golden-label small{font:650 10px/1.2 system-ui,sans-serif;color:#80612c}
+.crilo-golden-toggle{
+ flex:0 0 auto;padding:8px 10px;border:1px solid #9d7c3e;border-radius:8px;
+ background:#fff8df;color:#5c421f;cursor:pointer;
+ font:800 10px/1.2 system-ui,sans-serif;
+}
+.crilo-golden-toggle:hover{background:#fffdf2}
+.crilo-golden-toggle:focus-visible{outline:3px solid #9f89e4;outline-offset:2px}
+.crilo-golden-prize{
+ display:grid;place-items:center;width:67px;height:67px;
+ color:#6d4518;font:950 55px/1 system-ui,sans-serif;
+ border:3px solid #8b6128;border-radius:19px;
+ background:linear-gradient(140deg,#fff7b7,#ffc948,#f8ae39,#fff4a4);
+ box-shadow:0 4px 0 #7a4e19,0 0 0 7px rgba(255,212,74,.23);
+ animation:crilo-golden-unlock .85s cubic-bezier(.19,1.5,.45,1) both;
+}
+@keyframes crilo-golden-unlock{
+ from{transform:scale(.15) rotate(-60deg);opacity:0}
+ to{transform:scale(1) rotate(0);opacity:1}
+}
+.crilo-escape-overlay:has(.crilo-golden-prize){
+ background:linear-gradient(145deg,rgba(255,252,230,.98),rgba(255,230,156,.96));
+}
+.crilo-escape-overlay:has(.crilo-golden-prize) strong{color:#755017}
+@media(max-width:375px){
+ .crilo-golden-panel{gap:6px;padding:7px}
+ .crilo-golden-toggle{padding:7px 8px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+ .crilo-escape-board.is-golden .crilo-escape-character,
+ .crilo-golden-prize{animation:none!important}
+}
