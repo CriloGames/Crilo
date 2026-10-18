@@ -128,9 +128,13 @@ const sanitized=html
      assert.equal(await board.getAttribute('data-room'),String(level+1),'Room progress');
      for(const dir of routes[level]){
       await page.keyboard.press(key[dir]);
-      await page.waitForTimeout(24);
+      await page.waitForTimeout(105);
      }
-     assert.equal(await board.getAttribute('data-sparks'),'3','All sparks collected');
+     const sparksNow=await board.getAttribute('data-sparks');
+     const positionNow=await board.getAttribute('data-position');
+     const slidesNow=await board.getAttribute('data-slides');
+     assert.equal(sparksNow,'3','All sparks collected in room '+(level+1)+
+      '; position '+positionNow+'; total slides '+slidesNow);
      await next.waitFor({state:'visible'});
      if(level<4){
       await next.click();
