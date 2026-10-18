@@ -113,6 +113,7 @@ const sanitized=html
      assert.notEqual(await board.getAttribute('data-position'),previous,
        'Touch swipe advances sliding puzzle');
      assert.deepEqual(await screen(),original,'Never affect score, spins, badges or bonuses');
+     await page.locator('#criloEscapeRestart').click();
      await page.keyboard.press('Escape');
      assert.equal(await panel.isVisible(),false);
      assert.equal(await shade.isVisible(),false);
