@@ -1,0 +1,27 @@
+name: Hidden homepage box regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'hidden-box.css'
+      - 'hidden-box.js'
+      - 'release/346-badges/178-hidden-box-browser.cjs'
+      - '.github/workflows/hidden-box.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hidden-box:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check hidden-box.js
+      - run: node release/346-badges/178-hidden-box-browser.cjs
