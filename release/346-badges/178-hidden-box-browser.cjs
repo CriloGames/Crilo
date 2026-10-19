@@ -16,8 +16,8 @@ assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
-assert.match(html,/hidden-box\.css\?v=10/);
-assert.match(html,/hidden-box\.js\?v=10/);
+assert.match(html,/hidden-box\.css\?v=11/);
+assert.match(html,/hidden-box\.js\?v=11/);
 assert.match(html,/id="criloGoldenStatus"/);
 assert.match(html,/crilo-escape-gleam/);
 assert.match(html,/aria-keyshortcuts="R"/);
@@ -165,6 +165,21 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(styles.color,styles.background);
      await trigger.click();
      await panel.waitFor({state:'visible'});
+     // Clicking the modal close button restores focus to the invisible secret
+     // trigger, but must NEVER expose a border on the main Daily page.
+     await page.locator('#criloEscapeClose').click();
+     assert.equal(await panel.isVisible(),false);
+     const triggerFocus=await trigger.evaluate(el=>{
+      const s=getComputedStyle(el);
+      return {outline:s.outlineWidth,border:s.borderTopWidth,shadow:s.boxShadow,
+       returned:el.classList.contains('crilo-secret-return-focus')};
+     });
+     assert.equal(triggerFocus.returned,true,'Closing via pointer marks secret focus as invisible');
+     assert.equal(triggerFocus.outline,'0px','No outline may reveal the hidden trigger');
+     assert.equal(triggerFocus.border,'0px');
+     assert.equal(triggerFocus.shadow,'none');
+     await trigger.click();
+     await panel.waitFor({state:'visible'});
      const resetButton=page.locator('#criloEscapeRestart');
      const keycap=page.locator('.crilo-escape-shortcut');
      const resetBounds=await resetButton.boundingBox();
@@ -304,6 +319,8 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     await page.evaluate(()=>document.documentElement.dataset.theme='light');
     await page.locator('#criloEscapeClose').click();
     assert.equal(await panel.isVisible(),false);
+    assert.equal(await trigger.evaluate(el=>getComputedStyle(el).outlineWidth),'0px',
+     'After equipping gold and closing, the homepage secret must still be invisible');
     // Refresh must preserve the earned Gold Box and equipped appearance.
     await page.reload({waitUntil:'domcontentloaded'});
     await page.addStyleTag({content:css});
