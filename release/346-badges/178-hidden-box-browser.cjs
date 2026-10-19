@@ -17,7 +17,7 @@ assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
 assert.match(html,/hidden-box\.css\?v=13/);
-assert.match(html,/hidden-box\.js\?v=13/);
+assert.match(html,/hidden-box\.js\?v=14/);
 assert.match(html,/id="criloGoldenStatus"/);
 assert.match(html,/class="crilo-golden-medal"[^>]*><span class="crilo-escape-character"/);
 assert.match(html,/crilo-escape-gleam/);
