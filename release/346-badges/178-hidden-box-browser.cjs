@@ -16,8 +16,8 @@ assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
-assert.match(html,/hidden-box\.css\?v=11/);
-assert.match(html,/hidden-box\.js\?v=11/);
+assert.match(html,/hidden-box\.css\?v=12/);
+assert.match(html,/hidden-box\.js\?v=12/);
 assert.match(html,/id="criloGoldenStatus"/);
 assert.match(html,/crilo-escape-gleam/);
 assert.match(html,/aria-keyshortcuts="R"/);
@@ -278,12 +278,25 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(await board.getAttribute('data-sparks'),'3','Three sparks on room '+(room+1));
      await next.waitFor({state:'visible'});
      const text=await overlay.innerText();
-     assert.match(text,room===24?/GOLDEN BOX UNLOCKED!/:/ROOM CLEAR!/,'Room '+(room+1));
+     assert.match(text,room===24?/GOLDEN GUY UNLOCKED!/:/ROOM CLEAR!/,'Room '+(room+1));
      if(room<24)await next.click();
     }
     assert.equal(await board.getAttribute('data-slides'),String(totalPar),'No wasted slides on shortest routes');
     assert.match(await overlay.innerText(),/25 rooms/);
     assert.equal(await page.locator('.crilo-golden-prize').count(),1);
+    assert.match(await overlay.innerText(),/Your little maze character is now GOLD!/);
+    assert.match(await overlay.innerText(),/secret square on Daily stays invisible/);
+    assert.equal(await overlay.locator('.crilo-golden-prize .crilo-escape-character.is-golden').count(),1,
+     'Victory reveals the actual Golden Guy rather than an unrelated trophy');
+    const preview=await overlay.locator('.crilo-golden-prize .crilo-escape-character').evaluate(el=>{
+     const s=getComputedStyle(el);
+     return {bg:s.backgroundImage,eyes:el.querySelectorAll('.crilo-escape-eye').length,
+      gleam:getComputedStyle(el.querySelector('.crilo-escape-gleam')).display};
+    });
+    assert.match(preview.bg,/linear-gradient/,'Gold must be visible on the character in the reward preview');
+    assert.equal(preview.eyes,2);
+    assert.equal(preview.gleam,'block');
+    assert.match(await next.innerText(),/Play as Golden Guy/);
     assert.equal(await page.locator('#criloGoldenPanel').isVisible(),true);
     assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true);
     const gold=await appearance();
