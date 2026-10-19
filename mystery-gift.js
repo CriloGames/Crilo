@@ -175,8 +175,11 @@
  }
  function showCollection(){
   if(runMode!=='official'||!window.Crilo?.user||busy)return;
-  if(!modal.classList.contains('hidden'))closeDialog(modal,false);
+  // Remember whether the player came from an open Gift *before* hiding it.
+  // Otherwise dismiss() misses the Gift-closed signal and the Bonus Runs
+  // continuation stays stranded behind the collection popup.
   collectionFromGift=!modal.classList.contains('hidden');
+  if(collectionFromGift)closeDialog(modal,false);
   renderShelf();openDialog(collectionModal);
  }
  function animateTo(index){
