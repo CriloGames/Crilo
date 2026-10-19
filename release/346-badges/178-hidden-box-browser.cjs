@@ -188,6 +188,13 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(triggerFocus.shadow,'none');
      await trigger.click();
      await panel.waitFor({state:'visible'});
+     await page.locator('#criloEscapeClose').focus();
+     await page.keyboard.press('Shift+Tab');
+     assert.equal(await page.evaluate(()=>document.activeElement?.id),'criloEscapeRestart',
+      'Shift+Tab from modal close wraps to final visible control, not Daily page');
+     await page.keyboard.press('Tab');
+     assert.equal(await page.evaluate(()=>document.activeElement?.id),'criloEscapeClose',
+      'Tab cycles back to modal close and cannot escape into Daily page');
      const resetButton=page.locator('#criloEscapeRestart');
      const keycap=page.locator('.crilo-escape-shortcut');
      const resetBounds=await resetButton.boundingBox();
@@ -436,6 +443,83 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
    /linear-gradient/,'Cloud-owned Golden Box icon updates with selection');
   assert.deepEqual(cloudErrors,[]);
   await cloud.close();
+  // Saved proof is client-controlled. Twenty-five arbitrary direction strings
+  // must never confer the Golden Box or result in an account reward RPC.
+  const fake=await browser.newPage({viewport:{width:390,height:780},reducedMotion:'reduce'});
+  await fake.route('https://crilo.test/',route=>route.fulfill({status:200,contentType:'text/html',body:sanitized}));
+  await fake.goto('https://crilo.test/',{waitUntil:'domcontentloaded'});
+  await fake.evaluate(()=>{
+   localStorage.setItem('crilo_escape_golden_guest_proof_v1',JSON.stringify(Array(25).fill('R')));
+   window.__goldClaims=0;
+   window.criloDB={
+    auth:{getUser:async()=>({data:{user:{id:'forgery-test-user'}},error:null}),
+     onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},
+    from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:null,error:null})})})}),
+    rpc:()=>{window.__goldClaims++;return Promise.resolve({data:true,error:null});}
+   };
+  });
+  await fake.addStyleTag({content:css});
+  await fake.addScriptTag({content:js});
+  await fake.locator('#criloHiddenBox').click();
+  assert.equal(await fake.locator('#criloGoldenPanel').isVisible(),false,
+   'Forged browser proof cannot unlock cosmetic');
+  assert.equal(await fake.locator('#criloEscapeBoard').getAttribute('data-cosmetic'),'white');
+  assert.equal(await fake.evaluate(()=>window.__goldClaims),0,
+   'Invalid saved proof never attempts a server claim');
+  // A legitimate full solution is still valid locally, including a legal
+  // historic first-room solution with two extra moves (older move budgets).
+  const oldProof=routes.map(path=>path.map(dir=>({up:'U',right:'R',down:'D',left:'L'})[dir]).join(''));
+  oldProof[0]='RL'+oldProof[0];
+  await fake.evaluate(p=>localStorage.setItem('crilo_escape_golden_guest_proof_v1',JSON.stringify(p)),oldProof);
+  await fake.reload({waitUntil:'domcontentloaded'});
+  await fake.addStyleTag({content:css});
+  await fake.addScriptTag({content:js});
+  await fake.locator('#criloHiddenBox').click();
+  assert.equal(await fake.locator('#criloGoldenPanel').isVisible(),true,
+   'Former legitimately earned Golden Boxes must stay available');
+  assert.equal(await fake.locator('#criloEscapeBoard').getAttribute('data-cosmetic'),'gold');
+  await fake.close();
+  console.log('GOLDEN_PROOF_PASS: forged unlock rejected; legitimate older completion retained');
+
+  // A cloud reward belongs to its account, never to another person who signs
+  // into this same browser. Old asynchronous responses must not leak Gold.
+  const swapping=await browser.newPage({viewport:{width:390,height:780},reducedMotion:'reduce'});
+  await swapping.route('https://crilo.test/',route=>route.fulfill({status:200,contentType:'text/html',body:sanitized}));
+  await swapping.goto('https://crilo.test/',{waitUntil:'domcontentloaded'});
+  await swapping.addStyleTag({content:css});
+  await swapping.evaluate(()=>{
+   window.__secretIdentity={id:'gold-owner',change:null};
+   window.criloDB={
+    auth:{
+     getUser:async()=>({data:{user:window.__secretIdentity.id?{id:window.__secretIdentity.id}:null},error:null}),
+     onAuthStateChange:callback=>{window.__secretIdentity.change=callback;return {data:{subscription:{unsubscribe(){}}}};}
+    },
+    from:(table)=>{
+     if(table!=='crilo_escape_cosmetics')throw Error('Wrong table');
+     return {select:()=>({eq:(_field,id)=>({maybeSingle:async()=>({
+      data:id==='gold-owner'?{golden_unlocked_at:'2026-10-18T00:00:00Z'}:null,error:null
+     })})})};
+    },
+    rpc:()=>{throw Error('No false claims');}
+   };
+  });
+  await swapping.addScriptTag({content:js});
+  await swapping.locator('#criloHiddenBox').click();
+  await swapping.waitForFunction(()=>document.querySelector('#criloEscapeBoard')?.dataset.cosmetic==='gold');
+  await swapping.evaluate(()=>{
+   window.__secretIdentity.id='new-account';
+   window.__secretIdentity.change('SIGNED_IN',{user:{id:'new-account'}});
+  });
+  await swapping.waitForFunction(()=>document.querySelector('#criloEscapeBoard')?.dataset.cosmetic==='white');
+  assert.equal(await swapping.locator('#criloGoldenPanel').isVisible(),false,
+   'Switching to an account without a reward hides previous account Gold');
+  await swapping.evaluate(()=>{
+   window.__secretIdentity.id='gold-owner';
+   window.__secretIdentity.change('SIGNED_IN',{user:{id:'gold-owner'}});
+  });
+  await swapping.waitForFunction(()=>document.querySelector('#criloEscapeBoard')?.dataset.cosmetic==='gold');
+  await swapping.close();
+  console.log('GOLDEN_ACCOUNT_SWITCH_PASS: Golden Box entitlement does not leak between accounts');
   console.log('GOLDEN_BOX_CLOUD_PASS: authenticated owner restores Golden Box on a fresh device');
   console.log('ESCAPE_BOX_25_PASS: 25 verified shortest paths, exact par limits, saved unfinished rooms, loss/retry, one-time reward, replay, 486-slide win, mobile, desktop, input parity, isolation');
  }finally{await browser.close()}
