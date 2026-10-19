@@ -354,3 +354,34 @@
  font:650 10px/1.5 system-ui,sans-serif;
  color:var(--muted,#72737e);
 }
+
+/* The equipped cosmetic must be unmistakably visible on the actual cube.
+   Apply on the character itself as well as the maze board. */
+.crilo-escape-character.is-golden,
+.crilo-escape-board[data-cosmetic="gold"] .crilo-escape-character{
+ background:linear-gradient(132deg,#fff6ba 0%,#ffd34f 31%,#efac21 65%,#ffdc6e 100%);
+ border-color:#7d4c0e;
+ box-shadow:2px 3px 0 #77450b,0 0 0 2px rgba(255,218,102,.55),0 0 19px rgba(238,173,30,.4);
+}
+.crilo-escape-board[data-cosmetic="gold"] .crilo-escape-character::before,
+.crilo-escape-board[data-cosmetic="gold"] .crilo-escape-character::after{
+ background:#ffda66;border-color:#77450b;
+}
+.crilo-escape-gleam{
+ display:none;position:absolute;top:0;right:2px;
+ color:#fffbee;font:900 12px/1 system-ui,sans-serif;
+ text-shadow:0 1px 1px #a26614;
+ pointer-events:none;
+}
+.crilo-escape-board[data-cosmetic="gold"] .crilo-escape-gleam,
+.crilo-escape-character.is-golden .crilo-escape-gleam{display:block}
+.crilo-escape-board[data-cosmetic="white"] .crilo-escape-character{
+ background:#fff;border-color:#27242e;box-shadow:2px 3px 0 #292632;
+ animation:none;
+}
+.crilo-golden-panel.gold-equipped{
+ border-color:#d0a346;
+ background:linear-gradient(110deg,#fff0bb,#ffd879 65%,#fff1c2);
+}
+.crilo-golden-panel.gold-equipped .crilo-golden-label small{color:#795019}
+.crilo-golden-panel:not(.gold-equipped) .crilo-golden-label small{color:#80612c}
