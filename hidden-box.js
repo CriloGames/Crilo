@@ -51,6 +51,9 @@
  // Exact shortest-path budgets; no extra moves on any of the 25 rooms.
  const parMoves=[5,9,12,14,18,18,18,19,19,19,20,20,20,21,21,21,22,22,22,23,23,24,24,25,27];
  const moveLimits=parMoves.slice();
+ // Preserve genuinely completed guest rewards earned before move budgets were
+ // tightened. Never trust the mere presence or shape of a saved proof.
+ const legacyPrizeLimits=[9,13,16,18,22,22,22,23,23,23,23,23,23,24,24,23,24,24,24,25,25,26,26,27,29];
  const directions={up:[0,-1],right:[1,0],down:[0,1],left:[-1,0]};
  let room=0,moves=0,roomMoves=0,level=null,location={x:0,y:0};
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
@@ -67,7 +70,7 @@
  }
  // Replay persisted inputs rather than blindly trusting saved coordinates,
  // spark counts, or room numbers. This also restores mid-room progress.
- function replayRoute(index,route){
+ function replayRoute(index,route,maximumMoves=moveLimits[index]){
   const map=levels[index];
   let x=-1,y=-1,mask=0,escaped=false,valid=true,ex=-1,ey=-1;
   const stars=[];
@@ -77,7 +80,7 @@
    else if(s==='*')stars.push(xx+','+yy);
    else if(s==='E'){ex=xx;ey=yy;}
   }
-  if(x<0||stars.length!==3||typeof route!=='string'||route.length>moveLimits[index]||/[^URDL]/.test(route))return null;
+  if(x<0||stars.length!==3||typeof route!=='string'||route.length>maximumMoves||/[^URDL]/.test(route))return null;
   for(let i=0;i<route.length;i++){
    const vector={U:[0,-1],R:[1,0],D:[0,1],L:[-1,0]}[route[i]];
    let distance=0;
@@ -133,7 +136,14 @@
  function guestProof(){
   try{
    const arr=JSON.parse(safeRead(proofKey)||'null');
-   return Array.isArray(arr)&&arr.length===25&&arr.every(s=>typeof s==='string'&&/^[URDL]{1,30}$/.test(s))?arr:null;
+   if(!Array.isArray(arr)||arr.length!==levels.length)return null;
+   // All 25 rounds must be finished by legal, uninterrupted moves collecting
+   // every star before exiting. Malformed or arbitrary localStorage routes
+   // never unlock a cosmetic or trigger a server reward claim.
+   return arr.every((route,i)=>typeof route==='string'&&
+    /^[URDL]+$/.test(route)&&
+    route.length<=legacyPrizeLimits[i]&&
+    replayRoute(i,route,legacyPrizeLimits[i])?.escaped===true)?arr:null;
   }catch{return null;}
  }
  unlocked=!!guestProof();
