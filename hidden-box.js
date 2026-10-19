@@ -330,7 +330,7 @@
    overlay.append(explanation,clarification);
   }
   const detail=document.createElement('span');
-  detail.textContent=won?(firstUnlock?'One-time Golden Guy cosmetic · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 stars collected · '+(moveLimits[room]-roomMoves)+' moves left';
+  detail.textContent=won?(firstUnlock?'25 rooms cleared · one-time Golden Guy · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 stars collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
   next.textContent=won?(firstUnlock?'Play as Golden Guy →':'Play again · Room 1'):'Next room →';
