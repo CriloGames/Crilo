@@ -395,6 +395,12 @@
   if(panel.hidden)return;
   if(event.key==='Escape'){event.preventDefault();setOpen(false);return;}
   if(event.altKey||event.ctrlKey||event.metaKey)return;
+  if(event.key==='r'||event.key==='R'){
+   // Only while Escape the Box is open; never hijack R on the Daily page.
+   event.preventDefault();
+   if(!event.repeat)resetRoom();
+   return;
+  }
   const dir=dirFromKey(event.key);
   if(dir){
    // Only capture directions while this secret is actually open.
