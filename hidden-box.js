@@ -156,10 +156,14 @@
    }
   }
  }
- function setUnlocked(){
+ function setUnlocked(autoEquip=true){
   unlocked=true;
-  equipped=true;
-  safeWrite(equippedKey,'gold');
+  // Only a new victory (or a new successful claim) equips gold automatically.
+  // Rehydrating an already-owned reward must honor the player's saved choice.
+  if(autoEquip){
+   equipped=true;
+   safeWrite(equippedKey,'gold');
+  }
   applyCosmetic();
  }
  async function syncGoldenAccount(){
@@ -172,7 +176,7 @@
    const {data:existing,error:lookupError}=await criloDB.from('crilo_escape_cosmetics')
     .select('golden_unlocked_at').eq('user_id',who.user.id).maybeSingle();
    if(lookupError)return;
-   if(existing?.golden_unlocked_at){if(!unlocked)setUnlocked();return;}
+   if(existing?.golden_unlocked_at){if(!unlocked)setUnlocked(false);return;}
    const proof=guestProof();
    if(!proof)return;
    const {data:awarded,error:claimError}=await criloDB.rpc('crilo_unlock_golden_box',{p_routes:proof});
