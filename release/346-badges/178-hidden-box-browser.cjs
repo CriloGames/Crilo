@@ -17,7 +17,10 @@ assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
 assert.match(html,/hidden-box\.css\?v=8/);
-assert.match(html,/hidden-box\.js\?v=7/);
+assert.match(html,/hidden-box\.js\?v=8/);
+assert.match(html,/Collect 3 stars and reach the exit using the fewest moves possible\./);
+assert.match(html,/<small>Stars<\/small>/);
+assert.doesNotMatch(html,/3 sparks, then the exit\. Exactly enough moves/);
 assert.match(js,/crilo_unlock_golden_box/,'Cosmetic claims must be verified by dedicated RPC');
 assert.match(js,/crilo_escape_cosmetics/,'Unlocks are stored separately from gameplay');
 assert.doesNotMatch(js,/\b(?:daily_runs|bonus_runs|user_badges|badge_events|leaderboard_scores|player_stats)\b|XMLHttpRequest|fetch\(/i,
