@@ -59,6 +59,7 @@
  let collected=new Set(),busy=false,initialized=false,transitionTimer=null;
  let activePointer=null,roomRoute='',clearedRoutes=Array(25).fill(null);
  let unlocked=false,equipped=true,syncing=false,syncPending=false;
+ let authVersion=0,cloudOwner=null;
  const proofKey='crilo_escape_golden_guest_proof_v1';
  const equippedKey='crilo_escape_golden_equipped_v1';
  const progressKey='crilo_escape_progress_v2';
@@ -183,17 +184,24 @@
   if(typeof criloDB==='undefined'||!criloDB?.auth)return;
   if(syncing){syncPending=true;return;}
   syncing=true;
+  const currentVersion=authVersion;
   try{
    const {data:who,error:authError}=await criloDB.auth.getUser();
-   if(authError||!who?.user)return;
+   if(currentVersion!==authVersion||authError||!who?.user)return;
+   const userId=who.user.id;
    const {data:existing,error:lookupError}=await criloDB.from('crilo_escape_cosmetics')
     .select('golden_unlocked_at').eq('user_id',who.user.id).maybeSingle();
-   if(lookupError)return;
-   if(existing?.golden_unlocked_at){if(!unlocked)setUnlocked(false);return;}
+   if(currentVersion!==authVersion||lookupError)return;
+   if(existing?.golden_unlocked_at){
+    cloudOwner=userId;
+    if(!unlocked)setUnlocked(false);
+    return;
+   }
    const proof=guestProof();
    if(!proof)return;
    const {data:awarded,error:claimError}=await criloDB.rpc('crilo_unlock_golden_box',{p_routes:proof});
-   if(!claimError&&awarded===true){setUnlocked();}
+   if(currentVersion!==authVersion)return;
+   if(!claimError&&awarded===true){cloudOwner=userId;setUnlocked();}
   }catch{/* No interruption to Crilo login or gameplay on network errors. */}
   finally{
    syncing=false;
@@ -428,7 +436,18 @@
   applyCosmetic();
  });
  if(typeof criloDB!=='undefined'&&criloDB?.auth?.onAuthStateChange){
-  criloDB.auth.onAuthStateChange(()=>window.setTimeout(()=>{void syncGoldenAccount();},0));
+  criloDB.auth.onAuthStateChange((_event,session)=>{
+   authVersion++;
+   const currentUser=session?.user?.id||null;
+   // A cloud-unlocked cosmetic belongs to the account that earned it.
+   // Signing out or switching accounts must not leak that entitlement.
+   if(cloudOwner&&cloudOwner!==currentUser){
+    cloudOwner=null;
+    unlocked=Boolean(guestProof());
+    applyCosmetic();
+   }
+   window.setTimeout(()=>{void syncGoldenAccount();},0);
+  });
  }
  applyCosmetic();
  panel.querySelectorAll('[data-secret-direction]').forEach(btn=>{
