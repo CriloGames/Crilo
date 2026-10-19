@@ -11,6 +11,8 @@
  const budgetFill=$('criloEscapeBudgetFill');
  const restart=$('criloEscapeRestart'),close=$('criloEscapeClose');
  const goldenPanel=$('criloGoldenPanel'),goldenToggle=$('criloGoldenToggle');
+ const goldenStatus=$('criloGoldenStatus');
+ const character=player?.querySelector('.crilo-escape-character');
  if(!trigger||!panel||!shade||!board||!player||!overlay||!restart||!close)return;
 
  // Each room has exactly three sparks (*), one start (S), and one exit (E).
@@ -136,12 +138,21 @@
  unlocked=!!guestProof();
  equipped=safeRead(equippedKey)!=='white';
  function applyCosmetic(){
-  board.classList.toggle('is-golden',unlocked&&equipped);
+  // Style the actual character, not just its board container. The equipped
+  // state is visible immediately and survives replays, refreshes and reloads.
+  const gold=Boolean(unlocked&&equipped);
+  board.classList.toggle('is-golden',gold);
+  board.dataset.cosmetic=gold?'gold':'white';
+  player.classList.toggle('is-golden',gold);
+  if(character)character.classList.toggle('is-golden',gold);
   if(goldenPanel){
    goldenPanel.hidden=!unlocked;
+   goldenPanel.classList.toggle('gold-equipped',gold);
+   if(goldenStatus)goldenStatus.textContent=gold?'Equipped: Golden Box':'Equipped: White Box';
    if(goldenToggle){
-    goldenToggle.textContent=equipped?'Use white box':'Use Golden Box';
-    goldenToggle.setAttribute('aria-pressed',String(unlocked&&equipped));
+    goldenToggle.textContent=gold?'Use White Box':'Use Golden Box';
+    goldenToggle.setAttribute('aria-pressed',String(gold));
+    goldenToggle.setAttribute('aria-label',gold?'Switch to White Box':'Switch to Golden Box');
    }
   }
  }
