@@ -16,9 +16,10 @@ assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
-assert.match(html,/hidden-box\.css\?v=12/);
-assert.match(html,/hidden-box\.js\?v=12/);
+assert.match(html,/hidden-box\.css\?v=13/);
+assert.match(html,/hidden-box\.js\?v=13/);
 assert.match(html,/id="criloGoldenStatus"/);
+assert.match(html,/class="crilo-golden-medal"[^>]*><span class="crilo-escape-character"/);
 assert.match(html,/crilo-escape-gleam/);
 assert.match(html,/aria-keyshortcuts="R"/);
 assert.match(html,/<kbd class="crilo-escape-shortcut"/);
@@ -119,10 +120,17 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     const cube=el.querySelector('.crilo-escape-character');
     const visual=getComputedStyle(cube);
     const gleam=getComputedStyle(cube.querySelector('.crilo-escape-gleam'));
+    const medal=document.querySelector('#criloGoldenPanel .crilo-golden-medal .crilo-escape-character');
+    const medalStyle=getComputedStyle(medal);
+    const medalGleam=getComputedStyle(medal.querySelector('.crilo-escape-gleam')).display;
     return {cosmetic:el.dataset.cosmetic,gradient:visual.backgroundImage,
      background:visual.backgroundColor,border:visual.borderTopColor,
      gleam:gleam.display,label:document.getElementById('criloGoldenStatus').textContent,
-     button:document.getElementById('criloGoldenToggle').textContent};
+     button:document.getElementById('criloGoldenToggle').textContent,
+     medalGradient:medalStyle.backgroundImage,medalGleam,
+     medalEyes:medal.querySelectorAll('.crilo-escape-eye').length,
+     medalEquipped:medal.classList.contains('is-golden'),
+     medalState:document.getElementById('criloGoldenPanel').dataset.cosmetic};
    });
    const overlay=page.locator('#criloEscapeOverlay');
    const next=overlay.locator('.crilo-escape-next');
@@ -305,6 +313,11 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     assert.equal(gold.gleam,'block');
     assert.equal(gold.label,'Equipped: Golden Box');
     assert.equal(gold.button,'Use White Box');
+    assert.equal(gold.medalEyes,2,'Selector must display the actual character with eyes');
+    assert.equal(gold.medalState,'gold');
+    assert.equal(gold.medalEquipped,true);
+    assert.match(gold.medalGradient,/linear-gradient/,'Gold selection must render a golden mini character');
+    assert.equal(gold.medalGleam,'block');
     const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_escape_golden_guest_proof_v1')));
     assert.equal(saved.length,25,'Golden Box proof persists for guests');
     assert.deepEqual(await state(),initial,'Winning cannot affect Daily points or badges');
@@ -324,9 +337,14 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     assert.equal(white.gleam,'none','Gold sparkle must disappear when unequipped');
     assert.equal(white.label,'Equipped: White Box');
     assert.equal(white.button,'Use Golden Box');
+    assert.equal(white.medalState,'white');
+    assert.equal(white.medalEquipped,false);
+    assert.equal(white.medalGradient,'none','White selection must render a white mini character');
+    assert.equal(white.medalGleam,'none');
     await toggle.click();
     assert.equal(await board.evaluate(el=>el.classList.contains('is-golden')),true);
     assert.match((await appearance()).gradient,/linear-gradient/,'Switching back restores gold');
+    assert.match((await appearance()).medalGradient,/linear-gradient/,'Selector icon switches back to gold');
     await page.evaluate(()=>document.documentElement.dataset.theme='dark');
     assert.match((await appearance()).gradient,/linear-gradient/,'Golden character works in dark mode');
     await page.evaluate(()=>document.documentElement.dataset.theme='light');
@@ -399,6 +417,8 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
    /linear-gradient/,'Account-owned reward must render a gold character');
   await cloud.locator('#criloGoldenToggle').click();
   assert.equal(await cloud.locator('#criloGoldenStatus').textContent(),'Equipped: White Box');
+  assert.equal(await cloud.locator('#criloGoldenPanel .crilo-golden-medal .crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),'none',
+   'Cloud-owned White Box selection also changes the icon');
   assert.equal(await cloud.evaluate(()=>localStorage.getItem('crilo_escape_golden_equipped_v1')),'white');
   await cloud.reload({waitUntil:'domcontentloaded'});
   await cloud.addStyleTag({content:css});
@@ -410,8 +430,10 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
    'none','Account-based unlock must honor saved white cosmetic after refresh');
   assert.equal(await cloud.locator('#criloGoldenToggle').textContent(),'Use Golden Box');
   await cloud.locator('#criloGoldenToggle').click();
-  assert.match(await cloud.locator('.crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
+  assert.match(await cloud.locator('#criloEscapeBoard .crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
    /linear-gradient/,'Account owner can equip Golden Box after refreshing');
+  assert.match(await cloud.locator('#criloGoldenPanel .crilo-golden-medal .crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
+   /linear-gradient/,'Cloud-owned Golden Box icon updates with selection');
   assert.deepEqual(cloudErrors,[]);
   await cloud.close();
   console.log('GOLDEN_BOX_CLOUD_PASS: authenticated owner restores Golden Box on a fresh device');
