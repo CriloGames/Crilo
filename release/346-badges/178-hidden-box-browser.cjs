@@ -413,7 +413,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
   assert.equal(await cloud.locator('#criloGoldenPanel').isVisible(),true);
   assert.equal(await cloud.evaluate(()=>localStorage.getItem('crilo_escape_golden_guest_proof_v1')),null,
    'A cloud-owned cosmetic does not require guest local proof');
-  assert.match(await cloud.locator('.crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
+  assert.match(await cloud.locator('#criloEscapeBoard .crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
    /linear-gradient/,'Account-owned reward must render a gold character');
   await cloud.locator('#criloGoldenToggle').click();
   assert.equal(await cloud.locator('#criloGoldenStatus').textContent(),'Equipped: White Box');
@@ -426,7 +426,7 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
   await cloud.addScriptTag({content:js});
   await cloud.locator('#criloHiddenBox').click();
   await cloud.waitForFunction(()=>document.getElementById('criloGoldenStatus')?.textContent==='Equipped: White Box');
-  assert.equal(await cloud.locator('.crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
+  assert.equal(await cloud.locator('#criloEscapeBoard .crilo-escape-character').evaluate(el=>getComputedStyle(el).backgroundImage),
    'none','Account-based unlock must honor saved white cosmetic after refresh');
   assert.equal(await cloud.locator('#criloGoldenToggle').textContent(),'Use Golden Box');
   await cloud.locator('#criloGoldenToggle').click();
