@@ -456,6 +456,22 @@
  document.addEventListener('keydown',event=>{
   if(panel.hidden)return;
   if(event.key==='Escape'){event.preventDefault();setOpen(false,true);return;}
+  if(event.key==='Tab'){
+   // A modal must not let keyboard focus wander into the obscured Daily page.
+   // During room results, keep the hidden maze controls out of the tab order.
+   const buttons=overlay.hidden?
+    [close,...panel.querySelectorAll('[data-secret-direction]'),restart,goldenToggle]:
+    [close,...overlay.querySelectorAll('button'),goldenToggle];
+   const reachable=buttons.filter(el=>el&&!el.disabled&&el.getClientRects().length>0);
+   if(!reachable.length)return;
+   const index=reachable.indexOf(document.activeElement);
+   const wrap=event.shiftKey?index<=0:index===reachable.length-1||index===-1;
+   if(wrap){
+    event.preventDefault();
+    reachable[event.shiftKey?reachable.length-1:0].focus();
+   }
+   return;
+  }
   if(event.altKey||event.ctrlKey||event.metaKey)return;
   if(event.key==='r'||event.key==='R'){
    // Only while Escape the Box is open; never hijack R on the Daily page.
