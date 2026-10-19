@@ -257,7 +257,7 @@
   player.classList.remove('no-motion');
   updateHud();
   applyCosmetic();
-  status.textContent=first?'Collect 3 sparks, then reach the exit.':'Room '+(room+1)+' · '+moveLimits[room]+' moves available.';
+  status.textContent=first?'Collect 3 stars, then reach the exit.':'Room '+(room+1)+' · '+moveLimits[room]+' moves available.';
  }
  function resetRoom(){
   moves=Math.max(0,moves-roomMoves);
@@ -301,7 +301,7 @@
    overlay.append(prize);
   }
   const detail=document.createElement('span');
-  detail.textContent=won?(firstUnlock?'25 rooms · one-time Golden Box · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 sparks collected · '+(moveLimits[room]-roomMoves)+' moves left';
+  detail.textContent=won?(firstUnlock?'25 rooms · one-time Golden Box · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 stars collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
   next.textContent=won?'Play again · Room 1':'Next room →';
@@ -325,7 +325,7 @@
   const title=document.createElement('strong');
   title.textContent='OUT OF MOVES!';
   const detail=document.createElement('span');
-  detail.textContent='Room '+(room+1)+' · '+collected.size+'/3 sparks';
+  detail.textContent='Room '+(room+1)+' · '+collected.size+'/3 stars';
   const retry=document.createElement('button');
   retry.type='button';retry.className='crilo-escape-next';
   retry.textContent='Retry room ↻';
