@@ -12,6 +12,7 @@
  const restart=$('criloEscapeRestart'),close=$('criloEscapeClose');
  const goldenPanel=$('criloGoldenPanel'),goldenToggle=$('criloGoldenToggle');
  const goldenStatus=$('criloGoldenStatus');
+ const selectorCharacter=goldenPanel?.querySelector('.crilo-golden-medal .crilo-escape-character');
  const character=player?.querySelector('.crilo-escape-character');
  if(!trigger||!panel||!shade||!board||!player||!overlay||!restart||!close)return;
 
@@ -148,6 +149,8 @@
   if(goldenPanel){
    goldenPanel.hidden=!unlocked;
    goldenPanel.classList.toggle('gold-equipped',gold);
+   goldenPanel.dataset.cosmetic=gold?'gold':'white';
+   if(selectorCharacter)selectorCharacter.classList.toggle('is-golden',gold);
    if(goldenStatus)goldenStatus.textContent=gold?'Equipped: Golden Box':'Equipped: White Box';
    if(goldenToggle){
     goldenToggle.textContent=gold?'Use White Box':'Use Golden Box';
