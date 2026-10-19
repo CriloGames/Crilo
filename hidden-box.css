@@ -312,12 +312,42 @@
  padding:8px 9px;margin-top:12px;color:#543c16;
 }
 .crilo-golden-panel[hidden]{display:none!important}
+/* Miniature of the real maze character in the cosmetic selector.
+   Both appearances use the same face, feet and shape as the playable cube. */
 .crilo-golden-medal{
- display:grid;place-items:center;width:31px;height:31px;
- border:2px solid #7b5528;border-radius:9px;
- background:linear-gradient(150deg,#fff8c2,#f8bf50);
- box-shadow:2px 2px 0 #9c783a;color:#7b551f;font-size:24px;
- flex:0 0 auto;
+ display:grid;place-items:center;
+ width:40px;height:44px;flex:0 0 40px;
+ border:0;background:transparent;box-shadow:none;
+}
+.crilo-golden-medal .crilo-escape-character{
+ display:block;position:relative;box-sizing:border-box;
+ width:34px;height:35px;
+ border:2px solid #27242e;border-radius:9px;
+ background:#fff;box-shadow:2px 3px 0 #292632;
+ animation:none;
+}
+.crilo-golden-medal .crilo-escape-eye{
+ width:4px;height:6px;top:35%;
+}
+.crilo-golden-medal .crilo-escape-mouth{top:59%}
+.crilo-golden-medal .crilo-escape-gleam{display:none}
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-character{
+ background:linear-gradient(135deg,#fff6b4,#ffd04c 45%,#e5a227);
+ border-color:#79501f;
+ box-shadow:2px 3px 0 #79501f,0 0 9px rgba(238,177,52,.35);
+}
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-character::before,
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-character::after{
+ background:#ffdd73;border-color:#79501f;
+}
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-eye{
+ background:#6e441a;
+}
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-mouth{
+ border-color:#6e441a;
+}
+.crilo-golden-panel.gold-equipped .crilo-golden-medal .crilo-escape-gleam{
+ display:block;top:0;right:0;font-size:11px;
 }
 .crilo-golden-label{display:grid;gap:2px;min-width:0;flex:1}
 .crilo-golden-label strong{font:900 12px/1.2 system-ui,sans-serif}
