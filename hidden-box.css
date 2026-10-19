@@ -48,10 +48,18 @@
  filter:none;
 }
 .crilo-hidden-box:focus{outline:none}
-.crilo-hidden-box:focus-visible{
+.crilo-hidden-box:focus-visible:not(.crilo-secret-return-focus){
  outline:2px solid var(--muted,#777);
  outline-offset:1px;
  border-radius:4px;
+}
+/* Closing with a pointer returns focus programmatically, but must never
+   draw a visible border around the secret homepage entrance. */
+.crilo-hidden-box.crilo-secret-return-focus:focus-visible{
+ outline:0!important;
+ box-shadow:none!important;
+ border:0!important;
+ background:transparent!important;
 }
 /* Escape the Box: only the secret game is visible when discovered.
    The entrance square above remains completely camouflaged. */
