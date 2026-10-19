@@ -16,8 +16,10 @@ assert.match(html,/id="criloEscapeBudgetFill"/);
 assert.match(html,/ROOM 1 \/ 25/);
 assert.match(html,/Progress saves on this device/);
 assert.match(html,/one-time reward/);
-assert.match(html,/hidden-box\.css\?v=8/);
-assert.match(html,/hidden-box\.js\?v=8/);
+assert.match(html,/hidden-box\.css\?v=9/);
+assert.match(html,/hidden-box\.js\?v=9/);
+assert.match(html,/aria-keyshortcuts="R"/);
+assert.match(html,/<kbd class="crilo-escape-shortcut"/);
 assert.match(html,/Collect 3 stars and reach the exit using the fewest moves possible\./);
 assert.match(html,/<small>Stars<\/small>/);
 assert.doesNotMatch(html,/3 sparks, then the exit\. Exactly enough moves/);
@@ -152,6 +154,18 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.equal(styles.color,styles.background);
      await trigger.click();
      await panel.waitFor({state:'visible'});
+     const resetButton=page.locator('#criloEscapeRestart');
+     const keycap=page.locator('.crilo-escape-shortcut');
+     const resetBounds=await resetButton.boundingBox();
+     const keyBounds=await keycap.boundingBox();
+     const panelBounds=await panel.boundingBox();
+     assert.ok(resetBounds&&keyBounds&&panelBounds);
+     assert.ok(keyBounds.x>=resetBounds.x+resetBounds.width-2,
+      'R key must sit to the right of Restart, not overlap at '+width);
+     assert.ok(keyBounds.x+keyBounds.width<=panelBounds.x+panelBounds.width-3,
+      'R key must fit inside the popup at '+width);
+     assert.ok(Math.abs((resetBounds.y+resetBounds.height/2)-(keyBounds.y+keyBounds.height/2))<=5,
+      'R key must be vertically aligned at '+width);
      assert.equal(await page.locator('#criloGoldenPanel').isVisible(),false,'Gold remains locked before victory');
      await page.locator('#criloEscapeRestart').click();
      assert.equal(await board.getAttribute('data-room'),'1');
@@ -162,6 +176,13 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      await page.waitForTimeout(20);
      assert.notEqual(await board.getAttribute('data-position'),origin);
      assert.equal(await board.getAttribute('data-moves-left'),'4');
+     await page.keyboard.press('r');
+     assert.equal(await board.getAttribute('data-position'),origin,
+      'R must restart the active room');
+     assert.equal(await board.getAttribute('data-moves-left'),'5',
+      'R restores the full move budget');
+     assert.equal(await board.getAttribute('data-room'),'1',
+      'R does not reset already completed rooms');
      await page.locator('#criloEscapeRestart').click();
      assert.equal(await board.getAttribute('data-moves-left'),'5');
      await page.keyboard.press('ArrowDown');
@@ -187,6 +208,10 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
      assert.deepEqual(await state(),initial);
      await page.keyboard.press('Escape');
      assert.equal(await panel.isVisible(),false);
+     const closedSnapshot=await page.evaluate(()=>localStorage.getItem('crilo_escape_progress_v2'));
+     await page.keyboard.press('r');
+     assert.equal(await page.evaluate(()=>localStorage.getItem('crilo_escape_progress_v2')),
+      closedSnapshot,'R must not restart the maze while the popup is closed');
     }
    }
    if(width===1280){
@@ -210,10 +235,12 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
     await page.keyboard.press('ArrowUp');
     assert.equal(await board.getAttribute('data-position'),failedPosition,
       'No movement allowed after losing');
-    await next.click();
+    await page.keyboard.press('R');
     assert.equal(await board.getAttribute('data-room'),'1');
     assert.equal(await board.getAttribute('data-moves-left'),'5');
-    assert.equal(await board.getAttribute('data-slides'),'0');
+    assert.equal(await board.getAttribute('data-slides'),'0',
+      'R must also restart the current room on the loss overlay');
+    assert.equal(await overlay.isVisible(),false);
     assert.deepEqual(await state(),initial,'Failure does not affect Daily state');
     // Finish all 25 levels using independently computed optimal routes.
     for(let room=0;room<25;room++){
