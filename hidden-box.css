@@ -330,12 +330,34 @@
 .crilo-golden-toggle:hover{background:#fffdf2}
 .crilo-golden-toggle:focus-visible{outline:3px solid #9f89e4;outline-offset:2px}
 .crilo-golden-prize{
- display:grid;place-items:center;width:67px;height:67px;
- color:#6d4518;font:950 55px/1 system-ui,sans-serif;
- border:3px solid #8b6128;border-radius:19px;
- background:linear-gradient(140deg,#fff7b7,#ffc948,#f8ae39,#fff4a4);
- box-shadow:0 4px 0 #7a4e19,0 0 0 7px rgba(255,212,74,.23);
+ display:grid;place-items:center;
+ width:76px;height:73px;flex:0 0 auto;
+ border:0;background:transparent;
  animation:crilo-golden-unlock .85s cubic-bezier(.19,1.5,.45,1) both;
+}
+.crilo-golden-prize .crilo-escape-character{
+ display:block;position:relative;box-sizing:border-box;
+ width:62px;height:62px;
+ border-radius:14px;border-width:3px;
+ background:linear-gradient(132deg,#fff6ba 0%,#ffd34f 31%,#efac21 65%,#ffdc6e 100%);
+ box-shadow:4px 5px 0 #77450b,0 0 0 3px rgba(255,218,102,.55),0 0 24px rgba(238,173,30,.5);
+}
+.crilo-golden-prize .crilo-escape-eye{
+ width:7px;height:10px;top:34%;
+}
+.crilo-golden-prize .crilo-escape-mouth{
+ top:60%;border-bottom-width:3px;
+}
+.crilo-golden-prize .crilo-escape-gleam{
+ display:block;top:4px;right:4px;font-size:21px;
+}
+.crilo-escape-overlay .crilo-golden-explainer{
+ margin:1px 12px 0;max-width:270px;
+ color:#704a16;font:900 14px/1.25 system-ui,sans-serif;
+}
+.crilo-escape-overlay .crilo-golden-clarification{
+ display:block;max-width:260px;margin:-3px 12px 0;
+ color:#776144;font:700 10px/1.4 system-ui,sans-serif;
 }
 @keyframes crilo-golden-unlock{
  from{transform:scale(.15) rotate(-60deg);opacity:0}
@@ -393,3 +415,9 @@
 }
 .crilo-golden-panel.gold-equipped .crilo-golden-label small{color:#795019}
 .crilo-golden-panel:not(.gold-equipped) .crilo-golden-label small{color:#80612c}
+
+@media(max-width:375px){
+ .crilo-escape-overlay:has(.crilo-golden-prize){gap:7px}
+ .crilo-escape-overlay .crilo-golden-explainer{font-size:12px}
+ .crilo-escape-overlay .crilo-golden-clarification{font-size:9px}
+}
