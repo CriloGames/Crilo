@@ -137,10 +137,16 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
   assert.equal(await page.locator('#criloMysterySpin').isVisible(),false);
   assert.equal(await page.locator('#criloMysteryShortcut').isVisible(),false,
    'A claimed curiosity does not leave a permanent progress counter');
+  await page.evaluate(()=>{
+   window.__mysteryDismissals=0;
+   window.addEventListener('crilo-mystery-closed',()=>{window.__mysteryDismissals++;});
+  });
   await page.locator('#criloMysteryOpenCollection').click();
   assert.equal(await page.locator('#criloMysteryShelfDialog').isVisible(),true);
   assert.match(await page.locator('#criloMysteryProgress').textContent(),/1 \/ 6/);
   await page.locator('#criloMysteryShelfClose').click();
+  assert.equal(await page.evaluate(()=>window.__mysteryDismissals),1,
+   'Closing collection opened from Gift must resume Bonus Run continuation');
   assert.equal(await page.evaluate(()=>window.__giftSpinCalls),1,'Mystery cannot reroll');
   await context.close();passes++;
  }
