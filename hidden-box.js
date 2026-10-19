@@ -192,10 +192,11 @@
   if(transitionTimer!==null){clearTimeout(transitionTimer);transitionTimer=null;}
   busy=false;
  }
- function setOpen(open){
+ function setOpen(open,viaKeyboard=false){
   panel.hidden=!open;
   shade.hidden=!open;
   trigger.setAttribute('aria-expanded',String(open));
+  if(open)trigger.classList.remove('crilo-secret-return-focus');
   if(open){
    if(!initialized){
     if(!restoreProgress()){moves=0;clearedRoutes=Array(levels.length).fill(null);loadRoom(0,true);saveProgress();}
@@ -211,6 +212,9 @@
    close.focus({preventScroll:true});
   }else{
    cancelTransition();
+   // Programmatic focus after closing the toy must not reveal the otherwise
+   // invisible entrance. Keep the focus indicator for genuine keyboard use.
+   trigger.classList.toggle('crilo-secret-return-focus',!viaKeyboard);
    trigger.focus({preventScroll:true});
   }
  }
@@ -390,6 +394,7 @@
   return keys[key]||null;
  }
  trigger.addEventListener('click',()=>setOpen(panel.hidden));
+ trigger.addEventListener('blur',()=>trigger.classList.remove('crilo-secret-return-focus'));
  close.addEventListener('click',()=>setOpen(false));
  shade.addEventListener('click',()=>setOpen(false));
  restart.addEventListener('click',resetRoom);
@@ -408,7 +413,7 @@
  });
  document.addEventListener('keydown',event=>{
   if(panel.hidden)return;
-  if(event.key==='Escape'){event.preventDefault();setOpen(false);return;}
+  if(event.key==='Escape'){event.preventDefault();setOpen(false,true);return;}
   if(event.altKey||event.ctrlKey||event.metaKey)return;
   if(event.key==='r'||event.key==='R'){
    // Only while Escape the Box is open; never hijack R on the Daily page.
