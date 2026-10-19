@@ -311,19 +311,29 @@
   overlay.hidden=false;
   overlay.replaceChildren();
   const title=document.createElement('strong');
-  title.textContent=won?(firstUnlock?'GOLDEN BOX UNLOCKED!':'YOU ESCAPED AGAIN!'):'ROOM CLEAR!';
+  title.textContent=won?(firstUnlock?'GOLDEN GUY UNLOCKED!':'YOU ESCAPED AGAIN!'):'ROOM CLEAR!';
   if(firstUnlock){
-   const prize=document.createElement('span');
+   // Show the actual maze character, not an unrelated golden trophy icon.
+   const prize=document.createElement('div');
    prize.className='crilo-golden-prize';
-   prize.textContent='✦';
    prize.setAttribute('aria-hidden','true');
+   const goldenGuy=character.cloneNode(true);
+   goldenGuy.classList.add('is-golden');
+   prize.append(goldenGuy);
    overlay.append(prize);
+   const explanation=document.createElement('p');
+   explanation.className='crilo-golden-explainer';
+   explanation.textContent='Your little maze character is now GOLD!';
+   const clarification=document.createElement('small');
+   clarification.className='crilo-golden-clarification';
+   clarification.textContent='Only inside Escape the Box. The secret square on Daily stays invisible.';
+   overlay.append(explanation,clarification);
   }
   const detail=document.createElement('span');
-  detail.textContent=won?(firstUnlock?'25 rooms · one-time Golden Box · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 stars collected · '+(moveLimits[room]-roomMoves)+' moves left';
+  detail.textContent=won?(firstUnlock?'One-time Golden Guy cosmetic · '+moves+' slides':'25 rooms replayed · no more rewards · '+moves+' slides'):'3 stars collected · '+(moveLimits[room]-roomMoves)+' moves left';
   const next=document.createElement('button');
   next.type='button';next.className='crilo-escape-next';
-  next.textContent=won?'Play again · Room 1':'Next room →';
+  next.textContent=won?(firstUnlock?'Play as Golden Guy →':'Play again · Room 1'):'Next room →';
   next.addEventListener('click',()=>{
    if(won){
     moves=0;
@@ -333,7 +343,7 @@
    saveProgress();
   });
   overlay.append(title,detail,next);
-  status.textContent=won?(firstUnlock?'Golden Box unlocked permanently! Replay any time.':'No extra rewards for replays. Start again at Room 1.'):'Room '+(room+1)+' cleared.';
+  status.textContent=won?(firstUnlock?'Your maze character is now gold. Change its appearance anytime below the maze.':'No extra rewards for replays. Start again at Room 1.'):'Room '+(room+1)+' cleared.';
   next.focus({preventScroll:true});
  }
  function failRoom(){
