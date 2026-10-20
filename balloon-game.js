@@ -1,5 +1,5 @@
 /* KEEP IT UP: CARGO BAY
- * Original low-poly industrial 3D arena using Three.js.
+ * Outdoor third-person vertical climbing obby using Three.js.
  * One independent browser-local record. No Daily / badge / account writes.
  */
 (async()=>{
@@ -18,17 +18,12 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const displayNumber=n=>String(Math.min(999999,n)).padStart(3,'0');
 const LEVEL_PROGRESS='crilo_balloon_course_unlocked_v1';
 const LEVELS=[
- ['Orientation',2,[[0,-.95,3.4,.45]],[],[]],
- ['First Jump',3,[[0,.2,9,.85]],[],[]],
- ['Zigzag Run',3,[[0,.9,9,.7],[-2,-1.3,5.8,.7],[2,-2.15,5.8,.7]],[],[]],
- ['The Sweeper',4,[[0,1.3,9,.6]],[[0,-.8,7,1.3,0]],[]],
- ['Blink Bridge',4,[[0,-1.6,9,.65]],[],[[0,.5,9,.8,2.1,0],[0,-.65,9,.65,1.75,.7]]],
- ['Crossfire',5,[[0,-2,9,.7]],[[0,.65,7,1.7,0],[0,-.9,7,-1.5,1]],[]],
- ['Pressure Plates',5,[[0,1.4,9,.7],[0,-1.3,9,.7]],[[0,-.25,7,1.5,.9]],[[0,.45,9,.7,1.4,0]]],
- ['Laser Corridor',6,[[0,1.4,9,.65],[0,-2,9,.7]],[[0,.7,7,1.9,0],[0,-.3,7,-2.1,.6],[0,-1.4,7,2.4,1.5]],[]],
- ['Panic Station',6,[[0,1.38,9,.7],[0,-1.85,9,.7]],[[0,-.25,7.5,2.55,0],[0,-1.1,7.2,-2.3,1]],[[0,.67,9,.7,1.25,.3]]],
- ['Final Inspection',7,[[0,1.38,9,.75],[0,.1,9,.7],[0,-2.75,9,.65]],[[0,.9,7.3,2.8,0],[0,-.7,7.3,-2.65,1.2],[0,-1.75,7.4,3.1,2.3]],[[0,-.1,9,.6,1.3,.3],[0,-2.35,9,.6,1.15,.7]]]
+ ['Trailhead',2],['Hurdle Hill',3],['Skyward Steps',3],['Summit Sweep',4],
+ ['Ridge Runners',4],['Pinecrest Rise',5],['Windy Way',5],
+ ['Cliffhanger',6],['Above the Clouds',6],['Final Ascent',7]
 ];
+const COURSE_HALF_WIDTH=2.35,JUMP_POWER=8.2,JUMP_GRAVITY=12.2;
+let courseSegments=[],courseEndZ=-17.15,courseTopY=3,courseRises=3;
 let unlocked=1,level=0,levelHits=0,checkpointScore=0,levelWorld=null,staticHazards=[],movingHazards=[],flashHazards=[],exitMat=null,awaitFirstHit=true;
 try{unlocked=clamp(parseInt(localStorage.getItem(LEVEL_PROGRESS),10)||1,1,LEVELS.length);}catch{}
 level=unlocked-1;
@@ -40,9 +35,9 @@ sound.textContent=enabled?'♫ AUDIO ON':'♫ AUDIO OFF';
 sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
 let THREE,scene,camera,renderer,room,balloon,balloonBody,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
-const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:2.2,yaw:0,pitch:.04,feet:0,vy:0,grounded:true};
-const CAMERA_FOLLOW_DISTANCE=3.15, CAMERA_FOLLOW_HEIGHT=2.95;
+const HIT_RADIUS=2.9, WALK_SPEED=4.3;
+const player={x:0,z:2.2,yaw:0,pitch:.025,groundY:0,feet:0,vy:0,grounded:true};
+const CAMERA_FOLLOW_DISTANCE=3.8, CAMERA_FOLLOW_HEIGHT=3.25;
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
@@ -83,93 +78,144 @@ function hudLevel(){
  stage.dataset.level=String(level+1);stage.dataset.levelHits=String(levelHits);
 }
 function previewLevel(){
- kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // '+LEVELS[level][0].toUpperCase();
+ kicker.textContent='STAGE '+String(level+1).padStart(2,'0')+' // '+LEVELS[level][0].toUpperCase();
  title.textContent=LEVELS[level][0].toUpperCase()+'.';
- description.textContent='Get '+LEVELS[level][1]+' balloon hits, jump red hazards with Space, and reach the glowing exit. Moving beams and flashing traps get harder each level. Keep the balloon up.';
- start.innerHTML='BEGIN LEVEL '+String(level+1).padStart(2,'0')+' <span aria-hidden="true">↗</span>';
+ description.textContent='Hit the balloon to unlock movement. Keep it flying while climbing ramps and jumping over raised hurdles. Reach the high summit gate. No surrounding walls or wall-bounces.';
+ start.innerHTML='BEGIN STAGE '+String(level+1).padStart(2,'0')+' <span aria-hidden="true">↗</span>';
  refreshLevels();hudLevel();
+}
+function groundAt(z){
+ if(!courseSegments.length)return 0;
+ for(const seg of courseSegments){
+  if(z<=seg.front&&z>=seg.back){
+   const t=(seg.front-z)/(seg.front-seg.back);
+   return seg.y0+(seg.y1-seg.y0)*t;
+  }
+ }
+ return z>courseSegments[0].front?0:courseTopY;
 }
 function buildLevel(){
  if(!scene)return;
- if(levelWorld){scene.remove(levelWorld);const geo=new Set(),mat=new Set();
-  levelWorld.traverse(o=>{if(o.geometry)geo.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mat.add(m));});
-  geo.forEach(g=>g.dispose());mat.forEach(m=>{m.map?.dispose?.();m.dispose();});}
- levelWorld=new THREE.Group();scene.add(levelWorld);
- staticHazards=[];movingHazards=[];flashHazards=[];
- // Visible low-poly obby walkway and colored checkpoint platforms, including on stage one.
- const palette=[0x65cbbd,0xd9b974,0xb5a2e3,0x9de0c2,0xb8db75,0xdd9677,0x8ebecf,0xe0a4df,0xf2ae73,0xf27c70];
- const tint=palette[level];
- const platform=color(0x52605b,.77,.4),trim=color(tint,.55,.12,{emissive:tint,emissiveIntensity:.9});
- const dark=color(0x253531,.91,.55);
- [1.92,1.12,.32,-.48,-1.28,-2.08,-2.88].forEach((z,i)=>{
-  box(levelWorld,3.25,.09,.7,0,.045,z,platform,false);
-  box(levelWorld,3.25,.045,.065,0,.105,z+.30,trim,false);
-  for(const x of [-1.66,1.66])box(levelWorld,.08,.18,.7,x,.10,z,dark,false);
-  if(i%2===0)box(levelWorld,.38,.015,.22,0,.10,z,trim,false);
- });
- // Colored side pylons and numbered in-world stage signage make each room distinct.
- for(const x of [-3.05,3.05]){
-  box(levelWorld,.27,1.9,.27,x,.95,-2.95,dark,false);
-  box(levelWorld,.4,.34,.4,x,2.05,-2.95,trim,false);
+ if(levelWorld){
+  scene.remove(levelWorld);
+  const geos=new Set(),materials=new Set();
+  levelWorld.traverse(o=>{
+   if(o.geometry)geos.add(o.geometry);
+   if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>materials.add(m));
+  });
+  geos.forEach(g=>g.dispose());materials.forEach(m=>{m.map?.dispose?.();m.dispose();});
  }
- const stageBoard=new THREE.Mesh(new THREE.PlaneGeometry(2.3,.72),
-  signage('STAGE '+String(level+1).padStart(2,'0'),LEVELS[level][0].toUpperCase()));
- stageBoard.position.set(0,4.7,-4.38);levelWorld.add(stageBoard);
- const red=color(0xd64a3c,.65,.1,{emissive:0xc32b20,emissiveIntensity:1.5});
- const amber=color(0xf5b767,.5,.2,{emissive:0xac5d2c,emissiveIntensity:1});
- LEVELS[level][2].forEach(([x,z,w,d])=>{box(levelWorld,w,.055,d,x,.155,z,red,false);staticHazards.push({x,z,w,d});});
- LEVELS[level][3].forEach(([x,z,length,speed,phase])=>{
-  const arm=box(levelWorld,length,.25,.24,x,.6,z,red,false);
-  box(levelWorld,.45,.9,.45,x,.45,z,amber,false);
-  movingHazards.push({x,z,length,speed,phase,arm,angle:0});
+ levelWorld=new THREE.Group();scene.add(levelWorld);
+ staticHazards=[];movingHazards=[];flashHazards=[];courseSegments=[];
+ const stages=[0x75d4b7,0xd4ad63,0x8fccdc,0xe6b48a,0xc2c875,
+  0xa8cbaa,0x83bfcc,0xe9bf91,0xcebaeb,0xffb27c];
+ const tint=stages[level];
+ const plank=color(0xa5a08a,.94,.12),edge=color(tint,.58,.15,{emissive:tint,emissiveIntensity:.28});
+ const shadowTrim=color(0x43514a,.91,.19);
+ const bar=color(0xe85d47,.68,.08,{emissive:0x832c19,emissiveIntensity:.35});
+ const white=color(0xf8e6d1,.86,.09);
+ const width=COURSE_HALF_WIDTH*2,rise=.89+level*.065;
+ courseRises=3+Math.floor(level/2);
+ courseTopY=courseRises*rise;
+ let z=-.65;
+ courseSegments.push({front:3.8,back:z,y0:0,y1:0});
+ for(let i=0;i<courseRises;i++){
+  const from=i*rise,to=(i+1)*rise;
+  const rampEnd=z-2.5;
+  courseSegments.push({front:z,back:rampEnd,y0:from,y1:to});
+  z=rampEnd;
+  const flatEnd=z-3;
+  courseSegments.push({front:z,back:flatEnd,y0:to,y1:to});
+  z=flatEnd;
+ }
+ courseEndZ=z;
+ courseSegments.forEach((seg,i)=>{
+  const length=seg.front-seg.back,change=seg.y1-seg.y0;
+  const ramp=Math.abs(change)>.01,angle=Math.atan2(change,length);
+  const deck=box(levelWorld,width,.32,Math.hypot(length,change),
+   0,(seg.y0+seg.y1)/2-.17,(seg.front+seg.back)/2,plank,false);
+  if(ramp)deck.rotation.x=angle;
+  const edgeBand=box(levelWorld,width,.075,.09,0,seg.y0+.02,seg.front-.11,edge,false);
+  for(const x of [-width/2,width/2]){
+   const rim=box(levelWorld,.09,.12,Math.hypot(length,change),
+    x,(seg.y0+seg.y1)/2+.015,(seg.front+seg.back)/2,shadowTrim,false);
+   if(ramp)rim.rotation.x=angle;
+  }
+  if(i%2===0){
+   const centerZ=(seg.front+seg.back)/2;
+   for(const x of [-1.7,1.7]){
+    const h=(seg.y0+seg.y1)/2+12;
+    box(levelWorld,.38,h,.43,x,(seg.y0+seg.y1)/4-6,centerZ,shadowTrim,false);
+    box(levelWorld,.56,.18,.56,x,(seg.y0+seg.y1)/2-.3,centerZ,edge,false);
+   }
+  }
  });
- LEVELS[level][4].forEach(([x,z,w,d,period,phase])=>{
-  const mat=new THREE.MeshBasicMaterial({color:0xff6650,transparent:true,opacity:.85});
-  const mesh=box(levelWorld,w,.055,d,x,.16,z,mat,false);
-  flashHazards.push({x,z,w,d,period,phase,mesh,on:true});
- });
+ const hurdleCount=Math.min(courseRises,1+Math.floor(level*.7));
+ for(let i=0;i<hurdleCount;i++){
+  const k=Math.round(i*(courseRises-1)/Math.max(1,hurdleCount-1));
+  const landing=courseSegments[2*k+2],y=landing.y0;
+  const zH=landing.front-1.45,height=.75+level*.045,w=3.25;
+  const x=level>=4&&i%2?-.22:.22;
+  for(const side of [-1,1]){
+   box(levelWorld,.15,height,.2,x+side*w/2,y+height/2,zH,white);
+   box(levelWorld,.38,.10,.38,x+side*w/2,y+.035,zH,shadowTrim,false);
+  }
+  box(levelWorld,w+.1,.19,.24,x,y+height,zH,bar);
+  for(let stripe=-1;stripe<=1;stripe++)
+   box(levelWorld,.22,.198,.25,x+stripe*.82,y+height,zH,white,false);
+  staticHazards.push({x,z:zH,w:w+.12,d:.29,y,height});
+ }
+ if(level>=3){
+  for(let i=0;i<(level>=7?2:1);i++){
+   const section=Math.max(0,courseRises-2-i*2);
+   const landing=courseSegments[2*section+2];
+   const zH=landing.front-2.3,y=landing.y0;
+   box(levelWorld,.35,.85,.35,0,y+.425,zH,shadowTrim);
+   const arm=box(levelWorld,3.4,.24,.2,0,y+.85,zH,bar);
+   movingHazards.push({x:0,z:zH,y,length:3.4,angle:0,arm,speed:1.1+level*.13,phase:i*1.6});
+  }
+ }
  exitMat=new THREE.MeshBasicMaterial({color:0xe9a16a});
- box(levelWorld,.2,3.5,.24,-1.2,1.75,-3.64,exitMat,false);
- box(levelWorld,.2,3.5,.24,1.2,1.75,-3.64,exitMat,false);
- box(levelWorld,2.6,.18,.24,0,3.55,-3.64,exitMat,false);
- box(levelWorld,2.1,.06,.5,0,.08,-3.5,exitMat,false);
+ const gateZ=courseEndZ+.43,finishY=courseTopY;
+ for(const x of [-1.56,1.56])box(levelWorld,.2,3.15,.25,x,finishY+1.58,gateZ,exitMat,false);
+ box(levelWorld,3.35,.2,.3,0,finishY+3.16,gateZ,exitMat,false);
+ box(levelWorld,3.05,.07,.45,0,finishY+.075,gateZ,exitMat,false);
+ const marker=new THREE.Mesh(new THREE.PlaneGeometry(3,.9),
+  signage('SUMMIT '+String(level+1).padStart(2,'0'),LEVELS[level][0].toUpperCase()));
+ marker.position.set(0,finishY+4.0,gateZ-.10);levelWorld.add(marker);
  hudLevel();
 }
-function intersects(t){return Math.abs(player.x-t.x)<t.w/2+.17&&Math.abs(player.z-t.z)<t.d/2+.17;}
 function updateHazards(now){
  const t=now/1000;
  for(const h of movingHazards){h.angle=t*h.speed+h.phase;h.arm.rotation.y=h.angle;}
- for(const h of flashHazards){
-  h.on=((t+h.phase)%h.period)/h.period<.57;
-  h.mesh.material.color.setHex(h.on?0xff634d:0x34453d);
-  h.mesh.material.opacity=h.on?.95:.23;
- }
 }
 function checkCourse(){
- if(!moving())return;
- // The spawn pad remains safe until the player walks into the obstacle course.
- if(Math.hypot(player.x,player.z-2.2)<.38)return;
- if(player.feet<.7&&(staticHazards.some(intersects)||flashHazards.some(h=>h.on&&intersects(h)))){finishRun('obstacle');return;}
+ if(!moving()||awaitFirstHit)return;
+ if(Math.abs(player.x)>COURSE_HALF_WIDTH-.12){finishRun('fall');return;}
+ const foot=player.groundY+player.feet;
+ for(const h of staticHazards){
+  if(Math.abs(player.x-h.x)<h.w/2+.19&&Math.abs(player.z-h.z)<h.d/2+.24&&
+     foot<h.y+h.height+.07){finishRun('obstacle');return;}
+ }
  for(const h of movingHazards){
   const x=player.x-h.x,z=player.z-h.z;
-  if(Math.abs(x*Math.cos(h.angle)-z*Math.sin(h.angle))<h.length/2+.2&&
-     Math.abs(x*Math.sin(h.angle)+z*Math.cos(h.angle))<.36&&player.feet<1){finishRun('obstacle');return;}
+  if(Math.abs(x*Math.cos(h.angle)-z*Math.sin(h.angle))<h.length/2+.18&&
+     Math.abs(x*Math.sin(h.angle)+z*Math.cos(h.angle))<.31&&
+     foot<h.y+1.14){finishRun('obstacle');return;}
  }
- if(player.z<-3.3&&Math.abs(player.x)<1.05){
+ if(player.z<courseEndZ+.75&&Math.abs(player.x)<1.42){
   if(levelHits>=LEVELS[level][1])clearLevel();
   else if(!stage.dataset.gateMessageAt||performance.now()-Number(stage.dataset.gateMessageAt)>1300){
    stage.dataset.gateMessageAt=String(performance.now());
-   showStatus('EXIT LOCKED · '+(LEVELS[level][1]-levelHits)+' MORE BALLOON HITS.');
+   showStatus('SUMMIT LOCKED · HIT THE BALLOON '+(LEVELS[level][1]-levelHits)+' MORE TIMES.');
   }
  }
 }
-function jump(){if(moving()&&!awaitFirstHit&&player.grounded){player.grounded=false;player.vy=5.4;}}
-
+function jump(){if(moving()&&!awaitFirstHit&&player.grounded){player.grounded=false;player.vy=JUMP_POWER;}}
 function inRange(){
  return Math.hypot(physics.x-player.x,physics.z-player.z)<=HIT_RADIUS;
 }
 function movePlayer(dt){
- // Keep the worker stationary until the first real balloon hit.
  if(!moving()||dt<=0||awaitFirstHit)return;
  let dx=(held.has('d')?1:0)-(held.has('a')?1:0);
  let dz=(held.has('s')?1:0)-(held.has('w')?1:0);
@@ -179,15 +225,17 @@ function movePlayer(dt){
  }
  const length=Math.hypot(dx,dz);
  if(length){
-  // Move relative to where the player is looking, not world directions.
   const side=dx/length,forward=-dz/length;
   const worldX=side*Math.cos(player.yaw)-forward*Math.sin(player.yaw);
   const worldZ=side*Math.sin(player.yaw)-forward*Math.cos(player.yaw);
-  player.x=clamp(player.x+worldX*WALK_SPEED*dt,-4.55,4.55);
-  player.z=clamp(player.z+worldZ*WALK_SPEED*dt,-3.5,2.95);
+  player.x=clamp(player.x+worldX*WALK_SPEED*dt,-7,7);
+  player.z=clamp(player.z+worldZ*WALK_SPEED*dt,courseEndZ-1,4.4);
  }
- if(!player.grounded){player.vy-=11.5*dt;player.feet+=player.vy*dt;
-  if(player.feet<=0){player.feet=0;player.vy=0;player.grounded=true;}}
+ player.groundY=groundAt(player.z);
+ if(!player.grounded){
+  player.vy-=JUMP_GRAVITY*dt;player.feet+=player.vy*dt;
+  if(player.feet<=0){player.feet=0;player.vy=0;player.grounded=true;}
+ }
  checkCourse();
 }
 function syncCamera(){
