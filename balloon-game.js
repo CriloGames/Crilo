@@ -258,6 +258,9 @@ function renderScene(now){
   shadow.position.x=physics.x;shadow.position.z=physics.z;
   shadow.scale.setScalar(1+(5.0-physics.y)*.07);
   shadow.material.opacity=clamp(.32-(physics.y-1)*.055,.09,.35);
+  const projected=balloon.position.clone().project(camera);
+  stage.dataset.hitX=String(Math.round((projected.x+1)*host.clientWidth/2));
+  stage.dataset.hitY=String(Math.round((1-projected.y)*host.clientHeight/2));
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
  if(warningLight)warningLight.intensity=state==='playing'&&physics.y<1.55?15:0;
