@@ -104,7 +104,6 @@ function buildRoom(){
    stripe.rotation.z=.3;
   }
  }
- plate('BAY 04','AIRLOCK / KEEP CLEAR',0,0,0,0,0); // Replaced below; signature call intentionally unused? 
  // Vertical support bays, hand rails, floor hazards.
  for(let x of [-4.8,4.8]){
   for(const y of [1.12,2.4,4.8])lineBox(room,[x,y,-4.35],[x,y,2.7],.058,warmSteel);
@@ -367,7 +366,7 @@ function begin(){
  if(state==='paused'){
   state='playing';stage.dataset.state='playing';overlay.hidden=true;
   pause.disabled=false;pause.textContent='Ⅱ PAUSE';lastFrame=0;
-  showStatus('SHIFT RESUMED · OBJECT AIRBORNE');return;
+  showStatus('SHIFT RESUMED · OBJECT AIRBORNE');stage.focus({preventScroll:true});return;
  }
  if(state!=='ready'&&state!=='over')return;
  resetPhysics();setScore(0);lastBop=0;
@@ -376,6 +375,7 @@ function begin(){
  warning.classList.remove('is-visible');
  telemetry.textContent='AIRBORNE · CONTAINED';
  showStatus('SHIFT ACTIVE · KEEP THE SPECIMEN OFF THE FLOOR.');
+ stage.focus({preventScroll:true});
  lastFrame=0;
 }
 function hold(){
