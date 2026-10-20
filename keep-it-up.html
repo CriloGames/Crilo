@@ -47,7 +47,7 @@
   <div class="cargo-stages-heading"><strong>OBSTACLE COURSE · 10 STAGES</strong><span id="cargoStagesProgress">0 / 10 CLEARED</span></div>
   <div class="cargo-stages-track" id="cargoStagesTrack" role="group" aria-label="Available levels and locked stages"></div>
  </div>
- <div class="cargo-viewport" id="balloonStage" tabindex="0" role="group" aria-label="First-person 3D balloon obstacle course. Use WASD to move, mouse to look, Space to jump, and click to hit when the balloon is inside your glowing ring. Esc pauses.">
+ <div class="cargo-viewport" id="balloonStage" tabindex="0" role="group" aria-label="First-person 3D balloon obstacle course. WASD moves, mouse looks, Space jumps. Aim directly at the balloon and click its visible surface while within range. Hits propel it away in your swing direction. Esc pauses.">
   <div id="cargoViewport3d" class="cargo-three" aria-hidden="true"></div>
   <div class="cargo-vignette" aria-hidden="true"></div>
   <div class="cargo-feed-top" aria-hidden="true"><span><span class="cargo-rec-dot"></span> LIVE · OBBY CAM</span><span id="cargoLevelName">LEVEL 01 · ORIENTATION</span></div>
@@ -63,7 +63,7 @@
     <span class="cargo-overlay-label" id="balloonOverlayKicker">EMPLOYEE TRAINING // 01</span>
     <div class="cargo-overlay-symbol" aria-hidden="true">◉</div>
     <h2 id="balloonOverlayTitle">DON'T DROP IT.</h2>
-    <p id="balloonOverlayText">You are inside the cargo bay. Use WASD to move, mouse to look around, and Space to jump over hazards. Click while the balloon is inside your glowing ring to hit it. Get enough hits, then cross the exit gate to unlock the next stage.</p>
+    <p id="balloonOverlayText">You are inside the cargo bay. Use WASD to move, mouse to aim, and Space to jump. Point at the actual balloon and click it while it is inside your range ring. The balloon flies away from your hit. Get enough hits, then cross the exit gate to unlock the next stage.</p>
     <button id="balloonStart" class="cargo-start" type="button">BEGIN SHIFT <span aria-hidden="true">↗</span></button>
     <small>WASD MOVE · MOUSE LOOK · SPACE JUMP · CLICK HIT · ESC PAUSE</small>
    </div>
@@ -78,11 +78,11 @@
 <section class="crilo-game-info-card"><button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close game instructions">×</button>
 <h2 id="gameInfoTitle">Keep It Up: Cargo Bay</h2>
 <p>You're responsible for a deeply questionable object in a low-poly cargo bay.</p>
-<ul><li>Click or tap inside the game to hit the balloon when it is inside your glowing range ring. It does not require pixel-perfect aiming.</li><li>The balloon can drift sideways and bounce off the walls. It falls faster as your count increases.</li><li>This is first-person: WASD moves in the direction you face. Move the mouse freely to look around. Escape releases the cursor and pauses. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Click or tap to hit while the balloon is in range. Space jumps over obstacles but never hits the balloon. Your first click starts the balloon physics so you can get your bearings.</li><li>Each level requires balloon hits plus reaching the exit. Avoid red floor strips, spinning beams and flashing tiles; if the balloon falls or an obstacle hits, retry that level.</li><li>Pause, select unlocked levels, or play fullscreen. Your unlocked courses and personal record stay saved in this browser.</li></ul>
+<ul><li>Aim your crosshair at the balloon (or tap its visible body on touchscreens) and click to hit it while it's inside your glowing range ring. Clicking empty space won't hit.</li><li>The balloon travels away from your hit. Striking its left or right side steers it in the opposite direction; lower hits give more upward lift. It can still bounce off the walls.</li><li>This is first-person: WASD moves in the direction you face. Move the mouse freely to look around. Escape releases the cursor and pauses. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Only clicking the visible balloon body counts. The first successful hit starts the balloon's fall timer, so you have time to line up your opening hit. Space jumps over obstacles but never hits the balloon.</li><li>Each level requires balloon hits plus reaching the exit. Avoid red floor strips, spinning beams and flashing tiles; if the balloon falls or an obstacle hits, retry that level.</li><li>Pause, select unlocked levels, or play fullscreen. Your unlocked courses and personal record stay saved in this browser.</li></ul>
 <p>The cargo-bay challenge is entirely separate from Crilo Daily, its badge collection, and leaderboards.</p></section>
 </div>
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
 <script src="supabase-config.js?v=21"></script><script src="app.js?v=56"></script><script src="game-topbar.js?v=1"></script>
-<script type="module" src="balloon-game.js?v=7"></script>
+<script type="module" src="balloon-game.js?v=8"></script>
 <script src="public-metrics.js?v=1"></script><script src="floating-mystery.js?v=6"></script>
 </body></html>
