@@ -140,7 +140,7 @@ const three=fs.readFileSync(path.join(path.dirname(require.resolve('three')),'th
    await pause.click();
    assert.equal((await state()).mode,'paused');
    const paused=await state();
-   await page.evaluate(()=>window.__advanceCargo(100));
+   await page.evaluate(()=>window.__advanceCargo(12));
    assert.equal((await state()).by,paused.by);
    await start.click();assert.equal((await state()).mode,'playing');
 
@@ -156,14 +156,14 @@ const three=fs.readFileSync(path.join(path.dirname(require.resolve('three')),'th
    });
    assert.equal(await score.textContent(),'001','Click cannot hit balloon outside worker ring');
 
-   await page.evaluate(()=>window.__advanceCargo(300));
+   await page.evaluate(()=>window.__advanceCargo(90,60));
    assert.equal((await state()).mode,'over','The balloon touching the floor ends the shift');
    assert.equal(await overlay.isVisible(),true);
    await start.click();
    assert.equal((await state()).mode,'playing');
    assert.equal(await score.textContent(),'000','Restart resets score');
    assert.equal(await best.textContent(),'001','Restart preserves personal record');
-   await page.evaluate(()=>window.__advanceCargo(300));
+   await page.evaluate(()=>window.__advanceCargo(90,60));
    assert.equal((await state()).mode,'over');
    await page.reload({waitUntil:'domcontentloaded'});
    await page.addStyleTag({content:css});
