@@ -172,3 +172,22 @@
 @media (hover:none),(pointer:coarse){.cargo-jump{display:block}}
 @media(max-width:680px){.cargo-jump{width:65px;height:65px;right:10px;bottom:78px;font-size:12px}}
 .cargo-crosshair{top:50%}
+
+/* Stage progression is visible even on the first attempt. */
+.cargo-stages-wrap{padding:8px 4px 11px;min-width:0}
+.cargo-stages-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:0 1px 7px;color:#b6c3a6;font:850 10px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.08em}
+.cargo-stages-heading span{color:#e2be83}
+.cargo-stages-track{display:flex;gap:5px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:thin;scrollbar-color:#6d745d #222e28;scroll-snap-type:x proximity}
+.cargo-stage-chip{min-width:121px;flex:1 0 121px;max-width:220px;height:53px;display:flex;flex-direction:column;gap:4px;align-items:flex-start;justify-content:center;border:1px solid #55645a;border-bottom:3px solid #3b4940;background:#24302b;color:#b9c5b6;border-radius:4px;text-align:left;padding:6px 10px;font:850 10px/1 ui-monospace,Consolas,monospace;cursor:pointer;scroll-snap-align:start}
+.cargo-stage-chip strong{font:950 15px/1 ui-monospace,Consolas,monospace;letter-spacing:.04em}
+.cargo-stage-chip span{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.cargo-stage-chip.is-current{border-color:#e5b77d;background:#3c382c;color:#ffe8bd;box-shadow:inset 0 0 0 1px #c995534a}
+.cargo-stage-chip.is-cleared{border-color:#7da787;background:#233d31;color:#c1f0c5}
+.cargo-stage-chip.is-locked{opacity:.48;border-style:dashed}
+.cargo-stage-chip:hover,.cargo-stage-chip:focus-visible{filter:brightness(1.2);outline-offset:2px}
+.cargo-stage-chip:focus-visible{outline:2px solid #f4c488}
+.cargo-console:fullscreen .cargo-stages-wrap{flex-shrink:0}
+.cargo-range-status.is-near{animation:cargo-near 1.5s ease-in-out infinite}
+@keyframes cargo-near{50%{box-shadow:0 0 12px #77e8b05c}}
+@media(max-width:680px){.cargo-stages-heading{font-size:9px}.cargo-stage-chip{min-width:102px;flex-basis:102px;height:47px;padding:5px 8px}.cargo-stage-chip strong{font-size:12px}.cargo-stage-chip span{font-size:8px}.cargo-stages-wrap{padding:5px 2px 7px}}
+@media(prefers-reduced-motion:reduce){.cargo-range-status.is-near{animation:none}}
