@@ -6,16 +6,32 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const stage=$('balloonStage'),host=$('cargoViewport3d'),overlay=$('balloonOverlay');
-const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound');
+const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),full=$('balloonFullscreen'),select=$('balloonLevelSelect'),levelText=$('balloonLevel'),goalText=$('balloonGoal'),gateText=$('cargoGateHint'),levelName=$('cargoLevelName'),statusLevel=$('balloonStatusLevel');
 const scoreLabel=$('balloonScore'),bestLabel=$('balloonBest'),title=$('balloonOverlayTitle');
 const kicker=$('balloonOverlayKicker'),description=$('balloonOverlayText');
 const status=$('balloonStatus'),telemetry=$('cargoTelemetry'),warning=$('cargoFloorWarning');
 const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus');
-if(![stage,host,overlay,start,pause,sound,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
+if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
 const BEST_KEY='crilo_keep_it_up_best_v1';
 const SOUND_KEY='crilo_cargo_audio_v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const displayNumber=n=>String(Math.min(999999,n)).padStart(3,'0');
+const LEVEL_PROGRESS='crilo_balloon_course_unlocked_v1';
+const LEVELS=[
+ ['Orientation',2,[],[],[]],
+ ['First Jump',3,[[0,.2,9,.85]],[],[]],
+ ['Zigzag Run',3,[[0,.9,9,.7],[-2,-1.3,5.8,.7],[2,-2.15,5.8,.7]],[],[]],
+ ['The Sweeper',4,[[0,1.3,9,.6]],[[0,-.8,7,1.3,0]],[]],
+ ['Blink Bridge',4,[[0,-1.6,9,.65]],[],[[0,.5,9,.8,2.1,0],[0,-.65,9,.65,1.75,.7]]],
+ ['Crossfire',5,[[0,-2,9,.7]],[[0,.65,7,1.7,0],[0,-.9,7,-1.5,1]],[]],
+ ['Pressure Plates',5,[[0,1.4,9,.7],[0,-1.3,9,.7]],[[0,-.25,7,1.5,.9]],[[0,.45,9,.7,1.4,0]]],
+ ['Laser Corridor',6,[[0,1.4,9,.65],[0,-2,9,.7]],[[0,.7,7,1.9,0],[0,-.3,7,-2.1,.6],[0,-1.4,7,2.4,1.5]],[]],
+ ['Panic Station',6,[[0,1.65,9,.7],[0,-1.85,9,.7]],[[0,-.25,7.5,2.55,0],[0,-1.1,7.2,-2.3,1]],[[0,.67,9,.7,1.25,.3]]],
+ ['Final Inspection',7,[[0,1.7,9,.75],[0,.1,9,.7],[0,-2.75,9,.65]],[[0,.9,7.3,2.8,0],[0,-.7,7.3,-2.65,1.2],[0,-1.75,7.4,3.1,2.3]],[[0,-.1,9,.6,1.3,.3],[0,-2.35,9,.6,1.15,.7]]]
+];
+let unlocked=1,level=0,levelHits=0,checkpointScore=0,levelWorld=null,staticHazards=[],movingHazards=[],flashHazards=[],exitMat=null;
+try{unlocked=clamp(parseInt(localStorage.getItem(LEVEL_PROGRESS),10)||1,1,LEVELS.length);}catch{}
+level=unlocked-1;
 let best=0,enabled=true,state='ready',score=0,context=null;
 try{const old=Number(localStorage.getItem(BEST_KEY));if(Number.isSafeInteger(old)&&old>=0&&old<=999999)best=old;}catch{}
 try{enabled=localStorage.getItem(SOUND_KEY)!=='off';}catch{}
@@ -25,11 +41,88 @@ sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
 let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
 const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:2.2,yaw:0,pitch:.38};
+const player={x:0,z:2.2,yaw:0,pitch:.38,feet:0,vy:0,grounded:true};
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
-function releaseMovement(){held.clear();activeTouches.clear();lookDrag=null;}
+function releaseMovement(){held.clear();activeTouches.clear();lookDrag=null;document.querySelectorAll('[data-move]').forEach(b=>b.classList.remove('is-pressed'));}
+function mouseUnlock(){if(document.pointerLockElement===stage)document.exitPointerLock?.();}
+function mouseLock(){
+ if(!moving()||!stage.requestPointerLock||!window.matchMedia?.('(pointer:fine)').matches)return;
+ try{stage.requestPointerLock()?.catch?.(()=>{});}catch{}
+}
+function refreshLevels(){
+ select.replaceChildren();
+ LEVELS.forEach((c,i)=>{const o=document.createElement('option');o.value=String(i);o.disabled=i>=unlocked;
+ o.textContent=String(i+1).padStart(2,'0')+' · '+c[0]+(i>=unlocked?' · LOCKED':'');select.append(o);});
+ select.value=String(level);
+}
+function hudLevel(){
+ const c=LEVELS[level];
+ levelText.textContent=String(level+1).padStart(2,'0')+' / 10';
+ goalText.textContent=levelHits+' / '+c[1]+' HITS · REACH EXIT';
+ gateText.textContent=levelHits>=c[1]?'EXIT OPEN · STEP INSIDE':'GATE LOCKED · '+(c[1]-levelHits)+' HITS';
+ levelName.textContent='LEVEL '+String(level+1).padStart(2,'0')+' · '+c[0].toUpperCase();
+ statusLevel.textContent='COURSE '+String(level+1).padStart(2,'0')+' / 10';
+ if(exitMat)exitMat.color.setHex(levelHits>=c[1]?0x74efa6:0xe9a16a);
+ stage.dataset.level=String(level+1);stage.dataset.levelHits=String(levelHits);
+}
+function previewLevel(){
+ kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // '+LEVELS[level][0].toUpperCase();
+ title.textContent=LEVELS[level][0].toUpperCase()+'.';
+ description.textContent='Get '+LEVELS[level][1]+' balloon hits, jump red hazards with Space, and reach the glowing exit. Moving beams and flashing traps get harder each level. Keep the balloon up.';
+ start.innerHTML='BEGIN LEVEL '+String(level+1).padStart(2,'0')+' <span aria-hidden="true">↗</span>';
+ refreshLevels();hudLevel();
+}
+function buildLevel(){
+ if(!scene)return;
+ if(levelWorld){scene.remove(levelWorld);const geo=new Set(),mat=new Set();
+  levelWorld.traverse(o=>{if(o.geometry)geo.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mat.add(m));});
+  geo.forEach(g=>g.dispose());mat.forEach(m=>m.dispose());}
+ levelWorld=new THREE.Group();scene.add(levelWorld);
+ staticHazards=[];movingHazards=[];flashHazards=[];
+ const red=color(0xd64a3c,.65,.1,{emissive:0xc32b20,emissiveIntensity:1.5});
+ const amber=color(0xf5b767,.5,.2,{emissive:0xac5d2c,emissiveIntensity:1});
+ LEVELS[level][2].forEach(([x,z,w,d])=>{box(levelWorld,w,.055,d,x,.055,z,red,false);staticHazards.push({x,z,w,d});});
+ LEVELS[level][3].forEach(([x,z,length,speed,phase])=>{
+  const arm=box(levelWorld,length,.25,.24,x,.6,z,red,false);
+  box(levelWorld,.45,.9,.45,x,.45,z,amber,false);
+  movingHazards.push({x,z,length,speed,phase,arm,angle:0});
+ });
+ LEVELS[level][4].forEach(([x,z,w,d,period,phase])=>{
+  const mat=new THREE.MeshBasicMaterial({color:0xff6650,transparent:true,opacity:.85});
+  const mesh=box(levelWorld,w,.05,d,x,.08,z,mat,false);
+  flashHazards.push({x,z,w,d,period,phase,mesh,on:true});
+ });
+ exitMat=new THREE.MeshBasicMaterial({color:0xe9a16a});
+ box(levelWorld,.2,3.5,.24,-1.2,1.75,-3.64,exitMat,false);
+ box(levelWorld,.2,3.5,.24,1.2,1.75,-3.64,exitMat,false);
+ box(levelWorld,2.6,.18,.24,0,3.55,-3.64,exitMat,false);
+ box(levelWorld,2.1,.06,.5,0,.08,-3.5,exitMat,false);
+ hudLevel();
+}
+function intersects(t){return Math.abs(player.x-t.x)<t.w/2+.17&&Math.abs(player.z-t.z)<t.d/2+.17;}
+function updateHazards(now){
+ const t=now/1000;
+ for(const h of movingHazards){h.angle=t*h.speed+h.phase;h.arm.rotation.y=h.angle;}
+ for(const h of flashHazards){
+  h.on=((t+h.phase)%h.period)/h.period<.57;
+  h.mesh.material.color.setHex(h.on?0xff634d:0x34453d);
+  h.mesh.material.opacity=h.on?.95:.23;
+ }
+}
+function checkCourse(){
+ if(!moving())return;
+ if(player.feet<.7&&(staticHazards.some(intersects)||flashHazards.some(h=>h.on&&intersects(h)))){finishRun('obstacle');return;}
+ for(const h of movingHazards){
+  const x=player.x-h.x,z=player.z-h.z;
+  if(Math.abs(x*Math.cos(h.angle)-z*Math.sin(h.angle))<h.length/2+.2&&
+     Math.abs(x*Math.sin(h.angle)+z*Math.cos(h.angle))<.36&&player.feet<1){finishRun('obstacle');return;}
+ }
+ if(player.z<-3.3&&Math.abs(player.x)<1.05&&levelHits>=LEVELS[level][1])clearLevel();
+}
+function jump(){if(moving()&&player.grounded){player.grounded=false;player.vy=5.4;}}
+
 function inRange(){
  return Math.hypot(physics.x-player.x,physics.z-player.z)<=HIT_RADIUS;
 }
@@ -50,10 +143,13 @@ function movePlayer(dt){
   player.x=clamp(player.x+worldX*WALK_SPEED*dt,-4.55,4.55);
   player.z=clamp(player.z+worldZ*WALK_SPEED*dt,-3.5,2.95);
  }
+ if(!player.grounded){player.vy-=11.5*dt;player.feet+=player.vy*dt;
+  if(player.feet<=0){player.feet=0;player.vy=0;player.grounded=true;}}
+ checkCourse();
 }
 function syncCamera(){
  if(!camera)return;
- camera.position.set(player.x,1.77,player.z);
+ camera.position.set(player.x,1.77+player.feet,player.z);
  camera.rotation.order='YXZ';
  camera.rotation.y=player.yaw;
  camera.rotation.x=player.pitch;
@@ -316,7 +412,7 @@ async function initialize(){
   warningLight=new THREE.PointLight(0xffbd5f,0,6,2);
   warningLight.position.set(0,.8,.3);scene.add(warningLight);
   raycaster=new THREE.Raycaster();ndc=new THREE.Vector2();
-  buildRoom();buildBalloon();buildWorker();setDimensions();
+  buildRoom();buildBalloon();buildWorker();buildLevel();setDimensions();
   if('ResizeObserver' in window)new ResizeObserver(setDimensions).observe(stage);
   else window.addEventListener('resize',setDimensions,{passive:true});
   ready=true;stage.dataset.renderer='webgl';stage.dataset.state='ready';
@@ -378,8 +474,8 @@ function frameLoop(now){
  raf=requestAnimationFrame(frameLoop);
  const dt=lastFrame?clamp((now-lastFrame)/1000,0,.04):0;lastFrame=now;
  if(state==='playing'){
-  movePlayer(dt);
-  advancePhysics(dt,now);
+  updateHazards(now);movePlayer(dt);
+  if(state==='playing')advancePhysics(dt,now);
  }
  renderScene(now);
 }
@@ -389,8 +485,8 @@ function resetPhysics(){
 }
 function advancePhysics(dt,now){
  if(dt<=0)return;
- const difficulty=Math.min(score,36);
- physics.vy-= (4.1+difficulty*.062)*dt;
+ const difficulty=Math.min(levelHits,9);
+ physics.vy-=(3.7+level*.28+difficulty*.07)*dt;
  physics.vx+=(Math.sin(now*.00155)*.18)*dt;
  physics.vz+=(Math.cos(now*.0009)*.12)*dt;
  physics.x+=physics.vx*dt;
@@ -405,7 +501,7 @@ function advancePhysics(dt,now){
  warning.classList.toggle('is-visible',danger);
  telemetry.textContent=danger?'CRITICAL · FLOOR NEAR':'AIRBORNE · CONTAINED';
  if(physics.y<=.72){
-  physics.y=.72;renderScene(now);finishRun();
+  physics.y=.72;renderScene(now);finishRun('balloon');
  }
 }
 function recordSound(kind){
@@ -446,9 +542,9 @@ function bop(nx=null){
  // Pointer events and synthetic clicks must not double-score a single action.
  if(now-lastBop<90)return;
  lastBop=now;
- setScore(score+1);recordBest();
+ setScore(score+1);levelHits++;hudLevel();recordBest();
  const direction=nx===null?0:clamp(nx,-1,1);
- const boost=4.0+Math.min(score*.031,.73);
+ const boost=4.3-level*.04+Math.min(levelHits*.025,.2);
  physics.vy=boost;
  physics.vx=clamp(physics.vx*.38-direction*1.35+Math.sin(score*3.42)*.3,-2.5,2.5);
  physics.vz=clamp(physics.vz*.45+Math.cos(score*2.1)*.27,-1.4,1.4);
@@ -459,48 +555,58 @@ function bop(nx=null){
  warning.classList.remove('is-visible');
  telemetry.textContent='OBJECT BOUNCED · '+displayNumber(score);
  flashHit();recordSound('hit');
- showStatus(score%10===0?'CONTAINMENT STRONG · '+score+' HITS':'OBJECT STILL AIRBORNE');
+ showStatus(levelHits>=LEVELS[level][1]?'EXIT UNLOCKED · REACH THE GATE.':'BALLOON SAVED · '+(LEVELS[level][1]-levelHits)+' MORE HITS.');
 }
-function finishRun(){
+function clearLevel(){
  if(state!=='playing')return;
- state='over';stage.dataset.state='over';releaseMovement();
- pause.disabled=true;pause.textContent='Ⅱ PAUSE';
+ state=level===9?'won':'cleared';stage.dataset.state=state;releaseMovement();mouseUnlock();
+ pause.disabled=true;select.disabled=false;
+ if(level+2>unlocked&&unlocked<10){unlocked=level+2;try{localStorage.setItem(LEVEL_PROGRESS,String(unlocked));}catch{}}
+ refreshLevels();
+ kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // CLEARED';
+ title.textContent=state==='won'?'ALL LEVELS CLEARED!':'LEVEL CLEARED.';
+ description.textContent=state==='won'?'All ten obby courses complete! Replay any level.':'Checkpoint saved! Level '+(level+2)+' is now unlocked.';
+ start.innerHTML=(state==='won'?'REPLAY ALL LEVELS':'NEXT LEVEL '+String(level+2).padStart(2,'0'))+' <span aria-hidden="true">↗</span>';
+ overlay.hidden=false;showStatus('COURSE CLEARED · CHECKPOINT SAVED.');start.focus({preventScroll:true});
+}
+function finishRun(reason='balloon'){
+ if(state!=='playing')return;
+ state='over';stage.dataset.state=state;releaseMovement();mouseUnlock();
+ pause.disabled=true;select.disabled=false;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');recordSound('floor');
- kicker.textContent='INCIDENT REPORT // '+String(score+1).padStart(4,'0');
- title.textContent=score>=20?'SHIFT COMPLETE.':'CONTAINMENT FAILED.';
- description.textContent='The specimen touched the floor. You managed '+score+' successful '+(score===1?'hit':'hits')+'. Personal record: '+best+'.';
- start.innerHTML='RETRY SHIFT <span aria-hidden="true">↗</span>';
- overlay.hidden=false;telemetry.textContent='INCIDENT · OBJECT LOST';
- showStatus('CONTAINMENT FAILED · '+score+' HITS. RETRY AVAILABLE.');
- start.focus({preventScroll:true});
+ kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // FAILED';
+ title.textContent=reason==='obstacle'?'OBSTACLE HIT.':'BALLOON DOWN.';
+ description.textContent='Retry level '+(level+1)+' without losing any unlocked courses. You scored '+levelHits+' of '+LEVELS[level][1]+' required hits.';
+ start.innerHTML='RETRY LEVEL '+String(level+1).padStart(2,'0')+' <span aria-hidden="true">↗</span>';
+ overlay.hidden=false;showStatus('LEVEL FAILED · CHECKPOINT RETAINED.');start.focus({preventScroll:true});
 }
 function begin(){
  if(!ready)return;
  if(state==='paused'){
-  releaseMovement();
-  state='playing';stage.dataset.state='playing';overlay.hidden=true;
-  pause.disabled=false;pause.textContent='Ⅱ PAUSE';lastFrame=0;
-  showStatus('SHIFT RESUMED · OBJECT AIRBORNE');stage.focus({preventScroll:true});return;
+  releaseMovement();state='playing';stage.dataset.state=state;overlay.hidden=true;
+  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
+  lastFrame=0;stage.focus({preventScroll:true});mouseLock();return;
  }
- if(state!=='ready'&&state!=='over')return;
- resetPhysics();setScore(0);lastBop=0;
- releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.38;
- syncCamera();
- state='playing';stage.dataset.state='playing';overlay.hidden=true;
- pause.disabled=false;pause.textContent='Ⅱ PAUSE';
- warning.classList.remove('is-visible');
- telemetry.textContent='AIRBORNE · CONTAINED';
- showStatus('SHIFT ACTIVE · KEEP THE SPECIMEN OFF THE FLOOR.');
- stage.focus({preventScroll:true});
- lastFrame=0;
+ if(!['ready','over','cleared','won'].includes(state))return;
+ if(state==='cleared'){level++;checkpointScore=score;}
+ else if(state==='won'){level=0;checkpointScore=0;setScore(0);}
+ else if(state==='over'){setScore(checkpointScore);}
+ else{checkpointScore=0;setScore(0);}
+ levelHits=0;lastBop=0;releaseMovement();
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.38;player.feet=0;player.vy=0;player.grounded=true;
+ resetPhysics();buildLevel();refreshLevels();syncCamera();
+ state='playing';stage.dataset.state=state;overlay.hidden=true;
+ pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
+ warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
+ showStatus('LEVEL '+(level+1)+' ACTIVE · '+LEVELS[level][1]+' HITS TO OPEN EXIT.');
+ stage.focus({preventScroll:true});lastFrame=0;mouseLock();
 }
 function hold(){
  if(state==='playing'){
   releaseMovement();
-  state='paused';stage.dataset.state='paused';pause.textContent='▶ RESUME';
+  state='paused';stage.dataset.state='paused';mouseUnlock();select.disabled=true;pause.textContent='▶ RESUME';
   kicker.textContent='SHIFT SUSPENDED';title.textContent='ON HOLD.';
-  description.textContent='The containment field is paused. Your run will resume exactly where you left it.';
+  description.textContent='The balloon and moving hazards are paused. Resume when ready. Space jumps but never hits the balloon.';
   start.innerHTML='RESUME SHIFT <span aria-hidden="true">↗</span>';overlay.hidden=false;
   warning.classList.remove('is-visible');showStatus('SHIFT PAUSED · NO PENALTY');
   start.focus({preventScroll:true});
@@ -510,7 +616,8 @@ function projectHit(event){
  if(!ready||state!=='playing')return false;
  const rect=renderer.domElement.getBoundingClientRect();
  if(rect.width<=0||rect.height<=0)return false;
- ndc.set((event.clientX-rect.left)/rect.width*2-1,-((event.clientY-rect.top)/rect.height*2-1));
+ if(document.pointerLockElement===stage)ndc.set(0,0);
+ else ndc.set((event.clientX-rect.left)/rect.width*2-1,-((event.clientY-rect.top)/rect.height*2-1));
  raycaster.setFromCamera(ndc,camera);
  return raycaster.intersectObject(hitSphere,false).length>0;
 }
@@ -522,15 +629,18 @@ host.addEventListener('pointerdown',event=>{
   event.preventDefault();
   const center=new THREE.Vector3();balloon.getWorldPosition(center);center.project(camera);
   const rect=renderer.domElement.getBoundingClientRect();
-  const dx=(event.clientX-rect.left)/rect.width*2-1-center.x;
+  const dx=(document.pointerLockElement===stage?0:(event.clientX-rect.left)/rect.width*2-1)-center.x;
   bop(dx*3);return;
  }
- // Drag scenery to turn the view. Mouse right-drag works too.
+ // Click scenery to capture FPS mouse look; touch retains swipe.
+ if(document.pointerLockElement===stage)return;
+ if(event.pointerType==='mouse'&&stage.requestPointerLock){event.preventDefault();mouseLock();return;}
  event.preventDefault();
  lookDrag={id:event.pointerId,x:event.clientX,y:event.clientY};
  try{host.setPointerCapture?.(event.pointerId);}catch{/* Synthetic and unsupported pointers still drag safely. */}
 });
 host.addEventListener('pointermove',event=>{
+ if(document.pointerLockElement===stage)return;
  if(lookDrag?.id===event.pointerId){
   const dx=event.clientX-lookDrag.x,dy=event.clientY-lookDrag.y;
   lookDrag.x=event.clientX;lookDrag.y=event.clientY;
@@ -545,6 +655,16 @@ host.addEventListener('pointermove',event=>{
  cursor.classList.toggle('is-hover',hitting);
  host.style.cursor=hitting?'pointer':'crosshair';
 },{passive:false});
+document.addEventListener('mousemove',event=>{
+ if(document.pointerLockElement!==stage||!moving())return;
+ player.yaw-=event.movementX*.0029;
+ player.pitch=clamp(player.pitch-event.movementY*.00265,-1.25,1.25);
+ syncCamera();cursor.classList.toggle('is-hover',projectHit({clientX:0,clientY:0})&&inRange());
+});
+document.addEventListener('pointerlockchange',()=>{
+ stage.dataset.mouseLocked=String(document.pointerLockElement===stage);
+ if(document.pointerLockElement!==stage&&state==='playing')hold();
+});
 const stopLook=event=>{if(lookDrag?.id===event.pointerId)lookDrag=null;};
 host.addEventListener('pointerup',stopLook);
 host.addEventListener('pointercancel',stopLook);
@@ -561,12 +681,12 @@ document.addEventListener('keydown',event=>{
  if(['w','a','s','d'].includes(key)){
   event.preventDefault();
   if(!event.repeat)held.add(key);
- }else if(event.key===' '&&document.activeElement===stage){
-  event.preventDefault(); // Stop page scrolling; no automatic balloon hits.
+ }else if(event.code==='Space'){
+  event.preventDefault();if(!event.repeat)jump(); // Space jumps only, no balloon hit.
  }
 });
 document.addEventListener('keyup',event=>held.delete(event.key.toLowerCase()));
-window.addEventListener('blur',releaseMovement);
+window.addEventListener('blur',()=>{releaseMovement();if(state==='playing')hold();});
 document.querySelectorAll('[data-move]').forEach(button=>{
  const key=button.dataset.move;
  const up=e=>{activeTouches.delete(e.pointerId);button.classList.remove('is-pressed');};
@@ -578,6 +698,21 @@ document.querySelectorAll('[data-move]').forEach(button=>{
  button.addEventListener('pointerup',up);
  button.addEventListener('pointercancel',up);
  button.addEventListener('lostpointercapture',up);
+});
+select.addEventListener('change',()=>{
+ const i=Number(select.value);
+ if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','over','cleared','won'].includes(state))return;
+ level=i;levelHits=0;checkpointScore=0;setScore(0);state='ready';stage.dataset.state=state;
+ previewLevel();buildLevel();overlay.hidden=false;showStatus('COURSE '+(level+1)+' SELECTED.');
+});
+full.addEventListener('click',async()=>{
+ const root=stage.closest('.cargo-console');
+ try{if(document.fullscreenElement===root)await document.exitFullscreen();else await root.requestFullscreen();}
+ catch{showStatus('FULLSCREEN IS NOT AVAILABLE IN THIS BROWSER.');}
+});
+document.addEventListener('fullscreenchange',()=>{
+ const active=document.fullscreenElement===stage.closest('.cargo-console');
+ full.textContent=active?'⛶ EXIT FULLSCREEN':'⛶ FULLSCREEN';full.setAttribute('aria-pressed',String(active));setDimensions();
 });
 start.addEventListener('click',begin);
 pause.addEventListener('click',hold);
@@ -591,5 +726,5 @@ document.getElementById('gameInfoBtn')?.addEventListener('click',()=>{if(state==
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='playing')hold();});
 window.addEventListener('pagehide',()=>{if(state==='playing')hold();lastFrame=0;});
 window.addEventListener('pageshow',()=>{lastFrame=0;});
-await initialize();
+previewLevel();await initialize();
 })();
