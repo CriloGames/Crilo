@@ -360,56 +360,59 @@ function buildBalloon(){
  const string=new THREE.Mesh(lineGeo,color(0xd2c8b3,.96,.08));balloon.add(string);
  // Only balloonBody (the visible inflated rubber mesh) is clickable.
  // The string, knot, highlight and empty air are never hit targets.
- balloon.position.set(0,3.15,0);
+ balloon.position.set(0,3.1,0);
  scene.add(balloon);
  const shadowMat=new THREE.MeshBasicMaterial({color:0x080b0a,transparent:true,opacity:.42,depthWrite:false});
  shadow=new THREE.Mesh(new THREE.CircleGeometry(.65,28),shadowMat);
  shadow.rotation.x=-Math.PI/2;shadow.position.set(0,.025,0);scene.add(shadow);
 }
 function buildWorker(){
+ // Friendly original 3D runner with a backpack, mint jacket and soft visor.
  worker=new THREE.Group();scene.add(worker);
- worker.visible=true; // The playable worker is visible in third person.
- const suit=color(0xc98440,.91,.1),trim=color(0x353d37,.85,.33);
- const dark=color(0x242a26,.8,.42),visor=color(0x687f78,.28,.65,{
-  emissive:0x1b554c,emissiveIntensity:.25
- });
- // Deliberately original little utility worker, not a copied game character.
- box(worker,.69,.72,.39,0,.95,0,suit);
- box(worker,.52,.22,.47,0,1.28,0,trim);
- box(worker,.75,.58,.64,0,1.62,-.03,suit);
- box(worker,.59,.31,.12,0,1.64,-.35,visor);
- box(worker,.4,.25,.12,0,1.95,-.11,trim);
- for(const side of [-1,1]){
-  box(worker,.23,.57,.28,side*.50,.92,0,suit);
-  box(worker,.27,.20,.3,side*.50,.62,-.05,dark);
-  box(worker,.26,.55,.32,side*.21,.29,.05,suit);
-  box(worker,.3,.14,.52,side*.21,.07,-.14,dark);
+ const mint=color(0x63d7b9,.78,.02),shadowMint=color(0x37a9a0,.87,.05);
+ const cream=color(0xffefd0,.8,.04),peach=color(0xffb58b,.81,.02);
+ const blue=color(0x354965,.46,.25),boot=color(0x405270,.8,.06);
+ box(worker,.68,.81,.46,0,1.14,0,mint);
+ box(worker,.75,.17,.49,0,1.48,0,cream);
+ box(worker,.47,.58,.27,0,1.12,.35,shadowMint);
+ box(worker,.29,.24,.09,0,1.18,.5,peach,false);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.41,14,10),cream);
+ head.scale.set(1,.98,.87);head.position.set(0,1.83,-.02);head.castShadow=true;worker.add(head);
+ const visor=new THREE.Mesh(new THREE.SphereGeometry(.30,14,9),blue);
+ visor.scale.set(1.06,.70,.47);visor.position.set(0,1.83,-.34);worker.add(visor);
+ for(const x of [-.11,.11]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.046,8,8),cream);
+  eye.position.set(x,1.88,-.49);worker.add(eye);
  }
- box(worker,.44,.42,.28,0,.94,.3,trim);
- // Horizontal ring marks the physical balloon range. It follows the worker.
+ const arms=[],legs=[];
+ for(const side of [-1,1]){
+  const arm=new THREE.Group();arm.position.set(side*.43,1.34,0);
+  box(arm,.25,.51,.27,0,-.24,0,mint);
+  box(arm,.25,.18,.28,0,-.54,-.015,cream);
+  worker.add(arm);arms.push(arm);
+  const leg=new THREE.Group();leg.position.set(side*.21,.77,.02);
+  box(leg,.28,.50,.30,0,-.24,0,shadowMint);
+  box(leg,.34,.21,.45,0,-.57,-.065,boot);
+  box(leg,.33,.07,.44,0,-.66,-.06,peach,false);
+  worker.add(leg);legs.push(leg);
+ }
+ worker.userData={arms,legs};worker.visible=true;
  ringMaterial=new THREE.MeshBasicMaterial({
-  color:0xf2b766,transparent:true,opacity:.94,
-  depthWrite:false,side:THREE.DoubleSide
+  color:0x7df3ad,transparent:true,opacity:.87,depthWrite:false,side:THREE.DoubleSide
  });
- const r=new THREE.Mesh(new THREE.RingGeometry(HIT_RADIUS-.065,HIT_RADIUS,64),ringMaterial);
- r.rotation.x=-Math.PI/2;
- r.renderOrder=2;r.position.y=.07;
- hitRing=new THREE.Group();hitRing.add(r);
- const innerMat=new THREE.MeshBasicMaterial({color:0xffce89,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide});
- const ring2=new THREE.Mesh(new THREE.RingGeometry(HIT_RADIUS-.27,HIT_RADIUS-.25,64),innerMat);
- ring2.rotation.x=-Math.PI/2;ring2.position.y=.075;ring2.renderOrder=2;hitRing.add(ring2);
- // Short radial markings improve legibility as the floor gets darker.
- for(let i=0;i<12;i++){
-  const angle=i*Math.PI/6;
-  const mark=box(hitRing,.065,.018,.22,Math.cos(angle)*(HIT_RADIUS-.17),.077,Math.sin(angle)*(HIT_RADIUS-.17),ringMaterial,false);
-  mark.rotation.y=-angle+Math.PI/2;mark.renderOrder=2;
+ const ring=new THREE.Mesh(new THREE.RingGeometry(HIT_RADIUS-.075,HIT_RADIUS,72),ringMaterial);
+ ring.rotation.x=-Math.PI/2;ring.position.y=.055;ring.renderOrder=2;
+ hitRing=new THREE.Group();hitRing.add(ring);
+ const ticks=color(0xffe6a4,.72,.08,{emissive:0xdabf75,emissiveIntensity:.4});
+ for(let i=0;i<16;i++){
+  const angle=i*Math.PI/8;
+  const tick=box(hitRing,.07,.025,.2,Math.sin(angle)*(HIT_RADIUS-.2),.075,Math.cos(angle)*(HIT_RADIUS-.2),ticks,false);
+  tick.rotation.y=angle;
  }
  scene.add(hitRing);
- worker.position.set(player.x,0,player.z);
+ worker.position.set(player.x,player.groundY,player.z);
  hitRing.position.set(player.x,player.groundY,player.z);
- // No first-person camera glove; hits come from the character.
- glove=null;
- scene.add(camera);
+ glove=null;scene.add(camera);
 }
 function showRenderingFailure(){
  state='unavailable';stage.dataset.state=state;
@@ -448,7 +451,7 @@ async function initialize(){
   if('ResizeObserver' in window)new ResizeObserver(setDimensions).observe(stage);
   else window.addEventListener('resize',setDimensions,{passive:true});
   ready=true;stage.dataset.renderer='webgl';stage.dataset.state='ready';
-  balloon.position.set(0,3.15,0);renderScene(performance.now());
+  balloon.position.set(0,3.1,0);renderScene(performance.now());
   raf=requestAnimationFrame(frameLoop);
  }catch(error){
   console.warn('Cargo Bay 3D setup unavailable:',error);
@@ -470,10 +473,9 @@ function renderScene(now){
   worker.position.set(player.x,player.groundY+player.feet,player.z);
   worker.rotation.y=player.facing;
   worker.visible=true;
-  // Tiny character movement gives the avatar life without obscuring aiming.
-  worker.children.forEach((mesh,i)=>{
-   if(i>=7&&i<=10)mesh.rotation.x=player.grounded?Math.sin(player.anim+i*2.1)*.16:0;
-  });
+  const swing=Math.sin(player.anim)*Math.min(1,Math.hypot(player.moveX,player.moveZ))*.52;
+  worker.userData.legs?.forEach((leg,i)=>leg.rotation.x=player.grounded?(i?swing:-swing):-.21);
+  worker.userData.arms?.forEach((arm,i)=>arm.rotation.x=player.grounded?(i?-swing:swing):-.35);
  }
  if(balloon){
   balloon.position.set(physics.x,physics.y,physics.z);
@@ -525,27 +527,33 @@ function frameLoop(now){
  renderScene(now);
 }
 function resetPhysics(){
- physics.x=0;physics.y=3.15;physics.z=0;
+ physics.x=0;physics.y=3.1;physics.z=0;
  physics.vx=0;physics.vy=0;physics.vz=0;
 }
 function advancePhysics(dt,now){
  if(dt<=0)return;
  const difficulty=Math.min(levelHits,9);
- // Balloon floats freely: NO wall reflections or artificial side bouncing.
- const grav=2.9+level*.075+difficulty*.048;
+ // Balloon softly chases the uphill path while keeping hit-based movement.
+ const grav=2.65+level*.068+difficulty*.035;
+ const guideX=player.x+Math.sin(player.yaw)*.15;
+ const guideZ=player.z-1.75;
+ physics.vx+=clamp(guideX-physics.x,-5,5)*1.25*dt;
+ physics.vz+=clamp(guideZ-physics.z,-5,5)*1.80*dt;
+ const drag=Math.exp(-.75*dt);
+ physics.vx*=drag;physics.vz*=drag;
+ const prevGround=groundAt(physics.z);
  physics.vy-=grav*dt;
- physics.vx*=Math.pow(.982,dt*60);
- physics.vz*=Math.pow(.985,dt*60);
- physics.x+=physics.vx*dt;physics.y+=physics.vy*dt;physics.z+=physics.vz*dt;
+ physics.x+=physics.vx*dt;physics.z+=physics.vz*dt;physics.y+=physics.vy*dt;
  const terrain=groundAt(physics.z);
- if(physics.y>terrain+8.5){physics.y=terrain+8.5;physics.vy=Math.min(0,physics.vy);}
- const danger=physics.y<terrain+1.85&&physics.vy<0;
+ // Gentle uphill lift prevents premature collisions with a sloping deck.
+ physics.y+=clamp(terrain-prevGround,-.22,.22);
+ if(physics.y>terrain+7.2){physics.y=terrain+7.2;physics.vy=Math.min(0,physics.vy);}
+ const height=physics.y-terrain,danger=height<1.65&&physics.vy<0;
  warning.classList.toggle('is-visible',danger);
- telemetry.textContent=danger?'CRITICAL · PLATFORM NEAR':'AIRBORNE · CLIMBING';
- if(physics.y<=terrain+.69){physics.y=terrain+.69;finishRun('balloon');return;}
- if(Math.abs(physics.x)>COURSE_HALF_WIDTH+2.5||
-    physics.z>7||physics.z<courseEndZ-7||
-    physics.z>player.z+7){finishRun('lost');}
+ telemetry.textContent=danger?'BALLOON LOW · HIT IT!':'BALLOON AIRBORNE';
+ if(height<=.69){physics.y=terrain+.69;finishRun('balloon');return;}
+ if(Math.abs(physics.x)>COURSE_HALF_WIDTH+3.2||
+    physics.z>8||physics.z<courseEndZ-8){finishRun('lost');}
 }
 function recordSound(kind){
  if(!enabled)return;
@@ -605,13 +613,13 @@ function bop(hit){
  right.y=0;right.normalize();
  // Striking the left side kicks right; striking the right side kicks left.
  const side=clamp(contact.dot(right)/.52,-1,1);
- const push=away.multiplyScalar(3.15+level*.06).addScaledVector(right,-side*1.05);
+ const push=away.multiplyScalar(2.85+level*.055).addScaledVector(right,-side*1.35);
  physics.vx=clamp(push.x+physics.vx*.12,-4.6,4.6);
  physics.vz=clamp(push.z+physics.vz*.12,-4.6,4.6);
  // Preserve enough vertical lift for the keep-it-up game; bottom hits lift
  // harder and top hits lift less, so where you strike matters vertically too.
  const lowHit=clamp(-contact.y/.64,-1,1);
- physics.vy=clamp(5.1-level*.025+lowHit*.52+hit.rayDirection.y*.28,4.55,5.85);
+ physics.vy=clamp(5.0-level*.02+lowHit*.55+hit.rayDirection.y*.22,4.4,5.85);
  balloon.scale.set(1.14,.83,1.06);
  if(glove){glove.position.z=-1.68;glove.rotation.x=-.42;}
  clearTimeout(hitTimer);
