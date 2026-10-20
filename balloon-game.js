@@ -208,7 +208,16 @@
  document.addEventListener('visibilitychange',()=>{
   if(document.hidden&&state==='playing')hold();
  });
- window.addEventListener('pagehide',()=>stopLoop());
+ // The browser's back-forward cache can restore an already-loaded page.
+ // Turn active play into a resumable pause rather than canceling its only RAF.
+ window.addEventListener('pagehide',()=>{
+  if(state==='playing')hold();
+  else stopLoop();
+ });
+ // Reading the info dialog must never cause a surprise floor collision.
+ document.getElementById('gameInfoBtn')?.addEventListener('click',()=>{
+  if(state==='playing')hold();
+ });
  if('ResizeObserver' in window){
   new ResizeObserver(()=>dimensions()).observe(stage);
  }else window.addEventListener('resize',dimensions,{passive:true});
