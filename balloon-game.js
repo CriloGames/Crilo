@@ -41,7 +41,7 @@ sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
 let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
 const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:2.2,yaw:0,pitch:.38,feet:0,vy:0,grounded:true};
+const player={x:0,z:2.2,yaw:0,pitch:.11,feet:0,vy:0,grounded:true};
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
@@ -173,7 +173,7 @@ function syncCamera(){
 }
 
 let raf=0,lastFrame=0,hitTimer=null,hitLabelTimer=null,lastBop=0,ready=false;
-const physics={x:0,y:3.2,z:0,vx:0,vy:0,vz:0};
+const physics={x:0,y:3.15,z:0,vx:0,vy:0,vz:0};
 function setScore(n){score=n;scoreLabel.textContent=displayNumber(score);stage.dataset.hits=String(score);}
 function saveBest(){
  if(score<=best)return;
@@ -341,7 +341,7 @@ function buildBalloon(){
  hitSphere=new THREE.Mesh(new THREE.SphereGeometry(.85,16,12),new THREE.MeshBasicMaterial({
   color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
  balloon.add(hitSphere);
- balloon.position.set(0,3.2,0);
+ balloon.position.set(0,3.15,0);
  scene.add(balloon);
  const shadowMat=new THREE.MeshBasicMaterial({color:0x080b0a,transparent:true,opacity:.42,depthWrite:false});
  shadow=new THREE.Mesh(new THREE.CircleGeometry(.65,28),shadowMat);
@@ -432,7 +432,7 @@ async function initialize(){
   if('ResizeObserver' in window)new ResizeObserver(setDimensions).observe(stage);
   else window.addEventListener('resize',setDimensions,{passive:true});
   ready=true;stage.dataset.renderer='webgl';stage.dataset.state='ready';
-  balloon.position.set(0,3.2,0);renderScene(performance.now());
+  balloon.position.set(0,3.15,0);renderScene(performance.now());
   raf=requestAnimationFrame(frameLoop);
  }catch(error){
   console.warn('Cargo Bay 3D setup unavailable:',error);
@@ -465,7 +465,7 @@ function renderScene(now){
   hitRing.position.set(player.x,0,player.z);
   const inside=inRange();
   ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
-  rangeLabel.textContent=inside?'BALLOON IN HIT ZONE':'OUT OF RANGE · MOVE CLOSER';
+  rangeLabel.textContent=inside?(awaitFirstHit?'CLICK TO START · BALLOON IN RANGE':'CLICK TO HIT · BALLOON IN RANGE'):'OUT OF RANGE · MOVE CLOSER';
   rangeLabel.classList.toggle('is-near',inside);
   stage.dataset.inRange=String(inside);
   stage.dataset.playerX=player.x.toFixed(2);
@@ -491,12 +491,12 @@ function frameLoop(now){
  const dt=lastFrame?clamp((now-lastFrame)/1000,0,.04):0;lastFrame=now;
  if(state==='playing'){
   updateHazards(now);movePlayer(dt);
-  if(state==='playing')advancePhysics(dt,now);
+  if(state==='playing'&&!awaitFirstHit)advancePhysics(dt,now);
  }
  renderScene(now);
 }
 function resetPhysics(){
- physics.x=0;physics.y=4.0;physics.z=0;
+ physics.x=0;physics.y=3.15;physics.z=0;
  physics.vx=.58;physics.vy=.8;physics.vz=.24;
 }
 function advancePhysics(dt,now){
@@ -557,7 +557,7 @@ function bop(nx=null){
  const now=performance.now();
  // Pointer events and synthetic clicks must not double-score a single action.
  if(now-lastBop<90)return;
- lastBop=now;
+ lastBop=now;awaitFirstHit=false;
  setScore(score+1);levelHits++;hudLevel();recordBest();
  const direction=nx===null?0:clamp(nx,-1,1);
  const boost=4.3-level*.04+Math.min(levelHits*.025,.2);
@@ -609,13 +609,13 @@ function begin(){
  else if(state==='won'){level=0;checkpointScore=0;setScore(0);}
  else if(state==='over'){setScore(checkpointScore);}
  else{checkpointScore=0;setScore(0);}
- levelHits=0;lastBop=0;releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.38;player.feet=0;player.vy=0;player.grounded=true;
+ levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.11;player.feet=0;player.vy=0;player.grounded=true;
  resetPhysics();buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
- showStatus('LEVEL '+(level+1)+' ACTIVE · '+LEVELS[level][1]+' HITS TO OPEN EXIT.');
+ showStatus('STAGE '+(level+1)+' READY · CLICK TO LAUNCH THE BALLOON.');
  stage.focus({preventScroll:true});lastFrame=0;mouseLock();
 }
 function hold(){
@@ -641,7 +641,7 @@ function projectHit(event){
 host.addEventListener('pointerdown',event=>{
  if(!moving()||event.target.closest?.('.cargo-touch-controls, .cargo-jump'))return;
  if(event.pointerType==='mouse'&&event.button!==0&&event.button!==2)return;
- const hitting=event.button!==2&&projectHit(event)&&inRange();
+ const hitting=event.button!==2&&inRange(); // Click anywhere in the viewport while balloon is inside your ring.
  if(hitting){
   event.preventDefault();
   const center=new THREE.Vector3();balloon.getWorldPosition(center);center.project(camera);
@@ -668,7 +668,7 @@ host.addEventListener('pointermove',event=>{
   stage.dataset.playerPitch=player.pitch.toFixed(3);
   event.preventDefault();return;
  }
- const hitting=projectHit(event)&&inRange();
+ const hitting=inRange();
  cursor.classList.toggle('is-hover',hitting);
  host.style.cursor=hitting?'pointer':'crosshair';
 },{passive:false});
@@ -676,7 +676,7 @@ document.addEventListener('mousemove',event=>{
  if(document.pointerLockElement!==stage||!moving())return;
  player.yaw-=event.movementX*.0029;
  player.pitch=clamp(player.pitch-event.movementY*.00265,-1.25,1.25);
- syncCamera();cursor.classList.toggle('is-hover',projectHit({clientX:0,clientY:0})&&inRange());
+ syncCamera();cursor.classList.toggle('is-hover',inRange());
 });
 document.addEventListener('pointerlockchange',()=>{
  stage.dataset.mouseLocked=String(document.pointerLockElement===stage);
