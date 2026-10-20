@@ -10,8 +10,8 @@ const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound');
 const scoreLabel=$('balloonScore'),bestLabel=$('balloonBest'),title=$('balloonOverlayTitle');
 const kicker=$('balloonOverlayKicker'),description=$('balloonOverlayText');
 const status=$('balloonStatus'),telemetry=$('cargoTelemetry'),warning=$('cargoFloorWarning');
-const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError');
-if(![stage,host,overlay,start,pause,sound,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox].every(Boolean))return;
+const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus');
+if(![stage,host,overlay,start,pause,sound,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
 const BEST_KEY='crilo_keep_it_up_best_v1';
 const SOUND_KEY='crilo_cargo_audio_v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -23,7 +23,41 @@ bestLabel.textContent=displayNumber(best);
 sound.textContent=enabled?'♫ AUDIO ON':'♫ AUDIO OFF';
 sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
-let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc;
+let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial;
+const HIT_RADIUS=2.55, WALK_SPEED=3.6;
+const player={x:0,z:1.65};
+const held=new Set(),activeTouches=new Map();
+const moving=()=>state==='playing'&&ready;
+function releaseMovement(){held.clear();activeTouches.clear();}
+function inRange(){
+ return Math.hypot(physics.x-player.x,physics.z-player.z)<=HIT_RADIUS;
+}
+function movePlayer(dt){
+ if(!moving()||dt<=0)return;
+ let dx=(held.has('d')?1:0)-(held.has('a')?1:0);
+ let dz=(held.has('s')?1:0)-(held.has('w')?1:0);
+ for(const key of activeTouches.values()){
+  dx+=(key==='d'?1:key==='a'?-1:0);
+  dz+=(key==='s'?1:key==='w'?-1:0);
+ }
+ const length=Math.hypot(dx,dz);
+ if(length){
+  player.x=clamp(player.x+(dx/length)*WALK_SPEED*dt,-4.55,4.55);
+  player.z=clamp(player.z+(dz/length)*WALK_SPEED*dt,-3.5,2.95);
+  if(worker){
+   worker.position.set(player.x,0,player.z);
+   worker.rotation.y=Math.atan2(-dx,-dz);
+  }
+ }
+}
+function syncCamera(){
+ if(!camera)return;
+ const mobile=host.clientWidth<460;
+ camera.position.set(player.x+(mobile?.45:.95),mobile?4.65:4.2,player.z+(mobile?7.75:7.55));
+ camera.lookAt(player.x,2.1,player.z-1.3);
+ camera.updateMatrixWorld();
+}
+
 let raf=0,lastFrame=0,hitTimer=null,hitLabelTimer=null,lastBop=0,ready=false;
 const physics={x:0,y:3.2,z:0,vx:0,vy:0,vz:0};
 function setScore(n){score=n;scoreLabel.textContent=displayNumber(score);stage.dataset.hits=String(score);}
@@ -199,6 +233,47 @@ function buildBalloon(){
  shadow=new THREE.Mesh(new THREE.CircleGeometry(.65,28),shadowMat);
  shadow.rotation.x=-Math.PI/2;shadow.position.set(0,.025,0);scene.add(shadow);
 }
+function buildWorker(){
+ worker=new THREE.Group();scene.add(worker);
+ const suit=color(0xc98440,.91,.1),trim=color(0x353d37,.85,.33);
+ const dark=color(0x242a26,.8,.42),visor=color(0x687f78,.28,.65,{
+  emissive:0x1b554c,emissiveIntensity:.25
+ });
+ // Deliberately original little utility worker, not a copied game character.
+ box(worker,.69,.72,.39,0,.95,0,suit);
+ box(worker,.52,.22,.47,0,1.28,0,trim);
+ box(worker,.75,.58,.64,0,1.62,-.03,suit);
+ box(worker,.59,.31,.12,0,1.64,-.35,visor);
+ box(worker,.4,.25,.12,0,1.95,-.11,trim);
+ for(const side of [-1,1]){
+  box(worker,.23,.57,.28,side*.50,.92,0,suit);
+  box(worker,.27,.20,.3,side*.50,.62,-.05,dark);
+  box(worker,.26,.55,.32,side*.21,.29,.05,suit);
+  box(worker,.3,.14,.52,side*.21,.07,-.14,dark);
+ }
+ box(worker,.44,.42,.28,0,.94,.3,trim);
+ // Horizontal ring marks the physical balloon range. It follows the worker.
+ ringMaterial=new THREE.MeshBasicMaterial({
+  color:0xf2b766,transparent:true,opacity:.94,
+  depthWrite:false,side:THREE.DoubleSide
+ });
+ const r=new THREE.Mesh(new THREE.RingGeometry(HIT_RADIUS-.065,HIT_RADIUS,64),ringMaterial);
+ r.rotation.x=-Math.PI/2;
+ r.renderOrder=2;r.position.y=.07;
+ hitRing=new THREE.Group();hitRing.add(r);
+ const innerMat=new THREE.MeshBasicMaterial({color:0xffce89,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide});
+ const ring2=new THREE.Mesh(new THREE.RingGeometry(HIT_RADIUS-.27,HIT_RADIUS-.25,64),innerMat);
+ ring2.rotation.x=-Math.PI/2;ring2.position.y=.075;ring2.renderOrder=2;hitRing.add(ring2);
+ // Short radial markings improve legibility as the floor gets darker.
+ for(let i=0;i<12;i++){
+  const angle=i*Math.PI/6;
+  const mark=box(hitRing,.065,.018,.22,Math.cos(angle)*(HIT_RADIUS-.17),.077,Math.sin(angle)*(HIT_RADIUS-.17),ringMaterial,false);
+  mark.rotation.y=-angle+Math.PI/2;mark.renderOrder=2;
+ }
+ scene.add(hitRing);
+ worker.position.set(player.x,0,player.z);
+ hitRing.position.set(player.x,0,player.z);
+}
 function showRenderingFailure(){
  state='unavailable';stage.dataset.state=state;
  errorBox.hidden=false;start.disabled=true;pause.disabled=true;
@@ -230,7 +305,7 @@ async function initialize(){
   warningLight=new THREE.PointLight(0xffbd5f,0,6,2);
   warningLight.position.set(0,.8,.3);scene.add(warningLight);
   raycaster=new THREE.Raycaster();ndc=new THREE.Vector2();
-  buildRoom();buildBalloon();setDimensions();
+  buildRoom();buildBalloon();buildWorker();setDimensions();
   if('ResizeObserver' in window)new ResizeObserver(setDimensions).observe(stage);
   else window.addEventListener('resize',setDimensions,{passive:true});
   ready=true;stage.dataset.renderer='webgl';stage.dataset.state='ready';
@@ -244,13 +319,14 @@ async function initialize(){
 function setDimensions(){
  if(!renderer||!camera)return;
  const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
- camera.aspect=w/h;camera.fov=w<460?49:47;
- camera.position.set(0,w<460?4.4:3.8,w<460?14.7:11.7);
- camera.lookAt(0,2.55,-.8);camera.updateProjectionMatrix();
+ camera.aspect=w/h;camera.fov=w<460?51:47;
+ camera.updateProjectionMatrix();
+ syncCamera();
  renderer.setSize(w,h,false);
 }
 function renderScene(now){
  if(!renderer||!scene)return;
+ syncCamera();
  if(balloon){
   balloon.position.set(physics.x,physics.y,physics.z);
   balloon.rotation.z=Math.sin(now*.0016)*.065+physics.vx*.012;
@@ -261,6 +337,17 @@ function renderScene(now){
   const projected=balloon.position.clone().project(camera);
   stage.dataset.hitX=String(Math.round((projected.x+1)*host.clientWidth/2));
   stage.dataset.hitY=String(Math.round((1-projected.y)*host.clientHeight/2));
+ }
+ if(hitRing){
+  hitRing.position.set(player.x,0,player.z);
+  const inside=inRange();
+  ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
+  rangeLabel.textContent=inside?'BALLOON IN HIT ZONE':'OUT OF RANGE · MOVE CLOSER';
+  rangeLabel.classList.toggle('is-near',inside);
+  stage.dataset.inRange=String(inside);
+  stage.dataset.playerX=player.x.toFixed(2);
+  stage.dataset.playerZ=player.z.toFixed(2);
+  stage.dataset.ringRadius=String(HIT_RADIUS);
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
  if(warningLight)warningLight.intensity=state==='playing'&&physics.y<1.55?15:0;
@@ -275,7 +362,10 @@ function renderScene(now){
 function frameLoop(now){
  raf=requestAnimationFrame(frameLoop);
  const dt=lastFrame?clamp((now-lastFrame)/1000,0,.04):0;lastFrame=now;
- if(state==='playing')advancePhysics(dt,now);
+ if(state==='playing'){
+  movePlayer(dt);
+  advancePhysics(dt,now);
+ }
  renderScene(now);
 }
 function resetPhysics(){
@@ -333,6 +423,10 @@ function flashHit(){
 }
 function bop(nx=null){
  if(state!=='playing'||!ready)return;
+ if(!inRange()){
+  showStatus('OUT OF RANGE · MOVE CLOSER TO THE BALLOON.');
+  return;
+ }
  const now=performance.now();
  // Pointer events and synthetic clicks must not double-score a single action.
  if(now-lastBop<90)return;
@@ -353,7 +447,7 @@ function bop(nx=null){
 }
 function finishRun(){
  if(state!=='playing')return;
- state='over';stage.dataset.state='over';
+ state='over';stage.dataset.state='over';releaseMovement();
  pause.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');recordSound('floor');
  kicker.textContent='INCIDENT REPORT // '+String(score+1).padStart(4,'0');
@@ -367,12 +461,16 @@ function finishRun(){
 function begin(){
  if(!ready)return;
  if(state==='paused'){
+  releaseMovement();
   state='playing';stage.dataset.state='playing';overlay.hidden=true;
   pause.disabled=false;pause.textContent='Ⅱ PAUSE';lastFrame=0;
   showStatus('SHIFT RESUMED · OBJECT AIRBORNE');stage.focus({preventScroll:true});return;
  }
  if(state!=='ready'&&state!=='over')return;
  resetPhysics();setScore(0);lastBop=0;
+ releaseMovement();
+ player.x=0;player.z=1.65;
+ if(worker)worker.position.set(player.x,0,player.z);
  state='playing';stage.dataset.state='playing';overlay.hidden=true;
  pause.disabled=false;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');
@@ -383,6 +481,7 @@ function begin(){
 }
 function hold(){
  if(state==='playing'){
+  releaseMovement();
   state='paused';stage.dataset.state='paused';pause.textContent='▶ RESUME';
   kicker.textContent='SHIFT SUSPENDED';title.textContent='ON HOLD.';
   description.textContent='The containment field is paused. Your run will resume exactly where you left it.';
@@ -414,13 +513,33 @@ host.addEventListener('pointermove',event=>{
  host.style.cursor=projectHit(event)?'pointer':'crosshair';
 },{passive:true});
 host.addEventListener('pointerleave',()=>{cursor.classList.remove('is-hover');host.style.cursor='crosshair';});
+// Movement only. The Space bar and arrow keys NEVER hit the balloon.
 document.addEventListener('keydown',event=>{
- if(event.repeat||event.altKey||event.ctrlKey||event.metaKey)return;
- if(state!=='playing'||![' ','ArrowUp'].includes(event.key))return;
+ if(!moving()||event.altKey||event.ctrlKey||event.metaKey)return;
  if(document.getElementById('gameInfoModal')?.hidden===false)return;
- const focus=document.activeElement;
- if(focus&&focus!==document.body&&/^(BUTTON|A|INPUT|SELECT|TEXTAREA)$/.test(focus.tagName))return;
- event.preventDefault();bop();
+ const tag=document.activeElement?.tagName;
+ if(tag&&/^(INPUT|TEXTAREA|SELECT)$/.test(tag))return;
+ const key=event.key.toLowerCase();
+ if(['w','a','s','d'].includes(key)){
+  event.preventDefault();
+  if(!event.repeat)held.add(key);
+ }else if(event.key===' '&&document.activeElement===stage){
+  event.preventDefault(); // Stop page scrolling; no automatic balloon hits.
+ }
+});
+document.addEventListener('keyup',event=>held.delete(event.key.toLowerCase()));
+window.addEventListener('blur',releaseMovement);
+document.querySelectorAll('[data-move]').forEach(button=>{
+ const key=button.dataset.move;
+ const up=e=>{activeTouches.delete(e.pointerId);button.classList.remove('is-pressed');};
+ button.addEventListener('pointerdown',e=>{
+  if(!moving())return;
+  e.preventDefault();button.setPointerCapture?.(e.pointerId);
+  activeTouches.set(e.pointerId,key);button.classList.add('is-pressed');
+ });
+ button.addEventListener('pointerup',up);
+ button.addEventListener('pointercancel',up);
+ button.addEventListener('lostpointercapture',up);
 });
 start.addEventListener('click',begin);
 pause.addEventListener('click',hold);
