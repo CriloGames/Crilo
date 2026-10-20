@@ -92,9 +92,28 @@ function buildLevel(){
  if(!scene)return;
  if(levelWorld){scene.remove(levelWorld);const geo=new Set(),mat=new Set();
   levelWorld.traverse(o=>{if(o.geometry)geo.add(o.geometry);if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>mat.add(m));});
-  geo.forEach(g=>g.dispose());mat.forEach(m=>m.dispose());}
+  geo.forEach(g=>g.dispose());mat.forEach(m=>{m.map?.dispose?.();m.dispose();});}
  levelWorld=new THREE.Group();scene.add(levelWorld);
  staticHazards=[];movingHazards=[];flashHazards=[];
+ // Visible low-poly obby walkway and colored checkpoint platforms, including on stage one.
+ const palette=[0x65cbbd,0xd9b974,0xb5a2e3,0x9de0c2,0xb8db75,0xdd9677,0x8ebecf,0xe0a4df,0xf2ae73,0xf27c70];
+ const tint=palette[level];
+ const platform=color(0x52605b,.77,.4),trim=color(tint,.55,.12,{emissive:tint,emissiveIntensity:.9});
+ const dark=color(0x253531,.91,.55);
+ [1.92,1.12,.32,-.48,-1.28,-2.08,-2.88].forEach((z,i)=>{
+  box(levelWorld,3.25,.09,.7,0,.045,z,platform,false);
+  box(levelWorld,3.25,.045,.065,0,.105,z+.30,trim,false);
+  for(const x of [-1.66,1.66])box(levelWorld,.08,.18,.7,x,.10,z,dark,false);
+  if(i%2===0)box(levelWorld,.38,.015,.22,0,.10,z,trim,false);
+ });
+ // Colored side pylons and numbered in-world stage signage make each room distinct.
+ for(const x of [-3.05,3.05]){
+  box(levelWorld,.27,1.9,.27,x,.95,-2.95,dark,false);
+  box(levelWorld,.4,.34,.4,x,2.05,-2.95,trim,false);
+ }
+ const stageBoard=new THREE.Mesh(new THREE.PlaneGeometry(2.3,.72),
+  signage('STAGE '+String(level+1).padStart(2,'0'),LEVELS[level][0].toUpperCase()));
+ stageBoard.position.set(0,4.7,-4.38);levelWorld.add(stageBoard);
  const red=color(0xd64a3c,.65,.1,{emissive:0xc32b20,emissiveIntensity:1.5});
  const amber=color(0xf5b767,.5,.2,{emissive:0xac5d2c,emissiveIntensity:1});
  LEVELS[level][2].forEach(([x,z,w,d])=>{box(levelWorld,w,.055,d,x,.055,z,red,false);staticHazards.push({x,z,w,d});});
@@ -135,7 +154,13 @@ function checkCourse(){
   if(Math.abs(x*Math.cos(h.angle)-z*Math.sin(h.angle))<h.length/2+.2&&
      Math.abs(x*Math.sin(h.angle)+z*Math.cos(h.angle))<.36&&player.feet<1){finishRun('obstacle');return;}
  }
- if(player.z<-3.3&&Math.abs(player.x)<1.05&&levelHits>=LEVELS[level][1])clearLevel();
+ if(player.z<-3.3&&Math.abs(player.x)<1.05){
+  if(levelHits>=LEVELS[level][1])clearLevel();
+  else if(!stage.dataset.gateMessageAt||performance.now()-Number(stage.dataset.gateMessageAt)>1300){
+   stage.dataset.gateMessageAt=String(performance.now());
+   showStatus('EXIT LOCKED · '+(LEVELS[level][1]-levelHits)+' MORE BALLOON HITS.');
+  }
+ }
 }
 function jump(){if(moving()&&player.grounded){player.grounded=false;player.vy=5.4;}}
 
