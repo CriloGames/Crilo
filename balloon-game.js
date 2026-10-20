@@ -6,12 +6,12 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const stage=$('balloonStage'),host=$('cargoViewport3d'),overlay=$('balloonOverlay');
-const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),full=$('balloonFullscreen'),select=$('balloonLevelSelect'),levelText=$('balloonLevel'),goalText=$('balloonGoal'),gateText=$('cargoGateHint'),levelName=$('cargoLevelName'),statusLevel=$('balloonStatusLevel');
+const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),full=$('balloonFullscreen'),select=$('balloonLevelSelect'),levelText=$('balloonLevel'),goalText=$('balloonGoal'),gateText=$('cargoGateHint'),levelName=$('cargoLevelName'),statusLevel=$('balloonStatusLevel'),stageTrack=$('cargoStagesTrack'),stagesProgress=$('cargoStagesProgress');
 const scoreLabel=$('balloonScore'),bestLabel=$('balloonBest'),title=$('balloonOverlayTitle');
 const kicker=$('balloonOverlayKicker'),description=$('balloonOverlayText');
 const status=$('balloonStatus'),telemetry=$('cargoTelemetry'),warning=$('cargoFloorWarning');
 const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus');
-if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
+if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,stageTrack,stagesProgress,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
 const BEST_KEY='crilo_keep_it_up_best_v1';
 const SOUND_KEY='crilo_cargo_audio_v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -29,7 +29,7 @@ const LEVELS=[
  ['Panic Station',6,[[0,1.38,9,.7],[0,-1.85,9,.7]],[[0,-.25,7.5,2.55,0],[0,-1.1,7.2,-2.3,1]],[[0,.67,9,.7,1.25,.3]]],
  ['Final Inspection',7,[[0,1.38,9,.75],[0,.1,9,.7],[0,-2.75,9,.65]],[[0,.9,7.3,2.8,0],[0,-.7,7.3,-2.65,1.2],[0,-1.75,7.4,3.1,2.3]],[[0,-.1,9,.6,1.3,.3],[0,-2.35,9,.6,1.15,.7]]]
 ];
-let unlocked=1,level=0,levelHits=0,checkpointScore=0,levelWorld=null,staticHazards=[],movingHazards=[],flashHazards=[],exitMat=null;
+let unlocked=1,level=0,levelHits=0,checkpointScore=0,levelWorld=null,staticHazards=[],movingHazards=[],flashHazards=[],exitMat=null,awaitFirstHit=true;
 try{unlocked=clamp(parseInt(localStorage.getItem(LEVEL_PROGRESS),10)||1,1,LEVELS.length);}catch{}
 level=unlocked-1;
 let best=0,enabled=true,state='ready',score=0,context=null;
@@ -51,11 +51,25 @@ function mouseLock(){
  if(!moving()||!stage.requestPointerLock||!window.matchMedia?.('(pointer:fine)').matches)return;
  try{stage.requestPointerLock()?.catch?.(()=>{});}catch{}
 }
+function refreshStages(){
+ stageTrack.replaceChildren();
+ stagesProgress.textContent=(stage.dataset.allCleared==='true'?10:unlocked-1)+' / 10 CLEARED';
+ LEVELS.forEach((c,i)=>{
+ const b=document.createElement('button');b.type='button';b.className='cargo-stage-chip';
+ b.classList.add(i===level?'is-current':i<unlocked?'is-cleared':'is-locked');
+ b.dataset.stage=String(i);b.title='Stage '+(i+1)+' · '+c[0]+(i>=unlocked?' (LOCKED)':'');
+ b.setAttribute('aria-label',b.title);if(i===level)b.setAttribute('aria-current','step');
+ const num=document.createElement('strong');num.textContent=(i<unlocked?'● ':'◇ ')+String(i+1).padStart(2,'0');
+ const name=document.createElement('span');name.textContent=c[0];
+ b.append(num,name);stageTrack.append(b);
+ });
+}
 function refreshLevels(){
  select.replaceChildren();
  LEVELS.forEach((c,i)=>{const o=document.createElement('option');o.value=String(i);o.disabled=i>=unlocked;
  o.textContent=String(i+1).padStart(2,'0')+' · '+c[0]+(i>=unlocked?' · LOCKED':'');select.append(o);});
  select.value=String(level);
+ refreshStages();
 }
 function hudLevel(){
  const c=LEVELS[level];
@@ -564,6 +578,7 @@ function clearLevel(){
  state=level===9?'won':'cleared';stage.dataset.state=state;releaseMovement();mouseUnlock();
  pause.disabled=true;select.disabled=false;
  if(level+2>unlocked&&unlocked<10){unlocked=level+2;try{localStorage.setItem(LEVEL_PROGRESS,String(unlocked));}catch{}}
+ if(state==='won')stage.dataset.allCleared='true';
  refreshLevels();
  kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // CLEARED';
  title.textContent=state==='won'?'ALL LEVELS CLEARED!':'LEVEL CLEARED.';
@@ -701,11 +716,21 @@ document.querySelectorAll('[data-move]').forEach(button=>{
  button.addEventListener('pointercancel',up);
  button.addEventListener('lostpointercapture',up);
 });
-select.addEventListener('change',()=>{
- const i=Number(select.value);
- if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','paused','over','cleared','won'].includes(state))return;
+function chooseStage(i){
+ if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','paused','over','cleared','won'].includes(state))return false;
  level=i;levelHits=0;checkpointScore=0;setScore(0);state='ready';stage.dataset.state=state;
- previewLevel();buildLevel();overlay.hidden=false;showStatus('COURSE '+(level+1)+' SELECTED.');
+ awaitFirstHit=true;mouseUnlock();previewLevel();buildLevel();overlay.hidden=false;
+ showStatus('STAGE '+(i+1)+' SELECTED · PRESS BEGIN TO PLAY.');return true;
+}
+stageTrack.addEventListener('click',event=>{
+ const b=event.target.closest?.('[data-stage]');if(!b)return;
+ const i=Number(b.dataset.stage);
+ if(i>=unlocked){showStatus('STAGE '+(i+1)+' LOCKED · COMPLETE EARLIER STAGES FIRST.');return;}
+ if(state==='playing'){showStatus('PAUSE THE GAME TO SWITCH STAGES.');return;}
+ chooseStage(i);
+});
+select.addEventListener('change',()=>{
+ if(!chooseStage(Number(select.value)))select.value=String(level);
 });
 full.addEventListener('click',async()=>{
  const root=stage.closest('.cargo-console');
