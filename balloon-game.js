@@ -18,7 +18,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const displayNumber=n=>String(Math.min(999999,n)).padStart(3,'0');
 const LEVEL_PROGRESS='crilo_balloon_course_unlocked_v1';
 const LEVELS=[
- ['Orientation',2,[],[],[]],
+ ['Orientation',2,[[0,-.95,3.4,.45]],[],[]],
  ['First Jump',3,[[0,.2,9,.85]],[],[]],
  ['Zigzag Run',3,[[0,.9,9,.7],[-2,-1.3,5.8,.7],[2,-2.15,5.8,.7]],[],[]],
  ['The Sweeper',4,[[0,1.3,9,.6]],[[0,-.8,7,1.3,0]],[]],
@@ -663,8 +663,8 @@ function projectHit(event){
  raycaster.setFromCamera(ndc,camera);
  return raycaster.intersectObject(hitSphere,false).length>0;
 }
-host.addEventListener('pointerdown',event=>{
- if(!moving()||event.target.closest?.('.cargo-touch-controls, .cargo-jump'))return;
+stage.addEventListener('pointerdown',event=>{
+ if(!moving()||event.target.closest?.('.cargo-touch-controls, .cargo-jump, .cargo-overlay'))return;
  if(event.pointerType==='mouse'&&event.button!==0&&event.button!==2)return;
  const hitting=event.button!==2&&inRange(); // Click anywhere in the viewport while balloon is inside your ring.
  if(hitting){
