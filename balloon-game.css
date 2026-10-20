@@ -427,3 +427,20 @@ body.balloon-page{
 @media(prefers-reduced-motion:reduce){
  .cargo-stage-chip,.cargo-control,.cargo-start,.ku-route-fill{transition:none}
 }
+
+/* Stronger moment-to-moment arcade feedback for hits and checkpoints. */
+.cargo-hit-text{
+ color:#fff5a4;text-shadow:0 2px 0 #af5e88,0 3px 9px #355a8a;
+ font:950 clamp(26px,4vw,40px)/1 system-ui,sans-serif;
+ letter-spacing:-.05em;
+}
+.cargo-viewport[data-state="cleared"] .cargo-overlay,
+.cargo-viewport[data-state="won"] .cargo-overlay{
+ background:radial-gradient(circle at 50% 35%,#a6e9c8b8,#426cb3b8);
+}
+.cargo-viewport[data-state="cleared"] .cargo-overlay-card,
+.cargo-viewport[data-state="won"] .cargo-overlay-card{
+ border-color:#5bbf9e;box-shadow:7px 8px 0 #86dabb,0 25px 58px #2954878a
+}
+.cargo-control.cargo-retry{background:#fff6e7;border-color:#dec69f;color:#775c4c}
+.cargo-control.cargo-retry:hover{background:#ffe5b5;border-color:#e2ad62}
