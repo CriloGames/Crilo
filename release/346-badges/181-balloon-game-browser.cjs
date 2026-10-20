@@ -14,7 +14,9 @@ assert.match(html,/data-move="a"/);
 assert.match(html,/data-move="s"/);
 assert.match(html,/data-move="d"/);
 assert.match(html,/id="cargoRangeStatus"/);
-assert.match(html,/balloon-game\.js\?v=3/);
+assert.match(html,/balloon-game\.js\?v=4/);
+assert.match(html,/first-person/i);
+assert.match(js,/camera\.position\.set\(player\.x,1\.77,player\.z\)/);
 assert.match(html,/balloon-game\.css\?v=3/);
 assert.match(home,/href="keep-it-up\.html"/);
 assert.match(home,/Keep It Up: Cargo Bay/);
@@ -27,7 +29,8 @@ assert.doesNotMatch(js,/['"]ArrowUp['"]\.includes|\[' ',\s*'ArrowUp'\]|event\.ke
  'Keyboard shortcuts must not directly hit the balloon');
 const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
  .replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gi,'');
-const three=fs.readFileSync(require.resolve('three/build/three.module.js'),'utf8');
+const path=require('node:path');
+const three=fs.readFileSync(path.join(path.dirname(require.resolve('three')),'three.module.js'),'utf8');
 (async()=>{
  const browser=await chromium.launch({headless:true,args:[
   '--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
@@ -80,6 +83,27 @@ const three=fs.readFileSync(require.resolve('three/build/three.module.js'),'utf8
    assert.equal(await overlay.isVisible(),false);
    await page.evaluate(()=>window.__advanceCargo(8));
    const first=await state();
+   assert.equal(await stage.getAttribute('data-view'),'first-person','Camera must be first-person');
+   assert.equal(await stage.getAttribute('data-camera-height'),'1.77','Camera must be at eye height');
+   const firstYaw=Number(await stage.getAttribute('data-player-yaw'));
+   const aim=await stage.boundingBox();
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerdown',{
+    pointerId:345,pointerType:'mouse',button:2,clientX:aim.x+aim.width*.3,clientY:aim.y+aim.height*.5
+   });
+   await page.locator('#cargoViewport3d').dispatchEvent('pointermove',{
+    pointerId:345,pointerType:'mouse',button:2,clientX:aim.x+aim.width*.4,clientY:aim.y+aim.height*.5
+   });
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerup',{pointerId:345,pointerType:'mouse'});
+   assert.notEqual(Number(await stage.getAttribute('data-player-yaw')),firstYaw,'Dragging should turn the first-person camera');
+   // Return to initial forward-facing aim before the hit test.
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerdown',{
+    pointerId:346,pointerType:'mouse',button:2,clientX:aim.x+aim.width*.4,clientY:aim.y+aim.height*.5
+   });
+   await page.locator('#cargoViewport3d').dispatchEvent('pointermove',{
+    pointerId:346,pointerType:'mouse',button:2,clientX:aim.x+aim.width*.3,clientY:aim.y+aim.height*.5
+   });
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerup',{pointerId:346,pointerType:'mouse'});
+
    assert.equal(first.near,'true','Balloon initially inside the worker ground ring');
    assert.equal(await range.textContent(),'BALLOON IN HIT ZONE');
    await page.keyboard.press('Space');
