@@ -389,6 +389,27 @@ function buildRoom(){
    boulder.position.set(x+2,-11.55,z-1.5);boulder.scale.y=.65;room.add(boulder);
   }
  }
+ // Soft floating clouds and distant island chunks create the sense of
+ // altitude familiar in great 3D platformers, without enclosing the course.
+ const cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.75,depthWrite:false});
+ const cloudGeometry=new THREE.SphereGeometry(1,10,7);
+ for(let i=0;i<19;i++){
+  const side=i%2===0?-1:1;
+  const x=side*(8.4+(i*7%10)),y=2+(i*3%11),z=5-i*2.7;
+  const cloud=new THREE.Group();
+  for(let k=0;k<5;k++){
+   const puff=new THREE.Mesh(cloudGeometry,cloudMat);
+   puff.scale.set(1+(k%3)*.4,.47+(k%2)*.22,.68+((k+2)%3)*.2);
+   puff.position.set((k-2)*.69,Math.sin(k*2.4)*.19,Math.cos(k*1.1)*.28);
+   cloud.add(puff);
+  }
+  cloud.position.set(x,y,z);room.add(cloud);
+ }
+ // One decorative, nonblocking ring behind the start signals the direction
+ // of progression immediately on level load.
+ const skyRing=new THREE.Mesh(new THREE.TorusGeometry(4.3,.095,8,52),
+  new THREE.MeshBasicMaterial({color:0xffe6a0,transparent:true,opacity:.46}));
+ skyRing.position.set(0,7.5,-12);room.add(skyRing);
 }
 function buildBalloon(){
  balloon=new THREE.Group();
