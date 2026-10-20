@@ -10,8 +10,8 @@ const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),fu
 const scoreLabel=$('balloonScore'),bestLabel=$('balloonBest'),title=$('balloonOverlayTitle');
 const kicker=$('balloonOverlayKicker'),description=$('balloonOverlayText');
 const status=$('balloonStatus'),telemetry=$('cargoTelemetry'),warning=$('cargoFloorWarning');
-const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus');
-if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,stageTrack,stagesProgress,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel].every(Boolean))return;
+const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus'),progressFill=$('balloonProgressFill'),progressValue=$('balloonProgressValue');
+if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,stageTrack,stagesProgress,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel,progressFill,progressValue].every(Boolean))return;
 const BEST_KEY='crilo_keep_it_up_best_v1';
 const SOUND_KEY='crilo_cargo_audio_v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -537,7 +537,7 @@ function renderScene(now){
   hitRing.position.set(player.x,player.groundY,player.z);
   const inside=inRange();
   ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
-  rangeLabel.textContent=awaitFirstHit?'HIT BALLOON FIRST · THEN MOVE':inside?'AIM AT BALLOON · CLICK TO HIT':'OUT OF RANGE · MOVE CLOSER';
+  rangeLabel.textContent=awaitFirstHit?'AIM & CLICK BALLOON TO START':inside?'CLICK BALLOON · KEEP IT UP':'CHASE THE BALLOON TO HIT';
   rangeLabel.classList.toggle('is-near',inside);
   stage.dataset.inRange=String(inside);
   stage.dataset.playerX=player.x.toFixed(2);
@@ -548,6 +548,12 @@ function renderScene(now){
   stage.dataset.view='third-person';
   stage.dataset.movementLocked=String(awaitFirstHit);
   stage.dataset.ringRadius=String(HIT_RADIUS);
+  const progress=clamp((2.2-player.z)/(2.2-courseEndZ),0,1);
+  const percent=Math.round(progress*100);
+  if(progressValue.textContent!==percent+'%'){
+   progressValue.textContent=percent+'%';
+   progressFill.style.width=percent+'%';
+  }
   stage.dataset.elevation=player.groundY.toFixed(2);
   stage.dataset.finishElevation=courseTopY.toFixed(2);
  }
