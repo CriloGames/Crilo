@@ -23,12 +23,13 @@ bestLabel.textContent=displayNumber(best);
 sound.textContent=enabled?'♫ AUDIO ON':'♫ AUDIO OFF';
 sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
-let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial;
+let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
 const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:1.65};
+const player={x:0,z:2.2,yaw:0,pitch:.38};
 const held=new Set(),activeTouches=new Map();
+let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
-function releaseMovement(){held.clear();activeTouches.clear();}
+function releaseMovement(){held.clear();activeTouches.clear();lookDrag=null;}
 function inRange(){
  return Math.hypot(physics.x-player.x,physics.z-player.z)<=HIT_RADIUS;
 }
@@ -42,19 +43,20 @@ function movePlayer(dt){
  }
  const length=Math.hypot(dx,dz);
  if(length){
-  player.x=clamp(player.x+(dx/length)*WALK_SPEED*dt,-4.55,4.55);
-  player.z=clamp(player.z+(dz/length)*WALK_SPEED*dt,-3.5,2.95);
-  if(worker){
-   worker.position.set(player.x,0,player.z);
-   worker.rotation.y=Math.atan2(-dx,-dz);
-  }
+  // Move relative to where the player is looking, not world directions.
+  const side=dx/length,forward=-dz/length;
+  const worldX=side*Math.cos(player.yaw)-forward*Math.sin(player.yaw);
+  const worldZ=side*Math.sin(player.yaw)-forward*Math.cos(player.yaw);
+  player.x=clamp(player.x+worldX*WALK_SPEED*dt,-4.55,4.55);
+  player.z=clamp(player.z+worldZ*WALK_SPEED*dt,-3.5,2.95);
  }
 }
 function syncCamera(){
  if(!camera)return;
- const mobile=host.clientWidth<460;
- camera.position.set(player.x+(mobile?.45:.95),mobile?4.65:4.2,player.z+(mobile?7.75:7.55));
- camera.lookAt(player.x,2.1,player.z-1.3);
+ camera.position.set(player.x,1.77,player.z);
+ camera.rotation.order='YXZ';
+ camera.rotation.y=player.yaw;
+ camera.rotation.x=player.pitch;
  camera.updateMatrixWorld();
 }
 
@@ -235,6 +237,7 @@ function buildBalloon(){
 }
 function buildWorker(){
  worker=new THREE.Group();scene.add(worker);
+ worker.visible=false; // No third-person body blocking the first-person view.
  const suit=color(0xc98440,.91,.1),trim=color(0x353d37,.85,.33);
  const dark=color(0x242a26,.8,.42),visor=color(0x687f78,.28,.65,{
   emissive:0x1b554c,emissiveIntensity:.25
@@ -273,6 +276,14 @@ function buildWorker(){
  scene.add(hitRing);
  worker.position.set(player.x,0,player.z);
  hitRing.position.set(player.x,0,player.z);
+ // First-person glove is attached to the camera rather than the world.
+ glove=new THREE.Group();
+ const sleeve=color(0xa66b38,.91,.12),hand=color(0x3a3d36,.82,.25);
+ box(glove,.26,.46,.36,0,-.24,0,sleeve,false);
+ box(glove,.31,.27,.3,0,.035,-.04,hand,false);
+ for(let i=-1;i<=1;i++)box(glove,.08,.22,.14,i*.098,.13,-.15,hand,false);
+ glove.position.set(.62,-.74,-1.25);glove.rotation.z=-.26;
+ camera.add(glove);scene.add(camera);
 }
 function showRenderingFailure(){
  state='unavailable';stage.dataset.state=state;
@@ -319,7 +330,7 @@ async function initialize(){
 function setDimensions(){
  if(!renderer||!camera)return;
  const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
- camera.aspect=w/h;camera.fov=w<460?51:47;
+ camera.aspect=w/h;camera.fov=w<460?67:64;
  camera.updateProjectionMatrix();
  syncCamera();
  renderer.setSize(w,h,false);
@@ -347,6 +358,10 @@ function renderScene(now){
   stage.dataset.inRange=String(inside);
   stage.dataset.playerX=player.x.toFixed(2);
   stage.dataset.playerZ=player.z.toFixed(2);
+  stage.dataset.playerYaw=player.yaw.toFixed(3);
+  stage.dataset.playerPitch=player.pitch.toFixed(3);
+  stage.dataset.cameraHeight=camera.position.y.toFixed(2);
+  stage.dataset.view='first-person';
   stage.dataset.ringRadius=String(HIT_RADIUS);
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
@@ -438,8 +453,9 @@ function bop(nx=null){
  physics.vx=clamp(physics.vx*.38-direction*1.35+Math.sin(score*3.42)*.3,-2.5,2.5);
  physics.vz=clamp(physics.vz*.45+Math.cos(score*2.1)*.27,-1.4,1.4);
  balloon.scale.set(1.14,.83,1.06);
+ if(glove){glove.position.z=-1.68;glove.rotation.x=-.42;}
  clearTimeout(hitTimer);
- hitTimer=setTimeout(()=>{if(balloon)balloon.scale.set(1,1,1);},115);
+ hitTimer=setTimeout(()=>{if(balloon)balloon.scale.set(1,1,1);if(glove){glove.position.z=-1.25;glove.rotation.x=0;}},135);
  warning.classList.remove('is-visible');
  telemetry.textContent='OBJECT BOUNCED · '+displayNumber(score);
  flashHit();recordSound('hit');
@@ -469,8 +485,8 @@ function begin(){
  if(state!=='ready'&&state!=='over')return;
  resetPhysics();setScore(0);lastBop=0;
  releaseMovement();
- player.x=0;player.z=1.65;
- if(worker)worker.position.set(player.x,0,player.z);
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.38;
+ syncCamera();
  state='playing';stage.dataset.state='playing';overlay.hidden=true;
  pause.disabled=false;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');
@@ -499,19 +515,41 @@ function projectHit(event){
  return raycaster.intersectObject(hitSphere,false).length>0;
 }
 host.addEventListener('pointerdown',event=>{
- if(event.pointerType==='mouse'&&event.button!==0)return;
- if(!projectHit(event))return;
+ if(!moving()||event.target.closest?.('.cargo-touch-controls'))return;
+ if(event.pointerType==='mouse'&&event.button!==0&&event.button!==2)return;
+ const hitting=event.button!==2&&projectHit(event)&&inRange();
+ if(hitting){
+  event.preventDefault();
+  const center=new THREE.Vector3();balloon.getWorldPosition(center);center.project(camera);
+  const rect=renderer.domElement.getBoundingClientRect();
+  const dx=(event.clientX-rect.left)/rect.width*2-1-center.x;
+  bop(dx*3);return;
+ }
+ // Drag scenery to turn the view. Mouse right-drag works too.
  event.preventDefault();
- // Directional tap: left/right side of the balloon nudges it sideways.
- const center=new THREE.Vector3();balloon.getWorldPosition(center);center.project(camera);
- const rect=renderer.domElement.getBoundingClientRect();
- const dx=(event.clientX-rect.left)/rect.width*2-1-center.x;
- bop(dx*3);
+ lookDrag={id:event.pointerId,x:event.clientX,y:event.clientY};
+ host.setPointerCapture?.(event.pointerId);
 });
 host.addEventListener('pointermove',event=>{
- cursor.classList.toggle('is-hover',projectHit(event));
- host.style.cursor=projectHit(event)?'pointer':'crosshair';
-},{passive:true});
+ if(lookDrag?.id===event.pointerId){
+  const dx=event.clientX-lookDrag.x,dy=event.clientY-lookDrag.y;
+  lookDrag.x=event.clientX;lookDrag.y=event.clientY;
+  player.yaw-=dx*(event.pointerType==='touch'?.006:.0046);
+  player.pitch=clamp(player.pitch-dy*(event.pointerType==='touch'?.005:.0038),-.98,1.08);
+  syncCamera();
+  stage.dataset.playerYaw=player.yaw.toFixed(3);
+  stage.dataset.playerPitch=player.pitch.toFixed(3);
+  event.preventDefault();return;
+ }
+ const hitting=projectHit(event)&&inRange();
+ cursor.classList.toggle('is-hover',hitting);
+ host.style.cursor=hitting?'pointer':'crosshair';
+},{passive:false});
+const stopLook=event=>{if(lookDrag?.id===event.pointerId)lookDrag=null;};
+host.addEventListener('pointerup',stopLook);
+host.addEventListener('pointercancel',stopLook);
+host.addEventListener('lostpointercapture',stopLook);
+host.addEventListener('contextmenu',event=>event.preventDefault());
 host.addEventListener('pointerleave',()=>{cursor.classList.remove('is-hover');host.style.cursor='crosshair';});
 // Movement only. The Space bar and arrow keys NEVER hit the balloon.
 document.addEventListener('keydown',event=>{
