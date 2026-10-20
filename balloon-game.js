@@ -6,12 +6,12 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const stage=$('balloonStage'),host=$('cargoViewport3d'),overlay=$('balloonOverlay');
-const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),full=$('balloonFullscreen'),select=$('balloonLevelSelect'),levelText=$('balloonLevel'),goalText=$('balloonGoal'),gateText=$('cargoGateHint'),levelName=$('cargoLevelName'),statusLevel=$('balloonStatusLevel'),stageTrack=$('cargoStagesTrack'),stagesProgress=$('cargoStagesProgress');
+const start=$('balloonStart'),pause=$('balloonPause'),sound=$('balloonSound'),full=$('balloonFullscreen'),retry=$('balloonRetry'),select=$('balloonLevelSelect'),levelText=$('balloonLevel'),goalText=$('balloonGoal'),gateText=$('cargoGateHint'),levelName=$('cargoLevelName'),statusLevel=$('balloonStatusLevel'),stageTrack=$('cargoStagesTrack'),stagesProgress=$('cargoStagesProgress');
 const scoreLabel=$('balloonScore'),bestLabel=$('balloonBest'),title=$('balloonOverlayTitle');
 const kicker=$('balloonOverlayKicker'),description=$('balloonOverlayText');
 const status=$('balloonStatus'),telemetry=$('cargoTelemetry'),warning=$('cargoFloorWarning');
 const word=$('balloonPopWord'),cursor=$('cargoCrosshair'),errorBox=$('balloonLoadError'),rangeLabel=$('cargoRangeStatus'),progressFill=$('balloonProgressFill'),progressValue=$('balloonProgressValue');
-if(![stage,host,overlay,start,pause,sound,full,select,levelText,goalText,gateText,levelName,statusLevel,stageTrack,stagesProgress,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel,progressFill,progressValue].every(Boolean))return;
+if(![stage,host,overlay,start,pause,sound,full,retry,select,levelText,goalText,gateText,levelName,statusLevel,stageTrack,stagesProgress,scoreLabel,bestLabel,title,kicker,description,status,telemetry,warning,word,cursor,errorBox,rangeLabel,progressFill,progressValue].every(Boolean))return;
 const BEST_KEY='crilo_keep_it_up_best_v1';
 const SOUND_KEY='crilo_cargo_audio_v1';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -747,7 +747,8 @@ function begin(){
  else{checkpointScore=0;setScore(0);}
  levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
  player.x=0;player.z=2.2;player.yaw=0;player.facing=0;player.pitch=.02;player.groundY=0;player.feet=0;player.vy=0;player.moveX=0;player.moveZ=0;player.grounded=true;cameraReady=false;
- resetPhysics();buildLevel();refreshLevels();syncCamera();
+ resetPhysics();if(balloon)balloon.position.set(physics.x,physics.y,physics.z);
+ buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
@@ -843,11 +844,18 @@ host.addEventListener('wheel',event=>{
 host.addEventListener('pointerleave',()=>{cursor.classList.remove('is-hover');host.style.cursor='crosshair';});
 // Movement only. The Space bar and arrow keys NEVER hit the balloon.
 document.addEventListener('keydown',event=>{
- if(!moving()||event.altKey||event.ctrlKey||event.metaKey)return;
+ if(event.altKey||event.ctrlKey||event.metaKey)return;
  if(document.getElementById('gameInfoModal')?.hidden===false)return;
  const tag=document.activeElement?.tagName;
  if(tag&&/^(INPUT|TEXTAREA|SELECT)$/.test(tag))return;
  const key=event.key.toLowerCase();
+ if(key==='r'&&ready&&!event.repeat){
+  if(['playing','paused','over','ready','cleared','won'].includes(state)){
+   event.preventDefault();restartStage();
+  }
+  return;
+ }
+ if(!moving())return;
  if(['w','a','s','d','shift'].includes(key)){
   event.preventDefault();
   if(!awaitFirstHit)held.add(key);
@@ -869,6 +877,23 @@ document.querySelectorAll('[data-move]').forEach(button=>{
  button.addEventListener('pointercancel',up);
  button.addEventListener('lostpointercapture',up);
 });
+function restartStage(){
+ if(!ready||state==='unavailable')return;
+ // Quick obby retry, retaining unlocked stages and personal best but never
+ // carrying an unfinished stage's hits into the next attempt.
+ state='ready';stage.dataset.state='ready';
+ releaseMovement();mouseUnlock();
+ levelHits=0;checkpointScore=0;awaitFirstHit=true;lastBop=0;setScore(0);
+ player.x=0;player.z=2.2;player.yaw=0;player.facing=0;player.pitch=.02;
+ player.feet=0;player.groundY=0;player.vy=0;
+ player.moveX=0;player.moveZ=0;player.grounded=true;cameraReady=false;
+ resetPhysics();
+ if(balloon)balloon.position.set(physics.x,physics.y,physics.z);
+ buildLevel();previewLevel();
+ pause.disabled=true;select.disabled=false;pause.textContent='Ⅱ PAUSE';
+ overlay.hidden=false;
+ showStatus('STAGE '+(level+1)+' RESET · PRESS BEGIN TO RETRY.');
+}
 function chooseStage(i){
  if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','paused','over','cleared','won'].includes(state))return false;
  level=i;levelHits=0;checkpointScore=0;setScore(0);state='ready';stage.dataset.state=state;
@@ -896,6 +921,7 @@ document.addEventListener('fullscreenchange',()=>{
 });
 document.getElementById('balloonJump')?.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();jump();});
 start.addEventListener('click',begin);
+retry.addEventListener('click',restartStage);
 pause.addEventListener('click',hold);
 sound.addEventListener('click',()=>{
  enabled=!enabled;
