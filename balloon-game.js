@@ -606,7 +606,7 @@ function begin(){
 function hold(){
  if(state==='playing'){
   releaseMovement();
-  state='paused';stage.dataset.state='paused';mouseUnlock();select.disabled=true;pause.textContent='▶ RESUME';
+  state='paused';stage.dataset.state='paused';mouseUnlock();select.disabled=false;pause.textContent='▶ RESUME';
   kicker.textContent='SHIFT SUSPENDED';title.textContent='ON HOLD.';
   description.textContent='The balloon and moving hazards are paused. Resume when ready. Space jumps but never hits the balloon.';
   start.innerHTML='RESUME SHIFT <span aria-hidden="true">↗</span>';overlay.hidden=false;
@@ -703,7 +703,7 @@ document.querySelectorAll('[data-move]').forEach(button=>{
 });
 select.addEventListener('change',()=>{
  const i=Number(select.value);
- if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','over','cleared','won'].includes(state))return;
+ if(!Number.isInteger(i)||i<0||i>=unlocked||!['ready','paused','over','cleared','won'].includes(state))return;
  level=i;levelHits=0;checkpointScore=0;setScore(0);state='ready';stage.dataset.state=state;
  previewLevel();buildLevel();overlay.hidden=false;showStatus('COURSE '+(level+1)+' SELECTED.');
 });
