@@ -116,7 +116,7 @@ function buildLevel(){
  stageBoard.position.set(0,4.7,-4.38);levelWorld.add(stageBoard);
  const red=color(0xd64a3c,.65,.1,{emissive:0xc32b20,emissiveIntensity:1.5});
  const amber=color(0xf5b767,.5,.2,{emissive:0xac5d2c,emissiveIntensity:1});
- LEVELS[level][2].forEach(([x,z,w,d])=>{box(levelWorld,w,.055,d,x,.055,z,red,false);staticHazards.push({x,z,w,d});});
+ LEVELS[level][2].forEach(([x,z,w,d])=>{box(levelWorld,w,.055,d,x,.155,z,red,false);staticHazards.push({x,z,w,d});});
  LEVELS[level][3].forEach(([x,z,length,speed,phase])=>{
   const arm=box(levelWorld,length,.25,.24,x,.6,z,red,false);
   box(levelWorld,.45,.9,.45,x,.45,z,amber,false);
@@ -124,7 +124,7 @@ function buildLevel(){
  });
  LEVELS[level][4].forEach(([x,z,w,d,period,phase])=>{
   const mat=new THREE.MeshBasicMaterial({color:0xff6650,transparent:true,opacity:.85});
-  const mesh=box(levelWorld,w,.05,d,x,.08,z,mat,false);
+  const mesh=box(levelWorld,w,.055,d,x,.16,z,mat,false);
   flashHazards.push({x,z,w,d,period,phase,mesh,on:true});
  });
  exitMat=new THREE.MeshBasicMaterial({color:0xe9a16a});
@@ -581,7 +581,7 @@ function bop(nx=null){
  }
  const now=performance.now();
  // Pointer events and synthetic clicks must not double-score a single action.
- if(now-lastBop<90)return;
+ if(now-lastBop<190)return;
  lastBop=now;awaitFirstHit=false;
  setScore(score+1);levelHits++;hudLevel();recordBest();
  const direction=nx===null?0:clamp(nx,-1,1);
