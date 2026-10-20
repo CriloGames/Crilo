@@ -295,20 +295,29 @@ function movePlayer(dt){
 }
 function syncCamera(){
  if(!camera)return;
- // Smooth orbit camera with a consistently visible character on the lower
- // third of the frame. The player model faces travel direction independently.
- const target=new THREE.Vector3(
-  player.x+Math.sin(player.yaw)*cameraDistance,
-  player.groundY+player.feet+CAMERA_FOLLOW_HEIGHT,
-  player.z+Math.cos(player.yaw)*cameraDistance
+ // Third-person orbit around a forward-looking focal point. Unlike a fixed
+ // behind-the-head camera, vertical mouse aiming raises/lowers the actual
+ // camera position and keeps the avatar in the bottom half of the shot.
+ const orbit=clamp(.13-player.pitch,-.19,.85);
+ const horizontal=cameraDistance*Math.cos(orbit);
+ const height=cameraDistance*Math.sin(orbit);
+ const focusY=player.groundY+player.feet+2.85;
+ const desired=new THREE.Vector3(
+  player.x+Math.sin(player.yaw)*horizontal,
+  focusY+height,
+  player.z+Math.cos(player.yaw)*horizontal
  );
- if(!cameraReady){camera.position.copy(target);cameraReady=true;}
- else camera.position.lerp(target,.20);
- camera.rotation.order='YXZ';
- camera.rotation.y=player.yaw;
- camera.rotation.x=player.pitch;
+ const focus=new THREE.Vector3(
+  player.x-Math.sin(player.yaw)*1.5,
+  focusY,
+  player.z-Math.cos(player.yaw)*1.5
+ );
+ if(!cameraReady){camera.position.copy(desired);cameraReady=true;}
+ else camera.position.lerp(desired,.19);
+ camera.lookAt(focus);
  camera.updateMatrixWorld();
 }
+
 let raf=0,lastFrame=0,hitTimer=null,hitLabelTimer=null,lastBop=0,ready=false;
 const physics={x:0,y:3.15,z:0,vx:0,vy:0,vz:0};
 function setScore(n){score=n;scoreLabel.textContent=displayNumber(score);stage.dataset.hits=String(score);}
