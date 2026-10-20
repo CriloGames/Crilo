@@ -111,10 +111,13 @@ function buildLevel(){
  const stages=[0x75d4b7,0xd4ad63,0x8fccdc,0xe6b48a,0xc2c875,
   0xa8cbaa,0x83bfcc,0xe9bf91,0xcebaeb,0xffb27c];
  const tint=stages[level];
- const plank=color(0xa5a08a,.94,.12),edge=color(tint,.58,.15,{emissive:tint,emissiveIntensity:.28});
- const shadowTrim=color(0x43514a,.91,.19);
- const bar=color(0xe85d47,.68,.08,{emissive:0x832c19,emissiveIntensity:.35});
- const white=color(0xf8e6d1,.86,.09);
+ const candy=[0x7cded7,0xf8b8a1,0xc9abf1,0xf4da85,0x8fcbea];
+ const decks=candy.map((v,i)=>color(v,.91,.025));
+ const edge=color(0xfffcdf,.71,.02,{emissive:0xf3e5ae,emissiveIntensity:.19});
+ const shadowTrim=color(0x54719d,.8,.07),base=color(0x6175ad,.91,.05);
+ const bar=color(0xff6a88,.57,.08,{emissive:0xa6335a,emissiveIntensity:.34});
+ const white=color(0xfffae5,.79,.04),gold=color(0xffd66c,.52,.12,{emissive:0xe69d50,emissiveIntensity:.3});
+ const stripe=color(0xfdf4df,.82,.04);
  const width=COURSE_HALF_WIDTH*2,rise=.89+level*.065;
  courseRises=3+Math.floor(level/2);
  courseTopY=courseRises*rise;
@@ -133,21 +136,45 @@ function buildLevel(){
  courseSegments.forEach((seg,i)=>{
   const length=seg.front-seg.back,change=seg.y1-seg.y0;
   const ramp=Math.abs(change)>.01,angle=Math.atan2(change,length);
-  const deck=box(levelWorld,width,.32,Math.hypot(length,change),
-   0,(seg.y0+seg.y1)/2-.17,(seg.front+seg.back)/2,plank,false);
+  const zCenter=(seg.front+seg.back)/2,yCenter=(seg.y0+seg.y1)/2;
+  const plank=decks[(i+level)%decks.length];
+  const deck=box(levelWorld,width,.38,Math.hypot(length,change),0,yCenter-.22,zCenter,plank,false);
   if(ramp)deck.rotation.x=angle;
-  const edgeBand=box(levelWorld,width,.075,.09,0,seg.y0+.02,seg.front-.11,edge,false);
-  for(const x of [-width/2,width/2]){
-   const rim=box(levelWorld,.09,.12,Math.hypot(length,change),
-    x,(seg.y0+seg.y1)/2+.015,(seg.front+seg.back)/2,shadowTrim,false);
+  // Layered pastel floating-island platforms with broad edge highlights.
+  const underside=box(levelWorld,width+.08,.32,Math.hypot(length,change)+.02,0,yCenter-.48,zCenter,base,false);
+  if(ramp)underside.rotation.x=angle;
+  for(const x of [-width/2+.09,width/2-.09]){
+   const rim=box(levelWorld,.14,.065,Math.hypot(length,change),x,yCenter+.035,zCenter,edge,false);
    if(ramp)rim.rotation.x=angle;
   }
+  const markers=ramp?4:Math.max(2,Math.round(length/.85));
+  // Stripes intentionally follow the surface profile, giving an obvious
+  // readable direction of travel from behind the camera.
+  for(let j=0;j<markers;j++){
+   const t=(j+.55)/(markers+.1),z=seg.front-length*t;
+   const y=seg.y0+change*t+.035;
+   const mark=box(levelWorld,1.08,.022,.105,0,y,z,stripe,false);
+   if(ramp)mark.rotation.x=angle;
+  }
+  if(ramp){
+   for(const x of [-.66,.66]){
+    const line=box(levelWorld,.07,.029,Math.hypot(length,change)-.30,x,yCenter+.042,zCenter,stripe,false);
+    line.rotation.x=angle;
+   }
+  }
   if(i%2===0){
-   const centerZ=(seg.front+seg.back)/2;
-   for(const x of [-1.7,1.7]){
-    const h=(seg.y0+seg.y1)/2+12;
-    box(levelWorld,.38,h,.43,x,(seg.y0+seg.y1)/4-6,centerZ,shadowTrim,false);
-    box(levelWorld,.56,.18,.56,x,(seg.y0+seg.y1)/2-.3,centerZ,edge,false);
+   for(const x of [-width*.36,width*.36]){
+    const h=yCenter+11;
+    box(levelWorld,.44,h,.43,x,(yCenter-11)/2,zCenter,base,false);
+    box(levelWorld,.56,.23,.55,x,yCenter-.45,zCenter,gold,false);
+   }
+  }
+  // Course labels with colorful checkpoint pillars but no collision walls.
+  if(i>0&&i%2===0){
+   for(const x of [-width/2+.28,width/2-.28]){
+    box(levelWorld,.21,1.28,.21,x,seg.y0+.64,seg.front-.28,shadowTrim,false);
+    const jewel=new THREE.Mesh(new THREE.OctahedronGeometry(.20,0),gold);
+    jewel.position.set(x,seg.y0+1.40,seg.front-.28);levelWorld.add(jewel);
    }
   }
  });
@@ -158,12 +185,14 @@ function buildLevel(){
   const zH=landing.front-1.45,height=.75+level*.045,w=3.25;
   const x=level>=4&&i%2?-.22:.22;
   for(const side of [-1,1]){
-   box(levelWorld,.15,height,.2,x+side*w/2,y+height/2,zH,white);
-   box(levelWorld,.38,.10,.38,x+side*w/2,y+.035,zH,shadowTrim,false);
+   box(levelWorld,.17,height,.23,x+side*w/2,y+height/2,zH,white);
+   box(levelWorld,.37,.13,.39,x+side*w/2,y+.055,zH,shadowTrim,false);
+   box(levelWorld,.27,.16,.29,x+side*w/2,y+height,zH,gold,false);
   }
-  box(levelWorld,w+.1,.19,.24,x,y+height,zH,bar);
-  for(let stripe=-1;stripe<=1;stripe++)
-   box(levelWorld,.22,.198,.25,x+stripe*.82,y+height,zH,white,false);
+  // High contrast striped hurdle you have to actually jump OVER.
+  box(levelWorld,w+.17,.21,.27,x,y+height,zH,bar);
+  for(let mark=-2;mark<=2;mark++)
+   box(levelWorld,.18,.218,.29,x+mark*.61,y+height,zH,white,false);
   staticHazards.push({x,z:zH,w:w+.12,d:.29,y,height});
  }
  if(level>=3){
@@ -172,18 +201,33 @@ function buildLevel(){
    const landing=courseSegments[2*section+2];
    const zH=landing.front-2.3,y=landing.y0;
    box(levelWorld,.35,.85,.35,0,y+.425,zH,shadowTrim);
-   const arm=box(levelWorld,3.4,.24,.2,0,y+.85,zH,bar);
+   const arm=box(levelWorld,3.4,.26,.24,0,y+.85,zH,bar);
+   for(const side of [-1.4,1.4]){
+    const end=new THREE.Mesh(new THREE.SphereGeometry(.25,9,6),gold);
+    end.position.set(side,y+.85,zH);levelWorld.add(end);
+   }
    movingHazards.push({x:0,z:zH,y,length:3.4,angle:0,arm,speed:1.1+level*.13,phase:i*1.6});
   }
  }
- exitMat=new THREE.MeshBasicMaterial({color:0xe9a16a});
+ exitMat=new THREE.MeshBasicMaterial({color:0x63da9b});
  const gateZ=courseEndZ+.43,finishY=courseTopY;
  for(const x of [-1.56,1.56])box(levelWorld,.2,3.15,.25,x,finishY+1.58,gateZ,exitMat,false);
  box(levelWorld,3.35,.2,.3,0,finishY+3.16,gateZ,exitMat,false);
  box(levelWorld,3.05,.07,.45,0,finishY+.075,gateZ,exitMat,false);
+ // Finish gate is a recognizable giant arch with celebratory flags.
  const marker=new THREE.Mesh(new THREE.PlaneGeometry(3,.9),
-  signage('SUMMIT '+String(level+1).padStart(2,'0'),LEVELS[level][0].toUpperCase()));
- marker.position.set(0,finishY+4.0,gateZ-.10);levelWorld.add(marker);
+  signage('FINISH '+String(level+1).padStart(2,'0'),LEVELS[level][0].toUpperCase(),
+   360,116,'#426aa5','#fff4cf'));
+ marker.position.set(0,finishY+3.95,gateZ-.12);levelWorld.add(marker);
+ const flagMats=[0xf591bd,0x89ead3,0xf2d180];
+ for(let i=0;i<6;i++){
+  const side=i%2===0?-1:1,x=side*(width/2+.75),zz=courseSegments[Math.max(0,courseSegments.length-2-i*2)].front;
+  const baseY=groundAt(zz);
+  box(levelWorld,.07,1.9,.08,x,baseY+.95,zz,white,false);
+  const pennant=box(levelWorld,.70,.42,.045,x+side*.35,baseY+1.55,zz,
+   color(flagMats[i%3],.8,.02),false);
+  pennant.rotation.y=side*.15;
+ }
  hudLevel();
 }
 function updateHazards(now){
