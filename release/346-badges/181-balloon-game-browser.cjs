@@ -80,7 +80,7 @@ const three=fs.readFileSync(require.resolve('three/build/three.module.js'),'utf8
    assert.equal(await overlay.isVisible(),false);
    await page.evaluate(()=>window.__advanceCargo(8));
    const first=await state();
-   assert.equal(first.near,'true','Balloon initially within the player's ground ring');
+   assert.equal(first.near,'true','Balloon initially inside the worker ground ring');
    assert.equal(await range.textContent(),'BALLOON IN HIT ZONE');
    await page.keyboard.press('Space');
    await page.keyboard.press('ArrowUp');
