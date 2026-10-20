@@ -1,0 +1,29 @@
+name: Keep It Up balloon game browser check
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'keep-it-up.html'
+      - 'balloon-game.js'
+      - 'balloon-game.css'
+      - 'index.html'
+      - 'release/346-badges/181-balloon-game-browser.cjs'
+      - '.github/workflows/balloon-game.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  balloon-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - run: node --check balloon-game.js
+      - run: node --check release/346-badges/181-balloon-game-browser.cjs
+      - run: node release/346-badges/181-balloon-game-browser.cjs
