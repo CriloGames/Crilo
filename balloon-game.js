@@ -35,9 +35,10 @@ sound.textContent=enabled?'♫ AUDIO ON':'♫ AUDIO OFF';
 sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
 let THREE,scene,camera,renderer,room,balloon,balloonBody,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
-const HIT_RADIUS=2.9, WALK_SPEED=4.3;
-const player={x:0,z:2.2,yaw:0,pitch:.025,groundY:0,feet:0,vy:0,grounded:true};
-const CAMERA_FOLLOW_DISTANCE=3.8, CAMERA_FOLLOW_HEIGHT=3.25;
+const HIT_RADIUS=3.15, WALK_SPEED=5.0, SPRINT_SPEED=6.9;
+const player={x:0,z:2.2,yaw:0,facing:0,pitch:.02,groundY:0,feet:0,vy:0,grounded:true,moveX:0,moveZ:0,anim:0};
+let cameraDistance=4.05, cameraReady=false;
+const CAMERA_FOLLOW_HEIGHT=3.05;
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
@@ -223,13 +224,23 @@ function movePlayer(dt){
   dx+=(key==='d'?1:key==='a'?-1:0);
   dz+=(key==='s'?1:key==='w'?-1:0);
  }
- const length=Math.hypot(dx,dz);
+ const length=Math.hypot(dx,dz),running=held.has('shift');
+ const speed=running?SPRINT_SPEED:WALK_SPEED;
+ // Familiar third-person obby movement: camera-relative WASD, character
+ // independently rotates toward the way it is actually travelling.
+ const side=length?dx/length:0,forward=length?-dz/length:0;
+ const worldX=side*Math.cos(player.yaw)-forward*Math.sin(player.yaw);
+ const worldZ=side*Math.sin(player.yaw)-forward*Math.cos(player.yaw);
+ const follow=1-Math.exp(-11*dt);
+ player.moveX+=(worldX-player.moveX)*follow;
+ player.moveZ+=(worldZ-player.moveZ)*follow;
+ player.x=clamp(player.x+player.moveX*speed*dt,-7,7);
+ player.z=clamp(player.z+player.moveZ*speed*dt,courseEndZ-1,4.4);
  if(length){
-  const side=dx/length,forward=-dz/length;
-  const worldX=side*Math.cos(player.yaw)-forward*Math.sin(player.yaw);
-  const worldZ=side*Math.sin(player.yaw)-forward*Math.cos(player.yaw);
-  player.x=clamp(player.x+worldX*WALK_SPEED*dt,-7,7);
-  player.z=clamp(player.z+worldZ*WALK_SPEED*dt,courseEndZ-1,4.4);
+  const desiredFacing=Math.atan2(-worldX,-worldZ);
+  const delta=Math.atan2(Math.sin(desiredFacing-player.facing),Math.cos(desiredFacing-player.facing));
+  player.facing+=delta*(1-Math.exp(-13*dt));
+  player.anim+=dt*speed*2.7;
  }
  player.groundY=groundAt(player.z);
  if(!player.grounded){
@@ -240,18 +251,20 @@ function movePlayer(dt){
 }
 function syncCamera(){
  if(!camera)return;
- // Third person: orbit behind the actual worker while moving and looking.
- camera.position.set(
-  player.x+Math.sin(player.yaw)*CAMERA_FOLLOW_DISTANCE,
-  CAMERA_FOLLOW_HEIGHT+player.feet,
-  player.z+Math.cos(player.yaw)*CAMERA_FOLLOW_DISTANCE
+ // Smooth orbit camera with a consistently visible character on the lower
+ // third of the frame. The player model faces travel direction independently.
+ const target=new THREE.Vector3(
+  player.x+Math.sin(player.yaw)*cameraDistance,
+  player.groundY+player.feet+CAMERA_FOLLOW_HEIGHT,
+  player.z+Math.cos(player.yaw)*cameraDistance
  );
+ if(!cameraReady){camera.position.copy(target);cameraReady=true;}
+ else camera.position.lerp(target,.20);
  camera.rotation.order='YXZ';
  camera.rotation.y=player.yaw;
  camera.rotation.x=player.pitch;
  camera.updateMatrixWorld();
 }
-
 let raf=0,lastFrame=0,hitTimer=null,hitLabelTimer=null,lastBop=0,ready=false;
 const physics={x:0,y:3.15,z:0,vx:0,vy:0,vz:0};
 function setScore(n){score=n;scoreLabel.textContent=displayNumber(score);stage.dataset.hits=String(score);}
@@ -455,8 +468,12 @@ function renderScene(now){
  syncCamera();
  if(worker){
   worker.position.set(player.x,player.groundY+player.feet,player.z);
-  worker.rotation.y=player.yaw;
+  worker.rotation.y=player.facing;
   worker.visible=true;
+  // Tiny character movement gives the avatar life without obscuring aiming.
+  worker.children.forEach((mesh,i)=>{
+   if(i>=7&&i<=10)mesh.rotation.x=player.grounded?Math.sin(player.anim+i*2.1)*.16:0;
+  });
  }
  if(balloon){
   balloon.position.set(physics.x,physics.y,physics.z);
@@ -641,7 +658,7 @@ function begin(){
  else if(state==='over'){setScore(checkpointScore);}
  else{checkpointScore=0;setScore(0);}
  levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.025;player.groundY=0;player.feet=0;player.vy=0;player.grounded=true;
+ player.x=0;player.z=2.2;player.yaw=0;player.facing=0;player.pitch=.02;player.groundY=0;player.feet=0;player.vy=0;player.moveX=0;player.moveZ=0;player.grounded=true;cameraReady=false;
  resetPhysics();buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
@@ -705,7 +722,7 @@ host.addEventListener('pointermove',event=>{
   const dx=event.clientX-lookDrag.x,dy=event.clientY-lookDrag.y;
   lookDrag.x=event.clientX;lookDrag.y=event.clientY;
   player.yaw-=dx*(event.pointerType==='touch'?.006:.0046);
-  player.pitch=clamp(player.pitch-dy*(event.pointerType==='touch'?.005:.0038),-.98,1.08);
+  player.pitch=clamp(player.pitch-dy*(event.pointerType==='touch'?.0032:.0035),-.65,.72);
   syncCamera();
   stage.dataset.playerYaw=player.yaw.toFixed(3);
   stage.dataset.playerPitch=player.pitch.toFixed(3);
@@ -718,7 +735,7 @@ host.addEventListener('pointermove',event=>{
 document.addEventListener('mousemove',event=>{
  if(document.pointerLockElement!==stage||!moving())return;
  player.yaw-=event.movementX*.0029;
- player.pitch=clamp(player.pitch-event.movementY*.00265,-1.25,1.25);
+ player.pitch=clamp(player.pitch-event.movementY*.00265,-.65,.72);
  syncCamera();cursor.classList.toggle('is-hover',Boolean(projectHit(event))&&inRange());
 });
 document.addEventListener('pointerlockchange',()=>{
@@ -730,6 +747,11 @@ host.addEventListener('pointerup',stopLook);
 host.addEventListener('pointercancel',stopLook);
 host.addEventListener('lostpointercapture',stopLook);
 host.addEventListener('contextmenu',event=>event.preventDefault());
+host.addEventListener('wheel',event=>{
+ if(!ready)return;
+ event.preventDefault();
+ cameraDistance=clamp(cameraDistance+Math.sign(event.deltaY)*.32,2.9,6.1);
+},{passive:false});
 host.addEventListener('pointerleave',()=>{cursor.classList.remove('is-hover');host.style.cursor='crosshair';});
 // Movement only. The Space bar and arrow keys NEVER hit the balloon.
 document.addEventListener('keydown',event=>{
@@ -738,9 +760,9 @@ document.addEventListener('keydown',event=>{
  const tag=document.activeElement?.tagName;
  if(tag&&/^(INPUT|TEXTAREA|SELECT)$/.test(tag))return;
  const key=event.key.toLowerCase();
- if(['w','a','s','d'].includes(key)){
+ if(['w','a','s','d','shift'].includes(key)){
   event.preventDefault();
-  if(!event.repeat&&!awaitFirstHit)held.add(key);
+  if(!awaitFirstHit)held.add(key);
  }else if(event.code==='Space'){
   event.preventDefault();if(!event.repeat)jump(); // Space jumps only, no balloon hit.
  }
