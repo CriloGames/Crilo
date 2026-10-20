@@ -41,7 +41,8 @@ sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
 let THREE,scene,camera,renderer,room,balloon,balloonBody,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
 const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:2.2,yaw:0,pitch:.56,feet:0,vy:0,grounded:true};
+const player={x:0,z:2.2,yaw:0,pitch:.04,feet:0,vy:0,grounded:true};
+const CAMERA_FOLLOW_DISTANCE=3.15, CAMERA_FOLLOW_HEIGHT=2.95;
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
@@ -162,13 +163,14 @@ function checkCourse(){
   }
  }
 }
-function jump(){if(moving()&&player.grounded){player.grounded=false;player.vy=5.4;}}
+function jump(){if(moving()&&!awaitFirstHit&&player.grounded){player.grounded=false;player.vy=5.4;}}
 
 function inRange(){
  return Math.hypot(physics.x-player.x,physics.z-player.z)<=HIT_RADIUS;
 }
 function movePlayer(dt){
- if(!moving()||dt<=0)return;
+ // Keep the worker stationary until the first real balloon hit.
+ if(!moving()||dt<=0||awaitFirstHit)return;
  let dx=(held.has('d')?1:0)-(held.has('a')?1:0);
  let dz=(held.has('s')?1:0)-(held.has('w')?1:0);
  for(const key of activeTouches.values()){
@@ -190,7 +192,12 @@ function movePlayer(dt){
 }
 function syncCamera(){
  if(!camera)return;
- camera.position.set(player.x,1.77+player.feet,player.z);
+ // Third person: orbit behind the actual worker while moving and looking.
+ camera.position.set(
+  player.x+Math.sin(player.yaw)*CAMERA_FOLLOW_DISTANCE,
+  CAMERA_FOLLOW_HEIGHT+player.feet,
+  player.z+Math.cos(player.yaw)*CAMERA_FOLLOW_DISTANCE
+ );
  camera.rotation.order='YXZ';
  camera.rotation.y=player.yaw;
  camera.rotation.x=player.pitch;
@@ -375,7 +382,7 @@ function buildBalloon(){
 }
 function buildWorker(){
  worker=new THREE.Group();scene.add(worker);
- worker.visible=false; // No third-person body blocking the first-person view.
+ worker.visible=true; // The playable worker is visible in third person.
  const suit=color(0xc98440,.91,.1),trim=color(0x353d37,.85,.33);
  const dark=color(0x242a26,.8,.42),visor=color(0x687f78,.28,.65,{
   emissive:0x1b554c,emissiveIntensity:.25
@@ -414,14 +421,9 @@ function buildWorker(){
  scene.add(hitRing);
  worker.position.set(player.x,0,player.z);
  hitRing.position.set(player.x,0,player.z);
- // First-person glove is attached to the camera rather than the world.
- glove=new THREE.Group();
- const sleeve=color(0xa66b38,.91,.12),hand=color(0x3a3d36,.82,.25);
- box(glove,.26,.46,.36,0,-.24,0,sleeve,false);
- box(glove,.31,.27,.3,0,.035,-.04,hand,false);
- for(let i=-1;i<=1;i++)box(glove,.08,.22,.14,i*.098,.13,-.15,hand,false);
- glove.position.set(.62,-.74,-1.25);glove.rotation.z=-.26;
- camera.add(glove);scene.add(camera);
+ // No first-person camera glove; hits come from the character.
+ glove=null;
+ scene.add(camera);
 }
 function showRenderingFailure(){
  state='unavailable';stage.dataset.state=state;
@@ -476,6 +478,11 @@ function setDimensions(){
 function renderScene(now){
  if(!renderer||!scene)return;
  syncCamera();
+ if(worker){
+  worker.position.set(player.x,player.feet,player.z);
+  worker.rotation.y=player.yaw;
+  worker.visible=true;
+ }
  if(balloon){
   balloon.position.set(physics.x,physics.y,physics.z);
   balloon.rotation.z=Math.sin(now*.0016)*.065+physics.vx*.012;
@@ -491,7 +498,7 @@ function renderScene(now){
   hitRing.position.set(player.x,0,player.z);
   const inside=inRange();
   ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
-  rangeLabel.textContent=inside?(awaitFirstHit?'AIM AT BALLOON · CLICK TO START':'AIM AT BALLOON · CLICK TO HIT'):'OUT OF RANGE · MOVE CLOSER';
+  rangeLabel.textContent=awaitFirstHit?'HIT BALLOON FIRST · THEN MOVE':inside?'AIM AT BALLOON · CLICK TO HIT':'OUT OF RANGE · MOVE CLOSER';
   rangeLabel.classList.toggle('is-near',inside);
   stage.dataset.inRange=String(inside);
   stage.dataset.playerX=player.x.toFixed(2);
@@ -499,7 +506,8 @@ function renderScene(now){
   stage.dataset.playerYaw=player.yaw.toFixed(3);
   stage.dataset.playerPitch=player.pitch.toFixed(3);
   stage.dataset.cameraHeight=camera.position.y.toFixed(2);
-  stage.dataset.view='first-person';
+  stage.dataset.view='third-person';
+  stage.dataset.movementLocked=String(awaitFirstHit);
   stage.dataset.ringRadius=String(HIT_RADIUS);
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
@@ -583,7 +591,11 @@ function bop(hit){
  const now=performance.now();
  // Pointer events and synthetic clicks must not double-score a single action.
  if(now-lastBop<190)return;
- lastBop=now;awaitFirstHit=false;
+ lastBop=now;
+ if(awaitFirstHit){
+  awaitFirstHit=false;
+  releaseMovement(); // Discard any movement buttons pressed before the first hit.
+ }
  setScore(score+1);levelHits++;hudLevel();recordBest();
  // Directional impact: push the balloon away along the line of the swing,
  // with side spin from which half of its visible surface the player struck.
@@ -653,12 +665,12 @@ function begin(){
  else if(state==='over'){setScore(checkpointScore);}
  else{checkpointScore=0;setScore(0);}
  levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.56;player.feet=0;player.vy=0;player.grounded=true;
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.04;player.feet=0;player.vy=0;player.grounded=true;
  resetPhysics();buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
- showStatus('STAGE '+(level+1)+' READY · AIM AT THE BALLOON AND CLICK TO HIT.');
+ showStatus('STAGE '+(level+1)+' READY · HIT THE BALLOON TO UNLOCK WASD AND JUMP.');
  stage.focus({preventScroll:true});lastFrame=0;mouseLock();
 }
 function hold(){
@@ -752,7 +764,7 @@ document.addEventListener('keydown',event=>{
  const key=event.key.toLowerCase();
  if(['w','a','s','d'].includes(key)){
   event.preventDefault();
-  if(!event.repeat)held.add(key);
+  if(!event.repeat&&!awaitFirstHit)held.add(key);
  }else if(event.code==='Space'){
   event.preventDefault();if(!event.repeat)jump(); // Space jumps only, no balloon hit.
  }
@@ -763,7 +775,7 @@ document.querySelectorAll('[data-move]').forEach(button=>{
  const key=button.dataset.move;
  const up=e=>{activeTouches.delete(e.pointerId);button.classList.remove('is-pressed');};
  button.addEventListener('pointerdown',e=>{
-  if(!moving())return;
+  if(!moving()||awaitFirstHit)return;
   e.preventDefault();button.setPointerCapture?.(e.pointerId);
   activeTouches.set(e.pointerId,key);button.classList.add('is-pressed');
  });
