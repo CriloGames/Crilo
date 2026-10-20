@@ -1,142 +1,155 @@
 'use strict';
-/* Keep It Up! real Chromium smoke tests: independent of Daily/bonus scoring.
- * Deterministic RAF stepping proves the balloon hits the ground, collisions
- * increment only when tapped, pause freezes play and personal best persists. */
-const assert=require('node:assert/strict'),fs=require('node:fs');
+/* Cargo Bay: actual WebGL Three.js runtime, movement, hit ring, click-only
+ * raycast, floor loss, pause, save, responsive desktop/mobile, isolated data. */
+const fs=require('node:fs'),assert=require('node:assert/strict');
 const {chromium}=require('playwright');
 const html=fs.readFileSync('keep-it-up.html','utf8');
 const home=fs.readFileSync('index.html','utf8');
 const js=fs.readFileSync('balloon-game.js','utf8');
-const css=['style.css','game-topbar.css','balloon-game.css','night-pages.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
-assert.match(home,/id="balloonHomeGame" href="keep-it-up\.html"/);
-assert.match(home,/balloon-game\.css\?v=1/);
-assert.match(html,/balloon-game\.css\?v=1/);
-assert.match(html,/balloon-game\.js\?v=1/);
-assert.match(html,/href="index\.html#more-games"/);
-assert.match(html,/id="balloonScore"/);
-assert.match(html,/id="balloonBest"/);
-assert.match(html,/id="balloonTarget"/);
-assert.match(html,/id="balloonPause"/);
-assert.match(html,/id="balloonSound"/);
-assert.match(html,/id="balloonOverlay"/);
-assert.doesNotMatch(js,/\b(?:criloDB|daily_runs|user_badges|player_stats|leaderboard|badge_events|bonus_runs|\.rpc\(|\bfetch\(|XMLHttpRequest)\b/i,
- 'The balloon game must not write any regular Crilo scores or badge progress');
+const css=['style.css','night-pages.css','game-topbar.css','balloon-game.css']
+ .map(p=>fs.readFileSync(p,'utf8')).join('\n');
+assert.match(html,/id="cargoViewport3d"/);
+assert.match(html,/data-move="w"/);
+assert.match(html,/data-move="a"/);
+assert.match(html,/data-move="s"/);
+assert.match(html,/data-move="d"/);
+assert.match(html,/id="cargoRangeStatus"/);
+assert.match(html,/balloon-game\.js\?v=3/);
+assert.match(html,/balloon-game\.css\?v=3/);
+assert.match(home,/href="keep-it-up\.html"/);
+assert.match(home,/Keep It Up: Cargo Bay/);
+assert.match(js,/RingGeometry\(HIT_RADIUS/);
+assert.match(js,/HIT_RADIUS=2\.55/);
+assert.match(js,/raycaster\.intersectObject\(hitSphere/);
+assert.doesNotMatch(js,/\b(?:criloDB|daily_runs|user_badges|player_stats|badge_events|bonus_runs|leaderboard|\.rpc\(|\bfetch\(|XMLHttpRequest)\b/i,
+ 'Cargo Bay must not update any Daily, badge, stats or leaderboard data');
+assert.doesNotMatch(js,/['"]ArrowUp['"]\.includes|\[' ',\s*'ArrowUp'\]|event\.key===' '\)bop\(/,
+ 'Keyboard shortcuts must not directly hit the balloon');
 const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
  .replace(/<link\b[^>]*rel="stylesheet"[^>]*>/gi,'');
+const three=fs.readFileSync(require.resolve('three/build/three.module.js'),'utf8');
 (async()=>{
- const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+ const browser=await chromium.launch({headless:true,args:[
+  '--no-sandbox','--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
+  '--enable-unsafe-swiftshader','--disable-dev-shm-usage'
+ ]});
  try{
   for(const width of [320,390,768,1280]){
-   const page=await browser.newPage({viewport:{width,height:810},reducedMotion:'reduce'});
-   const errors=[];page.on('pageerror',err=>errors.push(err.message));
+   const page=await browser.newPage({viewport:{width,height:820},reducedMotion:'reduce'});
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.route('https://crilo.test/keep-it-up.html',route=>route.fulfill({
     status:200,contentType:'text/html',body:sanitized
+   }));
+   await page.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js',route=>route.fulfill({
+    status:200,contentType:'text/javascript',body:three,
+    headers:{'access-control-allow-origin':'*'}
    }));
    await page.goto('https://crilo.test/keep-it-up.html',{waitUntil:'domcontentloaded'});
    await page.addStyleTag({content:css});
    await page.evaluate(()=>{
-    const callbacks=new Map();let seq=0,t=1000;
-    window.requestAnimationFrame=fn=>{callbacks.set(++seq,fn);return seq};
-    window.cancelAnimationFrame=id=>{callbacks.delete(id)};
-    window.__advanceBalloon=(steps,ms=16)=>{
-     for(let i=0;i<steps;i++){
-      t+=ms;
-      const list=[...callbacks.entries()];callbacks.clear();
-      for(const [id,fn] of list)fn(t);
+    const callbacks=new Map();let seq=0,t=performance.now();
+    window.requestAnimationFrame=fn=>{callbacks.set(++seq,fn);return seq;};
+    window.cancelAnimationFrame=id=>callbacks.delete(id);
+    window.__advanceCargo=(frames,ms=16)=>{
+     for(let i=0;i<frames;i++){
+      t+=ms;const pending=[...callbacks.values()];callbacks.clear();
+      for(const cb of pending)cb(t);
      }
     };
    });
-   await page.addScriptTag({content:js});
+   await page.addScriptTag({content:js,type:'module'});
+   await page.waitForFunction(()=>document.getElementById('balloonStage').dataset.renderer==='webgl',{timeout:20000});
    const stage=page.locator('#balloonStage');
-   const balloon=page.locator('#balloonTarget');
-   const start=page.locator('#balloonStart');
-   const pause=page.locator('#balloonPause');
-   const best=page.locator('#balloonBest');
-   const score=page.locator('#balloonScore');
-   const overlay=page.locator('#balloonOverlay');
-
-   assert.equal(await stage.getAttribute('data-state'),'ready');
-   assert.equal(await score.innerText(),'0');
-   assert.equal(await best.innerText(),'0');
-   assert.equal(await pause.isEnabled(),false);
-   const rect=await stage.boundingBox();
-   assert.ok(rect&&rect.width>=260&&rect.height>=380);
-   const viewportLayout=await page.evaluate(()=>({
-    overflow:document.documentElement.scrollWidth>innerWidth+2,
-    stageRight:document.getElementById('balloonStage').getBoundingClientRect().right
+   const start=page.locator('#balloonStart'),pause=page.locator('#balloonPause');
+   const score=page.locator('#balloonScore'),best=page.locator('#balloonBest');
+   const range=page.locator('#cargoRangeStatus'),overlay=page.locator('#balloonOverlay');
+   const state=()=>stage.evaluate(el=>({
+    mode:el.dataset.state,px:Number(el.dataset.playerX),pz:Number(el.dataset.playerZ),
+    by:Number(el.dataset.y),x:Number(el.dataset.hitX),y:Number(el.dataset.hitY),
+    near:el.dataset.inRange,hits:el.dataset.hits
    }));
-   assert.equal(viewportLayout.overflow,false,'No horizontal overflow at '+width);
-   assert.ok(viewportLayout.stageRight<=width+2,'Game stage must fit on '+width);
-
+   const rect=await stage.boundingBox();
+   assert.ok(rect&&rect.width>=260&&rect.height>=350,'3D stage fits viewport');
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),false,
+    'No horizontal page scroll on '+width);
+   assert.equal(await stage.locator('canvas').count(),1,'Real 3D canvas present');
+   assert.equal(await score.textContent(),'000');
+   assert.equal(await best.textContent(),'000');
    await start.click();
-   assert.equal(await stage.getAttribute('data-state'),'playing');
+   assert.equal((await state()).mode,'playing');
    assert.equal(await overlay.isVisible(),false);
-   assert.equal(await pause.isEnabled(),true);
-   await page.evaluate(()=>window.__advanceBalloon(25));
-   await balloon.click();
-   assert.equal(await score.innerText(),'1','Pointer tap scores one bounce');
-   assert.equal(await best.innerText(),'1');
-   assert.equal(await page.evaluate(()=>localStorage.getItem('crilo_keep_it_up_best_v1')),'1');
+   await page.evaluate(()=>window.__advanceCargo(8));
+   const first=await state();
+   assert.equal(first.near,'true','Balloon initially within the player's ground ring');
+   assert.equal(await range.textContent(),'BALLOON IN HIT ZONE');
    await page.keyboard.press('Space');
-   assert.equal(await score.innerText(),'2','Space scores one bounce');
    await page.keyboard.press('ArrowUp');
-   assert.equal(await score.innerText(),'3','Up arrow scores one bounce');
-   await page.evaluate(()=>window.__advanceBalloon(12));
-   const center=await balloon.boundingBox();
-   await balloon.dispatchEvent('pointerdown',{
-    pointerId:7,pointerType:'touch',clientX:center.x+center.width/2,
-    clientY:center.y+center.height/2,button:0
+   assert.equal(await score.textContent(),'000','Space and arrow key must NEVER hit balloon');
+
+   // Holding WASD genuinely changes 3D player coordinates rather than moving a DOM sprite.
+   await page.keyboard.down('w');
+   await page.evaluate(()=>window.__advanceCargo(18));
+   await page.keyboard.up('w');
+   const forward=await state();
+   assert.ok(forward.pz<first.pz-.7,'W moves worker forward in 3D');
+   await page.keyboard.down('a');
+   await page.evaluate(()=>window.__advanceCargo(13));
+   await page.keyboard.up('a');
+   const left=await state();
+   assert.ok(left.px<forward.px-.35,'A moves worker left');
+   await page.keyboard.down('d');
+   await page.evaluate(()=>window.__advanceCargo(13));
+   await page.keyboard.up('d');
+   assert.ok((await state()).px>left.px+.35,'D moves worker right');
+
+   // The 3D balloon must actually be clicked on-screen; pointer raycasting
+   // replaces the previous auto-bounce Space mechanic.
+   const target=await state();
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerdown',{
+    pointerType:'mouse',button:0,clientX:rect.x+target.x,clientY:rect.y+target.y
    });
-   assert.equal(await score.innerText(),'4','Touch pointer scores exactly once');
-   const sound=page.locator('#balloonSound');
-   await sound.click();
-   assert.equal(await sound.getAttribute('aria-pressed'),'false');
-   await sound.click();
-   assert.equal(await sound.getAttribute('aria-pressed'),'true');
+   assert.equal(await score.textContent(),'001','Click on balloon in ring scores one hit');
+   assert.equal(await best.textContent(),'001');
+   assert.equal(await page.evaluate(()=>localStorage.getItem('crilo_keep_it_up_best_v1')),'1');
+
+   // Pause must freeze ball physics but not alter score.
    await pause.click();
-   assert.equal(await stage.getAttribute('data-state'),'paused');
+   assert.equal((await state()).mode,'paused');
+   const paused=await state();
+   await page.evaluate(()=>window.__advanceCargo(100));
+   assert.equal((await state()).by,paused.by);
+   await start.click();assert.equal((await state()).mode,'playing');
+
+   // Move sideways until the balloon is out of the visible ring.
+   await page.keyboard.down('d');
+   await page.evaluate(()=>window.__advanceCargo(66));
+   await page.keyboard.up('d');
+   let far=await state();
+   assert.equal(far.near,'false','Hit zone ring checks 3D horizontal distance');
+   assert.equal(await range.textContent(),'OUT OF RANGE · MOVE CLOSER');
+   await page.locator('#cargoViewport3d').dispatchEvent('pointerdown',{
+    pointerType:'mouse',button:0,clientX:rect.x+far.x,clientY:rect.y+far.y
+   });
+   assert.equal(await score.textContent(),'001','Click cannot hit balloon outside worker ring');
+
+   await page.evaluate(()=>window.__advanceCargo(300));
+   assert.equal((await state()).mode,'over','The balloon touching the floor ends the shift');
    assert.equal(await overlay.isVisible(),true);
-   const frozen=await stage.getAttribute('data-y');
-   await page.evaluate(()=>window.__advanceBalloon(200));
-   assert.equal(await stage.getAttribute('data-y'),frozen,'Pausing must freeze physics');
    await start.click();
-   assert.equal(await stage.getAttribute('data-state'),'playing','Resume returns to same run');
-   assert.equal(await score.innerText(),'4','Pause preserves score');
-   await page.locator('#gameInfoBtn').click();
-   assert.equal(await stage.getAttribute('data-state'),'paused',
-    'Opening How to Play must pause the balloon automatically');
-   await start.click();
-   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
-   assert.equal(await stage.getAttribute('data-state'),'paused',
-    'Leaving or bfcache-navigating must pause rather than strand animation loop');
-   await start.click();
-   assert.equal(await stage.getAttribute('data-state'),'playing');
-   await page.evaluate(()=>window.__advanceBalloon(500));
-   assert.equal(await stage.getAttribute('data-state'),'over','Balloon must lose upon floor contact');
-   assert.equal(await overlay.isVisible(),true);
-   assert.match(await page.locator('#balloonOverlayText').textContent(),/4 bounces/);
-   assert.equal(await score.innerText(),'4');
-   await start.click();
-   assert.equal(await stage.getAttribute('data-state'),'playing');
-   assert.equal(await score.innerText(),'0','Restart clears only current run');
-   assert.equal(await best.innerText(),'4','Restart retains local best');
-   // Force another loss with no taps, and verify no phantom high score.
-   await page.evaluate(()=>window.__advanceBalloon(500));
-   assert.equal(await stage.getAttribute('data-state'),'over');
-   assert.equal(await score.innerText(),'0');
+   assert.equal((await state()).mode,'playing');
+   assert.equal(await score.textContent(),'000','Restart resets score');
+   assert.equal(await best.textContent(),'001','Restart preserves personal record');
+   await page.evaluate(()=>window.__advanceCargo(300));
+   assert.equal((await state()).mode,'over');
    await page.reload({waitUntil:'domcontentloaded'});
    await page.addStyleTag({content:css});
-   await page.addScriptTag({content:js});
-   assert.equal(await page.locator('#balloonBest').innerText(),'4','Personal best survives reload');
-   assert.equal(await page.locator('#balloonScore').innerText(),'0');
-   assert.equal(await page.locator('#balloonStage').getAttribute('data-state'),'ready');
-
-   await page.evaluate(()=>document.documentElement.dataset.theme='dark');
-   assert.match(await stage.evaluate(el=>getComputedStyle(el).backgroundImage),/linear-gradient/);
-   await page.evaluate(()=>document.documentElement.dataset.theme='light');
-   assert.deepEqual(errors,[],'No JS errors at '+width);
+   await page.addScriptTag({content:js,type:'module'});
+   await page.waitForFunction(()=>document.getElementById('balloonStage').dataset.renderer==='webgl',{timeout:20000});
+   assert.equal(await best.textContent(),'001','Personal best persists after reload');
+   assert.equal((await state()).mode,'ready');
+   assert.deepEqual(errors,[],'No browser JS errors on '+width);
    await page.close();
   }
-  console.log('BALLOON_BROWSER_PASS: start, mouse/touch/keyboard hits, pause, floor collision, restart, local best, all widths and dark mode');
+  console.log('CARGO_BAY_BROWSER_PASS: live WebGL room, WASD worker, reach ring, mouse hit, no Space hit, pause, loss, saved best, mobile and desktop');
  }finally{await browser.close()}
-})().catch(err=>{console.error('BALLOON_BROWSER_FAIL',err);process.exitCode=1});
+})().catch(err=>{console.error('CARGO_BAY_BROWSER_FAIL',err);process.exitCode=1});
