@@ -39,9 +39,9 @@ bestLabel.textContent=displayNumber(best);
 sound.textContent=enabled?'♫ AUDIO ON':'♫ AUDIO OFF';
 sound.setAttribute('aria-pressed',String(enabled));
 const showStatus=message=>{status.textContent=message;};
-let THREE,scene,camera,renderer,room,balloon,hitSphere,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
+let THREE,scene,camera,renderer,room,balloon,balloonBody,shadow,redLight,warningLight,raycaster,ndc,worker,hitRing,ringMaterial,glove;
 const HIT_RADIUS=2.55, WALK_SPEED=3.6;
-const player={x:0,z:2.2,yaw:0,pitch:.11,feet:0,vy:0,grounded:true};
+const player={x:0,z:2.2,yaw:0,pitch:.56,feet:0,vy:0,grounded:true};
 const held=new Set(),activeTouches=new Map();
 let lookDrag=null;
 const moving=()=>state==='playing'&&ready;
@@ -350,6 +350,9 @@ function buildBalloon(){
  const rubber=color(0xc64d38,.35,.02,{emissive:0x4c130b,emissiveIntensity:.25,side:THREE.FrontSide});
  const shell=new THREE.Mesh(new THREE.SphereGeometry(.55,18,14),rubber);
  shell.scale.set(.93,1.16,.87);shell.castShadow=true;balloon.add(shell);
+ // Hit testing uses THIS rendered rubber surface, with its actual dimensions.
+ // Do not expand the hit target beyond the visual balloon.
+ balloonBody=shell;
  const gloss=new THREE.Mesh(new THREE.SphereGeometry(.12,9,7),new THREE.MeshBasicMaterial({
   color:0xffcab0,transparent:true,opacity:.42,depthWrite:false}));
  gloss.position.set(-.2,.31,.33);gloss.scale.set(.8,1.9,.32);balloon.add(gloss);
@@ -362,10 +365,8 @@ function buildBalloon(){
  }
  const lineGeo=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(stringPts),24,.012,4,false);
  const string=new THREE.Mesh(lineGeo,color(0xd2c8b3,.96,.08));balloon.add(string);
- // Slightly larger invisible hit zone makes mobile taps practical.
- hitSphere=new THREE.Mesh(new THREE.SphereGeometry(.85,16,12),new THREE.MeshBasicMaterial({
-  color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
- balloon.add(hitSphere);
+ // Only balloonBody (the visible inflated rubber mesh) is clickable.
+ // The string, knot, highlight and empty air are never hit targets.
  balloon.position.set(0,3.15,0);
  scene.add(balloon);
  const shadowMat=new THREE.MeshBasicMaterial({color:0x080b0a,transparent:true,opacity:.42,depthWrite:false});
@@ -490,7 +491,7 @@ function renderScene(now){
   hitRing.position.set(player.x,0,player.z);
   const inside=inRange();
   ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
-  rangeLabel.textContent=inside?(awaitFirstHit?'CLICK TO START · BALLOON IN RANGE':'CLICK TO HIT · BALLOON IN RANGE'):'OUT OF RANGE · MOVE CLOSER';
+  rangeLabel.textContent=inside?(awaitFirstHit?'AIM AT BALLOON · CLICK TO START':'AIM AT BALLOON · CLICK TO HIT'):'OUT OF RANGE · MOVE CLOSER';
   rangeLabel.classList.toggle('is-near',inside);
   stage.dataset.inRange=String(inside);
   stage.dataset.playerX=player.x.toFixed(2);
@@ -573,8 +574,8 @@ function flashHit(){
  clearTimeout(hitLabelTimer);
  hitLabelTimer=setTimeout(()=>word.classList.remove('is-visible'),620);
 }
-function bop(nx=null){
- if(state!=='playing'||!ready)return;
+function bop(hit){
+ if(state!=='playing'||!ready||!hit?.point||!hit?.rayDirection)return;
  if(!inRange()){
   showStatus('OUT OF RANGE · MOVE CLOSER TO THE BALLOON.');
   return;
@@ -584,11 +585,28 @@ function bop(nx=null){
  if(now-lastBop<190)return;
  lastBop=now;awaitFirstHit=false;
  setScore(score+1);levelHits++;hudLevel();recordBest();
- const direction=nx===null?0:clamp(nx,-1,1);
- const boost=4.3-level*.04+Math.min(levelHits*.025,.2);
- physics.vy=boost;
- physics.vx=clamp(physics.vx*.38-direction*1.35+Math.sin(score*3.42)*.3,-2.5,2.5);
- physics.vz=clamp(physics.vz*.45+Math.cos(score*2.1)*.27,-1.4,1.4);
+ // Directional impact: push the balloon away along the line of the swing,
+ // with side spin from which half of its visible surface the player struck.
+ // No random left/right drift is added by a hit.
+ const center=new THREE.Vector3();
+ balloon.getWorldPosition(center);
+ const contact=hit.point.clone().sub(center);
+ const away=new THREE.Vector3(hit.rayDirection.x,0,hit.rayDirection.z);
+ if(away.lengthSq()<.0001){
+  camera.getWorldDirection(away);away.y=0;
+ }
+ away.normalize();
+ const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+ right.y=0;right.normalize();
+ // Striking the left side kicks right; striking the right side kicks left.
+ const side=clamp(contact.dot(right)/.52,-1,1);
+ const push=away.multiplyScalar(1.55+level*.045).addScaledVector(right,-side*1.20);
+ physics.vx=clamp(push.x+physics.vx*.12,-2.8,2.8);
+ physics.vz=clamp(push.z+physics.vz*.12,-2.8,2.8);
+ // Preserve enough vertical lift for the keep-it-up game; bottom hits lift
+ // harder and top hits lift less, so where you strike matters vertically too.
+ const lowHit=clamp(-contact.y/.64,-1,1);
+ physics.vy=clamp(4.08-level*.035+lowHit*.48+hit.rayDirection.y*.25,3.35,4.9);
  balloon.scale.set(1.14,.83,1.06);
  if(glove){glove.position.z=-1.68;glove.rotation.x=-.42;}
  clearTimeout(hitTimer);
@@ -635,12 +653,12 @@ function begin(){
  else if(state==='over'){setScore(checkpointScore);}
  else{checkpointScore=0;setScore(0);}
  levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.11;player.feet=0;player.vy=0;player.grounded=true;
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.56;player.feet=0;player.vy=0;player.grounded=true;
  resetPhysics();buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
- showStatus('STAGE '+(level+1)+' READY · CLICK TO LAUNCH THE BALLOON.');
+ showStatus('STAGE '+(level+1)+' READY · AIM AT THE BALLOON AND CLICK TO HIT.');
  stage.focus({preventScroll:true});lastFrame=0;mouseLock();
 }
 function hold(){
@@ -655,24 +673,36 @@ function hold(){
  }else if(state==='paused')begin();
 }
 function projectHit(event){
- if(!ready||state!=='playing')return false;
+ if(!ready||state!=='playing'||!balloonBody)return null;
  const rect=renderer.domElement.getBoundingClientRect();
- if(rect.width<=0||rect.height<=0)return false;
+ if(rect.width<=0||rect.height<=0)return null;
+ // In FPS mode the crosshair at the CENTER of the canvas is the aiming point.
+ // Otherwise cast through the exact click/touch position on the canvas.
  if(document.pointerLockElement===stage)ndc.set(0,0);
- else ndc.set((event.clientX-rect.left)/rect.width*2-1,-((event.clientY-rect.top)/rect.height*2-1));
+ else{
+  const x=(event.clientX-rect.left)/rect.width;
+  const y=(event.clientY-rect.top)/rect.height;
+  if(x<0||x>1||y<0||y>1)return null;
+  ndc.set(x*2-1,1-y*2);
+ }
+ camera.updateMatrixWorld(true);
+ balloon.updateMatrixWorld(true);
  raycaster.setFromCamera(ndc,camera);
- return raycaster.intersectObject(hitSphere,false).length>0;
+ const impact=raycaster.intersectObject(balloonBody,false)[0];
+ if(!impact)return null;
+ return {point:impact.point.clone(),rayDirection:raycaster.ray.direction.clone()};
 }
 stage.addEventListener('pointerdown',event=>{
  if(!moving()||event.target.closest?.('.cargo-touch-controls, .cargo-jump, .cargo-overlay'))return;
  if(event.pointerType==='mouse'&&event.button!==0&&event.button!==2)return;
- const hitting=event.button!==2&&inRange(); // Click anywhere in the viewport while balloon is inside your ring.
- if(hitting){
+ const hit=event.button===0?projectHit(event):null;
+ if(hit&&inRange()){
   event.preventDefault();
-  const center=new THREE.Vector3();balloon.getWorldPosition(center);center.project(camera);
-  const rect=renderer.domElement.getBoundingClientRect();
-  const dx=(document.pointerLockElement===stage?0:(event.clientX-rect.left)/rect.width*2-1)-center.x;
-  bop(dx*3);return;
+  bop(hit);return;
+ }
+ if(hit&&!inRange()){
+  showStatus('BALLOON HIT MISSED · WALK CLOSER TO ENTER YOUR RANGE RING.');
+  return;
  }
  // Click scenery to capture FPS mouse look; touch retains swipe.
  if(document.pointerLockElement===stage)return;
@@ -693,7 +723,7 @@ host.addEventListener('pointermove',event=>{
   stage.dataset.playerPitch=player.pitch.toFixed(3);
   event.preventDefault();return;
  }
- const hitting=inRange();
+ const hitting=Boolean(projectHit(event))&&inRange();
  cursor.classList.toggle('is-hover',hitting);
  host.style.cursor=hitting?'pointer':'crosshair';
 },{passive:false});
@@ -701,7 +731,7 @@ document.addEventListener('mousemove',event=>{
  if(document.pointerLockElement!==stage||!moving())return;
  player.yaw-=event.movementX*.0029;
  player.pitch=clamp(player.pitch-event.movementY*.00265,-1.25,1.25);
- syncCamera();cursor.classList.toggle('is-hover',inRange());
+ syncCamera();cursor.classList.toggle('is-hover',Boolean(projectHit(event))&&inRange());
 });
 document.addEventListener('pointerlockchange',()=>{
  stage.dataset.mouseLocked=String(document.pointerLockElement===stage);
