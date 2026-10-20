@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="balloon-game.css?v=7">
+<link rel="stylesheet" href="balloon-game.css?v=8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone balloon-page">
@@ -38,6 +38,7 @@
   <div class="cargo-hud-block cargo-level-block"><span class="cargo-hud-label">YOU ARE PLAYING</span><strong id="balloonLevel">01 / 10</strong><span class="cargo-level-progress" id="balloonGoal">0 / 2 HITS · CLIMB TO SUMMIT</span></div>
   <div class="cargo-hud-controls">
    <label class="cargo-course-select">LEVEL SELECT<select id="balloonLevelSelect" aria-label="Choose an unlocked level"></select></label>
+   <button type="button" class="cargo-control cargo-retry" id="balloonRetry" title="Restart this stage (R)">↻ RESTART</button>
    <button type="button" class="cargo-control" id="balloonFullscreen" aria-pressed="false">⛶ FULLSCREEN</button>
    <button type="button" class="cargo-control" id="balloonPause" disabled>Ⅱ PAUSE</button>
    <button type="button" class="cargo-control" id="balloonSound" aria-pressed="true">♫ AUDIO ON</button>
@@ -71,24 +72,24 @@
     <h2 id="balloonOverlayTitle">DON'T DROP IT.</h2>
     <p id="balloonOverlayText">This is an outdoor uphill obby. Hit the balloon first to unlock movement, then use WASD to climb ramps and Space to clear raised hurdles. Keep the balloon airborne while reaching the high summit gate. There are no walls to bounce it off.</p>
     <button id="balloonStart" class="cargo-start" type="button">BEGIN SHIFT <span aria-hidden="true">↗</span></button>
-    <small>CLICK BALLOON TO START · WASD RUN · SHIFT SPRINT · SPACE JUMP · MOUSE AIM</small>
+    <small>CLICK BALLOON TO START · WASD RUN · SHIFT SPRINT · SPACE JUMP · R RETRY</small>
    </div>
   </div>
   <div class="cargo-load-error" id="balloonLoadError" hidden role="alert">3D rendering couldn't start. Try updating your browser or enabling hardware acceleration.</div>
  </div>
  <div class="cargo-status-bar"><span id="balloonStatus" role="status" aria-live="polite">AWAITING CONTAINMENT CLEARANCE.</span><span id="balloonStatusLevel">COURSE 01 / 10</span></div>
- <div class="cargo-footnote"><span>Click balloon to begin · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Run · <kbd>SHIFT</kbd> Sprint · <kbd>SPACE</kbd> Jump · Mouse look & zoom · Esc pause.</span><span>10 outdoor stages with steep ramps, real hurdles and summit checkpoints. Your progress saves on this device.</span></div>
+ <div class="cargo-footnote"><span>Click balloon to begin · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Run · <kbd>SHIFT</kbd> Sprint · <kbd>SPACE</kbd> Jump · Mouse look & zoom · <kbd>R</kbd> Retry · Esc pause.</span><span>10 outdoor stages with steep ramps, real hurdles and summit checkpoints. Your progress saves on this device.</span></div>
 </section>
 </main>
 <div class="crilo-game-info-backdrop" id="gameInfoModal" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle" hidden>
 <section class="crilo-game-info-card"><button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close game instructions">×</button>
 <h2 id="gameInfoTitle">Keep It Up: Cargo Bay</h2>
 <p>Run up the colorful floating platforms without letting your balloon fall.</p>
-<ul><li>Aim your crosshair at the balloon (or tap its visible body on touchscreens) and click to hit it while it's inside your glowing range ring. Clicking empty space won't hit.</li><li>The balloon travels away from your hit. Striking its left or right side steers it in the opposite direction; lower hits give more upward lift. There are no enclosing walls to bounce it off: an off-course balloon is lost.</li><li>This is third-person: the camera follows the visible character from behind. After your first balloon hit, WASD moves relative to the camera. Hold Shift to sprint, Space to jump, move the mouse to orbit, scroll to zoom and Esc to pause. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Only clicking the visible balloon body counts. Until your first successful hit, you cannot move or jump, and the balloon remains suspended. Your first hit unlocks movement and starts the fall timer. Space jumps but never hits the balloon.</li><li>Every stage climbs upward on walkable ramps and landings. Clear the raised hurdle bars with a higher Space jump, avoid the moving sweepers on tougher stages, and reach the summit gate after enough hits. Falling off the walkway or losing the balloon resets that stage.</li><li>Pause, choose unlocked stages, or play fullscreen. Progress and personal best are saved in this browser.</li></ul>
+<ul><li>Aim your crosshair at the balloon (or tap its visible body on touchscreens) and click to hit it while it's inside your glowing range ring. Clicking empty space won't hit.</li><li>The balloon travels away from your hit. Striking its left or right side steers it in the opposite direction; lower hits give more upward lift. There are no enclosing walls to bounce it off: an off-course balloon is lost.</li><li>This is third-person: the camera follows the visible character from behind. After your first balloon hit, WASD moves relative to the camera. Hold Shift to sprint, Space to jump, move the mouse to orbit, scroll to zoom and Esc to pause. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Only clicking the visible balloon body counts. Until your first successful hit, you cannot move or jump, and the balloon remains suspended. Your first hit unlocks movement and starts the fall timer. Space jumps but never hits the balloon.</li><li>Every stage climbs upward on walkable ramps and landings. Clear the raised hurdle bars with a higher Space jump, avoid the moving sweepers on tougher stages, and reach the summit gate after enough hits. Falling off the walkway or losing the balloon resets that stage.</li><li>Press R or use Restart to retry a stage, pause with Esc, select unlocked stages, or go fullscreen. Progress and your personal best save in this browser.</li></ul>
 <p>The summit challenge is separate from Crilo Daily, its badge collection, and leaderboards.</p></section>
 </div>
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
 <script src="supabase-config.js?v=21"></script><script src="app.js?v=56"></script><script src="game-topbar.js?v=1"></script>
-<script type="module" src="balloon-game.js?v=11"></script>
+<script type="module" src="balloon-game.js?v=12"></script>
 <script src="public-metrics.js?v=1"></script><script src="floating-mystery.js?v=6"></script>
 </body></html>
