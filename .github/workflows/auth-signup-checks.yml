@@ -16,7 +16,7 @@ permissions:
   contents: read
 jobs:
   auth-static:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
           node release/346-badges/135-first-login-recovery-smoke.cjs
           node emails/check-templates.cjs
   auth-browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

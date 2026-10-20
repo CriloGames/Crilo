@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 jobs:
   static-and-logic:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
       - name: Simulate signed-in and guest badge displays
         run: node release/346-badges/126-daily-badge-dropdown-smoke.cjs
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

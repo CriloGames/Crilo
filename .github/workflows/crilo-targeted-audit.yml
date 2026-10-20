@@ -18,7 +18,7 @@ permissions:
   contents: read
 jobs:
   security:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
           echo "Security checks failed: $failures"
           test "$failures" -eq 0
   badges:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
           echo "Badge/gameplay checks failed: $failures"
           test "$failures" -eq 0
   site:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4

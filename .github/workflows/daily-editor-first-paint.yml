@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 jobs:
   smoke:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
@@ -20,7 +20,7 @@ jobs:
           node --check release/346-badges/141-daily-editor-first-paint-browser.cjs
           node release/346-badges/038-guest-daily-refresh-lock-smoke.cjs
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
