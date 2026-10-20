@@ -585,6 +585,8 @@ function renderScene(now){
    progressFill.style.width=percent+'%';
   }
   stage.dataset.elevation=player.groundY.toFixed(2);
+  const altitudeLabel='STAGE '+String(level+1).padStart(2,'0')+' · +'+player.groundY.toFixed(1)+'m';
+  if(statusLevel.textContent!==altitudeLabel)statusLevel.textContent=altitudeLabel;
   stage.dataset.finishElevation=courseTopY.toFixed(2);
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
