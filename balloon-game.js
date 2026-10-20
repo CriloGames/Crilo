@@ -26,8 +26,8 @@ const LEVELS=[
  ['Crossfire',5,[[0,-2,9,.7]],[[0,.65,7,1.7,0],[0,-.9,7,-1.5,1]],[]],
  ['Pressure Plates',5,[[0,1.4,9,.7],[0,-1.3,9,.7]],[[0,-.25,7,1.5,.9]],[[0,.45,9,.7,1.4,0]]],
  ['Laser Corridor',6,[[0,1.4,9,.65],[0,-2,9,.7]],[[0,.7,7,1.9,0],[0,-.3,7,-2.1,.6],[0,-1.4,7,2.4,1.5]],[]],
- ['Panic Station',6,[[0,1.65,9,.7],[0,-1.85,9,.7]],[[0,-.25,7.5,2.55,0],[0,-1.1,7.2,-2.3,1]],[[0,.67,9,.7,1.25,.3]]],
- ['Final Inspection',7,[[0,1.7,9,.75],[0,.1,9,.7],[0,-2.75,9,.65]],[[0,.9,7.3,2.8,0],[0,-.7,7.3,-2.65,1.2],[0,-1.75,7.4,3.1,2.3]],[[0,-.1,9,.6,1.3,.3],[0,-2.35,9,.6,1.15,.7]]]
+ ['Panic Station',6,[[0,1.38,9,.7],[0,-1.85,9,.7]],[[0,-.25,7.5,2.55,0],[0,-1.1,7.2,-2.3,1]],[[0,.67,9,.7,1.25,.3]]],
+ ['Final Inspection',7,[[0,1.38,9,.75],[0,.1,9,.7],[0,-2.75,9,.65]],[[0,.9,7.3,2.8,0],[0,-.7,7.3,-2.65,1.2],[0,-1.75,7.4,3.1,2.3]],[[0,-.1,9,.6,1.3,.3],[0,-2.35,9,.6,1.15,.7]]]
 ];
 let unlocked=1,level=0,levelHits=0,checkpointScore=0,levelWorld=null,staticHazards=[],movingHazards=[],flashHazards=[],exitMat=null;
 try{unlocked=clamp(parseInt(localStorage.getItem(LEVEL_PROGRESS),10)||1,1,LEVELS.length);}catch{}
@@ -113,6 +113,8 @@ function updateHazards(now){
 }
 function checkCourse(){
  if(!moving())return;
+ // The spawn pad remains safe until the player walks into the obstacle course.
+ if(Math.hypot(player.x,player.z-2.2)<.38)return;
  if(player.feet<.7&&(staticHazards.some(intersects)||flashHazards.some(h=>h.on&&intersects(h)))){finishRun('obstacle');return;}
  for(const h of movingHazards){
   const x=player.x-h.x,z=player.z-h.z;
@@ -480,8 +482,8 @@ function frameLoop(now){
  renderScene(now);
 }
 function resetPhysics(){
- physics.x=0;physics.y=3.2;physics.z=0;
- physics.vx=.58;physics.vy=.3;physics.vz=.24;
+ physics.x=0;physics.y=4.0;physics.z=0;
+ physics.vx=.58;physics.vy=.8;physics.vz=.24;
 }
 function advancePhysics(dt,now){
  if(dt<=0)return;
@@ -622,7 +624,7 @@ function projectHit(event){
  return raycaster.intersectObject(hitSphere,false).length>0;
 }
 host.addEventListener('pointerdown',event=>{
- if(!moving()||event.target.closest?.('.cargo-touch-controls'))return;
+ if(!moving()||event.target.closest?.('.cargo-touch-controls, .cargo-jump'))return;
  if(event.pointerType==='mouse'&&event.button!==0&&event.button!==2)return;
  const hitting=event.button!==2&&projectHit(event)&&inRange();
  if(hitting){
@@ -714,6 +716,7 @@ document.addEventListener('fullscreenchange',()=>{
  const active=document.fullscreenElement===stage.closest('.cargo-console');
  full.textContent=active?'⛶ EXIT FULLSCREEN':'⛶ FULLSCREEN';full.setAttribute('aria-pressed',String(active));setDimensions();
 });
+document.getElementById('balloonJump')?.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();jump();});
 start.addEventListener('click',begin);
 pause.addEventListener('click',hold);
 sound.addEventListener('click',()=>{
