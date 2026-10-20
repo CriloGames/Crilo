@@ -1,97 +1,79 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<script src="auth-first-paint.js?v=1"></script>
-<script src="theme-bridge.js?v=1"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="auth-first-paint.js?v=1"></script><script src="theme-bridge.js?v=1"></script>
 <link rel="canonical" href="https://crilo.fun/keep-it-up.html">
-<meta name="description" content="Keep It Up! is Crilo's free balloon tapping game. Don't let the balloon touch the ground.">
+<meta name="description" content="Keep It Up: Cargo Bay. A 3D low-poly sci-fi balloon arcade game. Don't let the specimen hit the floor.">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Crilo">
-<meta property="og:title" content="Keep It Up! — Crilo">
-<meta property="og:description" content="One balloon. One floor. How long can you keep it up?">
+<meta property="og:title" content="Keep It Up: Cargo Bay — Crilo">
+<meta property="og:description" content="A very important cargo containment test. Don't drop the balloon.">
 <meta property="og:url" content="https://crilo.fun/keep-it-up.html">
 <meta property="og:image" content="https://crilo.fun/crilo-social-preview.png">
 <link rel="icon" type="image/png" sizes="48x48" href="https://crilo.fun/favicon.png">
-<title>Keep It Up! — Crilo</title>
+<title>Keep It Up: Cargo Bay — Crilo</title>
 <link rel="stylesheet" href="style.css?v=127">
 <link rel="stylesheet" href="legal.css?v=7">
 <link rel="stylesheet" href="dark-comfort.css?v=1">
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="balloon-game.css?v=1">
+<link rel="stylesheet" href="balloon-game.css?v=2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone balloon-page">
 <header class="topbar crilo-game-topbar">
- <a class="brand" href="index.html">CRILO</a>
- <nav aria-label="Game navigation"><a href="index.html">PLAY</a><a class="active" href="index.html#more-games">MORE GAMES</a></nav>
- <div class="header-actions">
-  <button type="button" class="circle-btn" id="gameInfoBtn" aria-label="How to play Keep It Up!" title="How to play" aria-haspopup="dialog" aria-controls="gameInfoModal" aria-expanded="false">?</button>
-  <div class="account-wrap"><button class="account-btn" id="accountBtn" type="button" style="visibility:hidden" aria-busy="true">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div>
- </div>
+<a class="brand" href="index.html">CRILO</a>
+<nav aria-label="Game navigation"><a href="index.html">PLAY</a><a class="active" href="index.html#more-games">MORE GAMES</a></nav>
+<div class="header-actions"><button type="button" class="circle-btn" id="gameInfoBtn" aria-label="How to play Keep It Up" aria-haspopup="dialog" aria-expanded="false" title="How to play">?</button><div class="account-wrap"><button class="account-btn" id="accountBtn" type="button" style="visibility:hidden" aria-busy="true">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div></div>
 </header>
 <script src="header-continuity.js?v=7"></script>
-<main class="balloon-main">
- <a class="balloon-back" href="index.html#more-games">← Back to More Games</a>
- <header class="balloon-heading">
-  <span class="balloon-eyebrow">ONE VERY BOUNCY BALLOON</span>
-  <h1>Keep <em>It Up!</em></h1>
-  <p>Tap the balloon to keep it in the air. Whatever you do, don't let it hit the floor.</p>
- </header>
- <section class="balloon-game" id="balloonGame" aria-label="Keep It Up balloon game">
-  <div class="balloon-toolbar">
-   <div class="balloon-score-card"><span>BOUNCES</span><strong id="balloonScore" aria-live="off">0</strong></div>
-   <div class="balloon-score-card balloon-best"><span>YOUR BEST</span><strong id="balloonBest">0</strong></div>
-   <div class="balloon-controls">
-    <button type="button" id="balloonPause" class="balloon-button balloon-pause" disabled>Pause</button>
-    <button type="button" id="balloonSound" class="balloon-button balloon-sound" aria-pressed="true">♫ Sound on</button>
+<main class="cargo-main">
+<a class="cargo-back" href="index.html#more-games">← Back to More Games</a>
+<div class="cargo-intro"><span class="cargo-kicker"><span class="cargo-kicker-dot"></span> COMPANY PROPERTY · BAY 04</span><h1>KEEP <em>IT UP.</em></h1><p>A very important containment exercise. One balloon. One industrial floor. Please don't explain the incident to management.</p></div>
+<section class="cargo-console" aria-label="Keep It Up Cargo Bay 3D game">
+ <div class="cargo-hud">
+  <div class="cargo-hud-block"><span class="cargo-hud-label">SUCCESSFUL HITS</span><strong id="balloonScore" aria-live="off">000</strong></div>
+  <div class="cargo-hud-block cargo-hud-best"><span class="cargo-hud-label">PERSONAL RECORD</span><strong id="balloonBest">000</strong></div>
+  <div class="cargo-hud-controls">
+   <button type="button" class="cargo-control" id="balloonPause" disabled>Ⅱ PAUSE</button>
+   <button type="button" class="cargo-control" id="balloonSound" aria-pressed="true">♫ AUDIO ON</button>
+  </div>
+ </div>
+ <div class="cargo-viewport" id="balloonStage" role="group" aria-label="3D cargo room. Click or tap the red balloon to keep it airborne. You can press Space or Up Arrow to hit it with the keyboard.">
+  <div id="cargoViewport3d" class="cargo-three" aria-hidden="true"></div>
+  <div class="cargo-vignette" aria-hidden="true"></div>
+  <div class="cargo-feed-top" aria-hidden="true"><span><span class="cargo-rec-dot"></span> LIVE · CAM 04</span><span>CC-04 / CONTAINMENT</span></div>
+  <div class="cargo-crosshair" id="cargoCrosshair" aria-hidden="true">+</div>
+  <div class="cargo-feed-left" aria-hidden="true">EST. 2087<br>SECTOR 07<br>NO REFUNDS</div>
+  <div class="cargo-floor-warning" id="cargoFloorWarning" aria-hidden="true"><span>⚠</span> FLOOR PROXIMITY</div>
+  <div class="cargo-feed-bottom" aria-hidden="true"><span>OBJECT: UNLICENSED BALLOON</span><span id="cargoTelemetry">AIRBORNE · STABLE</span></div>
+  <div class="cargo-hit-text" id="balloonPopWord" aria-hidden="true"></div>
+  <div class="cargo-overlay" id="balloonOverlay">
+   <div class="cargo-overlay-card">
+    <span class="cargo-overlay-label" id="balloonOverlayKicker">EMPLOYEE TRAINING // 01</span>
+    <div class="cargo-overlay-symbol" aria-hidden="true">◉</div>
+    <h2 id="balloonOverlayTitle">DON'T DROP IT.</h2>
+    <p id="balloonOverlayText">The balloon must not touch the cargo bay floor. Click it to knock it back up. Your employment status depends on this.</p>
+    <button id="balloonStart" class="cargo-start" type="button">BEGIN SHIFT <span aria-hidden="true">↗</span></button>
+    <small>CLICK / TAP BALLOON &nbsp;·&nbsp; SPACE / ↑</small>
    </div>
   </div>
-  <div class="balloon-stage" id="balloonStage" role="group" aria-label="Balloon play area. Tap or click the balloon to bounce it upward. You can also press Space or the Up Arrow while playing.">
-   <div class="balloon-cloud balloon-cloud-one" aria-hidden="true"></div>
-   <div class="balloon-cloud balloon-cloud-two" aria-hidden="true"></div>
-   <div class="balloon-cloud balloon-cloud-three" aria-hidden="true"></div>
-   <div class="balloon-sun" aria-hidden="true"></div>
-   <div class="balloon-floor" aria-hidden="true"><span class="balloon-floor-label">THE FLOOR</span></div>
-   <button id="balloonTarget" class="balloon-target" type="button" aria-label="Tap the balloon to bounce it" disabled>
-    <span class="balloon-shape" aria-hidden="true"><span class="balloon-gloss"></span><span class="balloon-face"><span></span><span></span></span><span class="balloon-mouth"></span></span>
-    <span class="balloon-knot" aria-hidden="true"></span>
-    <span class="balloon-string" aria-hidden="true"></span>
-   </button>
-   <div class="balloon-pop-word" id="balloonPopWord" aria-hidden="true"></div>
-   <div class="balloon-overlay" id="balloonOverlay">
-    <div class="balloon-overlay-card">
-     <span class="balloon-overlay-kicker" id="balloonOverlayKicker">READY?</span>
-     <h2 id="balloonOverlayTitle">Don't drop it.</h2>
-     <p id="balloonOverlayText">Every tap sends your balloon flying. Keep it up as long as you can!</p>
-     <button id="balloonStart" type="button" class="balloon-start">Let's go ↗</button>
-    </div>
-   </div>
-  </div>
-  <p class="balloon-status" id="balloonStatus" role="status" aria-live="polite">Press Let's go to start.</p>
-  <div class="balloon-bottom">
-   <span>Tap · Click · Space · ↑</span>
-   <span>Personal best saved on this device · No Daily points or badges</span>
-  </div>
- </section>
+  <div class="cargo-load-error" id="balloonLoadError" hidden role="alert">3D rendering couldn't start. Try updating your browser or enabling hardware acceleration.</div>
+ </div>
+ <div class="cargo-status-bar"><span id="balloonStatus" role="status" aria-live="polite">AWAITING CONTAINMENT CLEARANCE.</span><span>SHIFT 01 · EXPERIMENTAL</span></div>
+ <div class="cargo-footnote"><span>Tap the moving balloon, or press <kbd>SPACE</kbd> / <kbd>↑</kbd> while playing.</span><span>Record saved on this device. No Daily points, badges, or rankings.</span></div>
+</section>
 </main>
 <div class="crilo-game-info-backdrop" id="gameInfoModal" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle" hidden>
- <section class="crilo-game-info-card">
-  <button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close instructions">×</button>
-  <h2 id="gameInfoTitle">Keep It Up!</h2>
-  <p>Tap or click directly on the balloon to send it upward. Each successful tap earns one bounce.</p>
-  <ul><li>Don't let the balloon touch the floor.</li><li>Tap the left or right side to steer it as you bounce.</li><li>The balloon gets a little more lively as your score climbs.</li><li>Use Space or ↑ to bop it with the keyboard.</li><li>Pause any time. Your best bounce count stays on this browser.</li></ul>
-  <p>This is a free mini-game. It never changes your Crilo Daily scores, badges, or rankings.</p>
- </section>
+<section class="crilo-game-info-card"><button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close game instructions">×</button>
+<h2 id="gameInfoTitle">Keep It Up: Cargo Bay</h2>
+<p>You're responsible for a deeply questionable object in a low-poly cargo bay.</p>
+<ul><li>Click or tap the red balloon to send it upward. Each successful hit scores one point.</li><li>The balloon can drift sideways and bounce off the walls. It falls faster as your count increases.</li><li>Space or ↑ lets keyboard players hit it.</li><li>Touching the floor ends the shift. You can start again immediately.</li><li>Pause at any time; your best score is stored in this browser.</li></ul>
+<p>The cargo-bay challenge is entirely separate from Crilo Daily, its badge collection, and leaderboards.</p></section>
 </div>
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
-<script src="supabase-config.js?v=21"></script>
-<script src="app.js?v=56"></script>
-<script src="game-topbar.js?v=1"></script>
-<script src="balloon-game.js?v=1"></script>
-<script src="public-metrics.js?v=1"></script>
-<script src="floating-mystery.js?v=6"></script>
-</body>
-</html>
+<script src="supabase-config.js?v=21"></script><script src="app.js?v=56"></script><script src="game-topbar.js?v=1"></script>
+<script type="module" src="balloon-game.js?v=2"></script>
+<script src="public-metrics.js?v=1"></script><script src="floating-mystery.js?v=6"></script>
+</body></html>
