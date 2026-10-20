@@ -191,3 +191,8 @@
 @keyframes cargo-near{50%{box-shadow:0 0 12px #77e8b05c}}
 @media(max-width:680px){.cargo-stages-heading{font-size:9px}.cargo-stage-chip{min-width:102px;flex-basis:102px;height:47px;padding:5px 8px}.cargo-stage-chip strong{font-size:12px}.cargo-stage-chip span{font-size:8px}.cargo-stages-wrap{padding:5px 2px 7px}}
 @media(prefers-reduced-motion:reduce){.cargo-range-status.is-near{animation:none}}
+
+/* Opening phase: neither directional movement nor jumping works before first hit. */
+.cargo-viewport[data-movement-locked="true"] .cargo-touch-controls,
+.cargo-viewport[data-movement-locked="true"] .cargo-jump{opacity:.42;pointer-events:none}
+.cargo-viewport[data-movement-locked="true"] .cargo-range-status{border-color:#e8c17d;color:#ffe3a6;background:#30271be8}
