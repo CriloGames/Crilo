@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="balloon-game.css?v=4">
+<link rel="stylesheet" href="balloon-game.css?v=5">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone balloon-page">
@@ -30,7 +30,7 @@
 <script src="header-continuity.js?v=7"></script>
 <main class="cargo-main">
 <a class="cargo-back" href="index.html#more-games">← Back to More Games</a>
-<div class="cargo-intro"><span class="cargo-kicker"><span class="cargo-kicker-dot"></span> COMPANY PROPERTY · BAY 04</span><h1>KEEP <em>IT UP.</em></h1><p>A very important containment exercise. One balloon. One industrial floor. Please don't explain the incident to management.</p></div>
+<div class="cargo-intro"><span class="cargo-kicker"><span class="cargo-kicker-dot"></span> COMPANY PROPERTY · BAY 04</span><h1>KEEP <em>IT UP.</em></h1><p>Ten increasingly dangerous obstacle stages. Keep the balloon airborne while you jump hazards and reach each exit. The company is watching.</p></div>
 <section class="cargo-console" aria-label="Keep It Up Cargo Bay 3D game">
  <div class="cargo-hud">
   <div class="cargo-hud-block"><span class="cargo-hud-label">SUCCESSFUL HITS</span><strong id="balloonScore" aria-live="off">000</strong></div>
@@ -43,11 +43,15 @@
    <button type="button" class="cargo-control" id="balloonSound" aria-pressed="true">♫ AUDIO ON</button>
   </div>
  </div>
- <div class="cargo-viewport" id="balloonStage" tabindex="0" role="group" aria-label="First-person 3D cargo room. WASD moves you, drag or swipe empty scenery to look around, and click or tap the red balloon inside your floor hit-zone ring. Space does not hit.">
+ <div class="cargo-stages-wrap" aria-label="Obby stages and progress">
+  <div class="cargo-stages-heading"><strong>OBSTACLE COURSE · 10 STAGES</strong><span id="cargoStagesProgress">0 / 10 CLEARED</span></div>
+  <div class="cargo-stages-track" id="cargoStagesTrack" role="group" aria-label="Available levels and locked stages"></div>
+ </div>
+ <div class="cargo-viewport" id="balloonStage" tabindex="0" role="group" aria-label="First-person 3D balloon obstacle course. Use WASD to move, mouse to look, Space to jump, and click to hit when the balloon is inside your glowing ring. Esc pauses.">
   <div id="cargoViewport3d" class="cargo-three" aria-hidden="true"></div>
   <div class="cargo-vignette" aria-hidden="true"></div>
   <div class="cargo-feed-top" aria-hidden="true"><span><span class="cargo-rec-dot"></span> LIVE · OBBY CAM</span><span id="cargoLevelName">LEVEL 01 · ORIENTATION</span></div>
-  <div class="cargo-crosshair" id="cargoCrosshair" aria-hidden="true">+</div><div class="cargo-range-status" id="cargoRangeStatus" aria-live="off">MOVE INTO THE RING</div>
+  <div class="cargo-crosshair" id="cargoCrosshair" aria-hidden="true">+</div><div class="cargo-range-status" id="cargoRangeStatus" aria-live="off">MOVE CLOSER TO HIT THE BALLOON</div>
   <div class="cargo-feed-left" aria-hidden="true">EST. 2087<br>SECTOR 07<br>NO REFUNDS</div>
   <div class="cargo-floor-warning" id="cargoFloorWarning" aria-hidden="true"><span>⚠</span> FLOOR PROXIMITY</div>
   <div class="cargo-feed-bottom" aria-hidden="true"><span id="cargoGateHint">GATE LOCKED · 2 HITS</span><span id="cargoTelemetry">AIRBORNE · STABLE</span></div>
@@ -59,7 +63,7 @@
     <span class="cargo-overlay-label" id="balloonOverlayKicker">EMPLOYEE TRAINING // 01</span>
     <div class="cargo-overlay-symbol" aria-hidden="true">◉</div>
     <h2 id="balloonOverlayTitle">DON'T DROP IT.</h2>
-    <p id="balloonOverlayText">You are inside the cargo bay. Use WASD to move, mouse to look around, and Space to jump over hazards. Click the balloon when it enters your ring, then reach the glowing exit to unlock the next course.</p>
+    <p id="balloonOverlayText">You are inside the cargo bay. Use WASD to move, mouse to look around, and Space to jump over hazards. Click while the balloon is inside your glowing ring to hit it. Get enough hits, then cross the exit gate to unlock the next stage.</p>
     <button id="balloonStart" class="cargo-start" type="button">BEGIN SHIFT <span aria-hidden="true">↗</span></button>
     <small>WASD MOVE · MOUSE LOOK · SPACE JUMP · CLICK HIT · ESC PAUSE</small>
    </div>
@@ -67,18 +71,18 @@
   <div class="cargo-load-error" id="balloonLoadError" hidden role="alert">3D rendering couldn't start. Try updating your browser or enabling hardware acceleration.</div>
  </div>
  <div class="cargo-status-bar"><span id="balloonStatus" role="status" aria-live="polite">AWAITING CONTAINMENT CLEARANCE.</span><span id="balloonStatusLevel">COURSE 01 / 10</span></div>
- <div class="cargo-footnote"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move · Mouse look · <kbd>SPACE</kbd> Jump · Click balloon · Esc pauses.</span><span>Ten harder courses. Levels unlock on this device. No Daily points or badges.</span></div>
+ <div class="cargo-footnote"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move · Mouse look · <kbd>SPACE</kbd> Jump · Click balloon · Esc pauses.</span><span>10 distinct stages: jump lanes, moving sweepers, flashing traps. Progress saves on this device.</span></div>
 </section>
 </main>
 <div class="crilo-game-info-backdrop" id="gameInfoModal" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle" hidden>
 <section class="crilo-game-info-card"><button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close game instructions">×</button>
 <h2 id="gameInfoTitle">Keep It Up: Cargo Bay</h2>
 <p>You're responsible for a deeply questionable object in a low-poly cargo bay.</p>
-<ul><li>Click or tap the red balloon to send it upward. Each successful hit scores one point.</li><li>The balloon can drift sideways and bounce off the walls. It falls faster as your count increases.</li><li>This is first-person: WASD moves in the direction you face. Move the mouse freely to look around. Escape releases the cursor and pauses. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Click or tap the balloon to hit it while within your ring. Space jumps over obstacles but never hits the balloon.</li><li>Each level requires balloon hits plus reaching the exit. Avoid red floor strips, spinning beams and flashing tiles; if the balloon falls or an obstacle hits, retry that level.</li><li>Pause, select unlocked levels, or play fullscreen. Your unlocked courses and personal record stay saved in this browser.</li></ul>
+<ul><li>Click or tap inside the game to hit the balloon when it is inside your glowing range ring. It does not require pixel-perfect aiming.</li><li>The balloon can drift sideways and bounce off the walls. It falls faster as your count increases.</li><li>This is first-person: WASD moves in the direction you face. Move the mouse freely to look around. Escape releases the cursor and pauses. Touch players can swipe.</li><li>Your glowing floor ring shows how close the balloon must be before you can hit it.</li><li>Click or tap to hit while the balloon is in range. Space jumps over obstacles but never hits the balloon. Your first click starts the balloon physics so you can get your bearings.</li><li>Each level requires balloon hits plus reaching the exit. Avoid red floor strips, spinning beams and flashing tiles; if the balloon falls or an obstacle hits, retry that level.</li><li>Pause, select unlocked levels, or play fullscreen. Your unlocked courses and personal record stay saved in this browser.</li></ul>
 <p>The cargo-bay challenge is entirely separate from Crilo Daily, its badge collection, and leaderboards.</p></section>
 </div>
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
 <script src="supabase-config.js?v=21"></script><script src="app.js?v=56"></script><script src="game-topbar.js?v=1"></script>
-<script type="module" src="balloon-game.js?v=6"></script>
+<script type="module" src="balloon-game.js?v=7"></script>
 <script src="public-metrics.js?v=1"></script><script src="floating-mystery.js?v=6"></script>
 </body></html>
