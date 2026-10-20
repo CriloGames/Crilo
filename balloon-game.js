@@ -70,8 +70,8 @@ function refreshLevels(){
 function hudLevel(){
  const c=LEVELS[level];
  levelText.textContent=String(level+1).padStart(2,'0')+' / 10';
- goalText.textContent=levelHits+' / '+c[1]+' HITS · REACH EXIT';
- gateText.textContent=levelHits>=c[1]?'EXIT OPEN · STEP INSIDE':'GATE LOCKED · '+(c[1]-levelHits)+' HITS';
+ goalText.textContent=levelHits+' / '+c[1]+' HITS · CLIMB TO SUMMIT';
+ gateText.textContent=levelHits>=c[1]?'SUMMIT OPEN · REACH THE TOP':'SUMMIT LOCKED · '+(c[1]-levelHits)+' HITS';
  levelName.textContent='LEVEL '+String(level+1).padStart(2,'0')+' · '+c[0].toUpperCase();
  statusLevel.textContent='COURSE '+String(level+1).padStart(2,'0')+' / 10';
  if(exitMat)exitMat.color.setHex(levelHits>=c[1]?0x74efa6:0xe9a16a);
@@ -290,114 +290,39 @@ function plate(text,smaller,x,y,z,width,height,material){
  mesh.position.set(x,y,z);scene.add(mesh);return mesh;
 }
 function buildRoom(){
+ // Wide, open outdoor valley with decorative hills far below the obby.
  room=new THREE.Group();scene.add(room);
- const steel=color(0x4d5652,.94,.65),shadowSteel=color(0x242e2e,.95,.62);
- const floorMat=color(0x37403e,.96,.63),warmSteel=color(0x6a6656,.84,.4);
- const warningMat=color(0xc17d3a,.74,.28),yellow=color(0xe2a55f,.7,.32);
- const red=color(0xa3483a,.6,.25),cable=color(0x222b2d,.9,.55);
- // Geometrical room: textured by panels, riveted columns and actual depth.
- box(room,11,.25,8,0,-.16,-.75,floorMat);
- box(room,11,6.8,.24,0,3.2,-4.8,steel);
- box(room,.24,6.8,8,-5.55,3.2,-.75,steel);
- box(room,.24,6.8,8,5.55,3.2,-.75,steel);
- box(room,11,.28,8,0,6.63,-.75,shadowSteel);
- for(let i=-4;i<=4;i++){
-  box(room,.045,.012,7.4,i*1.05,.005,-.75,shadowSteel,false);
- }
- for(let i=-4;i<=4;i++){
-  const grate=box(room,.32,.013,7.3,i*1.05+0.3,.015,-.75,color(i%2?0x373e3a:0x404844,.97,.61),false);
-  grate.receiveShadow=true;
- }
- for(let i=0;i<6;i++){
-  const z=-4.35+i*1.45;
-  box(room,.16,6.35,.19,-5.33,3.1,z,shadowSteel);
-  box(room,.16,6.35,.19,5.33,3.1,z,shadowSteel);
-  box(room,10.55,.17,.25,0,6.31,z,shadowSteel);
- }
- // Back wall steel tile plating and visible seams.
- for(let x=-4.5;x<=4.5;x+=1.5){
-  for(let y=.6;y<6.2;y+=1.28)box(room,1.38,1.14,.035,x,y,-4.65,
-   color((Math.round(x+y*5)%3===0)?0x505c55:0x3d4743,.9,.52),false);
- }
- // Cargo hatch and caution strips.
- box(room,3.25,4.36,.21,0,2.16,-4.36,shadowSteel);
- box(room,2.69,3.74,.11,0,2.15,-4.23,color(0x59615b,.88,.69));
- for(let i=-3;i<=3;i++){
-  box(room,.09,3.85,.12,i*.37,2.15,-4.145,steel,false);
- }
- for(const x of [-1.56,1.56]){
-  box(room,.18,4.4,.18,x,2.15,-4.03,warningMat,false);
-  for(let i=0;i<11;i++){
-   const stripe=box(room,.19,.12,.022,x,.19+i*.38,-3.915,shadowSteel,false);
-   stripe.rotation.z=.3;
+ const grass=color(0x72976c,.97,.02),dirt=color(0x887a60,.96,.03);
+ const mountainA=color(0x7e9f84,.95,.03),mountainB=color(0x91aa95,.93,.03);
+ const snow=color(0xe0ebe5,.97,.0);
+ box(room,170,.9,170,0,-12.35,-18,grass,false);
+ box(room,170,2.2,170,0,-13.9,-18,dirt,false);
+ // Background ridgelines sit outside the climb: no solid enclosing walls.
+ for(let i=0;i<19;i++){
+  const side=i%2===0?-1:1;
+  const x=side*(12+(i*7%24)),z=-52+(i*13%85);
+  const h=7+(i*7%14);
+  const peak=new THREE.Mesh(new THREE.ConeGeometry(5+(i%4),h,5),i%3?mountainA:mountainB);
+  peak.position.set(x,-11.8+h/2,z);room.add(peak);
+  if(i%3===0){
+   const cap=new THREE.Mesh(new THREE.ConeGeometry(1.5,h*.17,5),snow);
+   cap.position.set(x,-11.8+h*.92,z);room.add(cap);
   }
  }
- // Vertical support bays, hand rails, floor hazards.
- for(let x of [-4.8,4.8]){
-  for(const y of [1.12,2.4,4.8])lineBox(room,[x,y,-4.35],[x,y,2.7],.058,warmSteel);
- }
- for(let i=-4;i<5;i++){
-  const stripe=box(room,.33,.012,.58,i*1.07,.016,2.85,i%2===0?warningMat:shadowSteel,false);
-  stripe.rotation.y=.36;
- }
- // Distinct stacked cargo cases with low-poly bevel-free industrial geometry.
- const cases=[
-  [-3.83,.52,-2.0,1.45,.95,1.2],[-4.04,1.42,-2.25,1.1,.86,1.15],
-  [3.85,.45,-2.5,1.48,.86,1.3],[3.78,1.31,-2.55,1.28,.84,1.1],
-  [-4.32,.47,1.48,1.1,.82,1.15],[4.3,.38,1.18,1,.72,1.3]
- ];
- for(let i=0;i<cases.length;i++){
-  const [x,y,z,w,h,d]=cases[i];
-  const base=color(i%2===0?0x626756:0x485452,.9,.38);
-  box(room,w,h,d,x,y,z,base);
-  box(room,w+.025,.1,d+.025,x,y+h*.37,z,shadowSteel,false);
-  box(room,w+.025,.1,d+.025,x,y-h*.37,z,shadowSteel,false);
-  for(const offset of [-1,1])box(room,.08,h*.85,d+.03,x+offset*w*.36,y,z,shadowSteel,false);
-  box(room,.27,.13,.022,x,y,z+d/2+.015,warningMat,false);
- }
- // Plumbing and cable conduits: recognizably 3D silhouettes.
- for(const x of [-4.93,4.93]){
-  const pipeMat=color(x<0?0x7e765c:0x53685b,.63,.8);
-  lineBox(room,[x,5.78,-4.3],[x,5.78,3.1],.12,pipeMat);
-  lineBox(room,[x,5.78,-4.3],[x,2.2,-4.3],.10,pipeMat);
- }
- // Overhead luminaire arrays emit light and cast short shadows.
- const lightPanel=color(0xffd3a0,.38,.05,{emissive:0xffbd76,emissiveIntensity:2.3});
- for(const x of [-2.6,2.6]){
-  for(const z of [-2.55,.95]){
-   box(room,1.15,.18,.58,x,6.36,z,shadowSteel);
-   box(room,.9,.055,.36,x,6.21,z,lightPanel,false);
+ // Scattered trees and stones add outdoor depth without stopping the player.
+ const trunk=color(0x6a5645,.98,.0),needle=color(0x446f58,.93,.03),rock=color(0x87908a,.93,.02);
+ for(let i=0;i<31;i++){
+  const side=i%2===0?-1:1;
+  const x=side*(7+(i*5%13)),z=5-i*2.15;
+  const treeH=2.2+(i%4)*.7;
+  box(room,.28,treeH*.45,.29,x,-11.6+treeH*.22,z,trunk,false);
+  const cone=new THREE.Mesh(new THREE.ConeGeometry(treeH*.41,treeH,6),needle);
+  cone.position.set(x,-11.4+treeH*.68,z);room.add(cone);
+  if(i%4===0){
+   const boulder=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+(i%3)*.2,0),rock);
+   boulder.position.set(x+2,-11.55,z-1.5);boulder.scale.y=.65;room.add(boulder);
   }
  }
- // Mechanical rear signage, old CRT, glowing status switches.
- const signMat=signage('BAY 04','PROPERTY OF THE COMPANY');
- const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.65,.87),signMat);
- sign.position.set(-3.24,5.56,-4.46);scene.add(sign);
- box(room,1.52,1.05,.22,3.54,4.63,-4.26,shadowSteel);
- box(room,1.32,.83,.02,3.54,4.63,-4.125,color(0x253c37,.58,.24,{emissive:0x1d544a,emissiveIntensity:.8}),false);
- const crtMat=signage('02:14','OBJECT LIVE',360,116,'#18302a','#a7dbaf');
- const crt=new THREE.Mesh(new THREE.PlaneGeometry(1.15,.42),crtMat);
- crt.position.set(3.54,4.69,-4.08);scene.add(crt);
- for(let i=0;i<4;i++){
-  const dot=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,.065),color(i===0?0xff6954:0x93b9a2,.35,.04,{
-   emissive:i===0?0xcc251b:0x4cbe87,emissiveIntensity:1.5}));
-  dot.position.set(3.10+i*.27,4.30,-4.06);scene.add(dot);
- }
- // Back wall red industrial warning strips.
- for(const x of [-2.02,2.02]){
-  const warningBar=new THREE.Mesh(new THREE.BoxGeometry(.18,.9,.11),red);
-  warningBar.position.set(x,4.52,-4.24);warningBar.castShadow=true;scene.add(warningBar);
- }
- // Floating dust points give atmosphere without external textures/models.
- const particles=new THREE.BufferGeometry(),positions=new Float32Array(75*3);
- for(let i=0;i<75;i++){
-  positions[i*3]=(Math.random()-.5)*9.5;
-  positions[i*3+1]=Math.random()*5.6+.25;
-  positions[i*3+2]=(Math.random()-.5)*6.6-1;
- }
- particles.setAttribute('position',new THREE.BufferAttribute(positions,3));
- scene.add(new THREE.Points(particles,new THREE.PointsMaterial({
-  color:0xd2bfa0,size:.025,transparent:true,opacity:.40,depthWrite:false})));
 }
 function buildBalloon(){
  balloon=new THREE.Group();
@@ -468,7 +393,7 @@ function buildWorker(){
  }
  scene.add(hitRing);
  worker.position.set(player.x,0,player.z);
- hitRing.position.set(player.x,0,player.z);
+ hitRing.position.set(player.x,player.groundY,player.z);
  // No first-person camera glove; hits come from the character.
  glove=null;
  scene.add(camera);
@@ -481,9 +406,9 @@ function showRenderingFailure(){
 async function initialize(){
  try{
   THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
-  scene=new THREE.Scene();scene.background=new THREE.Color(0x14201d);
-  scene.fog=new THREE.FogExp2(0x14201d,.032);
-  camera=new THREE.PerspectiveCamera(47,1,.1,55);
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x9ecce6);
+  scene.fog=new THREE.FogExp2(0x9ecce6,.0085);
+  camera=new THREE.PerspectiveCamera(47,1,.1,135);
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
@@ -491,17 +416,19 @@ async function initialize(){
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.domElement.setAttribute('aria-hidden','true');
   host.replaceChildren(renderer.domElement);
-  scene.add(new THREE.HemisphereLight(0xc5ddde,0x554639,2.0));
-  const key=new THREE.SpotLight(0xffc58b,95,22,Math.PI/3,.65,1);
-  key.position.set(-2,5.8,3.0);key.target.position.set(0,1.4,-.5);
+  scene.add(new THREE.HemisphereLight(0xe7f3ff,0x628462,2.6));
+  const key=new THREE.DirectionalLight(0xffe6b4,3.25);
+  key.position.set(-12,24,11);key.target.position.set(0,2,-14);
   key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.bias=-.0008;
-  key.shadow.camera.near=.5;key.shadow.camera.far=20;
+  key.shadow.camera.near=1;key.shadow.camera.far=100;
+  key.shadow.camera.left=-25;key.shadow.camera.right=25;
+  key.shadow.camera.top=25;key.shadow.camera.bottom=-45;
   scene.add(key,key.target);
-  const fill=new THREE.PointLight(0x7bccc1,24,13,2);
+  const fill=new THREE.PointLight(0x9ac4d9,22,24,2);
   fill.position.set(4,4,1.2);scene.add(fill);
-  redLight=new THREE.PointLight(0xf8402d,23,10,2);
+  redLight=new THREE.PointLight(0xf4ad77,14,16,2);
   redLight.position.set(-3.4,4.65,-3.0);scene.add(redLight);
-  warningLight=new THREE.PointLight(0xffbd5f,0,6,2);
+  warningLight=new THREE.PointLight(0xffc95f,0,7,2);
   warningLight.position.set(0,.8,.3);scene.add(warningLight);
   raycaster=new THREE.Raycaster();ndc=new THREE.Vector2();
   buildRoom();buildBalloon();buildWorker();buildLevel();setDimensions();
@@ -527,7 +454,7 @@ function renderScene(now){
  if(!renderer||!scene)return;
  syncCamera();
  if(worker){
-  worker.position.set(player.x,player.feet,player.z);
+  worker.position.set(player.x,player.groundY+player.feet,player.z);
   worker.rotation.y=player.yaw;
   worker.visible=true;
  }
@@ -536,14 +463,15 @@ function renderScene(now){
   balloon.rotation.z=Math.sin(now*.0016)*.065+physics.vx*.012;
   balloon.rotation.x=Math.sin(now*.0011)*.04;
   shadow.position.x=physics.x;shadow.position.z=physics.z;
-  shadow.scale.setScalar(1+(5.0-physics.y)*.07);
+  shadow.position.y=groundAt(physics.z)+.045;
+  shadow.scale.setScalar(1+(5.0-(physics.y-groundAt(physics.z)))*.07);
   shadow.material.opacity=clamp(.32-(physics.y-1)*.055,.09,.35);
   const projected=balloon.position.clone().project(camera);
   stage.dataset.hitX=String(Math.round((projected.x+1)*host.clientWidth/2));
   stage.dataset.hitY=String(Math.round((1-projected.y)*host.clientHeight/2));
  }
  if(hitRing){
-  hitRing.position.set(player.x,0,player.z);
+  hitRing.position.set(player.x,player.groundY,player.z);
   const inside=inRange();
   ringMaterial.color.setHex(inside?0x9bf5ad:0xf4ae6b);
   rangeLabel.textContent=awaitFirstHit?'HIT BALLOON FIRST · THEN MOVE':inside?'AIM AT BALLOON · CLICK TO HIT':'OUT OF RANGE · MOVE CLOSER';
@@ -557,6 +485,8 @@ function renderScene(now){
   stage.dataset.view='third-person';
   stage.dataset.movementLocked=String(awaitFirstHit);
   stage.dataset.ringRadius=String(HIT_RADIUS);
+  stage.dataset.elevation=player.groundY.toFixed(2);
+  stage.dataset.finishElevation=courseTopY.toFixed(2);
  }
  if(redLight)redLight.intensity=17+Math.sin(now*.0038)*6;
  if(warningLight)warningLight.intensity=state==='playing'&&physics.y<1.55?15:0;
@@ -579,28 +509,26 @@ function frameLoop(now){
 }
 function resetPhysics(){
  physics.x=0;physics.y=3.15;physics.z=0;
- physics.vx=.58;physics.vy=.8;physics.vz=.24;
+ physics.vx=0;physics.vy=0;physics.vz=0;
 }
 function advancePhysics(dt,now){
  if(dt<=0)return;
  const difficulty=Math.min(levelHits,9);
- physics.vy-=(3.7+level*.28+difficulty*.07)*dt;
- physics.vx+=(Math.sin(now*.00155)*.18)*dt;
- physics.vz+=(Math.cos(now*.0009)*.12)*dt;
- physics.x+=physics.vx*dt;
- physics.y+=physics.vy*dt;
- physics.z+=physics.vz*dt;
- if(physics.x>3.75){physics.x=3.75;physics.vx=-Math.abs(physics.vx)*.82;}
- if(physics.x< -3.75){physics.x=-3.75;physics.vx=Math.abs(physics.vx)*.82;}
- if(physics.z>1.65){physics.z=1.65;physics.vz=-Math.abs(physics.vz)*.84;}
- if(physics.z< -1.65){physics.z=-1.65;physics.vz=Math.abs(physics.vz)*.84;}
- if(physics.y>5.28){physics.y=5.28;physics.vy=-Math.abs(physics.vy)*.4;}
- const danger=physics.y<1.65&&physics.vy<0;
+ // Balloon floats freely: NO wall reflections or artificial side bouncing.
+ const grav=2.9+level*.075+difficulty*.048;
+ physics.vy-=grav*dt;
+ physics.vx*=Math.pow(.982,dt*60);
+ physics.vz*=Math.pow(.985,dt*60);
+ physics.x+=physics.vx*dt;physics.y+=physics.vy*dt;physics.z+=physics.vz*dt;
+ const terrain=groundAt(physics.z);
+ if(physics.y>terrain+8.5){physics.y=terrain+8.5;physics.vy=Math.min(0,physics.vy);}
+ const danger=physics.y<terrain+1.85&&physics.vy<0;
  warning.classList.toggle('is-visible',danger);
- telemetry.textContent=danger?'CRITICAL · FLOOR NEAR':'AIRBORNE · CONTAINED';
- if(physics.y<=.72){
-  physics.y=.72;renderScene(now);finishRun('balloon');
- }
+ telemetry.textContent=danger?'CRITICAL · PLATFORM NEAR':'AIRBORNE · CLIMBING';
+ if(physics.y<=terrain+.69){physics.y=terrain+.69;finishRun('balloon');return;}
+ if(Math.abs(physics.x)>COURSE_HALF_WIDTH+2.5||
+    physics.z>7||physics.z<courseEndZ-7||
+    physics.z>player.z+7){finishRun('lost');}
 }
 function recordSound(kind){
  if(!enabled)return;
@@ -660,13 +588,13 @@ function bop(hit){
  right.y=0;right.normalize();
  // Striking the left side kicks right; striking the right side kicks left.
  const side=clamp(contact.dot(right)/.52,-1,1);
- const push=away.multiplyScalar(1.55+level*.045).addScaledVector(right,-side*1.20);
- physics.vx=clamp(push.x+physics.vx*.12,-2.8,2.8);
- physics.vz=clamp(push.z+physics.vz*.12,-2.8,2.8);
+ const push=away.multiplyScalar(3.15+level*.06).addScaledVector(right,-side*1.05);
+ physics.vx=clamp(push.x+physics.vx*.12,-4.6,4.6);
+ physics.vz=clamp(push.z+physics.vz*.12,-4.6,4.6);
  // Preserve enough vertical lift for the keep-it-up game; bottom hits lift
  // harder and top hits lift less, so where you strike matters vertically too.
  const lowHit=clamp(-contact.y/.64,-1,1);
- physics.vy=clamp(4.08-level*.035+lowHit*.48+hit.rayDirection.y*.25,3.35,4.9);
+ physics.vy=clamp(5.1-level*.025+lowHit*.52+hit.rayDirection.y*.28,4.55,5.85);
  balloon.scale.set(1.14,.83,1.06);
  if(glove){glove.position.z=-1.68;glove.rotation.x=-.42;}
  clearTimeout(hitTimer);
@@ -695,7 +623,7 @@ function finishRun(reason='balloon'){
  pause.disabled=true;select.disabled=false;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');recordSound('floor');
  kicker.textContent='LEVEL '+String(level+1).padStart(2,'0')+' // FAILED';
- title.textContent=reason==='obstacle'?'OBSTACLE HIT.':'BALLOON DOWN.';
+ title.textContent=reason==='obstacle'?'HURDLE HIT.':reason==='fall'?'OFF THE COURSE.':reason==='lost'?'BALLOON LOST.':'BALLOON DOWN.';
  description.textContent='Retry level '+(level+1)+' without losing any unlocked courses. You scored '+levelHits+' of '+LEVELS[level][1]+' required hits.';
  start.innerHTML='RETRY LEVEL '+String(level+1).padStart(2,'0')+' <span aria-hidden="true">↗</span>';
  overlay.hidden=false;showStatus('LEVEL FAILED · CHECKPOINT RETAINED.');start.focus({preventScroll:true});
@@ -713,12 +641,12 @@ function begin(){
  else if(state==='over'){setScore(checkpointScore);}
  else{checkpointScore=0;setScore(0);}
  levelHits=0;lastBop=0;awaitFirstHit=true;releaseMovement();
- player.x=0;player.z=2.2;player.yaw=0;player.pitch=.04;player.feet=0;player.vy=0;player.grounded=true;
+ player.x=0;player.z=2.2;player.yaw=0;player.pitch=.025;player.groundY=0;player.feet=0;player.vy=0;player.grounded=true;
  resetPhysics();buildLevel();refreshLevels();syncCamera();
  state='playing';stage.dataset.state=state;overlay.hidden=true;
  pause.disabled=false;select.disabled=true;pause.textContent='Ⅱ PAUSE';
  warning.classList.remove('is-visible');telemetry.textContent='AIRBORNE · CONTAINED';
- showStatus('STAGE '+(level+1)+' READY · HIT THE BALLOON TO UNLOCK WASD AND JUMP.');
+ showStatus('STAGE '+(level+1)+' READY · HIT THE BALLOON, THEN CLIMB THE COURSE.');
  stage.focus({preventScroll:true});lastFrame=0;mouseLock();
 }
 function hold(){
