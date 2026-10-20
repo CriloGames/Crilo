@@ -528,7 +528,7 @@ host.addEventListener('pointerdown',event=>{
  // Drag scenery to turn the view. Mouse right-drag works too.
  event.preventDefault();
  lookDrag={id:event.pointerId,x:event.clientX,y:event.clientY};
- host.setPointerCapture?.(event.pointerId);
+ try{host.setPointerCapture?.(event.pointerId);}catch{/* Synthetic and unsupported pointers still drag safely. */}
 });
 host.addEventListener('pointermove',event=>{
  if(lookDrag?.id===event.pointerId){
