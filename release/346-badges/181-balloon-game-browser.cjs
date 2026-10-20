@@ -102,6 +102,15 @@ const sanitized=html.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,'')
    await start.click();
    assert.equal(await stage.getAttribute('data-state'),'playing','Resume returns to same run');
    assert.equal(await score.innerText(),'4','Pause preserves score');
+   await page.locator('#gameInfoBtn').click();
+   assert.equal(await stage.getAttribute('data-state'),'paused',
+    'Opening How to Play must pause the balloon automatically');
+   await start.click();
+   await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+   assert.equal(await stage.getAttribute('data-state'),'paused',
+    'Leaving or bfcache-navigating must pause rather than strand animation loop');
+   await start.click();
+   assert.equal(await stage.getAttribute('data-state'),'playing');
    await page.evaluate(()=>window.__advanceBalloon(500));
    assert.equal(await stage.getAttribute('data-state'),'over','Balloon must lose upon floor contact');
    assert.equal(await overlay.isVisible(),true);
