@@ -96,7 +96,9 @@ function buildUi(){
  el.total.textContent=String(completed)+' / 150';
  el.counter.textContent=fmtLevel(level)+' / 50';
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
- el.title.textContent=CHAPTERS[settings.c].name;
+ const rooms=['THE CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
+ el.title.textContent=rooms[settings.sceneId];
+ el.status.textContent=cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m THROW · '+CHAPTERS[settings.c].short.toUpperCase();
  el.attempts.textContent=String(attempts);
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
  el.prev.disabled=level<=1;
