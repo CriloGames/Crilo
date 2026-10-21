@@ -82,7 +82,8 @@ function stageSettings(n){
  const wind=c>=2?((n%2?1:-1)*(.37+tier*.055)):0;
  const barrierCount=c>=3?Math.min(3,1+Math.floor(tier/4)):0;
  const padCount=c===4?(tier>=4?2:1):0;
- const topPad=.88+(c===4?(tier>=5?.5:.22):0);
+ const baseHeight=[.88,1.00,1.28,1.06,1.44][(n-1)%5];
+ const topPad=baseHeight+(c===4?(tier>=5?.46:.20):0);
  return {n,c,tier,d,x,kind:type,radius,
   targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,topPad,
   color:chapter(n).color,sceneId:(n-1)%5,roomVariant:Math.floor((n-1)%10/5),
@@ -102,7 +103,7 @@ function buildUi(){
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=settings.c<2;
  el.windLabel.textContent=settings.c<2?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.c===0?'AIM • HOLD TO POWER UP • RELEASE TO TOSS':
+ el.tutorial.textContent=settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
  settings.c===1?'NEW: THE CUP MOVES. TIME YOUR THROW.':
  settings.c===2?'NEW: WIND PUSHES THE BALL SIDEWAYS.':
  settings.c===3?'NEW: DODGE THE SLIDING BLOCKERS.':
@@ -154,8 +155,8 @@ function loadLevel(n){
  buildUi();updatePower();
  showOverlay('LEVEL '+fmtLevel(level)+' · '+CHAPTERS[settings.c].short.toUpperCase(),
    level===1?'READY TO TOSS?':cupVariant(settings.kind)+' AHEAD',
-   (level===1?'Aim with your mouse, hold to charge, and release to toss. ':'')+
-   (settings.c===0?'Clear the obstacles and land inside the container.':
+   (level===1?'Swipe your finger or mouse upward to flick; you can also hold and release to charge. ':'')+
+   (settings.c===0?'Your view is from behind the desk. Land inside the container — not the rim.':
     settings.c===1?'The target slides back and forth. Time your release.':
     settings.c===2?'Watch the crosswind and curve your shot into the target.':
     settings.c===3?'Moving blockers will knock the ball away. Find an opening.':
@@ -398,7 +399,7 @@ function buildWorld(){
  // A second office desk holds the actual throwing target.
  // Different scenes change its width and background arrangement.
  const targetW=settings.sceneId===1?6.5:settings.sceneId===3?4.2:5.2;
- const farDesk=desk(group,settings.x,settings.targetZ,targetW,3.3,.94,
+ const farDesk=desk(group,settings.x,settings.targetZ,targetW,3.3,settings.topPad+.03,
    settings.sceneId===3?createMat(0x8b9188):wood,metal);
  if(settings.sceneId===0){
   officeMonitor(farDesk,-1.6,1.04,-.75,.12);
@@ -407,17 +408,24 @@ function buildWorld(){
   for(let i=0;i<4;i++)meshBox(farDesk,.6,.09,.40,
    (i-1.5)*1.25,1.05,-1.03,paper);
  }else if(settings.sceneId===2){
-  for(let i=0;i<4;i++)meshBox(farDesk,.78,.45,.45,
-   -1.75+i*.92,1.22,-1.03,createMat(0x8f9ea0));
+  // Mail sorting station: labeled parcel stacks and a raised dispatch shelf.
+  for(let i=0;i<4;i++){
+   const item=meshBox(farDesk,.75,.40,.52,-1.73+i*.92,settings.topPad+.20,-1.03,
+    createMat(i%2?0x9f9181:0xa7a69a));
+   meshBox(farDesk,.52,.012,.015,item.position.x,settings.topPad+.28,-1.30,paper);
+  }
  }else if(settings.sceneId===3){
+  // Staff kitchenette: urn, stacked dishes and appliances.
   const kettle=new THREE.Mesh(new THREE.CylinderGeometry(.30,.42,.65,14),
    createMat(0xb4b0a9,.35,.54));
-  kettle.position.set(-1.35,1.35,settings.targetZ-.92);group.add(kettle);
+  kettle.position.set(settings.x-1.38,settings.topPad+.39,settings.targetZ-.92);
+  group.add(kettle);
+  for(let i=0;i<4;i++)meshBox(farDesk,.56,.05,.56,1.47,settings.topPad+.1+i*.07,-.76,cream);
   plant(group,settings.x+2.4,settings.targetZ-.4,1.1);
  }else{
   for(let i=0;i<4;i++){
-   const screen=meshBox(farDesk,.76,.52,.10,-1.85+i*1.2,1.45,-.8,dark);
-   meshBox(farDesk,.60,.36,.016,screen.position.x,1.45,-.862,
+   const screen=meshBox(farDesk,.76,.52,.10,-1.85+i*1.2,settings.topPad+.52,-.80,dark);
+   meshBox(farDesk,.60,.36,.016,screen.position.x,settings.topPad+.52,-.862,
      createMat(0x3c656e,.35,.06,0x335969));
   }
  }
@@ -632,6 +640,9 @@ function tickObstacles(time){
  const move=settings.moving?Math.sin(t*(.8+settings.tier*.058))*settings.moving:0;
  cupGroup.position.x=settings.x+move;
  target.x=cupGroup.position.x;
+ for(const item of ambient){
+  if(item.type==='fan')item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
+ }
  for(const obj of obstacles){
   if(obj.type==='barrier'){
    obj.x=Math.sin(t*obj.speed+obj.phase)*obj.amp;
@@ -693,7 +704,7 @@ function tickFlight(dt){
   const onFarDesk=ball.z>settings.targetZ-1.62&&ball.z<settings.targetZ+1.62&&
    Math.abs(ball.x-settings.x)<(settings.sceneId===1?3.2:settings.sceneId===3?2.0:2.55);
   const onNearDesk=ball.z>3.70&&ball.z<7.55&&Math.abs(ball.x)<6.30;
-  const surface=onFarDesk?.94:onNearDesk?1.02:0;
+  const surface=onFarDesk?(settings.topPad+.03):onNearDesk?1.02:0;
   if(ball.vy<0&&prevY>=surface+BALL_R&&ball.y<surface+BALL_R){
    if(settings.padCount&&pads.some(p=>Math.hypot(ball.x-p.x,ball.z-p.z)<p.r)){}
    else{miss(surface?'DESK BOUNCE!':'FLOOR!');return;}
