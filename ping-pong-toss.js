@@ -286,6 +286,74 @@ function worldClean(){
  geometries.forEach(x=>x.dispose());materials.forEach(x=>{x.map?.dispose();x.dispose();});
 }
 
+// Procedural texture atlas: no external images, subtle realism at low cost.
+function roomTexture(kind,seed,rx=1,ry=1){
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
+ const ctx=canvas.getContext('2d');if(!ctx)return null;
+ let x=(seed*49373+911)%2147483647;
+ const rand=()=>{x=(x*48271)%2147483647;return x/2147483647;};
+ ctx.fillStyle=kind==='wall'?'#eee8e2':kind==='carpet'?'#c2cbc8':'#e3d3c1';
+ ctx.fillRect(0,0,256,256);
+ if(kind==='wood'){
+  for(let j=0;j<210;j++){
+   const y=rand()*256;
+   ctx.strokeStyle=rand()<.55?'rgba(70,47,31,.12)':'rgba(255,255,255,.13)';
+   ctx.lineWidth=.4+rand()*1.2;ctx.beginPath();ctx.moveTo(0,y);
+   ctx.bezierCurveTo(60,y+rand()*5-2,190,y+rand()*5-2,256,y+rand()*5-2);ctx.stroke();
+  }
+ }else{
+  const n=kind==='carpet'?8500:4600;
+  for(let j=0;j<n;j++){
+   ctx.fillStyle=rand()<.5?'rgba(28,38,40,.075)':'rgba(255,255,255,.07)';
+   const px=rand()*256,py=rand()*256;
+   ctx.fillRect(px,py,kind==='carpet'?2:1,kind==='carpet'?2:1);
+  }
+ }
+ const texture=new THREE.CanvasTexture(canvas);
+ texture.colorSpace=THREE.SRGBColorSpace;
+ texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
+ texture.repeat.set(rx,ry);
+ texture.anisotropy=Math.min(4,renderer?.capabilities?.getMaxAnisotropy?.()||1);
+ return texture;
+}
+function skylineTexture(seed,night,sunset){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=320;
+ const ctx=canvas.getContext('2d');if(!ctx)return null;
+ let v=(seed*67921+3307)%2147483647;
+ const rand=()=>{v=(v*48271)%2147483647;return v/2147483647;};
+ const sky=ctx.createLinearGradient(0,0,0,320);
+ const stops=night?['#22384e','#45596b','#8293a0']:
+  sunset?['#728da4','#e2aa87','#e6cfad']:['#90b7c8','#cdd5d5','#b1c4c5'];
+ stops.forEach((c,i)=>sky.addColorStop(i/2,c));ctx.fillStyle=sky;ctx.fillRect(0,0,512,320);
+ if(!night){
+  const sunX=80+rand()*350;
+  const glow=ctx.createRadialGradient(sunX,90,4,sunX,90,120);
+  glow.addColorStop(0,'rgba(255,243,205,.57)');glow.addColorStop(1,'rgba(255,243,205,0)');
+  ctx.fillStyle=glow;ctx.fillRect(0,0,512,320);
+ }
+ for(let layer=0;layer<3;layer++){
+  const palette=night?['#627887','#3d5266','#263c50']:
+   sunset?['#aba19b','#878a8b','#596a74']:['#acbcc0','#849da2','#647f88'];
+  const base=246+layer*34;ctx.fillStyle=palette[layer];
+  for(let x=-5;x<525;){
+   const width=15+rand()*40,height=45+rand()*85+layer*10;
+   ctx.fillRect(x,base-height,width,height);
+   if(layer){
+    for(let wx=x+5;wx<x+width-3;wx+=9)for(let wy=base-height+7;wy<base-6;wy+=12){
+     if(rand()>.67){ctx.fillStyle=night?'rgba(255,215,150,.75)':'rgba(224,235,233,.3)';
+      ctx.fillRect(wx,wy,3,5);ctx.fillStyle=palette[layer];}
+    }
+   }
+   x+=width+rand()*6;
+  }
+ }
+ const glint=ctx.createLinearGradient(0,0,512,120);
+ glint.addColorStop(0,'rgba(255,255,255,.22)');glint.addColorStop(.3,'rgba(255,255,255,0)');
+ glint.addColorStop(.85,'rgba(255,255,255,.07)');glint.addColorStop(1,'rgba(255,255,255,.18)');
+ ctx.fillStyle=glint;ctx.fillRect(0,0,512,320);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;
+}
+
 function roundedPoster(parent,text,x,y,z,colorText='#fef0c0'){
  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.72,.52),
   makeText(text,35,colorText,'#334858'));
@@ -428,7 +496,10 @@ function buildWorld(){
  const nearDeskTone=settings.roomVariant?0x695348:theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
- const wood=createMat(nearDeskTone,.44,.04),darkWood=createMat(0x45392f,.68);
+ wallMat.map=roomTexture('wall',level,5,3);
+ carpet.map=roomTexture('carpet',level+23,9,8);
+ const wood=createMat(nearDeskTone,.48,.04),darkWood=createMat(0x45392f,.68);
+ wood.map=roomTexture('wood',level+39,3,2);
  const metal=createMat(0x687985,.33,.41),dark=createMat(theme.trim,.6,.15);
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
@@ -530,9 +601,17 @@ function buildWorld(){
  // Wall window with faux blinds and warm sky, safely BEHIND target.
  const winGroup=new THREE.Group();winGroup.position.set(-3.75,4.55,roomEnd+.19);group.add(winGroup);
  meshBox(winGroup,3.8,2.35,.14,0,0,0,cream);
- meshBox(winGroup,3.40,2.03,.015,0,0,.085,createMat(0x8faeb8,.2,.05,0x426478));
- for(let i=0;i<10;i++)
-  meshBox(winGroup,3.33,.037,.016,0,-.95+i*.21,.105,createMat(0xd8d5bd,.85));
+ const outside=new THREE.Mesh(new THREE.PlaneGeometry(3.4,2.03),
+  new THREE.MeshBasicMaterial({map:skylineTexture(level+settings.sceneId*19,
+   settings.roomVariant===1||[4,9].includes(settings.sceneId),
+   [1,6,7].includes(settings.sceneId)),side:THREE.DoubleSide}));
+ outside.position.z=.09;winGroup.add(outside);
+ // Blinds stay mostly open, revealing different skyline lighting each round.
+ for(let i=0;i<5;i++)
+  meshBox(winGroup,3.33,.031,.028,0,.61+i*.083,.118,cream);
+ const glass=new THREE.Mesh(new THREE.PlaneGeometry(.22,1.78),
+  new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.075,depthWrite:false}));
+ glass.position.set(-.77,0,.132);glass.rotation.z=-.1;winGroup.add(glass);
  meshBox(winGroup,.11,2.1,.18,0,0,.15,cream);
  // Notices, pinned memos, clock and shelving on the rear wall.
  const cork=meshBox(group,2.8,1.55,.19,3.75,4.1,roomEnd+.22,
