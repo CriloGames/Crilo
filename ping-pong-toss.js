@@ -73,19 +73,19 @@ function hear(freq=520,duration=.10,voice='sine',volume=.04){
 }
 function stageSettings(n){
  const c=chapterIndex(n),tier=(n-1)%10;
- const d=5.15+(n-1)*.135+(tier%4)*.22;
+ const d=5.05+(n-1)*.135+(tier%4)*.22;
  let x=(seeded(n*3)-.5)*2.15;
  if(n<4)x*=.37;
  const radius=Math.max(.38,.82-(n-1)*.008);
  const type=(n-1)%5;
- const moving=c>=1?(c===1?.47+tier*.055:.24+tier*.033):0;
+ const moving=c>=1?(c===1?.45+tier*.048:.22+tier*.029):0;
  const wind=c>=2?((n%2?1:-1)*(.37+tier*.055)):0;
  const barrierCount=c>=3?Math.min(3,1+Math.floor(tier/4)):0;
  const padCount=c===4?(tier>=4?2:1):0;
- const topPad=c===4?(tier>=5?.55:.2):0;
+ const topPad=.88+(c===4?(tier>=5?.5:.22):0);
  return {n,c,tier,d,x,kind:type,radius,
   targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,topPad,
-  color:chapter(n).color,
+  color:chapter(n).color,sceneId:(n-1)%5,roomVariant:Math.floor((n-1)%10/5),
   obstacles:n<=3?0:Math.min(3,1+Math.floor((n-4)/13)),
   targetHeight:.76+(type===2?.22:type===4?.1:0)};
 }
@@ -198,166 +198,337 @@ function worldClean(){
  });
  geometries.forEach(x=>x.dispose());materials.forEach(x=>{x.map?.dispose();x.dispose();});
 }
+
+function roundedPoster(parent,text,x,y,z,colorText='#fef0c0'){
+ const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.72,.52),
+  makeText(text,35,colorText,'#334858'));
+ sign.position.set(x,y,z);parent.add(sign);return sign;
+}
+function desk(parent,x,z,w,d,h,top,legs){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ meshBox(g,w,.18,d,0,h,0,top);
+ for(const sx of [-1,1])for(const sz of [-1,1])
+  meshBox(g,.11,h-.13,.11,sx*(w/2-.19),(h-.18)/2,sz*(d/2-.22),legs);
+ meshBox(g,w*.88,.075,d*.82,0,h-.21,0,legs);
+ return g;
+}
+function plant(parent,x,z,h=.92){
+ const pot=createMat(0xa17462),soil=createMat(0x504439);
+ const leaf=createMat(0x4b7968),leaf2=createMat(0x6b9479);
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ const p=new THREE.Mesh(new THREE.CylinderGeometry(.28,.22,.42,13),pot);
+ p.position.y=.22;g.add(p);
+ const dirt=new THREE.Mesh(new THREE.CylinderGeometry(.26,.26,.045,12),soil);
+ dirt.position.y=.43;g.add(dirt);
+ for(let i=0;i<8;i++){
+  const blade=new THREE.Mesh(new THREE.ConeGeometry(.14,h*.78,6),i%2?leaf:leaf2);
+  blade.position.set(Math.sin(i*2.4)*.19,.44+h*.39,Math.cos(i*2.4)*.19);
+  blade.rotation.z=(Math.sin(i*2.1))*.38;blade.rotation.x=(Math.cos(i*2.1))*.30;g.add(blade);
+ }
+ return g;
+}
+function stackBooks(parent,x,y,z,num,seed){
+ const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);
+ const paints=[0xa95d4a,0x638b83,0x486f8d,0xc9a06b,0x947d98];
+ for(let i=0;i<num;i++){
+  const b=meshBox(g,.48+(i%3)*.055,.072,.70+(i%2)*.06,
+   Math.sin(seed+i*2.9)*.08,i*.075,Math.cos(seed+i*2.1)*.04,createMat(paints[(i+seed)%5]));
+  b.rotation.y=Math.sin(seed+i)*.12;
+  const pages=createMat(0xe9e2d5);
+  meshBox(g,.42,.011,.65,b.position.x,b.position.y+.041,b.position.z,pages).rotation.y=b.rotation.y;
+ }
+}
+function officeMonitor(parent,x,y,z,angle=0){
+ const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
+ const plastic=createMat(0x313c47),screen=createMat(0x344e5b,.43,.14,0x283b46);
+ meshBox(g,1.45,.88,.11,0,.56,0,plastic);
+ meshBox(g,1.27,.69,.013,0,.57,-.064,screen);
+ // Static neon bars resemble a work spreadsheet, not a copied game screenshot.
+ const bars=[0x6fae96,0xeac27a,0x6c98b4];
+ for(let i=0;i<4;i++){
+  const mat=new THREE.MeshBasicMaterial({color:bars[i%3]});
+  meshBox(g,.12+i*.10,.08,.016,-.43,.34+i*.13,-.079,mat);
+ }
+ meshBox(g,.09,.45,.10,0,-.11,.06,plastic);
+ meshBox(g,.65,.04,.31,0,-.31,.18,plastic);
+ return g;
+}
+function officeBin(parent,x,z,mat){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ const shell=new THREE.Mesh(new THREE.CylinderGeometry(.55,.43,.86,22,1,true),mat);
+ shell.position.y=.43;g.add(shell);
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(.56,.036,7,24),createMat(0xc5d0d0,.34,.52));
+ rim.rotation.x=Math.PI/2;rim.position.y=.86;g.add(rim);
+ const bottom=new THREE.Mesh(new THREE.CircleGeometry(.43,22),createMat(0x40484d));
+ bottom.rotation.x=-Math.PI/2;bottom.position.y=.025;g.add(bottom);
+ return g;
+}
+function officeFan(parent,x,y,z,mat,angle=0){
+ const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
+ const metal=createMat(0x6d777e,.3,.59);
+ meshBox(g,.5,.08,.40,0,.02,0,mat);
+ meshBox(g,.10,.62,.12,0,.33,0,metal);
+ const cage=new THREE.Mesh(new THREE.TorusGeometry(.47,.034,6,29),metal);
+ cage.position.y=.91;g.add(cage);
+ for(let i=0;i<4;i++){
+  const blade=new THREE.Mesh(new THREE.BoxGeometry(.19,.44,.027),mat);
+  blade.position.y=.91;blade.position.x=Math.sin(i*Math.PI/2)*.19;
+  blade.position.y+=Math.cos(i*Math.PI/2)*.19;
+  blade.rotation.z=i*Math.PI/2;g.add(blade);
+ }
+ return g;
+}
+function officeChair(parent,x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ const dark=createMat(0x44555b,.72,.06),silver=createMat(0x9fa8a7,.4,.45);
+ meshBox(g,.88,.19,.74,0,.75,0,dark);
+ meshBox(g,.88,1.02,.16,0,1.19,.35,dark);
+ meshBox(g,.06,.65,.07,0,.41,0,silver);
+ for(const a of [0,1.26,2.52,3.78,5.04]){
+  const foot=meshBox(g,.09,.09,.67,Math.sin(a)*.24,.08,Math.cos(a)*.24,silver);
+  foot.rotation.y=a;
+ }
+ return g;
+}
+
 function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];
- const c=settings.color;
- const table=createMat(0xf9f2e3),wood=createMat(0xd6bda6),woodDark=createMat(0x816f84);
- const accent=createMat(c,.54,.06),cream=createMat(0xfffdf6),navy=createMat(0x344967);
- const chapterAccent=createMat(CHAPTERS[settings.c].color,.5,.02,CHAPTERS[settings.c].color);
- const laneLength=settings.d+5.6,laneMid=(LAUNCH_Z+settings.targetZ)/2;
- // Big polished tabletop with graphic lane markings.
- meshBox(group,11,.32,laneLength,0,-.21,laneMid,table);
- meshBox(group,11,.17,laneLength,0,-.45,laneMid,wood);
- for(const x of [-5.3,5.3]){
-  meshBox(group,.065,.016,laneLength-.3,x,.01,laneMid,accent);
- }
- for(let z=LAUNCH_Z-1;z>settings.targetZ-1;z-=1.2){
-  const stripe=meshBox(group,.14,.022,.41,0,.01,z,accent);stripe.castShadow=false;
- }
- // Gradually introduce readable decor that never blocks shots.
- for(const side of [-1,1]){
-  for(let k=0;k<4;k++){
-   const z=LAUNCH_Z-1.1-k*Math.max(1.6,settings.d/4);
-   meshBox(group,.7,.20,.7,side*4.85,.12,z,navy);
-   const block=meshBox(group,.44,.55,.44,side*4.85,.50,z,chapterAccent);
-   block.rotation.y=(k+.2)*.22;
+ obstacles=[];pads=[];ambient=[];aimLine=[];
+ const sets=[
+  {walls:0x71878a,carpet:0x546c69,desk:0x9d6c4b,trim:0x374d51,name:'THE CUBICLE'},
+  {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
+  {walls:0x79919a,carpet:0x5c6b76,desk:0x896b54,trim:0x4b5e70,name:'MAILROOM'},
+  {walls:0x8c8b7d,carpet:0x68736c,desk:0x956c50,trim:0x52534f,name:'BREAK ROOM'},
+  {walls:0x728494,carpet:0x475b6b,desk:0x8d634c,trim:0x414c61,name:'NIGHT SHIFT'}
+ ];
+ const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
+ const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
+ const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
+ const wood=createMat(theme.desk,.56),darkWood=createMat(0x543e34,.72);
+ const metal=createMat(0x687985,.33,.41),dark=createMat(theme.trim,.6,.15);
+ const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
+ const highlight=createMat(settings.color,.38,.02,settings.color);
+ const blue=createMat(0x66899b,.6),light=createMat(0xf0e0b9,.7);
+ const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
+ // A full-size room: fixed eye-level perspective from behind the front desk.
+ meshBox(group,16,.23,roomLength,0,-.53,roomMiddle,carpet);
+ meshBox(group,16,8,.22,0,3.47,roomEnd,wallMat);
+ meshBox(group,.22,8,roomLength,-8,3.47,roomMiddle,wallMat);
+ meshBox(group,.22,8,roomLength,8,3.47,roomMiddle,wallMat);
+ // Skirting, ceiling, timber wall frames and acoustic office panels.
+ meshBox(group,16,.19,roomLength,0,7.54,roomMiddle,cream);
+ for(const x of [-7.84,7.84]){
+  meshBox(group,.09,.28,roomLength,x,.06,roomMiddle,darkWood);
+  for(let i=0;i<4;i++){
+   const zz=roomEnd+(i+1)*roomLength/5;
+   meshBox(group,.25,5,.15,x,3.3,zz,metal);
   }
  }
+ for(let i=0;i<4;i++){
+  const zz=roomEnd+.6+i*roomLength/4;
+  meshBox(group,15.8,.10,.09,0,6.5,zz,cream);
+ }
+ // Wall window with faux blinds and warm sky, safely BEHIND target.
+ const winGroup=new THREE.Group();winGroup.position.set(-3.75,4.55,roomEnd+.19);group.add(winGroup);
+ meshBox(winGroup,3.8,2.35,.14,0,0,0,cream);
+ meshBox(winGroup,3.40,2.03,.015,0,0,.085,createMat(0x8faeb8,.2,.05,0x426478));
+ for(let i=0;i<10;i++)
+  meshBox(winGroup,3.33,.037,.016,0,-.95+i*.21,.105,createMat(0xd8d5bd,.85));
+ meshBox(winGroup,.11,2.1,.18,0,0,.15,cream);
+ // Notices, pinned memos, clock and shelving on the rear wall.
+ const cork=meshBox(group,2.8,1.55,.19,3.75,4.1,roomEnd+.22,
+  createMat(0x95755b));
+ const noteMat=[0xffe5a4,0xcad8b0,0xe4c0b9,0xc0d8e5];
+ for(let i=0;i<6;i++){
+  const note=meshBox(group,.52+(i%3)*.15,.39+(i%2)*.10,.02,
+   2.8+(i%3)*.8,4.55-Math.floor(i/3)*.62,roomEnd+.35,
+   createMat(noteMat[(i+level)%4],.92));
+  note.rotation.z=(i%3-1)*.075;
+ }
+ const clock=new THREE.Mesh(new THREE.CylinderGeometry(.41,.41,.07,30),
+  createMat(0xedebe4,.77));
+ clock.rotation.x=Math.PI/2;clock.position.set(0,5.58,roomEnd+.32);group.add(clock);
+ for(let i=0;i<12;i++){
+  const a=i*Math.PI/6;
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.019,6,5),dark);
+  dot.position.set(Math.sin(a)*.30,5.58+Math.cos(a)*.30,roomEnd+.37);group.add(dot);
+ }
+ meshBox(group,.04,.24,.05,0,5.68,roomEnd+.4,dark).rotation.z=.35;
+ // Ceiling LED fixtures create broad, moderate light with no overexposure.
+ for(let i=0;i<3;i++){
+  const z=roomEnd+2.0+i*roomLength/3.5;
+  meshBox(group,2.5,.14,.9,-2.6,7.34,z,cream);
+  meshBox(group,2.19,.035,.7,-2.6,7.20,z,lampGlow);
+ }
+ // Side cubicle furnishings and cabinets, different positions per layout.
  for(const side of [-1,1]){
-  meshBox(group,.16,1.9,.16,side*4.7,.95,settings.targetZ-.95,woodDark);
-  const pennant=meshBox(group,.75,.52,.06,side*4.28,1.5,settings.targetZ-.95,accent);
-  pennant.rotation.y=side*.26;
+  for(let i=0;i<2;i++){
+   const z=roomEnd+2.0+i*3.3+(settings.roomVariant?.6:0);
+   const x=side*5.3;
+   const ds=desk(group,x,z,2.9,1.55,1.0,wood,metal);
+   officeMonitor(ds,0,1.02,-.2,-side*.17);
+   meshBox(ds,.85,.10,.31,.52,1.06,.44,dark);
+   officeChair(group,x,z+1.3);
+   stackBooks(group,x-side*.78,1.15,z,3+i,level+i);
+   meshBox(group,2.8,1.7,.11,side*6.98,.95,z-.8,dark);
+  }
+  plant(group,side*6.0,roomEnd+1.35+settings.roomVariant,.95);
  }
- // Launch hand and presentation pedestal.
- const launchBase=new THREE.Group();launchBase.position.set(0,0,LAUNCH_Z);group.add(launchBase);
- meshBox(launchBase,1.75,.20,1.0,0,.06,.25,wood);
- meshBox(launchBase,1.42,.10,.73,0,.21,.25,accent);
- const plate=new THREE.Mesh(new THREE.CylinderGeometry(.38,.48,.16,20),cream);
- plate.position.set(0,.31,0);launchBase.add(plate);
- const word=new THREE.Mesh(new THREE.PlaneGeometry(1.4,.31),makeText('TOSS HERE',34,'#fff','#476a85'));
- word.rotation.x=-Math.PI/2;word.position.set(0,.012,LAUNCH_Z+1.03);group.add(word);
- // The cup and its whole pedestal move together in chapter 2.
- // Bounce Lab stages add a raised podium that visually signals the higher aim.
- cupGroup=new THREE.Group();
- cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
- if(settings.topPad>0){
-  meshBox(cupGroup,2.18,settings.topPad+.17,2.18,0,-.195-settings.topPad*.5,0,wood);
+ // Front player desk close to camera: tangible 3D surface and desk accessories.
+ const playerDesk=desk(group,0,5.65,12.7,3.9,1.02,wood,metal);
+ meshBox(playerDesk,5.7,.012,1.0,0,1.13,-.61,
+  createMat(0x435a61,.83)); // desk mat behind the ball
+ stackBooks(playerDesk,-4.32,1.19,.35,4,level);
+ const note=meshBox(playerDesk,1.2,.01,.84,3.8,1.15,-.27,paper);
+ note.rotation.y=.12;
+ const pencil=createMat(0xe5b04c,.34),eraser=createMat(0x8a6867,.83);
+ for(let i=0;i<3;i++){
+  const pen=meshBox(playerDesk,.026,.025,.7,3.33+i*.15,1.17,.20,pencil);
+  pen.rotation.y=-.2+i*.08;
  }
- meshBox(cupGroup,2.45,.19,2.4,0,-.135,0,accent);
- const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.07,.06,26),cream);
- disc.position.set(0,-.02,0);cupGroup.add(disc);
+ meshBox(playerDesk,.35,.13,.30,4.50,1.23,.06,eraser);
+ // First-person throwing hand on the right edge of the desktop.
+ const skin=createMat(0xc19375,.83),cuff=createMat(0x467a8b,.83);
+ const hand=new THREE.Group();hand.position.set(.75,.65,LAUNCH_Z+.42);group.add(hand);
+ meshBox(hand,.48,.26,.70,0,0,0,skin);
+ meshBox(hand,.53,.30,.30,0,-.08,.39,cuff);
+ for(let i=0;i<4;i++)meshBox(hand,.083,.09,.35,-.15+i*.10,.16,-.30,skin);
+ // A second office desk holds the actual throwing target.
+ // Different scenes change its width and background arrangement.
+ const targetW=settings.sceneId===1?6.5:settings.sceneId===3?4.2:5.2;
+ const farDesk=desk(group,settings.x,settings.targetZ,targetW,3.3,.94,
+   settings.sceneId===3?createMat(0x8b9188):wood,metal);
+ if(settings.sceneId===0){
+  officeMonitor(farDesk,-1.6,1.04,-.75,.12);
+  stackBooks(farDesk,1.75,1.08,-.7,2,level);
+ }else if(settings.sceneId===1){
+  for(let i=0;i<4;i++)meshBox(farDesk,.6,.09,.40,
+   (i-1.5)*1.25,1.05,-1.03,paper);
+ }else if(settings.sceneId===2){
+  for(let i=0;i<4;i++)meshBox(farDesk,.78,.45,.45,
+   -1.75+i*.92,1.22,-1.03,createMat(0x8f9ea0));
+ }else if(settings.sceneId===3){
+  const kettle=new THREE.Mesh(new THREE.CylinderGeometry(.30,.42,.65,14),
+   createMat(0xb4b0a9,.35,.54));
+  kettle.position.set(-1.35,1.35,settings.targetZ-.92);group.add(kettle);
+  plant(group,settings.x+2.4,settings.targetZ-.4,1.1);
+ }else{
+  for(let i=0;i<4;i++){
+   const screen=meshBox(farDesk,.76,.52,.10,-1.85+i*1.2,1.45,-.8,dark);
+   meshBox(farDesk,.60,.36,.016,screen.position.x,1.45,-.862,
+     createMat(0x3c656e,.35,.06,0x335969));
+  }
+ }
+ // Variety: the actual cup is always open and visible on its own tray.
+ cupGroup=new THREE.Group();cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
  const r=settings.radius,kind=settings.kind,h=settings.targetHeight;
- const palette=[0xff8c9e,0x8db8eb,0xffc679,0x9cdbb8,0xbb9def];
- const cupMat=createMat(palette[kind],.45,.06),insideMat=createMat(0xf5e9e3),lipMat=createMat(0xfff8e6,.36,.05);
- const bottomR=kind===3?r*.99:r*.73;
- const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,bottomR,h,32,1,true),cupMat);
+ const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4];
+ const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xecedeb,.4,.18);
+ const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,kind===3?r*.96:r*.73,h,32,1,true),cupMat);
  shell.position.y=h/2;shell.castShadow=true;cupGroup.add(shell);
- const inner=new THREE.Mesh(new THREE.CylinderGeometry(r*.92,bottomR*.92,h*.93,32,1,true),
-  new THREE.MeshStandardMaterial({color:palette[kind],roughness:.6,side:THREE.BackSide}));
+ const inner=new THREE.Mesh(new THREE.CylinderGeometry(r*.93,r*.71,h*.91,30,1,true),
+  new THREE.MeshStandardMaterial({color:0x505d61,side:THREE.BackSide,roughness:.7}));
  inner.position.y=h/2;cupGroup.add(inner);
- cupFloor=new THREE.Mesh(new THREE.CircleGeometry(bottomR*.92,28),insideMat);
- cupFloor.rotation.x=-Math.PI/2;cupFloor.position.y=.06;cupGroup.add(cupFloor);
- const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.055,8,40),lipMat);
+ cupFloor=new THREE.Mesh(new THREE.CircleGeometry(r*.70,28),insideMat);
+ cupFloor.rotation.x=-Math.PI/2;cupFloor.position.y=.045;cupGroup.add(cupFloor);
+ const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.054,9,40),lipMat);
  lip.rotation.x=Math.PI/2;lip.position.y=h;cupGroup.add(lip);
  if(kind===1){
-  const handle=new THREE.Mesh(new THREE.TorusGeometry(r*.4,.09,8,20),cupMat);
-  handle.rotation.y=Math.PI/2;handle.position.set(r*1.12,h*.56,0);cupGroup.add(handle);
+  const handle=new THREE.Mesh(new THREE.TorusGeometry(r*.4,.085,8,22),cupMat);
+  handle.rotation.y=Math.PI/2;handle.position.set(r*1.12,h*.55,0);cupGroup.add(handle);
  }
  if(kind===2){
-  for(const side of [-1,1])meshBox(cupGroup,.11,h*.78,.09,side*r*.85,h*.5,0,lipMat);
+  for(const side of [-1,1])meshBox(cupGroup,.10,h*.75,.08,side*r*.85,h*.52,0,lipMat);
  }
  if(kind===4){
-  const net=new THREE.Mesh(new THREE.CylinderGeometry(r*.98,r*.67,h*.73,24,1,true),
-   new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.21,wireframe:true}));
-  net.position.y=h*.45;cupGroup.add(net);
+  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r*.96,r*.7,h*.77,20,1,true),
+   new THREE.MeshStandardMaterial({color:0xabb7b1,transparent:true,opacity:.37,wireframe:true}));
+  mesh.position.y=h*.4;cupGroup.add(mesh);
  }
- target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r:r,kind};
- // Target spotlight decal and stage sign, behind the target.
- const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.67),
-  makeText('LEVEL '+fmtLevel(level),42,'#fff','#3d6485'));
- sign.position.set(settings.x,2.45,settings.targetZ-1.25);group.add(sign);
- // Distinct physical obstacles along the flight path. Blockers never intersect
- // the container itself, making all 50 goals geometrically possible.
+ target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r,kind};
+ // The tray/pad follows lateral target motion, not the entire desk.
+ meshBox(cupGroup,r*2.5,.09,r*2.5,0,-.10,0,cream);
+ const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.42),
+  makeText('IN THE CUP',31,'#f1eeee','#405c63'));
+ targetMarker.position.set(settings.x+1.6,2.33,settings.targetZ-1.12);group.add(targetMarker);
  const count=settings.obstacles;
  for(let i=0;i<count;i++){
   const t=(i+1)/(count+1);
-  const z=lerp(LAUNCH_Z-1.5,settings.targetZ+1.25,t);
-  const left=i%2===0?-1:1;
-  const x=left*(.7+.42*seeded(level*7+i));
-  const height=.8+.35*(i%3)+.08*settings.c;
-  const obj=meshBox(group,.57,height,.57,x,height/2,z,
-   createMat(i%2?0xffc57c:0x8abed2));
-  meshBox(group,.61,.13,.61,x,height+.04,z,navy);
-  obstacles.push({type:'box',obj,x,y:height/2,z,w:.57,h:height,d:.57});
- }
- // Moving gates arrive at levels 31–40; keep readable openings.
- for(let i=0;i<settings.barrierCount;i++){
-  const pos=(i+1)/(settings.barrierCount+1);
-  const z=lerp(LAUNCH_Z-1.8,settings.targetZ+1.25,pos);
-  const obj=meshBox(group,1.45,.33,.30,0,1.65+i*.22,z,createMat(0xe889a8));
-  for(const side of [-1,1]){
-   meshBox(group,.16,1.8,.18,side*2.5,.9,z,woodDark);
+  const z=lerp(LAUNCH_Z-1.2,settings.targetZ+1.2,t);
+  const x=(i%2===0?-1:1)*(1.00+.36*seeded(level*7+i));
+  const height=.85+.29*(i%3)+settings.c*.06;
+  const item=new THREE.Group();item.position.set(x,height*.5,z);group.add(item);
+  if(settings.sceneId%2===0){
+   for(let k=0;k<3;k++)meshBox(item,.62,.14,.54,0,(k-1)*.15,0,
+    createMat([0x748a9e,0xc6a985,0x8d7274][k]));
+  }else{
+   meshBox(item,.63,height,.55,0,0,0,createMat(0xb2ada5,.75));
+   for(let k=0;k<3;k++)meshBox(item,.5,.018,.018,0,.2-k*.15,-.29,createMat(0x566a6e));
   }
-  obstacles.push({type:'barrier',obj,x:0,y:1.65+i*.22,z,w:1.45,h:.33,d:.3,
-   amp:1.6+.22*i,speed:.9+.17*i,phase:i*2.4});
+  obstacles.push({type:'box',obj:item,x,y:height/2,z,w:.62,h:height,d:.55});
  }
- // Bounce Lab introduces spring pads that pop the ball upward on contact.
+ // Office-themed obstacles: sliding file cabinets instead of flat neon bars.
+ for(let i=0;i<settings.barrierCount;i++){
+  const z=lerp(LAUNCH_Z-1.8,settings.targetZ+1.25,(i+1)/(settings.barrierCount+1));
+  const item=new THREE.Group();group.add(item);item.position.set(0,1.6+i*.19,z);
+  const front=meshBox(item,1.45,.38,.33,0,0,0,createMat(0x8498a0));
+  meshBox(item,.64,.065,.035,0,.02,-.19,metal);
+  obstacles.push({type:'barrier',obj:item,x:0,y:1.6+i*.19,z,w:1.45,h:.38,d:.33,
+   amp:1.35+.19*i,speed:.75+.2*i,phase:i*2.4});
+ }
+ // A desk fan is also visible when the wind mechanic is active.
+ if(settings.c>=2){
+  const fan=officeFan(group,-3.65,1.03,settings.targetZ+.85,metal,.2);
+  ambient.push({type:'fan',obj:fan});
+ }
  for(let i=0;i<settings.padCount;i++){
-  const z=lerp(LAUNCH_Z,settings.targetZ,(i+1)/(settings.padCount+1));
-  const x=i===0?0:(settings.x*.45);
-  const padBase=new THREE.Mesh(new THREE.CylinderGeometry(.85,.95,.14,26),
-   createMat(0x3f587c,.35,.1));padBase.position.set(x,.08,z);group.add(padBase);
-  const padFace=new THREE.Mesh(new THREE.CylinderGeometry(.76,.76,.05,26),
-   createMat(0xcfb1fa,.25,.05,0xae8aff));
-  padFace.position.set(x,.17,z);group.add(padFace);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.79,.065,8,28),
-   new THREE.MeshBasicMaterial({color:0xfff2a5}));
-  ring.rotation.x=Math.PI/2;ring.position.set(x,.21,z);group.add(ring);
-  pads.push({x,z,r:.75,y:.24,mat:padFace.material,last:-10});
+  const z=lerp(LAUNCH_Z-.7,settings.targetZ,(i+1)/(settings.padCount+1));
+  const x=i===0?0:settings.x*.5;
+  const pad=new THREE.Group();pad.position.set(x,0,z);group.add(pad);
+  meshBox(pad,1.66,.12,1.66,0,.12,0,dark);
+  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.77,.77,.08,20),
+    createMat(0x7b9ca3,.35,.05,0x4c7777));
+  spring.position.y=.23;pad.add(spring);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.76,.05,8,26),
+    new THREE.MeshBasicMaterial({color:0xc9f1d2}));
+  ring.rotation.x=Math.PI/2;ring.position.y=.28;pad.add(ring);
+  pads.push({x,z,r:.75,y:.30,mat:spring.material,last:-10});
  }
- // Scene background scenery deliberately does not affect physical collision.
- const stone=createMat(0xb7c7cb),grass=createMat(0xb2dfc2);
- for(let i=0;i<16;i++){
-  const side=i%2===0?-1:1,x=side*(7+(i*5%9));
-  const z=settings.targetZ-8+(i*3)%30;
-  const h=1.1+(i%3)*.55;
-  const island=new THREE.Mesh(new THREE.DodecahedronGeometry(.6+i%3*.19,0),stone);
-  island.position.set(x,-.65,z);group.add(island);
-  const leaf=new THREE.Mesh(new THREE.ConeGeometry(.48,h,7),grass);
-  leaf.position.set(x,-.25+h*.5,z);group.add(leaf);
- }
- // Ball and preview dots are recreated every stage.
- ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R,20,16),
-  new THREE.MeshStandardMaterial({color:0xfefefe,roughness:.25,metalness:.02}));
+ // Projectile is deliberately warm orange, outlined, large enough to TRACK,
+ // strongly contrasting with the dark gray office instead of washing out.
+ const ballMaterial=new THREE.MeshStandardMaterial({color:0xf7b86b,roughness:.27,metalness:0,
+  emissive:0x653112,emissiveIntensity:.22});
+ ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.34,24,18),ballMaterial);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
- const seamMat=new THREE.MeshBasicMaterial({color:0xf49c70,transparent:true,opacity:.8});
- for(const rot of [0,Math.PI*.5]){
-  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*.985,.004,5,44),seamMat);
-  seam.rotation.y=rot;ballMesh.add(seam);
+ const ringPaint=new THREE.MeshBasicMaterial({color:0x8c4f39});
+ for(const angle of [0,Math.PI/2]){
+  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.315,.005,5,36),ringPaint);
+  seam.rotation.y=angle;ballMesh.add(seam);
  }
- ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.25,26),
-  new THREE.MeshBasicMaterial({color:0x31506b,transparent:true,opacity:.16,depthWrite:false}));
- ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,.02,LAUNCH_Z);group.add(ballShadow);
+ // Soft contact shadow only, not a pale ball on a pale tabletop.
+ ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.20,24),
+  new THREE.MeshBasicMaterial({color:0x1c282f,transparent:true,opacity:.27,depthWrite:false}));
+ ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,1.15,LAUNCH_Z);group.add(ballShadow);
  trajectoryGroup=new THREE.Group();group.add(trajectoryGroup);
- for(let i=0;i<48;i++){
-  const dot=new THREE.Mesh(new THREE.SphereGeometry(.035,6,5),
-   new THREE.MeshBasicMaterial({color:i%3===0?0xffcc84:0xffffff,
-    transparent:true,opacity:Math.max(.13,.84-i*.013)}));
-  dot.visible=false;trajectoryGroup.add(dot);aimLine.push(dot);
+ for(let i=0;i<42;i++){
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.040,7,6),
+   new THREE.MeshBasicMaterial({color:i%3===0?0xf3b768:0x5c9199,transparent:true,
+     opacity:Math.max(.18,.8-i*.014)}));
+  dot.visible=false;trajectoryGroup.add(dot);
  }
  aimLine=trajectoryGroup.children;
- camera.position.set(0,7.8+settings.d*.17,10.0+settings.d*.17);
- camera.lookAt(settings.x*.17,1.0,settings.targetZ*.41);
+ // Camera at human eye-height, not the old god's-eye tabletop view.
+ camera.position.set(.0,3.25,8.55);
+ camera.lookAt(settings.x*.11,1.37,settings.targetZ*.50);
  camera.updateMatrixWorld();
- scene.background.setHex([0xd8eff3,0xf4e7ef,0xdcebf8,0xffeedb,0xeee3f8][settings.c]);
- const floor=scene.fog;if(floor)floor.color.copy(scene.background);
+ scene.background.setHex([0x687f87,0x91877d,0x7a8994,0x8b887d,0x627585][settings.sceneId]);
+ if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
- resetBall();
- paintAim();
+ resetBall();paintAim();
 }
+
 function idealPower(){
  const d=Math.hypot(settings.d,settings.x);
  const t=Math.tan(aimPitch),co=Math.cos(aimPitch);
