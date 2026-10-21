@@ -33,7 +33,7 @@ const CHAPTERS=[
 let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
-let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,lastAimRefresh=-1000;
+let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
 let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -221,11 +221,11 @@ function cupVariant(kind){
 function loadLevel(n){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
  level=n;settings=stageSettings(level);chosenChapter=chapterIndex(level);
- attempts=0;shotT=0;flight=false;paused=false;
+ attempts=0;shotT=0;simTime=0;flight=false;paused=false;
  aimYaw=settings.springRequired?0:Math.atan2(settings.x,settings.d);
  aimPitch=settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
- if(hasRenderer){buildWorld();}
+ if(hasRenderer){buildWorld();tickObstacles(0);}
  buildUi();updatePower();
  const roadblock=settings.obstaclePlan.map(o=>o[0].replaceAll('_',' '));
  const barrierText=settings.barrierPlan.length?
@@ -1146,7 +1146,7 @@ function paintAim(){
  let x=0,y=LAUNCH_Y,z=LAUNCH_Z,t=0,bounceCount=0;
  const v=makeVelocity(p);let vx=v.vx,vy=v.vy,vz=v.vz;
  const dots=settings.springRequired||settings.bankRequired?78:settings.c>=3?70:62;
- const time=performance.now()/1000;
+ const time=simTime;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];dot.visible=!flight&&playing&&i<dots;
   if(i>0){
@@ -1296,7 +1296,7 @@ function tickFlight(dt){
  for(let step=0;step<substeps;step++){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
-  ball.vx+=windAt(performance.now()/1000)*h;
+  ball.vx+=windAt(simTime)*h;
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   shotT+=h;
@@ -1331,12 +1331,12 @@ function tickFlight(dt){
      ball.y=pad.y+BALL_R;
      if(pad.type==='bank'){
       ball.bankHits++;
-      const impulse=bankRebound(ball,pad,performance.now()/1000);
+      const impulse=bankRebound(ball,pad,simTime);
       ball.vx=impulse.vx;ball.vy=impulse.vy;ball.vz=impulse.vz;
       message('PERFECT BANK! · FINISH THE SHOT',1.0);
       hear(650,.13,'triangle',.045);
      }else{
-      const rebound=bankRebound(ball,pad,performance.now()/1000);
+      const rebound=bankRebound(ball,pad,simTime);
       ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
       ball.springHits++;
       message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
@@ -1382,7 +1382,8 @@ function animate(now){
  const dt=lastNow?clamp((now-lastNow)/1000,0,.04):0;lastNow=now;
  if(!hasRenderer)return;
  if(playing&&!paused){
-  tickObstacles(now);
+  simTime+=dt;
+  tickObstacles(simTime*1000);
   if(charging)chargeTick(now);
   if(flight)tickFlight(dt);
   // Recompute the predicted arc against the target's current movement.
