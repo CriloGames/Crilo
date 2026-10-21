@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -406,7 +406,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];
+ obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -669,6 +669,28 @@ function buildWorld(){
  }
  const stationMarker=meshBox(farDesk,2.45,.038,.14,0,stationY+.115,-.73,highlight);
  stationMarker.castShadow=false;
+ // Draw each cup's movement envelope on its work surface.
+ if(settings.motion!=='still'&&settings.motion!=='lift'){
+  const pts=[],am=settings.moving*.98,yy=stationY+.19;
+  for(let j=0;j<=56;j++){
+   const tt=j/56*TWO_PI;
+   let x=0,z=0;
+   if(settings.motion==='slide')x=Math.sin(tt)*am;
+   else if(settings.motion==='depth')z=Math.sin(tt)*am*.80;
+   else if(settings.motion==='orbit'){x=Math.sin(tt)*am;z=Math.cos(tt)*am*.50;}
+   else if(settings.motion==='figure8'){x=Math.sin(tt)*am;z=Math.sin(tt*2)*am*.48;}
+   pts.push(new THREE.Vector3(x,yy,z));
+  }
+  farDesk.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),
+   new THREE.LineBasicMaterial({color:0xfce2a4,transparent:true,opacity:.77,depthWrite:false})));
+ }
+ if(settings.motion==='lift'){
+  // Rising cups extend a visible support instead of clipping into the desk.
+  targetLift=new THREE.Mesh(new THREE.CylinderGeometry(.095,.12,1,12),
+   createMat(0xc3c1b1,.32,.38));
+  targetLift.position.set(settings.x,stationY+.18,settings.targetZ);
+  group.add(targetLift);
+ }
  if(settings.sceneId===0){
   officeMonitor(farDesk,-1.65,stationY+.15,-.75,.12);
   stackBooks(farDesk,1.60,stationY+.18,-.7,2,level);
@@ -1090,7 +1112,7 @@ function targetLocation(time){
  switch(settings.motion){
   case 'slide':x+=Math.sin(phase)*a;break;
   case 'depth':z+=Math.sin(phase)*a*.80;break;
-  case 'lift':y+=Math.sin(phase)*a*.65;break;
+  case 'lift':y+=(.5+.5*Math.sin(phase))*a*.90;break;
   case 'orbit':x+=Math.sin(phase)*a;z+=Math.cos(phase)*a*.50;break;
   case 'figure8':x+=Math.sin(phase)*a;z+=Math.sin(phase*2)*a*.48;break;
  }
@@ -1219,6 +1241,12 @@ function tickObstacles(time){
  }
  const position=targetLocation(t);
  cupGroup.position.set(position.x,position.y,position.z);
+ if(targetLift){
+  const floorY=settings.topPad+.16;
+  const extension=Math.max(.055,position.y-floorY);
+  targetLift.position.set(position.x,floorY+extension*.5,position.z);
+  targetLift.scale.y=extension;
+ }
  target.x=position.x;target.z=position.z;target.y=position.y;
  target.top=position.y+settings.targetHeight;
  for(const item of ambient){
