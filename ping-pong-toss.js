@@ -124,7 +124,7 @@ const STAGES=[
  ['Vent and Spring',9,'cabinet',7.52,-1.38,1.59,.40,5,'spring','orbit',.17,'airvent',[['partition',.39,1.34]],[]],
  ['Cafeteria Chaos',3,'counter',7.75,.74,1.42,.40,3,'spring','figure8',-.19,'kettle',[['teapot',.40,-1.20]],[['panel',.67,.30,1.45]]],
  ['Spring Bank Combo',0,'trolley',8.06,-.81,1.58,.40,2,'spring','slide',.22,'folders',[['monitor',.36,1.36]],[['drawer',.70,-.48,1.52]]],
- ['Archive Springs',5,'archive',8.25,1.56,1.83,.39,4,'spring','lift',-.25,'archive',[['files',.28,-1.30]],[['panel',.60,.33,1.57]]],
+ ['Archive Springs',5,'archive',8.25,1.56,1.65,.45,4,'spring','lift',-.25,'archive',[['files',.28,-1.30]],[['panel',.60,.33,1.57]]],
  ['Around the Fans',9,'printer',8.44,-1.54,1.55,.39,0,'spring','orbit',.27,'fan',[['printer',.40,1.32]],[['drawer',.63,-.55,1.62]]],
  ['Last Day on the Job',7,'conference',8.65,.42,1.90,.38,6,'spring','figure8',-.30,'trophies',[['projector',.30,1.48],['lamp',.49,-1.14]],[['panel',.65,-.20,1.65],['drawer',.83,.52,1.39]]]
 ];
@@ -236,8 +236,8 @@ function loadLevel(n){
   orbit:'The container circles its station.',figure8:'The container follows a figure-eight.'
  }[settings.motion];
  const shotAdvice=settings.springRequired?
-  'You MUST touch the spring plate first.':
-  settings.bankRequired?'A marked rubber-bank bounce is required.':
+  'You MUST hit the spring plate first, then aim the natural rebound into the cup. It will NOT aim for you.':
+  settings.bankRequired?'Bounce off the marked rubber tray and aim the rebound yourself; the pad will NOT steer the ball.':
   'Land inside the opening without hitting the rim.';
  const introText='Throw into the '+cupVariant(settings.kind).toLowerCase()+
   ' on the '+settings.station+' '+settings.d.toFixed(1)+'m away. '+
