@@ -1128,17 +1128,27 @@ function targetLocation(time){
  }
  return {x,y,z};
 }
-function bankRebound(obj,pad,timeSec){
- // Predict the descending crossing of the target's opening. This is a
- // forgiving rubber rebound, never a teleport; the ball continues its
- // animated physical arc and wind/moving barriers still affect its flight.
- const start=pad.y+BALL_R;
- const vy=pad.type==='spring'?6.30:5.65;
- const rise=target.top-BALL_R-start;
- const discriminant=Math.max(.001,vy*vy-2*GRAVITY*rise);
- const travel=clamp((vy+Math.sqrt(discriminant))/GRAVITY,.4,1.4);
- const next=targetLocation(timeSec+travel);
- return {vy,vx:(next.x-obj.x)/travel,vz:(next.z-obj.z)/travel};
+// Pads act like REAL bounce surfaces, not magnets. Outgoing velocity depends
+// solely on inbound velocity, contact location and pad material. No target
+// coordinates, cup motion or targetLocation() are used to steer the rebound.
+function padRebound(projectile,pad){
+ const offsetX=clamp((projectile.x-pad.x)/pad.r,-1,1);
+ const offsetZ=clamp((projectile.z-pad.z)/pad.r,-1,1);
+ const impact=Math.abs(Math.min(0,projectile.vy));
+ if(pad.type==='spring'){
+  // Spring takes some forward momentum and returns a strong vertical kick.
+  return {
+   vx:projectile.vx*.79+offsetX*.44,
+   vy:clamp(5.65+impact*.43,5.65,8.2),
+   vz:projectile.vz*.75+offsetZ*.35
+  };
+ }
+ // Padded rubber tray: much softer bounce. Off-centre hits deflect subtly.
+ return {
+  vx:projectile.vx*.78+offsetX*.52,
+  vy:clamp(2.75+impact*.79,3.3,7.3),
+  vz:projectile.vz*.77+offsetZ*.29
+ };
 }
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
@@ -1158,7 +1168,7 @@ function paintAim(){
     if(pad&&oldY>=pad.y+BALL_R&&y<=pad.y+BALL_R&&
       Math.hypot(x-pad.x,z-pad.z)<pad.r-BALL_R){
      y=pad.y+BALL_R;
-     const impulse=bankRebound({x,y,z},pad,time+t);
+     const impulse=padRebound({x,y,z,vx,vy,vz},pad);
      vx=impulse.vx;vy=impulse.vy;vz=impulse.vz;
      bounceCount=1;
     }
@@ -1331,12 +1341,12 @@ function tickFlight(dt){
      ball.y=pad.y+BALL_R;
      if(pad.type==='bank'){
       ball.bankHits++;
-      const impulse=bankRebound(ball,pad,simTime);
+      const impulse=padRebound(ball,pad);
       ball.vx=impulse.vx;ball.vy=impulse.vy;ball.vz=impulse.vz;
-      message('PERFECT BANK! · FINISH THE SHOT',1.0);
+      message('BANK BOUNCE! · NOW LAND THE SHOT',1.0);
       hear(650,.13,'triangle',.045);
      }else{
-      const rebound=bankRebound(ball,pad,simTime);
+      const rebound=padRebound(ball,pad);
       ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
       ball.springHits++;
       message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
