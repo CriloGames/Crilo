@@ -34,7 +34,7 @@ let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0;
-let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,springHits:0,trail:[]};
+let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const fmtLevel=n=>String(n).padStart(2,'0');
@@ -148,7 +148,10 @@ function buildChapters(){
   const label=document.createElement('span');label.textContent=fmtLevel(i);
   const star=document.createElement('small');star.textContent=i>unlocked?'LOCK':stars[i]?'★'.repeat(stars[i]):'PLAY';
   button.append(label,star);button.disabled=i>unlocked;
-  button.setAttribute('aria-label','Level '+i+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
+  const recipe=stageSettings(i);
+  const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
+  button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
   button.addEventListener('click',()=>loadLevel(i));
   el.grid.append(button);
  }
@@ -193,7 +196,7 @@ function nextLevel(){
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
 function resetBall(){
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,springHits:0,trail:[]};
+ ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
@@ -881,7 +884,7 @@ function launch(flickPower=null){
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  active:true,bounces:0,springHits:0,trail:[]};
+  active:true,bounces:0,bankHits:0,springHits:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.attempts.textContent=String(attempts);
  throwMoment=performance.now();
@@ -959,7 +962,7 @@ function tickFlight(dt){
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
-   if(settings.bankRequired&&ball.bounces<1){miss('BOUNCE FIRST!');return;}
+   if(settings.bankRequired&&ball.bankHits<1){miss('BANK OFF THE MARKED PAD!');return;}
    if(settings.springRequired&&ball.springHits<1){miss('SPRING PAD FIRST!');return;}
    complete();return;
   }
@@ -983,6 +986,7 @@ function tickFlight(dt){
        Math.hypot(ball.x-pad.x,ball.z-pad.z)<pad.r-BALL_R){
      ball.y=pad.y+BALL_R;
      if(pad.type==='bank'){
+      ball.bankHits++;
       const impulse=bankRebound(ball,pad,performance.now()/1000);
       ball.vx=impulse.vx;ball.vy=impulse.vy;ball.vz=impulse.vz;
       message('PERFECT BANK! · FINISH THE SHOT',1.0);
