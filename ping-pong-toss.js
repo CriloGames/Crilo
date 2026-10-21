@@ -579,6 +579,67 @@ function buildWorld(){
     createMat(0x476a7b,.3,.05,0x263f4b));
   }
  }
+ // Bank-shot trays: an actual rubberized office trolley surface. The ball
+ // must physically fall onto its center and rebound before the shot counts.
+ // These are present in selected levels from chapter one onward.
+ if(settings.bankRequired){
+  const x=settings.bankX,z=settings.bankZ,padY=1.22;
+  const bankMat=createMat(0x405764,.81,.02),rubber=createMat(0xbb7861,.88,.02);
+  const tape=createMat(0xffdf87,.53,.02);
+  const tray=new THREE.Group();tray.position.set(x,0,z);group.add(tray);
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+   meshBox(tray,.09,1.02,.09,sx*.78,.56,sz*.83,metal);
+  }
+  meshBox(tray,1.88,.13,2.02,0,1.11,0,bankMat);
+  meshBox(tray,1.78,.045,1.91,0,1.201,0,rubber);
+  for(const edge of [-1,1]){
+   meshBox(tray,.065,.023,1.72,edge*.78,1.236,0,tape);
+   meshBox(tray,1.58,.023,.065,0,1.236,edge*.86,tape);
+  }
+  const bankLabel=new THREE.Mesh(new THREE.PlaneGeometry(1.53,.37),
+   makeText('BOUNCE HERE',36,'#fff4ce','#674d43'));
+  bankLabel.rotation.x=-Math.PI/2;bankLabel.position.set(0,1.239,.0);tray.add(bankLabel);
+  pads.push({type:'bank',x,z,r:.88,y:padY,mat:rubber,last:-10});
+ }
+ // Physical foreground interruptions: filing trays, hanging dividers and
+ // rolling computer screens placed DIRECTLY in the throwing corridor.
+ // Every obstacle is collidable; changing aim, arc or banking beats it.
+ for(let i=0;i<settings.foreground;i++){
+  const u=i===0?.31:.52;
+  const z=LAUNCH_Z-settings.d*u;
+  const x=settings.x*u+(i%2===0?.12:-.26);
+  const style=(level+i*3)%4;
+  if(style===0){
+   const frame=new THREE.Group();frame.position.set(x,0,z);group.add(frame);
+   meshBox(frame,1.23,.95,.23,0,2.14,0,dark);
+   meshBox(frame,1.13,.71,.04,0,2.17,-.15,metal);
+   meshBox(frame,.13,2.36,.20,-.6,1.23,0,dark);
+   meshBox(frame,.13,2.36,.20,.6,1.23,0,dark);
+   obstacles.push({type:'screen',obj:frame,x,y:2.14,z,w:1.23,h:.95,d:.28});
+  }else if(style===1){
+   const shelf=new THREE.Group();shelf.position.set(x,0,z);group.add(shelf);
+   meshBox(shelf,.88,.16,.67,0,2.4,0,wood);
+   meshBox(shelf,.10,1.9,.12,-.4,1.47,0,metal);
+   meshBox(shelf,.10,1.9,.12,.4,1.47,0,metal);
+   for(let k=0;k<4;k++)
+    meshBox(shelf,.17,.54,.28,(k-1.5)*.21,2.13,-.09,createMat([0x967c76,0x6d8995,0xc39e74][k%3]));
+   obstacles.push({type:'file shelf',obj:shelf,x,y:2.32,z,w:.88,h:.74,d:.66});
+  }else if(style===2){
+   const pc=new THREE.Group();pc.position.set(x,0,z);group.add(pc);
+   meshBox(pc,1.14,.79,.18,0,2.12,0,dark);
+   meshBox(pc,.95,.61,.025,0,2.13,-.105,createMat(0x607f82,.6));
+   meshBox(pc,.08,.95,.12,0,1.31,.07,metal);
+   obstacles.push({type:'monitor',obj:pc,x,y:2.12,z,w:1.14,h:.79,d:.22});
+  }else{
+   const stack=new THREE.Group();stack.position.set(x,0,z);group.add(stack);
+   for(let k=0;k<6;k++){
+    const b=meshBox(stack,.96,.11,.63,Math.sin(k*2.2)*.07,1.45+k*.14,0,
+     createMat([0xa0a9a7,0xbba48c,0x889f9e][k%3]));
+    b.rotation.y=(k%2?.09:-.11);
+   }
+   obstacles.push({type:'paper stack',obj:stack,x,y:1.86,z,w:1.07,h:1.03,d:.7});
+  }
+ }
  const count=settings.obstacles;
  for(let i=0;i<count;i++){
   const t=(i+1)/(count+1);
