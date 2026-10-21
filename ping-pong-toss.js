@@ -841,7 +841,7 @@ function flickAim(e){
  aimYaw=clamp(Math.atan2(settings.x,settings.d)+dx*.88,-.62,.62);
  aimPitch=clamp(.37+dy*.79,.29,1.10);
  const speed=pixels/(duration/1000);
- gesture.flickPower=clamp(idealPower()+(dy-.40)*.50+clamp((speed-430)/3200,-.07,.11),.065,1);
+ gesture.flickPower=clamp(idealPower()+(dy-.42)*.36+clamp((speed-950)/6000,-.045,.055),.065,1);
  power=gesture.flickPower;
  updatePower();
 }
