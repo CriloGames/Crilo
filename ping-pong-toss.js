@@ -33,7 +33,7 @@ const CHAPTERS=[
 let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
-let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0;
+let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,lastAimRefresh=-1000;
 let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -1023,7 +1023,7 @@ function buildWorld(){
   new THREE.MeshBasicMaterial({color:0x1c282f,transparent:true,opacity:.27,depthWrite:false}));
  ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,1.15,LAUNCH_Z);group.add(ballShadow);
  trajectoryGroup=new THREE.Group();group.add(trajectoryGroup);
- for(let i=0;i<42;i++){
+ for(let i=0;i<84;i++){
   const dot=new THREE.Mesh(new THREE.SphereGeometry(.040,7,6),
    new THREE.MeshBasicMaterial({color:i%3===0?0xf3b768:0x5c9199,transparent:true,
      opacity:Math.max(.18,.8-i*.014)}));
@@ -1103,12 +1103,12 @@ function paintAim(){
  const p=charging?power:idealPower();
  let x=0,y=LAUNCH_Y,z=LAUNCH_Z,t=0,bounceCount=0;
  const v=makeVelocity(p);let vx=v.vx,vy=v.vy,vz=v.vz;
- const dots=settings.c>=3?33:42;
+ const dots=settings.springRequired||settings.bankRequired?78:settings.c>=3?70:62;
  const time=performance.now()/1000;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];dot.visible=!flight&&playing&&i<dots;
   if(i>0){
-   const dt=.06,oldY=y;
+   const dt=.048,oldY=y;
    vx+=windAt(time+t)*dt;vy-=GRAVITY*dt;
    x+=vx*dt;y+=vy*dt;z+=vz*dt;t+=dt;
    if(bounceCount===0&&vy<0){
@@ -1124,7 +1124,12 @@ function paintAim(){
   }
   dot.position.set(x,y,z);
   if(y<.14||z<settings.targetZ-3)dot.visible=false;
-  if(bounceCount)dot.material.color.setHex(0xf0af74);
+  dot.material.color.setHex(bounceCount?0xffb45e:i%3===0?0xffdda4:0x86bec8);
+  // Highlight the predicted descent near the target opening.
+  const future=targetLocation(time+t);
+  const nearOpening=Math.hypot(x-future.x,z-future.z)<settings.radius*.90 &&
+   Math.abs(y-(future.y+settings.targetHeight))<.40;
+  dot.scale.setScalar(nearOpening?2.2:bounceCount?1.10:1);
  }
 }
 function updatePower(){
@@ -1315,6 +1320,10 @@ function animate(now){
   tickObstacles(now);
   if(charging)chargeTick(now);
   if(flight)tickFlight(dt);
+  // Recompute the predicted arc against the target's current movement.
+  if(!flight&&now-lastAimRefresh>75){
+   lastAimRefresh=now;paintAim();
+  }
  }
  if(throwingHand){
   const t=clamp((now-throwMoment)/440,0,1);
