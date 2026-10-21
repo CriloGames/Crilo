@@ -660,6 +660,10 @@ function makeVelocity(p){
   vz:-Math.cos(aimYaw)*Math.cos(aimPitch)*speed
  };
 }
+function windAt(time){
+ // A desk fan oscillates rather than blowing at a perfectly constant rate.
+ return settings.wind*(.66+.34*Math.sin(time*.88+.7));
+}
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
  const p=charging?power:idealPower();
@@ -669,7 +673,7 @@ function paintAim(){
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];dot.visible=!flight&&playing&&i<maxDots;
   const dt=.05;
-  if(i>0){vx+=settings.wind*dt;vy-=GRAVITY*dt;
+  if(i>0){vx+=windAt(performance.now()/1000+t)*dt;vy-=GRAVITY*dt;t+=dt;
    x+=vx*dt;y+=vy*dt;z+=vz*dt;}
   dot.position.set(x,y,z);
   if(y<.2||z<settings.targetZ-3)dot.visible=false;
@@ -746,6 +750,10 @@ function complete(){
 function tickObstacles(time){
  if(!cupGroup)return;
  const t=time/1000;
+ if(settings.c>=2){
+  const actual=windAt(t);
+  el.windLabel.textContent=(actual>=0?'FAN → ':'← FAN ')+Math.abs(actual).toFixed(2);
+ }
  const move=settings.moving?Math.sin(t*(.8+settings.tier*.058))*settings.moving:0;
  cupGroup.position.x=settings.x+move;
  target.x=cupGroup.position.x;
@@ -780,7 +788,7 @@ function tickFlight(dt){
  for(let step=0;step<substeps;step++){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
-  ball.vx+=settings.wind*h;
+  ball.vx+=windAt(performance.now()/1000)*h;
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   shotT+=h;
