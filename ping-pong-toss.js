@@ -400,14 +400,19 @@ function buildWorld(){
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
   {walls:0x79919a,carpet:0x5c6b76,desk:0x896b54,trim:0x4b5e70,name:'MAILROOM'},
   {walls:0x8c8b7d,carpet:0x68736c,desk:0x956c50,trim:0x52534f,name:'BREAK ROOM'},
-  {walls:0x728494,carpet:0x475b6b,desk:0x8d634c,trim:0x414c61,name:'NIGHT SHIFT'}
+  {walls:0x728494,carpet:0x475b6b,desk:0x8d634c,trim:0x414c61,name:'NIGHT SHIFT'},
+  {walls:0x7c766e,carpet:0x55504c,desk:0x927456,trim:0x413e3c,name:'ARCHIVE'},
+  {walls:0x88908a,carpet:0x586d68,desk:0xb19774,trim:0x4b6864,name:'RECEPTION'},
+  {walls:0x81766e,carpet:0x595666,desk:0x9e8668,trim:0x4c4248,name:'AWARDS OFFICE'},
+  {walls:0x78888b,carpet:0x50595d,desk:0x987d59,trim:0x46535a,name:'SHIPPING DOCK'},
+  {walls:0x516975,carpet:0x3d4d59,desk:0x756251,trim:0x324a5a,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
  // and the challenge layout changes its foreground props per individual level.
  const lightingMode=(level-1)%10>=5;
- const sceneTone=[0x526977,0x756e68,0x526574,0x776f5f,0x4f5e70][settings.sceneId];
- const nearDeskTone=lightingMode?0x695348:theme.desk;
+ const sceneTone=[0x526977,0x756e68,0x526574,0x776f5f,0x4f5e70,0x5a5450,0x657874,0x605866,0x5f6e71,0x394f61][settings.sceneId];
+ const nearDeskTone=settings.roomVariant?0x695348:theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
  const wood=createMat(nearDeskTone,.44,.04),darkWood=createMat(0x45392f,.68);
@@ -532,7 +537,8 @@ function buildWorld(){
  // Five distinct target furniture stations. Each cup now belongs to a
  // believable location: wooden desk, filing cabinet, shelf, cart or counter.
  const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
- const station=(settings.tier+settings.c*2)%5,stationY=settings.topPad+.03;
+ const stationNames=['desk','drawer','shelf','trolley','counter','cabinet','window','printer','archive','conference'];
+ const station=Math.max(0,stationNames.indexOf(settings.station)),stationY=settings.topPad+.03;
  if(station===0){
   desk(farDesk,0,0,5.0,2.8,stationY,wood,metal);
   meshBox(farDesk,4.7,.09,.06,0,stationY-.17,-1.35,darkWood);
@@ -561,14 +567,43 @@ function buildWorld(){
    wheel.rotation.z=Math.PI/2;wheel.position.set(x,.14,z);farDesk.add(wheel);
   }
   meshBox(farDesk,.10,.52,2.1,-1.34,stationY+.12,0,dark);
- }else{
-  const cabinets=createMat(0x8a948e,.8,.06);
+ }else if(station===4||station===5){
+  const cabinets=createMat(station===5?0x60737c:0x8a948e,.8,.06);
   meshBox(farDesk,3.5,stationY,2.1,0,stationY/2,0,cabinets);
   meshBox(farDesk,3.7,.17,2.29,0,stationY+.04,0,wood);
   for(const x of [-.85,.85]){
    meshBox(farDesk,1.40,stationY*.75,.06,x,stationY*.49,1.085,cream);
    meshBox(farDesk,.12,.42,.05,x+.42,stationY*.49,1.13,metal);
   }
+ }else if(station===6){
+  // Deep bay window with a slim sill, a completely different distant target.
+  meshBox(farDesk,3.45,.18,1.40,0,stationY,0,cream);
+  meshBox(farDesk,3.55,2.2,.15,0,stationY+1.07,-.75,metal);
+  meshBox(farDesk,3.10,1.8,.04,0,stationY+1.05,-.65,blue);
+  meshBox(farDesk,.09,2.10,.20,0,stationY+1.12,-.64,cream);
+ }else if(station===7){
+  // Industrial photocopier with control panel and tall output shelf.
+  meshBox(farDesk,3.15,stationY,2.4,0,stationY*.5,0,metal);
+  meshBox(farDesk,3.40,.15,2.45,0,stationY+.02,0,dark);
+  meshBox(farDesk,1.05,.09,.64,-.90,stationY+.16,.52,cream);
+  meshBox(farDesk,.80,.10,.6,.86,stationY+.15,-.82,blue);
+ }else if(station===8){
+  // Wall of compact archival shelves with target sitting on a top board.
+  for(const x of [-1.45,1.45]){
+   meshBox(farDesk,.14,3,.16,x,1.5,-.58,dark);
+  }
+  for(const yy of [.55,1.10,stationY]){
+   meshBox(farDesk,3.18,.11,1.78,0,yy,0,wood);
+  }
+  for(let k=0;k<5;k++)
+   meshBox(farDesk,.17,.42,.52,-1.0+k*.47,stationY-.29,-.60,
+    createMat([0x8aa0a4,0xc1a57a,0xb18585][k%3]));
+ }else{
+  // Big boardroom oval tabletop with visible pedestal base.
+  const oval=new THREE.Mesh(new THREE.CylinderGeometry(1.70,1.70,.16,32),wood);
+  oval.scale.set(1,.9,.70);oval.position.y=stationY;farDesk.add(oval);
+  meshBox(farDesk,.70,stationY-.15,.58,0,(stationY-.15)*.5,0,metal);
+  meshBox(farDesk,2.45,.10,1.20,0,.12,0,dark);
  }
  const stationMarker=meshBox(farDesk,2.45,.038,.14,0,stationY+.115,-.73,highlight);
  stationMarker.castShadow=false;
