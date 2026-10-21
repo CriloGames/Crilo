@@ -281,6 +281,31 @@ function officeFan(parent,x,y,z,mat,angle=0){
  }
  return g;
 }
+function officeColleague(parent,x,z,n){
+ // An original, non-target office coworker makes the room feel occupied.
+ const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
+ const skin=createMat([0xcfa68b,0x9b7058,0xe2bca4,0xb58b6e,0xd5a18a][n%5]);
+ const shirt=createMat([0x557c8d,0x7e7d79,0x9b8179,0x618079,0x6e748b][n%5]);
+ const hair=createMat([0x483c38,0x353237,0x604738,0x403f3c,0x6d5744][n%5]);
+ const pants=createMat(0x4c5760);
+ meshBox(g,.70,.73,.39,0,1.16,0,shirt);
+ meshBox(g,.53,.29,.42,0,.65,-.12,pants);
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.33,14,10),skin);
+ face.position.set(0,1.77,-.03);face.scale.z=.9;g.add(face);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.34,12,8),hair);
+ cap.scale.set(1.02,.44,1.01);cap.position.y=2.02;g.add(cap);
+ for(const sx of [-1,1]){
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),hair);
+  eye.position.set(sx*.11,1.82,-.326);g.add(eye);
+ }
+ const arm=new THREE.Group();arm.position.set(.47,1.43,0);g.add(arm);
+ meshBox(arm,.19,.58,.19,0,-.32,-.07,shirt);
+ meshBox(g,.18,.55,.19,-.47,1.12,0,shirt);
+ const leg=new THREE.Group();g.add(leg);
+ for(const sx of [-1,1])meshBox(leg,.23,.59,.30,sx*.20,.33,-.10,pants);
+ g.userData={arm,face,baseY:g.position.y};
+ return g;
+}
 function officeChair(parent,x,z){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
  const dark=createMat(0x44555b,.72,.06),silver=createMat(0x9fa8a7,.4,.45);
@@ -495,6 +520,11 @@ function buildWorld(){
  target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r,kind};
  // The tray/pad follows lateral target motion, not the entire desk.
  meshBox(cupGroup,r*2.5,.09,r*2.5,0,-.10,0,cream);
+ if([0,1,4].includes(settings.sceneId)){
+  const clerk=officeColleague(group,settings.sceneId===4?-4.1:4.1,
+   settings.targetZ-1.45,level);
+  ambient.push({type:'colleague',obj:clerk});
+ }
  const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.42),
   makeText('IN THE CUP',31,'#f1eeee','#405c63'));
  targetMarker.position.set(settings.x+1.6,2.33,settings.targetZ-1.12);group.add(targetMarker);
@@ -688,6 +718,12 @@ function tickObstacles(time){
  target.x=cupGroup.position.x;
  for(const item of ambient){
   if(item.type==='fan')item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
+  if(item.type==='colleague'){
+   const arm=item.obj.userData.arm;
+   if(arm)arm.rotation.x=.30+Math.sin(t*2.1+level)*.19;
+   const face=item.obj.userData.face;
+   if(face)face.rotation.y=Math.sin(t*.72+level)*.11;
+  }
  }
  for(const obj of obstacles){
   if(obj.type==='barrier'){
