@@ -446,6 +446,56 @@ function buildWorld(){
   for(const x of [-5.5,-4.2,4.2,5.5])
    meshBox(group,.25,5.3,.25,x,3,roomEnd+.35,dark);
  }
+ // Ten distinct office identities; each changes the actual architectural
+ // silhouette beyond the target, not only the wall paint.
+ if(settings.sceneId===5){
+  for(const side of [-1,1])for(let i=0;i<4;i++){
+   const zz=roomEnd+1.0+i*2.1;
+   meshBox(group,2.5,.13,1.12,side*5.15,1.15,zz,wood);
+   meshBox(group,2.5,.13,1.12,side*5.15,2.47,zz,wood);
+   meshBox(group,2.5,.13,1.12,side*5.15,3.79,zz,wood);
+   for(const yy of [1.34,2.66,3.98])for(let k=0;k<4;k++)
+    meshBox(group,.31,.40,.75,side*5.15+(k-1.5)*.47,yy,zz,
+     createMat([0x9e8478,0xa7a18b,0x70848a,0x877b88][(k+i)%4]));
+  }
+ }else if(settings.sceneId===6){
+  for(const x of [-5.7,5.7]){
+   meshBox(group,.54,5.9,.58,x,3.05,roomEnd+1.15,cream);
+   meshBox(group,.80,.29,.80,x,6.02,roomEnd+1.15,wood);
+  }
+  meshBox(group,8.1,.14,1.38,0,1.32,roomEnd+1.25,wood);
+  roundedPoster(group,'WELCOME',0,4.8,roomEnd+.42);
+ }else if(settings.sceneId===7){
+  for(let i=0;i<6;i++){
+   const xx=-5.4+i*2.1;
+   const frame=meshBox(group,1.22,1.5,.08,xx,4.7,roomEnd+.36,wood);
+   meshBox(group,1.04,1.32,.09,xx,4.7,roomEnd+.42,
+    createMat([0xae956e,0x7d8997,0x9c897e][i%3],.35,.22));
+   const disk=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.09,20),
+    createMat(0xc8a05e,.34,.48));
+   disk.rotation.x=Math.PI/2;disk.position.set(xx,4.95,roomEnd+.52);group.add(disk);
+  }
+ }else if(settings.sceneId===8){
+  for(const x of [-6.45,6.45]){
+   for(let i=0;i<6;i++){
+    const zz=roomEnd+1.4+i*2.1;
+    meshBox(group,.95,.80,1.0,x,.42,zz,createMat(i%2?0xb79c7a:0x83959d));
+    meshBox(group,.06,.78,1.03,x,.42,zz,cream);
+   }
+  }
+  for(let i=0;i<7;i++)meshBox(group,10,.08,.12,0,.18,roomEnd+1.0+i*.65,metal);
+  roundedPoster(group,'DISPATCH',0,5.1,roomEnd+.43);
+ }else if(settings.sceneId===9){
+  for(const side of [-1,1])for(let i=0;i<5;i++){
+   const x=side*6.5,zz=roomEnd+1.5+i*2.0;
+   meshBox(group,.9,3.90,1.66,x,2.10,zz,dark);
+   for(let k=0;k<8;k++){
+    const indicator=meshBox(group,.18,.035,.02,x,1.02+k*.36,zz+.85,
+     createMat(k%3===0?0x68b69c:0x5f93c4,.36,.1,k%3===0?0x225f48:0x20455d));
+    indicator.castShadow=false;
+   }
+  }
+ }
  // A full-size room: fixed eye-level perspective from behind the front desk.
  meshBox(group,16,.23,roomLength,0,-.53,roomMiddle,carpet);
  meshBox(group,16,8,.22,0,3.47,roomEnd,wallMat);
