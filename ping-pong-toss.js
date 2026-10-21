@@ -87,8 +87,9 @@ function stageSettings(n){
  const moving=c>=1?(c===1?.35+tier*.046:.20+tier*.034):0;
  const wind=c>=2?((n%2?1:-1)*(.20+tier*.038)):0;
  const bankRequired=(tier===4||tier===6||tier===8||tier===9||c===4&&tier>=2||c===3&&tier===2);
+ const springRequired=c===4&&tier<=1;
  const barrierCount=c>=3?Math.min(3,1+Math.floor(tier/4)):0;
- const padCount=c===4&&!bankRequired?(tier>=6?2:1):0;
+ const padCount=c===4?(tier>=6?2:1):0;
  const sceneId=LOCATION_ORDER[(tier+c*2)%10];
  const height=TARGET_HEIGHT[tier]+(c>=4?.16:0);
  const targetHeight=.52+(.07*((tier+c)%3));
@@ -97,7 +98,7 @@ function stageSettings(n){
  return {
   n,c,tier,d,x,kind:(tier*2+c)%5,radius,
   targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,
-  bankRequired,bankX:x*.42,bankZ:LAUNCH_Z-d*.68,
+  bankRequired,springRequired,bankX:x*.42,bankZ:LAUNCH_Z-d*.68,
   topPad:height,color:chapter(n).color,
   sceneId,roomVariant:Math.floor(tier/5),
   challenge:CHALLENGES[tier],obstacles,targetHeight,
