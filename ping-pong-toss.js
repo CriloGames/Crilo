@@ -491,18 +491,24 @@ function buildWorld(){
   const fan=officeFan(group,-3.65,1.03,settings.targetZ+.85,metal,.2);
   ambient.push({type:'fan',obj:fan});
  }
+ // Chapter 5: rubber launch plates on actual rolling office carts.
  for(let i=0;i<settings.padCount;i++){
-  const z=lerp(LAUNCH_Z-.7,settings.targetZ,(i+1)/(settings.padCount+1));
-  const x=i===0?0:settings.x*.5;
-  const pad=new THREE.Group();pad.position.set(x,0,z);group.add(pad);
-  meshBox(pad,1.66,.12,1.66,0,.12,0,dark);
-  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.77,.77,.08,20),
-    createMat(0x7b9ca3,.35,.05,0x4c7777));
-  spring.position.y=.23;pad.add(spring);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.76,.05,8,26),
-    new THREE.MeshBasicMaterial({color:0xc9f1d2}));
-  ring.rotation.x=Math.PI/2;ring.position.y=.28;pad.add(ring);
-  pads.push({x,z,r:.75,y:.30,mat:spring.material,last:-10});
+  const z=lerp(LAUNCH_Z-.9,settings.targetZ,(i+1)/(settings.padCount+1));
+  const x=i===0?0:settings.x*.48,padY=1.16+(i===1?.27:0);
+  const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
+  meshBox(cart,1.8,.15,1.8,0,padY-.17,0,metal);
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+   meshBox(cart,.12,padY-.20,.12,sx*.73,(padY-.20)/2,sz*.73,dark);
+   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.07,10),dark);
+   wheel.rotation.z=Math.PI/2;wheel.position.set(sx*.73,.12,sz*.73);cart.add(wheel);
+  }
+  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.76,.76,.085,26),
+    createMat(0x5a9593,.25,.08,0x6ae5ba));
+  spring.position.y=padY;cart.add(spring);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.77,.055,8,30),
+    new THREE.MeshBasicMaterial({color:0xd3ffbe}));
+  ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;cart.add(ring);
+  pads.push({x,z,r:.74,y:padY+.05,mat:spring.material,last:-10});
  }
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
@@ -691,11 +697,11 @@ function tickFlight(dt){
    for(const pad of pads){
     if(prevY>=pad.y+BALL_R&&ball.y<=pad.y+BALL_R&&
      Math.hypot(ball.x-pad.x,ball.z-pad.z)<pad.r-BALL_R){
-     ball.y=pad.y+BALL_R;ball.vy=6.1;
-     ball.vz-=1.45;
-     ball.vx+=(target.x-ball.x)*.18;
+     ball.y=pad.y+BALL_R;ball.vy=6.8;
+     ball.vz-=1.95;
+     ball.vx+=(target.x-ball.x)*.30;
      ball.bounces++;hear(480,.18,'sine',.06);
-     message('BOING! +1 BOUNCE',.85);break;
+     message('SPRING SHOT! +1 BOUNCE',.85);break;
     }
    }
   }
