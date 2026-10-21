@@ -168,11 +168,11 @@ function buildUi(){
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=settings.c<2;
  el.windLabel.textContent=settings.c<2?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.springRequired?'BOUNCE ON THE SPRING PLATE TO SCORE':settings.bankRequired?'BOUNCE IT OFF THE MARKED DESK PAD':settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
- settings.c===1?'NEW: THE CUP MOVES. TIME YOUR THROW.':
- settings.c===2?'NEW: WIND PUSHES THE BALL SIDEWAYS.':
- settings.c===3?'NEW: DODGE THE SLIDING BLOCKERS.':
- 'NEW: LAND ON A GLOWING PAD TO BOUNCE HIGHER.';
+ el.tutorial.textContent=settings.springRequired?'SPRING → '+settings.challenge.toUpperCase():
+  settings.bankRequired?'BANK → '+settings.challenge.toUpperCase():
+  settings.motion!=='still'?'TIME YOUR '+settings.motion.toUpperCase()+' TARGET':
+  settings.wind?'ALLOW FOR THE FAN · '+settings.challenge.toUpperCase():
+  'AIM THROUGH THE OFFICE · '+settings.challenge.toUpperCase();
  buildChapters();
 }
 function buildChapters(){
@@ -193,8 +193,11 @@ function buildChapters(){
   button.className='pt-level-btn'+(i===level?' current':'')+(i>unlocked?' locked':'')+(stars[i]?' cleared':'');
   const label=document.createElement('span');label.textContent=fmtLevel(i);
   const recipe=stageSettings(i);
-  const star=document.createElement('small');star.textContent=i>unlocked?'LOCK':stars[i]?'★'.repeat(stars[i]):recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'PLAY';
-  button.append(label,star);button.disabled=i>unlocked;
+  const nameTag=document.createElement('small');nameTag.className='pt-level-name';
+  nameTag.textContent=recipe.challenge;
+  const star=document.createElement('small');star.className='pt-level-status';
+  star.textContent=i>unlocked?'LOCKED':stars[i]?'★'.repeat(stars[i]):recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  button.append(label,nameTag,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
@@ -222,19 +225,26 @@ function loadLevel(n){
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();}
  buildUi();updatePower();
- showOverlay('LEVEL '+fmtLevel(level)+' · '+CHAPTERS[settings.c].short.toUpperCase(),
-   level===1?'READY TO TOSS?':settings.challenge+' · '+cupVariant(settings.kind),
-   (level===1?'Swipe your finger or mouse upward to flick; you can also hold and release to charge. ':'')+
-   (settings.springRequired?
-    'SPRING SHOT: First land on the raised spring plate, then drop into the cup. A direct shot does not count.':
-    settings.bankRequired?
-    'BANK SHOT: A direct throw will not count. Bounce the ball off the marked rubber desk pad first, then sink the smaller cup.':
-    settings.c===0?'Aim past the clutter and land cleanly inside the container.':
-    settings.c===1?'The cup moves left and right. Lead your target and time the release.':
-    settings.c===2?'Watch the fan and compensate for changing crosswinds.':
-    settings.c===3?'Office obstacles swing and slide into your flight path.':
-    'Aim for spring platforms and the higher, smaller containers.'),
-   'PLAY LEVEL '+fmtLevel(level),'start');
+ const roadblock=settings.obstaclePlan.map(o=>o[0].replaceAll('_',' '));
+ const barrierText=settings.barrierPlan.length?
+  ' Watch for '+settings.barrierPlan.length+' moving obstacle'+(settings.barrierPlan.length===1?'':'s')+'.':'';
+ const targetMotion={
+  still:'',slide:'The target slides sideways.',
+  depth:'The target moves nearer and farther.',lift:'The opening moves up and down.',
+  orbit:'The container circles its station.',figure8:'The container follows a figure-eight.'
+ }[settings.motion];
+ const shotAdvice=settings.springRequired?
+  'You MUST touch the spring plate first.':
+  settings.bankRequired?'A marked rubber-bank bounce is required.':
+  'Land inside the opening without hitting the rim.';
+ const introText='Throw into the '+cupVariant(settings.kind).toLowerCase()+
+  ' on the '+settings.station+' '+settings.d.toFixed(1)+'m away. '+
+  shotAdvice+' '+targetMotion+
+  (roadblock.length?' Navigate the '+roadblock.join(' and ')+'.':'')+barrierText+
+  (settings.wind?' Beware the crosswind.':'');
+ showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
+  settings.challenge.toUpperCase(),introText,
+  'PLAY LEVEL '+fmtLevel(level),'start');
  save();
 }
 function nextLevel(){
@@ -997,7 +1007,7 @@ function buildWorld(){
     meshBox(g,.80,.23,.70,0,1.25+k*.25,0,paint);
    meshBox(g,.03,.65,.78,0,1.50,0,cream);
   }
-  obstacles.push({type:style,obj:g,x,y:oy+(style==='plant'?1.02:0),
+  obstacles.push({type:style,obj:g,x,y:style==='plant'?1.62:oy,
    z,w,h,d:depth});
  }
  // Only Chapter 4+ introduces moving blockers. Their positions and timing
@@ -1064,8 +1074,11 @@ function buildWorld(){
  // Camera at human eye-height, not the old god's-eye tabletop view.
  // Immersive eye-level fixed viewpoint inspired by tactile desk-flick games.
  // Keep the ball in the lower foreground and the intended container above it.
- camera.position.set(settings.sceneId===1?-.27:.08,2.29,8.08);
- camera.lookAt(settings.x*.28,1.65,settings.targetZ*.61);
+ const cameraOffsets=[-.10,.23,-.21,.12,-.11,.20,-.16,.15,-.18,.08];
+ const cameraHeight=2.20+(settings.tier%4)*.065;
+ camera.position.set(cameraOffsets[settings.sceneId],cameraHeight,
+  7.87+(settings.tier%3)*.14);
+ camera.lookAt(settings.x*.29,1.61,settings.targetZ*.60);
  camera.updateMatrixWorld();
  scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
