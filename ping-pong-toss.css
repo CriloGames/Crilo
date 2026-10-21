@@ -153,3 +153,127 @@
 }
 @media(max-width:385px){.pt-stat{min-width:55px;padding:6px}.pt-stat strong{font-size:19px}.pt-stat .pt-small-strong{font-size:11px}.pt-hero-sticker{display:none}.pt-viewport{min-height:350px}}
 @media(prefers-reduced-motion:reduce){.pt-hero-sticker,.pt-level-btn,.pt-chapter,.pt-action,.pt-power-fill,.pt-big-button{transition:none!important;animation:none!important}}
+
+
+/* OFFICE HOURS — grounded first-person desk/office presentation
+ * Muted office colors, readable projectiles, low-noise UI and clear throw cues.
+ * Unique original furniture and props are authored in ping-pong-toss.js.
+ */
+body.pt-page{
+ background:radial-gradient(ellipse at 80% 0%,#435965,#273942 52%,#202b33 100%);
+ color:#e7e5db;
+}
+.pt-page .pt-main{width:min(1180px,calc(100% - 26px));}
+.pt-back{color:#c6d3d2}
+.pt-back:hover{color:#ffcc9b}
+.pt-eyebrow{color:#e5b68b;letter-spacing:.12em}
+.pt-hero h1{color:#f2e9d8;text-shadow:0 4px 0 #202b326c}
+.pt-hero h1 em{color:#e5ae7b}
+.pt-hero p{color:#b5c4c6}
+.pt-hero-sticker{
+ background:#d5c3a7;border-color:#988d7d;color:#43515b;
+ box-shadow:4px 5px 0 #121e2366;transform:rotate(7deg)
+}
+.pt-shell{
+ background:#34444cd9;border:2px solid #788c90;box-shadow:0 6px 0 #1a2a3088,0 23px 60px #12232978;
+}
+.pt-stat{background:#45565c;border-color:#68828a;border-left-color:#d5b185;box-shadow:inset 0 1px 0 #ffffff0a}
+.pt-stat.secondary{border-left-color:#8fb1be}
+.pt-stat.tertiary{border-left-color:#a6ac97}
+.pt-stat small{color:#c1cfce}
+.pt-stat strong{color:#fff0d4}
+.pt-action,.pt-step{
+ background:#51656a;border-color:#829b9d;border-bottom-color:#334950;
+ color:#e6f0eb;border-radius:7px;
+}
+.pt-action:hover:not(:disabled),.pt-step:hover:not(:disabled){
+ background:#677a77;border-color:#cfb792;
+}
+.pt-viewport{
+ background:#677b83;border:3px solid #a9aca0;box-shadow:inset 0 1px 0 #ffffff24;
+ cursor:crosshair;
+}
+.pt-vignette{
+ background:radial-gradient(ellipse at 50% 41%,transparent 39%,rgba(19,32,37,.17) 100%);
+ box-shadow:inset 0 0 31px #15252d37;
+}
+.pt-viewport-top{align-items:flex-start}
+.pt-tutorial{
+ color:#ede4d5;background:#293b45e8;border:1px solid #809ca3;
+ border-radius:6px;text-shadow:0 1px 1px #10242a;
+ padding:8px 11px;max-width:min(72%,570px);
+}
+.pt-weather{color:#fff0d5;background:#546e77db;border:1px solid #a6c0c5;box-shadow:0 2px 0 #34444b80}
+.pt-weather i{background:#ead094;box-shadow:0 0 0 3px #f0ddb643}
+.pt-aim-hint{top:18%}
+.pt-aim-hint strong{
+ background:#243946b8;color:#fff2db;border:1px solid #819ba0;
+ text-shadow:0 1px 1px #10222c;border-radius:4px;letter-spacing:.12em
+}
+.pt-aim-hint small{color:#f4e4c7;text-shadow:0 2px 3px #233741,0 0 6px #243741}
+.pt-crosshair{opacity:.69}
+.pt-crosshair:before,.pt-crosshair:after{
+ background:#f7c98b;border:1px solid #344750;box-shadow:0 1px 5px #1b2c31
+}
+.pt-power-wrap{
+ background:#303f48e8;border:1px solid #83999c;
+ border-radius:8px;box-shadow:0 3px 0 #16272e95;
+}
+.pt-power-head{color:#e6e5d9}
+.pt-power-head strong{color:#f2bf80}
+.pt-power-track{background:#202e33;border-color:#829192}
+.pt-power-fill{background:linear-gradient(90deg,#6da3a0,#edbb80 52%,#e68a70)}
+.pt-aim-readout{color:#e8e1d5;background:#303f48e8;border-color:#82999c;border-radius:7px}
+.pt-status{bottom:99px;background:#263840de;color:#d7dfdb;border-color:#708991;border-radius:6px}
+.pt-overlay{background:#192e39aa;backdrop-filter:blur(2px)}
+.pt-overlay-card{
+ background:linear-gradient(145deg,#f0e9dc,#d5dacf);
+ border:3px solid #778985;box-shadow:5px 6px 0 #253a3f,0 24px 60px #11212aba;
+ color:#334a4f;border-radius:10px;
+}
+.pt-overlay-tag{color:#526f72;background:#d5ddd3;border-color:#a0b3a9}
+.pt-overlay-icon{
+ border-color:#b8a58e;background:radial-gradient(circle at 32% 28%,#fff1d0,#e4b987 60%,#bb8766);
+ box-shadow:0 4px 0 #86736764;text-shadow:0 2px 2px #725949
+}
+.pt-overlay-card h2{color:#314850}
+.pt-overlay-card p{color:#50666b}
+.pt-overlay-help{color:#667a78}
+.pt-big-button{background:#e3bd8b;border-color:#967a59;border-bottom-color:#816344;color:#344e58}
+.pt-big-button:hover{background:#f1cf9d}
+.pt-secondary-button{color:#536e74}
+.pt-stage-footer{color:#c1d2d0}
+.pt-selection{
+ background:#334750f0;border-color:#7e9599;box-shadow:0 4px 0 #17272e78;
+}
+.pt-selection-header h2{color:#f1e9d8}
+.pt-selection-header p,.pt-chapter-description{color:#b5c8c7}
+.pt-chapter{
+ background:#4a6067;color:#d2dddb;border-color:#798d92;border-bottom-color:#3a5057;
+ border-radius:6px;
+}
+.pt-chapter.active{background:#657b6d;color:#f3edda;border-color:#b3c0ab}
+.pt-chapter:not(:disabled):hover{background:#697b7b}
+.pt-level-btn{
+ background:#455a64;color:#e5e6dc;border-color:#77909a;border-bottom-color:#354e57;
+ border-radius:7px;
+}
+.pt-level-btn.current{background:#667c6a;color:#fff0d7;border-color:#c5bc9b}
+.pt-level-btn.cleared{background:#82775d;border-color:#b6a47e;color:#fff1d2}
+.pt-level-btn:not(:disabled):hover{background:#617783}
+.pt-rules{color:#b7c8c9}
+.pt-rule-keys kbd{background:#485b63;color:#f4ebda;border-color:#8299a0;border-bottom-color:#344a53}
+.pt-page .crilo-simple-footer{background:#202c34;color:#adbfc2;border-top:1px solid #5d767d}
+.pt-page .crilo-legal-nav a,.pt-page .crilo-legal-copy{color:#adbfc2}
+.pt-shell:fullscreen{background:#35464c}
+@media(max-width:680px){
+ .pt-hero h1{font-size:clamp(45px,11vw,67px)}
+ .pt-shell{padding:7px}
+ .pt-viewport{min-height:415px;height:min(73dvh,650px)}
+ .pt-aim-hint{top:23%}
+ .pt-power-wrap{padding:9px}
+ .pt-tutorial{font-size:8px;line-height:1.45}
+ .pt-overlay-card{padding:20px 15px}
+ .pt-selection{padding:13px 11px}
+ .pt-chapter{min-height:46px}
+}
