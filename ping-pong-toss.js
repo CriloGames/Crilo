@@ -645,7 +645,11 @@ function buildWorld(){
  for(let i=0;i<settings.foreground;i++){
   const u=i===0?.31:.52;
   const z=LAUNCH_Z-settings.d*u;
-  const x=settings.x*u+(i%2===0?.12:-.26);
+  // On bank shots, the first obstacles frame the rebound lane instead of
+  // secretly blocking every possible low trajectory to the marked tray.
+  const x=settings.bankRequired?
+    settings.x*u+(i%2===0?1.55:-1.55):
+    settings.x*u+(i%2===0?.12:-.26);
   const style=(level+i*3)%4;
   if(style===0){
    const frame=new THREE.Group();frame.position.set(x,0,z);group.add(frame);
