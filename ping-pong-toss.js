@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -475,7 +475,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];
+ obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1157,6 +1157,10 @@ function buildWorld(){
  ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.20,24),
   new THREE.MeshBasicMaterial({color:0x1c282f,transparent:true,opacity:.27,depthWrite:false}));
  ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,1.15,LAUNCH_Z);group.add(ballShadow);
+ impactRing=new THREE.Mesh(new THREE.TorusGeometry(.21,.024,8,32),
+  new THREE.MeshBasicMaterial({color:0xffd49a,transparent:true,opacity:0,
+   depthWrite:false,side:THREE.DoubleSide}));
+ impactRing.rotation.x=-Math.PI/2;impactRing.visible=false;group.add(impactRing);
  // Short motion trail keeps the smaller ball visible without increasing it.
  const trailGeometry=new THREE.SphereGeometry(BALL_R*.62,9,7);
  for(let k=0;k<11;k++){
@@ -1327,6 +1331,7 @@ function launch(flickPower=null){
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,trail:[]};
  shotT=0;shotStart=performance.now();
+ el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  throwMoment=performance.now();
  hear(880,.12,'sine',.045);message('PONG!',.55);
@@ -1336,7 +1341,26 @@ function miss(reason='MISS!'){
  if(!flight)return;
  flight=false;ball.active=false;
  hear(230,.16,'triangle',.027);
+ const info=ball.rimMiss;
+ let hint='Adjust angle and power for the next throw.';
+ if(reason==='OBSTACLE HIT!'||reason==='BLOCKED!')
+  hint='Try a higher arc or aim around the obstruction.';
+ else if(reason.includes('BOUNCE')||reason.includes('PAD')||
+  ((settings.bankRequired||settings.springRequired)&&ball.bounces===0))
+  hint='Hit the marked bounce surface first, then aim the rebound yourself.';
+ else if(info&&info.distance<2.9){
+  const sideways=Math.abs(info.dx),length=Math.abs(info.dz);
+  hint=sideways>length*.95?
+   (info.dx>0?'Passed RIGHT of the cup: aim left.':
+    'Passed LEFT of the cup: aim right.'):
+   (info.dz>0?'Fell SHORT: add power.':'Sailed LONG: reduce power.');
+ }
+ el.status.textContent=reason+' · '+hint;
  message(reason+' · TRY AGAIN',1.65);
+ if(impactRing){
+  impactRing.position.set(ball.x,Math.max(.04,ball.y-.08),ball.z);
+  impactRing.material.color.setHex(0xe69886);impactAge=0;impactRing.visible=true;
+ }
  resetBall();paintAim();
 }
 function complete(){
@@ -1416,6 +1440,8 @@ function tickFlight(dt){
   if(ball.trail.length>46)ball.trail.length=46;
   if(collideObstacles())return;
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
+  if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0)
+   ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
    if(settings.bankRequired&&ball.bankHits<1){miss('BANK OFF THE MARKED PAD!');return;}
@@ -1452,6 +1478,11 @@ function tickFlight(dt){
       ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
       ball.springHits++;
       message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
+     }
+     if(impactRing){
+      impactRing.position.set(ball.x,pad.y+.075,ball.z);
+      impactRing.material.color.setHex(pad.type==='spring'?0x9ef3c8:0xffdc9e);
+      impactAge=0;impactRing.visible=true;
      }
      ball.bounces++;bouncedThisStep=true;break;
     }
@@ -1502,6 +1533,12 @@ function animate(now){
   if(!flight&&now-lastAimRefresh>75){
    lastAimRefresh=now;paintAim();
   }
+ }
+ if(impactRing?.visible&&playing&&!paused){
+  impactAge+=dt;
+  impactRing.scale.setScalar(1+impactAge*3);
+  impactRing.material.opacity=Math.max(0,.69-impactAge*1.25);
+  if(impactAge>.55)impactRing.visible=false;
  }
  if(throwingHand){
   const t=clamp((now-throwMoment)/440,0,1);
