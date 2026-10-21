@@ -22,7 +22,7 @@ if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
-const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.115;
+const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
  {name:'THE BASICS',desc:'Find the angle. Learn the arc. Clear static obstacles.',from:1,to:10,color:0x6ccab5,short:'Classic Toss'},
  {name:'MOVING TARGETS',desc:'Watch the rhythm. Time your release to land a moving cup.',from:11,to:20,color:0xeba1b5,short:'Moving Cups'},
@@ -71,24 +71,39 @@ function hear(freq=520,duration=.10,voice='sine',volume=.04){
   osc.connect(gain);gain.connect(hear.ctx.destination);osc.start(t);osc.stop(t+duration+.01);
  }catch{}
 }
+// Every stage uses a deliberately different shot recipe rather than merely
+// increasing the same straight-line distance.
+const CHALLENGES=[
+ 'FIRST CUP','SIDE DESK','PAPER TRAIL','FILE GAP','BANK IT',
+ 'TOP SHELF','DESK REBOUND','THROUGH THE GAP','CORNER BANK','FINAL DROP'
+];
+const LOCATION_ORDER=[0,2,4,1,3,4,0,3,1,2];
+const TARGET_X=[-.16,1.48,-1.92,.58,-.94,2.05,-2.04,1.24,-1.41,.31];
+const TARGET_HEIGHT=[.90,1.20,1.43,.78,1.05,1.57,1.15,1.36,.95,1.62];
 function stageSettings(n){
  const c=chapterIndex(n),tier=(n-1)%10;
- const d=5.05+(n-1)*.135+(tier%4)*.22;
- let x=(seeded(n*3)-.5)*2.15;
- if(n<4)x*=.37;
- const radius=Math.max(.38,.82-(n-1)*.008);
- const type=(n-1)%5;
- const moving=c>=1?(c===1?.45+tier*.048:.22+tier*.029):0;
- const wind=c>=2?((n%2?1:-1)*(.37+tier*.055)):0;
+ const d=4.65+(n-1)*.108+[0,.56,.14,1.04,.48,1.24,.74,1.56,.96,1.82][tier];
+ const x=TARGET_X[tier]+(c>=2?(c-1)*.09*(tier%2?1:-1):0);
+ const moving=c>=1?(c===1?.35+tier*.046:.20+tier*.034):0;
+ const wind=c>=2?((n%2?1:-1)*(.20+tier*.038)):0;
+ const bankRequired=(tier===4||tier===6||tier===8||tier===9||c===4&&tier>=2||c===3&&tier===2);
  const barrierCount=c>=3?Math.min(3,1+Math.floor(tier/4)):0;
- const padCount=c===4?(tier>=4?2:1):0;
- const baseHeight=[.88,1.00,1.28,1.06,1.44][(n-1)%5];
- const topPad=baseHeight+(c===4?(tier>=5?.46:.20):0);
- return {n,c,tier,d,x,kind:type,radius,
-  targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,topPad,
-  color:chapter(n).color,sceneId:(n-1)%5,roomVariant:Math.floor((n-1)%10/5),
-  obstacles:n<=3?0:Math.min(3,1+Math.floor((n-4)/13)),
-  targetHeight:.76+(type===2?.22:type===4?.1:0)};
+ const padCount=c===4&&!bankRequired?(tier>=6?2:1):0;
+ const sceneId=LOCATION_ORDER[(tier+c*2)%10];
+ const height=TARGET_HEIGHT[tier]+(c>=4?.16:0);
+ const targetHeight=.52+(.07*((tier+c)%3));
+ const radius=Math.max(.335,.505-c*.027-tier*.009);
+ const obstacles=n<=2?0:Math.min(4,1+Math.floor((tier+Math.max(0,c-1))/3));
+ return {
+  n,c,tier,d,x,kind:(tier*2+c)%5,radius,
+  targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,
+  bankRequired,bankX:x*.42,bankZ:LAUNCH_Z-d*.68,
+  topPad:height,color:chapter(n).color,
+  sceneId,roomVariant:Math.floor(tier/5),
+  challenge:CHALLENGES[tier],obstacles,targetHeight,
+  // A physical overhead obstruction is introduced only in stages 3+.
+  foreground:n>=3?1+(tier>=5?1:0):0
+ };
 }
 let settings=stageSettings(level);
 function buildUi(){
@@ -96,16 +111,17 @@ function buildUi(){
  el.total.textContent=String(completed)+' / 150';
  el.counter.textContent=fmtLevel(level)+' / 50';
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
- const rooms=['THE CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
- el.title.textContent=rooms[settings.sceneId];
- el.status.textContent=cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m THROW · '+CHAPTERS[settings.c].short.toUpperCase();
+ const rooms=['CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
+ el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
+ el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':'')+
+   cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
  el.attempts.textContent=String(attempts);
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
  el.prev.disabled=level<=1;
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=settings.c<2;
  el.windLabel.textContent=settings.c<2?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
+ el.tutorial.textContent=settings.bankRequired?'BOUNCE IT OFF THE MARKED DESK PAD':settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
  settings.c===1?'NEW: THE CUP MOVES. TIME YOUR THROW.':
  settings.c===2?'NEW: WIND PUSHES THE BALL SIDEWAYS.':
  settings.c===3?'NEW: DODGE THE SLIDING BLOCKERS.':
@@ -156,13 +172,15 @@ function loadLevel(n){
  if(hasRenderer){buildWorld();}
  buildUi();updatePower();
  showOverlay('LEVEL '+fmtLevel(level)+' · '+CHAPTERS[settings.c].short.toUpperCase(),
-   level===1?'READY TO TOSS?':cupVariant(settings.kind)+' AHEAD',
+   level===1?'READY TO TOSS?':settings.challenge+' · '+cupVariant(settings.kind),
    (level===1?'Swipe your finger or mouse upward to flick; you can also hold and release to charge. ':'')+
-   (settings.c===0?'Your view is from behind the desk. Land inside the container — not the rim.':
-    settings.c===1?'The target slides back and forth. Time your release.':
-    settings.c===2?'Watch the crosswind and curve your shot into the target.':
-    settings.c===3?'Moving blockers will knock the ball away. Find an opening.':
-    'Use the glowing bounce pad to lift your shot toward the target.'),
+   (settings.bankRequired?
+    'BANK SHOT: A direct throw will not count. Bounce the ball off the marked rubber desk pad first, then sink the smaller cup.':
+    settings.c===0?'Aim past the clutter and land cleanly inside the container.':
+    settings.c===1?'The cup moves left and right. Lead your target and time the release.':
+    settings.c===2?'Watch the fan and compensate for changing crosswinds.':
+    settings.c===3?'Office obstacles swing and slide into your flight path.':
+    'Aim for spring platforms and the higher, smaller containers.'),
    'PLAY LEVEL '+fmtLevel(level),'start');
  save();
 }
@@ -495,7 +513,7 @@ function buildWorld(){
  cupGroup=new THREE.Group();cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
  const r=settings.radius,kind=settings.kind,h=settings.targetHeight;
  // A believable warm practical highlight keeps the target legible in dim rooms.
- const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?3.3:3.8,3.4,2);
+ const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
  targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
  const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4];
  const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xffd49a,.29,.16,0x6b4022);
@@ -506,7 +524,7 @@ function buildWorld(){
  inner.position.y=h/2;cupGroup.add(inner);
  cupFloor=new THREE.Mesh(new THREE.CircleGeometry(r*.70,28),insideMat);
  cupFloor.rotation.x=-Math.PI/2;cupFloor.position.y=.045;cupGroup.add(cupFloor);
- const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.054,9,40),lipMat);
+ const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.028,9,36),lipMat);
  lip.rotation.x=Math.PI/2;lip.position.y=h;cupGroup.add(lip);
  if(kind===1){
   const handle=new THREE.Mesh(new THREE.TorusGeometry(r*.4,.085,8,22),cupMat);
@@ -614,11 +632,11 @@ function buildWorld(){
  // strongly contrasting with the dark gray office instead of washing out.
  const ballMaterial=new THREE.MeshStandardMaterial({color:0xffa44e,roughness:.33,metalness:0,
   emissive:0x7a3005,emissiveIntensity:.37});
- ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.58,32,22),ballMaterial);
+ ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.08,24,18),ballMaterial);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
  const ringPaint=new THREE.MeshBasicMaterial({color:0x733b23});
  for(const angle of [0,Math.PI/2]){
-  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.55,.006,5,36),ringPaint);
+  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.075,.003,5,32),ringPaint);
   seam.rotation.y=angle;ballMesh.add(seam);
  }
  // Soft contact shadow only, not a pale ball on a pale tabletop.
