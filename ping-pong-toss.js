@@ -34,7 +34,7 @@ let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0;
-let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,trail:[]};
+let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,springHits:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const fmtLevel=n=>String(n).padStart(2,'0');
@@ -98,7 +98,7 @@ function stageSettings(n){
  return {
   n,c,tier,d,x,kind:(tier*2+c)%5,radius,
   targetZ:LAUNCH_Z-d,moving,wind,barrierCount,padCount,
-  bankRequired,springRequired,bankX:x*.42,bankZ:LAUNCH_Z-d*.68,
+  bankRequired,springRequired,springZ:LAUNCH_Z-.45-d*.5,bankX:x*.42,bankZ:LAUNCH_Z-d*.68,
   topPad:height,color:chapter(n).color,
   sceneId,roomVariant:Math.floor(tier/5),
   challenge:CHALLENGES[tier],obstacles,targetHeight,
@@ -114,7 +114,7 @@ function buildUi(){
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=['CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
- el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':'')+
+ el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
    cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
  el.attempts.textContent=String(attempts);
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
@@ -122,7 +122,7 @@ function buildUi(){
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=settings.c<2;
  el.windLabel.textContent=settings.c<2?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.bankRequired?'BOUNCE IT OFF THE MARKED DESK PAD':settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
+ el.tutorial.textContent=settings.springRequired?'BOUNCE ON THE SPRING PLATE TO SCORE':settings.bankRequired?'BOUNCE IT OFF THE MARKED DESK PAD':settings.c===0?'SWIPE UP TO FLICK · OR HOLD & RELEASE':
  settings.c===1?'NEW: THE CUP MOVES. TIME YOUR THROW.':
  settings.c===2?'NEW: WIND PUSHES THE BALL SIDEWAYS.':
  settings.c===3?'NEW: DODGE THE SLIDING BLOCKERS.':
@@ -168,14 +168,17 @@ function loadLevel(n){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
  level=n;settings=stageSettings(level);chosenChapter=chapterIndex(level);
  attempts=0;shotT=0;flight=false;paused=false;
- aimYaw=Math.atan2(settings.x,settings.d);aimPitch=settings.bankRequired?.31:.70;
+ aimYaw=settings.springRequired?0:Math.atan2(settings.x,settings.d);
+ aimPitch=settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();}
  buildUi();updatePower();
  showOverlay('LEVEL '+fmtLevel(level)+' · '+CHAPTERS[settings.c].short.toUpperCase(),
    level===1?'READY TO TOSS?':settings.challenge+' · '+cupVariant(settings.kind),
    (level===1?'Swipe your finger or mouse upward to flick; you can also hold and release to charge. ':'')+
-   (settings.bankRequired?
+   (settings.springRequired?
+    'SPRING SHOT: First land on the raised spring plate, then drop into the cup. A direct shot does not count.':
+    settings.bankRequired?
     'BANK SHOT: A direct throw will not count. Bounce the ball off the marked rubber desk pad first, then sink the smaller cup.':
     settings.c===0?'Aim past the clutter and land cleanly inside the container.':
     settings.c===1?'The cup moves left and right. Lead your target and time the release.':
@@ -190,7 +193,7 @@ function nextLevel(){
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
 function resetBall(){
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,trail:[]};
+ ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,springHits:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
@@ -730,7 +733,7 @@ function buildWorld(){
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.77,.055,8,30),
     new THREE.MeshBasicMaterial({color:0xd3ffbe}));
   ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;cart.add(ring);
-  pads.push({x,z,r:.74,y:padY+.05,mat:spring.material,last:-10});
+  pads.push({type:'spring',x,z,r:.74,y:padY+.05,mat:spring.material,last:-10});
  }
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
@@ -770,10 +773,11 @@ function buildWorld(){
 function idealPower(){
  // For direct throws, aim at the cup opening. For bank shots, aim at the
  // rubber tray's actual physical collision height, not at the cup.
- const d=settings.bankRequired?
-  Math.hypot(LAUNCH_Z-settings.bankZ,settings.bankX):
+ const d=settings.bankRequired?Math.hypot(LAUNCH_Z-settings.bankZ,settings.bankX):
+  settings.springRequired?LAUNCH_Z-settings.springZ:
   Math.hypot(settings.d,settings.x);
  const requiredHeight=settings.bankRequired?1.22+BALL_R:
+  settings.springRequired?1.21+BALL_R:
   .19+settings.topPad+settings.targetHeight-BALL_R;
  const t=Math.tan(aimPitch),co=Math.cos(aimPitch);
  const denom=2*co*co*(d*t+LAUNCH_Y-requiredHeight);
@@ -797,7 +801,7 @@ function bankRebound(obj,pad,timeSec){
  // forgiving rubber rebound, never a teleport; the ball continues its
  // animated physical arc and wind/moving barriers still affect its flight.
  const start=pad.y+BALL_R;
- const vy=5.65;
+ const vy=pad.type==='spring'?6.30:5.65;
  const rise=target.top-BALL_R-start;
  const discriminant=Math.max(.001,vy*vy-2*GRAVITY*rise);
  const travel=clamp((vy+Math.sqrt(discriminant))/GRAVITY,.4,1.4);
@@ -823,7 +827,7 @@ function paintAim(){
    vx+=windAt(time+t)*dt;vy-=GRAVITY*dt;
    x+=vx*dt;y+=vy*dt;z+=vz*dt;t+=dt;
    if(bounceCount===0&&vy<0){
-    const pad=pads.find(p=>p.type==='bank');
+    const pad=pads.find(p=>p.type==='bank'||settings.springRequired&&p.type==='spring');
     if(pad&&oldY>=pad.y+BALL_R&&y<=pad.y+BALL_R&&
       Math.hypot(x-pad.x,z-pad.z)<pad.r-BALL_R){
      y=pad.y+BALL_R;
@@ -853,7 +857,7 @@ function inputAim(clientX,clientY){
  const ny=clamp((clientY-rect.top)/rect.height,0,1);
  const baseline=Math.atan2(target.x,settings.d);
  aimYaw=clamp(baseline+(nx-.5)*.68,-.54,.54);
- aimPitch=settings.bankRequired?clamp(.31+(.5-ny)*.44,.13,.59):clamp(.70+(.5-ny)*.52,.27,1.04);
+ aimPitch=settings.bankRequired||settings.springRequired?clamp(.31+(.5-ny)*.44,.13,.59):clamp(.70+(.5-ny)*.52,.27,1.04);
  if(!charging)power=idealPower();
  updatePower();
 }
@@ -877,7 +881,7 @@ function launch(flickPower=null){
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  active:true,bounces:0,trail:[]};
+  active:true,bounces:0,springHits:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.attempts.textContent=String(attempts);
  throwMoment=performance.now();
@@ -955,9 +959,8 @@ function tickFlight(dt){
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
-   if(settings.bankRequired&&ball.bounces<1){
-    miss('BOUNCE FIRST!');return;
-   }
+   if(settings.bankRequired&&ball.bounces<1){miss('BOUNCE FIRST!');return;}
+   if(settings.springRequired&&ball.springHits<1){miss('SPRING PAD FIRST!');return;}
    complete();return;
   }
   if(Math.abs(ball.y-target.top)<BALL_R*.8&&inside>target.r-BALL_R*.8&&
@@ -985,7 +988,9 @@ function tickFlight(dt){
       message('PERFECT BANK! · FINISH THE SHOT',1.0);
       hear(650,.13,'triangle',.045);
      }else{
-      ball.vy=6.3;ball.vz-=1.55;ball.vx+=(target.x-ball.x)*.30;
+      const rebound=bankRebound(ball,pad,performance.now()/1000);
+      ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
+      ball.springHits++;
       message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
      }
      ball.bounces++;bouncedThisStep=true;break;
@@ -1119,7 +1124,7 @@ function flickAim(e){
  if(pixels<12&&!gesture.moved)return;
  gesture.moved=true;
  aimYaw=clamp(Math.atan2(settings.x,settings.d)+dx*.88,-.62,.62);
- aimPitch=settings.bankRequired?clamp(.20+dy*.45,.13,.65):clamp(.37+dy*.79,.29,1.10);
+ aimPitch=settings.bankRequired||settings.springRequired?clamp(.20+dy*.45,.13,.65):clamp(.37+dy*.79,.29,1.10);
  const speed=pixels/(duration/1000);
  gesture.flickPower=clamp(idealPower()+(dy-.42)*.36+clamp((speed-950)/6000,-.045,.055),.065,1);
  power=gesture.flickPower;
@@ -1164,8 +1169,8 @@ document.addEventListener('keydown',e=>{
   const amount=e.shiftKey?.019:.011;
   if(key==='arrowleft'||key==='a')aimYaw=clamp(aimYaw-amount,-.56,.56);
   if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-.56,.56);
-  if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,settings.bankRequired?.13:.27,1.04);
-  if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,settings.bankRequired?.13:.27,1.04);
+  if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
+  if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
   if(!charging)power=idealPower();updatePower();
  }else if(e.code==='Space'&&!e.repeat){
   e.preventDefault();startCharge('keyboard');
