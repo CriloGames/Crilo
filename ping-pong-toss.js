@@ -31,7 +31,7 @@ const CHAPTERS=[
  {name:'BOUNCE LAB',desc:'Glowing bounce pads relaunch your ball into hard-to-reach cups.',from:41,to:50,color:0xae8edc,short:'Bounce Pads'}
 ];
 let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
-let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null;
+let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0;
 let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,trail:[]};
@@ -587,13 +587,15 @@ function startCharge(source){
 }
 function chargeTick(now){
  if(!charging)return;
+ if(chargeSource==='pointer'&&gesture?.moved)return;
  const sec=(now-chargeFrom)/1000;
  power=clamp(chargeAnchor+sec*.58,.06,1);
  updatePower();
 }
-function launch(){
+function launch(flickPower=null){
  if(!playing||paused||flight||!charging)return;
- chargeTick(performance.now());charging=false;chargeSource=null;flight=true;attempts++;
+ if(flickPower===null)chargeTick(performance.now());else power=clamp(flickPower,.05,1);
+ charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,trail:[]};
@@ -686,6 +688,16 @@ function tickFlight(dt){
     }
    }
   }
+  // Physically solid desk surfaces: an unsuccessful toss cannot ghost through
+  // the tabletop beneath the target or the player's own work area.
+  const onFarDesk=ball.z>settings.targetZ-1.62&&ball.z<settings.targetZ+1.62&&
+   Math.abs(ball.x-settings.x)<(settings.sceneId===1?3.2:settings.sceneId===3?2.0:2.55);
+  const onNearDesk=ball.z>3.70&&ball.z<7.55&&Math.abs(ball.x)<6.30;
+  const surface=onFarDesk?.94:onNearDesk?1.02:0;
+  if(ball.vy<0&&prevY>=surface+BALL_R&&ball.y<surface+BALL_R){
+   if(settings.padCount&&pads.some(p=>Math.hypot(ball.x-p.x,ball.z-p.z)<p.r)){}
+   else{miss(surface?'DESK BOUNCE!':'FLOOR!');return;}
+  }
   if(ball.y<BALL_R+.02){miss('FLOOR!');return;}
   if(Math.abs(ball.x)>7.2||ball.z<settings.targetZ-4.5||ball.z>LAUNCH_Z+1.4||shotT>6.0){
    miss('OUT OF BOUNDS!');return;
@@ -716,21 +728,21 @@ async function init(){
  try{
   THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
   scene=new THREE.Scene();scene.background=new THREE.Color(0xe0f3f1);
-  scene.fog=new THREE.Fog(0xe0f3f1,24,62);
+  scene.fog=new THREE.Fog(0x687985,22,45);
   camera=new THREE.PerspectiveCamera(47,1,.1,95);
   renderer=new THREE.WebGLRenderer({canvas:el.canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.5;
-  scene.add(new THREE.HemisphereLight(0xffffff,0xbecac3,2.25));
-  const sun=new THREE.DirectionalLight(0xffffff,2.4);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;
+  scene.add(new THREE.HemisphereLight(0xf2e5cb,0x596c71,1.45));
+  const sun=new THREE.DirectionalLight(0xffeac9,2.25);
   sun.position.set(-5,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
   sun.shadow.camera.top=16;sun.shadow.camera.bottom=-26;sun.shadow.camera.far=75;
   scene.add(sun);
-  const fill=new THREE.PointLight(0xffd0a5,18,27,2);fill.position.set(4,7,1);scene.add(fill);
+  const fill=new THREE.PointLight(0xa8d0e5,5,22,2);fill.position.set(4,5,1);scene.add(fill);
   hasRenderer=true;buildWorld();resize();
   if('ResizeObserver' in window)new ResizeObserver(resize).observe(el.viewport);
   else window.addEventListener('resize',resize,{passive:true});
@@ -786,24 +798,52 @@ document.addEventListener('fullscreenchange',()=>{
  const active=document.fullscreenElement===$('ptShell');
  el.full.textContent=active?'EXIT FULLSCREEN':'FULLSCREEN';resize();
 });
+// Flick gesture inspired by classic touchscreen toss games — drag upward to
+// aim/throw, or simply hold and release for power-charging on desktop.
+function flickAim(e){
+ if(!gesture||gesture.id!==e.pointerId)return;
+ const rect=el.canvas.getBoundingClientRect();
+ const height=Math.max(rect.height,1);
+ const dx=(e.clientX-gesture.x)/height;
+ const dy=(gesture.y-e.clientY)/height;
+ const duration=Math.max(70,performance.now()-gesture.time);
+ const pixels=Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y);
+ if(pixels<12&&!gesture.moved)return;
+ gesture.moved=true;
+ aimYaw=clamp(Math.atan2(settings.x,settings.d)+dx*.88,-.62,.62);
+ aimPitch=clamp(.37+dy*.79,.29,1.10);
+ const speed=pixels/(duration/1000);
+ gesture.flickPower=clamp(idealPower()+(dy-.40)*.50+clamp((speed-430)/3200,-.07,.11),.065,1);
+ power=gesture.flickPower;
+ updatePower();
+}
 el.canvas.addEventListener('pointermove',e=>{
  if(!playing||flight)return;
- inputAim(e.clientX,e.clientY);
+ if(gesture&&gesture.id===e.pointerId)flickAim(e);
+ else if(e.pointerType!=='touch')inputAim(e.clientX,e.clientY);
 });
 el.canvas.addEventListener('pointerdown',e=>{
  if(e.button!==0||!playing||flight)return;
  e.preventDefault();
  el.canvas.setPointerCapture?.(e.pointerId);
  inputAim(e.clientX,e.clientY);
+ gesture={id:e.pointerId,x:e.clientX,y:e.clientY,time:performance.now(),moved:false,flickPower:null};
  startCharge('pointer');
 });
 const release=e=>{
  if(chargeSource!=='pointer')return;
- e.preventDefault();launch();
+ e.preventDefault();
+ if(gesture&&gesture.id===e.pointerId){
+  flickAim(e);
+  if(gesture.moved&&e.clientY<gesture.y-20)launch(gesture.flickPower);
+  else if(gesture.moved&&e.clientY>=gesture.y-20){
+   charging=false;chargeSource=null;gesture=null;message('FLICK UP TO THROW!',1.0);
+  }else launch();
+ }
  try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
 };
 el.canvas.addEventListener('pointerup',release);
-el.canvas.addEventListener('pointercancel',()=>{charging=false;chargeSource=null;});
+el.canvas.addEventListener('pointercancel',()=>{charging=false;chargeSource=null;gesture=null;});
 document.addEventListener('keydown',e=>{
  const tag=document.activeElement?.tagName||'';
  if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||e.ctrlKey||e.altKey||e.metaKey)return;
