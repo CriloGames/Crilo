@@ -589,10 +589,21 @@ function buildWorld(){
  target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r,kind};
  // The tray/pad follows lateral target motion, not the entire desk.
  meshBox(cupGroup,r*2.5,.09,r*2.5,0,-.10,0,cream);
- if([0,1,4].includes(settings.sceneId)){
-  const clerk=officeColleague(group,settings.sceneId===4?-4.1:4.1,
-   settings.targetZ-1.45,level);
-  ambient.push({type:'colleague',obj:clerk});
+ // A lively original coworker anchors the office perspective. Always
+ // placed on the opposite side from the target so they never hide its rim.
+ // Outfit and desk pose change by stage rather than repeating one backdrop.
+ const coworkerX=settings.x>=0?-2.25:2.25;
+ const coworkerZ=settings.targetZ-1.55;
+ if(settings.sceneId!==2||settings.tier%2===0){
+  const colleague=officeColleague(group,coworkerX,coworkerZ,level);
+  colleague.rotation.y=(settings.tier%3-1)*.19;
+  ambient.push({type:'colleague',obj:colleague});
+  officeChair(group,coworkerX,coworkerZ+.43);
+  const desktop=meshBox(group,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
+  const cup=createMat(0xb8a18d,.58,.05);
+  const coworkerMug=new THREE.Mesh(new THREE.CylinderGeometry(.13,.115,.20,12),cup);
+  coworkerMug.position.set(coworkerX+((level%2)?-.68:.68),1.25,coworkerZ-.38);
+  group.add(coworkerMug);
  }
  const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.50,.36),
   makeText('YOUR TARGET',31,'#fff0da','#40505b'));
