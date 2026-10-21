@@ -239,13 +239,16 @@ function buildWorld(){
  plate.position.set(0,.31,0);launchBase.add(plate);
  const word=new THREE.Mesh(new THREE.PlaneGeometry(1.4,.31),makeText('TOSS HERE',34,'#fff','#476a85'));
  word.rotation.x=-Math.PI/2;word.position.set(0,.012,LAUNCH_Z+1.03);group.add(word);
- // Cup marker and shallow podium.
- const podium=meshBox(group,2.45,.19,2.4,settings.x,.055,settings.targetZ,accent);
- const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.07,.06,26),cream);
- disc.position.set(settings.x,.17,settings.targetZ);group.add(disc);
- // The cup will be moved as one group by the chapter 2 mechanic.
+ // The cup and its whole pedestal move together in chapter 2.
+ // Bounce Lab stages add a raised podium that visually signals the higher aim.
  cupGroup=new THREE.Group();
- cupGroup.position.set(settings.x,.19,settings.targetZ);group.add(cupGroup);
+ cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
+ if(settings.topPad>0){
+  meshBox(cupGroup,2.18,settings.topPad+.17,2.18,0,-.195-settings.topPad*.5,0,wood);
+ }
+ meshBox(cupGroup,2.45,.19,2.4,0,-.135,0,accent);
+ const disc=new THREE.Mesh(new THREE.CylinderGeometry(1.0,1.07,.06,26),cream);
+ disc.position.set(0,-.02,0);cupGroup.add(disc);
  const r=settings.radius,kind=settings.kind,h=settings.targetHeight;
  const palette=[0xff8c9e,0x8db8eb,0xffc679,0x9cdbb8,0xbb9def];
  const cupMat=createMat(palette[kind],.45,.06),insideMat=createMat(0xf5e9e3),lipMat=createMat(0xfff8e6,.36,.05);
@@ -271,7 +274,7 @@ function buildWorld(){
    new THREE.MeshStandardMaterial({color:0xffffff,transparent:true,opacity:.21,wireframe:true}));
   net.position.y=h*.45;cupGroup.add(net);
  }
- target={x:settings.x,z:settings.targetZ,y:.19,top:.19+h,r:r,kind};
+ target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r:r,kind};
  // Target spotlight decal and stage sign, behind the target.
  const sign=new THREE.Mesh(new THREE.PlaneGeometry(2.75,.67),
   makeText('LEVEL '+fmtLevel(level),42,'#fff','#3d6485'));
@@ -284,7 +287,7 @@ function buildWorld(){
   const z=lerp(LAUNCH_Z-1.5,settings.targetZ+1.25,t);
   const left=i%2===0?-1:1;
   const x=left*(.7+.42*seeded(level*7+i));
-  const height=.8+.35*(i%3);
+  const height=.8+.35*(i%3)+.08*settings.c;
   const obj=meshBox(group,.57,height,.57,x,height/2,z,
    createMat(i%2?0xffc57c:0x8abed2));
   meshBox(group,.61,.13,.61,x,height+.04,z,navy);
@@ -358,7 +361,7 @@ function buildWorld(){
 function idealPower(){
  const d=Math.hypot(settings.d,settings.x);
  const t=Math.tan(aimPitch),co=Math.cos(aimPitch);
- const denom=2*co*co*(d*t+LAUNCH_Y-(.19+settings.targetHeight));
+ const denom=2*co*co*(d*t+LAUNCH_Y-(.19+settings.topPad+settings.targetHeight));
  const v=Math.sqrt(Math.max(1,GRAVITY*d*d/Math.max(.1,denom)));
  return clamp((v-5.6)/8.2,.06,.96);
 }
@@ -477,7 +480,7 @@ function tickFlight(dt){
  const substeps=3,h=dt/substeps;
  for(let step=0;step<substeps;step++){
   if(!flight)break;
-  const prevY=ball.y;
+  const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
   ball.vx+=settings.wind*h;
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
@@ -491,6 +494,13 @@ function tickFlight(dt){
   if(Math.abs(ball.y-target.top)<BALL_R*.8&&inside>target.r-BALL_R*.8&&
    inside<target.r+BALL_R*.65){
    miss('SO CLOSE!');return;
+  }
+  // Reject side-entry through the visible cup shell. Only a downward crossing
+  // through its opening can score, never a ghost shot through the walls.
+  const wasInside=Math.hypot(prevX-target.x,prevZ-target.z);
+  if(ball.y<target.top-BALL_R*.5&&ball.y>target.y+.06&&
+     inside<target.r+BALL_R&&wasInside>=target.r+BALL_R){
+   miss('CUP WALL!');return;
   }
   // Bounce Lab: a spring pad can relaunch one descending ball.
   if(settings.padCount&&ball.vy<0){
