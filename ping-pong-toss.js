@@ -19,7 +19,7 @@ const el={
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup;
+let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.115;
@@ -376,7 +376,11 @@ function buildWorld(){
    meshBox(group,2.8,1.7,.11,side*6.98,.95,z-.8,dark);
   }
   plant(group,side*6.0,roomEnd+1.35+settings.roomVariant,.95);
+  if((level+iLevelFactor(side))%3!==0)
+   officeBin(group,side*4.65,roomEnd+1.35,createMat(0x7c8b8e,.35,.35));
  }
+ // A deterministic detail switch varies clutter for each level.
+ function iLevelFactor(side){return side<0?1:2;}
  // Front player desk close to camera: tangible 3D surface and desk accessories.
  const playerDesk=desk(group,0,5.65,12.7,3.9,1.02,wood,metal);
  meshBox(playerDesk,5.7,.012,1.0,0,1.13,-.61,
@@ -392,7 +396,8 @@ function buildWorld(){
  meshBox(playerDesk,.35,.13,.30,4.50,1.23,.06,eraser);
  // First-person throwing hand on the right edge of the desktop.
  const skin=createMat(0xc19375,.83),cuff=createMat(0x467a8b,.83);
- const hand=new THREE.Group();hand.position.set(.75,.65,LAUNCH_Z+.42);group.add(hand);
+ const hand=new THREE.Group();hand.position.set(.75,1.40,LAUNCH_Z+.60);group.add(hand);
+ throwingHand=hand;
  meshBox(hand,.48,.26,.70,0,0,0,skin);
  meshBox(hand,.53,.30,.30,0,-.08,.39,cuff);
  for(let i=0;i<4;i++)meshBox(hand,.083,.09,.35,-.15+i*.10,.16,-.30,skin);
@@ -615,6 +620,7 @@ function launch(flickPower=null){
   active:true,bounces:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.attempts.textContent=String(attempts);
+ throwMoment=performance.now();
  hear(880,.12,'sine',.045);message('PONG!',.55);
  paintAim();
 }
@@ -737,6 +743,11 @@ function animate(now){
   tickObstacles(now);
   if(charging)chargeTick(now);
   if(flight)tickFlight(dt);
+ }
+ if(throwingHand){
+  const t=clamp((now-throwMoment)/440,0,1);
+  throwingHand.rotation.x=t<1?-Math.sin(t*Math.PI)*.73:0;
+  throwingHand.position.z=LAUNCH_Z+.60-(t<1?Math.sin(t*Math.PI)*.25:0);
  }
  if(toastUntil&&now>toastUntil){el.toast.hidden=true;toastUntil=0;}
  if(renderer)renderer.render(scene,camera);
