@@ -494,8 +494,11 @@ function buildWorld(){
  // Variety: the actual cup is always open and visible on its own tray.
  cupGroup=new THREE.Group();cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
  const r=settings.radius,kind=settings.kind,h=settings.targetHeight;
+ // A believable warm practical highlight keeps the target legible in dim rooms.
+ const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?3.3:3.8,3.4,2);
+ targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
  const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4];
- const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xecedeb,.4,.18);
+ const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xffd49a,.29,.16,0x6b4022);
  const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,kind===3?r*.96:r*.73,h,32,1,true),cupMat);
  shell.position.y=h/2;shell.castShadow=true;cupGroup.add(shell);
  const inner=new THREE.Mesh(new THREE.CylinderGeometry(r*.93,r*.71,h*.91,30,1,true),
@@ -526,7 +529,7 @@ function buildWorld(){
   ambient.push({type:'colleague',obj:clerk});
  }
  const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.42),
-  makeText('IN THE CUP',31,'#f1eeee','#405c63'));
+  makeText('YOUR TARGET',31,'#fff0da','#40505b'));
  targetMarker.position.set(settings.x+1.6,2.33,settings.targetZ-1.12);group.add(targetMarker);
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
