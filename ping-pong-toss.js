@@ -743,6 +743,101 @@ function buildWorld(){
  const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.50,.36),
   makeText('YOUR TARGET',31,'#fff0da','#40505b'));
  targetMarker.position.set(settings.x+1.05,settings.topPad+1.72,settings.targetZ-1.20);group.add(targetMarker);
+ // Every level gets its own recognizable environmental centerpiece,
+ // positioned to the SIDE of the goal so visual variety never hides the cup.
+ const feature=new THREE.Group();
+ const featureSide=settings.x>=0?-1:1;
+ feature.position.set(featureSide*4.30,0,settings.targetZ-1.15);
+ group.add(feature);
+ const stone=createMat(0x9a9d93,.67),brass=createMat(0xbda078,.46,.30);
+ const tile=createMat(0x72949d,.66),ink=createMat(0x465761,.65);
+ const woodPaper=createMat(0xc4b6a1,.91),colored=createMat(0xc88b79,.62);
+ const drawer=createMat(0x7d8988,.45,.32);
+ const pole=(height=2.4)=>meshBox(feature,.13,height,.14,0,height/2,0,metal);
+ switch(settings.feature){
+  case 'sticky':case 'folders':case 'binders':case 'letters':{
+   meshBox(feature,1.78,1.85,.25,0,2.15,0,wood);
+   for(let i=0;i<12;i++){
+    const x=(i%4-1.5)*.33,y=1.55+Math.floor(i/4)*.47;
+    meshBox(feature,.25,.32,.025,x,y,-.15,
+     createMat([0xe0c68d,0xb8c5b3,0xaabcca,0xcdaba7][(i+level)%4],.89));
+   }break;
+  }
+  case 'kettle':case 'coffee':case 'lunch':case 'teapot':{
+   meshBox(feature,2.25,.18,1.0,0,1.10,0,wood);
+   const kettle=new THREE.Mesh(new THREE.CylinderGeometry(.36,.40,.75,20),
+    createMat(0xb1b6b4,.30,.5));kettle.position.set(-.5,1.59,0);feature.add(kettle);
+   const lid=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8),ink);
+   lid.scale.y=.18;lid.position.set(-.5,2.00,0);feature.add(lid);
+   for(let i=0;i<3;i++){
+    const mug=new THREE.Mesh(new THREE.CylinderGeometry(.14,.11,.23,12),colored);
+    mug.position.set(.18+i*.34,1.32,0);feature.add(mug);
+   }break;
+  }
+  case 'printer':case 'scanner':case 'shredder':{
+   meshBox(feature,1.92,1.55,1.15,0,.84,0,drawer);
+   meshBox(feature,1.72,.22,.94,0,1.70,0,ink);
+   meshBox(feature,1.32,.09,.82,0,1.87,-.05,stone);
+   for(let i=0;i<5;i++)
+    meshBox(feature,1.10,.023,.71,0,1.92+i*.035,-.10,woodPaper);
+   meshBox(feature,.84,.28,.10,0,1.02,.61,ink);
+   break;
+  }
+  case 'sunblind':case 'glass':case 'whiteboard':{
+   meshBox(feature,2.35,2.1,.17,0,2.8,0,cream);
+   meshBox(feature,2.11,1.91,.045,0,2.8,-.13,tile);
+   if(settings.feature==='sunblind')for(let i=0;i<8;i++)
+    meshBox(feature,2.13,.075,.025,0,1.95+i*.24,-.16,woodPaper);
+   else for(let i=0;i<5;i++)
+    meshBox(feature,.23+i*.18,.045,.05,-.70,2.40+i*.20,-.17,
+     createMat([0x729fa9,0xb89076][i%2]));
+   break;
+  }
+  case 'dualmonitors':case 'reception':case 'elevator':{
+   meshBox(feature,2.85,.20,1.05,0,1.10,0,wood);
+   for(const xx of [-.72,.72]){
+    meshBox(feature,1.04,.80,.12,xx,1.79,0,ink);
+    meshBox(feature,.87,.63,.04,xx,1.79,-.08,tile);
+    meshBox(feature,.07,.43,.08,xx,1.26,.04,metal);
+   }break;
+  }
+  case 'archive':case 'packages':case 'conveyor':case 'forklift':{
+   for(let i=0;i<3;i++){
+    meshBox(feature,2.2,.18,1.45,0,.62+i*.85,0,metal);
+    for(let j=0;j<3;j++)
+     meshBox(feature,.55,.48,.77,(j-1)*.67,.94+i*.85,0,
+      createMat([0xb9a184,0x8c989c,0xa78e78][(i+j)%3]));
+   }break;
+  }
+  case 'trophies':case 'mailbox':{
+   meshBox(feature,2.2,.18,.95,0,1.18,0,wood);
+   for(const xx of [-.65,0,.65]){
+    meshBox(feature,.18,.40,.18,xx,1.50,0,brass);
+    const cup=new THREE.Mesh(new THREE.CylinderGeometry(.21,.12,.32,16),brass);
+    cup.position.set(xx,1.84,0);feature.add(cup);
+    const top=new THREE.Mesh(new THREE.TorusGeometry(.21,.034,7,20),cream);
+    top.rotation.x=Math.PI/2;top.position.set(xx,2.02,0);feature.add(top);
+   }break;
+  }
+  case 'fan':case 'airvent':{
+   pole(2.1);
+   const ring=new THREE.Mesh(new THREE.TorusGeometry(.73,.06,9,26),metal);
+   ring.position.set(0,2.33,0);feature.add(ring);
+   for(let i=0;i<6;i++){
+    const blade=meshBox(feature,.15,.62,.05,0,2.35,0,tile);
+    blade.rotation.z=i*Math.PI/3;
+   }break;
+  }
+  default:{
+   pole(1.7);
+   meshBox(feature,2.0,.18,.80,0,1.47,0,wood);
+   for(let i=0;i<5;i++)
+    meshBox(feature,.27,.36,.41,(i-2)*.33,1.73,0,
+     createMat([0x779ca2,0xbcaa8a,0x8f8a9e][i%3]));
+  }
+ }
+ // Named art-direction plaque and lighting, unique on EACH level.
+ roundedPoster(group,settings.challenge.toUpperCase(),0,6.10,roomEnd+.40);
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
  if(settings.sceneId===0){
