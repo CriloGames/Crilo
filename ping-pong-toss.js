@@ -199,6 +199,8 @@ function buildChapters(){
   star.textContent=i>unlocked?'LOCKED':stars[i]?'★'.repeat(stars[i]):recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.append(label,nameTag,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  button.dataset.shot=kind.toLowerCase();
+  button.dataset.scene=String(recipe.sceneId);
   button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
   button.addEventListener('click',()=>loadLevel(i));
