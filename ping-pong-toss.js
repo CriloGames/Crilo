@@ -16,7 +16,7 @@ const el={
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
  sound:$('ptSound'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
- aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast')
+ aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective')
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
@@ -114,6 +114,9 @@ function buildUi(){
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=['CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
+ el.objective.textContent=settings.springRequired?'SPRING PAD → CUP':
+  settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
+ el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
  el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
    cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
  el.attempts.textContent=String(attempts);
@@ -146,9 +149,9 @@ function buildChapters(){
   const button=document.createElement('button');button.type='button';
   button.className='pt-level-btn'+(i===level?' current':'')+(i>unlocked?' locked':'')+(stars[i]?' cleared':'');
   const label=document.createElement('span');label.textContent=fmtLevel(i);
-  const star=document.createElement('small');star.textContent=i>unlocked?'LOCK':stars[i]?'★'.repeat(stars[i]):'PLAY';
-  button.append(label,star);button.disabled=i>unlocked;
   const recipe=stageSettings(i);
+  const star=document.createElement('small');star.textContent=i>unlocked?'LOCK':stars[i]?'★'.repeat(stars[i]):recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'PLAY';
+  button.append(label,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
