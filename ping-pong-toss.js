@@ -155,7 +155,7 @@ function buildUi(){
  el.total.textContent=String(completed)+' / 150';
  el.counter.textContent=fmtLevel(level)+' / 50';
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
- const rooms=['CUBICLE','MEETING ROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT'];
+ const rooms=SCENE_NAMES;
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
  el.objective.textContent=settings.springRequired?'SPRING PAD → CUP':
   settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
@@ -211,7 +211,7 @@ function showOverlay(tag,title,text,button,action){
 }
 function hideOverlay(){el.overlay.hidden=true;playing=true;paused=false;}
 function cupVariant(kind){
- return ['PAPER CUP','CERAMIC MUG','TALL BUCKET','COLOUR BOWL','HOOP BASKET'][kind];
+ return ['PAPER CUP','CERAMIC MUG','TALL BUCKET','COLOUR BOWL','WIRE BASKET','FILE BIN','TROPHY CUP'][kind];
 }
 function loadLevel(n){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
@@ -641,7 +641,7 @@ function buildWorld(){
  // A believable warm practical highlight keeps the target legible in dim rooms.
  const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
  targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
- const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4];
+ const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4,0xc2ad93,0xd6b979];
  const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xffd49a,.29,.16,0x6b4022);
  const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,kind===3?r*.96:r*.73,h,32,1,true),cupMat);
  shell.position.y=h/2;shell.castShadow=true;cupGroup.add(shell);
@@ -659,10 +659,17 @@ function buildWorld(){
  if(kind===2){
   for(const side of [-1,1])meshBox(cupGroup,.10,h*.75,.08,side*r*.85,h*.52,0,lipMat);
  }
- if(kind===4){
+ if(kind===4||kind===5){
   const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r*.96,r*.7,h*.77,20,1,true),
-   new THREE.MeshStandardMaterial({color:0xabb7b1,transparent:true,opacity:.37,wireframe:true}));
+   new THREE.MeshStandardMaterial({color:kind===4?0xabb7b1:0x927965,transparent:true,opacity:.47,wireframe:true}));
   mesh.position.y=h*.4;cupGroup.add(mesh);
+ }
+ if(kind===6){
+  const gold=createMat(0xe4ba6c,.35,.46);
+  for(const side of [-1,1]){
+   const handle=new THREE.Mesh(new THREE.TorusGeometry(r*.38,.06,7,18),gold);
+   handle.rotation.y=Math.PI/2;handle.position.set(side*r*.97,h*.66,0);cupGroup.add(handle);
+  }
  }
  target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r,kind};
  // The tray/pad follows lateral target motion, not the entire desk.
@@ -947,6 +954,21 @@ function windAt(time){
  // A desk fan oscillates rather than blowing at a perfectly constant rate.
  return settings.wind*(.66+.34*Math.sin(time*.88+.7));
 }
+// Deterministic, physically visible target travel. Distinct levels can slide,
+// rise on a lift, move towards the player or describe a figure-eight.
+function targetLocation(time){
+ const a=settings.moving,frequency=.78+(settings.tier%4)*.095,phase=time*frequency;
+ let x=settings.x,z=settings.targetZ,y=.19+settings.topPad;
+ if(!a)return {x,y,z};
+ switch(settings.motion){
+  case 'slide':x+=Math.sin(phase)*a;break;
+  case 'depth':z+=Math.sin(phase)*a*.80;break;
+  case 'lift':y+=Math.sin(phase)*a*.65;break;
+  case 'orbit':x+=Math.sin(phase)*a;z+=Math.cos(phase)*a*.50;break;
+  case 'figure8':x+=Math.sin(phase)*a;z+=Math.sin(phase*2)*a*.48;break;
+ }
+ return {x,y,z};
+}
 function bankRebound(obj,pad,timeSec){
  // Predict the descending crossing of the target's opening. This is a
  // forgiving rubber rebound, never a teleport; the ball continues its
@@ -956,13 +978,8 @@ function bankRebound(obj,pad,timeSec){
  const rise=target.top-BALL_R-start;
  const discriminant=Math.max(.001,vy*vy-2*GRAVITY*rise);
  const travel=clamp((vy+Math.sqrt(discriminant))/GRAVITY,.4,1.4);
- const projectedX=settings.moving?
-  settings.x+Math.sin((timeSec+travel)*(.8+settings.tier*.058))*settings.moving:
-  settings.x;
- return {
-  vy,vx:(projectedX-obj.x)/travel,
-  vz:(target.z-obj.z)/travel
- };
+ const next=targetLocation(timeSec+travel);
+ return {vy,vx:(next.x-obj.x)/travel,vz:(next.z-obj.z)/travel};
 }
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
@@ -1068,9 +1085,10 @@ function tickObstacles(time){
   const actual=windAt(t);
   el.windLabel.textContent=(actual>=0?'FAN → ':'← FAN ')+Math.abs(actual).toFixed(2);
  }
- const move=settings.moving?Math.sin(t*(.8+settings.tier*.058))*settings.moving:0;
- cupGroup.position.x=settings.x+move;
- target.x=cupGroup.position.x;
+ const position=targetLocation(t);
+ cupGroup.position.set(position.x,position.y,position.z);
+ target.x=position.x;target.z=position.z;target.y=position.y;
+ target.top=position.y+settings.targetHeight;
  for(const item of ambient){
   if(item.type==='fan')item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
   if(item.type==='colleague'){
@@ -1082,7 +1100,7 @@ function tickObstacles(time){
  }
  for(const obj of obstacles){
   if(obj.type==='barrier'){
-   obj.x=Math.sin(t*obj.speed+obj.phase)*obj.amp;
+   obj.x=obj.centerX+Math.sin(t*obj.speed+obj.phase)*obj.amp;
    obj.obj.position.x=obj.x;
   }
  }
