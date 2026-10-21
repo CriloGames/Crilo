@@ -1,0 +1,30 @@
+/* Small standalone More Games thumbnail for Pong Toss. */
+.pong-home-card .pong-home-art{
+ position:relative;background:linear-gradient(155deg,#d0f0e5,#a0d5ef);
+ border:1.5px solid #639a9b;isolation:isolate;overflow:hidden;
+}
+.pong-home-art:before{
+ content:"";position:absolute;bottom:-7px;left:2px;width:59px;height:17px;
+ transform:rotate(-10deg);border-radius:50%;background:#8abfafbb;
+}
+.pong-home-ball{
+ position:absolute;width:16px;height:16px;border-radius:50%;left:10px;top:5px;
+ background:radial-gradient(circle at 31% 25%,white 0 33%,#f4f8f5 55%,#becfd4 90%);
+ border:1px solid #9aaeba;box-shadow:0 2px 4px #6d899b60;transform:rotate(-14deg);
+}
+.pong-home-ball:after{content:"";position:absolute;inset:5px;border:1px solid #fa8e8c;border-radius:50%}
+.pong-home-cup{
+ position:absolute;width:26px;height:30px;top:21px;right:4px;transform:rotate(7deg);
+ background:linear-gradient(90deg,#f28894,#ffb6a8 55%,#e98196);
+ clip-path:polygon(0% 4%,100% 4%,82% 100%,18% 100%);
+ border-radius:3px 3px 8px 8px;filter:drop-shadow(0 2px 2px #54819b55);
+}
+.pong-home-cup:before{
+ content:"";position:absolute;top:0;left:0;right:0;height:8px;
+ border-radius:50%;background:#fff0e5;border:2px solid #e58799;
+}
+.pong-home-number{
+ position:absolute;bottom:3px;left:5px;color:#335e77;background:#fff8e8ea;border:1px solid #7eabb2;
+ border-radius:4px;padding:1px 3px;font:900 9px/1.1 ui-monospace,Consolas,monospace;
+}
+.pong-home-eyebrow{display:block;font:850 9px/1.2 ui-monospace,Consolas,monospace;color:#558f94;letter-spacing:.06em;margin-bottom:3px}
