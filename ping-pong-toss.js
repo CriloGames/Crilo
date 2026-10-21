@@ -300,21 +300,51 @@ function buildWorld(){
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];ambient=[];aimLine=[];
  const sets=[
-  {walls:0x71878a,carpet:0x546c69,desk:0x9d6c4b,trim:0x374d51,name:'THE CUBICLE'},
+  {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
   {walls:0x79919a,carpet:0x5c6b76,desk:0x896b54,trim:0x4b5e70,name:'MAILROOM'},
   {walls:0x8c8b7d,carpet:0x68736c,desk:0x956c50,trim:0x52534f,name:'BREAK ROOM'},
   {walls:0x728494,carpet:0x475b6b,desk:0x8d634c,trim:0x414c61,name:'NIGHT SHIFT'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
+ // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
+ // and the challenge layout changes its foreground props per individual level.
+ const lightingMode=(level-1)%10>=5;
+ const sceneTone=[0x526977,0x756e68,0x526574,0x776f5f,0x4f5e70][settings.sceneId];
+ const nearDeskTone=lightingMode?0x695348:theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
- const wood=createMat(theme.desk,.56),darkWood=createMat(0x543e34,.72);
+ const wood=createMat(nearDeskTone,.44,.04),darkWood=createMat(0x45392f,.68);
  const metal=createMat(0x687985,.33,.41),dark=createMat(theme.trim,.6,.15);
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
  const blue=createMat(0x66899b,.6),light=createMat(0xf0e0b9,.7);
  const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
+ // Room-specific architecture: a grounded first-person office scene, not a
+ // generic pastel shooting gallery. Warm lights and dark walls frame the ball.
+ if(settings.sceneId===1){
+  for(const x of [-4.4,4.4]){
+   const column=meshBox(group,.40,6.9,.55,x,3.3,roomEnd+.48,metal);
+   column.castShadow=true;
+  }
+ }
+ if(settings.sceneId===2){
+  for(let i=0;i<6;i++){
+   const z=roomEnd+1.2+i*1.25;
+   meshBox(group,.18,3.1,.92,7.45,1.62,z,metal);
+  }
+ }
+ if(settings.sceneId===3){
+  // Kitchen wall backsplash and distinct tiled texture.
+  meshBox(group,7.4,1.9,.07,0,1.9,roomEnd+.20,createMat(0x83918a,.58));
+  for(let x=-3.2;x<=3.2;x+=.8)
+   meshBox(group,.025,1.8,.08,x,1.9,roomEnd+.27,cream);
+ }
+ if(settings.sceneId===4){
+  // Midnight computer lab: monitor columns and cool blue workstation accents.
+  for(const x of [-5.5,-4.2,4.2,5.5])
+   meshBox(group,.25,5.3,.25,x,3,roomEnd+.35,dark);
+ }
  // A full-size room: fixed eye-level perspective from behind the front desk.
  meshBox(group,16,.23,roomLength,0,-.53,roomMiddle,carpet);
  meshBox(group,16,8,.22,0,3.47,roomEnd,wallMat);
@@ -519,13 +549,13 @@ function buildWorld(){
  }
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
- const ballMaterial=new THREE.MeshStandardMaterial({color:0xf7b86b,roughness:.27,metalness:0,
-  emissive:0x653112,emissiveIntensity:.22});
- ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.34,24,18),ballMaterial);
+ const ballMaterial=new THREE.MeshStandardMaterial({color:0xffa44e,roughness:.33,metalness:0,
+  emissive:0x7a3005,emissiveIntensity:.37});
+ ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.58,32,22),ballMaterial);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
- const ringPaint=new THREE.MeshBasicMaterial({color:0x8c4f39});
+ const ringPaint=new THREE.MeshBasicMaterial({color:0x733b23});
  for(const angle of [0,Math.PI/2]){
-  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.315,.005,5,36),ringPaint);
+  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.55,.006,5,36),ringPaint);
   seam.rotation.y=angle;ballMesh.add(seam);
  }
  // Soft contact shadow only, not a pale ball on a pale tabletop.
@@ -541,10 +571,12 @@ function buildWorld(){
  }
  aimLine=trajectoryGroup.children;
  // Camera at human eye-height, not the old god's-eye tabletop view.
- camera.position.set(.0,3.25,8.55);
- camera.lookAt(settings.x*.11,1.37,settings.targetZ*.50);
+ // Immersive eye-level fixed viewpoint inspired by tactile desk-flick games.
+ // Keep the ball in the lower foreground and the intended container above it.
+ camera.position.set(settings.sceneId===1?-.27:.08,2.29,8.08);
+ camera.lookAt(settings.x*.28,1.65,settings.targetZ*.61);
  camera.updateMatrixWorld();
- scene.background.setHex([0x687f87,0x91877d,0x7a8994,0x8b887d,0x627585][settings.sceneId]);
+ scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
  resetBall();paintAim();
@@ -765,9 +797,9 @@ async function init(){
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;
-  scene.add(new THREE.HemisphereLight(0xf2e5cb,0x596c71,1.45));
-  const sun=new THREE.DirectionalLight(0xffeac9,2.25);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.82;
+  scene.add(new THREE.HemisphereLight(0xf5e8d8,0x435766,1.28));
+  const sun=new THREE.DirectionalLight(0xffe6c4,1.62);
   sun.position.set(-5,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
   sun.shadow.camera.top=16;sun.shadow.camera.bottom=-26;sun.shadow.camera.far=75;
