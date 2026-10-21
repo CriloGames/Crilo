@@ -528,6 +528,36 @@ function buildWorld(){
  const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.42),
   makeText('IN THE CUP',31,'#f1eeee','#405c63'));
  targetMarker.position.set(settings.x+1.6,2.33,settings.targetZ-1.12);group.add(targetMarker);
+ // Level-specific set dressing: practical office obstacles at distinctly
+ // different heights, foreground silhouettes, and a different challenge path.
+ if(settings.sceneId===0){
+  stackBooks(group,-2.4,1.18,settings.targetZ+.66,2+(level%4),level+1);
+  plant(group,3.3,settings.targetZ-1.4,.9);
+ }else if(settings.sceneId===1){
+  const projector=meshBox(group,1.28,.35,.85,2.0,2.2,settings.targetZ+.8,dark);
+  projector.rotation.y=.14;
+  for(let k=0;k<3;k++)meshBox(group,.65,.025,.38,-2.8+k*.7,1.17,settings.targetZ+.9,paper);
+ }else if(settings.sceneId===2){
+  for(let k=0;k<3;k++){
+   meshBox(group,.9,.63,.75,3.7,(k+.5)*.66,settings.targetZ+.8,
+    createMat(k%2?0x9e927d:0x8f9d99,.85));
+  }
+ }else if(settings.sceneId===3){
+  const kettleMat=createMat(0xa8acaa,.3,.48);
+  const urn=new THREE.Mesh(new THREE.CylinderGeometry(.27,.34,.67,20),kettleMat);
+  urn.position.set(-2.6,1.6,settings.targetZ+.65);group.add(urn);
+  for(let k=0;k<3;k++){
+   const tray=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.045,16),cream);
+   tray.position.set(2.9,1.15+k*.09,settings.targetZ+.6);group.add(tray);
+  }
+ }else{
+  // Late-shift cubicle: clusters of luminous monitors on the side desk.
+  for(let k=0;k<3;k++){
+   const screen=meshBox(group,.65,.53,.10,-2.4+k*.8,1.84,settings.targetZ+.6,dark);
+   meshBox(group,.52,.40,.013,screen.position.x,screen.position.y,screen.position.z+.06,
+    createMat(0x476a7b,.3,.05,0x263f4b));
+  }
+ }
  const count=settings.obstacles;
  for(let i=0;i<count;i++){
   const t=(i+1)/(count+1);
