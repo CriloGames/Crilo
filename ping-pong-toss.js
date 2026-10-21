@@ -476,17 +476,55 @@ function buildWorld(){
  meshBox(hand,.48,.26,.70,0,0,0,skin);
  meshBox(hand,.53,.30,.30,0,-.08,.39,cuff);
  for(let i=0;i<4;i++)meshBox(hand,.083,.09,.35,-.15+i*.10,.16,-.30,skin);
- // A second office desk holds the actual throwing target.
- // Different scenes change its width and background arrangement.
- const targetW=settings.sceneId===1?6.5:settings.sceneId===3?4.2:5.2;
- const farDesk=desk(group,settings.x,settings.targetZ,targetW,3.3,settings.topPad+.03,
-   settings.sceneId===3?createMat(0x8b9188):wood,metal);
+ // Five distinct target furniture stations. Each cup now belongs to a
+ // believable location: wooden desk, filing cabinet, shelf, cart or counter.
+ const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
+ const station=(settings.tier+settings.c*2)%5,stationY=settings.topPad+.03;
+ if(station===0){
+  desk(farDesk,0,0,5.0,2.8,stationY,wood,metal);
+  meshBox(farDesk,4.7,.09,.06,0,stationY-.17,-1.35,darkWood);
+ }else if(station===1){
+  const cabinet=createMat(0x737e80,.4,.34);
+  meshBox(farDesk,2.9,stationY,2.35,0,stationY/2,0,cabinet);
+  meshBox(farDesk,3.1,.14,2.53,0,stationY+.01,0,wood);
+  for(let k=0;k<3;k++){
+   const y=.23+(k+.5)*(stationY-.28)/3;
+   meshBox(farDesk,2.26,(stationY-.26)/3-.07,.034,0,y,1.19,dark);
+   meshBox(farDesk,.48,.07,.04,0,y+.08,1.215,cream);
+  }
+ }else if(station===2){
+  meshBox(farDesk,3.45,.21,2.0,0,stationY,0,wood);
+  meshBox(farDesk,.16,stationY,.19,-1.5,stationY/2,-.78,metal);
+  meshBox(farDesk,.16,stationY,.19,1.5,stationY/2,-.78,metal);
+  meshBox(farDesk,3.3,.07,1.9,0,stationY*.49,0,dark);
+  for(const x of [-1.5,1.5])meshBox(farDesk,.20,.20,.20,x,stationY+.15,0,cream);
+ }else if(station===3){
+  const cartMat=createMat(0x76878c,.35,.41);
+  meshBox(farDesk,2.65,.12,2.15,0,stationY+.01,0,cartMat);
+  meshBox(farDesk,2.4,.09,1.96,0,stationY*.55,0,cartMat);
+  for(const x of [-1.07,1.07])for(const z of [-.80,.80]){
+   meshBox(farDesk,.13,stationY,.13,x,stationY/2,z,metal);
+   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.08,12),dark);
+   wheel.rotation.z=Math.PI/2;wheel.position.set(x,.14,z);farDesk.add(wheel);
+  }
+  meshBox(farDesk,.10,.52,2.1,-1.34,stationY+.12,0,dark);
+ }else{
+  const cabinets=createMat(0x8a948e,.8,.06);
+  meshBox(farDesk,3.5,stationY,2.1,0,stationY/2,0,cabinets);
+  meshBox(farDesk,3.7,.17,2.29,0,stationY+.04,0,wood);
+  for(const x of [-.85,.85]){
+   meshBox(farDesk,1.40,stationY*.75,.06,x,stationY*.49,1.085,cream);
+   meshBox(farDesk,.12,.42,.05,x+.42,stationY*.49,1.13,metal);
+  }
+ }
+ const stationMarker=meshBox(farDesk,2.45,.038,.14,0,stationY+.115,-.73,highlight);
+ stationMarker.castShadow=false;
  if(settings.sceneId===0){
-  officeMonitor(farDesk,-1.6,1.04,-.75,.12);
-  stackBooks(farDesk,1.75,1.08,-.7,2,level);
+  officeMonitor(farDesk,-1.65,stationY+.15,-.75,.12);
+  stackBooks(farDesk,1.60,stationY+.18,-.7,2,level);
  }else if(settings.sceneId===1){
   for(let i=0;i<4;i++)meshBox(farDesk,.6,.09,.40,
-   (i-1.5)*1.25,1.05,-1.03,paper);
+   (i-1.5)*.65,stationY+.18,-.79,paper);
  }else if(settings.sceneId===2){
   // Mail sorting station: labeled parcel stacks and a raised dispatch shelf.
   for(let i=0;i<4;i++){
@@ -546,9 +584,9 @@ function buildWorld(){
    settings.targetZ-1.45,level);
   ambient.push({type:'colleague',obj:clerk});
  }
- const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.65,.42),
+ const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.50,.36),
   makeText('YOUR TARGET',31,'#fff0da','#40505b'));
- targetMarker.position.set(settings.x+1.6,2.33,settings.targetZ-1.12);group.add(targetMarker);
+ targetMarker.position.set(settings.x+1.05,settings.topPad+1.72,settings.targetZ-1.20);group.add(targetMarker);
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
  if(settings.sceneId===0){
