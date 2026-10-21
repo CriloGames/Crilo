@@ -1136,18 +1136,18 @@ function padRebound(projectile,pad){
  const offsetZ=clamp((projectile.z-pad.z)/pad.r,-1,1);
  const impact=Math.abs(Math.min(0,projectile.vy));
  if(pad.type==='spring'){
-  // Spring takes some forward momentum and returns a strong vertical kick.
+  // Textured spring absorbs horizontal speed while returning a vertical kick.
   return {
    vx:projectile.vx*.79+offsetX*.44,
    vy:clamp(5.65+impact*.43,5.65,8.2),
-   vz:projectile.vz*.75+offsetZ*.35
+   vz:projectile.vz*.53+offsetZ*.35
   };
  }
- // Padded rubber tray: much softer bounce. Off-centre hits deflect subtly.
+ // High-friction rubber tray absorbs forward speed. Offset hits deflect subtly.
  return {
   vx:projectile.vx*.78+offsetX*.52,
   vy:clamp(2.75+impact*.79,3.3,7.3),
-  vz:projectile.vz*.77+offsetZ*.29
+  vz:projectile.vz*.42+offsetZ*.29
  };
 }
 function paintAim(){
@@ -1199,7 +1199,7 @@ function inputAim(clientX,clientY){
  const ny=clamp((clientY-rect.top)/rect.height,0,1);
  const baseline=Math.atan2(target.x,settings.d);
  aimYaw=clamp(baseline+(nx-.5)*.68,-.54,.54);
- aimPitch=settings.bankRequired||settings.springRequired?clamp(.31+(.5-ny)*.44,.13,.59):clamp(.70+(.5-ny)*.52,.27,1.04);
+ aimPitch=settings.bankRequired||settings.springRequired?clamp(.52+(.5-ny)*1.04,.13,1.04):clamp(.70+(.5-ny)*.52,.27,1.04);
  if(!charging)power=idealPower();
  updatePower();
 }
@@ -1496,7 +1496,7 @@ function flickAim(e){
  if(pixels<12&&!gesture.moved)return;
  gesture.moved=true;
  aimYaw=clamp(Math.atan2(settings.x,settings.d)+dx*.88,-.62,.62);
- aimPitch=settings.bankRequired||settings.springRequired?clamp(.20+dy*.45,.13,.65):clamp(.37+dy*.79,.29,1.10);
+ aimPitch=settings.bankRequired||settings.springRequired?clamp(.20+dy*.90,.13,1.04):clamp(.37+dy*.79,.29,1.10);
  const speed=pixels/(duration/1000);
  gesture.flickPower=clamp(idealPower()+(dy-.42)*.36+clamp((speed-950)/6000,-.045,.055),.065,1);
  power=gesture.flickPower;
