@@ -613,6 +613,17 @@ function buildWorld(){
   new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.075,depthWrite:false}));
  glass.position.set(-.77,0,.132);glass.rotation.z=-.1;winGroup.add(glass);
  meshBox(winGroup,.11,2.1,.18,0,0,.15,cream);
+ // Window sill, real frame thickness and a worn side door.
+ meshBox(winGroup,3.91,.18,.41,0,-1.20,.13,cream);
+ meshBox(winGroup,.075,.34,.12,.15,-.07,.23,metal);
+ const doorwayX=settings.sceneId%2===0?6.95:-6.95;
+ meshBox(group,1.33,4.5,.22,doorwayX,2.16,roomEnd+.30,dark);
+ meshBox(group,1.06,4.21,.13,doorwayX,2.12,roomEnd+.47,
+  createMat(settings.roomVariant?0x3c5362:0x887f70,.79));
+ const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),
+  createMat(0xcdb68a,.29,.35));
+ doorHandle.position.set(doorwayX+(doorwayX>0?-.34:.34),1.98,roomEnd+.58);
+ group.add(doorHandle);
  // Notices, pinned memos, clock and shelving on the rear wall.
  const cork=meshBox(group,2.8,1.55,.19,3.75,4.1,roomEnd+.22,
   createMat(0x95755b));
@@ -632,12 +643,24 @@ function buildWorld(){
   dot.position.set(Math.sin(a)*.30,5.58+Math.cos(a)*.30,roomEnd+.37);group.add(dot);
  }
  meshBox(group,.04,.24,.05,0,5.68,roomEnd+.4,dark).rotation.z=.35;
- // Ceiling LED fixtures create broad, moderate light with no overexposure.
+ // Baffled overhead lights and warm pools of indirect light give depth
+ // without making the small ball or cup disappear into a bright scene.
+ const nightRoom=settings.roomVariant===1||[4,9].includes(settings.sceneId);
+ const fixture=createMat(0x7a8790,.34,.34);
  for(let i=0;i<3;i++){
   const z=roomEnd+2.0+i*roomLength/3.5;
-  meshBox(group,2.5,.14,.9,-2.6,7.34,z,cream);
-  meshBox(group,2.19,.035,.7,-2.6,7.20,z,lampGlow);
+  meshBox(group,2.63,.14,1.0,-2.6,7.35,z,fixture);
+  meshBox(group,2.17,.035,.70,-2.6,7.20,z,
+   new THREE.MeshBasicMaterial({color:nightRoom?0xc5deee:0xffe6b6}));
+  if(i===1){
+   const overhead=new THREE.PointLight(nightRoom?0xc6d7ee:0xffd6ab,
+    nightRoom?8.0:10.0,12,2);
+   overhead.position.set(-2.6,6.90,z);group.add(overhead);
+  }
  }
+ const focusLight=new THREE.PointLight(nightRoom?0xaacadd:0xffdbac,3.3,5,2);
+ focusLight.position.set(settings.x+1.65,settings.topPad+3.3,settings.targetZ+.75);
+ group.add(focusLight);
  // Side cubicle furnishings and cabinets, different positions per layout.
  for(const side of [-1,1]){
   for(let i=0;i<2;i++){
