@@ -277,3 +277,33 @@ body.pt-page{
  .pt-selection{padding:13px 11px}
  .pt-chapter{min-height:46px}
 }
+
+/* Distinct shot-rule plaque: no guessing which levels require a rebound. */
+.pt-shot-objective{
+ display:inline-block;
+ margin:8px auto 0;padding:7px 13px;
+ border:1.5px solid #c9b699;border-bottom:3px solid #85735f;
+ border-radius:6px;
+ background:#283943e8;color:#ffefc8;
+ box-shadow:0 2px 9px #17283280;
+ font:900 10px/1.1 ui-monospace,Consolas,monospace;
+ letter-spacing:.075em;
+}
+.pt-viewport[data-shot-mode="bank"] .pt-shot-objective{
+ background:#775948e8;border-color:#d5aa79;color:#fff3d0;
+}
+.pt-viewport[data-shot-mode="spring"] .pt-shot-objective{
+ background:#526d64ed;border-color:#a9cdb4;color:#ecffdf;
+}
+.pt-viewport[data-shot-mode="bank"] .pt-tutorial{
+ border-color:#d2aa85;color:#ffecdc;
+}
+.pt-viewport[data-shot-mode="spring"] .pt-tutorial{
+ border-color:#a8ceb4;color:#eaffee;
+}
+.pt-level-btn small{letter-spacing:.03em;}
+.pt-level-btn:not(:disabled):has(small){min-width:0}
+@media(max-width:680px){
+ .pt-shot-objective{font-size:9px;padding:6px 9px;margin-top:6px}
+ .pt-aim-hint{top:20%}
+}
