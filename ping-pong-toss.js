@@ -781,30 +781,86 @@ function buildWorld(){
    obstacles.push({type:'paper stack',obj:stack,x,y:1.86,z,w:1.07,h:1.03,d:.7});
   }
  }
- const count=settings.obstacles;
- for(let i=0;i<count;i++){
-  const t=(i+1)/(count+1);
-  const z=lerp(LAUNCH_Z-1.2,settings.targetZ+1.2,t);
-  const x=(i%2===0?-1:1)*(1.00+.36*seeded(level*7+i));
-  const height=.85+.29*(i%3)+settings.c*.06;
-  const item=new THREE.Group();item.position.set(x,height*.5,z);group.add(item);
-  if(settings.sceneId%2===0){
-   for(let k=0;k<3;k++)meshBox(item,.62,.14,.54,0,(k-1)*.15,0,
-    createMat([0x748a9e,0xc6a985,0x8d7274][k]));
+ // Stage-specific obstacles are authored one at a time in STAGES[].
+ // The obstacle type, trajectory fraction and left/right placement are never
+ // generated from stage number, preserving 50 recognizably different puzzles.
+ for(let i=0;i<settings.obstaclePlan.length;i++){
+  const [style,t,offset]=settings.obstaclePlan[i];
+  const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
+  const g=new THREE.Group();g.position.set(x,0,z);group.add(g);
+  const officePaints=[0x7f9298,0xc5a17f,0x8b9c8f,0xb88e8a,0x607581];
+  const paint=createMat(officePaints[(i+settings.sceneId)%5],.72);
+  let oy=1.65,w=.80,h=.86,depth=.52;
+  if(style==='screen'||style==='monitor'){
+   oy=2.22;w=1.02;h=.78;depth=.22;
+   meshBox(g,w,h,depth,0,oy,0,dark);
+   meshBox(g,w*.86,.58,.04,0,oy,-.14,createMat(0x3e6774,.46));
+   meshBox(g,.13,1.12,.13,0,1.34,.10,metal);
+  }else if(style==='partition'){
+   oy=2.02;w=.82;h=1.82;depth=.24;
+   meshBox(g,w,h,depth,0,oy,0,createMat(0x7d9298));
+   meshBox(g,w*.9,.14,.29,0,oy+h*.5,0,metal);
+   for(let k=0;k<3;k++)meshBox(g,.46,.10,.025,0,oy+.3-k*.22,-.135,paper);
+  }else if(style==='printer'||style==='projector'){
+   oy=1.77;w=1.15;h=.55;depth=.88;
+   meshBox(g,w,h,depth,0,oy,0,createMat(0x9ba6a5,.37,.28));
+   meshBox(g,.68,.07,.32,0,oy+.18,-.50,dark);
+   meshBox(g,.16,.08,.04,-.36,oy+.17,-.455,highlight);
+   if(style==='projector')meshBox(g,.2,.19,.09,0,oy,-.50,cream);
+  }else if(style==='mugstack'||style==='teapot'){
+   oy=1.51;w=.62;h=.78;depth=.55;
+   for(let k=0;k<3;k++){
+    const cyl=new THREE.Mesh(new THREE.CylinderGeometry(.19,.16,.25,14),
+     createMat([0xc29d82,0x8eb6bb,0xc9b17d][k]));
+    cyl.position.set(Math.sin(k*2.3)*.09,1.18+k*.24,0);g.add(cyl);
+   }
+  }else if(style==='plant'){
+   oy=1.57;w=.72;h=1.12;depth=.72;plant(g,0,0,.98);
+   g.position.y=1.02;
+  }else if(style==='lamp'){
+   oy=2.04;w=.65;h=.98;depth=.53;
+   meshBox(g,.09,1.15,.09,0,1.66,0,metal);
+   const shade=new THREE.Mesh(new THREE.ConeGeometry(.32,.42,12),paint);
+   shade.position.y=2.35;shade.rotation.z=Math.PI;g.add(shade);
+  }else if(style==='cart'){
+   oy=1.45;w=1.02;h=.96;depth=1;
+   meshBox(g,1.06,.11,1.02,0,1.80,0,metal);
+   meshBox(g,1.02,.12,.95,0,1.12,0,metal);
+   for(const sx of [-1,1])for(const sz of [-1,1])
+    meshBox(g,.10,.80,.10,sx*.42,1.40,sz*.43,dark);
+  }else if(style==='books'||style==='files'||style==='folders'){
+   oy=1.82;w=.98;h=.66;depth=.65;
+   for(let k=0;k<5;k++){
+    const item=meshBox(g,style==='files'?.17:.98,
+     style==='files'?.64:.095,style==='files'?.60:.66,
+     style==='files'?(k-2)*.17:Math.sin(k)*.05,
+     style==='files'?1.54:1.40+k*.12,0,
+     createMat([0xb88572,0x7799a5,0xc9b18e,0x839782,0x9a879f][k]));
+    item.rotation.y=k%2?.06:-.06;
+   }
   }else{
-   meshBox(item,.63,height,.55,0,0,0,createMat(0xb2ada5,.75));
-   for(let k=0;k<3;k++)meshBox(item,.5,.018,.018,0,.2-k*.15,-.29,createMat(0x566a6e));
+   // Parcels and generic padded trays are still physically meaningful.
+   oy=1.60;w=.90;h=.73;depth=.75;
+   for(let k=0;k<3;k++)
+    meshBox(g,.80,.23,.70,0,1.25+k*.25,0,paint);
+   meshBox(g,.03,.65,.78,0,1.50,0,cream);
   }
-  obstacles.push({type:'box',obj:item,x,y:height/2,z,w:.62,h:height,d:.55});
+  obstacles.push({type:style,obj:g,x,y:oy+(style==='plant'?1.02:0),
+   z,w,h,d:depth});
  }
- // Office-themed obstacles: sliding file cabinets instead of flat neon bars.
- for(let i=0;i<settings.barrierCount;i++){
-  const z=lerp(LAUNCH_Z-1.8,settings.targetZ+1.25,(i+1)/(settings.barrierCount+1));
-  const item=new THREE.Group();group.add(item);item.position.set(0,1.6+i*.19,z);
-  const front=meshBox(item,1.45,.38,.33,0,0,0,createMat(0x8498a0));
-  meshBox(item,.64,.065,.035,0,.02,-.19,metal);
-  obstacles.push({type:'barrier',obj:item,x:0,y:1.6+i*.19,z,w:1.45,h:.38,d:.33,
-   amp:1.35+.19*i,speed:.75+.2*i,phase:i*2.4});
+ // Only Chapter 4+ introduces moving blockers. Their positions and timing
+ // are explicit in each level blueprint, not a repeated evenly spaced gate.
+ for(let i=0;i<settings.barrierPlan.length;i++){
+  const [style,t,offset,midY]=settings.barrierPlan[i];
+  const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
+  const g=new THREE.Group();g.position.set(x,midY,z);group.add(g);
+  const body=createMat(style==='panel'?0x8ea3a9:0xa08b82,.55,.18);
+  meshBox(g,style==='panel'?1.05:1.14,.31,.24,0,0,0,body);
+  meshBox(g,.53,.042,.05,0,.04,-.15,cream);
+  const amp=style==='panel'?.48:.64;
+  obstacles.push({type:'barrier',obj:g,x,y:midY,z,
+   w:style==='panel'?1.05:1.14,h:.31,d:.24,
+   centerX:x,amp,speed:.72+i*.18+settings.tier*.035,phase:i*1.8+settings.n*.17});
  }
  // A desk fan is also visible when the wind mechanic is active.
  if(settings.c>=2){
