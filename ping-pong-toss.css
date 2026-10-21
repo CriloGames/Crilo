@@ -307,3 +307,42 @@ body.pt-page{
  .pt-shot-objective{font-size:9px;padding:6px 9px;margin-top:6px}
  .pt-aim-hint{top:20%}
 }
+
+/* 50 custom-authored stages: display the actual name and shot type directly.
+   Five columns offer space for distinct tasks instead of fifty identical tiles. */
+.pt-level-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.pt-level-btn{
+ min-height:86px;gap:5px;align-items:flex-start;
+ padding:10px 12px;text-align:left;position:relative;overflow:hidden;
+ border-left-width:5px
+}
+.pt-level-btn span{font-size:21px;line-height:1.05}
+.pt-level-btn .pt-level-name{
+ font:850 12px/1.2 system-ui,sans-serif;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ max-width:100%;text-transform:none;color:inherit;
+}
+.pt-level-btn .pt-level-status{
+ color:#a8c1c2;letter-spacing:.1em;
+ font:850 9px/1.2 ui-monospace,Consolas,monospace
+}
+.pt-level-btn[data-shot="direct"]{border-left-color:#7ab59f}
+.pt-level-btn[data-shot="bank"]{border-left-color:#d29d70}
+.pt-level-btn[data-shot="spring"]{border-left-color:#a796d2}
+.pt-level-btn[data-shot="bank"] .pt-level-status{color:#edc18f}
+.pt-level-btn[data-shot="spring"] .pt-level-status{color:#ccb3ee}
+.pt-level-btn.current .pt-level-status{color:#eff5cc}
+.pt-level-btn.cleared .pt-level-status{color:#fbdca6}
+.pt-selection-header h2{letter-spacing:-.045em}
+.pt-shot-objective{max-width:min(92vw,540px)}
+@media(max-width:770px){
+ .pt-level-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .pt-level-btn{min-height:84px}
+ .pt-level-btn .pt-level-name{font-size:11px}
+}
+@media(max-width:490px){
+ .pt-level-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .pt-level-btn{min-height:82px;padding:9px 10px}
+ .pt-level-btn span{font-size:19px}
+ .pt-level-btn .pt-level-name{font-size:11px}
+}
