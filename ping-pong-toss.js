@@ -975,13 +975,23 @@ function buildWorld(){
   const [style,t,offset,midY]=settings.barrierPlan[i];
   const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
   const g=new THREE.Group();g.position.set(x,midY,z);group.add(g);
-  const body=createMat(style==='panel'?0x8ea3a9:0xa08b82,.55,.18);
-  meshBox(g,style==='panel'?1.05:1.14,.31,.24,0,0,0,body);
+  const shutter=style==='panel';
+  const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
+  meshBox(g,shutter?1.05:1.14,shutter?.52:.31,.24,0,0,0,body);
   meshBox(g,.53,.042,.05,0,.04,-.15,cream);
-  const amp=style==='panel'?.48:.64;
-  obstacles.push({type:'barrier',obj:g,x,y:midY,z,
-   w:style==='panel'?1.05:1.14,h:.31,d:.24,
-   centerX:x,amp,speed:.72+i*.18+settings.tier*.035,phase:i*1.8+settings.n*.17});
+  // Ceiling-mounted shutter lifts vertically; filing drawers slide sideways.
+  if(shutter){
+   for(const side of [-1,1]){
+    meshBox(group,.09,1.18,.13,x+side*.61,midY+.49,z,metal);
+   }
+  }else{
+   meshBox(group,2.18,.055,.28,x,midY-.26,z,dark);
+  }
+  const amp=shutter?.48:.64;
+  obstacles.push({type:'barrier',style,obj:g,x,y:midY,z,
+   w:shutter?1.05:1.14,h:shutter?.52:.31,d:.24,
+   centerX:x,centerY:midY,amp,speed:.72+i*.18+settings.tier*.035,
+   phase:i*1.8+settings.n*.17});
  }
  // A desk fan is also visible when the wind mechanic is active.
  if(settings.c>=2){
@@ -1222,8 +1232,14 @@ function tickObstacles(time){
  }
  for(const obj of obstacles){
   if(obj.type==='barrier'){
-   obj.x=obj.centerX+Math.sin(t*obj.speed+obj.phase)*obj.amp;
-   obj.obj.position.x=obj.x;
+   const wave=Math.sin(t*obj.speed+obj.phase);
+   if(obj.style==='panel'){
+    obj.y=obj.centerY+wave*.65;
+    obj.obj.position.y=obj.y;
+   }else{
+    obj.x=obj.centerX+wave*obj.amp;
+    obj.obj.position.x=obj.x;
+   }
   }
  }
 }
