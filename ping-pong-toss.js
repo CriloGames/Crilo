@@ -19,7 +19,7 @@ const el={
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,ballShadow,launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
+let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
@@ -256,6 +256,7 @@ function nextLevel(){
 function resetBall(){
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
+ for(const bead of ballTrailMeshes)bead.visible=false;
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
  return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,flatShading:true,
@@ -406,7 +407,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;
+ obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1054,6 +1055,15 @@ function buildWorld(){
  ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.20,24),
   new THREE.MeshBasicMaterial({color:0x1c282f,transparent:true,opacity:.27,depthWrite:false}));
  ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,1.15,LAUNCH_Z);group.add(ballShadow);
+ // Short motion trail keeps the smaller ball visible without increasing it.
+ const trailGeometry=new THREE.SphereGeometry(BALL_R*.62,9,7);
+ for(let k=0;k<11;k++){
+  const material=new THREE.MeshBasicMaterial({
+   color:0xffc58b,transparent:true,opacity:.16*(1-k/11),depthWrite:false
+  });
+  const bead=new THREE.Mesh(trailGeometry,material);
+  bead.visible=false;group.add(bead);ballTrailMeshes.push(bead);
+ }
  trajectoryGroup=new THREE.Group();group.add(trajectoryGroup);
  for(let i=0;i<84;i++){
   const dot=new THREE.Mesh(new THREE.SphereGeometry(.040,7,6),
@@ -1290,6 +1300,8 @@ function tickFlight(dt){
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   shotT+=h;
+  ball.trail.unshift([ball.x,ball.y,ball.z]);
+  if(ball.trail.length>46)ball.trail.length=46;
   if(collideObstacles())return;
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
@@ -1351,9 +1363,18 @@ function tickFlight(dt){
   ballMesh.position.set(ball.x,ball.y,ball.z);
   ballMesh.rotation.x+=dt*ball.vz*.6;
   ballMesh.rotation.z+=dt*ball.vx*.6;
-  ballShadow.position.set(ball.x,.015,ball.z);
-  ballShadow.scale.setScalar(clamp(1+(ball.y-.2)*.3,.6,2.1));
-  ballShadow.material.opacity=clamp(.22-ball.y*.035,.04,.19);
+  const shadowOnFar=ball.z>settings.targetZ-1.5&&ball.z<settings.targetZ+1.5&&
+   Math.abs(ball.x-settings.x)<2.30;
+  const shadowOnNear=ball.z>3.7&&ball.z<7.55&&Math.abs(ball.x)<6.30;
+  const shadowY=shadowOnFar?settings.topPad+.16:shadowOnNear?1.12:0;
+  ballShadow.position.set(ball.x,shadowY+.025,ball.z);
+  ballShadow.scale.setScalar(clamp(1+(ball.y-shadowY)*.29,.6,2.1));
+  ballShadow.material.opacity=clamp(.25-(ball.y-shadowY)*.045,.045,.20);
+  for(let k=0;k<ballTrailMeshes.length;k++){
+   const trail=ballTrailMeshes[k],sample=ball.trail[(k+1)*3];
+   trail.visible=!!sample;
+   if(sample)trail.position.set(sample[0],sample[1],sample[2]);
+  }
  }
 }
 function animate(now){
