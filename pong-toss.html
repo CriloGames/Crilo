@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="auth-first-paint.js?v=1"></script><script src="theme-bridge.js?v=1"></script>
+<link rel="canonical" href="https://crilo.fun/pong-toss.html">
+<meta name="description" content="Pong Toss on Crilo: a 50-level 3D ping-pong skill game. Aim, charge, and throw into cups, mugs, baskets and moving targets. New mechanics every ten levels.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Crilo">
+<meta property="og:title" content="Pong Toss — 50 Levels · Crilo">
+<meta property="og:description" content="50 levels. One little ping-pong ball. Moving cups, wind, obstacles and bounce pads.">
+<meta property="og:url" content="https://crilo.fun/pong-toss.html">
+<meta property="og:image" content="https://crilo.fun/crilo-social-preview.png">
+<link rel="icon" href="https://crilo.fun/favicon.png" type="image/png">
+<title>Pong Toss — 50 Levels · Crilo</title>
+<link rel="stylesheet" href="style.css?v=127">
+<link rel="stylesheet" href="legal.css?v=7">
+<link rel="stylesheet" href="dark-comfort.css?v=1">
+<link rel="stylesheet" href="night-pages.css?v=1">
+<link rel="stylesheet" href="game-topbar.css?v=6">
+<link rel="stylesheet" href="header-fit.css?v=3">
+<link rel="stylesheet" href="ping-pong-toss.css?v=1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="crilo-standalone pt-page">
+<header class="topbar crilo-game-topbar">
+<a class="brand" href="index.html">CRILO</a>
+<nav aria-label="Game navigation"><a href="index.html">PLAY</a><a class="active" href="index.html#more-games">MORE GAMES</a></nav>
+<div class="header-actions">
+<button type="button" class="circle-btn" id="gameInfoBtn" aria-label="How to play Pong Toss" aria-haspopup="dialog" aria-expanded="false" title="How to play">?</button>
+<div class="account-wrap"><button class="account-btn" id="accountBtn" type="button" style="visibility:hidden" aria-busy="true">SIGN IN</button><div class="account-menu hidden" id="accountMenu"></div></div>
+</div>
+</header>
+<script src="header-continuity.js?v=7"></script>
+<main class="pt-main">
+<a class="pt-back" href="index.html#more-games">← Back to More Games</a>
+<section class="pt-hero" aria-label="Pong Toss introduction">
+ <div><div class="pt-eyebrow">CRILO ARCADE / THE PERFECT THROW</div>
+ <h1>PONG <em>TOSS.</em></h1>
+ <p>50 satisfying levels. Aim a ping-pong ball into cups, mugs, buckets and baskets — then master moving targets, crosswinds, shifting obstacles and bounce pads.</p></div>
+ <div class="pt-hero-sticker" aria-label="50 levels"><strong>50</strong><span>LEVELS</span></div>
+</section>
+<section class="pt-shell" id="ptShell" aria-label="Pong Toss 3D ping-pong game">
+ <div class="pt-top">
+  <div class="pt-stat"><small>LEVEL</small><strong id="ptLevelNumber">01 / 50</strong></div>
+  <div class="pt-stat secondary"><small>THROWS THIS LEVEL</small><strong id="ptAttempts">0</strong></div>
+  <div class="pt-stat tertiary"><small>STARS EARNED</small><strong id="ptTotalStars">0 / 150</strong></div>
+  <div class="pt-stat"><small>BEST ON THIS LEVEL</small><strong class="pt-small-strong" id="ptBest">—</strong></div>
+  <div class="pt-top-actions">
+   <button type="button" class="pt-action" id="ptRetry" title="Restart current level (R)">↻ RETRY</button>
+   <button type="button" class="pt-action" id="ptPause" title="Pause (Esc)">Ⅱ PAUSE</button>
+   <button type="button" class="pt-action" id="ptSound" aria-pressed="true">SOUND ON</button>
+   <button type="button" class="pt-action" id="ptFullscreen">⛶ FULLSCREEN</button>
+  </div>
+ </div>
+ <div class="pt-stage-wrap">
+  <div class="pt-viewport" id="ptViewport">
+   <canvas class="pt-canvas" id="ptCanvas" aria-label="3D ping pong toss: move your pointer to aim, hold click to charge the throw, and release to send the ball into a container. On keyboard use arrow keys and hold Space." tabindex="0"></canvas>
+   <div class="pt-vignette" aria-hidden="true"></div>
+   <div class="pt-viewport-top" aria-hidden="true">
+    <span class="pt-tutorial" id="ptTutorial">AIM • HOLD TO POWER UP • RELEASE TO TOSS</span>
+    <span class="pt-weather" id="ptWind" hidden><i></i><span id="ptWindLabel">NO WIND</span></span>
+   </div>
+   <div class="pt-aim-hint" aria-hidden="true">
+    <strong id="ptChapter">CHAPTER 1 · CLASSIC TOSS</strong>
+    <small id="ptStageTitle">THE BASICS</small>
+   </div>
+   <div class="pt-crosshair" aria-hidden="true"></div>
+   <div class="pt-viewport-bottom" aria-hidden="true">
+    <div class="pt-power-wrap">
+     <div class="pt-power-head"><span id="ptTrajectoryLabel">AIM TRAJECTORY</span><strong id="ptPowerValue">35%</strong></div>
+     <div class="pt-power-track"><span id="ptPowerFill" class="pt-power-fill"></span></div>
+    </div>
+    <div class="pt-aim-readout" id="ptAimText">ANGLE 40°</div>
+   </div>
+   <div class="pt-toast" id="ptToast" hidden role="status" aria-live="polite"></div>
+   <div class="pt-overlay" id="ptOverlay">
+    <div class="pt-overlay-card">
+     <span class="pt-overlay-tag" id="ptOverlayTag">CHAPTER 1 · CLASSIC TOSS</span>
+     <div class="pt-overlay-icon" aria-hidden="true">●</div>
+     <h2 id="ptOverlayTitle">READY TO TOSS?</h2>
+     <p id="ptOverlayText">Aim your mouse, hold down to charge, and release to throw the ball into the cup.</p>
+     <button type="button" class="pt-big-button" id="ptPrimary">PLAY LEVEL 01</button>
+     <button type="button" class="pt-secondary-button" id="ptSecondary" hidden>↻ REPLAY THIS LEVEL</button>
+     <small class="pt-overlay-help">MOUSE AIM · HOLD &amp; RELEASE TO THROW · SPACE ALSO THROWS</small>
+    </div>
+   </div>
+  </div>
+ </div>
+ <div class="pt-stage-footer">
+  <div class="pt-stage-nav">
+   <button class="pt-step" type="button" id="ptPrev" aria-label="Previous unlocked level">← PREVIOUS</button>
+   <button class="pt-step" type="button" id="ptNext" aria-label="Next unlocked level">NEXT →</button>
+  </div>
+  <span id="ptStatus" role="status">Aim for the opening. Your progress saves automatically.</span>
+ </div>
+</section>
+<section class="pt-selection" aria-label="Fifty level browser">
+ <div class="pt-selection-header"><h2>Choose a level</h2><p>Each chapter adds a new challenge. Reach up to ★★★ on every stage.</p></div>
+ <div class="pt-chapter-list" id="ptChapters" role="group" aria-label="Five gameplay chapters"></div>
+ <p class="pt-chapter-description" id="ptChapterDescription">Start with the perfect throw.</p>
+ <div class="pt-level-grid" id="ptLevelGrid" role="group" aria-label="Chapter levels"></div>
+</section>
+<div class="pt-rules">
+ <span>Every 10 levels introduces something new. Finish a level to unlock the next. Fewer throws earn more stars.</span>
+ <div class="pt-rule-keys"><kbd>MOUSE</kbd> Aim <kbd>HOLD</kbd> Charge <kbd>RELEASE</kbd> Throw <kbd>SPACE</kbd> Throw <kbd>R</kbd> Retry <kbd>ESC</kbd> Pause</div>
+</div>
+</main>
+<div class="crilo-game-info-backdrop" id="gameInfoModal" role="dialog" aria-modal="true" aria-labelledby="gameInfoTitle" hidden>
+ <section class="crilo-game-info-card">
+ <button type="button" class="crilo-game-info-close" id="gameInfoClose" aria-label="Close Pong Toss instructions">×</button>
+ <h2 id="gameInfoTitle">How to Play Pong Toss</h2>
+ <p>Your goal is to land a ping-pong ball <strong>inside</strong> the opening of the target cup, bowl, bucket or basket.</p>
+ <ul>
+ <li><strong>Mouse and touch:</strong> Move or drag inside the 3D game to aim. Press and hold to build power; release to throw. Follow the dotted flight preview.</li>
+ <li><strong>Keyboard:</strong> Use Arrow keys or WASD to adjust your shot. Hold Space to charge, then release Space to throw. R restarts the stage and Esc pauses.</li>
+ <li><strong>Levels 1–10:</strong> Classic distance shots and static obstacles.</li>
+ <li><strong>Levels 11–20:</strong> Moving containers — anticipate where they'll be when the ball arrives.</li>
+ <li><strong>Levels 21–30:</strong> Crosswinds curve your shot.</li>
+ <li><strong>Levels 31–40:</strong> Moving barriers block your flight path.</li>
+ <li><strong>Levels 41–50:</strong> Glowing bounce pads launch the ball upward.</li>
+ <li>You may retry as often as you like. Finish in two throws or fewer for 3 stars, three or four throws for 2 stars, or five or more for 1 star.</li>
+ </ul>
+ <p>All Pong Toss progress is stored locally on this device. It does not affect Crilo Daily or leaderboards.</p>
+ </section>
+</div>
+<footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav" aria-label="Legal and contact links">
+<a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a>
+</nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
+<script src="supabase-config.js?v=21"></script>
+<script src="app.js?v=56"></script>
+<script src="game-topbar.js?v=1"></script>
+<script type="module" src="ping-pong-toss.js?v=1"></script>
+<script src="public-metrics.js?v=1"></script>
+<script src="floating-mystery.js?v=6"></script>
+</body></html>
