@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=false,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -479,7 +479,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;
+ obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=false;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -843,6 +843,23 @@ function buildWorld(){
  cupFloor.rotation.x=-Math.PI/2;cupFloor.position.y=.045;cupGroup.add(cupFloor);
  const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.028,9,36),lipMat);
  lip.rotation.x=Math.PI/2;lip.position.y=h;cupGroup.add(lip);
+ if(settings.lid){
+  // Visibly hinged timed lid. Landing while closed never scores.
+  const hinge=new THREE.Group();
+  hinge.position.set(r*1.03,h+.045,0);cupGroup.add(hinge);
+  const cap=new THREE.Mesh(new THREE.CylinderGeometry(r*1.04,r*1.04,.064,26),
+   createMat(0x9eafad,.44,.24));
+  cap.position.set(-r*1.03,0,0);cap.castShadow=true;hinge.add(cap);
+  const stripe=meshBox(hinge,r*.62,.013,.085,-r*.98,.038,0,
+   new THREE.MeshBasicMaterial({color:0xffdb96}));
+  stripe.castShadow=false;
+  const hingePin=new THREE.Mesh(new THREE.CylinderGeometry(.063,.063,.26,12),
+   createMat(0x627a82,.38,.52));
+  hingePin.rotation.x=Math.PI/2;hingePin.position.set(0,0,0);hinge.add(hingePin);
+  cupLid={hinge,indicator:new THREE.MeshBasicMaterial({color:0xcc816f})};
+  const beacon=new THREE.Mesh(new THREE.SphereGeometry(.068,10,8),cupLid.indicator);
+  beacon.position.set(r*1.27,h+.08,0);cupGroup.add(beacon);
+ }
  if(kind===1){
   const handle=new THREE.Mesh(new THREE.TorusGeometry(r*.4,.085,8,22),cupMat);
   handle.rotation.y=Math.PI/2;handle.position.set(r*1.12,h*.55,0);cupGroup.add(handle);
@@ -1386,6 +1403,9 @@ function complete(){
   (level===50?' · You cleared all 50 levels!':' · Level '+fmtLevel(Math.min(50,level+1))+' unlocked.'),
   level===50?'REPLAY FROM LEVEL 1':'NEXT LEVEL →','win');
 }
+function lidFraction(t){
+ return .5+.5*Math.sin(t*1.8+level*.67);
+}
 function tickObstacles(time){
  if(!cupGroup)return;
  const t=time/1000;
@@ -1403,6 +1423,17 @@ function tickObstacles(time){
  }
  target.x=position.x;target.z=position.z;target.y=position.y;
  target.top=position.y+settings.targetHeight;
+ if(cupLid){
+  const factor=lidFraction(t);
+  cupLid.hinge.rotation.z=-factor*1.94;
+  const isOpen=factor>.61;
+  cupLid.indicator.color.setHex(isOpen?0x85e2b1:0xf2a191);
+  if(lidOpen!==isOpen){
+   lidOpen=isOpen;
+   el.objective.textContent=isOpen?'LID OPEN · TIME YOUR THROW':'LID CLOSED · WATCH THE HINGE';
+   el.viewport.dataset.lidState=isOpen?'open':'closed';
+  }
+ }
  for(const item of ambient){
   if(item.type==='fan')item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
   if(item.type==='colleague'){
@@ -1452,6 +1483,7 @@ function tickFlight(dt){
    ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
+   if(settings.lid&&lidFraction(simTime)<=.61){miss('LID CLOSED!');return;}
    if(settings.bankRequired&&ball.bankHits<1){miss('BANK OFF THE MARKED PAD!');return;}
    if(settings.springRequired&&ball.springHits<1){miss('SPRING PAD FIRST!');return;}
    complete();return;
