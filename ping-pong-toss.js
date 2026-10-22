@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,physicsBodies=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -34,7 +34,7 @@ let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
-let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
+let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const fmtLevel=n=>String(n).padStart(2,'0');
@@ -317,7 +317,7 @@ function nextLevel(){
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
 function resetBall(){
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
+ ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
  for(const bead of ballTrailMeshes)bead.visible=false;
 }
@@ -587,7 +587,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;physicsBodies=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1142,6 +1142,7 @@ function buildWorld(){
   const bankMat=createMat(0x405764,.81,.02),rubber=createMat(0xbb7861,.88,.02);
   const tape=createMat(0xffdf87,.53,.02);
   const tray=new THREE.Group();tray.position.set(x,0,z);group.add(tray);
+  specialSurfaces.push(tray);
   for(const sx of [-1,1])for(const sz of [-1,1]){
    meshBox(tray,.09,1.02,.09,sx*.78,.56,sz*.83,metal);
   }
@@ -1258,6 +1259,7 @@ function buildWorld(){
  if(settings.wall){
   const side=settings.wall.side,x=side*2.16,z=LAUNCH_Z-settings.d*.52;
   const wall=new THREE.Group();wall.position.set(x,2.42,z);group.add(wall);
+  specialSurfaces.push(wall);
   const rubber=createMat(0x617780,.82,.03),stripe=createMat(0xf2bb7a,.43,.02,0x4a291a);
   meshBox(wall,.17,3.55,3.65,0,0,0,rubber);
   for(let k=0;k<8;k++)
@@ -1293,6 +1295,7 @@ function buildWorld(){
   const z=LAUNCH_Z-dist;
   const radius=settings.hoops>1?.86:.93;
   const anchor=new THREE.Group();anchor.position.set(x,y,z);group.add(anchor);
+  specialSurfaces.push(anchor);
   const material=new THREE.MeshStandardMaterial({
    color:0xf7d196,emissive:0x684423,emissiveIntensity:.44,
    metalness:.30,roughness:.32
@@ -1335,6 +1338,7 @@ function buildWorld(){
   const z=lerp(LAUNCH_Z-.9,settings.targetZ,(i+1)/(settings.padCount+1));
   const x=i===0?0:settings.x*.48,padY=1.16+(i===1?.27:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
+  specialSurfaces.push(cart);
   meshBox(cart,1.8,.15,1.8,0,padY-.17,0,metal);
   for(const sx of [-1,1])for(const sz of [-1,1]){
    meshBox(cart,.12,padY-.20,.12,sx*.73,(padY-.20)/2,sz*.73,dark);
@@ -1410,6 +1414,7 @@ function buildWorld(){
  scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
+ buildPhysicsBodies();
  resetBall();paintAim();
 }
 
@@ -1621,7 +1626,7 @@ function launch(flickPower=null){
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
+  active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
