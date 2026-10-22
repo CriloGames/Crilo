@@ -579,27 +579,41 @@ function officeFan(parent,x,y,z,mat,angle=0){
  return g;
 }
 function officeColleague(parent,x,z,n){
- // An original, non-target office coworker makes the room feel occupied.
+ // Original stylized coworker with smooth body, curved shoulders and hands.
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
- const skin=createMat([0xcfa68b,0x9b7058,0xe2bca4,0xb58b6e,0xd5a18a][n%5]);
- const shirt=createMat([0x557c8d,0x7e7d79,0x9b8179,0x618079,0x6e748b][n%5]);
- const hair=createMat([0x483c38,0x353237,0x604738,0x403f3c,0x6d5744][n%5]);
- const pants=createMat(0x4c5760);
- meshBox(g,.70,.73,.39,0,1.16,0,shirt);
- meshBox(g,.53,.29,.42,0,.65,-.12,pants);
- const face=new THREE.Mesh(new THREE.SphereGeometry(.33,14,10),skin);
- face.position.set(0,1.77,-.03);face.scale.z=.9;g.add(face);
- const cap=new THREE.Mesh(new THREE.SphereGeometry(.34,12,8),hair);
- cap.scale.set(1.02,.44,1.01);cap.position.y=2.02;g.add(cap);
+ const skin=createMat([0xcfa68b,0x9b7058,0xe2bca4,0xb58b6e,0xd5a18a][n%5],.65);
+ const shirt=createMat([0x668fa3,0x94918c,0xbb8986,0x75a292,0x838bac][n%5],.75);
+ const hair=createMat([0x483c38,0x353237,0x604738,0x403f3c,0x6d5744][n%5],.83);
+ const pants=createMat(0x536579,.78);
+ const torso=new THREE.Mesh(new THREE.CylinderGeometry(.34,.29,.78,20,1),shirt);
+ torso.position.set(0,1.15,0);torso.scale.z=.76;torso.castShadow=true;g.add(torso);
+ const shoulders=new THREE.Mesh(new THREE.SphereGeometry(.36,20,14),shirt);
+ shoulders.position.set(0,1.47,0);shoulders.scale.set(1,.36,.70);g.add(shoulders);
+ const hips=new THREE.Mesh(new THREE.SphereGeometry(.28,18,12),pants);
+ hips.position.set(0,.71,-.05);hips.scale.set(1,.54,.75);g.add(hips);
+ const neck=new THREE.Mesh(new THREE.CylinderGeometry(.10,.12,.18,14),skin);
+ neck.position.y=1.59;g.add(neck);
+ const face=new THREE.Mesh(new THREE.SphereGeometry(.32,24,20),skin);
+ face.position.set(0,1.84,-.03);face.scale.set(1,.98,.87);face.castShadow=true;g.add(face);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.33,22,14),hair);
+ cap.scale.set(1.04,.50,1.02);cap.position.set(0,2.055,-.02);g.add(cap);
  for(const sx of [-1,1]){
-  const eye=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),hair);
-  eye.position.set(sx*.11,1.82,-.326);g.add(eye);
+  const eye=new THREE.Mesh(new THREE.SphereGeometry(.023,10,8),hair);
+  eye.position.set(sx*.11,1.86,-.304);g.add(eye);
+  const shoe=new THREE.Mesh(new THREE.SphereGeometry(.15,16,12),hair);
+  shoe.scale.set(1,.54,1.43);shoe.position.set(sx*.17,.12,-.08);g.add(shoe);
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.115,.10,.62,12),pants);
+  leg.position.set(sx*.18,.38,0);leg.castShadow=true;g.add(leg);
  }
- const arm=new THREE.Group();arm.position.set(.47,1.43,0);g.add(arm);
- meshBox(arm,.19,.58,.19,0,-.32,-.07,shirt);
- meshBox(g,.18,.55,.19,-.47,1.12,0,shirt);
- const leg=new THREE.Group();g.add(leg);
- for(const sx of [-1,1])meshBox(leg,.23,.59,.30,sx*.20,.33,-.10,pants);
+ const arm=new THREE.Group();arm.position.set(.42,1.48,0);g.add(arm);
+ const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(.12,.105,.55,12),shirt);
+ sleeve.position.set(.05,-.25,0);sleeve.rotation.z=.20;arm.add(sleeve);
+ const hand=new THREE.Mesh(new THREE.SphereGeometry(.115,12,10),skin);
+ hand.position.set(.095,-.55,.03);arm.add(hand);
+ const other=new THREE.Mesh(new THREE.CylinderGeometry(.12,.10,.54,12),shirt);
+ other.position.set(-.43,1.20,0);other.rotation.z=-.27;g.add(other);
+ const mouth=new THREE.Mesh(new THREE.TorusGeometry(.055,.009,5,18,Math.PI),hair);
+ mouth.position.set(0,1.70,-.299);mouth.rotation.z=Math.PI;g.add(mouth);
  g.userData={arm,face,baseY:g.position.y};
  return g;
 }
@@ -973,10 +987,29 @@ function buildWorld(){
  // A believable warm practical highlight keeps the target legible in dim rooms.
  const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
  targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
- const colors=[0xa4bec8,0xd4b09e,0x879b96,0xc9a97e,0x7395a4,0xc2ad93,0xd6b979];
- const cupMat=createMat(colors[kind],.45,.07),insideMat=createMat(0x5f6768,.78),lipMat=createMat(0xffd49a,.29,.16,0x6b4022);
- const shell=new THREE.Mesh(new THREE.CylinderGeometry(r,kind===3?r*.96:r*.73,h,32,1,true),cupMat);
- shell.position.y=h/2;shell.castShadow=true;cupGroup.add(shell);
+ const colors=[0xd5e2e1,0xe7b5a0,0x9dbcc4,0xd0b38c,0x94bec1,0xe0c7ad,0xf0ce89];
+ const cupMat=createMat(colors[kind],kind===0?.72:.31,[2,4,6].includes(kind)?.38:.06);
+ const insideMat=createMat(0x60747b,.73),lipMat=createMat(0xf4d8a8,.23,.32,0x5a402e);
+ // Curved lathe profile: a real bucket/mug silhouette, not a straight block.
+ const baseRadius=kind===3?r*.62:r*.72;
+ const outline=[
+  new THREE.Vector2(baseRadius*.92,0),
+  new THREE.Vector2(baseRadius,.045),
+  new THREE.Vector2(baseRadius*1.02,h*.20),
+  new THREE.Vector2(r*.86,h*.60),
+  new THREE.Vector2(r*.96,h*.87),
+  new THREE.Vector2(r,h)
+ ];
+ const shell=new THREE.Mesh(new THREE.LatheGeometry(outline,40,0,Math.PI*2),cupMat);
+ shell.castShadow=true;shell.receiveShadow=true;cupGroup.add(shell);
+ const rimHighlight=new THREE.Mesh(new THREE.TorusGeometry(r*.95,.013,7,40),
+  new THREE.MeshBasicMaterial({color:0xf6e2bc,transparent:true,opacity:.65}));
+ rimHighlight.rotation.x=Math.PI/2;rimHighlight.position.y=h+.018;cupGroup.add(rimHighlight);
+ if(kind!==4&&kind!==5){
+  const trim=new THREE.Mesh(new THREE.TorusGeometry(r*.77,.020,8,36),
+   createMat(kind===6?0xe8a968:0x8b9a99,.38,.22));
+  trim.rotation.x=Math.PI/2;trim.position.y=h*.18;cupGroup.add(trim);
+ }
  const inner=new THREE.Mesh(new THREE.CylinderGeometry(r*.93,r*.71,h*.91,30,1,true),
   new THREE.MeshStandardMaterial({color:0x505d61,side:THREE.BackSide,roughness:.7}));
  inner.position.y=h/2;cupGroup.add(inner);
@@ -1401,8 +1434,10 @@ function buildWorld(){
  ambient.push({type:'dust',obj:motes});
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
- const ballMaterial=new THREE.MeshStandardMaterial({color:0xffa44e,roughness:.33,metalness:0,
-  emissive:0x7a3005,emissiveIntensity:.37});
+ const ballMaterial=new THREE.MeshStandardMaterial({
+  color:0xffbd72,roughness:.22,metalness:0,
+  emissive:0x804119,emissiveIntensity:.30
+ });
  ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.08,24,18),ballMaterial);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
  const ringPaint=new THREE.MeshBasicMaterial({color:0x733b23});
