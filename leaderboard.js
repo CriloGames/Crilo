@@ -1,5 +1,6 @@
 (() => {const $=id=>document.getElementById(id);let tab='today';
 let loadRevision=0;
+const expandedGroups=new Set();
 const safeColor = value => /^#[0-9a-fA-F]{6}$/.test(String(value||'')) ? String(value) : 'inherit';
 // These two old pre-verification sample-like rows were already intentionally
 // excluded from public score boards. Do not hide future verified real results
@@ -65,7 +66,19 @@ async function moderateRun(id,source){
  if(!data){alert('Run not found or already removed.');return}
  await load();
 }
-$('leaderList')?.addEventListener('click',e=>{
+$('leaderList')?.addEventListener('click',async e=>{
+ const feature=e.target.closest?.('.leader-feature-art');
+ if(feature){
+  if(!Crilo.user?.id||feature.disabled)return;
+  feature.disabled=true;feature.textContent='Saving…';
+  const {error}=await criloDB.rpc('crilo_set_featured_daily_drawing',{
+   p_daily_period:feature.dataset.period,p_source:feature.dataset.source,
+   p_run_id:feature.dataset.runId
+  });
+  if(error){feature.disabled=false;feature.textContent='Feature art';
+   alert('Could not feature this drawing: '+error.message);return;}
+  await load();return;
+ }
  const wheel=e.target.closest?.('.mini-wheel');
  if(wheel){window.CriloWheelPreview?.openFrom(wheel);return}
  const toggle=e.target.closest?.('.leader-runs-toggle');
@@ -75,6 +88,7 @@ $('leaderList')?.addEventListener('click',e=>{
    const open=toggle.getAttribute('aria-expanded')==='true';
    toggle.setAttribute('aria-expanded',open?'false':'true');
    panel.hidden=open;
+   if(open)expandedGroups.delete(panel.id);else expandedGroups.add(panel.id);
    toggle.querySelector('.leader-runs-toggle-label').textContent=
     (open?'View all ':'Hide ')+toggle.dataset.runCount+' runs';
   }
@@ -213,30 +227,38 @@ function renderBadgeLeaders(entries,profiles){
  $('leaderList').innerHTML=entries.map(e=>{const p=profiles.get(e.user_id),rank=entries.findIndex(x=>x.count===e.count)+1;return '<div class="leader-row"><div class="rank">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div><div><a class="leader-name" href="profile.html?id='+encodeURIComponent(e.user_id)+'" style="color:'+safeColor(p?.name_color)+'">'+window.CriloNameColors.markup(p||{username:'Crilo player'})+'</a><span class="leader-mini">Gameplay badges unlocked</span></div><div class="leader-score">'+e.count.toLocaleString()+'</div></div>'}).join('');
 }
 function runLabel(r){return (r._source||r.source)==='bonus'?'Bonus Run '+Number(r.slot||0):'Official Daily'}
-function runGroupBreakdown(r,id,owner,scoreBoard){
+function runGroupBreakdown(r,id,owner,scoreBoard,canChoose){
  const runs=Array.isArray(r.group_runs)?r.group_runs:[];
  if(runs.length<2)return '';
  const html=runs.map((entry,j)=>{
   const bonus=entry.source==='bonus',kind=runLabel(entry);
   const image=drawingSrc(entry.drawing);
+  const chosen=entry.featured===true;
+  const select=canChoose&&image!=='blank-wheel.svg'?
+   '<button type="button" class="leader-feature-art'+(chosen?' is-chosen':'')+
+   '" data-period="'+Crilo.esc(String(r.daily_period))+'" data-source="'+(bonus?'bonus':'official')+
+   '" data-run-id="'+Crilo.esc(String(entry.id||''))+'"'+(chosen?' disabled':'')+
+   ' aria-label="'+(chosen?'Already selected as featured drawing':'Feature '+kind+' drawing on leaderboard')+
+   '">'+(chosen?'✓ Featured':'Feature art')+'</button>':'';
   const winner=String(entry.id)===String(r.id)&&bonus===(r._source==='bonus');
   const tier=scoreRarity(entry.score);
   const attr=scoreBoard&&tier?' data-score-rarity="'+tier+'"':'';
   const remove=owner?'<button type="button" class="owner-remove-run" data-id="'+Crilo.esc(String(entry.id||''))+
    '" data-source="'+(bonus?'bonus':'official')+'" title="Remove this run">Remove</button>':'';
-  return '<div class="leader-run-detail-row">'+
+  return '<div class="leader-run-detail-row'+(chosen?' has-featured-art':'')+'">'+
    '<div class="leader-run-detail-main">'+(bonus?'<span class="crilo-run-kind is-bonus">'+kind+'</span>':'')+
+   (chosen?'<span class="leader-featured-pill">Featured drawing</span>':'')+
    (winner?'<span class="leader-run-best-tag">Best</span>':'')+
    '<small>'+Math.max(0,Number(entry.spins)||0)+' spins · '+
     Math.max(0,Number(entry.upgrades)||0)+' upgrades · '+
     Math.max(0,Number(entry.doubles)||0)+' doubles · '+
     Math.max(0,Number(entry.ducks)||0)+' ducks</small></div>'+
-   '<div class="leader-run-detail-actions">'+remove+
+   '<div class="leader-run-detail-actions">'+select+remove+
    '<strong class="leader-score"'+attr+'>'+Math.max(0,Number(entry.score)||0).toLocaleString('en-US')+'</strong></div>'+
    '<button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand '+kind+' drawing" data-drawing="'+id+'-'+j+'">'+
     '<img src="'+image+'" alt="'+(image==='blank-wheel.svg'?'Blank drawing':'Player artwork')+'"></button></div>';
  }).join('');
- return '<div id="'+id+'" class="leader-run-breakdown" hidden>'+
+ return '<div id="'+id+'" class="leader-run-breakdown"'+(expandedGroups.has(id)?'':' hidden')+'> '+
   '<div class="leader-run-breakdown-heading">All '+runs.length+' runs from this Daily</div>'+html+'</div>';
 }
 function render(runs,pm){
@@ -292,12 +314,15 @@ function render(runs,pm){
   const bonus=r._source==='bonus';
   const group=Array.isArray(r.group_runs)?r.group_runs:[];
   const more=group.length>1,groupId='leader-daily-group-'+i;
+  const canChoose=!!Crilo.user?.id&&String(Crilo.user.id)===String(r.user_id);
+  const selectedArt=group.some(e=>e.featured===true);
+  const chosenLabel=selectedArt?'<span class="leader-wheel-featured-badge" aria-hidden="true">Chosen</span>':'';
   return `${more?'<div class="leader-run-bundle">':''}<div class="leader-row score-run-row${bonus?' is-bonus':''}${canModerate?' owner-moderated':''}" data-run-source="${bonus?'bonus':'official'}">
    <div class="rank">${medals[i]||i+1}</div>
-   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini">${bonus?'<span class="crilo-run-kind is-bonus">'+runLabel(r)+'</span> · ':''}${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span>${more?'<button type="button" class="leader-runs-toggle" data-run-count="'+group.length+'" aria-expanded="false" aria-controls="'+groupId+'"><span class="leader-runs-toggle-label">View all '+group.length+' runs</span><span class="leader-runs-chevron" aria-hidden="true">⌄</span></button>':''}</div>
+   <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini">${bonus?'<span class="crilo-run-kind is-bonus">'+runLabel(r)+'</span> · ':''}${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span>${more?'<button type="button" class="leader-runs-toggle" data-run-count="'+group.length+'" aria-expanded="'+(expandedGroups.has(groupId)?'true':'false')+'" aria-controls="'+groupId+'"><span class="leader-runs-toggle-label">'+(expandedGroups.has(groupId)?'Hide ':'View all ')+group.length+' runs</span><span class="leader-runs-chevron" aria-hidden="true">⌄</span></button>':''}</div>
    <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
-   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':'Player artwork'}"></button>
-  </div>${more?runGroupBreakdown(r,groupId,canModerate,scoreBoard)+'</div>':''}`;
+   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':selectedArt?'Player-selected featured drawing':'Player artwork'}">${chosenLabel}</button>
+  </div>${more?runGroupBreakdown(r,groupId,canModerate,scoreBoard,canChoose)+'</div>':''}`;
  }).join('');
 
 }
@@ -310,7 +335,7 @@ document.querySelectorAll('.leader-tab').forEach(b=>{
   });
   b.classList.add('active');
   b.setAttribute?.('aria-pressed','true');
-  tab=b.dataset.tab;
+  tab=b.dataset.tab;expandedGroups.clear();
   load();
  });
 });
