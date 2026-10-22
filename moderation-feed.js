@@ -136,7 +136,10 @@ function open(i){
   warning.textContent='Scanner limitation: '+chosen.local.error+'. Manual inspection required.';
   findings.appendChild(warning);
  }
- $('reviewActionStatus').textContent=chosen.is_test?'Owner Test Run: account actions are disabled.':'Only your decision can remove a run or ban a player.';
+ $('reviewActionStatus').textContent=chosen.is_test?'Owner Test Run: account actions are disabled.':
+  chosen.is_bonus?'Bonus artwork can be approved or removed without deleting the score.':
+  'Only your decision can remove an official Daily or ban a player.';
+ $('reviewRemove').textContent=chosen.is_bonus?'Remove drawing only':'Delete + issue warning';
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!!chosen.is_test;
  $('reviewBan').disabled=!!chosen.is_test||!!chosen.is_bonus||chosen.username?.toLowerCase()==='owner';
  $('reviewRetry').disabled=false;
