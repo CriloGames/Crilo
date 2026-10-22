@@ -1,0 +1,24 @@
+/* Drawing Review: clearly distinguish Bonus Runs from Official Dailies. */
+.crilo-review-test-tag.crilo-review-bonus-tag{
+ display:inline-flex;align-items:center;margin-left:7px;
+ padding:3px 8px;border:1px solid #baa9e5;border-radius:999px;
+ background:#eee9ff;color:#5d478f;
+ font:800 10px/1.2 system-ui,sans-serif;letter-spacing:.025em;white-space:nowrap;
+}
+.crilo-review-row:has(.crilo-review-bonus-tag){
+ border-left:3px solid #b7a1dd;
+}
+.crilo-review-row:has(.crilo-review-bonus-tag):hover{
+ background:color-mix(in srgb,var(--soft,#f5f3fa) 85%,#eee5ff);
+}
+.crilo-review-row .crilo-review-thumbnail img,
+#reviewLargeDrawing{
+ object-fit:contain;background:#fff;
+}
+html[data-theme="dark"] .crilo-review-test-tag.crilo-review-bonus-tag{
+ border-color:#7861a7;background:#3e3257;color:#e2d5ff;
+}
+@media(max-width:680px){
+ .crilo-review-test-tag.crilo-review-bonus-tag{font-size:9px;padding:2px 6px}
+ .crilo-review-row:has(.crilo-review-bonus-tag){border-left-width:2px}
+}
