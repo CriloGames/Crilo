@@ -52,10 +52,11 @@ try{
  level=clamp(Number(data.level)||unlocked,1,unlocked);
  soundOn=localStorage.getItem(MUTED)!=='off';
 }catch{}
-el.sound.textContent=soundOn?'SOUND ON':'SOUND OFF';
+el.sound.textContent='♫';
+el.sound.title=soundOn?'Mute sound':'Unmute sound';el.sound.setAttribute('aria-label',el.sound.title);
 el.sound.setAttribute('aria-pressed',String(soundOn));
 chosenChapter=chapterIndex(level);
-function message(str,time=2.0){toastMessage=str;toastUntil=performance.now()+time*1000;el.toast.textContent=str;el.toast.hidden=false;}
+function message(str,time=2.0){toastMessage=str;toastUntil=performance.now()+time*1000;el.toast.textContent=str;el.toast.dataset.tone=/SWISH|CLEARED|PERFECT|BANK|SPRING SHOT|BOUNCE/i.test(str)?'good':'normal';el.toast.hidden=false;}
 function hear(freq=520,duration=.10,voice='sine',volume=.04){
  if(!soundOn)return;
  try{
@@ -209,6 +210,7 @@ function buildUi(){
   settings.hoops?'PASS '+settings.hoops+' HOOP'+(settings.hoops>1?'S':'')+' → CUP':
   settings.springRequired?'SPRING PAD → CUP':settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
+ el.viewport.dataset.showTip=settings.newTrick?'yes':'no';
  if(!settings.lid)delete el.viewport.dataset.lidState;
  el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
    cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
@@ -297,16 +299,20 @@ function loadLevel(n){
   settings.bankRequired?'Bounce off the marked rubber tray and aim the rebound yourself; the pad will NOT steer the ball.':
   'Land inside the opening without hitting the rim.';
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
- const introText=(settings.newTrick?'NEW TECHNIQUE: '+settings.newTrick+'. ':'')+
-  'Throw into the '+cupVariant(settings.kind).toLowerCase()+
-  ' on the '+settings.station+' '+settings.d.toFixed(1)+'m away. '+
-  shotAdvice+' '+targetMotion+
-  (roadblock.length?' Navigate the '+roadblock.join(' and ')+'.':'')+barrierText+
-  (settings.wind?' Beware the crosswind.':'')+
-  (settings.lid?' The lid periodically closes: time your shot to arrive while open.':'')+
-  (settings.wall?' Ricochet from the striped side-wall cushion before scoring.':'')+
-  (settings.hoops?' Pass through '+settings.hoops+' airborne hoop'+(settings.hoops>1?'s in order':'')+' before the cup.':'')+
-  (settings.fanZone?' Watch the airflow arrows; the fan pushes the ball while inside its stream.':'');
+ const objective=settings.hoops?
+  'Fly through '+settings.hoops+' numbered hoop'+(settings.hoops>1?'s in order':'')+' before scoring.':
+  settings.wall?'Ricochet off the striped wall before hitting the cup.':
+  settings.springRequired?'Bounce on the spring plate before scoring.':
+  settings.bankRequired?'Bank the ball off the rubber tray first.':
+  'Land the ball inside the target.';
+ const extra=[
+  settings.lid?'Watch for the lid to open.':null,
+  settings.fanZone?'The airflow changes your shot.':null,
+  settings.motion!=='still'?'Lead the moving target.':null,
+  settings.wind?'Allow for the crosswind.':null
+ ].filter(Boolean).slice(0,2).join(' ');
+ const introText=(settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+
+  objective+' '+extra;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
   'PLAY LEVEL '+fmtLevel(level),'start');
@@ -1840,7 +1846,7 @@ function miss(reason='MISS!'){
    (info.dz>0?'Fell SHORT: add power.':'Sailed LONG: reduce power.');
  }
  el.status.textContent=reason+' · '+hint;
- message(reason+' · TRY AGAIN',1.65);
+ message(reason.replace(/[!]+$/,'').slice(0,24),1.05);
  if(impactRing){
   impactRing.position.set(ball.x,Math.max(.04,ball.y-.08),ball.z);
   impactRing.material.color.setHex(0xe69886);impactAge=0;impactRing.visible=true;
@@ -2074,6 +2080,7 @@ function animate(now){
   if(charging)chargeTick(now);
   if(flight)tickFlight(dt);
   // Recompute the predicted arc against the target's current movement.
+  if(simTime>4.2&&el.viewport.dataset.showTip==='yes')el.viewport.dataset.showTip='no';
   if(!flight&&now-lastAimRefresh>75){
    lastAimRefresh=now;paintAim();
   }
@@ -2151,7 +2158,8 @@ el.prev.addEventListener('click',()=>loadLevel(Math.max(1,level-1)));
 el.next.addEventListener('click',()=>loadLevel(Math.min(unlocked,level+1)));
 el.pause.addEventListener('click',togglePause);
 el.sound.addEventListener('click',()=>{
- soundOn=!soundOn;el.sound.textContent=soundOn?'SOUND ON':'SOUND OFF';
+ soundOn=!soundOn;el.sound.textContent='♫';
+el.sound.title=soundOn?'Mute sound':'Unmute sound';el.sound.setAttribute('aria-label',el.sound.title);
  el.sound.setAttribute('aria-pressed',String(soundOn));
  try{localStorage.setItem(MUTED,soundOn?'on':'off');}catch{}
 });
@@ -2164,7 +2172,8 @@ el.full.addEventListener('click',async()=>{
 });
 document.addEventListener('fullscreenchange',()=>{
  const active=document.fullscreenElement===$('ptShell');
- el.full.textContent=active?'EXIT FULLSCREEN':'FULLSCREEN';resize();
+ el.full.textContent='⛶';el.full.title=active?'Exit fullscreen':'Enter fullscreen';
+ el.full.setAttribute('aria-label',el.full.title);resize();
 });
 // Flick gesture inspired by classic touchscreen toss games — drag upward to
 // aim/throw, or simply hold and release for power-charging on desktop.
