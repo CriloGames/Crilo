@@ -684,7 +684,30 @@ function officeChair(parent,x,z){
 
 function addFanJet(spec,x,z,device,label){
  // Visuals and physics share a single emitter at the actual fan motor.
- const kind=spec.kind,side=spec.side,headY=device.userData.headY;
+ const kind=spec.kind,side=spec.side;
+ // Mount horizontal fans on grounded cabinets to line up the visible jet
+ // with the actual height of the thrown ball.
+ if(kind==='cross'){
+  const shelfY=1.15,paint=createMat(0x667e82,.43,.34);
+  const legs=createMat(0x455d65,.53,.42);
+  meshBox(group,1.28,.13,1.10,x,shelfY-.065,z,paint);
+  for(const dx of [-.49,.49])for(const dz of [-.41,.41])
+   meshBox(group,.088,shelfY-.13,.088,x+dx,(shelfY-.13)*.5,z+dz,legs);
+  meshBox(group,1.14,.055,.88,x,.29,z,legs);
+  device.position.y=shelfY;
+  // Continue the motor's power lead down the cabinet to a floor outlet.
+  device.updateMatrixWorld(true);
+  const end=new THREE.Vector3(-1.18,.12,.56).applyMatrix4(device.matrixWorld);
+  const outlet=new THREE.Vector3(x+side*.85,.15,z+.72);
+  group.add(new THREE.Mesh(new THREE.TubeGeometry(
+   new THREE.CatmullRomCurve3([
+    end,end.clone().add(new THREE.Vector3(0,-.28,.06)),
+    new THREE.Vector3(end.x,.12,end.z+.11),outlet
+   ]),24,.016,6,false),createMat(0x243843,.86)));
+  meshBox(group,.27,.26,.07,outlet.x,.14,outlet.z,
+   createMat(0xc1cac5,.55));
+ }
+ const headY=device.position.y+device.userData.headY;
  const field={kind,side,dir:-side,x,y:headY,z,power:spec.power,
   reach:kind==='lift'?3.25:3.18,device,phase:settings.n*.33,label,cloud:null};
  const cloud=new THREE.Group();cloud.position.set(x,headY,z);group.add(cloud);
@@ -1821,7 +1844,7 @@ function airForce(x,y,z,time){
   const axial=f.kind==='lift'?y-f.y:(x-f.x)*f.dir;
   if(axial<-.12||axial>f.reach)continue;
   const progress=clamp(axial/f.reach,0,1);
-  const spread=.55+progress*.72;
+  const spread=f.kind==='lift'?.55+progress*.72:.85+progress*1.15;
   const dy=f.kind==='lift'?(x-f.x)/spread:(y-f.y)/spread;
   const dz=(z-f.z)/(spread*.92);
   const radial=dy*dy+dz*dz;
@@ -2077,7 +2100,8 @@ function tickObstacles(time){
   const cloud=field.cloud,n=cloud.children.length-1;
   for(let i=0;i<n;i++){
    const arrow=cloud.children[i],progress=(t*.52+arrow.userData.progress)%1;
-   const along=.20+progress*(field.reach-.30),spread=.38+progress*.63;
+   const along=.20+progress*(field.reach-.30),
+    spread=field.kind==='lift'?.38+progress*.63:.57+progress*1.15;
    if(field.kind==='lift')
     arrow.position.set(arrow.userData.u*spread,along,arrow.userData.v*spread);
    else
