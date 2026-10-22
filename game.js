@@ -1340,28 +1340,107 @@ function point(e){
  }
  return{x,y};
 }
-function fill(x,y){
+// Both drawing editors use the same edge-aware bucket fill. Pen strokes are
+// antialiased, so pixels on a line do not have one exact RGBA value. Flood only
+// through the selected region, then put the new paint UNDER neighboring
+// partially covered stroke pixels. This prevents white fringes without
+// opening gaps in the drawn outline or spilling outside the circular canvas.
+function bucketFill(context,x,y,hex){
  const w=CANVAS_SIDE,xx=Math.floor(x),yy=Math.floor(y);
- if(!Number.isFinite(x)||!Number.isFinite(y)||xx<0||yy<0||xx>=w||yy>=w||!insideCirclePixel(xx,yy))return false;
- const img=dctx.getImageData(0,0,w,w),d=img.data,start=yy*w+xx,src=Array.from(d.slice(start*4,start*4+4));
- const hex=$('drawColor').value,col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
- if(src.every((v,i)=>v===col[i]))return false;
- const seen=new Uint8Array(w*w),q=[start];seen[start]=1;
- for(let head=0;head<q.length;head++){
-  const n=q[head],o=n*4;
-  if(!src.every((v,i)=>Math.abs(d[o+i]-v)<24))continue;
-  for(let j=0;j<4;j++)d[o+j]=col[j];
-  const px=n%w,py=Math.floor(n/w);
-  for(const v of [px>0?n-1:-1,px<w-1?n+1:-1,py>0?n-w:-1,py<w-1?n+w:-1]){
-   if(v<0||seen[v])continue;
-   const vx=v%w,vy=Math.floor(v/w);
-   if(!insideCirclePixel(vx,vy))continue;
-   seen[v]=1;q.push(v);
+ if(!Number.isFinite(x)||!Number.isFinite(y)||
+    xx<0||yy<0||xx>=w||yy>=w||!insideCirclePixel(xx,yy))return false;
+ const color=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),
+  parseInt(hex.slice(5,7),16)];
+ if(color.some(v=>!Number.isFinite(v)))return false;
+ const image=context.getImageData(0,0,w,w),d=image.data;
+ const start=yy*w+xx,base=start*4;
+ const source=[d[base],d[base+1],d[base+2],d[base+3]];
+ if(source[3]===255&&color.every((v,i)=>v===source[i]))return false;
+ const count=w*w,accepted=new Uint8Array(count),seen=new Uint8Array(count);
+ const queue=new Int32Array(count);let head=0,tail=1;
+ queue[0]=start;seen[start]=1;
+ const targetIsClear=source[3]<=24;
+ function matches(i){
+  const off=i*4,a=d[off+3];
+  if(targetIsClear)return a<=30;
+  return Math.abs(a-source[3])<=32&&
+   Math.abs(d[off]-source[0])<=38&&
+   Math.abs(d[off+1]-source[1])<=38&&
+   Math.abs(d[off+2]-source[2])<=38;
+ }
+ while(head<tail){
+  const i=queue[head++];
+  if(!matches(i))continue;
+  accepted[i]=1;
+  const px=i%w,py=(i-px)/w;
+  const neighbors=[px>0?i-1:-1,px<w-1?i+1:-1,
+   py>0?i-w:-1,py<w-1?i+w:-1];
+  for(const next of neighbors){
+   if(next<0||seen[next])continue;
+   if(!insideCirclePixel(next%w,Math.floor(next/w)))continue;
+   seen[next]=1;queue[tail++]=next;
+  }
+ }
+ if(!tail||!accepted[start])return false;
+ // Build the fringe before editing any pixels, so color comparisons use the
+ // actual original strokes, not the newly filled color.
+ const fringe=new Uint8Array(count);
+ for(let qi=0;qi<head;qi++){
+  const i=queue[qi];if(!accepted[i])continue;
+  const px=i%w,py=(i-px)/w;
+  for(const neighbor of [px>0?i-1:-1,px<w-1?i+1:-1,
+   py>0?i-w:-1,py<w-1?i+w:-1]){
+   if(neighbor>=0&&!accepted[neighbor]&&
+    insideCirclePixel(neighbor%w,Math.floor(neighbor/w)))fringe[neighbor]=1;
+  }
+ }
+ const original=d.slice();
+ for(let i=0;i<count;i++)if(accepted[i]){
+  const o=i*4;
+  d[o]=color[0];d[o+1]=color[1];d[o+2]=color[2];d[o+3]=255;
+ }
+ for(let i=0;i<count;i++){
+  if(!fringe[i])continue;
+  const o=i*4,alpha=original[o+3];
+  if(alpha<255){
+   // Existing line ink is foreground. Put the color behind its fractional
+   // coverage, rather than leaving the white canvas showing through.
+   const t=alpha/255;
+   for(let c=0;c<3;c++)
+    d[o+c]=Math.round(original[o+c]*t+color[c]*(1-t));
+   d[o+3]=255;
+  }else if(source[3]>=242){
+   // When recoloring an already opaque fill, antialiased line pixels are
+   // mixtures of the old background and ink. Estimate the nearby ink color
+   // and replace only the background's share of that mixture.
+   const px=i%w,py=Math.floor(i/w);
+   let best=-1,bestDist=0;
+   for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    const nx=px+dx,ny=py+dy;
+    if(nx<0||ny<0||nx>=w||ny>=w||accepted[ny*w+nx])continue;
+    const p=(ny*w+nx)*4;
+    if(original[p+3]<235)continue;
+    const dist=(original[p]-source[0])**2+
+      (original[p+1]-source[1])**2+
+      (original[p+2]-source[2])**2;
+    if(dist>bestDist){bestDist=dist;best=p;}
+   }
+   if(best<0||bestDist<70*70)continue;
+   let dot=0;
+   for(let c=0;c<3;c++)
+    dot+=(original[o+c]-source[c])*(original[best+c]-source[c]);
+   const inkShare=Math.max(0,Math.min(1,dot/bestDist));
+   if(inkShare<=.02||inkShare>=.98)continue;
+   for(let c=0;c<3;c++)
+    d[o+c]=Math.round(color[c]*(1-inkShare)+original[best+c]*inkShare);
   }
  }
  maskInvisibleCorners(d);
- dctx.putImageData(img,0,0);
+ context.putImageData(image,0,0);
  return true;
+}
+function fill(x,y){
+ return bucketFill(dctx,x,y,$('drawColor').value);
 }
 function drawDot(p){
  dctx.save();
@@ -1587,25 +1666,7 @@ function pixelLine(a,b){
  pixelCtx.restore();
 }
 function pixelFill(p){
- const w=CANVAS_SIDE,x=Math.floor(p.x),y=Math.floor(p.y);
- if(!insideCirclePixel(x,y))return false;
- const img=pixelCtx.getImageData(0,0,w,w),d=img.data,start=y*w+x;
- const src=Array.from(d.slice(start*4,start*4+4)),hex=$('pixelColor').value;
- const col=[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16),255];
- if(src.every((v,i)=>v===col[i]))return false;
- const seen=new Uint8Array(w*w),q=[start];seen[start]=1;
- for(let head=0;head<q.length;head++){
-  const n=q[head],o=n*4;
-  if(!src.every((v,i)=>v===d[o+i]))continue;
-  for(let j=0;j<4;j++)d[o+j]=col[j];
-  const x=n%w,y=Math.floor(n/w);
-  for(const v of [x>0?n-1:-1,x<w-1?n+1:-1,y>0?n-w:-1,y<w-1?n+w:-1]){
-   if(v<0||seen[v])continue;
-   if(!insideCirclePixel(v%w,Math.floor(v/w)))continue;
-   seen[v]=1;q.push(v);
-  }
- }
- maskInvisibleCorners(d);pixelCtx.putImageData(img,0,0);return true;
+ return bucketFill(pixelCtx,p.x,p.y,$('pixelColor').value);
 }
 pixelCanvas.addEventListener('pointerdown',e=>{
  if(drawingLocked||isDrawingColorPickerOpen()||pixelPointerId!==null||!insidePaintArea(pixelCanvas,e)||
