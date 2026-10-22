@@ -16,7 +16,7 @@ const el={
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
  sound:$('ptSound'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
- aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective')
+ aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
@@ -159,6 +159,14 @@ const NEW_TRICKS={
  37:'DOUBLE TIMING',38:'UPDRAFT + HOOP',41:'SPRING RETURN',45:'SPRING + LID',47:'MOVING RING GAUNTLET',
  48:'TIGHT SPRING PRECISION',49:'SPRING THROUGH THE HOOP',50:'FINAL HOOP GAUNTLET'
 };
+function stageDifficulty(n,spec){
+ // Explicitly communicate escalating complexity without applying artificial
+ // RNG penalties. A new mechanic can still begin with a generous target.
+ const baseline=1+Math.floor((n-1)/14);
+ const hazards=(spec?.hoops>1?1:0)+(spec?.wall?1:0)+
+  (spec?.fanZone?1:0)+(spec?.lid?1:0)+(spec?.barrierCount>1?1:0);
+ return Math.min(5,baseline+(hazards>=2?1:0));
+}
 function stageSettings(n){
  const row=STAGES[n-1];if(!row)throw Error('Missing level '+n);
  const [challenge,sceneId,station,d,x,topPad,radius,kind,shot,motion,wind,
@@ -192,6 +200,10 @@ function buildUi(){
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=SCENE_NAMES;
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
+ const rating=stageDifficulty(level,settings);
+ const labels=['','EASY','STANDARD','TRICKY','HARD','EXPERT'];
+ el.difficulty.textContent='DIFFICULTY · '+('★'.repeat(rating))+' · '+labels[rating];
+ el.difficulty.dataset.rank=String(rating);
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  el.objective.textContent=settings.wall?'WALL BANK → CUP':
   settings.hoops?'PASS '+settings.hoops+' HOOP'+(settings.hoops>1?'S':'')+' → CUP':
@@ -236,6 +248,7 @@ function buildChapters(){
   button.className='pt-level-btn'+(i===level?' current':'')+(i>unlocked?' locked':'')+(stars[i]?' cleared':'');
   const label=document.createElement('span');label.textContent=fmtLevel(i);
   const recipe=stageSettings(i);
+  button.dataset.difficulty=String(stageDifficulty(i,recipe));
   const nameTag=document.createElement('small');nameTag.className='pt-level-name';
   nameTag.textContent=recipe.challenge;
   const star=document.createElement('small');star.className='pt-level-status';
@@ -245,7 +258,7 @@ function buildChapters(){
   button.dataset.shot=kind.toLowerCase();
   if(recipe.newTrick)button.dataset.newTrick='true';
   button.dataset.scene=String(recipe.sceneId);
-  button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
+  button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m · difficulty '+stageDifficulty(i,recipe)+'/5';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
   button.addEventListener('click',()=>loadLevel(i));
   el.grid.append(button);
