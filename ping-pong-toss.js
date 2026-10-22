@@ -134,20 +134,21 @@ const SCENE_NAMES=['CUBICLE','BOARDROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT',
 // Extra skill shots throughout the campaign; no auto-steering after bounce.
 const SPECIALS={
  4:{hoops:1},7:{fan:{kind:'cross',side:1,power:2}},
- 11:{wall:{side:1}},13:{hoops:1},
+ 11:{wall:{side:-1}},13:{hoops:1},
  17:{fan:{kind:'cross',side:-1,power:2.7}},
  18:{hoops:1,hoopMove:true},
  22:{wall:{side:-1}},
  23:{hoops:1,fan:{kind:'cross',side:-1,power:2}},
  26:{fan:{kind:'lift',side:1,power:3.8}},
- 28:{hoops:2},30:{wall:{side:1},hoops:1},
+ 28:{hoops:2},30:{hoops:1,fan:{kind:'cross',side:1,power:2.1}},
  32:{fan:{kind:'cross',side:1,power:3.4}},
+ 36:{wall:{side:1}},40:{wall:{side:1}},
  35:{hoops:2,hoopMove:true},
  38:{fan:{kind:'lift',side:-1,power:4.1},hoops:1},
- 42:{wall:{side:-1}},44:{hoops:1},
+ 42:{fan:{kind:'lift',side:1,power:3.1}},44:{hoops:1},
  46:{fan:{kind:'cross',side:1,power:3.7}},
  47:{hoops:2,hoopMove:true},
- 49:{wall:{side:1},fan:{kind:'cross',side:-1,power:2.8}},
+ 49:{fan:{kind:'cross',side:-1,power:2.8},hoops:1},
  50:{hoops:2,hoopMove:true}
 };
 const NEW_TRICKS={
@@ -156,7 +157,7 @@ const NEW_TRICKS={
  18:'MOVING HOOP',21:'PULSING GUSTS',22:'WALL RICOCHET',24:'WIND + LIFT',26:'UPDRAFT',28:'DOUBLE HOOP',
  27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',35:'DOUBLE MOVING HOOPS',
  37:'DOUBLE TIMING',38:'UPDRAFT + HOOP',41:'SPRING RETURN',45:'SPRING + LID',47:'MOVING RING GAUNTLET',
- 48:'TIGHT SPRING PRECISION',49:'RICOCHET IN WIND',50:'FINAL HOOP GAUNTLET'
+ 48:'TIGHT SPRING PRECISION',49:'SPRING THROUGH THE HOOP',50:'FINAL HOOP GAUNTLET'
 };
 function stageSettings(n){
  const row=STAGES[n-1];if(!row)throw Error('Missing level '+n);
@@ -1236,6 +1237,80 @@ function buildWorld(){
  if(Math.abs(settings.wind)>.001){
   const fan=officeFan(group,-3.65,1.03,settings.targetZ+.85,metal,.2);
   ambient.push({type:'fan',obj:fan});
+ }
+
+ // Wall-cushion ricochet: actual mesh AND actual side-plane collision. An
+ // illuminated frame clearly shows the only surface that counts as a wall bank.
+ if(settings.wall){
+  const side=settings.wall.side,x=side*2.16,z=LAUNCH_Z-settings.d*.52;
+  const wall=new THREE.Group();wall.position.set(x,2.42,z);group.add(wall);
+  const rubber=createMat(0x617780,.82,.03),stripe=createMat(0xf2bb7a,.43,.02,0x4a291a);
+  meshBox(wall,.17,3.55,3.65,0,0,0,rubber);
+  for(let k=0;k<8;k++)
+   meshBox(wall,.024,3.18,.065,-side*.109,0,-1.46+k*.42,stripe);
+  for(const zz of [-1.89,1.89])
+   meshBox(wall,.23,3.7,.10,0,0,zz,createMat(0x324d58,.35,.38));
+  for(const yy of [-1.76,1.76])
+   meshBox(wall,.23,.1,3.8,0,yy,0,createMat(0x324d58,.35,.38));
+  const indicator=new THREE.PointLight(0xf6c18d,2.2,3.7,2);
+  indicator.position.set(-side*.38,.4,0);wall.add(indicator);
+  wallPad={x,z,side,y:2.42,height:3.55,length:3.65,mesh:wall};
+ }
+ // Sequential 3D hoops: pass through the physical vertical ring plane before
+ // the cup. Their centers follow the reference arc but can oscillate.
+ for(let i=0;i<settings.hoops;i++){
+  const fraction=settings.hoops===1?.39:(i===0?.24:.40);
+  const pitch=settings.springRequired?.32:settings.bankRequired?.31:.70;
+  const dist=settings.d*fraction,range=settings.bankRequired?
+   Math.hypot(LAUNCH_Z-settings.bankZ,settings.bankX):
+   settings.springRequired?LAUNCH_Z-settings.springZ:Math.hypot(settings.d,settings.x);
+  const hRequired=settings.bankRequired?1.22+BALL_R:
+   settings.springRequired?1.21+BALL_R:.19+settings.topPad+settings.targetHeight-BALL_R;
+  const speed=Math.sqrt(Math.max(1,GRAVITY*range*range/
+   Math.max(.08,2*Math.cos(pitch)**2*(range*Math.tan(pitch)+LAUNCH_Y-hRequired))));
+  const effective=clamp((speed-5.6)/8.2,.06,.97)*8.2+5.6;
+  const t=dist/(Math.cos(pitch)*effective);
+  const y=clamp(LAUNCH_Y+Math.sin(pitch)*effective*t-GRAVITY*t*t*.5,1.05,5.4);
+  const x=settings.x*fraction;
+  const z=LAUNCH_Z-dist;
+  const radius=settings.hoops>1?.86:.93;
+  const anchor=new THREE.Group();anchor.position.set(x,y,z);group.add(anchor);
+  const material=new THREE.MeshStandardMaterial({
+   color:0xf7d196,emissive:0x684423,emissiveIntensity:.44,
+   metalness:.30,roughness:.32
+  });
+  const torus=new THREE.Mesh(new THREE.TorusGeometry(radius,.065,10,40),material);
+  anchor.add(torus);
+  const halo=new THREE.Mesh(new THREE.TorusGeometry(radius+.11,.015,6,44),
+   new THREE.MeshBasicMaterial({color:0x95e3c7,transparent:true,opacity:.6}));
+  anchor.add(halo);
+  const numberLabel=new THREE.Mesh(new THREE.PlaneGeometry(.5,.24),
+   makeText('RING '+(i+1),36,'#f3edd0','#385a61'));
+  numberLabel.position.set(0,-radius-.32,.04);anchor.add(numberLabel);
+  hoops.push({x,y,z,r:radius,baseX:x,baseY:y,mesh:anchor,material,passed:false,
+   phase:i*1.8+settings.n*.16});
+ }
+ // Local fan jets. Forces vary smoothly with proximity to the illustrated
+ // stream, not an invisible global constant or auto-adjusted target aim.
+ if(settings.fanZone){
+  const spec=settings.fanZone;
+  const cx=settings.x*.43,cz=LAUNCH_Z-settings.d*.52;
+  const device=officeFan(group,spec.side*3.0,1.24,cz,
+   createMat(0x7998a2,.34,.40),spec.side>0?-.48:.48);
+  ambient.push({type:'fan',obj:device});
+  const cloud=new THREE.Group();cloud.position.set(cx,2.30,cz);group.add(cloud);
+  const flowMat=new THREE.MeshBasicMaterial({
+   color:spec.kind==='lift'?0xa7e2ce:0x9ad4e3,transparent:true,opacity:.43,depthWrite:false
+  });
+  for(let i=0;i<9;i++){
+   const marker=new THREE.Mesh(new THREE.ConeGeometry(.075,.24,7),flowMat);
+   marker.position.set(((i%3)-1)*.45,-.58+Math.floor(i/3)*.50,
+    Math.sin(i*1.6)*.45);
+   marker.rotation.z=spec.kind==='lift'?0:spec.side*Math.PI/2;
+   cloud.add(marker);
+  }
+  airZone={x:cx,y:2.30,z:cz,power:spec.power,side:spec.side,kind:spec.kind,
+   size:1.82,cloud};
  }
  // Chapter 5: rubber launch plates on actual rolling office carts.
  for(let i=0;i<settings.padCount;i++){
