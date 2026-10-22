@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -34,7 +34,7 @@ let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
-let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
+let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const fmtLevel=n=>String(n).padStart(2,'0');
@@ -131,13 +131,32 @@ const STAGES=[
 const SCENE_NAMES=['CUBICLE','BOARDROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT',
  'ARCHIVE','RECEPTION','AWARDS OFFICE','SHIPPING DOCK','SERVER ROOM'];
 // A fresh skill or combination every few rounds, not ten rounds apart.
+// Extra skill shots throughout the campaign; no auto-steering after bounce.
+const SPECIALS={
+ 4:{hoops:1},7:{fan:{kind:'cross',side:1,power:2}},
+ 11:{wall:{side:1}},13:{hoops:1},
+ 17:{fan:{kind:'cross',side:-1,power:2.7}},
+ 18:{hoops:1,hoopMove:true},
+ 22:{wall:{side:-1}},
+ 23:{hoops:1,fan:{kind:'cross',side:-1,power:2}},
+ 26:{fan:{kind:'lift',side:1,power:3.8}},
+ 28:{hoops:2},30:{wall:{side:1},hoops:1},
+ 32:{fan:{kind:'cross',side:1,power:3.4}},
+ 35:{hoops:2,hoopMove:true},
+ 38:{fan:{kind:'lift',side:-1,power:4.1},hoops:1},
+ 42:{wall:{side:-1}},44:{hoops:1},
+ 46:{fan:{kind:'cross',side:1,power:3.7}},
+ 47:{hoops:2,hoopMove:true},
+ 49:{wall:{side:1},fan:{kind:'cross',side:-1,power:2.8}},
+ 50:{hoops:2,hoopMove:true}
+};
 const NEW_TRICKS={
- 1:'FIRST THROW',3:'MOVING CUP',5:'RUBBER BANK',6:'DESK-FAN WIND',
- 9:'TIMED SHUTTER',12:'SPRING REBOUND',16:'HINGED CUP LID',
- 18:'FIGURE-EIGHT TARGET',21:'PULSING GUSTS',24:'WIND + LIFT',
- 27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',
- 37:'DOUBLE TIMING',41:'SPRING RETURN',45:'SPRING + LID',
- 48:'TIGHT SPRING PRECISION'
+ 1:'FIRST THROW',3:'MOVING CUP',4:'THROUGH THE HOOP',5:'RUBBER BANK',6:'DESK-FAN WIND',7:'AIR JET',
+ 9:'TIMED SHUTTER',11:'WALL RICOCHET',12:'SPRING REBOUND',16:'HINGED CUP LID',
+ 18:'MOVING HOOP',21:'PULSING GUSTS',22:'WALL RICOCHET',24:'WIND + LIFT',26:'UPDRAFT',28:'DOUBLE HOOP',
+ 27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',35:'DOUBLE MOVING HOOPS',
+ 37:'DOUBLE TIMING',38:'UPDRAFT + HOOP',41:'SPRING RETURN',45:'SPRING + LID',47:'MOVING RING GAUNTLET',
+ 48:'TIGHT SPRING PRECISION',49:'RICOCHET IN WIND',50:'FINAL HOOP GAUNTLET'
 };
 function stageSettings(n){
  const row=STAGES[n-1];if(!row)throw Error('Missing level '+n);
@@ -146,9 +165,12 @@ function stageSettings(n){
  const c=chapterIndex(n),tier=(n-1)%10;
  const bankRequired=shot==='bank',springRequired=shot==='spring';
  const motionPower=motion==='still'?0:.29+Math.min(4,c)*.055+(tier%3)*.06;
+ const special=SPECIALS[n]||{};
  return {
   n,c,tier,challenge,sceneId,station,d,x,topPad,radius,kind,
   newTrick:NEW_TRICKS[n]||null,
+  hoops:special.hoops||0,hoopMove:!!special.hoopMove,
+  wall:special.wall||null,fanZone:special.fan||null,
   targetZ:LAUNCH_Z-d,shot,motion,moving:motionPower,wind,
   feature,obstaclePlan,barrierPlan,barrierCount:barrierPlan.length,
   // Every bounce has its own visible, predetermined launch position.
@@ -170,8 +192,9 @@ function buildUi(){
  const rooms=SCENE_NAMES;
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
- el.objective.textContent=settings.springRequired?'SPRING PAD → CUP':
-  settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
+ el.objective.textContent=settings.wall?'WALL BANK → CUP':
+  settings.hoops?'PASS '+settings.hoops+' HOOP'+(settings.hoops>1?'S':'')+' → CUP':
+  settings.springRequired?'SPRING PAD → CUP':settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
  if(!settings.lid)delete el.viewport.dataset.lidState;
  el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
@@ -182,7 +205,10 @@ function buildUi(){
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=Math.abs(settings.wind)<.001;
  el.windLabel.textContent=settings.wind===0?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.lid?'TIME IT · CUP LID OPENS AND CLOSES':
+ el.tutorial.textContent=settings.wall?'RICOCHET FROM THE SIDE WALL BEFORE SCORING':
+  settings.hoops?'PASS THROUGH THE RING BEFORE THE CUP':
+  settings.fanZone?'AIR JET CHANGES THE FLIGHT PATH':
+  settings.lid?'TIME IT · CUP LID OPENS AND CLOSES':
   settings.springRequired?'SPRING → '+settings.challenge.toUpperCase():
   settings.bankRequired?'BANK → '+settings.challenge.toUpperCase():
   settings.motion!=='still'?'TIME YOUR '+settings.motion.toUpperCase()+' TARGET':
@@ -262,7 +288,10 @@ function loadLevel(n){
   shotAdvice+' '+targetMotion+
   (roadblock.length?' Navigate the '+roadblock.join(' and ')+'.':'')+barrierText+
   (settings.wind?' Beware the crosswind.':'')+
-  (settings.lid?' The lid periodically closes: time your shot to arrive while open.':'');
+  (settings.lid?' The lid periodically closes: time your shot to arrive while open.':'')+
+  (settings.wall?' Ricochet from the striped side-wall cushion before scoring.':'')+
+  (settings.hoops?' Pass through '+settings.hoops+' airborne hoop'+(settings.hoops>1?'s in order':'')+' before the cup.':'')+
+  (settings.fanZone?' Watch the airflow arrows; the fan pushes the ball while inside its stream.':'');
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
   'PLAY LEVEL '+fmtLevel(level),'start');
@@ -273,7 +302,7 @@ function nextLevel(){
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
 function resetBall(){
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,trail:[]};
+ ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
  for(const bead of ballTrailMeshes)bead.visible=false;
 }
@@ -543,7 +572,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1431,7 +1460,7 @@ function launch(flickPower=null){
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  active:true,bounces:0,bankHits:0,springHits:0,trail:[]};
+  active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
