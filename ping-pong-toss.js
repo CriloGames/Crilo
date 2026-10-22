@@ -24,11 +24,11 @@ let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impact
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
- {name:'THE BASICS',desc:'Find the angle. Learn the arc. Clear static obstacles.',from:1,to:10,color:0x6ccab5,short:'Classic Toss'},
- {name:'MOVING TARGETS',desc:'Watch the rhythm. Time your release to land a moving cup.',from:11,to:20,color:0xeba1b5,short:'Moving Cups'},
- {name:'THE WIND ZONE',desc:'Crosswinds bend your shot. Read the indicator and compensate.',from:21,to:30,color:0x8ba8e9,short:'Wind'},
- {name:'OBSTACLE COURSE',desc:'Sliding walls and moving paddles stand between you and the cup.',from:31,to:40,color:0xebbc70,short:'Moving Barriers'},
- {name:'BOUNCE LAB',desc:'Glowing bounce pads relaunch your ball into hard-to-reach cups.',from:41,to:50,color:0xae8edc,short:'Bounce Pads'}
+ {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x6ccab5,short:'First Week'},
+ {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xeba1b5,short:'Desk Shift'},
+ {name:'CROSS DRAFT',desc:'Varying fan gusts, blind shots, moving openings and combination trick shots.',from:21,to:30,color:0x8ba8e9,short:'Cross Draft'},
+ {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xebbc70,short:'Late Shift'},
+ {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xae8edc,short:'Final Shift'}
 ];
 let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
@@ -79,23 +79,23 @@ function hear(freq=520,duration=.10,voice='sine',volume=.04){
 const STAGES=[
  ['First Day',0,'desk',4.45,0,.96,.57,0,'direct','still',0,'sticky',[],[]],
  ['The Side Drawer',0,'drawer',4.95,1.27,1.19,.53,1,'direct','still',0,'folders',[['files',.43,-1.20]],[]],
- ['Kitchen Counter',3,'counter',5.30,-1.35,1.02,.52,3,'direct','still',0,'kettle',[['mugstack',.46,1.25]],[]],
+ ['Kitchen Slider',3,'counter',5.30,-1.15,1.02,.55,3,'direct','slide',0,'kettle',[['mugstack',.46,1.25]],[]],
  ['Printer Jam',2,'printer',5.18,.86,1.28,.49,2,'direct','still',0,'printer',[['printer',.30,-1.02]],[]],
  ['Binder Bank',0,'cabinet',5.72,-.98,1.38,.50,1,'bank','still',0,'binders',[['screen',.31,1.55]],[]],
- ['High Window',1,'window',5.85,1.72,1.61,.48,4,'direct','still',0,'sunblind',[['books',.58,-.91]],[]],
+ ['Window Draft',1,'window',5.85,1.60,1.61,.51,4,'direct','still',.14,'sunblind',[['books',.58,-.91]],[]],
  ['Mail Cart Ricochet',2,'trolley',6.10,-1.77,1.13,.47,2,'bank','still',0,'letters',[['folders',.38,1.60]],[]],
- ['Double Monitor',4,'desk',6.35,.44,1.26,.45,1,'direct','still',0,'dualmonitors',[['monitor',.28,-.86],['monitor',.61,1.10]],[]],
- ['Coffee Bank',3,'counter',6.45,-1.17,1.30,.45,3,'bank','still',0,'coffee',[['teapot',.45,1.51]],[]],
- ['Archive Corner',5,'archive',6.85,.28,1.57,.43,5,'bank','still',0,'archive',[['files',.26,-1.6],['lamp',.76,1.25]],[]],
+ ['Moving Monitor',4,'desk',6.35,.44,1.26,.48,1,'direct','orbit',0,'dualmonitors',[['monitor',.28,-.86],['monitor',.61,1.10]],[]],
+ ['The First Shutter',3,'counter',6.45,-1.17,1.30,.49,3,'direct','still',0,'coffee',[['teapot',.45,1.51]],[['panel',.55,.90,1.38]]],
+ ['Archive Bank',5,'archive',6.85,.28,1.57,.47,5,'bank','still',-.13,'archive',[['files',.26,-1.6],['lamp',.76,1.25]],[]],
  ['Reception Sweep',6,'trolley',5.42,-1.32,1.06,.46,0,'direct','slide',0,'reception',[['plant',.39,1.20]],[]],
- ['Coffee Run',3,'desk',5.92,1.64,1.04,.45,1,'direct','depth',0,'coffee',[['mugstack',.48,-1.14]],[]],
+ ['Desk Pop',3,'desk',5.52,.24,1.04,.56,1,'spring','still',0,'coffee',[],[]],
  ['Rolling Bucket',2,'trolley',6.12,-.80,1.17,.45,2,'direct','slide',0,'packages',[['cart',.53,1.27]],[]],
- ['Sliding Trophy',7,'shelf',6.50,1.08,1.42,.43,6,'direct','orbit',0,'trophies',[['books',.36,-1.05]],[]],
+ ['Gusty Trophy',7,'shelf',6.50,1.08,1.42,.46,6,'direct','orbit',.16,'trophies',[['books',.36,-1.05]],[]],
  ['Bank and Slide',1,'drawer',6.78,-1.18,1.37,.43,1,'bank','slide',0,'projector',[['screen',.26,1.70]],[]],
  ['Lifted Lunch',3,'counter',6.92,1.82,1.61,.42,3,'direct','lift',0,'lunch',[['teapot',.38,-1.22]],[]],
- ['Conveyor Drop',8,'cabinet',7.18,-1.36,1.19,.43,5,'direct','depth',0,'conveyor',[['packages',.44,1.45]],[]],
+ ['Conveyor Gate',8,'cabinet',7.18,-1.36,1.19,.47,5,'direct','depth',0,'conveyor',[['packages',.44,1.45]],[['drawer',.61,.62,1.33]]],
  ['Moving Window',1,'window',7.25,1.55,1.74,.42,4,'direct','figure8',0,'sunblind',[['partition',.39,-1.07]],[]],
- ['Rolling Return',6,'trolley',7.48,-.38,1.35,.41,2,'bank','orbit',0,'mailbox',[['files',.33,1.60]],[]],
+ ['Windy Return',6,'trolley',7.48,-.38,1.35,.44,2,'bank','orbit',.17,'mailbox',[['files',.33,1.60]],[]],
  ['Boardroom Finale',1,'conference',7.82,.85,1.55,.40,6,'direct','figure8',0,'whiteboard',[['lamp',.31,-1.25],['projector',.63,1.32]],[]],
  ['Fan on Low',3,'desk',5.58,.42,1.04,.45,0,'direct','still',.19,'fan',[['plant',.42,-1.22]],[]],
  ['Cross Draft',0,'window',5.98,-1.45,1.50,.44,1,'direct','slide',-.28,'sunblind',[['folders',.44,1.23]],[]],
@@ -142,7 +142,9 @@ function stageSettings(n){
   targetZ:LAUNCH_Z-d,shot,motion,moving:motionPower,wind,
   feature,obstaclePlan,barrierPlan,barrierCount:barrierPlan.length,
   // Every bounce has its own visible, predetermined launch position.
-  bankRequired,springRequired,padCount:c===4?1:0,
+  bankRequired,springRequired,padCount:springRequired?1:0,
+  lid:[16,20,27,34,40,45,50].includes(n),
+  gust:[21,24,28,33,37,43,46,49].includes(n),
   bankX:x*.41,bankZ:LAUNCH_Z-d*.68,
   springX:0,springZ:LAUNCH_Z-.45-d*.5,
   roomVariant:tier>=5?1:0,
@@ -166,8 +168,8 @@ function buildUi(){
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
  el.prev.disabled=level<=1;
  el.next.disabled=level>=unlocked||level>=50;
- el.wind.hidden=settings.c<2;
- el.windLabel.textContent=settings.c<2?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
+ el.wind.hidden=Math.abs(settings.wind)<.001;
+ el.windLabel.textContent=settings.wind===0?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
  el.tutorial.textContent=settings.springRequired?'SPRING → '+settings.challenge.toUpperCase():
   settings.bankRequired?'BANK → '+settings.challenge.toUpperCase():
   settings.motion!=='still'?'TIME YOUR '+settings.motion.toUpperCase()+' TARGET':
@@ -239,11 +241,13 @@ function loadLevel(n){
   'You MUST hit the spring plate first, then aim the natural rebound into the cup. It will NOT aim for you.':
   settings.bankRequired?'Bounce off the marked rubber tray and aim the rebound yourself; the pad will NOT steer the ball.':
   'Land inside the opening without hitting the rim.';
+ if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const introText='Throw into the '+cupVariant(settings.kind).toLowerCase()+
   ' on the '+settings.station+' '+settings.d.toFixed(1)+'m away. '+
   shotAdvice+' '+targetMotion+
   (roadblock.length?' Navigate the '+roadblock.join(' and ')+'.':'')+barrierText+
-  (settings.wind?' Beware the crosswind.':'');
+  (settings.wind?' Beware the crosswind.':'')+
+  (settings.lid?' The lid periodically closes: time your shot to arrive while open.':'');
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
   'PLAY LEVEL '+fmtLevel(level),'start');
@@ -1119,7 +1123,7 @@ function buildWorld(){
    phase:i*1.8+settings.n*.17});
  }
  // A desk fan is also visible when the wind mechanic is active.
- if(settings.c>=2){
+ if(Math.abs(settings.wind)>.001){
   const fan=officeFan(group,-3.65,1.03,settings.targetZ+.85,metal,.2);
   ambient.push({type:'fan',obj:fan});
  }
@@ -1217,6 +1221,10 @@ function makeVelocity(p){
 }
 function windAt(time){
  // A desk fan oscillates rather than blowing at a perfectly constant rate.
+ if(settings.gust){
+  const wave=Math.sin(time*1.42+settings.n*.3);
+  return settings.wind*(.2+.8*Math.max(0,wave));
+ }
  return settings.wind*(.66+.34*Math.sin(time*.88+.7));
 }
 // Deterministic, physically visible target travel. Distinct levels can slide,
@@ -1261,7 +1269,7 @@ function paintAim(){
  const p=charging?power:idealPower();
  let x=0,y=LAUNCH_Y,z=LAUNCH_Z,t=0,bounceCount=0;
  const v=makeVelocity(p);let vx=v.vx,vy=v.vy,vz=v.vz;
- const dots=settings.springRequired||settings.bankRequired?78:settings.c>=3?70:62;
+ const dots=settings.springRequired||settings.bankRequired?78:settings.barrierCount?70:62;
  const time=simTime;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];dot.visible=!flight&&playing&&i<dots;
@@ -1381,7 +1389,7 @@ function complete(){
 function tickObstacles(time){
  if(!cupGroup)return;
  const t=time/1000;
- if(settings.c>=2){
+ if(Math.abs(settings.wind)>.001){
   const actual=windAt(t);
   el.windLabel.textContent=(actual>=0?'FAN → ':'← FAN ')+Math.abs(actual).toFixed(2);
  }
