@@ -173,6 +173,7 @@ function buildUi(){
  el.objective.textContent=settings.springRequired?'SPRING PAD → CUP':
   settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
+ if(!settings.lid)delete el.viewport.dataset.lidState;
  el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
    cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
  el.attempts.textContent=String(attempts);
@@ -181,7 +182,8 @@ function buildUi(){
  el.next.disabled=level>=unlocked||level>=50;
  el.wind.hidden=Math.abs(settings.wind)<.001;
  el.windLabel.textContent=settings.wind===0?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
- el.tutorial.textContent=settings.springRequired?'SPRING → '+settings.challenge.toUpperCase():
+ el.tutorial.textContent=settings.lid?'TIME IT · CUP LID OPENS AND CLOSES':
+  settings.springRequired?'SPRING → '+settings.challenge.toUpperCase():
   settings.bankRequired?'BANK → '+settings.challenge.toUpperCase():
   settings.motion!=='still'?'TIME YOUR '+settings.motion.toUpperCase()+' TARGET':
   settings.wind?'ALLOW FOR THE FAN · '+settings.challenge.toUpperCase():
