@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="ping-pong-toss.css?v=7">
+<link rel="stylesheet" href="ping-pong-toss.css?v=8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone pt-page">
@@ -36,13 +36,14 @@
 <section class="pt-hero" aria-label="Pong Toss introduction">
  <div><div class="pt-eyebrow">CRILO ARCADE / OFFICE HOURS</div>
  <h1>PONG <em>TOSS.</em></h1>
- <p>Fifty different office trick shots, not the same scene fifty times. Every level has its own room, target furniture, distance, clutter and objective. New challenges every few levels: wall ricochets, fly-through hoops, air jets, updrafts, moving cups, spring rebounds and timed obstacles.</p></div>
+ <p>Fifty different office trick shots, not the same scene fifty times. Every level has its own room, target furniture, distance, clutter and objective. New challenges every few levels: wall ricochets, fly-through hoops, air jets, updrafts, moving cups, spring rebounds and timed obstacles. Now the ball physically ricochets off desks, furniture and walls.</p></div>
  <div class="pt-hero-sticker" aria-label="50 levels"><strong>50</strong><span>LEVELS</span></div>
 </section>
 <section class="pt-shell" id="ptShell" aria-label="Pong Toss 3D ping-pong game">
  <div class="pt-top">
   <div class="pt-stat"><small>LEVEL</small><strong id="ptLevelNumber">01 / 50</strong></div>
   <div class="pt-stat secondary"><small>THROWS THIS LEVEL</small><strong id="ptAttempts">0</strong></div>
+  <div class="pt-stat physics"><small>BOUNCES THIS SHOT</small><strong id="ptBounces">0</strong></div>
   <div class="pt-stat tertiary"><small>STARS EARNED</small><strong id="ptTotalStars">0 / 150</strong></div>
   <div class="pt-stat"><small>BEST ON THIS LEVEL</small><strong class="pt-small-strong" id="ptBest">—</strong></div>
   <div class="pt-top-actions">
@@ -113,6 +114,7 @@
  <h2 id="gameInfoTitle">How to Play Pong Toss</h2>
  <p>From a first-person office desk, flick the small orange practice ball <strong>through the opening</strong> of a cup, mug, bin or basket. Each stage has different target placements, furniture and obstacles.</p>
  <ul>
+ <li><strong>Real rebounds:</strong> The ball can ricochet from desks, shelves, cabinets, books, computers, walls, floors, moving obstacles, hoop rims and cup rims. Metal rebounds differently from wood and softer objects. The ball loses energy when it bounces, and special pads remain more powerful.</li>
  <li><strong>Mouse and touch:</strong> Drag upward and release to flick, as in classic touchscreen throwing games. Swipe direction controls the angle and strength. Alternatively, move your mouse to aim, hold to charge, and release to shoot. Follow the dotted arc.</li>
  <li><strong>Keyboard:</strong> Use Arrow keys or WASD to adjust your shot. Hold Space to charge, then release Space to throw. R restarts the stage and Esc pauses.</li>
  <li><strong>Early tricks:</strong> Learn aiming, fly through the first hoop (level 4), and experiment with rebounds, moving cups, air jets and shutters.</li>
@@ -131,7 +133,7 @@
 <script src="supabase-config.js?v=21"></script>
 <script src="app.js?v=56"></script>
 <script src="game-topbar.js?v=1"></script>
-<script type="module" src="ping-pong-toss.js?v=12"></script>
+<script type="module" src="ping-pong-toss.js?v=13"></script>
 <script src="public-metrics.js?v=1"></script>
 <script src="floating-mystery.js?v=6"></script>
 </body></html>
