@@ -594,3 +594,33 @@ body.pt-page{
 @media(prefers-reduced-motion:reduce){
  .pt-page .pt-toast{animation:none}
 }
+
+/* Win / pause panels feel like a finished arcade app, not debug dialogs. */
+.pt-page .pt-overlay[data-state="win"]{
+ background:radial-gradient(ellipse at center,#40685d8a,#102a36bd 75%);
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-card{
+ background:linear-gradient(155deg,#fffaf0,#e0efe4);
+ border-color:#a1d0b0;
+ box-shadow:0 0 0 1px #fff7de72,0 26px 65px #0b302c8b;
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-icon{
+ background:radial-gradient(circle at 30% 26%,#fff8dc,#f8d289 60%,#e19e67);
+ border-color:#eac98c;
+ box-shadow:0 0 0 7px #f8d89a1e,0 0 23px #e4c98555;
+ animation:ptWinPop .48s cubic-bezier(.17,.9,.27,1.18) both;
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-card h2{
+ color:#3a675b;
+}
+.pt-page .pt-overlay[data-state="resume"] .pt-overlay-icon{
+ background:radial-gradient(circle at 35% 25%,#fff8eb,#c1dcd8 70%,#84b8b1);
+}
+@keyframes ptWinPop{
+ 0%{transform:scale(.65) rotate(-12deg);opacity:.3}
+ 64%{transform:scale(1.11) rotate(3deg);opacity:1}
+ 100%{transform:scale(1) rotate(0)}
+}
+@media(prefers-reduced-motion:reduce){
+ .pt-page .pt-overlay[data-state="win"] .pt-overlay-icon{animation:none}
+}
