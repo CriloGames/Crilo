@@ -687,7 +687,7 @@ function addFanJet(spec,x,z,device,label){
  const kind=spec.kind,side=spec.side;
  // Mount horizontal fans on grounded cabinets to line up the visible jet
  // with the actual height of the thrown ball.
- if(kind==='cross'){
+ if(kind==='cross'&&!settings.bankRequired&&!settings.springRequired){
   const shelfY=1.15,paint=createMat(0x667e82,.43,.34);
   const legs=createMat(0x455d65,.53,.42);
   meshBox(group,1.28,.13,1.10,x,shelfY-.065,z,paint);
@@ -709,7 +709,7 @@ function addFanJet(spec,x,z,device,label){
  }
  const headY=device.position.y+device.userData.headY;
  const field={kind,side,dir:-side,x,y:headY,z,power:spec.power,
-  reach:kind==='lift'?3.25:3.18,device,phase:settings.n*.33,label,cloud:null};
+  reach:kind==='lift'?3.25:4.45,device,phase:settings.n*.33,label,cloud:null};
  const cloud=new THREE.Group();cloud.position.set(x,headY,z);group.add(cloud);
  const color=kind==='lift'?0x9aebc5:0x9edce9;
  const markerMat=new THREE.MeshBasicMaterial({
@@ -1438,7 +1438,7 @@ function buildWorld(){
  // Ambient crosswind comes from a visible, grounded fan; a light room-wide
  // draft is retained so existing wind levels keep their authored difficulty.
  if(Math.abs(settings.wind)>.001){
-  const side=settings.wind>=0?-1:1,z=settings.targetZ+.85;
+  const side=settings.wind>=0?-1:1,z=LAUNCH_Z-settings.d*.50;
   const fan=officeFan(group,side*2.75,z,metal,-side*Math.PI/2,'cross');
   ambient.push({type:'fan',obj:fan});
   addFanJet({kind:'cross',side,power:Math.abs(settings.wind)*1.65},
