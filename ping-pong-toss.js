@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,physicsBodies=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -587,7 +587,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;physicsBodies=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1481,7 +1481,7 @@ function buildPhysicsBodies(){
  const moving=new Map();
  for(const obstacle of obstacles)if(obstacle.type==='barrier')
   obstacle.obj.traverse(m=>{if(m.isMesh)moving.set(m,obstacle);});
- physicsBodies=[];
+ physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];
  group.traverse(mesh=>{
   if(!mesh.isMesh||!mesh.geometry)return;
   for(let p=mesh;p;p=p.parent)if(skip.includes(p))return;
@@ -1498,6 +1498,22 @@ function buildPhysicsBodies(){
   physicsBodies.push({mesh,box:bounds,local:mesh.geometry.boundingBox.clone(),
    owner:moving.get(mesh)||null,restitution,friction:metal>.28?.065:.13});
  });
+ // Broad-phase grid: a ball tests only nearby furniture, not every shelf,
+ // cabinet and background prop on every simulation substep.
+ const cell=2;
+ for(const item of physicsBodies){
+  if(item.owner){physicsMoving.push(item);continue;}
+  const b=item.box,x0=Math.floor((b.min.x-BALL_R)/cell),
+   x1=Math.floor((b.max.x+BALL_R)/cell),
+   z0=Math.floor((b.min.z-BALL_R)/cell),
+   z1=Math.floor((b.max.z+BALL_R)/cell);
+  if((x1-x0+1)*(z1-z0+1)>85){physicsGlobal.push(item);continue;}
+  for(let x=x0;x<=x1;x++)for(let z=z0;z<=z1;z++){
+   const key=x+','+z;
+   if(!physicsGrid.has(key))physicsGrid.set(key,[]);
+   physicsGrid.get(key).push(item);
+  }
+ }
 }
 function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  surfaceX=0,surfaceY=0,surfaceZ=0,preview=false){
@@ -1537,7 +1553,9 @@ function resolveEnvironment(body,preview=false){
  let reacted=false;
  for(let pass=0;pass<2;pass++){
   let candidate=null,penetration=0;
-  for(const item of physicsBodies){
+  const key=Math.floor(body.x/2)+','+Math.floor(body.z/2);
+  const candidates=[physicsGrid.get(key)||[],physicsGlobal,physicsMoving];
+  for(const bucket of candidates)for(const item of bucket){
    const b=item.box;
    if(body.x<b.min.x-BALL_R||body.x>b.max.x+BALL_R||
     body.y<b.min.y-BALL_R||body.y>b.max.y+BALL_R||
