@@ -421,3 +421,19 @@ body.pt-page{
  .pt-difficulty{font-size:8px;letter-spacing:.025em;padding:4px 7px}
  .pt-shot-objective{max-width:88vw;font-size:9px}
 }
+
+/* Live contact feedback for the new full-scene bounce physics. */
+.pt-stat.physics{
+ border-left-color:#80b9d4;
+ background:linear-gradient(145deg,#f4fafc,#e6f2f6);
+}
+.pt-stat.physics strong{color:#3b778f}
+[data-theme="dark"] .pt-stat.physics{
+ background:#36545f;
+ border-left-color:#9ad9dc;
+}
+[data-theme="dark"] .pt-stat.physics strong{color:#e4f7eb}
+@media(max-width:680px){
+ .pt-stat.physics{flex:1 1 75px}
+ .pt-stat.physics strong{font-size:21px}
+}
