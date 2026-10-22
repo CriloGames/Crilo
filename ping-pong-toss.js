@@ -1653,13 +1653,14 @@ function airForce(x,y,z,time){
 function wallCollision(projectile,previousX,preview=false){
  if(!wallPad)return false;
  const w=wallPad;
- const approached=w.side*(previousX-w.x)<-BALL_R;
- const crossed=w.side*(projectile.x-w.x)>=-BALL_R;
- if(!approached||!crossed||
+ const before=previousX-w.x,after=projectile.x-w.x;
+ const fromSide=before<0?-1:1;
+ const crossed=before*fromSide>BALL_R&&after*fromSide<=BALL_R;
+ if(!crossed||
   Math.abs(projectile.z-w.z)>w.length*.5||
   Math.abs(projectile.y-w.y)>w.height*.5)return false;
- // Reflect normal velocity. The tangential path and spin remain in motion.
- projectile.x=w.x-w.side*(BALL_R+.025);
+ // Reflect from EITHER side: the wall is solid even on a second contact.
+ projectile.x=w.x+fromSide*(BALL_R+.025);
  projectile.vx=-projectile.vx*.90;
  projectile.vz*=.97;
  projectile.vy+=.18;
