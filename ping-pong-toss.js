@@ -130,6 +130,15 @@ const STAGES=[
 ];
 const SCENE_NAMES=['CUBICLE','BOARDROOM','MAILROOM','BREAK ROOM','NIGHT SHIFT',
  'ARCHIVE','RECEPTION','AWARDS OFFICE','SHIPPING DOCK','SERVER ROOM'];
+// A fresh skill or combination every few rounds, not ten rounds apart.
+const NEW_TRICKS={
+ 1:'FIRST THROW',3:'MOVING CUP',5:'RUBBER BANK',6:'DESK-FAN WIND',
+ 9:'TIMED SHUTTER',12:'SPRING REBOUND',16:'HINGED CUP LID',
+ 18:'FIGURE-EIGHT TARGET',21:'PULSING GUSTS',24:'WIND + LIFT',
+ 27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',
+ 37:'DOUBLE TIMING',41:'SPRING RETURN',45:'SPRING + LID',
+ 48:'TIGHT SPRING PRECISION'
+};
 function stageSettings(n){
  const row=STAGES[n-1];if(!row)throw Error('Missing level '+n);
  const [challenge,sceneId,station,d,x,topPad,radius,kind,shot,motion,wind,
@@ -139,6 +148,7 @@ function stageSettings(n){
  const motionPower=motion==='still'?0:.29+Math.min(4,c)*.055+(tier%3)*.06;
  return {
   n,c,tier,challenge,sceneId,station,d,x,topPad,radius,kind,
+  newTrick:NEW_TRICKS[n]||null,
   targetZ:LAUNCH_Z-d,shot,motion,moving:motionPower,wind,
   feature,obstaclePlan,barrierPlan,barrierCount:barrierPlan.length,
   // Every bounce has its own visible, predetermined launch position.
@@ -159,6 +169,7 @@ function buildUi(){
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=SCENE_NAMES;
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
+ el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  el.objective.textContent=settings.springRequired?'SPRING PAD → CUP':
   settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
@@ -198,10 +209,11 @@ function buildChapters(){
   const nameTag=document.createElement('small');nameTag.className='pt-level-name';
   nameTag.textContent=recipe.challenge;
   const star=document.createElement('small');star.className='pt-level-status';
-  star.textContent=i>unlocked?'LOCKED':stars[i]?'★'.repeat(stars[i]):recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  star.textContent=i>unlocked?'LOCKED':stars[i]?'★'.repeat(stars[i]):recipe.newTrick?'NEW · '+recipe.newTrick:recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.append(label,nameTag,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.dataset.shot=kind.toLowerCase();
+  if(recipe.newTrick)button.dataset.newTrick='true';
   button.dataset.scene=String(recipe.sceneId);
   button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
@@ -242,7 +254,8 @@ function loadLevel(n){
   settings.bankRequired?'Bounce off the marked rubber tray and aim the rebound yourself; the pad will NOT steer the ball.':
   'Land inside the opening without hitting the rim.';
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
- const introText='Throw into the '+cupVariant(settings.kind).toLowerCase()+
+ const introText=(settings.newTrick?'NEW TECHNIQUE: '+settings.newTrick+'. ':'')+
+  'Throw into the '+cupVariant(settings.kind).toLowerCase()+
   ' on the '+settings.station+' '+settings.d.toFixed(1)+'m away. '+
   shotAdvice+' '+targetMotion+
   (roadblock.length?' Navigate the '+roadblock.join(' and ')+'.':'')+barrierText+
