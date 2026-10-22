@@ -269,6 +269,7 @@ function buildChapters(){
 function showOverlay(tag,title,text,button,action){
  playing=false;charging=false;chargeSource=null;
  el.overlayTag.textContent=tag;el.overlayTitle.textContent=title;el.overlayText.textContent=text;
+ el.overlay.dataset.state=action;
  el.primary.textContent=button;el.primary.dataset.action=action;
  el.secondary.hidden=action!=='win';
  el.overlay.hidden=false;
@@ -561,16 +562,28 @@ function officeBin(parent,x,z,mat){
  return g;
 }
 function officeFan(parent,x,y,z,mat,angle=0){
- const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
- const metal=createMat(0x6d777e,.3,.59);
+ const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;
+ g.scale.setScalar(.84);parent.add(g);
+ const metal=createMat(0x94aeb4,.30,.43);
  meshBox(g,.5,.08,.40,0,.02,0,mat);
  meshBox(g,.10,.62,.12,0,.33,0,metal);
- const cage=new THREE.Mesh(new THREE.TorusGeometry(.47,.034,6,29),metal);
+ const cage=new THREE.Mesh(new THREE.TorusGeometry(.47,.028,9,32),metal);
  cage.position.y=.91;g.add(cage);
+ for(const radius of [.24,.36]){
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(radius,.012,5,32),metal);
+  ring.position.y=.91;g.add(ring);
+ }
+ for(let k=0;k<8;k++){
+  const a=k*Math.PI/4;
+  const spoke=new THREE.Mesh(new THREE.CylinderGeometry(.011,.011,.88,5),metal);
+  spoke.position.set(0,.91,0);spoke.rotation.z=a;
+  g.add(spoke);
+ }
  const rotor=new THREE.Group();rotor.position.y=.91;g.add(rotor);
  const hub=new THREE.Mesh(new THREE.SphereGeometry(.085,12,8),metal);rotor.add(hub);
  for(let i=0;i<4;i++){
-  const blade=new THREE.Mesh(new THREE.BoxGeometry(.19,.44,.035),mat);
+  const blade=new THREE.Mesh(new THREE.SphereGeometry(.18,12,8),mat);
+  blade.scale.set(.62,1.7,.22);
   const a=i*Math.PI/2;
   blade.position.set(Math.sin(a)*.19,Math.cos(a)*.19,0);
   blade.rotation.z=-a;rotor.add(blade);
@@ -855,9 +868,20 @@ function buildWorld(){
  const skin=createMat(0xc19375,.83),cuff=createMat(0x467a8b,.83);
  const hand=new THREE.Group();hand.position.set(.75,1.40,LAUNCH_Z+.60);group.add(hand);
  throwingHand=hand;
- meshBox(hand,.48,.26,.70,0,0,0,skin);
- meshBox(hand,.53,.30,.30,0,-.08,.39,cuff);
- for(let i=0;i<4;i++)meshBox(hand,.083,.09,.35,-.15+i*.10,.16,-.30,skin);
+ const palm=new THREE.Mesh(new THREE.SphereGeometry(.34,20,16),skin);
+ palm.scale.set(.88,.47,1.18);palm.position.set(0,.035,-.03);
+ palm.castShadow=true;hand.add(palm);
+ const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(.27,.31,.43,20),cuff);
+ sleeve.rotation.x=Math.PI/2;sleeve.position.set(0,-.08,.34);hand.add(sleeve);
+ for(let i=0;i<4;i++){
+  const finger=new THREE.Mesh(new THREE.SphereGeometry(.092,12,10),skin);
+  finger.scale.set(.65,.53,1.67-i*.06);
+  finger.position.set(-.17+i*.115,.18,-.31-(i%2)*.03);
+  finger.rotation.y=(i-1.5)*.06;hand.add(finger);
+ }
+ const thumb=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),skin);
+ thumb.scale.set(1,.63,1.33);thumb.position.set(.285,.01,-.08);
+ thumb.rotation.y=-.42;hand.add(thumb);
  // Five distinct target furniture stations. Each cup now belongs to a
  // believable location: wooden desk, filing cabinet, shelf, cart or counter.
  const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
