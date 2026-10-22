@@ -56,22 +56,13 @@ html[data-theme="dark"] .leader-run-best-tag{background:#29493b;color:#c2ebd6}
  border:1px solid #94c2ad;background:#dff3e7;color:#257753;
  border-radius:999px;padding:3px 8px;font:850 10px/1.25 system-ui,sans-serif;
 }
-.leader-row .mini-wheel{position:relative}
-.leader-wheel-featured-badge{
- position:absolute;bottom:0;left:50%;transform:translateX(-50%);
- z-index:2;border:1px solid #92c7a9;border-radius:999px;
- padding:2px 6px;background:#e9f7ed;color:#296e4e;
- font:800 8px/1 system-ui,sans-serif;white-space:nowrap;
- box-shadow:0 2px 5px #143d2526;pointer-events:none;
-}
 html[data-theme="dark"] .leader-run-detail-row.has-featured-art{
  background:linear-gradient(100deg,#263f36,var(--panel,#28313a) 55%);
  border-color:#4c9372;
 }
 html[data-theme="dark"] .leader-feature-art{background:#29483a;color:#c7efd9;border-color:#5d9d7a}
 html[data-theme="dark"] .leader-feature-art:hover:not(:disabled){background:#35634d}
-html[data-theme="dark"] .leader-featured-pill,
-html[data-theme="dark"] .leader-wheel-featured-badge{
+html[data-theme="dark"] .leader-featured-pill{
  background:#284c38;color:#d2f5df;border-color:#65aa86;
 }
 @media(max-width:600px){
@@ -91,10 +82,4 @@ html[data-theme="dark"] .leader-wheel-featured-badge{
 .leader-run-detail-row .mini-wheel img{
  width:100%;height:100%;object-fit:contain;image-rendering:auto;
  border-radius:50%;background:#fff;
-}
-.score-run-row .mini-wheel:has(.leader-wheel-featured-badge){
- border-color:#6bab92;box-shadow:0 0 0 2px #c9ecd8;
-}
-.leader-run-detail-row.has-featured-art .mini-wheel{
- border-color:#6bab92;box-shadow:0 0 0 2px #b8dfcb;
 }
