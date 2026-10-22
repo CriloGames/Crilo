@@ -1510,11 +1510,12 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  const vx=body.vx-surfaceX,vy=body.vy-surfaceY,vz=body.vz-surfaceZ;
  const incoming=vx*nx+vy*ny+vz*nz;
  if(incoming>=-.006)return false;
- const bounce=-incoming*(1+rest);
  const tangent=Math.max(0,1-friction);
- body.vx=surfaceX+(vx+bounce*nx)*tangent;
- body.vy=surfaceY+(vy+bounce*ny)*tangent;
- body.vz=surfaceZ+(vz+bounce*nz)*tangent;
+ // Friction damps only sideways slip; restitution controls the normal bounce.
+ const normalOut=-incoming*rest;
+ body.vx=surfaceX+(vx-incoming*nx)*tangent+normalOut*nx;
+ body.vy=surfaceY+(vy-incoming*ny)*tangent+normalOut*ny;
+ body.vz=surfaceZ+(vz-incoming*nz)*tangent+normalOut*nz;
  if(!preview){
   body.contacts=(body.contacts||0)+1;
   if(impactRing){
@@ -1572,12 +1573,13 @@ function resolveEnvironment(body,preview=false){
  }
  return reacted;
 }
-function cupSurfaceCollision(body,preview=false){
- const dx=body.x-target.x,dz=body.z-target.z,rad=Math.hypot(dx,dz);
- const r=target.r,up=target.top,base=target.y;
+function cupSurfaceCollision(body,preview=false,time=simTime){
+ const targetAt=preview?targetLocation(time):target;
+ const base=targetAt.y,up=base+settings.targetHeight,r=target.r;
+ const dx=body.x-targetAt.x,dz=body.z-targetAt.z,rad=Math.hypot(dx,dz);
  if(rad>r+BALL_R+.1)return false;
  // Closed lids cover the cup opening with a horizontal collision plane.
- if(settings.lid&&lidFraction(simTime)<=.61&&
+ if(settings.lid&&lidFraction(time)<=.61&&
     rad<r-BALL_R*.2&&body.y<=up+BALL_R&&body.y>=up-BALL_R*.75&&body.vy<0)
   return bounceContact(body,0,1,0,up+BALL_R-body.y,.56,.12,0,0,0,preview);
  // Rounded lip/rim: ball glances and kicks outward rather than disappearing.
@@ -1701,34 +1703,41 @@ function paintAim(){
  const preview={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   wallHits:0,hoopsPassed:0};
  let predictedBounces=0;
- const count=settings.springRequired||settings.bankRequired||settings.wall?80:
-  settings.hoops?74:settings.barrierCount?70:62;
- const start=simTime,dt=.048;
+ const count=settings.springRequired||settings.bankRequired||settings.wall?79:
+  settings.hoops?73:settings.barrierCount?70:62;
+ const start=simTime,dt=.048,substeps=2;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];dot.visible=!flight&&playing&&i<count;
   if(i>0){
-   const prior={x:preview.x,y:preview.y,z:preview.z},t=start+(i-1)*dt;
-   const fan=airForce(preview.x,preview.y,preview.z,t);
-   preview.vx+=(windAt(t)+fan.x)*dt;
-   preview.vy+=(fan.y-GRAVITY)*dt;
-   preview.x+=preview.vx*dt;preview.y+=preview.vy*dt;preview.z+=preview.vz*dt;
-   wallCollision(preview,prior.x,true);
-   checkHoopCross(prior,preview,t+dt,true);
-   if(preview.vy<0&&predictedBounces===0){
-    const pad=pads.find(p=>p.type==='bank'||settings.springRequired&&p.type==='spring');
-    if(pad&&prior.y>=pad.y+BALL_R&&preview.y<=pad.y+BALL_R&&
-       Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
-     preview.y=pad.y+BALL_R;
-     Object.assign(preview,padRebound(preview,pad));
-     predictedBounces++;
+   for(let sub=0;sub<substeps;sub++){
+    const t=start+(i-1+sub/substeps)*dt,h=dt/substeps;
+    const prior={x:preview.x,y:preview.y,z:preview.z};
+    const fan=airForce(preview.x,preview.y,preview.z,t);
+    preview.vx+=(windAt(t)+fan.x)*h;
+    preview.vy+=(fan.y-GRAVITY)*h;
+    preview.x+=preview.vx*h;preview.y+=preview.vy*h;preview.z+=preview.vz*h;
+    wallCollision(preview,prior.x,true);
+    checkHoopCross(prior,preview,t+h,true);
+    hoopRimCollision(preview,t+h,true);
+    resolveEnvironment(preview,true);
+    cupSurfaceCollision(preview,true,t+h);
+    if(preview.vy<0){
+     for(const pad of pads){
+      if(prior.y>=pad.y+BALL_R&&preview.y<=pad.y+BALL_R&&
+        Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
+       preview.y=pad.y+BALL_R;
+       Object.assign(preview,padRebound(preview,pad));
+       predictedBounces++;break;
+      }
+     }
     }
    }
   }
   dot.position.set(preview.x,preview.y,preview.z);
-  if(preview.y<.14||preview.z<settings.targetZ-3)dot.visible=false;
-  const targetNext=targetLocation(start+i*dt);
-  const nearOpening=Math.hypot(preview.x-targetNext.x,preview.z-targetNext.z)<settings.radius*.95&&
-   Math.abs(preview.y-targetNext.y-settings.targetHeight)<.42;
+  if(preview.y<-.12||preview.z<settings.targetZ-4.8)dot.visible=false;
+  const next=targetLocation(start+i*dt);
+  const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
+   Math.abs(preview.y-next.y-settings.targetHeight)<.42;
   const cue=preview.wallHits||predictedBounces?0xffbd77:
    preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
   dot.material.color.setHex(cue);
