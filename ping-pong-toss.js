@@ -146,7 +146,7 @@ const SPECIALS={
  35:{hoops:2,hoopMove:true},
  38:{fan:{kind:'lift',side:-1,power:4.1},hoops:1},
  42:{fan:{kind:'lift',side:1,power:3.1}},
- 46:{fan:{kind:'cross',side:1,power:1.6}},
+ 46:{fan:{kind:'cross',side:1,power:.95}},
  47:{hoops:2,hoopMove:true},
  49:{fan:{kind:'cross',side:-1,power:2.8},hoops:1},
  50:{hoops:2,hoopMove:true}
@@ -204,8 +204,9 @@ function buildUi(){
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
  el.prev.disabled=level<=1;
  el.next.disabled=level>=unlocked||level>=50;
- el.wind.hidden=Math.abs(settings.wind)<.001;
- el.windLabel.textContent=settings.wind===0?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
+ el.wind.hidden=Math.abs(settings.wind)<.001&&!settings.fanZone;
+ el.windLabel.textContent=settings.fanZone?(settings.fanZone.kind==='lift'?'UPDRAFT ↑':'AIR JET '+(settings.fanZone.side>0?'←':'→')):
+  settings.wind===0?'NO WIND':(settings.wind>0?'WIND → ':'← WIND ')+Math.abs(settings.wind).toFixed(1);
  el.tutorial.textContent=settings.wall?'RICOCHET FROM THE SIDE WALL BEFORE SCORING':
   settings.hoops?'PASS THROUGH THE RING BEFORE THE CUP':
   settings.fanZone?'AIR JET CHANGES THE FLIGHT PATH':
@@ -1470,6 +1471,7 @@ function wallCollision(projectile,previousX,preview=false){
  projectile.wallHits=(projectile.wallHits||0)+1;
  if(!preview){
   message('WALL BANK! · FINISH THE SHOT',1.1);
+  el.objective.textContent=settings.hoops?'WALL BANK ✓ · NOW THE HOOPS':'WALL BANK ✓ · SINK THE CUP';
   hear(550,.12,'triangle',.05);
  }
  return true;
@@ -1498,6 +1500,7 @@ function checkHoopCross(previous,projectile,time,preview=false){
    el.objective.textContent=projectile.hoopsPassed===hoops.length?
     'ALL RINGS CLEARED · SINK THE CUP':
     'RING '+(projectile.hoopsPassed+1)+' NEXT';
+   if(settings.lid)el.objective.textContent+=' · CHECK LID';
   }
  }else if(!preview){
   message('MISSED RING '+(projectile.hoopsPassed+1)+' · RETRY THE SHOT',1.0);
@@ -1672,7 +1675,20 @@ function tickObstacles(time){
   gate.mesh.position.set(pos.x,pos.y,pos.z);
   if(!gate.passed)gate.mesh.rotation.y=Math.sin(t*1.4+gate.phase)*.055;
  }
- if(airZone?.cloud)airZone.cloud.rotation.y=Math.sin(t*1.5)*.17;
+ if(airZone?.cloud){
+  airZone.cloud.rotation.y=Math.sin(t*1.5)*.17;
+  // The arrows physically travel through the force volume.
+  for(let i=0;i<airZone.cloud.children.length;i++){
+   const arrow=airZone.cloud.children[i];
+   const progress=(t*.76+i*.173)%1;
+   if(airZone.kind==='lift'){
+    arrow.position.y=-.86+progress*1.78;
+   }else{
+    arrow.position.x=(airZone.side>0?1:-1)*(.88-progress*1.76);
+   }
+   arrow.scale.setScalar(.8+Math.sin(progress*Math.PI)*.36);
+  }
+ }
  if(targetLift){
   const floorY=settings.topPad+.16;
   const extension=Math.max(.055,position.y-floorY);
@@ -1688,7 +1704,9 @@ function tickObstacles(time){
   cupLid.indicator.color.setHex(isOpen?0x85e2b1:0xf2a191);
   if(lidOpen!==isOpen){
    lidOpen=isOpen;
-   el.objective.textContent=isOpen?'LID OPEN · TIME YOUR THROW':'LID CLOSED · WATCH THE HINGE';
+   const ringText=settings.hoops?
+    'RINGS '+Math.min(ball.hoopsPassed,settings.hoops)+'/'+settings.hoops+' · ':'';
+   el.objective.textContent=ringText+(isOpen?'LID OPEN · THROW':'LID CLOSED · WAIT');
    el.viewport.dataset.lidState=isOpen?'open':'closed';
   }
  }
