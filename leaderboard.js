@@ -316,12 +316,11 @@ function render(runs,pm){
   const more=group.length>1,groupId='leader-daily-group-'+i;
   const canChoose=!!Crilo.user?.id&&String(Crilo.user.id)===String(r.user_id);
   const selectedArt=group.some(e=>e.featured===true);
-  const chosenLabel=selectedArt?'<span class="leader-wheel-featured-badge" aria-hidden="true">Chosen</span>':'';
   return `${more?'<div class="leader-run-bundle">':''}<div class="leader-row score-run-row${bonus?' is-bonus':''}${canModerate?' owner-moderated':''}" data-run-source="${bonus?'bonus':'official'}">
    <div class="rank">${medals[i]||i+1}</div>
    <div class="leader-player"><a class="leader-name" href="profile.html?id=${encodeURIComponent(r.user_id)}" style="color:${safeColor(p?.name_color)}">${window.CriloNameColors.markup(p||{username:'Crilo player'})}</a><span class="leader-mini">${bonus?'<span class="crilo-run-kind is-bonus">'+runLabel(r)+'</span> · ':''}${r.spins} spins · ${r.upgrades} upgrades · ${r.doubles} doubles · ${r.ducks} ducks</span>${more?'<button type="button" class="leader-runs-toggle" data-run-count="'+group.length+'" aria-expanded="'+(expandedGroups.has(groupId)?'true':'false')+'" aria-controls="'+groupId+'"><span class="leader-runs-toggle-label">'+(expandedGroups.has(groupId)?'Hide ':'View all ')+group.length+' runs</span><span class="leader-runs-chevron" aria-hidden="true">⌄</span></button>':''}</div>
    <div class="leader-score-actions">${remove}<div class="leader-score-wrap"><div class="leader-score"${scoreAttr}>${metric}</div>${secondary}</div></div>
-   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':selectedArt?'Player-selected featured drawing':'Player artwork'}">${chosenLabel}</button>
+   <button type="button" class="mini-wheel" title="Expand wheel drawing" aria-label="Expand wheel drawing" data-drawing="${i}"><img src="${drawingSrc(r.drawing)}" alt="${drawingSrc(r.drawing)==='blank-wheel.svg'?'Blank drawing':selectedArt?'Player-selected featured drawing':'Player artwork'}"></button>
   </div>${more?runGroupBreakdown(r,groupId,canModerate,scoreBoard,canChoose)+'</div>':''}`;
  }).join('');
 
