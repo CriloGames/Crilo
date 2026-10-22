@@ -353,7 +353,7 @@ const rareTier=!(statsError&&metricsError)&&Number(s.all_runs??s.official_runs??
  'Total Ducks':'Total ducks collected across completed Official Dailies and eligible Bonus Runs.',
  'Extra Spins':'Total extra spins earned from wheel slices across completed Official and eligible Bonus Runs.',
  'Best Roll':'Highest number of points earned from one scoring spin across completed Official and eligible Bonus Runs.',
- 'Rarest Run':'Your highest-scoring Official Daily or eligible Bonus Run, with estimated rarity. Bonus artwork stays private.',
+ 'Rarest Run':'Your highest-scoring Official Daily or eligible Bonus Run, with estimated rarity. Bonus artwork can appear publicly on the leaderboard and Spin History after saving and moderation.',
  'Best Daily Rank':'Your best final position on a completed Daily leaderboard. The current Daily does not count until reset.',
  'Daily Wins':'Number of completed Daily leaderboards where your official score finished tied for 1st or alone in 1st. Today is excluded until reset.',
  'Podiums':'Number of completed Daily leaderboards where you finished in the top 3, including ties. Today is excluded until reset.',
