@@ -11,7 +11,7 @@ const el={
  overlayTag:$('ptOverlayTag'),overlayTitle:$('ptOverlayTitle'),
  overlayText:$('ptOverlayText'),primary:$('ptPrimary'),secondary:$('ptSecondary'),
  title:$('ptStageTitle'),counter:$('ptLevelNumber'),chapter:$('ptChapter'),
- attempts:$('ptAttempts'),total:$('ptTotalStars'),status:$('ptStatus'),
+ attempts:$('ptAttempts'),bounces:$('ptBounces'),total:$('ptTotalStars'),status:$('ptStatus'),
  power:$('ptPowerFill'),powerValue:$('ptPowerValue'),trajectoryLabel:$('ptTrajectoryLabel'),
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
@@ -316,10 +316,14 @@ function nextLevel(){
  if(level>=50){loadLevel(1);return;}
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
+function updateBounceCount(){
+ if(el.bounces)el.bounces.textContent=String((ball.contacts||0)+(ball.bounces||0)+(ball.wallHits||0));
+}
 function resetBall(){
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
  for(const bead of ballTrailMeshes)bead.visible=false;
+ updateBounceCount();
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
  return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,flatShading:true,
@@ -1534,6 +1538,7 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  body.vz=surfaceZ+(vz-incoming*nz)*tangent+normalOut*nz;
  if(!preview){
   body.contacts=(body.contacts||0)+1;
+  updateBounceCount();
   if(impactRing){
    impactRing.position.set(body.x-nx*BALL_R,body.y-ny*BALL_R,body.z-nz*BALL_R);
    impactRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),
@@ -1660,6 +1665,7 @@ function wallCollision(projectile,previousX,preview=false){
  projectile.vy+=.18;
  projectile.wallHits=(projectile.wallHits||0)+1;
  if(!preview){
+  updateBounceCount();
   message('WALL BANK! · FINISH THE SHOT',1.1);
   el.objective.textContent=settings.hoops?'WALL BANK ✓ · NOW THE HOOPS':'WALL BANK ✓ · SINK THE CUP';
   hear(550,.12,'triangle',.05);
@@ -1805,6 +1811,7 @@ function launch(flickPower=null){
  shotT=0;shotStart=performance.now();
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
+ updateBounceCount();
  throwMoment=performance.now();
  hear(880,.12,'sine',.045);message('PONG!',.55);
  paintAim();
@@ -2022,7 +2029,7 @@ function tickFlight(dt){
       impactRing.material.color.setHex(pad.type==='spring'?0x9ef3c8:0xffdc9e);
       impactAge=0;impactRing.visible=true;
      }
-     ball.bounces++;bouncedThisStep=true;break;
+     ball.bounces++;updateBounceCount();bouncedThisStep=true;break;
     }
    }
   }
