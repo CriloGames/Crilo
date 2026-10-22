@@ -1443,6 +1443,66 @@ function targetLocation(time){
 // Pads act like REAL bounce surfaces, not magnets. Outgoing velocity depends
 // solely on inbound velocity, contact location and pad material. No target
 // coordinates, cup motion or targetLocation() are used to steer the rebound.
+// A fan pushes only inside its illustrated 3D air column. Wind is a
+// vector impulse; no target location enters the calculation.
+function airForce(x,y,z,time){
+ if(!airZone)return {x:0,y:0};
+ const dx=(x-airZone.x)/airZone.size,dz=(z-airZone.z)/1.65,dy=(y-airZone.y)/1.85;
+ const influence=Math.max(0,1-dx*dx-dz*dz-dy*dy);
+ const pulse=.82+.18*Math.sin(time*2.1+level*.3);
+ const strength=airZone.power*influence*pulse;
+ return airZone.kind==='lift'?{x:airZone.side*strength*.17,y:strength}:
+ {x:-airZone.side*strength,y:strength*.10};
+}
+function wallCollision(projectile,previousX,preview=false){
+ if(!wallPad||projectile.wallHits>0)return false;
+ const w=wallPad;
+ const approached=w.side*(previousX-w.x)<-BALL_R;
+ const crossed=w.side*(projectile.x-w.x)>=-BALL_R;
+ if(!approached||!crossed||
+  Math.abs(projectile.z-w.z)>w.length*.5||
+  Math.abs(projectile.y-w.y)>w.height*.5)return false;
+ // Reflect normal velocity. The tangential path and spin remain in motion.
+ projectile.x=w.x-w.side*(BALL_R+.025);
+ projectile.vx=-projectile.vx*.90;
+ projectile.vz*=.97;
+ projectile.vy+=.18;
+ projectile.wallHits=(projectile.wallHits||0)+1;
+ if(!preview){
+  message('WALL BANK! · FINISH THE SHOT',1.1);
+  hear(550,.12,'triangle',.05);
+ }
+ return true;
+}
+function hoopMotion(gate,time){
+ const amt=settings.hoopMove?.27:0;
+ return {x:gate.baseX+Math.sin(time*1.16+gate.phase)*amt,
+  y:gate.baseY+Math.cos(time*.97+gate.phase)*amt*.54,z:gate.z};
+}
+function checkHoopCross(previous,projectile,time,preview=false){
+ if(!hoops.length||projectile.vz>=0)return;
+ const gate=hoops[projectile.hoopsPassed||0];
+ if(!gate||previous.z<gate.z||projectile.z>gate.z)return;
+ const alpha=clamp((previous.z-gate.z)/Math.max(.00001,previous.z-projectile.z),0,1);
+ const position=hoopMotion(gate,time);
+ const crossingX=previous.x+(projectile.x-previous.x)*alpha;
+ const crossingY=previous.y+(projectile.y-previous.y)*alpha;
+ if(Math.hypot(crossingX-position.x,crossingY-position.y)<gate.r-BALL_R*.75){
+  projectile.hoopsPassed=(projectile.hoopsPassed||0)+1;
+  if(!preview){
+   gate.passed=true;
+   gate.material.color.setHex(0x99e8c2);
+   gate.material.emissive.setHex(0x266e56);
+   hear(800+projectile.hoopsPassed*120,.10,'sine',.06);
+   message('RING '+projectile.hoopsPassed+'/'+hoops.length+' CLEARED!',1.1);
+   el.objective.textContent=projectile.hoopsPassed===hoops.length?
+    'ALL RINGS CLEARED · SINK THE CUP':
+    'RING '+(projectile.hoopsPassed+1)+' NEXT';
+  }
+ }else if(!preview){
+  message('MISSED RING '+(projectile.hoopsPassed+1)+' · RETRY THE SHOT',1.0);
+ }
+}
 function padRebound(projectile,pad){
  const offsetX=clamp((projectile.x-pad.x)/pad.r,-1,1);
  const offsetZ=clamp((projectile.z-pad.z)/pad.r,-1,1);
@@ -1549,7 +1609,11 @@ function miss(reason='MISS!'){
  hear(230,.16,'triangle',.027);
  const info=ball.rimMiss;
  let hint='Adjust angle and power for the next throw.';
- if(reason==='OBSTACLE HIT!'||reason==='BLOCKED!')
+ if(reason.includes('HOOP')||reason.includes('RING'))
+  hint='Fly through the middle of every numbered ring, in order.';
+ else if(reason.includes('WALL BANK'))
+  hint='Touch the striped wall cushion to rebound before scoring.';
+ else if(reason==='OBSTACLE HIT!'||reason==='BLOCKED!')
   hint='Try a higher arc or aim around the obstruction.';
  else if(reason.includes('BOUNCE')||reason.includes('PAD')||
   ((settings.bankRequired||settings.springRequired)&&ball.bounces===0))
@@ -1596,6 +1660,13 @@ function tickObstacles(time){
  }
  const position=targetLocation(t);
  cupGroup.position.set(position.x,position.y,position.z);
+ for(const gate of hoops){
+  const pos=hoopMotion(gate,t);
+  gate.x=pos.x;gate.y=pos.y;
+  gate.mesh.position.set(pos.x,pos.y,pos.z);
+  if(!gate.passed)gate.mesh.rotation.y=Math.sin(t*1.4+gate.phase)*.055;
+ }
+ if(airZone?.cloud)airZone.cloud.rotation.y=Math.sin(t*1.5)*.17;
  if(targetLift){
   const floorY=settings.topPad+.16;
   const extension=Math.max(.055,position.y-floorY);
@@ -1662,9 +1733,13 @@ function tickFlight(dt){
  for(let step=0;step<substeps;step++){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
-  ball.vx+=windAt(simTime)*h;
+  const air=airForce(ball.x,ball.y,ball.z,simTime);
+  ball.vx+=(windAt(simTime)+air.x)*h;
+  ball.vy+=air.y*h;
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
+  wallCollision(ball,prevX);
+  checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
   shotT+=h;
   ball.trail.unshift([ball.x,ball.y,ball.z]);
   if(ball.trail.length>46)ball.trail.length=46;
@@ -1675,6 +1750,10 @@ function tickFlight(dt){
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
    if(settings.lid&&lidFraction(simTime)<=.61){miss('LID CLOSED!');return;}
+   if(settings.wall&&ball.wallHits<1){miss('WALL BANK REQUIRED!');return;}
+   if(settings.hoops&&ball.hoopsPassed<settings.hoops){
+    miss('PASS THE HOOP'+(settings.hoops>1?'S':'')+' FIRST!');return;
+   }
    if(settings.bankRequired&&ball.bankHits<1){miss('BANK OFF THE MARKED PAD!');return;}
    if(settings.springRequired&&ball.springHits<1){miss('SPRING PAD FIRST!');return;}
    complete();return;
