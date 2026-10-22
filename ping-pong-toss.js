@@ -1468,6 +1468,153 @@ function targetLocation(time){
 // coordinates, cup motion or targetLocation() are used to steer the rebound.
 // A fan pushes only inside its illustrated 3D air column. Wind is a
 // vector impulse; no target location enters the calculation.
+// Collision system: every solid office mesh (desks, shelves, monitor
+// housings, drawers, books, machinery, plants and architecture) supplies a
+// sphere-versus-box contact. Dynamic barriers refresh their bounds each frame;
+// targets, hoop rings and specialist rebound pads have dedicated shapes.
+function buildPhysicsBodies(){
+ if(!group)return;
+ group.updateMatrixWorld(true);
+ const skip=[cupGroup,throwingHand,trajectoryGroup,ballMesh,ballShadow,
+  impactRing,airZone?.cloud,...specialSurfaces,...ballTrailMeshes];
+ for(const item of ambient)if(item.type==='dust')skip.push(item.obj);
+ const moving=new Map();
+ for(const obstacle of obstacles)if(obstacle.type==='barrier')
+  obstacle.obj.traverse(m=>{if(m.isMesh)moving.set(m,obstacle);});
+ physicsBodies=[];
+ group.traverse(mesh=>{
+  if(!mesh.isMesh||!mesh.geometry)return;
+  for(let p=mesh;p;p=p.parent)if(skip.includes(p))return;
+  const type=mesh.geometry.type;
+  if(!['BoxGeometry','CylinderGeometry','ConeGeometry','SphereGeometry'].includes(type))return;
+  const mat=Array.isArray(mesh.material)?mesh.material[0]:mesh.material;
+  if(mat?.transparent&&mat.opacity<.75)return;
+  mesh.geometry.computeBoundingBox();
+  const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+  // Only collision surfaces in or bordering the playable room matter.
+  if(bounds.max.z<settings.targetZ-4.8||bounds.min.z>LAUNCH_Z+3.6)return;
+  const metal=mat?.metalness||0,rough=mat?.roughness??.65;
+  const restitution=metal>.28?.76:rough>.84?.48:.62;
+  physicsBodies.push({mesh,box:bounds,local:mesh.geometry.boundingBox.clone(),
+   owner:moving.get(mesh)||null,restitution,friction:metal>.28?.065:.13});
+ });
+}
+function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
+ surfaceX=0,surfaceY=0,surfaceZ=0,preview=false){
+ const magnitude=Math.hypot(nx,ny,nz);
+ if(magnitude<.00001)return false;
+ nx/=magnitude;ny/=magnitude;nz/=magnitude;
+ body.x+=nx*Math.max(depth+.001,0);
+ body.y+=ny*Math.max(depth+.001,0);
+ body.z+=nz*Math.max(depth+.001,0);
+ const vx=body.vx-surfaceX,vy=body.vy-surfaceY,vz=body.vz-surfaceZ;
+ const incoming=vx*nx+vy*ny+vz*nz;
+ if(incoming>=-.006)return false;
+ const bounce=-incoming*(1+rest);
+ const tangent=Math.max(0,1-friction);
+ body.vx=surfaceX+(vx+bounce*nx)*tangent;
+ body.vy=surfaceY+(vy+bounce*ny)*tangent;
+ body.vz=surfaceZ+(vz+bounce*nz)*tangent;
+ if(!preview){
+  body.contacts=(body.contacts||0)+1;
+  if(impactRing){
+   impactRing.position.set(body.x-nx*BALL_R,body.y-ny*BALL_R,body.z-nz*BALL_R);
+   impactRing.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),
+    new THREE.Vector3(nx,ny,nz));
+   impactRing.material.color.setHex(rest>.69?0xb5ddec:0xffd6a0);
+   impactAge=0;impactRing.visible=true;
+  }
+  if(!body.lastHitTime||simTime-body.lastHitTime>.08){
+   body.lastHitTime=simTime;
+   hear(rest>.69?530:360,.075,'triangle',Math.min(.035,.008+Math.abs(incoming)*.003));
+  }
+ }
+ return true;
+}
+function resolveEnvironment(body,preview=false){
+ // Colliders are prebuilt, so most throw steps only perform a few comparisons.
+ let reacted=false;
+ for(let pass=0;pass<2;pass++){
+  let candidate=null,penetration=0;
+  for(const item of physicsBodies){
+   const b=item.box;
+   if(body.x<b.min.x-BALL_R||body.x>b.max.x+BALL_R||
+    body.y<b.min.y-BALL_R||body.y>b.max.y+BALL_R||
+    body.z<b.min.z-BALL_R||body.z>b.max.z+BALL_R)continue;
+   const qx=clamp(body.x,b.min.x,b.max.x),qy=clamp(body.y,b.min.y,b.max.y),
+    qz=clamp(body.z,b.min.z,b.max.z);
+   let nx=body.x-qx,ny=body.y-qy,nz=body.z-qz;
+   const d2=nx*nx+ny*ny+nz*nz;
+   if(d2>=BALL_R*BALL_R)continue;
+   let depth;
+   if(d2>.0000001){
+    depth=BALL_R-Math.sqrt(d2);
+   }else{
+    // Ball center landed inside a thin slab: move to closest outward face.
+    const faces=[
+     [body.x-b.min.x,-1,0,0],[b.max.x-body.x,1,0,0],
+     [body.y-b.min.y,0,-1,0],[b.max.y-body.y,0,1,0],
+     [body.z-b.min.z,0,0,-1],[b.max.z-body.z,0,0,1]
+    ].sort((a,b)=>a[0]-b[0]);
+    nx=faces[0][1];ny=faces[0][2];nz=faces[0][3];
+    depth=BALL_R+faces[0][0];
+   }
+   if(depth>penetration){candidate={item,nx,ny,nz,depth};penetration=depth;}
+  }
+  if(!candidate)break;
+  const {item,nx,ny,nz,depth}=candidate;
+  const o=item.owner,vx=o?.type==='barrier'&&o.style!=='panel'?
+   Math.cos(simTime*o.speed+o.phase)*o.amp*o.speed:0;
+  const vy=o?.type==='barrier'&&o.style==='panel'?
+   Math.cos(simTime*o.speed+o.phase)*.65*o.speed:0;
+  if(bounceContact(body,nx,ny,nz,depth,item.restitution,
+   item.friction,vx,vy,0,preview))reacted=true;
+ }
+ return reacted;
+}
+function cupSurfaceCollision(body,preview=false){
+ const dx=body.x-target.x,dz=body.z-target.z,rad=Math.hypot(dx,dz);
+ const r=target.r,up=target.top,base=target.y;
+ if(rad>r+BALL_R+.1)return false;
+ // Closed lids cover the cup opening with a horizontal collision plane.
+ if(settings.lid&&lidFraction(simTime)<=.61&&
+    rad<r-BALL_R*.2&&body.y<=up+BALL_R&&body.y>=up-BALL_R*.75&&body.vy<0)
+  return bounceContact(body,0,1,0,up+BALL_R-body.y,.56,.12,0,0,0,preview);
+ // Rounded lip/rim: ball glances and kicks outward rather than disappearing.
+ const nearRim=Math.abs(rad-r)<BALL_R+.033&&Math.abs(body.y-up)<BALL_R+.034;
+ if(nearRim){
+  const direction=Math.max(rad,.001),dr=rad-r,dy=body.y-up;
+  const n=Math.hypot(dr,dy)||1;
+  return bounceContact(body,dr/n*dx/direction,dy/n,dr/n*dz/direction,
+   BALL_R+.03-n,.77,.06,0,0,0,preview);
+ }
+ // Cylindrical container wall, including glancing contact from the side.
+ if(body.y>base+BALL_R*.5&&body.y<up-BALL_R*.22&&
+    Math.abs(rad-r)<BALL_R){
+  const direction=Math.max(rad,.001),sign=rad>=r?1:-1;
+  return bounceContact(body,dx/direction*sign,0,dz/direction*sign,
+   BALL_R-Math.abs(rad-r),.59,.14,0,0,0,preview);
+ }
+ // The ball can settle and rebound from the visible cup bottom.
+ if(rad<r-BALL_R*.4&&body.y<base+BALL_R+.05&&body.y>base-BALL_R)
+  return bounceContact(body,0,1,0,base+BALL_R-body.y,.42,.26,0,0,0,preview);
+ return false;
+}
+function hoopRimCollision(body,time,preview=false){
+ let touched=false;
+ for(const gate of hoops){
+  const g=hoopMotion(gate,time),dx=body.x-g.x,dy=body.y-g.y,
+   radius=Math.hypot(dx,dy),dz=body.z-g.z;
+  const tube=.065,dist=Math.hypot(radius-gate.r,dz);
+  if(dist>=BALL_R+tube||dist<.00001)continue;
+  const nx=radius>.00001?(dx/radius)*(radius-gate.r)/dist:0;
+  const ny=radius>.00001?(dy/radius)*(radius-gate.r)/dist:0;
+  const nz=dz/dist;
+  if(bounceContact(body,nx,ny,nz,BALL_R+tube-dist,.77,.04,0,0,0,preview))
+   touched=true;
+ }
+ return touched;
+}
 function airForce(x,y,z,time){
  if(!airZone)return {x:0,y:0};
  const dx=(x-airZone.x)/airZone.size,dz=(z-airZone.z)/1.65,dy=(y-airZone.y)/1.85;
