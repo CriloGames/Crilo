@@ -372,3 +372,26 @@ body.pt-page{
 @media(prefers-reduced-motion:reduce){
  .pt-viewport,.pt-vignette{transition:none}
 }
+
+/* New tricks appear every few stages: readable visual teaching cues. */
+.pt-level-btn[data-new-trick="true"]{
+ border-top-color:#d7b980;
+ box-shadow:inset 0 2px 0 #f3d89c40,0 2px 0 #0b1e2466;
+}
+.pt-level-btn[data-new-trick="true"] .pt-level-status{
+ color:#e8c68d;letter-spacing:.025em;
+}
+.pt-level-btn.current[data-new-trick="true"]{
+ box-shadow:inset 0 2px 0 #f2dea677,0 0 0 1px #e3ba7680;
+}
+.pt-viewport[data-lid-state="open"] .pt-shot-objective{
+ background:#294d47ed;border-color:#90d7af;color:#e7ffda;
+ box-shadow:0 0 12px #4fbb8b3d;
+}
+.pt-viewport[data-lid-state="closed"] .pt-shot-objective{
+ background:#513c40e8;border-color:#c38b8c;color:#ffe3d9;
+}
+.pt-level-name{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:490px){
+ .pt-level-btn[data-new-trick="true"] .pt-level-status{font-size:8px}
+}
