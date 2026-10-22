@@ -332,11 +332,34 @@ function resetBall(){
  updateBounceCount();
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
- return new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal,flatShading:true,
- ...(emissive?{emissive,emissiveIntensity:.25}:{})});
+ return new THREE.MeshStandardMaterial({
+  color,roughness:rough,metalness:metal,flatShading:false,
+  ...(emissive?{emissive,emissiveIntensity:.21}:{})
+ });
+}
+// Smooth hand-rounded cuboids without introducing an external geometry library.
+// The underlying BoxGeometry retains exact dimensions for collision testing.
+function softBoxGeometry(w,h,d,radius){
+ const geometry=new THREE.BoxGeometry(w,h,d,4,4,4);
+ const p=geometry.attributes.position,n=geometry.attributes.normal;
+ const cx=Math.max(0,w/2-radius),cy=Math.max(0,h/2-radius),cz=Math.max(0,d/2-radius);
+ for(let i=0;i<p.count;i++){
+  const x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+  const qx=clamp(x,-cx,cx),qy=clamp(y,-cy,cy),qz=clamp(z,-cz,cz);
+  const dx=x-qx,dy=y-qy,dz=z-qz,len=Math.hypot(dx,dy,dz)||1;
+  p.setXYZ(i,qx+dx/len*radius,qy+dy/len*radius,qz+dz/len*radius);
+  n.setXYZ(i,dx/len,dy/len,dz/len);
+ }
+ p.needsUpdate=true;n.needsUpdate=true;
+ geometry.computeBoundingBox();geometry.computeBoundingSphere();
+ return geometry;
 }
 function meshBox(parent,w,h,d,x,y,z,mat){
- const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+ const min=Math.min(w,h,d),max=Math.max(w,h,d);
+ const soften=min>=.14&&max<14&&mat?.isMeshStandardMaterial;
+ const geometry=soften?softBoxGeometry(w,h,d,Math.min(.095,min*.30)):
+  new THREE.BoxGeometry(w,h,d);
+ const mesh=new THREE.Mesh(geometry,mat);
  mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);return mesh;
 }
 function makeText(text,size=40,fg='#fff',bg='#344f70'){
@@ -599,16 +622,16 @@ function buildWorld(){
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
-  {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
-  {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
-  {walls:0x79919a,carpet:0x5c6b76,desk:0x896b54,trim:0x4b5e70,name:'MAILROOM'},
-  {walls:0x8c8b7d,carpet:0x68736c,desk:0x956c50,trim:0x52534f,name:'BREAK ROOM'},
-  {walls:0x728494,carpet:0x475b6b,desk:0x8d634c,trim:0x414c61,name:'NIGHT SHIFT'},
-  {walls:0x7c766e,carpet:0x55504c,desk:0x927456,trim:0x413e3c,name:'ARCHIVE'},
-  {walls:0x88908a,carpet:0x586d68,desk:0xb19774,trim:0x4b6864,name:'RECEPTION'},
-  {walls:0x81766e,carpet:0x595666,desk:0x9e8668,trim:0x4c4248,name:'AWARDS OFFICE'},
-  {walls:0x78888b,carpet:0x50595d,desk:0x987d59,trim:0x46535a,name:'SHIPPING DOCK'},
-  {walls:0x516975,carpet:0x3d4d59,desk:0x756251,trim:0x324a5a,name:'SERVER ROOM'}
+  {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
+  {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
+  {walls:0x9dabb6,carpet:0x5c727b,desk:0xb39377,trim:0x4c727e,name:'MAILROOM'},
+  {walls:0xb8b3a0,carpet:0x758078,desk:0xbb8e72,trim:0x6e7166,name:'BREAK ROOM'},
+  {walls:0x728c9c,carpet:0x495f74,desk:0x9f8166,trim:0x3c6173,name:'NIGHT SHIFT'},
+  {walls:0xa5a096,carpet:0x686260,desk:0xb19677,trim:0x70635e,name:'ARCHIVE'},
+  {walls:0xb4c2b8,carpet:0x607a71,desk:0xc7a47e,trim:0x477976,name:'RECEPTION'},
+  {walls:0xb1a8a2,carpet:0x656273,desk:0xbca283,trim:0x6e5b65,name:'AWARDS OFFICE'},
+  {walls:0xa1afb0,carpet:0x5c7073,desk:0xb09775,trim:0x5a737b,name:'SHIPPING DOCK'},
+  {walls:0x667e91,carpet:0x42586b,desk:0x977f6d,trim:0x416a80,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
@@ -2110,14 +2133,16 @@ async function init(){
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.82;
-  scene.add(new THREE.HemisphereLight(0xf5e8d8,0x435766,1.28));
-  const sun=new THREE.DirectionalLight(0xffe6c4,1.62);
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.97;
+  scene.add(new THREE.HemisphereLight(0xffe8ca,0x607e90,1.57));
+  const sun=new THREE.DirectionalLight(0xffdfb8,1.82);
   sun.position.set(-5,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
   sun.shadow.camera.top=16;sun.shadow.camera.bottom=-26;sun.shadow.camera.far=75;
   scene.add(sun);
-  const fill=new THREE.PointLight(0xa8d0e5,5,22,2);fill.position.set(4,5,1);scene.add(fill);
+  const fill=new THREE.PointLight(0xa8d0e5,4.6,22,2);fill.position.set(4,5,1);scene.add(fill);
+  const bounce=new THREE.DirectionalLight(0xa8dfe0,.42);
+  bounce.position.set(4,6,-10);scene.add(bounce);
   hasRenderer=true;buildWorld();resize();
   if('ResizeObserver' in window)new ResizeObserver(resize).observe(el.viewport);
   else window.addEventListener('resize',resize,{passive:true});
