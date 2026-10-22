@@ -1266,6 +1266,10 @@ function buildWorld(){
    meshBox(wall,.23,3.7,.10,0,0,zz,createMat(0x324d58,.35,.38));
   for(const yy of [-1.76,1.76])
    meshBox(wall,.23,.1,3.8,0,yy,0,createMat(0x324d58,.35,.38));
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.75,.32),
+   makeText('BANK HERE',46,'#ffeac0','#485d65'));
+  sign.rotation.y=side*Math.PI/2;
+  sign.position.set(-side*.15,1.43,0);wall.add(sign);
   const indicator=new THREE.PointLight(0xf6c18d,2.2,3.7,2);
   indicator.position.set(-side*.38,.4,0);wall.add(indicator);
   wallPad={x,z,side,y:2.42,height:3.55,length:3.65,mesh:wall};
