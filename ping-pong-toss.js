@@ -410,17 +410,63 @@ function stackBooks(parent,x,y,z,num,seed){
   meshBox(g,.42,.011,.65,b.position.x,b.position.y+.041,b.position.z,pages).rotation.y=b.rotation.y;
  }
 }
+// Readable fake office software, unique by stage: calendars, reports, mail.
+function monitorTexture(seed){
+ const canvas=document.createElement('canvas');canvas.width=256;canvas.height=144;
+ const ctx=canvas.getContext('2d');if(!ctx)return null;
+ const modes=['TASKS','MAIL','REPORTS','CALENDAR','INBOX'];
+ const mode=modes[seed%5];
+ ctx.fillStyle='#1b3442';ctx.fillRect(0,0,256,144);
+ ctx.fillStyle='#294657';ctx.fillRect(0,0,256,19);
+ ctx.fillStyle='#9ed8c9';ctx.font='bold 9px ui-monospace, monospace';
+ ctx.fillText('CRILO  /  '+mode,11,13);
+ for(let i=0;i<3;i++){
+  ctx.fillStyle=['#e6b27d','#80b2b0','#dca2ab'][i];
+  ctx.beginPath();ctx.arc(226+i*8,10,2.8,0,Math.PI*2);ctx.fill();
+ }
+ ctx.fillStyle='#263e4b';ctx.fillRect(10,28,50,105);
+ for(let i=0;i<5;i++){
+  ctx.fillStyle=i===seed%5?'#6ca69d':'#40616b';
+  ctx.fillRect(16,37+i*18,36,6);
+ }
+ ctx.fillStyle='#bbd5cf';ctx.font='bold 11px sans-serif';
+ ctx.fillText(mode==='REPORTS'?'WEEKLY OVERVIEW':mode==='MAIL'?'MESSAGES':'TODAY AT WORK',72,43);
+ if(seed%3===0){
+  for(let i=0;i<7;i++){
+   const height=12+((i*17+seed*13)%48);
+   ctx.fillStyle=i%2?'#75b2b0':'#dfb583';
+   ctx.fillRect(77+i*23,120-height,13,height);
+  }
+  ctx.fillStyle='#476b74';ctx.fillRect(70,121,178,1);
+ }else if(seed%3===1){
+  for(let i=0;i<5;i++){
+   ctx.fillStyle=i%2?'#355863':'#305362';
+   ctx.fillRect(70,56+i*15,173,12);
+   ctx.fillStyle=i===seed%5?'#e3bf86':'#87aca9';
+   ctx.fillRect(77,60+i*15,10,4);
+   ctx.fillStyle='#779fa3';ctx.fillRect(94,60+i*15,67+i*11,4);
+  }
+ }else{
+  for(let j=0;j<4;j++)for(let i=0;i<7;i++){
+   ctx.fillStyle=(i+j+seed)%5===0?'#d3a979':'#365c65';
+   ctx.fillRect(72+i*24,59+j*18,20,14);
+  }
+ }
+ const texture=new THREE.CanvasTexture(canvas);
+ texture.colorSpace=THREE.SRGBColorSpace;texture.anisotropy=1;
+ return texture;
+}
 function officeMonitor(parent,x,y,z,angle=0){
  const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
- const plastic=createMat(0x313c47),screen=createMat(0x344e5b,.43,.14,0x283b46);
+ const plastic=createMat(0x313c47,.63,.18);
  meshBox(g,1.45,.88,.11,0,.56,0,plastic);
- meshBox(g,1.27,.69,.013,0,.57,-.064,screen);
- // Static neon bars resemble a work spreadsheet, not a copied game screenshot.
- const bars=[0x6fae96,0xeac27a,0x6c98b4];
- for(let i=0;i<4;i++){
-  const mat=new THREE.MeshBasicMaterial({color:bars[i%3]});
-  meshBox(g,.12+i*.10,.08,.016,-.43,.34+i*.13,-.079,mat);
- }
+ const litScreen=new THREE.MeshBasicMaterial({
+  color:0xc2d3d0,map:monitorTexture(level),toneMapped:true
+ });
+ meshBox(g,1.27,.69,.013,0,.57,-.064,litScreen);
+ const led=new THREE.Mesh(new THREE.SphereGeometry(.014,7,5),
+  new THREE.MeshBasicMaterial({color:0x9de4bd}));
+ led.position.set(.64,.17,-.075);g.add(led);
  meshBox(g,.09,.45,.10,0,-.11,.06,plastic);
  meshBox(g,.65,.04,.31,0,-.31,.18,plastic);
  return g;
