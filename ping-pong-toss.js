@@ -1465,18 +1465,36 @@ function buildWorld(){
   const anchor=new THREE.Group();anchor.position.set(x,y,z);group.add(anchor);
   specialSurfaces.push(anchor);
   const material=new THREE.MeshStandardMaterial({
-   color:0xf7d196,emissive:0x684423,emissiveIntensity:.44,
-   metalness:.30,roughness:.32
+   color:0xffedb2,emissive:0xffc777,emissiveIntensity:1.25,
+   metalness:.18,roughness:.24
   });
-  const torus=new THREE.Mesh(new THREE.TorusGeometry(radius,.065,10,40),material);
-  anchor.add(torus);
-  const halo=new THREE.Mesh(new THREE.TorusGeometry(radius+.11,.015,6,44),
-   new THREE.MeshBasicMaterial({color:0x95e3c7,transparent:true,opacity:.6}));
-  anchor.add(halo);
+  // The actual solid rim retains its radius and collision tube (.065).
+  const torus=new THREE.Mesh(new THREE.TorusGeometry(radius,.065,14,64),material);
+  torus.castShadow=true;anchor.add(torus);
+  // Soft additive glow, without full-frame bloom that washes out the ball.
+  const glows=[];
+  for(const [extra,tube,alpha] of [[.006,.095,.18],[.012,.16,.10],[.022,.25,.045]]){
+   const glowMaterial=new THREE.MeshBasicMaterial({
+    color:0xffd999,transparent:true,opacity:alpha,depthWrite:false,
+    blending:THREE.AdditiveBlending,side:THREE.DoubleSide
+   });
+   const glow=new THREE.Mesh(new THREE.TorusGeometry(radius+extra,tube,14,64),glowMaterial);
+   glow.castShadow=false;glow.renderOrder=2;anchor.add(glow);
+   glows.push({material:glowMaterial,base:alpha});
+  }
+  const coreMaterial=new THREE.MeshBasicMaterial({
+   color:0xfff7d7,transparent:true,opacity:.94,depthWrite:false,
+   blending:THREE.AdditiveBlending
+  });
+  const core=new THREE.Mesh(new THREE.TorusGeometry(radius+.018,.014,8,72),coreMaterial);
+  core.renderOrder=3;anchor.add(core);
+  const ringLight=new THREE.PointLight(0xffd69b,.82,2.6,2);
+  ringLight.position.set(0,0,.30);anchor.add(ringLight);
   const numberLabel=new THREE.Mesh(new THREE.PlaneGeometry(.5,.24),
    makeText('RING '+(i+1),36,'#f3edd0','#385a61'));
   numberLabel.position.set(0,-radius-.32,.04);anchor.add(numberLabel);
-  hoops.push({x,y,z,r:radius,baseX:x,baseY:y,mesh:anchor,material,passed:false,
+  hoops.push({x,y,z,r:radius,baseX:x,baseY:y,mesh:anchor,
+   material,glows,coreMaterial,ringLight,passed:false,
    phase:i*1.8+settings.n*.16});
  }
  // Special fans emit actual forces at the exact positions of their grille,
@@ -1856,8 +1874,12 @@ function checkHoopCross(previous,projectile,time,preview=false){
   projectile.hoopsPassed=(projectile.hoopsPassed||0)+1;
   if(!preview){
    gate.passed=true;
-   gate.material.color.setHex(0x99e8c2);
-   gate.material.emissive.setHex(0x266e56);
+   gate.material.color.setHex(0x9df6c5);
+   gate.material.emissive.setHex(0x63edb5);
+   gate.ringLight.color.setHex(0x88ffd0);
+   gate.ringLight.intensity=1.2;
+   gate.coreMaterial.color.setHex(0xeafff1);
+   for(const glow of gate.glows)glow.material.color.setHex(0x8affc4);
    hear(800+projectile.hoopsPassed*120,.10,'sine',.06);
    message('RING '+projectile.hoopsPassed+'/'+hoops.length+' CLEARED!',1.1);
    el.objective.textContent=projectile.hoopsPassed===hoops.length?
@@ -2045,6 +2067,11 @@ function tickObstacles(time){
   gate.x=pos.x;gate.y=pos.y;
   gate.mesh.position.set(pos.x,pos.y,pos.z);
   if(!gate.passed)gate.mesh.rotation.y=Math.sin(t*1.4+gate.phase)*.055;
+  const pulse=.85+.15*Math.sin(t*2.7+gate.phase);
+  for(const layer of gate.glows)
+   layer.material.opacity=layer.base*pulse*(gate.passed?1.26:1);
+  gate.coreMaterial.opacity=gate.passed?.98:.79+.17*pulse;
+  gate.ringLight.intensity=(gate.passed?1.2:.78)*pulse;
  }
  for(const field of fanFields){
   const cloud=field.cloud,n=cloud.children.length-1;
