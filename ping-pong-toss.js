@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=false,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -488,12 +488,15 @@ function officeFan(parent,x,y,z,mat,angle=0){
  meshBox(g,.10,.62,.12,0,.33,0,metal);
  const cage=new THREE.Mesh(new THREE.TorusGeometry(.47,.034,6,29),metal);
  cage.position.y=.91;g.add(cage);
+ const rotor=new THREE.Group();rotor.position.y=.91;g.add(rotor);
+ const hub=new THREE.Mesh(new THREE.SphereGeometry(.085,12,8),metal);rotor.add(hub);
  for(let i=0;i<4;i++){
-  const blade=new THREE.Mesh(new THREE.BoxGeometry(.19,.44,.027),mat);
-  blade.position.y=.91;blade.position.x=Math.sin(i*Math.PI/2)*.19;
-  blade.position.y+=Math.cos(i*Math.PI/2)*.19;
-  blade.rotation.z=i*Math.PI/2;g.add(blade);
+  const blade=new THREE.Mesh(new THREE.BoxGeometry(.19,.44,.035),mat);
+  const a=i*Math.PI/2;
+  blade.position.set(Math.sin(a)*.19,Math.cos(a)*.19,0);
+  blade.rotation.z=-a;rotor.add(blade);
  }
+ g.userData.rotor=rotor;
  return g;
 }
 function officeColleague(parent,x,z,n){
@@ -538,7 +541,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=false;
+ obstacles=[];pads=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0x677c83,carpet:0x455b61,desk:0x956647,trim:0x34484f,name:'THE CUBICLE'},
   {walls:0x948b7c,carpet:0x626c6b,desk:0x866249,trim:0x465b60,name:'MEETING ROOM'},
@@ -1222,6 +1225,19 @@ function buildWorld(){
   ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;cart.add(ring);
   pads.push({type:'spring',x,z,r:.74,y:padY+.05,mat:spring.material,last:-10});
  }
+ // Subtle dust motes in illuminated air. Each room feels occupied,
+ // especially when viewed toward the window; purely decorative.
+ const motes=new THREE.Group();group.add(motes);
+ const moteMat=new THREE.MeshBasicMaterial({
+  color:settings.roomVariant?0xb6d0dc:0xffe8c0,transparent:true,
+  opacity:.20,depthWrite:false
+ });
+ for(let i=0;i<16;i++){
+  const phase=i*2.39996,xx=Math.sin(phase)*3.5,zz=settings.targetZ+2.2+(i%6)*1.2;
+  const sprite=new THREE.Mesh(new THREE.SphereGeometry(.017+(i%3)*.007,5,4),moteMat);
+  sprite.position.set(xx,2.0+(i%5)*.75,zz);motes.add(sprite);
+ }
+ ambient.push({type:'dust',obj:motes});
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
  const ballMaterial=new THREE.MeshStandardMaterial({color:0xffa44e,roughness:.33,metalness:0,
@@ -1494,7 +1510,17 @@ function tickObstacles(time){
   }
  }
  for(const item of ambient){
-  if(item.type==='fan')item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
+  if(item.type==='fan'){
+   item.obj.rotation.y=.2+Math.sin(t*.88)*.56;
+   if(item.obj.userData.rotor)item.obj.userData.rotor.rotation.z=-t*(4.4+Math.abs(settings.wind)*5);
+  }
+  if(item.type==='dust'){
+   for(let i=0;i<item.obj.children.length;i++){
+    const mote=item.obj.children[i];
+    mote.position.y+=Math.sin(t*.42+i*1.3)*.00028;
+    mote.position.x+=Math.cos(t*.37+i*.7)*.00019;
+   }
+  }
   if(item.type==='colleague'){
    const arm=item.obj.userData.arm;
    if(arm)arm.rotation.x=.30+Math.sin(t*2.1+level)*.19;
