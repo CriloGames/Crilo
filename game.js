@@ -1403,8 +1403,19 @@ function bucketFill(context,x,y,hex){
   if(!fringe[i])continue;
   const o=i*4,alpha=original[o+3];
   if(alpha<255){
-   // Existing line ink is foreground. Put the color behind its fractional
-   // coverage, rather than leaving the white canvas showing through.
+   if(!targetIsClear){
+    // Recoloring an opaque shape must not grow into empty pixels outside it.
+    if(alpha===0)continue;
+    const edgeIsOriginalPaint=[0,1,2].every(c=>
+     Math.abs(original[o+c]-source[c])<=38);
+    if(edgeIsOriginalPaint){
+     for(let c=0;c<3;c++)d[o+c]=color[c];
+     d[o+3]=alpha; // Preserve the original silhouette's soft edge.
+     continue;
+    }
+   }
+   // Existing line ink is foreground. Put the new color UNDER fractional
+   // antialias coverage, instead of leaving the white canvas showing through.
    const t=alpha/255;
    for(let c=0;c<3;c++)
     d[o+c]=Math.round(original[o+c]*t+color[c]*(1-t));
