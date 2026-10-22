@@ -1524,36 +1524,42 @@ function padRebound(projectile,pad){
 }
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
- const p=charging?power:idealPower();
- let x=0,y=LAUNCH_Y,z=LAUNCH_Z,t=0,bounceCount=0;
- const v=makeVelocity(p);let vx=v.vx,vy=v.vy,vz=v.vz;
- const dots=settings.springRequired||settings.bankRequired?78:settings.barrierCount?70:62;
- const time=simTime;
+ const p=charging?power:idealPower(),v=makeVelocity(p);
+ const preview={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
+  wallHits:0,hoopsPassed:0};
+ let predictedBounces=0;
+ const count=settings.springRequired||settings.bankRequired||settings.wall?80:
+  settings.hoops?74:settings.barrierCount?70:62;
+ const start=simTime,dt=.048;
  for(let i=0;i<aimLine.length;i++){
-  const dot=aimLine[i];dot.visible=!flight&&playing&&i<dots;
+  const dot=aimLine[i];dot.visible=!flight&&playing&&i<count;
   if(i>0){
-   const dt=.048,oldY=y;
-   vx+=windAt(time+t)*dt;vy-=GRAVITY*dt;
-   x+=vx*dt;y+=vy*dt;z+=vz*dt;t+=dt;
-   if(bounceCount===0&&vy<0){
+   const prior={x:preview.x,y:preview.y,z:preview.z},t=start+(i-1)*dt;
+   const fan=airForce(preview.x,preview.y,preview.z,t);
+   preview.vx+=(windAt(t)+fan.x)*dt;
+   preview.vy+=(fan.y-GRAVITY)*dt;
+   preview.x+=preview.vx*dt;preview.y+=preview.vy*dt;preview.z+=preview.vz*dt;
+   wallCollision(preview,prior.x,true);
+   checkHoopCross(prior,preview,t+dt,true);
+   if(preview.vy<0&&predictedBounces===0){
     const pad=pads.find(p=>p.type==='bank'||settings.springRequired&&p.type==='spring');
-    if(pad&&oldY>=pad.y+BALL_R&&y<=pad.y+BALL_R&&
-      Math.hypot(x-pad.x,z-pad.z)<pad.r-BALL_R){
-     y=pad.y+BALL_R;
-     const impulse=padRebound({x,y,z,vx,vy,vz},pad);
-     vx=impulse.vx;vy=impulse.vy;vz=impulse.vz;
-     bounceCount=1;
+    if(pad&&prior.y>=pad.y+BALL_R&&preview.y<=pad.y+BALL_R&&
+       Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
+     preview.y=pad.y+BALL_R;
+     Object.assign(preview,padRebound(preview,pad));
+     predictedBounces++;
     }
    }
   }
-  dot.position.set(x,y,z);
-  if(y<.14||z<settings.targetZ-3)dot.visible=false;
-  dot.material.color.setHex(bounceCount?0xffb45e:i%3===0?0xffdda4:0x86bec8);
-  // Highlight the predicted descent near the target opening.
-  const future=targetLocation(time+t);
-  const nearOpening=Math.hypot(x-future.x,z-future.z)<settings.radius*.90 &&
-   Math.abs(y-(future.y+settings.targetHeight))<.40;
-  dot.scale.setScalar(nearOpening?2.2:bounceCount?1.10:1);
+  dot.position.set(preview.x,preview.y,preview.z);
+  if(preview.y<.14||preview.z<settings.targetZ-3)dot.visible=false;
+  const targetNext=targetLocation(start+i*dt);
+  const nearOpening=Math.hypot(preview.x-targetNext.x,preview.z-targetNext.z)<settings.radius*.95&&
+   Math.abs(preview.y-targetNext.y-settings.targetHeight)<.42;
+  const cue=preview.wallHits||predictedBounces?0xffbd77:
+   preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
+  dot.material.color.setHex(cue);
+  dot.scale.setScalar(nearOpening?2.1:preview.hoopsPassed?1.2:1);
  }
 }
 function updatePower(){
