@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const list=$('drawingReviewList'),message=$('reviewMessage'),modal=$('reviewLightbox');
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const validDrawing=x=>typeof x==='string'&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/i.test(x);
-const key=d=>(d.is_test?'test:':'official:')+String(d.run_id);
+const key=d=>(d.is_test?'test:':d.is_bonus?'bonus:':'official:')+String(d.run_id);
 let rows=[],chosen=null,busy=false,refreshQueued=false,filter='all',pageIndex=0,matchedCount=0,loadGeneration=0,lastPaint='';
 let totals={pending:0,flagged:0,unscanned:0,partial:0,tests:0};
 const PAGE_SIZE=24;
@@ -38,7 +38,7 @@ function render(){
  update('reviewCountPartial',partial);
  const first=matchedCount?PAGE_SIZE*pageIndex+1:0;
  const last=matchedCount?Math.min(matchedCount,first+filtered.length-1):0;
- update('reviewStats',first+'–'+last+' of '+matchedCount+' matching drawings · '+totals.tests+' Test Runs included');
+ update('reviewStats',first+'–'+last+' of '+matchedCount+' drawings · Official + Bonus'+(totals.tests?' · '+totals.tests+' Test Runs':'') );
  update('reviewPageInfo','Page '+(pageIndex+1)+' of '+Math.max(1,Math.ceil(matchedCount/PAGE_SIZE)));
  $('reviewPagePrev').disabled=pageIndex===0;
  $('reviewPageNext').disabled=(pageIndex+1)*PAGE_SIZE>=matchedCount;
@@ -63,7 +63,10 @@ function render(){
    '" data-index="'+i+'"><span class="crilo-review-rank">'+(i+1)+'</span>'+
    '<span class="crilo-review-thumbnail"><img src="'+escape(d.drawing)+
    '" alt="Drawing preview" loading="lazy" decoding="async"></span>'+
-   '<span class="crilo-review-player"><strong>'+escape(d.username)+(d.is_test?'<span class="crilo-review-test-tag">TEST RUN</span>':'')+'</strong><small>'+
+   '<span class="crilo-review-player"><strong>'+escape(d.username)+
+   (d.is_test?'<span class="crilo-review-test-tag">TEST RUN</span>':
+    d.is_bonus?'<span class="crilo-review-test-tag crilo-review-bonus-tag">BONUS RUN</span>':'')+
+   '</strong><small>'+
    escape(new Date(d.submitted_at).toLocaleString())+'</small>'+chips+'</span>'+
    '<span class="crilo-review-score">'+Number(d.score||0).toLocaleString()+' pts</span>'+
    '<span class="crilo-review-state" data-state="'+(why.length?'flagged':isStale(d)?'stale':d.local?.status==='partial'?'partial':'normal')+'">'+
@@ -107,7 +110,9 @@ function open(i){
  chosen=rows[i];if(!chosen)return;
  $('reviewDetailTitle').textContent=chosen.username+'’s drawing';
  $('reviewLargeDrawing').src=chosen.drawing;
- $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+Number(chosen.score||0).toLocaleString()+' points'+(chosen.is_test?' · Owner Test Run':'');
+ $('reviewDetailMeta').textContent='Submitted '+new Date(chosen.submitted_at).toLocaleString()+' · '+
+  Number(chosen.score||0).toLocaleString()+' points'+
+  (chosen.is_test?' · Owner Test Run':chosen.is_bonus?' · Bonus Run':' · Official Daily');
  const why=hintsFor(chosen);
  const findings=$('reviewFindings');
  findings.replaceChildren();
@@ -133,16 +138,16 @@ function open(i){
  }
  $('reviewActionStatus').textContent=chosen.is_test?'Owner Test Run: account actions are disabled.':'Only your decision can remove a run or ban a player.';
  for(const id of ['reviewApprove','reviewRemove','reviewBan'])$(id).disabled=!!chosen.is_test;
- $('reviewBan').disabled=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
+ $('reviewBan').disabled=!!chosen.is_test||!!chosen.is_bonus||chosen.username?.toLowerCase()==='owner';
  $('reviewRetry').disabled=false;
  $('reviewDeleteTest').hidden=!chosen.is_test;
  $('reviewDeleteTest').disabled=!chosen.is_test;
  $('deleteRunWithBan').checked=false;
- $('reviewBanOptions').hidden=!!chosen.is_test||chosen.username?.toLowerCase()==='owner';
- $('reviewWarningDecision').hidden=!!chosen.is_test;
+ $('reviewBanOptions').hidden=!!chosen.is_test||!!chosen.is_bonus||chosen.username?.toLowerCase()==='owner';
+ $('reviewWarningDecision').hidden=!!chosen.is_test||!!chosen.is_bonus;
  $('reviewViolationReason').value='';
  modal.classList.remove('hidden');
- window.criloFeedbackShow?.(chosen);
+ if(!chosen.is_bonus)window.criloFeedbackShow?.(chosen);
 }
 list.addEventListener('click',e=>{const item=e.target.closest('[data-index]');if(item)open(Number(item.dataset.index))});
 $('reviewClose').addEventListener('click',close);
@@ -152,17 +157,21 @@ async function decide(action){
  const d=chosen;if(!d||d.is_test)return;
  const extra=!!$('deleteRunWithBan').checked;
  const reason=$('reviewViolationReason').value;
- if(action==='remove'&&!['profanity','sexual','hate','links','qr','abuse','other'].includes(reason)){
+ if(action==='remove'&&!d.is_bonus&&!['profanity','sexual','hate','links','qr','abuse','other'].includes(reason)){
   $('reviewActionStatus').textContent='Select the violation reason first.';
   $('reviewViolationReason').focus();
   return;
  }
  let warning;
  if(action==='approve')warning='Approve this drawing and hide it from your review queue?';
- else if(action==='remove')warning='Permanently delete this official Daily, remove its points, reset the current streak, block replay of that Daily period and issue a PUBLIC warning for: '+$('reviewViolationReason').selectedOptions[0].textContent+'?';
+ else if(action==='remove')warning=d.is_bonus?
+  'Remove this Bonus Run drawing from the leaderboard? The player keeps their score and bonus run.':
+  'Permanently delete this official Daily, remove its points, reset the current streak, block replay of that Daily period and issue a PUBLIC warning for: '+$('reviewViolationReason').selectedOptions[0].textContent+'?';
  else warning='Permanently ban '+d.username+'? '+(extra?'This also deletes the entire official run and its score.':'This removes the drawing while retaining their score.');
  if(!confirm(warning))return;
- if((action==='remove'||action==='ban')&&!confirm('FINAL CONFIRMATION: '+(action==='ban'?'Apply account ban'+(extra?' AND delete the run':''):'Permanently delete the run')+'?'))return;
+ if((action==='remove'||action==='ban')&&!confirm('FINAL CONFIRMATION: '+
+  (action==='ban'?'Apply account ban'+(extra?' AND delete the run':''):
+   d.is_bonus?'Remove Bonus artwork only; score stays':'Permanently delete the run')+'?'))return;
  const buttons=['reviewApprove','reviewRemove','reviewBan','reviewRetry'];
  for(const id of buttons)$(id).disabled=true;
  $('reviewActionStatus').textContent='Saving your decision…';
@@ -179,9 +188,13 @@ async function decide(action){
    if(!response.ok)throw Error(reply.error||'Account ban failed');
    if(extra&&!reply.run_deleted)throw Error('Account was banned, but the run could not be deleted. Check the leaderboard and remove it separately.');
   }else{
-   const {data,error}=action==='remove'
-    ? await criloDB.rpc('crilo_owner_penalize_daily',{p_run_id:Number(d.run_id),p_reason:reason})
-    : await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
+   const {data,error}=d.is_bonus?
+     await criloDB.rpc('crilo_owner_bonus_review_action',{
+      p_run_id:String(d.run_id).replace(/^bonus:/,''),p_action:action
+     }):
+     action==='remove'?
+     await criloDB.rpc('crilo_owner_penalize_daily',{p_run_id:Number(d.run_id),p_reason:reason}):
+     await criloDB.rpc('crilo_owner_drawing_decision',{p_run_id:Number(d.run_id),p_action:action});
    if(error)throw error;
    if(data!==true)throw Error('Run already reviewed or unavailable');
   }
@@ -194,12 +207,14 @@ async function decide(action){
   close();lastPaint='';render();
   await refresh();
   const note=action==='approve'?'Drawing approved and removed from review.':
-   action==='remove'?'Daily removed, streak reset and public account warning issued. Player notified.':
+   action==='remove'?(d.is_bonus?
+   'Bonus artwork removed; scores and original Daily are unchanged.':
+   'Daily removed, streak reset and public account warning issued. Player notified.'):
    'Account action completed; drawing removed from the review queue.';
   $('reviewMessage').textContent=note;
  }catch(err){
   $('reviewActionStatus').textContent=err.message;
-  for(const id of buttons)$(id).disabled=id==='reviewBan'&&d.username?.toLowerCase()==='owner';
+  for(const id of buttons)$(id).disabled=id==='reviewBan'&&(d.is_bonus||d.username?.toLowerCase()==='owner');
  }
 }
 // Owner Test Runs are disposable QA records, never official Dailies.
