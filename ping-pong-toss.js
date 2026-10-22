@@ -693,7 +693,7 @@ function buildWorld(){
   }
  }
  // A full-size room: fixed eye-level perspective from behind the front desk.
- meshBox(group,16,.23,roomLength,0,-.53,roomMiddle,carpet);
+ meshBox(group,16,.23,roomLength,0,-.115,roomMiddle,carpet);
  meshBox(group,16,8,.22,0,3.47,roomEnd,wallMat);
  meshBox(group,.22,8,roomLength,-8,3.47,roomMiddle,wallMat);
  meshBox(group,.22,8,roomLength,8,3.47,roomMiddle,wallMat);
@@ -1581,7 +1581,8 @@ function cupSurfaceCollision(body,preview=false){
     rad<r-BALL_R*.2&&body.y<=up+BALL_R&&body.y>=up-BALL_R*.75&&body.vy<0)
   return bounceContact(body,0,1,0,up+BALL_R-body.y,.56,.12,0,0,0,preview);
  // Rounded lip/rim: ball glances and kicks outward rather than disappearing.
- const nearRim=Math.abs(rad-r)<BALL_R+.033&&Math.abs(body.y-up)<BALL_R+.034;
+ const nearRim=Math.abs(rad-r)<BALL_R+.033&&Math.abs(body.y-up)<BALL_R+.034&&
+  Math.hypot(rad-r,body.y-up)<BALL_R+.033;
  if(nearRim){
   const direction=Math.max(rad,.001),dr=rad-r,dy=body.y-up;
   const n=Math.hypot(dr,dy)||1;
@@ -1625,7 +1626,7 @@ function airForce(x,y,z,time){
  {x:-airZone.side*strength,y:strength*.10};
 }
 function wallCollision(projectile,previousX,preview=false){
- if(!wallPad||projectile.wallHits>0)return false;
+ if(!wallPad)return false;
  const w=wallPad;
  const approached=w.side*(previousX-w.x)<-BALL_R;
  const crossed=w.side*(projectile.x-w.x)>=-BALL_R;
@@ -1910,19 +1911,24 @@ function tickObstacles(time){
    }
   }
  }
+ // Only animated meshes need their collision bounds rebuilt.
+ const activeOwners=new Set();
+ for(const p of physicsBodies)if(p.owner)activeOwners.add(p.owner);
+ for(const owner of activeOwners)owner.obj.updateMatrixWorld(true);
+ for(const p of physicsBodies)if(p.owner){
+  p.box.copy(p.local).applyMatrix4(p.mesh.matrixWorld);
+ }
 }
 function collideObstacles(){
- for(const o of obstacles){
-  const nearX=Math.abs(ball.x-o.x)<o.w*.5+BALL_R;
-  const nearY=Math.abs(ball.y-o.y)<o.h*.5+BALL_R;
-  const nearZ=Math.abs(ball.z-o.z)<o.d*.5+BALL_R;
-  if(nearX&&nearY&&nearZ){miss(o.type==='barrier'?'BLOCKED!':'OBSTACLE HIT!');return true;}
- }
- return false;
+ // A collision changes the ball's velocity. Furniture is not a fail trigger.
+ return resolveEnvironment(ball);
 }
 function tickFlight(dt){
  if(!flight)return;
- const substeps=3,h=dt/substeps;
+ // Conservative step size avoids tunnelling through thin desks and monitors.
+ const speed=Math.hypot(ball.vx,ball.vy,ball.vz);
+ const substeps=Math.min(20,Math.max(4,Math.ceil(dt*Math.max(speed,9)/(BALL_R*.70))));
+ const h=dt/substeps;
  for(let step=0;step<substeps;step++){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
@@ -1933,35 +1939,37 @@ function tickFlight(dt){
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   wallCollision(ball,prevX);
   checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
+  hoopRimCollision(ball,simTime);
   shotT+=h;
   ball.trail.unshift([ball.x,ball.y,ball.z]);
   if(ball.trail.length>46)ball.trail.length=46;
-  if(collideObstacles())return;
+  collideObstacles();
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0)
    ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
-   if(settings.lid&&lidFraction(simTime)<=.61){miss('LID CLOSED!');return;}
-   if(settings.wall&&ball.wallHits<1){miss('WALL BANK REQUIRED!');return;}
-   if(settings.hoops&&ball.hoopsPassed<settings.hoops){
-    miss('PASS THE HOOP'+(settings.hoops>1?'S':'')+' FIRST!');return;
+   if((!settings.lid||lidFraction(simTime)>.61)&&
+    (!settings.wall||ball.wallHits>0)&&
+    (!settings.hoops||ball.hoopsPassed>=settings.hoops)&&
+    (!settings.bankRequired||ball.bankHits>0)&&
+    (!settings.springRequired||ball.springHits>0)){
+    complete();return;
    }
-   if(settings.bankRequired&&ball.bankHits<1){miss('BANK OFF THE MARKED PAD!');return;}
-   if(settings.springRequired&&ball.springHits<1){miss('SPRING PAD FIRST!');return;}
-   complete();return;
+   // An invalid basket entry is a physical miss: the ball can hit the
+   // cup bottom and bounce back out, but does not award the level.
+   if(settings.hoops&&ball.hoopsPassed<settings.hoops)
+    el.status.textContent='PASS THE NUMBERED HOOPS BEFORE SCORING';
+   else if(settings.wall&&ball.wallHits<1)
+    el.status.textContent='WALL RICOCHET REQUIRED FOR THIS SHOT';
+   else if((settings.bankRequired&&ball.bankHits<1)||
+     (settings.springRequired&&ball.springHits<1))
+    el.status.textContent='HIT THE REQUIRED BOUNCE PAD FIRST';
   }
-  if(Math.abs(ball.y-target.top)<BALL_R*.8&&inside>target.r-BALL_R*.8&&
-   inside<target.r+BALL_R*.65){
-   miss('SO CLOSE!');return;
-  }
-  // Reject side-entry through the visible cup shell. Only a downward crossing
-  // through its opening can score, never a ghost shot through the walls.
-  const wasInside=Math.hypot(prevX-target.x,prevZ-target.z);
-  if(ball.y<target.top-BALL_R*.5&&ball.y>target.y+.06&&
-     inside<target.r+BALL_R&&wasInside>=target.r+BALL_R){
-   miss('CUP WALL!');return;
-  }
+  // Cup rim is now a real rounded collider, not an instant failure.
+  cupSurfaceCollision(ball);
+  // Cylinder wall and bottom contact are resolved by cupSurfaceCollision.
+  // Scoring remains restricted to downward entry through the real opening.
   // Real, visible rubber bank trays and spring plates. Rebounds modify
   // the ball's velocity and position; later obstacles can still block it.
   let bouncedThisStep=false;
@@ -1991,19 +1999,17 @@ function tickFlight(dt){
     }
    }
   }
-  // Physically solid desk surfaces: an unsuccessful toss cannot ghost through
-  // the tabletop beneath the target or the player's own work area.
-  const onFarDesk=ball.z>settings.targetZ-1.62&&ball.z<settings.targetZ+1.62&&
-   Math.abs(ball.x-settings.x)<(settings.sceneId===1?3.2:settings.sceneId===3?2.0:2.55);
-  const onNearDesk=ball.z>3.70&&ball.z<7.55&&Math.abs(ball.x)<6.30;
-  const surface=onFarDesk?(settings.topPad+.03):onNearDesk?1.02:0;
-  if(ball.vy<0&&!bouncedThisStep&&prevY>=surface+BALL_R&&ball.y<surface+BALL_R){
-   miss(surface?'DESK EDGE!':'FLOOR!');return;
+  // All visible solid desk/floor/wall/prop geometry has already been
+  // checked by resolveEnvironment. Energy naturally decays with each hit.
+  if(ball.y<-.35){miss('OUT OF THE ROOM!');return;}
+  if(Math.abs(ball.x)>8.3||ball.z<settings.targetZ-5.3||
+   ball.z>LAUNCH_Z+3.0||shotT>10.0||ball.contacts>28){
+   miss('BALL OUT OF PLAY!');return;
   }
-  if(ball.y<BALL_R+.02){miss('FLOOR!');return;}
-  if(Math.abs(ball.x)>7.2||ball.z<settings.targetZ-4.5||ball.z>LAUNCH_Z+1.4||shotT>6.0){
-   miss('OUT OF BOUNDS!');return;
-  }
+  if(shotT>.8&&Math.hypot(ball.vx,ball.vy,ball.vz)<.26&&ball.contacts>0){
+   ball.restTimer=(ball.restTimer||0)+h;
+   if(ball.restTimer>.48){miss('BALL SETTLED!');return;}
+  }else ball.restTimer=0;
  }
  if(ballMesh){
   ballMesh.position.set(ball.x,ball.y,ball.z);
