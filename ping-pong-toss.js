@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -561,34 +561,73 @@ function officeBin(parent,x,z,mat){
  bottom.rotation.x=-Math.PI/2;bottom.position.y=.025;g.add(bottom);
  return g;
 }
-function officeFan(parent,x,y,z,mat,angle=0){
- const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;
- g.scale.setScalar(.84);parent.add(g);
- const metal=createMat(0x94aeb4,.30,.43);
- meshBox(g,.5,.08,.40,0,.02,0,mat);
- meshBox(g,.10,.62,.12,0,.33,0,metal);
- const cage=new THREE.Mesh(new THREE.TorusGeometry(.47,.028,9,32),metal);
- cage.position.y=.91;g.add(cage);
- for(const radius of [.24,.36]){
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(radius,.012,5,32),metal);
-  ring.position.y=.91;g.add(ring);
+function officeFan(parent,x,z,mat,angle=0,kind='cross'){
+ // Floor-mounted desk turbine: weighted rubber feet, upright metal mast,
+ // hinged head, grille, cord and a small power socket. Nothing floats.
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=angle;parent.add(g);
+ const steel=createMat(0x9aafb7,.27,.57),dark=createMat(0x31454d,.65,.24);
+ const rubber=createMat(0x263840,.94,.02);
+ const base=meshBox(g,.71,.105,.56,0,.082,0,mat);
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  const foot=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.05,12),rubber);
+  foot.position.set(sx*.27,.025,sz*.21);foot.castShadow=true;g.add(foot);
  }
- for(let k=0;k<8;k++){
-  const a=k*Math.PI/4;
-  const spoke=new THREE.Mesh(new THREE.CylinderGeometry(.011,.011,.88,5),metal);
-  spoke.position.set(0,.91,0);spoke.rotation.z=a;
-  g.add(spoke);
- }
- const rotor=new THREE.Group();rotor.position.y=.91;g.add(rotor);
- const hub=new THREE.Mesh(new THREE.SphereGeometry(.085,12,8),metal);rotor.add(hub);
+ const headY=kind==='lift'?.77:1.84;
+ const pedestalHeight=headY-.27;
+ const mast=new THREE.Mesh(new THREE.CylinderGeometry(.073,.10,pedestalHeight,14),steel);
+ mast.position.set(0,.18+pedestalHeight*.5,0);
+ mast.castShadow=true;g.add(mast);
+ const collar=new THREE.Mesh(new THREE.CylinderGeometry(.145,.145,.12,16),dark);
+ collar.position.y=headY-.13;g.add(collar);
+ const head=new THREE.Group();head.position.y=headY;
+ if(kind==='lift')head.rotation.x=-Math.PI/2;
+ g.add(head);
+ const casing=new THREE.Mesh(new THREE.CylinderGeometry(.49,.43,.28,36),
+  mat);
+ casing.rotation.x=Math.PI/2;casing.position.z=-.12;
+ casing.castShadow=true;casing.receiveShadow=true;head.add(casing);
+ const back=new THREE.Mesh(new THREE.CircleGeometry(.40,36),dark);
+ back.position.z=-.265;head.add(back);
+ const motor=new THREE.Mesh(new THREE.CylinderGeometry(.11,.12,.21,18),steel);
+ motor.rotation.x=Math.PI/2;motor.position.z=-.045;head.add(motor);
+ const rotor=new THREE.Group();rotor.position.z=.067;head.add(rotor);
  for(let i=0;i<4;i++){
-  const blade=new THREE.Mesh(new THREE.SphereGeometry(.18,12,8),mat);
-  blade.scale.set(.62,1.7,.22);
-  const a=i*Math.PI/2;
-  blade.position.set(Math.sin(a)*.19,Math.cos(a)*.19,0);
-  blade.rotation.z=-a;rotor.add(blade);
+  const blade=new THREE.Mesh(new THREE.SphereGeometry(.20,16,11),mat);
+  blade.scale.set(.69,1.49,.20);
+  const a=i*Math.PI/2;blade.rotation.z=-a-.16;
+  blade.position.set(Math.sin(a)*.20,Math.cos(a)*.20,0);
+  blade.castShadow=true;rotor.add(blade);
  }
- g.userData.rotor=rotor;
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.092,16,12),steel);
+ cap.position.z=.038;rotor.add(cap);
+ const guard=new THREE.Group();guard.position.z=.165;head.add(guard);
+ for(const rad of [.17,.30,.44]){
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(rad,.016,7,44),steel);
+  guard.add(rim);
+ }
+ for(let i=0;i<12;i++){
+  const a=i*Math.PI/6;
+  const spoke=new THREE.Mesh(new THREE.CylinderGeometry(.010,.010,.88,6),steel);
+  spoke.rotation.z=a;guard.add(spoke);
+ }
+ const lip=new THREE.Mesh(new THREE.TorusGeometry(.49,.039,9,42),dark);
+ guard.add(lip);
+ const switchBody=meshBox(g,.18,.040,.10,.16,.143,.02,dark);
+ switchBody.castShadow=false;
+ const led=new THREE.Mesh(new THREE.SphereGeometry(.025,10,8),
+  new THREE.MeshBasicMaterial({color:0x8aebcf}));
+ led.position.set(.16,.169,.02);g.add(led);
+ // The cable runs down from the base and along the FLOOR toward an outlet.
+ const cord=new THREE.Mesh(new THREE.TubeGeometry(
+  new THREE.CatmullRomCurve3([
+   new THREE.Vector3(-.27,.065,.08),new THREE.Vector3(-.46,.048,.22),
+   new THREE.Vector3(-.64,.048,.39),new THREE.Vector3(-.99,.046,.48),
+   new THREE.Vector3(-1.13,.049,.55)
+  ]),22,.015,6,false),rubber);
+ g.add(cord);
+ const plug=meshBox(g,.22,.12,.06,-1.18,.12,.56,dark);
+ plug.castShadow=false;
+ g.userData={rotor,baseYaw:angle,kind,headY};
  return g;
 }
 function officeColleague(parent,x,z,n){
@@ -647,7 +686,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
   {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
