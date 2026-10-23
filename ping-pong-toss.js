@@ -4119,16 +4119,21 @@ function miss(reason='MISS!'){
  flight=false;ball.active=false;
  hear(230,.16,'triangle',.027);
  const info=ball.rimMiss;
+ const remaining=missingRequiredContact(ball);
  let hint='Adjust angle and power for the next throw.';
- if(reason.includes('HOOP')||reason.includes('RING'))
-  hint='Fly through the middle of every numbered ring, in order.';
- else if(reason.includes('WALL BANK'))
-  hint='Touch the striped wall cushion to rebound before scoring.';
+ if(remaining==='HOOPS'||reason.includes('HOOP')||reason.includes('RING'))
+  hint='Fly through RING '+Math.min(settings.hoops,(ball.hoopsPassed||0)+1)+
+   ' of '+settings.hoops+' before landing in the cup.';
+ else if(remaining==='WALL PAD'||reason.includes('WALL BANK'))
+  hint='Rebound off the numbered orange wall cushion'+
+   (settings.wallCount>1?'s in order':'')+' before scoring.';
+ else if(remaining==='SPRING PAD')
+  hint='Land on SPRING '+Math.min(settings.padCount,(ball.springHits||0)+1)+
+   ' of '+settings.padCount+' first. The green spring supplies the rebound.';
+ else if(remaining==='RUBBER PAD'||reason.includes('BOUNCE')||reason.includes('PAD'))
+  hint='Land on the orange rubber tray before aiming its natural rebound.';
  else if(reason==='OBSTACLE HIT!'||reason==='BLOCKED!')
-  hint='Try a higher arc or aim around the obstruction.';
- else if(reason.includes('BOUNCE')||reason.includes('PAD')||
-  ((settings.bankRequired||settings.springRequired)&&ball.bounces===0))
-  hint='Hit the marked bounce surface first, then aim the rebound yourself.';
+  hint='Avoid the moving obstacle; coral trajectory dots show predicted strikes.';
  else if(info&&info.distance<2.9){
   const sideways=Math.abs(info.dx),length=Math.abs(info.dz);
   hint=sideways>length*.95?
