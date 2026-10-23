@@ -947,11 +947,20 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
  const motor=new THREE.Mesh(new THREE.CylinderGeometry(.11,.12,.21,18),steel);
  motor.rotation.x=Math.PI/2;motor.position.z=-.045;head.add(motor);
  const rotor=new THREE.Group();rotor.position.z=.067;head.add(rotor);
+ // Sculpted swept propellers catch highlights better than the old clover.
+ const bladeMat=new THREE.MeshStandardMaterial({
+  color:0x87aab0,roughness:.35,metalness:.50,side:THREE.DoubleSide});
+ const shape=new THREE.Shape();
+ shape.moveTo(-.04,.055);
+ shape.bezierCurveTo(-.13,.19,-.16,.43,-.02,.47);
+ shape.bezierCurveTo(.14,.47,.33,.30,.29,.17);
+ shape.bezierCurveTo(.27,.08,.08,.045,-.04,.055);
+ const bladeGeo=new THREE.ExtrudeGeometry(shape,{
+  depth:.036,steps:1,bevelEnabled:true,bevelSegments:2,
+  bevelSize:.011,bevelThickness:.008,curveSegments:8});
  for(let i=0;i<4;i++){
-  const blade=new THREE.Mesh(new THREE.SphereGeometry(.20,16,11),mat);
-  blade.scale.set(.69,1.49,.20);
-  const a=i*Math.PI/2;blade.rotation.z=-a-.16;
-  blade.position.set(Math.sin(a)*.20,Math.cos(a)*.20,0);
+  const blade=new THREE.Mesh(bladeGeo,bladeMat);
+  blade.rotation.z=i*Math.PI/2+.21;
   blade.castShadow=true;rotor.add(blade);
  }
  const cap=new THREE.Mesh(new THREE.SphereGeometry(.092,16,12),steel);
@@ -1510,6 +1519,17 @@ function buildWorld(){
   pen.rotation.y=-.2+i*.08;
  }
  meshBox(playerDesk,.35,.13,.30,4.50,1.23,.06,eraser);
+ // Physically grounded launch cradle follows horizontal aim and supports
+ // the ball instead of leaving it hovering above the near desk.
+ launcher=new THREE.Group();launcher.position.set(launchOffset(),0,LAUNCH_Z);
+ group.add(launcher);
+ const cradle=createMat(0x314d55,.33,.52),bronze=createMat(0xd6ae7b,.38,.30);
+ const cradleBase=new THREE.Mesh(new THREE.CylinderGeometry(.24,.27,.048,36),cradle);
+ cradleBase.position.y=1.145;cradleBase.castShadow=true;launcher.add(cradleBase);
+ const cradleStem=new THREE.Mesh(new THREE.CylinderGeometry(.077,.106,.072,28),bronze);
+ cradleStem.position.y=1.196;launcher.add(cradleStem);
+ const cradleSeat=new THREE.Mesh(new THREE.TorusGeometry(.090,.019,12,32),cradle);
+ cradleSeat.rotation.x=-Math.PI/2;cradleSeat.position.y=1.228;launcher.add(cradleSeat);
  // Keep the foreground clear so the ball and target remain unobstructed.
  // Five distinct target furniture stations. Each cup now belongs to a
  // believable location: wooden desk, filing cabinet, shelf, cart or counter.
@@ -2301,7 +2321,7 @@ function buildWorld(){
    number.rotation.x=-Math.PI/2;
    number.position.set(0,padY+.071,0);cart.add(number);
   }
-  pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,last:-10});
+  pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,plate:spring,glow:ring,lastImpact:-10});
  }
  // Subtle dust motes in illuminated air. Each room feels occupied,
  // especially when viewed toward the window; purely decorative.
@@ -2437,7 +2457,7 @@ function targetLocation(time){
 function buildPhysicsBodies(){
  if(!group)return;
  group.updateMatrixWorld(true);
- const skip=[cupGroup,trajectoryGroup,ballMesh,ballShadow,
+ const skip=[launcher,cupGroup,trajectoryGroup,ballMesh,ballShadow,
   impactRing,airZone?.cloud,...specialSurfaces,...ballTrailMeshes];
  for(const item of ambient)if(item.type==='dust'||item.type==='scenery')skip.push(item.obj);
  const moving=new Map();
@@ -2810,6 +2830,7 @@ function paintAim(){
 }
 function updatePower(){
  if(!flight&&ballMesh){
+  if(launcher)launcher.position.x=launchOffset();
   ballMesh.position.x=launchOffset();
   if(ballShadow)ballShadow.position.x=launchOffset();
  }
@@ -2920,6 +2941,15 @@ function tickObstacles(time){
   targetShadow.position.x=position.x;
   targetShadow.position.z=position.z;
   targetShadow.material.opacity=clamp(.72-(position.y-(.19+settings.topPad))*.25,.25,.72);
+ }
+ for(const pad of pads){
+  if(!pad.plate)continue;
+  const elapsed=t-pad.lastImpact;
+  const pulse=elapsed>=0&&elapsed<.55?Math.sin(elapsed*16)*Math.exp(-elapsed*5):0;
+  pad.plate.position.y=pad.y-.05-pulse*.055;
+  const active=(pad.index===(ball.springHits||0)),done=pad.index<(ball.springHits||0);
+  pad.glow.material.color.setHex(done?0xffddae:active?0xc5ffdf:0x8bb2b8);
+  pad.glow.material.opacity=done?.88:active?.86:.38;
  }
  for(const gate of hoops){
   const pos=hoopMotion(gate,t);
@@ -3078,6 +3108,7 @@ function tickFlight(dt){
       impactRing.material.color.setHex(pad.type==='spring'?0x9ef3c8:0xffdc9e);
       impactAge=0;impactRing.visible=true;
      }
+     if(pad.type==='spring')pad.lastImpact=simTime;
      ball.bounces++;updateBounceCount();bouncedThisStep=true;break;
     }
    }
