@@ -1231,3 +1231,49 @@ html[data-theme="dark"] body.pt-page :is(
  .pt-menu-trigger,.pt-continue-button,#ptVoiceSelect,.pt-voice-preview
 ):focus-visible{outline:3px solid #f3d69b;outline-offset:2px}
 
+
+
+/* v20: quiet, tactile finishing touches confined to HTML game chrome.
+   The 3D scene and all on-canvas physics remain entirely unchanged. */
+.pt-page .pt-action:active:not(:disabled),
+.pt-page .pt-step:active:not(:disabled),
+.pt-page .pt-menu-trigger:active:not(:disabled),
+.pt-page .pt-continue-button:active:not(:disabled),
+.pt-page .pt-big-button:active:not(:disabled){
+ transform:translateY(1px);
+ box-shadow:0 1px 0 rgba(10,32,38,.25);
+}
+.pt-page .pt-level-btn:active:not(:disabled),
+.pt-page .pt-projectile-option:active:not(:disabled){
+ transform:translateY(1px);
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-card{
+ animation:ptWinnerArrives .36s cubic-bezier(.15,.78,.3,1.1) both;
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-icon{
+ position:relative;isolation:isolate;
+}
+.pt-page .pt-overlay[data-state="win"] .pt-overlay-icon::after{
+ content:"";pointer-events:none;position:absolute;inset:-12px;
+ border:2px dotted rgba(196,149,86,.8);
+ border-radius:50%;opacity:.9;
+ animation:ptWinnerRing .8s ease-out both;
+}
+@keyframes ptWinnerArrives{
+ 0%{opacity:.55;transform:translateY(9px) scale(.97)}
+ 100%{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes ptWinnerRing{
+ 0%{opacity:0;transform:scale(.6)}
+ 40%{opacity:.9}
+ 100%{opacity:0;transform:scale(1.35)}
+}
+@media(prefers-reduced-motion:reduce){
+ .pt-page .pt-overlay[data-state="win"] .pt-overlay-card,
+ .pt-page .pt-overlay[data-state="win"] .pt-overlay-icon::after{
+  animation:none!important;
+ }
+ .pt-page .pt-overlay[data-state="win"] .pt-overlay-icon::after{
+  opacity:.25;transform:none;
+ }
+}
