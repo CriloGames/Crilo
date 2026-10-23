@@ -311,7 +311,14 @@ const LEVEL_FAIRNESS={
  37:{radius:.39},
  38:{wind:0,fanPower:3.05,clearBarriers:true},
  39:{radius:.385},
- 40:{wind:0,clearBarriers:true},
+ // Level 40: the right-hand bank is the skill check. The old combination
+ // of a tight figure-eight cup, closing lid, and a plant on the bank line
+ // made successful first-ball ricochets needlessly rare.
+ // Keep one real right-wall impact, a smaller moving-cup timing window,
+ // and the same physical rebound (no auto-aim).
+ 40:{wind:0,clearBarriers:true,clearObstacles:true,lid:false,
+  moving:.22,radius:.50,
+  walls:[{side:1,fraction:.60,x:1.90,length:3.2}]},
  // Chapter 5: precision, timing and existing fan strength escalate.
  // Preserve the tuned landing pad positions and remove no requirements.
  41:{radius:.47},
@@ -427,6 +434,7 @@ function updateObjective(){
 }
 function levelInstructions(spec){
  if(spec.n===22)return 'Aim toward the glowing orange wall cushion on the left, not straight into the cup. Bounce off it first, then land in the slowly sliding cup. The crosswind is gentler here.';
+ if(spec.n===40)return 'Bank off the glowing wall cushion on the right, then land in the gently moving cup. Follow the dotted ricochet arc. The timed lid is gone so your wall shot counts whenever it lands.';
  const actions={
   hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
   wall:spec.wallCount>1?'bounce off '+spec.wallCount+' numbered wall cushions in order':'bounce off the striped wall cushion',
@@ -595,7 +603,7 @@ function loadLevel(n){
  attempts=0;shotT=0;simTime=0;flight=false;paused=false;
  // Give the first wall lesson a useful starting preview instead of aiming
  // directly at a cup that cannot score without touching the wall first.
- aimYaw=settings.n===22?
+ aimYaw=(settings.n===22||settings.n===40)?
   Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
    settings.d*settings.wallPlan[0].fraction+.37):
   settings.springRequired?
@@ -3830,7 +3838,7 @@ function inputAim(clientX,clientY){
  if(rect.width<2||rect.height<2)return;
  const nx=clamp((clientX-rect.left)/rect.width,0,1);
  const ny=clamp((clientY-rect.top)/rect.height,0,1);
- const baseline=settings.n===22?
+ const baseline=(settings.n===22||settings.n===40)?
   Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
    settings.d*settings.wallPlan[0].fraction+.37):
   Math.atan2(target.x,settings.d);
