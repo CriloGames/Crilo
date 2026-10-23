@@ -575,7 +575,7 @@ function roomArchitecture(roomEnd,roomLength,sceneId,variant,palette){
    }
    piece(.86,.13,.10,side*bx,5.05,bz,metallicBlue());
   }
- }else{ // Data-centre cable trunking and separate status modules.
+ }else if(sceneId===9){ // Data-centre cable trunking and separate status modules.
   for(const side of [-1,1]){
    for(let i=0;i<3;i++)
     piece(.20,3.03,.12,side*bx+(i-1)*.37,3.6,bz,i%2?frame:mint);
@@ -598,7 +598,7 @@ function roomArchitecture(roomEnd,roomLength,sceneId,variant,palette){
   for(let i=0;i<5;i++)ctx.fillRect(11+i*23,0,5,128);
   const texture=new THREE.CanvasTexture(c);
   const spill=new THREE.Mesh(new THREE.PlaneGeometry(4.2,5.6),
-   new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:variant?.12:.30,
+   new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:variant ? .12 : .30,
     depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));
   spill.rotation.x=-Math.PI/2;
   spill.rotation.z=.14;
