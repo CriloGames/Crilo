@@ -2973,10 +2973,11 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
   if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>=pad.r-BALL_R)
    continue;
   body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
+  const credited=pad.type==='spring'&&pad.index===(body.springHits||0);
   Object.assign(body,padRebound(body,pad));
   if(pad.type==='bank'){
    body.bankHits=(body.bankHits||0)+1;
-  }else if(pad.index===(body.springHits||0)){
+  }else if(credited){
    body.springHits=(body.springHits||0)+1;
   }
   if(!preview){
@@ -2985,8 +2986,7 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
     message('BANK BOUNCE! · NOW LAND THE SHOT',1);
     hear(650,.13,'triangle',.045);
    }else{
-    const correct=pad.index===(body.springHits-1);
-    message(correct?'SPRING '+body.springHits+'/'+settings.padCount+'!':
+    message(credited?'SPRING '+body.springHits+'/'+settings.padCount+'!':
      'HIT PAD '+((body.springHits||0)+1)+' NEXT',1);
     hear(480,.18,'sine',.06);
     pad.lastImpact=time;
