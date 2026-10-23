@@ -2506,6 +2506,8 @@ function buildWorld(){
    opacity:.82,depthWrite:false}));
  accentRim.rotation.x=Math.PI/2;accentRim.position.y=h+.038;
  cupGroup.add(accentRim);
+ // The goal's existing rim is the only opening indicator; keep UI clear.
+ cupGroup.userData.targetAccentRim=accentRim;
  if(settings.lid){
   // Visibly hinged timed lid. Landing while closed never scores.
   const hinge=new THREE.Group();
@@ -3942,7 +3944,9 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
 }
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
- const p=charging?power:idealPower(),v=makeVelocity(p);
+ // The aim dots now represent the SAME charged/displayed shot power.
+ // Re-solving idealPower() here caused misleading previews and lag.
+ const p=power,v=makeVelocity(p);
  const preview={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   wallHits:0,hoopsPassed:0,springHits:0,bankHits:0};
  if(projectileId==='frisbee')preview.disc=newDiscFlightState();
@@ -3962,7 +3966,11 @@ function paintAim(){
  // the ball reaches the cup. Cover the entire shot instead of ending the
  // dotted guide at ~3.8 s, while retaining fine ~7.6 ms physics steps.
  const start=simTime,dt=settings.n===50?.068:.048,
-  substeps=settings.n===50?9:2;
+  // Smaller swept steps catch fast moving gates and pad edges more
+  // faithfully, without changing live collision or bounce physics.
+  substeps=settings.n===50?9:
+   (settings.wallCount||settings.bankRequired||settings.springRequired||
+    settings.hoops||settings.barrierCount)?6:4;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];
   dot.visible=!flight&&playing&&i<count&&!previewEnded;
@@ -4204,6 +4212,16 @@ function tickObstacles(time){
  }
  target.x=position.x;target.z=position.z;target.y=position.y;
  target.top=position.y+settings.targetHeight;
+ const scoringOpen=!settings.lid||lidFraction(t)>.61;
+ const targetRim=cupGroup.userData.targetAccentRim;
+ if(targetRim){
+  // Gentle glow on every cup; on timed-lid levels use coral when closed
+  // and mint when the opening actually accepts a shot.
+  targetRim.material.color.setHex(!scoringOpen?0xe6a5a2:
+   settings.lid?0x93f0cb:settings.color);
+  targetRim.material.opacity=(scoringOpen?.73:.48)+.10*Math.sin(t*3.7);
+  targetRim.scale.setScalar(1+.019*Math.sin(t*3.7));
+ }
  if(cupLid){
   const factor=lidFraction(t);
   cupLid.hinge.rotation.z=-factor*1.94;
@@ -4378,9 +4396,13 @@ function animate(now){
     ballMesh.rotation.y+=ball.vy*dt*.45;
    }
   }
-  // Recompute the predicted arc against the target's current movement.
+  // Static stages need repainting only when an input changes; moving cups,
+  // timing gates and variable wind still refresh their preview regularly.
+  // During charging updatePower() already redraws, so don't duplicate it.
   if(simTime>4.2&&el.viewport.dataset.showTip==='yes')el.viewport.dataset.showTip='no';
-  if(!flight&&now-lastAimRefresh>75){
+  if(!flight&&!charging&&now-lastAimRefresh>105&&
+    (settings.motion!=='still'||settings.barrierCount||settings.hoopMove||
+     settings.lid||settings.fanZone||Math.abs(settings.wind)>.001)){
    lastAimRefresh=now;paintAim();
   }
  }
