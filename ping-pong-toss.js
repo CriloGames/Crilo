@@ -3433,7 +3433,46 @@ function newDiscFlightState(yaw=aimYaw){
  // Q/E and the tilt slider set the SIGN and strength of the curve.
  const bank=clamp(frisbeeTilt,-.83,.83);
  return {age:0,spin:0,spinRate:20,nose:.115,
-  releaseBank:bank,bank,angleOfAttack:0,stalled:false};
+  releaseBank:bank,bank,trimBank:bank,trimNose:.115,
+  bankRate:0,noseRate:0,angleOfAttack:0,stalled:false};
+}
+// Surface impacts change the disc's angular state, not just its linear
+// bounce. Any collision can now leave a NEW bank, nose and spin. Each
+// change is based on the contact normal, impact speed and offset, never
+// on the cup's position. Both prediction and live flight use this.
+function applyDiscImpact(body,nx,ny,nz,inbound,offsetX=0,offsetZ=0,strength=1){
+ if(projectileId!=='frisbee'||!body.disc)return;
+ const d=body.disc,impact=clamp(Math.abs(inbound)/8,0,1.5)*strength;
+ if(impact<.015)return;
+ const since=d.age-(d.lastImpactAge??-10);
+ const sameNormal=nx*(d.lastImpactNX??0)+
+  ny*(d.lastImpactNY??0)+nz*(d.lastImpactNZ??0);
+ // An extended rim contact must not kick the disc 60 times per second.
+ // A fresh wall after a floor is still allowed to change its angle.
+ if(since<.028&&sameNormal>.93)return;
+ d.lastImpactAge=d.age;
+ d.lastImpactNX=nx;d.lastImpactNY=ny;d.lastImpactNZ=nz;
+ const horizontal=Math.max(.01,Math.hypot(body.vx,body.vz));
+ const rightX=-body.vz/horizontal,rightZ=body.vx/horizontal;
+ const aheadX=body.vx/horizontal,aheadZ=body.vz/horizontal;
+ const sideNormal=nx*rightX+nz*rightZ;
+ const frontNormal=nx*aheadX+nz*aheadZ;
+ const sideOffset=clamp(offsetX*rightX+offsetZ*rightZ,-1,1);
+ const frontOffset=clamp(offsetX*aheadX+offsetZ*aheadZ,-1,1);
+ // A flat impact can still strike one spinning rim edge.
+ const rimSide=Math.sin(d.spin*.49)*.075+Math.sin(d.bank)*.17;
+ const rollKick=clamp(impact*
+  (sideNormal*.26+sideOffset*.28+ny*rimSide),-.58,.58);
+ const pitchKick=clamp(impact*
+  (ny*(.18+Math.min(horizontal,12)*.018)-
+   frontNormal*.17+frontOffset*.14),-.5,.5);
+ d.trimBank=clamp(d.trimBank+rollKick*.83,-.88,.88);
+ d.trimNose=clamp(d.trimNose+pitchKick*.80,-.28,.48);
+ d.bank=clamp(d.bank+rollKick*.75,-1.05,1.05);
+ d.nose=clamp(d.nose+pitchKick*.75,-.38,.62);
+ d.bankRate=clamp(d.bankRate+rollKick*2.5,-2.3,2.3);
+ d.noseRate=clamp(d.noseRate+pitchKick*2.1,-2.0,2.0);
+ d.spinRate*=clamp(1-impact*.10,.76,.995);
 }
 // Both the dotted preview and live game call this same force solver.
 function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
@@ -3443,17 +3482,18 @@ function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
   const horizontal=Math.hypot(body.vx,body.vz),vertical=body.vy;
   const speed=Math.hypot(horizontal,vertical);
   const glide=clamp((horizontal-2.8)/5.5,0,1);
-  // Gyroscopic precession gives the disc a sustained bank. A gentle
-  // low-speed wobble builds as rotational stability is lost near a stall.
-  // Maintain the chosen left/right lean during the whole flight. Gentle
-  // spin precession is proportional to the lean, so a level disc flies
-  // straight in still air instead of drifting right by default.
-  const bankTarget=disc.releaseBank+
-   .024*Math.sin(disc.age*.92)*clamp(Math.abs(disc.releaseBank)*2,0,1);
+  // Dynamic angular momentum follows the CURRENT collision-adjusted trim.
+  // Do not pull the frisbee back to its original release angle.
+  const bankTarget=disc.trimBank+
+   .024*Math.sin(disc.age*.92)*clamp(Math.abs(disc.trimBank)*2,0,1);
   const instability=(1-glide)*.055*Math.sin(disc.age*13);
-  disc.bank+=((bankTarget+instability)-disc.bank)*Math.min(1,h*1.55);
-  const noseTarget=.115+.065*(1-glide);
-  disc.nose+=(noseTarget-disc.nose)*Math.min(1,h*.85);
+  disc.bankRate*=Math.exp(-3.1*h);
+  disc.noseRate*=Math.exp(-3.5*h);
+  disc.bank=clamp(disc.bank+disc.bankRate*h+
+   ((bankTarget+instability)-disc.bank)*Math.min(1,h*1.38),-1.05,1.05);
+  const noseTarget=disc.trimNose+.065*(1-glide);
+  disc.nose=clamp(disc.nose+disc.noseRate*h+
+   (noseTarget-disc.nose)*Math.min(1,h*.85),-.38,.62);
   const flightSlope=Math.atan2(vertical,Math.max(horizontal,.2));
   const aoa=clamp(disc.nose-flightSlope,-.42,.60);
   disc.angleOfAttack=aoa;disc.stalled=horizontal<4.2;
@@ -3586,17 +3626,7 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  body.vx=surfaceX+(vx-incoming*nx)*tangent+normalOut*nx;
  body.vy=surfaceY+(vy-incoming*ny)*tangent+normalOut*ny;
  body.vz=surfaceZ+(vz-incoming*nz)*tangent+normalOut*nz;
- if(projectileId==='frisbee'&&body.disc){
-  // Impact tips the disc and slows its spin. Use the same physics state
-  // in the live world and in the predicted dotted trajectory.
-  const disc=body.disc;
-  if(disc.age-(disc.lastImpactAge??-10)>.13){
-   disc.bank=clamp(disc.bank+nx*.11-nz*.04,-.52,.52);
-   disc.nose=clamp(disc.nose-ny*.075+nz*.04,-.18,.37);
-   disc.spinRate*=.89;
-   disc.lastImpactAge=disc.age;
-  }
- }
+ applyDiscImpact(body,nx,ny,nz,incoming);
  if(!preview){
   body.contacts=(body.contacts||0)+1;
   updateBounceCount();
@@ -3763,6 +3793,11 @@ function wallCollision(projectile,previous,preview=false){
   if(Math.abs(hitZ-w.z)>w.length*.5||
      Math.abs(hitY-w.y)>w.height*.5)continue;
   projectile.x=w.x+fromSide*(BALL_R+.025);
+  // Wall cushions have custom linear rebound, so provide their own
+  // angular kick before the sideways velocity changes direction.
+  applyDiscImpact(projectile,fromSide,0,0,
+   -Math.abs(projectile.vx),0,
+   clamp((hitZ-w.z)/(w.length*.5),-1,1),1.1);
   projectile.vx=-projectile.vx*clamp(.90*physicsProfile.bounce,.48,.96);
   projectile.vz*=.97;projectile.vy+=.18;
   // A later wall cannot stand in for an earlier one, nor can repeatedly
@@ -3860,6 +3895,9 @@ function cupEntryGate(projectile,previousY,time,preview=false){
   return {entered:true,missing,rejected:false};
  projectile.lastCupReject=time;
  projectile.y=top+BALL_R+.014;
+ applyDiscImpact(projectile,0,1,0,projectile.vy,
+  clamp((projectile.x-at.x)/radius,-1,1),
+  clamp((projectile.z-at.z)/radius,-1,1),.70);
  projectile.vy=Math.max(1.6,Math.abs(projectile.vy)*.55);
  projectile.vz=Math.max(.8,Math.abs(projectile.vz)*.27);
  projectile.vx+=(projectile.x-at.x)*.9;
@@ -3912,15 +3950,11 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
    continue;
   body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
   const credited=pad.type==='spring'&&pad.index===(body.springHits||0);
+  const incomingY=body.vy;
+  applyDiscImpact(body,0,1,0,incomingY,
+   clamp((body.x-pad.x)/pad.r,-1,1),
+   clamp((body.z-pad.z)/pad.r,-1,1),pad.type==='spring'?.9:1);
   Object.assign(body,padRebound(body,pad));
-  if(projectileId==='frisbee'&&body.disc){
-   // Spring impact affects the plate's nose angle and orientation.
-   // It retains two proper rebound stages without steering toward cups.
-   body.disc.bank=clamp(body.disc.bank+
-    clamp((body.x-pad.x)/pad.r,-1,1)*.13,-.52,.52);
-   body.disc.nose=clamp(.06+body.vy*.012,-.10,.26);
-   body.disc.spinRate*=.94;
-  }
   if(pad.type==='bank'){
    body.bankHits=(body.bankHits||0)+1;
   }else if(credited){
