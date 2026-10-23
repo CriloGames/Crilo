@@ -855,3 +855,46 @@ body.pt-page{
  .pt-page .pt-voice-label{flex-basis:100%}
  .pt-page #ptVoiceSelect{min-width:0;width:100%}
 }
+
+
+/* Sound toggle: on/off must be visible, not merely reflected in a tooltip. */
+.pt-page .pt-action.pt-sound-toggle{
+ display:inline-flex;align-items:center;justify-content:center;gap:4px;
+ width:68px;min-width:68px;height:34px;padding:0 7px;
+ font:900 11px/1 system-ui,sans-serif;
+ letter-spacing:.02em;transition:background .13s,border-color .13s,color .13s;
+}
+.pt-page .pt-sound-icon{width:19px;height:19px;flex:0 0 19px}
+.pt-page .pt-sound-state{min-width:22px;text-align:center}
+.pt-page .pt-sound-toggle[data-sound="on"]{
+ background:#cdeedd;border-color:#508675;border-bottom-color:#397363;
+ color:#1d5544;
+}
+.pt-page .pt-sound-toggle[data-sound="off"]{
+ background:#f6ddd8;border-color:#bc7a72;border-bottom-color:#9b5d55;
+ color:#793d36;
+}
+.pt-page .pt-sound-toggle[data-sound="on"] .pt-sound-slash,
+.pt-page .pt-sound-toggle[data-sound="off"] .pt-sound-waves{display:none}
+.pt-page .pt-sound-toggle[data-sound="off"] .pt-sound-slash{display:block}
+.pt-page .pt-sound-toggle[data-sound="on"]:hover{
+ background:#b6e6cb;border-color:#417b6a;
+}
+.pt-page .pt-sound-toggle[data-sound="off"]:hover{
+ background:#edcbc4;border-color:#9f625c;
+}
+[data-theme="dark"] .pt-page .pt-sound-toggle[data-sound="on"]{
+ background:#285947;border-color:#83c7a8;border-bottom-color:#4da27e;
+ color:#e5ffed;
+}
+[data-theme="dark"] .pt-page .pt-sound-toggle[data-sound="off"]{
+ background:#593a3e;border-color:#c28b84;border-bottom-color:#a9655d;
+ color:#ffe9e4;
+}
+@media(max-width:650px){
+ .pt-page .pt-action.pt-sound-toggle{
+  width:59px;min-width:59px;height:31px;padding:0 4px;gap:3px;
+  font-size:10px;
+ }
+ .pt-page .pt-sound-icon{width:17px;height:17px;flex-basis:17px}
+}
