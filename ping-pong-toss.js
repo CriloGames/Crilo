@@ -1320,7 +1320,10 @@ function refreshCoworkerVoices(){
   'No English voices detected yet. Your browser may load voices after you interact with the game.';
 }
 function speakColleague(n,preview=false){
- if(!soundOn&&!preview)return false;
+ if(!soundOn){
+  if(preview&&el.voiceHelp)el.voiceHelp.textContent='Turn on game sound to hear a preview.';
+  return false;
+ }
  const line=preview?'Ow! Hey, watch it!':COWORKER_LINES[(n-1)%COWORKER_LINES.length];
  try{
   const synth=window.speechSynthesis;
