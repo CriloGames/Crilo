@@ -1229,6 +1229,58 @@ function pulseBounceHalo(effect,time,impact=-10,active=true){
  effect.soft[1].material.opacity=clamp(.05+hit*.10,.03,.19);
  effect.group.scale.setScalar(1+hit*.035);
 }
+// Every stage has a different, short, family-friendly character reaction.
+// Speech is created on demand after a real user-controlled throw.
+const COWORKER_LINES=["Ow!","Oof!","Hey!","Watch it!","Not cool!","My coffee!","Seriously?","Easy there!","Ah, come on!","Whoa!","That smarts!","Who threw that?","I felt that!","Little warning?","Excuse me!","I just got here!","Quit it!","Rude!","My glasses!","I saw that!","Ouch, buddy!","Mind the face!","What was that?!","That's my elbow!","Not again!","I'm working!","Ball incoming!","Hey, I'm sitting here!","Give me a break!","That was close!","Ow, my shoulder!","You owe me coffee!","Could you not?!","That's gonna bruise!","What the heck!","Office hazard!","I'm telling HR!","Nice aim. Not!","That startled me!","I need a helmet!","Enough already!","Why me?","Please stop!","Right in the arm!","That's it, I quit!","Was that on purpose?","Oh, for crying out loud!","Great. Just great.","I have a meeting!","I'm going home!"];
+function voiceForColleague(n){
+ const voices=window.speechSynthesis?.getVoices?.()||[];
+ const english=voices.filter(v=>/^en(?:[-_]|$)/i.test(v.lang));
+ return english.length?english[(n*7+Math.floor(n/english.length))%english.length]:null;
+}
+function speakColleague(n){
+ if(!soundOn)return;
+ const line=COWORKER_LINES[(n-1)%COWORKER_LINES.length];
+ try{
+  const synth=window.speechSynthesis;
+  if(synth&&typeof window.SpeechSynthesisUtterance==='function'){
+   synth.cancel();
+   const speech=new window.SpeechSynthesisUtterance(line);
+   speech.lang='en-US';speech.volume=.84;
+   speech.pitch=.78+(n%9)*.115;
+   speech.rate=.85+(n%7)*.052;
+   const voice=voiceForColleague(n);if(voice)speech.voice=voice;
+   synth.speak(speech);return;
+  }
+ }catch{}
+ // Some browsers disable speech synthesis. Preserve audible hit feedback.
+ hear(230+(n%11)*28,.17,'sawtooth',.045);
+ hear(165+(n%5)*24,.20,'triangle',.03);
+}
+function coworkerSpeechSprite(colleague,n){
+ const canvas=document.createElement('canvas');canvas.width=512;canvas.height=144;
+ const ctx=canvas.getContext('2d');if(!ctx)return null;
+ ctx.fillStyle='rgba(0,0,0,.23)';
+ ctx.beginPath();ctx.roundRect(13,13,486,110,30);ctx.fill();
+ ctx.fillStyle='#fff7e8';
+ ctx.beginPath();ctx.roundRect(7,6,486,110,30);ctx.fill();
+ ctx.strokeStyle='#274650';ctx.lineWidth=5;ctx.stroke();
+ ctx.fillStyle='#223e4a';ctx.font='900 34px system-ui, sans-serif';
+ ctx.textAlign='center';ctx.textBaseline='middle';
+ ctx.fillText(COWORKER_LINES[(n-1)%50],250,60,462);
+ const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
+ const bubble=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,
+  depthTest:false,depthWrite:false}));
+ bubble.scale.set(1.80,.51,1);bubble.position.set(0,2.61,-.16);
+ bubble.visible=false;bubble.renderOrder=8;colleague.add(bubble);
+ return bubble;
+}
+function reactToColleague(person){
+ if(!person||simTime<(person.userData.lastHit??-10)+1.2)return;
+ person.userData.lastHit=simTime;
+ person.userData.reactUntil=simTime+1.05;
+ if(person.userData.speechBubble)person.userData.speechBubble.visible=true;
+ speakColleague(person.userData.level);
+}
 function officeColleague(parent,x,z,n){
  // Original stylized coworker with smooth body, curved shoulders and hands.
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
@@ -1265,7 +1317,33 @@ function officeColleague(parent,x,z,n){
  other.position.set(-.43,1.20,0);other.rotation.z=-.27;g.add(other);
  const mouth=new THREE.Mesh(new THREE.TorusGeometry(.055,.009,5,18,Math.PI),hair);
  mouth.position.set(0,1.70,-.299);mouth.rotation.z=Math.PI;g.add(mouth);
- g.userData={arm,face,baseY:g.position.y};
+ // Vary silhouette, hair and eyewear without introducing separate assets.
+ const variant=n%6;
+ if(variant===1||variant===4){
+  const glassesMat=createMat(0x33464d,.34,.33);
+  for(const side of [-1,1]){
+   const lens=new THREE.Mesh(new THREE.TorusGeometry(.093,.014,7,20),glassesMat);
+   lens.position.set(side*.122,1.866,-.324);g.add(ornament(lens));
+  }
+  detailBox(g,.077,.017,.023,0,1.863,-.328,glassesMat);
+ }else if(variant===2){
+  const headset=new THREE.Mesh(new THREE.TorusGeometry(.338,.036,10,26,Math.PI),
+   createMat(0x50646e,.46,.32));
+  headset.position.set(0,1.97,0);g.add(ornament(headset));
+ }else if(variant===3){
+  const bun=new THREE.Mesh(new THREE.SphereGeometry(.17,14,10),hair);
+  bun.position.set(0,2.10,.24);g.add(bun);
+ }else if(variant===5){
+  const hat=new THREE.Mesh(new THREE.CylinderGeometry(.30,.30,.10,24),shirt);
+  hat.position.y=2.137;g.add(hat);
+  const brim=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.023,24),shirt);
+  brim.position.set(0,2.093,-.052);g.add(brim);
+ }
+ g.userData={arm,face,baseY:g.position.y,level:n,lastHit:-10,reactUntil:-10};
+ // Only coworker body parts are reactive physics objects; desks and chairs
+ // cannot cause a spoken reaction just because they're in the vignette.
+ g.traverse(obj=>{if(obj.isMesh&&!obj.userData.decorative)obj.userData.colleague=g;});
+ g.userData.speechBubble=coworkerSpeechSprite(g,n);
  return g;
 }
 function officeChair(parent,x,z){
@@ -2130,9 +2208,9 @@ function buildWorld(){
  // A lively original coworker anchors the office perspective. Always
  // placed on the opposite side from the target so they never hide its rim.
  // Outfit and desk pose change by stage rather than repeating one backdrop.
- const coworkerX=settings.x>=0?-2.25:2.25;
- const coworkerZ=settings.targetZ-1.55;
- if(settings.sceneId!==2||settings.tier%2===0){
+ const coworkerX=settings.x>=0?-3.30:3.30;
+ const coworkerZ=settings.targetZ+1.45;
+ {
   // One coherent vignette: desk, chair and colleague travel together.
   const vignette=new THREE.Group();group.add(vignette);
   const colleague=officeColleague(vignette,coworkerX,coworkerZ,level);
@@ -2142,8 +2220,9 @@ function buildWorld(){
   meshBox(vignette,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
   officeMug(vignette,coworkerX+((level%2)?-.68:.68),1.15,
    coworkerZ-.38,0xb8a18d,.73);
-  decorCandidates.push({obj:vignette,side:Math.sign(coworkerX),
-   anchorX:coworkerX,label:'colleague'});
+  // Keep the person placed beside the shot lane on every single level.
+  // They remain hit-able, rather than being moved offscreen as decoration.
+  vignette.userData.coworkerScene=true;
  }
  // The cup's warm rim and coaster identify the target; no floating sign
  // obscures the throw trajectory or turns the 3D scene into a HUD.
@@ -2940,7 +3019,8 @@ function buildPhysicsBodies(){
   const metal=mat?.metalness||0,rough=mat?.roughness??.65;
   const restitution=metal>.28?.76:rough>.84?.48:.62;
   physicsBodies.push({mesh,box:bounds,local:mesh.geometry.boundingBox.clone(),
-   owner:moving.get(mesh)||null,restitution,friction:metal>.28?.065:.13});
+   owner:moving.get(mesh)||null,person:mesh.userData.colleague||null,
+   restitution,friction:metal>.28?.065:.13});
  });
  // Broad-phase grid: a ball tests only nearby furniture, not every shelf,
  // cabinet and background prop on every simulation substep.
@@ -3032,7 +3112,10 @@ function resolveEnvironment(body,preview=false){
   const vy=o?.type==='barrier'&&o.style==='panel'?
    Math.cos(simTime*o.speed+o.phase)*.65*o.speed:0;
   if(bounceContact(body,nx,ny,nz,depth,item.restitution,
-   item.friction,vx,vy,0,preview))reacted=true;
+   item.friction,vx,vy,0,preview)){
+   reacted=true;
+   if(!preview&&item.person)reactToColleague(item.person);
+  }
  }
  return reacted;
 }
@@ -3530,10 +3613,16 @@ function tickObstacles(time){
    }
   }
   if(item.type==='colleague'){
-   const arm=item.obj.userData.arm;
-   if(arm)arm.rotation.x=.30+Math.sin(t*2.1+level)*.19;
-   const face=item.obj.userData.face;
-   if(face)face.rotation.y=Math.sin(t*.72+level)*.11;
+   const character=item.obj,traits=character.userData;
+   const reacting=t<traits.reactUntil;
+   const activity=(level%4===0)?0:.19;
+   const arm=traits.arm;
+   if(arm){arm.rotation.x=.30+Math.sin(t*2.1+level)*activity;
+    arm.rotation.z=reacting?-.42*Math.sin((traits.reactUntil-t)*5):0;}
+   const face=traits.face;
+   if(face)face.rotation.y=reacting?.29*Math.sin((traits.reactUntil-t)*12):
+    Math.sin(t*.72+level)*.11;
+   if(traits.speechBubble)traits.speechBubble.visible=reacting;
   }
  }
  for(const obj of obstacles){
