@@ -1967,7 +1967,9 @@ function stageArtPlan(spec){
   (spec.lid?1:0)+(spec.motion!=='still'?1:0);
  return {
   tricks,
-  sideDesks:tricks>=4?0:tricks>=2?1:2,
+  // Level 17 already has a large conveyor packing rack on the right.
+  // The optional side-office desk occupied the same space as this rack.
+  sideDesks:spec.n===17?0:tricks>=4?0:tricks>=2?1:2,
   sidePlants:tricks>=3?0:1,
   worktopClutter:tricks<=1,
   heroExtras:tricks<=2,
@@ -2802,14 +2804,19 @@ function buildWorld(){
    tray.position.set(2.9,1.15+k*.09,settings.targetZ+.6);group.add(tray);
   }
  }else{
-  // Late-shift cubicle: clusters of luminous monitors on the side desk.
-  meshBox(group,2.85,.14,.92,-1.6,1.45,settings.targetZ+.6,wood);
+  // Keep the desk, supports and monitors together for one clean move.
+  // On Level 17 the old monitor workstation intersected the scoring
+  // cabinet. Move only that level's optional props to an empty side bay.
+  const workstation=new THREE.Group();
+  if(settings.n===17)workstation.position.set(-2.9,0,1.5);
+  group.add(workstation);
+  meshBox(workstation,2.85,.14,.92,-1.6,1.45,settings.targetZ+.6,wood);
   for(const xx of [-2.76,-.44])
-   meshBox(group,.10,1.36,.10,xx,.68,settings.targetZ+.6,metal);
+   meshBox(workstation,.10,1.36,.10,xx,.68,settings.targetZ+.6,metal);
   for(let k=0;k<3;k++){
-   const screen=meshBox(group,.65,.53,.10,-2.4+k*.8,1.84,settings.targetZ+.6,dark);
-   meshBox(group,.085,.20,.085,screen.position.x,1.53,screen.position.z,metal);
-   meshBox(group,.52,.40,.013,screen.position.x,screen.position.y,screen.position.z+.06,
+   const screen=meshBox(workstation,.65,.53,.10,-2.4+k*.8,1.84,settings.targetZ+.6,dark);
+   meshBox(workstation,.085,.20,.085,screen.position.x,1.53,screen.position.z,metal);
+   meshBox(workstation,.52,.40,.013,screen.position.x,screen.position.y,screen.position.z+.06,
     createMat(0x476a7b,.3,.05,0x263f4b));
   }
  }
