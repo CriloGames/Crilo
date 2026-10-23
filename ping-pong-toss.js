@@ -3883,6 +3883,7 @@ el.next.addEventListener('click',()=>loadLevel(Math.min(unlocked,level+1)));
 el.pause.addEventListener('click',togglePause);
 el.sound.addEventListener('click',()=>{
  soundOn=!soundOn;el.sound.textContent='♫';
+ if(!soundOn)try{window.speechSynthesis?.cancel();}catch{}
 el.sound.title=soundOn?'Mute sound':'Unmute sound';el.sound.setAttribute('aria-label',el.sound.title);
  el.sound.setAttribute('aria-pressed',String(soundOn));
  try{localStorage.setItem(MUTED,soundOn?'on':'off');}catch{}
