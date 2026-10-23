@@ -1213,15 +1213,16 @@ function buildWorld(){
   for(const x of [-3.5,3.5])for(const dz of [-.48,.48])
    meshBox(group,.13,1.23,.13,x,.615,roomEnd+1.25+dz,metal);
   roundedPoster(group,'WELCOME',0,4.8,roomEnd+.42);
- }else if(settings.sceneId===7){
+  }else if(settings.sceneId===7){
+  // Awards Office: no opaque frames across the left-hand skyline window.
   for(let i=0;i<6;i++){
-   const xx=-5.4+i*2.1;
-   const frame=meshBox(group,1.22,1.5,.08,xx,4.7,roomEnd+.36,wood);
-   meshBox(group,1.04,1.32,.09,xx,4.7,roomEnd+.42,
+   const xx=1.48+(i%3)*1.49,yy=3.09+Math.floor(i/3)*1.54;
+   meshBox(group,1.12,1.13,.08,xx,yy,roomEnd+.36,wood);
+   meshBox(group,.96,.97,.09,xx,yy,roomEnd+.42,
     createMat([0xae956e,0x7d8997,0x9c897e][i%3],.35,.22));
-   const disk=new THREE.Mesh(new THREE.CylinderGeometry(.33,.33,.09,20),
+   const disk=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.09,24),
     createMat(0xc8a05e,.34,.48));
-   disk.rotation.x=Math.PI/2;disk.position.set(xx,4.95,roomEnd+.52);group.add(disk);
+   disk.rotation.x=Math.PI/2;disk.position.set(xx,yy+.13,roomEnd+.52);group.add(disk);
   }
  }else if(settings.sceneId===8){
   for(const x of [-6.45,6.45]){
@@ -1290,14 +1291,17 @@ function buildWorld(){
  doorHandle.position.set(doorwayX+(doorwayX>0?-.34:.34),1.98,roomEnd+.58);
  group.add(doorHandle);
  // Notices, pinned memos, clock and shelving on the rear wall.
- const cork=meshBox(group,2.8,1.55,.19,3.75,4.1,roomEnd+.22,
-  createMat(0x95755b));
- const noteMat=[0xffe5a4,0xcad8b0,0xe4c0b9,0xc0d8e5];
- for(let i=0;i<6;i++){
-  const note=meshBox(group,.52+(i%3)*.15,.39+(i%2)*.10,.02,
-   2.8+(i%3)*.8,4.55-Math.floor(i/3)*.62,roomEnd+.35,
-   createMat(noteMat[(i+level)%4],.92));
-  note.rotation.z=(i%3-1)*.075;
+ // Avoid two wall displays competing in the Awards Office.
+ if(settings.sceneId!==7){
+  const cork=meshBox(group,2.8,1.55,.19,3.75,4.1,roomEnd+.22,
+   createMat(0x95755b));
+  const noteMat=[0xffe5a4,0xcad8b0,0xe4c0d9,0xc0d8e5];
+  for(let i=0;i<6;i++){
+   const note=meshBox(group,.52+(i%3)*.15,.39+(i%2)*.10,.02,
+    2.8+(i%3)*.8,4.55-Math.floor(i/3)*.62,roomEnd+.35,
+    createMat(noteMat[(i+level)%4],.92));
+   note.rotation.z=(i%3-1)*.075;
+  }
  }
  const clock=new THREE.Mesh(new THREE.CylinderGeometry(.41,.41,.07,30),
   createMat(0xedebe4,.77));
