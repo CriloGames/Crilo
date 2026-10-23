@@ -612,7 +612,7 @@ function loadLevel(n){
   settings.springRequired?
    Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
    Math.atan2(settings.x,settings.d);
- aimPitch=projectileId==='frisbee'?(settings.springRequired?.34:settings.bankRequired?.29:.31):
+ aimPitch=projectileId==='frisbee'?(settings.springRequired?.20:settings.bankRequired?.22:.18):
   settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
@@ -632,6 +632,7 @@ function loadLevel(n){
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const objective=levelInstructions(settings);
  const introText=physicsProfile.name+' · '+physicsProfile.hint+'. '+
+   (projectileId==='frisbee'?'Throw a shallow, spinning disc: its bank changes the curve and it drops when it loses speed. ':'')+
   (settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
@@ -3350,7 +3351,38 @@ const PAD_GRIP_BY_LEVEL={
  resetBall();paintAim();
 }
 
+// Estimate a real disc's first required landing, rather than using the
+// ballistic parabola intended for the five-spins ping-pong ball. For a
+// frisbee, the angle of attack changes the lift during the whole throw.
+function discPowerForFirstLanding(){
+ const zGoal=settings.bankRequired?settings.bankZ:
+  settings.springRequired?settings.springZ:settings.targetZ;
+ const yGoal=settings.bankRequired?1.22+BALL_R:
+  settings.springRequired?1.21+BALL_R:
+  .19+settings.topPad+settings.targetHeight-BALL_R;
+ let best=.38,bestPenalty=Infinity;
+ for(let k=0;k<=25;k++){
+  const candidate=.07+k*.035,v=makeVelocity(candidate);
+  const trial={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,
+   vx:v.vx,vy:v.vy,vz:v.vz,disc:newDiscFlightState()};
+  const dt=.018;
+  for(let n=0;n<140;n++){
+   const t=simTime+n*dt;
+   if(trial.z<=zGoal)break;
+   applyProjectileForces(trial,dt,t,{x:0,y:0});
+   trial.x+=trial.vx*dt;trial.y+=trial.vy*dt;trial.z+=trial.vz*dt;
+   if(trial.y<0)break;
+  }
+  if(trial.z>zGoal)continue;
+  // Downward impact is required for a valid pad strike or cup entry.
+  const penalty=Math.abs(trial.y-yGoal)+Math.max(0,trial.vy)*.26+
+   (settings.springRequired&&trial.vy>0?.6:0);
+  if(penalty<bestPenalty){bestPenalty=penalty;best=candidate;}
+ }
+ return best;
+}
 function idealPower(){
+ if(projectileId==='frisbee')return discPowerForFirstLanding();
  // For direct throws, aim at the cup opening. For bank shots, aim at the
  // rubber tray's actual physical collision height, not at the cup.
  const d=settings.bankRequired?Math.hypot(LAUNCH_Z-settings.bankZ,settings.bankX):
@@ -3402,7 +3434,7 @@ function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
   // Lift rises with forward airspeed squared and positive angle of
   // attack. When speed falls away, lift collapses and the disc stalls.
   const lift=clamp(horizontal*horizontal*
-   clamp(.071+.045*aoa,.035,.097),0,12.0)*glide;
+   clamp(.050+.034*aoa,.029,.068),0,7.7)*glide;
   // Bank tilts the lift vector, turning the flight path sideways. Right
   // direction is measured from actual velocity, never from the cup.
   const rightX=-body.vz/Math.max(horizontal,.01);
@@ -3416,8 +3448,8 @@ function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
   // Air resistance increases with speed and angle of attack. Gliding
   // eventually slows the disc enough to descend instead of floating
   // indefinitely; spring bounces still use physical rebound velocities.
-  const resistance=.038+.0026*speed+
-   .050*Math.max(0,aoa-.20);
+  const resistance=.055+.0040*speed+
+   .065*Math.max(0,aoa-.20);
   const decay=Math.exp(-resistance*h);
   body.vx*=decay;body.vy*=decay;body.vz*=decay;
   disc.spinRate*=Math.exp(-.055*h);
@@ -3932,7 +3964,11 @@ function inputAim(clientX,clientY){
   settings.n===50?Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
   Math.atan2(target.x,settings.d);
  aimYaw=clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
- aimPitch=settings.bankRequired||settings.springRequired?clamp(.52+(.5-ny)*1.04,.13,1.04):clamp(.70+(.5-ny)*.52,.27,1.04);
+ aimPitch=projectileId==='frisbee'?
+  clamp(.17+(.5-ny)*.62,-.08,.58):
+  settings.bankRequired||settings.springRequired?
+  clamp(.52+(.5-ny)*1.04,.13,1.04):
+  clamp(.70+(.5-ny)*.52,.27,1.04);
  if(!charging)power=idealPower();
  updatePower();
 }
@@ -3960,7 +3996,7 @@ function launch(){
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  if(projectileId==='frisbee')ball.disc=newDiscFlightState();
  shotT=0;shotStart=performance.now();
- el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · BANK AND CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
+ el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · BANK & CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
  hear(880,.12,'sine',.045);message(projectileId==='ping'?'PONG!':'THROWN!',.55);
@@ -4209,7 +4245,7 @@ function tickFlight(dt){
    const disc=ball.disc;
    const heading=Math.atan2(ball.vx,-ball.vz);
    const speed=Math.hypot(ball.vx,ball.vz);
-   const wobble=disc?.stalled?.07*Math.sin(shotT*12):0;
+   const wobble=disc?.stalled ? .07*Math.sin(shotT*12) : 0;
    ballMesh.rotation.set(
     (disc?.nose??.12)+wobble,
     heading,
