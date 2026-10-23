@@ -328,7 +328,7 @@ function updateBounceCount(){
 }
 function resetBall(){
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
- if(ballMesh)ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);
+ if(ballMesh){ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);}
  for(const bead of ballTrailMeshes)bead.visible=false;
  updateBounceCount();
 }
@@ -1864,13 +1864,16 @@ function buildWorld(){
   seam.rotation.y=angle;ballMesh.add(seam);
  }
  // Soft contact shadow only, not a pale ball on a pale tabletop.
- ballShadow=new THREE.Mesh(new THREE.CircleGeometry(.20,24),
-  new THREE.MeshBasicMaterial({color:0x1c282f,transparent:true,opacity:.27,depthWrite:false}));
- ballShadow.rotation.x=-Math.PI/2;ballShadow.position.set(0,1.15,LAUNCH_Z);group.add(ballShadow);
+ ballShadow=softContactShadow(group,0,1.15,LAUNCH_Z,.25,.25);
+ if(ballShadow)ballShadow.material.opacity=.34;
  impactRing=new THREE.Mesh(new THREE.TorusGeometry(.21,.024,8,32),
   new THREE.MeshBasicMaterial({color:0xffd49a,transparent:true,opacity:0,
    depthWrite:false,side:THREE.DoubleSide}));
  impactRing.rotation.x=-Math.PI/2;impactRing.visible=false;group.add(impactRing);
+ const impactHalo=new THREE.Mesh(new THREE.TorusGeometry(.22,.085,12,40),
+  new THREE.MeshBasicMaterial({color:0xffd8a2,transparent:true,
+   opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+ impactHalo.renderOrder=4;impactRing.add(impactHalo);
  // Short motion trail keeps the smaller ball visible without increasing it.
  const trailGeometry=new THREE.SphereGeometry(BALL_R*.62,9,7);
  for(let k=0;k<11;k++){
@@ -2565,9 +2568,12 @@ function tickFlight(dt){
    Math.abs(ball.x-settings.x)<2.30;
   const shadowOnNear=ball.z>3.7&&ball.z<7.55&&Math.abs(ball.x)<6.30;
   const shadowY=shadowOnFar?settings.topPad+.16:shadowOnNear?1.12:0;
-  ballShadow.position.set(ball.x,shadowY+.025,ball.z);
-  ballShadow.scale.setScalar(clamp(1+(ball.y-shadowY)*.29,.6,2.1));
-  ballShadow.material.opacity=clamp(.25-(ball.y-shadowY)*.045,.045,.20);
+  if(ballShadow){
+   ballShadow.position.set(ball.x,shadowY+.025,ball.z);
+   const spread=.25*clamp(1+(ball.y-shadowY)*.25,.7,2.5);
+   ballShadow.scale.set(spread,spread,1);
+   ballShadow.material.opacity=clamp(.48-(ball.y-shadowY)*.07,.035,.46);
+  }
   for(let k=0;k<ballTrailMeshes.length;k++){
    const trail=ballTrailMeshes[k],sample=ball.trail[(k+1)*3];
    trail.visible=!!sample;
@@ -2594,6 +2600,8 @@ function animate(now){
   impactAge+=dt;
   impactRing.scale.setScalar(1+impactAge*3);
   impactRing.material.opacity=Math.max(0,.69-impactAge*1.25);
+  if(impactRing.children[0])
+   impactRing.children[0].material.opacity=Math.max(0,.27-impactAge*.53);
   if(impactAge>.55)impactRing.visible=false;
  }
  if(throwingHand){
