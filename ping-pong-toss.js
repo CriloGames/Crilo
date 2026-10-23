@@ -2361,8 +2361,9 @@ function buildWorld(){
  // These are present in selected levels from chapter one onward.
  if(settings.bankRequired){
   const x=settings.bankX,z=settings.bankZ,padY=1.22;
-  const bankMat=createMat(0x405764,.81,.02),rubber=createMat(0xbb7861,.88,.02);
-  const tape=createMat(0xffdf87,.53,.02);
+  const bankMat=finishMat(0x536e7c,'anodized'),
+   rubber=createMat(0xba826c,.76,.02);
+  const tape=finishMat(0xf3c88b,'enamel');
   const tray=new THREE.Group();tray.position.set(x,0,z);group.add(tray);
   specialSurfaces.push(tray);
   for(const sx of [-1,1])for(const sz of [-1,1]){
@@ -2370,13 +2371,28 @@ function buildWorld(){
   }
   meshBox(tray,1.88,.13,2.02,0,1.11,0,bankMat);
   meshBox(tray,1.78,.045,1.91,0,1.201,0,rubber);
+  // Recessed top cushion, front grab handle and shallow rubber texture
+  // explain that this is the intended impact object (not another desk).
+  const cushion=new THREE.Mesh(new THREE.CylinderGeometry(.61,.64,.022,40),
+   finishMat(0xdbad83,'enamel'));
+  cushion.position.y=1.237;tray.add(cushion);
+  const paintedRing=new THREE.Mesh(new THREE.TorusGeometry(.60,.030,9,44),
+   finishMat(0xffebc0,'ceramic'));
+  paintedRing.rotation.x=Math.PI/2;paintedRing.position.y=1.258;
+  tray.add(paintedRing);
+  for(let k=0;k<9;k++){
+   const a=k*2.4,rad=.15+.045*(k%4);
+   detailBox(tray,.042,.006,.09,Math.cos(a)*rad,1.255,
+    Math.sin(a)*rad,rubber).rotation.y=a;
+  }
   for(const edge of [-1,1]){
    meshBox(tray,.065,.023,1.72,edge*.78,1.236,0,tape);
    meshBox(tray,1.58,.023,.065,0,1.236,edge*.86,tape);
   }
-  const bankLabel=new THREE.Mesh(new THREE.PlaneGeometry(1.53,.37),
-   makeText('BOUNCE HERE',36,'#fff4ce','#674d43'));
-  bankLabel.rotation.x=-Math.PI/2;bankLabel.position.set(0,1.239,.0);tray.add(bankLabel);
+  const bankLabel=new THREE.Mesh(new THREE.PlaneGeometry(.72,.19),
+   makeText('BANK',44,'#fff4ce','#674d43'));
+  bankLabel.rotation.x=-Math.PI/2;
+  bankLabel.position.set(0,1.270,-.64);tray.add(bankLabel);
   pads.push({type:'bank',x,z,r:.88,y:padY,mat:rubber,last:-10});
  }
  // Stage-specific obstacles are authored one at a time in STAGES[].
@@ -2485,6 +2501,10 @@ function buildWorld(){
   const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
   meshBox(g,shutter?1.05:1.14,shutter?.52:.31,.24,0,0,0,body);
   meshBox(g,.53,.042,.05,0,.04,-.15,cream);
+  // Bright but restrained edge-notches identify the moving hazard at a glance.
+  for(let k=0;k<3;k++)
+   detailBox(g,.07,.018,.016,-.26+k*.26,-.028,-.153,
+    finishMat(0xf8dcb2,'enamel'));
   // Common coral hazard trim differentiates moving blockers from furniture.
   const warning=createMat(0xf0b27f,.42,.08,0xa25938);
   for(const side of [-1,1])
@@ -2531,9 +2551,18 @@ function buildWorld(){
    length=spec.length||3.65;
   const wall=new THREE.Group();wall.position.set(x,2.42,z);group.add(wall);
   specialSurfaces.push(wall);
-  const rubber=createMat(0x617780,.78,.04),
-   stripe=createMat(0xf2bb7a,.40,.04,0x4a291a);
+  const rubber=createMat(0x526e77,.78,.04),
+   stripe=finishMat(0xf3b27d,'enamel'),
+   cushion=createMat(0xdb9371,.65,.05);
   meshBox(wall,.17,3.55,length,0,0,0,rubber);
+  // Three sprung-looking upholstered wall panels share the existing
+  // rectangular collision zone without changing the bank requirement.
+  for(let k=0;k<3;k++){
+   const zz=(k-1)*length*.285;
+   detailBox(wall,.048,2.85,length*.25,-side*.12,-.03,zz,cushion);
+   for(const yy of [-1.28,1.24])
+    detailBox(wall,.063,.021,length*.23,-side*.151,yy,zz,stripe);
+  }
   for(const zz of [-length*.38,length*.38]){
    meshBox(wall,.16,.76,.15,0,-2.06,zz,metal);
    meshBox(wall,.65,.08,.52,0,-2.38,zz,dark);
