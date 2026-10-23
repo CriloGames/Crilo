@@ -2039,6 +2039,7 @@ function buildWorld(){
   const [style,t,offset,midY]=settings.barrierPlan[i];
   const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
   const g=new THREE.Group();g.position.set(x,midY,z);group.add(g);
+  const mount=new THREE.Group();mount.position.set(x,0,z);group.add(mount);
   const shutter=style==='panel';
   const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
   meshBox(g,shutter?1.05:1.14,shutter?.52:.31,.24,0,0,0,body);
@@ -2050,20 +2051,20 @@ function buildWorld(){
   // Ceiling-mounted shutter lifts vertically; filing drawers slide sideways.
   if(shutter){
    for(const side of [-1,1]){
-    meshBox(group,.09,1.18,.13,x+side*.61,midY+.49,z,metal);
+    meshBox(mount,.09,1.18,.13,side*.61,midY+.49,0,metal);
      const railTop=midY+1.08,postHeight=Math.max(.1,7.25-railTop);
-     meshBox(group,.08,postHeight,.12,x+side*.61,railTop+postHeight/2,z,metal);
+     meshBox(mount,.08,postHeight,.12,side*.61,railTop+postHeight/2,0,metal);
    }
   }else{
-   meshBox(group,2.18,.055,.28,x,midY-.26,z,dark);
+   meshBox(mount,2.18,.055,.28,0,midY-.26,0,dark);
     for(const side of [-1,1]){
      const height=Math.max(.30,midY-.26);
-     meshBox(group,.10,height,.12,x+side*1.02,height/2,z,metal);
-     meshBox(group,.28,.06,.35,x+side*1.02,.045,z,dark);
+     meshBox(mount,.10,height,.12,side*1.02,height/2,0,metal);
+     meshBox(mount,.28,.06,.35,side*1.02,.045,0,dark);
     }
   }
   const amp=shutter?.48:.64;
-  obstacles.push({type:'barrier',style,obj:g,x,y:midY,z,
+  obstacles.push({type:'barrier',style,obj:g,support:mount,x,y:midY,z,
    w:shutter?1.05:1.14,h:shutter?.52:.31,d:.24,
    centerX:x,centerY:midY,amp,speed:.72+i*.18+settings.tier*.035,
    phase:i*1.8+settings.n*.17});
