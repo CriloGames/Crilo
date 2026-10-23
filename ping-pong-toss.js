@@ -20,7 +20,7 @@ const el={
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
+let THREE,renderer,scene,camera,group,ballMesh,frisbeeRotor=null,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,LAUNCH_Z=4.25,LAUNCH_Y=1.32;
@@ -37,7 +37,7 @@ const CHAPTERS=[
 // Five sequential 50-level campaigns, each saved independently.
 const PROJECTILES=[
  {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xffb86f},
- {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Glides through the air',radius:.105,gravity:9.8,speed:1.04,drag:.044,air:1.38,bounce:.70,pad:1.06,lift:1.65,color:0x8ae1cd},
+ {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Banks, curves, glides and stalls like a flying disc',radius:.125,gravity:9.8,speed:1.07,drag:.044,air:1.25,bounce:.66,pad:1.03,lift:1.65,color:0x8ae1cd},
  {id:'basketball',name:'Mini Basketball',short:'Basketball',hint:'Bouncier and larger',radius:.115,gravity:10.9,speed:1.04,drag:.014,air:.78,bounce:1.13,pad:1.05,lift:0,color:0xed914f},
  {id:'heavy',name:'Heavy Ball',short:'Heavy Ball',hint:'Falls faster; resists wind',radius:.107,gravity:12,speed:1.08,drag:.005,air:.40,bounce:.60,pad:1.20,lift:0,color:0x9cadc1},
  {id:'light',name:'Featherlight Ball',short:'Light Ball',hint:'Floats and drifts in wind',radius:.086,gravity:9.45,speed:1.02,drag:.081,air:1.85,bounce:1.10,pad:.94,lift:.38,color:0xd1e6e2}
@@ -612,7 +612,8 @@ function loadLevel(n){
   settings.springRequired?
    Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
    Math.atan2(settings.x,settings.d);
- aimPitch=settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
+ aimPitch=projectileId==='frisbee'?(settings.springRequired?.34:settings.bankRequired?.29:.31):
+  settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
  buildUi();updatePower();
@@ -646,7 +647,8 @@ function updateBounceCount(){
 }
 function resetBall(){
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
- if(ballMesh){ballMesh.position.set(launchOffset(),LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);}
+ if(projectileId==='frisbee')ball.disc=newDiscFlightState();
+ if(ballMesh){ballMesh.position.set(launchOffset(),LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);if(frisbeeRotor)frisbeeRotor.rotation.y=0;}
  for(const bead of ballTrailMeshes)bead.visible=false;
  updateBounceCount();
 }
@@ -3242,23 +3244,50 @@ const PAD_GRIP_BY_LEVEL={
  // strongly contrasting with the dark gray office instead of washing out.
  // An original arcade ball finish: a readable coral-orange shell with a
  // tiny enamel highlight rather than an over-bright, unshaded sphere.
+ // The frisbee is a genuinely broad, shallow flight plate rather than
+ // a squashed sphere. Its orientation and gyroscopic spin use separate
+ // nested groups: banking never causes the shell to roll like a ball.
  const disc=projectileId==='frisbee';
  const material=new THREE.MeshPhysicalMaterial({
   color:physicsProfile.color,roughness:projectileId==='heavy'?.29:.36,
   metalness:projectileId==='heavy'?.62:.03,clearcoat:.30,clearcoatRoughness:.25,
   emissive:physicsProfile.color,emissiveIntensity:projectileId==='light'?.17:.045
  });
- ballMesh=new THREE.Mesh(disc?
-  new THREE.CylinderGeometry(BALL_R*1.12,BALL_R*1.12,.034,48):
+ frisbeeRotor=null;
+ const bodyMesh=new THREE.Mesh(disc?
+  new THREE.CylinderGeometry(BALL_R*1.55,BALL_R*1.49,.042,48):
   new THREE.SphereGeometry(BALL_R*1.05,28,20),material);
- ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
+ bodyMesh.castShadow=true;
+ if(disc){
+  ballMesh=new THREE.Group();
+  frisbeeRotor=new THREE.Group();frisbeeRotor.add(bodyMesh);
+  ballMesh.add(frisbeeRotor);ballMesh.rotation.order='YXZ';
+ }else ballMesh=bodyMesh;
+ ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
+ const finishGroup=frisbeeRotor||ballMesh;
  const seamMat=new THREE.MeshBasicMaterial({color:
   projectileId==='basketball'?0x603b2a:projectileId==='heavy'?0x455663:0x477779});
  if(disc){
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*.86,.008,10,52),seamMat);
-  ring.rotation.x=Math.PI/2;ring.position.y=.018;ballMesh.add(ring);
-  const hub=new THREE.Mesh(new THREE.CylinderGeometry(BALL_R*.30,BALL_R*.30,.036,28),
-   finishMat(0xe7f4db,'ceramic'));ballMesh.add(hub);
+  const outerRim=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.51,.013,12,64),
+   finishMat(0x3b918d,'enamel'));
+  outerRim.rotation.x=Math.PI/2;outerRim.position.y=-.016;
+  finishGroup.add(outerRim);
+  const upperRing=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.22,.009,10,64),
+   new THREE.MeshBasicMaterial({color:0xf6f7d7}));
+  upperRing.rotation.x=Math.PI/2;upperRing.position.y=.022;finishGroup.add(upperRing);
+  const swirl=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*.73,.012,10,64),
+   new THREE.MeshBasicMaterial({color:0x2b646c}));
+  swirl.rotation.x=Math.PI/2;swirl.position.y=.023;finishGroup.add(swirl);
+  // Raised, contrasting centre helps the fast spin read in flight.
+  for(let i=0;i<3;i++){
+   const spoke=meshBox(finishGroup,.012,.009,BALL_R*.48,
+    Math.sin(i*TWO_PI/3)*BALL_R*.30,.031,
+    Math.cos(i*TWO_PI/3)*BALL_R*.30,finishMat(0xeef8e8,'ceramic'));
+   spoke.rotation.y=i*TWO_PI/3;
+  }
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(BALL_R*.34,BALL_R*.34,.048,32),
+   finishMat(0xe5f3da,'ceramic'));
+  finishGroup.add(hub);
  }else{
   for(const angle of [0,Math.PI/2]){
    const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.05,
@@ -3343,8 +3372,58 @@ function makeVelocity(p){
   vz:-Math.cos(aimYaw)*Math.cos(aimPitch)*speed
  };
 }
-// Identical aerodynamics drive the flight and prediction, never auto-steer.
+// A real flying disc requires its own flight state. The yaw determines
+// the direction of travel; bank is a separate roll around that direction.
+// The nested mesh rotates around its OWN normal while the disc glides.
+function newDiscFlightState(yaw=aimYaw){
+ return {age:0,spin:0,spinRate:20,nose:.115,
+  releaseBank:clamp(.025+yaw*.38,-.34,.34),
+  bank:clamp(.025+yaw*.38,-.34,.34),angleOfAttack:0,stalled:false};
+}
+// Both the dotted preview and live game call this same force solver.
 function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
+ if(projectileId==='frisbee'){
+  const disc=body.disc||(body.disc=newDiscFlightState(Math.atan2(body.vx,-body.vz)));
+  disc.age+=h;
+  const horizontal=Math.hypot(body.vx,body.vz),vertical=body.vy;
+  const speed=Math.hypot(horizontal,vertical);
+  const glide=clamp((horizontal-2.8)/5.5,0,1);
+  // Gyroscopic precession gives the disc a sustained bank. A gentle
+  // low-speed wobble builds as rotational stability is lost near a stall.
+  const bankTarget=disc.releaseBank+
+   .10*Math.sin(disc.age*.92)-.045*clamp(disc.age/3,0,1);
+  const instability=(1-glide)*.055*Math.sin(disc.age*13);
+  disc.bank+=((bankTarget+instability)-disc.bank)*Math.min(1,h*1.55);
+  const noseTarget=.115+.065*(1-glide);
+  disc.nose+=(noseTarget-disc.nose)*Math.min(1,h*.85);
+  const flightSlope=Math.atan2(vertical,Math.max(horizontal,.2));
+  const aoa=clamp(disc.nose-flightSlope,-.42,.60);
+  disc.angleOfAttack=aoa;disc.stalled=horizontal<4.2;
+  // Lift rises with forward airspeed squared and positive angle of
+  // attack. When speed falls away, lift collapses and the disc stalls.
+  const lift=clamp(horizontal*horizontal*
+   clamp(.071+.045*aoa,.035,.097),0,12.0)*glide;
+  // Bank tilts the lift vector, turning the flight path sideways. Right
+  // direction is measured from actual velocity, never from the cup.
+  const rightX=-body.vz/Math.max(horizontal,.01);
+  const rightZ=body.vx/Math.max(horizontal,.01);
+  const sideways=lift*Math.sin(disc.bank)*.60;
+  body.vx+=((windAt(t)+fan.x)*physicsProfile.air+
+   rightX*sideways)*h;
+  body.vz+=rightZ*sideways*h;
+  body.vy+=(fan.y*physicsProfile.air-GRAVITY+
+   lift*Math.cos(disc.bank))*h;
+  // Air resistance increases with speed and angle of attack. Gliding
+  // eventually slows the disc enough to descend instead of floating
+  // indefinitely; spring bounces still use physical rebound velocities.
+  const resistance=.038+.0026*speed+
+   .050*Math.max(0,aoa-.20);
+  const decay=Math.exp(-resistance*h);
+  body.vx*=decay;body.vy*=decay;body.vz*=decay;
+  disc.spinRate*=Math.exp(-.055*h);
+  disc.spin+=disc.spinRate*h;
+  return;
+ }
  body.vx+=(windAt(t)+fan.x)*physicsProfile.air*h;
  body.vy+=(fan.y*physicsProfile.air-GRAVITY+
   physicsProfile.lift*Math.min(1,Math.hypot(body.vx,body.vz)/9))*h;
@@ -3775,6 +3854,7 @@ function paintAim(){
  const p=charging?power:idealPower(),v=makeVelocity(p);
  const preview={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   wallHits:0,hoopsPassed:0,springHits:0,bankHits:0};
+ if(projectileId==='frisbee')preview.disc=newDiscFlightState();
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
  // Preview through both required springs on Level 50 and continue toward
@@ -3878,8 +3958,9 @@ function launch(){
  const v=makeVelocity(power);
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
+ if(projectileId==='frisbee')ball.disc=newDiscFlightState();
  shotT=0;shotStart=performance.now();
- el.status.textContent=physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
+ el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · BANK AND CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
  hear(880,.12,'sine',.045);message(projectileId==='ping'?'PONG!':'THROWN!',.55);
@@ -4123,8 +4204,17 @@ function tickFlight(dt){
  if(ballMesh){
   ballMesh.position.set(ball.x,ball.y,ball.z);
   if(projectileId==='frisbee'){
-   ballMesh.rotation.y+=dt*10;
-   ballMesh.rotation.z=Math.sin(shotT*5)*.11;
+   // Point the leading edge along the velocity and angle the flight
+   // plate into each actual bank; the nested rotor spins independently.
+   const disc=ball.disc;
+   const heading=Math.atan2(ball.vx,-ball.vz);
+   const speed=Math.hypot(ball.vx,ball.vz);
+   const wobble=disc?.stalled?.07*Math.sin(shotT*12):0;
+   ballMesh.rotation.set(
+    (disc?.nose??.12)+wobble,
+    heading,
+    -(disc?.bank??0), 'YXZ');
+   if(frisbeeRotor)frisbeeRotor.rotation.y=disc?.spin??0;
   }else{
    ballMesh.rotation.x+=dt*ball.vz*.6;
    ballMesh.rotation.z+=dt*ball.vx*.6;
@@ -4157,7 +4247,7 @@ function animate(now){
   if(flight){
    tickFlight(dt);
    // Ball surface and seam spin from the actual flight velocity.
-   if(ballMesh){
+   if(ballMesh&&projectileId!=='frisbee'){
     ballMesh.rotation.x-=ball.vz*dt*2.7;
     ballMesh.rotation.z+=ball.vx*dt*2.7;
     ballMesh.rotation.y+=ball.vy*dt*.45;
