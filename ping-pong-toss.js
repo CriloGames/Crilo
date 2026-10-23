@@ -3386,14 +3386,22 @@ function airForce(x,y,z,time){
  }
  return {x:clamp(fx,-9.0,9.0),y:clamp(fy,-9.0,9.0)};
 }
-function wallCollision(projectile,previousX,preview=false){
+function wallCollision(projectile,previous,preview=false){
  let collided=false;
  for(const w of wallPads){
-  const before=previousX-w.x,after=projectile.x-w.x;
+  const before=previous.x-w.x,after=projectile.x-w.x;
   const fromSide=before<0?-1:1;
   const crossed=before*fromSide>BALL_R&&after*fromSide<=BALL_R;
-  if(!crossed||Math.abs(projectile.z-w.z)>w.length*.5||
-     Math.abs(projectile.y-w.y)>w.height*.5)continue;
+  if(!crossed)continue;
+  // Check the actual crossing point, not the step endpoint: fast throws
+  // and the dotted guide must agree on wall-edge collisions.
+  const dx=projectile.x-previous.x;
+  if(Math.abs(dx)<.000001)continue;
+  const fraction=clamp((w.x+fromSide*BALL_R-previous.x)/dx,0,1);
+  const hitZ=lerp(previous.z,projectile.z,fraction);
+  const hitY=lerp(previous.y,projectile.y,fraction);
+  if(Math.abs(hitZ-w.z)>w.length*.5||
+     Math.abs(hitY-w.y)>w.height*.5)continue;
   projectile.x=w.x+fromSide*(BALL_R+.025);
   projectile.vx=-projectile.vx*.90;projectile.vz*=.97;projectile.vy+=.18;
   // A later wall cannot stand in for an earlier one, nor can repeatedly
@@ -3599,7 +3607,7 @@ function paintAim(){
     preview.vx+=(windAt(t)+fan.x)*h;
     preview.vy+=(fan.y-GRAVITY)*h;
     preview.x+=preview.vx*h;preview.y+=preview.vy*h;preview.z+=preview.vz*h;
-    if(wallCollision(preview,prior.x,true))noteImpact(t+h);
+    if(wallCollision(preview,prior,true))noteImpact(t+h);
     checkHoopCross(prior,preview,t+h,true);
     if(hoopRimCollision(preview,t+h,true))noteImpact(t+h);
     if(resolvePadAndPlatform(preview,prior,true,t+h))noteImpact(t+h);
@@ -3875,7 +3883,7 @@ function tickFlight(dt){
   ball.vy+=air.y*h;
   ball.vy-=GRAVITY*h;
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
-  wallCollision(ball,prevX);
+  wallCollision(ball,{x:prevX,y:prevY,z:prevZ});
   checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
   hoopRimCollision(ball,simTime);
   // Resolve the spring or its supporting tabletop BEFORE generic desks.
