@@ -1232,11 +1232,31 @@ function pulseBounceHalo(effect,time,impact=-10,active=true){
 }
 // Every stage has a different, short, family-friendly character reaction.
 // Speech is created on demand after a real user-controlled throw.
-const COWORKER_LINES=["Ow!","Oof!","Hey!","Watch it!","Not cool!","My coffee!","Seriously?","Easy there!","Ah, come on!","Whoa!","That smarts!","Who threw that?","I felt that!","Little warning?","Excuse me!","I just got here!","Quit it!","Rude!","My glasses!","I saw that!","Ouch, buddy!","Mind the face!","What was that?!","That's my elbow!","Not again!","I'm working!","Ball incoming!","Hey, I'm sitting here!","Give me a break!","That was close!","Ow, my shoulder!","You owe me coffee!","Could you not?!","That's gonna bruise!","What the heck!","Office hazard!","I'm telling HR!","Nice aim. Not!","That startled me!","I need a helmet!","Enough already!","Why me?","Please stop!","Right in the arm!","That's it, I quit!","Was that on purpose?","Oh, for crying out loud!","Great. Just great.","I have a meeting!","I'm going home!"];
+// Keep reactions believable: short things an actual surprised coworker
+// might say, not scripted one-liners. Every level still has unique dialogue.
+const COWORKER_LINES=["Ow!","Hey!","Ouch!","Whoa!","Watch it!","Seriously?","Come on!","Ow, dude!","Hey, careful!","What was that?","Not cool!","Knock it off!","Ah!","Oh, come on!","Yo!","That hurt!","Really?","Hey, buddy!","Dude!","Easy!","Stop!","Excuse me?","Ow, my arm!","Are you kidding?","What's your problem?","Careful!","Hey, watch out!","Oh, man!","That was rude!","Back off!","Hey, I'm here!","Why me?","Oof!","Not again!","Are you serious?","Ow, my head!","Who did that?","Jeez!","Hold on!","What the heck?","Hey, quit it!","Watch where you're throwing!","That's enough!","Don't do that!","Ow, my shoulder!","Man, really?","Really, dude?","Come on, man!","What's going on?","Okay, stop!"];
 function voiceForColleague(n){
- const voices=window.speechSynthesis?.getVoices?.()||[];
+ const synth=window.speechSynthesis;
+ const voices=synth?.getVoices?.()||[];
  const english=voices.filter(v=>/^en(?:[-_]|$)/i.test(v.lang));
- return english.length?english[(n*7+Math.floor(n/english.length))%english.length]:null;
+ if(!english.length)return null;
+ // Browser speech engines vary wildly. Prefer a small pool of clearer
+ // natural/enhanced English voices over 50 arbitrarily rotating voices.
+ const rank=v=>{
+  const name=v.name||'';
+  let score=/en[-_]US/i.test(v.lang)?3:0;
+  if(/premium|enhanced|natural|neural/i.test(name))score+=9;
+  if(/samantha|ava|allison|jenny|aria|davis|alex|guy|google us english/i.test(name))score+=7;
+  if(/compact|novelty|whisper|bad news|boing|bells|cellos|bubbles/i.test(name))score-=16;
+  if(v.default)score+=2;
+  return score;
+ };
+ const ranked=english.map((voice,index)=>({voice,index,score:rank(voice)}))
+  .sort((a,b)=>b.score-a.score||a.index-b.index);
+ // Use one strong voice by default, with a second only when similarly good.
+ const choices=ranked.length>1&&ranked[1].score>=ranked[0].score-2?
+  ranked.slice(0,2):ranked.slice(0,1);
+ return choices[(n-1)%choices.length].voice;
 }
 function speakColleague(n){
  if(!soundOn)return;
@@ -1246,16 +1266,17 @@ function speakColleague(n){
   if(synth&&typeof window.SpeechSynthesisUtterance==='function'){
    synth.cancel();
    const speech=new window.SpeechSynthesisUtterance(line);
-   speech.lang='en-US';speech.volume=.84;
-   speech.pitch=.78+(n%9)*.115;
-   speech.rate=.85+(n%7)*.052;
+   speech.lang='en-US';speech.volume=.77;
+   // A very small performance variation sounds more human than the old
+   // exaggerated 0.78–1.70 pitch spread / fast randomly chosen voices.
+   speech.pitch=.96+((n*3)%7)*.017;
+   speech.rate=.96+((n*5)%6)*.016;
    const voice=voiceForColleague(n);if(voice)speech.voice=voice;
    synth.speak(speech);return;
   }
  }catch{}
- // Some browsers disable speech synthesis. Preserve audible hit feedback.
- hear(230+(n%11)*28,.17,'sawtooth',.045);
- hear(165+(n%5)*24,.20,'triangle',.03);
+ // A brief, gentle reaction cue if speech is unsupported; no robotic chord.
+ hear(280+(n%6)*24,.12,'sine',.029);
 }
 function coworkerSpeechSprite(colleague,n){
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=144;
@@ -1282,7 +1303,7 @@ function coworkerSpeechSprite(colleague,n){
 function reactToColleague(person){
  if(!person||simTime<(person.userData.lastHit??-10)+1.2)return;
  person.userData.lastHit=simTime;
- person.userData.reactUntil=simTime+1.05;
+ person.userData.reactUntil=simTime+1.30;
  if(person.userData.speechBubble)person.userData.speechBubble.visible=true;
  speakColleague(person.userData.level);
 }
