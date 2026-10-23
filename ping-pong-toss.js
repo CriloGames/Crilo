@@ -2709,11 +2709,14 @@ function airForce(x,y,z,time){
   const flow=Math.pow(1-radial,1.18)*(.96-.28*progress)*
    (.86+.14*Math.sin(time*6.2+f.phase));
   // Air applies a noticeable acceleration only inside the visible plume.
-  const push=f.power*flow*6.2;
+  // Stage-safe fan force. The previous 6.2 multiplier could impart more
+  // lateral velocity than the entire controllable throw, making some late
+  // stages impossible. Keep the push visible but strictly recoverable.
+  const push=Math.min(8.6,f.power*flow*2.65);
   if(f.kind==='lift'){fy+=push;fx+=f.side*push*.12;}
   else{fx+=f.dir*push;fy+=push*.09;}
  }
- return {x:fx,y:fy};
+ return {x:clamp(fx,-9.0,9.0),y:clamp(fy,-9.0,9.0)};
 }
 function wallCollision(projectile,previousX,preview=false){
  let collided=false;
@@ -3130,6 +3133,11 @@ function tickFlight(dt){
    el.wind.hidden=false;
    el.windLabel.textContent=air.y>Math.abs(air.x)?
     'UPDRAFT LIFTING ↑':(air.x>0?'FAN PUSHING →':'← FAN PUSHING');
+  }else if(step===0){
+   el.wind.hidden=Math.abs(settings.wind)<.001&&!settings.fanZone;
+   if(!el.wind.hidden)el.windLabel.textContent=
+    settings.fanZone?.kind==='lift'?'UPDRAFT NEARBY ↑':
+    settings.fanZone||Math.abs(settings.wind)>.001?'WATCH THE WIND':'';
   }
   ball.vx+=(windAt(simTime)+air.x)*h;
   ball.vy+=air.y*h;
