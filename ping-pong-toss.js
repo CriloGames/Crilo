@@ -637,7 +637,7 @@ function loadLevel(n){
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const objective=levelInstructions(settings);
  const introText=physicsProfile.name+' · '+physicsProfile.hint+'. '+
-   (projectileId==='frisbee'?'Throw a shallow, spinning disc: its bank changes the curve and it drops when it loses speed. ':'')+
+   (projectileId==='frisbee'?'Lean left to curve LEFT, or lean right to curve RIGHT; keep it level for a straight flight. The disc drops as it slows. ':'')+
   (settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
@@ -3415,8 +3415,9 @@ function makeVelocity(p){
 // the direction of travel; bank is a separate roll around that direction.
 // The nested mesh rotates around its OWN normal while the disc glides.
 function newDiscFlightState(yaw=aimYaw){
- // Real player-selected bank is independent from the aiming yaw.
- const bank=clamp(frisbeeTilt+.025+yaw*.16,-.83,.83);
+ // Exactly level at 0 degrees, with no secret turn caused by aiming.
+ // Q/E and the tilt slider set the SIGN and strength of the curve.
+ const bank=clamp(frisbeeTilt,-.83,.83);
  return {age:0,spin:0,spinRate:20,nose:.115,
   releaseBank:bank,bank,angleOfAttack:0,stalled:false};
 }
@@ -3430,8 +3431,11 @@ function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
   const glide=clamp((horizontal-2.8)/5.5,0,1);
   // Gyroscopic precession gives the disc a sustained bank. A gentle
   // low-speed wobble builds as rotational stability is lost near a stall.
+  // Maintain the chosen left/right lean during the whole flight. Gentle
+  // spin precession is proportional to the lean, so a level disc flies
+  // straight in still air instead of drifting right by default.
   const bankTarget=disc.releaseBank+
-   .10*Math.sin(disc.age*.92)-.045*clamp(disc.age/3,0,1);
+   .024*Math.sin(disc.age*.92)*clamp(Math.abs(disc.releaseBank)*2,0,1);
   const instability=(1-glide)*.055*Math.sin(disc.age*13);
   disc.bank+=((bankTarget+instability)-disc.bank)*Math.min(1,h*1.55);
   const noseTarget=.115+.065*(1-glide);
@@ -3447,7 +3451,10 @@ function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
   // direction is measured from actual velocity, never from the cup.
   const rightX=-body.vz/Math.max(horizontal,.01);
   const rightZ=body.vx/Math.max(horizontal,.01);
-  const sideways=lift*Math.sin(disc.bank)*.60;
+  // Side force from tilted lift plus gyroscopic turning. The previous
+  // *.60 coefficient made bank hardly noticeable in a short throw.
+  // This generates a visible curved path without snapping toward the cup.
+  const sideways=(lift*.98+horizontal*.12)*Math.sin(disc.bank);
   body.vx+=((windAt(t)+fan.x)*physicsProfile.air+
    rightX*sideways)*h;
   body.vz+=rightZ*sideways*h;
@@ -3987,9 +3994,9 @@ function updateFrisbeeControls(){
  if(!enabled)return;
  const degrees=Math.round(frisbeeTilt*180/Math.PI);
  el.discTilt.value=String(degrees);
- el.discTiltValue.textContent=degrees===0?'LEVEL':(degrees>0?'RIGHT ':'LEFT ')+Math.abs(degrees)+'°';
+ el.discTiltValue.textContent=degrees===0?'STRAIGHT':(degrees>0?'RIGHT ':'LEFT ')+Math.abs(degrees)+'°';
  el.discTilt.setAttribute('aria-valuetext',
-  degrees===0?'Level flight':Math.abs(degrees)+' degrees '+(degrees>0?'right':'left')+' bank');
+  degrees===0?'Straight flight':Math.abs(degrees)+' degrees bank, curves '+(degrees>0?'right':'left'));
  el.discTilt.disabled=flight;
 }
 function setFrisbeeTilt(degrees){
@@ -4062,7 +4069,7 @@ function launch(){
  if(projectileId==='frisbee')ball.disc=newDiscFlightState();
  updateFrisbeeControls();
  shotT=0;shotStart=performance.now();
- el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · BANK & CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
+ el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · TILT STEERS THE CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
  hear(880,.12,'sine',.045);message(projectileId==='ping'?'PONG!':'THROWN!',.55);
