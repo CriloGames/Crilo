@@ -22,7 +22,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,frisbeeRotor=null,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],physicsMovingOwners=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,LAUNCH_Z=4.25,LAUNCH_Y=1.32;
 let GRAVITY=10.65,BALL_R=.095;
@@ -2009,7 +2009,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
+ obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];physicsMovingOwners=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
  const sets=[
   {walls:0xc7d4cf,carpet:0x738981,desk:0xc49c7c,trim:0x436977,name:'THE CUBICLE'},
   {walls:0xd8cbb9,carpet:0x7b8c86,desk:0xc29a77,trim:0x536d79,name:'MEETING ROOM'},
@@ -3013,7 +3013,7 @@ function buildWorld(){
     detailBox(mount,.027,.19,.023,dx,midY,-.18,guide);
    }
   }
-  obstacles.push({type:'barrier',style,obj:g,support:mount,x,y:midY,z,
+  obstacles.push({type:'barrier',style,obj:g,support:mount,warningMat:warning,x,y:midY,z,
    w:shutter?1.05:1.14,h:shutter?.52:.31,d:.24,
    centerX:x,centerY:midY,amp,speed:.72+i*.18+settings.tier*.035,
    phase:i*1.8+settings.n*.17});
@@ -3531,7 +3531,7 @@ function buildPhysicsBodies(){
  const moving=new Map();
  for(const obstacle of obstacles)if(obstacle.type==='barrier')
   obstacle.obj.traverse(m=>{if(m.isMesh)moving.set(m,obstacle);});
- physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];
+ physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];physicsMovingOwners=[];
  group.traverse(mesh=>{
   if(!mesh.isMesh||!mesh.geometry||mesh.userData.decorative)return;
   for(let p=mesh;p;p=p.parent)if(!p.visible||skip.includes(p))return;
@@ -3565,6 +3565,8 @@ function buildPhysicsBodies(){
    physicsGrid.get(key).push(item);
   }
  }
+ // Store the distinct dynamic collision owners once, not each frame.
+ physicsMovingOwners=[...new Set(physicsMoving.map(item=>item.owner))];
 }
 function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  surfaceX=0,surfaceY=0,surfaceZ=0,preview=false){
@@ -4264,6 +4266,9 @@ function tickObstacles(time){
  for(const obj of obstacles){
   if(obj.type==='barrier'){
    const wave=Math.sin(t*obj.speed+obj.phase);
+   // Amber trim breathes subtly along with a moving hazard.
+   if(obj.warningMat)obj.warningMat.emissiveIntensity=
+    .20+.20*(.5+.5*Math.sin(t*2.7+obj.phase));
    if(obj.style==='panel'){
     obj.y=obj.centerY+wave*.82;
     obj.obj.position.y=obj.y;
@@ -4273,13 +4278,11 @@ function tickObstacles(time){
    }
   }
  }
- // Only animated meshes need their collision bounds rebuilt.
- const activeOwners=new Set();
- for(const p of physicsBodies)if(p.owner)activeOwners.add(p.owner);
- for(const owner of activeOwners)owner.obj.updateMatrixWorld(true);
- for(const p of physicsBodies)if(p.owner){
-  p.box.copy(p.local).applyMatrix4(p.mesh.matrixWorld);
- }
+ // Only real moving hazards need their collision bounds rebuilt. Their
+ // collision meshes follow the actual visible blocker every frame.
+ for(const owner of physicsMovingOwners)owner.obj.updateMatrixWorld(true);
+ for(const body of physicsMoving)
+  body.box.copy(body.local).applyMatrix4(body.mesh.matrixWorld);
 }
 function collideObstacles(){
  // A collision changes the ball's velocity. Furniture is not a fail trigger.
