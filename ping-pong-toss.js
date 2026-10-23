@@ -125,7 +125,7 @@ const STAGES=[
  ['First Spring',3,'counter',6.30,-.16,1.22,.43,3,'spring','still',0,'lunch',[['plant',.46,1.20]],[]],
  ['Rubber Return',2,'trolley',6.52,.28,1.41,.42,2,'spring','slide',0,'packages',[['files',.35,-1.16]],[]],
  ['Spring Ladder',5,'shelf',6.93,-1.02,1.68,.41,4,'spring','lift',.09,'archive',[['books',.37,1.25]],[]],
- ['Double Bounce Desk',4,'drawer',7.18,1.21,1.32,.41,1,'spring','depth',-.12,'dualmonitors',[['screen',.33,-1.22]],[]],
+ ['Ricochet Corridor',4,'drawer',7.18,1.21,1.32,.41,1,'direct','depth',-.12,'dualmonitors',[['screen',.33,-1.22]],[]],
  ['Vent and Spring',9,'cabinet',7.52,-1.38,1.59,.40,5,'spring','orbit',.17,'airvent',[['partition',.39,1.34]],[]],
  ['Cafeteria Chaos',3,'counter',7.75,.74,1.42,.40,3,'spring','figure8',-.19,'kettle',[['teapot',.40,-1.20]],[['panel',.67,.30,1.45]]],
  ['Spring Ring Combo',0,'trolley',8.06,-.81,1.58,.40,2,'spring','slide',.22,'folders',[['monitor',.36,1.36]],[['drawer',.70,-.48,1.52]]],
@@ -150,11 +150,18 @@ const SPECIALS={
  36:{wall:{side:1}},40:{wall:{side:1}},
  35:{hoops:2,hoopMove:true},
  38:{fan:{kind:'lift',side:-1,power:4.1},hoops:1},
- 42:{fan:{kind:'lift',side:1,power:3.1}},
- 46:{fan:{kind:'cross',side:1,power:.95}},
+ 42:{fan:{kind:'lift',side:1,power:4.7}},
+ 44:{walls:[{side:-1,fraction:.27,x:1.55,length:2.70},{side:1,fraction:.74,x:1.55,length:2.70}]},
+ 46:{fan:{kind:'cross',side:1,power:3.4}},
  47:{hoops:2,hoopMove:true},
- 49:{fan:{kind:'cross',side:-1,power:2.8},hoops:1},
+ 49:{fan:{kind:'cross',side:-1,power:4.2},hoops:1},
  50:{hoops:2,hoopMove:true}
+};
+// Late stages intentionally place pads at different distances and laterals.
+// The multi-pad stages require physical hits on separate carts in sequence.
+const FINAL_PAD_LAYOUTS={
+ 41:[.71],42:[.59],43:[.38,.84],45:[.80],46:[.71],
+ 47:[.64],48:[.40,.86],49:[.76],50:[.36,.82]
 };
 const NEW_TRICKS={
  1:'FIRST THROW',3:'MOVING CUP',4:'THROUGH THE HOOP',5:'RUBBER BANK',6:'DESK-FAN WIND',7:'AIR JET',
@@ -162,7 +169,8 @@ const NEW_TRICKS={
  18:'MOVING HOOP',21:'PULSING GUSTS',22:'WALL RICOCHET',24:'WIND + LIFT',26:'UPDRAFT',28:'DOUBLE HOOP',
  27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',35:'DOUBLE MOVING HOOPS',
  37:'DOUBLE TIMING',38:'UPDRAFT + HOOP',41:'SPRING RETURN',45:'SPRING + LID',47:'MOVING RING GAUNTLET',
- 48:'TIGHT SPRING PRECISION',49:'SPRING THROUGH THE HOOP',50:'FINAL HOOP GAUNTLET'
+ 43:'DOUBLE SPRING RUN',44:'TWO WALL BANKS',46:'FAR PAD + CROSSWIND',
+ 48:'DOUBLE SPRING PRECISION',49:'SPRING THROUGH THE HOOP',50:'DOUBLE SPRING FINALE'
 };
 function stageDifficulty(n,spec){
  // Explicitly communicate escalating complexity without applying artificial
@@ -180,19 +188,23 @@ function stageSettings(n){
  const bankRequired=shot==='bank',springRequired=shot==='spring';
  const motionPower=motion==='still'?0:.29+Math.min(4,c)*.055+(tier%3)*.06;
  const special=SPECIALS[n]||{};
+ const springFractions=springRequired?(FINAL_PAD_LAYOUTS[n]||[.50]):[];
+ const wallPlan=special.walls||(special.wall?
+  [{side:special.wall.side,fraction:.52,x:2.16,length:3.65}]:[]);
  return {
   n,c,tier,challenge,sceneId,station,d,x,topPad,radius,kind,
   newTrick:NEW_TRICKS[n]||null,
   hoops:special.hoops||0,hoopMove:!!special.hoopMove,
-  wall:special.wall||null,fanZone:special.fan||null,
+  wall:special.wall||special.walls?.[0]||null,wallPlan,wallCount:wallPlan.length,
+  fanZone:special.fan||null,
   targetZ:LAUNCH_Z-d,shot,motion,moving:motionPower,wind,
   feature,obstaclePlan,barrierPlan,barrierCount:barrierPlan.length,
   // Every bounce has its own visible, predetermined launch position.
-  bankRequired,springRequired,padCount:springRequired?1:0,
+  bankRequired,springRequired,padCount:springFractions.length,springFractions,
   lid:[16,20,27,34,40,45,50].includes(n),
   gust:[21,24,28,33,37,43,46,49].includes(n),
   bankX:x*.41,bankZ:LAUNCH_Z-d*.68,
-  springX:0,springZ:LAUNCH_Z-.45-d*.5,
+  springX:0,springZ:LAUNCH_Z-d*(springFractions[0]||.5),
   roomVariant:tier>=5?1:0,
   color:chapter(n).color,targetHeight:[.55,.59,.68,.47,.63,.66,.57][kind]
  };
