@@ -458,24 +458,56 @@ function roundedPoster(parent,text,x,y,z,colorText='#fef0c0'){
 }
 function desk(parent,x,z,w,d,h,top,legs){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
- meshBox(g,w,.18,d,0,h,0,top);
- for(const sx of [-1,1])for(const sz of [-1,1])
-  meshBox(g,.11,h-.13,.11,sx*(w/2-.19),(h-.18)/2,sz*(d/2-.22),legs);
- meshBox(g,w*.88,.075,d*.82,0,h-.21,0,legs);
+ // Soft worktop overhang, laminated edge and a narrow metal frame.
+ meshBox(g,w,.19,d,0,h,0,top);
+ const edge=createMat(0x8b796b,.57,.16),under=createMat(0x475d65,.54,.38);
+ meshBox(g,w*.956,.043,d*.963,0,h-.126,0,edge);
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  const lx=sx*(w/2-.22),lz=sz*(d/2-.23);
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.069,.079,Math.max(.15,h-.20),12),legs);
+  leg.position.set(lx,(h-.20)/2,lz);leg.castShadow=true;g.add(leg);
+  const foot=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.055,12),
+   createMat(0x303d44,.9,.08));
+  foot.position.set(lx,.032,lz);g.add(foot);
+ }
+ meshBox(g,w*.87,.075,d*.08,0,h-.25,-d*.40,under);
+ meshBox(g,w*.87,.075,d*.08,0,h-.25,d*.40,under);
+ // A real drawer pull and seam, not a floating flat rectangle.
+ if(w<7){
+  const drawerW=Math.min(.9,w*.45);
+  meshBox(g,drawerW,.20,.045,w*.23,h-.34,d*.42,top);
+  meshBox(g,drawerW*.26,.034,.046,w*.23,h-.34,d*.46,
+   createMat(0xc1ced0,.30,.55));
+ }
  return g;
 }
 function plant(parent,x,z,h=.92){
- const pot=createMat(0xa17462),soil=createMat(0x504439);
- const leaf=createMat(0x4b7968),leaf2=createMat(0x6b9479);
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
- const p=new THREE.Mesh(new THREE.CylinderGeometry(.28,.22,.42,13),pot);
- p.position.y=.22;g.add(p);
- const dirt=new THREE.Mesh(new THREE.CylinderGeometry(.26,.26,.045,12),soil);
- dirt.position.y=.43;g.add(dirt);
- for(let i=0;i<8;i++){
-  const blade=new THREE.Mesh(new THREE.ConeGeometry(.14,h*.78,6),i%2?leaf:leaf2);
-  blade.position.set(Math.sin(i*2.4)*.19,.44+h*.39,Math.cos(i*2.4)*.19);
-  blade.rotation.z=(Math.sin(i*2.1))*.38;blade.rotation.x=(Math.cos(i*2.1))*.30;g.add(blade);
+ const pot=createMat(0xb88771,.72),lip=createMat(0xd1a28a,.62);
+ const soil=createMat(0x514a3e,.95),stem=createMat(0x527966,.75);
+ const leaves=[
+  createMat(0x638b70,.76),createMat(0x7ba58a,.77),
+  createMat(0x456c60,.72),createMat(0x91b19a,.76)
+ ];
+ const vessel=new THREE.Mesh(new THREE.CylinderGeometry(.29,.21,.45,24),pot);
+ vessel.position.y=.225;vessel.castShadow=true;vessel.receiveShadow=true;g.add(vessel);
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(.291,.032,9,30),lip);
+ rim.rotation.x=Math.PI/2;rim.position.y=.44;g.add(rim);
+ const dirt=new THREE.Mesh(new THREE.CylinderGeometry(.266,.266,.023,20),soil);
+ dirt.position.y=.429;g.add(dirt);
+ const stalk=new THREE.Mesh(new THREE.CylinderGeometry(.035,.047,h*.74,10),stem);
+ stalk.position.y=.45+h*.37;g.add(stalk);
+ // Layered curved foliage catches highlights instead of 8 rigid cones.
+ for(let i=0;i<13;i++){
+  const angle=i*2.39996,layer=i%3,reach=.16+(i%4)*.075;
+  const leaf=new THREE.Mesh(new THREE.SphereGeometry(.21,12,8),
+   leaves[(i+layer)%leaves.length]);
+  leaf.scale.set(.53,.27+layer*.09,1.14);
+  const yy=.48+h*(.44+(i%5)*.08);
+  leaf.position.set(Math.cos(angle)*reach,yy,Math.sin(angle)*reach);
+  leaf.rotation.y=angle+.2;leaf.rotation.z=Math.cos(angle)*.55;
+  leaf.rotation.x=-Math.sin(angle)*.34;
+  leaf.castShadow=true;g.add(leaf);
  }
  return g;
 }
@@ -671,13 +703,37 @@ function officeColleague(parent,x,z,n){
 }
 function officeChair(parent,x,z){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
- const dark=createMat(0x44555b,.72,.06),silver=createMat(0x9fa8a7,.4,.45);
- meshBox(g,.88,.19,.74,0,.75,0,dark);
- meshBox(g,.88,1.02,.16,0,1.19,.35,dark);
- meshBox(g,.06,.65,.07,0,.41,0,silver);
- for(const a of [0,1.26,2.52,3.78,5.04]){
-  const foot=meshBox(g,.09,.09,.67,Math.sin(a)*.24,.08,Math.cos(a)*.24,silver);
-  foot.rotation.y=a;
+ const frame=createMat(0x697c86,.39,.50),upholstery=createMat(0x657b83,.83),
+  padding=createMat(0x79949c,.94),rubber=createMat(0x293e49,.92);
+ // Upholstered shaped seat and reclined back with visible curved cushioning.
+ const seat=meshBox(g,.92,.17,.79,0,.74,0,upholstery);
+ seat.rotation.x=-.04;
+ const seatCushion=new THREE.Mesh(new THREE.SphereGeometry(.48,22,14),padding);
+ seatCushion.scale.set(.94,.21,.78);seatCushion.position.set(0,.849,-.04);
+ seatCushion.castShadow=true;g.add(seatCushion);
+ const back=meshBox(g,.94,1.02,.19,0,1.36,.34,upholstery);
+ back.rotation.x=.13;
+ const backPad=new THREE.Mesh(new THREE.SphereGeometry(.48,20,16),padding);
+ backPad.scale.set(.88,.91,.18);backPad.position.set(0,1.34,.210);
+ backPad.rotation.x=.10;backPad.castShadow=true;g.add(backPad);
+ // Curved arm supports, chrome lift, five-spoke base and caster wheels.
+ for(const side of [-1,1]){
+  const arm=meshBox(g,.13,.11,.62,side*.51,.91,-.02,upholstery);
+  arm.rotation.y=side*.09;
+  const post=new THREE.Mesh(new THREE.CylinderGeometry(.045,.053,.36,12),frame);
+  post.position.set(side*.51,.71,.04);g.add(post);
+ }
+ const piston=new THREE.Mesh(new THREE.CylinderGeometry(.06,.075,.55,14),frame);
+ piston.position.set(0,.38,0);g.add(piston);
+ const hub=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.12,20),frame);
+ hub.position.y=.19;g.add(hub);
+ for(let i=0;i<5;i++){
+  const a=i*Math.PI*2/5,px=Math.sin(a)*.38,pz=Math.cos(a)*.38;
+  const spoke=meshBox(g,.13,.08,.53,px*.45,.145,pz*.45,frame);
+  spoke.rotation.y=-a;
+  const caster=new THREE.Mesh(new THREE.CylinderGeometry(.094,.094,.08,12),rubber);
+  caster.rotation.z=Math.PI/2;caster.position.set(px,.083,pz);
+  caster.castShadow=true;g.add(caster);
  }
  return g;
 }
