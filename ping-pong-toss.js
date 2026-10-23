@@ -1371,8 +1371,13 @@ function buildWorld(){
   }
  }
  target={x:settings.x,z:settings.targetZ,y:.19+settings.topPad,top:.19+settings.topPad+h,r,kind};
- // The tray/pad follows lateral target motion, not the entire desk.
- meshBox(cupGroup,r*2.5,.09,r*2.5,0,-.10,0,cream);
+ // A rounded ceramic coaster moves with the cup instead of a square slab.
+ const saucer=new THREE.Mesh(new THREE.CylinderGeometry(r*1.27,r*1.31,.092,48),
+  createMat(0xf1e6d4,.43,.07));
+ saucer.position.y=-.095;saucer.receiveShadow=true;cupGroup.add(saucer);
+ const saucerRim=new THREE.Mesh(new THREE.TorusGeometry(r*1.23,.019,8,48),
+  createMat(0xd5bca3,.31,.11));
+ saucerRim.rotation.x=Math.PI/2;saucerRim.position.y=-.045;cupGroup.add(saucerRim);
  // A lively original coworker anchors the office perspective. Always
  // placed on the opposite side from the target so they never hide its rim.
  // Outfit and desk pose change by stage rather than repeating one backdrop.
@@ -1384,14 +1389,11 @@ function buildWorld(){
   ambient.push({type:'colleague',obj:colleague});
   officeChair(group,coworkerX,coworkerZ+.43);
   const desktop=meshBox(group,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
-  const cup=createMat(0xb8a18d,.58,.05);
-  const coworkerMug=new THREE.Mesh(new THREE.CylinderGeometry(.13,.115,.20,12),cup);
-  coworkerMug.position.set(coworkerX+((level%2)?-.68:.68),1.25,coworkerZ-.38);
-  group.add(coworkerMug);
+  officeMug(group,coworkerX+((level%2)?-.68:.68),1.15,
+   coworkerZ-.38,0xb8a18d,.73);
  }
- const targetMarker=new THREE.Mesh(new THREE.PlaneGeometry(1.50,.36),
-  makeText('YOUR TARGET',31,'#fff0da','#40505b'));
- targetMarker.position.set(settings.x+1.05,settings.topPad+1.72,settings.targetZ-1.20);group.add(targetMarker);
+ // The cup's warm rim and coaster identify the target; no floating sign
+ // obscures the throw trajectory or turns the 3D scene into a HUD.
  // Every level gets its own recognizable environmental centerpiece,
  // positioned to the SIDE of the goal so visual variety never hides the cup.
  const feature=new THREE.Group();
@@ -2589,7 +2591,15 @@ function animate(now){
   simTime+=dt;
   tickObstacles(simTime*1000);
   if(charging)chargeTick(now);
-  if(flight)tickFlight(dt);
+  if(flight){
+   tickFlight(dt);
+   // Ball surface and seam spin from the actual flight velocity.
+   if(ballMesh){
+    ballMesh.rotation.x-=ball.vz*dt*2.7;
+    ballMesh.rotation.z+=ball.vx*dt*2.7;
+    ballMesh.rotation.y+=ball.vy*dt*.45;
+   }
+  }
   // Recompute the predicted arc against the target's current movement.
   if(simTime>4.2&&el.viewport.dataset.showTip==='yes')el.viewport.dataset.showTip='no';
   if(!flight&&now-lastAimRefresh>75){
