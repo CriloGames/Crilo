@@ -1286,9 +1286,22 @@ function separateBlockersOnScreen(){
  for(const ob of [...obstacles].sort((a,b)=>b.z-a.z)){
   if(ob.sourceX===undefined)ob.sourceX=ob.type==='barrier'?ob.centerX:ob.x;
   const authoredX=ob.sourceX;
+  // Moving shutters are part of the puzzle, not decoration. Never shift
+  // their motion rails just because the current camera projects them near
+  // the target: that can silently close the only playable trajectory.
+  if(ob.type==='barrier'){
+   ob.obj.updateWorldMatrix(true,true);
+   const original=screenRect(new THREE.Box3().setFromObject(ob.obj));
+   if(original)separated.push(original);
+   continue;
+  }
+  // Optional props may only move OUTWARD from the flight corridor.
+  // The old symmetric adjustment could move a cabinet INTO the ball route.
+  const corridorX=settings.x*clamp((LAUNCH_Z-ob.z)/settings.d,0,1);
+  const direction=Math.sign(authoredX-corridorX)||Math.sign(authoredX)||1;
   let best={score:Infinity,x:authoredX,rect:null};
-  for(const dx of [0,-.24,.24,-.48,.48,-.76,.76,-1.03,1.03]){
-   const x=authoredX+dx;
+  for(const amount of [0,.24,.48,.76,1.03]){
+   const dx=direction*amount,x=authoredX+dx;
    if(Math.abs(x)>3.65)continue;
    ob.obj.position.x=x;
    if(ob.support)ob.support.position.x=x;
@@ -1331,6 +1344,10 @@ function validateLevelReadability(){
   pad.x,pad.y,pad.z,pad.r+.23,.28,pad.r+.23)),weight:7});
  if(wallPad)protectedRects.push({rect:screenRect(bounds(
   wallPad.x,wallPad.y,wallPad.z,.19,wallPad.height/2,wallPad.length/2)),weight:7});
+ for(const stream of fanFields)protectedRects.push({
+  rect:screenRect(bounds(stream.x,stream.y,stream.z,.72,.70,.65)),
+  weight:4
+ });
  for(const obstruction of obstacles)protectedRects.push({
   rect:screenRect(new THREE.Box3().setFromObject(obstruction.obj)),
   weight:obstruction.type==='barrier'?3:1.5});
@@ -1656,6 +1673,7 @@ function buildWorld(){
   farDesk.add(stem);
   const base=new THREE.Mesh(new THREE.CylinderGeometry(.43,.48,.11,36),foot);
   base.position.y=.08;base.castShadow=true;farDesk.add(base);
+  softContactShadow(group,settings.x,.013,settings.targetZ,.80,.80);
   const circularTop=new THREE.Mesh(new THREE.CylinderGeometry(.63,.58,.13,48),pedestal);
   circularTop.position.y=stationY;circularTop.castShadow=true;
   circularTop.receiveShadow=true;farDesk.add(circularTop);
@@ -2308,6 +2326,7 @@ function buildWorld(){
  // draft is retained so existing wind levels keep their authored difficulty.
  if(Math.abs(settings.wind)>.001){
   const side=settings.wind>=0?-1:1,z=LAUNCH_Z-settings.d*.50;
+  softContactShadow(group,side*2.75,.018,z,.88,.74);
   const fan=officeFan(group,side*2.75,z,metal,-side*Math.PI/2,'cross');
   ambient.push({type:'fan',obj:fan});
   addFanJet({kind:'cross',side,power:1.3+Math.abs(settings.wind)*4.5},
@@ -2424,6 +2443,7 @@ function buildWorld(){
   const spec=settings.fanZone,z=LAUNCH_Z-settings.d*.52;
   const x=spec.kind==='lift'?settings.x*.43:spec.side*2.75;
   const yaw=spec.kind==='lift'?0:-spec.side*Math.PI/2;
+  softContactShadow(group,x,.018,z,.90,.77);
   const device=officeFan(group,x,z,createMat(0x7998a2,.34,.40),yaw,spec.kind);
   ambient.push({type:'fan',obj:device});
   airZone=addFanJet(spec,x,z,device,spec.kind==='lift'?'UPDRAFT':'SIDE JET');
