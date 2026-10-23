@@ -638,7 +638,7 @@ function loadLevel(n){
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const objective=levelInstructions(settings);
  const introText=physicsProfile.name+' · '+physicsProfile.hint+'. '+
-   (projectileId==='frisbee'?'Lean left to curve LEFT, or lean right to curve RIGHT; keep it level for a straight flight. The disc drops as it slows. ':'')+
+   (projectileId==='frisbee'?'Lean left or right to curve the throw. Every rebound can change the disc’s bank, nose and spin, altering its next flight. ':'')+
   (settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
