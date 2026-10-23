@@ -708,17 +708,31 @@ function plant(parent,x,z,h=.92){
  dirt.position.y=.429;g.add(dirt);
  const stalk=new THREE.Mesh(new THREE.CylinderGeometry(.035,.047,h*.74,10),stem);
  stalk.position.y=.45+h*.37;g.add(stalk);
- // Layered curved foliage catches highlights instead of 8 rigid cones.
- for(let i=0;i<13;i++){
-  const angle=i*2.39996,layer=i%3,reach=.16+(i%4)*.075;
-  const leaf=new THREE.Mesh(new THREE.SphereGeometry(.21,12,8),
-   leaves[(i+layer)%leaves.length]);
-  leaf.scale.set(.53,.27+layer*.09,1.14);
-  const yy=.48+h*(.44+(i%5)*.08);
-  leaf.position.set(Math.cos(angle)*reach,yy,Math.sin(angle)*reach);
-  leaf.rotation.y=angle+.2;leaf.rotation.z=Math.cos(angle)*.55;
-  leaf.rotation.x=-Math.sin(angle)*.34;
-  leaf.castShadow=true;g.add(leaf);
+ // Tapered leaves have a real swept silhouette, stem and central vein,
+ // rather than lumpy ellipsoids. The same grounded planter is still used.
+ const leafShape=new THREE.Shape();
+ leafShape.moveTo(0,0);
+ leafShape.bezierCurveTo(-.145,.09,-.17,.36,0,.55);
+ leafShape.bezierCurveTo(.18,.36,.14,.09,0,0);
+ const leafGeometry=new THREE.ExtrudeGeometry(leafShape,{
+  depth:.018,steps:1,bevelEnabled:true,bevelThickness:.012,
+  bevelSize:.010,bevelSegments:2,curveSegments:10
+ });
+ const vein=createMat(0x4c7a65,.81);
+ for(let i=0;i<10;i++){
+  const angle=i*2.39996,layer=i%3,reach=.14+(i%4)*.065,
+   yy=.48+h*(.32+(i%5)*.09);
+  const branch=new THREE.Group();
+  branch.position.set(Math.cos(angle)*reach,yy,Math.sin(angle)*reach);
+  branch.rotation.y=angle;branch.rotation.z=(i%2?.38:-.32);
+  g.add(branch);
+  const leaf=new THREE.Mesh(leafGeometry,leaves[i%leaves.length]);
+  leaf.scale.set(.80+layer*.09,.75+layer*.06,1);
+  leaf.rotation.x=(i%3-1)*.13;leaf.castShadow=true;branch.add(leaf);
+  const midrib=new THREE.Mesh(new THREE.CylinderGeometry(.009,.012,.40,6),vein);
+  midrib.position.set(0,.23,-.014);midrib.castShadow=false;branch.add(midrib);
+  const stalkSide=new THREE.Mesh(new THREE.CylinderGeometry(.012,.016,.21,7),stem);
+  stalkSide.position.set(0,-.075,.02);branch.add(stalkSide);
  }
  return g;
 }
@@ -1313,13 +1327,13 @@ function buildWorld(){
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
-  {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
-  {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
-  {walls:0x9dabb6,carpet:0x5c727b,desk:0xb39377,trim:0x4c727e,name:'MAILROOM'},
-  {walls:0xb8b3a0,carpet:0x758078,desk:0xbb8e72,trim:0x6e7166,name:'BREAK ROOM'},
+  {walls:0xc7d4cf,carpet:0x738981,desk:0xc49c7c,trim:0x436977,name:'THE CUBICLE'},
+  {walls:0xd8cbb9,carpet:0x7b8c86,desk:0xc29a77,trim:0x536d79,name:'MEETING ROOM'},
+  {walls:0xc4d2d7,carpet:0x6d8392,desk:0xbfa080,trim:0x4c7283,name:'MAILROOM'},
+  {walls:0xe0d9c5,carpet:0x899186,desk:0xc8a28b,trim:0x73796a,name:'BREAK ROOM'},
   {walls:0x728c9c,carpet:0x495f74,desk:0x9f8166,trim:0x3c6173,name:'NIGHT SHIFT'},
   {walls:0xa5a096,carpet:0x686260,desk:0xb19677,trim:0x70635e,name:'ARCHIVE'},
-  {walls:0xb4c2b8,carpet:0x607a71,desk:0xc7a47e,trim:0x477976,name:'RECEPTION'},
+  {walls:0xd4ddd2,carpet:0x78958a,desk:0xcdb18f,trim:0x477976,name:'RECEPTION'},
   {walls:0xb1a8a2,carpet:0x656273,desk:0xbca283,trim:0x6e5b65,name:'AWARDS OFFICE'},
   {walls:0xa1afb0,carpet:0x5c7073,desk:0xb09775,trim:0x5a737b,name:'SHIPPING DOCK'},
   {walls:0x667e91,carpet:0x42586b,desk:0x977f6d,trim:0x416a80,name:'SERVER ROOM'}
@@ -2427,11 +2441,11 @@ function buildWorld(){
  const cameraHeight=2.20+(settings.tier%4)*.065;
  camera.position.set(cameraOffsets[settings.sceneId],cameraHeight,
   7.87+(settings.tier%3)*.14);
- camera.lookAt(settings.x*.29,1.61,settings.targetZ*.60);
+ camera.lookAt(settings.x*.42,1.64,settings.targetZ*.67);
  camera.updateMatrixWorld();
  const view=el.viewport.getBoundingClientRect();
  camera.aspect=Math.max(.40,view.width/Math.max(1,view.height));
- camera.fov=view.width<580?61:48;
+ camera.fov=view.width<580?57:47;
  camera.updateProjectionMatrix();
  readabilityAspect=camera.aspect;
  separateBlockersOnScreen();
@@ -3262,7 +3276,7 @@ function resize(){
  const r=el.viewport.getBoundingClientRect();
  const w=Math.max(1,Math.floor(r.width)),h=Math.max(1,Math.floor(r.height));
  camera.aspect=w/h;
- camera.fov=w<580?61:48;camera.updateProjectionMatrix();
+ camera.fov=w<580?57:47;camera.updateProjectionMatrix();
  if(Math.abs(camera.aspect-readabilityAspect)>.055){
   readabilityAspect=camera.aspect;
   separateBlockersOnScreen();
