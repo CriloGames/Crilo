@@ -11,7 +11,7 @@ const el={
  overlayTag:$('ptOverlayTag'),overlayTitle:$('ptOverlayTitle'),
  overlayText:$('ptOverlayText'),primary:$('ptPrimary'),secondary:$('ptSecondary'),
  title:$('ptStageTitle'),counter:$('ptLevelNumber'),chapter:$('ptChapter'),
- attempts:$('ptAttempts'),bounces:$('ptBounces'),total:$('ptTotalStars'),status:$('ptStatus'),
+ attempts:$('ptAttempts'),bounces:$('ptBounces'),total:$('ptLevelsCleared'),menu:$('ptLevelMenu'),resume:$('ptContinue'),selection:$('ptSelection'),status:$('ptStatus'),
  power:$('ptPowerFill'),powerValue:$('ptPowerValue'),trajectoryLabel:$('ptTrajectoryLabel'),
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
@@ -30,7 +30,7 @@ const CHAPTERS=[
  {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xebbc70,short:'Late Shift'},
  {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xae8edc,short:'Final Shift'}
 ];
-let level=1,unlocked=1,stars={},best={},attempts=0,score=0,chosenChapter=0;
+let level=1,unlocked=1,completed={},best={},attempts=0,score=0,chosenChapter=0;
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
@@ -42,12 +42,14 @@ const chapterIndex=n=>Math.min(4,Math.floor((n-1)/10));
 const chapter=n=>CHAPTERS[chapterIndex(n)];
 const seeded=n=>{let x=Math.sin(n*184.193+39.18)*42687.25;return x-Math.floor(x);};
 function save(){
- try{localStorage.setItem(STORE,JSON.stringify({unlocked,stars,best,level}));}catch{}
+ try{localStorage.setItem(STORE,JSON.stringify({unlocked,completed,best,level}));}catch{}
 }
 try{
  const data=JSON.parse(localStorage.getItem(STORE)||'{}');
  unlocked=clamp(Number(data.unlocked)||1,1,50);
- stars=(data.stars&&typeof data.stars==='object')?data.stars:{};
+ completed=(data.completed&&typeof data.completed==='object')?data.completed:{};
+ const legacy=data.stars||{};
+ for(let i=1;i<=50;i++)if(legacy[i]>0||i<unlocked)completed[i]=true;
  best=(data.best&&typeof data.best==='object')?data.best:{};
  level=clamp(Number(data.level)||unlocked,1,unlocked);
  soundOn=localStorage.getItem(MUTED)!=='off';
@@ -194,16 +196,31 @@ function stageSettings(n){
  };
 }
 let settings=stageSettings(level);
+function levelInstructions(spec){
+ const steps=[];
+ if(spec.wall)steps.push('hit the striped wall cushion');
+ if(spec.bankRequired)steps.push('bounce on the orange rubber tray');
+ if(spec.springRequired)steps.push('bounce on the green spring pad');
+ if(spec.hoops)steps.push('pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''));
+ const goal=steps.length?'First '+steps.join(', then ')+'. Then sink the cup.':'Sink the ball in the cup.';
+ const conditions=[];
+ if(spec.motion!=='still')conditions.push('moving cup');
+ if(spec.fanZone)conditions.push(spec.fanZone.kind==='lift'?'updraft':'side fan');
+ if(spec.wind)conditions.push('crosswind');
+ if(spec.barrierCount)conditions.push('moving obstacle');
+ if(spec.lid)conditions.push('timed lid');
+ return goal+(conditions.length?' Watch for '+conditions.join(', ')+'.':'');
+}
 function buildUi(){
- const completed=Object.values(stars).reduce((a,n)=>a+clamp(Number(n)||0,0,3),0);
- el.total.textContent=String(completed)+' / 150';
+ el.total.textContent=Array.from({length:50},(_,i)=>i+1).filter(i=>completed[i]).length+' / 50';
+ el.resume.textContent='CONTINUE · LEVEL '+fmtLevel(unlocked);
  el.counter.textContent=fmtLevel(level)+' / 50';
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=SCENE_NAMES;
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
  const rating=stageDifficulty(level,settings);
  const labels=['','EASY','STANDARD','TRICKY','HARD','EXPERT'];
- el.difficulty.textContent='DIFFICULTY · '+('★'.repeat(rating))+' · '+labels[rating];
+ el.difficulty.textContent='DIFFICULTY · '+labels[rating]+' · LEVEL '+fmtLevel(level);
  el.difficulty.dataset.rank=String(rating);
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  el.objective.textContent=settings.wall?'WALL BANK → CUP':
@@ -247,21 +264,21 @@ function buildChapters(){
  el.grid.replaceChildren();
  for(let i=chosenChapter*10+1;i<=chosenChapter*10+10;i++){
   const button=document.createElement('button');button.type='button';
-  button.className='pt-level-btn'+(i===level?' current':'')+(i>unlocked?' locked':'')+(stars[i]?' cleared':'');
+  button.className='pt-level-btn'+(i===level?' current':'')+(i>unlocked?' locked':'')+(completed[i]?' cleared':'');
   const label=document.createElement('span');label.textContent=fmtLevel(i);
   const recipe=stageSettings(i);
   button.dataset.difficulty=String(stageDifficulty(i,recipe));
   const nameTag=document.createElement('small');nameTag.className='pt-level-name';
   nameTag.textContent=recipe.challenge;
   const star=document.createElement('small');star.className='pt-level-status';
-  star.textContent=i>unlocked?'LOCKED':stars[i]?'★'.repeat(stars[i]):recipe.newTrick?'NEW · '+recipe.newTrick:recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  star.textContent=i>unlocked?'LOCKED':completed[i]?'CLEARED ✓':recipe.newTrick?'NEW · '+recipe.newTrick:recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.append(label,nameTag,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.dataset.shot=kind.toLowerCase();
   if(recipe.newTrick)button.dataset.newTrick='true';
   button.dataset.scene=String(recipe.sceneId);
   button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m · difficulty '+stageDifficulty(i,recipe)+'/5';
-  button.setAttribute('aria-label',button.title+(i>unlocked?' locked':stars[i]?' '+stars[i]+' stars':''));
+  button.setAttribute('aria-label',button.title+(i>unlocked?' locked':completed[i]?' cleared':''));
   button.addEventListener('click',()=>loadLevel(i));
   el.grid.append(button);
  }
@@ -300,12 +317,7 @@ function loadLevel(n){
   settings.bankRequired?'Bounce off the marked rubber tray and aim the rebound yourself; the pad will NOT steer the ball.':
   'Land inside the opening without hitting the rim.';
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
- const objective=settings.hoops?
-  'Fly through '+settings.hoops+' numbered hoop'+(settings.hoops>1?'s in order':'')+' before scoring.':
-  settings.wall?'Ricochet off the striped wall before hitting the cup.':
-  settings.springRequired?'Bounce on the spring plate before scoring.':
-  settings.bankRequired?'Bank the ball off the rubber tray first.':
-  'Land the ball inside the target.';
+ const objective=levelInstructions(settings);
  const extra=[
   settings.lid?'Watch for the lid to open.':null,
   settings.fanZone?'The airflow changes your shot.':null,
@@ -320,7 +332,7 @@ function loadLevel(n){
  save();
 }
 function nextLevel(){
- if(level>=50){loadLevel(1);return;}
+ if(level>=50){openLevelMenu();return;}
  const n=Math.min(level+1,unlocked);loadLevel(n);
 }
 function updateBounceCount(){
@@ -2559,15 +2571,15 @@ function complete(){
  flight=false;ball.active=false;
  hear(920,.11,'sine',.07);
  setTimeout(()=>hear(1160,.14,'sine',.055),110);
- const award=attempts<=2?3:attempts<=4?2:1;
- stars[level]=Math.max(Number(stars[level])||0,award);
+ completed[level]=true;
  best[level]=Math.min(best[level]||Infinity,attempts);
  if(level>=unlocked&&unlocked<50)unlocked=level+1;
  save();buildUi();
- showOverlay('CLEAN SHOT · LEVEL '+fmtLevel(level),'SWISH!'+(award===3?' ★★★':award===2?' ★★':' ★'),
-  'Ball in! '+attempts+' throw'+(attempts===1?'':'s')+' · '+award+' star'+(award===1?'':'s')+
-  (level===50?' · You cleared all 50 levels!':' · Level '+fmtLevel(Math.min(50,level+1))+' unlocked.'),
-  level===50?'REPLAY FROM LEVEL 1':'NEXT LEVEL →','win');
+ showOverlay('LEVEL '+fmtLevel(level)+' COMPLETE','NICE SHOT!',
+  'Cleared in '+attempts+' throw'+(attempts===1?'':'s')+'. '+
+  (level===50?'All 50 levels are now available to replay.':'Level '+fmtLevel(Math.min(50,level+1))+' is ready.'),
+  level===50?'CHOOSE A LEVEL':'NEXT LEVEL →','win');
+ el.secondary.hidden=false;el.secondary.textContent='LEVEL MENU';
 }
 function lidFraction(t){
  return .5+.5*Math.sin(t*1.8+level*.67);
@@ -2863,7 +2875,14 @@ function togglePause(){
  }else if(el.primary.dataset.action==='resume')hideOverlay();
 }
 el.primary.addEventListener('click',action);
-el.secondary.addEventListener('click',()=>{loadLevel(level);});
+el.secondary.addEventListener('click',openLevelMenu);
+el.menu.addEventListener('click',openLevelMenu);
+el.resume.addEventListener('click',()=>loadLevel(unlocked));
+function openLevelMenu(){
+ charging=false;chargeSource=null;gesture=null;flight=false;playing=false;paused=true;
+ el.overlay.hidden=true;chosenChapter=chapterIndex(unlocked);buildChapters();
+ el.selection.scrollIntoView({behavior:'smooth',block:'start'});
+}
 el.retry.addEventListener('click',()=>loadLevel(level));
 el.prev.addEventListener('click',()=>loadLevel(Math.max(1,level-1)));
 el.next.addEventListener('click',()=>loadLevel(Math.min(unlocked,level+1)));
