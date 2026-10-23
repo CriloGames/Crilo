@@ -323,6 +323,9 @@ function buildUi(){
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  updateObjective();
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
+ el.viewport.dataset.mechanic=settings.wallCount?'wall':settings.springRequired?'spring':
+  settings.bankRequired?'bank':settings.hoops?'hoop':
+  (settings.fanZone||settings.wind)?'wind':'direct';
  el.viewport.style.setProperty('--pt-stage-accent',
   '#'+settings.color.toString(16).padStart(6,'0'));
  el.viewport.dataset.challenge=stageArtPlan(settings).tricks>=3?'complex':'simple';
@@ -1674,10 +1677,10 @@ function buildWorld(){
   const base=new THREE.Mesh(new THREE.CylinderGeometry(.43,.48,.11,36),foot);
   base.position.y=.08;base.castShadow=true;farDesk.add(base);
   softContactShadow(group,settings.x,.013,settings.targetZ,.80,.80);
-  const circularTop=new THREE.Mesh(new THREE.CylinderGeometry(.63,.58,.13,48),pedestal);
+  const circularTop=new THREE.Mesh(new THREE.CylinderGeometry(.56,.53,.13,48),pedestal);
   circularTop.position.y=stationY;circularTop.castShadow=true;
   circularTop.receiveShadow=true;farDesk.add(circularTop);
-  const trim=new THREE.Mesh(new THREE.TorusGeometry(.62,.025,10,48),edge);
+  const trim=new THREE.Mesh(new THREE.TorusGeometry(.55,.025,10,48),edge);
   trim.rotation.x=Math.PI/2;trim.position.y=stationY+.07;
   farDesk.add(trim);
  }else if(station===0){
