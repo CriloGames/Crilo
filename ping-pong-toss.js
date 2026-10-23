@@ -1338,23 +1338,36 @@ function buildWorld(){
    }break;
   }
   case 'kettle':case 'coffee':case 'lunch':case 'teapot':{
-   meshBox(feature,2.25,.18,1.0,0,1.10,0,wood);
-   const kettle=new THREE.Mesh(new THREE.CylinderGeometry(.36,.40,.75,20),
-    createMat(0xb1b6b4,.30,.5));kettle.position.set(-.5,1.59,0);feature.add(kettle);
-   const lid=new THREE.Mesh(new THREE.SphereGeometry(.25,10,8),ink);
-   lid.scale.y=.18;lid.position.set(-.5,2.00,0);feature.add(lid);
+   const counter=desk(feature,0,0,2.4,1.05,1.04,wood,metal);
+   const kettleBody=new THREE.Mesh(new THREE.SphereGeometry(.40,24,18),
+    createMat(0xb9c4c3,.29,.48));
+   kettleBody.scale.set(.96,.92,.83);kettleBody.position.set(-.58,1.44,0);
+   kettleBody.castShadow=true;feature.add(kettleBody);
+   const kettleLid=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.07,24),ink);
+   kettleLid.position.set(-.58,1.80,0);feature.add(kettleLid);
+   const knob=new THREE.Mesh(new THREE.SphereGeometry(.072,10,9),ink);
+   knob.position.set(-.58,1.87,0);feature.add(knob);
+   const spout=new THREE.Mesh(new THREE.ConeGeometry(.13,.39,16),
+    createMat(0xc1cccb,.34,.36));
+   spout.rotation.z=-1.20;spout.position.set(-.13,1.58,0);feature.add(spout);
+   const handle=new THREE.Mesh(new THREE.TorusGeometry(.24,.066,9,30,Math.PI*1.48),
+    ink);
+   handle.position.set(-.95,1.54,0);handle.rotation.z=-.20;feature.add(handle);
    for(let i=0;i<3;i++){
-    const mug=new THREE.Mesh(new THREE.CylinderGeometry(.14,.11,.23,12),colored);
-    mug.position.set(.18+i*.34,1.32,0);feature.add(mug);
-   }break;
+    const mug=officeMug(feature,.27+i*.34,1.17,0,
+     [0xe0a78c,0x86bdba,0xe0c48e][i],.88);
+    mug.rotation.y=i*.65;
+   }
+   break;
   }
   case 'printer':case 'scanner':case 'shredder':{
-   meshBox(feature,1.92,1.55,1.15,0,.84,0,drawer);
-   meshBox(feature,1.72,.22,.94,0,1.70,0,ink);
-   meshBox(feature,1.32,.09,.82,0,1.87,-.05,stone);
-   for(let i=0;i<5;i++)
-    meshBox(feature,1.10,.023,.71,0,1.92+i*.035,-.10,woodPaper);
-   meshBox(feature,.84,.28,.10,0,1.02,.61,ink);
+   meshBox(feature,2.05,1.04,1.24,0,.56,0,drawer);
+   meshBox(feature,2.15,.11,1.28,0,1.11,0,stone);
+   for(let i=0;i<2;i++){
+    meshBox(feature,1.65,.18,.035,0,.33+i*.29,.64,ink);
+    meshBox(feature,.48,.035,.047,0,.33+i*.29,.675,metal);
+   }
+   officePrinter(feature,0,1.51,-.04,createMat(0xb2bdbb,.34,.25),1.48);
    break;
   }
   case 'sunblind':case 'glass':case 'whiteboard':{
@@ -1368,12 +1381,16 @@ function buildWorld(){
    break;
   }
   case 'dualmonitors':case 'reception':case 'elevator':{
-   meshBox(feature,2.85,.20,1.05,0,1.10,0,wood);
-   for(const xx of [-.72,.72]){
-    meshBox(feature,1.04,.80,.12,xx,1.79,0,ink);
-    meshBox(feature,.87,.63,.04,xx,1.79,-.08,tile);
-    meshBox(feature,.07,.43,.08,xx,1.26,.04,metal);
-   }break;
+   const counter=desk(feature,0,0,3.2,1.20,1.08,wood,metal);
+   for(const [i,xx] of [-.80,.80].entries()){
+    officeMonitor(feature,xx,1.41,-.12,(i===0?-.13:.13));
+    meshBox(feature,.63,.045,.23,xx,1.19,.40,ink);
+   }
+   const mouse=new THREE.Mesh(new THREE.SphereGeometry(.095,12,10),
+    createMat(0x627b83,.42,.20));
+   mouse.scale.set(.82,.32,1.4);
+   mouse.position.set(0,1.19,.44);feature.add(mouse);
+   break;
   }
   case 'archive':case 'packages':case 'conveyor':case 'forklift':{
    for(let i=0;i<3;i++){
@@ -1394,13 +1411,20 @@ function buildWorld(){
    }break;
   }
   case 'fan':case 'airvent':{
-   pole(2.1);
-   const ring=new THREE.Mesh(new THREE.TorusGeometry(.73,.06,9,26),metal);
-   ring.position.set(0,2.33,0);feature.add(ring);
-   for(let i=0;i<6;i++){
-    const blade=meshBox(feature,.15,.62,.05,0,2.35,0,tile);
-    blade.rotation.z=i*Math.PI/3;
-   }break;
+   // A passive HVAC duct (not a pretend functional desk fan). All animated
+   // fans elsewhere use their own physical airflow emitters.
+   meshBox(feature,1.84,.86,.47,0,2.05,0,stone);
+   const vent=meshBox(feature,1.66,.72,.07,0,2.06,-.28,ink);
+   for(let i=0;i<7;i++){
+    const fin=meshBox(feature,1.43,.048,.044,0,1.81+i*.086,-.33,metal);
+    fin.rotation.x=.10;
+   }
+   for(const side of [-1,1]){
+    const duct=new THREE.Mesh(new THREE.CylinderGeometry(.10,.10,.92,16),metal);
+    duct.rotation.z=Math.PI/2;duct.position.set(side*1.15,2.06,0);
+    feature.add(duct);
+   }
+   break;
   }
   default:{
    pole(1.7);
