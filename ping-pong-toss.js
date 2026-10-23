@@ -1194,6 +1194,41 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
  g.userData={rotor,baseYaw:angle,kind,headY};
  return g;
 }
+// One shared, lightweight arcade halo for every actual scoring rebound
+// surface. All layers are uncollidable: the existing physical plate/tray/wall
+// still defines the bounce, never the illuminated geometry.
+function bounceHalo(parent,radius,color,orientation='flat',offset={x:0,y:0,z:0}){
+ const halo=new THREE.Group();
+ halo.position.set(offset.x||0,offset.y||0,offset.z||0);
+ if(orientation==='flat')halo.rotation.x=-Math.PI/2;
+ else if(orientation==='wall')halo.rotation.y=Math.PI/2;
+ parent.add(halo);
+ const layers=[
+  {thickness:.022,opacity:.96,size:radius},
+  {thickness:.092,opacity:.22,size:radius+.015},
+  {thickness:.17,opacity:.067,size:radius+.03}
+ ];
+ const meshes=layers.map((layer,i)=>{
+  const mat=new THREE.MeshBasicMaterial({color,transparent:true,
+   opacity:layer.opacity,depthWrite:false,depthTest:true,
+   blending:i?THREE.AdditiveBlending:THREE.NormalBlending,
+   side:THREE.DoubleSide});
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(layer.size,layer.thickness,9,56),mat);
+  ring.renderOrder=2+i;ornament(ring);halo.add(ring);
+  return ring;
+ });
+ return {group:halo,core:meshes[0],soft:meshes.slice(1),color};
+}
+function pulseBounceHalo(effect,time,impact=-10,active=true){
+ if(!effect)return;
+ const strike=time-impact,hit=strike>=0&&strike<.65?
+  Math.exp(-strike*7)*(1+.18*Math.sin(strike*24)):0;
+ const base=active?.77:.47,pulse=.06*Math.sin(time*2.3);
+ effect.core.material.opacity=clamp(base+pulse+hit*.22,.22,1);
+ effect.soft[0].material.opacity=clamp(.18+hit*.23,.08,.5);
+ effect.soft[1].material.opacity=clamp(.05+hit*.10,.03,.19);
+ effect.group.scale.setScalar(1+hit*.035);
+}
 function officeColleague(parent,x,z,n){
  // Original stylized coworker with smooth body, curved shoulders and hands.
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
@@ -2376,6 +2411,7 @@ function buildWorld(){
   const cushion=new THREE.Mesh(new THREE.CylinderGeometry(.61,.64,.022,40),
    finishMat(0xdbad83,'enamel'));
   cushion.position.y=1.237;tray.add(cushion);
+  const halo=bounceHalo(tray,.76,0xffc68a,'flat',{y:1.271});
   const paintedRing=new THREE.Mesh(new THREE.TorusGeometry(.60,.030,9,44),
    finishMat(0xffebc0,'ceramic'));
   paintedRing.rotation.x=Math.PI/2;paintedRing.position.y=1.258;
@@ -2393,7 +2429,7 @@ function buildWorld(){
    makeText('BANK',44,'#fff4ce','#674d43'));
   bankLabel.rotation.x=-Math.PI/2;
   bankLabel.position.set(0,1.270,-.64);tray.add(bankLabel);
-  pads.push({type:'bank',x,z,r:.88,y:padY,mat:rubber,last:-10});
+  pads.push({type:'bank',x,z,r:.88,y:padY,mat:rubber,lastImpact:-10,halo});
  }
  // Stage-specific obstacles are authored one at a time in STAGES[].
  // The obstacle type, trajectory fraction and left/right placement are never
@@ -2578,9 +2614,12 @@ function buildWorld(){
    makeText(settings.wallCount>1?'BANK '+(i+1):'BANK HERE',42,'#ffeac0','#485d65'));
   sign.rotation.y=side*Math.PI/2;
   sign.position.set(-side*.15,1.41,0);wall.add(sign);
+  const halo=bounceHalo(wall,1.03,0xffb981,'wall',
+   {x:-side*.134,y:0,z:0});
+  halo.group.scale.set(1.04,1.31,1);
   const indicator=new THREE.PointLight(0xf6c18d,1.7,3.4,2);
   indicator.position.set(-side*.38,.4,0);wall.add(indicator);
-  const pad={x,z,side,y:2.42,height:3.55,length,mesh:wall,index:i};
+  const pad={x,z,side,y:2.42,height:3.55,length,mesh:wall,index:i,halo,lastImpact:-10};
   wallPads.push(pad);if(i===0)wallPad=pad;
  }
  // Sequential 3D hoops: pass through the physical vertical ring plane before
@@ -2710,9 +2749,8 @@ function buildWorld(){
     opacity:.15,depthWrite:false,side:THREE.DoubleSide}));
   topInlay.rotation.x=-Math.PI/2;topInlay.position.y=padY+.049;
   padVisuals.add(topInlay);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.74,.047,12,48),
-   new THREE.MeshBasicMaterial({color:0xb6ffe1,transparent:true,opacity:.90}));
-  ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;padVisuals.add(ring);
+  const halo=bounceHalo(padVisuals,.74,0xb6ffe1,'flat',{y:padY+.065});
+  const ring=halo.core;
   for(let k=0;k<6;k++){
    const coil=new THREE.Mesh(new THREE.TorusGeometry(.26+k*.043,.012,8,40),
     finishMat(0x85b8b0,'anodized'));
@@ -2740,7 +2778,7 @@ function buildWorld(){
   // tunnelling through thin geometry between frame steps or pad misses.
   padPlatforms.push({x,z,top:padY-.03,halfX:.875,halfZ:.875});
   pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,
-   plate:spring,glow:ring,lastImpact:-10,
+   plate:spring,glow:ring,halo,lastImpact:-10,
    forwardGrip:closePad?.30:.53,sideGrip:closePad?.27:.79});
  }
  // Unlike set dressing, ambient haze should not compete with the ball.
@@ -3083,6 +3121,7 @@ function wallCollision(projectile,previousX,preview=false){
   const credited=w.index===(projectile.wallHits||0);
   if(credited)projectile.wallHits=(projectile.wallHits||0)+1;
   if(!preview){
+   w.lastImpact=simTime;
    updateBounceCount();
    message(credited?'WALL BANK '+Math.min(projectile.wallHits,wallPads.length)+
     '/'+wallPads.length+'!':'FOLLOW THE NUMBERED BANKS',1.1);
@@ -3218,6 +3257,7 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
   if(!preview){
    updateObjective();
    if(pad.type==='bank'){
+    pad.lastImpact=time;
     message('BANK BOUNCE! · NOW LAND THE SHOT',1);
     hear(650,.13,'triangle',.045);
    }else{
@@ -3418,14 +3458,17 @@ function tickObstacles(time){
   targetShadow.material.opacity=clamp(.72-(position.y-(.19+settings.topPad))*.25,.25,.72);
  }
  for(const pad of pads){
+  const active=pad.type==='bank'||
+   pad.index===(ball.springHits||0);
+  pulseBounceHalo(pad.halo,t,pad.lastImpact,active);
   if(!pad.plate)continue;
   const elapsed=t-pad.lastImpact;
   const pulse=elapsed>=0&&elapsed<.55?Math.sin(elapsed*16)*Math.exp(-elapsed*5):0;
   pad.plate.position.y=pad.y-.05-pulse*.055;
-  const active=(pad.index===(ball.springHits||0)),done=pad.index<(ball.springHits||0);
+  const done=pad.index<(ball.springHits||0);
   pad.glow.material.color.setHex(done?0xffddae:active?0xc5ffdf:0x8bb2b8);
-  pad.glow.material.opacity=done?.88:active?.86:.38;
  }
+ for(const w of wallPads)pulseBounceHalo(w.halo,t,w.lastImpact,true);
  for(const gate of hoops){
   const pos=hoopMotion(gate,t);
   gate.x=pos.x;gate.y=pos.y;
