@@ -217,7 +217,9 @@ function stageDifficulty(n,spec){
  const hazards=(spec?.hoops>1?1:0)+(spec?.wallCount>1?2:spec?.wall?1:0)+
   (spec?.padCount>1?2:0)+(spec?.fanZone?1:0)+(spec?.lid?1:0)+
   (spec?.barrierCount>1?1:0);
- return Math.min(5,baseline+(hazards>=2?1:0));
+ // A late single-spring precision shot deserves a four-star rating,
+ // without artificially adding impossible gameplay hazards.
+ return Math.min(5,baseline+(hazards>=2?1:0)+(n>=41?1:0));
 }
 
 // Campaign fairness overrides. A level introduces or combines 1–3 learnable
@@ -243,23 +245,37 @@ const LEVEL_FAIRNESS={
  24:{wind:-.12},25:{wind:.20,radius:.49},
  26:{wind:-.12,fanPower:2.7},
  28:{wind:-.10},30:{wind:-.12,fanPower:2.6},
- 35:{wind:0,clearBarriers:true},
- 38:{wind:0,fanPower:2.8,clearBarriers:true},
+ // Chapter 4: narrower openings ramp up accuracy without stacking
+ // new barriers over already demanding wall banks, fans or moving hoops.
+ 31:{radius:.425},
+ 32:{radius:.415},
+ 33:{radius:.41},
+ 34:{radius:.41},
+ 35:{wind:0,clearBarriers:true,radius:.40},
+ 36:{radius:.40},
+ 37:{radius:.39},
+ 38:{wind:0,fanPower:3.05,clearBarriers:true},
+ 39:{radius:.385},
  40:{wind:0,clearBarriers:true},
- 41:{radius:.50},42:{fanPower:2.45,radius:.50},
- 43:{wind:0,motion:'lift',padFractions:[.58]},
- 44:{wind:0,motion:'still',clearObstacles:true,radius:.48,
+ // Chapter 5: precision, timing and existing fan strength escalate.
+ // Preserve the tuned landing pad positions and remove no requirements.
+ 41:{radius:.47},
+ 42:{fanPower:2.75,radius:.47},
+ 43:{wind:.075,motion:'lift',padFractions:[.58]},
+ 44:{wind:0,motion:'still',clearObstacles:true,radius:.455,
   walls:[{side:-1,fraction:.27,x:1.25,length:3.0},
    {side:1,fraction:.80,x:1.45,length:3.0}]},
- 45:{wind:0,motion:'slide',moving:.20,radius:.48},
- 46:{wind:0,fanPower:2.7,motion:'still',clearBarriers:true,radius:.49},
+ 45:{wind:0,motion:'slide',moving:.26,radius:.455},
+ 46:{wind:0,fanPower:3.0,motion:'still',clearBarriers:true,radius:.46},
  47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true,
-  moving:.28,radius:.47},
- 48:{wind:0,motion:'still',clearBarriers:true,radius:.49},
- 49:{wind:0,fanPower:2.6,motion:'still',clearBarriers:true,radius:.50},
- 50:{wind:0,hoops:0,hoopMove:false,lid:false,motion:'still',
+  moving:.32,radius:.45},
+ 48:{wind:0,motion:'still',clearBarriers:true,radius:.465},
+ 49:{wind:0,fanPower:2.85,motion:'still',clearBarriers:true,radius:.47},
+ // The finale still requires two real spring contacts, now followed by
+ // a slowly sliding cup. Hoops and lid remain off to avoid dead-end shots.
+ 50:{wind:0,hoops:0,hoopMove:false,lid:false,motion:'slide',moving:.13,
    padFractions:[.51,.92],secondPadOffset:0,clearBarriers:true,
-   radius:.48}
+   radius:.46}
 };
 function balanceStage(spec){
  const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
