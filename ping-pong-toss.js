@@ -19,7 +19,7 @@ const el={
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup,throwingHand,throwMoment=-10000;
+let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
@@ -1315,24 +1315,7 @@ function buildWorld(){
   pen.rotation.y=-.2+i*.08;
  }
  meshBox(playerDesk,.35,.13,.30,4.50,1.23,.06,eraser);
- // First-person throwing hand on the right edge of the desktop.
- const skin=createMat(0xc19375,.83),cuff=createMat(0x467a8b,.83);
- const hand=new THREE.Group();hand.position.set(.75,1.40,LAUNCH_Z+.60);group.add(hand);
- throwingHand=hand;
- const palm=new THREE.Mesh(new THREE.SphereGeometry(.34,20,16),skin);
- palm.scale.set(.88,.47,1.18);palm.position.set(0,.035,-.03);
- palm.castShadow=true;hand.add(palm);
- const sleeve=new THREE.Mesh(new THREE.CylinderGeometry(.27,.31,.43,20),cuff);
- sleeve.rotation.x=Math.PI/2;sleeve.position.set(0,-.08,.34);hand.add(sleeve);
- for(let i=0;i<4;i++){
-  const finger=new THREE.Mesh(new THREE.SphereGeometry(.092,12,10),skin);
-  finger.scale.set(.65,.53,1.67-i*.06);
-  finger.position.set(-.17+i*.115,.18,-.31-(i%2)*.03);
-  finger.rotation.y=(i-1.5)*.06;hand.add(finger);
- }
- const thumb=new THREE.Mesh(new THREE.SphereGeometry(.13,12,10),skin);
- thumb.scale.set(1,.63,1.33);thumb.position.set(.285,.01,-.08);
- thumb.rotation.y=-.42;hand.add(thumb);
+ // Keep the foreground clear so the ball and target remain unobstructed.
  // Five distinct target furniture stations. Each cup now belongs to a
  // believable location: wooden desk, filing cabinet, shelf, cart or counter.
  const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
@@ -2095,9 +2078,9 @@ function windAt(time){
  // A desk fan oscillates rather than blowing at a perfectly constant rate.
  if(settings.gust){
   const wave=Math.sin(time*1.42+settings.n*.3);
-  return settings.wind*(.2+.8*Math.max(0,wave));
+  return settings.wind*1.32*(.2+.8*Math.max(0,wave));
  }
- return settings.wind*(.66+.34*Math.sin(time*.88+.7));
+ return settings.wind*1.32*(.66+.34*Math.sin(time*.88+.7));
 }
 // Deterministic, physically visible target travel. Distinct levels can slide,
 // rise on a lift, move towards the player or describe a figure-eight.
@@ -2126,7 +2109,7 @@ function targetLocation(time){
 function buildPhysicsBodies(){
  if(!group)return;
  group.updateMatrixWorld(true);
- const skip=[cupGroup,throwingHand,trajectoryGroup,ballMesh,ballShadow,
+ const skip=[cupGroup,trajectoryGroup,ballMesh,ballShadow,
   impactRing,airZone?.cloud,...specialSurfaces,...ballTrailMeshes];
  for(const item of ambient)if(item.type==='dust'||item.type==='scenery')skip.push(item.obj);
  const moving=new Map();
@@ -2303,7 +2286,7 @@ function airForce(x,y,z,time){
   if(radial>=1)continue;
   const flow=Math.pow(1-radial,1.35)*(.92-.35*progress)*
    (.86+.14*Math.sin(time*6.2+f.phase));
-  const push=f.power*flow;
+  const push=f.power*flow*1.40;
   if(f.kind==='lift'){fy+=push;fx+=f.side*push*.12;}
   else{fx+=f.dir*push;fy+=push*.09;}
  }
@@ -2390,12 +2373,22 @@ function paintAim(){
  const p=charging?power:idealPower(),v=makeVelocity(p);
  const preview={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   wallHits:0,hoopsPassed:0};
- let predictedBounces=0;
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
+ // Show the launch path, the FIRST impact and ONE rebound path only. A
+ // second collision ends the preview instead of drawing distracting chains.
+ let predictedBounces=0,lastImpact=-10,previewEnded=false;
+ const noteImpact=(time)=>{
+  if(time-lastImpact<.12)return; // suppress chatter at the same contact
+  lastImpact=time;
+  predictedBounces++;
+  if(predictedBounces>=2)previewEnded=true;
+ };
  const start=simTime,dt=.048,substeps=2;
  for(let i=0;i<aimLine.length;i++){
-  const dot=aimLine[i];dot.visible=!flight&&playing&&i<count;
+  const dot=aimLine[i];
+  dot.visible=!flight&&playing&&i<count&&!previewEnded;
+  if(!dot.visible)continue;
   if(i>0){
    for(let sub=0;sub<substeps;sub++){
     const t=start+(i-1+sub/substeps)*dt,h=dt/substeps;
@@ -2404,29 +2397,33 @@ function paintAim(){
     preview.vx+=(windAt(t)+fan.x)*h;
     preview.vy+=(fan.y-GRAVITY)*h;
     preview.x+=preview.vx*h;preview.y+=preview.vy*h;preview.z+=preview.vz*h;
-    wallCollision(preview,prior.x,true);
+    if(wallCollision(preview,prior.x,true))noteImpact(t+h);
     checkHoopCross(prior,preview,t+h,true);
-    hoopRimCollision(preview,t+h,true);
-    resolveEnvironment(preview,true);
-    cupSurfaceCollision(preview,true,t+h);
+    if(hoopRimCollision(preview,t+h,true))noteImpact(t+h);
+    if(resolveEnvironment(preview,true))noteImpact(t+h);
+    if(cupSurfaceCollision(preview,true,t+h))noteImpact(t+h);
+    if(previewEnded)break;
     if(preview.vy<0){
      for(const pad of pads){
       if(prior.y>=pad.y+BALL_R&&preview.y<=pad.y+BALL_R&&
         Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
        preview.y=pad.y+BALL_R;
        Object.assign(preview,padRebound(preview,pad));
-       predictedBounces++;break;
+       noteImpact(t+h);
+       break;
       }
      }
     }
+    if(previewEnded)break;
    }
   }
+  if(previewEnded){dot.visible=false;continue;}
   dot.position.set(preview.x,preview.y,preview.z);
   if(preview.y<-.12||preview.z<settings.targetZ-4.8)dot.visible=false;
   const next=targetLocation(start+i*dt);
   const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
    Math.abs(preview.y-next.y-settings.targetHeight)<.42;
-  const cue=preview.wallHits||predictedBounces?0xffbd77:
+  const cue=predictedBounces?0xffbd77:
    preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
   dot.material.color.setHex(cue);
   dot.scale.setScalar(nearOpening?2.1:preview.hoopsPassed?1.2:1);
@@ -2476,7 +2473,6 @@ function launch(flickPower=null){
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
- throwMoment=performance.now();
  hear(880,.12,'sine',.045);message('PONG!',.55);
  paintAim();
 }
@@ -2660,22 +2656,34 @@ function tickFlight(dt){
    ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
    inside<target.r-BALL_R*.7){
-   if((!settings.lid||lidFraction(simTime)>.61)&&
-    (!settings.wall||ball.wallHits>0)&&
-    (!settings.hoops||ball.hoopsPassed>=settings.hoops)&&
-    (!settings.bankRequired||ball.bankHits>0)&&
-    (!settings.springRequired||ball.springHits>0)){
-    complete();return;
+   // Reaching the cup directly must NEVER count as a wall/pad trick shot.
+   // Reject the ball at the mouth itself; it must touch the designated
+   // actual surface before the target accepts it.
+   const missing=settings.wall&&ball.wallHits<1?'WALL PAD':
+    settings.bankRequired&&ball.bankHits<1?'RUBBER PAD':
+    settings.springRequired&&ball.springHits<1?'SPRING PAD':
+    settings.hoops&&ball.hoopsPassed<settings.hoops?'HOOPS':null;
+   const open=!settings.lid||lidFraction(simTime)>.61;
+   if(open&&!missing){complete();return;}
+   if(open&&missing&&!ball.rejectedAtCup){
+    ball.rejectedAtCup=true;
+    ball.y=target.top+BALL_R+.014;
+    ball.vy=Math.max(1.6,Math.abs(ball.vy)*.55);
+    // Rebound toward the player, away from the opening, not into the cup.
+    ball.vz=Math.max(.8,Math.abs(ball.vz)*.27);
+    ball.vx+=(ball.x-target.x)*.9;
+    ball.contacts++;
+    updateBounceCount();
+    el.status.textContent=missing==='HOOPS'?
+     'PASS ALL HOOPS BEFORE SCORING':'BOUNCE OFF THE '+missing+' FIRST';
+    message(missing==='HOOPS'?'HOOPS FIRST!':missing+' FIRST!',1.15);
+    hear(270,.13,'triangle',.035);
+    if(impactRing){
+     impactRing.position.set(ball.x,target.top+.035,ball.z);
+     impactRing.material.color.setHex(0xf0a18b);
+     impactAge=0;impactRing.visible=true;
+    }
    }
-   // An invalid basket entry is a physical miss: the ball can hit the
-   // cup bottom and bounce back out, but does not award the level.
-   if(settings.hoops&&ball.hoopsPassed<settings.hoops)
-    el.status.textContent='PASS THE NUMBERED HOOPS BEFORE SCORING';
-   else if(settings.wall&&ball.wallHits<1)
-    el.status.textContent='WALL RICOCHET REQUIRED FOR THIS SHOT';
-   else if((settings.bankRequired&&ball.bankHits<1)||
-     (settings.springRequired&&ball.springHits<1))
-    el.status.textContent='HIT THE REQUIRED BOUNCE PAD FIRST';
   }
   // Cup rim is now a real rounded collider, not an instant failure.
   cupSurfaceCollision(ball);
@@ -2773,11 +2781,6 @@ function animate(now){
   if(impactRing.children[0])
    impactRing.children[0].material.opacity=Math.max(0,.27-impactAge*.53);
   if(impactAge>.55)impactRing.visible=false;
- }
- if(throwingHand){
-  const t=clamp((now-throwMoment)/440,0,1);
-  throwingHand.rotation.x=t<1?-Math.sin(t*Math.PI)*.73:0;
-  throwingHand.position.z=LAUNCH_Z+.60-(t<1?Math.sin(t*Math.PI)*.25:0);
  }
  if(toastUntil&&now>toastUntil){el.toast.hidden=true;toastUntil=0;}
  if(renderer)renderer.render(scene,camera);
