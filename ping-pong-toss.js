@@ -169,7 +169,7 @@ const NEW_TRICKS={
  18:'MOVING HOOP',21:'PULSING GUSTS',22:'WALL RICOCHET',24:'WIND + LIFT',26:'UPDRAFT',28:'DOUBLE HOOP',
  27:'WIND + TIMED LID',31:'MOVING DRAWERS',34:'SHUTTER + LID',35:'DOUBLE MOVING HOOPS',
  37:'DOUBLE TIMING',38:'UPDRAFT + HOOP',41:'SPRING RETURN',45:'SPRING + LID',47:'MOVING RING GAUNTLET',
- 43:'DOUBLE SPRING RUN',44:'TWO WALL BANKS',46:'FAR PAD + CROSSWIND',
+ 43:'LIFTING SPRING RETURN',44:'TWO WALL BANKS',46:'FAR PAD + CROSSWIND',
  48:'DOUBLE SPRING PRECISION',49:'SPRING THROUGH THE HOOP',50:'DOUBLE SPRING FINALE'
 };
 function stageDifficulty(n,spec){
@@ -193,15 +193,15 @@ const LEVEL_FAIRNESS={
  38:{wind:0,fanPower:2.8,clearBarriers:true},
  40:{wind:0,clearBarriers:true},
  42:{fanPower:2.9},
- 43:{wind:0,motion:'still'},
+ 43:{wind:0,motion:'lift',padFractions:[.58]},
  44:{wind:0,motion:'still',clearObstacles:true},
  45:{wind:0,motion:'slide'},
  46:{wind:0,fanPower:2.7,motion:'still',clearBarriers:true},
  47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true},
  48:{wind:0,motion:'still',clearBarriers:true},
  49:{wind:0,fanPower:2.6,motion:'still',clearBarriers:true},
- 50:{wind:0,hoops:1,hoopMove:false,lid:false,motion:'still',
-   clearBarriers:true}
+ 50:{wind:0,hoops:0,hoopMove:false,lid:false,motion:'still',
+   padFractions:[.51,.92],secondPadOffset:0,clearBarriers:true}
 };
 function balanceStage(spec){
  const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
@@ -217,6 +217,13 @@ function balanceStage(spec){
  if(tune.lid!==undefined)spec.lid=tune.lid;
  if(tune.clearBarriers){spec.barrierPlan=[];spec.barrierCount=0;}
  if(tune.clearObstacles)spec.obstaclePlan=[];
+ if(tune.padFractions){
+  spec.springFractions=[...tune.padFractions];
+  spec.padCount=spec.springFractions.length;
+  spec.springX=spec.x*spec.springFractions[0]+(spec.padCount>1?-.15:0);
+  spec.springZ=LAUNCH_Z-spec.d*spec.springFractions[0];
+ }
+ if(tune.secondPadOffset!==undefined)spec.secondPadOffset=tune.secondPadOffset;
  return spec;
 }
 function stageSettings(n){
@@ -2404,7 +2411,7 @@ function buildWorld(){
  // fixed halfway point. A numbered sequence must be completed in order.
  for(let i=0;i<settings.padCount;i++){
   const fraction=settings.springFractions[i],z=LAUNCH_Z-settings.d*fraction,
-   x=settings.x*fraction+(settings.padCount>1?(i===0?-.15:.10):0),
+   x=settings.x*fraction+(settings.padCount>1?(i===0?-.15:(settings.secondPadOffset??.10)):0),
    padY=1.14+(settings.padCount>1&&i===1?.16:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
   specialSurfaces.push(cart);
