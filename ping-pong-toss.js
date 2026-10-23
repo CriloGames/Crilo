@@ -277,6 +277,9 @@ function buildUi(){
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  updateObjective();
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
+ el.viewport.style.setProperty('--pt-stage-accent',
+  '#'+settings.color.toString(16).padStart(6,'0'));
+ el.viewport.dataset.challenge=stageArtPlan(settings).tricks>=3?'complex':'simple';
  el.viewport.dataset.showTip=settings.newTrick?'yes':'no';
  if(!settings.lid)delete el.viewport.dataset.lidState;
  el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
@@ -298,6 +301,20 @@ function buildUi(){
   settings.wind?'ALLOW FOR THE FAN · '+settings.challenge.toUpperCase():
   'AIM THROUGH THE OFFICE · '+settings.challenge.toUpperCase();
  buildChapters();
+}
+// Consistent readable mechanic vocabulary across all 50 level cards.
+function mechanicLabel(spec){
+ const tags=[];
+ if(spec.wallCount)tags.push(spec.wallCount>1?'2 WALLS':'WALL');
+ if(spec.padCount)tags.push(spec.padCount>1?'2 SPRINGS':'SPRING');
+ if(spec.bankRequired)tags.push('BANK');
+ if(spec.hoops)tags.push(spec.hoops>1?'2 HOOPS':'HOOP');
+ if(spec.fanZone||Math.abs(spec.wind)>.09)tags.push('FAN');
+ if(spec.lid)tags.push('LID');
+ if(spec.barrierCount)tags.push('SHUTTER');
+ if(!tags.length&&spec.motion!=='still')tags.push('MOVING CUP');
+ if(!tags.length)tags.push('PRECISION');
+ return tags.slice(0,2).join(' + ');
 }
 function buildChapters(){
  el.chapters.replaceChildren();
@@ -321,13 +338,13 @@ function buildChapters(){
   const nameTag=document.createElement('small');nameTag.className='pt-level-name';
   nameTag.textContent=recipe.challenge;
   const star=document.createElement('small');star.className='pt-level-status';
-  star.textContent=i>unlocked?'LOCKED':completed[i]?'CLEARED ✓':recipe.newTrick?'NEW · '+recipe.newTrick:recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
+  star.textContent=i>unlocked?'LOCKED':(completed[i]?'✓ ':'')+mechanicLabel(recipe);
   button.append(label,nameTag,star);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.dataset.shot=kind.toLowerCase();
   if(recipe.newTrick)button.dataset.newTrick='true';
   button.dataset.scene=String(recipe.sceneId);
-  button.title='Level '+i+' · '+recipe.challenge+' · '+kind+' SHOT · '+recipe.d.toFixed(1)+'m · difficulty '+stageDifficulty(i,recipe)+'/5';
+  button.title='Level '+i+' · '+recipe.challenge+' · '+mechanicLabel(recipe)+' · '+recipe.d.toFixed(1)+'m · difficulty '+stageDifficulty(i,recipe)+'/5';
   button.setAttribute('aria-label',button.title+(i>unlocked?' locked':completed[i]?' cleared':''));
   button.addEventListener('click',()=>loadLevel(i));
   el.grid.append(button);
