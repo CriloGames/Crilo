@@ -1651,10 +1651,11 @@ function buildWorld(){
   decorCandidates.push({obj:plantCorner,side:Math.sign(settings.x+2.4)||1,
    anchorX:settings.x+2.4,label:'side-plant'});
  }else{
-  for(let i=0;i<4;i++){
-   const screen=meshBox(farDesk,.76,.52,.10,-1.85+i*1.2,settings.topPad+.52,-.80,dark);
-   meshBox(farDesk,.60,.36,.016,screen.position.x,settings.topPad+.52,-.862,
-     createMat(0x3c656e,.35,.06,0x335969));
+  // Distinct desktop computers at the two rear corners instead of
+  // a wall of four overlapping black rectangles directly behind the cup.
+  for(const side of [-1,1]){
+   officeMonitor(farDesk,side*1.48,stationY+.20,-.80,side*.06);
+   meshBox(farDesk,.70,.035,.27,side*1.48,stationY+.24,-.30,dark);
   }
  }
  // Variety: the actual cup is always open and visible on its own tray.
@@ -2042,10 +2043,11 @@ function buildWorld(){
   const paint=createMat(style==='plant'?0x7c9b89:style==='cart'?0x6a8894:0x84949b,.67);
   let oy=1.65,w=.80,h=.86,depth=.52;
   if(style==='screen'||style==='monitor'){
-   oy=2.22;w=1.02;h=.78;depth=.22;
-   meshBox(g,w,h,depth,0,oy,0,dark);
-   meshBox(g,w*.86,.58,.04,0,oy,-.14,createMat(0x3e6774,.46));
-   meshBox(g,.13,1.12,.13,0,1.34,.10,metal);
+   oy=2.16;w=1.48;h=1.06;depth=.30;
+   officeMonitor(g,0,1.60,0,(i%2?-.07:.07));
+   meshBox(g,.75,.03,.27,0,1.44,-.24,dark);
+   for(let k=0;k<6;k++)
+    meshBox(g,.055,.012,.028,-.25+k*.10,1.462,-.24,cream).castShadow=false;
   }else if(style==='partition'){
    oy=2.02;w=.82;h=1.82;depth=.24;
    meshBox(g,w,h,depth,0,oy,0,createMat(0x7d9298));
@@ -2109,7 +2111,7 @@ function buildWorld(){
     wheel.rotation.z=Math.PI/2;wheel.position.set(side*.42,.11,depthSide*.43);g.add(wheel);
    }
   }else if(style!=='plant'){
-   const surface=style==='screen'||style==='monitor'?.80:
+   const surface=style==='screen'||style==='monitor'?1.30:
     style==='printer'||style==='projector'?1.44:
     style==='mugstack'||style==='teapot'?1.16:
     style==='lamp'?1.42:
