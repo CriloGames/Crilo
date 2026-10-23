@@ -3555,6 +3555,17 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  body.vx=surfaceX+(vx-incoming*nx)*tangent+normalOut*nx;
  body.vy=surfaceY+(vy-incoming*ny)*tangent+normalOut*ny;
  body.vz=surfaceZ+(vz-incoming*nz)*tangent+normalOut*nz;
+ if(projectileId==='frisbee'&&body.disc){
+  // Impact tips the disc and slows its spin. Use the same physics state
+  // in the live world and in the predicted dotted trajectory.
+  const disc=body.disc;
+  if(disc.age-(disc.lastImpactAge??-10)>.13){
+   disc.bank=clamp(disc.bank+nx*.11-nz*.04,-.52,.52);
+   disc.nose=clamp(disc.nose-ny*.075+nz*.04,-.18,.37);
+   disc.spinRate*=.89;
+   disc.lastImpactAge=disc.age;
+  }
+ }
  if(!preview){
   body.contacts=(body.contacts||0)+1;
   updateBounceCount();
@@ -3841,6 +3852,14 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
   body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
   const credited=pad.type==='spring'&&pad.index===(body.springHits||0);
   Object.assign(body,padRebound(body,pad));
+  if(projectileId==='frisbee'&&body.disc){
+   // Spring impact affects the plate's nose angle and orientation.
+   // It retains two proper rebound stages without steering toward cups.
+   body.disc.bank=clamp(body.disc.bank+
+    clamp((body.x-pad.x)/pad.r,-1,1)*.13,-.52,.52);
+   body.disc.nose=clamp(.06+body.vy*.012,-.10,.26);
+   body.disc.spinRate*=.94;
+  }
   if(pad.type==='bank'){
    body.bankHits=(body.bankHits||0)+1;
   }else if(credited){
