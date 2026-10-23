@@ -15,7 +15,7 @@ const el={
  power:$('ptPowerFill'),powerValue:$('ptPowerValue'),trajectoryLabel:$('ptTrajectoryLabel'),
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
- sound:$('ptSound'),voiceSelect:$('ptVoiceSelect'),voicePreview:$('ptVoicePreview'),voiceHelp:$('ptVoiceHelp'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
+ sound:$('ptSound'),soundState:$('ptSoundState'),voiceSelect:$('ptVoiceSelect'),voicePreview:$('ptVoicePreview'),voiceHelp:$('ptVoiceHelp'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
@@ -56,9 +56,16 @@ try{
  level=clamp(Number(data.level)||unlocked,1,unlocked);
  soundOn=localStorage.getItem(MUTED)!=='off';
 }catch{}
-el.sound.textContent='♫';
-el.sound.title=soundOn?'Mute sound':'Unmute sound';el.sound.setAttribute('aria-label',el.sound.title);
-el.sound.setAttribute('aria-pressed',String(soundOn));
+function syncSoundButton(){
+ const state=soundOn?'on':'off';
+ el.sound.dataset.sound=state;
+ el.soundState.textContent=soundOn?'ON':'OFF';
+ const title=soundOn?'Sound on · Click to mute':'Sound off · Click to unmute';
+ el.sound.title=title;
+ el.sound.setAttribute('aria-label',title);
+ el.sound.setAttribute('aria-pressed',String(soundOn));
+}
+syncSoundButton();
 chosenChapter=chapterIndex(level);
 function message(str,time=2.0){toastMessage=str;toastUntil=performance.now()+time*1000;el.toast.textContent=str;el.toast.dataset.tone=/SWISH|CLEARED|PERFECT|BANK|SPRING SHOT|BOUNCE/i.test(str)?'good':'normal';el.toast.hidden=false;}
 function hear(freq=520,duration=.10,voice='sine',volume=.04){
@@ -4003,10 +4010,9 @@ el.voicePreview.addEventListener('click',()=>{
  speakColleague(level,true);
 });
 el.sound.addEventListener('click',()=>{
- soundOn=!soundOn;el.sound.textContent='♫';
+ soundOn=!soundOn;
+ syncSoundButton();
  if(!soundOn)try{window.speechSynthesis?.cancel();}catch{}
-el.sound.title=soundOn?'Mute sound':'Unmute sound';el.sound.setAttribute('aria-label',el.sound.title);
- el.sound.setAttribute('aria-pressed',String(soundOn));
  try{localStorage.setItem(MUTED,soundOn?'on':'off');}catch{}
 });
 el.full.addEventListener('click',async()=>{
