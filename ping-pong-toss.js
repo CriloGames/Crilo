@@ -478,6 +478,24 @@ function softBoxGeometry(w,h,d,radius){
  geometry.computeBoundingBox();geometry.computeBoundingSphere();
  return geometry;
 }
+// High-quality stylized finishes; no downloaded textures or GPU-heavy effects.
+function finishMat(color,finish='ceramic'){
+ const presets={
+  ceramic:{roughness:.26,metalness:0,clearcoat:.72,clearcoatRoughness:.18},
+  enamel:{roughness:.38,metalness:.12,clearcoat:.55,clearcoatRoughness:.26},
+  anodized:{roughness:.29,metalness:.64,clearcoat:.19,clearcoatRoughness:.22},
+  lacquer:{roughness:.42,metalness:.02,clearcoat:.35,clearcoatRoughness:.24}
+ };
+ return new THREE.MeshPhysicalMaterial({color,flatShading:false,...presets[finish]});
+}
+function ornament(mesh){
+ // Tiny bolts, piping and paint details should NEVER change shot physics.
+ mesh.userData.decorative=true;mesh.castShadow=false;
+ return mesh;
+}
+function detailBox(parent,w,h,d,x,y,z,material){
+ return ornament(meshBox(parent,w,h,d,x,y,z,material));
+}
 function meshBox(parent,w,h,d,x,y,z,mat){
  const min=Math.min(w,h,d),max=Math.max(w,h,d);
  const soften=min>=.14&&max<14&&mat?.isMeshStandardMaterial;
@@ -865,22 +883,40 @@ function officeMonitor(parent,x,y,z,angle=0){
  const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
  const plastic=createMat(0x313c47,.63,.18);
  meshBox(g,1.45,.88,.11,0,.56,0,plastic);
+ // Rounded glass and bezel accents let the workstation read as one device.
+ const bezel=finishMat(0x546d77,'anodized');
+ detailBox(g,1.34,.745,.013,0,.565,-.071,bezel);
  const litScreen=new THREE.MeshBasicMaterial({
   color:0xc2d3d0,map:monitorTexture(level),toneMapped:true
  });
- meshBox(g,1.27,.69,.013,0,.57,-.064,litScreen);
+ meshBox(g,1.27,.69,.013,0,.57,-.086,litScreen);
+ // One restrained screen reflection, angled away from the shot lane.
+ const reflection=new THREE.Mesh(new THREE.PlaneGeometry(.18,.63),
+  new THREE.MeshBasicMaterial({color:0xc9f2f4,transparent:true,
+   opacity:.075,depthWrite:false,side:THREE.DoubleSide}));
+ reflection.rotation.z=.17;reflection.position.set(.42,.57,-.098);
+ g.add(reflection);
+ detailBox(g,.18,.012,.015,0,.160,-.080,finishMat(0x778d94,'anodized'));
+ const webcam=new THREE.Mesh(new THREE.SphereGeometry(.019,8,6),
+  createMat(0x0e2737,.21,.34));
+ webcam.position.set(0,.998,-.068);g.add(ornament(webcam));
  const led=new THREE.Mesh(new THREE.SphereGeometry(.014,7,5),
   new THREE.MeshBasicMaterial({color:0x9de4bd}));
  led.position.set(.64,.17,-.075);g.add(led);
  meshBox(g,.09,.45,.10,0,-.11,.06,plastic);
  meshBox(g,.65,.04,.31,0,-.31,.18,plastic);
+ // Vent perforations and discreet metallic foot rim.
+ const vents=createMat(0x1b303b,.75);
+ for(let k=0;k<7;k++)
+  detailBox(g,.050,.012,.018,-.25+k*.08,.95,.045,vents);
+ detailBox(g,.68,.016,.30,0,-.326,.18,bezel);
  return g;
 }
 // Rounded recognizable office props. The large solid parts use supported
 // physics geometries; handles, glass and labels are decorative details.
 function officeMug(parent,x,y,z,color,scale=1){
  const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(scale);parent.add(g);
- const porcelain=createMat(color,.36,.06),inside=createMat(0x656e70,.76);
+ const porcelain=finishMat(color,'ceramic'),inside=createMat(0x656e70,.76);
  const profile=[
   new THREE.Vector2(.145,0),new THREE.Vector2(.163,.02),
   new THREE.Vector2(.172,.10),new THREE.Vector2(.187,.24),
@@ -894,6 +930,15 @@ function officeMug(parent,x,y,z,color,scale=1){
  const inner=new THREE.Mesh(new THREE.CylinderGeometry(.168,.139,.22,24,1,true),
   new THREE.MeshStandardMaterial({color:0x858e90,side:THREE.BackSide,roughness:.87}));
  inner.position.y=.16;g.add(inner);
+ // Interior coffee surface and thin raised porcelain foot, not solid lids.
+ const drink=new THREE.Mesh(new THREE.CircleGeometry(.155,28),
+  new THREE.MeshPhysicalMaterial({color:0x4d352c,roughness:.28,clearcoat:.55}));
+ drink.rotation.x=-Math.PI/2;drink.position.y=.255;g.add(drink);
+ const meniscus=new THREE.Mesh(new THREE.TorusGeometry(.146,.008,7,30),
+  createMat(0xc29b72,.42));
+ meniscus.rotation.x=Math.PI/2;meniscus.position.y=.260;g.add(meniscus);
+ const ringBase=new THREE.Mesh(new THREE.TorusGeometry(.146,.014,8,28),porcelain);
+ ringBase.rotation.x=Math.PI/2;ringBase.position.y=.015;g.add(ringBase);
  const handle=new THREE.Mesh(new THREE.TorusGeometry(.145,.039,10,24,Math.PI*1.65),
   porcelain);
  handle.position.set(.259,.16,0);handle.rotation.y=Math.PI/2;
@@ -908,6 +953,16 @@ function officePrinter(parent,x,y,z,mat,scale=1){
  meshBox(g,1.02,.065,.79,0,.225,-.035,dark);
  const glassTop=meshBox(g,.90,.012,.64,0,.267,-.03,glass);
  glassTop.castShadow=false;
+ detailBox(g,.84,.009,.54,0,.276,-.03,
+  new THREE.MeshBasicMaterial({color:0xb2c9d0,transparent:true,
+   opacity:.12,depthWrite:false}));
+ // Scanner hinge and subtle rubber seal around the upper lid.
+ for(const sx of [-1,1]){
+  detailBox(g,.11,.075,.06,sx*.42,.247,.31,dark);
+  detailBox(g,.12,.032,.72,sx*.50,.170,-.02,dark);
+ }
+ for(let k=0;k<5;k++)
+  detailBox(g,.018,.105,.025,-.46+k*.075,-.02,.466,dark);
  const tray=meshBox(g,.72,.045,.53,0,-.16,.535,dark);
  tray.rotation.x=-.13;
  for(let i=0;i<3;i++){
@@ -916,10 +971,13 @@ function officePrinter(parent,x,y,z,mat,scale=1){
  }
  const controls=meshBox(g,.31,.035,.19,-.36,.262,.24,body);
  controls.rotation.y=.17;
+ // Integrated status display and power key make the panel legible.
+ detailBox(g,.16,.010,.075,-.36,.288,.24,
+  new THREE.MeshBasicMaterial({color:0x9dd1d4}));
  for(let k=0;k<4;k++){
   const light=new THREE.Mesh(new THREE.SphereGeometry(.018,8,6),
    new THREE.MeshBasicMaterial({color:k===0?0x95e8c1:0x8da2aa}));
-  light.position.set(-.45+k*.06,.291,.24);g.add(light);
+  light.position.set(-.45+k*.06,.291,.24);g.add(ornament(light));
  }
  return g;
 }
@@ -1436,10 +1494,11 @@ function buildWorld(){
  wallMat.bumpMap=surfaceRelief('wall',level,5,3);wallMat.bumpScale=.009;
  carpet.map=roomTexture('carpet',level+23,9,8);
  carpet.bumpMap=surfaceRelief('carpet',level+23,9,8);carpet.bumpScale=.014;
- const wood=createMat(nearDeskTone,.48,.04),darkWood=createMat(0x45392f,.68);
+ const wood=finishMat(nearDeskTone,'lacquer'),darkWood=createMat(0x45392f,.68);
  wood.map=roomTexture('wood',level+39,3,2);
  wood.bumpMap=surfaceRelief('wood',level+39,3,2);wood.bumpScale=.012;
- const metal=createMat(0x687985,.33,.41),dark=createMat(theme.trim,.6,.15);
+ const metal=finishMat(0x687985,'anodized'),dark=createMat(theme.trim,.6,.15);
+ metal.bumpMap=surfaceRelief('wall',level+73,2,2);metal.bumpScale=.004;
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
  const blue=createMat(0x66899b,.6),light=createMat(0xf0e0b9,.7);
@@ -1829,7 +1888,8 @@ function buildWorld(){
  const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
  targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
  const colors=[0xd5e2e1,0xe7b5a0,0x9dbcc4,0xd0b38c,0x94bec1,0xe0c7ad,0xf0ce89];
- const cupMat=createMat(colors[kind],kind===0?.72:.31,[2,4,6].includes(kind)?.38:.06);
+ const cupMat=kind===2||kind===4||kind===6?
+  finishMat(colors[kind],'anodized'):finishMat(colors[kind],'ceramic');
  const insideMat=createMat(0x60747b,.73),lipMat=createMat(0xf4d8a8,.23,.32,0x5a402e);
  // Curved lathe profile: a real bucket/mug silhouette, not a straight block.
  const baseRadius=kind===3?r*.62:r*.72;
@@ -2654,7 +2714,7 @@ function buildPhysicsBodies(){
   obstacle.obj.traverse(m=>{if(m.isMesh)moving.set(m,obstacle);});
  physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];
  group.traverse(mesh=>{
-  if(!mesh.isMesh||!mesh.geometry)return;
+  if(!mesh.isMesh||!mesh.geometry||mesh.userData.decorative)return;
   for(let p=mesh;p;p=p.parent)if(!p.visible||skip.includes(p))return;
   const type=mesh.geometry.type;
   if(!['BoxGeometry','CylinderGeometry','ConeGeometry','SphereGeometry'].includes(type))return;
