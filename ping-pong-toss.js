@@ -3230,17 +3230,33 @@ const PAD_GRIP_BY_LEVEL={
  // strongly contrasting with the dark gray office instead of washing out.
  // An original arcade ball finish: a readable coral-orange shell with a
  // tiny enamel highlight rather than an over-bright, unshaded sphere.
- const ballMaterial=new THREE.MeshPhysicalMaterial({
-  color:0xffb86f,roughness:.34,metalness:0,
-  clearcoat:.28,clearcoatRoughness:.24,
-  emissive:0x5b290d,emissiveIntensity:.11
+ const disc=projectileId==='frisbee';
+ const material=new THREE.MeshPhysicalMaterial({
+  color:physicsProfile.color,roughness:projectileId==='heavy'?.29:.36,
+  metalness:projectileId==='heavy'?.62:.03,clearcoat:.30,clearcoatRoughness:.25,
+  emissive:physicsProfile.color,emissiveIntensity:projectileId==='light'?.17:.045
  });
- ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.08,24,18),ballMaterial);
+ ballMesh=new THREE.Mesh(disc?
+  new THREE.CylinderGeometry(BALL_R*1.12,BALL_R*1.12,.034,48):
+  new THREE.SphereGeometry(BALL_R*1.05,28,20),material);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
- const ringPaint=new THREE.MeshBasicMaterial({color:0x733b23});
- for(const angle of [0,Math.PI/2]){
-  const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.075,.003,5,32),ringPaint);
-  seam.rotation.y=angle;ballMesh.add(seam);
+ const seamMat=new THREE.MeshBasicMaterial({color:
+  projectileId==='basketball'?0x603b2a:projectileId==='heavy'?0x455663:0x477779});
+ if(disc){
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*.86,.008,10,52),seamMat);
+  ring.rotation.x=Math.PI/2;ring.position.y=.018;ballMesh.add(ring);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(BALL_R*.30,BALL_R*.30,.036,28),
+   finishMat(0xe7f4db,'ceramic'));ballMesh.add(hub);
+ }else{
+  for(const angle of [0,Math.PI/2]){
+   const seam=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.05,
+    projectileId==='basketball'?.005:.003,7,40),seamMat);
+   seam.rotation.y=angle;ballMesh.add(seam);
+  }
+  if(projectileId==='basketball'){
+   const stripe=new THREE.Mesh(new THREE.TorusGeometry(BALL_R*1.05,.005,7,40),
+    seamMat);stripe.rotation.x=Math.PI/2;ballMesh.add(stripe);
+  }
  }
  // Soft contact shadow only, not a pale ball on a pale tabletop.
  ballShadow=softContactShadow(group,0,1.15,LAUNCH_Z,.25,.25);
