@@ -1582,6 +1582,11 @@ function buildWorld(){
  const highlight=createMat(settings.color,.38,.02,settings.color);
  const blue=createMat(0x66899b,.6),light=createMat(0xf0e0b9,.7);
  const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
+ // Each chapter keeps a single identifiable accent, with cool metal
+ // hardware and warm desks. Game pieces remain brighter than set dressing.
+ const roomAccent=finishMat(settings.color,'enamel');
+ const mutedAccent=new THREE.Color(settings.color).lerp(new THREE.Color(theme.trim),.77);
+ const wallDetail=finishMat(mutedAccent.getHex(),'enamel');
  // Room-specific architecture: a grounded first-person office scene, not a
  // generic pastel shooting gallery. Warm lights and dark walls frame the ball.
  if(settings.sceneId===1){
@@ -1665,6 +1670,20 @@ function buildWorld(){
  meshBox(group,16,8,.22,0,3.47,roomEnd,wallMat);
  meshBox(group,.22,8,roomLength,-8,3.47,roomMiddle,wallMat);
  meshBox(group,.22,8,roomLength,8,3.47,roomMiddle,wallMat);
+ // Color-blocked architectural reveals borrow the legibility of polished
+ // arcade puzzlers: the walls are quiet and mechanic elements stay vivid.
+ // The narrow strips are decorative and have NO physics colliders.
+ for(const side of [-1,1]){
+  const wallX=side*7.87;
+  detailBox(group,.028,.048,roomLength-.75,wallX,1.21,roomMiddle,wallDetail);
+  detailBox(group,.036,.030,roomLength-.75,wallX,5.83,roomMiddle,wallDetail);
+  for(let k=0;k<2;k++){
+   const zz=roomEnd+roomLength*(.27+k*.46);
+   detailBox(group,.042,2.03,.062,wallX,3.10,zz,
+    finishMat(theme.trim,'enamel'));
+  }
+ }
+ detailBox(group,9.1,.064,.040,0,6.18,roomEnd+.15,wallDetail);
  // Skirting, ceiling, timber wall frames and acoustic office panels.
  meshBox(group,16,.19,roomLength,0,7.54,roomMiddle,cream);
  for(const x of [-7.84,7.84]){
@@ -1755,11 +1774,11 @@ function buildWorld(){
    new THREE.MeshBasicMaterial({color:nightRoom?0xc5deee:0xffe6b6}));
   if(i===1){
    const overhead=new THREE.PointLight(nightRoom?0xc6d7ee:0xffd6ab,
-    nightRoom?8.0:10.0,12,2);
+    nightRoom?5.6:7.2,12,2);
    overhead.position.set(-2.6,6.90,z);group.add(overhead);
   }
  }
- const focusLight=new THREE.PointLight(nightRoom?0xaacadd:0xffdbac,3.3,5,2);
+ const focusLight=new THREE.PointLight(nightRoom?0xaacadd:0xffdbac,3.9,5,2);
  focusLight.position.set(settings.x+1.65,settings.topPad+3.3,settings.targetZ+.75);
  group.add(focusLight);
  // Deliberate side dressing: always frame the cup rather than filling the
@@ -2020,10 +2039,15 @@ function buildWorld(){
  const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.028,9,36),lipMat);
  lip.rotation.x=Math.PI/2;lip.position.y=h;cupGroup.add(lip);
  // Subtle dark ring outlines a pale target against bright shelves/windows.
- const contrastRim=new THREE.Mesh(new THREE.TorusGeometry(r*1.055,.017,8,40),
+ const contrastRim=new THREE.Mesh(new THREE.TorusGeometry(r*1.055,.017,8,48),
   new THREE.MeshBasicMaterial({color:0x2c525f,depthWrite:false}));
  contrastRim.rotation.x=Math.PI/2;contrastRim.position.y=h+.015;
  cupGroup.add(contrastRim);
+ const accentRim=new THREE.Mesh(new THREE.TorusGeometry(r*1.035,.011,7,48),
+  new THREE.MeshBasicMaterial({color:settings.color,transparent:true,
+   opacity:.82,depthWrite:false}));
+ accentRim.rotation.x=Math.PI/2;accentRim.position.y=h+.038;
+ cupGroup.add(accentRim);
  if(settings.lid){
   // Visibly hinged timed lid. Landing while closed never scores.
   const hinge=new THREE.Group();
