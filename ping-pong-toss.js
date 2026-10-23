@@ -1182,6 +1182,8 @@ function buildWorld(){
    meshBox(group,.80,.29,.80,x,6.02,roomEnd+1.15,wood);
   }
   meshBox(group,8.1,.14,1.38,0,1.32,roomEnd+1.25,wood);
+  for(const x of [-3.5,3.5])for(const dz of [-.48,.48])
+   meshBox(group,.13,1.23,.13,x,.615,roomEnd+1.25+dz,metal);
   roundedPoster(group,'WELCOME',0,4.8,roomEnd+.42);
  }else if(settings.sceneId===7){
   for(let i=0;i<6;i++){
@@ -1308,7 +1310,7 @@ function buildWorld(){
    stackBooks(group,x-side*.78,1.15,z,3+i,level+i);
    meshBox(group,2.8,1.7,.11,side*6.98,.95,z-.8,dark);
   }
-  plant(group,side*6.0,roomEnd+1.35+settings.roomVariant,.95);
+  plant(group,side*6.95,roomEnd+.80+settings.roomVariant*.20,.95);
   if((level+iLevelFactor(side))%3!==0)
    officeBin(group,side*4.65,roomEnd+1.35,createMat(0x7c8b8e,.35,.35));
  }
@@ -1646,6 +1648,10 @@ function buildWorld(){
    break;
   }
   case 'sunblind':case 'glass':case 'whiteboard':{
+   for(const side of [-1,1]){
+    meshBox(feature,.12,1.91,.12,side*.93,.955,.14,metal);
+    meshBox(feature,.38,.07,.50,side*.93,.05,.15,ink);
+   }
    meshBox(feature,2.35,2.1,.17,0,2.8,0,cream);
    meshBox(feature,2.11,1.91,.045,0,2.8,-.13,tile);
    if(settings.feature==='sunblind')for(let i=0;i<8;i++)
@@ -1712,6 +1718,8 @@ function buildWorld(){
   case 'fan':case 'airvent':{
    // A passive HVAC duct (not a pretend functional desk fan). All animated
    // fans elsewhere use their own physical airflow emitters.
+   meshBox(feature,1.68,1.65,.59,0,.825,.1,drawer);
+   meshBox(feature,1.85,.12,.69,0,1.71,.08,metal);
    meshBox(feature,1.84,.86,.47,0,2.05,0,stone);
    const vent=meshBox(feature,1.66,.72,.07,0,2.06,-.28,ink);
    for(let i=0;i<7;i++){
@@ -1741,7 +1749,11 @@ function buildWorld(){
   stackBooks(group,-2.4,1.18,settings.targetZ+.66,2+(level%4),level+1);
   plant(group,3.3,settings.targetZ-1.4,.9);
  }else if(settings.sceneId===1){
+  // Projector stands on a wheeled AV table, not free-floating.
   const projector=meshBox(group,1.28,.35,.85,2.0,2.2,settings.targetZ+.8,dark);
+  meshBox(group,1.52,.12,1.08,2,1.97,settings.targetZ+.8,wood);
+  for(const dx of [-.55,.55])for(const dz of [-.38,.38])
+   meshBox(group,.10,1.88,.10,2+dx,.94,settings.targetZ+.8+dz,metal);
   projector.rotation.y=.14;
   for(let k=0;k<3;k++)meshBox(group,.65,.025,.38,-2.8+k*.7,1.17,settings.targetZ+.9,paper);
  }else if(settings.sceneId===2){
@@ -1751,6 +1763,8 @@ function buildWorld(){
   }
  }else if(settings.sceneId===3){
   const kettleMat=createMat(0xa8acaa,.3,.48);
+  meshBox(group,1.15,1.19,.94,-2.6,.595,settings.targetZ+.65,metal);
+  meshBox(group,1.20,.10,.98,-2.6,1.22,settings.targetZ+.65,wood);
   const urn=new THREE.Mesh(new THREE.CylinderGeometry(.27,.34,.67,20),kettleMat);
   urn.position.set(-2.6,1.6,settings.targetZ+.65);group.add(urn);
   for(let k=0;k<3;k++){
@@ -1759,8 +1773,12 @@ function buildWorld(){
   }
  }else{
   // Late-shift cubicle: clusters of luminous monitors on the side desk.
+  meshBox(group,2.85,.14,.92,-1.6,1.45,settings.targetZ+.6,wood);
+  for(const xx of [-2.76,-.44])
+   meshBox(group,.10,1.36,.10,xx,.68,settings.targetZ+.6,metal);
   for(let k=0;k<3;k++){
    const screen=meshBox(group,.65,.53,.10,-2.4+k*.8,1.84,settings.targetZ+.6,dark);
+   meshBox(group,.085,.20,.085,screen.position.x,1.53,screen.position.z,metal);
    meshBox(group,.52,.40,.013,screen.position.x,screen.position.y,screen.position.z+.06,
     createMat(0x476a7b,.3,.05,0x263f4b));
   }
@@ -1825,7 +1843,7 @@ function buildWorld(){
    }
   }else if(style==='plant'){
    oy=1.57;w=.72;h=1.12;depth=.72;plant(g,0,0,.98);
-   g.position.y=1.02;
+   // Grounded pot: avoid the unexplained one-metre floating plant.
   }else if(style==='lamp'){
    oy=2.04;w=.65;h=.98;depth=.53;
    officeLamp(g,0,1.45,0,1.1);
@@ -1852,7 +1870,34 @@ function buildWorld(){
     meshBox(g,.80,.23,.70,0,1.25+k*.25,0,paint);
    meshBox(g,.03,.65,.78,0,1.50,0,cream);
   }
-  obstacles.push({type:style,obj:g,x,y:style==='plant'?1.62:oy,
+  // Floor-supported modular obstacle furniture. Every raised prop uses the
+  // same four-legged low stand instead of levitating above the shot lane.
+  if(style==='partition'){
+   for(const side of [-1,1]){
+    meshBox(g,.10,1.23,.20,side*.33,.615,0,metal);
+    meshBox(g,.34,.06,.50,side*.33,.04,0,dark);
+   }
+  }else if(style==='cart'){
+   for(const side of [-1,1])for(const depthSide of [-1,1]){
+    meshBox(g,.11,1.05,.11,side*.42,.525,depthSide*.43,metal);
+    const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.11,.11,.07,12),dark);
+    wheel.rotation.z=Math.PI/2;wheel.position.set(side*.42,.11,depthSide*.43);g.add(wheel);
+   }
+  }else if(style!=='plant'){
+   const surface=style==='screen'||style==='monitor'?.80:
+    style==='printer'||style==='projector'?1.44:
+    style==='mugstack'||style==='teapot'?1.16:
+    style==='lamp'?1.42:
+    style==='books'||style==='files'||style==='folders'?1.34:1.16;
+   const width=Math.max(1.10,w+.25),length=Math.max(.88,depth+.24);
+   meshBox(g,width,.10,length,0,surface-.05,0,paint);
+   const supportHeight=surface-.10;
+   for(const side of [-1,1])for(const depthSide of [-1,1])
+    meshBox(g,.10,supportHeight,.10,side*(width/2-.13),supportHeight/2,
+     depthSide*(length/2-.13),metal);
+   meshBox(g,width-.20,.06,.10,0,.23,length*.35,dark);
+  }
+  obstacles.push({type:style,obj:g,x,y:style==='plant'?.78:oy,
    z,w,h,d:depth});
  }
  // Only Chapter 4+ introduces moving blockers. Their positions and timing
