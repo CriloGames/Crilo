@@ -1076,23 +1076,23 @@ function addFanJet(spec,x,z,device,label){
  const field={kind,side,dir:-side,x,y:headY,z,power:spec.power,
   reach:kind==='lift'?3.25:4.45,device,phase:settings.n*.33,label,cloud:null};
  const cloud=new THREE.Group();cloud.position.set(x,headY,z);group.add(cloud);
- const color=kind==='lift'?0x9aebc5:0x9edce9;
+ const color=kind==='lift'?0x74bc97:0x64b3c7;
  const markerMat=new THREE.MeshBasicMaterial({
-  color,transparent:true,opacity:.64,depthWrite:false,depthTest:true,
-  blending:THREE.AdditiveBlending,side:THREE.DoubleSide
+  color,transparent:true,opacity:.37,depthWrite:false,depthTest:true,
+  blending:THREE.NormalBlending,side:THREE.DoubleSide
  });
- for(let i=0;i<12;i++){
-  const marker=new THREE.Mesh(new THREE.ConeGeometry(.061,.18,8),markerMat);
-  marker.userData.progress=(i+.22)/12;
-  const a=i*2.4,spread=.20+.30*i/12;
+ for(let i=0;i<10;i++){
+  const marker=new THREE.Mesh(new THREE.ConeGeometry(.043,.145,8),markerMat);
+  marker.userData.progress=(i+.22)/10;
+  const a=i*2.4,spread=.20+.30*i/10;
   marker.userData.u=Math.cos(a)*spread;
   marker.userData.v=Math.sin(a)*spread;
   if(kind!=='lift')marker.rotation.z=side*Math.PI/2;
   marker.castShadow=false;cloud.add(marker);
  }
  const streamMat=new THREE.MeshBasicMaterial({
-  color,transparent:true,opacity:.13,depthWrite:false,
-  blending:THREE.AdditiveBlending
+  color,transparent:true,opacity:.09,depthWrite:false,
+  blending:THREE.NormalBlending
  });
  const marks=new THREE.Group();cloud.add(marks);
  for(let k=0;k<3;k++){
@@ -1660,6 +1660,11 @@ function buildWorld(){
  cupFloor.rotation.x=-Math.PI/2;cupFloor.position.y=.045;cupGroup.add(cupFloor);
  const lip=new THREE.Mesh(new THREE.TorusGeometry(r*.98,.028,9,36),lipMat);
  lip.rotation.x=Math.PI/2;lip.position.y=h;cupGroup.add(lip);
+ // Subtle dark ring outlines a pale target against bright shelves/windows.
+ const contrastRim=new THREE.Mesh(new THREE.TorusGeometry(r*1.055,.017,8,40),
+  new THREE.MeshBasicMaterial({color:0x2c525f,depthWrite:false}));
+ contrastRim.rotation.x=Math.PI/2;contrastRim.position.y=h+.015;
+ cupGroup.add(contrastRim);
  if(settings.lid){
   // Visibly hinged timed lid. Landing while closed never scores.
   const hinge=new THREE.Group();
@@ -1999,8 +2004,8 @@ function buildWorld(){
   const [style,t,offset]=settings.obstaclePlan[i];
   const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
   const g=new THREE.Group();g.position.set(x,0,z);group.add(g);
-  const officePaints=[0x7f9298,0xc5a17f,0x8b9c8f,0xb88e8a,0x607581];
-  const paint=createMat(officePaints[(i+settings.sceneId)%5],.72);
+  // Shared neutral treatment lets colored trick-shot objects stand out.
+  const paint=createMat(style==='plant'?0x7c9b89:style==='cart'?0x6a8894:0x84949b,.67);
   let oy=1.65,w=.80,h=.86,depth=.52;
   if(style==='screen'||style==='monitor'){
    oy=2.22;w=1.02;h=.78;depth=.22;
