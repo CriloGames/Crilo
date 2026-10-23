@@ -4112,6 +4112,15 @@ function chargeTick(now){
  power=clamp(chargeAnchor+sec*.58,.06,1);
  updatePower();
 }
+// Aborted touch/keyboard gestures never leave the meter stuck in CHARGING.
+function cancelCharge(){
+ if(!charging)return;
+ charging=false;chargeSource=null;gesture=null;
+ if(!flight){
+  power=idealPower();
+  updatePower();
+ }
+}
 function launch(){
  if(!playing||paused||flight||!charging)return;
  chargeTick(performance.now());
@@ -4522,7 +4531,7 @@ function action(){
 function togglePause(){
  if(!playing&&el.overlay.hidden===false&&el.primary.dataset.action!=='resume')return;
  if(playing){
-  paused=true;playing=false;charging=false;chargeSource=null;gesture=null;
+  paused=true;playing=false;cancelCharge();
   showOverlay('GAME PAUSED','TAKE A BREATHER','Your ball and moving obstacles are frozen. Resume whenever you are ready.',
     'RESUME','resume');
  }else if(el.primary.dataset.action==='resume')hideOverlay();
@@ -4627,14 +4636,25 @@ const release=e=>{
 el.canvas.addEventListener('pointerup',release);
 el.canvas.addEventListener('pointercancel',e=>{
  if(chargeSource!=='pointer'||gesture?.id!==e.pointerId)return;
- charging=false;chargeSource=null;gesture=null;updatePower();
+ cancelCharge();
+ try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
 });
 document.addEventListener('keydown',e=>{
  const tag=document.activeElement?.tagName||'';
  if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||e.ctrlKey||e.altKey||e.metaKey)return;
  const key=e.key.toLowerCase();
- if(key==='r'){e.preventDefault();loadLevel(level);return;}
- if(key==='escape'){e.preventDefault();togglePause();return;}
+ if(key==='r'){
+  e.preventDefault();
+  // Holding R must not rebuild 3D geometry dozens of times per second.
+  if(!e.repeat)loadLevel(level);
+  return;
+ }
+ if(key==='escape'){
+  e.preventDefault();
+  // Prevent held Escape from flipping pause/resume repeatedly.
+  if(!e.repeat)togglePause();
+  return;
+ }
  if(!playing||flight)return;
  if(projectileId==='frisbee'&&(key==='q'||key==='e')){
   e.preventDefault();
@@ -4661,8 +4681,8 @@ document.addEventListener('keyup',e=>{
  if(e.code==='Space'&&chargeSource==='keyboard'){e.preventDefault();launch();}
 });
 window.addEventListener('blur',()=>{
- if(charging){charging=false;chargeSource=null;gesture=null;}
  if(playing)togglePause();
+ else cancelCharge();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)togglePause();});
 loadLevel(level);
