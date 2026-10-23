@@ -333,11 +333,13 @@ const LEVEL_FAIRNESS={
   moving:.32,radius:.45},
  48:{wind:0,motion:'still',clearBarriers:true,radius:.465},
  49:{wind:0,fanPower:2.85,motion:'still',clearBarriers:true,radius:.47},
- // The finale still requires two real spring contacts, now followed by
- // a slowly sliding cup. Hoops and lid remain off to avoid dead-end shots.
+ // Final exam: two numbered spring rebounds and a small moving cup.
+ // The second cart used to overlap the goal stand and its very low
+ // forward rebound left an impractically narrow final landing window.
+ // Keep ordered contacts, real velocity loss, and precision aiming.
  50:{wind:0,hoops:0,hoopMove:false,lid:false,motion:'slide',moving:.13,
-   padFractions:[.51,.92],secondPadOffset:0,clearBarriers:true,
-   radius:.46}
+   padFractions:[.49,.87],secondPadOffset:0,clearBarriers:true,
+   radius:.48}
 };
 function balanceStage(spec){
  const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
@@ -435,6 +437,7 @@ function updateObjective(){
 function levelInstructions(spec){
  if(spec.n===22)return 'Aim toward the glowing orange wall cushion on the left, not straight into the cup. Bounce off it first, then land in the slowly sliding cup. The crosswind is gentler here.';
  if(spec.n===40)return 'Bank off the glowing wall cushion on the right, then land in the gently moving cup. Follow the dotted ricochet arc. The timed lid is gone so your wall shot counts whenever it lands.';
+ if(spec.n===50)return 'Final challenge: bounce on spring PAD 1 and then PAD 2, in that order. Use controlled power and follow the dotted trajectory through BOTH real rebounds into the moving cup. There is no auto-aim.';
  const actions={
   hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
   wall:spec.wallCount>1?'bounce off '+spec.wallCount+' numbered wall cushions in order':'bounce off the striped wall cushion',
@@ -609,7 +612,7 @@ function loadLevel(n){
   settings.springRequired?
    Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
    Math.atan2(settings.x,settings.d);
- aimPitch=settings.bankRequired?.31:settings.springRequired?.32:.70;
+ aimPitch=settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
  buildUi();updatePower();
@@ -3140,7 +3143,7 @@ function buildWorld(){
 // impact position and the pad's authored friction. Tested spacings make
 // far single pads and two-pad sequences actually landable.
 const PAD_GRIP_BY_LEVEL={
- 12:[.30],45:[.13],47:[.30],48:[.28,.14],50:[.36,.20]
+ 12:[.30],45:[.13],47:[.30],48:[.28,.14],50:[.36,.28]
 };
 // Chapter 5: rubber launch plates on actual rolling office carts.
  // Distinct spaced launch carts: late-game pads no longer sit at one
@@ -3774,16 +3777,17 @@ function paintAim(){
   wallHits:0,hoopsPassed:0,springHits:0,bankHits:0};
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
- // Show the launch path, the FIRST impact and ONE rebound path only. A
- // second collision ends the preview instead of drawing distracting chains.
+ // Preview through both required springs on Level 50 and continue toward
+ // the cup. This is the actual simulated rebound, not automatic steering.
+ // Other levels keep the short two-impact preview.
  let predictedBounces=0,lastImpact=-10,previewEnded=false;
  const noteImpact=(time)=>{
   if(time-lastImpact<.12)return; // suppress chatter at the same contact
   lastImpact=time;
   predictedBounces++;
-  if(predictedBounces>=2)previewEnded=true;
+  if(predictedBounces>=(settings.n===50?4:2))previewEnded=true;
  };
- const start=simTime,dt=.048,substeps=2;
+ const start=simTime,dt=.048,substeps=settings.n===50?6:2;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];
   dot.visible=!flight&&playing&&i<count&&!previewEnded;
@@ -3814,7 +3818,7 @@ function paintAim(){
   const next=targetLocation(start+i*dt);
   const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
    Math.abs(preview.y-next.y-settings.targetHeight)<.42;
-  const cue=predictedBounces?0xffbd77:
+  const cue=settings.n===50&&preview.springHits>=2?0xa4efc7:predictedBounces?0xffbd77:
    preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
   dot.material.color.setHex(cue);
   dot.scale.setScalar(nearOpening?2.1:preview.hoopsPassed?1.2:1);
@@ -3841,6 +3845,7 @@ function inputAim(clientX,clientY){
  const baseline=(settings.n===22||settings.n===40)?
   Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
    settings.d*settings.wallPlan[0].fraction+.37):
+  settings.n===50?Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
   Math.atan2(target.x,settings.d);
  aimYaw=clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
  aimPitch=settings.bankRequired||settings.springRequired?clamp(.52+(.5-ny)*1.04,.13,1.04):clamp(.70+(.5-ny)*.52,.27,1.04);
@@ -3851,7 +3856,7 @@ function startCharge(source){
  if(!playing||paused||flight||charging)return;
  getGameAudio();
  charging=true;chargeSource=source;chargeFrom=performance.now();
- chargeAnchor=settings.wall?.06:clamp(idealPower()-.13,.06,.87);
+ chargeAnchor=settings.wall?.06:clamp(idealPower()-(settings.n===50?.20:.13),.06,.87);
  power=chargeAnchor;
  hear(510,.048,'triangle',.013);updatePower();
 }
