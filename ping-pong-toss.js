@@ -689,6 +689,55 @@ function surfaceRelief(kind,seed,rx,ry){
  tex.generateMipmaps=true;tex.minFilter=THREE.LinearMipmapLinearFilter;
  return tex;
 }
+// Wall art replaces the old rear doorway: that tall dark slab overlapped
+// the wall modules beside the window and looked like unfinished geometry.
+// A shallow, layered mounting panel now hides those overlaps. Everything
+// stays decorative and out of the projectile collision system.
+function officeFramedArtwork(parent,x,y,z,night=false){
+ const art=new THREE.Group();
+ art.position.set(x,y,z);parent.add(art);
+ ambient.push({type:'scenery',obj:art});
+ const panel=createMat(night?0x273e4b:0x4f666a,.80,.05),
+  frame=finishMat(night?0x334d58:0x435962,'enamel'),
+  inlay=finishMat(night?0x93a6a1:0xc7c6b8,'ceramic'),
+  paper=createMat(night?0x1b303c:0x29444a,.91),
+  sage=createMat(night?0x668679:0x89a498,.92),
+  slate=createMat(night?0x355566:0x53717b,.91),
+  gold=finishMat(night?0xc29b6b:0xc49c73,'anodized');
+ const layer=(w,h,d,xx,yy,zz,material)=>{
+  const item=meshBox(art,w,h,d,xx,yy,zz,material);
+  item.castShadow=false;return item;
+ };
+ // The rear plinth actually meets the existing raised wall panel: no
+ // floating door silhouette or coplanar wall details showing through.
+ layer(1.64,2.51,.34,0,0,-.055,panel);
+ layer(1.58,2.45,.075,0,0,.13,frame);
+ layer(1.48,2.35,.025,0,0,.181,inlay);
+ layer(1.31,2.16,.018,0,0,.204,paper);
+ // Restrained mid-century geometry is deliberate office decor, not UI.
+ const crescent=new THREE.Mesh(
+  new THREE.CircleGeometry(.36,40,Math.PI/2,Math.PI),sage);
+ crescent.position.set(-.18,.42,.219);
+ art.add(crescent);
+ layer(.34,.67,.010,-.31,-.49,.228,slate);
+ layer(.15,1.04,.010,.065,-.28,.230,
+  createMat(night?0x456873:0x749296,.89));
+ layer(.038,1.28,.011,.29,.04,.235,gold);
+ layer(.15,.48,.012,.48,-.48,.237,gold);
+ layer(.39,.021,.012,-.20,-.91,.236,inlay);
+ // Muted reflection on the inset glass, intentionally translucent.
+ const reflection=new THREE.Mesh(
+  new THREE.PlaneGeometry(.19,1.86),
+  new THREE.MeshBasicMaterial({color:0xd2e5e6,transparent:true,
+   opacity:night?.045:.065,depthWrite:false}));
+ reflection.position.set(.33,.01,.255);
+ reflection.rotation.z=-.12;
+ art.add(reflection);
+ // Two quiet fixing clips make the frame feel physically installed.
+ for(const yy of [-1.16,1.16])
+  layer(.19,.025,.028,0,yy,.183,gold);
+ return art;
+}
 // Architecture is background scenery only: none of these decorative details
 // enter the projectile collision system or change the fifty level solutions.
 function roomArchitecture(roomEnd,roomLength,sceneId,variant,palette){
@@ -2009,17 +2058,13 @@ function buildWorld(){
    depthWrite:false,side:THREE.DoubleSide}));
  glazing.rotation.z=-.15;glazing.position.set(1.0,0,.137);
  winGroup.add(glazing);
- // Window sill, real frame thickness and a worn side door.
+ // Window sill and inset gallery print beside the window.
+ // Keep it against the same rear-wall alcove, outside the throw lane.
  meshBox(winGroup,3.91,.18,.41,0,-1.20,.13,cream);
  meshBox(winGroup,.075,.34,.12,.15,-.07,.23,metal);
- const doorwayX=settings.sceneId%2===0?6.95:-6.95;
- meshBox(group,1.33,4.5,.22,doorwayX,2.16,roomEnd+.30,dark);
- meshBox(group,1.06,4.21,.13,doorwayX,2.12,roomEnd+.47,
-  createMat(settings.roomVariant?0x3c5362:0x887f70,.79));
- const doorHandle=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),
-  createMat(0xcdb68a,.29,.35));
- doorHandle.position.set(doorwayX+(doorwayX>0?-.34:.34),1.98,roomEnd+.58);
- group.add(doorHandle);
+ const artSide=settings.sceneId%2===0?1:-1;
+ officeFramedArtwork(group,artSide*6.65,4.18,roomEnd+.75,
+  settings.roomVariant===1||[4,9].includes(settings.sceneId));
  // Notices, pinned memos, clock and shelving on the rear wall.
  // Avoid two wall displays competing in the Awards Office.
  if(settings.sceneId!==7){
