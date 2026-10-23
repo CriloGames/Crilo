@@ -181,6 +181,44 @@ function stageDifficulty(n,spec){
   (spec?.barrierCount>1?1:0);
  return Math.min(5,baseline+(hazards>=2?1:0));
 }
+
+// Campaign fairness overrides. A level introduces or combines 1–3 learnable
+// mechanics, rather than stacking extreme wind, moving hoops, lids, barriers
+// AND precision springs into an unsolvable shot. The underlying 50 blueprints
+// and all saved player progress remain unchanged.
+const LEVEL_FAIRNESS={
+ 24:{wind:-.23},26:{wind:-.12,fanPower:2.7},
+ 28:{wind:-.10},30:{wind:-.12,fanPower:2.6},
+ 35:{wind:0,clearBarriers:true},
+ 38:{wind:0,fanPower:2.8,clearBarriers:true},
+ 40:{wind:0,clearBarriers:true},
+ 42:{fanPower:2.9},
+ 43:{wind:0,motion:'still'},
+ 44:{wind:0,motion:'still',clearObstacles:true},
+ 45:{wind:0,motion:'slide'},
+ 46:{wind:0,fanPower:2.7,motion:'still',clearBarriers:true},
+ 47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true},
+ 48:{wind:0,motion:'still',clearBarriers:true},
+ 49:{wind:0,fanPower:2.6,motion:'still',clearBarriers:true},
+ 50:{wind:0,hoops:1,hoopMove:false,lid:false,motion:'still',
+   clearBarriers:true}
+};
+function balanceStage(spec){
+ const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
+ if(tune.wind!==undefined)spec.wind=tune.wind;
+ if(tune.motion!==undefined){
+  spec.motion=tune.motion;
+  spec.moving=tune.motion==='still'?0:Math.min(spec.moving,.33);
+ }
+ if(tune.fanPower!==undefined&&spec.fanZone)
+  spec.fanZone={...spec.fanZone,power:tune.fanPower};
+ if(tune.hoops!==undefined)spec.hoops=tune.hoops;
+ if(tune.hoopMove!==undefined)spec.hoopMove=tune.hoopMove;
+ if(tune.lid!==undefined)spec.lid=tune.lid;
+ if(tune.clearBarriers){spec.barrierPlan=[];spec.barrierCount=0;}
+ if(tune.clearObstacles)spec.obstaclePlan=[];
+ return spec;
+}
 function stageSettings(n){
  const row=STAGES[n-1];if(!row)throw Error('Missing level '+n);
  const [challenge,sceneId,station,d,x,topPad,radius,kind,shot,motion,wind,
@@ -192,7 +230,7 @@ function stageSettings(n){
  const springFractions=springRequired?(FINAL_PAD_LAYOUTS[n]||[.50]):[];
  const wallPlan=special.walls||(special.wall?
   [{side:special.wall.side,fraction:.52,x:2.16,length:3.65}]:[]);
- return {
+ return balanceStage({
   n,c,tier,challenge,sceneId,station,d,x,topPad,radius,kind,
   newTrick:NEW_TRICKS[n]||null,
   hoops:special.hoops||0,hoopMove:!!special.hoopMove,
@@ -208,7 +246,7 @@ function stageSettings(n){
   springX:0,springZ:LAUNCH_Z-d*(springFractions[0]||.5),
   roomVariant:tier>=5?1:0,
   color:chapter(n).color,targetHeight:[.55,.59,.68,.47,.63,.66,.57][kind]
- };
+ });
 }
 let settings=stageSettings(level);
 // Keep the visible shot sequence in the order the player actually meets the
