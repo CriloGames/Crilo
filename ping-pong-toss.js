@@ -1974,8 +1974,9 @@ function plannedBarrierLane(spec,fraction){
    .19+spec.topPad+spec.targetHeight-BALL_R;
  const co=Math.cos(pitch),denom=2*co*co*
   (distance*Math.tan(pitch)+LAUNCH_Y-requiredY);
- const speed=5.6+8.2*clamp((Math.sqrt(
-  Math.max(1,GRAVITY*distance*distance/Math.max(.08,denom)))-5.6)/8.2,.06,.97);
+ const speed=physicsProfile.speed*(5.6+8.2*clamp((
+  Math.sqrt(Math.max(1,GRAVITY*distance*distance/Math.max(.08,denom)))/
+  physicsProfile.speed-5.6)/8.2,.06,.97));
  const traveledZ=spec.d*fraction;
  const time=traveledZ/(Math.cos(yaw)*co*speed);
  return {x:Math.tan(yaw)*traveledZ,
@@ -3056,7 +3057,7 @@ function buildWorld(){
    settings.springRequired?1.21+BALL_R:.19+settings.topPad+settings.targetHeight-BALL_R;
   const speed=Math.sqrt(Math.max(1,GRAVITY*range*range/
    Math.max(.08,2*Math.cos(pitch)**2*(range*Math.tan(pitch)+LAUNCH_Y-hRequired))));
-  const effective=clamp((speed-5.6)/8.2,.06,.97)*8.2+5.6;
+  const effective=(clamp((speed/physicsProfile.speed-5.6)/8.2,.06,.97)*8.2+5.6)*physicsProfile.speed;
   const t=dist/(Math.cos(pitch)*effective);
   const y=clamp(LAUNCH_Y+Math.sin(pitch)*effective*t-GRAVITY*t*t*.5,1.05,5.4);
   const x=settings.x*fraction;
@@ -3321,15 +3322,23 @@ function idealPower(){
  const t=Math.tan(aimPitch),co=Math.cos(aimPitch);
  const denom=2*co*co*(d*t+LAUNCH_Y-requiredHeight);
  const v=Math.sqrt(Math.max(1,GRAVITY*d*d/Math.max(.08,denom)));
- return clamp((v-5.6)/8.2,.06,.97);
+ return clamp((v/physicsProfile.speed-5.6)/8.2,.06,.97);
 }
 function makeVelocity(p){
- const speed=5.6+8.2*p;
+ const speed=(5.6+8.2*p)*physicsProfile.speed;
  return {
   vx:Math.sin(aimYaw)*Math.cos(aimPitch)*speed,
   vy:Math.sin(aimPitch)*speed,
   vz:-Math.cos(aimYaw)*Math.cos(aimPitch)*speed
  };
+}
+// Identical aerodynamics drive the flight and prediction, never auto-steer.
+function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
+ body.vx+=(windAt(t)+fan.x)*physicsProfile.air*h;
+ body.vy+=(fan.y*physicsProfile.air-GRAVITY+
+  physicsProfile.lift*Math.min(1,Math.hypot(body.vx,body.vz)/9))*h;
+ const decay=Math.exp(-physicsProfile.drag*h);
+ body.vx*=decay;body.vy*=decay;body.vz*=decay;
 }
 function windAt(time){
  // A desk fan oscillates rather than blowing at a perfectly constant rate.
@@ -3420,7 +3429,7 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  if(incoming>=-.006)return false;
  const tangent=Math.max(0,1-friction);
  // Friction damps only sideways slip; restitution controls the normal bounce.
- const normalOut=-incoming*rest;
+ const normalOut=-incoming*clamp(rest*physicsProfile.bounce,.16,.96);
  body.vx=surfaceX+(vx-incoming*nx)*tangent+normalOut*nx;
  body.vy=surfaceY+(vy-incoming*ny)*tangent+normalOut*ny;
  body.vz=surfaceZ+(vz-incoming*nz)*tangent+normalOut*nz;
@@ -3574,7 +3583,8 @@ function wallCollision(projectile,previous,preview=false){
   if(Math.abs(hitZ-w.z)>w.length*.5||
      Math.abs(hitY-w.y)>w.height*.5)continue;
   projectile.x=w.x+fromSide*(BALL_R+.025);
-  projectile.vx=-projectile.vx*.90;projectile.vz*=.97;projectile.vy+=.18;
+  projectile.vx=-projectile.vx*clamp(.90*physicsProfile.bounce,.48,.96);
+  projectile.vz*=.97;projectile.vy+=.18;
   // A later wall cannot stand in for an earlier one, nor can repeatedly
   // bouncing on the same wall clear a two-wall requirement.
   const credited=w.index===(projectile.wallHits||0);
@@ -3630,14 +3640,14 @@ function padRebound(projectile,pad){
   // Textured spring absorbs horizontal speed while returning a vertical kick.
   return {
    vx:projectile.vx*(pad.sideGrip??.79)+offsetX*.44,
-   vy:clamp(5.65+impact*.43,5.65,8.2),
+   vy:clamp((5.65+impact*.43)*physicsProfile.pad,5.2,9.7),
    vz:projectile.vz*(pad.forwardGrip??.53)+offsetZ*.35
   };
  }
  // High-friction rubber tray absorbs forward speed. Offset hits deflect subtly.
  return {
   vx:projectile.vx*.78+offsetX*.52,
-  vy:clamp(2.75+impact*.79,3.3,7.3),
+  vy:clamp((2.75+impact*.79)*physicsProfile.pad,3.0,8.1),
   vz:projectile.vz*.42+offsetZ*.29
  };
 }
@@ -3775,8 +3785,7 @@ function paintAim(){
     const t=start+(i-1+sub/substeps)*dt,h=dt/substeps;
     const prior={x:preview.x,y:preview.y,z:preview.z};
     const fan=airForce(preview.x,preview.y,preview.z,t);
-    preview.vx+=(windAt(t)+fan.x)*h;
-    preview.vy+=(fan.y-GRAVITY)*h;
+    applyProjectileForces(preview,h,t,fan);
     preview.x+=preview.vx*h;preview.y+=preview.vy*h;preview.z+=preview.vz*h;
     if(wallCollision(preview,prior,true))noteImpact(t+h);
     checkHoopCross(prior,preview,t+h,true);
@@ -3853,10 +3862,10 @@ function launch(){
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  shotT=0;shotStart=performance.now();
- el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
+ el.status.textContent=physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
- hear(880,.12,'sine',.045);message('PONG!',.55);
+ hear(880,.12,'sine',.045);message(projectileId==='ping'?'PONG!':'THROWN!',.55);
  paintAim();
 }
 function miss(reason='MISS!'){
@@ -4060,9 +4069,7 @@ function tickFlight(dt){
     settings.fanZone?.kind==='lift'?'UPDRAFT NEARBY ↑':
     settings.fanZone||Math.abs(settings.wind)>.001?'WATCH THE WIND':'';
   }
-  ball.vx+=(windAt(simTime)+air.x)*h;
-  ball.vy+=air.y*h;
-  ball.vy-=GRAVITY*h;
+  applyProjectileForces(ball,h,simTime,air);
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   wallCollision(ball,{x:prevX,y:prevY,z:prevZ});
   checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
@@ -4098,8 +4105,13 @@ function tickFlight(dt){
  }
  if(ballMesh){
   ballMesh.position.set(ball.x,ball.y,ball.z);
-  ballMesh.rotation.x+=dt*ball.vz*.6;
-  ballMesh.rotation.z+=dt*ball.vx*.6;
+  if(projectileId==='frisbee'){
+   ballMesh.rotation.y+=dt*10;
+   ballMesh.rotation.z=Math.sin(shotT*5)*.11;
+  }else{
+   ballMesh.rotation.x+=dt*ball.vz*.6;
+   ballMesh.rotation.z+=dt*ball.vx*.6;
+  }
   const shadowOnFar=ball.z>settings.targetZ-1.5&&ball.z<settings.targetZ+1.5&&
    Math.abs(ball.x-settings.x)<2.30;
   const shadowOnNear=ball.z>3.7&&ball.z<7.55&&Math.abs(ball.x)<6.30;
