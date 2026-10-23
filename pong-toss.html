@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="ping-pong-toss.css?v=15">
+<link rel="stylesheet" href="ping-pong-toss.css?v=16">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone pt-page">
@@ -50,7 +50,14 @@
     <button type="button" class="pt-menu-trigger" id="ptLevelMenu" aria-label="Open the level menu" title="Choose or replay a level">☷ LEVELS</button>
    <button type="button" class="pt-action" id="ptRetry" title="Restart level (R)" aria-label="Restart level">↻</button>
    <button type="button" class="pt-action" id="ptPause" title="Pause (Esc)" aria-label="Pause game">Ⅱ</button>
-   <button type="button" class="pt-action" id="ptSound" title="Toggle sound" aria-label="Mute sound" aria-pressed="true">♫</button>
+   <button type="button" class="pt-action pt-sound-toggle" id="ptSound" data-sound="on" title="Sound on · Click to mute" aria-label="Sound on · Click to mute" aria-pressed="true">
+    <svg class="pt-sound-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+     <path d="M11 5 6 9H3v6h3l5 4V5Z"/>
+     <path class="pt-sound-waves" d="M15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/>
+     <path class="pt-sound-slash" d="M16 8 21 17"/>
+    </svg>
+    <span class="pt-sound-state" id="ptSoundState" aria-hidden="true">ON</span>
+   </button>
    <button type="button" class="pt-action" id="ptFullscreen" title="Toggle fullscreen" aria-label="Enter fullscreen">⛶</button>
   </div>
  </div>
@@ -144,7 +151,7 @@
 <script src="supabase-config.js?v=21"></script>
 <script src="app.js?v=56"></script>
 <script src="game-topbar.js?v=1"></script>
-<script type="module" src="ping-pong-toss.js?v=37"></script>
+<script type="module" src="ping-pong-toss.js?v=38"></script>
 <script src="public-metrics.js?v=1"></script>
 <script src="floating-mystery.js?v=6"></script>
 </body></html>
