@@ -72,115 +72,47 @@ function message(str,time=2.0){toastMessage=str;toastUntil=performance.now()+tim
 // suspended. Create the context ONLY after a user gesture (hold/click/key),
 // resume it on that same gesture, and send all short sounds through a single
 // master/limiter so stacked collisions don't blast the player's speakers.
+// Original Pong Toss sound design: a simple rounded oscillator ping for
+// each event, with its original pitch, waveform and short pitch drop.
+// The later filtered-noise effects and dynamics compressor made it hard
+// to hear. No compressor: use a deliberately louder, bounded output.
 function getGameAudio(){
  if(!soundOn)return null;
  try{
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C)return null;
   if(!hear.ctx){
-   const ctx=new C();
-   const limiter=ctx.createDynamicsCompressor();
-   limiter.threshold.value=-12;limiter.knee.value=14;
-   limiter.ratio.value=7;limiter.attack.value=.004;
-   limiter.release.value=.19;
-   const master=ctx.createGain();
-   master.gain.value=.82;master.connect(limiter);limiter.connect(ctx.destination);
-   hear.ctx=ctx;hear.master=master;
+   hear.ctx=new C();
+   hear.master=hear.ctx.createGain();
+   hear.master.gain.value=1;
+   hear.master.connect(hear.ctx.destination);
   }
-  const ctx=hear.ctx;
-  if(ctx.state==='suspended'){
-   try{const p=ctx.resume();if(p?.catch)void p.catch(()=>{});}catch{}
+  if(hear.ctx.state==='suspended'){
+   try{
+    const resumed=hear.ctx.resume();
+    if(resumed?.catch)void resumed.catch(()=>{});
+   }catch{}
   }
-  return ctx;
+  return hear.ctx;
  }catch{return null;}
 }
-function noteTone(freq,duration=.10,voice='sine',volume=.10,delay=0,toFreq){
- const ctx=getGameAudio();if(!ctx||!hear.master)return;
- try{
-  const when=ctx.currentTime+Math.max(0,delay),length=Math.max(.035,duration);
-  const osc=ctx.createOscillator(),gain=ctx.createGain();
-  osc.type=voice;
-  osc.frequency.setValueAtTime(Math.max(55,freq),when);
-  osc.frequency.exponentialRampToValueAtTime(
-   Math.max(55,toFreq??freq*.72),when+length*.90);
-  gain.gain.setValueAtTime(.0001,when);
-  gain.gain.exponentialRampToValueAtTime(Math.max(.002,volume),when+.009);
-  gain.gain.exponentialRampToValueAtTime(.0001,when+length);
-  osc.connect(gain);gain.connect(hear.master);
-  osc.start(when);osc.stop(when+length+.016);
- }catch{}
-}
-function noiseBurst(cutoff=900,duration=.10,volume=.07,delay=0,filterType='lowpass'){
- const ctx=getGameAudio();if(!ctx||!hear.master)return;
- try{
-  if(!hear.noiseBuffer){
-   const sampleCount=Math.ceil(ctx.sampleRate*.42);
-   const buffer=ctx.createBuffer(1,sampleCount,ctx.sampleRate);
-   const samples=buffer.getChannelData(0);
-   // Short deterministic static, reused rather than regenerating each hit.
-   let seed=982171;
-   for(let i=0;i<samples.length;i++){
-    seed=(Math.imul(seed,1664525)+1013904223)>>>0;
-    samples[i]=(seed/2147483648-1);
-   }
-   hear.noiseBuffer=buffer;
-  }
-  const when=ctx.currentTime+Math.max(0,delay),len=Math.min(.4,Math.max(.025,duration));
-  const source=ctx.createBufferSource(),filter=ctx.createBiquadFilter(),gain=ctx.createGain();
-  source.buffer=hear.noiseBuffer;filter.type=filterType;filter.frequency.value=cutoff;
-  filter.Q.value=.7;
-  gain.gain.setValueAtTime(.0001,when);
-  gain.gain.exponentialRampToValueAtTime(volume,when+.006);
-  gain.gain.exponentialRampToValueAtTime(.0001,when+len);
-  source.connect(filter);filter.connect(gain);gain.connect(hear.master);
-  source.start(when);source.stop(when+len+.015);
- }catch{}
-}
-// Legacy cue helper stays in place for non-impact UI/character fallbacks.
 function hear(freq=520,duration=.10,voice='sine',volume=.04){
  if(!soundOn)return;
- noteTone(freq,duration,voice,Math.min(.19,Math.max(.035,volume*1.65)));
-}
-function playFx(kind,strength=1){
- if(!soundOn)return;
- const scale=Math.max(.45,Math.min(1.3,strength));
- switch(kind){
-  case 'charge':
-   noteTone(460,.075,'sine',.065,0,595);break;
-  case 'throw':
-   noiseBurst(1550,.17,.10,0,'bandpass');
-   noteTone(355,.105,'triangle',.11,0,185);
-   noiseBurst(2600,.062,.034,.03,'highpass');break;
-  case 'tap':
-   noiseBurst(1850,.047,.055*scale);
-   noteTone(340,.088,'sine',.125*scale,0,195);break;
-  case 'metal':
-   noiseBurst(3200,.065,.073*scale,'highpass');
-   noteTone(690,.17,'triangle',.082*scale,0,405);break;
-  case 'bank':
-   noiseBurst(670,.12,.13*scale);
-   noteTone(260,.16,'sine',.17*scale,0,127);break;
-  case 'wall':
-   noiseBurst(940,.10,.10*scale);
-   noteTone(295,.16,'triangle',.135*scale,0,172);break;
-  case 'spring':
-   noteTone(370,.20,'triangle',.135*scale,0,690);
-   noteTone(690,.17,'sine',.10*scale,.052,870);
-   noiseBurst(1300,.062,.054*scale);break;
-  case 'hoop':
-   noteTone(830,.20,'sine',.115*scale,0,1030);
-   noteTone(1250,.23,'sine',.080*scale,.046,1530);break;
-  case 'miss':
-   noteTone(280,.20,'triangle',.11,0,142);
-   noiseBurst(540,.07,.045);break;
-  case 'win':
-   noteTone(680,.22,'sine',.12,0,710);
-   noteTone(900,.23,'sine',.12,.108,940);
-   noteTone(1210,.37,'sine',.145,.232,1390);break;
-  case 'enable':
-   noteTone(690,.11,'sine',.11,0,800);
-   noteTone(985,.15,'sine',.09,.075,1075);break;
- }
+ const ctx=getGameAudio();
+ if(!ctx||!hear.master)return;
+ try{
+  const t=ctx.currentTime,osc=ctx.createOscillator(),gain=ctx.createGain();
+  osc.type=voice;osc.frequency.setValueAtTime(freq,t);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(80,freq*.68),t+duration);
+  // Original sound frequencies/timings, but a strong, audible output.
+  // Before: max .07 peak for win sounds. Now: ~6x the original amplitudes.
+  const audibleVolume=Math.min(.54,Math.max(.018,volume*6.25));
+  gain.gain.setValueAtTime(.0001,t);
+  gain.gain.exponentialRampToValueAtTime(audibleVolume,t+.013);
+  gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+  osc.connect(gain);gain.connect(hear.master);
+  osc.start(t);osc.stop(t+duration+.01);
+ }catch{}
 }
 // Fifty authored level blueprints. Every entry has its own target furniture,
 // room architecture, named set-piece, flight path and obstacles. These are not
@@ -3323,7 +3255,7 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
   }
   if(!body.lastHitTime||simTime-body.lastHitTime>.08){
    body.lastHitTime=simTime;
-   playFx(rest>.69?'metal':'tap',Math.min(1.25,.55+Math.abs(incoming)*.10));
+   hear(rest>.69?530:360,.075,'triangle',Math.min(.035,.008+Math.abs(incoming)*.003));
   }
  }
  return true;
@@ -3463,7 +3395,7 @@ function wallCollision(projectile,previousX,preview=false){
    updateBounceCount();
    message(credited?'WALL BANK '+Math.min(projectile.wallHits,wallPads.length)+
     '/'+wallPads.length+'!':'FOLLOW THE NUMBERED BANKS',1.1);
-   updateObjective();playFx('wall');
+   updateObjective();hear(550,.12,'triangle',.05);
   }
   collided=true;break;
  }
@@ -3492,7 +3424,7 @@ function checkHoopCross(previous,projectile,time,preview=false){
    gate.ringLight.intensity=1.2;
    gate.coreMaterial.color.setHex(0xeafff1);
    for(const glow of gate.glows)glow.material.color.setHex(0x8affc4);
-   playFx('hoop',1+projectile.hoopsPassed*.08);
+   hear(800+projectile.hoopsPassed*120,.10,'sine',.06);
    message('RING '+projectile.hoopsPassed+'/'+hoops.length+' CLEARED!',1.1);
    updateObjective();
    
@@ -3598,11 +3530,11 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
    if(pad.type==='bank'){
     pad.lastImpact=time;
     message('BANK BOUNCE! · NOW LAND THE SHOT',1);
-    playFx('bank');
+    hear(650,.13,'triangle',.045);
    }else{
     message(credited?'SPRING '+body.springHits+'/'+settings.padCount+'!':
      'HIT PAD '+((body.springHits||0)+1)+' NEXT',1);
-    playFx('spring');
+    hear(480,.18,'sine',.06);
     pad.lastImpact=time;
    }
    if(impactRing){
@@ -3712,7 +3644,7 @@ function startCharge(source){
  charging=true;chargeSource=source;chargeFrom=performance.now();
  chargeAnchor=settings.wall?.06:clamp(idealPower()-.13,.06,.87);
  power=chargeAnchor;
- playFx('charge');updatePower();
+ hear(510,.048,'triangle',.013);updatePower();
 }
 function chargeTick(now){
  if(!charging)return;
@@ -3732,13 +3664,13 @@ function launch(){
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
  updateBounceCount();
- playFx('throw');message('PONG!',.55);
+ hear(880,.12,'sine',.045);message('PONG!',.55);
  paintAim();
 }
 function miss(reason='MISS!'){
  if(!flight)return;
  flight=false;ball.active=false;
- playFx('miss');
+ hear(230,.16,'triangle',.027);
  const info=ball.rimMiss;
  let hint='Adjust angle and power for the next throw.';
  if(reason.includes('HOOP')||reason.includes('RING'))
@@ -3768,7 +3700,8 @@ function miss(reason='MISS!'){
 function complete(){
  if(!flight)return;
  flight=false;ball.active=false;
- playFx('win');
+ hear(920,.11,'sine',.07);
+ setTimeout(()=>hear(1160,.14,'sine',.055),110);
  completed[level]=true;
  best[level]=Math.min(best[level]||Infinity,attempts);
  if(level>=unlocked&&unlocked<50)unlocked=level+1;
@@ -4114,8 +4047,8 @@ el.sound.addEventListener('click',()=>{
  if(soundOn){
   // This click is a direct user gesture: resume Web Audio and let players
   // hear a brief confirmation, rather than silently lighting up 'ON'.
-  if(hear.master&&hear.ctx)hear.master.gain.setTargetAtTime(.82,hear.ctx.currentTime,.012);
-  getGameAudio();playFx('enable');
+  if(hear.master&&hear.ctx)hear.master.gain.setTargetAtTime(1,hear.ctx.currentTime,.012);
+  getGameAudio();hear(720,.13,'sine',.065);
  }else{
   if(hear.master&&hear.ctx)hear.master.gain.setTargetAtTime(0,hear.ctx.currentTime,.012);
   try{window.speechSynthesis?.cancel();}catch{}
