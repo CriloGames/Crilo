@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="game-topbar.css?v=6">
 <link rel="stylesheet" href="header-fit.css?v=3">
-<link rel="stylesheet" href="ping-pong-toss.css?v=10">
+<link rel="stylesheet" href="ping-pong-toss.css?v=11">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="crilo-standalone pt-page">
@@ -44,9 +44,10 @@
   <div class="pt-stat"><small>LEVEL</small><strong id="ptLevelNumber">01 / 50</strong></div>
   <div class="pt-stat secondary"><small>THROWS THIS LEVEL</small><strong id="ptAttempts">0</strong></div>
   <div class="pt-stat physics"><small>BOUNCES THIS SHOT</small><strong id="ptBounces">0</strong></div>
-  <div class="pt-stat tertiary"><small>STARS EARNED</small><strong id="ptTotalStars">0 / 150</strong></div>
+  <div class="pt-stat tertiary"><small>LEVELS CLEARED</small><strong id="ptLevelsCleared">0 / 50</strong></div>
   <div class="pt-stat"><small>BEST ON THIS LEVEL</small><strong class="pt-small-strong" id="ptBest">—</strong></div>
   <div class="pt-top-actions">
+    <button type="button" class="pt-menu-trigger" id="ptLevelMenu" aria-label="Open the level menu" title="Choose or replay a level">☷ LEVELS</button>
    <button type="button" class="pt-action" id="ptRetry" title="Restart level (R)" aria-label="Restart level">↻</button>
    <button type="button" class="pt-action" id="ptPause" title="Pause (Esc)" aria-label="Pause game">Ⅱ</button>
    <button type="button" class="pt-action" id="ptSound" title="Toggle sound" aria-label="Mute sound" aria-pressed="true">♫</button>
@@ -64,7 +65,7 @@
    <div class="pt-aim-hint" aria-label="Current level and objective">
     <strong id="ptChapter">CHAPTER 1 · CLASSIC TOSS</strong>
     <small id="ptStageTitle">THE BASICS</small>
-    <span class="pt-difficulty" id="ptDifficulty">DIFFICULTY · ★ · EASY</span>
+    <span class="pt-difficulty" id="ptDifficulty">EASY · LEVEL 01</span>
     <span class="pt-shot-objective" id="ptShotObjective">DIRECT THROW → CUP</span>
    </div>
    <div class="pt-crosshair" aria-hidden="true"></div>
@@ -97,14 +98,15 @@
   <span id="ptStatus" role="status" aria-live="polite">Aim for the opening. Your progress saves automatically.</span>
  </div>
 </section>
-<section class="pt-selection" aria-label="Fifty level browser">
- <div class="pt-selection-header"><h2>Choose a level</h2><p>50 original levels. New tricks every few rounds.</p></div>
+<section class="pt-selection" id="ptSelection" aria-label="Fifty level browser">
+ <div class="pt-selection-header"><div><h2>Level menu</h2><p>Replay any unlocked level or continue your furthest level. Progress saves on this device.</p></div>
+ <button class="pt-continue-button" id="ptContinue" type="button">CONTINUE · LEVEL 01</button></div>
  <div class="pt-chapter-list" id="ptChapters" role="group" aria-label="Five gameplay chapters"></div>
  <p class="pt-chapter-description" id="ptChapterDescription">Start with the perfect throw.</p>
  <div class="pt-level-grid" id="ptLevelGrid" role="group" aria-label="Chapter levels"></div>
 </section>
 <div class="pt-rules">
- <span>Sink the shot. Fewer throws earn more stars.</span>
+ <span>50 levels. Clear each one once. Replay whenever you like.</span>
  <div class="pt-rule-keys"><kbd>DRAG</kbd> Aim <kbd>HOLD</kbd> Power <kbd>R</kbd> Retry <kbd>ESC</kbd> Pause <span>More controls in <strong>?</strong></span></div>
 </div>
 </main>
@@ -122,7 +124,7 @@
  <li><strong>Hoop challenges:</strong> Pass through each numbered ring in order before sinking the ball. Later hoops move or appear in pairs.</li>
  <li><strong>Directional fans:</strong> Local air jets push the ball sideways or upward only while it travels through the visible airflow. Crosswinds and gusts can also affect the shot.</li>
  <li><strong>Advanced combinations:</strong> Time hinged lids, dodge sliding barriers, and combine springs with gusts and multiple hoops. Bounce pads never automatically aim at the cup.</li>
- <li>You may retry as often as you like. Finish in two throws or fewer for 3 stars, three or four throws for 2 stars, or five or more for 1 star.</li>
+ <li>There are 50 levels and no star ratings. Finish a level to unlock the next one. Use the level menu to replay unlocked levels or Continue to return to your furthest level.</li>
  </ul>
  <p>All Pong Toss progress is stored locally on this device. It does not affect Crilo Daily or leaderboards.</p>
  </section>
@@ -133,7 +135,7 @@
 <script src="supabase-config.js?v=21"></script>
 <script src="app.js?v=56"></script>
 <script src="game-topbar.js?v=1"></script>
-<script type="module" src="ping-pong-toss.js?v=21"></script>
+<script type="module" src="ping-pong-toss.js?v=22"></script>
 <script src="public-metrics.js?v=1"></script>
 <script src="floating-mystery.js?v=6"></script>
 </body></html>
