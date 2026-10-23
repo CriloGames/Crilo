@@ -2505,14 +2505,14 @@ function startCharge(source){
 }
 function chargeTick(now){
  if(!charging)return;
- if(chargeSource==='pointer'&&gesture?.moved)return;
+ // Keep charging even if the player drags to adjust their shot.
  const sec=(now-chargeFrom)/1000;
  power=clamp(chargeAnchor+sec*.58,.06,1);
  updatePower();
 }
-function launch(flickPower=null){
+function launch(){
  if(!playing||paused||flight||!charging)return;
- if(flickPower===null)chargeTick(performance.now());else power=clamp(flickPower,.05,1);
+ chargeTick(performance.now());
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
@@ -2857,7 +2857,7 @@ function action(){
 function togglePause(){
  if(!playing&&el.overlay.hidden===false&&el.primary.dataset.action!=='resume')return;
  if(playing){
-  paused=true;playing=false;charging=false;
+  paused=true;playing=false;charging=false;chargeSource=null;gesture=null;
   showOverlay('GAME PAUSED','TAKE A BREATHER','Your ball and moving obstacles are frozen. Resume whenever you are ready.',
     'RESUME','resume');
  }else if(el.primary.dataset.action==='resume')hideOverlay();
@@ -2891,18 +2891,14 @@ document.addEventListener('fullscreenchange',()=>{
 function flickAim(e){
  if(!gesture||gesture.id!==e.pointerId)return;
  const rect=el.canvas.getBoundingClientRect();
- const height=Math.max(rect.height,1);
- const dx=(e.clientX-gesture.x)/height;
- const dy=(gesture.y-e.clientY)/height;
- const duration=Math.max(70,performance.now()-gesture.time);
- const pixels=Math.hypot(e.clientX-gesture.x,e.clientY-gesture.y);
- if(pixels<12&&!gesture.moved)return;
- gesture.moved=true;
- aimYaw=clamp(Math.atan2(settings.x,settings.d)+dx*.88,-.62,.62);
- aimPitch=settings.bankRequired||settings.springRequired?clamp(.20+dy*.90,.13,1.04):clamp(.37+dy*.79,.29,1.10);
- const speed=pixels/(duration/1000);
- gesture.flickPower=clamp(idealPower()+(dy-.42)*.36+clamp((speed-950)/6000,-.045,.055),.065,1);
- power=gesture.flickPower;
+ const dx=(e.clientX-gesture.x)/Math.max(1,rect.width);
+ const dy=(gesture.y-e.clientY)/Math.max(1,rect.height);
+ if(Math.abs(dx)>.002||Math.abs(dy)>.002)gesture.moved=true;
+ // No angle jump: begin at the aim selected on pointer-down.
+ // Power stays independent and increases for as long as the pointer is held.
+ aimYaw=clamp(gesture.yaw+dx*1.12,-.62,.62);
+ aimPitch=clamp(gesture.pitch+dy*.92,
+  settings.bankRequired||settings.springRequired?.13:.27,1.10);
  updatePower();
 }
 el.canvas.addEventListener('pointermove',e=>{
@@ -2911,27 +2907,25 @@ el.canvas.addEventListener('pointermove',e=>{
  else if(e.pointerType!=='touch')inputAim(e.clientX,e.clientY);
 });
 el.canvas.addEventListener('pointerdown',e=>{
- if(e.button!==0||!playing||flight)return;
+ if(e.button!==0||!playing||paused||flight||charging)return;
  e.preventDefault();
  el.canvas.setPointerCapture?.(e.pointerId);
  inputAim(e.clientX,e.clientY);
- gesture={id:e.pointerId,x:e.clientX,y:e.clientY,time:performance.now(),moved:false,flickPower:null};
+ gesture={id:e.pointerId,x:e.clientX,y:e.clientY,yaw:aimYaw,pitch:aimPitch,moved:false};
  startCharge('pointer');
 });
 const release=e=>{
- if(chargeSource!=='pointer')return;
+ if(chargeSource!=='pointer'||!gesture||gesture.id!==e.pointerId)return;
  e.preventDefault();
- if(gesture&&gesture.id===e.pointerId){
-  flickAim(e);
-  if(gesture.moved&&e.clientY<gesture.y-20)launch(gesture.flickPower);
-  else if(gesture.moved&&e.clientY>=gesture.y-20){
-   charging=false;chargeSource=null;gesture=null;message('FLICK UP TO THROW!',1.0);
-  }else launch();
- }
+ flickAim(e);
+ launch();
  try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
 };
 el.canvas.addEventListener('pointerup',release);
-el.canvas.addEventListener('pointercancel',()=>{charging=false;chargeSource=null;gesture=null;});
+el.canvas.addEventListener('pointercancel',e=>{
+ if(chargeSource!=='pointer'||gesture?.id!==e.pointerId)return;
+ charging=false;chargeSource=null;gesture=null;updatePower();
+});
 document.addEventListener('keydown',e=>{
  const tag=document.activeElement?.tagName||'';
  if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||e.ctrlKey||e.altKey||e.metaKey)return;
@@ -2955,7 +2949,7 @@ document.addEventListener('keyup',e=>{
  if(e.code==='Space'&&chargeSource==='keyboard'){e.preventDefault();launch();}
 });
 window.addEventListener('blur',()=>{
- if(charging){charging=false;chargeSource=null;}
+ if(charging){charging=false;chargeSource=null;gesture=null;}
  if(playing)togglePause();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)togglePause();});
