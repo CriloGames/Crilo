@@ -1640,7 +1640,29 @@ function buildWorld(){
  const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
  const stationNames=['desk','drawer','shelf','trolley','counter','cabinet','window','printer','archive','conference'];
  const station=Math.max(0,stationNames.indexOf(settings.station)),stationY=settings.topPad+.03;
- if(station===0){
+ // Endgame spring carts need a clear physical landing area. A full
+ // cabinet/trolley occupying the same space as the last pad would catch the
+ // ball before the required spring collision and make the stage impossible.
+ // Use a sculpted, compact trophy pedestal behind the pad instead.
+ const compactGoal=settings.springRequired&&
+  settings.springFractions.some(f=>f>=.78);
+ if(compactGoal){
+  const pedestal=createMat(0x8cabb0,.37,.33),
+   foot=createMat(0x48646d,.52,.35),
+   edge=createMat(0xd9be8d,.32,.44);
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.16,.22,
+   Math.max(.2,stationY-.18),24),pedestal);
+  stem.position.set(0,(stationY-.18)/2,0);stem.castShadow=true;
+  farDesk.add(stem);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(.43,.48,.11,36),foot);
+  base.position.y=.08;base.castShadow=true;farDesk.add(base);
+  const circularTop=new THREE.Mesh(new THREE.CylinderGeometry(.63,.58,.13,48),pedestal);
+  circularTop.position.y=stationY;circularTop.castShadow=true;
+  circularTop.receiveShadow=true;farDesk.add(circularTop);
+  const trim=new THREE.Mesh(new THREE.TorusGeometry(.62,.025,10,48),edge);
+  trim.rotation.x=Math.PI/2;trim.position.y=stationY+.07;
+  farDesk.add(trim);
+ }else if(station===0){
   desk(farDesk,0,0,5.0,2.8,stationY,wood,metal);
   meshBox(farDesk,4.7,.09,.06,0,stationY-.17,-1.35,darkWood);
  }else if(station===1){
@@ -2415,6 +2437,7 @@ function buildWorld(){
    padY=1.14+(settings.padCount>1&&i===1?.16:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
   specialSurfaces.push(cart);
+  softContactShadow(group,x,.016,z,.98,.98);
   const frame=createMat(0x55727a,.42,.36),rubber=createMat(0x2c4d53,.72,.10),
    springMaterial=createMat(0x63aaa5,.27,.23,0x276d65);
   meshBox(cart,1.75,.13,1.75,0,padY-.15,0,frame);
