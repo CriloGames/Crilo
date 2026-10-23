@@ -471,8 +471,9 @@ function buildUi(){
  el.viewport.dataset.challenge=stageArtPlan(settings).tricks>=3?'complex':'simple';
  el.viewport.dataset.showTip=settings.newTrick?'yes':'no';
  if(!settings.lid)delete el.viewport.dataset.lidState;
- el.status.textContent=(settings.bankRequired?'BANK SHOT REQUIRED · ':settings.springRequired?'SPRING SHOT REQUIRED · ':'')+
-   cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m · '+CHAPTERS[settings.c].short.toUpperCase();
+ el.status.textContent=physicsProfile.short.toUpperCase()+' · '+
+  (settings.bankRequired?'BANK SHOT · ':settings.springRequired?'SPRING SHOT · ':'')+
+  cupVariant(settings.kind)+' · '+settings.d.toFixed(1)+'m';
  el.attempts.textContent=String(attempts);
  el.best.textContent=best[level]?best[level]+' THROW'+(best[level]===1?'':'S'):'—';
  el.prev.disabled=level<=1;
@@ -505,7 +506,34 @@ function mechanicLabel(spec){
  if(!tags.length)tags.push('PRECISION');
  return tags.slice(0,2).join(' + ');
 }
+function buildProjectiles(){
+ el.projectiles.replaceChildren();
+ for(let index=0;index<PROJECTILES.length;index++){
+  const p=PROJECTILES[index],available=projectileAvailable(p.id);
+  const record=p.id===projectileId?{completed}:projectileProgress[p.id];
+  const cleared=Array.from({length:50},(_,i)=>i+1)
+   .filter(n=>record?.completed?.[n]===true).length;
+  const button=document.createElement('button');button.type='button';
+  button.className='pt-projectile-option'+(p.id===projectileId?' active':'');
+  button.dataset.projectile=p.id;button.disabled=!available;
+  button.setAttribute('aria-pressed',String(p.id===projectileId));
+  button.title=available?p.name+' · '+p.hint:
+   'Clear all 50 with '+PROJECTILES[index-1].name+' to unlock';
+  const shape=document.createElement('span');shape.className='pt-projectile-shape';
+  shape.setAttribute('aria-hidden','true');
+  const label=document.createElement('span');label.className='pt-projectile-label';
+  label.textContent=p.short;
+  const count=document.createElement('small');count.className='pt-projectile-count';
+  count.textContent=available?cleared+'/50':'LOCKED';
+  button.append(shape,label,count);
+  button.addEventListener('click',()=>chooseProjectile(p.id));
+  el.projectiles.append(button);
+ }
+ el.projectileDescription.textContent=physicsProfile.name+' · '+physicsProfile.hint+
+  '. Lit symbols show which objects cleared each level.';
+}
 function buildChapters(){
+ buildProjectiles();
  el.chapters.replaceChildren();
  CHAPTERS.forEach((c,i)=>{
   const btn=document.createElement('button');btn.type='button';
@@ -528,7 +556,17 @@ function buildChapters(){
   nameTag.textContent=recipe.challenge;
   const star=document.createElement('small');star.className='pt-level-status';
   star.textContent=i>unlocked?'LOCKED':(completed[i]?'✓ ':'')+mechanicLabel(recipe);
-  button.append(label,nameTag,star);button.disabled=i>unlocked;
+  const marks=document.createElement('span');marks.className='pt-completion-marks';
+  marks.setAttribute('aria-label','Clears by object');
+  for(const item of PROJECTILES){
+   const record=item.id===projectileId?{completed}:projectileProgress[item.id];
+   const mark=document.createElement('i');mark.className='pt-completion-mark';
+   const done=record?.completed?.[i]===true;
+   mark.dataset.projectile=item.id;mark.dataset.lit=String(done);
+   mark.title=item.name+(done?' · cleared':' · not cleared');
+   marks.append(mark);
+  }
+  button.append(label,nameTag,star,marks);button.disabled=i>unlocked;
   const kind=recipe.springRequired?'SPRING':recipe.bankRequired?'BANK':'DIRECT';
   button.dataset.shot=kind.toLowerCase();
   if(recipe.newTrick)button.dataset.newTrick='true';
@@ -581,7 +619,8 @@ function loadLevel(n){
   'Land inside the opening without hitting the rim.';
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const objective=levelInstructions(settings);
- const introText=(settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
+ const introText=physicsProfile.name+' · '+physicsProfile.hint+'. '+
+  (settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
   'PLAY LEVEL '+fmtLevel(level),'start');
@@ -3839,14 +3878,24 @@ function complete(){
  flight=false;ball.active=false;
  hear(920,.11,'sine',.07);
  setTimeout(()=>hear(1160,.14,'sine',.055),110);
+ const previouslyCleared=campaignCleared(projectileId);
  completed[level]=true;
  best[level]=Math.min(best[level]||Infinity,attempts);
  if(level>=unlocked&&unlocked<50)unlocked=level+1;
  save();buildUi();
- showOverlay('LEVEL '+fmtLevel(level)+' COMPLETE','NICE SHOT!',
-  'Cleared in '+attempts+' throw'+(attempts===1?'':'s')+'. '+
-  (level===50?'All 50 levels are now available to replay.':'Level '+fmtLevel(Math.min(50,level+1))+' is ready.'),
-  level===50?'CHOOSE A LEVEL':'NEXT LEVEL →','win');
+ const next=PROJECTILES[PROJECTILES.findIndex(p=>p.id===projectileId)+1];
+ if(level===50&&!previouslyCleared&&campaignCleared(projectileId)&&next){
+  showOverlay('NEW THROWABLE UNLOCKED',next.name.toUpperCase()+'!',
+   'You finished all 50 with '+physicsProfile.name+'. '+next.hint+
+   '. Start a fresh 50-level campaign.',
+   'TRY '+next.short.toUpperCase(),'unlock-projectile');
+ }else{
+  showOverlay('LEVEL '+fmtLevel(level)+' COMPLETE','NICE SHOT!',
+   'Cleared in '+attempts+' throw'+(attempts===1?'':'s')+'. '+
+   (level===50?'All 50 cleared with '+physicsProfile.name+'!':
+    'Level '+fmtLevel(Math.min(50,level+1))+' is ready.'),
+   level===50?'LEVEL MENU':'NEXT LEVEL →','win');
+ }
  el.secondary.hidden=false;el.secondary.textContent='LEVEL MENU';
 }
 function lidFraction(t){
@@ -4137,6 +4186,11 @@ function resize(){
 function action(){
  const what=el.primary.dataset.action;
  if(what==='win'){nextLevel();return;}
+ if(what==='unlock-projectile'){
+  const next=PROJECTILES[PROJECTILES.findIndex(p=>p.id===projectileId)+1];
+  if(next)chooseProjectile(next.id);
+  return;
+ }
  if(what==='resume'){hideOverlay();return;}
  if(what==='start'){hideOverlay();paintAim();return;}
  if(what==='final'){loadLevel(1);return;}
