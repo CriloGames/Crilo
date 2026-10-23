@@ -3787,7 +3787,11 @@ function paintAim(){
   predictedBounces++;
   if(predictedBounces>=(settings.n===50?4:2))previewEnded=true;
  };
- const start=simTime,dt=.048,substeps=settings.n===50?6:2;
+ // Level 50's two real rebounds can take almost five seconds before
+ // the ball reaches the cup. Cover the entire shot instead of ending the
+ // dotted guide at ~3.8 s, while retaining fine ~7.6 ms physics steps.
+ const start=simTime,dt=settings.n===50?.068:.048,
+  substeps=settings.n===50?9:2;
  for(let i=0;i<aimLine.length;i++){
   const dot=aimLine[i];
   dot.visible=!flight&&playing&&i<count&&!previewEnded;
