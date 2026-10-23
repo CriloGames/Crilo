@@ -196,12 +196,24 @@ function stageSettings(n){
  };
 }
 let settings=stageSettings(level);
+// Keep the visible shot sequence in the order the player actually meets the
+// mechanics on the way across the room, including mixed hoop-and-pad stages.
+function orderedGoals(spec){
+ const goals=[];
+ if(spec.hoops)goals.push({position:.38,kind:'hoops'});
+ if(spec.wall)goals.push({position:.52,kind:'wall'});
+ if(spec.springRequired)goals.push({position:.58,kind:'spring'});
+ if(spec.bankRequired)goals.push({position:.68,kind:'bank'});
+ return goals.sort((a,b)=>a.position-b.position);
+}
 function shotSteps(spec,p={}){
- const steps=[];
- if(spec.wall)steps.push(p.wallHits?'WALL ✓':'WALL BANK');
- if(spec.bankRequired)steps.push(p.bankHits?'TRAY ✓':'RUBBER TRAY');
- if(spec.springRequired)steps.push(p.springHits?'SPRING ✓':'SPRING PAD');
- if(spec.hoops)steps.push('RINGS '+Math.min(p.hoopsPassed||0,spec.hoops)+'/'+spec.hoops);
+ const words={
+  hoops:()=> 'RINGS '+Math.min(p.hoopsPassed||0,spec.hoops)+'/'+spec.hoops,
+  wall:()=>p.wallHits?'WALL ✓':'WALL BANK',
+  bank:()=>p.bankHits?'TRAY ✓':'RUBBER TRAY',
+  spring:()=>p.springHits?'SPRING ✓':'SPRING PAD'
+ };
+ const steps=orderedGoals(spec).map(goal=>words[goal.kind]());
  if(!steps.length)steps.push('AIM');
  steps.push('CUP');return steps;
 }
@@ -214,19 +226,27 @@ function updateObjective(){
  el.objective.textContent=shotSteps(settings,ball).join(' → ')+hint;
 }
 function levelInstructions(spec){
- const steps=[];
- if(spec.wall)steps.push('hit the striped wall cushion');
- if(spec.bankRequired)steps.push('bounce on the orange rubber tray');
- if(spec.springRequired)steps.push('bounce on the green spring pad');
- if(spec.hoops)steps.push('pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''));
- const goal=steps.length?'First '+steps.join(', then ')+'. Then sink the cup.':'Sink the ball in the cup.';
- const conditions=[];
- if(spec.motion!=='still')conditions.push('moving cup');
- if(spec.fanZone)conditions.push(spec.fanZone.kind==='lift'?'updraft':'side fan');
- if(spec.wind)conditions.push('crosswind');
- if(spec.barrierCount)conditions.push('moving obstacle');
- if(spec.lid)conditions.push('timed lid');
- return goal+(conditions.length?' Watch for '+conditions.join(', ')+'.':'');
+ const actions={
+  hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
+  wall:'bounce off the striped wall cushion',
+  spring:'hit the green spring pad',
+  bank:'hit the orange rubber tray'
+ };
+ const tasks=orderedGoals(spec).map(goal=>actions[goal.kind]);
+ const goal=tasks.length?'First '+tasks.join(', then ')+'. Then sink the cup.':
+  'Aim into the cup to finish.';
+ const movements={
+  still:'',slide:'Cup slides side to side',depth:'Cup moves toward and away',
+  lift:'Cup moves up and down',orbit:'Cup circles around',figure8:'Cup moves in a figure eight'
+ };
+ const hazards=[];
+ if(movements[spec.motion])hazards.push(movements[spec.motion]);
+ if(spec.fanZone)hazards.push(spec.fanZone.kind==='lift'?
+  'green updraft lifts the ball':'blue fan stream pushes the ball sideways');
+ if(spec.wind)hazards.push('crosswind pushes the ball sideways');
+ if(spec.barrierCount)hazards.push('watch the moving '+(spec.barrierCount===1?'barrier':'barriers'));
+ if(spec.lid)hazards.push('wait for the lid to open');
+ return goal+(hazards.length?' '+hazards.join('; ')+'.':'');
 }
 function buildUi(){
  el.total.textContent=Array.from({length:50},(_,i)=>i+1).filter(i=>completed[i]).length+' / 50';
