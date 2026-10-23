@@ -14,6 +14,7 @@ const el={
  attempts:$('ptAttempts'),bounces:$('ptBounces'),total:$('ptLevelsCleared'),menu:$('ptLevelMenu'),resume:$('ptContinue'),selection:$('ptSelection'),status:$('ptStatus'),
  power:$('ptPowerFill'),powerValue:$('ptPowerValue'),trajectoryLabel:$('ptTrajectoryLabel'),
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
+ projectiles:$('ptProjectiles'),projectileDescription:$('ptProjectileDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
  sound:$('ptSound'),soundState:$('ptSoundState'),voiceSelect:$('ptVoiceSelect'),voicePreview:$('ptVoicePreview'),voiceHelp:$('ptVoiceHelp'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
@@ -22,7 +23,8 @@ if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
-const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
+const TWO_PI=Math.PI*2,LAUNCH_Z=4.25,LAUNCH_Y=1.32;
+let GRAVITY=10.65,BALL_R=.095;
 const MAX_AIM_YAW=1.02;
 function launchOffset(){return clamp(aimYaw*.37,-.38,.38);}
 const CHAPTERS=[
@@ -32,7 +34,41 @@ const CHAPTERS=[
  {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xebbc70,short:'Late Shift'},
  {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xae8edc,short:'Final Shift'}
 ];
+// Five sequential 50-level campaigns, each saved independently.
+const PROJECTILES=[
+ {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xffb86f},
+ {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Glides through the air',radius:.105,gravity:9.8,speed:1.04,drag:.044,air:1.38,bounce:.70,pad:1.06,lift:1.65,color:0x8ae1cd},
+ {id:'basketball',name:'Mini Basketball',short:'Basketball',hint:'Bouncier and larger',radius:.115,gravity:10.9,speed:1.04,drag:.014,air:.78,bounce:1.13,pad:1.05,lift:0,color:0xed914f},
+ {id:'heavy',name:'Heavy Ball',short:'Heavy Ball',hint:'Falls faster; resists wind',radius:.107,gravity:12,speed:1.08,drag:.005,air:.40,bounce:.60,pad:1.20,lift:0,color:0x9cadc1},
+ {id:'light',name:'Featherlight Ball',short:'Light Ball',hint:'Floats and drifts in wind',radius:.086,gravity:9.45,speed:1.02,drag:.081,air:1.85,bounce:1.10,pad:.94,lift:.38,color:0xd1e6e2}
+];
+let projectileId='ping',projectileProgress={},physicsProfile=PROJECTILES[0];
 let level=1,unlocked=1,completed={},best={},attempts=0,score=0,chosenChapter=0;
+function campaignCleared(id){
+ const state=id===projectileId?{completed}:projectileProgress[id];
+ return !!state&&Array.from({length:50},(_,i)=>i+1).every(i=>state.completed?.[i]===true);
+}
+function projectileAvailable(id){
+ const index=PROJECTILES.findIndex(p=>p.id===id);
+ return index===0||(index>0&&campaignCleared(PROJECTILES[index-1].id));
+}
+function rememberCampaign(){projectileProgress[projectileId]={unlocked,completed,best,level};}
+function useProjectile(id){
+ if(!projectileAvailable(id))return false;
+ rememberCampaign();
+ projectileId=id;physicsProfile=PROJECTILES.find(p=>p.id===id);
+ BALL_R=physicsProfile.radius;GRAVITY=physicsProfile.gravity;
+ const saved=projectileProgress[id]||{unlocked:1,completed:{},best:{},level:1};
+ unlocked=clamp(Number(saved.unlocked)||1,1,50);
+ completed=saved.completed||{};best=saved.best||{};
+ level=clamp(Number(saved.level)||unlocked,1,unlocked);
+ return true;
+}
+function chooseProjectile(id){
+ if(projectileId===id||!useProjectile(id))return;
+ settings=stageSettings(level);
+ loadLevel(level);el.viewport.scrollIntoView({behavior:'smooth',block:'center'});
+}
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
@@ -44,7 +80,12 @@ const chapterIndex=n=>Math.min(4,Math.floor((n-1)/10));
 const chapter=n=>CHAPTERS[chapterIndex(n)];
 const seeded=n=>{let x=Math.sin(n*184.193+39.18)*42687.25;return x-Math.floor(x);};
 function save(){
- try{localStorage.setItem(STORE,JSON.stringify({unlocked,completed,best,level}));}catch{}
+ rememberCampaign();
+ const ping=projectileProgress.ping;
+ try{localStorage.setItem(STORE,JSON.stringify({
+  unlocked:ping.unlocked,completed:ping.completed,best:ping.best,level:ping.level,
+  projectileProgress,projectileId
+ }));}catch{}
 }
 try{
  const data=JSON.parse(localStorage.getItem(STORE)||'{}');
@@ -54,8 +95,22 @@ try{
  for(let i=1;i<=50;i++)if(legacy[i]>0||i<unlocked)completed[i]=true;
  best=(data.best&&typeof data.best==='object')?data.best:{};
  level=clamp(Number(data.level)||unlocked,1,unlocked);
+ projectileProgress.ping={unlocked,completed,best,level};
+ const stored=data.projectileProgress||{};
+ for(const item of PROJECTILES.slice(1)){
+  const v=stored[item.id];if(!v||typeof v!=='object')continue;
+  const limit=clamp(Number(v.unlocked)||1,1,50);
+  projectileProgress[item.id]={
+   unlocked:limit,completed:v.completed&&typeof v.completed==='object'?v.completed:{},
+   best:v.best&&typeof v.best==='object'?v.best:{},
+   level:clamp(Number(v.level)||1,1,limit)
+  };
+ }
+ if(PROJECTILES.some(p=>p.id===data.projectileId)&&data.projectileId!=='ping')
+  useProjectile(data.projectileId);
  soundOn=localStorage.getItem(MUTED)!=='off';
 }catch{}
+if(!projectileProgress.ping)projectileProgress.ping={unlocked,completed,best,level};
 function syncSoundButton(){
  const state=soundOn?'on':'off';
  el.sound.dataset.sound=state;
