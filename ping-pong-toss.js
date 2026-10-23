@@ -3670,7 +3670,7 @@ function resolveEnvironment(body,preview=false,time=simTime){
    item.friction,pose?.vx||0,pose?.vy||0,0,preview)){
    reacted=true;
    // Highlight a future gate impact on the aim path, without a new HUD.
-   if(preview&&item.owner)body.previewBarrierHit=true;
+   if(preview&&item.owner)body.previewBarrierHitTime=time;
    if(!preview&&item.person)reactToColleague(item.person);
   }
  }
@@ -4021,12 +4021,16 @@ function paintAim(){
   const next=targetLocation(start+i*dt);
   const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
    Math.abs(preview.y-next.y-settings.targetHeight)<.42;
-  const cue=preview.previewBarrierHit?0xff9b8b:
+  // Highlight only the dots surrounding the future gate strike. Keeping
+  // all later dots coral made a single impact look like a continuous wall.
+  const age=start+i*dt-(preview.previewBarrierHitTime??-999);
+  const barrierWarning=age>=0&&age<.20;
+  const cue=barrierWarning?0xff9b8b:
    settings.n===50&&preview.springHits>=2?0xa4efc7:predictedBounces?0xffbd77:
    preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
   dot.material.color.setHex(cue);
-  dot.scale.setScalar(nearOpening?2.1:
-   preview.previewBarrierHit?1.45:preview.hoopsPassed?1.2:1);
+  dot.scale.setScalar(barrierWarning?1.65:
+   nearOpening?2.1:preview.hoopsPassed?1.2:1);
  }
 }
 function updateFrisbeeControls(){
