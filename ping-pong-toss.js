@@ -648,6 +648,54 @@ function officeLamp(parent,x,y,z,scale=1){
  bulb.position.set(.34,.58,0);g.add(bulb);
  return g;
 }
+function officeParcel(parent,x,y,z,variant=0){
+ const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);
+ const colors=[0xd0b391,0xa2b4af,0xb9a88d,0x9babb0,0xc7a283];
+ const w=.53+(variant%2)*.09,h=.43+(variant%3)*.045,d=.66;
+ const fiber=createMat(colors[variant%colors.length],.88,.02);
+ const tape=createMat(0xe5d8b7,.67,.02),label=createMat(0xf7f3e7,.95,.01);
+ meshBox(g,w,h,d,0,h/2,0,fiber);
+ // Folded lid, brown packing seams and crossing tape.
+ meshBox(g,w-.03,.017,d-.03,0,h+.011,0,fiber);
+ meshBox(g,.105,.023,d-.035,0,h+.025,0,tape);
+ meshBox(g,w-.04,.021,.09,0,h+.027,0,tape);
+ meshBox(g,w*.67,h*.31,.015,.015,h*.55,d*.5+.011,label);
+ const barMat=createMat(0x58646a,.81,.02);
+ for(let i=0;i<7;i++){
+  const line=meshBox(g,.012+(i%3)*.008,h*.20,.017,
+   -.13+i*.043,h*.56,d*.5+.025,barMat);
+  line.castShadow=false;
+ }
+ return g;
+}
+function officeTrophy(parent,x,y,z,variant=0){
+ const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);
+ const brass=createMat(variant%2?0xd3a46e:0xe5c77c,.25,.68);
+ const base=createMat(0x465560,.47,.35),ivory=createMat(0xffedc2,.44,.18);
+ meshBox(g,.37,.13,.30,0,.075,0,base);
+ meshBox(g,.32,.060,.26,0,.17,0,ivory);
+ const stem=new THREE.Mesh(new THREE.CylinderGeometry(.06,.085,.30,20),brass);
+ stem.position.y=.35;g.add(stem);
+ const points=[
+  new THREE.Vector2(.105,0),new THREE.Vector2(.18,.055),
+  new THREE.Vector2(.22,.16),new THREE.Vector2(.27,.34),
+  new THREE.Vector2(.285,.37)
+ ];
+ const cup=new THREE.Mesh(new THREE.LatheGeometry(points,28),brass);
+ cup.position.y=.50;cup.castShadow=true;g.add(cup);
+ const lip=new THREE.Mesh(new THREE.TorusGeometry(.283,.028,8,32),ivory);
+ lip.rotation.x=Math.PI/2;lip.position.y=.865;g.add(lip);
+ for(const side of [-1,1]){
+  const handle=new THREE.Mesh(new THREE.TorusGeometry(.16,.031,9,26,Math.PI*1.42),
+   brass);
+  handle.rotation.y=Math.PI/2;
+  handle.rotation.z=side===1?-.38:Math.PI+.38;
+  handle.position.set(side*.30,.67,0);g.add(handle);
+ }
+ const emblem=new THREE.Mesh(new THREE.CylinderGeometry(.10,.10,.024,24),ivory);
+ emblem.rotation.x=Math.PI/2;emblem.position.set(0,.695,.274);g.add(emblem);
+ return g;
+}
 function officeBin(parent,x,z,mat){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
  const shell=new THREE.Mesh(new THREE.CylinderGeometry(.55,.43,.86,22,1,true),mat);
@@ -1357,12 +1405,55 @@ function buildWorld(){
  const pole=(height=2.4)=>meshBox(feature,.13,height,.14,0,height/2,0,metal);
  switch(settings.feature){
   case 'sticky':case 'folders':case 'binders':case 'letters':{
-   meshBox(feature,1.78,1.85,.25,0,2.15,0,wood);
-   for(let i=0;i<12;i++){
-    const x=(i%4-1.5)*.33,y=1.55+Math.floor(i/4)*.47;
-    meshBox(feature,.25,.32,.025,x,y,-.15,
-     createMat([0xe0c68d,0xb8c5b3,0xaabcca,0xcdaba7][(i+level)%4],.89));
-   }break;
+   const isPaper=settings.feature==='sticky'||settings.feature==='letters';
+   const woodFrame=createMat(0x8b7460,.67,.08),cork=createMat(0xb99b7e,.93);
+   if(isPaper){
+    // A corkboard on a proper freestanding easel: pinned, angled paper
+    // and real pushpins, instead of 12 flat rectangles floating in space.
+    meshBox(feature,2.08,1.73,.14,0,2.23,0,woodFrame);
+    meshBox(feature,1.86,1.51,.04,0,2.23,-.103,cork);
+    for(const sx of [-1,1]){
+     const leg=meshBox(feature,.10,2.07,.11,sx*.81,1.08,.12,woodFrame);
+     leg.rotation.z=-sx*.09;
+    }
+    meshBox(feature,1.82,.082,.33,0,1.26,-.10,woodFrame);
+    for(let i=0;i<9;i++){
+     const col=i%3,row=Math.floor(i/3);
+     const x=(col-1)*.53,y=2.69-row*.44;
+     const paperMat=createMat([0xf1e5b9,0xcbdccf,0xd6dfed,0xf0ccbd][(i+level)%4],.94);
+     const note=meshBox(feature,.35,.30,.012,x,y,-.137,paperMat);
+     note.rotation.z=Math.sin(i*2.40+level)*.065;
+     for(let k=0;k<2;k++){
+      const dash=meshBox(feature,.24-k*.045,.008,.007,
+       x-.025,y+.04-k*.077,-.145,createMat(0x8b8e82,.92));
+      dash.rotation.z=note.rotation.z;dash.castShadow=false;
+     }
+     const pin=new THREE.Mesh(new THREE.SphereGeometry(.028,10,8),
+      createMat([0xda867b,0x87b9aa,0xe5bc7c][i%3],.33,.2));
+     pin.position.set(x,y+.133,-.165);feature.add(pin);
+    }
+   }else{
+    // A proper filing shelf, back rail and upright labeled binders.
+    const shelf=createMat(0x677b83,.43,.31);
+    for(const sx of [-1,1])
+     meshBox(feature,.12,2.15,.69,sx*.90,1.34,.04,shelf);
+    for(let row=0;row<3;row++){
+     const yy=.57+row*.78;
+     meshBox(feature,2.03,.13,.82,0,yy,0,wood);
+     for(let i=0;i<5;i++){
+      const bx=-.68+i*.34,shade=[0x82a6a6,0xb68b85,0xa3a188,0x8593a7][(i+row+level)%4];
+      const binder=meshBox(feature,.27,.49,.57,bx,yy+.32,-.05,
+       createMat(shade,.62));
+      binder.rotation.z=Math.sin(i+row)*.036;
+      meshBox(feature,.16,.12,.013,bx,yy+.39,-.343,
+       createMat(0xf3ead7,.88));
+      const hole=new THREE.Mesh(new THREE.TorusGeometry(.024,.007,6,12),
+       createMat(0xbec8c8,.37,.45));
+      hole.position.set(bx,yy+.17,-.345);feature.add(hole);
+     }
+    }
+   }
+   break;
   }
   case 'kettle':case 'coffee':case 'lunch':case 'teapot':{
    const counter=desk(feature,0,0,2.4,1.05,1.04,wood,metal);
@@ -1420,22 +1511,46 @@ function buildWorld(){
    break;
   }
   case 'archive':case 'packages':case 'conveyor':case 'forklift':{
-   for(let i=0;i<3;i++){
-    meshBox(feature,2.2,.18,1.45,0,.62+i*.85,0,metal);
-    for(let j=0;j<3;j++)
-     meshBox(feature,.55,.48,.77,(j-1)*.67,.94+i*.85,0,
-      createMat([0xb9a184,0x8c989c,0xa78e78][(i+j)%3]));
-   }break;
+   // Grounded packing rack, with readable tape, seams and shipping labels.
+   const rack=createMat(0x627984,.42,.43),brace=createMat(0x465b65,.54,.36);
+   for(const sx of [-1,1]){
+    meshBox(feature,.13,3.15,.14,sx*1.07,1.64,.04,rack);
+    meshBox(feature,.14,3.15,.14,sx*1.07,1.64,-.68,rack);
+   }
+   for(let row=0;row<3;row++){
+    const yy=.42+row*.96;
+    meshBox(feature,2.34,.12,1.52,0,yy,-.30,rack);
+    for(let col=0;col<3;col++){
+     const p=officeParcel(feature,(col-1)*.70,yy+.067,-.32,
+      row*3+col+level);
+     p.rotation.y=(col-1)*.09;
+    }
+   }
+   meshBox(feature,2.18,.08,.08,0,1.55,-.73,brace);
+   break;
   }
   case 'trophies':case 'mailbox':{
-   meshBox(feature,2.2,.18,.95,0,1.18,0,wood);
-   for(const xx of [-.65,0,.65]){
-    meshBox(feature,.18,.40,.18,xx,1.50,0,brass);
-    const cup=new THREE.Mesh(new THREE.CylinderGeometry(.21,.12,.32,16),brass);
-    cup.position.set(xx,1.84,0);feature.add(cup);
-    const top=new THREE.Mesh(new THREE.TorusGeometry(.21,.034,7,20),cream);
-    top.rotation.x=Math.PI/2;top.position.set(xx,2.02,0);feature.add(top);
-   }break;
+   if(settings.feature==='mailbox'){
+    const steel=createMat(0x81929c,.33,.46),accent=createMat(0x536e7a,.51,.2);
+    meshBox(feature,2.3,2.18,.73,0,1.27,0,steel);
+    for(let row=0;row<3;row++)for(let col=0;col<3;col++){
+     const xx=(col-1)*.65,yy=.65+row*.61;
+     meshBox(feature,.57,.47,.04,xx,yy,-.4,accent);
+     const slit=meshBox(feature,.34,.024,.04,xx,yy+.12,-.442,woodPaper);
+     slit.castShadow=false;
+     const knob=new THREE.Mesh(new THREE.SphereGeometry(.033,10,7),
+      createMat(0xd1bc8a,.31,.52));
+     knob.position.set(xx,yy-.12,-.446);feature.add(knob);
+    }
+   }else{
+    const stand=desk(feature,0,0,2.32,.89,.92,wood,metal);
+    meshBox(feature,2.05,.16,.66,0,1.52,0,wood);
+    for(let i=0;i<3;i++){
+     const xx=(i-1)*.70;
+     officeTrophy(feature,xx,i===1?1.59:.99,-.08,i+level);
+    }
+   }
+   break;
   }
   case 'fan':case 'airvent':{
    // A passive HVAC duct (not a pretend functional desk fan). All animated
