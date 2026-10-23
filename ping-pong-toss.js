@@ -3778,13 +3778,14 @@ function padRebound(projectile,pad){
  const offsetZ=clamp((projectile.z-pad.z)/pad.r,-1,1);
  const impact=Math.abs(Math.min(0,projectile.vy));
  if(pad.type==='spring'){
-  // A flat spinning disc stores more glide after spring contact. All
-  // impulses follow its incoming speed/impact point, never cup position.
-  const disc=projectileId==='frisbee';
+  // The broad disc now contacts the spring as a physical flat plate.
+  // Preserve the calibrated impulse: increasing the frisbee's launch
+  // kick made later two-pad sequences *less* finishable in simulations.
+  // Bounce direction and energy depend only on impact, never the cup.
   return {
-   vx:projectile.vx*(pad.sideGrip??.79)*(disc?1.035:1)+offsetX*.44,
-   vy:clamp((5.65+impact*.43)*physicsProfile.pad*(disc?1.10:1),5.2,9.7),
-   vz:projectile.vz*(pad.forwardGrip??.53)*(disc?1.18:1)+offsetZ*.35
+   vx:projectile.vx*(pad.sideGrip??.79)+offsetX*.44,
+   vy:clamp((5.65+impact*.43)*physicsProfile.pad,5.2,9.7),
+   vz:projectile.vz*(pad.forwardGrip??.53)+offsetZ*.35
   };
  }
  // High-friction rubber tray absorbs forward speed. Offset hits deflect subtly.
