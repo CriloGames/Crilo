@@ -1098,9 +1098,14 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
  // Floor-mounted desk turbine: weighted rubber feet, upright metal mast,
  // hinged head, grille, cord and a small power socket. Nothing floats.
  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=angle;parent.add(g);
- const steel=createMat(0x9aafb7,.27,.57),dark=createMat(0x31454d,.65,.24);
+ const steel=finishMat(0x8daab4,'anodized'),
+  dark=finishMat(0x31454d,'enamel');
  const rubber=createMat(0x263840,.94,.02);
+ const accent=finishMat(kind==='lift'?0x8fd7ad:0x87c9d9,'enamel');
  const base=meshBox(g,.71,.105,.56,0,.082,0,mat);
+ // Injection-moulded raised foot with a colored beveled identity stripe.
+ detailBox(g,.59,.015,.025,0,.145,-.18,accent);
+ detailBox(g,.46,.012,.018,0,.142,.18,steel);
  for(const sx of [-1,1])for(const sz of [-1,1]){
   const foot=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.05,12),rubber);
   foot.position.set(sx*.27,.025,sz*.21);foot.castShadow=true;g.add(foot);
@@ -1115,10 +1120,15 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
  const head=new THREE.Group();head.position.y=headY;
  if(kind==='lift')head.rotation.x=-Math.PI/2;
  g.add(head);
- const casing=new THREE.Mesh(new THREE.CylinderGeometry(.49,.43,.28,36),
-  mat);
+ const casing=new THREE.Mesh(new THREE.CylinderGeometry(.49,.43,.28,48),
+  finishMat(0x78949e,'enamel'));
  casing.rotation.x=Math.PI/2;casing.position.z=-.12;
  casing.castShadow=true;casing.receiveShadow=true;head.add(casing);
+ // Recessed continuous accent around the motor head reads as a real fan.
+ const band=new THREE.Mesh(new THREE.TorusGeometry(.46,.025,9,48),accent);
+ band.position.z=-.001;head.add(ornament(band));
+ const inset=new THREE.Mesh(new THREE.TorusGeometry(.395,.014,9,48),rubber);
+ inset.position.z=.029;head.add(ornament(inset));
  const back=new THREE.Mesh(new THREE.CircleGeometry(.40,36),dark);
  back.position.z=-.265;head.add(back);
  const motor=new THREE.Mesh(new THREE.CylinderGeometry(.11,.12,.21,18),steel);
@@ -1140,8 +1150,11 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
   blade.rotation.z=i*Math.PI/2+.21;
   blade.castShadow=true;rotor.add(blade);
  }
- const cap=new THREE.Mesh(new THREE.SphereGeometry(.092,16,12),steel);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.092,16,12),accent);
  cap.position.z=.038;rotor.add(cap);
+ const motorBadge=new THREE.Mesh(new THREE.CircleGeometry(.043,20),
+  new THREE.MeshBasicMaterial({color:0xf4e9d3,side:THREE.DoubleSide}));
+ motorBadge.position.z=.121;rotor.add(ornament(motorBadge));
  const guard=new THREE.Group();guard.position.z=.165;head.add(guard);
  for(const rad of [.17,.30,.44]){
   const rim=new THREE.Mesh(new THREE.TorusGeometry(rad,.016,7,44),steel);
@@ -1154,6 +1167,15 @@ function officeFan(parent,x,z,mat,angle=0,kind='cross'){
  }
  const lip=new THREE.Mesh(new THREE.TorusGeometry(.49,.039,9,42),dark);
  guard.add(lip);
+ const accentRing=new THREE.Mesh(new THREE.TorusGeometry(.507,.015,8,48),accent);
+ accentRing.position.z=.017;guard.add(ornament(accentRing));
+ // Four housing screws stay in the fan head and never become colliders.
+ for(let i=0;i<4;i++){
+  const a=Math.PI/4+i*Math.PI/2;
+  const screw=new THREE.Mesh(new THREE.SphereGeometry(.020,9,6),steel);
+  screw.position.set(Math.sin(a)*.455,Math.cos(a)*.455,.019);
+  guard.add(ornament(screw));
+ }
  const switchBody=meshBox(g,.18,.040,.10,.16,.143,.02,dark);
  switchBody.castShadow=false;
  const led=new THREE.Mesh(new THREE.SphereGeometry(.025,10,8),
@@ -2604,10 +2626,18 @@ function buildWorld(){
   const padVisuals=new THREE.Group();cart.add(padVisuals);
   specialSurfaces.push(padVisuals);
   softContactShadow(group,x,.016,z,.98,.98);
-  const frame=createMat(0x55727a,.42,.36),rubber=createMat(0x2c4d53,.72,.10),
-   springMaterial=createMat(0x63aaa5,.27,.23,0x276d65);
+  const frame=finishMat(0x547783,'anodized'),
+   rubber=createMat(0x273f47,.78,.04),
+   springMaterial=finishMat(0x6bbba9,'enamel'),
+   padHighlight=finishMat(0xc5f4de,'ceramic');
   meshBox(cart,1.75,.13,1.75,0,padY-.15,0,frame);
   meshBox(cart,1.59,.05,1.59,0,padY-.055,0,rubber);
+  // The cart has one clear silhouette: brushed steel frame, dark high-grip
+  // bed, a luminous green spring and a thin painted safety stripe.
+  for(const edge of [-1,1]){
+   detailBox(cart,1.62,.017,.023,0,padY-.017,edge*.767,padHighlight);
+   detailBox(cart,.023,.017,1.59,edge*.767,padY-.017,0,padHighlight);
+  }
   for(const sx of [-1,1])for(const sz of [-1,1]){
    meshBox(cart,.12,padY-.24,.12,sx*.69,(padY-.24)/2,sz*.69,frame);
    const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.075,14),rubber);
@@ -2615,14 +2645,24 @@ function buildWorld(){
   }
   meshBox(cart,1.38,.045,.07,0,.34,.63,frame);
   meshBox(cart,1.38,.045,.07,0,.79,.63,frame);
-  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.09,40),
+  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.09,48),
    springMaterial);spring.position.y=padY;padVisuals.add(spring);
+  // A beveled rubber contact pad under the animated strike plate gives
+  // the bounce mechanism a meaningful mechanical assembly.
+  const gasket=new THREE.Mesh(new THREE.TorusGeometry(.65,.035,10,48),rubber);
+  gasket.rotation.x=Math.PI/2;gasket.position.y=padY-.046;
+  padVisuals.add(gasket);
+  const topInlay=new THREE.Mesh(new THREE.CircleGeometry(.52,48),
+   new THREE.MeshBasicMaterial({color:0xa4e8c8,transparent:true,
+    opacity:.15,depthWrite:false,side:THREE.DoubleSide}));
+  topInlay.rotation.x=-Math.PI/2;topInlay.position.y=padY+.049;
+  padVisuals.add(topInlay);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.74,.047,12,48),
    new THREE.MeshBasicMaterial({color:0xb6ffe1,transparent:true,opacity:.90}));
   ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;padVisuals.add(ring);
   for(let k=0;k<6;k++){
-   const coil=new THREE.Mesh(new THREE.TorusGeometry(.26+k*.043,.012,6,40),
-    createMat(0x91cabe,.30,.49));
+   const coil=new THREE.Mesh(new THREE.TorusGeometry(.26+k*.043,.012,8,40),
+    finishMat(0x85b8b0,'anodized'));
    coil.rotation.x=Math.PI/2;coil.position.y=padY-.03-k*.018;padVisuals.add(coil);
   }
   if(settings.padCount>1){
@@ -2666,9 +2706,12 @@ function buildWorld(){
  ambient.push({type:'dust',obj:motes});
  // Projectile is deliberately warm orange, outlined, large enough to TRACK,
  // strongly contrasting with the dark gray office instead of washing out.
- const ballMaterial=new THREE.MeshStandardMaterial({
-  color:0xffbd72,roughness:.22,metalness:0,
-  emissive:0x804119,emissiveIntensity:.30
+ // An original arcade ball finish: a readable coral-orange shell with a
+ // tiny enamel highlight rather than an over-bright, unshaded sphere.
+ const ballMaterial=new THREE.MeshPhysicalMaterial({
+  color:0xffb86f,roughness:.34,metalness:0,
+  clearcoat:.28,clearcoatRoughness:.24,
+  emissive:0x5b290d,emissiveIntensity:.11
  });
  ballMesh=new THREE.Mesh(new THREE.SphereGeometry(BALL_R*1.08,24,18),ballMaterial);
  ballMesh.castShadow=true;ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);group.add(ballMesh);
