@@ -186,13 +186,24 @@ function stageDifficulty(n,spec){
 // mechanics, rather than stacking extreme wind, moving hoops, lids, barriers
 // AND precision springs into an unsolvable shot. The underlying 50 blueprints
 // and all saved player progress remain unchanged.
+// Two readable timing challenges per ten-level chapter, instead of
+// leaving whole chapters without moving hazards. These are early on the
+// intended flight route, with an open interval every oscillation.
+const CHAPTER_GATE_LEVELS={
+ 3:[['drawer',.46,0,2.1]],
+ 14:[['panel',.42,0,2.1]],
+ 21:[['panel',.50,0,2.1]],
+ 24:[['drawer',.42,0,2.1]],
+ 41:[['panel',.34,0,1.9]],
+ 42:[['drawer',.28,0,1.9]]
+};
 const LEVEL_FAIRNESS={
- 24:{wind:-.23},26:{wind:-.12,fanPower:2.7},
+ 24:{wind:-.12},26:{wind:-.12,fanPower:2.7},
  28:{wind:-.10},30:{wind:-.12,fanPower:2.6},
  35:{wind:0,clearBarriers:true},
  38:{wind:0,fanPower:2.8,clearBarriers:true},
  40:{wind:0,clearBarriers:true},
- 42:{fanPower:2.9},
+ 42:{fanPower:2.45},
  43:{wind:0,motion:'lift',padFractions:[.58]},
  44:{wind:0,motion:'still',clearObstacles:true},
  45:{wind:0,motion:'slide'},
@@ -244,7 +255,9 @@ function stageSettings(n){
   wall:special.wall||special.walls?.[0]||null,wallPlan,wallCount:wallPlan.length,
   fanZone:special.fan||null,
   targetZ:LAUNCH_Z-d,shot,motion,moving:motionPower,wind,
-  feature,obstaclePlan,barrierPlan,barrierCount:barrierPlan.length,
+  feature,obstaclePlan,
+  barrierPlan:[...barrierPlan,...(CHAPTER_GATE_LEVELS[n]||[])],
+  barrierCount:barrierPlan.length+(CHAPTER_GATE_LEVELS[n]?.length||0),
   // Every bounce has its own visible, predetermined launch position.
   bankRequired,springRequired,padCount:springFractions.length,springFractions,
   lid:[16,20,27,34,40,45,50].includes(n),
@@ -1687,14 +1700,17 @@ function stageArtPlan(spec){
 // making the moving parts irrelevant. No tracking or hidden assistance is
 // applied during flight; this only positions the authored gate at load time.
 function plannedBarrierLane(spec,fraction){
- const bank=spec.bankRequired,afterBank=bank&&fraction>.69;
- if(afterBank)return {x:spec.x*fraction,y:2.00};
- const tx=bank?spec.bankX:spec.x,
-  dz=bank?LAUNCH_Z-spec.bankZ:spec.d,
-  pitch=bank?.31:.70,
+ const bank=spec.bankRequired,spring=spec.springRequired;
+ const beforeSpecial=bank?fraction<.67:
+  spring?fraction<spec.springFractions[0]:false;
+ if(bank&&!beforeSpecial)return {x:spec.x*fraction,y:2.00};
+ if(spring&&!beforeSpecial)return {x:spec.x*fraction,y:2.0};
+ const tx=bank?spec.bankX:spring?spec.springX:spec.x,
+  dz=bank?LAUNCH_Z-spec.bankZ:spring?LAUNCH_Z-spec.springZ:spec.d,
+  pitch=bank?.31:spring?.32:.70,
   distance=Math.hypot(dz,tx),
   yaw=Math.atan2(tx,dz),
-  requiredY=bank?1.22+BALL_R:
+  requiredY=bank?1.22+BALL_R:spring?1.24+BALL_R:
    .19+spec.topPad+spec.targetHeight-BALL_R;
  const co=Math.cos(pitch),denom=2*co*co*
   (distance*Math.tan(pitch)+LAUNCH_Y-requiredY);
