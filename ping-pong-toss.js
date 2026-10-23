@@ -1260,10 +1260,14 @@ function speakColleague(n){
 function coworkerSpeechSprite(colleague,n){
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=144;
  const ctx=canvas.getContext('2d');if(!ctx)return null;
+ const rounded=(x,y,w,h,r)=>{
+  if(typeof ctx.roundRect==='function')ctx.roundRect(x,y,w,h,r);
+  else ctx.rect(x,y,w,h);
+ };
  ctx.fillStyle='rgba(0,0,0,.23)';
- ctx.beginPath();ctx.roundRect(13,13,486,110,30);ctx.fill();
+ ctx.beginPath();rounded(13,13,486,110,30);ctx.fill();
  ctx.fillStyle='#fff7e8';
- ctx.beginPath();ctx.roundRect(7,6,486,110,30);ctx.fill();
+ ctx.beginPath();rounded(7,6,486,110,30);ctx.fill();
  ctx.strokeStyle='#274650';ctx.lineWidth=5;ctx.stroke();
  ctx.fillStyle='#223e4a';ctx.font='900 34px system-ui, sans-serif';
  ctx.textAlign='center';ctx.textBaseline='middle';
