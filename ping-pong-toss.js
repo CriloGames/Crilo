@@ -3613,7 +3613,16 @@ function bounceContact(body,nx,ny,nz,depth,rest=.62,friction=.1,
  }
  return true;
 }
-function resolveEnvironment(body,preview=false){
+// A moving gate has one pose equation shared by visual movement, aim
+// prediction and collision impulse. Neither simulation homes toward a goal.
+function barrierPose(o,time){
+ const phase=time*o.speed+o.phase,wave=Math.sin(phase),
+  speed=Math.cos(phase)*o.speed;
+ return o.style==='panel'?
+  {x:o.centerX,y:o.centerY+wave*.82,vx:0,vy:speed*.82}:
+  {x:o.centerX+wave*o.amp,y:o.centerY,vx:speed*o.amp,vy:0};
+}
+function resolveEnvironment(body,preview=false,time=simTime){
  // Colliders are prebuilt, so most throw steps only perform a few comparisons.
  let reacted=false;
  for(let pass=0;pass<2;pass++){
@@ -3621,11 +3630,18 @@ function resolveEnvironment(body,preview=false){
   const key=Math.floor(body.x/2)+','+Math.floor(body.z/2);
   const candidates=[physicsGrid.get(key)||[],physicsGlobal,physicsMoving];
   for(const bucket of candidates)for(const item of bucket){
-   const b=item.box;
-   if(body.x<b.min.x-BALL_R||body.x>b.max.x+BALL_R||
-    body.y<b.min.y-BALL_R||body.y>b.max.y+BALL_R||
+   const b=item.box,o=item.owner;
+   // The mesh remains drawn at NOW; move only the numerical AABB for
+   // projected shots and between-frame collisions at their real times.
+   const pose=o?barrierPose(o,time):null;
+   const dx=pose?pose.x-o.obj.position.x:0,
+    dy=pose?pose.y-o.obj.position.y:0;
+   const minX=b.min.x+dx,maxX=b.max.x+dx,
+    minY=b.min.y+dy,maxY=b.max.y+dy;
+   if(body.x<minX-BALL_R||body.x>maxX+BALL_R||
+    body.y<minY-BALL_R||body.y>maxY+BALL_R||
     body.z<b.min.z-BALL_R||body.z>b.max.z+BALL_R)continue;
-   const qx=clamp(body.x,b.min.x,b.max.x),qy=clamp(body.y,b.min.y,b.max.y),
+   const qx=clamp(body.x,minX,maxX),qy=clamp(body.y,minY,maxY),
     qz=clamp(body.z,b.min.z,b.max.z);
    let nx=body.x-qx,ny=body.y-qy,nz=body.z-qz;
    const d2=nx*nx+ny*ny+nz*nz;
@@ -3636,23 +3652,21 @@ function resolveEnvironment(body,preview=false){
    }else{
     // Ball center landed inside a thin slab: move to closest outward face.
     const faces=[
-     [body.x-b.min.x,-1,0,0],[b.max.x-body.x,1,0,0],
-     [body.y-b.min.y,0,-1,0],[b.max.y-body.y,0,1,0],
+     [body.x-minX,-1,0,0],[maxX-body.x,1,0,0],
+     [body.y-minY,0,-1,0],[maxY-body.y,0,1,0],
      [body.z-b.min.z,0,0,-1],[b.max.z-body.z,0,0,1]
     ].sort((a,b)=>a[0]-b[0]);
     nx=faces[0][1];ny=faces[0][2];nz=faces[0][3];
     depth=BALL_R+faces[0][0];
    }
-   if(depth>penetration){candidate={item,nx,ny,nz,depth};penetration=depth;}
+   if(depth>penetration){
+    candidate={item,nx,ny,nz,depth,pose};penetration=depth;
+   }
   }
   if(!candidate)break;
-  const {item,nx,ny,nz,depth}=candidate;
-  const o=item.owner,vx=o?.type==='barrier'&&o.style!=='panel'?
-   Math.cos(simTime*o.speed+o.phase)*o.amp*o.speed:0;
-  const vy=o?.type==='barrier'&&o.style==='panel'?
-   Math.cos(simTime*o.speed+o.phase)*.82*o.speed:0;
+  const {item,nx,ny,nz,depth,pose}=candidate;
   if(bounceContact(body,nx,ny,nz,depth,item.restitution,
-   item.friction,vx,vy,0,preview)){
+   item.friction,pose?.vx||0,pose?.vy||0,0,preview)){
    reacted=true;
    if(!preview&&item.person)reactToColleague(item.person);
   }
@@ -3660,8 +3674,8 @@ function resolveEnvironment(body,preview=false){
  return reacted;
 }
 function cupSurfaceCollision(body,preview=false,time=simTime){
- const targetAt=preview?targetLocation(time):target;
- const base=targetAt.y,up=base+settings.targetHeight,r=target.r;
+ const targetAt=targetLocation(time);
+ const base=targetAt.y,up=base+settings.targetHeight,r=settings.radius;
  const dx=body.x-targetAt.x,dz=body.z-targetAt.z,rad=Math.hypot(dx,dz);
  if(rad>r+BALL_R+.1)return false;
  // Closed lids cover the cup opening with a horizontal collision plane.
@@ -3827,9 +3841,9 @@ function missingRequiredContact(projectile){
  return null;
 }
 function cupEntryGate(projectile,previousY,time,preview=false){
- const at=preview?targetLocation(time):target;
+ const at=targetLocation(time);
  const top=at.y+settings.targetHeight;
- const radius=preview?settings.radius:target.r;
+ const radius=settings.radius;
  const inside=Math.hypot(projectile.x-at.x,projectile.z-at.z);
  if(previousY<top-BALL_R||projectile.y>top-BALL_R||
     projectile.vy>=0||inside>=radius-BALL_R*.7)
@@ -3988,7 +4002,7 @@ function paintAim(){
     checkHoopCross(prior,preview,t+h,true);
     if(hoopRimCollision(preview,t+h,true))noteImpact(t+h);
     if(resolvePadAndPlatform(preview,prior,true,t+h))noteImpact(t+h);
-    if(resolveEnvironment(preview,true))noteImpact(t+h);
+    if(resolveEnvironment(preview,true,t+h))noteImpact(t+h);
     const cupGate=cupEntryGate(preview,prior.y,t+h,true);
     if(cupGate.rejected)noteImpact(t+h);
     if(cupGate.entered&&!cupGate.missing&&
@@ -4265,17 +4279,12 @@ function tickObstacles(time){
  }
  for(const obj of obstacles){
   if(obj.type==='barrier'){
-   const wave=Math.sin(t*obj.speed+obj.phase);
+   const pose=barrierPose(obj,t);
    // Amber trim breathes subtly along with a moving hazard.
    if(obj.warningMat)obj.warningMat.emissiveIntensity=
     .20+.20*(.5+.5*Math.sin(t*2.7+obj.phase));
-   if(obj.style==='panel'){
-    obj.y=obj.centerY+wave*.82;
-    obj.obj.position.y=obj.y;
-   }else{
-    obj.x=obj.centerX+wave*obj.amp;
-    obj.obj.position.x=obj.x;
-   }
+   obj.x=pose.x;obj.y=pose.y;
+   obj.obj.position.x=pose.x;obj.obj.position.y=pose.y;
   }
  }
  // Only real moving hazards need their collision bounds rebuilt. Their
@@ -4284,9 +4293,9 @@ function tickObstacles(time){
  for(const body of physicsMoving)
   body.box.copy(body.local).applyMatrix4(body.mesh.matrixWorld);
 }
-function collideObstacles(){
+function collideObstacles(time=simTime){
  // A collision changes the ball's velocity. Furniture is not a fail trigger.
- return resolveEnvironment(ball);
+ return resolveEnvironment(ball,false,time);
 }
 function tickFlight(dt){
  if(!flight)return;
@@ -4297,7 +4306,9 @@ function tickFlight(dt){
  for(let step=0;step<substeps;step++){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
-  const air=airForce(ball.x,ball.y,ball.z,simTime);
+  // Physical integration uses an actual substep clock, matching aim dots.
+  const stepTime=simTime-dt+(step+1)*h;
+  const air=airForce(ball.x,ball.y,ball.z,stepTime);
   if(Math.abs(air.x)+Math.abs(air.y)>1.8){
    el.wind.hidden=false;
    el.windLabel.textContent=air.y>Math.abs(air.x)?
@@ -4308,26 +4319,27 @@ function tickFlight(dt){
     settings.fanZone?.kind==='lift'?'UPDRAFT NEARBY ↑':
     settings.fanZone||Math.abs(settings.wind)>.001?'WATCH THE WIND':'';
   }
-  applyProjectileForces(ball,h,simTime,air);
+  applyProjectileForces(ball,h,stepTime,air);
   ball.x+=ball.vx*h;ball.y+=ball.vy*h;ball.z+=ball.vz*h;
   wallCollision(ball,{x:prevX,y:prevY,z:prevZ});
-  checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
-  hoopRimCollision(ball,simTime);
+  checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,stepTime);
+  hoopRimCollision(ball,stepTime);
   // Resolve the spring or its supporting tabletop BEFORE generic desks.
   // This preserves true spring bounces while preventing table tunnelling.
-  resolvePadAndPlatform(ball,{x:prevX,y:prevY,z:prevZ},false,simTime);
+  resolvePadAndPlatform(ball,{x:prevX,y:prevY,z:prevZ},false,stepTime);
   shotT+=h;
   ball.trail.unshift([ball.x,ball.y,ball.z]);
   if(ball.trail.length>46)ball.trail.length=46;
-  collideObstacles();
-  const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
-  if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0)
-   ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
-  const cupGate=cupEntryGate(ball,prevY,simTime);
+  collideObstacles(stepTime);
+  const cupAt=targetLocation(stepTime),cupTop=cupAt.y+settings.targetHeight;
+  const inside=Math.hypot(ball.x-cupAt.x,ball.z-cupAt.z);
+  if(prevY>=cupTop-BALL_R&&ball.y<=cupTop-BALL_R&&ball.vy<0)
+   ball.rimMiss={dx:ball.x-cupAt.x,dz:ball.z-cupAt.z,distance:inside};
+  const cupGate=cupEntryGate(ball,prevY,stepTime);
   if(cupGate.entered&&!cupGate.missing&&
-     (!settings.lid||lidFraction(simTime)>.61)){complete();return;}
+     (!settings.lid||lidFraction(stepTime)>.61)){complete();return;}
   // Cup rim is now a real rounded collider, not an instant failure.
-  cupSurfaceCollision(ball);
+  cupSurfaceCollision(ball,false,stepTime);
   // Cylinder wall and bottom contact are resolved by cupSurfaceCollision.
   // Scoring remains restricted to downward entry through the real opening.
   // All visible solid desk/floor/wall/prop geometry has already been
