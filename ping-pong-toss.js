@@ -1067,7 +1067,7 @@ function addFanJet(spec,x,z,device,label){
  // Mount horizontal fans on grounded cabinets to line up the visible jet
  // with the actual height of the thrown ball.
  if(kind==='cross'&&!settings.bankRequired&&!settings.springRequired){
-  const shelfY=1.15,paint=createMat(0x667e82,.43,.34);
+  const shelfY=.72,paint=createMat(0x667e82,.43,.34);
   const legs=createMat(0x455d65,.53,.42);
   meshBox(group,1.28,.13,1.10,x,shelfY-.065,z,paint);
   for(const dx of [-.49,.49])for(const dz of [-.41,.41])
@@ -1088,24 +1088,24 @@ function addFanJet(spec,x,z,device,label){
  }
  const headY=device.position.y+device.userData.headY;
  const field={kind,side,dir:-side,x,y:headY,z,power:spec.power,
-  reach:kind==='lift'?3.25:4.45,device,phase:settings.n*.33,label,cloud:null};
+  reach:kind==='lift'?4.00:5.25,device,phase:settings.n*.33,label,cloud:null};
  const cloud=new THREE.Group();cloud.position.set(x,headY,z);group.add(cloud);
  const color=kind==='lift'?0x74bc97:0x64b3c7;
  const markerMat=new THREE.MeshBasicMaterial({
-  color,transparent:true,opacity:.37,depthWrite:false,depthTest:true,
+  color,transparent:true,opacity:.51,depthWrite:false,depthTest:true,
   blending:THREE.NormalBlending,side:THREE.DoubleSide
  });
- for(let i=0;i<10;i++){
-  const marker=new THREE.Mesh(new THREE.ConeGeometry(.043,.145,8),markerMat);
-  marker.userData.progress=(i+.22)/10;
-  const a=i*2.4,spread=.20+.30*i/10;
+ for(let i=0;i<14;i++){
+  const marker=new THREE.Mesh(new THREE.ConeGeometry(.057,.19,10),markerMat);
+  marker.userData.progress=(i+.22)/14;
+  const a=i*2.4,spread=.20+.36*i/14;
   marker.userData.u=Math.cos(a)*spread;
   marker.userData.v=Math.sin(a)*spread;
   if(kind!=='lift')marker.rotation.z=side*Math.PI/2;
   marker.castShadow=false;cloud.add(marker);
  }
  const streamMat=new THREE.MeshBasicMaterial({
-  color,transparent:true,opacity:.09,depthWrite:false,
+  color,transparent:true,opacity:.17,depthWrite:false,
   blending:THREE.NormalBlending
  });
  const marks=new THREE.Group();cloud.add(marks);
@@ -2146,7 +2146,7 @@ function buildWorld(){
   const side=settings.wind>=0?-1:1,z=LAUNCH_Z-settings.d*.50;
   const fan=officeFan(group,side*2.75,z,metal,-side*Math.PI/2,'cross');
   ambient.push({type:'fan',obj:fan});
-  addFanJet({kind:'cross',side,power:Math.abs(settings.wind)*1.65},
+  addFanJet({kind:'cross',side,power:1.3+Math.abs(settings.wind)*4.5},
    side*2.75,z,fan,'ROOM VENT');
  }
 
@@ -2582,14 +2582,15 @@ function airForce(x,y,z,time){
   const axial=f.kind==='lift'?y-f.y:(x-f.x)*f.dir;
   if(axial<-.12||axial>f.reach)continue;
   const progress=clamp(axial/f.reach,0,1);
-  const spread=f.kind==='lift'?.55+progress*.72:.85+progress*1.15;
+  const spread=f.kind==='lift'?.83+progress*.92:1.05+progress*1.40;
   const dy=f.kind==='lift'?(x-f.x)/spread:(y-f.y)/spread;
-  const dz=(z-f.z)/(spread*.92);
+  const dz=(z-f.z)/(spread*1.05);
   const radial=dy*dy+dz*dz;
   if(radial>=1)continue;
-  const flow=Math.pow(1-radial,1.35)*(.92-.35*progress)*
+  const flow=Math.pow(1-radial,1.18)*(.96-.28*progress)*
    (.86+.14*Math.sin(time*6.2+f.phase));
-  const push=f.power*flow*1.40;
+  // Air applies a noticeable acceleration only inside the visible plume.
+  const push=f.power*flow*6.2;
   if(f.kind==='lift'){fy+=push;fx+=f.side*push*.12;}
   else{fx+=f.dir*push;fy+=push*.09;}
  }
@@ -2992,6 +2993,11 @@ function tickFlight(dt){
   if(!flight)break;
   const prevY=ball.y,prevX=ball.x,prevZ=ball.z;
   const air=airForce(ball.x,ball.y,ball.z,simTime);
+  if(Math.abs(air.x)+Math.abs(air.y)>1.8){
+   el.wind.hidden=false;
+   el.windLabel.textContent=air.y>Math.abs(air.x)?
+    'UPDRAFT LIFTING ↑':(air.x>0?'FAN PUSHING →':'← FAN PUSHING');
+  }
   ball.vx+=(windAt(simTime)+air.x)*h;
   ball.vy+=air.y*h;
   ball.vy-=GRAVITY*h;
