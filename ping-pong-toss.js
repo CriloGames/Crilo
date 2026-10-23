@@ -1922,8 +1922,7 @@ function buildWorld(){
  // A set piece is visual flavor, never a reason to conceal a required target.
  decorCandidates.push({obj:feature,side:featureSide,
   anchorX:feature.position.x,label:'setpiece'});
- // High wall text is offset from the central wall clock.
- roundedPoster(group,settings.challenge.toUpperCase(),4.7,6.28,roomEnd+.40);
+ // Level name already appears in the HUD; no duplicate floating wall sign.
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
  if(settings.sceneId===0){
