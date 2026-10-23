@@ -1157,6 +1157,59 @@ function screenOverlap(a,b,pad=0){
   areaB=Math.max(.0001,(b.x1-b.x0)*(b.y1-b.y0));
  return w*h/Math.min(areaA,areaB);
 }
+
+// Resolve camera-space collisions among ordinary gameplay blockers, without
+// ever relocating required hoops, pads, the bank wall or the target cup.
+function separateBlockersOnScreen(){
+ if(!camera||!obstacles.length)return false;
+ const bounds=(x,y,z,w,h,d)=>new THREE.Box3(
+  new THREE.Vector3(x-w,y-h,z-d),new THREE.Vector3(x+w,y+h,z+d));
+ const swing=settings.moving||0;
+ const protect=[{rect:screenRect(bounds(
+  settings.x,.19+settings.topPad+settings.targetHeight*.55,settings.targetZ,
+  settings.radius*1.45+swing+.15,
+  settings.targetHeight*.65+(settings.motion==='lift'?swing:0)+.12,
+  settings.radius*1.5+.22)),weight:7}];
+ for(const pad of pads)protect.push({rect:screenRect(bounds(
+  pad.x,pad.y,pad.z,pad.r+.20,.3,pad.r+.20)),weight:5});
+ for(const hoop of hoops)protect.push({rect:screenRect(bounds(
+  hoop.baseX,hoop.baseY,hoop.z,hoop.r+(settings.hoopMove?.33:0),
+  hoop.r+.24,.23)),weight:6});
+ if(wallPad)protect.push({rect:screenRect(bounds(
+  wallPad.x,wallPad.y,wallPad.z,.17,wallPad.height*.5,wallPad.length*.5)),weight:5});
+ const separated=[];let moved=false;
+ // Nearer silhouettes are evaluated first so foreground blockers stay
+ // consistent across retries. Displacements are capped at about one metre.
+ for(const ob of [...obstacles].sort((a,b)=>b.z-a.z)){
+  if(ob.sourceX===undefined)ob.sourceX=ob.type==='barrier'?ob.centerX:ob.x;
+  const authoredX=ob.sourceX;
+  let best={score:Infinity,x:authoredX,rect:null};
+  for(const dx of [0,-.24,.24,-.48,.48,-.76,.76,-1.03,1.03]){
+   const x=authoredX+dx;
+   if(Math.abs(x)>3.65)continue;
+   ob.obj.position.x=x;
+   if(ob.support)ob.support.position.x=x;
+   ob.obj.updateWorldMatrix(true,true);
+   const rect=screenRect(new THREE.Box3().setFromObject(ob.obj));
+   if(!rect)continue;
+   let conflict=0;
+   for(const item of protect)
+    conflict+=item.weight*Math.max(0,screenOverlap(rect,item.rect,.012)-.08);
+   for(const prior of separated)
+    conflict+=3*Math.max(0,screenOverlap(rect,prior,.020)-.10);
+   const score=conflict+Math.abs(dx)*.095;
+   if(score<best.score)best={score,x,rect};
+  }
+  ob.obj.position.x=best.x;
+  if(ob.support)ob.support.position.x=best.x;
+  if(ob.type==='barrier')ob.centerX=best.x;
+  ob.x=best.x;
+  if(best.rect)separated.push(best.rect);
+  if(Math.abs(best.x-authoredX)>.01)moved=true;
+ }
+ return moved;
+}
+
 function validateLevelReadability(){
  if(!camera||!group||!decorCandidates.length)return false;
  const bounds=(x,y,z,w,h,d)=>new THREE.Box3(
@@ -2275,6 +2328,7 @@ function buildWorld(){
  camera.fov=view.width<580?61:48;
  camera.updateProjectionMatrix();
  readabilityAspect=camera.aspect;
+ separateBlockersOnScreen();
  validateLevelReadability();
  scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
@@ -3077,6 +3131,7 @@ function resize(){
  camera.fov=w<580?61:48;camera.updateProjectionMatrix();
  if(Math.abs(camera.aspect-readabilityAspect)>.055){
   readabilityAspect=camera.aspect;
+  separateBlockersOnScreen();
   validateLevelReadability();
   buildPhysicsBodies();
  }
