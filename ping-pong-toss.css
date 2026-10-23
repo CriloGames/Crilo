@@ -799,3 +799,59 @@ body.pt-page{
 [data-theme="dark"] .pt-page .pt-top .pt-stat .pt-small-strong{
  color:#173947;
 }
+
+
+/* Optional voice chooser lives in the existing instructions modal, rather
+   than adding visual noise to the game HUD. */
+.pt-page .pt-voice-settings{
+ margin:18px 0 12px;
+ padding:14px 16px 12px;
+ border:1px solid #8ca9a6;
+ border-radius:15px;
+ background:#edf5f1;
+ color:#253f4a;
+}
+.pt-page .pt-voice-heading{
+ display:flex;justify-content:space-between;align-items:center;
+ gap:12px;margin-bottom:12px;
+ font-size:14px;
+}
+.pt-page .pt-voice-heading strong{color:#244654;font-size:15px}
+.pt-page .pt-voice-heading span{color:#55717a;font-size:11px}
+.pt-page .pt-voice-options{
+ display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+}
+.pt-page .pt-voice-label{font-size:12px;font-weight:800;color:#2b4b56}
+.pt-page #ptVoiceSelect{
+ min-width:180px;max-width:100%;flex:1;
+ font:700 13px/1.35 system-ui,sans-serif;
+ padding:10px 12px;
+ color:#193f4b;background:#fffef9;
+ border:1px solid #749a9d;border-radius:9px;
+}
+.pt-page .pt-voice-preview{
+ flex:0 0 auto;
+ padding:10px 13px;border:1px solid #628a8c;border-radius:9px;
+ color:#203e4a;background:#d8e9e5;font:800 12px/1.3 system-ui,sans-serif;
+ cursor:pointer;
+}
+.pt-page .pt-voice-preview:hover{background:#c6e3dc}
+.pt-page #ptVoiceSelect:focus-visible,
+.pt-page .pt-voice-preview:focus-visible{
+ outline:3px solid #437e96;outline-offset:2px;
+}
+.pt-page .pt-voice-help{
+ margin:9px 0 0;color:#486770;font-size:12px;line-height:1.45;
+}
+[data-theme="dark"] .pt-page .pt-voice-settings{
+ background:#243943;border-color:#75919a;color:#e2f0ec;
+}
+[data-theme="dark"] .pt-page .pt-voice-heading strong,
+[data-theme="dark"] .pt-page .pt-voice-label{color:#e4f2ed}
+[data-theme="dark"] .pt-page .pt-voice-heading span,
+[data-theme="dark"] .pt-page .pt-voice-help{color:#bed3d1}
+@media(max-width:500px){
+ .pt-page .pt-voice-options{align-items:stretch}
+ .pt-page .pt-voice-label{flex-basis:100%}
+ .pt-page #ptVoiceSelect{min-width:0;width:100%}
+}
