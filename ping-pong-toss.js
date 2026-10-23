@@ -237,7 +237,7 @@ function buildUi(){
  el.title.textContent=settings.challenge+' · '+rooms[settings.sceneId];
  const rating=stageDifficulty(level,settings);
  const labels=['','EASY','STANDARD','TRICKY','HARD','EXPERT'];
- el.difficulty.textContent='DIFFICULTY · '+labels[rating]+' · LEVEL '+fmtLevel(level);
+ el.difficulty.textContent=labels[rating];
  el.difficulty.dataset.rank=String(rating);
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  updateObjective();
@@ -1918,13 +1918,24 @@ function buildWorld(){
   const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
   meshBox(g,shutter?1.05:1.14,shutter?.52:.31,.24,0,0,0,body);
   meshBox(g,.53,.042,.05,0,.04,-.15,cream);
+  // Common coral hazard trim differentiates moving blockers from furniture.
+  const warning=createMat(0xf0b27f,.42,.08,0xa25938);
+  for(const side of [-1,1])
+   meshBox(g,.075,shutter?.52:.32,.255,side*(shutter?.50:.545),0,0,warning);
   // Ceiling-mounted shutter lifts vertically; filing drawers slide sideways.
   if(shutter){
    for(const side of [-1,1]){
     meshBox(group,.09,1.18,.13,x+side*.61,midY+.49,z,metal);
+     const railTop=midY+1.08,postHeight=Math.max(.1,7.25-railTop);
+     meshBox(group,.08,postHeight,.12,x+side*.61,railTop+postHeight/2,z,metal);
    }
   }else{
    meshBox(group,2.18,.055,.28,x,midY-.26,z,dark);
+    for(const side of [-1,1]){
+     const height=Math.max(.30,midY-.26);
+     meshBox(group,.10,height,.12,x+side*1.02,height/2,z,metal);
+     meshBox(group,.28,.06,.35,x+side*1.02,.045,z,dark);
+    }
   }
   const amp=shutter?.48:.64;
   obstacles.push({type:'barrier',style,obj:g,x,y:midY,z,
@@ -1950,6 +1961,11 @@ function buildWorld(){
   specialSurfaces.push(wall);
   const rubber=createMat(0x617780,.82,.03),stripe=createMat(0xf2bb7a,.43,.02,0x4a291a);
   meshBox(wall,.17,3.55,3.65,0,0,0,rubber);
+  // The ricochet wall is an anchored partition with visible floor brackets.
+  for(const zz of [-1.52,1.52]){
+   meshBox(wall,.16,.76,.15,0,-2.06,zz,metal);
+   meshBox(wall,.65,.08,.52,0,-2.38,zz,dark);
+  }
   for(let k=0;k<8;k++)
    meshBox(wall,.024,3.18,.065,-side*.109,0,-1.46+k*.42,stripe);
   for(const zz of [-1.89,1.89])
@@ -1984,6 +2000,24 @@ function buildWorld(){
   const radius=settings.hoops>1?.86:.93;
   const anchor=new THREE.Group();anchor.position.set(x,y,z);group.add(anchor);
   specialSurfaces.push(anchor);
+  // Numbered hoops hang from a ceiling track, never float without support.
+  const rig=new THREE.Group();group.add(rig);
+  ambient.push({type:'scenery',obj:rig});
+  const track=meshBox(rig,radius*2.75,.085,.22,x,7.24,z,metal);
+  track.castShadow=false;
+  const hangers=[];
+  for(const side of [-1,1]){
+   const pole=new THREE.Mesh(new THREE.CylinderGeometry(.014,.014,1,8),metal);
+   pole.castShadow=false;rig.add(pole);hangers.push({pole,side});
+  }
+  const alignHoopRope=(hx,hy)=>{
+   const bottom=hy+radius*.98,top=7.2,height=Math.max(.09,top-bottom);
+   for(const holder of hangers){
+    holder.pole.position.set(hx+holder.side*radius*.68,bottom+height/2,z);
+    holder.pole.scale.y=height;
+   }
+  };
+  alignHoopRope(x,y);
   const material=new THREE.MeshStandardMaterial({
    color:0xffedb2,emissive:0xffc777,emissiveIntensity:1.25,
    metalness:.18,roughness:.24
@@ -2014,7 +2048,7 @@ function buildWorld(){
    makeText('RING '+(i+1),36,'#f3edd0','#385a61'));
   numberLabel.position.set(0,-radius-.32,.04);anchor.add(numberLabel);
   hoops.push({x,y,z,r:radius,baseX:x,baseY:y,mesh:anchor,
-   material,glows,coreMaterial,ringLight,passed:false,
+   material,glows,coreMaterial,ringLight,passed:false,alignHoopRope,
    phase:i*1.8+settings.n*.16});
  }
  // Special fans emit actual forces at the exact positions of their grille,
@@ -2653,6 +2687,7 @@ function tickObstacles(time){
   const pos=hoopMotion(gate,t);
   gate.x=pos.x;gate.y=pos.y;
   gate.mesh.position.set(pos.x,pos.y,pos.z);
+  gate.alignHoopRope?.(pos.x,pos.y);
   if(!gate.passed)gate.mesh.rotation.y=Math.sin(t*1.4+gate.phase)*.055;
   const pulse=.85+.15*Math.sin(t*2.7+gate.phase);
   for(const layer of gate.glows)
