@@ -243,7 +243,8 @@ function stageSettings(n){
   lid:[16,20,27,34,40,45,50].includes(n),
   gust:[21,24,28,33,37,43,46,49].includes(n),
   bankX:x*.41,bankZ:LAUNCH_Z-d*.68,
-  springX:0,springZ:LAUNCH_Z-d*(springFractions[0]||.5),
+  springX:x*(springFractions[0]||.5)+(springFractions.length>1?-.15:0),
+  springZ:LAUNCH_Z-d*(springFractions[0]||.5),
   roomVariant:tier>=5?1:0,
   color:chapter(n).color,targetHeight:[.55,.59,.68,.47,.63,.66,.57][kind]
  });
@@ -404,7 +405,9 @@ function loadLevel(n){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
  level=n;settings=stageSettings(level);chosenChapter=chapterIndex(level);
  attempts=0;shotT=0;simTime=0;flight=false;paused=false;
- aimYaw=settings.springRequired?0:Math.atan2(settings.x,settings.d);
+ aimYaw=settings.springRequired?
+  Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
+  Math.atan2(settings.x,settings.d);
  aimPitch=settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
@@ -2401,7 +2404,7 @@ function buildWorld(){
  // fixed halfway point. A numbered sequence must be completed in order.
  for(let i=0;i<settings.padCount;i++){
   const fraction=settings.springFractions[i],z=LAUNCH_Z-settings.d*fraction,
-   x=settings.x*fraction*.50+(settings.padCount>1?(i===0?-.15:.22):0),
+   x=settings.x*fraction+(settings.padCount>1?(i===0?-.15:.10):0),
    padY=1.14+(settings.padCount>1&&i===1?.16:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
   specialSurfaces.push(cart);
@@ -2516,7 +2519,7 @@ function idealPower(){
  // For direct throws, aim at the cup opening. For bank shots, aim at the
  // rubber tray's actual physical collision height, not at the cup.
  const d=settings.bankRequired?Math.hypot(LAUNCH_Z-settings.bankZ,settings.bankX):
-  settings.springRequired?LAUNCH_Z-settings.springZ:
+  settings.springRequired?Math.hypot(LAUNCH_Z-settings.springZ,settings.springX):
   Math.hypot(settings.d,settings.x);
  const requiredHeight=settings.bankRequired?1.22+BALL_R:
   settings.springRequired?1.21+BALL_R:
