@@ -225,7 +225,7 @@ function shotSteps(spec,p={}){
   hoops:()=> 'RINGS '+Math.min(p.hoopsPassed||0,spec.hoops)+'/'+spec.hoops,
   wall:()=>spec.wallCount>1?'WALLS '+Math.min(p.wallHits||0,spec.wallCount)+'/'+spec.wallCount:(p.wallHits?'WALL ✓':'WALL BANK'),
   bank:()=>p.bankHits?'TRAY ✓':'RUBBER TRAY',
-  spring:()=>p.springHits?'SPRING ✓':'SPRING PAD'
+  spring:()=>spec.padCount>1?'SPRINGS '+Math.min(p.springHits||0,spec.padCount)+'/'+spec.padCount:(p.springHits?'SPRING ✓':'SPRING PAD')
  };
  const steps=orderedGoals(spec).map(goal=>words[goal.kind]());
  if(!steps.length)steps.push('AIM');
@@ -243,7 +243,7 @@ function levelInstructions(spec){
  const actions={
   hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
   wall:spec.wallCount>1?'bounce off '+spec.wallCount+' numbered wall cushions in order':'bounce off the striped wall cushion',
-  spring:'hit the green spring pad',
+  spring:spec.padCount>1?'bounce on both numbered spring pads in order':'hit the green spring pad',
   bank:'hit the orange rubber tray'
  };
  const tasks=orderedGoals(spec).map(goal=>actions[goal.kind]);
@@ -2265,24 +2265,42 @@ function buildWorld(){
   airZone=addFanJet(spec,x,z,device,spec.kind==='lift'?'UPDRAFT':'SIDE JET');
  }
  // Chapter 5: rubber launch plates on actual rolling office carts.
+ // Distinct spaced launch carts: late-game pads no longer sit at one
+ // fixed halfway point. A numbered sequence must be completed in order.
  for(let i=0;i<settings.padCount;i++){
-  const z=lerp(LAUNCH_Z-.9,settings.targetZ,(i+1)/(settings.padCount+1));
-  const x=i===0?0:settings.x*.48,padY=1.16+(i===1?.27:0);
+  const fraction=settings.springFractions[i],z=LAUNCH_Z-settings.d*fraction,
+   x=settings.x*fraction*.50+(settings.padCount>1?(i===0?-.15:.22):0),
+   padY=1.14+(settings.padCount>1&&i===1?.16:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
   specialSurfaces.push(cart);
-  meshBox(cart,1.8,.15,1.8,0,padY-.17,0,metal);
+  const frame=createMat(0x55727a,.42,.36),rubber=createMat(0x2c4d53,.72,.10),
+   springMaterial=createMat(0x63aaa5,.27,.23,0x276d65);
+  meshBox(cart,1.75,.13,1.75,0,padY-.15,0,frame);
+  meshBox(cart,1.59,.05,1.59,0,padY-.055,0,rubber);
   for(const sx of [-1,1])for(const sz of [-1,1]){
-   meshBox(cart,.12,padY-.20,.12,sx*.73,(padY-.20)/2,sz*.73,dark);
-   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.07,10),dark);
-   wheel.rotation.z=Math.PI/2;wheel.position.set(sx*.73,.12,sz*.73);cart.add(wheel);
+   meshBox(cart,.12,padY-.24,.12,sx*.69,(padY-.24)/2,sz*.69,frame);
+   const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.075,14),rubber);
+   wheel.rotation.z=Math.PI/2;wheel.position.set(sx*.69,.13,sz*.69);cart.add(wheel);
   }
-  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.76,.76,.085,26),
-    createMat(0x5a9593,.25,.08,0x6ae5ba));
-  spring.position.y=padY;cart.add(spring);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(.77,.055,8,30),
-    new THREE.MeshBasicMaterial({color:0xd3ffbe}));
+  meshBox(cart,1.38,.045,.07,0,.34,.63,frame);
+  meshBox(cart,1.38,.045,.07,0,.79,.63,frame);
+  const spring=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.09,40),
+   springMaterial);spring.position.y=padY;cart.add(spring);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.74,.047,12,48),
+   new THREE.MeshBasicMaterial({color:0xb6ffe1,transparent:true,opacity:.90}));
   ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;cart.add(ring);
-  pads.push({type:'spring',x,z,r:.74,y:padY+.05,mat:spring.material,last:-10});
+  for(let k=0;k<6;k++){
+   const coil=new THREE.Mesh(new THREE.TorusGeometry(.26+k*.043,.012,6,40),
+    createMat(0x91cabe,.30,.49));
+   coil.rotation.x=Math.PI/2;coil.position.y=padY-.03-k*.018;cart.add(coil);
+  }
+  if(settings.padCount>1){
+   const number=new THREE.Mesh(new THREE.PlaneGeometry(.51,.24),
+    makeText('PAD '+(i+1),39,'#e9fff0','#29565e'));
+   number.rotation.x=-Math.PI/2;
+   number.position.set(0,padY+.071,0);cart.add(number);
+  }
+  pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,last:-10});
  }
  // Subtle dust motes in illuminated air. Each room feels occupied,
  // especially when viewed toward the window; purely decorative.
@@ -2682,7 +2700,7 @@ function padRebound(projectile,pad){
 function missingRequiredContact(projectile){
  if(settings.wallCount&&(projectile.wallHits||0)<settings.wallCount)return 'WALL PAD';
  if(settings.bankRequired&&projectile.bankHits<1)return 'RUBBER PAD';
- if(settings.springRequired&&projectile.springHits<1)return 'SPRING PAD';
+ if(settings.springRequired&&(projectile.springHits||0)<settings.padCount)return 'SPRING PAD';
  if(settings.hoops&&projectile.hoopsPassed<settings.hoops)return 'HOOPS';
  return null;
 }
@@ -2725,7 +2743,7 @@ function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
  const p=charging?power:idealPower(),v=makeVelocity(p);
  const preview={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  wallHits:0,hoopsPassed:0};
+  wallHits:0,hoopsPassed:0,springHits:0,bankHits:0};
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
  // Show the launch path, the FIRST impact and ONE rebound path only. A
@@ -2766,6 +2784,9 @@ function paintAim(){
         Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
        preview.y=pad.y+BALL_R;
        Object.assign(preview,padRebound(preview,pad));
+       if(pad.type==='spring'&&pad.index===(preview.springHits||0))
+        preview.springHits=(preview.springHits||0)+1;
+       if(pad.type==='bank')preview.bankHits=(preview.bankHits||0)+1;
        noteImpact(t+h);
        break;
       }
@@ -3044,9 +3065,12 @@ function tickFlight(dt){
      }else{
       const rebound=padRebound(ball,pad);
       ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
-      ball.springHits++;
+      const credited=pad.index===(ball.springHits||0);
+      if(credited)ball.springHits++;
       updateObjective();
-      message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
+      message(credited?'SPRING '+ball.springHits+'/'+settings.padCount+'!':
+       'HIT PAD '+(ball.springHits+1)+' NEXT',1.0);
+      hear(480,.18,'sine',.06);
      }
      if(impactRing){
       impactRing.position.set(ball.x,pad.y+.075,ball.z);
