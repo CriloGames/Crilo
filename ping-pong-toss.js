@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const MAX_AIM_YAW=1.02;
@@ -223,7 +223,7 @@ function orderedGoals(spec){
 function shotSteps(spec,p={}){
  const words={
   hoops:()=> 'RINGS '+Math.min(p.hoopsPassed||0,spec.hoops)+'/'+spec.hoops,
-  wall:()=>p.wallHits?'WALL ✓':'WALL BANK',
+  wall:()=>spec.wallCount>1?'WALLS '+Math.min(p.wallHits||0,spec.wallCount)+'/'+spec.wallCount:(p.wallHits?'WALL ✓':'WALL BANK'),
   bank:()=>p.bankHits?'TRAY ✓':'RUBBER TRAY',
   spring:()=>p.springHits?'SPRING ✓':'SPRING PAD'
  };
@@ -242,7 +242,7 @@ function updateObjective(){
 function levelInstructions(spec){
  const actions={
   hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
-  wall:'bounce off the striped wall cushion',
+  wall:spec.wallCount>1?'bounce off '+spec.wallCount+' numbered wall cushions in order':'bounce off the striped wall cushion',
   spring:'hit the green spring pad',
   bank:'hit the orange rubber tray'
  };
@@ -1282,7 +1282,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
   {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
@@ -2152,30 +2152,36 @@ function buildWorld(){
 
  // Wall-cushion ricochet: actual mesh AND actual side-plane collision. An
  // illuminated frame clearly shows the only surface that counts as a wall bank.
- if(settings.wall){
-  const side=settings.wall.side,x=side*2.16,z=LAUNCH_Z-settings.d*.52;
+ // Independently located bank walls. Their orange faces are the only
+ // surfaces that count as a wall bank; multiple walls are sequential.
+ for(let i=0;i<settings.wallPlan.length;i++){
+  const spec=settings.wallPlan[i],side=spec.side,
+   x=side*(spec.x||2.16),z=LAUNCH_Z-settings.d*spec.fraction,
+   length=spec.length||3.65;
   const wall=new THREE.Group();wall.position.set(x,2.42,z);group.add(wall);
   specialSurfaces.push(wall);
-  const rubber=createMat(0x617780,.82,.03),stripe=createMat(0xf2bb7a,.43,.02,0x4a291a);
-  meshBox(wall,.17,3.55,3.65,0,0,0,rubber);
-  // The ricochet wall is an anchored partition with visible floor brackets.
-  for(const zz of [-1.52,1.52]){
+  const rubber=createMat(0x617780,.78,.04),
+   stripe=createMat(0xf2bb7a,.40,.04,0x4a291a);
+  meshBox(wall,.17,3.55,length,0,0,0,rubber);
+  for(const zz of [-length*.38,length*.38]){
    meshBox(wall,.16,.76,.15,0,-2.06,zz,metal);
    meshBox(wall,.65,.08,.52,0,-2.38,zz,dark);
   }
-  for(let k=0;k<8;k++)
-   meshBox(wall,.024,3.18,.065,-side*.109,0,-1.46+k*.42,stripe);
-  for(const zz of [-1.89,1.89])
-   meshBox(wall,.23,3.7,.10,0,0,zz,createMat(0x324d58,.35,.38));
+  for(let k=0;k<7;k++)
+   meshBox(wall,.026,3.17,.065,-side*.112,0,
+    -length*.42+k*(length*.84/6),stripe);
+  for(const zz of [-length/2-.04,length/2+.04])
+   meshBox(wall,.23,3.7,.10,0,0,zz,dark);
   for(const yy of [-1.76,1.76])
-   meshBox(wall,.23,.1,3.8,0,yy,0,createMat(0x324d58,.35,.38));
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.75,.32),
-   makeText('BANK HERE',46,'#ffeac0','#485d65'));
+   meshBox(wall,.23,.10,length+.15,0,yy,0,dark);
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(1.68,.31),
+   makeText(settings.wallCount>1?'BANK '+(i+1):'BANK HERE',42,'#ffeac0','#485d65'));
   sign.rotation.y=side*Math.PI/2;
-  sign.position.set(-side*.15,1.43,0);wall.add(sign);
-  const indicator=new THREE.PointLight(0xf6c18d,2.2,3.7,2);
+  sign.position.set(-side*.15,1.41,0);wall.add(sign);
+  const indicator=new THREE.PointLight(0xf6c18d,1.7,3.4,2);
   indicator.position.set(-side*.38,.4,0);wall.add(indicator);
-  wallPad={x,z,side,y:2.42,height:3.55,length:3.65,mesh:wall};
+  const pad={x,z,side,y:2.42,height:3.55,length,mesh:wall,index:i};
+  wallPads.push(pad);if(i===0)wallPad=pad;
  }
  // Sequential 3D hoops: pass through the physical vertical ring plane before
  // the cup. Their centers follow the reference arc but can oscillate.
@@ -2597,27 +2603,28 @@ function airForce(x,y,z,time){
  return {x:fx,y:fy};
 }
 function wallCollision(projectile,previousX,preview=false){
- if(!wallPad)return false;
- const w=wallPad;
- const before=previousX-w.x,after=projectile.x-w.x;
- const fromSide=before<0?-1:1;
- const crossed=before*fromSide>BALL_R&&after*fromSide<=BALL_R;
- if(!crossed||
-  Math.abs(projectile.z-w.z)>w.length*.5||
-  Math.abs(projectile.y-w.y)>w.height*.5)return false;
- // Reflect from EITHER side: the wall is solid even on a second contact.
- projectile.x=w.x+fromSide*(BALL_R+.025);
- projectile.vx=-projectile.vx*.90;
- projectile.vz*=.97;
- projectile.vy+=.18;
- projectile.wallHits=(projectile.wallHits||0)+1;
- if(!preview){
-  updateBounceCount();
-  message('WALL BANK! · FINISH THE SHOT',1.1);
-  updateObjective();
-  hear(550,.12,'triangle',.05);
+ let collided=false;
+ for(const w of wallPads){
+  const before=previousX-w.x,after=projectile.x-w.x;
+  const fromSide=before<0?-1:1;
+  const crossed=before*fromSide>BALL_R&&after*fromSide<=BALL_R;
+  if(!crossed||Math.abs(projectile.z-w.z)>w.length*.5||
+     Math.abs(projectile.y-w.y)>w.height*.5)continue;
+  projectile.x=w.x+fromSide*(BALL_R+.025);
+  projectile.vx=-projectile.vx*.90;projectile.vz*=.97;projectile.vy+=.18;
+  // A later wall cannot stand in for an earlier one, nor can repeatedly
+  // bouncing on the same wall clear a two-wall requirement.
+  const credited=w.index===(projectile.wallHits||0);
+  if(credited)projectile.wallHits=(projectile.wallHits||0)+1;
+  if(!preview){
+   updateBounceCount();
+   message(credited?'WALL BANK '+Math.min(projectile.wallHits,wallPads.length)+
+    '/'+wallPads.length+'!':'FOLLOW THE NUMBERED BANKS',1.1);
+   updateObjective();hear(550,.12,'triangle',.05);
+  }
+  collided=true;break;
  }
- return true;
+ return collided;
 }
 function hoopMotion(gate,time){
  const amt=settings.hoopMove?.27:0;
@@ -2673,7 +2680,7 @@ function padRebound(projectile,pad){
 // Shared by live flight and the dotted guide: a direct cup entry is invalid
 // until the REAL designated wall, rubber tray, spring or hoops were cleared.
 function missingRequiredContact(projectile){
- if(settings.wall&&projectile.wallHits<1)return 'WALL PAD';
+ if(settings.wallCount&&(projectile.wallHits||0)<settings.wallCount)return 'WALL PAD';
  if(settings.bankRequired&&projectile.bankHits<1)return 'RUBBER PAD';
  if(settings.springRequired&&projectile.springHits<1)return 'SPRING PAD';
  if(settings.hoops&&projectile.hoopsPassed<settings.hoops)return 'HOOPS';
