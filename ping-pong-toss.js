@@ -759,6 +759,11 @@ function desk(parent,x,z,w,d,h,top,legs){
  meshBox(g,w,.19,d,0,h,0,top);
  const edge=createMat(0x8b796b,.57,.16),under=createMat(0x475d65,.54,.38);
  meshBox(g,w*.956,.043,d*.963,0,h-.126,0,edge);
+ // A dark reveal plus shallow brass grain-inlay makes the desktop read as
+ // manufactured furniture, not a bare beveled block.
+ const seam=createMat(0x4b6268,.52,.20),inlay=finishMat(0xc39c70,'enamel');
+ detailBox(g,w*.95,.018,.018,0,h-.090,d*.49,seam);
+ detailBox(g,w*.92,.012,.020,0,h-.065,-d*.49,inlay);
  for(const sx of [-1,1])for(const sz of [-1,1]){
   const lx=sx*(w/2-.22),lz=sz*(d/2-.23);
   const leg=new THREE.Mesh(new THREE.CylinderGeometry(.069,.079,Math.max(.15,h-.20),12),legs);
@@ -771,10 +776,17 @@ function desk(parent,x,z,w,d,h,top,legs){
  meshBox(g,w*.87,.075,d*.08,0,h-.25,d*.40,under);
  // A real drawer pull and seam, not a floating flat rectangle.
  if(w<7){
+  // Cable management is inset into the rear worktop, out of the shot path.
+  const grommet=new THREE.Mesh(new THREE.TorusGeometry(.073,.016,9,28),
+   createMat(0x384e55,.48,.38));
+  grommet.rotation.x=Math.PI/2;
+  grommet.position.set(w*.30,h+.098,-d*.28);g.add(ornament(grommet));
   const drawerW=Math.min(.9,w*.45);
   meshBox(g,drawerW,.20,.045,w*.23,h-.34,d*.42,top);
   meshBox(g,drawerW*.26,.034,.046,w*.23,h-.34,d*.46,
    createMat(0xc1ced0,.30,.55));
+  for(const dx of [-drawerW*.37,drawerW*.37])
+   detailBox(g,.018,.17,.011,w*.23+dx,h-.34,d*.457,seam);
  }
  return g;
 }
@@ -1189,6 +1201,23 @@ function officeChair(parent,x,z){
  const backPad=new THREE.Mesh(new THREE.SphereGeometry(.48,20,16),padding);
  backPad.scale.set(.88,.91,.18);backPad.position.set(0,1.34,.210);
  backPad.rotation.x=.10;backPad.castShadow=true;g.add(backPad);
+ // Subtle stitched upholstery channels: curved seams are geometry only.
+ const thread=createMat(0x9ab6b3,.92),binding=createMat(0x465b62,.86);
+ for(const side of [-1,1]){
+  const points=[
+   new THREE.Vector3(side*.32,.99,.045),
+   new THREE.Vector3(side*.34,1.21,.035),
+   new THREE.Vector3(side*.34,1.50,.057),
+   new THREE.Vector3(side*.25,1.68,.09)
+  ];
+  const stitch=new THREE.Mesh(new THREE.TubeGeometry(
+   new THREE.CatmullRomCurve3(points),17,.0075,5,false),thread);
+  g.add(ornament(stitch));
+ }
+ const cushionRim=new THREE.Mesh(new THREE.TorusGeometry(.40,.016,6,40),
+  binding);
+ cushionRim.scale.set(1,.86,1);cushionRim.position.set(0,1.34,.076);
+ g.add(ornament(cushionRim));
  // Curved arm supports, chrome lift, five-spoke base and caster wheels.
  for(const side of [-1,1]){
   const arm=meshBox(g,.13,.11,.62,side*.51,.91,-.02,upholstery);
@@ -1207,6 +1236,9 @@ function officeChair(parent,x,z){
   const caster=new THREE.Mesh(new THREE.CylinderGeometry(.094,.094,.08,12),rubber);
   caster.rotation.z=Math.PI/2;caster.position.set(px,.083,pz);
   caster.castShadow=true;g.add(caster);
+  const hubcap=new THREE.Mesh(new THREE.CylinderGeometry(.028,.028,.084,10),frame);
+  hubcap.rotation.z=Math.PI/2;hubcap.position.copy(caster.position);
+  g.add(ornament(hubcap));
  }
  return g;
 }
@@ -1590,6 +1622,10 @@ function buildWorld(){
  meshBox(group,16,.19,roomLength,0,7.54,roomMiddle,cream);
  for(const x of [-7.84,7.84]){
   meshBox(group,.09,.28,roomLength,x,.06,roomMiddle,darkWood);
+  // Continuous satin kick rails ground each wall and lead the eye into
+  // the distance. Decorative strips do not obstruct the flight corridor.
+  detailBox(group,.044,.055,roomLength-.4,x*.989,.235,roomMiddle,
+   finishMat(0xa6a69b,'enamel'));
   for(let i=0;i<4;i++){
    const zz=roomEnd+(i+1)*roomLength/5;
    meshBox(group,.25,5,.15,x,3.3,zz,metal);
@@ -1615,6 +1651,19 @@ function buildWorld(){
   new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.075,depthWrite:false}));
  glass.position.set(-.77,0,.132);glass.rotation.z=-.1;winGroup.add(glass);
  meshBox(winGroup,.11,2.1,.18,0,0,.15,cream);
+ // Recessed mullions, softly polished glass edges and a window rail.
+ const windowMetal=finishMat(0x829a9b,'anodized'),
+  windowShade=createMat(0x526d76,.48,.26);
+ for(const side of [-1,1]){
+  detailBox(winGroup,.055,2.16,.045,side*1.72,0,.14,windowMetal);
+  detailBox(winGroup,.078,.065,.24,side*1.79,-1.13,.17,windowShade);
+ }
+ detailBox(winGroup,3.45,.055,.05,0,-1.045,.15,windowMetal);
+ const glazing=new THREE.Mesh(new THREE.PlaneGeometry(.24,1.76),
+  new THREE.MeshBasicMaterial({color:0xc7e8ee,transparent:true,opacity:.07,
+   depthWrite:false,side:THREE.DoubleSide}));
+ glazing.rotation.z=-.15;glazing.position.set(1.0,0,.137);
+ winGroup.add(glazing);
  // Window sill, real frame thickness and a worn side door.
  meshBox(winGroup,3.91,.18,.41,0,-1.20,.13,cream);
  meshBox(winGroup,.075,.34,.12,.15,-.07,.23,metal);
@@ -1903,6 +1952,11 @@ function buildWorld(){
  ];
  const shell=new THREE.Mesh(new THREE.LatheGeometry(outline,40,0,Math.PI*2),cupMat);
  shell.castShadow=true;shell.receiveShadow=true;cupGroup.add(shell);
+ // Fine glazed pedestal foot and restrained soft reflection communicate
+ // curvature without adding an opaque indicator over the scoring mouth.
+ const cupFoot=new THREE.Mesh(new THREE.TorusGeometry(baseRadius*.84,.018,8,40),
+  finishMat(kind===6?0xd8b378:0xb5c0b9,'enamel'));
+ cupFoot.rotation.x=Math.PI/2;cupFoot.position.y=.028;cupGroup.add(cupFoot);
  const rimHighlight=new THREE.Mesh(new THREE.TorusGeometry(r*.95,.013,7,40),
   new THREE.MeshBasicMaterial({color:0xf6e2bc,transparent:true,opacity:.65}));
  rimHighlight.rotation.x=Math.PI/2;rimHighlight.position.y=h+.018;cupGroup.add(rimHighlight);
