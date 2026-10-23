@@ -1006,6 +1006,19 @@ function officeLamp(parent,x,y,z,scale=1){
  neck.castShadow=true;g.add(neck);
  const cover=new THREE.Mesh(new THREE.CylinderGeometry(.22,.34,.30,28,1),shade);
  cover.rotation.z=-.42;cover.position.set(.28,.76,0);cover.castShadow=true;g.add(cover);
+ // Ceramic-lined shade and adjustable joints make the articulated light
+ // recognizable at a glance instead of a cylinder balanced on a wire.
+ const innerShade=new THREE.Mesh(new THREE.CylinderGeometry(.206,.316,.019,28),
+  finishMat(0xf3dfbf,'enamel'));
+ innerShade.position.set(.28,.592,0);innerShade.rotation.z=-.42;
+ g.add(ornament(innerShade));
+ const joint=new THREE.Mesh(new THREE.SphereGeometry(.077,12,9),metal);
+ joint.position.set(.21,.78,0);g.add(ornament(joint));
+ const cord=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-.06,.42,.06),new THREE.Vector3(-.18,.15,.10),
+  new THREE.Vector3(-.25,.035,.15),new THREE.Vector3(-.41,.022,.27)
+ ]),15,.012,6,false),createMat(0x35484e,.9));
+ g.add(ornament(cord));
  const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,12,9),
   new THREE.MeshBasicMaterial({color:0xffe3af}));
  bulb.position.set(.34,.58,0);g.add(bulb);
@@ -1018,6 +1031,12 @@ function officeParcel(parent,x,y,z,variant=0){
  const fiber=createMat(colors[variant%colors.length],.88,.02);
  const tape=createMat(0xe5d8b7,.67,.02),label=createMat(0xf7f3e7,.95,.01);
  meshBox(g,w,h,d,0,h/2,0,fiber);
+ // Fiber direction, crisp cardboard folds and slightly raised shipping
+ // hardware sell the package without filling the shot corridor with boxes.
+ const crease=createMat(0x886d5a,.90,.01);
+ for(const side of [-1,1]){
+  detailBox(g,.012,h*.92,.012,side*(w*.48),h*.5,d*.5+.012,crease);
+ }
  // Folded lid, brown packing seams and crossing tape.
  meshBox(g,w-.03,.017,d-.03,0,h+.011,0,fiber);
  meshBox(g,.105,.023,d-.035,0,h+.025,0,tape);
@@ -1025,16 +1044,22 @@ function officeParcel(parent,x,y,z,variant=0){
  meshBox(g,w*.67,h*.31,.015,.015,h*.55,d*.5+.011,label);
  const barMat=createMat(0x58646a,.81,.02);
  for(let i=0;i<7;i++){
-  const line=meshBox(g,.012+(i%3)*.008,h*.20,.017,
+  const line=detailBox(g,.012+(i%3)*.008,h*.20,.017,
    -.13+i*.043,h*.56,d*.5+.025,barMat);
   line.castShadow=false;
  }
+ // Fold-over flap and a small shipping-label corner stamp.
+ detailBox(g,w*.22,.015,d*.26,-w*.28,h+.037,-d*.27,tape);
+ const stamp=new THREE.Mesh(new THREE.CircleGeometry(.055,12),
+  createMat(0xb19d85,.88,.01));
+ stamp.position.set(w*.19,h*.48,d*.5+.030);
+ g.add(ornament(stamp));
  return g;
 }
 function officeTrophy(parent,x,y,z,variant=0){
  const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);
- const brass=createMat(variant%2?0xd3a46e:0xe5c77c,.25,.68);
- const base=createMat(0x465560,.47,.35),ivory=createMat(0xffedc2,.44,.18);
+ const brass=finishMat(variant%2?0xd3a46e:0xe5c77c,'anodized');
+ const base=finishMat(0x465560,'enamel'),ivory=finishMat(0xffedc2,'ceramic');
  meshBox(g,.37,.13,.30,0,.075,0,base);
  meshBox(g,.32,.060,.26,0,.17,0,ivory);
  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.06,.085,.30,20),brass);
