@@ -734,3 +734,30 @@ body.pt-page{
 @media(prefers-reduced-motion:reduce){
  .pt-page .pt-viewport{scroll-behavior:auto}
 }
+
+
+/* Stage clarity: one familiar mechanic color, no extra HUD badges. */
+.pt-page .pt-viewport[data-mechanic="wall"] .pt-aim-hint .pt-shot-objective{
+ border-left-color:#f2b079;color:#fff1dd;
+}
+.pt-page .pt-viewport[data-mechanic="spring"] .pt-aim-hint .pt-shot-objective{
+ border-left-color:#8ce0bc;color:#eaffee;
+}
+.pt-page .pt-viewport[data-mechanic="bank"] .pt-aim-hint .pt-shot-objective{
+ border-left-color:#ffc38a;color:#fff3dc;
+}
+.pt-page .pt-viewport[data-mechanic="hoop"] .pt-aim-hint .pt-shot-objective{
+ border-left-color:#f8de95;color:#fff9df;
+}
+.pt-page .pt-viewport[data-mechanic="wind"] .pt-aim-hint .pt-shot-objective{
+ border-left-color:#8ecfe5;color:#e8f6ff;
+}
+.pt-page .pt-weather{
+ border-left:2px solid #9fd6dc;
+ box-shadow:0 2px 8px #091c2233;
+}
+@media(max-width:650px){
+ .pt-page .pt-aim-hint .pt-shot-objective{
+  max-width:min(250px,calc(100vw - 40px));
+ }
+}
