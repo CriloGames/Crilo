@@ -1227,7 +1227,8 @@ function pulseBounceHalo(effect,time,impact=-10,active=true){
  effect.core.material.opacity=clamp(base+pulse+hit*.22,.22,1);
  effect.soft[0].material.opacity=clamp(.18+hit*.23,.08,.5);
  effect.soft[1].material.opacity=clamp(.05+hit*.10,.03,.19);
- effect.group.scale.setScalar(1+hit*.035);
+ effect.group.scale.set((effect.baseScaleX||1)*(1+hit*.035),
+  (effect.baseScaleY||1)*(1+hit*.035),1);
 }
 // Every stage has a different, short, family-friendly character reaction.
 // Speech is created on demand after a real user-controlled throw.
@@ -1656,6 +1657,29 @@ function stageArtPlan(spec){
  };
 }
 
+// Work out where an ordinary, correctly aimed throw actually crosses a
+// moving gate. Previous gate heights (~1.4m) sat below the ball arc (~3m),
+// making the moving parts irrelevant. No tracking or hidden assistance is
+// applied during flight; this only positions the authored gate at load time.
+function plannedBarrierLane(spec,fraction){
+ const bank=spec.bankRequired,afterBank=bank&&fraction>.69;
+ if(afterBank)return {x:spec.x*fraction,y:2.00};
+ const tx=bank?spec.bankX:spec.x,
+  dz=bank?LAUNCH_Z-spec.bankZ:spec.d,
+  pitch=bank?.31:.70,
+  distance=Math.hypot(dz,tx),
+  yaw=Math.atan2(tx,dz),
+  requiredY=bank?1.22+BALL_R:
+   .19+spec.topPad+spec.targetHeight-BALL_R;
+ const co=Math.cos(pitch),denom=2*co*co*
+  (distance*Math.tan(pitch)+LAUNCH_Y-requiredY);
+ const speed=5.6+8.2*clamp((Math.sqrt(
+  Math.max(1,GRAVITY*distance*distance/Math.max(.08,denom)))-5.6)/8.2,.06,.97);
+ const traveledZ=spec.d*fraction;
+ const time=traveledZ/(Math.cos(yaw)*co*speed);
+ return {x:Math.tan(yaw)*traveledZ,
+  y:clamp(LAUNCH_Y+speed*Math.sin(pitch)*time-GRAVITY*time*time*.5,1.75,3.85)};
+}
 function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
@@ -2608,8 +2632,12 @@ function buildWorld(){
  // Only Chapter 4+ introduces moving blockers. Their positions and timing
  // are explicit in each level blueprint, not a repeated evenly spaced gate.
  for(let i=0;i<settings.barrierPlan.length;i++){
-  const [style,t,offset,midY]=settings.barrierPlan[i];
-  const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
+  const [style,t,offset]=settings.barrierPlan[i];
+  const lane=plannedBarrierLane(settings,t);
+  // Center the timed blocker on the actual playable arc. Its side-to-side
+  // or up/down travel leaves an opening for a well-timed throw.
+  const x=lane.x+clamp(offset,-.16,.16),
+   midY=lane.y,z=LAUNCH_Z-settings.d*t;
   const g=new THREE.Group();g.position.set(x,midY,z);group.add(g);
   const mount=new THREE.Group();mount.position.set(x,0,z);group.add(mount);
   const shutter=style==='panel';
@@ -2639,7 +2667,19 @@ function buildWorld(){
      meshBox(mount,.28,.06,.35,side*1.02,.045,0,dark);
     }
   }
-  const amp=shutter?.48:.64;
+  // At movement extremes a ball-sized gap opens across the normal route:
+  // the obstacle is neither permanently closed nor safely out of the way.
+  const amp=shutter?.82:1.02;
+  const guide=createMat(0xeed3ab,.61,.16);
+  if(shutter){
+   for(const dy of [-.93,.93]){
+    detailBox(mount,.74,.025,.026,0,midY+dy,-.14,guide);
+   }
+  }else{
+   for(const dx of [-1.14,1.14]){
+    detailBox(mount,.027,.19,.023,dx,midY,-.18,guide);
+   }
+  }
   obstacles.push({type:'barrier',style,obj:g,support:mount,x,y:midY,z,
    w:shutter?1.05:1.14,h:shutter?.52:.31,d:.24,
    centerX:x,centerY:midY,amp,speed:.72+i*.18+settings.tier*.035,
@@ -2695,6 +2735,7 @@ function buildWorld(){
   sign.position.set(-side*.15,1.41,0);wall.add(sign);
   const halo=bounceHalo(wall,1.03,0xffb981,'wall',
    {x:-side*.134,y:0,z:0});
+  halo.baseScaleX=1.04;halo.baseScaleY=1.31;
   halo.group.scale.set(1.04,1.31,1);
   const indicator=new THREE.PointLight(0xf6c18d,1.7,3.4,2);
   indicator.position.set(-side*.38,.4,0);wall.add(indicator);
@@ -3110,7 +3151,7 @@ function resolveEnvironment(body,preview=false){
   const o=item.owner,vx=o?.type==='barrier'&&o.style!=='panel'?
    Math.cos(simTime*o.speed+o.phase)*o.amp*o.speed:0;
   const vy=o?.type==='barrier'&&o.style==='panel'?
-   Math.cos(simTime*o.speed+o.phase)*.65*o.speed:0;
+   Math.cos(simTime*o.speed+o.phase)*.82*o.speed:0;
   if(bounceContact(body,nx,ny,nz,depth,item.restitution,
    item.friction,vx,vy,0,preview)){
    reacted=true;
@@ -3629,7 +3670,7 @@ function tickObstacles(time){
   if(obj.type==='barrier'){
    const wave=Math.sin(t*obj.speed+obj.phase);
    if(obj.style==='panel'){
-    obj.y=obj.centerY+wave*.65;
+    obj.y=obj.centerY+wave*.82;
     obj.obj.position.y=obj.y;
    }else{
     obj.x=obj.centerX+wave*obj.amp;
