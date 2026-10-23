@@ -2368,6 +2368,50 @@ function padRebound(projectile,pad){
   vz:projectile.vz*.42+offsetZ*.29
  };
 }
+// Shared by live flight and the dotted guide: a direct cup entry is invalid
+// until the REAL designated wall, rubber tray, spring or hoops were cleared.
+function missingRequiredContact(projectile){
+ if(settings.wall&&projectile.wallHits<1)return 'WALL PAD';
+ if(settings.bankRequired&&projectile.bankHits<1)return 'RUBBER PAD';
+ if(settings.springRequired&&projectile.springHits<1)return 'SPRING PAD';
+ if(settings.hoops&&projectile.hoopsPassed<settings.hoops)return 'HOOPS';
+ return null;
+}
+function cupEntryGate(projectile,previousY,time,preview=false){
+ const at=preview?targetLocation(time):target;
+ const top=at.y+settings.targetHeight;
+ const radius=preview?settings.radius:target.r;
+ const inside=Math.hypot(projectile.x-at.x,projectile.z-at.z);
+ if(previousY<top-BALL_R||projectile.y>top-BALL_R||
+    projectile.vy>=0||inside>=radius-BALL_R*.7)
+  return {entered:false,missing:null,rejected:false};
+ const missing=missingRequiredContact(projectile);
+ const open=!settings.lid||lidFraction(time)>.61;
+ if(!missing||!open)return {entered:true,missing,rejected:false};
+ // An attempted bypass rebounds at the cup mouth; it cannot settle inside.
+ // The same calculation applies to trajectory prediction and real shots.
+ if(time-(projectile.lastCupReject??-10)<.15)
+  return {entered:true,missing,rejected:false};
+ projectile.lastCupReject=time;
+ projectile.y=top+BALL_R+.014;
+ projectile.vy=Math.max(1.6,Math.abs(projectile.vy)*.55);
+ projectile.vz=Math.max(.8,Math.abs(projectile.vz)*.27);
+ projectile.vx+=(projectile.x-at.x)*.9;
+ if(!preview){
+  projectile.contacts++;
+  updateBounceCount();
+  el.status.textContent=missing==='HOOPS'?
+   'PASS ALL HOOPS BEFORE SCORING':'BOUNCE OFF THE '+missing+' FIRST';
+  message(missing==='HOOPS'?'HOOPS FIRST!':missing+' FIRST!',1.15);
+  hear(270,.13,'triangle',.035);
+  if(impactRing){
+   impactRing.position.set(projectile.x,top+.035,projectile.z);
+   impactRing.material.color.setHex(0xf0a18b);
+   impactAge=0;impactRing.visible=true;
+  }
+ }
+ return {entered:true,missing,rejected:true};
+}
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
  const p=charging?power:idealPower(),v=makeVelocity(p);
@@ -2401,7 +2445,11 @@ function paintAim(){
     checkHoopCross(prior,preview,t+h,true);
     if(hoopRimCollision(preview,t+h,true))noteImpact(t+h);
     if(resolveEnvironment(preview,true))noteImpact(t+h);
-    if(cupSurfaceCollision(preview,true,t+h))noteImpact(t+h);
+    const cupGate=cupEntryGate(preview,prior.y,t+h,true);
+    if(cupGate.rejected)noteImpact(t+h);
+    if(cupGate.entered&&!cupGate.missing&&
+       (!settings.lid||lidFraction(t+h)>.61))previewEnded=true;
+    if(!previewEnded&&cupSurfaceCollision(preview,true,t+h))noteImpact(t+h);
     if(previewEnded)break;
     if(preview.vy<0){
      for(const pad of pads){
@@ -2654,37 +2702,9 @@ function tickFlight(dt){
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0)
    ball.rimMiss={dx:ball.x-target.x,dz:ball.z-target.z,distance:inside};
-  if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0&&
-   inside<target.r-BALL_R*.7){
-   // Reaching the cup directly must NEVER count as a wall/pad trick shot.
-   // Reject the ball at the mouth itself; it must touch the designated
-   // actual surface before the target accepts it.
-   const missing=settings.wall&&ball.wallHits<1?'WALL PAD':
-    settings.bankRequired&&ball.bankHits<1?'RUBBER PAD':
-    settings.springRequired&&ball.springHits<1?'SPRING PAD':
-    settings.hoops&&ball.hoopsPassed<settings.hoops?'HOOPS':null;
-   const open=!settings.lid||lidFraction(simTime)>.61;
-   if(open&&!missing){complete();return;}
-   if(open&&missing&&!ball.rejectedAtCup){
-    ball.rejectedAtCup=true;
-    ball.y=target.top+BALL_R+.014;
-    ball.vy=Math.max(1.6,Math.abs(ball.vy)*.55);
-    // Rebound toward the player, away from the opening, not into the cup.
-    ball.vz=Math.max(.8,Math.abs(ball.vz)*.27);
-    ball.vx+=(ball.x-target.x)*.9;
-    ball.contacts++;
-    updateBounceCount();
-    el.status.textContent=missing==='HOOPS'?
-     'PASS ALL HOOPS BEFORE SCORING':'BOUNCE OFF THE '+missing+' FIRST';
-    message(missing==='HOOPS'?'HOOPS FIRST!':missing+' FIRST!',1.15);
-    hear(270,.13,'triangle',.035);
-    if(impactRing){
-     impactRing.position.set(ball.x,target.top+.035,ball.z);
-     impactRing.material.color.setHex(0xf0a18b);
-     impactAge=0;impactRing.visible=true;
-    }
-   }
-  }
+  const cupGate=cupEntryGate(ball,prevY,simTime);
+  if(cupGate.entered&&!cupGate.missing&&
+     (!settings.lid||lidFraction(simTime)>.61)){complete();return;}
   // Cup rim is now a real rounded collider, not an instant failure.
   cupSurfaceCollision(ball);
   // Cylinder wall and bottom contact are resolved by cupSurfaceCollision.
