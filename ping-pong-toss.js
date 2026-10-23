@@ -1774,6 +1774,9 @@ function buildWorld(){
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
  if(settings.sceneId===0){
+  // Cabinet beneath the document stack: papers no longer hover.
+  meshBox(group,1.11,1.07,.92,-2.4,.535,settings.targetZ+.66,wood);
+  meshBox(group,1.20,.10,1.00,-2.4,1.12,settings.targetZ+.66,metal);
   stackBooks(group,-2.4,1.18,settings.targetZ+.66,2+(level%4),level+1);
   plant(group,3.3,settings.targetZ-1.4,.9);
  }else if(settings.sceneId===1){
@@ -1783,7 +1786,11 @@ function buildWorld(){
   for(const dx of [-.55,.55])for(const dz of [-.38,.38])
    meshBox(group,.10,1.88,.10,2+dx,.94,settings.targetZ+.8+dz,metal);
   projector.rotation.y=.14;
-  for(let k=0;k<3;k++)meshBox(group,.65,.025,.38,-2.8+k*.7,1.17,settings.targetZ+.9,paper);
+  const paperworkZ=settings.targetZ+.9;
+  meshBox(group,2.65,.10,.85,-2.1,1.12,paperworkZ,wood);
+  for(const xx of [-3.16,-1.04])
+   meshBox(group,.11,1.07,.11,xx,.535,paperworkZ,metal);
+  for(let k=0;k<3;k++)meshBox(group,.65,.025,.38,-2.8+k*.7,1.17,paperworkZ,paper);
  }else if(settings.sceneId===2){
   for(let k=0;k<3;k++){
    meshBox(group,.9,.63,.75,3.7,(k+.5)*.66,settings.targetZ+.8,
@@ -1795,6 +1802,9 @@ function buildWorld(){
   meshBox(group,1.20,.10,.98,-2.6,1.22,settings.targetZ+.65,wood);
   const urn=new THREE.Mesh(new THREE.CylinderGeometry(.27,.34,.67,20),kettleMat);
   urn.position.set(-2.6,1.6,settings.targetZ+.65);group.add(urn);
+  // Ceramic dishes stack on a grounded side counter rather than in the air.
+  meshBox(group,1.03,1.12,.86,2.9,.56,settings.targetZ+.6,metal);
+  meshBox(group,1.14,.09,.94,2.9,1.16,settings.targetZ+.6,wood);
   for(let k=0;k<3;k++){
    const tray=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.045,16),cream);
    tray.position.set(2.9,1.15+k*.09,settings.targetZ+.6);group.add(tray);
