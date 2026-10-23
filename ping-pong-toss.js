@@ -21,7 +21,7 @@ const el={
  discControls:$('ptDiscControls'),discTilt:$('ptDiscTilt'),discTiltValue:$('ptDiscTiltValue')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,frisbeeRotor=null,frisbeeFlightTrace=null,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
+let THREE,renderer,scene,camera,group,ballMesh,frisbeeRotor=null,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,LAUNCH_Z=4.25,LAUNCH_Y=1.32;
@@ -656,10 +656,6 @@ function resetBall(){
  if(projectileId==='frisbee')ball.disc=newDiscFlightState();
  if(ballMesh){ballMesh.position.set(launchOffset(),LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);if(frisbeeRotor)frisbeeRotor.rotation.y=0;}
  for(const bead of ballTrailMeshes)bead.visible=false;
- if(frisbeeFlightTrace){
-  frisbeeFlightTrace.geometry.setDrawRange(0,0);
-  frisbeeFlightTrace.visible=false;
- }
  updateBounceCount();
  // Unlock the slider after a missed throw so the next frisbee attempt can be re-tilted.
  updateFrisbeeControls();
@@ -2011,7 +2007,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];frisbeeFlightTrace=null;impactRing=null;impactAge=2;cupLid=null;
+ obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
  const sets=[
   {walls:0xc7d4cf,carpet:0x738981,desk:0xc49c7c,trim:0x436977,name:'THE CUBICLE'},
   {walls:0xd8cbb9,carpet:0x7b8c86,desk:0xc29a77,trim:0x536d79,name:'MEETING ROOM'},
@@ -3322,29 +3318,18 @@ const PAD_GRIP_BY_LEVEL={
   new THREE.MeshBasicMaterial({color:0xffd8a2,transparent:true,
    opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
  impactHalo.renderOrder=4;impactRing.add(impactHalo);
- // Short motion trail keeps the smaller ball visible without increasing it.
- const trailGeometry=new THREE.SphereGeometry(BALL_R*.62,9,7);
- for(let k=0;k<11;k++){
-  const material=new THREE.MeshBasicMaterial({
-   color:projectileId==='frisbee'?0x9bffe4:0xffc58b,
-   transparent:true,opacity:(projectileId==='frisbee'?.6:.16)*(1-k/11),depthWrite:false
-  });
-  const bead=new THREE.Mesh(trailGeometry,material);
-  bead.visible=false;group.add(bead);ballTrailMeshes.push(bead);
- }
- // Capture and draw the actual ball's flight as a long visible 3D curve.
- // This trace is calculated from collisions and forces, never scripted.
- if(projectileId==='frisbee'){
-  const geometry=new THREE.BufferGeometry();
-  geometry.setAttribute('position',
-   new THREE.BufferAttribute(new Float32Array(3*128),3));
-  geometry.setDrawRange(0,0);
-  frisbeeFlightTrace=new THREE.Line(geometry,
-   new THREE.LineBasicMaterial({color:0x8afce0,transparent:true,
-    opacity:.84,depthWrite:false,depthTest:false}));
-  frisbeeFlightTrace.frustumCulled=false;
-  frisbeeFlightTrace.renderOrder=6;frisbeeFlightTrace.visible=false;
-  group.add(frisbeeFlightTrace);
+ // The frisbee leaves no following line or particle trail. Keep the
+ // short bead trail for all other throwables, and retain the dotted
+ // aiming guide for every projectile.
+ if(projectileId!=='frisbee'){
+  const trailGeometry=new THREE.SphereGeometry(BALL_R*.62,9,7);
+  for(let k=0;k<11;k++){
+   const material=new THREE.MeshBasicMaterial({
+    color:0xffc58b,transparent:true,opacity:.16*(1-k/11),depthWrite:false
+   });
+   const bead=new THREE.Mesh(trailGeometry,material);
+   bead.visible=false;group.add(bead);ballTrailMeshes.push(bead);
+  }
  }
  trajectoryGroup=new THREE.Group();group.add(trajectoryGroup);
  for(let i=0;i<84;i++){
@@ -4084,7 +4069,7 @@ function launch(){
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
-  active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[],arc:[],arcMark:-1};
+  active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  if(projectileId==='frisbee')ball.disc=newDiscFlightState();
  updateFrisbeeControls();
  shotT=0;shotStart=performance.now();
@@ -4306,11 +4291,6 @@ function tickFlight(dt){
   shotT+=h;
   ball.trail.unshift([ball.x,ball.y,ball.z]);
   if(ball.trail.length>46)ball.trail.length=46;
-  if(projectileId==='frisbee'&&shotT-ball.arcMark>=.022){
-   ball.arcMark=shotT;
-   ball.arc.push([ball.x,ball.y,ball.z]);
-   if(ball.arc.length>128)ball.arc.shift();
-  }
   collideObstacles();
   const inside=Math.hypot(ball.x-target.x,ball.z-target.z);
   if(prevY>=target.top-BALL_R&&ball.y<=target.top-BALL_R&&ball.vy<0)
@@ -4366,16 +4346,6 @@ function tickFlight(dt){
    const spread=.25*clamp(1+(ball.y-shadowY)*.25,.7,2.5);
    ballShadow.scale.set(spread,spread,1);
    ballShadow.material.opacity=clamp(.48-(ball.y-shadowY)*.07,.035,.46);
-  }
-  if(frisbeeFlightTrace){
-   const history=ball.arc||[],attr=frisbeeFlightTrace.geometry.attributes.position;
-   const count=Math.min(128,history.length);
-   for(let k=0;k<count;k++){
-    const p=history[k];attr.setXYZ(k,p[0],p[1],p[2]);
-   }
-   attr.needsUpdate=true;
-   frisbeeFlightTrace.geometry.setDrawRange(0,count);
-   frisbeeFlightTrace.visible=count>1&&flight;
   }
   for(let k=0;k<ballTrailMeshes.length;k++){
    const trail=ballTrailMeshes[k],sample=ball.trail[(k+1)*3];
