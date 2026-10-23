@@ -898,3 +898,36 @@ body.pt-page{
  }
  .pt-page .pt-sound-icon{width:17px;height:17px;flex-basis:17px}
 }
+
+/* Post-campaign throwable selection and five tiny completion lights. */
+.pt-page .pt-projectile-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#c6e4dd;font:900 11px/1.4 system-ui;margin:0 0 9px}
+.pt-page .pt-projectile-heading span{font:650 10px/1.4 system-ui;color:#b5caca}
+.pt-page .pt-projectile-list{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.pt-page .pt-projectile-option{display:flex;align-items:center;gap:7px;min-width:0;padding:9px 8px;background:#49616a;border:1.5px solid #869b9e;border-bottom:3px solid #354e57;border-radius:8px;color:#e2eeeb;cursor:pointer;font:800 11px/1.2 system-ui,sans-serif}
+.pt-page .pt-projectile-option.active{background:#5e8678;border-color:#b7e0c7;color:#ffffff}
+.pt-page .pt-projectile-option:disabled{opacity:.40;cursor:not-allowed;filter:grayscale(.75)}
+.pt-page .pt-projectile-option:not(:disabled):hover{background:#798570}
+.pt-page .pt-projectile-option:focus-visible{outline:3px solid #f1c08e;outline-offset:2px}
+.pt-page .pt-projectile-label{flex:1;min-width:0;text-align:left}
+.pt-page .pt-projectile-count{font:800 10px/1 ui-monospace,monospace;color:#d4e9e3;white-space:nowrap}
+.pt-page .pt-projectile-description{margin:0 0 15px;color:#b6ceca;font:650 11px/1.4 system-ui,sans-serif}
+.pt-page .pt-projectile-shape{display:block;flex:0 0 16px;width:16px;height:16px;border:2px solid #b47b53;background:#f8ad71;border-radius:50%}
+.pt-page [data-projectile=frisbee]>.pt-projectile-shape{background:#285d62;border:4px solid #89dcc5}
+.pt-page [data-projectile=basketball]>.pt-projectile-shape{background:linear-gradient(90deg,transparent 43%,#704b31 44%,#704b31 56%,transparent 57%),#f5aa6c;border-color:#865535}
+.pt-page [data-projectile=heavy]>.pt-projectile-shape{background:#a4bbc9;border:3px double #3d5266;border-radius:4px}
+.pt-page [data-projectile=light]>.pt-projectile-shape{background:#d0f4e9;border:2px solid #83c9c8;border-radius:4px;transform:rotate(45deg) scale(.8)}
+.pt-page .pt-level-btn .pt-completion-marks{display:flex;align-items:center;gap:7px;width:100%;min-height:12px}
+.pt-page .pt-completion-mark{display:inline-block;flex:0 0 11px;width:11px;height:11px;background:#61778066;border:1.5px solid #9aabad;border-radius:50%;opacity:.36}
+.pt-page .pt-completion-mark[data-projectile=frisbee]{border-width:3px;background:transparent}
+.pt-page .pt-completion-mark[data-projectile=basketball]{background:linear-gradient(90deg,transparent 44%,#617780 45%,#617780 56%,transparent 57%),#93a8af}
+.pt-page .pt-completion-mark[data-projectile=heavy]{border-radius:3px}
+.pt-page .pt-completion-mark[data-projectile=light]{border-radius:3px;transform:rotate(45deg) scale(.8)}
+.pt-page .pt-completion-mark[data-lit=true]{opacity:1;background:#ffd79c;border-color:#ffe6b3;box-shadow:0 0 8px #ffdf9c}
+.pt-page .pt-completion-mark[data-projectile=frisbee][data-lit=true]{background:#295b5a;border-color:#a5ffde;box-shadow:0 0 8px #a5ffde}
+.pt-page .pt-completion-mark[data-projectile=basketball][data-lit=true]{background:linear-gradient(90deg,transparent 44%,#6c4931 45%,#6c4931 56%,transparent 57%),#f3a263;border-color:#ffd6ad;box-shadow:0 0 8px #ffc387}
+.pt-page .pt-completion-mark[data-projectile=heavy][data-lit=true]{background:#b7cce0;border-color:#deeeff;box-shadow:0 0 8px #b5d9ff}
+.pt-page .pt-completion-mark[data-projectile=light][data-lit=true]{background:#e6fff5;border-color:#e9ffee;box-shadow:0 0 8px #dbfff0}
+@media(max-width:810px){.pt-page .pt-projectile-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.pt-page .pt-projectile-option{padding:8px 7px;gap:5px}.pt-page .pt-projectile-count{font-size:9px}}
+@media(max-width:440px){.pt-page .pt-projectile-list{grid-template-columns:repeat(2,minmax(0,1fr))}.pt-page .pt-completion-marks{gap:5px}}
+[data-theme=dark] .pt-page .pt-projectile-option{background:#374e57;color:#e5f5ef}
+[data-theme=dark] .pt-page .pt-projectile-option.active{background:#357365;border-color:#b4e0c8}
