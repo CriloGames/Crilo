@@ -657,6 +657,8 @@ function resetBall(){
  if(ballMesh){ballMesh.position.set(launchOffset(),LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);if(frisbeeRotor)frisbeeRotor.rotation.y=0;}
  for(const bead of ballTrailMeshes)bead.visible=false;
  updateBounceCount();
+ // Unlock the slider after a missed throw so the next frisbee attempt can be re-tilted.
+ updateFrisbeeControls();
 }
 function createMat(color,rough=.75,metal=.02,emissive=null){
  return new THREE.MeshStandardMaterial({
