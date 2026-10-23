@@ -23,6 +23,8 @@ let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],lau
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
+const MAX_AIM_YAW=1.02;
+function launchOffset(){return clamp(aimYaw*.37,-.38,.38);}
 const CHAPTERS=[
  {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x6ccab5,short:'First Week'},
  {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xeba1b5,short:'Desk Shift'},
@@ -367,8 +369,8 @@ function updateBounceCount(){
  if(el.bounces)el.bounces.textContent=String((ball.contacts||0)+(ball.bounces||0)+(ball.wallHits||0));
 }
 function resetBall(){
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
- if(ballMesh){ballMesh.position.set(0,LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);}
+ ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
+ if(ballMesh){ballMesh.position.set(launchOffset(),LAUNCH_Y,LAUNCH_Z);ballMesh.rotation.set(0,0,0);}
  for(const bead of ballTrailMeshes)bead.visible=false;
  updateBounceCount();
 }
@@ -2702,7 +2704,7 @@ function cupEntryGate(projectile,previousY,time,preview=false){
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
  const p=charging?power:idealPower(),v=makeVelocity(p);
- const preview={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
+ const preview={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   wallHits:0,hoopsPassed:0};
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
@@ -2765,6 +2767,10 @@ function paintAim(){
  }
 }
 function updatePower(){
+ if(!flight&&ballMesh){
+  ballMesh.position.x=launchOffset();
+  if(ballShadow)ballShadow.position.x=launchOffset();
+ }
  const pct=Math.round(power*100);
  el.power.style.width=pct+'%';el.powerValue.textContent=pct+'%';
  el.trajectoryLabel.textContent=charging?'CHARGING THROW':'AIM TRAJECTORY';
@@ -2778,7 +2784,7 @@ function inputAim(clientX,clientY){
  const nx=clamp((clientX-rect.left)/rect.width,0,1);
  const ny=clamp((clientY-rect.top)/rect.height,0,1);
  const baseline=Math.atan2(target.x,settings.d);
- aimYaw=clamp(baseline+(nx-.5)*.68,-.54,.54);
+ aimYaw=clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
  aimPitch=settings.bankRequired||settings.springRequired?clamp(.52+(.5-ny)*1.04,.13,1.04):clamp(.70+(.5-ny)*.52,.27,1.04);
  if(!charging)power=idealPower();
  updatePower();
@@ -2802,7 +2808,7 @@ function launch(){
  chargeTick(performance.now());
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
  const v=makeVelocity(power);
- ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
+ ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  shotT=0;shotStart=performance.now();
  el.status.textContent='BALL IN FLIGHT · WATCH THE ARC';
@@ -3197,7 +3203,7 @@ function flickAim(e){
  if(Math.abs(dx)>.002||Math.abs(dy)>.002)gesture.moved=true;
  // No angle jump: begin at the aim selected on pointer-down.
  // Power stays independent and increases for as long as the pointer is held.
- aimYaw=clamp(gesture.yaw+dx*1.12,-.62,.62);
+ aimYaw=clamp(gesture.yaw+dx*2.15,-MAX_AIM_YAW,MAX_AIM_YAW);
  aimPitch=clamp(gesture.pitch+dy*.92,
   settings.bankRequired||settings.springRequired?.13:.27,1.10);
  updatePower();
@@ -3236,9 +3242,9 @@ document.addEventListener('keydown',e=>{
  if(!playing||flight)return;
  if(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s'].includes(key)){
   e.preventDefault();
-  const amount=e.shiftKey?.019:.011;
-  if(key==='arrowleft'||key==='a')aimYaw=clamp(aimYaw-amount,-.56,.56);
-  if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-.56,.56);
+  const amount=e.shiftKey?.038:.024;
+  if(key==='arrowleft'||key==='a')aimYaw=clamp(aimYaw-amount,-MAX_AIM_YAW,MAX_AIM_YAW);
+  if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-MAX_AIM_YAW,MAX_AIM_YAW);
   if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
   if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
   if(!charging)power=idealPower();updatePower();
