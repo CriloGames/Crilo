@@ -17,7 +17,8 @@ const el={
  projectiles:$('ptProjectiles'),projectileDescription:$('ptProjectileDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
  sound:$('ptSound'),soundState:$('ptSoundState'),voiceSelect:$('ptVoiceSelect'),voicePreview:$('ptVoicePreview'),voiceHelp:$('ptVoiceHelp'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
- aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
+ aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty'),
+ discControls:$('ptDiscControls'),discTilt:$('ptDiscTilt'),discTiltValue:$('ptDiscTiltValue')
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,frisbeeRotor=null,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
@@ -71,6 +72,9 @@ function chooseProjectile(id){
 }
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
+let frisbeeTilt=0; // Selected disc roll, in radians; positive banks right.
+const FRISBEE_MAX_PITCH=1.28,FRISBEE_MIN_PITCH=-.18,FRISBEE_MAX_YAW=1.34;
+const FRISBEE_MAX_TILT=40*Math.PI/180;
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
 let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -614,6 +618,7 @@ function loadLevel(n){
    Math.atan2(settings.x,settings.d);
  aimPitch=projectileId==='frisbee'?(settings.springRequired?.20:settings.bankRequired?.22:.18):
   settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
+ updateFrisbeeControls();
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
  buildUi();updatePower();
@@ -3408,9 +3413,10 @@ function makeVelocity(p){
 // the direction of travel; bank is a separate roll around that direction.
 // The nested mesh rotates around its OWN normal while the disc glides.
 function newDiscFlightState(yaw=aimYaw){
+ // Real player-selected bank is independent from the aiming yaw.
+ const bank=clamp(frisbeeTilt+.025+yaw*.16,-.83,.83);
  return {age:0,spin:0,spinRate:20,nose:.115,
-  releaseBank:clamp(.025+yaw*.38,-.34,.34),
-  bank:clamp(.025+yaw*.38,-.34,.34),angleOfAttack:0,stalled:false};
+  releaseBank:bank,bank,angleOfAttack:0,stalled:false};
 }
 // Both the dotted preview and live game call this same force solver.
 function applyProjectileForces(body,h,t,fan=airForce(body.x,body.y,body.z,t)){
@@ -3959,10 +3965,30 @@ function paintAim(){
   dot.scale.setScalar(nearOpening?2.1:preview.hoopsPassed?1.2:1);
  }
 }
+function updateFrisbeeControls(){
+ const enabled=projectileId==='frisbee';
+ el.discControls.hidden=!enabled;
+ if(!enabled)return;
+ const degrees=Math.round(frisbeeTilt*180/Math.PI);
+ el.discTilt.value=String(degrees);
+ el.discTiltValue.textContent=degrees===0?'LEVEL':(degrees>0?'RIGHT ':'LEFT ')+Math.abs(degrees)+'°';
+ el.discTilt.setAttribute('aria-valuetext',
+  degrees===0?'Level flight':Math.abs(degrees)+' degrees '+(degrees>0?'right':'left')+' bank');
+ el.discTilt.disabled=flight;
+}
+function setFrisbeeTilt(degrees){
+ if(projectileId!=='frisbee'||flight)return;
+ frisbeeTilt=clamp(degrees*Math.PI/180,-FRISBEE_MAX_TILT,FRISBEE_MAX_TILT);
+ updateFrisbeeControls();
+ if(!charging)power=idealPower();
+ updatePower();
+}
 function updatePower(){
  if(!flight&&ballMesh){
   if(launcher)launcher.position.x=launchOffset();
   ballMesh.position.x=launchOffset();
+  if(projectileId==='frisbee')
+   ballMesh.rotation.set(.115,aimYaw,-newDiscFlightState().bank,'YXZ');
   if(ballShadow)ballShadow.position.x=launchOffset();
  }
  const pct=Math.round(power*100);
@@ -3970,6 +3996,7 @@ function updatePower(){
  el.trajectoryLabel.textContent=charging?'CHARGING THROW':'AIM TRAJECTORY';
  el.aim.textContent='ANGLE '+Math.round(aimPitch*180/Math.PI)+'° · '+(aimYaw>=0?'R':'L')+
   Math.round(Math.abs(aimYaw)*180/Math.PI)+'°';
+ if(projectileId==='frisbee')updateFrisbeeControls();
  paintAim();
 }
 function inputAim(clientX,clientY){
@@ -3982,9 +4009,12 @@ function inputAim(clientX,clientY){
    settings.d*settings.wallPlan[0].fraction+.37):
   settings.n===50?Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
   Math.atan2(target.x,settings.d);
- aimYaw=clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
+ aimYaw=projectileId==='frisbee'?
+  clamp(baseline+(nx-.5)*2.45,-FRISBEE_MAX_YAW,FRISBEE_MAX_YAW):
+  clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
+ // Top of canvas now reaches 73° rather than the old mouse limit ~27°.
  aimPitch=projectileId==='frisbee'?
-  clamp(.17+(.5-ny)*.62,-.08,.58):
+  clamp(.53+(.5-ny)*1.50,FRISBEE_MIN_PITCH,FRISBEE_MAX_PITCH):
   settings.bankRequired||settings.springRequired?
   clamp(.52+(.5-ny)*1.04,.13,1.04):
   clamp(.70+(.5-ny)*.52,.27,1.04);
@@ -4014,6 +4044,7 @@ function launch(){
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
  if(projectileId==='frisbee')ball.disc=newDiscFlightState();
+ updateFrisbeeControls();
  shotT=0;shotStart=performance.now();
  el.status.textContent=projectileId==='frisbee'?'FRISBEE GLIDING · BANK & CURVE':physicsProfile.short.toUpperCase()+' IN FLIGHT · WATCH THE ARC';
  el.attempts.textContent=String(attempts);
@@ -4458,11 +4489,18 @@ function flickAim(e){
  if(Math.abs(dx)>.002||Math.abs(dy)>.002)gesture.moved=true;
  // No angle jump: begin at the aim selected on pointer-down.
  // Power stays independent and increases for as long as the pointer is held.
- aimYaw=clamp(gesture.yaw+dx*2.15,-MAX_AIM_YAW,MAX_AIM_YAW);
- aimPitch=clamp(gesture.pitch+dy*.92,
-  settings.bankRequired||settings.springRequired?.13:.27,1.10);
+ aimYaw=clamp(gesture.yaw+dx*(projectileId==='frisbee'?2.8:2.15),
+  -(projectileId==='frisbee'?FRISBEE_MAX_YAW:MAX_AIM_YAW),
+  projectileId==='frisbee'?FRISBEE_MAX_YAW:MAX_AIM_YAW);
+ aimPitch=projectileId==='frisbee'?
+  clamp(gesture.pitch+dy*1.70,FRISBEE_MIN_PITCH,FRISBEE_MAX_PITCH):
+  clamp(gesture.pitch+dy*.92,
+   settings.bankRequired||settings.springRequired?.13:.27,1.10);
  updatePower();
 }
+el.discTilt.addEventListener('input',()=>{
+ setFrisbeeTilt(Number(el.discTilt.value));
+});
 el.canvas.addEventListener('pointermove',e=>{
  if(!playing||flight)return;
  if(gesture&&gesture.id===e.pointerId)flickAim(e);
@@ -4495,13 +4533,22 @@ document.addEventListener('keydown',e=>{
  if(key==='r'){e.preventDefault();loadLevel(level);return;}
  if(key==='escape'){e.preventDefault();togglePause();return;}
  if(!playing||flight)return;
+ if(projectileId==='frisbee'&&(key==='q'||key==='e')){
+  e.preventDefault();
+  setFrisbeeTilt(Math.round(frisbeeTilt*180/Math.PI)+(key==='q'?-3:3));
+  return;
+ }
  if(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s'].includes(key)){
   e.preventDefault();
   const amount=e.shiftKey?.038:.024;
-  if(key==='arrowleft'||key==='a')aimYaw=clamp(aimYaw-amount,-MAX_AIM_YAW,MAX_AIM_YAW);
-  if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-MAX_AIM_YAW,MAX_AIM_YAW);
-  if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
-  if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,settings.bankRequired||settings.springRequired?.13:.27,1.04);
+  const yawLimit=projectileId==='frisbee'?FRISBEE_MAX_YAW:MAX_AIM_YAW;
+  const minPitch=projectileId==='frisbee'?FRISBEE_MIN_PITCH:
+   settings.bankRequired||settings.springRequired?.13:.27;
+  const maxPitch=projectileId==='frisbee'?FRISBEE_MAX_PITCH:1.04;
+  if(key==='arrowleft'||key==='a')aimYaw=clamp(aimYaw-amount,-yawLimit,yawLimit);
+  if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-yawLimit,yawLimit);
+  if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,minPitch,maxPitch);
+  if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,minPitch,maxPitch);
   if(!charging)power=idealPower();updatePower();
  }else if(e.code==='Space'&&!e.repeat){
   e.preventDefault();startCharge('keyboard');
