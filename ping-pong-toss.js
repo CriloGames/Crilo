@@ -198,28 +198,41 @@ const CHAPTER_GATE_LEVELS={
  42:[['drawer',.28,0,1.9]]
 };
 const LEVEL_FAIRNESS={
- 24:{wind:-.12},26:{wind:-.12,fanPower:2.7},
+ 24:{wind:-.12},25:{wind:.20,radius:.49},
+ 26:{wind:-.12,fanPower:2.7},
  28:{wind:-.10},30:{wind:-.12,fanPower:2.6},
  35:{wind:0,clearBarriers:true},
  38:{wind:0,fanPower:2.8,clearBarriers:true},
  40:{wind:0,clearBarriers:true},
  42:{fanPower:2.45},
  43:{wind:0,motion:'lift',padFractions:[.58]},
- 44:{wind:0,motion:'still',clearObstacles:true},
- 45:{wind:0,motion:'slide'},
+ 44:{wind:0,motion:'still',clearObstacles:true,radius:.48,
+  walls:[{side:-1,fraction:.27,x:1.25,length:3.0},
+   {side:1,fraction:.80,x:1.45,length:3.0}]},
+ 45:{wind:0,motion:'slide',moving:.20,radius:.48},
  46:{wind:0,fanPower:2.7,motion:'still',clearBarriers:true},
- 47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true},
- 48:{wind:0,motion:'still',clearBarriers:true},
+ 47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true,
+  moving:.28,radius:.47},
+ 48:{wind:0,motion:'still',clearBarriers:true,radius:.49},
  49:{wind:0,fanPower:2.6,motion:'still',clearBarriers:true},
  50:{wind:0,hoops:0,hoopMove:false,lid:false,motion:'still',
-   padFractions:[.51,.92],secondPadOffset:0,clearBarriers:true}
+   padFractions:[.51,.92],secondPadOffset:0,clearBarriers:true,
+   radius:.48}
 };
 function balanceStage(spec){
  const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
  if(tune.wind!==undefined)spec.wind=tune.wind;
+ if(tune.radius!==undefined)spec.radius=tune.radius;
+ if(tune.moving!==undefined)spec.moving=tune.moving;
+ if(tune.walls){
+  spec.wallPlan=tune.walls.map(w=>({...w}));
+  spec.wallCount=spec.wallPlan.length;
+  spec.wall=spec.wallPlan[0]||null;
+ }
  if(tune.motion!==undefined){
   spec.motion=tune.motion;
-  spec.moving=tune.motion==='still'?0:Math.min(spec.moving,.33);
+  spec.moving=tune.motion==='still'?0:
+   (tune.moving??Math.min(spec.moving,.33));
  }
  if(tune.fanPower!==undefined&&spec.fanZone)
   spec.fanZone={...spec.fanZone,power:tune.fanPower};
@@ -2870,7 +2883,14 @@ function buildWorld(){
   ambient.push({type:'fan',obj:device});
   airZone=addFanJet(spec,x,z,device,spec.kind==='lift'?'UPDRAFT':'SIDE JET');
  }
- // Chapter 5: rubber launch plates on actual rolling office carts.
+ // Material grip is fixed PER STAGE, not selected by ball position or
+// cup location mid-flight. The rebound still obeys inbound velocity,
+// impact position and the pad's authored friction. Tested spacings make
+// far single pads and two-pad sequences actually landable.
+const PAD_GRIP_BY_LEVEL={
+ 12:[.30],45:[.13],47:[.30],48:[.28,.14],50:[.36,.20]
+};
+// Chapter 5: rubber launch plates on actual rolling office carts.
  // Distinct spaced launch carts: late-game pads no longer sit at one
  // fixed halfway point. A numbered sequence must be completed in order.
  for(let i=0;i<settings.padCount;i++){
@@ -2943,9 +2963,11 @@ function buildWorld(){
   // Swept collision at the upper tabletop prevents fast-moving balls from
   // tunnelling through thin geometry between frame steps or pad misses.
   padPlatforms.push({x,z,top:padY-.03,halfX:.875,halfZ:.875});
+  const authoredGrip=PAD_GRIP_BY_LEVEL[level]?.[i];
   pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,
    plate:spring,glow:ring,halo,lastImpact:-10,
-   forwardGrip:closePad?.30:.53,sideGrip:closePad?.27:.79});
+   forwardGrip:authoredGrip??(closePad?.30:.53),
+   sideGrip:closePad?.27:.79});
  }
  // Unlike set dressing, ambient haze should not compete with the ball.
  // Subtle dust motes in illuminated air. Each room feels occupied,
