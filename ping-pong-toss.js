@@ -3668,6 +3668,8 @@ function resolveEnvironment(body,preview=false,time=simTime){
   if(bounceContact(body,nx,ny,nz,depth,item.restitution,
    item.friction,pose?.vx||0,pose?.vy||0,0,preview)){
    reacted=true;
+   // Highlight a future gate impact on the aim path, without a new HUD.
+   if(preview&&item.owner)body.previewBarrierHit=true;
    if(!preview&&item.person)reactToColleague(item.person);
   }
  }
@@ -4017,10 +4019,12 @@ function paintAim(){
   const next=targetLocation(start+i*dt);
   const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
    Math.abs(preview.y-next.y-settings.targetHeight)<.42;
-  const cue=settings.n===50&&preview.springHits>=2?0xa4efc7:predictedBounces?0xffbd77:
+  const cue=preview.previewBarrierHit?0xff9b8b:
+   settings.n===50&&preview.springHits>=2?0xa4efc7:predictedBounces?0xffbd77:
    preview.hoopsPassed?0xa4efc7:i%3===0?0xffdda4:0x86bec8;
   dot.material.color.setHex(cue);
-  dot.scale.setScalar(nearOpening?2.1:preview.hoopsPassed?1.2:1);
+  dot.scale.setScalar(nearOpening?2.1:
+   preview.previewBarrierHit?1.45:preview.hoopsPassed?1.2:1);
  }
 }
 function updateFrisbeeControls(){
