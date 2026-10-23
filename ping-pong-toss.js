@@ -76,6 +76,7 @@ let frisbeeTilt=0; // Selected disc roll, in radians; positive banks right.
 const FRISBEE_MAX_PITCH=1.28,FRISBEE_MIN_PITCH=-.18,FRISBEE_MAX_YAW=1.34;
 const FRISBEE_MAX_TILT=40*Math.PI/180;
 let effectTimer=0,soundOn=true,hasRenderer=false,shotStart=0,shotT=0,simTime=0,lastAimRefresh=-1000;
+let lastChargeAimPreview=-1000;
 let ball={x:0,y:LAUNCH_Y,z:LAUNCH_Z,vx:0,vy:0,vz:0,active:false,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -3970,15 +3971,13 @@ function paintAim(){
  if(projectileId==='frisbee')preview.disc=newDiscFlightState();
  const count=settings.springRequired||settings.bankRequired||settings.wall?79:
   settings.hoops?73:settings.barrierCount?70:62;
- // Preview through both required springs on Level 50 and continue toward
- // the cup. This is the actual simulated rebound, not automatic steering.
- // Other levels keep the short two-impact preview.
+ // Follow the actual rebound after incidental desk/barrier collisions,
+ // rather than arbitrarily hiding the guide after two contacts.
  let predictedBounces=0,lastImpact=-10,previewEnded=false;
  const noteImpact=(time)=>{
   if(time-lastImpact<.12)return; // suppress chatter at the same contact
   lastImpact=time;
   predictedBounces++;
-  if(predictedBounces>=(settings.n===50?4:2))previewEnded=true;
  };
  // Level 50's two real rebounds can take almost five seconds before
  // the ball reaches the cup. Cover the entire shot instead of ending the
@@ -4010,12 +4009,15 @@ function paintAim(){
     if(cupGate.entered&&!cupGate.missing&&
        (!settings.lid||lidFraction(t+h)>.61))previewEnded=true;
     if(!previewEnded&&cupSurfaceCollision(preview,true,t+h))noteImpact(t+h);
+    // Stop only once the flight has really escaped the room or scored.
+    if(preview.y<-.35||Math.abs(preview.x)>8.3||
+       preview.z<settings.targetZ-5.3||
+       preview.z>LAUNCH_Z+3.0)previewEnded=true;
     if(previewEnded)break;
    }
   }
   if(previewEnded){dot.visible=false;continue;}
   dot.position.set(preview.x,preview.y,preview.z);
-  if(preview.y<-.12||preview.z<settings.targetZ-4.8)dot.visible=false;
   const next=targetLocation(start+i*dt);
   const nearOpening=Math.hypot(preview.x-next.x,preview.z-next.z)<settings.radius*.95&&
    Math.abs(preview.y-next.y-settings.targetHeight)<.42;
@@ -4059,7 +4061,14 @@ function updatePower(){
  el.aim.textContent='ANGLE '+Math.round(aimPitch*180/Math.PI)+'° · '+(aimYaw>=0?'R':'L')+
   Math.round(Math.abs(aimYaw)*180/Math.PI)+'°';
  if(projectileId==='frisbee')updateFrisbeeControls();
- paintAim();
+ // Charging still animates the meter smoothly every frame. Expensive
+ // trajectory collision prediction runs at most once every 50 ms.
+ // Aiming when not charging always redraws immediately.
+ const now=performance.now();
+ if(!charging||now-lastChargeAimPreview>=50){
+  lastChargeAimPreview=now;
+  paintAim();
+ }
 }
 function inputAim(clientX,clientY){
  const rect=el.canvas.getBoundingClientRect();
@@ -4087,6 +4096,7 @@ function startCharge(source){
  if(!playing||paused||flight||charging)return;
  getGameAudio();
  charging=true;chargeSource=source;chargeFrom=performance.now();
+ lastChargeAimPreview=-1000;
  chargeAnchor=settings.wall?.06:clamp(idealPower()-(settings.n===50?.20:.13),.06,.87);
  power=chargeAnchor;
  hear(510,.048,'triangle',.013);updatePower();
@@ -4155,8 +4165,10 @@ function complete(){
  hear(920,.11,'sine',.07);
  setTimeout(()=>hear(1160,.14,'sine',.055),110);
  const previouslyCleared=campaignCleared(projectileId);
+ const oldBest=Number(best[level])||Infinity;
+ const newPersonalBest=attempts<oldBest;
  completed[level]=true;
- best[level]=Math.min(best[level]||Infinity,attempts);
+ best[level]=Math.min(oldBest,attempts);
  if(level>=unlocked&&unlocked<50)unlocked=level+1;
  save();buildUi();
  const next=PROJECTILES[PROJECTILES.findIndex(p=>p.id===projectileId)+1];
@@ -4166,8 +4178,10 @@ function complete(){
    '. Start a fresh 50-level campaign.',
    'TRY '+next.short.toUpperCase(),'unlock-projectile');
  }else{
-  showOverlay('LEVEL '+fmtLevel(level)+' COMPLETE','NICE SHOT!',
+  showOverlay('LEVEL '+fmtLevel(level)+' COMPLETE',
+   attempts===1?'PERFECT SHOT!':newPersonalBest?'NEW BEST!':'NICE SHOT!',
    'Cleared in '+attempts+' throw'+(attempts===1?'':'s')+'. '+
+   (newPersonalBest&&attempts!==1?'You improved your personal best. ':'')+
    (level===50?'All 50 cleared with '+physicsProfile.name+'!':
     'Level '+fmtLevel(Math.min(50,level+1))+' is ready.'),
    level===50?'LEVEL MENU':'NEXT LEVEL →','win');
