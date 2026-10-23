@@ -161,7 +161,7 @@ const SPECIALS={
 // The multi-pad stages require physical hits on separate carts in sequence.
 const FINAL_PAD_LAYOUTS={
  41:[.71],42:[.59],43:[.38,.84],45:[.80],46:[.71],
- 47:[.64],48:[.40,.86],49:[.76],50:[.36,.82]
+ 47:[.64],48:[.40,.86],49:[.76],50:[.51,.90]
 };
 const NEW_TRICKS={
  1:'FIRST THROW',3:'MOVING CUP',4:'THROUGH THE HOOP',5:'RUBBER BANK',6:'DESK-FAN WIND',7:'AIR JET',
@@ -176,8 +176,9 @@ function stageDifficulty(n,spec){
  // Explicitly communicate escalating complexity without applying artificial
  // RNG penalties. A new mechanic can still begin with a generous target.
  const baseline=1+Math.floor((n-1)/14);
- const hazards=(spec?.hoops>1?1:0)+(spec?.wall?1:0)+
-  (spec?.fanZone?1:0)+(spec?.lid?1:0)+(spec?.barrierCount>1?1:0);
+ const hazards=(spec?.hoops>1?1:0)+(spec?.wallCount>1?2:spec?.wall?1:0)+
+  (spec?.padCount>1?2:0)+(spec?.fanZone?1:0)+(spec?.lid?1:0)+
+  (spec?.barrierCount>1?1:0);
  return Math.min(5,baseline+(hazards>=2?1:0));
 }
 function stageSettings(n){
