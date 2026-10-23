@@ -994,3 +994,240 @@ body.pt-page{
 @media(max-width:370px){
  .pt-page .pt-disc-controls{bottom:65px;width:190px}
 }
+
+
+/*
+ * Theme bridge for the PAGE surrounding Pong Toss (v19).
+ * Crilo's theme-bridge.js sets html[data-theme] before first paint.
+ * Restrict these rules to page chrome; the 3D canvas, its vignette,
+ * on-canvas controls and the in-game overlay keep their own colors.
+ */
+html[data-theme="light"] body.pt-page{
+ background:
+  radial-gradient(ellipse at 9% 0%,#faeee6 0%,transparent 39%),
+  radial-gradient(ellipse at 87% 10%,#def4ed 0%,transparent 41%),
+  #f3f7f6;
+ color:#2e4956;
+}
+html[data-theme="light"] body.pt-page .pt-back{color:#37617a}
+html[data-theme="light"] body.pt-page .pt-back:hover{color:#ad6665}
+html[data-theme="light"] body.pt-page .pt-eyebrow{color:#a66e72}
+html[data-theme="light"] body.pt-page .pt-hero h1{
+ color:#24465a;text-shadow:0 3px 0 #fff9f0
+}
+html[data-theme="light"] body.pt-page .pt-hero h1 em{color:#d77d7c}
+html[data-theme="light"] body.pt-page .pt-hero p{color:#5a7180}
+html[data-theme="light"] body.pt-page .pt-hero-sticker{
+ background:#f9deb1;color:#365269;border-color:#638091;
+ box-shadow:4px 5px 0 #dabba179;
+}
+html[data-theme="light"] body.pt-page .pt-shell{
+ background:linear-gradient(150deg,#e8f1ed,#d3e3e0);
+ border-color:#83a7a8;
+ box-shadow:0 8px 30px #284a4e26,0 2px 0 #ffffffbc inset;
+}
+html[data-theme="light"] body.pt-page .pt-stage-footer,
+html[data-theme="light"] body.pt-page #ptStatus{color:#466775}
+html[data-theme="light"] body.pt-page .pt-selection{
+ background:#f9fcfa;border-color:#aecac6;
+ box-shadow:0 5px 0 #a8c6bd52;
+}
+html[data-theme="light"] body.pt-page .pt-selection-header h2{color:#2d5160}
+html[data-theme="light"] body.pt-page :is(
+ .pt-selection-header p,.pt-chapter-description,.pt-projectile-description
+){color:#5d7480}
+html[data-theme="light"] body.pt-page .pt-projectile-heading{color:#2e5760}
+html[data-theme="light"] body.pt-page .pt-projectile-heading span{color:#587581}
+html[data-theme="light"] body.pt-page .pt-chapter{
+ background:#edf6f2;color:#335c64;
+ border-color:#a4c1bb;border-bottom-color:#8aaea7;
+}
+html[data-theme="light"] body.pt-page .pt-chapter.active{
+ background:#d1eee2;color:#245b51;border-color:#76b29c;
+}
+html[data-theme="light"] body.pt-page .pt-chapter:not(:disabled):hover{
+ background:#ffefd6;color:#445669;
+}
+html[data-theme="light"] body.pt-page .pt-level-btn{
+ background:#f1f8f5;color:#335662;
+ border-color:#a6c1bd;border-bottom-color:#86a6a2;
+}
+html[data-theme="light"] body.pt-page .pt-level-btn.current{
+ background:#d2efe4;color:#275e53;border-color:#77b7a3;
+ outline-color:#d5a96a;
+}
+html[data-theme="light"] body.pt-page .pt-level-btn.cleared{
+ background:#e7f3df;color:#426c53;border-color:#a9c49a;
+}
+html[data-theme="light"] body.pt-page .pt-level-btn .pt-level-status{color:#69858b}
+html[data-theme="light"] body.pt-page .pt-level-btn:not(:disabled):hover{
+ background:#fff0d4;
+}
+html[data-theme="light"] body.pt-page .pt-projectile-option{
+ background:#eaf4f0;color:#315661;
+ border-color:#9fbab9;border-bottom-color:#789b9d;
+}
+html[data-theme="light"] body.pt-page .pt-projectile-option.active{
+ background:#d5eee1;color:#255b4d;border-color:#7db39d;
+}
+html[data-theme="light"] body.pt-page .pt-projectile-count{color:#416c6e}
+html[data-theme="light"] body.pt-page .pt-projectile-option:not(:disabled):hover{
+ background:#fff0da;
+}
+html[data-theme="light"] body.pt-page .pt-rules{color:#546f7b}
+html[data-theme="light"] body.pt-page .pt-rule-keys kbd{
+ background:#fffdf8;color:#446272;border-color:#a5c1c2;
+ border-bottom-color:#87a8a9;
+}
+html[data-theme="light"] body.pt-page .crilo-simple-footer{
+ background:#f0f5f2;border-top:1px solid #c4d8d1;color:#617681;
+}
+html[data-theme="light"] body.pt-page .crilo-legal-nav a,
+html[data-theme="light"] body.pt-page .crilo-legal-copy{color:#53717c}
+html[data-theme="light"] body.pt-page .pt-shell:fullscreen{background:#e4eeeb}
+
+/* Dark mode: calm slate page, without dimming or tinting the office scene. */
+html[data-theme="dark"] body.pt-page{
+ background:
+  radial-gradient(ellipse at 87% 4%,#273f49 0%,transparent 43%),
+  radial-gradient(ellipse at 6% 0%,#292e42 0%,transparent 38%),
+  #161e27;
+ color:#e5edf0;
+}
+html[data-theme="dark"] body.pt-page .pt-back{color:#c0d8de}
+html[data-theme="dark"] body.pt-page .pt-back:hover{color:#f5c2a4}
+html[data-theme="dark"] body.pt-page .pt-eyebrow{color:#d6a4a3}
+html[data-theme="dark"] body.pt-page .pt-hero h1{
+ color:#f3f4ef;text-shadow:none;
+}
+html[data-theme="dark"] body.pt-page .pt-hero h1 em{color:#f0aba5}
+html[data-theme="dark"] body.pt-page .pt-hero p{color:#c1cdd3}
+html[data-theme="dark"] body.pt-page .pt-hero-sticker{
+ background:#4a4650;color:#ffdfab;
+ border-color:#aeb2ad;box-shadow:4px 5px 0 #0d121894;
+}
+html[data-theme="dark"] body.pt-page .pt-shell{
+ background:linear-gradient(145deg,#2b3b44,#223039);
+ border-color:#5d7581;
+ box-shadow:0 10px 38px #090f1794,0 1px 0 #d2e1e11a inset;
+}
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat,
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat.secondary,
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat.tertiary{
+ background:#33464e;border-color:#64808b;
+ box-shadow:0 1px 0 #e9f4f219 inset;
+}
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat small{
+ color:#bcd0d5;text-shadow:none;
+}
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat strong,
+html[data-theme="dark"] body.pt-page .pt-top .pt-stat .pt-small-strong{
+ color:#f1f5f0;text-shadow:none;
+}
+html[data-theme="dark"] body.pt-page :is(.pt-action,.pt-step,.pt-menu-trigger){
+ background:#3b535d;color:#eff4f1;
+ border-color:#77959a;border-bottom-color:#55747b;
+}
+html[data-theme="dark"] body.pt-page :is(
+ .pt-action,.pt-step,.pt-menu-trigger
+):hover:not(:disabled){
+ background:#516b70;color:#fff9ed;border-color:#a0b8b5;
+}
+html[data-theme="dark"] body.pt-page .pt-continue-button{
+ background:#3b665d;color:#f1f9ef;
+ border-color:#7cae9c;border-bottom-color:#5b947f;
+}
+html[data-theme="dark"] body.pt-page .pt-continue-button:hover{
+ background:#4a796b;border-color:#9cd1b8;
+}
+html[data-theme="dark"] body.pt-page .pt-sound-toggle[data-sound="on"]{
+ background:#385c50;color:#d4f8e5;border-color:#6cab94;
+}
+html[data-theme="dark"] body.pt-page .pt-sound-toggle[data-sound="off"]{
+ background:#5a4146;color:#ffe1d9;border-color:#a7787b;
+}
+html[data-theme="dark"] body.pt-page .pt-stage-footer,
+html[data-theme="dark"] body.pt-page #ptStatus{color:#c7d9db}
+html[data-theme="dark"] body.pt-page .pt-selection{
+ background:#25333e;border-color:#57737e;
+ box-shadow:0 5px 0 #0b121b7d;
+}
+html[data-theme="dark"] body.pt-page .pt-selection-header h2{color:#edf4f2}
+html[data-theme="dark"] body.pt-page :is(
+ .pt-selection-header p,.pt-chapter-description,.pt-projectile-description
+){color:#c3d3d8}
+html[data-theme="dark"] body.pt-page .pt-projectile-heading{color:#e3eee9}
+html[data-theme="dark"] body.pt-page .pt-projectile-heading span{color:#bfced2}
+html[data-theme="dark"] body.pt-page .pt-chapter{
+ background:#364b56;color:#e6eff1;
+ border-color:#66838d;border-bottom-color:#476875;
+}
+html[data-theme="dark"] body.pt-page .pt-chapter.active{
+ background:#326357;color:#f0fff4;border-color:#8dc4a7;
+}
+html[data-theme="dark"] body.pt-page .pt-chapter:not(:disabled):hover{
+ background:#49646d;color:#ffffff;
+}
+html[data-theme="dark"] body.pt-page .pt-level-btn{
+ background:#354a56;color:#edf5f4;
+ border-color:#607c89;border-bottom-color:#466776;
+}
+html[data-theme="dark"] body.pt-page .pt-level-btn.current{
+ background:#315e55;color:#ebfff3;border-color:#91c9ae;
+ outline-color:#e8c58c;
+}
+html[data-theme="dark"] body.pt-page .pt-level-btn.cleared{
+ background:#4c5947;color:#eaf5d4;border-color:#99b58d;
+}
+html[data-theme="dark"] body.pt-page .pt-level-btn .pt-level-status{color:#bdd0d5}
+html[data-theme="dark"] body.pt-page .pt-level-btn.cleared .pt-level-status{color:#d4e8c8}
+html[data-theme="dark"] body.pt-page .pt-level-btn:not(:disabled):hover{
+ background:#4c6871;
+}
+html[data-theme="dark"] body.pt-page .pt-projectile-option{
+ background:#364e58;color:#e9f5f4;
+ border-color:#748e99;border-bottom-color:#4a6770;
+}
+html[data-theme="dark"] body.pt-page .pt-projectile-option.active{
+ background:#35655b;color:#f1fff6;border-color:#90c9aa;
+}
+html[data-theme="dark"] body.pt-page .pt-projectile-count{color:#d0e5e3}
+html[data-theme="dark"] body.pt-page .pt-projectile-option:not(:disabled):hover{
+ background:#4e6a70;
+}
+html[data-theme="dark"] body.pt-page .pt-rules{color:#bfd0d7}
+html[data-theme="dark"] body.pt-page .pt-rule-keys kbd{
+ background:#334652;color:#f3f6f2;border-color:#7793a0;
+ border-bottom-color:#54717c;
+}
+html[data-theme="dark"] body.pt-page .crilo-simple-footer{
+ background:#1b2530;border-top:1px solid #4c626b;color:#acbec8;
+}
+html[data-theme="dark"] body.pt-page .crilo-legal-nav a,
+html[data-theme="dark"] body.pt-page .crilo-legal-copy{color:#b9cbd2}
+html[data-theme="dark"] body.pt-page .pt-shell:fullscreen{background:#273740}
+
+/* This chooser lives in the shared help dialog; its body and options must
+   use night colors alongside the already-theme-aware modal chrome. */
+html[data-theme="dark"] body.pt-page .pt-voice-settings{
+ background:#2b3c48;color:#eff6f2;border-color:#637f8b;
+}
+html[data-theme="dark"] body.pt-page :is(
+ .pt-voice-heading strong,.pt-voice-label
+){color:#edf4f3}
+html[data-theme="dark"] body.pt-page :is(
+ .pt-voice-heading span,.pt-voice-help
+){color:#c2d3da}
+html[data-theme="dark"] body.pt-page #ptVoiceSelect{
+ background:#263540;color:#eef6f1;border-color:#67848f;
+ color-scheme:dark;
+}
+html[data-theme="dark"] body.pt-page .pt-voice-preview{
+ background:#3c5862;color:#f2f9f3;border-color:#789ca4;
+}
+html[data-theme="dark"] body.pt-page .pt-voice-preview:hover{background:#506c71}
+html[data-theme="dark"] body.pt-page :is(
+ .pt-chapter,.pt-level-btn,.pt-projectile-option,.pt-action,.pt-step,
+ .pt-menu-trigger,.pt-continue-button,#ptVoiceSelect,.pt-voice-preview
+):focus-visible{outline:3px solid #f3d69b;outline-offset:2px}
+
