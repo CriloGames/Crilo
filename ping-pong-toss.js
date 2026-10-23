@@ -2435,7 +2435,21 @@ function buildWorld(){
    number.rotation.x=-Math.PI/2;
    number.position.set(0,padY+.071,0);cart.add(number);
   }
-  pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,plate:spring,glow:ring,lastImpact:-10});
+  // Far single-spring stages use a visibly textured high-grip pad:
+  // it bleeds off speed rather than hurling the ball beyond the close cup.
+  // The surface NEVER uses target coordinates to correct a rebound.
+  const closePad=settings.padCount===1&&fraction>=.67;
+  if(closePad){
+   for(let dot=0;dot<11;dot++){
+    const a=dot*2.4,radius=.28+.035*(dot%4);
+    const grip=new THREE.Mesh(new THREE.SphereGeometry(.021,8,6),rubber);
+    grip.position.set(Math.cos(a)*radius,padY+.056,Math.sin(a)*radius);
+    cart.add(grip);
+   }
+  }
+  pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,
+   plate:spring,glow:ring,lastImpact:-10,
+   forwardGrip:closePad?.30:.53,sideGrip:closePad?.27:.79});
  }
  // Unlike set dressing, ambient haze should not compete with the ball.
  // Subtle dust motes in illuminated air. Each room feels occupied,
@@ -2822,9 +2836,9 @@ function padRebound(projectile,pad){
  if(pad.type==='spring'){
   // Textured spring absorbs horizontal speed while returning a vertical kick.
   return {
-   vx:projectile.vx*.79+offsetX*.44,
+   vx:projectile.vx*(pad.sideGrip??.79)+offsetX*.44,
    vy:clamp(5.65+impact*.43,5.65,8.2),
-   vz:projectile.vz*.53+offsetZ*.35
+   vz:projectile.vz*(pad.forwardGrip??.53)+offsetZ*.35
   };
  }
  // High-friction rubber tray absorbs forward speed. Offset hits deflect subtly.
