@@ -3989,7 +3989,11 @@ el.pause.addEventListener('click',togglePause);
 // The voice chooser lives in the existing ? modal; keep the gameplay
 // toolbar compact. Prefetched voices often arrive asynchronously on Chrome.
 refreshCoworkerVoices();
-try{window.speechSynthesis?.addEventListener?.('voiceschanged',refreshCoworkerVoices);}catch{}
+try{
+ const synth=window.speechSynthesis;
+ if(synth?.addEventListener)synth.addEventListener('voiceschanged',refreshCoworkerVoices);
+ else if(synth)synth.onvoiceschanged=refreshCoworkerVoices;
+}catch{}
 el.voiceSelect.addEventListener('change',()=>{
  selectedVoice=el.voiceSelect.value||'auto';
  try{localStorage.setItem(VOICE_PREF,selectedVoice);}catch{}
