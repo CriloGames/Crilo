@@ -2528,7 +2528,10 @@ function buildWorld(){
    rubber=createMat(0xba826c,.76,.02);
   const tape=finishMat(0xf3c88b,'enamel');
   const tray=new THREE.Group();tray.position.set(x,0,z);group.add(tray);
-  specialSurfaces.push(tray);
+  // The tray is solid beyond the rubber disk. Only the specialist
+  // rebound art is excluded from generic furniture collision.
+  const bounceArt=new THREE.Group();tray.add(bounceArt);
+  specialSurfaces.push(bounceArt);
   for(const sx of [-1,1])for(const sz of [-1,1]){
    meshBox(tray,.09,1.02,.09,sx*.78,.56,sz*.83,metal);
   }
@@ -2538,12 +2541,12 @@ function buildWorld(){
   // explain that this is the intended impact object (not another desk).
   const cushion=new THREE.Mesh(new THREE.CylinderGeometry(.61,.64,.022,40),
    finishMat(0xdbad83,'enamel'));
-  cushion.position.y=1.237;tray.add(cushion);
-  const halo=bounceHalo(tray,.76,0xffc68a,'flat',{y:1.271});
+  cushion.position.y=1.237;bounceArt.add(cushion);
+  const halo=bounceHalo(bounceArt,.76,0xffc68a,'flat',{y:1.271});
   const paintedRing=new THREE.Mesh(new THREE.TorusGeometry(.60,.030,9,44),
    finishMat(0xffebc0,'ceramic'));
   paintedRing.rotation.x=Math.PI/2;paintedRing.position.y=1.258;
-  tray.add(paintedRing);
+  bounceArt.add(paintedRing);
   for(let k=0;k<9;k++){
    const a=k*2.4,rad=.15+.045*(k%4);
    detailBox(tray,.042,.006,.09,Math.cos(a)*rad,1.255,
@@ -2556,7 +2559,9 @@ function buildWorld(){
   const bankLabel=new THREE.Mesh(new THREE.PlaneGeometry(.72,.19),
    makeText('BANK',44,'#fff4ce','#674d43'));
   bankLabel.rotation.x=-Math.PI/2;
-  bankLabel.position.set(0,1.270,-.64);tray.add(bankLabel);
+  bankLabel.position.set(0,1.270,-.64);bounceArt.add(bankLabel);
+  // Swept tabletop contact runs even when the disk itself is missed.
+  padPlatforms.push({x,z,top:1.224,halfX:.94,halfZ:1.01});
   pads.push({type:'bank',x,z,r:.88,y:padY,mat:rubber,lastImpact:-10,halo});
  }
  // Stage-specific obstacles are authored one at a time in STAGES[].
@@ -3393,7 +3398,8 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
  // intended spring rebound rather than a generic flat desk collision.
  for(const pad of pads){
   const contact=crossed(pad.y);
-  if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>=pad.r-BALL_R)
+  // Center may graze the painted disk edge; honor the visible ring.
+  if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>pad.r+BALL_R*.15)
    continue;
   body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
   const credited=pad.type==='spring'&&pad.index===(body.springHits||0);
