@@ -1288,6 +1288,25 @@ function validateLevelReadability(){
  return changed;
 }
 
+
+// Art-direction budget inspired by readable mobile trick-shot stages: reserve
+// the centre for the projectile and use room furniture only to FRAME a shot.
+// These are visual composition decisions; the authored gameplay is untouched.
+function stageArtPlan(spec){
+ const tricks=(spec.hoops||0)+(spec.wallCount||0)+(spec.padCount||0)+
+  (spec.bankRequired?1:0)+(spec.fanZone?1:0)+(spec.barrierCount||0)+
+  (spec.lid?1:0)+(spec.motion!=='still'?1:0);
+ return {
+  tricks,
+  sideDesks:tricks>=4?0:tricks>=2?1:2,
+  sidePlants:tricks>=3?0:1,
+  worktopClutter:tricks<=1,
+  heroExtras:tricks<=2,
+  visualRoom:spec.sceneId,
+  focusColor:spec.color
+ };
+}
+
 function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
@@ -1306,6 +1325,7 @@ function buildWorld(){
   {walls:0x667e91,carpet:0x42586b,desk:0x977f6d,trim:0x416a80,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
+ const artPlan=stageArtPlan(settings);
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
  // and the challenge layout changes its foreground props per individual level.
  const lightingMode=(level-1)%10>=5;
@@ -1488,24 +1508,29 @@ function buildWorld(){
  const focusLight=new THREE.PointLight(nightRoom?0xaacadd:0xffdbac,3.3,5,2);
  focusLight.position.set(settings.x+1.65,settings.topPad+3.3,settings.targetZ+.75);
  group.add(focusLight);
- // Side cubicle furnishings and cabinets, different positions per layout.
+ // Deliberate side dressing: always frame the cup rather than filling the
+ // entire flight corridor with four copy-pasted desks and loose boxes.
+ // Early stages feel lived-in; harder stages progressively clear the view.
  for(const side of [-1,1]){
-  for(let i=0;i<2;i++){
-   const z=roomEnd+2.0+i*3.3+(settings.roomVariant?.6:0);
-   const x=side*5.3;
-   const ds=desk(group,x,z,2.9,1.55,1.0,wood,metal);
-   officeMonitor(ds,0,1.02,-.2,-side*.17);
-   meshBox(ds,.85,.10,.31,.52,1.06,.44,dark);
-   officeChair(group,x,z+1.3);
-   stackBooks(group,x-side*.78,1.15,z,3+i,level+i);
-   meshBox(group,2.8,1.7,.11,side*6.98,.95,z-.8,dark);
+  const showSideDesk=artPlan.sideDesks===2||
+   (artPlan.sideDesks===1&&side=== (settings.x>=0?-1:1));
+  if(showSideDesk){
+   const z=roomEnd+2.55+(settings.roomVariant?.36:0),x=side*5.65;
+   const sideSet=new THREE.Group();group.add(sideSet);
+   desk(sideSet,x,z,2.9,1.48,1.00,wood,metal);
+   if(artPlan.heroExtras)officeMonitor(sideSet,x,1.08,z-.22,-side*.16);
+   else stackBooks(sideSet,x,1.15,z-.25,2,level);
+   officeChair(sideSet,x,z+1.18);
+   // Decorations can retreat if they silhouette a needed hoop or cup.
+   decorCandidates.push({obj:sideSet,side,anchorX:x,label:'side-office'});
   }
-  plant(group,side*6.95,roomEnd+.80+settings.roomVariant*.20,.95);
-  if((level+iLevelFactor(side))%3!==0)
-   officeBin(group,side*4.65,roomEnd+1.35,createMat(0x7c8b8e,.35,.35));
+  if(artPlan.sidePlants){
+   const cornerPlant=new THREE.Group();group.add(cornerPlant);
+   plant(cornerPlant,side*6.82,roomEnd+1.05,.91);
+   decorCandidates.push({obj:cornerPlant,side,anchorX:side*6.82,
+    label:'corner-plant'});
+  }
  }
- // A deterministic detail switch varies clutter for each level.
- function iLevelFactor(side){return side<0?1:2;}
  // Front player desk close to camera: tangible 3D surface and desk accessories.
  const playerDesk=desk(group,0,5.65,12.7,3.9,1.02,wood,metal);
  meshBox(playerDesk,5.7,.012,1.0,0,1.13,-.61,
@@ -1602,6 +1627,18 @@ function buildWorld(){
   meshBox(farDesk,.70,stationY-.15,.58,0,(stationY-.15)*.5,0,metal);
   meshBox(farDesk,2.45,.10,1.20,0,.12,0,dark);
  }
+ // A quiet, grounded highlight brings attention to the exact scoring table.
+ // It behaves like a soft inlay, not a glowing billboard blocking the target.
+ const accentDisc=new THREE.Mesh(new THREE.CircleGeometry(Math.min(1.21,settings.radius*2.12),48),
+  new THREE.MeshBasicMaterial({color:artPlan.focusColor,transparent:true,
+   opacity:.12,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2}));
+ accentDisc.rotation.x=-Math.PI/2;accentDisc.position.set(0,stationY+.155,0);
+ accentDisc.renderOrder=1;farDesk.add(accentDisc);
+ const accentLine=new THREE.Mesh(new THREE.TorusGeometry(settings.radius*1.43,.020,9,50),
+  new THREE.MeshBasicMaterial({color:artPlan.focusColor,transparent:true,
+   opacity:.44,depthWrite:false}));
+ accentLine.rotation.x=Math.PI/2;accentLine.position.y=stationY+.16;
+ farDesk.add(accentLine);
  const stationMarker=meshBox(farDesk,2.45,.038,.14,0,stationY+.115,-.73,highlight);
  stationMarker.castShadow=false;
  // Draw each cup's movement envelope on its work surface.
@@ -1626,7 +1663,10 @@ function buildWorld(){
   targetLift.position.set(settings.x,stationY+.18,settings.targetZ);
   group.add(targetLift);
  }
- if(settings.sceneId===0){
+ if(!artPlan.worktopClutter){
+  // An uncluttered target silhouette wins over background storytelling.
+  // The station geometry itself still identifies the office setting.
+ }else if(settings.sceneId===0){
   officeMonitor(farDesk,-1.65,stationY+.15,-.75,.12);
   stackBooks(farDesk,1.60,stationY+.18,-.7,2,level);
  }else if(settings.sceneId===1){
@@ -2325,6 +2365,7 @@ function buildWorld(){
   }
   pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,plate:spring,glow:ring,lastImpact:-10});
  }
+ // Unlike set dressing, ambient haze should not compete with the ball.
  // Subtle dust motes in illuminated air. Each room feels occupied,
  // especially when viewed toward the window; purely decorative.
  const motes=new THREE.Group();group.add(motes);
@@ -2332,7 +2373,7 @@ function buildWorld(){
   color:settings.roomVariant?0xb6d0dc:0xffe8c0,transparent:true,
   opacity:.20,depthWrite:false
  });
- for(let i=0;i<16;i++){
+ for(let i=0;i<(artPlan.tricks>=3?5:10);i++){
   const phase=i*2.39996,xx=Math.sin(phase)*3.5,zz=settings.targetZ+2.2+(i%6)*1.2;
   const sprite=new THREE.Mesh(new THREE.SphereGeometry(.017+(i%3)*.007,5,4),moteMat);
   sprite.position.set(xx,2.0+(i%5)*.75,zz);motes.add(sprite);
