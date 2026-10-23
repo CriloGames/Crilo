@@ -3778,11 +3778,13 @@ function padRebound(projectile,pad){
  const offsetZ=clamp((projectile.z-pad.z)/pad.r,-1,1);
  const impact=Math.abs(Math.min(0,projectile.vy));
  if(pad.type==='spring'){
-  // Textured spring absorbs horizontal speed while returning a vertical kick.
+  // A flat spinning disc stores more glide after spring contact. All
+  // impulses follow its incoming speed/impact point, never cup position.
+  const disc=projectileId==='frisbee';
   return {
-   vx:projectile.vx*(pad.sideGrip??.79)+offsetX*.44,
-   vy:clamp((5.65+impact*.43)*physicsProfile.pad,5.2,9.7),
-   vz:projectile.vz*(pad.forwardGrip??.53)+offsetZ*.35
+   vx:projectile.vx*(pad.sideGrip??.79)*(disc?1.035:1)+offsetX*.44,
+   vy:clamp((5.65+impact*.43)*physicsProfile.pad*(disc?1.10:1),5.2,9.7),
+   vz:projectile.vz*(pad.forwardGrip??.53)*(disc?1.18:1)+offsetZ*.35
   };
  }
  // High-friction rubber tray absorbs forward speed. Offset hits deflect subtly.
@@ -3841,8 +3843,14 @@ function cupEntryGate(projectile,previousY,time,preview=false){
 // same tabletop, even when the ball crosses a thin surface in one step.
 function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
  if(body.vy>=0)return false;
- const crossed=(top)=>{
-  const plane=top+BALL_R;
+ const disc=projectileId==='frisbee';
+ // Match the frisbee's shallow underside and wide physical rim instead
+ // of treating the disc as the original small spherical projectile.
+ const padHalfHeight=disc?.048:BALL_R;
+ const rimReach=disc?BALL_R*1.55*Math.max(.55,
+  Math.cos(Math.abs(body.disc?.bank||0))):0;
+ const crossed=(top,halfHeight=BALL_R)=>{
+  const plane=top+halfHeight;
   if(previous.y<plane-.002||body.y>plane)return null;
   const fall=previous.y-body.y;
   if(fall<=.000001)return null;
@@ -3853,9 +3861,11 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
  // Raised spring disk gets priority over its own support table; it gives the
  // intended spring rebound rather than a generic flat desk collision.
  for(const pad of pads){
-  const contact=crossed(pad.y);
-  // Center may graze the painted disk edge; honor the visible ring.
-  if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>pad.r+BALL_R*.15)
+  const contact=crossed(pad.y,padHalfHeight);
+  // A tilted disc can meet the glowing rim with its edge. Compute a
+  // swept real overlap; do not magnetize or steer it toward the pad.
+  const reach=disc?rimReach:BALL_R*.15;
+  if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>pad.r+reach)
    continue;
   body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
   const credited=pad.type==='spring'&&pad.index===(body.springHits||0);
@@ -3898,7 +3908,7 @@ function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
  // Outside the circular spring, the square tabletop is still solid.
  // Interpolate the crossing point so even a high-speed shot hits the table.
  for(const platform of padPlatforms){
-  const contact=crossed(platform.top);
+  const contact=crossed(platform.top,padHalfHeight);
   if(!contact||
    Math.abs(contact.x-platform.x)>platform.halfX+BALL_R*.65||
    Math.abs(contact.z-platform.z)>platform.halfZ+BALL_R*.65)continue;
