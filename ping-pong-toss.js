@@ -236,6 +236,10 @@ const CHAPTER_GATE_LEVELS={
  42:[['drawer',.28,0,1.9]]
 };
 const LEVEL_FAIRNESS={
+ // Level 22: keep its real wall ricochet, moving cup and crosswind, but
+ // shorten the pad before the cup and move it into a more intuitive lane.
+ 22:{wind:-.12,moving:.20,radius:.57,
+  walls:[{side:-1,fraction:.62,x:1.95,length:3.0}]},
  24:{wind:-.12},25:{wind:.20,radius:.49},
  26:{wind:-.12,fanPower:2.7},
  28:{wind:-.10},30:{wind:-.12,fanPower:2.6},
@@ -351,6 +355,7 @@ function updateObjective(){
  el.objective.textContent=shotSteps(settings,ball).join(' → ')+hint;
 }
 function levelInstructions(spec){
+ if(spec.n===22)return 'Aim toward the glowing orange wall cushion on the left, not straight into the cup. Bounce off it first, then land in the slowly sliding cup. The crosswind is gentler here.';
  const actions={
   hoops:'pass through '+spec.hoops+' numbered hoop'+(spec.hoops>1?'s in order':''),
   wall:spec.wallCount>1?'bounce off '+spec.wallCount+' numbered wall cushions in order':'bounce off the striped wall cushion',
@@ -479,9 +484,14 @@ function loadLevel(n){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
  level=n;settings=stageSettings(level);chosenChapter=chapterIndex(level);
  attempts=0;shotT=0;simTime=0;flight=false;paused=false;
- aimYaw=settings.springRequired?
-  Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
-  Math.atan2(settings.x,settings.d);
+ // Give the first wall lesson a useful starting preview instead of aiming
+ // directly at a cup that cannot score without touching the wall first.
+ aimYaw=settings.n===22?
+  Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
+   settings.d*settings.wallPlan[0].fraction+.37):
+  settings.springRequired?
+   Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
+   Math.atan2(settings.x,settings.d);
  aimPitch=settings.bankRequired?.31:settings.springRequired?.32:.70;
  power=idealPower();ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
@@ -3632,7 +3642,10 @@ function inputAim(clientX,clientY){
  if(rect.width<2||rect.height<2)return;
  const nx=clamp((clientX-rect.left)/rect.width,0,1);
  const ny=clamp((clientY-rect.top)/rect.height,0,1);
- const baseline=Math.atan2(target.x,settings.d);
+ const baseline=settings.n===22?
+  Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
+   settings.d*settings.wallPlan[0].fraction+.37):
+  Math.atan2(target.x,settings.d);
  aimYaw=clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
  aimPitch=settings.bankRequired||settings.springRequired?clamp(.52+(.5-ny)*1.04,.13,1.04):clamp(.70+(.5-ny)*.52,.27,1.04);
  if(!charging)power=idealPower();
