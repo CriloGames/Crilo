@@ -3845,11 +3845,14 @@ function cupEntryGate(projectile,previousY,time,preview=false){
 function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
  if(body.vy>=0)return false;
  const disc=projectileId==='frisbee';
- // Match the frisbee's shallow underside and wide physical rim instead
- // of treating the disc as the original small spherical projectile.
- const padHalfHeight=disc?.048:BALL_R;
- const rimReach=disc?BALL_R*1.55*Math.max(.55,
-  Math.cos(Math.abs(body.disc?.bank||0))):0;
+ // Keep the established sphere-sized collision height used by the rest of
+ // the physics engine and the surrounding spring cart. Changing that height
+ // caused disc/spring contact to disagree with solid furniture collisions.
+ const padHalfHeight=BALL_R;
+ // Slight allowance for a real disc's wide rim, but not the excessively
+ // broad contact zone from the prior update.
+ const rimReach=disc?BALL_R*.9*Math.max(.65,
+  Math.cos(Math.abs(body.disc?.bank??0))):0;
  const crossed=(top,halfHeight=BALL_R)=>{
   const plane=top+halfHeight;
   if(previous.y<plane-.002||body.y>plane)return null;
