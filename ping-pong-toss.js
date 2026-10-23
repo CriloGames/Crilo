@@ -196,6 +196,23 @@ function stageSettings(n){
  };
 }
 let settings=stageSettings(level);
+function shotSteps(spec,p={}){
+ const steps=[];
+ if(spec.wall)steps.push(p.wallHits?'WALL ✓':'WALL BANK');
+ if(spec.bankRequired)steps.push(p.bankHits?'TRAY ✓':'RUBBER TRAY');
+ if(spec.springRequired)steps.push(p.springHits?'SPRING ✓':'SPRING PAD');
+ if(spec.hoops)steps.push('RINGS '+Math.min(p.hoopsPassed||0,spec.hoops)+'/'+spec.hoops);
+ if(!steps.length)steps.push('AIM');
+ steps.push('CUP');return steps;
+}
+function updateObjective(){
+ const hint=settings.lid?' · LID '+(lidOpen===true?'OPEN':lidOpen===false?'CLOSED':'TIMED'):
+  settings.barrierCount?' · MOVING BARRIER':
+  settings.fanZone?' · '+(settings.fanZone.kind==='lift'?'UPDRAFT':'SIDE FAN'):
+  settings.wind?' · CROSSWIND':
+  settings.motion!=='still'?' · MOVING CUP':'';
+ el.objective.textContent=shotSteps(settings,ball).join(' → ')+hint;
+}
 function levelInstructions(spec){
  const steps=[];
  if(spec.wall)steps.push('hit the striped wall cushion');
@@ -213,7 +230,7 @@ function levelInstructions(spec){
 }
 function buildUi(){
  el.total.textContent=Array.from({length:50},(_,i)=>i+1).filter(i=>completed[i]).length+' / 50';
- el.resume.textContent='CONTINUE · LEVEL '+fmtLevel(unlocked);
+ el.resume.textContent=(completed[50]?'REPLAY':'CONTINUE')+' · LEVEL '+fmtLevel(unlocked);
  el.counter.textContent=fmtLevel(level)+' / 50';
  el.chapter.textContent='CHAPTER '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
  const rooms=SCENE_NAMES;
@@ -223,9 +240,7 @@ function buildUi(){
  el.difficulty.textContent='DIFFICULTY · '+labels[rating]+' · LEVEL '+fmtLevel(level);
  el.difficulty.dataset.rank=String(rating);
  el.chapter.textContent=settings.newTrick?'NEW TRICK · '+settings.newTrick:'SHIFT '+(settings.c+1)+' · '+CHAPTERS[settings.c].short.toUpperCase();
- el.objective.textContent=settings.wall?'WALL BANK → CUP':
-  settings.hoops?'PASS '+settings.hoops+' HOOP'+(settings.hoops>1?'S':'')+' → CUP':
-  settings.springRequired?'SPRING PAD → CUP':settings.bankRequired?'BANK OFF TRAY → CUP':'DIRECT THROW → CUP';
+ updateObjective();
  el.viewport.dataset.shotMode=settings.springRequired?'spring':settings.bankRequired?'bank':'direct';
  el.viewport.dataset.showTip=settings.newTrick?'yes':'no';
  if(!settings.lid)delete el.viewport.dataset.lidState;
@@ -318,14 +333,7 @@ function loadLevel(n){
   'Land inside the opening without hitting the rim.';
  if(settings.lid)el.tutorial.textContent='WAIT FOR THE LID TO OPEN · THEN THROW';
  const objective=levelInstructions(settings);
- const extra=[
-  settings.lid?'Watch for the lid to open.':null,
-  settings.fanZone?'The airflow changes your shot.':null,
-  settings.motion!=='still'?'Lead the moving target.':null,
-  settings.wind?'Allow for the crosswind.':null
- ].filter(Boolean).slice(0,2).join(' ');
- const introText=(settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+
-  objective+' '+extra;
+ const introText=(settings.newTrick?'NEW: '+settings.newTrick+'. ':'')+objective;
  showOverlay('LEVEL '+fmtLevel(level)+' · '+SCENE_NAMES[settings.sceneId],
   settings.challenge.toUpperCase(),introText,
   'PLAY LEVEL '+fmtLevel(level),'start');
@@ -2367,7 +2375,7 @@ function wallCollision(projectile,previousX,preview=false){
  if(!preview){
   updateBounceCount();
   message('WALL BANK! · FINISH THE SHOT',1.1);
-  el.objective.textContent=settings.hoops?'WALL BANK ✓ · NOW THE HOOPS':'WALL BANK ✓ · SINK THE CUP';
+  updateObjective();
   hear(550,.12,'triangle',.05);
  }
  return true;
@@ -2397,10 +2405,8 @@ function checkHoopCross(previous,projectile,time,preview=false){
    for(const glow of gate.glows)glow.material.color.setHex(0x8affc4);
    hear(800+projectile.hoopsPassed*120,.10,'sine',.06);
    message('RING '+projectile.hoopsPassed+'/'+hoops.length+' CLEARED!',1.1);
-   el.objective.textContent=projectile.hoopsPassed===hoops.length?
-    'ALL RINGS CLEARED · SINK THE CUP':
-    'RING '+(projectile.hoopsPassed+1)+' NEXT';
-   if(settings.lid)el.objective.textContent+=' · CHECK LID';
+   updateObjective();
+   
   }
  }else if(!preview){
   message('MISSED RING '+(projectile.hoopsPassed+1)+' · RETRY THE SHOT',1.0);
@@ -2683,9 +2689,7 @@ function tickObstacles(time){
   cupLid.indicator.color.setHex(isOpen?0x85e2b1:0xf2a191);
   if(lidOpen!==isOpen){
    lidOpen=isOpen;
-   const ringText=settings.hoops?
-    'RINGS '+Math.min(ball.hoopsPassed,settings.hoops)+'/'+settings.hoops+' · ':'';
-   el.objective.textContent=ringText+(isOpen?'LID OPEN · THROW':'LID CLOSED · WAIT');
+   updateObjective();
    el.viewport.dataset.lidState=isOpen?'open':'closed';
   }
  }
@@ -2776,6 +2780,7 @@ function tickFlight(dt){
      ball.y=pad.y+BALL_R;
      if(pad.type==='bank'){
       ball.bankHits++;
+      updateObjective();
       const impulse=padRebound(ball,pad);
       ball.vx=impulse.vx;ball.vy=impulse.vy;ball.vz=impulse.vz;
       message('BANK BOUNCE! · NOW LAND THE SHOT',1.0);
@@ -2784,6 +2789,7 @@ function tickFlight(dt){
       const rebound=padRebound(ball,pad);
       ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
       ball.springHits++;
+      updateObjective();
       message('SPRING SHOT!',.9);hear(480,.18,'sine',.06);
      }
      if(impactRing){
