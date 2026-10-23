@@ -583,6 +583,71 @@ function officeMonitor(parent,x,y,z,angle=0){
  meshBox(g,.65,.04,.31,0,-.31,.18,plastic);
  return g;
 }
+// Rounded recognizable office props. The large solid parts use supported
+// physics geometries; handles, glass and labels are decorative details.
+function officeMug(parent,x,y,z,color,scale=1){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(scale);parent.add(g);
+ const porcelain=createMat(color,.36,.06),inside=createMat(0x656e70,.76);
+ const profile=[
+  new THREE.Vector2(.145,0),new THREE.Vector2(.163,.02),
+  new THREE.Vector2(.172,.10),new THREE.Vector2(.187,.24),
+  new THREE.Vector2(.185,.29)
+ ];
+ const body=new THREE.Mesh(new THREE.LatheGeometry(profile,30),porcelain);
+ body.castShadow=true;body.receiveShadow=true;g.add(body);
+ const rim=new THREE.Mesh(new THREE.TorusGeometry(.185,.022,8,32),
+  createMat(0xf8e9d8,.32,.10));
+ rim.rotation.x=Math.PI/2;rim.position.y=.29;g.add(rim);
+ const inner=new THREE.Mesh(new THREE.CylinderGeometry(.168,.139,.22,24,1,true),
+  new THREE.MeshStandardMaterial({color:0x858e90,side:THREE.BackSide,roughness:.87}));
+ inner.position.y=.16;g.add(inner);
+ const handle=new THREE.Mesh(new THREE.TorusGeometry(.145,.039,10,24,Math.PI*1.65),
+  porcelain);
+ handle.position.set(.259,.16,0);handle.rotation.y=Math.PI/2;
+ handle.rotation.z=-.15;g.add(handle);
+ return g;
+}
+function officePrinter(parent,x,y,z,mat,scale=1){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(scale);parent.add(g);
+ const body=mat||createMat(0xa6b5b7,.40,.17),dark=createMat(0x344854,.39,.30);
+ const glass=createMat(0x4c6d80,.19,.32),paper=createMat(0xf5efe4,.90);
+ meshBox(g,1.16,.49,.91,0,-.035,0,body);
+ meshBox(g,1.02,.065,.79,0,.225,-.035,dark);
+ const glassTop=meshBox(g,.90,.012,.64,0,.267,-.03,glass);
+ glassTop.castShadow=false;
+ const tray=meshBox(g,.72,.045,.53,0,-.16,.535,dark);
+ tray.rotation.x=-.13;
+ for(let i=0;i<3;i++){
+  const page=meshBox(g,.55,.006,.40,0,-.105+i*.012,.62,paper);
+  page.castShadow=false;
+ }
+ const controls=meshBox(g,.31,.035,.19,-.36,.262,.24,body);
+ controls.rotation.y=.17;
+ for(let k=0;k<4;k++){
+  const light=new THREE.Mesh(new THREE.SphereGeometry(.018,8,6),
+   new THREE.MeshBasicMaterial({color:k===0?0x95e8c1:0x8da2aa}));
+  light.position.set(-.45+k*.06,.291,.24);g.add(light);
+ }
+ return g;
+}
+function officeLamp(parent,x,y,z,scale=1){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(scale);parent.add(g);
+ const metal=createMat(0x7e939b,.31,.51),shade=createMat(0xd1b49b,.54,.18);
+ const foot=new THREE.Mesh(new THREE.CylinderGeometry(.25,.30,.085,24),metal);
+ foot.position.y=0;foot.castShadow=true;g.add(foot);
+ const neck=new THREE.Mesh(new THREE.TubeGeometry(
+  new THREE.CatmullRomCurve3([
+   new THREE.Vector3(0,.04,0),new THREE.Vector3(-.05,.33,0),
+   new THREE.Vector3(.01,.66,0),new THREE.Vector3(.21,.80,0)
+  ]),18,.046,8,false),metal);
+ neck.castShadow=true;g.add(neck);
+ const cover=new THREE.Mesh(new THREE.CylinderGeometry(.22,.34,.30,28,1),shade);
+ cover.rotation.z=-.42;cover.position.set(.28,.76,0);cover.castShadow=true;g.add(cover);
+ const bulb=new THREE.Mesh(new THREE.SphereGeometry(.105,12,9),
+  new THREE.MeshBasicMaterial({color:0xffe3af}));
+ bulb.position.set(.34,.58,0);g.add(bulb);
+ return g;
+}
 function officeBin(parent,x,z,mat){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
  const shell=new THREE.Mesh(new THREE.CylinderGeometry(.55,.43,.86,22,1,true),mat);
@@ -1422,25 +1487,25 @@ function buildWorld(){
    for(let k=0;k<3;k++)meshBox(g,.46,.10,.025,0,oy+.3-k*.22,-.135,paper);
   }else if(style==='printer'||style==='projector'){
    oy=1.77;w=1.15;h=.55;depth=.88;
-   meshBox(g,w,h,depth,0,oy,0,createMat(0x9ba6a5,.37,.28));
-   meshBox(g,.68,.07,.32,0,oy+.18,-.50,dark);
-   meshBox(g,.16,.08,.04,-.36,oy+.17,-.455,highlight);
-   if(style==='projector')meshBox(g,.2,.19,.09,0,oy,-.50,cream);
+   officePrinter(g,0,oy,0,createMat(0xaebabc,.38,.25));
+   if(style==='projector'){
+    const lens=new THREE.Mesh(new THREE.CylinderGeometry(.115,.115,.07,20),
+     createMat(0x3d5662,.20,.50));
+    lens.rotation.x=Math.PI/2;lens.position.set(0,oy,-.48);g.add(lens);
+   }
   }else if(style==='mugstack'||style==='teapot'){
    oy=1.51;w=.62;h=.78;depth=.55;
    for(let k=0;k<3;k++){
-    const cyl=new THREE.Mesh(new THREE.CylinderGeometry(.19,.16,.25,14),
-     createMat([0xc29d82,0x8eb6bb,0xc9b17d][k]));
-    cyl.position.set(Math.sin(k*2.3)*.09,1.18+k*.24,0);g.add(cyl);
+    const cup=officeMug(g,Math.sin(k*2.3)*.07,1.19+k*.225,
+     Math.cos(k*2.1)*.025,[0xc29d82,0x8eb6bb,0xc9b17d][k],.91);
+    cup.rotation.y=k*1.25;
    }
   }else if(style==='plant'){
    oy=1.57;w=.72;h=1.12;depth=.72;plant(g,0,0,.98);
    g.position.y=1.02;
   }else if(style==='lamp'){
    oy=2.04;w=.65;h=.98;depth=.53;
-   meshBox(g,.09,1.15,.09,0,1.66,0,metal);
-   const shade=new THREE.Mesh(new THREE.ConeGeometry(.32,.42,12),paint);
-   shade.position.y=2.35;shade.rotation.z=Math.PI;g.add(shade);
+   officeLamp(g,0,1.45,0,1.1);
   }else if(style==='cart'){
    oy=1.45;w=1.02;h=.96;depth=1;
    meshBox(g,1.06,.11,1.02,0,1.80,0,metal);
