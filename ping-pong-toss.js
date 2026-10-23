@@ -380,7 +380,7 @@ function worldClean(){
   if(obj.geometry)geometries.add(obj.geometry);
   if(obj.material)(Array.isArray(obj.material)?obj.material:[obj.material]).forEach(x=>materials.add(x));
  });
- geometries.forEach(x=>x.dispose());materials.forEach(x=>{x.map?.dispose();x.dispose();});
+ geometries.forEach(x=>x.dispose());materials.forEach(x=>{x.map?.dispose();x.bumpMap?.dispose();x.dispose();});
 }
 
 // Procedural texture atlas: no external images, subtle realism at low cost.
@@ -449,6 +449,162 @@ function skylineTexture(seed,night,sunset){
  glint.addColorStop(.85,'rgba(255,255,255,.07)');glint.addColorStop(1,'rgba(255,255,255,.18)');
  ctx.fillStyle=glint;ctx.fillRect(0,0,512,320);
  const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;return tex;
+}
+
+
+/* Fine-scale, deterministic surface relief. The low-strength bump maps react
+ * to real scene lights without requiring heavy image assets or new requests. */
+function surfaceRelief(kind,seed,rx,ry){
+ const canvas=document.createElement('canvas');canvas.width=canvas.height=128;
+ const ctx=canvas.getContext('2d');if(!ctx)return null;
+ const image=ctx.createImageData(128,128),p=image.data;
+ let state=((seed+31)*16807)%2147483647;
+ const random=()=>{state=(state*48271)%2147483647;return state/2147483647;};
+ for(let y=0;y<128;y++)for(let x=0;x<128;x++){
+  const grain=(random()-.5)*(kind==='carpet'?60:kind==='wood'?26:18);
+  const ridge=kind==='wood'?Math.sin(y*.48+Math.sin(x*.08+seed)*1.4)*26:
+   kind==='carpet'?((x%4<2)===(y%4<2)?10:-10):
+   Math.sin(y*.17+x*.31)*3;
+  const v=clamp(Math.round(128+ridge+grain),0,255),i=(y*128+x)*4;
+  p[i]=p[i+1]=p[i+2]=v;p[i+3]=255;
+ }
+ ctx.putImageData(image,0,0);
+ const tex=new THREE.CanvasTexture(canvas);
+ tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.repeat.set(rx,ry);
+ tex.generateMipmaps=true;tex.minFilter=THREE.LinearMipmapLinearFilter;
+ return tex;
+}
+// Architecture is background scenery only: none of these decorative details
+// enter the projectile collision system or change the fifty level solutions.
+function roomArchitecture(roomEnd,roomLength,sceneId,variant,palette){
+ const art=new THREE.Group();group.add(art);
+ ambient.push({type:'scenery',obj:art});
+ const frame=createMat(palette.trim,.42,.29),
+  chalk=createMat(variant?0x455764:0x71858a,.87),
+  brass=createMat(0xc4a77e,.38,.34),
+  paper=createMat(0xe7dfce,.87),
+  warm=createMat(0xc39580,.78),
+  mint=createMat(0x8db7af,.64),
+  glass=new THREE.MeshStandardMaterial({color:0x93bec4,roughness:.16,metalness:.15,transparent:true,opacity:.63,depthWrite:false}),
+  glow=new THREE.MeshBasicMaterial({color:variant?0x89bed1:0xffd6ab,toneMapped:false});
+ const piece=(w,h,d,x,y,z,mat)=>{
+  const m=meshBox(art,w,h,d,x,y,z,mat);m.castShadow=false;
+  return m;
+ };
+ const far=roomEnd+.43;
+ // Structural double-layer wall reveals and quietly lit side-wall strips.
+ for(const side of [-1,1]){
+  const bx=side*6.65;
+  piece(1.55,3.65,.14,bx,3.63,far,frame);
+  piece(1.36,3.47,.06,bx,3.63,far+.11,chalk);
+  piece(.045,3.25,.065,bx-side*.57,3.63,far+.15,brass);
+  const sideZ=roomEnd+Math.min(roomLength*.32,6.0);
+  piece(.09,2.9,2.5,side*7.83,3.58,sideZ,frame);
+  piece(.10,2.74,2.31,side*7.74,3.58,sideZ,chalk);
+  piece(.12,.035,2.26,side*7.67,4.89,sideZ,glow);
+ }
+ // Room signatures, built into the walls instead of dropped in the throw lane.
+ // All positions are on distant walls or beside the far side cabinets.
+ const bx=6.65,bz=far+.18;
+ if(sceneId===0){ // Felt acoustic modules, with stitched seams.
+  for(const side of [-1,1])for(let row=0;row<5;row++){
+   const y=2.35+row*.57,shift=row%2?.07:-.07;
+   piece(1.15,.47,.04,side*bx+shift,y,bz,
+    row%2?mint:warm);
+   piece(.96,.012,.015,side*bx+shift,y-.15,bz+.04,paper);
+  }
+ }else if(sceneId===1){ // Glass conference display and engraved guides.
+  for(const side of [-1,1]){
+   piece(1.12,2.42,.048,side*bx,3.66,bz,glass);
+   for(let i=0;i<5;i++)
+    piece(.75-i*.07,.035,.015,side*bx-.1+i*.025,4.5-i*.37,bz+.052,i%2?mint:paper);
+   piece(1.24,.06,.18,side*bx,2.38,bz,brass);
+  }
+ }else if(sceneId===2){ // Built-in mail slots with individual envelopes.
+  for(const side of [-1,1])for(let i=0;i<5;i++){
+   const y=2.37+i*.56;
+   piece(1.13,.43,.15,side*bx,y,bz,frame);
+   piece(.88,.24,.07,side*bx,y+.03,bz+.11,paper);
+   piece(.62,.025,.015,side*bx,y-.045,bz+.15,warm);
+  }
+ }else if(sceneId===3){ // Café tiles and softly glowing wall sconces.
+  for(const side of [-1,1]){
+   for(let row=0;row<7;row++)
+    piece(1.12,.025,.04,side*bx,2.25+row*.44,bz,paper);
+   piece(.73,.67,.12,side*bx,4.36,bz+.11,frame);
+   const disk=new THREE.Mesh(new THREE.CircleGeometry(.24,24),glow);
+   disk.position.set(side*bx,4.36,bz+.186);art.add(disk);
+  }
+ }else if(sceneId===4){ // After-hours luminous workstation panels.
+  for(const side of [-1,1]){
+   piece(1.08,2.61,.08,side*bx,3.62,bz,frame);
+   for(let row=0;row<6;row++){
+    piece(.87,.028,.025,side*bx,2.6+row*.39,bz+.068,row%3?mint:glow);
+    piece(.10,.09,.04,side*bx-.39,2.6+row*.39,bz+.095,brass);
+   }
+  }
+ }else if(sceneId===5){ // Numbered archival drawer faces.
+  for(const side of [-1,1])for(let row=0;row<6;row++){
+   const y=2.27+row*.52;
+   piece(1.05,.43,.10,side*bx,y,bz,warm);
+   piece(.62,.19,.035,side*bx,y+.045,bz+.077,paper);
+   piece(.26,.04,.06,side*bx,y-.11,bz+.10,frame);
+  }
+ }else if(sceneId===6){ // Reception's fluted timber feature wall.
+  for(const side of [-1,1]){
+   for(let i=0;i<7;i++)piece(.085,3.07,.085,side*bx+(i-3)*.17,3.61,bz,
+    i%2?brass:paper);
+   const badge=new THREE.Mesh(new THREE.TorusGeometry(.35,.055,10,32),brass);
+   badge.position.set(side*bx,4.19,bz+.08);art.add(badge);
+  }
+ }else if(sceneId===7){ // Framed award alcoves, lit from the edge.
+  for(const side of [-1,1]){
+   for(let i=0;i<3;i++){
+    const y=2.68+i*.89;
+    piece(.92,.68,.085,side*bx,y,bz,brass);
+    piece(.76,.52,.057,side*bx,y,bz+.065,chalk);
+    const medal=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.024,24),brass);
+    medal.rotation.x=Math.PI/2;medal.position.set(side*bx,y,bz+.115);art.add(medal);
+   }
+  }
+ }else if(sceneId===8){ // Loading-bay hazard trims and recessed tie-downs.
+  for(const side of [-1,1]){
+   for(let row=0;row<8;row++){
+    const band=piece(1.12,.13,.048,side*bx,2.23+row*.42,bz,row%2?brass:frame);
+    band.rotation.z=(row%2?1:-1)*.11;
+   }
+   piece(.86,.13,.10,side*bx,5.05,bz,metallicBlue());
+  }
+ }else{ // Data-centre cable trunking and separate status modules.
+  for(const side of [-1,1]){
+   for(let i=0;i<3;i++)
+    piece(.20,3.03,.12,side*bx+(i-1)*.37,3.6,bz,i%2?frame:mint);
+   for(let row=0;row<8;row++)
+    piece(.11,.065,.05,side*bx+.40,2.43+row*.34,bz+.14,row%3?mint:glow);
+  }
+ }
+ function metallicBlue(){return createMat(0x7797a2,.35,.45);}
+ // A diffused window-light pool, projected onto the existing carpet rather
+ // than inserting a fake solid object in the playable environment.
+ const c=document.createElement('canvas');c.width=c.height=128;
+ const ctx=c.getContext('2d');
+ if(ctx){
+  const grad=ctx.createRadialGradient(64,64,6,64,64,64);
+  grad.addColorStop(0,'rgba(255,238,192,.78)');
+  grad.addColorStop(.52,'rgba(255,231,189,.37)');
+  grad.addColorStop(1,'rgba(255,231,189,0)');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,128,128);
+  ctx.fillStyle='rgba(38,63,72,.055)';
+  for(let i=0;i<5;i++)ctx.fillRect(11+i*23,0,5,128);
+  const texture=new THREE.CanvasTexture(c);
+  const spill=new THREE.Mesh(new THREE.PlaneGeometry(4.2,5.6),
+   new THREE.MeshBasicMaterial({map:texture,transparent:true,opacity:variant?.12:.30,
+    depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1}));
+  spill.rotation.x=-Math.PI/2;
+  spill.rotation.z=.14;
+  spill.position.set(-3.70,.013,roomEnd+Math.min(roomLength*.36,6.4));
+  art.add(spill);
+ }
 }
 
 function roundedPoster(parent,text,x,y,z,colorText='#fef0c0'){
@@ -960,9 +1116,12 @@ function buildWorld(){
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
  wallMat.map=roomTexture('wall',level,5,3);
+ wallMat.bumpMap=surfaceRelief('wall',level,5,3);wallMat.bumpScale=.009;
  carpet.map=roomTexture('carpet',level+23,9,8);
+ carpet.bumpMap=surfaceRelief('carpet',level+23,9,8);carpet.bumpScale=.014;
  const wood=createMat(nearDeskTone,.48,.04),darkWood=createMat(0x45392f,.68);
  wood.map=roomTexture('wood',level+39,3,2);
+ wood.bumpMap=surfaceRelief('wood',level+39,3,2);wood.bumpScale=.012;
  const metal=createMat(0x687985,.33,.41),dark=createMat(theme.trim,.6,.15);
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
@@ -1061,6 +1220,7 @@ function buildWorld(){
   const zz=roomEnd+.6+i*roomLength/4;
   meshBox(group,15.8,.10,.09,0,6.5,zz,cream);
  }
+ roomArchitecture(roomEnd,roomLength,settings.sceneId,settings.roomVariant,theme);
  // Wall window with faux blinds and warm sky, safely BEHIND target.
  const winGroup=new THREE.Group();winGroup.position.set(-3.75,4.55,roomEnd+.19);group.add(winGroup);
  meshBox(winGroup,3.8,2.35,.14,0,0,0,cream);
@@ -1968,7 +2128,7 @@ function buildPhysicsBodies(){
  group.updateMatrixWorld(true);
  const skip=[cupGroup,throwingHand,trajectoryGroup,ballMesh,ballShadow,
   impactRing,airZone?.cloud,...specialSurfaces,...ballTrailMeshes];
- for(const item of ambient)if(item.type==='dust')skip.push(item.obj);
+ for(const item of ambient)if(item.type==='dust'||item.type==='scenery')skip.push(item.obj);
  const moving=new Map();
  for(const obstacle of obstacles)if(obstacle.type==='barrier')
   obstacle.obj.traverse(m=>{if(m.isMesh)moving.set(m,obstacle);});
