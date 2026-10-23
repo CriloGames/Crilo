@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],padPlatforms=[],hoops=[],wallPad=null,wallPads=[],airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const MAX_AIM_YAW=1.02;
@@ -1410,7 +1410,7 @@ function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0xc7d4cf,carpet:0x738981,desk:0xc49c7c,trim:0x436977,name:'THE CUBICLE'},
   {walls:0xd8cbb9,carpet:0x7b8c86,desk:0xc29a77,trim:0x536d79,name:'MEETING ROOM'},
@@ -2459,7 +2459,11 @@ function buildWorld(){
    x=settings.x*fraction+(settings.padCount>1?(i===0?-.15:(settings.secondPadOffset??.10)):0),
    padY=1.14+(settings.padCount>1&&i===1?.16:0);
   const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
-  specialSurfaces.push(cart);
+  // Only the circular spring animation uses special collision handling.
+  // The cart's tabletop, frame, support legs and wheels MUST stay in
+  // buildPhysicsBodies(); skipping the entire cart let balls pass through it.
+  const padVisuals=new THREE.Group();cart.add(padVisuals);
+  specialSurfaces.push(padVisuals);
   softContactShadow(group,x,.016,z,.98,.98);
   const frame=createMat(0x55727a,.42,.36),rubber=createMat(0x2c4d53,.72,.10),
    springMaterial=createMat(0x63aaa5,.27,.23,0x276d65);
@@ -2473,20 +2477,20 @@ function buildWorld(){
   meshBox(cart,1.38,.045,.07,0,.34,.63,frame);
   meshBox(cart,1.38,.045,.07,0,.79,.63,frame);
   const spring=new THREE.Mesh(new THREE.CylinderGeometry(.72,.72,.09,40),
-   springMaterial);spring.position.y=padY;cart.add(spring);
+   springMaterial);spring.position.y=padY;padVisuals.add(spring);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.74,.047,12,48),
    new THREE.MeshBasicMaterial({color:0xb6ffe1,transparent:true,opacity:.90}));
-  ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;cart.add(ring);
+  ring.rotation.x=Math.PI/2;ring.position.y=padY+.065;padVisuals.add(ring);
   for(let k=0;k<6;k++){
    const coil=new THREE.Mesh(new THREE.TorusGeometry(.26+k*.043,.012,6,40),
     createMat(0x91cabe,.30,.49));
-   coil.rotation.x=Math.PI/2;coil.position.y=padY-.03-k*.018;cart.add(coil);
+   coil.rotation.x=Math.PI/2;coil.position.y=padY-.03-k*.018;padVisuals.add(coil);
   }
   if(settings.padCount>1){
    const number=new THREE.Mesh(new THREE.PlaneGeometry(.51,.24),
     makeText('PAD '+(i+1),39,'#e9fff0','#29565e'));
    number.rotation.x=-Math.PI/2;
-   number.position.set(0,padY+.071,0);cart.add(number);
+   number.position.set(0,padY+.071,0);padVisuals.add(number);
   }
   // Far single-spring stages use a visibly textured high-grip pad:
   // it bleeds off speed rather than hurling the ball beyond the close cup.
@@ -2497,9 +2501,12 @@ function buildWorld(){
     const a=dot*2.4,radius=.28+.035*(dot%4);
     const grip=new THREE.Mesh(new THREE.SphereGeometry(.021,8,6),rubber);
     grip.position.set(Math.cos(a)*radius,padY+.056,Math.sin(a)*radius);
-    cart.add(grip);
+    padVisuals.add(grip);
    }
   }
+  // Swept collision at the upper tabletop prevents fast-moving balls from
+  // tunnelling through thin geometry between frame steps or pad misses.
+  padPlatforms.push({x,z,top:padY-.03,halfX:.875,halfZ:.875});
   pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,
    plate:spring,glow:ring,lastImpact:-10,
    forwardGrip:closePad?.30:.53,sideGrip:closePad?.27:.79});
@@ -2945,6 +2952,68 @@ function cupEntryGate(projectile,previousY,time,preview=false){
  }
  return {entered:true,missing,rejected:true};
 }
+// Shared live/trajectory collision for spring plates, bank trays and the
+// solid furniture supporting springs. Both see the same rebound and the
+// same tabletop, even when the ball crosses a thin surface in one step.
+function resolvePadAndPlatform(body,previous,preview=false,time=simTime){
+ if(body.vy>=0)return false;
+ const crossed=(top)=>{
+  const plane=top+BALL_R;
+  if(previous.y<plane-.002||body.y>plane)return null;
+  const fall=previous.y-body.y;
+  if(fall<=.000001)return null;
+  const fraction=clamp((previous.y-plane)/fall,0,1);
+  return {x:previous.x+(body.x-previous.x)*fraction,
+   z:previous.z+(body.z-previous.z)*fraction,plane};
+ };
+ // Raised spring disk gets priority over its own support table; it gives the
+ // intended spring rebound rather than a generic flat desk collision.
+ for(const pad of pads){
+  const contact=crossed(pad.y);
+  if(!contact||Math.hypot(contact.x-pad.x,contact.z-pad.z)>=pad.r-BALL_R)
+   continue;
+  body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
+  Object.assign(body,padRebound(body,pad));
+  if(pad.type==='bank'){
+   body.bankHits=(body.bankHits||0)+1;
+  }else if(pad.index===(body.springHits||0)){
+   body.springHits=(body.springHits||0)+1;
+  }
+  if(!preview){
+   updateObjective();
+   if(pad.type==='bank'){
+    message('BANK BOUNCE! · NOW LAND THE SHOT',1);
+    hear(650,.13,'triangle',.045);
+   }else{
+    const correct=pad.index===(body.springHits-1);
+    message(correct?'SPRING '+body.springHits+'/'+settings.padCount+'!':
+     'HIT PAD '+((body.springHits||0)+1)+' NEXT',1);
+    hear(480,.18,'sine',.06);
+    pad.lastImpact=time;
+   }
+   if(impactRing){
+    impactRing.position.set(body.x,pad.y+.075,body.z);
+    impactRing.material.color.setHex(pad.type==='spring'?0x9ef3c8:0xffdc9e);
+    impactAge=0;impactRing.visible=true;
+   }
+   body.bounces=(body.bounces||0)+1;
+   updateBounceCount();
+  }
+  return true;
+ }
+ // Outside the circular spring, the square tabletop is still solid.
+ // Interpolate the crossing point so even a high-speed shot hits the table.
+ for(const platform of padPlatforms){
+  const contact=crossed(platform.top);
+  if(!contact||
+   Math.abs(contact.x-platform.x)>platform.halfX+BALL_R*.65||
+   Math.abs(contact.z-platform.z)>platform.halfZ+BALL_R*.65)continue;
+  body.x=contact.x;body.z=contact.z;body.y=contact.plane+.002;
+  const bounced=bounceContact(body,0,1,0,0,.48,.17,0,0,0,preview);
+  return bounced;
+ }
+ return false;
+}
 function paintAim(){
  if(!hasRenderer||!aimLine.length)return;
  const p=charging?power:idealPower(),v=makeVelocity(p);
@@ -2977,27 +3046,13 @@ function paintAim(){
     if(wallCollision(preview,prior.x,true))noteImpact(t+h);
     checkHoopCross(prior,preview,t+h,true);
     if(hoopRimCollision(preview,t+h,true))noteImpact(t+h);
+    if(resolvePadAndPlatform(preview,prior,true,t+h))noteImpact(t+h);
     if(resolveEnvironment(preview,true))noteImpact(t+h);
     const cupGate=cupEntryGate(preview,prior.y,t+h,true);
     if(cupGate.rejected)noteImpact(t+h);
     if(cupGate.entered&&!cupGate.missing&&
        (!settings.lid||lidFraction(t+h)>.61))previewEnded=true;
     if(!previewEnded&&cupSurfaceCollision(preview,true,t+h))noteImpact(t+h);
-    if(previewEnded)break;
-    if(preview.vy<0){
-     for(const pad of pads){
-      if(prior.y>=pad.y+BALL_R&&preview.y<=pad.y+BALL_R&&
-        Math.hypot(preview.x-pad.x,preview.z-pad.z)<pad.r-BALL_R){
-       preview.y=pad.y+BALL_R;
-       Object.assign(preview,padRebound(preview,pad));
-       if(pad.type==='spring'&&pad.index===(preview.springHits||0))
-        preview.springHits=(preview.springHits||0)+1;
-       if(pad.type==='bank')preview.bankHits=(preview.bankHits||0)+1;
-       noteImpact(t+h);
-       break;
-      }
-     }
-    }
     if(previewEnded)break;
    }
   }
@@ -3254,6 +3309,9 @@ function tickFlight(dt){
   wallCollision(ball,prevX);
   checkHoopCross({x:prevX,y:prevY,z:prevZ},ball,simTime);
   hoopRimCollision(ball,simTime);
+  // Resolve the spring or its supporting tabletop BEFORE generic desks.
+  // This preserves true spring bounces while preventing table tunnelling.
+  resolvePadAndPlatform(ball,{x:prevX,y:prevY,z:prevZ},false,simTime);
   shotT+=h;
   ball.trail.unshift([ball.x,ball.y,ball.z]);
   if(ball.trail.length>46)ball.trail.length=46;
@@ -3268,41 +3326,6 @@ function tickFlight(dt){
   cupSurfaceCollision(ball);
   // Cylinder wall and bottom contact are resolved by cupSurfaceCollision.
   // Scoring remains restricted to downward entry through the real opening.
-  // Real, visible rubber bank trays and spring plates. Rebounds modify
-  // the ball's velocity and position; later obstacles can still block it.
-  let bouncedThisStep=false;
-  if(ball.vy<0){
-   for(const pad of pads){
-    if(prevY>=pad.y+BALL_R&&ball.y<=pad.y+BALL_R&&
-       Math.hypot(ball.x-pad.x,ball.z-pad.z)<pad.r-BALL_R){
-     ball.y=pad.y+BALL_R;
-     if(pad.type==='bank'){
-      ball.bankHits++;
-      updateObjective();
-      const impulse=padRebound(ball,pad);
-      ball.vx=impulse.vx;ball.vy=impulse.vy;ball.vz=impulse.vz;
-      message('BANK BOUNCE! · NOW LAND THE SHOT',1.0);
-      hear(650,.13,'triangle',.045);
-     }else{
-      const rebound=padRebound(ball,pad);
-      ball.vy=rebound.vy;ball.vz=rebound.vz;ball.vx=rebound.vx;
-      const credited=pad.index===(ball.springHits||0);
-      if(credited)ball.springHits++;
-      updateObjective();
-      message(credited?'SPRING '+ball.springHits+'/'+settings.padCount+'!':
-       'HIT PAD '+(ball.springHits+1)+' NEXT',1.0);
-      hear(480,.18,'sine',.06);
-     }
-     if(impactRing){
-      impactRing.position.set(ball.x,pad.y+.075,ball.z);
-      impactRing.material.color.setHex(pad.type==='spring'?0x9ef3c8:0xffdc9e);
-      impactAge=0;impactRing.visible=true;
-     }
-     if(pad.type==='spring')pad.lastImpact=simTime;
-     ball.bounces++;updateBounceCount();bouncedThisStep=true;break;
-    }
-   }
-  }
   // All visible solid desk/floor/wall/prop geometry has already been
   // checked by resolveEnvironment. Energy naturally decays with each hit.
   if(ball.y<-.35){miss('OUT OF THE ROOM!');return;}
