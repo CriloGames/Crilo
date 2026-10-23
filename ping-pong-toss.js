@@ -19,7 +19,7 @@ const el={
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
-let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,trajectoryGroup,throwingHand,throwMoment=-10000;
+let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup,throwingHand,throwMoment=-10000;
 let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
@@ -861,11 +861,36 @@ function addFanJet(spec,x,z,device,label){
  field.cloud=cloud;fanFields.push(field);
  return field;
 }
+// A localized soft contact shadow helps cups feel attached to the desk,
+// including moving targets. It is purely visual and not a collision body.
+function softContactShadow(parent,x,y,z,scaleX,scaleZ){
+ const canvas=document.createElement('canvas');canvas.width=96;canvas.height=96;
+ const ctx=canvas.getContext('2d');
+ if(!ctx)return null;
+ const g=ctx.createRadialGradient(48,48,7,48,48,47);
+ g.addColorStop(0,'rgba(12,27,32,.57)');
+ g.addColorStop(.45,'rgba(12,27,32,.33)');
+ g.addColorStop(1,'rgba(12,27,32,0)');
+ ctx.fillStyle=g;ctx.fillRect(0,0,96,96);
+ const texture=new THREE.CanvasTexture(canvas);
+ const material=new THREE.MeshBasicMaterial({
+  map:texture,transparent:true,opacity:.72,depthWrite:false,
+  polygonOffset:true,polygonOffsetFactor:-1
+ });
+ const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2,2),material);
+ shadow.rotation.x=-Math.PI/2;
+ shadow.position.set(x,y,z);
+ shadow.scale.set(scaleX,scaleZ,1);
+ shadow.renderOrder=1;
+ shadow.castShadow=false;shadow.receiveShadow=false;
+ parent.add(shadow);
+ return shadow;
+}
 function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
   {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
@@ -1225,6 +1250,8 @@ function buildWorld(){
  }
  // Variety: the actual cup is always open and visible on its own tray.
  cupGroup=new THREE.Group();cupGroup.position.set(settings.x,.19+settings.topPad,settings.targetZ);group.add(cupGroup);
+ targetShadow=softContactShadow(group,settings.x,settings.topPad+.14,
+  settings.targetZ,settings.radius*1.75,settings.radius*1.55);
  const r=settings.radius,kind=settings.kind,h=settings.targetHeight;
  // A believable warm practical highlight keeps the target legible in dim rooms.
  const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
@@ -2230,6 +2257,11 @@ function tickObstacles(time){
  }
  const position=targetLocation(t);
  cupGroup.position.set(position.x,position.y,position.z);
+ if(targetShadow){
+  targetShadow.position.x=position.x;
+  targetShadow.position.z=position.z;
+  targetShadow.material.opacity=clamp(.72-(position.y-(.19+settings.topPad))*.25,.25,.72);
+ }
  for(const gate of hoops){
   const pos=hoopMotion(gate,t);
   gate.x=pos.x;gate.y=pos.y;
@@ -2472,7 +2504,10 @@ async function init(){
   scene.add(new THREE.HemisphereLight(0xffe8ca,0x607e90,1.57));
   const sun=new THREE.DirectionalLight(0xffdfb8,1.82);
   sun.position.set(-5,13,8);sun.castShadow=true;
-  sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
+  sun.shadow.mapSize.set(window.innerWidth>900?2048:1024,
+   window.innerWidth>900?2048:1024);
+  sun.shadow.radius=2;sun.shadow.bias=-.00015;sun.shadow.normalBias=.035;
+  sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
   sun.shadow.camera.top=16;sun.shadow.camera.bottom=-26;sun.shadow.camera.far=75;
   scene.add(sun);
   const fill=new THREE.PointLight(0xa8d0e5,4.6,22,2);fill.position.set(4,5,1);scene.add(fill);
