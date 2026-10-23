@@ -20,7 +20,7 @@ const el={
 };
 if(Object.values(el).some(v=>!v))return;
 let THREE,renderer,scene,camera,group,ballMesh,ballShadow,ballTrailMeshes=[],launcher,cupGroup,cupFloor,targetShadow,trajectoryGroup;
-let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
+let aimLine=[],ringMat,particleGroup,obstacles=[],pads=[],hoops=[],wallPad=null,airZone=null,fanFields=[],physicsBodies=[],physicsGrid=new Map(),physicsGlobal=[],physicsMoving=[],specialSurfaces=[],decorCandidates=[],readabilityAspect=0,impactRing=null,impactAge=2,cupLid=null,lidOpen=null,targetLift=null,target={x:0,z:-2.5,y:0,top:1,r:.64,kind:0},ambient=[];
 const STORE='crilo_pong_toss_50_v1',MUTED='crilo_pong_toss_sound_v1';
 const TWO_PI=Math.PI*2,GRAVITY=10.65,LAUNCH_Z=4.25,LAUNCH_Y=1.32,BALL_R=.095;
 const CHAPTERS=[
@@ -1130,11 +1130,92 @@ function softContactShadow(parent,x,y,z,scaleX,scaleZ){
  parent.add(shadow);
  return shadow;
 }
+
+// Viewport-space silhouettes are computed from the actual level camera.
+// NEVER move the goal, authored obstacles, wall pads, spring trays or hoops.
+function screenRect(bounds){
+ if(!bounds||bounds.isEmpty())return null;
+ const low=bounds.min,high=bounds.max,p=new THREE.Vector3();
+ let left=Infinity,right=-Infinity,top=Infinity,bottom=-Infinity,front=0;
+ for(const x of [low.x,high.x])for(const y of [low.y,high.y])
+  for(const z of [low.z,high.z]){
+   p.set(x,y,z).project(camera);
+   if(p.z>=-1&&p.z<=1)front++;
+   left=Math.min(left,(p.x+1)/2);right=Math.max(right,(p.x+1)/2);
+   top=Math.min(top,(1-p.y)/2);bottom=Math.max(bottom,(1-p.y)/2);
+  }
+ if(!front||!Number.isFinite(left+right+top+bottom))return null;
+ return {x0:Math.max(-1,left),y0:Math.max(-1,top),
+  x1:Math.min(2,right),y1:Math.min(2,bottom)};
+}
+function screenOverlap(a,b,pad=0){
+ if(!a||!b)return 0;
+ const w=Math.min(a.x1,b.x1+pad)-Math.max(a.x0,b.x0-pad),
+  h=Math.min(a.y1,b.y1+pad)-Math.max(a.y0,b.y0-pad);
+ if(w<=0||h<=0)return 0;
+ const areaA=Math.max(.0001,(a.x1-a.x0)*(a.y1-a.y0)),
+  areaB=Math.max(.0001,(b.x1-b.x0)*(b.y1-b.y0));
+ return w*h/Math.min(areaA,areaB);
+}
+function validateLevelReadability(){
+ if(!camera||!group||!decorCandidates.length)return false;
+ const bounds=(x,y,z,w,h,d)=>new THREE.Box3(
+  new THREE.Vector3(x-w,y-h,z-d),new THREE.Vector3(x+w,y+h,z+d));
+ group.updateMatrixWorld(true);
+ const swing=settings.moving||0;
+ const protectedRects=[{rect:screenRect(bounds(
+  settings.x,.19+settings.topPad+settings.targetHeight*.5,settings.targetZ,
+  settings.radius*1.5+swing+.18,
+  settings.targetHeight*.65+(settings.motion==='lift'?swing:0)+.19,
+  settings.radius*1.5+(settings.motion==='depth'?swing:0)+.25)),weight:9}];
+ for(const ring of hoops)protectedRects.push({rect:screenRect(bounds(
+  ring.baseX,ring.baseY,ring.z,ring.r+(settings.hoopMove?.36:.04),ring.r+.24,.28)),
+  weight:7});
+ for(const pad of pads)protectedRects.push({rect:screenRect(bounds(
+  pad.x,pad.y,pad.z,pad.r+.23,.28,pad.r+.23)),weight:7});
+ if(wallPad)protectedRects.push({rect:screenRect(bounds(
+  wallPad.x,wallPad.y,wallPad.z,.19,wallPad.height/2,wallPad.length/2)),weight:7});
+ for(const obstruction of obstacles)protectedRects.push({
+  rect:screenRect(new THREE.Box3().setFromObject(obstruction.obj)),
+  weight:obstruction.type==='barrier'?3:1.5});
+ let changed=false;const taken=[];
+ for(const decor of decorCandidates){
+  const obj=decor.obj,baseX=decor.baseX??(decor.baseX=obj.position.x),
+   baseZ=decor.baseZ??(decor.baseZ=obj.position.z),
+   side=decor.side||1;
+  let best={score:Infinity,x:baseX,z:baseZ,rect:null};
+  for(const slide of [0,.65,1.30,1.95,2.45]){
+   for(const depth of [0,-.65,-1.25]){
+    if(Math.abs(decor.anchorX+side*slide)>6.60)continue;
+    const x=baseX+side*slide,z=baseZ+depth;
+    obj.visible=true;obj.position.set(x,obj.position.y,z);
+    obj.updateWorldMatrix(true,true);
+    const projected=screenRect(new THREE.Box3().setFromObject(obj));
+    if(!projected)continue;
+    let overlap=0;
+    for(const item of protectedRects)
+     overlap+=item.weight*Math.max(0,screenOverlap(projected,item.rect,.015)-.07);
+    for(const prior of taken)overlap+=2*Math.max(0,screenOverlap(projected,prior,.012)-.11);
+    const score=overlap+slide*.035+(-depth)*.030;
+    if(score<best.score)best={score,x,z,rect:projected};
+   }
+  }
+  obj.position.set(best.x,obj.position.y,best.z);
+  // Optional decor can vanish rather than obscure a cup or a required pad.
+  obj.visible=best.score<.88;
+  obj.updateWorldMatrix(true,true);
+  if(obj.visible&&best.rect)taken.push(best.rect);
+  if(!obj.visible||Math.abs(best.x-baseX)>.01||Math.abs(best.z-baseZ)>.01)
+   changed=true;
+ }
+ return changed;
+}
+
 function buildWorld(){
  if(!hasRenderer)return;
  worldClean();
  group=new THREE.Group();scene.add(group);
- obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
+ obstacles=[];pads=[];hoops=[];wallPad=null;airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;lidOpen=null;
  const sets=[
   {walls:0xa2b3b2,carpet:0x53686d,desk:0xbb906e,trim:0x4d6d75,name:'THE CUBICLE'},
   {walls:0xb7ada1,carpet:0x637571,desk:0xa88361,trim:0x556d72,name:'MEETING ROOM'},
@@ -1477,7 +1558,10 @@ function buildWorld(){
   kettle.position.set(settings.x-1.38,settings.topPad+.39,settings.targetZ-.92);
   group.add(kettle);
   for(let i=0;i<4;i++)meshBox(farDesk,.56,.05,.56,1.47,settings.topPad+.1+i*.07,-.76,cream);
-  plant(group,settings.x+2.4,settings.targetZ-.4,1.1);
+  const plantCorner=new THREE.Group();group.add(plantCorner);
+  plant(plantCorner,settings.x+2.4,settings.targetZ-.4,1.1);
+  decorCandidates.push({obj:plantCorner,side:Math.sign(settings.x+2.4)||1,
+   anchorX:settings.x+2.4,label:'side-plant'});
  }else{
   for(let i=0;i<4;i++){
    const screen=meshBox(farDesk,.76,.52,.10,-1.85+i*1.2,settings.topPad+.52,-.80,dark);
@@ -1573,13 +1657,17 @@ function buildWorld(){
  const coworkerX=settings.x>=0?-2.25:2.25;
  const coworkerZ=settings.targetZ-1.55;
  if(settings.sceneId!==2||settings.tier%2===0){
-  const colleague=officeColleague(group,coworkerX,coworkerZ,level);
+  // One coherent vignette: desk, chair and colleague travel together.
+  const vignette=new THREE.Group();group.add(vignette);
+  const colleague=officeColleague(vignette,coworkerX,coworkerZ,level);
   colleague.rotation.y=(settings.tier%3-1)*.19;
   ambient.push({type:'colleague',obj:colleague});
-  officeChair(group,coworkerX,coworkerZ+.43);
-  const desktop=meshBox(group,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
-  officeMug(group,coworkerX+((level%2)?-.68:.68),1.15,
+  officeChair(vignette,coworkerX,coworkerZ+.43);
+  meshBox(vignette,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
+  officeMug(vignette,coworkerX+((level%2)?-.68:.68),1.15,
    coworkerZ-.38,0xb8a18d,.73);
+  decorCandidates.push({obj:vignette,side:Math.sign(coworkerX),
+   anchorX:coworkerX,label:'colleague'});
  }
  // The cup's warm rim and coaster identify the target; no floating sign
  // obscures the throw trajectory or turns the 3D scene into a HUD.
@@ -1773,8 +1861,11 @@ function buildWorld(){
      createMat([0x779ca2,0xbcaa8a,0x8f8a9e][i%3]));
   }
  }
- // Named art-direction plaque and lighting, unique on EACH level.
- roundedPoster(group,settings.challenge.toUpperCase(),0,6.10,roomEnd+.40);
+ // A set piece is visual flavor, never a reason to conceal a required target.
+ decorCandidates.push({obj:feature,side:featureSide,
+  anchorX:feature.position.x,label:'setpiece'});
+ // High wall text is offset from the central wall clock.
+ roundedPoster(group,settings.challenge.toUpperCase(),4.7,6.28,roomEnd+.40);
  // Level-specific set dressing: practical office obstacles at distinctly
  // different heights, foreground silhouettes, and a different challenge path.
  if(settings.sceneId===0){
@@ -2178,6 +2269,12 @@ function buildWorld(){
   7.87+(settings.tier%3)*.14);
  camera.lookAt(settings.x*.29,1.61,settings.targetZ*.60);
  camera.updateMatrixWorld();
+ const view=el.viewport.getBoundingClientRect();
+ camera.aspect=Math.max(.40,view.width/Math.max(1,view.height));
+ camera.fov=view.width<580?61:48;
+ camera.updateProjectionMatrix();
+ readabilityAspect=camera.aspect;
+ validateLevelReadability();
  scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
@@ -2251,7 +2348,7 @@ function buildPhysicsBodies(){
  physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];
  group.traverse(mesh=>{
   if(!mesh.isMesh||!mesh.geometry)return;
-  for(let p=mesh;p;p=p.parent)if(skip.includes(p))return;
+  for(let p=mesh;p;p=p.parent)if(!p.visible||skip.includes(p))return;
   const type=mesh.geometry.type;
   if(!['BoxGeometry','CylinderGeometry','ConeGeometry','SphereGeometry'].includes(type))return;
   const mat=Array.isArray(mesh.material)?mesh.material[0]:mesh.material;
@@ -2977,6 +3074,11 @@ function resize(){
  const w=Math.max(1,Math.floor(r.width)),h=Math.max(1,Math.floor(r.height));
  camera.aspect=w/h;
  camera.fov=w<580?61:48;camera.updateProjectionMatrix();
+ if(Math.abs(camera.aspect-readabilityAspect)>.055){
+  readabilityAspect=camera.aspect;
+  validateLevelReadability();
+  buildPhysicsBodies();
+ }
  renderer.setSize(w,h,false);
 }
 function action(){
