@@ -15,7 +15,7 @@ const el={
  power:$('ptPowerFill'),powerValue:$('ptPowerValue'),trajectoryLabel:$('ptTrajectoryLabel'),
  grid:$('ptLevelGrid'),chapters:$('ptChapters'),chapterDescription:$('ptChapterDescription'),
  prev:$('ptPrev'),next:$('ptNext'),retry:$('ptRetry'),pause:$('ptPause'),
- sound:$('ptSound'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
+ sound:$('ptSound'),voiceSelect:$('ptVoiceSelect'),voicePreview:$('ptVoicePreview'),voiceHelp:$('ptVoiceHelp'),full:$('ptFullscreen'),wind:$('ptWind'),windLabel:$('ptWindLabel'),
  aim:$('ptAimText'),tutorial:$('ptTutorial'),best:$('ptBest'),toast:$('ptToast'),objective:$('ptShotObjective'),difficulty:$('ptDifficulty')
 };
 if(Object.values(el).some(v=>!v))return;
@@ -1261,48 +1261,85 @@ function pulseBounceHalo(effect,time,impact=-10,active=true){
 // Keep reactions believable: short things an actual surprised coworker
 // might say, not scripted one-liners. Every level still has unique dialogue.
 const COWORKER_LINES=["Ow!","Hey!","Ouch!","Whoa!","Watch it!","Seriously?","Come on!","Ow, dude!","Hey, careful!","What was that?","Not cool!","Knock it off!","Ah!","Oh, come on!","Yo!","That hurt!","Really?","Hey, buddy!","Dude!","Easy!","Stop!","Excuse me?","Ow, my arm!","Are you kidding?","What's your problem?","Careful!","Hey, watch out!","Oh, man!","That was rude!","Back off!","Hey, I'm here!","Why me?","Oof!","Not again!","Are you serious?","Ow, my head!","Who did that?","Jeez!","Hold on!","What the heck?","Hey, quit it!","Watch where you're throwing!","That's enough!","Don't do that!","Ow, my shoulder!","Man, really?","Really, dude?","Come on, man!","What's going on?","Okay, stop!"];
-function voiceForColleague(n){
- const synth=window.speechSynthesis;
- const voices=synth?.getVoices?.()||[];
- const english=voices.filter(v=>/^en(?:[-_]|$)/i.test(v.lang));
- if(!english.length)return null;
- // Browser speech engines vary wildly. Prefer a small pool of clearer
- // natural/enhanced English voices over 50 arbitrarily rotating voices.
- const rank=v=>{
-  const name=v.name||'';
-  let score=/en[-_]US/i.test(v.lang)?3:0;
-  if(/premium|enhanced|natural|neural/i.test(name))score+=9;
-  if(/samantha|ava|allison|jenny|aria|davis|alex|guy|google us english/i.test(name))score+=7;
-  if(/compact|novelty|whisper|bad news|boing|bells|cellos|bubbles/i.test(name))score-=16;
-  if(v.default)score+=2;
-  return score;
- };
- const ranked=english.map((voice,index)=>({voice,index,score:rank(voice)}))
-  .sort((a,b)=>b.score-a.score||a.index-b.index);
- // Use one strong voice by default, with a second only when similarly good.
- const choices=ranked.length>1&&ranked[1].score>=ranked[0].score-2?
-  ranked.slice(0,2):ranked.slice(0,1);
- return choices[(n-1)%choices.length].voice;
+// Offline and local speech voices differ hugely in quality. Choose the most
+// human-sounding installed voice, and allow a player to audition alternatives.
+// No third-party servers, trackers, runtime downloads or API keys.
+const VOICE_PREF='crilo_pong_toss_voice_v1';
+let selectedVoice='auto';
+try{selectedVoice=localStorage.getItem(VOICE_PREF)||'auto';}catch{}
+const VOICE_NOISE=/bad news|boing|bells|cellos|bubbles|whisper|hysterical|trinoids|zarvox|organ|robot|novelty|albert|fred|junior/i;
+function availableCoworkerVoices(){
+ let voices=[];
+ try{voices=window.speechSynthesis?.getVoices?.()||[];}catch{}
+ return voices.filter(v=>/^en(?:[-_]|$)/i.test(v.lang)&&!VOICE_NOISE.test(v.name||''));
 }
-function speakColleague(n){
- if(!soundOn)return;
- const line=COWORKER_LINES[(n-1)%COWORKER_LINES.length];
+function coworkerVoiceKey(v){
+ return (v.voiceURI||v.name||'voice')+'|'+(v.lang||'en-US');
+}
+function coworkerVoiceScore(v){
+ const name=v.name||'',lang=v.lang||'';
+ let score=/en[-_]US/i.test(lang)?5:0;
+ if(/premium|enhanced|natural|neural|high quality|siri/i.test(name))score+=18;
+ if(/ava|samantha|allison|jenny|aria|davis|alex|guy|google us english|daniel|serena/i.test(name))score+=10;
+ if(/microsoft.*(online|natural)/i.test(name))score+=14;
+ if(v.localService===false)score+=4;
+ if(v.default)score+=3;
+ if(/compact|espeak|festival|classic/i.test(name))score-=12;
+ return score;
+}
+function rankedCoworkerVoices(){
+ return availableCoworkerVoices().map((voice,index)=>({voice,index,score:coworkerVoiceScore(voice)}))
+  .sort((a,b)=>b.score-a.score||a.index-b.index).map(v=>v.voice);
+}
+function voiceForColleague(n){
+ const voices=rankedCoworkerVoices();
+ if(!voices.length)return null;
+ if(selectedVoice!=='auto'){
+  const chosen=voices.find(v=>coworkerVoiceKey(v)===selectedVoice);
+  if(chosen)return chosen;
+ }
+ // Avoid cycling between unrelated robotic novelty voices. Use a consistent
+ // best-quality voice, or alternate between two similarly well-rated ones.
+ const natural=voices.filter(v=>coworkerVoiceScore(v)>=coworkerVoiceScore(voices[0])-2);
+ return natural[Math.floor((n-1)/3)%Math.min(natural.length,2)]||voices[0];
+}
+function refreshCoworkerVoices(){
+ if(!el.voiceSelect)return;
+ const ranked=rankedCoworkerVoices();
+ const select=el.voiceSelect;
+ const option=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;return o;};
+ select.replaceChildren(option('auto','Automatic · best available'));
+ for(const v of ranked){
+  if(select.options.length>18)break;
+  const natural=/premium|enhanced|natural|neural|siri/i.test(v.name||'');
+  select.appendChild(option(coworkerVoiceKey(v),v.name+(natural?' · enhanced':'')));
+ }
+ select.value=ranked.some(v=>coworkerVoiceKey(v)===selectedVoice)?selectedVoice:'auto';
+ el.voiceHelp.textContent=ranked.length?
+  'Preview the available voices and pick the most natural one. Better-quality voices depend on your browser and device.':
+  'No English voices detected yet. Your browser may load voices after you interact with the game.';
+}
+function speakColleague(n,preview=false){
+ if(!soundOn&&!preview)return false;
+ const line=preview?'Ow! Hey, watch it!':COWORKER_LINES[(n-1)%COWORKER_LINES.length];
  try{
   const synth=window.speechSynthesis;
   if(synth&&typeof window.SpeechSynthesisUtterance==='function'){
    synth.cancel();
    const speech=new window.SpeechSynthesisUtterance(line);
-   speech.lang='en-US';speech.volume=.77;
-   // A very small performance variation sounds more human than the old
-   // exaggerated 0.78–1.70 pitch spread / fast randomly chosen voices.
-   speech.pitch=.96+((n*3)%7)*.017;
-   speech.rate=.96+((n*5)%6)*.016;
-   const voice=voiceForColleague(n);if(voice)speech.voice=voice;
-   synth.speak(speech);return;
+   const voice=voiceForColleague(n);
+   if(voice){speech.voice=voice;speech.lang=voice.lang||'en-US';}
+   else speech.lang='en-US';
+   // Let a quality voice's natural prosody do its job. Large random
+   // pitch and speed shifts cause the tinny, robotic sound players disliked.
+   speech.volume=.85;speech.pitch=1;
+   speech.rate=.96;
+   synth.speak(speech);
+   return true;
   }
  }catch{}
- // A brief, gentle reaction cue if speech is unsupported; no robotic chord.
- hear(280+(n%6)*24,.12,'sine',.029);
+ if(!preview)hear(280+(n%6)*24,.12,'sine',.029);
+ return false;
 }
 function coworkerSpeechSprite(colleague,n){
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=144;
@@ -3946,6 +3983,18 @@ el.retry.addEventListener('click',()=>loadLevel(level));
 el.prev.addEventListener('click',()=>loadLevel(Math.max(1,level-1)));
 el.next.addEventListener('click',()=>loadLevel(Math.min(unlocked,level+1)));
 el.pause.addEventListener('click',togglePause);
+// The voice chooser lives in the existing ? modal; keep the gameplay
+// toolbar compact. Prefetched voices often arrive asynchronously on Chrome.
+refreshCoworkerVoices();
+try{window.speechSynthesis?.addEventListener?.('voiceschanged',refreshCoworkerVoices);}catch{}
+el.voiceSelect.addEventListener('change',()=>{
+ selectedVoice=el.voiceSelect.value||'auto';
+ try{localStorage.setItem(VOICE_PREF,selectedVoice);}catch{}
+});
+el.voicePreview.addEventListener('click',()=>{
+ if(availableCoworkerVoices().length===0)refreshCoworkerVoices();
+ speakColleague(level,true);
+});
 el.sound.addEventListener('click',()=>{
  soundOn=!soundOn;el.sound.textContent='♫';
  if(!soundOn)try{window.speechSynthesis?.cancel();}catch{}
