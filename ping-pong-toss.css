@@ -761,3 +761,41 @@ body.pt-page{
   max-width:min(250px,calc(100vw - 40px));
  }
 }
+
+/* High-contrast level scoreboard. Previously a cream value on a mint panel
+   was almost invisible, particularly at desktop screenshot sizes. */
+.pt-page .pt-top .pt-stat{
+ background:#e8f3ef;
+ border-color:#769ba0;
+}
+.pt-page .pt-top .pt-stat small{
+ color:#365b67;
+ opacity:1;
+ text-shadow:none;
+ font-weight:900;
+ letter-spacing:.035em;
+}
+.pt-page .pt-top .pt-stat strong,
+.pt-page .pt-top .pt-stat .pt-small-strong{
+ color:#173947;
+ opacity:1;
+ text-shadow:none;
+ font-weight:950;
+}
+.pt-page .pt-top .pt-stat.secondary{
+ background:#edf4ee;
+}
+.pt-page .pt-top .pt-stat.tertiary{
+ background:#e3efe9;
+}
+[data-theme="dark"] .pt-page .pt-top .pt-stat{
+ background:#d7e5df;
+ border-color:#76979a;
+}
+[data-theme="dark"] .pt-page .pt-top .pt-stat small{
+ color:#365b67;
+}
+[data-theme="dark"] .pt-page .pt-top .pt-stat strong,
+[data-theme="dark"] .pt-page .pt-top .pt-stat .pt-small-strong{
+ color:#173947;
+}
