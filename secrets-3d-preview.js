@@ -318,7 +318,7 @@ const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.205,.012,7,40),metal);
 ringHub.position.z=-.035;undersideRing.add(ringHub);
 // A lift pin, rather than a painted symbol, marks where to inspect the ring.
 const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
-setHit(undersideRing,"hatch");
+setHit(undersideRing,"underside");
 label(backFace,"IS ANYONE THERE?",2.35,.32,0,.95,.102,"#e1eecf","#698267");
 // Raised physical ring on the back face.
 const lensOuter=new THREE.Mesh(new THREE.TorusGeometry(.72,.083,15,72),metal);
