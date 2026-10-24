@@ -7,6 +7,7 @@ on:
       - 'three-workbench/**'
       - 'secrets-3d-preview.html'
       - 'secrets-3d-preview.js'
+      - 'secrets-3d-details.js'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - '.github/workflows/nothing-here-3d.yml'
   workflow_dispatch:
@@ -32,6 +33,7 @@ jobs:
       - name: Verify WebGL source syntax
         run: |
           node --check secrets-3d-preview.js
+          node --check secrets-3d-details.js
           node --check scripts/verify-secrets-3d-preview.mjs
       - name: Install browser for physical preview
         run: |
