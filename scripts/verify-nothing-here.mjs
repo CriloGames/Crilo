@@ -28,8 +28,13 @@ await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.fu
  status:200,contentType:'application/javascript',body:sdkMock
 }));
 await page.addInitScript(()=>{
- localStorage.setItem('crilo_nothing_here_secrets_v1',JSON.stringify({found:['first-touch','moon']}));
- localStorage.removeItem('crilo_nothing_here_playground_v2');
+ // Initialize once per tab, not on every reload: otherwise the test itself
+ // would delete the progress it is supposed to verify.
+ if(!sessionStorage.getItem('nh_test_seeded')){
+  localStorage.setItem('crilo_nothing_here_secrets_v1',JSON.stringify({found:['first-touch','moon']}));
+  localStorage.removeItem('crilo_nothing_here_playground_v2');
+  sessionStorage.setItem('nh_test_seeded','1');
+ }
 });
 await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>document.getElementById('nhCount')?.textContent.includes('/ 44'));
