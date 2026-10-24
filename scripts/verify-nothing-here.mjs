@@ -120,6 +120,8 @@ await hit('triangle',3);await hit('top-reed');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
 assert((await state()).pocket.includes('pipe'));
 await rotate(85,0);await hit('hatch');await hit('foot');
+assert((await state()).footChecked&&((await state()).seen.includes('underside-foot')),
+ 'The underside rubber foot did not expose its engraved clue');
 assert((await state()).pocket.includes('ring'));
 await rotate(0,90);
 for(const n of [3,1,2])await hit('vent-'+n);
