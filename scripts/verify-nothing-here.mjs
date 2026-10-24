@@ -36,6 +36,15 @@ assert(await page.locator('#ncCube').isVisible(),'No 3D cube');
 const cubeCss=await page.locator('#ncCube').evaluate(el=>getComputedStyle(el).transformStyle);
 assert.equal(cubeCss,'preserve-3d','Cube faces are not actually three-dimensional');
 assert.equal(await page.locator('.nc-face').count(),6);
+assert.equal(await page.locator('.nc-structural-frame .nc-beam').count(),12,
+ 'The cube must have twelve real 3D perimeter beams');
+assert.equal(await page.locator('.nc-structural-frame .nc-corner').count(),8,
+ 'The cube must have eight dimensional corner brackets');
+assert.equal(await page.locator('.nc-structural-frame').evaluate(el=>getComputedStyle(el).transformStyle),
+ 'preserve-3d','The chassis is flat instead of a three-dimensional assembly');
+const chassisDepth=await page.locator('.nc-beam-dtl').evaluate(el=>getComputedStyle(el).transform);
+assert(chassisDepth!=='none'&&new DOMMatrixReadOnly(chassisDepth).m13!==0,
+ 'The front-to-back frame rail has not been rotated into actual depth');
 for(const [bay,drawer] of [['ncDrawerBayA','ncDrawerA'],['ncDrawerBayB','ncDrawerB']]){
  assert.equal(await page.locator('#'+bay+' > #'+drawer).count(),1,
   'Drawer '+drawer+' must be physically mounted inside its face-specific bay');
@@ -93,9 +102,9 @@ assert.equal(await page.locator('[data-hit^="vent-"]').count(),3);
 assert.equal(await page.locator('.nc-inspection-controls button').count(),8);
 assert(await page.locator('#ncViewReset').isVisible());
 await page.locator('#ncZoomIn').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.25);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.12);
 await page.locator('#ncZoomIn').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.5);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.24);
 await page.locator('#ncZoomOut').click();
 await page.locator('#ncPanMode').click();
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'true');
@@ -104,10 +113,13 @@ assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zo
 await page.locator('#ncCubeZone').hover({position:{x:20,y:80}});
 await page.mouse.wheel(0,-200);
 await page.waitForFunction(()=>window.CriloNothingHereCube.getView().zoom>1);
+const wheelZoom=await page.evaluate(()=>window.CriloNothingHereCube.getView().zoom);
+assert(wheelZoom<=1.08,
+ 'Wheel zoom is still too sensitive: '+wheelZoom);
 await page.locator('#ncViewReset').click();
 assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'false');
-console.log('Zoom, pan toggle and reset work independently of gameplay');
+console.log('Dampened button/wheel zoom, pan toggle and reset work independently of gameplay');
 // Drag via pointer and verify the rotation changes; keyboard buttons remain as alternative.
 const zone=page.locator('#ncCubeZone');
 const before=await page.locator('#ncCube').evaluate(el=>el.style.transform);
