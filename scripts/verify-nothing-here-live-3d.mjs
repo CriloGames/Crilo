@@ -51,6 +51,14 @@ try{
  await activate("hatch-latch"); // An additional metal control still routes to the real triangle.
  await activate("dot");await activate("dot");await activate("dot");await activate("dot");
  assert.equal((await state()).redHits,4,"Red-dot sequence lost state parity");
+ // Real users click meshes, not the programmatic inspection API. Project a
+ // raised 3D button into the actual canvas and exercise pointer raycasting.
+ const button=await page.evaluate(()=>window.__nothing3DPreview.projectGameControl("dot"));
+ assert(button&&button.x>0&&button.y>0,
+  "Red button does not have a visible projected position");
+ await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
+ assert.equal((await state()).redHits,5,
+  "Clicking a visible physical red button did not trigger the original puzzle");
  for(let i=0;i<3;i++)await activate("pressure");
  await activate("serial");
  for(const n of [0,1,2])await activate("front-screw-"+n);
