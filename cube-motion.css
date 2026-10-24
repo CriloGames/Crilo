@@ -2,6 +2,11 @@
    Geometry is layered over cube-secrets.css; all mechanisms use DOM/CSS 3D,
    with state-triggered movement rather than non-interactive illustrations. */
 
+/* Kinetic actors never enlarge the scrollable page on small screens. The
+   stage clips flying effects, not the physical cube's internal 3D transforms. */
+.nc-page .nc-world{overflow:clip}
+.nc-page .nc-main{max-width:100%;min-width:0}
+@supports not (overflow:clip){.nc-page .nc-world,.nc-animation-layer{overflow:hidden}}
 /* An illuminated little turntable, visible without filling the white page. */
 .nc-stage{position:absolute;left:50%;top:52%;width:380px;height:140px;transform:translateX(-50%);pointer-events:none;z-index:-1;perspective:740px}
 .nc-stage-disc{position:absolute;inset:19% 7%;background:radial-gradient(ellipse,#cbd0d427 0%,#e8ebed1f 47%,transparent 68%);transform:rotateX(74deg);border-radius:50%}
@@ -150,7 +155,7 @@
 .nc-scene-jar{position:absolute;pointer-events:none}
 
 /* The other world is built with articulated pieces, not emoji. */
-.nc-animation-layer{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:10}
+.nc-animation-layer{position:absolute;inset:0;pointer-events:none;overflow:clip;z-index:10}
 .nc-automaton-mouse,.nc-action-squirrel,.nc-action-bird,.nc-impact-wave{position:absolute;pointer-events:none;opacity:0}
 .nc-automaton-mouse{top:61%;left:37%;width:92px;height:49px;z-index:2;transform-origin:center}
 .nc-mouse-body{position:absolute;left:25px;top:9px;width:60px;height:31px;background:linear-gradient(145deg,#c7d0db,#8798aa);
