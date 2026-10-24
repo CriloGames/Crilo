@@ -474,6 +474,13 @@ window.__nothing3DPreview={
  },
  get finishMeshCount(){return finish.meshCount()},
  get gameControls(){return gameHotspots?.actions||[]},
+ projectGameControl(name){
+  const obj=gameHotspots?.targets.get(name);
+  if(!obj)return null;
+  scene.updateWorldMatrix(true,true);
+  const pos=obj.getWorldPosition(new THREE.Vector3()).project(camera);
+  return {x:(pos.x+1)*.5*stage.clientWidth,y:(1-pos.y)*.5*stage.clientHeight,depth:pos.z};
+ },
  get finishQuality(){return finish.quality},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
  get detailMeshCount(){return intricate.meshCount()},
