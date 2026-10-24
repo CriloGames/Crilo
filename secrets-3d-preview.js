@@ -400,6 +400,8 @@ window.__nothing3DPreview={
  get sideOpen(){return side.open},
  get topOpen(){return lidOpen},
  get hatchBraceLengths(){return hingeBraces.map(({body})=>body.scale.y)},
+ get hatchAngle(){return lidPivot.rotation.x},
+ get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
 };
