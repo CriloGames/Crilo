@@ -273,6 +273,8 @@ function render(){
   el.classList.toggle('nc-fastener-removed',s.screws.includes(n));
   el.classList.toggle('nc-fastener-fake',n===3);
  });
+ const concealedStrip=document.querySelector('[data-hit="cipher-strip"]');
+ if(concealedStrip)concealedStrip.hidden=s.eyeRingTicks<3;
  document.querySelectorAll('[data-hit^="hinge-"]').forEach(el=>{
   el.classList.toggle('nc-hinge-shifted',s.hingePins.includes(Number(el.dataset.hit.slice(-1))));
  });
@@ -401,9 +403,15 @@ function inspectHardware(name){
  }
  if(name==='eye-ring'){
   s.eyeRingTicks++;
-  if(s.eyeRingTicks===3)bloom('eye-dial','The ring clicks into place. Something behind the eye wants a gear.');
-  else tell(s.eyeRingTicks>=3?'The calibration dial has reached its end stop.':'The tiny iris adjuster advances one engraved mark.');
+  if(s.eyeRingTicks===3)bloom('eye-dial','The ring clicks into place. Something behind the eye wants a gear. A sliver of engraved brass slides out beside the lens.');
+  else tell(s.eyeRingTicks>=3?'The iris is fully calibrated. There is now a tiny metal strip on the back face.':'The tiny iris adjuster advances one engraved mark.');
   cue(document.querySelector('[data-hit="eye-ring"]'),'nc-fastener-turning',500);
+  return true;
+ }
+ if(name==='cipher-strip'){
+  if(s.eyeRingTicks<3){tell('There is only a closed seam here. The optical ring might move it.');return true}
+  tell('Beneath the calibrated rear lens, a miniature brass ribbon bears three marks: ◇ · ○ · ☾.');
+  sound(575);
   return true;
  }
  if(name.startsWith('hinge-')){
@@ -614,7 +622,7 @@ function openBag(){
  if(!s.bagOpen){tell('The bag is locked. Its little brass keyhole seems very specific.');return}
  const sym=['○','✳','◇','☾'];
  modal('INSIDE THE BAG',s.bagSolved?'A suspicious lining':'The three hidden wheels',
-  '<p>Three small wheels are sewn into the lining. A faded stitch reads: <strong>DIAMOND · CIRCLE · MOON.</strong></p>'+ 
+  '<p>Three little wheels are sewn into the lining. The stitching is newer than the bag, and nothing explains their order.</p>'+
   '<div class="nc-bag-interior" id="ncBagInterior"><div class="nc-bag-wheels">'+[0,1,2].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+'" aria-label="Turn wheel '+(i+1)+'">'+sym[s.bagDials[i]]+'</button>').join('')+'</div>'+
   '</div><p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'These are not ordinary luggage wheels.')+'</p>','bag');
 }
