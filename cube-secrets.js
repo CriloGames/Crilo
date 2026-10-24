@@ -360,8 +360,13 @@ $('ncModal').addEventListener('click',e=>{if(e.target===$('ncModal'))closeModal(
 $('ncUnselect').addEventListener('click',()=>{selected=null;render()});
 $('ncCubeZone').addEventListener('click',e=>{
  if(blockedClick){e.stopImmediatePropagation();e.preventDefault();blockedClick=false;return}
+ // The engraved square is a real touch target, also usable by keyboard.
+ if(selected&&e.target.closest('[data-thing="cube"]')){
+  if(!use(selected,'cube')){tell('The cube refuses that offering.');selected=null;render();}
+  e.stopPropagation();return;
+ }
  if(selected&&!e.target.closest('button,[data-hit]')){
-  if(use(selected,'cube'))return;
+  if(use(selected,'cube')){e.stopPropagation();return}
   tell('The cube refuses that offering.');selected=null;render();
  }
 },true);
