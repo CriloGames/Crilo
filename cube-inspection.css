@@ -1,0 +1,167 @@
+/* Nothing Here — inspection table, readable scale and working mechanical details.
+   Overrides previous stage styles intentionally; existing game objects stay intact. */
+.nc-page .nc-main{width:min(1120px,calc(100% - 30px));max-width:1120px;padding-top:12px}
+.nc-page .nc-overline{margin-bottom:7px}
+.nc-page .nc-title{font-size:clamp(38px,5vw,63px);line-height:1.03;margin:5px 0 4px;letter-spacing:-.065em}
+.nc-page .nc-intro{font-size:12px;margin:0 0 3px;color:#96a0a8}
+.nc-page .nc-world{height:clamp(390px,57dvh,600px);max-height:none;overflow:clip;
+ margin:0 auto;background:radial-gradient(ellipse 38% 27% at 50% 51%,#f1f4f3b3,transparent 94%)}
+.nc-world .nc-dust{opacity:.35}
+.nc-world .nc-stage{top:58%}
+.nc-world .nc-cube-zone{
+ --size:clamp(178px,24vw,251px);--nc-zoom:1;--nc-pan-x:0px;--nc-pan-y:0px;
+ width:min(620px,100%);height:100%;min-height:0;perspective:1100px;perspective-origin:50% 50%;
+ position:relative;transform:translate3d(var(--nc-pan-x),var(--nc-pan-y),0) scale(var(--nc-zoom));
+ transform-origin:center;transition:transform .24s cubic-bezier(.2,.7,.2,1);cursor:grab;
+ touch-action:none;isolation:isolate
+}
+.nc-world .nc-cube-zone.nc-dragging{transition:none;cursor:grabbing}
+.nc-world .nc-cube{transform-style:preserve-3d;will-change:transform}
+.nc-world .nc-cube-hint{bottom:51px;line-height:1.4;font-size:11px;letter-spacing:.06em;color:#84939c}
+.nc-world .nc-silhouette{bottom:57px;width:clamp(160px,26vw,255px);height:38px}
+.nc-page .nc-narrator{margin:3px auto 23px;font-size:13px;line-height:1.6;min-height:34px}
+.nc-page .nc-pocket{margin-top:24px}
+.nc-page .nc-cube .nc-face{
+ border:3px solid #53606a;border-radius:11px;
+ box-shadow:inset 0 0 0 3px #f9f9fb99,inset 0 0 0 8px #e3e8e65c,
+ inset -16px -19px 27px #53606b1a,inset 8px 10px 19px #fff9,2px 4px 0 #4b536322;
+ background-image:linear-gradient(145deg,#fff9 0,transparent 38%,#4855680b 82%,#40516126 100%)
+}
+.nc-page .nc-cube .nc-front{background-color:#d7d1e7}
+.nc-page .nc-cube .nc-right{background-color:#afd0d1}
+.nc-page .nc-cube .nc-left{background-color:#f0cfc1}
+.nc-page .nc-cube .nc-top{background-color:#e8d6ad}
+.nc-page .nc-cube .nc-bottom{background-color:#c4b8d9}
+.nc-page .nc-cube .nc-back{background-color:#cfdfc2}
+.nc-page .nc-face .nc-face-frame,.nc-front-panel-engraving{pointer-events:none}
+.nc-page .nc-front .nc-face-frame{box-shadow:inset 0 0 0 3px #f5ebfa9c,0 0 0 3px #9183a72b}
+.nc-page .nc-face-hit{min-width:21px;min-height:21px}
+.nc-page .nc-front-knob{left:12%;top:14%;width:38px;height:38px}
+.nc-page .nc-front-dot{top:15%;right:13%;height:21px;width:21px}
+.nc-page .nc-front .nc-face-symbol{height:68px;width:73px;font-size:46px;color:#a89aaf}
+.nc-maker-mark{position:absolute;left:50%;top:12%;transform:translateX(-50%);
+ font-size:8px;font-weight:900;letter-spacing:.13em;color:#81748d;white-space:nowrap;
+ opacity:.67;pointer-events:none}
+.nc-underface{position:absolute;inset:19% 19%;z-index:2;opacity:0;pointer-events:none;
+ border:2px solid #655d75;border-radius:12px;background:radial-gradient(circle at 34% 30%,#6f6b82,#443e52);
+ transform:translateZ(-1px);transition:opacity .45s}
+.nc-under-gears{position:absolute;left:13%;top:10%;font-size:58px;color:#dbbf8d;
+ text-shadow:3px 4px 0 #2a2b35;animation:ncGear 6s linear infinite}
+.nc-under-message{position:absolute;right:10%;bottom:10%;font-size:13px;font-weight:900;letter-spacing:.15em;color:#f0d4a1}
+.nc-front-plate-free .nc-underface{opacity:1}
+.nc-front-plate-free .nc-face-symbol{transform:translateY(-11px) rotate(12deg);box-shadow:0 10px 8px #453c5173;background:#ded2e6}
+.nc-front-plate-free .nc-front-panel-engraving{transform:translate(11px,9px) rotate(6deg);border-color:#786989;transition:transform .6s}
+.nc-front-plate-free .nc-face-frame{border-style:dashed}
+/* All four visible fasteners have actual hit boxes; one is deliberately fake. */
+.nc-front-screws{pointer-events:none;z-index:6}
+.nc-front-screws>i{pointer-events:none;opacity:.45}
+.nc-tactile-screw{position:absolute;width:35px;height:35px;padding:0;border:0;background:none;
+ border-radius:50%;pointer-events:auto;cursor:pointer;display:grid;place-items:center;z-index:8}
+.nc-tactile-screw:nth-of-type(1){left:-11px;top:-11px}
+.nc-tactile-screw:nth-of-type(2){right:-11px;top:-11px}
+.nc-tactile-screw:nth-of-type(3){left:-11px;bottom:-11px}
+.nc-tactile-screw:nth-of-type(4){right:-11px;bottom:-11px}
+.nc-tactile-screw::before{content:"";width:19px;height:19px;border:2px solid #7b727e;border-radius:50%;
+ background:radial-gradient(circle at 28% 23%,#fffefa,#bfb7c3 70%,#908496 100%);
+ box-shadow:0 2px 0 #787281,0 4px 6px #3f394d30;transition:transform .3s,opacity .3s}
+.nc-tactile-screw::after{content:"";position:absolute;width:12px;height:2px;border-radius:4px;
+ background:#746979;transform:rotate(24deg);box-shadow:0 1px 0 #fdfbff66;transition:transform .45s}
+.nc-tactile-screw:hover::before{filter:brightness(1.15);transform:scale(1.12)}
+.nc-tactile-screw:hover::after{transform:rotate(70deg)}
+.nc-tactile-screw.nc-fastener-removed::before{background:#51475d;box-shadow:inset 0 3px 4px #191620;opacity:.5}
+.nc-tactile-screw.nc-fastener-removed::after{opacity:0;transform:rotate(200deg) scale(.2)}
+.nc-tactile-screw.nc-fastener-fake::before{border-color:#a98164;background:#dbac80}
+.nc-tactile-screw.nc-fastener-turning::after{transform:rotate(300deg)}
+/* Right face rivets and etched service strip. */
+.nc-right-bolts{z-index:6;pointer-events:none}
+.nc-right-bolts>i{opacity:.5}
+.nc-right-bolts>button{position:absolute;width:34px;height:34px;border:0;background:transparent;border-radius:50%;
+ pointer-events:auto;z-index:9;cursor:pointer}
+.nc-right-bolts>button:nth-of-type(1){left:-11px;top:-11px}
+.nc-right-bolts>button:nth-of-type(2){right:-11px;top:-11px}
+.nc-right-bolts>button:nth-of-type(3){left:-11px;bottom:-11px}
+.nc-right-bolts>button:nth-of-type(4){right:-11px;bottom:-11px}
+.nc-right-bolts>button::after{content:"";position:absolute;width:13px;height:2px;background:#647982;left:11px;top:16px;transform:rotate(30deg)}
+.nc-right-bolts>button:hover{background:#e9f7f740}
+.nc-right-bolts>button.nc-fastener-removed{background:radial-gradient(circle,#52787f 20%,#aed2d3 55%,transparent 70%)}
+.nc-right-bolts>button.nc-fastener-removed::after{opacity:0}
+.nc-service-plate{position:absolute;bottom:12%;left:35%;font-size:10px;letter-spacing:.14em;
+ font-weight:950;color:#5b8b93;background:#d8eeea88;border:1px solid #8eb5b7;padding:4px 7px;
+ border-radius:2px;pointer-events:none}
+.nc-vent-frame{position:absolute;left:9%;right:9%;bottom:10%;height:32px;
+ display:flex;justify-content:space-around;gap:4px;z-index:6}
+.nc-vent-frame button{height:33px;flex:1;max-width:49px;border:2px solid #a77f76;border-radius:9px;
+ background:linear-gradient(#f4d8c9,#dcaea1);color:#8d6762;font-size:14px;font-weight:900;
+ box-shadow:0 3px 0 #ad8b82,0 6px 9px #64493b24}
+.nc-vent-frame button:hover{background:#fff0da}
+.nc-vent-frame button.nc-vent-pressed{transform:translateY(3px);background:#acd0c3;box-shadow:inset 0 2px 3px #6c9688}
+.nc-vent-panel{position:absolute;left:16%;top:12%;height:29%;width:67%;border:2px dashed #976e70;
+ border-radius:12px;background:#765a63;opacity:0;transition:opacity .5s,transform .55s;
+ transform:translateY(13px);pointer-events:none;text-align:center;z-index:2}
+.nc-vent-panel b{color:#e3d2b0;font-size:48px;line-height:1}
+.nc-vent-open .nc-vent-panel{opacity:1;transform:translateY(0)}
+/* Hinge pins are small, intentional targets rather than decorative marks. */
+.nc-hinge-frame{pointer-events:none}
+.nc-hinge-frame>button{position:absolute;top:-19px;width:32px;height:34px;border:0;background:transparent;
+ border-radius:6px;pointer-events:auto;z-index:9}
+.nc-hinge-frame>button:nth-of-type(1){left:4%}
+.nc-hinge-frame>button:nth-of-type(2){left:calc(50% - 16px)}
+.nc-hinge-frame>button:nth-of-type(3){right:4%}
+.nc-hinge-frame>button.nc-hinge-shifted{background:#8c7a583d;transform:translateY(-3px)}
+.nc-bottom-foot{position:absolute;bottom:11%;right:12%;height:34px;width:34px;border:3px solid #7b718c;
+ background:linear-gradient(#676073,#40394b);border-radius:45%;color:#c9bbd9;
+ z-index:8}
+.nc-bottom-foot:hover{filter:brightness(1.3)}
+.nc-eye-adjuster{position:absolute;right:9%;bottom:11%;height:46px;width:46px;border:3px double #789574;
+ border-radius:50%;background:#d9e6c8;color:#6c8667;font-size:30px;z-index:7;
+ box-shadow:0 4px 0 #9aaf91;transition:transform .25s}
+.nc-eye-adjuster:hover{background:#f2fbe5}
+.nc-back-dial-aligned .nc-eye-adjuster{border-color:#d8ae70;color:#ad8b5d;box-shadow:0 0 14px #efcfa790}
+/* Rotation stays outside the zoomed object, so the controls remain usable. */
+.nc-inspection-controls{position:absolute;left:22px;right:22px;bottom:14px;z-index:35;
+ display:flex;justify-content:space-between;align-items:center;gap:14px;pointer-events:none}
+.nc-inspection-controls .nc-rotate-controls,.nc-inspection-controls .nc-zoom-controls{
+ position:static!important;display:flex;align-items:center;gap:5px;pointer-events:auto}
+.nc-inspection-controls button{min-height:38px;min-width:38px;border:1.5px solid #ccd6dd;
+ background:#ffffffed;color:#506272;font-size:19px;border-radius:10px;
+ box-shadow:0 3px 10px #50606a12;line-height:1;transition:background .15s,transform .15s}
+.nc-inspection-controls button:hover{background:#eff7f6;border-color:#83aaa5;transform:translateY(-2px)}
+.nc-inspection-controls button:active{transform:translateY(1px)}
+.nc-inspection-controls .nc-zoom-controls{padding:4px;border-radius:13px;background:#fffc;
+ border:1px solid #e5e9eb;backdrop-filter:blur(8px)}
+.nc-zoom-controls #ncZoomAmount{min-width:51px;text-align:center;font-size:11px;font-weight:850;
+ letter-spacing:.02em;color:#5d7480;font-variant-numeric:tabular-nums}
+.nc-zoom-controls #ncPanMode[aria-pressed="true"]{background:#d3e9df;border-color:#81ac94;color:#3e7960}
+.nc-page .nc-footer-whisper{margin-top:26px}
+/* Mobile-first sizing: reserve viewport space for title and controls. */
+@media(max-width:760px){
+ .nc-page .nc-main{width:calc(100% - 20px);padding-top:10px}
+ .nc-page .nc-title{font-size:clamp(35px,9vw,51px);margin:4px 0}
+ .nc-page .nc-world{height:clamp(380px,55dvh,540px)}
+ .nc-world .nc-cube-zone{--size:clamp(169px,43vw,218px);width:100%}
+ .nc-inspection-controls{left:4px;right:4px;bottom:10px;gap:4px}
+ .nc-inspection-controls button{min-width:31px;min-height:34px;font-size:16px;border-radius:8px}
+ .nc-zoom-controls #ncZoomAmount{min-width:43px;font-size:10px}
+ .nc-world .nc-cube-hint{bottom:54px;font-size:10px}
+ .nc-page .nc-narrator{font-size:12px;min-height:28px}
+ .nc-tactile-screw{width:32px;height:32px}
+ .nc-page .nc-front .nc-face-symbol{width:55px;height:55px;font-size:37px}
+ .nc-maker-mark{font-size:6px;top:11%}
+ .nc-under-message{font-size:10px}
+ .nc-under-gears{font-size:39px}
+ .nc-vent-frame button{font-size:11px}
+ .nc-page .nc-pocket{margin-top:18px}
+}
+@media(max-width:390px){
+ .nc-inspection-controls{flex-wrap:wrap;justify-content:center;bottom:7px;row-gap:4px}
+ .nc-inspection-controls .nc-rotate-controls,.nc-inspection-controls .nc-zoom-controls{justify-content:center}
+ .nc-inspection-controls button{min-width:30px;min-height:30px}
+ .nc-world .nc-cube-hint{bottom:83px;font-size:9px}
+ .nc-world .nc-cube-zone{--size:clamp(160px,47vw,192px)}
+ .nc-page .nc-world{height:clamp(385px,55dvh,500px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-world .nc-cube-zone,.nc-inspection-controls button,.nc-vent-panel,
+ .nc-eye-adjuster,.nc-front-panel-engraving,.nc-fastener-removed{transition:none!important}
+ .nc-under-gears{animation:none}
+}
