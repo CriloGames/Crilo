@@ -46,6 +46,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
  let bagDialPanel=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let loadedOriginalStory=false;
+ let lastDialValues=null,lastFloorFour=false;
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  const setPose=(object,axis,key,target,duration=.65,instant=false)=>{
   if(!object||Math.abs(object[axis][key]-target)<.001)return;
@@ -345,6 +346,17 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   for(const x of [-.075,.075])ball(g,.042,x,.57,.057,m.pink);
   wire(g,[[.08,.27,-.11],[.22,.38,-.17],[.22,.58,-.20],[.10,.69,-.16]],.055,m.wood);
  }
+ function pulse(action){
+  const control=puzzleControls.get(action);
+  if(!control||!action.startsWith("thing:elevator-floor-"))return false;
+  gsap.killTweensOf(control.position);
+  control.position.z=.159;
+  if(reducedMotion){invalidate();return true;}
+  gsap.timeline({onUpdate:invalidate})
+   .to(control.position,{z:.113,duration:.12,ease:"power2.out"})
+   .to(control.position,{z:.159,duration:.27,ease:"back.out(2)"});
+  return true;
+ }
  function setState(state){
   const s=state||{};
   const firstRestore=!loadedOriginalStory&&Object.keys(s).length>0;
@@ -371,17 +383,32 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
+  const newDialValues=[0,1,2].map(i=>(s.bagDials?.[i]||0)%4);
   for(let i=0;i<bagDials.length;i++){
-   const value=(s.bagDials?.[i]||0)%4;
-   bagDials[i].rotation.z=value*Math.PI/2;
-   // Rotating the wheel indexes a new permanent stamped symbol through its
-   // central reading window, so the chosen value stays upright and obvious.
-   bagDialGlyphs[i].rotation.z=-bagDials[i].rotation.z;
-   bagDialGlyphs[i].material=glyphMaterials[value];
+   const value=newDialValues[i],dial=bagDials[i],glyph=bagDialGlyphs[i];
+   if(!lastDialValues||firstRestore){
+    gsap.killTweensOf(dial.rotation);
+    gsap.killTweensOf(glyph.rotation);
+    dial.rotation.z=value*Math.PI/2;
+    glyph.rotation.z=-dial.rotation.z;
+   }else if(value!==lastDialValues[i]){
+    const turns=(value-lastDialValues[i]+4)%4;
+    // Forward-only ratchet: wrapping 3 -> 0 advances one detent, not
+    // backwards through three other symbols.
+    const end=dial.rotation.z+turns*Math.PI/2;
+    setPose(dial,"rotation","z",end,.33);
+    setPose(glyph,"rotation","z",-end,.33);
+   }
+   glyph.material=glyphMaterials[value];
   }
+  lastDialValues=newDialValues;
   liftDoors.forEach((panel,i)=>{
-   panel.position.x=(i===0?-1:1)*(s.floorFour?.18:.105);
+   const target=(i===0?-1:1)*(s.floorFour?.18:.105);
+   if(firstRestore||reducedMotion)panel.position.x=target;
+   else if(lastFloorFour!==!!s.floorFour)
+    setPose(panel,"position","x",target,.83);
   });
+  lastFloorFour=!!s.floorFour;
   // The vase remains full-size in object space: its genuine fragments replace
   // the intact geometry, rather than squashing the original to fake breakage.
  }
@@ -398,6 +425,10 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
   puzzleActions:[...puzzleControls.keys()],
+  pulse,
+  getDialAngles:()=>bagDials.map(d=>d.rotation.z),
+  getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
+  getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
   getPose:()=>({
    doorAngle:doorLeaf?.rotation.y??0,
    musicLidAngle:musicLid?.rotation.x??0,
