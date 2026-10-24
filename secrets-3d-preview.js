@@ -15,7 +15,7 @@ const stage = document.getElementById("stage");
 const status = document.getElementById("status");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
-camera.position.set(5.25, 4.45, 7.15);
+camera.position.set(4.2,3.5,6.45);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -347,59 +347,18 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat,animate,invalidate
 }):null;
-const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate}):null;
+// The miniature discoveries attach to actual cube faces, never an
+// unrelated ground pedestal.
+const pocketWorlds=embeddedGame?buildPocketWorlds({
+ cube,faces:{frontFace,backFace,leftFace,rightFace,topFace,bottomFace},
+ box,cylinder,mat,setHit,invalidate
+}):null;
 let currentGameState={};
 let physicalStateInitialized=false;
 
-// Grounding is a real plane receiving the real shadow of the mechanism.
-const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(250,250),floorMaterial);
-floor.rotation.x=-Math.PI/2;floor.position.y=-2.43;floor.receiveShadow=true;
-const plinth = new THREE.Mesh(
- new THREE.CylinderGeometry(2.51,2.62,.20,88,1),
- new THREE.MeshPhysicalMaterial({color:0xf6f4ef,roughness:.51,metalness:.13,clearcoat:.27})
-);
-plinth.position.y=-2.30;plinth.receiveShadow=true;plinth.castShadow=true;
-scene.add(plinth);
-const plinthRim=new THREE.Mesh(new THREE.TorusGeometry(2.49,.018,8,104),brass);
-plinthRim.rotation.x=Math.PI/2;plinthRim.position.y=-2.195;scene.add(plinthRim);
-scene.add(floor);
-// A pair of articulated steel stays physically joins the rotating artifact
-// to its stationary brass plinth. Their ball joints track the real cube
-// transform instead of staying behind when the player rotates a face.
-const supportAxis=new THREE.Vector3(0,1,0);
-const supportLegs=[-.43,.43].map(x=>{
- const anchor=new THREE.Vector3(x,-2.020,-.36);
- const ball=new THREE.Mesh(new THREE.SphereGeometry(.10,14,10),brass);
- ball.position.copy(anchor);scene.add(ball);
- const shoe=new THREE.Mesh(new THREE.CylinderGeometry(.17,.20,.07,20),darkMetal);
- shoe.position.set(x,-2.037,-.36);shoe.castShadow=true;scene.add(shoe);
- const cubeBearing=new THREE.Group();cubeBearing.position.set(x,-1.70,-.46);
- cube.add(cubeBearing);
- const cap=new THREE.Mesh(new THREE.SphereGeometry(.10,14,10),metal);
- cap.castShadow=true;cubeBearing.add(cap);
- const rod=new THREE.Mesh(new THREE.CylinderGeometry(.066,.078,1,14),metal);
- rod.castShadow=true;rod.receiveShadow=true;scene.add(rod);
- const polishedPiston=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,1,12),brass);
- polishedPiston.castShadow=false;scene.add(polishedPiston);
- return {anchor,cubeBearing,rod,polishedPiston};
-});
-function updatePedestalSupports(){
- cube.updateWorldMatrix(true,false);
- for(const part of supportLegs){
-  const end=part.cubeBearing.getWorldPosition(new THREE.Vector3());
-  const direction=end.clone().sub(part.anchor);
-  const length=Math.max(.03,direction.length());
-  part.rod.position.copy(part.anchor).lerp(end,.48);
-  part.rod.quaternion.setFromUnitVectors(supportAxis,direction.clone().normalize());
-  part.rod.scale.y=length*.96;
-  // A sliding inner brass rod makes the attachment read as a functioning
-  // telescopic joint, not two rigid metal spikes glued onto the cube.
-  part.polishedPiston.position.copy(part.anchor).lerp(end,.83);
-  part.polishedPiston.quaternion.copy(part.rod.quaternion);
-  part.polishedPiston.scale.y=length*.33;
- }
-}
+// The puzzle box floats in an empty room. The player can orbit and pan
+// the whole object without a pedestal, ground plane or support rods.
+const floatingScene=true;
 function announce(message){status.textContent=message;}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animate(object,props,duration=.82){
@@ -511,7 +470,7 @@ document.getElementById("drawerFront")?.addEventListener("click",()=>clickAction
 document.getElementById("drawerRight")?.addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop")?.addEventListener("click",()=>clickAction("hatch"));
 document.getElementById("reset")?.addEventListener("click",()=>{
- const home=stage.clientWidth<720?[6.95,5.75,9.35]:[5.25,4.45,7.15];
+ const home=stage.clientWidth<720?[5.6,4.7,7.45]:[4.2,3.5,6.45];
  animate(camera.position,{x:home[0],y:home[1],z:home[2]});
  animate(cube.rotation,{x:-.19,y:-.33,z:.02});
  controls.target.set(0,0,0);
@@ -615,7 +574,7 @@ const onResize=()=>{
  const mode=r.width<720?"mobile":"desktop";
  if(mode!==cameraMode){
   cameraMode=mode;
-  const home=mode==="mobile"?[6.95,5.75,9.35]:[5.25,4.45,7.15];
+  const home=mode==="mobile"?[5.6,4.7,7.45]:[4.2,3.5,6.45];
   camera.position.set(...home);
  }
  camera.aspect=Math.max(.3,r.width/r.height);
@@ -635,7 +594,6 @@ function drawFrame(){
  pendingFrame=0;
  controls.update();
  updateHatchBraces();
- updatePedestalSupports();
  renderer.render(scene,camera);
  if(hatchMotion)invalidate();
 }
@@ -751,7 +709,10 @@ window.__nothing3DPreview={
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
  get solidShellBlockerCount(){return occlusionMeshes.length},
- get pedestalSupportLengths(){updatePedestalSupports();return supportLegs.map(s=>s.rod.scale.y)},
+ get floatingScene(){return floatingScene},
+ get pedestalSupportLengths(){return []},
+ get pedestalMeshCount(){return scene.children.filter(o=>/plinth|floor|support/i.test(o.name)).length},
+ get storyMounts(){return pocketWorlds?.getMountPositions?.()||[]},
  get physicalMechanismState(){return intricate.getState()},
  get miniatureMechanismPose(){return {
   bagDials:pocketWorlds?.getDialAngles?.()||[],
