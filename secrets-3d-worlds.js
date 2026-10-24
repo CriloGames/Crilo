@@ -45,11 +45,15 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
  });
  let bagDialPanel=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
+ let loadedOriginalStory=false;
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
- const setPose=(object,axis,key,target,duration=.65)=>{
+ const setPose=(object,axis,key,target,duration=.65,instant=false)=>{
   if(!object||Math.abs(object[axis][key]-target)<.001)return;
-  if(reducedMotion){object[axis][key]=target;invalidate();return;}
   gsap.killTweensOf(object[axis]);
+  // On a saved-game reload the prior puzzle state must appear immediately:
+  // animating every old prop from its initial pose can confuse the player and
+  // take multiple seconds on mobile/SwiftShader.
+  if(reducedMotion||instant){object[axis][key]=target;invalidate();return;}
   gsap.to(object[axis],{[key]:target,duration,ease:"power2.inOut",onUpdate:invalidate});
  };
  const B=(g,w,h,d,x,y,z,color,r=.027)=>{
@@ -343,6 +347,8 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
  }
  function setState(state){
   const s=state||{};
+  const firstRestore=!loadedOriginalStory&&Object.keys(s).length>0;
+  if(firstRestore)loadedOriginalStory=true;
   const show={
    bag:s.bag,door:s.door,dog:s.doorOpen,vase:s.doorOpen,
    squirrel:s.squirrel, pot:s.vase,musicbox:s.vase,
@@ -357,8 +363,8 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
-  setPose(doorLeaf,"rotation","y",s.doorOpen?-.98:0);
-  setPose(musicLid,"rotation","x",s.music?-.91:0);
+  setPose(doorLeaf,"rotation","y",s.doorOpen?-.98:0,.65,firstRestore);
+  setPose(musicLid,"rotation","x",s.music?-.91:0,.65,firstRestore);
   if(vaseWhole)vaseWhole.visible=!s.vase;
   if(vaseFragments)vaseFragments.visible=!!s.vase;
   // The code wheels are hidden inside the luggage lining until the
