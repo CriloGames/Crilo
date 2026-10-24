@@ -6,6 +6,8 @@
    stage clips flying effects, not the physical cube's internal 3D transforms. */
 .nc-page .nc-world{overflow:clip}
 .nc-page .nc-main{max-width:100%;min-width:0}
+/* Leaves unfurl beyond their pot, but never widen a narrow screen. */
+.nc-page .nc-side-objects{max-width:100%;overflow-x:clip;overflow-y:visible}
 @supports not (overflow:clip){.nc-page .nc-world,.nc-animation-layer{overflow:hidden}}
 /* An illuminated little turntable, visible without filling the white page. */
 .nc-stage{position:absolute;left:50%;top:52%;width:380px;height:140px;transform:translateX(-50%);pointer-events:none;z-index:-1;perspective:740px}
@@ -387,6 +389,8 @@
 }
 @media(max-width:480px){
  .nc-stage{width:225px;top:53%}
+ .nc-page .nc-prop.nc-pot .nc-pot-plant{left:3px}
+ .nc-page .nc-prop.nc-pot .nc-pot-rim{max-width:85px}
  .nc-world>.nc-door-scene.nc-arriving{animation:ncMobileDoorArrive 1.25s cubic-bezier(.2,.9,.29,1.05) both}
  @keyframes ncMobileDoorArrive{
  0%{opacity:0;transform:translateY(140px) scale(.1)}
