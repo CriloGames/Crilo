@@ -3,7 +3,7 @@ import * as THREE from "three";
 // Faithful three-dimensional replacements for the original game's actual
 // interaction targets. The authoritative puzzle logic stays in cube-secrets.js.
 // Nothing in this module writes saves or awards secrets by itself.
-export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat}) {
+export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animate}) {
  const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
  const brass=mat(0xd0ac75,.7,.32),nickel=mat(0xa0a8ae,.65,.36);
  const graphite=mat(0x46505c,.43,.52),glass=mat(0xa4d8cc,.16,.22);
@@ -85,6 +85,39 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat}) {
  resonatorLight.material.emissive=new THREE.Color(0x3d898c);
  resonatorLight.material.emissiveIntensity=.3;
  resonator.visible=false;
+ // Rear-face cipher: the bag combination is deliberately NOT printed inside
+ // the bag. Calibrating the eye ring three times uncovers an inset brass
+ // ribbon beside the lens. All three glyphs have true geometric relief.
+ const cipherMount=node(backFace,-.93,-1.25,.225);
+ B(cipherMount,.86,.29,.082,0,0,0,graphite,.034);
+ B(cipherMount,.80,.24,.032,0,0,.040,nickel,.025);
+ const cipherStrip=new THREE.Group();cipherStrip.position.set(0,0,.062);
+ cipherMount.add(cipherStrip);
+ B(cipherStrip,.76,.205,.045,0,0,.014,brass,.025);
+ B(cipherStrip,.675,.145,.014,0,0,.047,ivory,.013);
+ // ◇ : a die-cut, rotated metal lozenge.
+ const diamond=B(cipherStrip,.104,.104,.024,-.220,0,.068,graphite,.008);
+ diamond.rotation.z=Math.PI/4;
+ const diamondPin=B(cipherStrip,.033,.033,.026,-.220,0,.085,nickel,.004);
+ diamondPin.rotation.z=Math.PI/4;
+ // ○ : a raised open circle, not a bitmap.
+ const cipherCircle=new THREE.Mesh(new THREE.TorusGeometry(.072,.015,9,28),graphite);
+ cipherCircle.position.set(0,0,.073);cipherCircle.castShadow=false;
+ cipherStrip.add(cipherCircle);count++;
+ // ☾ : a bevelled crescent cut from an extruded metal shape.
+ const crescentShape=new THREE.Shape();
+ crescentShape.moveTo(.019,.079);
+ crescentShape.bezierCurveTo(-.103,.077,-.103,-.077,.019,-.079);
+ crescentShape.bezierCurveTo(-.038,-.025,-.038,.025,.019,.079);
+ const crescent=new THREE.Mesh(new THREE.ExtrudeGeometry(crescentShape,{
+  depth:.017,bevelEnabled:true,bevelThickness:.004,bevelSize:.004,
+  bevelSegments:1,curveSegments:14
+ }),graphite);
+ crescent.position.set(.229,0,.062);
+ crescent.castShadow=false;cipherStrip.add(crescent);count++;
+ for(const x of [-.355,.355])C(cipherStrip,.024,.030,x,0,.065,nickel);
+ setHit(cipherStrip,"cipher-strip");targets.set("cipher-strip",cipherStrip);
+ cipherStrip.visible=false;
  const miniMoon=node(backFace,-.72,.42,.24);
  C(miniMoon,.18,.085,0,0,0,ivory);
  for(const xy of [[-.05,.035],[.07,-.035]])C(miniMoon,.034,.015,xy[0],xy[1],.053,nickel);
@@ -102,7 +135,18 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat}) {
   count:()=>count,
   actions:[...targets.keys()],
   targets,
+  cipherVisible:()=>cipherStrip.visible,
   setState(s){
+   const cipherReady=(s.eyeRingTicks||0)>=3;
+   if(cipherReady&&!cipherStrip.visible){
+    cipherStrip.visible=true;
+    cipherStrip.position.y=.085;
+    if(animate)animate(cipherStrip.position,{y:0},.48);
+    else cipherStrip.position.y=0;
+   }else if(!cipherReady){
+    cipherStrip.visible=false;
+    cipherStrip.position.y=0;
+   }
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
    exposedCog.visible=!!s.plateOpen&&!s.portal;
