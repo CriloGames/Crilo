@@ -559,6 +559,7 @@ window.__nothing3DPreview={
  get gameControls(){return gameHotspots?.actions||[]},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
+ get physicalScenePose(){return pocketWorlds?.getPose()||null},
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
  projectPhysicalStoryObject(name){
   const obj=pocketWorlds?.targets.get(name);
