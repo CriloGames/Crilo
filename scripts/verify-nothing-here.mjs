@@ -22,7 +22,7 @@ await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.i
 // Nothing Here must use exactly the same UI font as Crilo's other pages.
 const typography=await page.evaluate(()=>{
  const selectors=['.crilo-game-topbar .brand','.crilo-game-topbar nav a',
-  '.crilo-game-topbar #accountBtn','.sr-heading h1 button',
+  '.crilo-game-topbar #accountBtn','.crilo-game-topbar .circle-btn','.sr-heading h1 button',
   '.sr-whisper','.sr-cursor-note','.sr-alt-caption','.sr-hint-clue','.sr-book span'];
  const body=getComputedStyle(document.body).fontFamily;
  return {body,fonts:selectors.filter(s=>document.querySelector(s))
@@ -112,6 +112,8 @@ await click('#srJournalBtn');
 await dismiss();
 for(let i=0;i<3;i++){
  await click('#srHintBtn');
+ assert.equal(await page.locator('.sr-hint-clue').evaluate(el=>getComputedStyle(el).fontFamily),
+  typography.body,'The hint dialog used a different font from Crilo');
  await dismiss();
 }
 await click('#srTitle',3);
