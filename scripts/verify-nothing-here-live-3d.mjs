@@ -7,6 +7,13 @@ const catalogText=source.split("const catalog=[")[1]?.split("];")[0]||"";
 const sixtySecrets=[...catalogText.matchAll(/^\s*\['([^']+)',/gm)].map(match=>match[1]);
 assert.equal(sixtySecrets.length,60,"Unexpected change to the original 60-secret catalog");
 assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrupt save migration");
+// The object names may aid orientation, but puzzle solutions must NOT be
+// supplied as hover text, engravings, or automatic journal hints.
+for(const file of ["secrets-3d-details.js","secrets-3d-game-hotspots.js"]){
+ const code=readFileSync(new URL("../"+file,import.meta.url),"utf8");
+ assert(!/THREE TAPS|TAP 3×/.test(code),"A machine engraving gives away the lid puzzle: "+file);
+}
+assert(!source.includes("function nextHint()"),"Journal must not surface unrequested solutions");
 import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true,args:[
  "--enable-webgl","--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"
@@ -47,6 +54,13 @@ try{
   "The live latch needs an understandable 3D label");
  assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("seam")),/side/i,
   "The side mechanism should identify itself");
+ const neutralLabels=await page.evaluate(()=>
+  ["triangle","hatch","eye-ring","vent-1","thing:bag-dial-0","cube-offer","latch"].map(
+   name=>window.__nothing3DPreview.describeAction(name)));
+ assert.equal(neutralLabels[0],"Brass triangle",
+  "The triangle hover label should identify an object, not tell players how many presses solve it");
+ assert(!/press|three times|tap|click to apply|try turning|loosen|use held item|rotate|visit floor/i.test(neutralLabels.join(" | ")),
+  "Hover text is disclosing mechanical steps or compatible-item solutions: "+neutralLabels.join(" | "));
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
  for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
