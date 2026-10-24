@@ -231,7 +231,18 @@ function aimBar(mesh,a,b,portion=1){
  mesh.scale.y=len*portion;
  mesh.quaternion.setFromUnitVectors(yAxis,segment.normalize());
 }
+// Time-based interpolation is frame-rate independent: heavy WebGL scenes can
+// run at very low FPS in SwiftShader, but the hinge remains physically correct.
+let hatchMotion=null;
+function syncHatchMotion(){
+ if(!hatchMotion)return;
+ const t=Math.min(1,(performance.now()-hatchMotion.start)/hatchMotion.duration);
+ const eased=1-Math.pow(1-t,3);
+ lidPivot.rotation.x=hatchMotion.from+(hatchMotion.to-hatchMotion.from)*eased;
+ if(t>=1){lidPivot.rotation.x=hatchMotion.to;hatchMotion=null}
+}
 function updateHatchBraces(){
+ syncHatchMotion();
  for(const {x,body,piston} of hingeBraces){
   const mount=new THREE.Vector3(x,-.42,-.19);
   const moving=new THREE.Vector3(x,-.98,.04)
@@ -308,18 +319,14 @@ function toggleDrawer(target,caption){
  }
  announce(caption+(target.open?" opens into a real hollow box.":" slides fully into its socket."));
 }
-let lidMotion=null;
 function toggleHatch(){
+ syncHatchMotion();
  lidOpen=!lidOpen;
- // Cancel queued motions as well as active ones. The next tap must win,
- // even after desktop→mobile resizing or rapid repeated open/close.
- if(lidMotion){lidMotion.kill();lidMotion=null;}
  const hingeAngle=stage.clientWidth<720?-1.00:-1.08;
- if(reducedMotion)lidPivot.rotation.x=lidOpen?hingeAngle:0;
- else{
-  lidMotion=gsap.timeline().to(lidPivot.rotation,{x:lidOpen?hingeAngle-.10:.045,duration:.82,ease:"power2.inOut"})
-    .to(lidPivot.rotation,{x:lidOpen?hingeAngle:0,duration:.24,ease:"power2.out"});
- }
+ const target=lidOpen?hingeAngle:0;
+ if(reducedMotion){lidPivot.rotation.x=target;hatchMotion=null;}
+ else hatchMotion={start:performance.now(),duration:920,from:lidPivot.rotation.x,to:target};
+ updateHatchBraces();
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
 function clickAction(action){
@@ -399,8 +406,8 @@ window.__nothing3DPreview={
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
  get topOpen(){return lidOpen},
- get hatchBraceLengths(){return hingeBraces.map(({body})=>body.scale.y)},
- get hatchAngle(){return lidPivot.rotation.x},
+ get hatchBraceLengths(){updateHatchBraces();return hingeBraces.map(({body})=>body.scale.y)},
+ get hatchAngle(){syncHatchMotion();return lidPivot.rotation.x},
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
