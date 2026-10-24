@@ -51,6 +51,27 @@ assert(details.mechanisms&&details.mouse&&details.squirrel&&details.puppet&&deta
  'Missing scene actors or the motion stylesheet');
 assert.deepEqual(errors,[]);
 console.log('Loaded clean real HTML with 6 physical 3D faces');
+fs.mkdirSync('test-results',{recursive:true});
+const opening=await page.evaluate(()=>{
+ const box=document.getElementById('ncCube').getBoundingClientRect(),
+  world=document.getElementById('ncWorld').getBoundingClientRect();
+ return {cubeTop:box.top,cubeBottom:box.bottom,worldTop:world.top,worldBottom:world.bottom};
+});
+assert(opening.cubeTop>=opening.worldTop-2&&opening.cubeBottom<=opening.worldBottom+2,
+ 'The opening cube is cut off by its stage');
+await page.screenshot({path:'test-results/cube-opening-desktop.png'});
+await page.setViewportSize({width:390,height:844});
+const openingMobile=await page.evaluate(()=>{
+ const box=document.getElementById('ncCube').getBoundingClientRect(),
+  world=document.getElementById('ncWorld').getBoundingClientRect();
+ return {cubeTop:box.top,cubeBottom:box.bottom,worldTop:world.top,worldBottom:world.bottom,
+  viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth};
+});
+assert(openingMobile.cubeTop>=openingMobile.worldTop-2&&openingMobile.cubeBottom<=openingMobile.worldBottom+2,
+ 'Opening cube is cropped on mobile');
+assert(openingMobile.scroll<=openingMobile.viewport+2,'Opening scene scrolls sideways on mobile');
+await page.screenshot({path:'test-results/cube-opening-mobile.png'});
+await page.setViewportSize({width:1320,height:920});
 assert.equal(await page.locator('.nc-tactile-screw').count(),4);
 assert.equal(await page.locator('[data-hit^="vent-"]').count(),3);
 assert.equal(await page.locator('.nc-inspection-controls button').count(),8);
@@ -62,6 +83,11 @@ assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zo
 await page.locator('#ncZoomOut').click();
 await page.locator('#ncPanMode').click();
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'true');
+await page.locator('#ncViewReset').click();
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
+await page.locator('#ncCubeZone').hover({position:{x:20,y:80}});
+await page.mouse.wheel(0,-200);
+await page.waitForFunction(()=>window.CriloNothingHereCube.getView().zoom>1);
 await page.locator('#ncViewReset').click();
 assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'false');
@@ -102,19 +128,7 @@ await rotate(0,-90);await hit('right-bolt-1');await hit('seam');await hit('drawe
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('thread'),null,{timeout:4000});
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);
-await page.evaluate(()=>{
- window.__hingeTrace=[];
- for(const kind of ['pointerdown','click'])document.addEventListener(kind,e=>{
-  if(window.__hingeTrace.length<18)window.__hingeTrace.push({
-   kind,tag:e.target.tagName,hit:e.target.closest?.('[data-hit]')?.dataset.hit||null,
-   location:[Math.round(e.clientX||0),Math.round(e.clientY||0)]});
- },true);
-});
-for(const n of [0,1,2]){
- await hit('hinge-'+n);
- console.log('HINGE',n,JSON.stringify({pins:(await state()).hingePins,top:(await state()).top,washer:(await state()).pocket.includes('washer'),
- trace:await page.evaluate(()=>window.__hingeTrace.slice(-5))}));
-}
+for(const n of [0,1,2])await hit('hinge-'+n);
 assert(await page.locator('[data-item="washer"]').count(),'The hinge washer was unreachable');
 await hit('triangle',3);await hit('top-reed');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
