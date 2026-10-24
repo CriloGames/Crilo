@@ -108,6 +108,10 @@
 .nc-hinge-frame>button:nth-of-type(2){left:calc(50% - 16px)}
 .nc-hinge-frame>button:nth-of-type(3){right:4%}
 .nc-hinge-frame>button.nc-hinge-shifted{background:#8c7a583d;transform:translateY(-3px)}
+/* Keep serviceable hinge pins on the near edge, outside the opened lid's
+   physically protruding volume. This prevents genuine pointer obstruction. */
+.nc-hinge-frame>i{top:auto;bottom:-10px}
+.nc-hinge-frame>button{top:auto;bottom:-19px}
 .nc-bottom-foot{position:absolute;bottom:11%;right:12%;height:34px;width:34px;border:3px solid #7b718c;
  background:linear-gradient(#676073,#40394b);border-radius:45%;color:#c9bbd9;
  z-index:8}
