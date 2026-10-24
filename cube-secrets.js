@@ -306,7 +306,11 @@ function inspectHardware(name){
    cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
   }else if(!s.screws.includes(n)){
    s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
-   tell(s.screws.length===3?'Three out. The center plate can finally lift.':'A screw comes out. The other fasteners might be real too.');
+   if(s.screws.length===3){
+    s.plateOpen=true;gain('cog');
+    bloom('faceplate','With the third screw out, a spring lifts the enamel plate. A brass drive cog drops into your pocket.');
+    cue('ncCube','nc-scene-blink',800);
+   }else tell('A real screw came out. The other fasteners might be real too.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
    sound(620);
   }else tell('Nothing to unscrew here. The empty hole is threaded.');
