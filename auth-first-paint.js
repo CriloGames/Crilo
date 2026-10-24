@@ -15,7 +15,7 @@
   html.crilo-auth-pending body::after{
    content:"Loading Crilo…";position:fixed;z-index:8;top:clamp(128px,28vh,270px);
    left:50%;transform:translateX(-50%);padding:10px 18px;
-   color:var(--muted,#8c8191);font:600 12px/1.4 system-ui,-apple-system,sans-serif;
+   color:var(--muted,#8c8191);font:600 12px/1.4 Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
    letter-spacing:.045em;text-align:center;white-space:nowrap;pointer-events:none
   }
   html.crilo-auth-pending body .account-menu{display:none!important}
