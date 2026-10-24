@@ -6,7 +6,7 @@ const source=fs.readFileSync(new URL('../cube-secrets.js',import.meta.url),'utf8
 const html=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
 new Function(source);
 const titles=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(x=>x[1]);
-assert.equal(titles.length,31,'The authored discovery catalog changed');
+assert.equal(titles.length,41,'The authored discovery catalog changed');
 assert.equal(new Set(titles).size,titles.length,'Duplicate discovery IDs');
 assert(!html.includes('auth-first-paint.js'),'Game must not depend on auth loading');
 const browser=await chromium.launch({headless:true});
@@ -120,6 +120,8 @@ assert(afterBark.barked&&afterBark.vase&&afterBark.squirrel,'Dog did not cause s
 assert(afterBark.pocket.includes('acorn')&&afterBark.pocket.includes('spring'));
 assert(afterBark.seen.includes('bark')&&afterBark.seen.includes('squirrel'));
 await use('treat','dog');assert((await state()).pocket.includes('tag'));
+assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal,
+ 'Expanded miniature puzzle chain did not persist across refresh');
 // Secondary intertwined causes: acorn grows, spring makes weather,
 // weather grows a tree, tree releases a paper bird.
 await use('acorn','pot');await use('spring','musicbox');
@@ -138,6 +140,38 @@ assert((await state()).moon,'Bird did not reveal the moon inside the cube');
 await use('coin','machine');await use('sugar','cup');
 await thing('clock');await close();
 await combine('prism','thread');await use('kite','cloud');
+// The secondary puzzle chain must integrate with the established dog + clock story.
+assert(await page.locator('[data-thing="elevator"]').isVisible(),'The collar tag and watch did not summon the miniature lift');
+await thing('elevator');
+assert((await page.locator('#ncModalTitle').textContent()).includes('elevator'));
+await page.locator('[data-floor="2"]').click();
+assert(!(await state()).floorFour,'An unrelated elevator floor revealed the fourth floor');
+await page.locator('[data-floor="4"]').click();
+assert((await state()).floorFour,'Fourth-floor lift never arrived');
+assert(await page.locator('[data-item="lens"]').count(),'Elevator did not deliver its lens');
+await close();
+assert(await page.locator('[data-thing="moth"]').isVisible(),'The elevator did not release a clockwork moth');
+await thing('moth');
+assert(await page.locator('[data-item="stardust"]').count(),'Moth did not shed its dust');
+assert(await page.locator('[data-thing="telescope"]').isVisible(),'The moon did not reveal a telescope');
+await thing('telescope');
+await use('lens','telescope');
+assert((await state()).observed,'The telescope lens did not reveal the constellation');
+assert(await page.locator('[data-item="starmap"]').count(),'The constellation failed to produce a chart');
+assert(await page.locator('#ncConstellation').evaluate(el=>getComputedStyle(el).transitionProperty.includes('opacity')),'The star scene lacks an animation');
+await use('stardust','musicbox');
+assert((await state()).dancer,'Moth dust did not activate the clockwork ballet');
+assert(await page.locator('.nc-dancer-figure').count(),'The music box lacks its physical miniature dancer');
+await use('starmap','elevator');
+assert((await state()).train&&await page.locator('[data-thing="train"]').isVisible(),'Railway did not appear from the star chart');
+await thing('train');
+assert(await page.locator('[data-item="parcel"]').count(),'The train did not bring its tiny parcel');
+await use('parcel','dog');
+assert(await page.locator('[data-item="postcard"]').count(),'Dog did not sign for the parcel');
+await rotate(0,0);
+await use('postcard','cube');
+assert((await state()).portal,'Postcard failed to turn the cube into a tiny landscape');
+assert(await page.locator('body').evaluate(el=>el.classList.contains('nc-portal-view')));
 const progress=await state();
 const missing=titles.filter(id=>!progress.seen.includes(id));
 console.log('CUBE QA',JSON.stringify({total:titles.length,found:progress.seen.length,missing,pocket:progress.pocket,errors},null,2));
@@ -145,7 +179,7 @@ assert.deepEqual(missing,[],'Some curated secrets cannot actually be discovered'
 assert.deepEqual(errors,[],'Runtime errors while playing');
 assert(progress.door&&progress.doorOpen&&progress.bagSolved&&progress.tree&&progress.moon);
 await page.reload({waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===31);
+await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===41);
 assert(await page.locator('#ncDoorScene').isVisible(),'Summoned door did not persist');
 assert(await page.locator('#ncDog').isVisible(),'Opened door did not persist');
 assert((await state()).pocket.includes('tag'));
@@ -189,4 +223,4 @@ assert(await outage.locator('#ncCube').isVisible());
 await outage.locator('[data-rotate="left"]').click();
 await outage.close();
 await browser.close();
-console.log('PASS: detailed six-sided 3D cube; articulated rails; animated mouse, flute-door, dog bark, squirrel, shattering vase and growing tree; 31 secrets; persistence; mobile; dark header.');
+console.log('PASS: 41/41 connected discoveries, 3D cube, animated objects, elevator, moth, telescope, ballerina, steam train, parcel and portal; persistence; mobile; dark header.');
