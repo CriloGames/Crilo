@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {batchStaticGeometry} from "./secrets-3d-batching.js";
+import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
 // All coordinates below are local to their own solid cube face.
