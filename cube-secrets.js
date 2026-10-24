@@ -238,21 +238,38 @@ function render(){
  store();
 }
 function collection(id){gain(id,'You found '+names[id]+'.')}
+// The visible contents of moving 3D compartments are collected after the
+// mechanical animation completes, even when a moving face retargets a tap.
+// Directly tapping an exposed item still picks it up immediately.
+const compartmentTimer=new Map();
+function scheduleCompartment(thing){
+ if(compartmentTimer.has(thing))return;
+ const specs={tooth:['a','drawerTaken',1100],thread:['b','sideTaken',1100],pipe:['top','pipeTaken',1300]};
+ const [open,taken,ms]=specs[thing];
+ const timer=setTimeout(()=>{
+  compartmentTimer.delete(thing);
+  if(!s[open]||s[taken])return;
+  s[taken]=true;
+  gain(thing,'A little '+names[thing]+' slides into your pocket.');
+  render();
+ },ms);
+ compartmentTimer.set(thing,timer);
+}
 function cubeHit(name){
  bloom('first');
  if(name==='latch'){
-  if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.')}
+  if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.');scheduleCompartment('tooth')}
   else tell(s.drawerTaken?'This tiny drawer is empty now.':'There is a strange, key-shaped piece inside.');
  }else if(name==='drawer-a'){
   if(!s.drawerTaken){s.drawerTaken=true;collection('tooth');tell('The teeth of something that once opened a lock.')}
  }else if(name==='seam'){
-  if(!s.b){s.b=true;bloom('thread','A horizontal compartment seems to have been there all along.')}
+  if(!s.b){s.b=true;bloom('thread','A horizontal compartment seems to have been there all along.');scheduleCompartment('thread')}
   else tell(s.sideTaken?'Only a loose red fiber remains.':'That is definitely a spool of thread.');
  }else if(name==='drawer-b'){
   if(!s.sideTaken){s.sideTaken=true;collection('thread');tell('It is red thread. It refuses to explain itself.')}
  }else if(name==='triangle'){
   s.topHits++;
-  if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
+  if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.');scheduleCompartment('pipe')}
   else tell(s.top?'Something hollow lies under the lid.':'The triangle clicks. '+(3-s.topHits)+' more?');
  }else if(name==='top-reed'){
   if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
@@ -650,5 +667,9 @@ document.addEventListener('drop',e=>{
  else if(!use(item,target.dataset.thing))tell('That object does not belong there.');
 });
 turn();render();
+// Restore an already-open mechanism if the player refreshed mid-animation.
+if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
+if(s.b&&!s.sideTaken)scheduleCompartment('thread');
+if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen]}),rotate:(x,y)=>{s.rx=x;s.ry=y;turn()}};
 })();
