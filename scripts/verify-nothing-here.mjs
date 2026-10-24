@@ -108,7 +108,7 @@ await page.locator('#ncOfferingTarget').click({timeout:7500});
 assert((await state()).moon,'Bird did not reveal the moon inside the cube');
 // Other independent paths: coin machine sugar and thread prism kite.
 await use('coin','machine');await use('sugar','cup');
-await thing('clock');
+await thing('clock');await close();
 await combine('prism','thread');await use('kite','cloud');
 const progress=await state();
 const missing=titles.filter(id=>!progress.seen.includes(id));
