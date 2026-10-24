@@ -90,8 +90,7 @@ await rotate(0,0);await hit('dot',4);
 await hit('front-screw-3');
 for(const n of [0,1,2])await hit('front-screw-'+n);
 assert.equal((await state()).screws.length,3,'Three real screws could not be removed');
-await page.locator('#ncOfferingTarget').click();
-assert((await state()).plateOpen,'The loose faceplate never lifted');
+assert((await state()).plateOpen,'The loosened faceplate failed to spring open');
 assert(await page.locator('[data-item="cog"]').count(),'The hidden faceplate failed to provide the cog');
 await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
