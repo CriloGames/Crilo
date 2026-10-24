@@ -817,6 +817,7 @@ window.__nothing3DPreview={
    if(screw.removed===removed)continue;
    screw.removed=removed;
    screw.motion?.kill();
+   if(screw.removalTimer){clearTimeout(screw.removalTimer);screw.removalTimer=null;}
    gsap.killTweensOf(screw.assembly.position);
    gsap.killTweensOf(screw.assembly.rotation);
    gsap.killTweensOf(screw.assembly.scale);
@@ -833,7 +834,13 @@ window.__nothing3DPreview={
      .to(screw.assembly.position,{z:.53,duration:.45,ease:"power2.out"},0)
      .to(screw.assembly.rotation,{z:Math.PI*2,duration:.45,ease:"power1.inOut"},0)
      .to(screw.assembly.scale,{x:.72,y:.72,z:.72,duration:.14},.35)
-     .call(()=>{if(screw.removed)screw.assembly.visible=false;});
+     .call(()=>{if(screw.removed){screw.assembly.visible=false;invalidate();}});
+    // A throttled animation frame must never leave collected fasteners
+    // attached to the cube. The logical removal is authoritative.
+    screw.removalTimer=setTimeout(()=>{
+     if(screw.removed){screw.assembly.visible=false;invalidate();}
+     screw.removalTimer=null;
+    },900);
    }else{
     screw.assembly.visible=true;
     screw.assembly.scale.set(1,1,1);
