@@ -693,6 +693,23 @@ function clickInventory(e){
  const item=e.target.closest('[data-item]');
  if(item)take(item.dataset.item);
 }
+// Chromium can project a hinged 3D control at one screen coordinate while
+// routing the pointer to its flat parent instead. Fall back to the actual
+// projected screw rectangle so visual mechanical controls remain operable.
+// Only service the currently facing top panel; never activate backface clues.
+$('ncWorld').addEventListener('pointerdown',event=>{
+ if(event.button!==0||!event.isPrimary||s.rx>-45)return;
+ if(event.target.closest?.('button,[data-hit]'))return;
+ const controls=[...document.querySelectorAll('[data-hit^="hinge-"]')];
+ for(const button of controls){
+  const r=button.getBoundingClientRect();
+  if(r.width<4||r.height<4)continue;
+  if(event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom){
+   cubeHit(button.dataset.hit);
+   event.preventDefault();event.stopImmediatePropagation();return;
+  }
+ }
+},true);
 // Moving 3D trays can shift a few pixels between pointerdown and pointerup.
 // Picking up their contents on pointerdown prevents a click being retargeted to
 // a face behind the tray during its opening animation. Keyboard clicks still
