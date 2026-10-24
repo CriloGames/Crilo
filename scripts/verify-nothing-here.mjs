@@ -1,171 +1,154 @@
-// Nothing Here: full-page real-pointer walkthrough of the white playground.
-// Run from repository root with an HTTP server on port 4173 and Playwright installed.
-import assert from 'node:assert/strict';
+// Rotatable Nothing Here cube: verify puzzle reachability, combinations and actual browser UI.
 import fs from 'node:fs';
+import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
-
-const source=fs.readFileSync(new URL('../secret-room.js',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../cube-secrets.js',import.meta.url),'utf8');
 const html=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
 new Function(source);
-const catalog=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(m=>m[1]);
-assert.equal(catalog.length,44,'The curated 44 discoveries changed');
-assert.equal(new Set(catalog).size,44,'Duplicate discoveries in new catalog');
-assert(html.includes('nhField')&&!html.includes('srScene'),'Old room is still visible');
-assert(!html.includes('auth-first-paint.js'),'Puzzle must not wait for account authentication');
+const titles=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(x=>x[1]);
+assert.equal(titles.length,31,'The authored discovery catalog changed');
+assert.equal(new Set(titles).size,titles.length,'Duplicate discovery IDs');
+assert(!html.includes('auth-first-paint.js'),'Game must not depend on auth loading');
 const browser=await chromium.launch({headless:true});
+const page=await browser.newPage({viewport:{width:1320,height:920}});
+const errors=[];
+page.on('pageerror',error=>errors.push(error.message));
 const sdkMock=`window.supabase={createClient:()=>({
- auth:{
-  getSession:async()=>({data:{session:null},error:null}),
-  onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
-  signOut:async()=>({error:null})
- },
+ auth:{getSession:async()=>({data:{session:null},error:null}),
+ onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+ signOut:async()=>({error:null})},
  rpc:async()=>({data:null,error:null})
 })};`;
-const page=await browser.newPage({viewport:{width:1280,height:850}});
-const errors=[];
-page.on('pageerror',e=>errors.push(e.message));
-await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.fulfill({
- status:200,contentType:'application/javascript',body:sdkMock
-}));
+await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.fulfill({status:200,body:sdkMock,contentType:'application/javascript'}));
 await page.addInitScript(()=>{
- // Initialize once per tab, not on every reload: otherwise the test itself
- // would delete the progress it is supposed to verify.
- if(!sessionStorage.getItem('nh_test_seeded')){
-  localStorage.setItem('crilo_nothing_here_secrets_v1',JSON.stringify({found:['first-touch','moon']}));
-  localStorage.removeItem('crilo_nothing_here_playground_v2');
-  sessionStorage.setItem('nh_test_seeded','1');
+ if(!sessionStorage.getItem('nc_qa_seeded')){
+  localStorage.removeItem('crilo_nothing_here_cube_v3');
+  localStorage.setItem('crilo_nothing_here_playground_v2','{"found":["curious"]}');
+  localStorage.setItem('crilo_nothing_here_secrets_v1','{"found":["moon"]}');
+  sessionStorage.setItem('nc_qa_seeded','1');
  }
 });
 await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>document.getElementById('nhCount')?.textContent.includes('/ 44'));
-const visual=await page.evaluate(()=>({
- bg:getComputedStyle(document.body).backgroundColor,
- font:getComputedStyle(document.body).fontFamily,
- title:document.querySelector('h1')?.innerText,
- oldRoom:!!document.querySelector('#srScene'),
- pending:document.documentElement.classList.contains('crilo-auth-pending')
-}));
-assert.equal(visual.bg,'rgb(255, 255, 255)','Page is not pure white');
-assert.match(visual.font,/Inter/);
-assert.equal(visual.oldRoom,false);
-assert.equal(visual.pending,false);
-assert(await page.locator('[data-toy="button"]').isVisible());
-assert.deepEqual(errors,[],'Runtime errors at initial page load');
-const toy=async(id,n=1)=>{for(let i=0;i<n;i++)await page.locator('[data-toy="'+id+'"]').click({timeout:6000})};
-const pocket=async(id)=>page.locator('#nhInventory [data-item="'+id+'"]').click({timeout:5000});
+await page.waitForFunction(()=>!!window.CriloNothingHereCube);
+const bg=await page.evaluate(()=>getComputedStyle(document.body).backgroundColor);
+assert.equal(bg,'rgb(255, 255, 255)','Background should be pure white');
+assert(await page.locator('#ncCube').isVisible(),'No 3D cube');
+const cubeCss=await page.locator('#ncCube').evaluate(el=>getComputedStyle(el).transformStyle);
+assert.equal(cubeCss,'preserve-3d','Cube faces are not actually three-dimensional');
+assert.equal(await page.locator('.nc-face').count(),6);
+assert.deepEqual(errors,[]);
+console.log('Loaded clean real HTML with 6 physical 3D faces');
+// Drag via pointer and verify the rotation changes; keyboard buttons remain as alternative.
+const zone=page.locator('#ncCubeZone');
+const before=await page.locator('#ncCube').evaluate(el=>el.style.transform);
+const bb=await zone.boundingBox();
+await page.mouse.move(bb.x+65,bb.y+60);await page.mouse.down();
+await page.mouse.move(bb.x+155,bb.y+98,{steps:9});await page.mouse.up();
+const after=await page.locator('#ncCube').evaluate(el=>el.style.transform);
+assert.notEqual(after,before,'Drag did not rotate cube');
+await page.locator('[data-rotate="right"]').click();
+const rotate=async(rx,ry)=>page.evaluate(([x,y])=>window.CriloNothingHereCube.rotate(x,y),[rx,ry]);
+const hit=async(name,count=1)=>{for(let i=0;i<count;i++){
+ await page.locator('[data-hit="'+name+'"]').click({timeout:6500});
+}};
+const thing=async(name,count=1)=>{for(let i=0;i<count;i++)await page.locator('[data-thing="'+name+'"]').click({timeout:6500})};
+const pocket=async(name)=>page.locator('[data-item="'+name+'"]').click({timeout:6000});
 const combine=async(a,b)=>{await pocket(a);await pocket(b)};
-const use=async(a,target)=>{await pocket(a);await toy(target)};
-const close=async()=>{await page.locator('#nhClose').click();assert(await page.locator('#nhOverlay').evaluate(el=>el.hidden))};
-// No routine puzzle should consume incompatible items.
-await toy('magnet');await toy('seedbag');
-let before=await page.locator('#nhPocketCount').textContent();
-await combine('magnet','seed');
-assert.equal(await page.locator('#nhPocketCount').textContent(),before);
-assert(await page.locator('[data-item="magnet"]').count());
-assert(await page.locator('[data-item="seed"]').count());
-await pocket('magnet');await toy('rocket');
-assert(await page.locator('[data-item="magnet"]').count(),'Wrong world combination consumed magnet');
-// Press/tap toys and collect components.
-await page.locator('#nhTitle').click({clickCount:3,delay:75});
-await toy('button',12);
-await toy('egg',7);
-await toy('switch');
-await toy('envelope');
-await toy('clock',4);
-await toy('dice',6);
-await toy('faucet');await toy('pencil');
-// Play all three small interactive games with actual clicks and keys.
-await toy('record');
-await page.locator('[data-mini="replay"]').click();
-await page.waitForTimeout(3700); // Observe the whole four-note pattern first.
-for(const p of [0,2,1,3])await page.locator('[data-pad="'+p+'"]').click();
-assert(await page.locator('[data-item="wire"]').count(),'Memory game did not reward wire');
+const use=async(a,b)=>{await pocket(a);await thing(b)};
+const close=async()=>{await page.locator('#ncModalClose').click();assert(await page.locator('#ncModal').evaluate(el=>el.hidden))};
+const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
+// The cube contains hidden compartments in several different faces.
+await rotate(0,0);await hit('dot',4);
+await hit('latch');await hit('drawer-a');
+assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
+await rotate(0,-90);await hit('seam');await hit('drawer-b');
+assert((await state()).pocket.includes('thread'));
+await rotate(-85,0);await hit('triangle',3);await hit('top-reed');
+assert((await state()).pocket.includes('pipe'));
+await rotate(85,0);await hit('hatch');
+assert((await state()).pocket.includes('ring'));
+await rotate(0,90);await hit('dent');
+assert(await page.locator('[data-thing="bag"]').isVisible(),'Mechanical mouse did not reveal bag');
+await rotate(0,180);await hit('eye');
+assert((await state()).seen.includes('eye'));
+await combine('ring','tooth');
+assert((await state()).pocket.includes('key'));
+await use('key','bag');
+assert(await page.locator('#ncModal').isVisible());
+for(let i=0;i<2;i++)await page.locator('[data-dial="0"]').click();
+for(let i=0;i<3;i++)await page.locator('[data-dial="2"]').click();
+assert((await state()).bagSolved,'The false-bottom bag puzzle could not be solved');
 await close();
-await toy('maze');
-for(const k of ['ArrowRight','ArrowRight','ArrowRight','ArrowDown','ArrowDown','ArrowDown'])await page.keyboard.press(k);
-assert(await page.locator('[data-item="tooth"]').count(),'Maze did not reward key fragment');
-await close();
-await toy('dot');
-for(let i=0;i<5;i++)await page.locator('#nhMovingDot').click({timeout:6000});
-assert(await page.locator('[data-item="needle"]').count(),'Catch-the-dot did not reward needle');
-await close();
-// Both paint recipes, without inventing a third one.
-await toy('colors');
-for(const color of ['red','yellow'])await page.locator('[data-color="'+color+'"]').click();
-assert.equal(await page.locator('[data-item="green"]').count(),0,'Wrong paint recipe created green');
-for(const color of ['red','blue','blue','yellow'])await page.locator('[data-color="'+color+'"]').click();
-assert(await page.locator('[data-item="green"]').count());
-assert(await page.locator('[data-item="purple"]').count());
-await close();
-// Safe must reject a bad combination and accept the clock's actual code.
-await toy('safe');
-await page.locator('#nhSafeInput').fill('123');
-await page.locator('#nhSafeForm button[type=submit]').click();
-assert.equal(await page.locator('[data-item="shaft"]').count(),0);
-await page.locator('#nhSafeInput').fill('417');
-await page.locator('#nhSafeForm button[type=submit]').click();
-assert(await page.locator('[data-item="shaft"]').count());
-await close();
-// The only supported recipes are explicit; they either produce real objects or affect a valid world target.
-await toy('pot');
-await combine('seed','water');
-assert(await page.locator('[data-item="sprout"]').count());
-await use('sprout','pot');await use('sunbeam','pot');
-assert(await page.locator('body').evaluate(el=>el.classList.contains('nh-plant-bloomed')));
-await combine('battery','wire');await use('spark','rocket');
-assert(await page.locator('body').evaluate(el=>el.classList.contains('nh-rocket-launched')));
-await use('coin','vending');
-assert(await page.locator('[data-item="fuel"]').count());
-await combine('shaft','tooth');await use('key','door');
-assert(await page.locator('#nhExtra').isVisible(),'Key did not reveal more things');
-await toy('mirror');await toy('cloud');await toy('stars',3);
-await toy('ball',3);await toy('lever',3);
-await combine('magnet','needle');
-await combine('paper','pencil');
-await toy('envelope'); // Refill paper, since a recipe consumes it.
-await combine('feather','paper');
-await use('airmail','mailbox');
-await use('gear','clock');
-// Every single discovery must have a legitimate pointer/keyboard path.
-await page.locator('#nhJournalBtn').click();await close();
-for(let i=0;i<3;i++){await page.locator('#nhHintBtn').click();await close()}
-const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_playground_v2')));
-const missing=catalog.filter(id=>!progress.found.includes(id));
-console.log('PLAYGROUND QA',JSON.stringify({found:progress.found.length,total:catalog.length,missing,
- inventory:progress.inventory,errors},null,2));
-assert.deepEqual(missing,[],'Some discoveries are unreachable');
-assert.deepEqual(errors,[],'Page errors while playing');
-assert.equal(progress.found.length,44);
-assert.equal(progress.door,true);assert.equal(progress.bloom,true);assert.equal(progress.launched,true);
-assert(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor==='rgb(255, 255, 255)'));
+await combine('reed','pipe');
+assert((await state()).pocket.includes('flute'),'The flute recipe failed');
+await pocket('flute');
+assert.equal(await page.locator('#ncModalTitle').textContent(),'The flute');
+for(const n of [2,1,3])await page.locator('[data-note="'+n+'"]').click();
+assert(await page.locator('#ncDoorScene').isVisible(),'Flute melody did not make door appear');
+// Dog / squirrel / vase chain is one causally linked sequence.
+await thing('door');
+assert(await page.locator('#ncDog').isVisible(),'Door did not reveal dog');
+await thing('dog',3);
+const afterBark=await state();
+assert(afterBark.barked&&afterBark.vase&&afterBark.squirrel,'Dog did not cause squirrel and vase collision');
+assert(afterBark.pocket.includes('acorn')&&afterBark.pocket.includes('spring'));
+assert(afterBark.seen.includes('bark')&&afterBark.seen.includes('squirrel'));
+await use('treat','dog');assert((await state()).pocket.includes('tag'));
+// Secondary intertwined causes: acorn grows, spring makes weather,
+// weather grows a tree, tree releases a paper bird.
+await use('acorn','pot');await use('spring','musicbox');
+assert(await page.locator('[data-thing="cloud"]').isVisible());
+await thing('cloud');await use('raindrop','pot');
+assert((await state()).tree,'The cloud did not water the planted acorn');
+assert((await state()).pocket.includes('bird'));
+await rotate(0,0);
+await pocket('bird');await page.locator('.nc-front .nc-face-symbol').click();
+assert((await state()).moon,'Bird did not reveal the moon inside the cube');
+// Other independent paths: coin machine sugar and thread prism kite.
+await use('coin','machine');await use('sugar','cup');
+await thing('clock');
+await combine('prism','thread');await use('kite','cloud');
+const progress=await state();
+const missing=titles.filter(id=>!progress.seen.includes(id));
+console.log('CUBE QA',JSON.stringify({total:titles.length,found:progress.seen.length,missing,pocket:progress.pocket,errors},null,2));
+assert.deepEqual(missing,[],'Some curated secrets cannot actually be discovered');
+assert.deepEqual(errors,[],'Runtime errors while playing');
+assert(progress.door&&progress.doorOpen&&progress.bagSolved&&progress.tree&&progress.moon);
 await page.reload({waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>document.getElementById('nhCount')?.textContent.startsWith('44 / 44'));
-assert(await page.locator('#nhExtra').isVisible(),'Door was not saved');
-assert(await page.locator('[data-item="compass"]').count(),'Combined item was not saved');
-assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')).found.length),2,
- 'Original 70-secret game progress was overwritten');
-// White page means white in light AND dark modes, but header still follows the Crilo site theme.
+await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===31);
+assert(await page.locator('#ncDoorScene').isVisible(),'Summoned door did not persist');
+assert(await page.locator('#ncDog').isVisible(),'Opened door did not persist');
+assert((await state()).pocket.includes('tag'));
+const old=await page.evaluate(()=>({
+ v1:JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')).found,
+ v2:JSON.parse(localStorage.getItem('crilo_nothing_here_playground_v2')).found
+}));
+assert.deepEqual(old.v1,['moon']);assert.deepEqual(old.v2,['curious']);
+// Theme behavior, mobile scrolling, accessible controls.
 await page.evaluate(()=>localStorage.setItem('crilo_theme','dark'));
 await page.reload({waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
-assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+assert.equal(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(255, 255, 255)');
 await page.setViewportSize({width:390,height:844});
-const mobile=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,width:document.documentElement.scrollWidth}));
+const mobile=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
 assert(mobile.width<=mobile.viewport+2,'Mobile has horizontal overflow');
-await page.locator('[data-toy="button"]').click();
-// Screenshot for design regression triage, uploaded as Actions artifact.
+await page.locator('[data-rotate="up"]').click();
+assert(await page.locator('#ncCube').isVisible());
+await page.locator('#ncJournalBtn').click();
+assert((await page.locator('#ncModalTitle').textContent()).includes('Strange'));
+await page.keyboard.press('Escape');
+assert(await page.locator('#ncModal').evaluate(el=>el.hidden),'Escape failed to close journal');
 fs.mkdirSync('test-results',{recursive:true});
-await page.screenshot({path:'test-results/nothing-here-mobile.png',fullPage:true});
-await page.setViewportSize({width:1280,height:850});
-await page.screenshot({path:'test-results/nothing-here-desktop.png',fullPage:true});
-// When the CDN is down, account controls can fail but this *independent* playground cannot vanish.
+await page.screenshot({path:'test-results/cube-mobile.png',fullPage:true});
+await page.setViewportSize({width:1320,height:920});
+await page.screenshot({path:'test-results/cube-desktop.png',fullPage:true});
+// Simulate CDN auth outage: the game remains functional without its SDK.
 const outage=await browser.newPage();
 await outage.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.abort());
 await outage.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
-await outage.waitForFunction(()=>document.getElementById('nhCount')?.textContent.includes('/ 44'));
-assert(await outage.locator('[data-toy="button"]').isVisible(),'CDN outage hid toys');
-await outage.locator('[data-toy="button"]').click();
-assert(await outage.locator('#nhCount').textContent()!=='0 / 44');
+await outage.waitForFunction(()=>!!window.CriloNothingHereCube);
+assert(await outage.locator('#ncCube').isVisible());
+await outage.locator('[data-rotate="left"]').click();
 await outage.close();
 await browser.close();
-console.log('PASS: 44/44 discoveries, recipes, five microgames, white page, mobile, dark mode, save and independent startup.');
+console.log('PASS: six-sided rotatable cube; 31 connected secrets; bag/flute/dog/squirrel chain; persistence; mobile; dark header; CDN outage.');
