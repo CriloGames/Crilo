@@ -378,6 +378,14 @@ function toggleHatch(){
 }
 function clickAction(action){
  if(embeddedGame){
+  if(action.startsWith("thing:bag-dial-")){
+   window.CriloNothingHereCube?.activatePhysicalBagDial?.(Number(action.slice(-1)));
+   return;
+  }
+  if(action.startsWith("thing:elevator-floor-")){
+   window.CriloNothingHereCube?.activatePhysicalElevatorFloor?.(Number(action.slice(-1)));
+   return;
+  }
   if(action.startsWith("thing:")){
    window.CriloNothingHereCube?.activatePhysicalThing?.(action.slice(6));
    return;
@@ -512,6 +520,7 @@ window.__nothing3DPreview={
  get finishMeshCount(){return finish.meshCount()},
  get gameControls(){return gameHotspots?.actions||[]},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
+ get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
  projectPhysicalStoryObject(name){
   const obj=pocketWorlds?.targets.get(name);
@@ -521,6 +530,13 @@ window.__nothing3DPreview={
   // at floor level where a ray may hit the noninteractive presentation stand.
   const p=new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3()).project(camera);
   return {x:(p.x+1)*.5*stage.clientWidth,y:(1-p.y)*.5*stage.clientHeight,depth:p.z};
+ },
+ projectPhysicalPuzzleControl(name){
+  const obj=pocketWorlds?.puzzleTargets.get(name);
+  if(!obj||!isMeshEffectivelyVisible(obj))return null;
+  scene.updateWorldMatrix(true,true);
+  const pos=obj.getWorldPosition(new THREE.Vector3()).project(camera);
+  return {x:(pos.x+1)*.5*stage.clientWidth,y:(1-pos.y)*.5*stage.clientHeight,depth:pos.z};
  },
  projectGameControl(name){
   const obj=gameHotspots?.targets.get(name);
