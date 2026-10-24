@@ -1029,6 +1029,14 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
    $('ncOfferingTarget').click();
   }else cubeHit(name);
  },
+ // The physical miniatures are visual counterparts of the EXISTING world
+ // props. Selecting an inventory item and then a 3D object uses the same
+ // recipe, discovery, modal and storage rules as clicking its HTML button.
+ activatePhysicalThing(name){
+  const supported=new Set(['bag','door','dog','vase','squirrel','pot','musicbox',
+   'cloud','cup','clock','machine','elevator','moth','telescope','train']);
+  if(supported.has(name))clickThing(name);
+ },
  get physicalReady(){return document.body.classList.contains('nc-physical-ready')}
 };
 })();
