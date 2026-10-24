@@ -42,7 +42,9 @@ controls.rotateSpeed = .40;
 controls.zoomSpeed = .30;
 controls.minDistance = 5.2;
 controls.maxDistance = 14;
-controls.enablePan = false;
+// Normal drag orbits. Right-drag / two fingers moves the floating cube in
+// the viewport; the Move button uses one-finger/left-drag for the same action.
+controls.enablePan = true;
 controls.target.set(0, 0, 0);
 
 scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .70));
@@ -731,6 +733,8 @@ window.__nothing3DPreview={
  get hatchBraceLengths(){updateHatchBraces();return hingeBraces.map(({body})=>body.scale.y)},
  get hatchAngle(){syncHatchMotion();return lidPivot.rotation.x},
  get renderMode(){return "on-demand"},
+ get navigationState(){return {panEnabled:controls.enablePan,
+  target:controls.target.toArray(),camera:camera.position.toArray()}} ,
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction,
@@ -740,11 +744,13 @@ window.__nothing3DPreview={
   const mobile=stage.clientWidth<720;
   const base=mobile?13.0:10;
   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
-  camera.position.setLength(d);controls.update();invalidate();
+  const offset=camera.position.clone().sub(controls.target).setLength(d);
+  camera.position.copy(controls.target).add(offset);
+  controls.update();invalidate();
  },
  setPanMode(enabled){
   if(!embeddedGame)return;
-  controls.enablePan=!!enabled;
+  controls.enablePan=true;
   controls.mouseButtons.LEFT=enabled?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
