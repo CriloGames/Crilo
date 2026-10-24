@@ -1,6 +1,12 @@
 // Verify that the default real 3D scene is actually the 60-secret game,
 // not an unrelated prototype. The existing save key and story stay canonical.
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+const source=readFileSync(new URL("../cube-secrets.js",import.meta.url),"utf8");
+const catalogText=source.split("const catalog=[")[1]?.split("];")[0]||"";
+const sixtySecrets=[...catalogText.matchAll(/^\s*\['([^']+)',/gm)].map(match=>match[1]);
+assert.equal(sixtySecrets.length,60,"Unexpected change to the original 60-secret catalog");
+assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrupt save migration");
 import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true,args:[
  "--enable-webgl","--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"
@@ -31,19 +37,25 @@ try{
  state:window.CriloNothingHereCube.getState(),
  meshes:window.__nothing3DPreview.meshCount,
  controls:window.__nothing3DPreview.gameControls,
- visible:getComputedStyle(document.querySelector("#stage")).visibility
+ visible:getComputedStyle(document.querySelector("#stage")).visibility,
+ blockers:window.__nothing3DPreview.solidShellBlockerCount
  }));
  assert.equal(initial.visible,"visible");
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
+ assert(initial.blockers>=15,"Physical casing is missing face occluders");
  for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring","vent-1","vent-2","vent-3","triangle","top-reed","foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
  }
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
- await activate("front");
- assert.equal((await state()).a,true,"Physical front tray did not unlock original story");
+ await activate("latch");
+ assert.equal((await state()).a,true,"Physical front catch did not unlock the original drawer (was mapped to the mouse)");
  await activate("side");
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
+ await activate("eye");
+ assert.equal((await state()).back,true,"Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
+ await activate("service-latch");
+ assert.equal((await state()).serviceOpen,false,"The sound-operated latch must remain locked until resonance");
  // The original 2D side-prop chain is now mirrored by fifteen
  // volumetric miniature figures on the physical stand.
  await activate("dent");
@@ -94,6 +106,12 @@ try{
  assert.equal((await state()).redHits,5,
   "Clicking a visible physical red button did not trigger the original puzzle");
  for(let i=0;i<3;i++)await activate("pressure");
+ await activate("optic");
+ await activate("eye-ring");
+ await activate("eye-ring");
+ const physical=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
+ assert(physical.needle&&physical.light&&physical.backEye,
+   "Saved puzzle actions are not driving real pressure, optical and iris hardware");
  await activate("serial");
  for(const n of [0,1,2])await activate("front-screw-"+n);
  let s=await state();
@@ -128,6 +146,34 @@ try{
  assert.equal((await state()).plateOpen,true,"Mobile view lost the same saved run");
  const bounds=await page.locator("#stage canvas").boundingBox();
  assert(bounds&&bounds.width>200&&bounds.width<=390,"Real 3D mobile canvas does not fit viewport");
+ // All sixty existing awards must survive a real saved v3 session, without
+ // splitting player history into a second Three.js storage namespace.
+ await page.evaluate(ids=>{
+  const key="crilo_nothing_here_cube_v3";
+  const original=JSON.parse(localStorage.getItem(key));
+  Object.assign(original,{
+   seen:ids,plateOpen:true,serviceOpen:true,pressureReady:true,
+   pressureTicks:3,eyeRingTicks:3,screws:[0,1,2],hingePins:[0,1,2]
+  });
+  localStorage.setItem(key,JSON.stringify(original));
+ },sixtySecrets);
+ await page.reload({waitUntil:"domcontentloaded"});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const migrated=await state();
+ assert.deepEqual(new Set(migrated.seen),new Set(sixtySecrets),"3D migration lost completed secrets");
+ assert.equal(await page.locator("#ncCount").innerText(),"60","Journal did not restore all sixty discoveries");
+ assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
+   "3D migration reset existing mechanical puzzle state");
+ const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
+ assert(mechanism.needle&&mechanism.light&&mechanism.service,
+   "Reloaded saved mechanics did not restore the real metal mechanism poses");
+ await activate("dot");
+ assert.equal((await state()).seen.length,60,"Repeating a previously found secret must not duplicate awards");
+ await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
+ await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{waitUntil:"domcontentloaded"});
+ await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
+ assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),"Classic fallback lost previously completed 3D secrets");
+ console.log("PASS: all 60 legacy completions, restored physical mechanisms, no repeat rewards, classic compatibility");
  assert.equal(errors.length,0,"3D integration produced browser exceptions: "+errors.join(" | "));
  console.log("PASS: desktop, mobile, classic fallback, persisted 60-secret engine, and zero browser exceptions");
 }finally{await browser.close()}
