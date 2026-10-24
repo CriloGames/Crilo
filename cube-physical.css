@@ -224,3 +224,22 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
 html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint.nc-can-use{
  background:#284a45f5;border-color:#79b4a4;color:#e8fff1;
 }
+
+/* No floor display, shadow pedestal, support halo, or stand silhouette in
+   the physical floating mode. The classic illustrated view is untouched. */
+.nc-page.nc-physical-ready .nc-stage,
+.nc-page.nc-physical-ready .nc-stage-disc,
+.nc-page.nc-physical-ready .nc-stage-ring,
+.nc-page.nc-physical-ready .nc-silhouette{
+ display:none!important;
+}
+.nc-page.nc-physical-ready .nc-world{
+ background:radial-gradient(ellipse at 50% 45%,#fcfffe 0%,#f4f9f8 65%,#eaf1f3 100%);
+}
+.nc-page.nc-physical-ready .nc-cube-zone #stage canvas{cursor:grab}
+.nc-page.nc-physical-ready .nc-cube-zone #stage canvas:active{cursor:grabbing}
+@media(prefers-color-scheme:dark){
+ .nc-page.nc-physical-ready .nc-world{
+  background:radial-gradient(ellipse at 50% 43%,#344146 0%,#253237 74%,#202b32 100%);
+ }
+}
