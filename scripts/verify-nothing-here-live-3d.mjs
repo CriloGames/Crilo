@@ -44,6 +44,27 @@ try{
  assert.equal((await state()).a,true,"Physical front tray did not unlock original story");
  await activate("side");
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
+ // The original 2D side-prop chain is now mirrored by fifteen
+ // volumetric miniature figures on the physical stand.
+ await activate("dent");
+ assert.equal((await state()).mouse,true,"The 3D dent did not release the clockwork mouse");
+ const worlds=await page.evaluate(()=>({
+  all:window.__nothing3DPreview.physicalStoryObjects,
+  visible:window.__nothing3DPreview.visiblePhysicalStoryObjects
+ }));
+ assert.equal(worlds.all.length,15,"Missing modeled 3D story props");
+ assert(worlds.visible.includes("bag")&&worlds.visible.includes("machine"),
+  "The mouse did not physically reveal its bag and vending machine");
+ // Items selected from the existing inventory must combine with a real 3D
+ // model and write to the existing save key, not a separate 3D progress store.
+ await page.locator('#ncInventory [data-item="coin"]').click();
+ assert.equal((await state()).selected,"coin");
+ await activate("thing:machine");
+ let selectedState=await state();
+ assert(selectedState.seen.includes("machine")&&selectedState.pocket.includes("sugar"),
+  "Coin into 3D vending machine failed the canonical inventory recipe");
+ assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
+ console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
  for(let i=0;i<3;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical lid taps did not open original hatch");
  await activate("hatch");
