@@ -548,6 +548,9 @@ function info(){
 }
 function hit(e){
  const el=e.target.closest('[data-hit]');if(!el||!$('ncCube').contains(el))return;
+ // Pointer activation of the moving red dot is handled on pointerdown.
+ // Preserve keyboard and screen-reader synthetic clicks (detail === 0).
+ if(el.dataset.hit==='dot'&&e.detail!==0)return;
  e.stopPropagation();cubeHit(el.dataset.hit);
 }
 function eventThing(e){
@@ -564,7 +567,7 @@ function clickInventory(e){
 // a face behind the tray during its opening animation. Keyboard clicks still
 // use the normal delegated click handler; every pickup is idempotent.
 $('ncCube').addEventListener('pointerdown',event=>{
- const target=event.target.closest('[data-hit="drawer-a"],[data-hit="drawer-b"],[data-hit="top-reed"]');
+ const target=event.target.closest('[data-hit="drawer-a"],[data-hit="drawer-b"],[data-hit="top-reed"],[data-hit="dot"]');
  if(!target||event.button!==0||!event.isPrimary)return;
  event.stopPropagation();
  cubeHit(target.dataset.hit);
