@@ -469,7 +469,9 @@ function cubeHit(name){
   } else tell('Only the faint sound of tiny metallic footsteps remains.');
  }else if(name==='eye'){
   if(!s.back){s.back=true;bloom('eye','The eye blinks: TWO · ONE · THREE. Nobody says what that means.');}
-  else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">TWO · ONE · THREE</p><p>Someone scratched those words into the cube from the inside.</p>','eye');
+  else if(document.body.classList.contains('nc-physical-ready'))
+  tell('Engraved behind the eye: TWO · ONE · THREE. The optical ring beside it also turns.');
+ else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">TWO · ONE · THREE</p><p>Someone scratched those words into the cube from the inside.</p>','eye');
  }else if(name==='dot'){
   s.redHits++;
   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
@@ -520,7 +522,9 @@ function use(item,thing){
  selected=null;
  if(item==='key'&&thing==='bag'){
   spend('key');s.bagOpen=true;
-  tell('The key fits the bag. Its inside is bigger than its outside.');openBag();
+  if(document.body.classList.contains('nc-physical-ready'))
+   tell('The bag unlocks. Three brass combination wheels are now exposed on its actual 3D model. Turn them there.');
+  else{tell('The key fits the bag. Its inside is bigger than its outside.');openBag()}
  }else if(item==='treat'&&thing==='dog'){
   spend('treat');s.tag=true;gain('tag');bloom('tag','The dog coughs up a numbered collar tag. It says 04.');
  }else if(item==='acorn'&&thing==='pot'){
@@ -724,7 +728,11 @@ function clickThing(name){
   tell('That '+names[selected]+' will not help here.');selected=null;render();return;
  }
  bloom('first');
- if(name==='bag')openBag();
+ if(name==='bag'){
+   if(s.bagOpen&&document.body.classList.contains('nc-physical-ready'))
+    tell(s.bagSolved?'The bag has been emptied into your pocket.':'Three tiny numbered brass wheels are attached to the bag. The code is hidden elsewhere on the cube.');
+   else openBag();
+ }
  else if(name==='door'){
   if(!s.doorOpen){
     s.doorOpen=true;bloom('dog','Behind the door: a polite little dog and something balanced overhead.');
@@ -743,9 +751,16 @@ function clickThing(name){
  }else if(name==='cup')tell(s.watch?'The bottom of the cup is a tiny hole in time.':'It could use some sugar.');
  else if(name==='clock'){
   bloom('clock','It is 4:17. It has been 4:17 for a very long time.');
-  modal('CLOCK DEPARTMENT','4:17','<p>Nothing is wrong with this clock. It just refuses to acknowledge the existence of other times.</p>','clock');
+  if(document.body.classList.contains('nc-physical-ready'))
+   tell('The miniature clock has stopped at 4:17. Another object might make its mechanism run.');
+  else modal('CLOCK DEPARTMENT','4:17','<p>Nothing is wrong with this clock. It just refuses to acknowledge the existence of other times.</p>','clock');
  }else if(name==='machine')tell('INSERT COIN. It is remarkably confident.');
- else if(name==='elevator')openElevator();
+ else if(name==='elevator'){
+  if(document.body.classList.contains('nc-physical-ready')){
+   bloom('lift','The lift has four brass buttons. Its moving doors look strangely real.');
+   tell('Press one of the numbered buttons directly on the 3D elevator.');
+  }else openElevator();
+ }
  else if(name==='moth'){
   if(!s.mothTouched){
    s.mothTouched=true;gain('stardust','The mechanical moth leaves a handful of luminous dust.');
