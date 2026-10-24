@@ -117,6 +117,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // attached to the moving hatch. The pipe sits INSIDE the fixed well.
  for(const [i,x] of [-.54,0,.54].entries())control(topFace,"hinge-"+i,x,.86,nickel,.075);
  const triangle=tab(lidPivot,"triangle",0,-.42,brass,.30,.19);
+ // API alias for the actual top lid, not the underside hatch.
+ targets.set("hatch",triangle);
  // The engraving identifies the component without disclosing a click count.
  engraving(lidPivot,"TRIANGLE",0,-.92,.64);
  // The collectible is a genuine HOLLOW cylindrical pipe held inside a
@@ -203,7 +205,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const shutter=targets.get("shutter");
  // Bottom: actual protruding rubber support and a separate release hatch.
  control(bottomFace,"foot",-1.02,1.02,graphite,.16);
- control(bottomFace,"hatch",0,0,brass,.21);
+ control(bottomFace,"underside",0,0,brass,.21);
  engraving(bottomFace,"BASE",.50,-.07,.39);
  return {
   count:()=>count,
