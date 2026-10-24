@@ -394,6 +394,7 @@ window.__nothing3DPreview={
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
  get topOpen(){return lidOpen},
+ get hatchBraceLengths(){return hingeBraces.map(({body})=>body.scale.y)},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
 };
