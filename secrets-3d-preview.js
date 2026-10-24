@@ -420,8 +420,12 @@ renderer.setAnimationLoop(()=>{
 window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
- get meshCount(){return objectCount + intricate.meshCount()+finish.meshCount},
- get finishMeshCount(){return finish.meshCount},
+ get meshCount(){
+  let n=0;
+  scene.traverse(node=>{if(node.isMesh)n++});
+  return n;
+ },
+ get finishMeshCount(){return finish.meshCount()},
  get finishQuality(){return finish.quality},
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
