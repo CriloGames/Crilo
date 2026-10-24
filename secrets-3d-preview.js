@@ -3,9 +3,9 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=8";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=9";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=5";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=6";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=9";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
