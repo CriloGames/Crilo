@@ -621,15 +621,18 @@ function openBag(){
 function turnBag(i){
  if(s.bagSolved)return;
  s.bagDials[i]=(s.bagDials[i]+1)%4;
- document.querySelector('[data-dial="'+i+'"]').textContent=['○','✳','◇','☾'][s.bagDials[i]];
+ const dialButton=document.querySelector('[data-dial="'+i+'"]');
+ if(dialButton)dialButton.textContent=['○','✳','◇','☾'][s.bagDials[i]];
  if(s.bagDials.join('')==='203'){
   s.bagSolved=true;gain('reed');gain('treat');gain('prism');
   bloom('bag-code','Under the false bottom: a reed, a biscuit and a glass prism.');
-  $('ncBagNote').textContent='A tiny false bottom has opened. Its contents are in your pocket.';
+  const bagNote=$('ncBagNote');
+  if(bagNote)bagNote.textContent='A tiny false bottom has opened. Its contents are in your pocket.';
   cue('ncBagInterior','nc-unlatched',1100);scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
   incident('✳');
  }else sound(350+i*50);
- store();
+ // Also update physical 3D dial positions and persist the very same save.
+ render();
 }
 function openElevator(){
  bloom('lift','A brass elevator has appeared. It has four floors and absolutely no building.');
@@ -640,7 +643,7 @@ function openElevator(){
   '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':'Somewhere, a small brass tag might tell you where to stop.')+'</p>','elevator');
 }
 function callElevator(floor){
- const text=$('ncLiftMessage');
+ const text=$('ncLiftMessage')||{textContent:''};
  sound(240+floor*110);
  document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('nc-floor-active',Number(b.dataset.floor)===floor));
  if(floor!==4){text.textContent=['','Nobody lives on floor one.','A miniature tumbleweed rolls by.','The doors open onto a painted brick wall.'][floor];return}
@@ -1032,6 +1035,19 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
  // The physical miniatures are visual counterparts of the EXISTING world
  // props. Selecting an inventory item and then a 3D object uses the same
  // recipe, discovery, modal and storage rules as clicking its HTML button.
+ activatePhysicalBagDial(index){
+  if(!Number.isInteger(index)||index<0||index>2)return;
+  if(!s.bagOpen){
+   tell('The brass tumblers are held by the bag lock. Find its key first.');
+   return;
+  }
+  turnBag(index);
+ },
+ activatePhysicalElevatorFloor(floor){
+  if(!Number.isInteger(floor)||floor<1||floor>4||!s.watch||!s.tag)return;
+  bloom('lift');
+  callElevator(floor);
+ },
  activatePhysicalThing(name){
   const supported=new Set(['bag','door','dog','vase','squirrel','pot','musicbox',
    'cloud','cup','clock','machine','elevator','moth','telescope','train']);
