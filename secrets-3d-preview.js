@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=6";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=2";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=4";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=5";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -15,11 +15,11 @@ const stage = document.getElementById("stage");
 const status = document.getElementById("status");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
-camera.position.set(5.7, 4.7, 7.8);
+camera.position.set(5.25, 4.45, 7.15);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.00;
+renderer.toneMappingExposure = .84;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -32,6 +32,7 @@ const pmrem=new THREE.PMREMGenerator(renderer);
 const studioRoom=new RoomEnvironment();
 const studioReflection=pmrem.fromScene(studioRoom,.035);
 scene.environment=studioReflection.texture;
+scene.environmentIntensity=.79;
 studioRoom.dispose();pmrem.dispose();
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -44,8 +45,8 @@ controls.maxDistance = 14;
 controls.enablePan = false;
 controls.target.set(0, 0, 0);
 
-scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .96));
-const key = new THREE.DirectionalLight(0xfff6e7, 2.5);
+scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .70));
+const key = new THREE.DirectionalLight(0xfff6e7, 2.05);
 key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
@@ -54,9 +55,9 @@ key.shadow.camera.left = -8; key.shadow.camera.right = 8;
 key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
 key.shadow.bias = -.00028;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xb6daeb, .88);
+const fill = new THREE.DirectionalLight(0xb6daeb, .62);
 fill.position.set(7, 4, -6); scene.add(fill);
-const rim = new THREE.PointLight(0xffd0a0, 11.5, 20);
+const rim = new THREE.PointLight(0xffd0a0, 7.4, 20);
 rim.position.set(1, 5, -4); scene.add(rim);
 
 const mat = (color, metalness = .07, roughness = .36) =>
@@ -329,7 +330,7 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat
 }):null;
-const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit}):null;
+const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate}):null;
 let currentGameState={};
 let physicalStateInitialized=false;
 
@@ -469,7 +470,7 @@ document.getElementById("drawerFront")?.addEventListener("click",()=>clickAction
 document.getElementById("drawerRight")?.addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop")?.addEventListener("click",()=>clickAction("hatch"));
 document.getElementById("reset")?.addEventListener("click",()=>{
- const home=stage.clientWidth<720?[6.95,5.75,9.35]:[5.7,4.7,7.8];
+ const home=stage.clientWidth<720?[6.95,5.75,9.35]:[5.25,4.45,7.15];
  animate(camera.position,{x:home[0],y:home[1],z:home[2]});
  animate(cube.rotation,{x:-.19,y:-.33,z:.02});
  controls.target.set(0,0,0);
@@ -514,7 +515,7 @@ const onResize=()=>{
  const mode=r.width<720?"mobile":"desktop";
  if(mode!==cameraMode){
   cameraMode=mode;
-  const home=mode==="mobile"?[6.95,5.75,9.35]:[5.7,4.7,7.8];
+  const home=mode==="mobile"?[6.95,5.75,9.35]:[5.25,4.45,7.15];
   camera.position.set(...home);
  }
  camera.aspect=Math.max(.3,r.width/r.height);
@@ -541,7 +542,7 @@ function drawFrame(){
 controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
-  const base=stage.clientWidth<720?13:10.9;
+  const base=stage.clientWidth<720?13:10;
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(base/camera.position.length());
  }
 });
@@ -602,7 +603,7 @@ window.__nothing3DPreview={
  setZoom(value){
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
-  const base=mobile?13.0:10.9;
+  const base=mobile?13.0:10;
   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
   camera.position.setLength(d);controls.update();invalidate();
  },
