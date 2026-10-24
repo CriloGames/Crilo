@@ -495,6 +495,55 @@ document.getElementById("reset")?.addEventListener("click",()=>{
 });
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
+// Identify the actual object when hovered, not a generic "tap anywhere"
+// message. Inventory clues remain optional and never reveal a combination.
+const controlNames={
+ front:"Front drawer · pull open",latch:"Brass latch · open front drawer",
+ "drawer-a":"Key teeth · collect",side:"Side drawer · slide open",
+ seam:"Side latch · open drawer","drawer-b":"Thread spool · collect",
+ hatch:"Hinged lid · investigate",triangle:"Triangle · press three times",
+ "top-reed":"Hollow pipe · collect",foot:"Rubber foot · inspect",
+ underside:"Underside trapdoor · open",dent:"Dented switch · push",
+ dot:"Red button · press",pressure:"Pressure dial · turn",
+ "eye-ring":"Optical calibrator · rotate",eye:"Rear eye · inspect",
+ "cube-offer":"Central socket · use an item here",
+ optic:"Optical ring · turn",serial:"Maker stamp · read",
+ shutter:"Service shutter · inspect", "service-latch":"Service catch · inspect",
+ "hatch-latch":"Brass lid catch · test", "cipher-strip":"Engraved symbols · read",
+ "right-bolt-1":"Loose service bolt · turn",
+ "front-screw-3":"Odd screw · turn"
+};
+const miniatureNames={
+ bag:"Locked leather bag",dog:"Little dog",door:"Little door",vase:"Ceramic vase",
+ squirrel:"Clockwork squirrel",pot:"Plant pot",musicbox:"Music box",
+ cloud:"Indoor cloud",cup:"Teacup",clock:"Pocket watch",
+ machine:"Vending machine",elevator:"Miniature elevator",moth:"Clockwork moth",
+ telescope:"Telescope",train:"Miniature train"
+};
+const partHint=document.createElement("output");
+partHint.id="ncPartHint";partHint.setAttribute("aria-live","off");partHint.hidden=true;
+stage.appendChild(partHint);
+function describeAction(action){
+ if(!action)return "";
+ if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1)+" · turn";
+ if(action.startsWith("thing:elevator-floor-"))return "Lift · visit floor "+action.slice(-1);
+ if(action.startsWith("thing:"))return (miniatureNames[action.slice(6)]||"Miniature")+" · inspect";
+ if(action.startsWith("front-screw-"))return "Front screw · try turning";
+ if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service bolt · inspect";
+ if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin · loosen";
+ if(action.startsWith("vent-"))return "Numbered vent "+action.slice(-1)+" · press";
+ return controlNames[action]||"Mechanical part · inspect";
+}
+function setPartHint(action,e){
+ if(!action){partHint.hidden=true;return}
+ partHint.textContent=describeAction(action);
+ partHint.hidden=false;
+ if(e){
+  const b=stage.getBoundingClientRect();
+  partHint.style.left=Math.max(14,Math.min(b.width-32,e.clientX-b.left))+"px";
+  partHint.style.top=Math.max(24,Math.min(b.height-50,e.clientY-b.top-46))+"px";
+ }
+}
 function isMeshEffectivelyVisible(mesh){
  for(let p=mesh;p;p=p.parent)if(!p.visible)return false;
  return true;
@@ -515,16 +564,20 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  if(e.button===0)clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId};
 });
 renderer.domElement.addEventListener("pointermove",e=>{
- renderer.domElement.style.cursor=pickVisibleAction(e.clientX,e.clientY)?"pointer":"grab";
+ const action=pickVisibleAction(e.clientX,e.clientY);
+ renderer.domElement.style.cursor=action?"pointer":"grab";
+ setPartHint(action,e);
 });
+renderer.domElement.addEventListener("pointerleave",()=>setPartHint(null));
 renderer.domElement.addEventListener("pointerup",e=>{
  const start=clickStart;clickStart=null;
  if(!start||start.pointerId!==e.pointerId||
     Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)return;
  const action=pickVisibleAction(e.clientX,e.clientY);
  if(action)clickAction(action);
+ setPartHint(null);
 });
-renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null});
+renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null;setPartHint(null)});
 let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
@@ -576,6 +629,14 @@ window.__nothing3DPreview={
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
+ describeAction,
+ get physicalCollectiblesVisible(){return {
+  tooth:looseKey.visible,thread:looseSpool.visible,ring:undersideRing.visible,
+  extraKey:intricate.getCollectibleVisibility?.().tooth??null,
+  extraThread:intricate.getCollectibleVisibility?.().thread??null,
+  pipe:gameHotspots?.targets.get("top-reed")?.visible??null,
+  cog:gameHotspots?.targets.get("cube-offer")?.visible??null
+ }},
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
