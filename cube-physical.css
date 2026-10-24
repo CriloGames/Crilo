@@ -184,3 +184,22 @@ html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop sma
 }
 .nc-page .nc-back .nc-cipher-strip:hover{background:#ffefc9}
 .nc-page .nc-back .nc-cipher-strip:focus-visible{outline:3px solid #689b92;outline-offset:3px}
+
+/* The cube itself stays uncluttered. Names only appear beside the machined
+   part under the cursor, making tiny hardware identifiable without spoilers. */
+.nc-page.nc-physical-ready #stage #ncPartHint{
+ display:block;position:absolute;z-index:13;pointer-events:none;
+ transform:translateX(-50%);max-width:min(235px,82%);
+ padding:7px 12px;border:1px solid #9daea9;
+ border-radius:10px;color:#37464d;
+ background:#fffdf2f5;box-shadow:0 6px 19px #35464d2b;
+ font-size:12px;font-weight:750;line-height:1.35;
+ text-align:center;white-space:normal;letter-spacing:.015em;
+}
+.nc-page.nc-physical-ready #stage #ncPartHint[hidden]{display:none!important}
+html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
+ background:#323d42f5;color:#f0ead9;border-color:#67777a;
+}
+@media (pointer:coarse){
+ .nc-page.nc-physical-ready #stage #ncPartHint{font-size:11px;max-width:185px}
+}
