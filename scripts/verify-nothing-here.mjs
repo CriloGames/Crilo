@@ -161,4 +161,41 @@ await page.reload({waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
 assert.deepEqual(errors,[]);
 console.log('PASS: 70/70 physically clicked secrets, persistent room, keyboard modal, mobile and dark theme');
+
+// Test the REAL page too: the puzzle-only test above deliberately strips shared
+// scripts and previously missed a fatal missing Supabase SDK + auth loading veil.
+const sdkStub=`window.supabase={createClient:()=>({
+ auth:{
+  getSession:async()=>({data:{session:null},error:null}),
+  onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
+  signOut:async()=>({error:null})
+ },
+ rpc:async()=>({data:null,error:null})
+})};`;
+for(const sdkAvailable of [true,false]){
+ const live=await browser.newPage({viewport:{width:1280,height:850}});
+ const fullErrors=[];
+ live.on('pageerror',e=>fullErrors.push(e.message));
+ await live.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',route=>
+  sdkAvailable?route.fulfill({status:200,contentType:'application/javascript',body:sdkStub}):route.abort());
+ await live.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
+ await live.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('/ 70'));
+ assert(await live.locator('#srScene').isVisible(),'Real page hid the secret room');
+ assert.equal(await live.locator('html').evaluate(el=>el.classList.contains('crilo-auth-pending')),
+  false,'Real page is stuck behind an auth loading overlay');
+ await live.locator('[data-action="notice"]').click();
+ assert(await live.locator('#srCount').evaluate(el=>Number.parseInt(el.textContent,10)>=2),
+  'Real page puzzle is not interactive');
+ if(sdkAvailable){
+  await live.waitForFunction(()=>window.Crilo?.authResolved===true);
+  assert.deepEqual(fullErrors,[],'The real page has script errors despite a working SDK');
+  assert.equal(await live.locator('#accountBtn').textContent(),'SIGN IN');
+ }else{
+  // An authentication/CDN outage must never prevent the independent game.
+  assert(fullErrors.some(e=>/supabase|criloDB/.test(e)),
+   'The simulated SDK outage did not actually exercise a missing dependency');
+ }
+ await live.close();
+}
+console.log('PASS: full-page startup and clickable room with working or unavailable auth SDK');
 await browser.close();
