@@ -42,8 +42,11 @@ assert.equal(await page.locator('.nc-structural-frame .nc-corner').count(),8,
  'The cube must have eight dimensional corner brackets');
 assert.equal(await page.locator('.nc-structural-frame').evaluate(el=>getComputedStyle(el).transformStyle),
  'preserve-3d','The chassis is flat instead of a three-dimensional assembly');
-const chassisDepth=await page.locator('.nc-beam-dtl').evaluate(el=>getComputedStyle(el).transform);
-assert(chassisDepth!=='none'&&new DOMMatrixReadOnly(chassisDepth).m13!==0,
+const chassisDepth=await page.locator('.nc-beam-dtl').evaluate(el=>{
+ const transform=getComputedStyle(el).transform;
+ return transform!=='none'?Math.abs(new DOMMatrixReadOnly(transform).m13):0;
+});
+assert(chassisDepth>.9,
  'The front-to-back frame rail has not been rotated into actual depth');
 for(const [bay,drawer] of [['ncDrawerBayA','ncDrawerA'],['ncDrawerBayB','ncDrawerB']]){
  assert.equal(await page.locator('#'+bay+' > #'+drawer).count(),1,
