@@ -64,7 +64,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
  // Positions are on the machined presentation ring, not pasted on the
  // rotating cube. Each miniature rises from a little socket on the stand.
  const slots=[
-  ["bag",-2.22,1.10],["door",-1.33,2.05],["dog",-.28,2.28],
+  ["bag",-2.04,1.35],["door",-1.33,2.05],["dog",-.28,2.28],
   ["vase",.78,2.25],["pot",1.72,1.69],["musicbox",2.30,.65],
   ["cloud",-2.45,-.18],["cup",2.40,-.55],["clock",1.90,-1.46],
   ["machine",1.03,-2.17],["elevator",-.06,-2.28],
