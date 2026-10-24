@@ -52,6 +52,12 @@ console.log('All seven precision mechanisms respond to selections');
  await page.waitForFunction(()=>window.__nothing3DPreview.topOpen===true);
  await page.waitForTimeout(1200);
  const braceLengths=await page.evaluate(()=>window.__nothing3DPreview.hatchBraceLengths);
+ console.log('HATCH DEBUG',await page.evaluate(()=>({
+  angle:window.__nothing3DPreview.hatchAngle,
+  open:window.__nothing3DPreview.topOpen,
+  reducedMotion:window.__nothing3DPreview.reducedMotion,
+  braces:window.__nothing3DPreview.hatchBraceLengths
+ })));
  assert.equal(braceLengths.length,2,'The hatch must have two mechanical support braces');
  assert(braceLengths.every(n=>n>1.0),'The lid is not physically connected to its gas struts: '+braceLengths);
  await page.screenshot({path:'test-results/3d-physical-open-desktop.png'});
