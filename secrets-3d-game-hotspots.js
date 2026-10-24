@@ -19,11 +19,13 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const head=actuators.get(action);
   if(!head)return false;
   gsap.killTweensOf(head.position);
-  head.position.z=0;
-  if(reducedMotion){invalidate();return true;}
-  gsap.timeline({onUpdate:invalidate})
-   .to(head.position,{z:-.064,duration:.12,ease:"power2.out"})
-   .to(head.position,{z:0,duration:.30,ease:"back.out(2.4)"});
+  if(reducedMotion){head.position.z=0;invalidate();return true;}
+  // Immediately sink the actuator in its socket, then let its return spring
+  // rebound. A click must feel responsive even on slow mobile/WebGL GPUs.
+  head.position.z=-.064;
+  invalidate();
+  gsap.to(head.position,{z:0,delay:.085,duration:.34,ease:"back.out(2.1)",
+   onUpdate:invalidate});
   return true;
  }
  function pose(obj,axis,key,target,oldValue,restore,duration=.52){
