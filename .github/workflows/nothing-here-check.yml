@@ -1,0 +1,35 @@
+name: Nothing Here complete secret walkthrough
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'secret-room.js'
+      - 'secret-room.css'
+      - 'scripts/verify-nothing-here.mjs'
+      - '.github/workflows/nothing-here-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover-everything:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve Crilo locally
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Find all 70 secrets and verify save, mobile and dark mode
+        run: node scripts/verify-nothing-here.mjs
