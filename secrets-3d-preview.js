@@ -16,7 +16,7 @@ camera.position.set(5.7, 4.7, 7.8);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.09;
+renderer.toneMappingExposure = 1.00;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -41,8 +41,8 @@ controls.maxDistance = 14;
 controls.enablePan = false;
 controls.target.set(0, 0, 0);
 
-scene.add(new THREE.HemisphereLight(0xfff9ee, 0xb4a5a1, 1.35));
-const key = new THREE.DirectionalLight(0xfff9ef, 3.15);
+scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .96));
+const key = new THREE.DirectionalLight(0xfff6e7, 2.5);
 key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
@@ -51,9 +51,9 @@ key.shadow.camera.left = -8; key.shadow.camera.right = 8;
 key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
 key.shadow.bias = -.00028;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xc6e2ee, 1.15);
+const fill = new THREE.DirectionalLight(0xb6daeb, .88);
 fill.position.set(7, 4, -6); scene.add(fill);
-const rim = new THREE.PointLight(0xffd3aa, 20, 20);
+const rim = new THREE.PointLight(0xffd0a0, 11.5, 20);
 rim.position.set(1, 5, -4); scene.add(rim);
 
 const mat = (color, metalness = .07, roughness = .36) =>
@@ -195,10 +195,13 @@ const hatch = new THREE.Group();topFace.add(hatch);
 for(const sy of [-1,1])box(topFace,topHole.w+.11,.053,.12,0,sy*topHole.h/2,.07,metal,.024);
 for(const sx of [-1,1])box(topFace,.053,topHole.h+.1,.12,sx*topHole.w/2,0,.07,metal,.024);
 const chamber = new THREE.Group();topFace.add(chamber);
-box(chamber,topHole.w-.13,.07,topHole.h-.15,0,0,-.64,cavityMaterial,.022);
-for(const sx of [-1,1])box(chamber,.065,.77,topHole.h-.1,sx*(topHole.w/2-.035),-.35,-.27,cavityMaterial,.015);
-box(chamber,topHole.w-.13,.77,.065,0,-.35,-topHole.h/2+.04,cavityMaterial,.015);
-box(chamber,topHole.w-.13,.77,.065,0,-.35,topHole.h/2-.04,cavityMaterial,.015);
+// Well geometry must use local Z as depth. Earlier dimensions accidentally
+// swapped height and depth, leaving dark slabs protruding above the lid.
+box(chamber,topHole.w-.13,topHole.h-.15,.07,0,0,-.76,cavityMaterial,.022);
+for(const sx of [-1,1])
+ box(chamber,.065,topHole.h-.11,.74,sx*(topHole.w/2-.035),0,-.37,cavityMaterial,.015);
+for(const sy of [-1,1])
+ box(chamber,topHole.w-.13,.065,.74,0,sy*(topHole.h/2-.035),-.37,cavityMaterial,.015);
 for(const [x,y] of [[-.29,-.12],[.31,.16]]) {
  const gear=cylinder(chamber,.19,.08,x,y,-.52,brass);
  gear.rotation.x=Math.PI/2;
