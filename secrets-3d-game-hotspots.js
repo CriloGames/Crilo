@@ -62,6 +62,39 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat}) {
  // Back: concentric optical controls and a rotating calibration gear.
  control(backFace,"eye",.07,-.12,glass,.17);
  control(backFace,"eye-ring",1.02,-1.03,brass,.14);
+ // Story changes have real volume, not state indicators drawn over a canvas.
+ const portalGroup=node(frontFace,0,.59,.69);
+ const halo=new THREE.Mesh(new THREE.TorusGeometry(.245,.024,10,48),mat(0xb3a6df,.52,.20));
+ halo.castShadow=false;halo.receiveShadow=true;portalGroup.add(halo);count++;
+ const portalCore=C(portalGroup,.165,.046,0,0,-.013,mat(0x9bd9dd,.05,.19));
+ portalCore.material.emissive=new THREE.Color(0x407c8c);
+ portalCore.material.emissiveIntensity=.37;
+ const tinyLandscape=B(portalGroup,.24,.052,.037,0,-.075,.04,mat(0x7eae95,.12,.49),.02);
+ portalGroup.visible=false;
+ const exposedCog=node(frontFace,0,.59,.47);
+ const gearHub=C(exposedCog,.12,.09,0,0,0,brass);
+ for(let i=0;i<10;i++){
+  const a=2*Math.PI*i/10;
+  const spoke=B(exposedCog,.105,.039,.04,Math.cos(a)*.15,Math.sin(a)*.15,.06,nickel,.007);
+  spoke.rotation.z=a;
+ }
+ exposedCog.visible=false;
+ const resonator=node(rightFace,.80,-1.09,.15);
+ C(resonator,.28,.055,0,0,-.14,graphite);
+ const resonatorLight=C(resonator,.15,.055,0,0,-.10,glass);
+ resonatorLight.material.emissive=new THREE.Color(0x3d898c);
+ resonatorLight.material.emissiveIntensity=.3;
+ resonator.visible=false;
+ const miniMoon=node(backFace,-.72,.42,.24);
+ C(miniMoon,.18,.085,0,0,0,ivory);
+ for(const xy of [[-.05,.035],[.07,-.035]])C(miniMoon,.034,.015,xy[0],xy[1],.053,nickel);
+ miniMoon.visible=false;
+ // A round peephole slides out to show a real mechanical pocket once the
+ // player has removed the three correct screws.
+ const receiver=targets.get("cube-offer");
+ const eyeGear=targets.get("eye-ring");
+ const pressureKnob=targets.get("pressure");
+ const shutter=targets.get("shutter");
  // Bottom: actual protruding rubber support and a separate release hatch.
  control(bottomFace,"foot",-1.02,1.02,graphite,.16);
  control(bottomFace,"hatch",0,0,brass,.21);
@@ -70,6 +103,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat}) {
   actions:[...targets.keys()],
   targets,
   setState(s){
+   portalGroup.visible=!!s.portal;
+   miniMoon.visible=!!s.moon;
+   exposedCog.visible=!!s.plateOpen&&!s.portal;
+   resonator.visible=!!s.resonance;
+   receiver.position.x=s.plateOpen?.37:0;
+   eyeGear.rotation.z=(s.eyeRingTicks||0)*Math.PI/8;
+   pressureKnob.rotation.z=(s.pressureTicks||0)*Math.PI/6;
+   shutter.position.x=s.serviceOpen?1.05:.80;
+   resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
     else if(name==="right-bolt-1")g.visible=!s.rightBoltLoose;
