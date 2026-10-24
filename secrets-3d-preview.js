@@ -523,8 +523,38 @@ const miniatureNames={
 const partHint=document.createElement("output");
 partHint.id="ncPartHint";partHint.setAttribute("aria-live","off");partHint.hidden=true;
 stage.appendChild(partHint);
+function acceptsHeldItem(action){
+ const held=currentGameState.selected;
+ if(!held)return false;
+ const target=action.startsWith("thing:")?action.slice(6):
+  ["cube-offer","eye"].includes(action)?(action==="cube-offer"?"cube":"eye"):null;
+ const s=currentGameState;
+ return !!target&&(
+  held==="key"&&target==="bag"&&!s.bagOpen||
+  held==="treat"&&target==="dog"&&s.doorOpen||
+  held==="acorn"&&target==="pot"&&!s.plant||
+  held==="raindrop"&&target==="pot"&&s.plant&&!s.tree||
+  held==="spring"&&target==="musicbox"&&!s.music||
+  held==="coin"&&target==="machine"||
+  held==="kite"&&target==="cloud"&&s.cloud&&!s.kite||
+  held==="sugar"&&target==="cup"&&s.cup||
+  held==="bird"&&target==="cube"&&s.tree&&!s.moon||
+  held==="bell"&&target==="dog"&&s.doorOpen||
+  held==="lens"&&target==="telescope"&&s.moon&&!s.observed||
+  held==="stardust"&&target==="musicbox"&&s.music&&!s.dancer||
+  held==="starmap"&&target==="elevator"&&s.floorFour&&!s.train||
+  held==="parcel"&&target==="dog"&&s.doorOpen||
+  held==="postcard"&&target==="cube"&&!s.portal||
+  held==="cog"&&target==="eye"&&s.eyeRingTicks>=3&&!s.opticOpened||
+  held==="iris"&&target==="telescope"&&s.observed&&!s.secondSky||
+  held==="shim"&&target==="machine"&&!s.shimUsed||
+  held==="washer"&&target==="musicbox"&&s.music&&!s.clockHeart||
+  held==="fork"&&target==="cube"&&s.pressureReady&&!s.resonance
+ );
+}
 function describeAction(action){
  if(!action)return "";
+ if(acceptsHeldItem(action))return "✓ Use held item here · click to apply";
  if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1)+" · turn";
  if(action.startsWith("thing:elevator-floor-"))return "Lift · visit floor "+action.slice(-1);
  if(action.startsWith("thing:"))return (miniatureNames[action.slice(6)]||"Miniature")+" · inspect";
@@ -537,6 +567,7 @@ function describeAction(action){
 function setPartHint(action,e){
  if(!action){partHint.hidden=true;return}
  partHint.textContent=describeAction(action);
+ partHint.classList.toggle("nc-can-use",acceptsHeldItem(action));
  partHint.hidden=false;
  if(e){
   const b=stage.getBoundingClientRect();
