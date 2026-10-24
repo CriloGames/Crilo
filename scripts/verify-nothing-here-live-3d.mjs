@@ -172,7 +172,8 @@ try{
   Object.assign(original,{
    seen:ids,plateOpen:true,serviceOpen:true,pressureReady:true,
    pressureTicks:3,eyeRingTicks:3,screws:[0,1,2],hingePins:[0,1,2],
-   watch:true,tag:true,floorFour:false
+   watch:true,tag:true,floorFour:false,
+   door:true,doorOpen:true,music:true,vase:true
   });
   localStorage.setItem(key,JSON.stringify(original));
  },sixtySecrets);
@@ -183,6 +184,12 @@ try{
  assert.equal(await page.locator("#ncCount").innerText(),"60","Journal did not restore all sixty discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
+ await page.waitForTimeout(770);
+ const vignette=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose);
+ assert(vignette.doorAngle<-.75&&vignette.musicLidAngle<-.70,
+  "Previously opened miniature doors and music-box lids did not restore their 3D hinge poses: "+JSON.stringify(vignette));
+ assert(vignette.shardsVisible&&!vignette.vaseWholeVisible&&vignette.shardCount===12,
+  "A broken vase must restore as solid individual ceramic shards: "+JSON.stringify(vignette));
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
