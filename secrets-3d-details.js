@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {batchStaticGeometry} from "./secrets-3d-batching.js";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
 // All coordinates below are local to their own solid cube face.
@@ -18,6 +19,7 @@ export function buildIntricateCube({
   const live={dialSteps:0,needle:false,lever:false,light:false,topLatch:false,backEye:false,underside:false,service:false};
   const registries={};
   let detailsCount=0;
+  const authoredMeshes=[];
   // Small machined features receive normal PBR lighting but do not each
   // cast a 1024px shadow. Larger structural pieces retain genuine shadows.
   // This removes hundreds of redundant shadow draw calls on mobile hardware.
@@ -25,18 +27,20 @@ export function buildIntricateCube({
     detailsCount++;
     const mesh=box(parent,w,h,d,x,y,z,m,r);
     mesh.castShadow=w>.48&&h>.38&&d>.10;
+    authoredMeshes.push(mesh);
     return mesh;
   };
   const C=(parent,r,d,x,y,z,m)=>{
     detailsCount++;
     const mesh=cylinder(parent,r,d,x,y,z,m);
     mesh.castShadow=r>.35&&d>.09;
+    authoredMeshes.push(mesh);
     return mesh;
   };
   const ring=(parent,r,t,x,y,z,m)=>{
     const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,60),m);
     o.position.set(x,y,z);o.castShadow=false;o.receiveShadow=true;
-    parent.add(o);detailsCount++;return o;
+    parent.add(o);detailsCount++;authoredMeshes.push(o);return o;
   };
   const flatLine=(parent,x1,y1,x2,y2,z,width,m)=>{
     const dx=x2-x1,dy=y2-y1;
@@ -109,7 +113,7 @@ export function buildIntricateCube({
   for(let i=0;i<8;i++){
     const a=i*Math.PI/4;
     const blade=B(frontDisc,.15,.032,.023,Math.cos(a)*.20,Math.sin(a)*.20,.253,satin,.008);
-    blade.rotation.z=a+.47;irisBlades.push(blade);
+    blade.rotation.z=a+.47;blade.userData.noBatch=true;irisBlades.push(blade);
   }
   C(frontDisc,.07,.045,.062,-.03,.276,ebony);
   edgeTicks(frontFace,0,.56,.66,28);
@@ -126,7 +130,7 @@ export function buildIntricateCube({
   const statusLight=group(frontFace,1.06,.20,.21);
   C(statusLight,.12,.05,0,0,0,darkMetal);
   const bulb=C(statusLight,.074,.06,0,0,.05,ebony);
-  registries.bulb=bulb;
+  bulb.userData.noBatch=true;registries.bulb=bulb;
   vent(frontFace,-.98,-.16,.47,4);
   vent(frontFace,.95,-.16,.47,4);
 
@@ -303,8 +307,14 @@ export function buildIntricateCube({
     }
     return labels[action];
   }
+  const batching=batchStaticGeometry(cube,authoredMeshes,{
+    dynamicRoots:[front.drawer,side.drawer,lidPivot,wheelA,wheelB],
+    protectedMeshes:[bulb,...irisBlades],
+    label:"precision"
+  });
   return {
     meshCount:()=>detailsCount,
+    batching,
     actions:Object.keys(labels),
     getState:()=>({...live}),
     operate
