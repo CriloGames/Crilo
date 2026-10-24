@@ -9,6 +9,7 @@ on:
       - 'secrets-3d-preview.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
+      - 'secrets-3d-batching.js'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - '.github/workflows/nothing-here-3d.yml'
   workflow_dispatch:
@@ -36,6 +37,7 @@ jobs:
           node --check secrets-3d-preview.js
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
+          node --check secrets-3d-batching.js
           node --check scripts/verify-secrets-3d-preview.mjs
       - name: Install browser for physical preview
         run: |
