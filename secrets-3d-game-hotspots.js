@@ -101,6 +101,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  engraving(rightFace,"SERVICE",.78,-1.33,.50);
  for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
   control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
+ // The vent order is engraved INSIDE the empty fastener recess: it is
+ // not visible until the player actually loosens the appropriate bolt.
+ const ventCipher=engraving(rightFace,"3 · 1 · 2",.98,1.25,.50);
+ ventCipher.visible=false;
  // Left: the same three numbered physical vent switches used by the
  // original 3-1-2 sequence and an adjustable real pressure control.
  for(let i=1;i<=3;i++){
@@ -135,6 +139,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  setHit(reed,"top-reed");targets.set("top-reed",reed);
  // Back: concentric optical controls and a rotating calibration gear.
  control(backFace,"eye",.07,-.12,glass,.17);
+ const eyeCipher=engraving(backFace,"2 · 1 · 3",.03,-.55,.53);
+ eyeCipher.visible=false;
  control(backFace,"eye-ring",1.02,-1.03,brass,.14);
  engraving(backFace,"IRIS",1.01,-.75,.39);
  // Story changes have real volume, not state indicators drawn over a canvas.
@@ -204,7 +210,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const pressureKnob=targets.get("pressure");
  const shutter=targets.get("shutter");
  // Bottom: actual protruding rubber support and a separate release hatch.
- control(bottomFace,"foot",-1.02,1.02,graphite,.16);
+ const foot=control(bottomFace,"foot",-1.02,1.02,graphite,.16);
+ const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
+ undersideCipher.visible=false;
  control(bottomFace,"underside",0,0,brass,.21);
  engraving(bottomFace,"BASE",.50,-.07,.39);
  return {
@@ -227,6 +235,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     cipherStrip.visible=false;
     cipherStrip.position.y=0;
    }
+   ventCipher.visible=!!s.rightBoltLoose;
+   undersideCipher.visible=!!s.footChecked;
+   eyeCipher.visible=!!s.back;
+   pose(foot,"position","x",s.footChecked?-1.32:-1.02,
+     previous.footChecked?-1.32:-1.02,restore,.46);
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
    // The cog has fallen directly into inventory after the panel is opened.
@@ -254,7 +267,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    previousState={
     plateOpen:!!s.plateOpen,eyeRingTicks:s.eyeRingTicks||0,
     pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
-    ventOpen:!!s.ventOpen
+    ventOpen:!!s.ventOpen,footChecked:!!s.footChecked
    };
    invalidate();
   }
