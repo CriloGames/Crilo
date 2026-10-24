@@ -100,6 +100,25 @@
  transform:translateY(13px);pointer-events:none;text-align:center;z-index:2}
 .nc-vent-panel b{color:#e3d2b0;font-size:48px;line-height:1}
 .nc-vent-open .nc-vent-panel{opacity:1;transform:translateY(0)}
+/* A hinged lid is attached to the top panel, not a floating object.
+   The flute pipe remains in the recessed mechanism when the lid swings open. */
+.nc-page .nc-top .nc-lid{top:7%;left:20%;width:60%;height:38%;
+ transform-origin:50% 0;transform:translateZ(7px) rotateX(0deg);opacity:1;
+ background:linear-gradient(130deg,#f1e2be,#ccb78e);box-shadow:inset 0 0 0 4px #fff2ce,0 5px 0 #ad906a;
+ pointer-events:none!important;backface-visibility:visible}
+.nc-page.nc-top-open .nc-top .nc-lid{transform:translateZ(15px) rotateX(-112deg);
+ box-shadow:inset 0 0 0 4px #fff2ce,0 7px 9px #604e3629}
+.nc-page .nc-top .nc-lid-mark{position:absolute;inset:0;display:grid;place-items:center;
+ font-size:34px;color:#a89165;opacity:.83;pointer-events:none}
+.nc-page .nc-top .nc-top-well{top:35%;left:20%;height:44%;width:60%;opacity:0;
+ transform:translateZ(-2px);transition:opacity .25s;pointer-events:none;z-index:8}
+.nc-page.nc-top-open .nc-top .nc-top-well{opacity:1;pointer-events:auto}
+.nc-top-well .nc-well-pipe{position:absolute;z-index:8;left:21%;bottom:13%;width:65%;height:45px;
+ display:grid;place-items:center;border:2px solid #d0b37b;background:#f5e2b6;
+ border-radius:10px;box-shadow:0 4px 0 #8c7352;pointer-events:auto;cursor:pointer}
+.nc-top-well .nc-well-pipe:hover{background:#fff1d4}
+.nc-top-well .nc-well-pipe .nc-sculpt-pipe{transform:rotate(-8deg)}
+.nc-top-open .nc-top .nc-lid,.nc-top-open .nc-top .nc-top-well{backface-visibility:visible}
 /* Hinge pins are small, intentional targets rather than decorative marks. */
 .nc-hinge-frame{pointer-events:none}
 .nc-hinge-frame>button{position:absolute;top:-19px;width:32px;height:34px;border:0;background:transparent;
