@@ -151,3 +151,20 @@ html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop sma
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-cube-zone #stage{transition:none}
 }
+
+/* Keep live discoveries accessible without a distracting text pill hovering
+   over precision mechanics. The classic presentation is unchanged. */
+.nc-page.nc-physical-ready #stage #status{
+ width:1px!important;
+ height:1px!important;
+ max-width:1px!important;
+ padding:0!important;
+ border:0!important;
+ overflow:hidden!important;
+ white-space:nowrap;
+ clip-path:inset(50%)!important;
+ box-shadow:none!important;
+}
+.nc-page.nc-physical-ready .nc-cube-zone .nc-cube-hint{
+ display:none;
+}
