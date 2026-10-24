@@ -11,6 +11,7 @@ on:
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
       - 'secrets-3d-game-hotspots.js'
+      - 'secrets-3d-worlds.js'
       - 'secrets.html'
       - 'cube-secrets.js'
       - 'cube-physical.css'
@@ -44,6 +45,7 @@ jobs:
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js
           node --check secrets-3d-game-hotspots.js
+          node --check secrets-3d-worlds.js
           node --check scripts/verify-nothing-here-live-3d.mjs
           node --check scripts/verify-secrets-3d-preview.mjs
       - name: Install browser for physical preview
