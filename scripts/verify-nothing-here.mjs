@@ -60,6 +60,10 @@ const opening=await page.evaluate(()=>{
 assert(opening.cubeTop>=opening.worldTop-2&&opening.cubeBottom<=opening.worldBottom+2,
  'The opening cube is cut off by its stage');
 await page.screenshot({path:'test-results/cube-opening-desktop.png'});
+assert(await page.evaluate(()=>{
+ const layer=document.querySelector('#criloAmbientWheels');
+ return !layer||getComputedStyle(layer).display==='none';
+}),'Unrelated site-wide floating wheel decorations clutter the white gallery');
 await page.setViewportSize({width:390,height:844});
 const openingMobile=await page.evaluate(()=>{
  const box=document.getElementById('ncCube').getBoundingClientRect(),
