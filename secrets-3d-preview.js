@@ -1,8 +1,10 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=3";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=1";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -14,13 +16,20 @@ camera.position.set(5.7, 4.7, 7.8);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.14;
+renderer.toneMappingExposure = 1.09;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.domElement.setAttribute("aria-label", "Real three-dimensional cube with moving box drawers and lid");
 renderer.domElement.setAttribute("tabindex", "0");
 stage.prepend(renderer.domElement);
+// Physically based studio reflections are essential for enameled metal, glass,
+// and brass to read as volumes rather than flat pastel faces.
+const pmrem=new THREE.PMREMGenerator(renderer);
+const studioRoom=new RoomEnvironment();
+const studioReflection=pmrem.fromScene(studioRoom,.035);
+scene.environment=studioReflection.texture;
+studioRoom.dispose();pmrem.dispose();
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -32,8 +41,8 @@ controls.maxDistance = 14;
 controls.enablePan = false;
 controls.target.set(0, 0, 0);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xc7b8b0, 1.7));
-const key = new THREE.DirectionalLight(0xfff9ef, 3.4);
+scene.add(new THREE.HemisphereLight(0xfff9ee, 0xb4a5a1, 1.35));
+const key = new THREE.DirectionalLight(0xfff9ef, 3.15);
 key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
@@ -42,7 +51,7 @@ key.shadow.camera.left = -8; key.shadow.camera.right = 8;
 key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
 key.shadow.bias = -.00028;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xc6e2ee, 1.5);
+const fill = new THREE.DirectionalLight(0xc6e2ee, 1.15);
 fill.position.set(7, 4, -6); scene.add(fill);
 const rim = new THREE.PointLight(0xffd3aa, 20, 20);
 rim.position.set(1, 5, -4); scene.add(rim);
@@ -291,6 +300,14 @@ const intricate=buildIntricateCube({
  box,cylinder,label,setHit,mat,animate:(object,props,duration=.8)=>animate(object,props,duration),
  materials:{brass,metal,darkMetal,ivory,cavityMaterial,rubber}
 });
+// Finishing stays on the real object: every visible feature remains spatial,
+// lit and attached to the face, moving drawer or hinged panel it belongs to.
+const finish=finishMechanicalArtifact({
+ renderer,scene,cube,
+ faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
+ front,side,lidPivot,box,cylinder,mat,
+ materials:{brass,metal,darkMetal,ivory,rubber,cavityMaterial,enamel}
+});
 
 // Grounding is a real plane receiving the real shadow of the mechanism.
 const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
@@ -403,7 +420,9 @@ renderer.setAnimationLoop(()=>{
 window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
- get meshCount(){return objectCount + intricate.meshCount()},
+ get meshCount(){return objectCount + intricate.meshCount()+finish.meshCount},
+ get finishMeshCount(){return finish.meshCount},
+ get finishQuality(){return finish.quality},
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
  detailState:()=>intricate.getState(),
@@ -416,4 +435,4 @@ window.__nothing3DPreview={
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
 };
-announce("Inspect a real mechanical artifact — drag to rotate, explore dials, press switches, open compartments.");
+announce("A hand-built mechanical curiosity — inspect the dials, rails, lenses and hidden compartments.");
