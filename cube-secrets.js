@@ -98,7 +98,10 @@ function bloom(id,comment){
 }
 function gain(id,message){
  if(!Object.hasOwn(names,id))return;
- if(!pocket.has(id)){pocket.add(id);if(message)tell(message);render()}
+ if(!pocket.has(id)){
+  const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
+  pocket.add(id);if(message)tell(message);render();flyToPocket(id,origin);
+ }
 }
 function spend(id){if(!pocket.has(id))return false;pocket.delete(id);if(selected===id)selected=null;return true}
 function turn(){ $('ncCube').style.transform='rotateX('+s.rx+'deg) rotateY('+s.ry+'deg)';store(); }
@@ -117,6 +120,60 @@ function closeModal(){
  if(previousFocus?.isConnected)previousFocus.focus();
 }
 const prop=key=>document.querySelector('[data-thing="'+key+'"]');
+// Scene animation director. Events change immediately; motion is a visual
+// rendition of the same authoritative state, never a puzzle prerequisite.
+const reducedMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false;
+const cueTimers=new WeakMap();
+function cue(el,className,duration=1150){
+ if(typeof el==='string')el=$(el);
+ if(!el)return;
+ const previous=cueTimers.get(el);
+ if(previous)clearTimeout(previous);
+ el.classList.remove(className);
+ void el.offsetWidth;
+ el.classList.add(className);
+ const timer=setTimeout(()=>{el.classList.remove(className);cueTimers.delete(el)},reducedMotion?40:duration);
+ cueTimers.set(el,timer);
+}
+function scatter(color='#e4b2af',count=10,source=null){
+ if(reducedMotion)return;
+ const area=$('ncWorld'),layer=$('ncFragments');
+ if(!area||!layer)return;
+ const world=area.getBoundingClientRect();
+ const r=source?.getBoundingClientRect?.()||$('ncCube').getBoundingClientRect();
+ const x=(r.left+r.width/2-world.left)/world.width*100;
+ const y=(r.top+r.height/2-world.top)/world.height*100;
+ for(let i=0;i<count;i++){
+  const node=document.createElement('i');
+  node.className='nc-spark-shard';
+  const angle=(i/count)*Math.PI*2,radial=42+(i%4)*14;
+  node.style.cssText='--x:'+x+'%;--y:'+y+'%;--fill:'+color+';--size:'+(i%3===0?12:7)+
+  'px;--dx:'+(Math.cos(angle)*radial)+'px;--dy:'+(Math.sin(angle)*radial-24)+
+  'px;--spin:'+(i%2?-150:190)+'deg;--duration:'+(0.7+(i%4)*.1)+'s';
+  layer.appendChild(node);
+  setTimeout(()=>node.remove(),1350);
+ }
+}
+function flyToPocket(id,origin){
+ if(reducedMotion)return;
+ const target=document.querySelector('#ncInventory [data-item="'+id+'"]');
+ const dest=target?.getBoundingClientRect();
+ const from=origin?.getBoundingClientRect?.()||$('ncCube').getBoundingClientRect();
+ if(!dest||!from)return;
+ const node=document.createElement('div');node.className='nc-inventory-fly';
+ node.textContent=glyphs[id]||'✧';
+ const x=from.left+from.width/2-20,y=from.top+from.height/2-20;
+ node.style.left=x+'px';node.style.top=y+'px';
+ node.style.setProperty('--tx',dest.left+dest.width/2-x-20+'px');
+ node.style.setProperty('--ty',dest.top+dest.height/2-y-20+'px');
+ document.body.appendChild(node);
+ setTimeout(()=>node.remove(),900);
+}
+function floatNote(origin){
+ if(reducedMotion||!origin)return;
+ const node=document.createElement('span');node.className='nc-musical-note';node.textContent='♪';
+ origin.appendChild(node);setTimeout(()=>node.remove(),1260);
+}
 function incident(symbol){
  const node=$('ncIncident');$('ncIncidentIcon').textContent=symbol;
  node.classList.remove('nc-incident-pop');void node.offsetWidth;node.classList.add('nc-incident-pop');
@@ -136,6 +193,9 @@ function render(){
  document.body.classList.toggle('nc-moon',s.moon);
  document.body.classList.toggle('nc-music',s.music);
  document.body.classList.toggle('nc-barked',s.barked);
+ $('ncDrawerA')?.classList.toggle('nc-emptied',s.drawerTaken);
+ $('ncDrawerB')?.classList.toggle('nc-emptied',s.sideTaken);
+ $('ncLid')?.classList.toggle('nc-emptied',s.pipeTaken);
  $('ncDoorScene').hidden=!s.door;
  $('ncDoorPlace').hidden=!s.doorOpen;
  if($('ncDoor'))$('ncDoor').classList.toggle('nc-door-open',s.doorOpen);
@@ -193,6 +253,16 @@ function cubeHit(name){
   else tell('click.');
  }
  render();
+ if(name==='latch'&&s.a)cue('ncWorld','nc-shudder',400);
+ if(name==='seam'&&s.b)cue('ncWorld','nc-shudder',400);
+ if(name==='triangle'&&s.top)cue('ncWorld','nc-shudder',400);
+ if(name==='hatch'&&s.bottom)scatter('#d3bf8b',13,document.querySelector('[data-hit="hatch"]'));
+ if(name==='dent'&&s.mouse){
+  cue('ncAnimatedMouse','nc-running',1800);
+  scatter('#a3b5c3',6,document.querySelector('[data-hit="dent"]'));
+ }
+ if(name==='dot'){scatter('#e6a2b3',4,document.querySelector('[data-hit="dot"]'));cue('ncWorld','nc-shudder',400)}
+ if(name==='eye')cue('ncCube','nc-scene-blink',850);
 }
 function accepts(item,thing){
  return item==='key'&&thing==='bag'&&!s.bagOpen
@@ -234,7 +304,22 @@ function use(item,thing){
  }else if(item==='bell'&&thing==='dog'){
   sound(820);tell('The dog looks offended. It prefers being petted.');
  }
- render();return true;
+ render();
+ if(item==='key'&&thing==='bag')cue(prop('bag'),'nc-scene-blink',900);
+ if(item==='acorn'&&thing==='pot'){cue(prop('pot'),'nc-scene-blink',1000);scatter('#bdd1a5',8,prop('pot'))}
+ if(item==='raindrop'&&thing==='pot'){
+  cue(prop('pot'),'nc-sprouting',1750);scatter('#9dcbae',14,prop('pot'));
+ }
+ if(item==='spring'&&thing==='musicbox'){
+  cue(prop('musicbox'),'nc-scene-blink',1200);floatNote(prop('musicbox'));
+  setTimeout(()=>floatNote(prop('musicbox')),350);
+  setTimeout(()=>floatNote(prop('musicbox')),700);
+ }
+ if(item==='coin'&&thing==='machine')cue(prop('machine'),'nc-vending',900);
+ if(item==='sugar'&&thing==='cup')cue(prop('cup'),'nc-scene-blink',850);
+ if(item==='bird'&&thing==='cube'){cue('ncAnimatedBird','nc-running',2100);scatter('#e5c6d3',12);}
+ if(item==='kite'&&thing==='cloud')scatter('#d2add7',10,prop('cloud'));
+ return true;
 }
 function take(item){
  if(!pocket.has(item))return;
@@ -249,8 +334,8 @@ function openBag(){
  const sym=['○','✳','◇','☾'];
  modal('INSIDE THE BAG',s.bagSolved?'A suspicious lining':'The three hidden wheels',
   '<p>Three small wheels are sewn into the lining. A faded stitch reads: <strong>DIAMOND · CIRCLE · MOON.</strong></p>'+ 
-  '<div class="nc-bag-wheels">'+[0,1,2].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+'" aria-label="Turn wheel '+(i+1)+'">'+sym[s.bagDials[i]]+'</button>').join('')+'</div>'+
-  '<p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'These are not ordinary luggage wheels.')+'</p>','bag');
+  '<div class="nc-bag-interior" id="ncBagInterior"><div class="nc-bag-wheels">'+[0,1,2].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+'" aria-label="Turn wheel '+(i+1)+'">'+sym[s.bagDials[i]]+'</button>').join('')+'</div>'+
+  '</div><p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'These are not ordinary luggage wheels.')+'</p>','bag');
 }
 function turnBag(i){
  if(s.bagSolved)return;
@@ -260,6 +345,7 @@ function turnBag(i){
   s.bagSolved=true;gain('reed');gain('treat');gain('prism');
   bloom('bag-code','Under the false bottom: a reed, a biscuit and a glass prism.');
   $('ncBagNote').textContent='A tiny false bottom has opened. Its contents are in your pocket.';
+  cue('ncBagInterior','nc-unlatched',1100);scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
   incident('✳');
  }else sound(350+i*50);
  store();
@@ -267,15 +353,19 @@ function turnBag(i){
 function openFlute(){
  s.fluteNotes=[];
  modal('A VERY UNNECESSARY INSTRUMENT','The flute',
-  '<p>It has three holes. Every breath becomes a different note.</p><div class="nc-flute-keys">'+
+  '<p>It has three holes. Every breath becomes a different note.</p><div class="nc-flute-model" id="ncFluteModel"><span></span><span></span><span></span></div><div class="nc-flute-keys">'+
   [1,2,3].map(i=>'<button type="button" data-note="'+i+'" aria-label="Blow flute note '+i+'">'+i+'</button>').join('')+
   '</div><div class="nc-flute-track" id="ncFluteTrack">♪  ·  ·  ·</div>', 'flute');
 }
 function note(i){
  s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-3);sound(390+i*135);
+ cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
  $('ncFluteTrack').textContent='♪  '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join('  ');
  if(s.fluteNotes.join('')==='213'){
-  if(!s.door){s.door=true;bloom('door','The flute has summoned a very real door from an extremely empty wall.');incident('🚪')}
+  if(!s.door){
+    s.door=true;bloom('door','The flute has summoned a very real door from an extremely empty wall.');
+    cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
+   }
   else tell('The door recognizes that tune.');
   closeModal();setTimeout(()=>$('ncDoorScene').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
  }else if(s.fluteNotes.length===3){
@@ -285,13 +375,20 @@ function note(i){
 }
 function bark(){
  s.dogHits++;
+ cue('ncDog','nc-petting',520);
  if(s.dogHits===1)bloom('dog','The dog tilts its head, wondering whether you are real.');
  if(s.dogHits===3&&!s.barked){
   s.barked=true;s.squirrel=true;s.vase=true;
   bloom('bark','After three pats, the dog lets out a shockingly loud BARK!');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
   bloom('vase','The squirrel knocks over an unseen vase. An acorn and a spring roll out.');
-  gain('acorn');gain('spring');bloom('spring');fleeing=true;incident('🐿');
+  gain('acorn');gain('spring');bloom('spring');fleeing=true;
+   cue('ncDog','nc-howling',1250);
+   cue('ncImpactWave','nc-running',1250);
+   cue('ncActionSquirrel','nc-running',2000);
+   cue(prop('vase'),'nc-shattering',1550);
+   cue('ncWorld','nc-shudder',430);
+   scatter('#add0d0',17,prop('vase'));
   setTimeout(()=>{fleeing=false;render()},1350);
   sound(215);
  }else if(s.dogHits<3)tell('The dog likes that. Keep petting.');
@@ -306,7 +403,11 @@ function clickThing(name){
  bloom('first');
  if(name==='bag')openBag();
  else if(name==='door'){
-  if(!s.doorOpen){s.doorOpen=true;bloom('dog','Behind the door: a polite little dog and something balanced overhead.');incident('✧')}
+  if(!s.doorOpen){
+    s.doorOpen=true;bloom('dog','Behind the door: a polite little dog and something balanced overhead.');
+    cue('ncDoor','nc-opening',1190);
+    scatter('#e8ceae',8,$('ncDoor'));
+   }
   else tell('There is no place on the other side of this door. Just a dog.');
  }else if(name==='dog')bark();
  else if(name==='vase')tell(s.vase?'The vase is in at least seventeen pieces.':'How is this vase so perfectly balanced?');
