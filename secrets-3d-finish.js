@@ -48,22 +48,25 @@ export function finishMechanicalArtifact({
   }
   const enamelNoise=noiseMap(),brushedNoise=noiseMap(1);
   for(const paint of Object.values(enamel)){
-    paint.roughness=.27;
-    paint.metalness=.18;
-    paint.clearcoat=.68;
-    paint.clearcoatRoughness=.17;
+    // Painted porcelain enamel should retain its pigment rather than reflecting
+    // so much white studio light that the cube loses all contrast.
+    paint.roughness=.54;
+    paint.metalness=.08;
+    paint.clearcoat=.42;
+    paint.clearcoatRoughness=.28;
     paint.bumpMap=enamelNoise;
     paint.bumpScale=.010;
     paint.roughnessMap=enamelNoise;
-    paint.envMapIntensity=1.05;
+    paint.envMapIntensity=.62;
     paint.needsUpdate=true;
   }
   for(const m of [metal,brass,copper,tinyGold,satin]){
+    m.roughness=Math.max(m.roughness,.46);
     m.roughnessMap=brushedNoise;
     m.bumpMap=brushedNoise;
-    m.bumpScale=.005;
-    m.clearcoat=.2;
-    m.envMapIntensity=1.25;
+    m.bumpScale=.007;
+    m.clearcoat=.16;
+    m.envMapIntensity=.84;
     m.needsUpdate=true;
   }
   deep.clearcoat=.35;
