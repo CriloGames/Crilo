@@ -698,9 +698,11 @@ function clickInventory(e){
 // projected screw rectangle so visual mechanical controls remain operable.
 // Only service the currently facing top panel; never activate backface clues.
 $('ncWorld').addEventListener('pointerdown',event=>{
- if(event.button!==0||!event.isPrimary||s.rx>-45)return;
+ if(event.button!==0||!event.isPrimary)return;
  if(event.target.closest?.('button,[data-hit]'))return;
- const controls=[...document.querySelectorAll('[data-hit^="hinge-"]')];
+ // Only check the currently front-facing horizontal surface.
+ const controls=s.rx<=-45?[...document.querySelectorAll('[data-hit^="hinge-"]')]:
+  s.rx>=45?[...document.querySelectorAll('[data-hit="foot"]')]:[];
  for(const button of controls){
   const r=button.getBoundingClientRect();
   if(r.width<4||r.height<4)continue;
