@@ -207,7 +207,9 @@ export function finishMechanicalArtifact({
 
   // Other faces: authentic enamel-backed vent cavities, their louvers
   // floating above the recessed opening, tiny copper mechanical feed lines.
-  for(const face of [leftFace,backFace,bottomFace]){
+  // The rear face has its own compact, integrated iris grille. Adding
+  // the old generic vent there produced an overlapping, unreadable stack.
+  for(const face of [leftFace,bottomFace]){
     const g=group(face,.83,-.95,.14);
     B(g,.69,.36,.06,0,0,0,brass,.042);
     B(g,.57,.25,.068,0,0,.049,deep,.024);
@@ -216,7 +218,7 @@ export function finishMechanicalArtifact({
     }
     for(const s of [-1,1])stud(g,s*.28,0,.109,.023);
   }
-  for(const face of [leftFace,backFace]){
+  for(const face of [leftFace]){
     const end=.92;
     path(face,[[-1.04,-1.01,.19],[-.74,-1.01,.18],[-.64,-.91,.18],[-.64,-.69,.18]],.016,copper);
     for(const y of [-.98,-.74])B(face,.12,.045,.048,-.63,y,.21,steelFinish(),.01);
