@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=6";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=2";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=3";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=6";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -328,7 +328,7 @@ const finish=finishMechanicalArtifact({
 });
 const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
- lidPivot,box,cylinder,setHit,mat
+ lidPivot,box,cylinder,setHit,mat,animate
 }):null;
 const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate}):null;
 let currentGameState={};
@@ -557,6 +557,7 @@ window.__nothing3DPreview={
  },
  get finishMeshCount(){return finish.meshCount()},
  get gameControls(){return gameHotspots?.actions||[]},
+ get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
