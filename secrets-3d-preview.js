@@ -629,6 +629,37 @@ window.__nothing3DPreview={
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
+ projectItemSource(item){
+  const sources={
+   tooth:looseKey,thread:looseSpool,pipe:gameHotspots?.targets.get("top-reed"),
+   ring:undersideRing,cog:gameHotspots?.targets.get("cube-offer"),
+   fork:gameHotspots?.targets.get("pressure"),
+   shim:gameHotspots?.targets.get("vent-3"),
+   washer:gameHotspots?.targets.get("hinge-0"),
+   iris:gameHotspots?.targets.get("eye"),
+   cylinder:gameHotspots?.targets.get("shutter"),
+   coin:pocketWorlds?.targets.get("bag"),
+   treat:pocketWorlds?.targets.get("bag"),
+   reed:pocketWorlds?.targets.get("bag"),
+   prism:pocketWorlds?.targets.get("bag"),
+   sugar:pocketWorlds?.targets.get("machine"),
+   bell:gameHotspots?.targets.get("dot"),
+   tag:pocketWorlds?.targets.get("dog"),
+   lens:pocketWorlds?.targets.get("elevator"),
+   raindrop:pocketWorlds?.targets.get("cloud"),
+   acorn:pocketWorlds?.targets.get("squirrel"),
+   spring:pocketWorlds?.targets.get("squirrel"),
+   stardust:pocketWorlds?.targets.get("moth"),
+   parcel:pocketWorlds?.targets.get("train"),
+   postcard:pocketWorlds?.targets.get("dog")
+  };
+  const object=sources[item]||cube;
+  scene.updateWorldMatrix(true,true);
+  const projected=object.getWorldPosition(new THREE.Vector3()).project(camera);
+  const rect=renderer.domElement.getBoundingClientRect();
+  return {x:rect.left+(projected.x+1)*rect.width/2,
+          y:rect.top+(1-projected.y)*rect.height/2,depth:projected.z};
+ },
  describeAction,
  get physicalCollectiblesVisible(){return {
   tooth:looseKey.visible,thread:looseSpool.visible,ring:undersideRing.visible,
