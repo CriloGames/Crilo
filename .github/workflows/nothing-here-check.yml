@@ -1,4 +1,4 @@
-name: Nothing Here animated cube browser QA
+name: Nothing Here intricate-worlds browser QA
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
       - 'secret-room.js'
       - 'cube-secrets.css'
       - 'cube-motion.css'
+      - 'cube-worlds.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
@@ -34,7 +35,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify kinetic cube, real scene animations, puzzles and persistence
+      - name: Verify 41 secrets, miniatures, animations and persistence
         run: node scripts/verify-nothing-here.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
