@@ -71,12 +71,22 @@ const use=async(a,b)=>{await pocket(a);await thing(b)};
 const close=async()=>{await page.locator('#ncModalClose').click();assert(await page.locator('#ncModal').evaluate(el=>el.hidden))};
 const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 // The cube contains hidden compartments in several different faces.
+await page.evaluate(()=>{
+ window.ncHitTrace=[];
+ for(const type of ['pointerdown','pointerup','click'])
+  document.addEventListener(type,e=>{
+   const el=e.target.closest('[data-hit]');if(!el&&!e.target.closest('.nc-drawer'))return;
+   window.ncHitTrace.push({type,target:e.target.tagName,hit:el?.dataset.hit||null,
+    cls:e.target.className?.baseVal||e.target.className||'',time:performance.now()});
+  },true);
+});
 await rotate(0,0);await hit('dot',4);
 await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
 await hit('drawer-a');
-console.log('DRAWER A',JSON.stringify({a:(await state()).a,taken:(await state()).drawerTaken,tooth:(await state()).pocket.includes('tooth')}));
+console.log('DRAWER A',JSON.stringify({a:(await state()).a,taken:(await state()).drawerTaken,tooth:(await state()).pocket.includes('tooth'),
+ trace:await page.evaluate(()=>window.ncHitTrace.slice(-18))}));
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
 await rotate(0,-90);await hit('seam');await hit('drawer-b');
 console.log('DRAWER B',JSON.stringify({b:(await state()).b,taken:(await state()).sideTaken,thread:(await state()).pocket.includes('thread')}));
