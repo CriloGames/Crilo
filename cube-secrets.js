@@ -542,6 +542,16 @@ function clickInventory(e){
  const item=e.target.closest('[data-item]');
  if(item)take(item.dataset.item);
 }
+// Moving 3D trays can shift a few pixels between pointerdown and pointerup.
+// Picking up their contents on pointerdown prevents a click being retargeted to
+// a face behind the tray during its opening animation. Keyboard clicks still
+// use the normal delegated click handler; every pickup is idempotent.
+$('ncCube').addEventListener('pointerdown',event=>{
+ const target=event.target.closest('[data-hit="drawer-a"],[data-hit="drawer-b"],[data-hit="top-reed"]');
+ if(!target||event.button!==0||!event.isPrimary)return;
+ event.stopPropagation();
+ cubeHit(target.dataset.hit);
+},true);
 $('ncCube').addEventListener('click',hit);
 $('ncSideObjects').addEventListener('click',eventThing);
 $('ncDoorScene').addEventListener('click',eventThing);
