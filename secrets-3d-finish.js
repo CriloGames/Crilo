@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {batchStaticGeometry} from "./secrets-3d-batching.js";
 
 /**
  * Physical finishing pass. Every ornamental element is a real 3D mesh,
@@ -12,6 +13,7 @@ export function finishMechanicalArtifact({
   const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
   const {metal,brass,darkMetal,ivory,rubber,enamel,cavityMaterial}=materials;
   let partCount=0;
+  const finishedMeshes=[];
   const deep=mat(0x2e3c47,.46,.48);
   const satin=mat(0x8b7c73,.54,.35);
   const smoked=mat(0x476e78,.28,.18);
@@ -74,23 +76,23 @@ export function finishMechanicalArtifact({
   const B=(g,w,h,d,x,y,z,m,r=.018)=>{
     const o=box(g,w,h,d,x,y,z,m,r);
     o.castShadow=w>.38&&h>.20&&d>.08;
-    partCount++;return o;
+    partCount++;finishedMeshes.push(o);return o;
   };
   const C=(g,r,d,x,y,z,m)=>{
     const o=cylinder(g,r,d,x,y,z,m);
     o.castShadow=r>.29&&d>.09;
-    partCount++;return o;
+    partCount++;finishedMeshes.push(o);return o;
   };
   const torus=(g,r,t,x,y,z,m)=>{
     const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,9,48),m);
     o.position.set(x,y,z);o.castShadow=false;o.receiveShadow=true;
-    g.add(o);partCount++;return o;
+    g.add(o);partCount++;finishedMeshes.push(o);return o;
   };
   function path(g,points,radius,material) {
     const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));
     const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(15,points.length*7),radius,8,false),material);
     mesh.castShadow=false;mesh.receiveShadow=true;g.add(mesh);partCount++;
-    return mesh;
+    finishedMeshes.push(mesh);return mesh;
   }
   const group=(parent,x=0,y=0,z=0)=>{
     const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g;
@@ -259,8 +261,13 @@ export function finishMechanicalArtifact({
   // Rear foot of the showcase and a genuine satin contact pad.
   pedestal(1.76,1.79,.018,-2.073,rubber);
 
+  const batching=batchStaticGeometry(cube,finishedMeshes,{
+    dynamicRoots:[front.drawer,side.drawer,lidPivot],
+    label:"artisan"
+  });
   return {
     meshCount:()=>partCount,
+    batching,
     get quality(){return "enamel, brushed brass, smoked optics, layered hardware"},
     textures:[enamelNoise,brushedNoise]
   };
