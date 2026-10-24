@@ -950,6 +950,7 @@ $('ncZoomIn').addEventListener('click',()=>zoomTo(view.zoom+.12));
 $('ncZoomOut').addEventListener('click',()=>zoomTo(view.zoom-.12));
 $('ncPanMode').addEventListener('click',()=>{
  view.panMode=!view.panMode;updateView();
+ window.__nothing3DPreview?.setPanMode?.(view.panMode);
  tell(view.panMode?'Move mode: drag the zoomed object to inspect another area.':'Rotate mode: drag to turn the cube.');
 });
 $('ncViewReset').addEventListener('click',resetView);
@@ -1014,6 +1015,13 @@ if(s.b&&!s.sideTaken)scheduleCompartment('thread');
 if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen],selected}),
  getView:()=>({...view}),zoomTo,resetView,
+ updatePhysicalViewZoom(value){
+  // OrbitControls owns physical mouse-wheel zoom. Mirror only its value
+  // into the already-visible zoom percentage and subsequent button steps.
+  if(!Number.isFinite(value))return;
+  view.zoom=clamp(Math.round(value*100)/100,.65,2.35);
+  updateView();
+ },
  rotate:(x,y)=>{s.rx=x;s.ry=y;turn()},
  activatePhysical(name){
   if(name==='cube-offer'){
