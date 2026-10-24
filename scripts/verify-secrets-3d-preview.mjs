@@ -16,7 +16,14 @@ try {
   stage:document.querySelector('#stage')?.getBoundingClientRect()?.toJSON()
  }));
  assert.equal(state.engine,'three.js');
- assert(state.meshes>=330,'Detailed physical model is too simple: '+state.meshes+' meshes');
+ assert(state.meshes>=500,'The artisan model is missing its physically modeled detailing: '+state.meshes);
+const finish=await page.evaluate(()=>({
+ count:window.__nothing3DPreview.finishMeshCount,
+ quality:window.__nothing3DPreview.finishQuality
+}));
+assert(finish.count>=160,'Expected at least 160 actual machined finishing parts, found '+finish.count);
+assert(finish.quality.includes('brushed brass'),'Missing brushed-metal and enamel surface treatment');
+console.log('Artisan surface model:',finish.count,'machined components, '+finish.quality);
 const intricacy=await page.evaluate(()=>({
  detailed:window.__nothing3DPreview.detailMeshCount,
  activeControls:window.__nothing3DPreview.interactiveDetailCount,
@@ -42,7 +49,7 @@ const tactile=await page.evaluate(()=>window.__nothing3DPreview.detailState());
 assert.equal(tactile.dialSteps,3,'The optical bezel should turn three detents');
 assert(tactile.light&&tactile.needle&&tactile.lever&&tactile.service&&tactile.backEye&&tactile.underside&&tactile.topLatch,
  'The new 3D mechanics do not respond to individual interactions');
-await page.screenshot({path:'test-results/3d-precision-details-desktop.png'});
+await page.screenshot({path:'test-results/3d-precision-details-desktop.png',animations:'disabled'});
 console.log('All seven precision mechanisms respond to selections');
  await page.locator('#drawerFront').click();
  await page.waitForFunction(()=>window.__nothing3DPreview.frontOpen===true);
