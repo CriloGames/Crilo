@@ -160,7 +160,15 @@ await page.reload({waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
 assert.equal(await page.evaluate(()=>getComputedStyle(document.body).backgroundColor),'rgb(255, 255, 255)');
 await page.setViewportSize({width:390,height:844});
-const mobile=await page.evaluate(()=>({width:document.documentElement.scrollWidth,viewport:document.documentElement.clientWidth}));
+const mobile=await page.evaluate(()=>{
+ const viewport=document.documentElement.clientWidth;
+ const exceeding=[...document.querySelectorAll('*')].filter(el=>{
+  const r=el.getBoundingClientRect();
+  return r.width&&r.right>viewport+2&&!/position:fixed/.test(el.getAttribute('style')||'');
+ }).slice(0,14).map(el=>({tag:el.tagName,classes:String(el.className).slice(0,75),right:Math.round(el.getBoundingClientRect().right)}));
+ return {width:document.documentElement.scrollWidth,viewport,exceeding};
+});
+console.log('MOBILE GEOMETRY',JSON.stringify(mobile));
 assert(mobile.width<=mobile.viewport+2,'Mobile has horizontal overflow');
 await page.locator('[data-rotate="up"]').click();
 assert(await page.locator('#ncCube').isVisible());
