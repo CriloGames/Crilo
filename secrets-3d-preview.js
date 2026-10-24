@@ -347,7 +347,7 @@ window.__nothing3DPreview={
  get meshCount(){return objectCount + intricate.meshCount()},
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
- get detailState(){return intricate.getState()},
+ detailState:()=>intricate.getState(),
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
  get topOpen(){return lidOpen},
