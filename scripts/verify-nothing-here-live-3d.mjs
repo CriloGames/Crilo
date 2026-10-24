@@ -73,8 +73,22 @@ try{
   "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
- await activate("latch");
+ const latchMotion=await page.evaluate(async()=>{
+  const view=window.__nothing3DPreview;
+  view.clickAction("latch");
+  await new Promise(resolve=>setTimeout(resolve,100));
+  return {actuator:view.physicalActuatorDepths.latch,drawer:view.drawerPositions.front,
+   reduced:view.reducedMotion};
+ });
  assert.equal((await state()).a,true,"Physical front catch did not unlock the original drawer (was mapped to the mouse)");
+ if(!latchMotion.reduced){
+  assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
+  assert(latchMotion.drawer>.02&&latchMotion.drawer<.9,
+   "Drawer must visibly slide out of its track rather than teleport: "+JSON.stringify(latchMotion));
+ }
+ await page.waitForTimeout(840);
+ assert(Math.abs((await page.evaluate(()=>window.__nothing3DPreview.drawerPositions.front))-.76)<.07,
+  "Open drawer did not settle against a physical end stop");
  await activate("side");
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
  await activate("eye");
@@ -122,7 +136,15 @@ try{
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
  await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
- for(let i=0;i<3;i++)await activate("triangle");
+ const triangleMotion=await page.evaluate(async()=>{
+  const view=window.__nothing3DPreview;
+  view.clickAction("triangle");
+  await new Promise(resolve=>setTimeout(resolve,100));
+  return {depth:view.physicalActuatorDepths.triangle,reduced:view.reducedMotion};
+ });
+ if(!triangleMotion.reduced)
+  assert(triangleMotion.depth<-.007,"Triangle should depress into its brass spring housing: "+JSON.stringify(triangleMotion));
+ for(let i=0;i<2;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical lid taps did not open original hatch");
  await activate("hatch");
  assert.equal((await state()).top,true);
@@ -137,7 +159,17 @@ try{
  await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
  assert.equal((await state()).redHits,5,
   "Clicking a visible physical red button did not trigger the original puzzle");
- for(let i=0;i<3;i++)await activate("pressure");
+ const gaugeMotion=await page.evaluate(async()=>{
+  const view=window.__nothing3DPreview;
+  view.clickAction("pressure");
+  await new Promise(resolve=>setTimeout(resolve,115));
+  return {needle:view.physicalMechanismState.needle,
+   head:view.physicalActuatorDepths.pressure,reduced:view.reducedMotion};
+ });
+ assert(gaugeMotion.needle,"Pressure motion failed to advance the real needle");
+ if(!gaugeMotion.reduced)assert(gaugeMotion.head<-.003,
+  "Pressure knob does not move under the fingertip");
+ for(let i=0;i<2;i++)await activate("pressure");
  await activate("optic");
  await activate("eye-ring");
  await activate("eye-ring");
@@ -153,7 +185,10 @@ try{
  assert(physical.needle&&physical.light&&physical.backEye,
    "Saved puzzle actions are not driving real pressure, optical and iris hardware");
  await activate("serial");
- for(const n of [0,1,2])await activate("front-screw-"+n);
+ await activate("front-screw-0");
+ const withdrawing=await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews);
+ assert(withdrawing>=3,"Newly loosened screw should visibly unscrew before disappearing");
+ for(const n of [1,2])await activate("front-screw-"+n);
  let s=await state();
  assert(s.screws.length===3,"Three physical faceplate screws did not reach the original backend");
  await activate("cube-offer");
@@ -162,6 +197,8 @@ try{
  assert(s.seen.includes("faceplate")&&s.seen.includes("pipe")&&s.seen.includes("drawer"),
   "Physical actions failed to award the existing discovery catalog");
  await page.waitForTimeout(1400);
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews),1,
+  "Extracted 3D screws remained visibly attached to the faceplate");
  const once=await state();
  assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
   "Existing automatic physical compartment item pickups stopped working");
@@ -179,7 +216,16 @@ try{
  await page.locator('#ncInventory [data-item="key"]').click();
  await activate("thing:bag");
  assert.equal((await state()).bagOpen,true,"3D bag cannot be unlocked with the original key");
- for(const i of [0,0,2,2,2])await activate("thing:bag-dial-"+i);
+ const wheelMotion=await page.evaluate(async()=>{
+  const view=window.__nothing3DPreview;
+  const before=view.miniatureMechanismPose.bagDials[0];
+  view.clickAction("thing:bag-dial-0");
+  await new Promise(resolve=>setTimeout(resolve,100));
+  return {before,after:view.miniatureMechanismPose.bagDials[0],reduced:view.reducedMotion};
+ });
+ if(!wheelMotion.reduced)assert(wheelMotion.after>wheelMotion.before+.015,
+  "The combination wheel did not physically rotate between detents");
+ for(const i of [0,2,2,2])await activate("thing:bag-dial-"+i);
  const bagSolved=await state();
  assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
  assert(bagSolved.bagSolved&&bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
@@ -251,7 +297,19 @@ try{
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
- await activate("thing:elevator-floor-4");
+ const liftMotion=await page.evaluate(async()=>{
+  const view=window.__nothing3DPreview;
+  const before=view.miniatureMechanismPose.liftDoors[0];
+  view.clickAction("thing:elevator-floor-4");
+  await new Promise(resolve=>setTimeout(resolve,120));
+  return {before,after:view.miniatureMechanismPose.liftDoors[0],
+   button:view.miniatureMechanismPose.elevatorButton4,reduced:view.reducedMotion};
+ });
+ if(!liftMotion.reduced){
+  assert(liftMotion.button<.152,"Elevator button did not depress");
+  assert(liftMotion.after<liftMotion.before-.006,
+   "The miniature elevator doors did not visibly slide open");
+ }
  const fourthFloor=await state();
  assert(fourthFloor.floorFour&&fourthFloor.pocket.includes("lens"),
    "Physical elevator call button did not operate the original floor-four puzzle");
