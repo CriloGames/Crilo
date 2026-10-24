@@ -76,8 +76,10 @@ await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
 await hit('drawer-a');
+console.log('DRAWER A',JSON.stringify({a:(await state()).a,taken:(await state()).drawerTaken,tooth:(await state()).pocket.includes('tooth')}));
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
 await rotate(0,-90);await hit('seam');await hit('drawer-b');
+console.log('DRAWER B',JSON.stringify({b:(await state()).b,taken:(await state()).sideTaken,thread:(await state()).pocket.includes('thread')}));
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);await hit('triangle',3);await hit('top-reed');
 assert((await state()).pocket.includes('pipe'));
