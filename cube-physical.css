@@ -203,3 +203,16 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
 @media (pointer:coarse){
  .nc-page.nc-physical-ready #stage #ncPartHint{font-size:11px;max-width:185px}
 }
+
+/* Make a newly acquired object unambiguously enter the existing pocket. */
+.nc-page .nc-pocket .nc-item.nc-item-new{
+ animation:ncPocketArrival .95s cubic-bezier(.12,.72,.19,1) both;
+}
+@keyframes ncPocketArrival{
+ 0%{box-shadow:0 0 0 0 #9ddac5;transform:scale(.88)}
+ 38%{box-shadow:0 0 0 7px #9ddac579;transform:scale(1.09)}
+ 100%{box-shadow:0 0 0 0 #9ddac500;transform:scale(1)}
+}
+@media (prefers-reduced-motion:reduce){
+ .nc-page .nc-pocket .nc-item.nc-item-new{animation:none}
+}
