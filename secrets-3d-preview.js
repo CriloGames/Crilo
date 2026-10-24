@@ -38,7 +38,7 @@ controls.enableDamping = true;
 controls.dampingFactor = .075;
 controls.rotateSpeed = .40;
 controls.zoomSpeed = .30;
-controls.minDistance = 6.7;
+controls.minDistance = 5.2;
 controls.maxDistance = 14;
 controls.enablePan = false;
 controls.target.set(0, 0, 0);
@@ -462,7 +462,13 @@ function drawFrame(){
  renderer.render(scene,camera);
  if(hatchMotion)invalidate();
 }
-controls.addEventListener("change",invalidate);
+controls.addEventListener("change",()=>{
+ invalidate();
+ if(embeddedGame){
+  const base=stage.clientWidth<720?13:10.9;
+  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(base/camera.position.length());
+ }
+});
 invalidate();
 window.__nothing3DPreview={
  ready:true,
@@ -499,8 +505,14 @@ window.__nothing3DPreview={
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
   const base=mobile?13.0:10.9;
-  const d=THREE.MathUtils.clamp(base/Math.max(.65,value),6.7,14);
+  const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
   camera.position.setLength(d);controls.update();invalidate();
+ },
+ setPanMode(enabled){
+  if(!embeddedGame)return;
+  controls.enablePan=!!enabled;
+  controls.mouseButtons.LEFT=enabled?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;
+  controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
  setRotation(rx,ry){
   if(!embeddedGame)return;
