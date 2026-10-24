@@ -238,8 +238,7 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint.nc-can-use
 }
 .nc-page.nc-physical-ready .nc-cube-zone #stage canvas{cursor:grab}
 .nc-page.nc-physical-ready .nc-cube-zone #stage canvas:active{cursor:grabbing}
-@media(prefers-color-scheme:dark){
- .nc-page.nc-physical-ready .nc-world{
-  background:radial-gradient(ellipse at 50% 43%,#344146 0%,#253237 74%,#202b32 100%);
- }
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-world,
+body[data-theme="dark"].nc-page.nc-physical-ready .nc-world{
+ background:radial-gradient(ellipse at 50% 43%,#344146 0%,#253237 74%,#202b32 100%);
 }
