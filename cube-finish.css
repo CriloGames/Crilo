@@ -125,7 +125,8 @@
 .nc-back-witness{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);
  font-size:7px;font-weight:900;letter-spacing:.1em;color:#5e8060;white-space:nowrap;
  border-top:1px solid #91b28f;padding:6px 2px 0}
-.nc-resonance .nc-cube{filter:drop-shadow(0 0 10px #e9caba74)}
+/* Never apply filter or opacity to the 3D cube parent: both flatten its faces. */
+.nc-resonance .nc-service-shutter{outline:2px solid #b2d9c6;outline-offset:3px}
 .nc-resonance .nc-pressure-needle{filter:drop-shadow(0 0 3px #bda46b)}
 .nc-tape-inserted .nc-clock>span{box-shadow:0 0 0 2px #615b61,0 0 16px #e4bea786}
 .nc-cylinder-mounted .nc-box-body::after{content:"";position:absolute;bottom:14px;left:46px;
