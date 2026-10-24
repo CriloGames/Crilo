@@ -48,7 +48,10 @@ export function batchStaticGeometry(cube,candidates,{
     if(meshes.length<minGroupSize)continue;
     const pieces=meshes.map(mesh=>{
       mesh.updateWorldMatrix(true,false);
-      const g=mesh.geometry.clone();
+      // Rounded boxes, tubes, and torus geometry use different indexing.
+      // Normalize all decorative geometry to non-indexed triangles before
+      // joining it, otherwise BufferGeometryUtils silently rejects batches.
+      const g=mesh.geometry.index?mesh.geometry.toNonIndexed():mesh.geometry.clone();
       g.applyMatrix4(toCube.clone().multiply(mesh.matrixWorld));
       return g;
     });
