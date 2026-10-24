@@ -3,8 +3,8 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=10";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=5";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=11";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=10";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=14";
 
