@@ -201,7 +201,11 @@ for(const [x,y] of [[-.29,-.12],[.31,.16]]) {
 const lidPivot=new THREE.Group();lidPivot.position.set(0,topHole.h/2,.15);topFace.add(lidPivot);
 box(lidPivot,topHole.w,topHole.h,.13,0,-topHole.h/2,0,enamel.top,.07);
 box(lidPivot,topHole.w-.19,topHole.h-.19,.038,0,-topHole.h/2,.082,ivory,.05);
-label(lidPivot,"DO NOT TAP",1.05,.18,0,-topHole.h/2,.105,"#f0dab6","#796246");
+// Engraved nameplate is a solid two-layer metal insert attached directly
+// to the physical lid, not a flat double-sided label plane that can appear
+// to float when seen from the hatch underside.
+box(lidPivot,1.05,.17,.058,0,-topHole.h/2,.139,ivory,.026);
+box(lidPivot,.83,.028,.024,0,-topHole.h/2,.186,metal,.007);
 for(const xx of [-.49,0,.49]){
  const pin = cylinder(topFace,.083,.34,xx,topHole.h/2,.15,metal);
  // Hinge axle follows the X axis, not the direction of the screw heads.
