@@ -55,6 +55,15 @@ try{
  assert.equal(worlds.all.length,15,"Missing modeled 3D story props");
  assert(worlds.visible.includes("bag")&&worlds.visible.includes("machine"),
   "The mouse did not physically reveal its bag and vending machine");
+ // Exercise a real projected pointer click on the sculpted handbag, rather
+ // than merely invoking an internal click API.
+ const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
+ assert(handbag&&handbag.x>10&&handbag.x<1280&&handbag.y>10&&handbag.y<860,
+  "The sculpted handbag has no usable visible canvas projection: "+JSON.stringify(handbag));
+ await page.locator("#stage canvas").click({position:{x:handbag.x,y:handbag.y},timeout:30000});
+ assert((await page.locator("#ncNarrator").innerText()).includes("bag is locked"),
+  "Clicking the actual 3D handbag mesh did not reach the existing bag puzzle");
+ console.log("PASS: actual physical-pointer raycast activates the sculpted bag");
  // Items selected from the existing inventory must combine with a real 3D
  // model and write to the existing save key, not a separate 3D progress store.
  await page.locator('#ncInventory [data-item="coin"]').click();
