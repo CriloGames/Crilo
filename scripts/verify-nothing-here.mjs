@@ -1,170 +1,19 @@
-// Complete Nothing Here browser puzzle-path regression.
-// Run: node scripts/verify-nothing-here.mjs (requires Playwright + local static server)
-import fs from 'node:fs';
+// Nothing Here: full-page real-pointer walkthrough of the white playground.
+// Run from repository root with an HTTP server on port 4173 and Playwright installed.
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {chromium} from 'playwright';
 
-const rawJs=fs.readFileSync(new URL('../secret-room.js',import.meta.url),'utf8');
-const rawHtml=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
-new Function(rawJs);
-const all=[...rawJs.matchAll(/^\s*\['([^']+)','/gm)].map(m=>m[1]);
-assert.equal(all.length,70,'Curated secret collection changed');
-assert.equal(new Set(all).size,70,'Duplicated secret');
-const html=rawHtml.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi,m=>
- m.includes('secret-room.js')||m.includes('theme-bridge.js')?m:'');
+const source=fs.readFileSync(new URL('../secret-room.js',import.meta.url),'utf8');
+const html=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
+new Function(source);
+const catalog=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(m=>m[1]);
+assert.equal(catalog.length,44,'The curated 44 discoveries changed');
+assert.equal(new Set(catalog).size,44,'Duplicate discoveries in new catalog');
+assert(html.includes('nhField')&&!html.includes('srScene'),'Old room is still visible');
+assert(!html.includes('auth-first-paint.js'),'Puzzle must not wait for account authentication');
 const browser=await chromium.launch({headless:true});
-const page=await browser.newPage({viewport:{width:1280,height:850}});
-const errors=[];
-page.on('pageerror',e=>errors.push(e.message));
-await page.route('**/secrets.html*',r=>r.fulfill({status:200,contentType:'text/html',body:html}));
-await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('/ 70'));
-// Nothing Here must use exactly the same UI font as Crilo's other pages.
-const typography=await page.evaluate(()=>{
- const selectors=['.crilo-game-topbar .brand','.crilo-game-topbar nav a',
-  '.crilo-game-topbar #accountBtn','.crilo-game-topbar .circle-btn','.sr-heading h1 button',
-  '.sr-whisper','.sr-cursor-note','.sr-alt-caption','.sr-hint-clue','.sr-book span'];
- const body=getComputedStyle(document.body).fontFamily;
- return {body,fonts:selectors.filter(s=>document.querySelector(s))
-  .map(selector=>({selector,font:getComputedStyle(document.querySelector(selector)).fontFamily}))};
-});
-assert.match(typography.body,/^Inter,\s*ui-sans-serif/,
- 'The Nothing Here page lost the shared Crilo sans-serif font and fell back to serif');
-for(const {selector,font} of typography.fonts)
- assert.equal(font,typography.body,'Font mismatch on '+selector);
-// The information dialog must be keyboard-accessible and close with Escape.
-await page.locator('#gameInfoBtn').click();
-assert.equal(await page.locator('#gameInfoBtn').getAttribute('aria-expanded'),'true');
-await page.keyboard.press('Tab');
-assert(await page.evaluate(()=>document.activeElement?.closest('#srDialog')!==null),'Modal focus escaped into the page');
-await page.keyboard.press('Escape');
-assert(await page.locator('#srDialog').evaluate(el=>el.hidden),'Escape did not close the dialog');
-assert.equal(await page.locator('#gameInfoBtn').getAttribute('aria-expanded'),'false');
-const take=async(action,n=1,attribute)=>{
- const selector=attribute?
-  '[data-action="'+action+'"][data-'+attribute[0]+'="'+attribute[1]+'"]':
-  '[data-action="'+action+'"]';
- for(let i=0;i<n;i++){
-  // Exercise real browser hit targets, not DOM .click() (which bypasses overlays).
-  // There are two return doors; only the current world's return door is visible.
-  const locator=page.locator(selector+':visible').first();
-  assert.equal(await locator.count(),1,'Missing visible action '+selector);
-  await locator.click({timeout:5000});
- }
-};
-const click=async(sel,n=1)=>{
- for(let i=0;i<n;i++)await page.locator(sel).click();
-};
-const dismiss=async()=>{
- await page.locator('#srClose').click({timeout:5000});
- assert(await page.locator('#srDialog').evaluate(el=>el.hidden));
-};
-// Fully traverse ordinary room and discover multi-tap secrets.
-await take('notice',7);
-await page.locator('[data-action="moon"]').click();
-await take('moon',3);
-await take('star',1,['star','2']);
-await take('star',1,['star','0']);
-await take('star',1,['star','4']);
-await take('window',2);
-await take('clock',12);
-await take('painting',3);
-await take('mirror');
-await take('lamp');
-await take('mirror',2);
-assert.equal(await page.locator('#srScene').getAttribute('data-place'),'mirror','Dark mirror did not open');
-for(const action of ['mirror-sun','mirror-eye','mirror-word','mirror-fish','mirror-clock','mirror-key'])await take(action);
-await take('return');
-assert.equal(await page.locator('#srScene').getAttribute('data-place'),'room');
-// Correct book ordering opens a terminal.
-for(const color of ['red','blue','gold'])await take('book',1,['book',color]);
-assert.equal(await page.locator('#srDialogTitle').textContent(),'A terminal with no purpose');
-for(const command of ['hello','xyzzy','crilo','secret']){
- await page.locator('#srTerminalInput').fill(command);
- await page.locator('#srTerminalForm button[type=submit]').click();
-}
-await dismiss();
-await take('radio',6); // radio is off on the sixth tap
-await take('vent');
-await take('plant',6);
-await take('cup');
-await take('plant'); // pour the rainwater
-await take('candle');
-await take('rug',2);
-await take('drawer',2);
-await take('floorboard',5);
-await take('door'); // opens the other side because of the brass key
-assert.equal(await page.locator('#srScene').getAttribute('data-place'),'back','Brass key did not open door');
-for(const action of ['back-orbit','back-eye','back-stairs','back-mail','back-hole'])await take(action);
-await take('back-box',2);
-await take('back-bell',3);
-await take('return');
-await take('door'); // revisiting must be safe
-await take('return');
-await take('keyhole');
-// The safe uses the number hinted on the wall clock.
-await take('safe');
-await page.locator('#srSafeInput').fill('417');
-await page.locator('#srSafeForm button[type=submit]').click();
-assert.equal(await page.locator('#srDialogTitle').textContent(),'The safe is open');
-await dismiss();
-await click('#srJournalBtn');
-await dismiss();
-for(let i=0;i<3;i++){
- await click('#srHintBtn');
- assert.equal(await page.locator('.sr-hint-clue').evaluate(el=>getComputedStyle(el).fontFamily),
-  typography.body,'The hint dialog used a different font from Crilo');
- await dismiss();
-}
-await click('#srTitle',3);
-await click('#srFooterSecret',3);
-await page.keyboard.type('secret');
-for(const key of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'])
- await page.keyboard.press(key);
-const progress=await page.evaluate(()=>{
- const raw=JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')||'{}');
- return {found:raw.found||[],room:raw.room||{},count:document.getElementById('srCount').textContent,
-  scene:document.getElementById('srScene').dataset.place};
-});
-const missing=all.filter(id=>!progress.found.includes(id));
-console.log('SECRET QA',JSON.stringify({total:all.length,found:progress.found.length,missing,
- scriptErrors:errors,score:progress.count},null,2));
-assert.deepEqual(errors,[]);
-assert.deepEqual(missing,[],'Some curated secrets cannot be discovered');
-assert.equal(progress.found.length,70);
-assert.deepEqual(progress.room,{lamp:false,rain:true,watered:true,radio:false,cup:false,cupFull:false},
- 'Interactions did not persist their environmental state');
-const savedCount=progress.found.length;
-await page.reload({waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('70'));
-assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')).found.length),savedCount,
- 'Discoveries did not survive reload');
-const reloadedRoom=await page.locator('#srScene').evaluate(el=>({
- lamp:el.dataset.lamp,rain:el.dataset.rain,watered:el.dataset.watered,
- radio:el.dataset.radio,cup:el.dataset.cup,cupWater:el.dataset.cupWater,
- safe:el.dataset.safe,rug:el.dataset.rug
-}));
-assert.deepEqual(reloadedRoom,{lamp:'off',rain:'yes',watered:'yes',radio:'off',
- cup:'set',cupWater:'empty',safe:'open',rug:'lift'},
- 'Room visuals failed to restore from saved progress');
-// Responsive layout and dark theme on a fresh tab. No progress corruption.
-await page.setViewportSize({width:390,height:844});
-const mobile=await page.evaluate(()=>({
- viewport:document.documentElement.clientWidth,
- width:document.documentElement.scrollWidth,
- count:document.getElementById('srCount').textContent
-}));
-assert(mobile.width<=mobile.viewport+2,'Horizontal overflow on mobile');
-await take('star',1,['star','1']); // physically tap a small mobile object
-await page.evaluate(()=>localStorage.setItem('crilo_theme','dark'));
-await page.reload({waitUntil:'domcontentloaded'});
-assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
-assert.deepEqual(errors,[]);
-console.log('PASS: 70/70 physically clicked secrets, persistent room, keyboard modal, mobile and dark theme');
-
-// Test the REAL page too: the puzzle-only test above deliberately strips shared
-// scripts and previously missed a fatal missing Supabase SDK + auth loading veil.
-const sdkStub=`window.supabase={createClient:()=>({
+const sdkMock=`window.supabase={createClient:()=>({
  auth:{
   getSession:async()=>({data:{session:null},error:null}),
   onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
@@ -172,30 +21,146 @@ const sdkStub=`window.supabase={createClient:()=>({
  },
  rpc:async()=>({data:null,error:null})
 })};`;
-for(const sdkAvailable of [true,false]){
- const live=await browser.newPage({viewport:{width:1280,height:850}});
- const fullErrors=[];
- live.on('pageerror',e=>fullErrors.push(e.message));
- await live.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',route=>
-  sdkAvailable?route.fulfill({status:200,contentType:'application/javascript',body:sdkStub}):route.abort());
- await live.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
- await live.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('/ 70'));
- assert(await live.locator('#srScene').isVisible(),'Real page hid the secret room');
- assert.equal(await live.locator('html').evaluate(el=>el.classList.contains('crilo-auth-pending')),
-  false,'Real page is stuck behind an auth loading overlay');
- await live.locator('[data-action="notice"]').click();
- assert(await live.locator('#srCount').evaluate(el=>Number.parseInt(el.textContent,10)>=2),
-  'Real page puzzle is not interactive');
- if(sdkAvailable){
-  await live.waitForFunction(()=>window.Crilo?.authResolved===true);
-  assert.deepEqual(fullErrors,[],'The real page has script errors despite a working SDK');
-  assert.equal(await live.locator('#accountBtn').textContent(),'SIGN IN');
- }else{
-  // An authentication/CDN outage must never prevent the independent game.
-  assert(fullErrors.some(e=>/supabase|criloDB/.test(e)),
-   'The simulated SDK outage did not actually exercise a missing dependency');
- }
- await live.close();
-}
-console.log('PASS: full-page startup and clickable room with working or unavailable auth SDK');
+const page=await browser.newPage({viewport:{width:1280,height:850}});
+const errors=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.fulfill({
+ status:200,contentType:'application/javascript',body:sdkMock
+}));
+await page.addInitScript(()=>{
+ localStorage.setItem('crilo_nothing_here_secrets_v1',JSON.stringify({found:['first-touch','moon']}));
+ localStorage.removeItem('crilo_nothing_here_playground_v2');
+});
+await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
+await page.waitForFunction(()=>document.getElementById('nhCount')?.textContent.includes('/ 44'));
+const visual=await page.evaluate(()=>({
+ bg:getComputedStyle(document.body).backgroundColor,
+ font:getComputedStyle(document.body).fontFamily,
+ title:document.querySelector('h1')?.innerText,
+ oldRoom:!!document.querySelector('#srScene'),
+ pending:document.documentElement.classList.contains('crilo-auth-pending')
+}));
+assert.equal(visual.bg,'rgb(255, 255, 255)','Page is not pure white');
+assert.match(visual.font,/Inter/);
+assert.equal(visual.oldRoom,false);
+assert.equal(visual.pending,false);
+assert(await page.locator('[data-toy="button"]').isVisible());
+assert.deepEqual(errors,[],'Runtime errors at initial page load');
+const toy=async(id,n=1)=>{for(let i=0;i<n;i++)await page.locator('[data-toy="'+id+'"]').click({timeout:6000})};
+const pocket=async(id)=>page.locator('#nhInventory [data-item="'+id+'"]').click({timeout:5000});
+const combine=async(a,b)=>{await pocket(a);await pocket(b)};
+const use=async(a,target)=>{await pocket(a);await toy(target)};
+const close=async()=>{await page.locator('#nhClose').click();assert(await page.locator('#nhOverlay').evaluate(el=>el.hidden))};
+// No routine puzzle should consume incompatible items.
+await toy('magnet');await toy('seedbag');
+let before=await page.locator('#nhPocketCount').textContent();
+await combine('magnet','seed');
+assert.equal(await page.locator('#nhPocketCount').textContent(),before);
+assert(await page.locator('[data-item="magnet"]').count());
+assert(await page.locator('[data-item="seed"]').count());
+await pocket('magnet');await toy('rocket');
+assert(await page.locator('[data-item="magnet"]').count(),'Wrong world combination consumed magnet');
+// Press/tap toys and collect components.
+await page.locator('#nhTitle').click({clickCount:3,delay:75});
+await toy('button',12);
+await toy('egg',7);
+await toy('switch');
+await toy('envelope');
+await toy('clock',4);
+await toy('dice',6);
+await toy('faucet');await toy('pencil');
+// Play all three small interactive games with actual clicks and keys.
+await toy('record');
+await page.locator('[data-mini="replay"]').click();
+await page.waitForTimeout(3700); // Observe the whole four-note pattern first.
+for(const p of [0,2,1,3])await page.locator('[data-pad="'+p+'"]').click();
+assert(await page.locator('[data-item="wire"]').count(),'Memory game did not reward wire');
+await close();
+await toy('maze');
+for(const k of ['ArrowRight','ArrowRight','ArrowRight','ArrowDown','ArrowDown','ArrowDown'])await page.keyboard.press(k);
+assert(await page.locator('[data-item="tooth"]').count(),'Maze did not reward key fragment');
+await close();
+await toy('dot');
+for(let i=0;i<5;i++)await page.locator('#nhMovingDot').click({timeout:6000});
+assert(await page.locator('[data-item="needle"]').count(),'Catch-the-dot did not reward needle');
+await close();
+// Both paint recipes, without inventing a third one.
+await toy('colors');
+for(const color of ['red','yellow'])await page.locator('[data-color="'+color+'"]').click();
+assert.equal(await page.locator('[data-item="green"]').count(),0,'Wrong paint recipe created green');
+for(const color of ['red','blue','blue','yellow'])await page.locator('[data-color="'+color+'"]').click();
+assert(await page.locator('[data-item="green"]').count());
+assert(await page.locator('[data-item="purple"]').count());
+await close();
+// Safe must reject a bad combination and accept the clock's actual code.
+await toy('safe');
+await page.locator('#nhSafeInput').fill('123');
+await page.locator('#nhSafeForm button[type=submit]').click();
+assert.equal(await page.locator('[data-item="shaft"]').count(),0);
+await page.locator('#nhSafeInput').fill('417');
+await page.locator('#nhSafeForm button[type=submit]').click();
+assert(await page.locator('[data-item="shaft"]').count());
+await close();
+// The only supported recipes are explicit; they either produce real objects or affect a valid world target.
+await toy('pot');
+await combine('seed','water');
+assert(await page.locator('[data-item="sprout"]').count());
+await use('sprout','pot');await use('sunbeam','pot');
+assert(await page.locator('body').evaluate(el=>el.classList.contains('nh-plant-bloomed')));
+await combine('battery','wire');await use('spark','rocket');
+assert(await page.locator('body').evaluate(el=>el.classList.contains('nh-rocket-launched')));
+await use('coin','vending');
+assert(await page.locator('[data-item="fuel"]').count());
+await combine('shaft','tooth');await use('key','door');
+assert(await page.locator('#nhExtra').isVisible(),'Key did not reveal more things');
+await toy('mirror');await toy('cloud');await toy('stars',3);
+await toy('ball',3);await toy('lever',3);
+await combine('magnet','needle');
+await combine('paper','pencil');
+await toy('envelope'); // Refill paper, since a recipe consumes it.
+await combine('feather','paper');
+await use('airmail','mailbox');
+await use('gear','clock');
+// Every single discovery must have a legitimate pointer/keyboard path.
+await page.locator('#nhJournalBtn').click();await close();
+for(let i=0;i<3;i++){await page.locator('#nhHintBtn').click();await close()}
+const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_playground_v2')));
+const missing=catalog.filter(id=>!progress.found.includes(id));
+console.log('PLAYGROUND QA',JSON.stringify({found:progress.found.length,total:catalog.length,missing,
+ inventory:progress.inventory,errors},null,2));
+assert.deepEqual(missing,[],'Some discoveries are unreachable');
+assert.deepEqual(errors,[],'Page errors while playing');
+assert.equal(progress.found.length,44);
+assert.equal(progress.door,true);assert.equal(progress.bloom,true);assert.equal(progress.launched,true);
+assert(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor==='rgb(255, 255, 255)'));
+await page.reload({waitUntil:'domcontentloaded'});
+await page.waitForFunction(()=>document.getElementById('nhCount')?.textContent.startsWith('44 / 44'));
+assert(await page.locator('#nhExtra').isVisible(),'Door was not saved');
+assert(await page.locator('[data-item="compass"]').count(),'Combined item was not saved');
+assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')).found.length),2,
+ 'Original 70-secret game progress was overwritten');
+// White page means white in light AND dark modes, but header still follows the Crilo site theme.
+await page.evaluate(()=>localStorage.setItem('crilo_theme','dark'));
+await page.reload({waitUntil:'domcontentloaded'});
+assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
+await page.setViewportSize({width:390,height:844});
+const mobile=await page.evaluate(()=>({viewport:document.documentElement.clientWidth,width:document.documentElement.scrollWidth}));
+assert(mobile.width<=mobile.viewport+2,'Mobile has horizontal overflow');
+await page.locator('[data-toy="button"]').click();
+// Screenshot for design regression triage, uploaded as Actions artifact.
+fs.mkdirSync('test-results',{recursive:true});
+await page.screenshot({path:'test-results/nothing-here-mobile.png',fullPage:true});
+await page.setViewportSize({width:1280,height:850});
+await page.screenshot({path:'test-results/nothing-here-desktop.png',fullPage:true});
+// When the CDN is down, account controls can fail but this *independent* playground cannot vanish.
+const outage=await browser.newPage();
+await outage.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',r=>r.abort());
+await outage.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
+await outage.waitForFunction(()=>document.getElementById('nhCount')?.textContent.includes('/ 44'));
+assert(await outage.locator('[data-toy="button"]').isVisible(),'CDN outage hid toys');
+await outage.locator('[data-toy="button"]').click();
+assert(await outage.locator('#nhCount').textContent()!=='0 / 44');
+await outage.close();
 await browser.close();
+console.log('PASS: 44/44 discoveries, recipes, five microgames, white page, mobile, dark mode, save and independent startup.');
