@@ -36,16 +36,29 @@ const catalog=[
  ['teacup','Tea for somebody absent.'],
  ['clock','Time refuses to cooperate.'],
  ['moon','There is a moon in the cube.'],
- ['tag','The dog was never lost.']
+ ['tag','The dog was never lost.'],
+ ['lift','A lift for impossibly small passengers.'],
+ ['fourth','The fourth floor is not listed anywhere.'],
+ ['moth','A wind-up moth with impeccable manners.'],
+ ['observatory','A telescope pointed at nothing.'],
+ ['constellation','Five stars and a very strange address.'],
+ ['dancer','A waltz for an audience of one.'],
+ ['railway','The railway goes under the page.'],
+ ['parcel','Special delivery from nowhere.'],
+ ['postcard','The dog has become the postmaster.'],
+ ['portal','A landscape where a cube should be.']
 ];
 const title=new Map(catalog);
 const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollow pipe',reed:'tiny reed',
  flute:'flute',key:'little key',coin:'coin',treat:'dog biscuit',prism:'glass prism',
  acorn:'acorn',spring:'clock spring',raindrop:'a drop of rain',bird:'paper bird',
- kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag'};
+ kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag',
+ lens:'silver telescope lens',stardust:'luminous moth dust',starmap:'folded star chart',
+ parcel:'miniature parcel',postcard:'postcard from nowhere'};
 const glyphs={tooth:'⌗',ring:'◌',thread:'〰',pipe:'╱',reed:'ː',flute:'♫',
  key:'⚿',coin:'◉',treat:'♧',prism:'◇',acorn:'♠',spring:'⌁',
- raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04'};
+ raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04',
+ lens:'◎',stardust:'✧',starmap:'✳',parcel:'▣',postcard:'▧'};
 const recipe={
  'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
@@ -59,7 +72,9 @@ const pocket=new Set((Array.isArray(raw.pocket)?raw.pocket:[]).filter(k=>Object.
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
- cup:false,moon:false,mouse:false,tag:false,kite:false,drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false};
+ cup:false,moon:false,mouse:false,tag:false,kite:false,
+ floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
+ drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -193,6 +208,12 @@ function render(){
  document.body.classList.toggle('nc-moon',s.moon);
  document.body.classList.toggle('nc-music',s.music);
  document.body.classList.toggle('nc-barked',s.barked);
+ document.body.classList.toggle('nc-lift-open',s.floorFour);
+ document.body.classList.toggle('nc-observed',s.observed);
+ document.body.classList.toggle('nc-dancer',s.dancer);
+ document.body.classList.toggle('nc-train-running',s.train);
+ document.body.classList.toggle('nc-portal-view',s.portal);
+ if(s.portal)$('ncOfferingTarget')?.setAttribute('aria-label','Inspect the tiny landscape inside the cube');
  $('ncDrawerA')?.classList.toggle('nc-emptied',s.drawerTaken);
  $('ncDrawerB')?.classList.toggle('nc-emptied',s.sideTaken);
  $('ncLid')?.classList.toggle('nc-emptied',s.pipeTaken);
@@ -202,7 +223,8 @@ function render(){
  for(const [name,on] of Object.entries({
  bag:s.bag, vase:s.doorOpen, squirrel:s.squirrel&&(!s.barked||fleeing),
  pot:s.vase, musicbox:s.vase, cloud:s.cloud,
- cup:s.music,clock:s.watch,machine:s.mouse
+ cup:s.music,clock:s.watch,machine:s.mouse,
+  elevator:s.watch&&s.tag,moth:s.floorFour,telescope:s.moon,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  let str=[...pocket].map(id=>'<button type="button" class="nc-item'+(id===selected?' nc-selected':'')+
    (selected&&id!==selected&&recipe[sorted(selected,id)]?' nc-valid':'')+
@@ -274,7 +296,12 @@ function accepts(item,thing){
  ||item==='kite'&&thing==='cloud'&&s.cloud&&!s.kite
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
- ||item==='bell'&&thing==='dog'&&s.doorOpen;
+ ||item==='bell'&&thing==='dog'&&s.doorOpen
+ ||item==='lens'&&thing==='telescope'&&s.moon&&!s.observed
+ ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
+ ||item==='starmap'&&thing==='elevator'&&s.floorFour&&!s.train
+ ||item==='parcel'&&thing==='dog'&&s.doorOpen
+ ||item==='postcard'&&thing==='cube'&&!s.portal;
 }
 function use(item,thing){
  if(!pocket.has(item)||!accepts(item,thing))return false;
@@ -303,6 +330,22 @@ function use(item,thing){
   spend('bird');s.moon=true;bloom('moon','The paper bird flies into the cube. A tiny moon takes its place.');incident('☾');
  }else if(item==='bell'&&thing==='dog'){
   sound(820);tell('The dog looks offended. It prefers being petted.');
+ }else if(item==='lens'&&thing==='telescope'){
+  spend('lens');s.observed=true;
+  bloom('constellation','The lens focuses on a constellation that has never existed.');
+  gain('starmap','A tiny star chart unfolds from the telescope.');
+ }else if(item==='stardust'&&thing==='musicbox'){
+  spend('stardust');s.dancer=true;
+  bloom('dancer','A tiny ballerina unfolds from the music box and begins to waltz.');
+ }else if(item==='starmap'&&thing==='elevator'){
+  spend('starmap');s.train=true;
+  bloom('railway','The elevator prints a railway from a constellation. A train appears.');
+ }else if(item==='parcel'&&thing==='dog'){
+  spend('parcel');gain('postcard');
+  bloom('postcard','The dog sniffs the parcel, signs for it, and produces a postcard.');
+ }else if(item==='postcard'&&thing==='cube'){
+  spend('postcard');s.portal=true;
+  bloom('portal','The paper sinks through solid enamel. A tiny landscape appears inside the cube.');
  }
  render();
  if(item==='key'&&thing==='bag')cue(prop('bag'),'nc-scene-blink',900);
@@ -319,6 +362,11 @@ function use(item,thing){
  if(item==='sugar'&&thing==='cup')cue(prop('cup'),'nc-scene-blink',850);
  if(item==='bird'&&thing==='cube'){cue('ncAnimatedBird','nc-running',2100);scatter('#e5c6d3',12);}
  if(item==='kite'&&thing==='cloud')scatter('#d2add7',10,prop('cloud'));
+ if(item==='lens'&&thing==='telescope'){cue(prop('telescope'),'nc-scope-zoom',1600);scatter('#c7d7ef',13,prop('telescope'))}
+ if(item==='stardust'&&thing==='musicbox'){cue(prop('musicbox'),'nc-dance-begin',1800);scatter('#e4c9ef',16,prop('musicbox'))}
+ if(item==='starmap'&&thing==='elevator'){cue(prop('elevator'),'nc-ticket-stamp',1400);scatter('#c2b6dd',13,prop('elevator'))}
+ if(item==='parcel'&&thing==='dog')cue('ncDog','nc-petting',520);
+ if(item==='postcard'&&thing==='cube'){cue('ncCube','nc-scene-blink',950);scatter('#eab9aa',16)}
  return true;
 }
 function take(item){
@@ -349,6 +397,30 @@ function turnBag(i){
   incident('✳');
  }else sound(350+i*50);
  store();
+}
+function openElevator(){
+ bloom('lift','A brass elevator has appeared. It has four floors and absolutely no building.');
+ modal('AT THE EDGE OF THE ROOM',s.floorFour?'The fourth-floor lift':'The miniature elevator',
+  '<p>Four buttons. The elevator is smaller than the dog\'s collar tag.</p>'+
+  '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>04</span></div>'+
+  '<div class="nc-lift-buttons">'+[1,2,3,4].map(n=>'<button type="button" data-floor="'+n+'" aria-label="Visit miniature floor '+n+'" class="nc-lift-call">'+String(n).padStart(2,'0')+'</button>').join('')+'</div></div>'+
+  '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':'Somewhere, a small brass tag might tell you where to stop.')+'</p>','elevator');
+}
+function callElevator(floor){
+ const text=$('ncLiftMessage');
+ sound(240+floor*110);
+ document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('nc-floor-active',Number(b.dataset.floor)===floor));
+ if(floor!==4){text.textContent=['','Nobody lives on floor one.','A miniature tumbleweed rolls by.','The doors open onto a painted brick wall.'][floor];return}
+ if(!s.floorFour){
+  s.floorFour=true;
+  gain('lens','The tiny lift delivers a silver lens wrapped in tissue.');
+  bloom('fourth','The doors open on floor four. A clockwork moth flies out of the lift.');
+  cue(prop('elevator'),'nc-lift-arrived',1400);
+  scatter('#c6b7d9',16,prop('elevator'));
+  cue(prop('moth'),'nc-moth-arrive',1700);
+  text.textContent='Floor 04: a silver lens, and something fluttering nearby.';
+ }else text.textContent='Floor 04 is still full of empty little corridors.';
+ render();
 }
 function openFlute(){
  s.fluteNotes=[];
@@ -422,6 +494,26 @@ function clickThing(name){
   bloom('clock','It is 4:17. It has been 4:17 for a very long time.');
   modal('CLOCK DEPARTMENT','4:17','<p>Nothing is wrong with this clock. It just refuses to acknowledge the existence of other times.</p>','clock');
  }else if(name==='machine')tell('INSERT COIN. It is remarkably confident.');
+ else if(name==='elevator')openElevator();
+ else if(name==='moth'){
+  if(!s.mothTouched){
+   s.mothTouched=true;gain('stardust','The mechanical moth leaves a handful of luminous dust.');
+   bloom('moth','The little moth does a somersault and sheds glittering clockwork dust.');
+   cue(prop('moth'),'nc-moth-burst',1000);scatter('#d5b5ea',17,prop('moth'));
+  }else{cue(prop('moth'),'nc-moth-burst',1000);tell('The moth bows once. That is all.')}
+ }
+ else if(name==='telescope'){
+  bloom('observatory','A delicate brass telescope peers at a sky that is not quite there.');
+  if(!s.observed)tell('It is missing the little glass lens from the front.');
+  else{tell('Five lights trace the same secret constellation.');cue(prop('telescope'),'nc-scope-zoom',1550);}
+ }
+ else if(name==='train'){
+  if(!s.parcelTaken){
+   s.parcelTaken=true;gain('parcel','The tiny train delivers a parcel with no return address.');
+   bloom('parcel','A steam-powered locomotive has delivered you one absurdly small parcel.');
+  }else tell('The tiny train continues its endless commute below the page.');
+  cue(prop('train'),'nc-train-whistle',900);
+ }
  render();
 }
 function journal(){
@@ -474,6 +566,7 @@ $('ncCubeZone').addEventListener('click',e=>{
 $('ncModalBody').addEventListener('click',e=>{
  const dial=e.target.closest('[data-dial]');if(dial&&panel==='bag'){turnBag(Number(dial.dataset.dial));return}
  const noteEl=e.target.closest('[data-note]');if(noteEl&&panel==='flute'){note(Number(noteEl.dataset.note));return}
+ const floorEl=e.target.closest('[data-floor]');if(floorEl&&panel==='elevator'){callElevator(Number(floorEl.dataset.floor));return}
 });
 let draggingStart=null;
 $('ncCubeZone').addEventListener('pointerdown',e=>{
