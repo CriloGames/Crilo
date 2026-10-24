@@ -278,6 +278,40 @@ export function buildIntricateCube({
     }
   }
 
+  // The original sixty-secret state is authoritative in the live game.
+  // Mirror its poses into the real moving hardware, never grant rewards here.
+  const restoredBulbMaterial=bulb.material;
+  const activeBulbMaterial=restoredBulbMaterial.clone();
+  activeBulbMaterial.color.setHex(0xb0dba6);
+  activeBulbMaterial.emissive.setHex(0x55a875);
+  activeBulbMaterial.emissiveIntensity=.9;
+  function syncGameState(state,instant=false){
+    const s=state||{};
+    const pose=(obj,axis,key,value)=>{
+      if(instant){obj[axis][key]=value;return;}
+      if(Math.abs(obj[axis][key]-value)>.01)animate(obj[axis],{[key]:value},.48);
+    };
+    const steps=Math.min(3,Math.max(0,s.eyeRingTicks||0));
+    const pressure=Math.min(3,Math.max(0,s.pressureTicks||0));
+    live.dialSteps=steps;
+    live.needle=pressure>0;
+    live.lever=!!s.mouse;
+    live.service=!!s.serviceOpen;
+    live.backEye=!!s.back;
+    live.underside=!!s.bottom;
+    live.topLatch=!!s.top;
+    live.light=steps===3;
+    pose(frontKnob,"rotation","z",steps*.5);
+    irisBlades.forEach((blade,i)=>pose(blade,"rotation","z",i*Math.PI/4+.47+steps*.16));
+    pose(needle,"rotation","z",-.5+pressure*(1.75/3));
+    pose(arm,"rotation","x",s.mouse?-.46:0);
+    pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
+    pose(backKnob,"rotation","z",s.back?Math.PI/2:0);
+    pose(baseDial,"rotation","z",s.bottom?Math.PI/3:0);
+    pose(tooth,"position","z",s.top?-.06:.09);
+    bulb.material=live.light?activeBulbMaterial:restoredBulbMaterial;
+  }
+
   const labels={
     optic:"An adjustable iris clicks beneath its brass bezel.",
     pressure:"The real pressure needle advances across its dial.",
@@ -317,6 +351,7 @@ export function buildIntricateCube({
     batching,
     actions:Object.keys(labels),
     getState:()=>({...live}),
+    syncGameState,
     operate
   };
 }
