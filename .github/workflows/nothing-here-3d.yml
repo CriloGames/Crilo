@@ -10,6 +10,11 @@ on:
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
+      - 'secrets-3d-game-hotspots.js'
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'cube-physical.css'
+      - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - '.github/workflows/nothing-here-3d.yml'
   workflow_dispatch:
@@ -20,7 +25,7 @@ permissions:
 jobs:
   setup-and-preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 13
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,6 +43,8 @@ jobs:
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js
+          node --check secrets-3d-game-hotspots.js
+          node --check scripts/verify-nothing-here-live-3d.mjs
           node --check scripts/verify-secrets-3d-preview.mjs
       - name: Install browser for physical preview
         run: |
@@ -51,6 +58,8 @@ jobs:
         run: |
           mkdir -p test-results
           node scripts/verify-secrets-3d-preview.mjs
+      - name: Verify live 60-secret Three.js integration
+        run: node scripts/verify-nothing-here-live-3d.mjs
       - name: Save 3D preview screenshots
         if: always()
         uses: actions/upload-artifact@v4
