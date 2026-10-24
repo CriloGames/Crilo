@@ -88,8 +88,12 @@ if(!dom.scene||!dom.dialog)return;
 let stored={};
 try{stored=JSON.parse(localStorage.getItem(STORAGE)||'{}')||{}}catch{}
 const found=new Set((Array.isArray(stored.found)?stored.found:[]).filter(id=>map.has(id)));
-const flags={lamp:true,rain:false,watered:false,radio:false,hasKey:found.has('brass-key'),
- cup:false,cupFull:found.has('rainwater'),safeOpen:found.has('safe-code'),
+const savedRoom=stored.room&&typeof stored.room==='object'?stored.room:{};
+const remembered=(name,fallback)=>typeof savedRoom[name]==='boolean'?savedRoom[name]:fallback;
+const flags={lamp:remembered('lamp',true),rain:remembered('rain',false),
+ watered:remembered('watered',found.has('watered')),radio:remembered('radio',false),hasKey:found.has('brass-key'),
+ cup:remembered('cup',false),cupFull:remembered('cupFull',found.has('rainwater')&&!found.has('watered')),
+ safeOpen:found.has('safe-code'),
  mirrorAvailable:found.has('dark-mirror'),consoleAvailable:found.has('book-code')};
 const taps={},order=[],stars=[],pressed=[];
 let place='room',muted=stored.muted===true,audio=null,toastTimer=null,dialogLastFocus=null;
@@ -97,7 +101,9 @@ let keyboardBuffer='',lastClue=-1,visitCount=0,bookHistory=[];
 let audioUnlocked=false;
 const safeText=t=>String(t).replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 function save(){
- try{localStorage.setItem(STORAGE,JSON.stringify({found:[...found],muted}))}catch{}
+ try{localStorage.setItem(STORAGE,JSON.stringify({found:[...found],muted,
+   room:{lamp:flags.lamp,rain:flags.rain,watered:flags.watered,radio:flags.radio,
+    cup:flags.cup,cupFull:flags.cupFull}}))}catch{}
 }
 function beep(freq=460,duration=.065,type='sine',volume=.028){
  if(muted)return;
@@ -127,6 +133,9 @@ function sync(){
  dom.scene.dataset.radio=flags.radio?'on':'off';
  dom.scene.dataset.rug=flags.hasKey?'lift':'flat';
  dom.scene.dataset.eclipse=found.has('eclipse')?'yes':'no';
+ dom.scene.dataset.cup=flags.cup?'held':'set';
+ dom.scene.dataset.cupWater=flags.cupFull?'full':'empty';
+ dom.scene.dataset.safe=flags.safeOpen?'open':'locked';
  dom.sound.setAttribute('aria-pressed',String(!muted));
  dom.sound.setAttribute('title',muted?'Turn sounds on':'Turn sounds off');
  dom.soundText.textContent=muted?'OFF':'ON';
@@ -134,6 +143,7 @@ function sync(){
  if(found.size>=10)dom.milestone.textContent='SOME SECRETS MAKE MORE SECRETS';
  if(found.size>=25)dom.milestone.textContent='THE ROOM IS NOT THE WHOLE GAME';
  if(found.size===catalog.length)dom.milestone.textContent='EVERY SECRET FOUND. ARE YOU CERTAIN?';
+ save();
 }
 function discover(id,comment){
  if(!map.has(id)){console.warn('Unknown secret id',id);return false}
@@ -309,7 +319,7 @@ const action=(which,target)=>{
    flags.cupFull=true;discover('rainwater','You caught rainwater in the cup. Find something thirsty.');
   }else if(flags.cup&&flags.cupFull)feedback('You are holding a cup full of rainwater.');
   else feedback(flags.cup?'You picked up the cup.':'You set the cup down.');
-  break;
+  sync();break;
  case 'candle':
   discover('candle');if(!flags.lamp)discover('candle-dark');
   else feedback('The candle’s flame flutters. Try it without the lamp.');
