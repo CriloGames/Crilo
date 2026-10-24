@@ -77,6 +77,8 @@ assert(positions.front&&positions.side&&positions.top);
  await page.locator('#drawerFront').click();
  await page.locator('#hatchTop').click();
  await page.waitForTimeout(1200);
+ const mobileBraces=await page.evaluate(()=>window.__nothing3DPreview.hatchBraceLengths);
+ assert(mobileBraces.every(n=>n>1.0),'The open mobile hatch lost its physical supports: '+mobileBraces);
  await page.screenshot({path:'test-results/3d-physical-open-mobile.png'});
  assert.deepEqual(errors,[],'Browser runtime errors');
  console.log('PASS: premium true 3D shell, '+state.meshes+' modeled parts, seven working micro-mechanisms, physical drawer and hinge animations, mobile viewport and no console errors.');
