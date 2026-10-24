@@ -1,0 +1,32 @@
+name: Pong Toss scoring route search
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/solve-pong-toss-browser.mjs'
+      - '.github/workflows/pong-toss-solutions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  find-real-shots:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve local game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/pong-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Search valid shots against the 3D collision meshes
+        run: node scripts/solve-pong-toss-browser.mjs
