@@ -362,6 +362,13 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
   puzzleActions:[...puzzleControls.keys()],
+  getPose:()=>({
+   doorAngle:doorLeaf?.rotation.y??0,
+   musicLidAngle:musicLid?.rotation.x??0,
+   vaseWholeVisible:vaseWhole?.visible??false,
+   shardsVisible:vaseFragments?.visible??false,
+   shardCount:vaseFragments?.children.length??0
+  }),
   setState,
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n)
