@@ -16,10 +16,14 @@ try {
   stage:document.querySelector('#stage')?.getBoundingClientRect()?.toJSON()
  }));
  assert.equal(state.engine,'three.js');
-const stays=await page.evaluate(()=>window.__nothing3DPreview.pedestalSupportLengths);
-assert.equal(stays.length,2,"The cube is not mechanically attached to its plinth");
-assert(stays.every(n=>Number.isFinite(n)&&n>.12&&n<3),
- "Articulated presentation stays have invalid lengths: "+JSON.stringify(stays));
+const floating=await page.evaluate(()=>({
+ enabled:window.__nothing3DPreview.floatingScene,
+ plinth:window.__nothing3DPreview.pedestalMeshCount,
+ supports:window.__nothing3DPreview.pedestalSupportLengths.length
+}));
+assert(floating.enabled,"The box must float without an attached display stand");
+assert.equal(floating.plinth,0,"The old plinth or ground plane is still rendered");
+assert.equal(floating.supports,0,"The cube is still tethered to the deleted pedestal");
 assert.equal(await page.evaluate(()=>window.__nothing3DPreview.renderMode),'on-demand',
  'WebGL should not waste CPU/GPU rendering a completely still object');
  assert(state.meshes>=180&&state.meshes<=800,
@@ -105,5 +109,5 @@ assert(positions.front&&positions.side&&positions.top);
  assert(mobileBraces.every(n=>n>1.0),'The open mobile hatch lost its physical supports: '+mobileBraces);
  await page.screenshot({path:'test-results/3d-physical-open-mobile.png',timeout:60000});
  assert.deepEqual(errors,[],'Browser runtime errors');
- console.log('PASS: premium true 3D shell, '+state.meshes+' modeled parts, seven working micro-mechanisms, physical drawer and hinge animations, mobile viewport and no console errors.');
+ console.log('PASS: floating physical cube, '+state.meshes+' modeled parts, seven working micro-mechanisms, drawer and hinge animations, mobile viewport and no console errors.');
 }finally{await browser.close()}
