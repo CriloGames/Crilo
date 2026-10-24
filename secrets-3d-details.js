@@ -356,6 +356,7 @@ export function buildIntricateCube({
     actions:Object.keys(labels),
     getState:()=>({...live}),
     syncGameState,
+    getCollectibleVisibility:()=>({tooth:frontKey.visible,thread:sideThread.visible}),
     operate
   };
 }
