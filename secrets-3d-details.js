@@ -190,14 +190,18 @@ export function buildIntricateCube({
     const riv=C(lensGuard,.043,.035,Math.cos(a)*.84,Math.sin(a)*.84,.13,brass);
     riv.rotation.z=a;
   }
-  const backKnob=group(backFace,1.03,-1.20,.17);
-  C(backKnob,.22,.08,0,0,0,darkMetal);
-  C(backKnob,.16,.12,0,0,.07,gold);
+  // A low-profile backing collar for the ONE real iris control. The old
+  // oversized raised clock-shaped dial duplicated the touch target and
+  // physically overlapped its grille and label. This slim bezel sits UNDER
+  // the actuator in the physical hotspot module; it has no second hit target.
+  const backKnob=group(backFace,1.055,-1.30,.139);
+  C(backKnob,.156,.033,0,0,0,darkMetal);
+  ring(backKnob,.142,.015,0,0,.016,brass);
   for(let i=0;i<8;i++){
     const a=i*Math.PI/4;
-    B(backKnob,.064,.035,.04,Math.cos(a)*.15,Math.sin(a)*.15,.14,ebony,.006).rotation.z=a;
+    const tick=B(backKnob,.027,.010,.012,Math.cos(a)*.131,Math.sin(a)*.131,.020,steel,.003);
+    tick.rotation.z=a;
   }
-  setHit(backKnob,"eye");
   registries.backKnob=backKnob;
   plaque(backFace,"I SEE YOU",0,-1.36,.82);
 
