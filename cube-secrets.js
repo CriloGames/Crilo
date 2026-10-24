@@ -57,7 +57,15 @@ const catalog=[
  ['service-bolt','Maintenance is unexpectedly lucrative.'],
  ['hinge-pin','A tiny piece of engineering.'],
  ['clockwork-heart','An irregular mechanical heartbeat.'],
- ['underside-foot','A clue hiding in plain underside.']
+ ['underside-foot','A clue hiding in plain underside.'],
+ ['maker-stamp','The manufacturer denies everything.'],
+ ['pressure-dial','The needle knows a note.'],
+ ['resonance','A tuning fork opens another reality.'],
+ ['service-shutter','A service compartment behind sound.'],
+ ['wax-cylinder','The music box remembers a voice.'],
+ ['paper-tape','Time keeps a written record.'],
+ ['outgoing-mail','The train is accepting letters.'],
+ ['return-letter','The door has written back.']
 ];
 const title=new Map(catalog);
 const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollow pipe',reed:'tiny reed',
@@ -66,12 +74,14 @@ const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollo
  kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag',
  lens:'silver telescope lens',stardust:'luminous moth dust',starmap:'folded star chart',
  parcel:'miniature parcel',postcard:'postcard from nowhere',
- cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer'};
+ cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer',
+ fork:'silver tuning fork',cylinder:'wax sound cylinder',tape:'punched paper tape',
+ letter:'folded letter',envelope:'sealed return envelope'};
 const glyphs={tooth:'⌗',ring:'◌',thread:'〰',pipe:'╱',reed:'ː',flute:'♫',
  key:'⚿',coin:'◉',treat:'♧',prism:'◇',acorn:'♠',spring:'⌁',
  raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04',
  lens:'◎',stardust:'✧',starmap:'✳',parcel:'▣',postcard:'▧',
- cog:'⚙',iris:'◉',shim:'⌁',washer:'◌'};
+ cog:'⚙',iris:'◉',shim:'⌁',washer:'◌',fork:'♩',cylinder:'▥',tape:'▤',letter:'✉',envelope:'✉'};
 const recipe={
  'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
@@ -89,7 +99,9 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
- shimUsed:false,clockHeart:false,footChecked:false,rightBoltLoose:false};
+ shimUsed:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
+ serialRead:false,pressureReady:false,resonance:false,serviceOpen:false,
+ cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -108,6 +120,7 @@ s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,
 s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3].includes(n)).slice(-3):[];
 s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,20);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
+s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
@@ -241,6 +254,16 @@ function render(){
  document.body.classList.toggle('nc-back-dial-aligned',s.eyeRingTicks>=3);
  document.body.classList.toggle('nc-second-sky',s.secondSky);
  document.body.classList.toggle('nc-clockwork-heart',s.clockHeart);
+ document.body.classList.toggle('nc-serial-read',s.serialRead);
+ document.body.classList.toggle('nc-pressure-ready',s.pressureReady);
+ document.body.classList.toggle('nc-resonance',s.resonance);
+ document.body.classList.toggle('nc-service-open',s.serviceOpen);
+ document.body.classList.toggle('nc-cylinder-mounted',s.cylinderMounted);
+ document.body.classList.toggle('nc-tape-inserted',s.tapeInserted);
+ document.body.classList.toggle('nc-letter-mailed',s.letterMailed);
+ document.body.classList.toggle('nc-door-replied',s.doorReplied);
+ const pressure=document.querySelector('.nc-pressure-dial');
+ if(pressure)pressure.style.setProperty('--nc-pressure-angle',(-105+s.pressureTicks*70)+'deg');
  document.querySelectorAll('[data-hit^="front-screw-"]').forEach(el=>{
   const n=Number(el.dataset.hit.slice(-1));
   el.classList.toggle('nc-fastener-removed',s.screws.includes(n));
@@ -297,6 +320,34 @@ function scheduleCompartment(thing){
  compartmentTimer.set(thing,timer);
 }
 function inspectHardware(name){
+ if(name==='serial'){
+  s.serialRead=true;
+  bloom('maker-stamp','Stamped beneath the maker\'s seal: PROPERTY OF NOBODY / 04 / CALIBRATE TO THREE.');
+  tell('Somebody signed the inspection tag with an X. The date is tomorrow.');
+  cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
+  return true;
+ }
+ if(name==='pressure'){
+  if(!s.pressureReady){
+   s.pressureTicks++;
+   sound(265+s.pressureTicks*130);
+   if(s.pressureTicks>=3){
+    s.pressureReady=true;gain('fork');
+    bloom('pressure-dial','The brass manometer reaches three. A slender tuning fork unclips from the gauge.');
+    scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
+   }else tell('The tiny needle moves one mark. It seems to want three.');
+  }else tell('The pressure holds steady at three, though there is nothing inside.');
+  return true;
+ }
+ if(name==='shutter'){
+  if(!s.resonance){tell('The blue service hatch shivers, but its sound-operated latch is sealed.');return true}
+  if(!s.serviceOpen){
+   s.serviceOpen=true;gain('cylinder');
+   bloom('service-shutter','The resonator slides on brass rails. Inside is a grooved wax cylinder.');
+   cue('ncWorld','nc-shudder',450);scatter('#a4cbca',11,document.querySelector('[data-hit="shutter"]'));
+  }else tell('The little service cavity is empty now. Its spring still hums.');
+  return true;
+ }
  if(name.startsWith('front-screw-')){
   const n=Number(name.slice(-1));
   if(n===3){
@@ -435,7 +486,12 @@ function accepts(item,thing){
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
  ||item==='iris'&&thing==='telescope'&&s.observed&&!s.secondSky
  ||item==='shim'&&thing==='machine'&&!s.shimUsed
- ||item==='washer'&&thing==='musicbox'&&s.music&&!s.clockHeart;
+ ||item==='washer'&&thing==='musicbox'&&s.music&&!s.clockHeart
+ ||item==='fork'&&thing==='cube'&&s.pressureReady&&!s.resonance
+ ||item==='cylinder'&&thing==='musicbox'&&s.music&&!s.cylinderMounted
+ ||item==='tape'&&thing==='clock'&&s.watch&&!s.tapeInserted
+ ||item==='letter'&&thing==='train'&&s.train&&!s.letterMailed
+ ||item==='envelope'&&thing==='door'&&s.doorOpen&&!s.doorReplied;
 }
 function use(item,thing){
  if(!pocket.has(item)||!accepts(item,thing))return false;
@@ -492,6 +548,21 @@ function use(item,thing){
  }else if(item==='washer'&&thing==='musicbox'){
   spend('washer');s.clockHeart=true;
   bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');
+ }else if(item==='fork'&&thing==='cube'){
+  spend('fork');s.resonance=true;
+  bloom('resonance','The tuning fork sings against the enamel. Something slides open on the blue side.');
+ }else if(item==='cylinder'&&thing==='musicbox'){
+  spend('cylinder');s.cylinderMounted=true;gain('tape');
+  bloom('wax-cylinder','A tiny wax voice plays backwards. The box prints a narrow strip of punched tape.');
+ }else if(item==='tape'&&thing==='clock'){
+  spend('tape');s.tapeInserted=true;gain('letter');
+  bloom('paper-tape','The clock reads the perforations, coughs at 4:17, and folds a letter for someone.');
+ }else if(item==='letter'&&thing==='train'){
+  spend('letter');s.letterMailed=true;gain('envelope');
+  bloom('outgoing-mail','The little train stamps your letter and returns a sealed envelope.');
+ }else if(item==='envelope'&&thing==='door'){
+  spend('envelope');s.doorReplied=true;
+  bloom('return-letter','The door opens a letter addressed to YOU. It simply says: I KNOW.');
  }
  render();
  if(item==='key'&&thing==='bag')cue(prop('bag'),'nc-scene-blink',900);
@@ -513,6 +584,15 @@ function use(item,thing){
  if(item==='starmap'&&thing==='elevator'){cue(prop('elevator'),'nc-ticket-stamp',1400);scatter('#c2b6dd',13,prop('elevator'))}
  if(item==='parcel'&&thing==='dog')cue('ncDog','nc-petting',520);
  if(item==='postcard'&&thing==='cube'){cue('ncCube','nc-scene-blink',950);scatter('#eab9aa',16)}
+ if(item==='fork'&&thing==='cube'){
+  cue('ncWorld','nc-shudder',650);scatter('#c2e6e6',17,$('ncCube'));sound(760);
+ }
+ if(item==='cylinder'&&thing==='musicbox'){
+  cue(prop('musicbox'),'nc-dance-begin',1300);floatNote(prop('musicbox'));sound(390);
+ }
+ if(item==='tape'&&thing==='clock'){cue(prop('clock'),'nc-scene-blink',1100);scatter('#ead1b3',8,prop('clock'))}
+ if(item==='letter'&&thing==='train')cue(prop('train'),'nc-train-whistle',1050);
+ if(item==='envelope'&&thing==='door')cue('ncDoor','nc-scene-blink',1800);
  return true;
 }
 function take(item){
@@ -675,7 +755,7 @@ function info(){
   '<p>Some things you find can be used on other things. Select an item from your pocket to see what accepts it. Two pocket items only combine when they are actually compatible.</p>'+
   '<p>There are no levels. Things will happen without permission. Progress saves on this device.</p>','info');
 }
-const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||
+const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||name==='serial'||name==='pressure'||name==='shutter'||
  /^(?:front-screw-|right-bolt-|hinge-|vent-)/.test(name);
 function hit(e){
  const el=e.target.closest('[data-hit]');if(!el||!$('ncCube').contains(el))return;
