@@ -77,6 +77,10 @@ cube.rotation.set(-.19, -.33, .02);
 scene.add(cube);
 let objectCount = 0;
 const interactiveMeshes = [];
+// The solid enamel casing must block rays to clues on the opposite side.
+// Do not use all decorative geometry as blockers: a bezel or glass lens
+// could otherwise make a deliberately raised control unclickable.
+const occlusionMeshes = [];
 
 function box(parent, w, h, d, x, y, z, material, radius=.035) {
  const r=Math.min(radius,w*.2,h*.2,d*.2);
@@ -126,7 +130,7 @@ function faceAround(group, material, cutW, cutH, cx=0, cy=0) {
  const xl=cx-cutW/2,xr=cx+cutW/2, yt=cy+cutH/2,yb=cy-cutH/2;
  function piece(x1,x2,y1,y2){
   if(x2-x1<.015||y2-y1<.015)return;
-  box(group,x2-x1,y2-y1,T,(x1+x2)/2,(y1+y2)/2,0,material,.035);
+  occlusionMeshes.push(box(group,x2-x1,y2-y1,T,(x1+x2)/2,(y1+y2)/2,0,material,.035));
  }
  piece(left,xl,bottom,top); piece(xr,right,bottom,top);
  piece(xl,xr,yt,top); piece(xl,xr,bottom,yb);
@@ -139,7 +143,7 @@ faceAround(frontFace,enamel.front,frontHole.w,frontHole.h,frontHole.x,frontHole.
 faceAround(rightFace,enamel.right,sideHole.w,sideHole.h,sideHole.x,sideHole.y);
 faceAround(topFace,enamel.top,topHole.w,topHole.h);
 for(const [group,material] of [[backFace,enamel.back],[leftFace,enamel.left],[bottomFace,enamel.bottom]]){
- box(group,faceSize,faceSize,.145,0,0,0,material,.065);
+ occlusionMeshes.push(box(group,faceSize,faceSize,.145,0,0,0,material,.065));
 }
 // Twelve physical connecting beams and eight machined brass corner fittings.
 for(const s1 of [-1,1])for(const s2 of [-1,1]){
@@ -279,8 +283,15 @@ const screws=[];
 function screwsFor(face,tag,spots) {
  for(let i=0;i<spots.length;i++){
   const [x,y]=spots[i],assembly=new THREE.Group();
+  // Every screw passes through a permanent counterbore and retaining ring.
+  // When a removable screw comes out there is a real recessed socket behind it.
+  const socket=new THREE.Group();socket.position.set(x,y,.077);face.add(socket);
+  cylinder(socket,.077,.018,0,0,.006,cavityMaterial).castShadow=false;
+  const collar=new THREE.Mesh(new THREE.TorusGeometry(.077,.014,8,28),metal);
+  collar.position.z=.021;socket.add(collar);
   assembly.position.set(x,y,.13);
   face.add(assembly);
+  cylinder(assembly,.035,.16,0,0,-.034,darkMetal);
   cylinder(assembly,.068,.065,0,0,.035,brass);
   box(assembly,.092,.012,.016,0,0,.080,darkMetal,.006);
   const key=tag+"-screw-"+i;
@@ -320,6 +331,7 @@ const gameHotspots=embeddedGame?buildGameHotspots({
 }):null;
 const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit}):null;
 let currentGameState={};
+let physicalStateInitialized=false;
 
 // Grounding is a real plane receiving the real shadow of the mechanism.
 const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
@@ -377,13 +389,17 @@ function clickAction(action){
    optic:"eye-ring",
    pressure:"pressure",
    lever:"dent",
-   latch:"dent",
-   eye:"eye-ring",
+   latch:"latch",
+   eye:"eye",
    underside:"hatch",
    "hatch-latch":"triangle",
    "cube-offer":"cube-offer"
   };
-  const name=translate[action]||action;
+  // Two families of precision fasteners share the original service clues,
+  // rather than pretending to be clickable but silently doing nothing.
+  const name=action.startsWith("side-screw-")?"right-bolt-"+action.slice(-1):
+    action.startsWith("top-screw-")?"hinge-"+Math.min(2,Number(action.slice(-1))):
+    translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
   window.CriloNothingHereCube?.activatePhysical?.(name);
   return;
@@ -420,25 +436,32 @@ function isMeshEffectivelyVisible(mesh){
  for(let p=mesh;p;p=p.parent)if(!p.visible)return false;
  return true;
 }
-renderer.domElement.addEventListener("pointerdown",e=>{clickStart={x:e.clientX,y:e.clientY}});
-renderer.domElement.addEventListener("pointermove",e=>{
+function pickVisibleAction(clientX,clientY){
  const bounds=renderer.domElement.getBoundingClientRect();
- if(!bounds.width||!bounds.height)return;
- pointer.set(((e.clientX-bounds.left)/bounds.width)*2-1,-((e.clientY-bounds.top)/bounds.height)*2+1);
+ if(!bounds.width||!bounds.height)return null;
+ pointer.set(((clientX-bounds.left)/bounds.width)*2-1,-((clientY-bounds.top)/bounds.height)*2+1);
  raycaster.setFromCamera(pointer,camera);
- renderer.domElement.style.cursor=raycaster.intersectObjects(interactiveMeshes,false)
-  .some(hit=>hit.object.userData.action&&isMeshEffectivelyVisible(hit.object))?"pointer":"grab";
+ const casing=raycaster.intersectObjects(occlusionMeshes,false)
+  .find(hit=>isMeshEffectivelyVisible(hit.object));
+ const limit=casing?casing.distance+.025:Infinity;
+ return raycaster.intersectObjects(interactiveMeshes,false)
+  .find(hit=>hit.distance<=limit && hit.object.userData.action &&
+    isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
+}
+renderer.domElement.addEventListener("pointerdown",e=>{
+ if(e.button===0)clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId};
+});
+renderer.domElement.addEventListener("pointermove",e=>{
+ renderer.domElement.style.cursor=pickVisibleAction(e.clientX,e.clientY)?"pointer":"grab";
 });
 renderer.domElement.addEventListener("pointerup",e=>{
- if(!clickStart||Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7)return;
- const bounds=renderer.domElement.getBoundingClientRect();
- pointer.set(((e.clientX-bounds.left)/bounds.width)*2-1,-((e.clientY-bounds.top)/bounds.height)*2+1);
- raycaster.setFromCamera(pointer,camera);
- const intersects=raycaster.intersectObjects(interactiveMeshes,false);
- const picked=intersects.find(item=>item.object.userData.action && item.object.visible && isMeshEffectivelyVisible(item.object));
- if(picked)clickAction(picked.object.userData.action);
- clickStart=null;
+ const start=clickStart;clickStart=null;
+ if(!start||start.pointerId!==e.pointerId||
+    Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)return;
+ const action=pickVisibleAction(e.clientX,e.clientY);
+ if(action)clickAction(action);
 });
+renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null});
 let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
@@ -509,6 +532,8 @@ window.__nothing3DPreview={
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
+ get solidShellBlockerCount(){return occlusionMeshes.length},
+ get physicalMechanismState(){return intricate.getState()},
  detailState:()=>intricate.getState(),
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
@@ -543,6 +568,8 @@ window.__nothing3DPreview={
   currentGameState=state||{};
   if(gameHotspots)gameHotspots.setState(currentGameState);
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
+  intricate.syncGameState(currentGameState,!physicalStateInitialized);
+  physicalStateInitialized=true;
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
     obj.open=open;
@@ -559,6 +586,10 @@ window.__nothing3DPreview={
   for(const screw of screws){
    const num=Number(screw.id.slice(-1));
    const removed=screw.id.startsWith("front-screw-") && state.screws?.includes(num);
+   if(screw.id==="front-screw-3"){
+    // The false screw is a spring button: it depresses but never unscrews.
+    screw.assembly.position.z=(state.falseScrewTurns||0)%2?.105:.13;
+   }
    if(screw.assembly.visible===removed)screw.assembly.visible=!removed;
   }
   invalidate();
