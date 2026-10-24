@@ -836,7 +836,7 @@ const endPointer=e=>{
 };
 window.addEventListener('pointerup',endPointer);
 window.addEventListener('pointercancel',endPointer);
-$('ncCubeZone').addEventListener('wheel',e=>{
+$('ncWorld').addEventListener('wheel',e=>{
  if(e.target.closest('.nc-inspection-controls'))return;
  e.preventDefault();
  zoomTo(view.zoom+(e.deltaY>0?-.14:.14));
