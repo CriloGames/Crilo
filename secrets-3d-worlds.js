@@ -22,7 +22,27 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
  scene.add(root);
  let parts=0;
  const items=new Map(),locations=new Map();
- const puzzleControls=new Map(),bagDials=[],liftDoors=[];
+ const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
+ // The bag code wheels have legible stamped symbols directly on their metal
+ // faces. Updating a dial changes its own inlay instead of showing a popup.
+ const glyphMaterials=["○","✳","◇","☾"].map(symbol=>{
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=256;
+  const ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,256,256);
+  ctx.fillStyle="#3a4850";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="bold 190px Georgia,serif";
+  ctx.fillText(symbol,128,136,214);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
+ });
+ const numerals=[1,2,3,4].map(n=>{
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=128;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#323f47";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.font="bold 95px system-ui,sans-serif";ctx.fillText(String(n),64,71);
+  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
+  return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
+ });
  let bagDialPanel=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
@@ -103,8 +123,10 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
    const dial=new THREE.Group();
    dial.position.set((i-1)*.13,.275,.197);bagDialPanel.add(dial);
    C(dial,.047,.030,0,0,0,m.gold,"z");
-   B(dial,.011,.038,.012,0,.022,.022,m.black,.003);
-   C(dial,.012,.015,0,0,.025,m.copper,"z");
+   B(dial,.012,.014,.012,0,.039,.030,m.black,.003);
+   const glyph=new THREE.Mesh(new THREE.PlaneGeometry(.067,.067),glyphMaterials[0]);
+   glyph.position.z=.047;dial.add(glyph);parts++;
+   bagDialGlyphs.push(glyph);
    puzzleControls.set("thing:bag-dial-"+i,dial);bagDials.push(dial);
   }
  }
@@ -266,7 +288,9 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
    const button=new THREE.Group();
    button.position.set(.32,.15+floor*.11,.159);g.add(button);
    C(button,.043,.025,0,0,0,m.brass,"z");
-   C(button,.025,.028,0,0,.020,floor===4?m.pink:m.cream,"z");
+   C(button,.036,.028,0,0,.020,floor===4?m.pink:m.cream,"z");
+   const digit=new THREE.Mesh(new THREE.PlaneGeometry(.053,.053),numerals[floor-1]);
+   digit.position.z=.040;button.add(digit);parts++;
    puzzleControls.set("thing:elevator-floor-"+floor,button);
   }
   C(g,.07,.03,0,.77,0,m.black,"z");
@@ -341,8 +365,14 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
-  for(let i=0;i<bagDials.length;i++)
-   bagDials[i].rotation.z=((s.bagDials?.[i]||0)%4)*Math.PI/2;
+  for(let i=0;i<bagDials.length;i++){
+   const value=(s.bagDials?.[i]||0)%4;
+   bagDials[i].rotation.z=value*Math.PI/2;
+   // Rotating the wheel indexes a new permanent stamped symbol through its
+   // central reading window, so the chosen value stays upright and obvious.
+   bagDialGlyphs[i].rotation.z=-bagDials[i].rotation.z;
+   bagDialGlyphs[i].material=glyphMaterials[value];
+  }
   liftDoors.forEach((panel,i)=>{
    panel.position.x=(i===0?-1:1)*(s.floorFour?.18:.105);
   });
