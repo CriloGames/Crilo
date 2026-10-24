@@ -329,7 +329,7 @@ function announce(message){status.textContent=message;}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animate(object,props,duration=.82){
  if(reducedMotion){Object.assign(object,props);return}
- gsap.to(object,{...props,duration,ease:"power3.inOut"});
+ gsap.to(object,{...props,duration,ease:"power3.inOut",onUpdate:invalidate});
 }
 function toggleDrawer(target,caption){
  target.open=!target.open;
@@ -338,9 +338,10 @@ function toggleDrawer(target,caption){
  if(target.motion){target.motion.kill();target.motion=null;}
  if(reducedMotion){target.drawer.position.z=target.open?.76:0;}
  else{
-  target.motion=gsap.timeline().to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
+  target.motion=gsap.timeline({onUpdate:invalidate}).to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
     .to(target.drawer.position,{z:target.open?.76:0,duration:.24,ease:"back.out(1.15)"});
  }
+ invalidate();
  announce(caption+(target.open?" opens into a real hollow box.":" slides fully into its socket."));
 }
 function toggleHatch(){
@@ -351,6 +352,7 @@ function toggleHatch(){
  if(reducedMotion){lidPivot.rotation.x=target;hatchMotion=null;}
  else hatchMotion={start:performance.now(),duration:920,from:lidPivot.rotation.x,to:target};
  updateHatchBraces();
+ invalidate();
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
 function clickAction(action){
@@ -412,14 +414,26 @@ const onResize=()=>{
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
+ invalidate();
 };
 new ResizeObserver(onResize).observe(stage);
 onResize();
-renderer.setAnimationLoop(()=>{
+// On-demand rendering: a finished museum object should not spin its GPU at
+// 60 FPS forever. Orbit controls, mechanical animations, resize, and hatch
+// movement request frames only when something actually changes.
+let pendingFrame=0;
+function invalidate(){
+ if(!pendingFrame)pendingFrame=requestAnimationFrame(drawFrame);
+}
+function drawFrame(){
+ pendingFrame=0;
  controls.update();
  updateHatchBraces();
  renderer.render(scene,camera);
-});
+ if(hatchMotion)invalidate();
+}
+controls.addEventListener("change",invalidate);
+invalidate();
 window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
@@ -439,6 +453,7 @@ window.__nothing3DPreview={
  get topOpen(){return lidOpen},
  get hatchBraceLengths(){updateHatchBraces();return hingeBraces.map(({body})=>body.scale.y)},
  get hatchAngle(){syncHatchMotion();return lidPivot.rotation.x},
+ get renderMode(){return "on-demand"},
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
