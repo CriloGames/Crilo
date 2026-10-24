@@ -497,21 +497,23 @@ const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
 // Identify the actual object when hovered, not a generic "tap anywhere"
 // message. Inventory clues remain optional and never reveal a combination.
+// Name what an object IS. Never tell the player its solution, use count,
+// compatible inventory item, or required sequence in a hover tooltip.
 const controlNames={
- front:"Front drawer · pull open",latch:"Brass latch · open front drawer",
- "drawer-a":"Key teeth · collect",side:"Side drawer · slide open",
- seam:"Side latch · open drawer","drawer-b":"Thread spool · collect",
- hatch:"Hinged lid · investigate",triangle:"Triangle · press three times",
- "top-reed":"Hollow pipe · collect",foot:"Rubber foot · inspect",
- underside:"Underside trapdoor · open",dent:"Dented switch · push",
- dot:"Red button · press",pressure:"Pressure dial · turn",
- "eye-ring":"Optical calibrator · rotate",eye:"Rear eye · inspect",
- "cube-offer":"Central socket · use an item here",
- optic:"Optical ring · turn",serial:"Maker stamp · read",
- shutter:"Service shutter · inspect", "service-latch":"Service catch · inspect",
- "hatch-latch":"Brass lid catch · test", "cipher-strip":"Engraved symbols · read",
- "right-bolt-1":"Loose service bolt · turn",
- "front-screw-3":"Odd screw · turn"
+ front:"Lavender drawer",latch:"Front drawer latch",
+ "drawer-a":"Small metal teeth",side:"Teal drawer",
+ seam:"Side panel seam","drawer-b":"Red thread spool",
+ hatch:"Hinged top panel",triangle:"Brass triangle",
+ "top-reed":"Hollow wooden tube",foot:"Rubber foot",
+ underside:"Underside mechanism",dent:"Dented copper switch",
+ dot:"Small red button",pressure:"Pressure gauge",
+ "eye-ring":"Iris adjustment ring",eye:"Glass eye",
+ "cube-offer":"Circular brass receiver",
+ optic:"Optical collar",serial:"Maker's stamp",
+ shutter:"Service shutter","service-latch":"Service catch",
+ "hatch-latch":"Lid latch","cipher-strip":"Engraved brass strip",
+ "right-bolt-1":"Service bolt",
+ "front-screw-3":"Unusual fastener"
 };
 const miniatureNames={
  bag:"Locked leather bag",dog:"Little dog",door:"Little door",vase:"Ceramic vase",
@@ -526,51 +528,21 @@ if(!embeddedGame){
  partHint.style.cssText="position:absolute;z-index:9;pointer-events:none;transform:translateX(-50%);background:#fff9e9ee;border:1px solid #a0b5ae;border-radius:9px;padding:6px 11px;box-shadow:0 4px 14px #384b5230;color:#4b6568;font:700 12px system-ui,sans-serif;max-width:230px;text-align:center;";
 }
 stage.appendChild(partHint);
-function acceptsHeldItem(action){
- const held=currentGameState.selected;
- if(!held)return false;
- const target=action.startsWith("thing:")?action.slice(6):
-  ["cube-offer","eye"].includes(action)?(action==="cube-offer"?"cube":"eye"):null;
- const s=currentGameState;
- return !!target&&(
-  held==="key"&&target==="bag"&&!s.bagOpen||
-  held==="treat"&&target==="dog"&&s.doorOpen||
-  held==="acorn"&&target==="pot"&&!s.plant||
-  held==="raindrop"&&target==="pot"&&s.plant&&!s.tree||
-  held==="spring"&&target==="musicbox"&&!s.music||
-  held==="coin"&&target==="machine"||
-  held==="kite"&&target==="cloud"&&s.cloud&&!s.kite||
-  held==="sugar"&&target==="cup"&&s.cup||
-  held==="bird"&&target==="cube"&&s.tree&&!s.moon||
-  held==="bell"&&target==="dog"&&s.doorOpen||
-  held==="lens"&&target==="telescope"&&s.moon&&!s.observed||
-  held==="stardust"&&target==="musicbox"&&s.music&&!s.dancer||
-  held==="starmap"&&target==="elevator"&&s.floorFour&&!s.train||
-  held==="parcel"&&target==="dog"&&s.doorOpen||
-  held==="postcard"&&target==="cube"&&!s.portal||
-  held==="cog"&&target==="eye"&&s.eyeRingTicks>=3&&!s.opticOpened||
-  held==="iris"&&target==="telescope"&&s.observed&&!s.secondSky||
-  held==="shim"&&target==="machine"&&!s.shimUsed||
-  held==="washer"&&target==="musicbox"&&s.music&&!s.clockHeart||
-  held==="fork"&&target==="cube"&&s.pressureReady&&!s.resonance
- );
-}
 function describeAction(action){
  if(!action)return "";
- if(acceptsHeldItem(action))return "✓ Use held item here · click to apply";
- if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1)+" · turn";
- if(action.startsWith("thing:elevator-floor-"))return "Lift · visit floor "+action.slice(-1);
- if(action.startsWith("thing:"))return (miniatureNames[action.slice(6)]||"Miniature")+" · inspect";
- if(action.startsWith("front-screw-"))return "Front screw · try turning";
- if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service bolt · inspect";
- if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin · loosen";
- if(action.startsWith("vent-"))return "Numbered vent "+action.slice(-1)+" · press";
- return controlNames[action]||"Mechanical part · inspect";
+ if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
+ if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
+ if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
+ if(action.startsWith("front-screw-"))return "Faceplate screw";
+ if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
+ if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
+ if(action.startsWith("vent-"))return "Vent switch "+action.slice(-1);
+ return controlNames[action]||"Mechanical fitting";
 }
 function setPartHint(action,e){
  if(!action){partHint.hidden=true;return}
  partHint.textContent=describeAction(action);
- partHint.classList.toggle("nc-can-use",acceptsHeldItem(action));
+ partHint.classList.remove("nc-can-use");
  partHint.hidden=false;
  if(e){
   const b=stage.getBoundingClientRect();
