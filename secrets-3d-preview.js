@@ -183,20 +183,23 @@ side.drawer.userData.action="side";
 setHit(front.drawer,"front");setHit(side.drawer,"side");
 
 function keyShape(parent) {
+ const found=new THREE.Group();parent.add(found);
  const ring=new THREE.Mesh(new THREE.TorusGeometry(.13,.032,12,30),brass);
  ring.position.set(-.13,-.1,-.12);ring.rotation.x=Math.PI/2;
- parent.add(ring);ring.castShadow=true;objectCount++;
- box(parent,.44,.055,.066,.09,-.10,-.12,brass,.012);
- box(parent,.065,.15,.066,.22,-.045,-.12,brass,.006);
+ found.add(ring);ring.castShadow=true;objectCount++;
+ box(found,.44,.055,.066,.09,-.10,-.12,brass,.012);
+ box(found,.065,.15,.066,.22,-.045,-.12,brass,.006);
+ return found;
 }
-keyShape(front.drawer);
+const looseKey=keyShape(front.drawer);
 function spoolShape(parent) {
  const g=new THREE.Group();g.position.set(0,-.09,-.19);g.rotation.z=.40;parent.add(g);
  const wood=mat(0xd5ac84,.05,.5),thread=mat(0xb883a9,.09,.53);
  cylinder(g,.115,.37,0,0,0,thread);
  cylinder(g,.18,.045,0,0,.205,wood);cylinder(g,.18,.045,0,0,-.205,wood);
+ return g;
 }
-spoolShape(side.drawer);
+const looseSpool=spoolShape(side.drawer);
 
 // The top door pivots on a real axis along its rear edge.
 const hatch = new THREE.Group();topFace.add(hatch);
@@ -302,6 +305,20 @@ function screwsFor(face,tag,spots) {
 screwsFor(frontFace,"front", [[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
 screwsFor(rightFace,"side",[[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
 screwsFor(topFace,"top",[[-1.25,1.25],[1.25,1.25],[-1.25,-1.25],[1.25,-1.25]]);
+// The ring is a separate physical collectible on the underside. Once
+// discovered it MUST leave the cube; the empty brass seat remains.
+const undersideRingSeat=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.05,32),cavityMaterial);
+undersideRingSeat.rotation.x=Math.PI/2;
+undersideRingSeat.position.set(-.43,-.23,.128);bottomFace.add(undersideRingSeat);
+const undersideRing=new THREE.Group();undersideRing.position.set(-.43,-.23,.174);
+bottomFace.add(undersideRing);
+const ringArtifact=new THREE.Mesh(new THREE.TorusGeometry(.15,.040,10,36),brass);
+ringArtifact.castShadow=true;undersideRing.add(ringArtifact);
+const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.205,.012,7,40),metal);
+ringHub.position.z=-.035;undersideRing.add(ringHub);
+// A lift pin, rather than a painted symbol, marks where to inspect the ring.
+const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
+setHit(undersideRing,"hatch");
 label(backFace,"IS ANYONE THERE?",2.35,.32,0,.95,.102,"#e1eecf","#698267");
 // Raised physical ring on the back face.
 const lensOuter=new THREE.Mesh(new THREE.TorusGeometry(.72,.083,15,72),metal);
@@ -624,6 +641,11 @@ window.__nothing3DPreview={
  syncState(state){
   if(!embeddedGame)return;
   currentGameState=state||{};
+  // Inventory changes are authoritative: empty trays and sockets physically
+  // lose their parts on pickup, including every historically duplicated mesh.
+  looseKey.visible=!currentGameState.drawerTaken;
+  looseSpool.visible=!currentGameState.sideTaken;
+  undersideRing.visible=!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   intricate.syncGameState(currentGameState,!physicalStateInitialized);
