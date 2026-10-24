@@ -233,7 +233,7 @@ function cubeHit(name){
   if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
   else tell(s.top?'Something hollow lies under the lid.':'The triangle clicks. '+(3-s.topHits)+' more?');
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');tell('A beautifully useless wooden pipe.')}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','A brass ring falls out of the underside.');}
   if(!s.ringTaken){s.ringTaken=true;collection('ring');}
