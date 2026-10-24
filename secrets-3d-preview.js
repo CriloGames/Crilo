@@ -430,6 +430,20 @@ function toggleHatch(){
  invalidate();
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
+function turnFixedFastener(action){
+ const screw=screws.find(item=>item.id===action);
+ if(!screw||!screw.assembly.visible)return;
+ screw.motion?.kill();
+ gsap.killTweensOf(screw.assembly.position);
+ gsap.killTweensOf(screw.assembly.rotation);
+ if(reducedMotion){invalidate();return;}
+ const depth=screw.assembly.position.z;
+ screw.motion=gsap.timeline({onUpdate:invalidate})
+  .to(screw.assembly.rotation,{z:screw.assembly.rotation.z+Math.PI*.6,
+   duration:.28,ease:"power2.inOut"},0)
+  .to(screw.assembly.position,{z:depth+.085,duration:.25,ease:"power2.out"},0)
+  .to(screw.assembly.position,{z:depth,duration:.27,ease:"back.out(1.6)"});
+}
 function clickAction(action){
  if(embeddedGame){
   if(action.startsWith("thing:bag-dial-")){
@@ -470,6 +484,8 @@ function clickAction(action){
   if(gameHotspots){
    if(!gameHotspots.pulse(action))gameHotspots.pulse(name);
   }
+  if(action.startsWith("side-screw-")||action.startsWith("top-screw-"))
+   turnFixedFastener(action);
   window.CriloNothingHereCube?.activatePhysical?.(name);
   return;
  }
@@ -786,7 +802,9 @@ window.__nothing3DPreview={
   }
   for(const screw of screws){
    const num=Number(screw.id.slice(-1));
-   const removed=screw.id.startsWith("front-screw-")&&!!state.screws?.includes(num);
+   const removed=screw.id.startsWith("front-screw-")&&!!state.screws?.includes(num)
+    ||screw.id.startsWith("top-screw-")&&num<3&&!!state.hingePins?.includes(num)
+    ||screw.id==="side-screw-1"&&!!state.rightBoltLoose;
    // The fourth fastener is not a screw: its spring button depresses
    // and rebounds, rather than appearing to be unscrewed.
    if(screw.id==="front-screw-3"){
@@ -803,7 +821,7 @@ window.__nothing3DPreview={
     }
     continue;
    }
-   if(!screw.id.startsWith("front-screw-")||screw.removed===removed)continue;
+   if(screw.removed===removed)continue;
    screw.removed=removed;
    screw.motion?.kill();
    gsap.killTweensOf(screw.assembly.position);
