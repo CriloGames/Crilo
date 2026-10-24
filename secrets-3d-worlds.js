@@ -69,7 +69,6 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   C(stand,.27,.03,0,.017,0,m.brass);
   C(stand,.225,.014,0,.038,0,m.cream);
   const toy=new THREE.Group();toy.position.y=.075;fixture.add(toy);
-  setHit(toy,"thing:"+name);
   items.set(name,{fixture,toy,stand,visible:false});
  }
  const toy=name=>items.get(name).toy;
@@ -272,8 +271,10 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   const vase=items.get("vase");
   if(vase)vase.toy.scale.y=s.vase?.24:1;
  }
- // For consistent focus behavior, selection and hover are handled by the
- // outer WebGL stage, not by this model (which never awards secrets itself).
+ // Raycast targets must be registered AFTER sculpting the miniatures:
+ // otherwise setHit traverses an empty group and none of them are clickable.
+ for(const [name,{toy}] of items)setHit(toy,"thing:"+name);
+ // Focus and hover belong to the outer stage; this geometry awards nothing.
  setState({});
  return {
   names:[...items.keys()],
