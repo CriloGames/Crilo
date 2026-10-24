@@ -240,7 +240,7 @@ const intricate=buildIntricateCube({
  cube,faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  front,side,lidPivot,topHole,
  box,cylinder,label,setHit,mat,animate:(object,props,duration=.8)=>animate(object,props,duration),
- materials:{brass,metal,darkMetal,ivory,cavityMaterial}
+ materials:{brass,metal,darkMetal,ivory,cavityMaterial,rubber}
 });
 
 // Grounding is a real plane receiving the real shadow of the mechanism.
