@@ -46,7 +46,18 @@ const catalog=[
  ['railway','The railway goes under the page.'],
  ['parcel','Special delivery from nowhere.'],
  ['postcard','The dog has become the postmaster.'],
- ['portal','A landscape where a cube should be.']
+ ['portal','A landscape where a cube should be.'],
+ ['fastener','A screw that actually comes out.'],
+ ['false-screw','One of these screws is lying.'],
+ ['faceplate','Underneath the enamel.'],
+ ['vent-sequence','The service vents were listening.'],
+ ['eye-dial','An iris calibrated by hand.'],
+ ['hidden-optic','A second eye in the machine.'],
+ ['second-sky','Two skies, one telescope.'],
+ ['service-bolt','Maintenance is unexpectedly lucrative.'],
+ ['hinge-pin','A tiny piece of engineering.'],
+ ['clockwork-heart','An irregular mechanical heartbeat.'],
+ ['underside-foot','A clue hiding in plain underside.']
 ];
 const title=new Map(catalog);
 const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollow pipe',reed:'tiny reed',
@@ -54,11 +65,13 @@ const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollo
  acorn:'acorn',spring:'clock spring',raindrop:'a drop of rain',bird:'paper bird',
  kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag',
  lens:'silver telescope lens',stardust:'luminous moth dust',starmap:'folded star chart',
- parcel:'miniature parcel',postcard:'postcard from nowhere'};
+ parcel:'miniature parcel',postcard:'postcard from nowhere',
+ cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer'};
 const glyphs={tooth:'⌗',ring:'◌',thread:'〰',pipe:'╱',reed:'ː',flute:'♫',
  key:'⚿',coin:'◉',treat:'♧',prism:'◇',acorn:'♠',spring:'⌁',
  raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04',
- lens:'◎',stardust:'✧',starmap:'✳',parcel:'▣',postcard:'▧'};
+ lens:'◎',stardust:'✧',starmap:'✳',parcel:'▣',postcard:'▧',
+ cog:'⚙',iris:'◉',shim:'⌁',washer:'◌'};
 const recipe={
  'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
@@ -74,7 +87,9 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
  cup:false,moon:false,mouse:false,tag:false,kite:false,
  floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
- drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false};
+ drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
+ plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
+ shimUsed:false,clockHeart:false,footChecked:false,rightBoltLoose:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -84,7 +99,15 @@ s.dogHits=clamp(Number(raw.dogHits)||0,0,12);
 s.bagDials=Array.isArray(raw.bagDials)&&raw.bagDials.length===3?raw.bagDials.map(x=>clamp(Number(x)||0,0,3)):[0,0,0];
 s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-3):[];
 s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
-s.ry=clamp(Number.isFinite(raw.ry)?raw.ry:-24,-4000,4000);
+// Orientation is a view, not story progress. Always start from an attractive
+// three-quarter front angle even if the player left the cube upside down.
+s.rx=-16;
+s.ry=-25;
+s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
+s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
+s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3].includes(n)).slice(-3):[];
+s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,20);
+s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
@@ -213,6 +236,24 @@ function render(){
  document.body.classList.toggle('nc-dancer',s.dancer);
  document.body.classList.toggle('nc-train-running',s.train);
  document.body.classList.toggle('nc-portal-view',s.portal);
+ document.body.classList.toggle('nc-front-plate-free',s.plateOpen);
+ document.body.classList.toggle('nc-vent-open',s.ventOpen);
+ document.body.classList.toggle('nc-back-dial-aligned',s.eyeRingTicks>=3);
+ document.body.classList.toggle('nc-second-sky',s.secondSky);
+ document.body.classList.toggle('nc-clockwork-heart',s.clockHeart);
+ document.querySelectorAll('[data-hit^="front-screw-"]').forEach(el=>{
+  const n=Number(el.dataset.hit.slice(-1));
+  el.classList.toggle('nc-fastener-removed',s.screws.includes(n));
+  el.classList.toggle('nc-fastener-fake',n===3);
+ });
+ document.querySelectorAll('[data-hit^="hinge-"]').forEach(el=>{
+  el.classList.toggle('nc-hinge-shifted',s.hingePins.includes(Number(el.dataset.hit.slice(-1))));
+ });
+ document.querySelectorAll('[data-hit^="vent-"]').forEach(el=>{
+  el.classList.toggle('nc-vent-pressed',s.ventOpen);
+ });
+ const rightBolt=document.querySelector('[data-hit="right-bolt-1"]');
+ if(rightBolt)rightBolt.classList.toggle('nc-fastener-removed',s.rightBoltLoose);
  if(s.portal)$('ncOfferingTarget')?.setAttribute('aria-label','Inspect the tiny landscape inside the cube');
  $('ncDrawerA')?.classList.toggle('nc-emptied',s.drawerTaken);
  $('ncDrawerB')?.classList.toggle('nc-emptied',s.sideTaken);
@@ -255,8 +296,76 @@ function scheduleCompartment(thing){
  },ms);
  compartmentTimer.set(thing,timer);
 }
+function inspectHardware(name){
+ if(name.startsWith('front-screw-')){
+  const n=Number(name.slice(-1));
+  if(n===3){
+   s.falseScrewTurns++;
+   bloom('false-screw','The last screw turns freely but never rises. It is a disguised button.');
+   tell(s.screws.length===3?'It clicks. The front panel can now be lifted.':'This screw is strange: no threads, just a spring.');
+   cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
+  }else if(!s.screws.includes(n)){
+   s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
+   tell(s.screws.length===3?'Three out. The center plate can finally lift.':'A screw comes out. The other fasteners might be real too.');
+   scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
+   sound(620);
+  }else tell('Nothing to unscrew here. The empty hole is threaded.');
+  return true;
+ }
+ if(name.startsWith('right-bolt-')){
+  const n=Number(name.slice(-1));
+  if(n===1&&!s.rightBoltLoose){
+   s.rightBoltLoose=true;
+   tell('A service rivet comes out. Scratched behind it: THREE, ONE, TWO.');
+   scatter('#9ec7c9',7,document.querySelector('[data-hit="'+name+'"]'));
+  }else if(n===1)tell('The missing rivet exposes a tiny service number: 312.');
+  else tell(['The first rivet has a slot shaped like a minus sign.',
+   '', 'The third rivet was installed backwards.','The fourth rivet holds the drawer rail.'][n]);
+  return true;
+ }
+ if(name.startsWith('vent-')){
+  const n=Number(name.slice(-1));
+  if(s.ventOpen){tell('The service grille has already opened.');return true}
+  s.ventSequence.push(n);s.ventSequence=s.ventSequence.slice(-3);
+  if(s.ventSequence.join('')==='312'){
+   s.ventOpen=true;gain('shim');
+   bloom('vent-sequence','Three—one—two. The vent grille moves and reveals a copper shim.');
+   cue('ncWorld','nc-shudder',430);scatter('#d1a996',9,document.querySelector('[data-hit="'+name+'"]'));
+  }else if(s.ventSequence.length===3){
+   s.ventSequence=[n];tell('Wrong combination. The little vents reset with a hollow clack.');
+   sound(200);
+  }else{tell('Click. The vent holds the last button down for a moment.');sound(270+n*90)}
+  return true;
+ }
+ if(name==='eye-ring'){
+  s.eyeRingTicks++;
+  if(s.eyeRingTicks===3)bloom('eye-dial','The ring clicks into place. Something behind the eye wants a gear.');
+  else tell(s.eyeRingTicks>=3?'The calibration dial has reached its end stop.':'The tiny iris adjuster advances one engraved mark.');
+  cue(document.querySelector('[data-hit="eye-ring"]'),'nc-fastener-turning',500);
+  return true;
+ }
+ if(name.startsWith('hinge-')){
+  const n=Number(name.slice(-1));
+  if(!s.hingePins.includes(n)){
+   s.hingePins.push(n);sound(350+n*125);
+   if(s.hingePins.length===3){
+    gain('washer');bloom('hinge-pin','All three hinge pins have shifted. A miniature washer rolls out.');
+    scatter('#e0c88a',8,document.querySelector('[data-hit="'+name+'"]'));
+   }else tell('A tiny hinge pin moves. It seems to unlock another piece.');
+  }else tell('This hinge pin is already loose.');
+  return true;
+ }
+ if(name==='foot'){
+  s.footChecked=true;bloom('underside-foot','Under the rubber foot: a mirrored maker\'s note. 2 · 1 · 3.');
+  tell('The foot folds back. An inscription underneath reads 2 · 1 · 3.');
+  return true;
+ }
+ return false;
+}
 function cubeHit(name){
  bloom('first');
+ if(inspectHardware(name)){render();return}
+ if(selected&&name==='eye'&&use(selected,'eye'))return;
  if(name==='latch'){
   if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.');scheduleCompartment('tooth')}
   else tell(s.drawerTaken?'This tiny drawer is empty now.':'There is a strange, key-shaped piece inside.');
@@ -318,7 +427,11 @@ function accepts(item,thing){
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&s.floorFour&&!s.train
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
- ||item==='postcard'&&thing==='cube'&&!s.portal;
+ ||item==='postcard'&&thing==='cube'&&!s.portal
+ ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
+ ||item==='iris'&&thing==='telescope'&&s.observed&&!s.secondSky
+ ||item==='shim'&&thing==='machine'&&!s.shimUsed
+ ||item==='washer'&&thing==='musicbox'&&s.music&&!s.clockHeart;
 }
 function use(item,thing){
  if(!pocket.has(item)||!accepts(item,thing))return false;
@@ -363,6 +476,18 @@ function use(item,thing){
  }else if(item==='postcard'&&thing==='cube'){
   spend('postcard');s.portal=true;
   bloom('portal','The paper sinks through solid enamel. A tiny landscape appears inside the cube.');
+ }else if(item==='cog'&&thing==='eye'){
+  spend('cog');s.opticOpened=true;gain('iris');
+  bloom('hidden-optic','The brass gear meshes with the eye. A tiny glass iris falls into your pocket.');
+ }else if(item==='iris'&&thing==='telescope'){
+  spend('iris');s.secondSky=true;
+  bloom('second-sky','For an instant, the telescope sees two different skies at once.');
+ }else if(item==='shim'&&thing==='machine'){
+  spend('shim');s.shimUsed=true;gain('coin');
+  bloom('service-bolt','The copper shim releases the machine\'s jammed coin-return mechanism.');
+ }else if(item==='washer'&&thing==='musicbox'){
+  spend('washer');s.clockHeart=true;
+  bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');
  }
  render();
  if(item==='key'&&thing==='bag')cue(prop('bag'),'nc-scene-blink',900);
@@ -542,7 +667,7 @@ function journal(){
 }
 function info(){
  modal('A SLIGHTLY UNHELPFUL EXPLANATION','Turn it.',
-  '<p>Drag the cube to rotate it. Arrow keys also work. Try touching specific spots, even the ones that seem like decorations.</p>'+
+  '<p>Drag to rotate, use the arrows, or zoom with the + / − buttons, your mouse wheel, or a two-finger pinch. Select ✥ to move a zoomed-in view. Press ↺ to reset.</p><p>Screws, vents, tiny markings, dial wheels and hinge pins are all worth inspecting.</p>'+
   '<p>Some things you find can be used on other things. Select an item from your pocket to see what accepts it. Two pocket items only combine when they are actually compatible.</p>'+
   '<p>There are no levels. Things will happen without permission. Progress saves on this device.</p>','info');
 }
@@ -583,6 +708,12 @@ $('ncModal').addEventListener('click',e=>{if(e.target===$('ncModal'))closeModal(
 $('ncUnselect').addEventListener('click',()=>{selected=null;render()});
 $('ncCubeZone').addEventListener('click',e=>{
  if(blockedClick){e.stopImmediatePropagation();e.preventDefault();blockedClick=false;return}
+if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.plateOpen){
+  s.plateOpen=true;gain('cog');
+  bloom('faceplate','The loosened faceplate shifts aside. A brass drive cog was hiding underneath.');
+  cue('ncCube','nc-scene-blink',750);scatter('#bdabce',10,$('ncOfferingTarget'));
+  render();e.stopPropagation();return;
+ }
  // The engraved square is a real touch target, also usable by keyboard.
  if(selected&&e.target.closest('[data-thing="cube"]')){
   if(!use(selected,'cube')){tell('The cube refuses that offering.');selected=null;render();}
