@@ -124,8 +124,13 @@ try{
    after:await page.locator("#ncNarrator").innerText(),
    view:await page.evaluate(()=>({state:window.CriloNothingHereCube.getState(),miniatures:window.__nothing3DPreview.visiblePhysicalStoryObjects}))
   }));
- assert((await page.locator("#ncNarrator").innerText()).includes("bag is locked"),
-  "Clicking the actual 3D handbag mesh did not reach the existing bag puzzle");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.lastClickedAction),
+  "thing:bag","Canvas pointer click did not dispatch to the sculpted handbag");
+ assert.equal((await state()).bagOpen,false,
+  "Clicking the locked bag without its key must not bypass the puzzle");
+ // Delayed automatic pickups can occur in the same second; testing the
+ // actual last dispatched mesh selection avoids mistaking a later caption
+ // update for an ignored click.
  console.log("PASS: actual physical-pointer raycast activates the sculpted bag");
  // Items selected from the existing inventory must combine with a real 3D
  // model and write to the existing save key, not a separate 3D progress store.
