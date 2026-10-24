@@ -19,7 +19,10 @@ const mock=`window.supabase={createClient:()=>({
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',
 r=>r.fulfill({status:200,body:mock,contentType:"application/javascript"}));
 await page.addInitScript(()=>{
- localStorage.removeItem("crilo_nothing_here_cube_v3");
+ if(!sessionStorage.getItem("nc_live_3d_seeded")){
+  localStorage.removeItem("crilo_nothing_here_cube_v3");
+  sessionStorage.setItem("nc_live_3d_seeded","1");
+ }
 });
 try{
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded",timeout:30000});
