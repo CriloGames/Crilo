@@ -1,6 +1,9 @@
 /* NOTHING HERE — artisan clockwork finish.
    Each new detail has a purpose; physical story markers respond to state.
    Keep the paper-white gallery and unobstructed interaction zones. */
+/* This game is a clean inspection gallery, not a floating-wheel hunt.
+   Suppress Crilo's global decorative wheel layer on this one page only. */
+body.nc-page #criloAmbientWheels{display:none!important}
 .nc-page .nc-world{background:
  radial-gradient(ellipse 35% 29% at 49% 54%,#edf4f2bd 0,transparent 100%),
  radial-gradient(ellipse 27% 13% at 49% 73%,#9eaaa620 0,transparent 100%),
