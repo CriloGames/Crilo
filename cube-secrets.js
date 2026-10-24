@@ -729,28 +729,104 @@ $('ncModalBody').addEventListener('click',e=>{
  const noteEl=e.target.closest('[data-note]');if(noteEl&&panel==='flute'){note(Number(noteEl.dataset.note));return}
  const floorEl=e.target.closest('[data-floor]');if(floorEl&&panel==='elevator'){callElevator(Number(floorEl.dataset.floor));return}
 });
-let draggingStart=null;
+// View manipulation is deliberately separate from saved puzzle progress.
+// Zooming never consumes an item, and a reset also restores a readable angle.
+const view={zoom:1,panX:0,panY:0,panMode:false};
+const pointers=new Map();
+let dragOrigin=null,pinchOrigin=null;
+function viewLimits(){
+ const world=$('ncWorld');
+ return {x:Math.max(0,Math.min(world.clientWidth*.34,160*(view.zoom-1))),
+         y:Math.max(0,Math.min(world.clientHeight*.31,145*(view.zoom-1)))};
+}
+function updateView(){
+ const limits=viewLimits();
+ view.panX=clamp(view.panX,-limits.x,limits.x);
+ view.panY=clamp(view.panY,-limits.y,limits.y);
+ const zone=$('ncCubeZone');
+ zone.style.setProperty('--nc-zoom',String(view.zoom));
+ zone.style.setProperty('--nc-pan-x',view.panX+'px');
+ zone.style.setProperty('--nc-pan-y',view.panY+'px');
+ $('ncZoomAmount').textContent=Math.round(view.zoom*100)+'%';
+ $('ncPanMode').setAttribute('aria-pressed',String(view.panMode));
+ zone.classList.toggle('nc-pan-mode',view.panMode);
+}
+function zoomTo(value){
+ const newZoom=clamp(Math.round(value*100)/100,.75,2.8);
+ if(newZoom===view.zoom)return;
+ view.zoom=newZoom;
+ updateView();
+}
+function resetView(){
+ view.zoom=1;view.panX=0;view.panY=0;view.panMode=false;
+ s.rx=-16;s.ry=-25;
+ turn();updateView();tell('The mysterious object is back in its usual orientation.');
+}
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const point=e=>({x:e.clientX,y:e.clientY});
 $('ncCubeZone').addEventListener('pointerdown',e=>{
- if(e.button!==0||e.target.closest('.nc-rotate-controls'))return;
- draggingStart={x:e.clientX,y:e.clientY,rx:s.rx,ry:s.ry};
- dragMoved=false;dragging=true;
+ if(e.button!==0)return;
+ pointers.set(e.pointerId,point(e));
+ if(pointers.size===2){
+  const [p,q]=[...pointers.values()];
+  pinchOrigin={distance:Math.max(1,distance(p,q)),zoom:view.zoom};
+  dragOrigin=null;dragging=false;dragMoved=true;return;
+ }
+ if(e.target.closest('button,[data-hit]'))return;
+ dragOrigin={...point(e),rx:s.rx,ry:s.ry,px:view.panX,py:view.panY,pan:view.panMode||e.shiftKey};
+ dragging=true;dragMoved=false;
  $('ncCubeZone').classList.add('nc-dragging');
 });
 window.addEventListener('pointermove',e=>{
- if(!dragging||!draggingStart)return;
- const dx=e.clientX-draggingStart.x,dy=e.clientY-draggingStart.y;
- if(Math.abs(dx)+Math.abs(dy)>8)dragMoved=true;
+ if(!pointers.has(e.pointerId))return;
+ pointers.set(e.pointerId,point(e));
+ if(pointers.size>=2){
+  const [a,b]=[...pointers.values()];
+  if(!pinchOrigin)pinchOrigin={distance:Math.max(1,distance(a,b)),zoom:view.zoom};
+  zoomTo(pinchOrigin.zoom*distance(a,b)/pinchOrigin.distance);
+  dragMoved=true;return;
+ }
+ if(!dragging||!dragOrigin)return;
+ const dx=e.clientX-dragOrigin.x,dy=e.clientY-dragOrigin.y;
+ if(Math.abs(dx)+Math.abs(dy)>7)dragMoved=true;
  if(!dragMoved)return;
- s.ry=draggingStart.ry+dx*.48;
- s.rx=clamp(draggingStart.rx-dy*.48,-85,85);
- turn();
+ if(dragOrigin.pan){
+  view.panX=dragOrigin.px+dx;view.panY=dragOrigin.py+dy;updateView();
+ }else{
+  s.ry=dragOrigin.ry+dx*(.52/Math.max(.9,view.zoom));
+  s.rx=clamp(dragOrigin.rx-dy*(.52/Math.max(.9,view.zoom)),-85,85);
+  turn();
+ }
 });
-window.addEventListener('pointerup',()=>{
- if(!dragging)return;
- dragging=false;$('ncCubeZone').classList.remove('nc-dragging');
- if(dragMoved){blockedClick=true;setTimeout(()=>blockedClick=false,130)}
- draggingStart=null;
+const endPointer=e=>{
+ const had=pointers.delete(e.pointerId);
+ if(!had)return;
+ if(pointers.size<2)pinchOrigin=null;
+ if(dragging){
+  dragging=false;$('ncCubeZone').classList.remove('nc-dragging');
+  if(dragMoved){blockedClick=true;setTimeout(()=>blockedClick=false,145)}
+ }
+ dragOrigin=null;
+};
+window.addEventListener('pointerup',endPointer);
+window.addEventListener('pointercancel',endPointer);
+$('ncCubeZone').addEventListener('wheel',e=>{
+ if(e.target.closest('.nc-inspection-controls'))return;
+ e.preventDefault();
+ zoomTo(view.zoom+(e.deltaY>0?-.14:.14));
+},{passive:false});
+$('ncCubeZone').addEventListener('dblclick',e=>{
+ if(e.target.closest('button,[data-hit]'))return;
+ zoomTo(view.zoom<1.8?2:1);
 });
+$('ncZoomIn').addEventListener('click',()=>zoomTo(view.zoom+.25));
+$('ncZoomOut').addEventListener('click',()=>zoomTo(view.zoom-.25));
+$('ncPanMode').addEventListener('click',()=>{
+ view.panMode=!view.panMode;updateView();
+ tell(view.panMode?'Move mode: drag the zoomed object to inspect another area.':'Rotate mode: drag to turn the cube.');
+});
+$('ncViewReset').addEventListener('click',resetView);
+updateView();
 document.querySelectorAll('[data-rotate]').forEach(b=>b.addEventListener('click',()=>{
  const d=b.dataset.rotate;
  s.ry+=(d==='left'?-55:d==='right'?55:0);
@@ -765,6 +841,10 @@ $('ncCubeZone').addEventListener('keydown',e=>{
 document.addEventListener('keydown',e=>{
  if($('ncModal').hidden){
   if(e.key==='Escape'&&selected){selected=null;render()}
+  const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||'');
+  if(!typing&&(e.key==='+'||e.key==='=')){e.preventDefault();zoomTo(view.zoom+.25)}
+  else if(!typing&&e.key==='-'){e.preventDefault();zoomTo(view.zoom-.25)}
+  else if(!typing&&e.key==='0'){e.preventDefault();resetView()}
   return;
  }
  if(e.key==='Escape'){e.preventDefault();closeModal();return}
@@ -805,5 +885,7 @@ turn();render();
 if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
 if(s.b&&!s.sideTaken)scheduleCompartment('thread');
 if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
-window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen]}),rotate:(x,y)=>{s.rx=x;s.ry=y;turn()}};
+window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen]}),
+ getView:()=>({...view}),zoomTo,resetView,
+ rotate:(x,y)=>{s.rx=x;s.ry=y;turn()}};
 })();
