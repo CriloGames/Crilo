@@ -260,11 +260,14 @@ export function buildIntricateCube({
     B(g,.10,.052,.10,0,.22,.335,ivory,.015);
     label(g,name,.43,.066,0,-.29,.263,"#f3e6de","#6c6267");
   }
-  const frontKey=group(front.drawer,.23,.04,-.24);
+  // Align the detailed metalwork with the original collectible body: one
+  // complete key is visible, never two overlapping pickups.
+  const frontKey=group(front.drawer,.06,-.10,-.12);
   ring(frontKey,.105,.026,-.19,0,0,gold);
   B(frontKey,.38,.06,.06,.03,0,0,gold,.015);
   B(frontKey,.064,.11,.065,.18,-.045,0,gold,.008);
-  const sideThread=group(side.drawer,-.02,.05,-.23);
+  const sideThread=group(side.drawer,0,-.09,-.19);
+  sideThread.rotation.z=.40;
   for(let i=0;i<7;i++)ring(sideThread,.12+i*.007,.012,0,0,.05-i*.039,copper);
 
   // Physical scratch marks, satin brushed blocks and index screws at the edge
