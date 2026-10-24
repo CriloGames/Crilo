@@ -10,7 +10,7 @@ const stage = document.getElementById("stage");
 const status = document.getElementById("status");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
-camera.position.set(6.7, 5.5, 8.9);
+camera.position.set(5.7, 4.7, 7.8);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -34,7 +34,7 @@ controls.target.set(0, 0, 0);
 
 scene.add(new THREE.HemisphereLight(0xffffff, 0xc7b8b0, 1.7));
 const key = new THREE.DirectionalLight(0xfff9ef, 3.4);
-key.position.set(-5, 9, 8); key.castShadow = true;
+key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
 key.shadow.radius = 4;
@@ -204,9 +204,43 @@ box(lidPivot,topHole.w-.19,topHole.h-.19,.038,0,-topHole.h/2,.082,ivory,.05);
 label(lidPivot,"DO NOT TAP",1.05,.18,0,-topHole.h/2,.105,"#f0dab6","#796246");
 for(const xx of [-.49,0,.49]){
  const pin = cylinder(topFace,.083,.34,xx,topHole.h/2,.15,metal);
- pin.rotation.z=Math.PI/2;
+ // Hinge axle follows the X axis, not the direction of the screw heads.
+ pin.rotation.y=Math.PI/2;
 }
 lidPivot.userData.action="hatch";setHit(lidPivot,"hatch");
+// Articulated gas struts connect the stationary cavity to the moving lid.
+// Each cylinder is recomputed in the top face's true local 3D coordinates,
+// rather than faking contact with an overlay.
+const hingeBraces=[-.56,.56].map(x=>{
+ const body = new THREE.Mesh(
+  new THREE.CylinderGeometry(.037,.048,1,10),
+  darkMetal
+ );
+ body.castShadow=true;body.receiveShadow=true;
+ topFace.add(body);objectCount++;
+ const piston = new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,1,10),brass);
+ piston.castShadow=true;piston.receiveShadow=true;topFace.add(piston);objectCount++;
+ const foot=cylinder(topFace,.071,.05,x,-.42,-.19,brass);
+ return {x,body,piston,foot};
+});
+const yAxis=new THREE.Vector3(0,1,0);
+function aimBar(mesh,a,b,portion=1){
+ const segment=new THREE.Vector3().subVectors(b,a);
+ const len=Math.max(.01,segment.length());
+ mesh.position.copy(a).addScaledVector(segment,.5);
+ mesh.scale.y=len*portion;
+ mesh.quaternion.setFromUnitVectors(yAxis,segment.normalize());
+}
+function updateHatchBraces(){
+ for(const {x,body,piston} of hingeBraces){
+  const mount=new THREE.Vector3(x,-.42,-.19);
+  const moving=new THREE.Vector3(x,-.98,.04)
+    .applyEuler(lidPivot.rotation).add(lidPivot.position);
+  aimBar(body,mount,moving,.91);
+  const middle=mount.clone().lerp(moving,.28);
+  aimBar(piston,middle,moving,.76);
+ }
+}
 let lidOpen=false;
 
 // Tiny independent machined screws. Clicking really extracts a screw along
@@ -246,15 +280,15 @@ const intricate=buildIntricateCube({
 // Grounding is a real plane receiving the real shadow of the mechanism.
 const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(250,250),floorMaterial);
-floor.rotation.x=-Math.PI/2;floor.position.y=-2.54;floor.receiveShadow=true;
+floor.rotation.x=-Math.PI/2;floor.position.y=-2.43;floor.receiveShadow=true;
 const plinth = new THREE.Mesh(
  new THREE.CylinderGeometry(2.51,2.62,.20,88,1),
  new THREE.MeshPhysicalMaterial({color:0xf6f4ef,roughness:.51,metalness:.13,clearcoat:.27})
 );
-plinth.position.y=-2.40;plinth.receiveShadow=true;plinth.castShadow=true;
+plinth.position.y=-2.30;plinth.receiveShadow=true;plinth.castShadow=true;
 scene.add(plinth);
 const plinthRim=new THREE.Mesh(new THREE.TorusGeometry(2.49,.018,8,104),brass);
-plinthRim.rotation.x=Math.PI/2;plinthRim.position.y=-2.295;scene.add(plinthRim);
+plinthRim.rotation.x=Math.PI/2;plinthRim.position.y=-2.195;scene.add(plinthRim);
 scene.add(floor);
 function announce(message){status.textContent=message;}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -276,10 +310,10 @@ function toggleDrawer(target,caption){
 function toggleHatch(){
  lidOpen=!lidOpen;
  gsap.killTweensOf(lidPivot.rotation);
- if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.92:0;
+ if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.34:0;
  else{
-  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?-2.02:.045,duration:.85,ease:"power2.inOut"})
-    .to(lidPivot.rotation,{x:lidOpen?-1.92:0,duration:.21,ease:"power2.out"});
+  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?-1.47:.045,duration:.82,ease:"power2.inOut"})
+    .to(lidPivot.rotation,{x:lidOpen?-1.34:0,duration:.24,ease:"power2.out"});
  }
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
@@ -304,7 +338,8 @@ document.getElementById("drawerFront").addEventListener("click",()=>clickAction(
 document.getElementById("drawerRight").addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop").addEventListener("click",()=>clickAction("hatch"));
 document.getElementById("reset").addEventListener("click",()=>{
- animate(camera.position,{x:6.7,y:5.5,z:8.9});
+ const home=stage.clientWidth<720?[6.7,5.5,8.9]:[5.7,4.7,7.8];
+ animate(camera.position,{x:home[0],y:home[1],z:home[2]});
  animate(cube.rotation,{x:-.19,y:-.33,z:.02});
  controls.target.set(0,0,0);
  announce("Camera returned to the physical cube.");
@@ -329,8 +364,15 @@ renderer.domElement.addEventListener("pointerup",e=>{
  if(picked)clickAction(picked.object.userData.action);
  clickStart=null;
 });
+let cameraMode=null;
 const onResize=()=>{
  const r=stage.getBoundingClientRect();
+ const mode=r.width<720?"mobile":"desktop";
+ if(mode!==cameraMode){
+  cameraMode=mode;
+  const home=mode==="mobile"?[6.7,5.5,8.9]:[5.7,4.7,7.8];
+  camera.position.set(...home);
+ }
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
@@ -339,6 +381,7 @@ new ResizeObserver(onResize).observe(stage);
 onResize();
 renderer.setAnimationLoop(()=>{
  controls.update();
+ updateHatchBraces();
  renderer.render(scene,camera);
 });
 window.__nothing3DPreview={
