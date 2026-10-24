@@ -75,7 +75,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
  // Left: the same three numbered physical vent switches used by the
  // original 3-1-2 sequence and an adjustable real pressure control.
- for(let i=1;i<=3;i++)tab(leftFace,"vent-"+i,-.98,1.08-(i-1)*.27,graphite,.27,.14);
+ for(let i=1;i<=3;i++){
+  const y=1.08-(i-1)*.27;
+  tab(leftFace,"vent-"+i,-.98,y,graphite,.27,.14);
+  engraving(leftFace,String(i),-.65,y,.15);
+ }
  engraving(leftFace,"VENT",-.95,.26,.37);
  control(leftFace,"pressure",.88,.64,brass,.15);
  engraving(leftFace,"TURN",.91,.36,.35);
