@@ -6,7 +6,7 @@ const source=fs.readFileSync(new URL('../cube-secrets.js',import.meta.url),'utf8
 const html=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
 new Function(source);
 const titles=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(x=>x[1]);
-assert.equal(titles.length,52,'The authored discovery catalog changed');
+assert.equal(titles.length,60,'The authored discovery catalog changed');
 assert.equal(new Set(titles).size,titles.length,'Duplicate discovery IDs');
 assert(!html.includes('auth-first-paint.js'),'Game must not depend on auth loading');
 const browser=await chromium.launch({headless:true});
@@ -240,6 +240,32 @@ await rotate(0,0);
 await use('postcard','cube');
 assert((await state()).portal,'Postcard failed to turn the cube into a tiny landscape');
 assert(await page.locator('body').evaluate(el=>el.classList.contains('nc-portal-view')));
+// A separate physical logic chain begins with real hardware clues.
+await rotate(0,0);
+await hit('serial');
+assert((await state()).serialRead,'The front serial plate was not interactive');
+await rotate(0,90);
+await hit('pressure',3);
+assert((await state()).pressureReady&&await page.locator('[data-item="fork"]').count(),
+ 'The pressure gauge did not emit its tuning fork');
+await rotate(0,0);
+await use('fork','cube');
+assert((await state()).resonance,'Tuning fork failed to resonate with the mechanical cube');
+await rotate(0,-90);
+await hit('shutter');
+assert((await state()).serviceOpen&&await page.locator('[data-item="cylinder"]').count(),
+ 'The sound-operated service door did not reveal the wax cylinder');
+await use('cylinder','musicbox');
+assert((await state()).cylinderMounted&&await page.locator('[data-item="tape"]').count(),
+ 'The repaired music box did not print paper tape');
+await use('tape','clock');
+assert((await state()).tapeInserted&&await page.locator('[data-item="letter"]').count(),
+ 'The clock did not read the punched tape');
+await use('letter','train');
+assert((await state()).letterMailed&&await page.locator('[data-item="envelope"]').count(),
+ 'The miniature train failed to deliver a reply');
+await use('envelope','door');
+assert((await state()).doorReplied,'The mysterious door did not answer the letter');
 const progress=await state();
 const missing=titles.filter(id=>!progress.seen.includes(id));
 console.log('CUBE QA',JSON.stringify({total:titles.length,found:progress.seen.length,missing,pocket:progress.pocket,errors},null,2));
@@ -247,8 +273,8 @@ assert.deepEqual(missing,[],'Some curated secrets cannot actually be discovered'
 assert.deepEqual(errors,[],'Runtime errors while playing');
 assert(progress.door&&progress.doorOpen&&progress.bagSolved&&progress.tree&&progress.moon);
 await page.reload({waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===52);
-assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal,
+await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===60);
+assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal&&(await state()).doorReplied,
  'Expanded miniature puzzle chain did not persist across refresh');
 assert(await page.locator('#ncDoorScene').isVisible(),'Summoned door did not persist');
 assert(await page.locator('#ncDog').isVisible(),'Opened door did not persist');
@@ -293,4 +319,4 @@ assert(await outage.locator('#ncCube').isVisible());
 await outage.locator('[data-rotate="left"]').click();
 await outage.close();
 await browser.close();
-console.log('PASS: 52/52 discoveries, inspectable screws, mechanical faceplate, coded vents, eye gearing, zoom, pan, miniature worlds, mobile, saved progress.');
+console.log('PASS: 60/60 discoveries, pressure dial, resonator shutter, punched-tape correspondence, zoom, mobile, all previous puzzles and saved progress.');
