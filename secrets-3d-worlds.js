@@ -105,7 +105,18 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   C(stand,.27,.03,0,.017,0,m.brass);
   C(stand,.225,.014,0,.038,0,m.cream);
   const toy=new THREE.Group();toy.position.y=.075;fixture.add(toy);
-  items.set(name,{fixture,toy,stand,visible:false});
+  // An invisible, camera-raycastable solid covers the sculpted miniature.
+  // Tiny handles and decorative joints otherwise leave frustrating gaps
+  // where a player can clearly see a model but cannot select it.
+  // It is deliberately NOT a visual billboard or floating flat overlay.
+  const hitVolume=new THREE.Mesh(
+   new THREE.BoxGeometry(.58,.64,.42),
+   new THREE.MeshBasicMaterial({transparent:true,opacity:0,
+    depthWrite:false,colorWrite:false,side:THREE.DoubleSide})
+  );
+  hitVolume.position.set(0,.31,.075);
+  toy.add(hitVolume);toy.userData.pickVolume=hitVolume;parts++;
+  items.set(name,{fixture,toy,stand,hitVolume,visible:false});
  }
  const toy=name=>items.get(name).toy;
  // Travel bag: sculpted leather box, curved handle, buckles and working
@@ -424,6 +435,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   names:[...items.keys()],
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
+  pickVolumes:new Map([...items].map(([n,v])=>[n,v.hitVolume])),
   puzzleActions:[...puzzleControls.keys()],
   pulse,
   getDialAngles:()=>bagDials.map(d=>d.rotation.z),
