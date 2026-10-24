@@ -19,6 +19,19 @@ page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/secrets.html*',r=>r.fulfill({status:200,contentType:'text/html',body:html}));
 await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('/ 70'));
+// Nothing Here must use exactly the same UI font as Crilo's other pages.
+const typography=await page.evaluate(()=>{
+ const selectors=['.crilo-game-topbar .brand','.crilo-game-topbar nav a',
+  '.crilo-game-topbar #accountBtn','.sr-heading h1 button',
+  '.sr-whisper','.sr-cursor-note','.sr-alt-caption','.sr-hint-clue','.sr-book span'];
+ const body=getComputedStyle(document.body).fontFamily;
+ return {body,fonts:selectors.filter(s=>document.querySelector(s))
+  .map(selector=>({selector,font:getComputedStyle(document.querySelector(selector)).fontFamily}))};
+});
+assert.match(typography.body,/^Inter,\s*ui-sans-serif/,
+ 'The Nothing Here page lost the shared Crilo sans-serif font and fell back to serif');
+for(const {selector,font} of typography.fonts)
+ assert.equal(font,typography.body,'Font mismatch on '+selector);
 // The information dialog must be keyboard-accessible and close with Escape.
 await page.locator('#gameInfoBtn').click();
 assert.equal(await page.locator('#gameInfoBtn').getAttribute('aria-expanded'),'true');
