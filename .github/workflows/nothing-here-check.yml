@@ -1,11 +1,13 @@
-name: Nothing Here white playground browser QA
+name: Nothing Here impossible cube browser QA
 
 on:
   push:
     branches: [main]
     paths:
       - 'secrets.html'
+      - 'cube-secrets.js'
       - 'secret-room.js'
+      - 'cube-secrets.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
@@ -15,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  playground-walkthrough:
+  cube-walkthrough:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -31,7 +33,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify mini-games, 44 discoveries, crafting, white UI and saved progress
+      - name: Verify 3D cube, bizarre object chains, save, mobile and theme
         run: node scripts/verify-nothing-here.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
