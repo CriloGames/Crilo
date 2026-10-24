@@ -94,7 +94,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["door","rightFace",1.00,.71],["dog","rightFace",0,.70],
   ["vase","rightFace",-1.0,-.96],
   ["pot","backFace",-1.02,.68],["musicbox","backFace",0,.72],
-  ["cloud","backFace",1.03,.70],["squirrel","backFace",1.03,-.99],
+  ["cloud","backFace",1.03,.70],["squirrel","bottomFace",-1.04,-.86],
   ["cup","leftFace",.0,-1.0],["clock","leftFace",1.03,.7],
   ["elevator","leftFace",-1.01,-.96],
   ["moth","topFace",-1.04,.21],["telescope","topFace",1.04,-.65],
