@@ -437,6 +437,7 @@ function clickAction(action){
    return;
   }
   if(action.startsWith("thing:elevator-floor-")){
+   pocketWorlds?.pulse?.(action);
    window.CriloNothingHereCube?.activatePhysicalElevatorFloor?.(Number(action.slice(-1)));
    return;
   }
@@ -712,6 +713,11 @@ window.__nothing3DPreview={
  get solidShellBlockerCount(){return occlusionMeshes.length},
  get pedestalSupportLengths(){updatePedestalSupports();return supportLegs.map(s=>s.rod.scale.y)},
  get physicalMechanismState(){return intricate.getState()},
+ get miniatureMechanismPose(){return {
+  bagDials:pocketWorlds?.getDialAngles?.()||[],
+  liftDoors:pocketWorlds?.getLiftDoorPositions?.()||[],
+  elevatorButton4:pocketWorlds?.getElevatorButtonDepth?.(4)??null
+ }},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
