@@ -326,11 +326,17 @@ function scheduleCompartment(thing){
  if(compartmentTimer.has(thing))return;
  const specs={tooth:['a','drawerTaken',1100],thread:['b','sideTaken',1100],pipe:['top','pipeTaken',1300]};
  const [open,taken,ms]=specs[thing];
+ const captionAtOpen=$('ncNarrator')?.textContent;
  const timer=setTimeout(()=>{
   compartmentTimer.delete(thing);
   if(!s[open]||s[taken])return;
   s[taken]=true;
-  gain(thing,'A little '+names[thing]+' slides into your pocket.');
+  // A delayed auto-pickup must not overwrite the clue the player is
+  // actively reading from a newer interaction. The part still flies into
+  // the pocket and is visibly highlighted.
+  const caption=$('ncNarrator')?.textContent===captionAtOpen
+   ?'A little '+names[thing]+' slides into your pocket.':null;
+  gain(thing,caption);
   render();
  },ms);
  compartmentTimer.set(thing,timer);
