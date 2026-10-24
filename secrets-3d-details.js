@@ -195,6 +195,7 @@ export function buildIntricateCube({
   // physically overlapped its grille and label. This slim bezel sits UNDER
   // the actuator in the physical hotspot module; it has no second hit target.
   const backKnob=group(backFace,1.055,-1.30,.139);
+  backKnob.userData.noBatch=true; // animated retaining ring must remain real, not frozen into a static batch
   C(backKnob,.156,.033,0,0,0,darkMetal);
   ring(backKnob,.142,.015,0,0,.016,brass);
   for(let i=0;i<8;i++){
