@@ -155,7 +155,11 @@ function gain(id,message){
  }
 }
 function spend(id){if(!pocket.has(id))return false;pocket.delete(id);if(selected===id)selected=null;return true}
-function turn(){ $('ncCube').style.transform='rotateX('+s.rx+'deg) rotateY('+s.ry+'deg)';store(); }
+function turn(){
+ $('ncCube').style.transform='rotateX('+s.rx+'deg) rotateY('+s.ry+'deg)';
+ window.__nothing3DPreview?.setRotation?.(s.rx,s.ry);
+ store();
+}
 function modal(kicker,heading,body,type){
  previousFocus=document.activeElement;panel=type||'note';
  $('ncModalEyebrow').textContent=kicker;
@@ -300,6 +304,9 @@ function render(){
   node.classList.toggle('nc-receptive',!!selected&&accepts(selected,node.dataset.thing));
  });
  store();
+ // The physical renderer reflects the same authoritative puzzle state;
+ // neither the 3D mesh nor its animation grants secrets independently.
+ window.dispatchEvent(new CustomEvent('nc:statechange',{detail:{...s,selected}}));
 }
 function collection(id){gain(id,'You found '+names[id]+'.')}
 // The visible contents of moving 3D compartments are collected after the
@@ -862,15 +869,19 @@ function zoomTo(value){
  if(newZoom===view.zoom)return;
  view.zoom=newZoom;
  updateView();
+ window.__nothing3DPreview?.setZoom?.(view.zoom);
 }
 function resetView(){
  view.zoom=1;view.panX=0;view.panY=0;view.panMode=false;
  s.rx=-22;s.ry=-32;
- turn();updateView();tell('The mysterious object is back in its usual orientation.');
+ turn();updateView();
+ window.__nothing3DPreview?.setZoom?.(1);
+ tell('The mysterious object is back in its usual orientation.');
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const point=e=>({x:e.clientX,y:e.clientY});
 $('ncCubeZone').addEventListener('pointerdown',e=>{
+ if(e.target.closest?.('#stage'))return; // Real 3D orbit controls own this gesture.
  if(e.button!==0)return;
  pointers.set(e.pointerId,point(e));
  if(pointers.size===2){
@@ -919,6 +930,7 @@ const endPointer=e=>{
 window.addEventListener('pointerup',endPointer);
 window.addEventListener('pointercancel',endPointer);
 $('ncWorld').addEventListener('wheel',e=>{
+ if(e.target.closest('#stage'))return; // Physical WebGL camera zooms itself.
  if(e.target.closest('.nc-inspection-controls'))return;
  e.preventDefault();
  // One notch used to leap 14%. Normalize wheels and trackpads to a gentle
@@ -928,6 +940,7 @@ $('ncWorld').addEventListener('wheel',e=>{
  zoomTo(view.zoom*Math.exp(-delta*.00045));
 },{passive:false});
 $('ncCubeZone').addEventListener('dblclick',e=>{
+ if(e.target.closest('#stage'))return;
  if(e.target.closest('button,[data-hit]'))return;
  zoomTo(view.zoom<1.4?1.55:1);
 });
@@ -997,7 +1010,15 @@ turn();render();
 if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
 if(s.b&&!s.sideTaken)scheduleCompartment('thread');
 if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
-window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen]}),
+window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen],selected}),
  getView:()=>({...view}),zoomTo,resetView,
- rotate:(x,y)=>{s.rx=x;s.ry=y;turn()}};
+ rotate:(x,y)=>{s.rx=x;s.ry=y;turn()},
+ activatePhysical(name){
+  if(name==='cube-offer'){
+   // Reuse the original item-combination and faceplate logic.
+   $('ncOfferingTarget').click();
+  }else cubeHit(name);
+ },
+ get physicalReady(){return document.body.classList.contains('nc-physical-ready')}
+};
 })();
