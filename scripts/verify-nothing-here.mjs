@@ -102,7 +102,10 @@ await rotate(0,-90);await hit('right-bolt-1');await hit('seam');await hit('drawe
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('thread'),null,{timeout:4000});
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);
-for(const n of [0,1,2])await hit('hinge-'+n);
+for(const n of [0,1,2]){
+ await hit('hinge-'+n);
+ console.log('HINGE',n,JSON.stringify({pins:(await state()).hingePins,top:(await state()).top,washer:(await state()).pocket.includes('washer')}));
+}
 assert(await page.locator('[data-item="washer"]').count(),'The hinge washer was unreachable');
 await hit('triangle',3);await hit('top-reed');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
