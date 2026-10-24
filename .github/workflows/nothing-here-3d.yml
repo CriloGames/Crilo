@@ -63,12 +63,14 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Test real 3D drawer and hatch behavior
+      # Run real playable-game interaction checks first. A failure should not
+      # require a three-minute software-rendered museum screenshot beforehand.
+      - name: Verify live 60-secret Three.js integration
         run: |
           mkdir -p test-results
-          node scripts/verify-secrets-3d-preview.mjs
-      - name: Verify live 60-secret Three.js integration
-        run: node scripts/verify-nothing-here-live-3d.mjs
+          node scripts/verify-nothing-here-live-3d.mjs
+      - name: Test real 3D drawer and hatch behavior
+        run: node scripts/verify-secrets-3d-preview.mjs
       - name: Save 3D preview screenshots
         if: always()
         uses: actions/upload-artifact@v4
