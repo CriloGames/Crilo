@@ -113,8 +113,8 @@ s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInt
 s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
 // Orientation is a view, not story progress. Always start from an attractive
 // three-quarter front angle even if the player left the cube upside down.
-s.rx=-16;
-s.ry=-25;
+s.rx=-22;
+s.ry=-32;
 s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
 s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
 s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3].includes(n)).slice(-3):[];
@@ -858,14 +858,14 @@ function updateView(){
  zone.classList.toggle('nc-pan-mode',view.panMode);
 }
 function zoomTo(value){
- const newZoom=clamp(Math.round(value*100)/100,.75,2.8);
+ const newZoom=clamp(Math.round(value*100)/100,.82,2.35);
  if(newZoom===view.zoom)return;
  view.zoom=newZoom;
  updateView();
 }
 function resetView(){
  view.zoom=1;view.panX=0;view.panY=0;view.panMode=false;
- s.rx=-16;s.ry=-25;
+ s.rx=-22;s.ry=-32;
  turn();updateView();tell('The mysterious object is back in its usual orientation.');
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -889,7 +889,9 @@ window.addEventListener('pointermove',e=>{
  if(pointers.size>=2){
   const [a,b]=[...pointers.values()];
   if(!pinchOrigin)pinchOrigin={distance:Math.max(1,distance(a,b)),zoom:view.zoom};
-  zoomTo(pinchOrigin.zoom*distance(a,b)/pinchOrigin.distance);
+  // Pinch gestures are deliberately damped to avoid sudden camera jumps.
+  const change=distance(a,b)/pinchOrigin.distance-1;
+  zoomTo(pinchOrigin.zoom*(1+change*.55));
   dragMoved=true;return;
  }
  if(!dragging||!dragOrigin)return;
@@ -919,14 +921,18 @@ window.addEventListener('pointercancel',endPointer);
 $('ncWorld').addEventListener('wheel',e=>{
  if(e.target.closest('.nc-inspection-controls'))return;
  e.preventDefault();
- zoomTo(view.zoom+(e.deltaY>0?-.14:.14));
+ // One notch used to leap 14%. Normalize wheels and trackpads to a gentle
+ // multiplicative movement; cap extreme deltas, including inertial scrolling.
+ const unit=e.deltaMode===1?16:e.deltaMode===2?$('ncWorld').clientHeight:1;
+ const delta=clamp(e.deltaY*unit,-120,120);
+ zoomTo(view.zoom*Math.exp(-delta*.00045));
 },{passive:false});
 $('ncCubeZone').addEventListener('dblclick',e=>{
  if(e.target.closest('button,[data-hit]'))return;
- zoomTo(view.zoom<1.8?2:1);
+ zoomTo(view.zoom<1.4?1.55:1);
 });
-$('ncZoomIn').addEventListener('click',()=>zoomTo(view.zoom+.25));
-$('ncZoomOut').addEventListener('click',()=>zoomTo(view.zoom-.25));
+$('ncZoomIn').addEventListener('click',()=>zoomTo(view.zoom+.12));
+$('ncZoomOut').addEventListener('click',()=>zoomTo(view.zoom-.12));
 $('ncPanMode').addEventListener('click',()=>{
  view.panMode=!view.panMode;updateView();
  tell(view.panMode?'Move mode: drag the zoomed object to inspect another area.':'Rotate mode: drag to turn the cube.');
