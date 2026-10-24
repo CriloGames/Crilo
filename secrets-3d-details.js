@@ -310,6 +310,10 @@ export function buildIntricateCube({
     pose(baseDial,"rotation","z",s.bottom?Math.PI/3:0);
     pose(tooth,"position","z",s.top?-.06:.09);
     bulb.material=live.light?activeBulbMaterial:restoredBulbMaterial;
+    // Collected components must physically disappear from the tray. Their
+    // inventory record remains in the original saved 60-secret engine.
+    frontKey.visible=!s.drawerTaken;
+    sideThread.visible=!s.sideTaken;
   }
 
   const labels={
