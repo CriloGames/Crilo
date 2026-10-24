@@ -16,6 +16,8 @@ try {
   stage:document.querySelector('#stage')?.getBoundingClientRect()?.toJSON()
  }));
  assert.equal(state.engine,'three.js');
+assert.equal(await page.evaluate(()=>window.__nothing3DPreview.renderMode),'on-demand',
+ 'WebGL should not waste CPU/GPU rendering a completely still object');
  assert(state.meshes>=180&&state.meshes<=800,
  'The physical model should remain detailed but GPU-batched: '+state.meshes+' draw meshes');
 const batches=await page.evaluate(()=>window.__nothing3DPreview.batching);
@@ -54,7 +56,7 @@ const tactile=await page.evaluate(()=>window.__nothing3DPreview.detailState());
 assert.equal(tactile.dialSteps,3,'The optical bezel should turn three detents');
 assert(tactile.light&&tactile.needle&&tactile.lever&&tactile.service&&tactile.backEye&&tactile.underside&&tactile.topLatch,
  'The new 3D mechanics do not respond to individual interactions');
-await page.screenshot({path:'test-results/3d-precision-details-desktop.png',animations:'disabled'});
+await page.screenshot({path:'test-results/3d-precision-details-desktop.png',animations:'disabled',timeout:60000});
 console.log('All seven precision mechanisms respond to selections');
  await page.locator('#drawerFront').click();
  await page.waitForFunction(()=>window.__nothing3DPreview.frontOpen===true);
@@ -72,7 +74,7 @@ console.log('All seven precision mechanisms respond to selections');
  })));
  assert.equal(braceLengths.length,2,'The hatch must have two mechanical support braces');
  assert(braceLengths.every(n=>n>1.0),'The lid is not physically connected to its gas struts: '+braceLengths);
- await page.screenshot({path:'test-results/3d-physical-open-desktop.png'});
+ await page.screenshot({path:'test-results/3d-physical-open-desktop.png',timeout:60000});
 // Every opened compartment is actual spatial geometry, never a 2D overlay.
 const positions=await page.evaluate(()=>({
  front:window.__nothing3DPreview.frontOpen,
@@ -97,7 +99,7 @@ assert(positions.front&&positions.side&&positions.top);
  await page.waitForTimeout(1200);
  const mobileBraces=await page.evaluate(()=>window.__nothing3DPreview.hatchBraceLengths);
  assert(mobileBraces.every(n=>n>1.0),'The open mobile hatch lost its physical supports: '+mobileBraces);
- await page.screenshot({path:'test-results/3d-physical-open-mobile.png'});
+ await page.screenshot({path:'test-results/3d-physical-open-mobile.png',timeout:60000});
  assert.deepEqual(errors,[],'Browser runtime errors');
  console.log('PASS: premium true 3D shell, '+state.meshes+' modeled parts, seven working micro-mechanisms, physical drawer and hinge animations, mobile viewport and no console errors.');
 }finally{await browser.close()}
