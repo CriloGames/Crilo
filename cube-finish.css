@@ -1,0 +1,167 @@
+/* NOTHING HERE — artisan clockwork finish.
+   Each new detail has a purpose; physical story markers respond to state.
+   Keep the paper-white gallery and unobstructed interaction zones. */
+.nc-page .nc-world{background:
+ radial-gradient(ellipse 35% 29% at 49% 54%,#edf4f2bd 0,transparent 100%),
+ radial-gradient(ellipse 27% 13% at 49% 73%,#9eaaa620 0,transparent 100%),
+ #fff}
+.nc-world .nc-stage{opacity:.75;top:59%}
+.nc-world .nc-stage-disc{background:radial-gradient(ellipse,#fafaf8aa 6%,#e5e8e57d 47%,transparent 78%)}
+.nc-world .nc-stage-ring{border-color:#8aa6a344;box-shadow:0 0 0 1px #f7f9f8}
+.nc-world .nc-stage-ring-2{border-style:dotted;border-color:#cbb5b8a6}
+.nc-page .nc-main{padding-bottom:58px}
+.nc-page .nc-title{font-weight:900}
+.nc-world .nc-cube-zone{--size:clamp(184px,26.2vw,273px)}
+/* Fine ceramic texture is produced by thin layers, not downloaded images. */
+.nc-page .nc-cube .nc-face{
+ border-color:#4a5661;border-width:3px;border-radius:12px;
+ background-image:
+ linear-gradient(146deg,#ffffff9a 0 2%,transparent 18% 72%,#3c505922 99%),
+ repeating-linear-gradient(92deg,#ffffff18 0 2px,#9b9ba908 3px 5px,#ffffff00 7px 12px),
+ radial-gradient(ellipse at 30% 10%,#fff7 0 8%,transparent 56%);
+ box-shadow:0 5px 2px #2a304626,inset 0 0 0 3px #fdfafac4,
+ inset 0 0 0 8px #a8adb044,inset 0 0 0 10px #fff8,
+ inset -12px -17px 24px #41485119,inset 7px 12px 15px #fffa,
+ 2px 2px 0 #4e59672e;
+}
+.nc-page .nc-cube .nc-face::before{inset:11px;border:1px solid #414b5160;border-radius:7px;
+ box-shadow:inset 0 0 0 2px #fdfdfd83,inset 0 0 0 4px #7c828025}
+.nc-page .nc-cube .nc-face::after{content:"";position:absolute;inset:17px;pointer-events:none;
+ border-radius:5px;border:1px solid #fff8;box-shadow:0 0 0 1px #5b62651a}
+.nc-page .nc-cube .nc-front{background-color:#d6cce2}
+.nc-page .nc-cube .nc-right{background-color:#abd2d4}
+.nc-page .nc-cube .nc-left{background-color:#efc8ba}
+.nc-page .nc-cube .nc-top{background-color:#efdba9}
+.nc-page .nc-cube .nc-bottom{background-color:#bbb2d4}
+.nc-page .nc-cube .nc-back{background-color:#c5dcb8}
+.nc-page .nc-front-panel-engraving{inset:19% 17%;border:2px solid #9a8aad91;
+ border-radius:10px;box-shadow:inset 0 0 0 3px #ffffffe0,
+ inset 0 0 0 5px #91839b45,0 5px 7px #64566b36}
+.nc-page .nc-front .nc-face-frame{width:135px;height:143px;border:2px solid #aa9cbca3;
+ border-radius:18px;background:linear-gradient(140deg,#fff8,transparent 66%);
+ box-shadow:0 0 0 3px #f5edf5b8,0 5px 0 #8a839a4d,
+ inset 0 0 0 5px #fff7;transform:rotate(.2deg)}
+.nc-page .nc-front .nc-face-symbol{width:72px;height:74px;color:#81738f;
+ background:radial-gradient(circle at 42% 30%,#faf6fd,#d8cde3);
+ border:2px solid #ab9aba;border-radius:10px;
+ box-shadow:0 4px 0 #9285a7,0 7px 8px #65577543,inset 0 0 0 5px #fff8;
+ text-shadow:0 1px 1px #fff;transition:filter .2s,transform .35s}
+.nc-page .nc-front .nc-face-symbol:hover{filter:brightness(1.09);transform:translateY(-2px)}
+.nc-page.nc-front-plate-free .nc-front .nc-face-symbol{transform:translateY(-11px) rotate(12deg)}
+.nc-page .nc-front-knob{border:3px solid #806f55;background:
+ radial-gradient(circle at 36% 28%,#fff7d0 0 10%,#e3c592 33%,#ab7e4a 84%,#826547 100%);
+ box-shadow:0 0 0 4px #c9a8788c,0 5px 0 #785a36,1px 8px 6px #64545052}
+.nc-page .nc-front-knob::after{border-color:#786449;background:#ffedd3}
+.nc-page .nc-front-dot{background:radial-gradient(circle at 33% 28%,#ffe8ec,#d57484 65%,#a95e70);
+ box-shadow:0 0 0 4px #b97e9480,0 4px 2px #8e6779}
+.nc-page .nc-tactile-screw{filter:drop-shadow(0 2px 2px #5c4c6342)}
+.nc-stamped-serial.nc-maker-mark{pointer-events:auto;cursor:pointer;z-index:8;
+ top:11%;white-space:nowrap;padding:4px 7px;border:1px solid #a38fa5b0;border-radius:3px;
+ background:linear-gradient(115deg,#f9edfb,#d9cbe4);
+ box-shadow:0 2px 0 #a99bb0,0 4px 5px #695d7333;
+ color:#71677c;font-size:8px;font-weight:900;letter-spacing:.11em;
+ transition:transform .22s,filter .22s}
+.nc-stamped-serial.nc-maker-mark:hover{filter:brightness(1.1);transform:translate(-50%,-2px)}
+.nc-serial-read .nc-stamped-serial{background:#fbdfc1;color:#8c654d}
+.nc-service-shutter{position:absolute;top:13%;right:13%;width:64px;height:45px;z-index:7;
+ border:3px solid #637e82;border-radius:7px;background:
+ repeating-linear-gradient(0deg,#a8cccb 0 4px,#cfe8dd 4px 8px);
+ box-shadow:0 5px 0 #58787e,0 7px 8px #4b656548, inset 0 0 0 2px #ffffffa8;
+ transition:transform .7s cubic-bezier(.15,.8,.25,1)}
+.nc-service-shutter i{position:absolute;left:4px;top:7px;width:14px;height:20px;
+ border-radius:3px;border:2px solid #628387;background:#e8efe0;box-shadow:3px 2px 0 #5b7a7633}
+.nc-service-shutter b{position:absolute;right:3px;top:6px;font-size:5px;letter-spacing:.03em;
+ writing-mode:vertical-rl;color:#547477}
+.nc-service-shutter em{position:absolute;bottom:3px;left:20px;font-size:14px;font-style:normal;color:#617f7e}
+.nc-service-shutter:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.nc-resonance .nc-service-shutter{box-shadow:0 5px 0 #58787e,0 0 15px 3px #b2dec59b}
+.nc-service-open .nc-service-shutter{transform:translateY(-18px) translateX(-4px);
+ box-shadow:0 4px 0 #517175,0 16px 15px #4b656547}
+.nc-service-open .nc-right::after{border-style:dashed}
+.nc-page .nc-service-plate{background:#cde7e2c7;border:2px solid #82a7aa;font-size:9px;
+ box-shadow:0 2px 0 #8bb5b0}
+.nc-page .nc-face-numbers{color:#456f7b;font-size:17px;font-weight:900;opacity:.8}
+.nc-page .nc-right-conduit{border-color:#5488929c;box-shadow:3px 3px 0 #b6e1d641}
+/* A complete miniature manometer; each press advances the needle. */
+.nc-pressure-dial{position:absolute;top:12%;right:12%;z-index:8;
+ width:71px;height:73px;border:3px solid #987765;border-radius:50%;
+ background:linear-gradient(130deg,#ddbf9f,#f5d9b9 40%,#987b67);
+ box-shadow:0 0 0 4px #f9e5d0a3,0 5px 0 #9b7566,0 10px 10px #765d5940;
+ display:grid;place-items:center;transition:transform .18s,filter .2s}
+.nc-pressure-dial::after{content:"";position:absolute;inset:4px;border:1px dotted #8e7562;
+ border-radius:50%;pointer-events:none}
+.nc-pressure-dial:hover{transform:translateY(-2px);filter:brightness(1.07)}
+.nc-pressure-face{display:block;width:51px;height:51px;border:2px solid #8e8270;border-radius:50%;
+ background:radial-gradient(circle at 30% 20%,#fffdf1,#eddcc1 75%);
+ position:relative;box-shadow:inset 2px 2px 5px #ffffffab}
+.nc-pressure-face::after{content:"";position:absolute;left:21px;top:20px;height:9px;width:9px;
+ border:2px solid #8c705b;background:#d3a477;border-radius:50%;z-index:3}
+.nc-pressure-needle{position:absolute;left:24px;top:6px;width:3px;height:23px;
+ background:linear-gradient(#af6273,#754f5c);border-radius:4px;
+ transform-origin:50% 80%;transform:rotate(var(--nc-pressure-angle,-105deg));
+ transition:transform .55s cubic-bezier(.15,1.4,.3,1)}
+.nc-pressure-face b,.nc-pressure-face em{position:absolute;bottom:4px;font-size:8px;
+ color:#8a735c;font-weight:900;font-style:normal}
+.nc-pressure-face b{left:6px}.nc-pressure-face em{right:6px}
+.nc-pressure-dial small{position:absolute;bottom:-13px;font-size:7px;letter-spacing:.1em;font-weight:900;color:#906b66}
+.nc-page .nc-left .nc-left-gauge{opacity:.4}
+.nc-pressure-ready .nc-pressure-dial{box-shadow:0 0 0 4px #f8ead0,0 4px 0 #91775b,
+ 0 0 15px 5px #f2cf9b8c}
+.nc-pressure-ready .nc-pressure-face{background:radial-gradient(circle at 30% 20%,#f7ffea,#c3dec8 82%)}
+.nc-vent-open .nc-vent-panel{box-shadow:inset 0 0 10px #4c414a,0 0 12px #e8c6a58c}
+.nc-page .nc-left-button{box-shadow:0 5px 0 #b78479,inset 1px 5px 6px #ffe0cc,
+ 0 7px 11px #5c3e4844}
+.nc-page .nc-left-button:hover{transform:translateY(-2px)}
+.nc-page .nc-top-text{color:#896d42;text-shadow:0 1px #fffad6}
+.nc-page .nc-top-triangle{box-shadow:0 4px 0 #a68e61,inset 0 0 0 4px #fff2d0}
+.nc-page .nc-bottom-ring{border-color:#87749d;box-shadow:0 0 0 6px #fff6,inset 0 0 9px #6f668038}
+.nc-base-engraving{position:absolute;left:50%;bottom:13%;transform:translateX(-50%);
+ font-size:7px;font-weight:950;color:#6d6189;white-space:nowrap;letter-spacing:.13em;
+ pointer-events:none;border:1px solid #a396bd;padding:3px 5px;border-radius:3px}
+.nc-page .nc-back-eye-rim{background:radial-gradient(circle at 35% 26%,#fff7,#b6d3a3 63%,#83a57c);
+ box-shadow:0 4px 0 #73966f,0 8px 7px #48584933}
+.nc-page .nc-back-pupil{box-shadow:inset -10px -6px 0 #647d60,
+ 0 0 0 5px #d9edd28c}
+.nc-back-witness{position:absolute;left:50%;bottom:12%;transform:translateX(-50%);
+ font-size:7px;font-weight:900;letter-spacing:.1em;color:#5e8060;white-space:nowrap;
+ border-top:1px solid #91b28f;padding:6px 2px 0}
+.nc-resonance .nc-cube{filter:drop-shadow(0 0 10px #e9caba74)}
+.nc-resonance .nc-pressure-needle{filter:drop-shadow(0 0 3px #bda46b)}
+.nc-tape-inserted .nc-clock>span{box-shadow:0 0 0 2px #615b61,0 0 16px #e4bea786}
+.nc-cylinder-mounted .nc-box-body::after{content:"";position:absolute;bottom:14px;left:46px;
+ width:26px;height:22px;border:3px solid #a88a6c;border-radius:50%;
+ background:conic-gradient(#b48a94 0 45deg,#f6d6c7 45deg 90deg,#b48a94 90deg 135deg,
+ #f6d6c7 135deg 180deg,#b48a94 180deg 225deg,#f6d6c7 225deg 270deg,#b48a94 270deg 315deg,#f6d6c7 315deg);
+ animation:ncTapeRoll 1.8s linear infinite;pointer-events:none}
+@keyframes ncTapeRoll{to{transform:rotate(360deg)}}
+.nc-letter-mailed .nc-train::after{content:"✉";position:absolute;top:3px;right:6px;
+ font-size:27px;color:#a98b7d;animation:ncLetterFloat 2s ease-in-out infinite}
+@keyframes ncLetterFloat{50%{transform:translateY(-7px) rotate(9deg)}}
+.nc-door-replied .nc-door-scene::after{content:"RETURN TO SENDER";
+ position:absolute;z-index:9;right:-18px;top:11px;transform:rotate(8deg);
+ background:#ffe0d1;border:2px solid #a98b84;border-radius:5px;
+ font-size:8px;font-weight:950;letter-spacing:.06em;color:#965e67;
+ padding:7px;box-shadow:2px 3px 0 #6c5b6240;pointer-events:none}
+/* Tiny touch feedback explains which components are physically moveable. */
+.nc-page :is(.nc-stamped-serial,.nc-pressure-dial,.nc-service-shutter):focus-visible{
+ outline:3px solid #80b99e;outline-offset:5px}
+.nc-page .nc-silhouette{filter:blur(18px)}
+@media(max-width:760px){
+ .nc-world .nc-cube-zone{--size:clamp(178px,45vw,238px)}
+ .nc-pressure-dial{width:55px;height:57px;top:11%;right:10%}
+ .nc-pressure-face{transform:scale(.8)}
+ .nc-pressure-dial small{font-size:6px;bottom:-8px}
+ .nc-service-shutter{width:54px;height:38px;right:12%;top:15%}
+ .nc-page .nc-front .nc-face-frame{width:108px;height:115px}
+ .nc-stamped-serial.nc-maker-mark{font-size:6px;top:11%;padding:3px}
+ .nc-base-engraving,.nc-back-witness{font-size:6px;letter-spacing:0}
+}
+@media(max-width:390px){
+ .nc-world .nc-cube-zone{--size:clamp(172px,47vw,198px)}
+ .nc-page .nc-front .nc-face-frame{width:100px;height:106px}
+ .nc-page .nc-world{height:clamp(385px,57dvh,505px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-pressure-needle{transition:none}
+ .nc-cylinder-mounted .nc-box-body::after,.nc-letter-mailed .nc-train::after{animation:none}
+}
