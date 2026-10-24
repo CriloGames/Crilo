@@ -1,4 +1,4 @@
-name: Nothing Here impossible cube browser QA
+name: Nothing Here animated cube browser QA
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
       - 'cube-secrets.js'
       - 'secret-room.js'
       - 'cube-secrets.css'
+      - 'cube-motion.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
@@ -33,7 +34,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify 3D cube, bizarre object chains, save, mobile and theme
+      - name: Verify kinetic cube, real scene animations, puzzles and persistence
         run: node scripts/verify-nothing-here.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
