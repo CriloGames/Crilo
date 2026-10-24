@@ -1,0 +1,34 @@
+name: Pong Toss 3D browser matrix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/verify-pong-toss-browser.mjs'
+      - '.github/workflows/pong-toss-browser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-3d-scenes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out game files
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless browser tools
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/pong-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Build every actual 3D level and check physical throws
+        run: node scripts/verify-pong-toss-browser.mjs
