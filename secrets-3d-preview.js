@@ -721,6 +721,7 @@ window.__nothing3DPreview={
   liftDoors:pocketWorlds?.getLiftDoorPositions?.()||[],
   elevatorButton4:pocketWorlds?.getElevatorButtonDepth?.(4)??null
  }},
+ get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
