@@ -80,6 +80,59 @@ html[data-theme="dark"] .nc-page .nc-physical-toggle{
  .nc-page #stage #status{font-size:9px;padding:4px 7px}
  .nc-page.nc-physical-ready .nc-cube-zone .nc-cube-hint{bottom:78px;font-size:9px}
 }
+/* The real machine now has physical models of these same story objects.
+   Keep the DOM buttons as compact, keyboard-accessible labels instead of
+   showing duplicated flat CSS props alongside their sculpted 3D counterparts.
+   The classic view retains every full-sized illustrated object untouched. */
+.nc-page.nc-physical-ready .nc-side-objects {
+ max-width:960px;
+ min-height:0;
+ margin:5px auto 7px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-wrap:wrap;
+ gap:7px;
+}
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop:not([hidden]) {
+ width:auto;
+ height:auto;
+ min-width:74px;
+ min-height:36px;
+ padding:8px 12px;
+ display:inline-flex;
+ flex-direction:row;
+ border:1px solid #d6d8d1;
+ border-radius:999px;
+ background:linear-gradient(155deg,#fffefb,#f2f3ee);
+ box-shadow:0 3px 0 #9baaa226;
+ transform:none;
+}
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop > :not(small){
+ display:none!important;
+}
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop small {
+ position:static;
+ bottom:auto;
+ font-size:11px;
+ font-weight:780;
+ color:#5a6d73;
+ line-height:1.25;
+ white-space:nowrap;
+}
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop:hover,
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop:focus-visible {
+ background:#eaf5ee;
+ border-color:#9dc3b0;
+ box-shadow:0 3px 0 #9baaa244;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop {
+ background:#2c3739;
+ border-color:#5c7071;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop small {
+ color:#d9e7e6;
+}
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-cube-zone #stage{transition:none}
 }
