@@ -242,25 +242,8 @@ export function finishMechanicalArtifact({
     path(topFace,[[s*.58,.14,-.36],[s*.48,.02,-.34],[s*.36,-.10,-.42]],.016,copper);
   }
 
-  // Pedestal is a real layered, machined rotating stage that grounds the
-  // artifact, with a warm rim and matte anti-slip contact surface.
-  const bed=new THREE.Group();scene.add(bed);
-  const pedestal=(r1,r2,h,y,m)=>{
-    const obj=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,72),m);
-    obj.position.y=y;obj.receiveShadow=true;obj.castShadow=true;
-    bed.add(obj);partCount++;return obj;
-  };
-  pedestal(2.40,2.49,.055,-2.17,darkMetal);
-  pedestal(2.44,2.44,.039,-2.128,brass);
-  pedestal(2.36,2.36,.035,-2.099,ivory);
-  for(const r of [2.39,2.27,2.16]){
-    const o=new THREE.Mesh(new THREE.TorusGeometry(r,.012,6,100),brass);
-    o.rotation.x=Math.PI/2;o.position.y=-2.077;
-    bed.add(o);partCount++;
-  }
-  // Rear foot of the showcase and a genuine satin contact pad.
-  pedestal(1.76,1.79,.018,-2.073,rubber);
-
+  // The player-facing box is now fully suspended. Do not construct an
+  // unrelated showroom podium or low circular trim under the cube.
   const batching=batchStaticGeometry(cube,finishedMeshes,{
     dynamicRoots:[front.drawer,side.drawer,lidPivot],
     label:"artisan"
