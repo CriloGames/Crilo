@@ -102,9 +102,18 @@ await rotate(0,-90);await hit('right-bolt-1');await hit('seam');await hit('drawe
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('thread'),null,{timeout:4000});
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);
+await page.evaluate(()=>{
+ window.__hingeTrace=[];
+ for(const kind of ['pointerdown','click'])document.addEventListener(kind,e=>{
+  if(window.__hingeTrace.length<18)window.__hingeTrace.push({
+   kind,tag:e.target.tagName,hit:e.target.closest?.('[data-hit]')?.dataset.hit||null,
+   location:[Math.round(e.clientX||0),Math.round(e.clientY||0)]});
+ },true);
+});
 for(const n of [0,1,2]){
  await hit('hinge-'+n);
- console.log('HINGE',n,JSON.stringify({pins:(await state()).hingePins,top:(await state()).top,washer:(await state()).pocket.includes('washer')}));
+ console.log('HINGE',n,JSON.stringify({pins:(await state()).hingePins,top:(await state()).top,washer:(await state()).pocket.includes('washer'),
+ trace:await page.evaluate(()=>window.__hingeTrace.slice(-5))}));
 }
 assert(await page.locator('[data-item="washer"]').count(),'The hinge washer was unreachable');
 await hit('triangle',3);await hit('top-reed');
