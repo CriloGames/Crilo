@@ -24,17 +24,18 @@ const take=async(action,n=1,attribute)=>{
   '[data-action="'+action+'"][data-'+attribute[0]+'="'+attribute[1]+'"]':
   '[data-action="'+action+'"]';
  for(let i=0;i<n;i++){
-  const locator=page.locator(selector).first();
-  assert.equal(await locator.count(),1,'Missing action '+selector);
-  await locator.evaluate(el=>el.click());
+  // Exercise real browser hit targets, not DOM .click() (which bypasses overlays).
+  // There are two return doors; only the current world's return door is visible.
+  const locator=page.locator(selector+':visible').first();
+  assert.equal(await locator.count(),1,'Missing visible action '+selector);
+  await locator.click({timeout:5000});
  }
 };
 const click=async(sel,n=1)=>{
  for(let i=0;i<n;i++)await page.locator(sel).click();
 };
-const close=async()=>{if(!(await page.locator('#srDialog').getAttribute('hidden'))===null){}};
 const dismiss=async()=>{
- await page.locator('#srClose').click();
+ await page.locator('#srClose').click({timeout:5000});
  assert(await page.locator('#srDialog').evaluate(el=>el.hidden));
 };
 // Fully traverse ordinary room and discover multi-tap secrets.
