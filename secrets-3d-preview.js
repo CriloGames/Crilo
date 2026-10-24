@@ -493,7 +493,9 @@ window.__nothing3DPreview={
   const obj=pocketWorlds?.targets.get(name);
   if(!obj||!isMeshEffectivelyVisible(obj))return null;
   scene.updateWorldMatrix(true,true);
-  const p=obj.getWorldPosition(new THREE.Vector3()).project(camera);
+  // Target the visible center of the actual sculpted body, not the root
+  // at floor level where a ray may hit the noninteractive presentation stand.
+  const p=new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3()).project(camera);
   return {x:(p.x+1)*.5*stage.clientWidth,y:(1-p.y)*.5*stage.clientHeight,depth:p.z};
  },
  projectGameControl(name){
