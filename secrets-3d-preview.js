@@ -390,6 +390,7 @@ function clickAction(action){
    pressure:"pressure",
    lever:"dent",
    latch:"latch",
+   "service-latch":"shutter",
    eye:"eye",
    underside:"hatch",
    "hatch-latch":"triangle",
@@ -407,8 +408,8 @@ function clickAction(action){
  if(action==="front")toggleDrawer(front,"The lavender drawer");
  else if(action==="side")toggleDrawer(side,"The teal drawer");
  else if(action==="hatch")toggleHatch();
- else if(intricate.actions.includes(action)){
-  const description=intricate.operate(action);
+ else if(intricate.actions.includes(action)||action==="service-latch"){
+  const description=intricate.operate(action==="service-latch"?"latch":action);
   if(description)announce(description);
  }
  else if(action.includes("-screw-")){
