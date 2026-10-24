@@ -22,6 +22,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  let parts=0;
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],liftDoors=[];
+ let bagDialPanel=null;
  const B=(g,w,h,d,x,y,z,color,r=.027)=>{
   const o=box(g,w,h,d,x,y,z,color,r);
   o.castShadow=w>.13&&h>.12&&d>.09;parts++;return o;
@@ -87,10 +88,11 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   wire(g,[[-.12,.41,0],[-.10,.55,0],[.10,.55,0],[.12,.41,0]],.024,m.brass);
   // The three combination tumblers are actual rotating bronze cylinders,
   // fixed to a machined backplate on the bag, not modal-only buttons.
-  B(g,.43,.12,.034,0,.275,.153,m.dark,.017);
+  bagDialPanel=new THREE.Group();g.add(bagDialPanel);
+  B(bagDialPanel,.43,.12,.034,0,.275,.153,m.dark,.017);
   for(let i=0;i<3;i++){
    const dial=new THREE.Group();
-   dial.position.set((i-1)*.13,.275,.197);g.add(dial);
+   dial.position.set((i-1)*.13,.275,.197);bagDialPanel.add(dial);
    C(dial,.047,.030,0,0,0,m.gold,"z");
    B(dial,.011,.038,.012,0,.022,.022,m.black,.003);
    C(dial,.012,.015,0,0,.025,m.copper,"z");
@@ -290,6 +292,10 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
+  // The code wheels are hidden inside the luggage lining until the
+  // original key has released its catch; before then, clicking the bag
+  // still reaches the locked-bag clue instead of an inaccessible dial.
+  if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
   for(let i=0;i<bagDials.length;i++)
    bagDials[i].rotation.z=((s.bagDials?.[i]||0)%4)*Math.PI/2;
   liftDoors.forEach((panel,i)=>{
