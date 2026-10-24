@@ -221,6 +221,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   targets,
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
+  getClueVisibility:()=>({
+   serviceNumber:ventCipher.visible,
+   footNumber:undersideCipher.visible,
+   eyeNumber:eyeCipher.visible,
+   bagCode:cipherStrip.visible
+  }),
   cipherVisible:()=>cipherStrip.visible,
   setState(s){
    const restore=!previousState;
