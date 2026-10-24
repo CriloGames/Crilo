@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { gsap } from "gsap";
+import { buildIntricateCube } from "./secrets-3d-details.js";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -13,8 +14,8 @@ camera.position.set(6.7, 5.5, 8.9);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.26;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+renderer.toneMappingExposure = 1.14;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.domElement.setAttribute("aria-label", "Real three-dimensional cube with moving box drawers and lid");
@@ -24,24 +25,26 @@ stage.prepend(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = .075;
-controls.rotateSpeed = .47;
-controls.zoomSpeed = .42;
+controls.rotateSpeed = .40;
+controls.zoomSpeed = .30;
 controls.minDistance = 6.7;
 controls.maxDistance = 14;
 controls.enablePan = false;
 controls.target.set(0, 0, 0);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0xc7b8b0, 2.25));
-const key = new THREE.DirectionalLight(0xfff9ef, 4.4);
+scene.add(new THREE.HemisphereLight(0xffffff, 0xc7b8b0, 1.7));
+const key = new THREE.DirectionalLight(0xfff9ef, 3.4);
 key.position.set(-5, 9, 8); key.castShadow = true;
-key.shadow.mapSize.set(2048, 2048);
+key.shadow.mapSize.set(1024, 1024);
+key.shadow.normalBias = .025;
+key.shadow.radius = 4;
 key.shadow.camera.left = -8; key.shadow.camera.right = 8;
 key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
 key.shadow.bias = -.00028;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xc6e2ee, 2.1);
+const fill = new THREE.DirectionalLight(0xc6e2ee, 1.5);
 fill.position.set(7, 4, -6); scene.add(fill);
-const rim = new THREE.PointLight(0xffd3aa, 35, 20);
+const rim = new THREE.PointLight(0xffd3aa, 20, 20);
 rim.position.set(1, 5, -4); scene.add(rim);
 
 const mat = (color, metalness = .07, roughness = .36) =>
@@ -230,10 +233,28 @@ lensOuter.position.set(0,-.18,.19);backFace.add(lensOuter);objectCount++;
 const lens=cylinder(backFace,.50,.12,0,-.18,.18,mat(0x8ea7a3,.12,.20));
 const pupil=cylinder(backFace,.22,.14,.16,-.21,.27,mat(0x4e6774,.12,.25));
 
+// Premium precision-mechanism model: raised/engraved detail on all six real
+// faces and additional raycast-selectable hardware, kept separate from the
+// underlying shell and cavity logic for future 60-secret migration.
+const intricate=buildIntricateCube({
+ cube,faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
+ front,side,lidPivot,topHole,
+ box,cylinder,label,setHit,mat,animate:(object,props,duration=.8)=>animate(object,props,duration),
+ materials:{brass,metal,darkMetal,ivory,cavityMaterial}
+});
+
 // Grounding is a real plane receiving the real shadow of the mechanism.
 const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(250,250),floorMaterial);
-floor.rotation.x=-Math.PI/2;floor.position.y=-2.40;floor.receiveShadow=true;
+floor.rotation.x=-Math.PI/2;floor.position.y=-2.54;floor.receiveShadow=true;
+const plinth = new THREE.Mesh(
+ new THREE.CylinderGeometry(2.51,2.62,.20,88,1),
+ new THREE.MeshPhysicalMaterial({color:0xf6f4ef,roughness:.51,metalness:.13,clearcoat:.27})
+);
+plinth.position.y=-2.40;plinth.receiveShadow=true;plinth.castShadow=true;
+scene.add(plinth);
+const plinthRim=new THREE.Mesh(new THREE.TorusGeometry(2.49,.018,8,104),brass);
+plinthRim.rotation.x=Math.PI/2;plinthRim.position.y=-2.295;scene.add(plinthRim);
 scene.add(floor);
 function announce(message){status.textContent=message;}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -243,18 +264,33 @@ function animate(object,props,duration=.82){
 }
 function toggleDrawer(target,caption){
  target.open=!target.open;
- animate(target.drawer.position,{z:target.open?.70:0});
+ // Brief overtravel followed by mechanical settling at the rail stop.
+ gsap.killTweensOf(target.drawer.position);
+ if(reducedMotion){target.drawer.position.z=target.open?.76:0;}
+ else{
+  gsap.timeline().to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
+    .to(target.drawer.position,{z:target.open?.76:0,duration:.24,ease:"back.out(1.15)"});
+ }
  announce(caption+(target.open?" opens into a real hollow box.":" slides fully into its socket."));
 }
 function toggleHatch(){
  lidOpen=!lidOpen;
- animate(lidPivot.rotation,{x:lidOpen?-1.88:0},1.02);
+ gsap.killTweensOf(lidPivot.rotation);
+ if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.92:0;
+ else{
+  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?-2.02:.045,duration:.85,ease:"power2.inOut"})
+    .to(lidPivot.rotation,{x:lidOpen?-1.92:0,duration:.21,ease:"power2.out"});
+ }
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
 function clickAction(action){
  if(action==="front")toggleDrawer(front,"The lavender drawer");
  else if(action==="side")toggleDrawer(side,"The teal drawer");
  else if(action==="hatch")toggleHatch();
+ else if(intricate.actions.includes(action)){
+  const description=intricate.operate(action);
+  if(description)announce(description);
+ }
  else if(action.includes("-screw-")){
   const s=screws.find(item=>item.id===action);
   if(!s)return;
@@ -276,6 +312,13 @@ document.getElementById("reset").addEventListener("click",()=>{
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
 renderer.domElement.addEventListener("pointerdown",e=>{clickStart={x:e.clientX,y:e.clientY}});
+renderer.domElement.addEventListener("pointermove",e=>{
+ const bounds=renderer.domElement.getBoundingClientRect();
+ if(!bounds.width||!bounds.height)return;
+ pointer.set(((e.clientX-bounds.left)/bounds.width)*2-1,-((e.clientY-bounds.top)/bounds.height)*2+1);
+ raycaster.setFromCamera(pointer,camera);
+ renderer.domElement.style.cursor=raycaster.intersectObjects(interactiveMeshes,false).length?"pointer":"grab";
+});
 renderer.domElement.addEventListener("pointerup",e=>{
  if(!clickStart||Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7)return;
  const bounds=renderer.domElement.getBoundingClientRect();
@@ -301,11 +344,14 @@ renderer.setAnimationLoop(()=>{
 window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
- get meshCount(){return objectCount},
+ get meshCount(){return objectCount + intricate.meshCount()},
+ get detailMeshCount(){return intricate.meshCount()},
+ get interactiveDetailCount(){return intricate.actions.length},
+ get detailState(){return intricate.getState()},
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
  get topOpen(){return lidOpen},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction
 };
-announce("Real 3D loaded — drag, zoom gently, or tap the mechanical parts.");
+announce("Inspect a real mechanical artifact — drag to rotate, explore dials, press switches, open compartments.");
