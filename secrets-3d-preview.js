@@ -402,6 +402,7 @@ renderer.domElement.addEventListener("pointerup",e=>{
  if(picked)clickAction(picked.object.userData.action);
  clickStart=null;
 });
+let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
  const r=stage.getBoundingClientRect();
@@ -421,7 +422,6 @@ onResize();
 // On-demand rendering: a finished museum object should not spin its GPU at
 // 60 FPS forever. Orbit controls, mechanical animations, resize, and hatch
 // movement request frames only when something actually changes.
-let pendingFrame=0;
 function invalidate(){
  if(!pendingFrame)pendingFrame=requestAnimationFrame(drawFrame);
 }
