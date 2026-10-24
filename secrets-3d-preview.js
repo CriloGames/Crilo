@@ -444,7 +444,9 @@ function turnFixedFastener(action){
   .to(screw.assembly.position,{z:depth+.085,duration:.25,ease:"power2.out"},0)
   .to(screw.assembly.position,{z:depth,duration:.27,ease:"back.out(1.6)"});
 }
+let lastClickedAction=null;
 function clickAction(action){
+ lastClickedAction=action;
  if(embeddedGame){
   if(action.startsWith("thing:bag-dial-")){
    window.CriloNothingHereCube?.activatePhysicalBagDial?.(Number(action.slice(-1)));
@@ -771,6 +773,7 @@ window.__nothing3DPreview={
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction,
+ get lastClickedAction(){return lastClickedAction},
  setZoom(value){
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
