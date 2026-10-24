@@ -143,8 +143,26 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  control(backFace,"eye",.07,-.12,glass,.17);
  const eyeCipher=engraving(backFace,"2 · 1 · 3",.03,-.55,.53);
  eyeCipher.visible=false;
- control(backFace,"eye-ring",1.02,-1.03,brass,.14);
- engraving(backFace,"IRIS",1.01,-.75,.39);
+ // One purposeful, flush-mounted iris control. The engraved header,
+ // protected grille and small ratcheting dial share a single bolted housing,
+ // with deliberate gaps so the large optical lens remains visually dominant.
+ const irisModule=node(backFace,1.055,-1.095,.102);
+ B(irisModule,.49,.725,.055,0,0,0,graphite,.036);
+ B(irisModule,.445,.68,.030,0,0,.039,nickel,.029);
+ B(irisModule,.405,.635,.016,0,0,.059,ivory,.024);
+ for(const x of [-.207,.207])for(const y of [-.302,.302]){
+   C(irisModule,.023,.027,x,y,.080,brass);
+ }
+ engraving(backFace,"IRIS",1.055,-.817,.335);
+ const irisGrille=node(backFace,1.055,-1.060,.181);
+ B(irisGrille,.350,.157,.038,0,0,0,graphite,.020);
+ B(irisGrille,.295,.105,.024,0,0,.032,nickel,.013);
+ for(let i=-2;i<=2;i++) B(irisGrille,.252,.009,.013,0,i*.020,.051,graphite,.003);
+ // A single short conduit enters the side of the module. There are no
+ // dangling loops, detached terminals or stacked clock-face mechanisms.
+ B(backFace,.072,.021,.024,.811,-1.061,.189,copper,.007);
+ C(backFace,.033,.025,.831,-1.061,.207,brass);
+ control(backFace,"eye-ring",1.055,-1.30,brass,.105);
  // Story changes have real volume, not state indicators drawn over a canvas.
  const portalGroup=node(frontFace,0,.59,.69);
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.245,.024,10,48),mat(0xb3a6df,.52,.20));
