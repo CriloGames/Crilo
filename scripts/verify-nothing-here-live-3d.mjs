@@ -114,6 +114,8 @@ try{
  const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
  assert(handbag&&handbag.x>10&&handbag.x<1280&&handbag.y>10&&handbag.y<860,
   "The sculpted handbag has no usable visible canvas projection: "+JSON.stringify(handbag));
+ assert.equal(handbag.pick,"thing:bag",
+  "The 3D bag is hidden behind the box or its hit region is unreachable: "+JSON.stringify(handbag));
  const bagBefore=await page.locator("#ncNarrator").innerText();
  await page.locator("#stage canvas").click({position:{x:handbag.x,y:handbag.y},timeout:30000});
  if(!(await page.locator("#ncNarrator").innerText()).includes("bag is locked"))
