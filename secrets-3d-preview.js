@@ -214,7 +214,7 @@ lidPivot.userData.action="hatch";setHit(lidPivot,"hatch");
 const hingeBraces=[-.56,.56].map(x=>{
  const body = new THREE.Mesh(
   new THREE.CylinderGeometry(.037,.048,1,10),
-  darkMetal
+  metal
  );
  body.castShadow=true;body.receiveShadow=true;
  topFace.add(body);objectCount++;
@@ -310,10 +310,11 @@ function toggleDrawer(target,caption){
 function toggleHatch(){
  lidOpen=!lidOpen;
  gsap.killTweensOf(lidPivot.rotation);
- if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.34:0;
+ const hingeAngle=stage.clientWidth<720?-1.00:-1.08;
+ if(reducedMotion)lidPivot.rotation.x=lidOpen?hingeAngle:0;
  else{
-  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?-1.47:.045,duration:.82,ease:"power2.inOut"})
-    .to(lidPivot.rotation,{x:lidOpen?-1.34:0,duration:.24,ease:"power2.out"});
+  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?hingeAngle-.10:.045,duration:.82,ease:"power2.inOut"})
+    .to(lidPivot.rotation,{x:lidOpen?hingeAngle:0,duration:.24,ease:"power2.out"});
  }
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
@@ -338,7 +339,7 @@ document.getElementById("drawerFront").addEventListener("click",()=>clickAction(
 document.getElementById("drawerRight").addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop").addEventListener("click",()=>clickAction("hatch"));
 document.getElementById("reset").addEventListener("click",()=>{
- const home=stage.clientWidth<720?[6.7,5.5,8.9]:[5.7,4.7,7.8];
+ const home=stage.clientWidth<720?[6.95,5.75,9.35]:[5.7,4.7,7.8];
  animate(camera.position,{x:home[0],y:home[1],z:home[2]});
  animate(cube.rotation,{x:-.19,y:-.33,z:.02});
  controls.target.set(0,0,0);
@@ -370,7 +371,7 @@ const onResize=()=>{
  const mode=r.width<720?"mobile":"desktop";
  if(mode!==cameraMode){
   cameraMode=mode;
-  const home=mode==="mobile"?[6.7,5.5,8.9]:[5.7,4.7,7.8];
+  const home=mode==="mobile"?[6.95,5.75,9.35]:[5.7,4.7,7.8];
   camera.position.set(...home);
  }
  camera.aspect=Math.max(.3,r.width/r.height);
