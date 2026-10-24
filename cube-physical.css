@@ -216,3 +216,11 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
 @media (prefers-reduced-motion:reduce){
  .nc-page .nc-pocket .nc-item.nc-item-new{animation:none}
 }
+
+.nc-page.nc-physical-ready #stage #ncPartHint.nc-can-use{
+ background:#e6f8ecf5;border-color:#80b9a4;color:#315e54;
+ box-shadow:0 4px 18px #7ebaab72;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint.nc-can-use{
+ background:#284a45f5;border-color:#79b4a4;color:#e8fff1;
+}
