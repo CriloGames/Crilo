@@ -1,0 +1,164 @@
+/* NOTHING HERE — actual dimensional chassis and surface relief.
+   12 beams link the real six CSS-3D faces at their edges; 8 caps terminate
+   the corners. They are a second 3D assembly, not a flat illustration.
+   Never apply filter/opacity/overflow:hidden to a 3D ancestor. */
+.nc-page .nc-world .nc-cube-zone{perspective:760px;perspective-origin:50% 47%;
+ transition:transform .38s cubic-bezier(.18,.74,.17,1)}
+.nc-page .nc-world .nc-cube{transform-style:preserve-3d}
+.nc-page .nc-cube .nc-structural-frame{
+ position:absolute;inset:0;transform-style:preserve-3d;pointer-events:none;
+}
+.nc-page .nc-cube .nc-beam{
+ position:absolute;display:block;box-sizing:border-box;
+ border:1px solid #5c5a62;
+ border-radius:5px;
+ background:linear-gradient(180deg,#fdf2d9 0%,#efd3a6 22%,#c29c72 49%,#8a765f 83%,#705c54 100%);
+ box-shadow:inset 0 1px 0 #fff8,inset 0 -1px 0 #3a3c4559,
+ 0 2px 4px #38364442;
+ backface-visibility:visible;
+}
+.nc-page .nc-cube .nc-beam-ft,.nc-page .nc-cube .nc-beam-fb,
+.nc-page .nc-cube .nc-beam-bt,.nc-page .nc-cube .nc-beam-bb{
+ left:0;width:var(--size);height:11px;
+}
+.nc-page .nc-cube .nc-beam-fl,.nc-page .nc-cube .nc-beam-fr,
+.nc-page .nc-cube .nc-beam-bl,.nc-page .nc-cube .nc-beam-br{
+ top:0;width:11px;height:var(--size);
+ background:linear-gradient(90deg,#fff0ca 0%,#d0af7f 32%,#8b7a67 77%,#5d5961 100%);
+}
+.nc-page .nc-cube .nc-beam-ft{top:-5px;transform:translateZ(calc(var(--size)/2 + 5px))}
+.nc-page .nc-cube .nc-beam-fb{top:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/2 + 5px))}
+.nc-page .nc-cube .nc-beam-fl{left:-5px;transform:translateZ(calc(var(--size)/2 + 5px))}
+.nc-page .nc-cube .nc-beam-fr{left:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/2 + 5px))}
+.nc-page .nc-cube .nc-beam-bt{top:-5px;transform:translateZ(calc(var(--size)/-2 - 5px))}
+.nc-page .nc-cube .nc-beam-bb{top:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/-2 - 5px))}
+.nc-page .nc-cube .nc-beam-bl{left:-5px;transform:translateZ(calc(var(--size)/-2 - 5px))}
+.nc-page .nc-cube .nc-beam-br{left:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/-2 - 5px))}
+/* Each depth rail turns a full right angle and physically bridges front/back. */
+.nc-page .nc-cube .nc-beam-dtl,.nc-page .nc-cube .nc-beam-dtr,
+.nc-page .nc-cube .nc-beam-dbl,.nc-page .nc-cube .nc-beam-dbr{
+ width:var(--size);height:11px;transform-origin:left center;
+ background:linear-gradient(#efddb6 0%,#b79d79 35%,#746a69 80%,#514f58);
+ box-shadow:inset 0 1px 0 #fff8,0 3px 5px #38344270;
+}
+.nc-page .nc-cube .nc-beam-dtl{left:0;top:-6px;transform:translateZ(calc(var(--size)/-2)) rotateY(-90deg)}
+.nc-page .nc-cube .nc-beam-dtr{left:var(--size);top:-6px;transform:translateZ(calc(var(--size)/-2)) rotateY(-90deg)}
+.nc-page .nc-cube .nc-beam-dbl{left:0;top:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/-2)) rotateY(-90deg)}
+.nc-page .nc-cube .nc-beam-dbr{left:var(--size);top:calc(var(--size) - 6px);transform:translateZ(calc(var(--size)/-2)) rotateY(-90deg)}
+.nc-page .nc-cube .nc-corner{
+ position:absolute;width:19px;height:19px;border:2px solid #7a655a;
+ border-radius:7px;
+ background:radial-gradient(circle at 28% 25%,#fffad7,#e6bd88 46%,#9b8066 85%);
+ box-shadow:inset 0 2px 0 #fff7,0 3px 4px #45434b61;
+ pointer-events:none;
+}
+.nc-page .nc-cube .nc-corner::after{
+ content:"";position:absolute;left:6px;top:7px;width:4px;height:4px;
+ border:1px solid #806652;border-radius:50%;background:#eacda1;
+}
+.nc-page .nc-cube .nc-corner-ftl{left:-9px;top:-9px;transform:translateZ(calc(var(--size)/2 + 8px))}
+.nc-page .nc-cube .nc-corner-ftr{right:-9px;top:-9px;transform:translateZ(calc(var(--size)/2 + 8px))}
+.nc-page .nc-cube .nc-corner-fbl{left:-9px;bottom:-9px;transform:translateZ(calc(var(--size)/2 + 8px))}
+.nc-page .nc-cube .nc-corner-fbr{right:-9px;bottom:-9px;transform:translateZ(calc(var(--size)/2 + 8px))}
+.nc-page .nc-cube .nc-corner-btl{left:-9px;top:-9px;transform:translateZ(calc(var(--size)/-2 - 6px))}
+.nc-page .nc-cube .nc-corner-btr{right:-9px;top:-9px;transform:translateZ(calc(var(--size)/-2 - 6px))}
+.nc-page .nc-cube .nc-corner-bbl{left:-9px;bottom:-9px;transform:translateZ(calc(var(--size)/-2 - 6px))}
+.nc-page .nc-cube .nc-corner-bbr{right:-9px;bottom:-9px;transform:translateZ(calc(var(--size)/-2 - 6px))}
+
+/* Saturated lighting and bevels convey how thick the enamel is. Use multiple
+   planar highlights rather than filtering the 3D parent, which would flatten it. */
+.nc-page .nc-cube .nc-face{
+ transform-style:preserve-3d;
+ background-image:
+ radial-gradient(ellipse at 17% 14%,#ffffffd6 0%,#ffffff52 18%,transparent 49%),
+ linear-gradient(127deg,#ffffff54 0 5%,transparent 31% 57%,#3b405323 94%),
+ repeating-linear-gradient(90deg,transparent 0 13px,#fff2 14px 15px,transparent 16px 25px);
+ border:4px solid #4b5560;
+ box-shadow:inset 0 0 0 3px #f8f3e9,inset 0 0 0 8px #a5a4af74,
+ inset 0 0 0 10px #ffffff93,inset -17px -21px 24px #4048572c,
+ inset 10px 10px 19px #ffffffab,0 4px 5px #212e3b33;
+}
+.nc-page .nc-cube .nc-face::before{box-shadow:inset 0 0 0 3px #ffffff8c,0 0 0 1px #464a5240}
+.nc-page .nc-cube .nc-face::after{box-shadow:inset 0 0 0 1px #a8a7aa45,0 2px 6px #38445421}
+.nc-page .nc-cube .nc-front{background-color:#d7cbe6}
+.nc-page .nc-cube .nc-right{background-color:#a8d0d0}
+.nc-page .nc-cube .nc-left{background-color:#f1cab9}
+.nc-page .nc-cube .nc-top{background-color:#eed7aa}
+.nc-page .nc-cube .nc-bottom{background-color:#bfb3d9}
+.nc-page .nc-cube .nc-back{background-color:#c4dcb9}
+
+/* Individual hardware protrudes at a real Z offset: a 3D lens, machined
+   pressure gauge, raised maker's plate, toggle and calibrated eye. */
+.nc-page .nc-front .nc-face-symbol{
+ transform:translateZ(13px);
+ background:radial-gradient(circle at 28% 20%,#fffcff,#e1d4ec 63%,#aa98bb);
+ box-shadow:inset 2px 4px 5px #fff8,inset -4px -5px 8px #7367812c,
+ 0 4px 0 #766b81,0 9px 12px #45394f6b,0 0 0 4px #ffffff51;
+}
+.nc-page .nc-front .nc-face-symbol:hover{transform:translateZ(16px) translateY(-3px);filter:none}
+.nc-page.nc-front-plate-free .nc-front .nc-face-symbol{transform:translateZ(17px) translateY(-11px) rotate(12deg)}
+.nc-page .nc-tactile-screw{transform:translateZ(8px)}
+.nc-page .nc-front-knob{
+ transform:translateZ(13px);
+ box-shadow:inset 2px 3px 3px #fff9,inset -3px -3px 4px #5d513d44,
+ 0 5px 0 #7c6650,0 9px 9px #313a435b,0 0 0 3px #fce7bb;
+}
+.nc-page .nc-front-knob:hover{transform:translateZ(16px)}
+.nc-page .nc-front-dot{transform:translateZ(11px);box-shadow:0 4px 0 #985769,0 6px 8px #53465344}
+.nc-page .nc-stamped-serial.nc-maker-mark{
+ transform:translateX(-50%) translateZ(8px);
+ box-shadow:0 3px 0 #a590a1,0 6px 7px #4c434f4d,inset 1px 1px 3px #fff8;
+}
+.nc-page .nc-stamped-serial.nc-maker-mark:hover{transform:translateX(-50%) translateZ(11px) translateY(-2px);filter:none}
+.nc-page .nc-pressure-dial{
+ transform:translateZ(14px);
+ box-shadow:0 0 0 3px #f7e2bc,0 6px 0 #8b725f,
+ 0 11px 13px #3e353646,inset 3px 4px 4px #fffa;
+}
+.nc-page .nc-pressure-dial:hover{transform:translateZ(18px) translateY(-2px);filter:none}
+.nc-page .nc-pressure-face{box-shadow:inset 2px 3px 6px #fff,inset -3px -4px 6px #a48b6a6b}
+.nc-page .nc-service-shutter{
+ transform:translateZ(11px);
+ box-shadow:0 5px 0 #658084,0 9px 10px #40565a58,inset 0 0 0 3px #fff8;
+}
+.nc-page .nc-service-shutter:hover{transform:translateZ(13px) translateY(-2px);filter:none}
+.nc-page.nc-service-open .nc-service-shutter{transform:translateZ(15px) translate(-4px,-18px)}
+.nc-page .nc-left-button{transform:translateZ(12px)}
+.nc-page .nc-left-button:hover{transform:translateZ(15px) translateY(-2px)}
+.nc-page .nc-eye-adjuster{transform:translateZ(11px);box-shadow:0 4px 0 #799474,0 7px 8px #394a3852}
+.nc-page .nc-eye-adjuster:hover{transform:translateZ(14px)}
+.nc-page .nc-back-eye-rim{transform:translateZ(5px)}
+.nc-page .nc-back-pupil{transform:translateZ(9px)}
+.nc-page .nc-top .nc-top-bay{transform-style:preserve-3d}
+.nc-page .nc-mech-bay .nc-bay-cavity{box-shadow:inset 0 10px 16px #18202eaf,0 0 0 3px #ffffffa8,0 0 0 5px var(--metal)}
+.nc-page .nc-mech-bay .nc-drawer{box-shadow:inset 2px 3px 4px #fffb,
+ inset -7px -9px 12px #29303a49,0 4px 0 #777b88a8,0 9px 12px #28334065!important}
+.nc-page .nc-top-bay .nc-top-recess{box-shadow:inset 0 13px 20px #302316d1,0 0 0 3px #f5e8d1,0 2px 0 #897656}
+.nc-page .nc-top-bay .nc-lid{box-shadow:inset 0 0 0 4px #fff5dd,
+ inset -7px -9px 14px #7f6b4b43,0 4px 0 #94764d,0 9px 13px #3a30234b}
+/* Grounded directional shadow beneath the object, but never on the cube's
+   parent element: any parent filter would force CSS 3D flattening. */
+.nc-page .nc-world .nc-silhouette{
+ width:clamp(210px,27vw,285px);height:40px;bottom:57px;
+ background:radial-gradient(ellipse at center,#4a52634d 0%,#7b829b26 37%,transparent 73%);
+ filter:blur(15px);opacity:.92;
+}
+.nc-page .nc-world .nc-stage-disc{
+ background:radial-gradient(ellipse,#d8d5d084 0%,#e7e8e777 39%,transparent 70%);
+}
+@media(max-width:760px){
+ .nc-page .nc-world .nc-cube-zone{perspective:690px}
+ .nc-page .nc-cube .nc-beam{border-width:1px}
+ .nc-page .nc-cube .nc-corner{width:15px;height:15px;border-radius:5px}
+ .nc-page .nc-cube .nc-corner-ftl,.nc-page .nc-cube .nc-corner-btl{left:-7px;top:-7px}
+ .nc-page .nc-cube .nc-corner-ftr,.nc-page .nc-cube .nc-corner-btr{right:-7px;top:-7px}
+ .nc-page .nc-cube .nc-corner-fbl,.nc-page .nc-cube .nc-corner-bbl{left:-7px;bottom:-7px}
+ .nc-page .nc-cube .nc-corner-fbr,.nc-page .nc-cube .nc-corner-bbr{right:-7px;bottom:-7px}
+ .nc-page .nc-front .nc-face-symbol{transform:translateZ(8px)}
+ .nc-page .nc-pressure-dial{transform:translateZ(10px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page .nc-world .nc-cube-zone{transition:none}
+ .nc-page .nc-front .nc-face-symbol,.nc-page .nc-pressure-dial,
+ .nc-page .nc-service-shutter{transition:none}
+}
