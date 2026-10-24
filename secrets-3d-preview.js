@@ -345,7 +345,7 @@ const finish=finishMechanicalArtifact({
 });
 const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
- lidPivot,box,cylinder,setHit,mat,animate
+ lidPivot,box,cylinder,setHit,mat,animate,invalidate
 }):null;
 const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate}):null;
 let currentGameState={};
@@ -464,6 +464,11 @@ function clickAction(action){
     action.startsWith("top-screw-")?"hinge-"+Math.min(2,Number(action.slice(-1))):
     translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
+  // The hardware reacts to touch even if the original secret does not
+  // unlock. Motion conveys interactivity but never reveals a solution.
+  if(gameHotspots){
+   if(!gameHotspots.pulse(action))gameHotspots.pulse(name);
+  }
   window.CriloNothingHereCube?.activatePhysical?.(name);
   return;
  }
@@ -707,6 +712,11 @@ window.__nothing3DPreview={
  get solidShellBlockerCount(){return occlusionMeshes.length},
  get pedestalSupportLengths(){updatePedestalSupports();return supportLegs.map(s=>s.rod.scale.y)},
  get physicalMechanismState(){return intricate.getState()},
+ get physicalActuatorDepths(){return Object.fromEntries(
+  ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
+   .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
+ get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
+ get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
  detailState:()=>intricate.getState(),
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
@@ -739,6 +749,7 @@ window.__nothing3DPreview={
  syncState(state){
   if(!embeddedGame)return;
   currentGameState=state||{};
+  const restoring=!physicalStateInitialized;
   // Inventory changes are authoritative: empty trays and sockets physically
   // lose their parts on pickup, including every historically duplicated mesh.
   looseKey.visible=!currentGameState.drawerTaken;
@@ -746,29 +757,73 @@ window.__nothing3DPreview={
   undersideRing.visible=!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
-  intricate.syncGameState(currentGameState,!physicalStateInitialized);
+  intricate.syncGameState(currentGameState,restoring);
   physicalStateInitialized=true;
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
     obj.open=open;
     if(obj.motion)obj.motion.kill();
-    if(reducedMotion)obj.drawer.position.z=open?.76:0;
-    else obj.motion=gsap.to(obj.drawer.position,{z:open?.76:0,duration:.64,ease:"power2.inOut",onUpdate:invalidate});
+    if(reducedMotion||restoring)obj.drawer.position.z=open?.76:0;
+    else{
+     // Release catches, extend along both rails, then settle against the
+     // end stop. Reversing direction cancels the complete prior timeline.
+     obj.motion=gsap.timeline({onUpdate:invalidate})
+      .to(obj.drawer.position,{z:open?.87:-.04,duration:.47,ease:"power2.out"})
+      .to(obj.drawer.position,{z:open?.76:0,duration:.24,ease:"back.out(1.65)"});
+    }
    }
   }
   if(lidOpen!==!!state.top){
    lidOpen=!!state.top;
-   hatchMotion=reducedMotion?null:{start:performance.now(),duration:920,from:lidPivot.rotation.x,to:lidOpen?-1.08:0};
-   if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.08:0;
+   hatchMotion=reducedMotion||restoring?null:{start:performance.now(),duration:920,from:lidPivot.rotation.x,to:lidOpen?-1.08:0};
+   if(reducedMotion||restoring)lidPivot.rotation.x=lidOpen?-1.08:0;
   }
   for(const screw of screws){
    const num=Number(screw.id.slice(-1));
-   const removed=screw.id.startsWith("front-screw-") && state.screws?.includes(num);
+   const removed=screw.id.startsWith("front-screw-")&&!!state.screws?.includes(num);
+   // The fourth fastener is not a screw: its spring button depresses
+   // and rebounds, rather than appearing to be unscrewed.
    if(screw.id==="front-screw-3"){
-    // The false screw is a spring button: it depresses but never unscrews.
-    screw.assembly.position.z=(state.falseScrewTurns||0)%2?.105:.13;
+    const turned=(state.falseScrewTurns||0);
+    if(screw.lastTurns!==turned){
+     screw.lastTurns=turned;
+     gsap.killTweensOf(screw.assembly.position);
+     if(restoring||reducedMotion){screw.assembly.position.z=.13;}
+     else{
+      screw.motion=gsap.timeline({onUpdate:invalidate})
+       .to(screw.assembly.position,{z:.067,duration:.11,ease:"power2.out"})
+       .to(screw.assembly.position,{z:.13,duration:.28,ease:"back.out(2)"});
+     }
+    }
+    continue;
    }
-   if(screw.assembly.visible===removed)screw.assembly.visible=!removed;
+   if(!screw.id.startsWith("front-screw-")||screw.removed===removed)continue;
+   screw.removed=removed;
+   screw.motion?.kill();
+   gsap.killTweensOf(screw.assembly.position);
+   gsap.killTweensOf(screw.assembly.rotation);
+   gsap.killTweensOf(screw.assembly.scale);
+   if(restoring||reducedMotion){
+    screw.assembly.position.z=.13;
+    screw.assembly.rotation.z=0;
+    screw.assembly.scale.set(1,1,1);
+    screw.assembly.visible=!removed;
+   }else if(removed){
+    screw.assembly.visible=true;
+    // Keep the threaded shaft visible as it comes out of the counterbore.
+    // Only after a full turn and axial extraction is it removed.
+    screw.motion=gsap.timeline({onUpdate:invalidate})
+     .to(screw.assembly.position,{z:.53,duration:.45,ease:"power2.out"},0)
+     .to(screw.assembly.rotation,{z:Math.PI*2,duration:.45,ease:"power1.inOut"},0)
+     .to(screw.assembly.scale,{x:.72,y:.72,z:.72,duration:.14},.35)
+     .call(()=>{if(screw.removed)screw.assembly.visible=false;});
+   }else{
+    screw.assembly.visible=true;
+    screw.assembly.scale.set(1,1,1);
+    screw.motion=gsap.timeline({onUpdate:invalidate})
+     .fromTo(screw.assembly.position,{z:.53},{z:.13,duration:.40})
+     .to(screw.assembly.rotation,{z:0,duration:.4},"<");
+   }
   }
   invalidate();
  }
