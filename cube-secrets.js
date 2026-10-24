@@ -785,6 +785,7 @@ function clickInventory(e){
 // projected screw rectangle so visual mechanical controls remain operable.
 // Only service the currently facing top panel; never activate backface clues.
 $('ncWorld').addEventListener('pointerdown',event=>{
+ if(event.target.closest?.('#stage'))return; // Physical raycasting has its own hit targets.
  if(event.button!==0||!event.isPrimary)return;
  if(event.target.closest?.('button,[data-hit]'))return;
  // Only check the currently front-facing horizontal surface.
@@ -820,6 +821,7 @@ $('ncModalClose').addEventListener('click',closeModal);
 $('ncModal').addEventListener('click',e=>{if(e.target===$('ncModal'))closeModal()});
 $('ncUnselect').addEventListener('click',()=>{selected=null;render()});
 $('ncCubeZone').addEventListener('click',e=>{
+ if(e.target.closest?.('#stage'))return; // Routed through 3D clickAction, not an empty-zone offering.
  if(blockedClick){e.stopImmediatePropagation();e.preventDefault();blockedClick=false;return}
 if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.plateOpen){
   s.plateOpen=true;gain('cog');
