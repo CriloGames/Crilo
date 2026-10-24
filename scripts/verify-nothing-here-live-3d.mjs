@@ -74,6 +74,7 @@ try{
   "Coin into 3D vending machine failed the canonical inventory recipe");
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
+ await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
  for(let i=0;i<3;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical lid taps did not open original hatch");
  await activate("hatch");
