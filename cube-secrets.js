@@ -152,6 +152,9 @@ function gain(id,message){
  if(!pocket.has(id)){
   const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
   pocket.add(id);if(message)tell(message);render();flyToPocket(id,origin);
+  const found=document.querySelector('#ncInventory [data-item="'+id+'"]');
+  found?.classList.add('nc-item-new');
+  window.setTimeout(()=>found?.classList.remove('nc-item-new'),1100);
  }
 }
 function spend(id){if(!pocket.has(id))return false;pocket.delete(id);if(selected===id)selected=null;return true}
@@ -213,7 +216,11 @@ function flyToPocket(id,origin){
  if(reducedMotion)return;
  const target=document.querySelector('#ncInventory [data-item="'+id+'"]');
  const dest=target?.getBoundingClientRect();
- const from=origin?.getBoundingClientRect?.()||$('ncCube').getBoundingClientRect();
+ const physical=document.body.classList.contains('nc-physical-ready')
+  ?window.__nothing3DPreview?.projectItemSource?.(id):null;
+ const from=physical&&Number.isFinite(physical.x)&&Number.isFinite(physical.y)
+  ?{left:physical.x-20,top:physical.y-20,width:40,height:40}
+  :origin?.getBoundingClientRect?.()||$('ncCube').getBoundingClientRect();
  if(!dest||!from)return;
  const node=document.createElement('div');node.className='nc-inventory-fly';
  node.textContent=glyphs[id]||'✧';
@@ -760,10 +767,29 @@ function clickThing(name){
  }
  render();
 }
+function nextHint(){
+  if(!s.a)return 'The front brass catch looks like it might open something.';
+  if(!s.b)return 'One side of the cube has an unusually straight seam.';
+  if(!s.top)return 'Inspect the top of the cube. Some switches need more than one touch.';
+  if(!s.mouse)return 'The dented switch on the left face looks pressable.';
+  if(!pocket.has('key')&&pocket.has('tooth')&&pocket.has('ring'))
+   return 'Your pocket contains two metal parts that look as though they fit together.';
+  if(s.bag&&!s.bagOpen)return 'The little bag has a lock. A matching object may already be in your pocket.';
+  if(s.bagOpen&&!s.bagSolved)return 'Those bag wheels need a pattern. Try calibrating the lens on the back of the cube.';
+  if(!s.ventOpen)return 'The left face has three small numbered vents. There is a number order hidden somewhere.';
+  if(!s.pressureReady)return 'One brass pressure dial has more than one setting.';
+  if(!s.plateOpen)return 'The front faceplate is attached by screws. Not all screws are alike.';
+  if(!s.serviceOpen)return 'The service hatch may need something that resonates.';
+  if(!s.door)return 'Some combinations create a new object you can play, not just carry.';
+  if(!s.floorFour)return 'The miniature lift might have another floor worth investigating.';
+  if(!s.portal)return 'Some found objects may fit the central socket on the cube.';
+  return 'Look back over familiar parts: another collected object may make them work differently.';
+}
 function journal(){
  const found=[...seen].map(id=>'<span>✳ '+title.get(id)+'</span>').join('');
  modal('NOT A CHECKLIST','Strange little occurrences',
  '<p>Things that have happened. Not all things are meant to be catalogued.</p>'+
+ '<p class="nc-modal-note"><strong>Something worth inspecting:</strong> '+nextHint()+'</p>'+
  '<div class="nc-journal">'+(found||'<span>Nothing has happened. So far.</span>')+'</div>'+
  '<p class="nc-modal-note">Your discoveries save on this device.</p>','journal');
 }
@@ -771,7 +797,8 @@ function info(){
  modal('A SLIGHTLY UNHELPFUL EXPLANATION','Turn it.',
   '<p>Drag to rotate, use the arrows, or zoom with the + / − buttons, your mouse wheel, or a two-finger pinch. Select ✥ to move a zoomed-in view. Press ↺ to reset.</p><p>Screws, vents, tiny markings, dial wheels and hinge pins are all worth inspecting.</p>'+
   '<p>Some things you find can be used on other things. Select an item from your pocket to see what accepts it. Two pocket items only combine when they are actually compatible.</p>'+
-  '<p>There are no levels. Things will happen without permission. Progress saves on this device.</p>','info');
+  '<p>Look for the engraved PULL, PRESS, TURN and SLIDE plates. Hover over a 3D part to learn what it is; on touchscreens, tap the physical pieces. When you find an object it disappears into the pocket below.</p>'+
+ '<p>The journal gives a gentle next clue. Progress saves on this device.</p>','info');
 }
 const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||name==='serial'||name==='pressure'||name==='shutter'||
  /^(?:front-screw-|right-bolt-|hinge-|vent-)/.test(name);
