@@ -393,7 +393,7 @@ function openJournal(){
  const entries=SECRETS.map(([id,name,hint],index)=>{
   const got=found.has(id);
   return '<div class="nh-journal-entry"><span>'+String(index+1).padStart(2,'0')+'</span><div><b>'+
-  (got?clean(name):'???')+'</b><small>'+(got?'discovered':clean(hint))+'</small></div></div>';
+  (got?clean(name):'???')+'</b><small>'+(got?'discovered':'not found yet')+'</small></div></div>';
  }).join('');
  show('Things you stumbled upon',
   '<p class="nh-panel-copy">'+found.size+' of '+SECRETS.length+'. Everything here can be found without guessing a random combination.</p>'+
@@ -435,7 +435,7 @@ document.addEventListener('click',event=>{
  const chip=event.target.closest('[data-item]');
  if(chip&&$('nhInventory').contains(chip)){selectItem(chip.dataset.item);return}
  const toy=event.target.closest('[data-toy]');
- if(toy&&$('nhMain')===null&&$('nhField').contains(toy)||toy&&$('nhExtra').contains(toy)){
+ if(toy&&($('nhField').contains(toy)||$('nhExtra').contains(toy))){
   ordinary(toy.dataset.toy);return;
  }
 });
