@@ -1,14 +1,38 @@
 import * as THREE from "three";
+import {gsap} from "gsap";
 
 // Faithful three-dimensional replacements for the original game's actual
 // interaction targets. The authoritative puzzle logic stays in cube-secrets.js.
 // Nothing in this module writes saves or awards secrets by itself.
-export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animate}) {
+export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animate,invalidate=()=>{}}) {
  const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
  const brass=mat(0xd0ac75,.7,.32),nickel=mat(0xa0a8ae,.65,.36);
  const graphite=mat(0x46505c,.43,.52),glass=mat(0xa4d8cc,.16,.22);
  const ivory=mat(0xffefd5,.12,.39),red=mat(0xd67378,.1,.32),copper=mat(0xc18f7a,.58,.32);
  let count=0;const targets=new Map();
+ // The housing stays bolted to the face; only its independently modeled
+ // actuator travels into the socket. Clicks never move entire puzzle faces.
+ const actuators=new Map();
+ const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+ let previousState=null;
+ function pulse(action){
+  const head=actuators.get(action);
+  if(!head)return false;
+  gsap.killTweensOf(head.position);
+  head.position.z=0;
+  if(reducedMotion){invalidate();return true;}
+  gsap.timeline({onUpdate:invalidate})
+   .to(head.position,{z:-.064,duration:.12,ease:"power2.out"})
+   .to(head.position,{z:0,duration:.30,ease:"back.out(2.4)"});
+  return true;
+ }
+ function pose(obj,axis,key,target,oldValue,restore,duration=.52){
+  if(restore){gsap.killTweensOf(obj[axis]);obj[axis][key]=target;return;}
+  if(oldValue===target)return;
+  gsap.killTweensOf(obj[axis]);
+  if(reducedMotion){obj[axis][key]=target;invalidate();return;}
+  gsap.to(obj[axis],{[key]:target,duration,ease:"power2.inOut",onUpdate:invalidate});
+ }
  function node(face,x,y,z=0){
   const g=new THREE.Group();g.position.set(x,y,z);face.add(g);return g;
  }
@@ -21,16 +45,20 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  function control(face,name,x,y,color=brass,size=.115){
   const g=node(face,x,y,.19);
   C(g,size*1.20,.06,0,0,0,graphite);
-  C(g,size,.075,0,0,.048,color);
-  const cross=B(g,size*.9,.014,.018,0,0,.093,graphite,.004);
+  const cap=new THREE.Group();g.add(cap);
+  C(cap,size,.075,0,0,.048,color);
+  const cross=B(cap,size*.9,.014,.018,0,0,.093,graphite,.004);
   cross.rotation.z=Math.PI/4;
+  actuators.set(name,cap);
   setHit(g,name);targets.set(name,g);return g;
  }
  function tab(face,name,x,y,color=brass,w=.27,h=.12){
   const g=node(face,x,y,.18);
   B(g,w+.075,h+.06,.055,0,0,0,graphite,.025);
-  B(g,w,h,.085,0,0,.057,color,.025);
-  B(g,w*.54,.016,.013,0,0,.113,ivory,.005);
+  const slider=new THREE.Group();g.add(slider);
+  B(slider,w,h,.085,0,0,.057,color,.025);
+  B(slider,w*.54,.016,.013,0,0,.113,ivory,.005);
+  actuators.set(name,slider);
   setHit(g,name);targets.set(name,g);return g;
  }
 
@@ -181,8 +209,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   count:()=>count,
   actions:[...targets.keys()],
   targets,
+  pulse,
+  getActuatorDepth:name=>actuators.get(name)?.position.z??null,
   cipherVisible:()=>cipherStrip.visible,
   setState(s){
+   const restore=!previousState;
+   const previous=previousState||{};
    const cipherReady=(s.eyeRingTicks||0)>=3;
    if(cipherReady&&!cipherStrip.visible){
     cipherStrip.visible=true;
@@ -199,18 +231,30 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    // Only the socket stays behind; a second cog must not remain on the cube.
    exposedCog.visible=false;
    resonator.visible=!!s.resonance;
-   receiver.position.x=s.plateOpen?.37:0;
-   eyeGear.rotation.z=(s.eyeRingTicks||0)*Math.PI/8;
-   pressureKnob.rotation.z=(s.pressureTicks||0)*Math.PI/6;
-   shutter.position.x=s.serviceOpen?1.05:.80;
+   pose(receiver,"position","x",s.plateOpen?.37:0,
+    previous.plateOpen?.37:0,restore,.7);
+   pose(eyeGear,"rotation","z",(s.eyeRingTicks||0)*Math.PI/8,
+    (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
+   pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
+    (previous.pressureTicks||0)*Math.PI/6,restore,.58);
+   pose(shutter,"position","x",s.serviceOpen?1.05:.80,
+    previous.serviceOpen?1.05:.80,restore,.64);
    resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
     else if(name==="right-bolt-1")g.visible=!s.rightBoltLoose;
     else if(name.startsWith("hinge-"))g.visible=!s.hingePins?.includes(Number(name.slice(-1)));
-    else if(name==="shutter")g.rotation.z=s.serviceOpen?.12:0;
-    else if(name.startsWith("vent-"))g.position.z=s.ventOpen?.23:.18;
+    else if(name==="shutter")pose(g,"rotation","z",s.serviceOpen?.12:0,
+      previous.serviceOpen?.12:0,restore,.60);
+    else if(name.startsWith("vent-"))pose(g,"position","z",s.ventOpen?.23:.18,
+      previous.ventOpen?.23:.18,restore,.65);
    }
+   previousState={
+    plateOpen:!!s.plateOpen,eyeRingTicks:s.eyeRingTicks||0,
+    pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
+    ventOpen:!!s.ventOpen
+   };
+   invalidate();
   }
  };
 }
