@@ -46,6 +46,7 @@ jobs:
         run: npm run check:deps
       - name: Verify WebGL source syntax
         run: |
+          node --check cube-secrets.js
           node --check secrets-3d-preview.js
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
