@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=2";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=3";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
