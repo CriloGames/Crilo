@@ -699,14 +699,36 @@ window.__nothing3DPreview={
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
+ getPhysicalActionAt(x,y){
+  const r=renderer.domElement.getBoundingClientRect();
+  return pickVisibleAction(r.left+x,r.top+y);
+ },
  projectPhysicalStoryObject(name){
   const obj=pocketWorlds?.targets.get(name);
-  if(!obj||!isMeshEffectivelyVisible(obj))return null;
+  const volume=pocketWorlds?.pickVolumes.get(name);
+  if(!obj||!volume||!isMeshEffectivelyVisible(obj))return null;
   scene.updateWorldMatrix(true,true);
-  // Target the visible center of the actual sculpted body, not the root
-  // at floor level where a ray may hit the noninteractive presentation stand.
-  const p=new THREE.Box3().setFromObject(obj).getCenter(new THREE.Vector3()).project(camera);
-  return {x:(p.x+1)*.5*stage.clientWidth,y:(1-p.y)*.5*stage.clientHeight,depth:p.z};
+  // Find a truly clickable point ON the visible volume, not the group
+  // origin or the AABB center: those could be hidden by the cube or floor.
+  const samples=[
+   [0,0,.18],[.14,0,.18],[-.14,0,.18],
+   [0,.14,.18],[0,-.14,.18],
+   [.14,.13,.18],[-.14,.13,.18],
+   [0,0,0],[.16,0,0],[-.16,0,0],
+   [0,.14,0],[0,-.14,0]
+  ];
+  const rect=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  for(const [x,y,z] of samples){
+   const p=volume.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
+   const point={x:(p.x+1)*.5*stage.clientWidth,
+    y:(1-p.y)*.5*stage.clientHeight,depth:p.z};
+   if(!fallback)fallback=point;
+   if(p.z>=-1&&p.z<=1&&
+     pickVisibleAction(rect.left+point.x,rect.top+point.y)==="thing:"+name)
+     return {...point,pick:"thing:"+name};
+  }
+  return {...fallback,pick:null};
  },
  projectPhysicalPuzzleControl(name){
   const obj=pocketWorlds?.puzzleTargets.get(name);
