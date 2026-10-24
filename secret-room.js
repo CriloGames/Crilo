@@ -175,11 +175,13 @@ function modal(eyebrow,title,markup){
  dialogLastFocus=document.activeElement;
  dom.dialogEyebrow.textContent=eyebrow;dom.dialogTitle.textContent=title;
  dom.dialogContent.innerHTML=markup;dom.dialog.hidden=false;
+ $('gameInfoBtn')?.setAttribute('aria-expanded',String(title==='How to play Nothing Here'));
  $('srClose')?.focus();
 }
 function closeDialog(){
  if(dom.dialog.hidden)return;
  dom.dialog.hidden=true;
+ $('gameInfoBtn')?.setAttribute('aria-expanded','false');
  if(dialogLastFocus?.isConnected)dialogLastFocus.focus();
 }
 function openDialog(kind){
@@ -428,7 +430,17 @@ dom.dialog.addEventListener('submit',event=>{
 });
 document.addEventListener('keydown',e=>{
  if(!dom.dialog.hidden){
-  if(e.key==='Escape'){e.preventDefault();closeDialog()}
+  if(e.key==='Escape'){e.preventDefault();closeDialog();return}
+  // Keep keyboard navigation inside the active modal, including the journal.
+  if(e.key==='Tab'){
+   const controls=[...dom.dialog.querySelectorAll('button,input,select,textarea,a[href]')]
+    .filter(el=>!el.disabled&&el.getClientRects().length);
+   const first=controls[0],last=controls[controls.length-1];
+   if(first&&(e.shiftKey?(document.activeElement===first||!dom.dialog.contains(document.activeElement)):
+    (document.activeElement===last||!dom.dialog.contains(document.activeElement)))){
+    e.preventDefault();(e.shiftKey?last:first).focus();
+   }
+  }
   return;
  }
  if(e.key==='Escape'&&place!=='room'){e.preventDefault();action('return');return}
@@ -445,8 +457,6 @@ document.addEventListener('keydown',e=>{
  pressed.push(mapped);if(pressed.length>10)pressed.shift();
  if(pressed.join(',')===combo.join(','))discover('konami');
 });
-const originalHelp=$('gameInfoBtn');if(originalHelp)originalHelp.setAttribute('aria-expanded','false');
-dom.dialog.addEventListener('click',()=>{if(originalHelp)originalHelp.setAttribute('aria-expanded',String(!dom.dialog.hidden))});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(toastTimer)});
 window.addEventListener('storage',e=>{
  if(e.key!==STORAGE)return;
