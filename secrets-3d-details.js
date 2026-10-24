@@ -18,11 +18,24 @@ export function buildIntricateCube({
   const live={dialSteps:0,needle:false,lever:false,light:false,topLatch:false,backEye:false,underside:false,service:false};
   const registries={};
   let detailsCount=0;
-  const B=(parent,w,h,d,x,y,z,m,r=.024)=>{detailsCount++;return box(parent,w,h,d,x,y,z,m,r)};
-  const C=(parent,r,d,x,y,z,m)=>{detailsCount++;return cylinder(parent,r,d,x,y,z,m)};
+  // Small machined features receive normal PBR lighting but do not each
+  // cast a 1024px shadow. Larger structural pieces retain genuine shadows.
+  // This removes hundreds of redundant shadow draw calls on mobile hardware.
+  const B=(parent,w,h,d,x,y,z,m,r=.024)=>{
+    detailsCount++;
+    const mesh=box(parent,w,h,d,x,y,z,m,r);
+    mesh.castShadow=w>.48&&h>.38&&d>.10;
+    return mesh;
+  };
+  const C=(parent,r,d,x,y,z,m)=>{
+    detailsCount++;
+    const mesh=cylinder(parent,r,d,x,y,z,m);
+    mesh.castShadow=r>.35&&d>.09;
+    return mesh;
+  };
   const ring=(parent,r,t,x,y,z,m)=>{
     const o=new THREE.Mesh(new THREE.TorusGeometry(r,t,10,60),m);
-    o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;
+    o.position.set(x,y,z);o.castShadow=false;o.receiveShadow=true;
     parent.add(o);detailsCount++;return o;
   };
   const flatLine=(parent,x1,y1,x2,y2,z,width,m)=>{
