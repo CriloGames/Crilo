@@ -16,6 +16,10 @@ try {
   stage:document.querySelector('#stage')?.getBoundingClientRect()?.toJSON()
  }));
  assert.equal(state.engine,'three.js');
+const stays=await page.evaluate(()=>window.__nothing3DPreview.pedestalSupportLengths);
+assert.equal(stays.length,2,"The cube is not mechanically attached to its plinth");
+assert(stays.every(n=>Number.isFinite(n)&&n>.12&&n<3),
+ "Articulated presentation stays have invalid lengths: "+JSON.stringify(stays));
 assert.equal(await page.evaluate(()=>window.__nothing3DPreview.renderMode),'on-demand',
  'WebGL should not waste CPU/GPU rendering a completely still object');
  assert(state.meshes>=180&&state.meshes<=800,
