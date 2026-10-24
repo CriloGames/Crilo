@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=7";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=4";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=6";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=7";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -522,6 +522,9 @@ const miniatureNames={
 };
 const partHint=document.createElement("output");
 partHint.id="ncPartHint";partHint.setAttribute("aria-live","off");partHint.hidden=true;
+if(!embeddedGame){
+ partHint.style.cssText="position:absolute;z-index:9;pointer-events:none;transform:translateX(-50%);background:#fff9e9ee;border:1px solid #a0b5ae;border-radius:9px;padding:6px 11px;box-shadow:0 4px 14px #384b5230;color:#4b6568;font:700 12px system-ui,sans-serif;max-width:230px;text-align:center;";
+}
 stage.appendChild(partHint);
 function acceptsHeldItem(action){
  const held=currentGameState.selected;
