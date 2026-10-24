@@ -61,6 +61,11 @@ try{
    "A miniature is still mounted outside the rotating cube");
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
    "A miniature was lost or duplicated when removing the pedestal");
+ const navigation=await page.evaluate(()=>window.__nothing3DPreview.navigationState);
+ assert(navigation.panEnabled,"A floating cube should allow drag-to-move as well as orbit rotation");
+ const hidden=await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility);
+ assert(Object.values(hidden).every(value=>!value),
+   "Numerical inscriptions must start concealed under their physical covers");
  assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("latch")),/front drawer/i,
   "The live latch needs an understandable 3D label");
  assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("seam")),/side/i,
@@ -108,6 +113,14 @@ try{
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
  await activate("eye");
  assert.equal((await state()).back,true,"Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).eyeNumber,
+  "The eye must reveal its engraving ON the floating cube");
+ await activate("right-bolt-1");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
+  "Removing the service bolt must uncover its genuine inscribed number");
+ await activate("foot");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).footNumber,
+  "The folded-back foot must uncover the hidden underside inscription");
  await activate("service-latch");
  assert.equal((await state()).serviceOpen,false,"The sound-operated latch must remain locked until resonance");
  // The original 2D side-prop chain is now mirrored by fifteen
@@ -197,6 +210,9 @@ try{
  await activate("eye-ring");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),true,
   "The copper cipher should emerge from behind the third calibration click");
+ await activate("eye-ring");
+ assert.equal((await state()).eyeRingTicks,3,
+  "The fully calibrated iris must stop instead of rotating beyond its physical limit");
  const priorToReading=(await state()).seen.length;
  await activate("cipher-strip");
  assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾/,
