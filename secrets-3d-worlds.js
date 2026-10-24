@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {gsap} from "gsap";
 
 /**
  * An actual miniature world attached to the 3D machine. Every story actor
@@ -7,7 +8,7 @@ import * as THREE from "three";
  *
  * Puzzle logic and localStorage remain entirely in cube-secrets.js.
  */
-export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
+export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>{}}){
  const m={
   brass:mat(0xbda174,.67,.34),gold:mat(0xf1d8a6,.32,.32),
   dark:mat(0x454653,.35,.53),wood:mat(0x916b5b,.17,.69),
@@ -23,6 +24,14 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],liftDoors=[];
  let bagDialPanel=null;
+ let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
+ const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+ const setPose=(object,axis,key,target,duration=.65)=>{
+  if(!object||Math.abs(object[axis][key]-target)<.001)return;
+  if(reducedMotion){object[axis][key]=target;invalidate();return;}
+  gsap.killTweensOf(object[axis]);
+  gsap.to(object[axis],{[key]:target,duration,ease:"power2.inOut",onUpdate:invalidate});
+ };
  const B=(g,w,h,d,x,y,z,color,r=.027)=>{
   const o=box(g,w,h,d,x,y,z,color,r);
   o.castShadow=w>.13&&h>.12&&d>.09;parts++;return o;
@@ -103,10 +112,16 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  {
   const g=toy("door");
   B(g,.55,.73,.10,0,.39,0,m.brass,.032);
-  B(g,.40,.63,.07,0,.40,.07,m.wood,.018);
-  B(g,.30,.27,.026,0,.49,.115,m.cream,.014);
-  B(g,.29,.16,.025,0,.20,.113,m.velvet,.012);
-  C(g,.041,.05,.135,.36,.136,m.gold,"z");
+  // A true hinge: every inset panel and the brass knob are children of the
+  // moving timber leaf. The surround stays bolted to its original socket.
+  B(g,.46,.65,.027,0,.40,.072,m.dark,.012);
+  doorLeaf=new THREE.Group();
+  doorLeaf.position.set(-.214,.08,.085);g.add(doorLeaf);
+  B(doorLeaf,.405,.625,.072,.214,.32,0,m.wood,.018);
+  B(doorLeaf,.30,.27,.029,.214,.41,.053,m.cream,.014);
+  B(doorLeaf,.29,.16,.029,.214,.12,.053,m.velvet,.012);
+  C(doorLeaf,.041,.05,.352,.28,.070,m.gold,"z");
+  for(const y of [.16,.49])C(g,.026,.075,-.22,y,.102,m.brass);
  }
  // Dog with actual muzzle, paws, nose, ears and collar.
  {
@@ -127,16 +142,37 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  // Fragile ceramic vase with narrow neck and dark opening.
  {
   const g=toy("vase");
-  C(g,.17,.29,0,.22,0,m.pink);
-  C(g,.105,.18,0,.44,0,m.pink);
-  C(g,.135,.035,0,.53,0,m.cream);
-  C(g,.084,.009,0,.552,0,m.dark);
+  vaseWhole=new THREE.Group();g.add(vaseWhole);
+  vaseFragments=new THREE.Group();g.add(vaseFragments);
+  C(vaseWhole,.17,.29,0,.22,0,m.pink);
+  C(vaseWhole,.105,.18,0,.44,0,m.pink);
+  C(vaseWhole,.135,.035,0,.53,0,m.cream);
+  C(vaseWhole,.084,.009,0,.552,0,m.dark);
   for(let i=0;i<4;i++){
    const t=i*Math.PI/2;
-   wire(g,[[Math.sin(t)*.15,.12,Math.cos(t)*.15],
+   wire(vaseWhole,[[Math.sin(t)*.15,.12,Math.cos(t)*.15],
     [Math.sin(t)*.17,.28,Math.cos(t)*.17],
     [Math.sin(t)*.08,.45,Math.cos(t)*.08]],.009,m.gold);
   }
+  // Broken state is NOT a tiny compressed intact pot: twelve differently
+  // oriented ceramic shards are real beveled solid pieces scattered around
+  // the impact point and still rest on the miniature's display socket.
+  for(let i=0;i<12;i++){
+   const angle=i*Math.PI*2/12,radius=.07+(i%3)*.065;
+   const shape=new THREE.Shape();
+   shape.moveTo(-.052,-.025);shape.lineTo(.052,-.027);
+   shape.lineTo(.078,.024);shape.lineTo(-.018,.081);shape.closePath();
+   const shard=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{
+    depth:.017,bevelEnabled:true,bevelSegments:1,steps:1,
+    bevelSize:.007,bevelThickness:.006
+   }),i%4===0?m.cream:m.pink);
+   shard.position.set(Math.cos(angle)*radius,.071+Math.min(.02,i%4*.005),Math.sin(angle)*radius);
+   shard.rotation.set(-Math.PI/2+(i%4)*.15,angle,(i%3-1)*.20);
+   shard.scale.setScalar(.85+(i%4)*.14);
+   shard.castShadow=false;shard.receiveShadow=true;
+   vaseFragments.add(shard);parts++;
+  }
+  vaseFragments.visible=false;
  }
  // Flowerpot and actual little tree. Its branches only appear once watered.
  const branches=new THREE.Group();
@@ -157,7 +193,12 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  {
   const g=toy("musicbox");
   B(g,.49,.30,.40,0,.20,0,m.wood,.026);
-  B(g,.53,.052,.43,0,.39,-.04,m.brass,.021);
+  musicLid=new THREE.Group();
+  musicLid.position.set(0,.39,-.205);g.add(musicLid);
+  B(musicLid,.53,.052,.43,0,0,.165,m.brass,.021);
+  for(const x of [-.17,.17]){
+   C(g,.038,.045,x,.38,-.20,m.gold,"x");
+  }
   for(let i=0;i<7;i++)B(g,.043,.022,.10,-.17+i*.055,.31,.22,i%2?m.cream:m.dark,.008);
   torus(g,.07,.018,.275,.24,.01,m.gold,"x");
   wire(g,[[.27,.27,.01],[.34,.34,.01],[.38,.34,.01]],.013,m.brass);
@@ -292,6 +333,10 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
+  setPose(doorLeaf,"rotation","y",s.doorOpen?-.98:0);
+  setPose(musicLid,"rotation","x",s.music?-.91:0);
+  if(vaseWhole)vaseWhole.visible=!s.vase;
+  if(vaseFragments)vaseFragments.visible=!!s.vase;
   // The code wheels are hidden inside the luggage lining until the
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
@@ -301,10 +346,8 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   liftDoors.forEach((panel,i)=>{
    panel.position.x=(i===0?-1:1)*(s.floorFour?.18:.105);
   });
-  // The vase is part of the dog sequence: after it breaks it is replaced
-  // with loose, disconnected pieces rather than a still-intact vase.
-  const vase=items.get("vase");
-  if(vase)vase.toy.scale.y=s.vase?.24:1;
+  // The vase remains full-size in object space: its genuine fragments replace
+  // the intact geometry, rather than squashing the original to fake breakage.
  }
  // Raycast targets must be registered AFTER sculpting the miniatures:
  // otherwise setHit traverses an empty group and none of them are clickable.
