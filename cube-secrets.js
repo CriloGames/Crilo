@@ -357,7 +357,7 @@ function inspectHardware(name){
     s.pressureReady=true;gain('fork');
     bloom('pressure-dial','The brass manometer reaches three. A slender tuning fork unclips from the gauge.');
     scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
-   }else tell('The tiny needle moves one mark. It seems to want three.');
+   }else tell('The little gauge needle settles onto another engraved tick.');
   }else tell('The pressure holds steady at three, though there is nothing inside.');
   return true;
  }
@@ -415,9 +415,11 @@ function inspectHardware(name){
   return true;
  }
  if(name==='eye-ring'){
-  s.eyeRingTicks++;
-  if(s.eyeRingTicks===3)bloom('eye-dial','The ring clicks into place. Something behind the eye wants a gear. A sliver of engraved brass slides out beside the lens.');
-  else tell(s.eyeRingTicks>=3?'The iris is fully calibrated. There is now a tiny metal strip on the back face.':'The tiny iris adjuster advances one engraved mark.');
+  const oldTicks=Math.min(3,s.eyeRingTicks||0);
+  s.eyeRingTicks=Math.min(3,oldTicks+1);
+  if(oldTicks<3&&s.eyeRingTicks===3)
+   bloom('eye-dial','The optical collar reaches its stop. A narrow brass inscription appears beside the lens.');
+  else tell(oldTicks===3?'The optical ring is against its mechanical stop.':'The iris ratchet clicks to its next detent.');
   cue(document.querySelector('[data-hit="eye-ring"]'),'nc-fastener-turning',500);
   return true;
  }
