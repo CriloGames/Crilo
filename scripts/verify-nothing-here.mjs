@@ -19,6 +19,14 @@ page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/secrets.html*',r=>r.fulfill({status:200,contentType:'text/html',body:html}));
 await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('/ 70'));
+// The information dialog must be keyboard-accessible and close with Escape.
+await page.locator('#gameInfoBtn').click();
+assert.equal(await page.locator('#gameInfoBtn').getAttribute('aria-expanded'),'true');
+await page.keyboard.press('Tab');
+assert(await page.evaluate(()=>document.activeElement?.closest('#srDialog')!==null),'Modal focus escaped into the page');
+await page.keyboard.press('Escape');
+assert(await page.locator('#srDialog').evaluate(el=>el.hidden),'Escape did not close the dialog');
+assert.equal(await page.locator('#gameInfoBtn').getAttribute('aria-expanded'),'false');
 const take=async(action,n=1,attribute)=>{
  const selector=attribute?
   '[data-action="'+action+'"][data-'+attribute[0]+'="'+attribute[1]+'"]':
@@ -100,7 +108,7 @@ for(const key of ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','Arrow
  await page.keyboard.press(key);
 const progress=await page.evaluate(()=>{
  const raw=JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')||'{}');
- return {found:raw.found||[],count:document.getElementById('srCount').textContent,
+ return {found:raw.found||[],room:raw.room||{},count:document.getElementById('srCount').textContent,
   scene:document.getElementById('srScene').dataset.place};
 });
 const missing=all.filter(id=>!progress.found.includes(id));
@@ -109,11 +117,21 @@ console.log('SECRET QA',JSON.stringify({total:all.length,found:progress.found.le
 assert.deepEqual(errors,[]);
 assert.deepEqual(missing,[],'Some curated secrets cannot be discovered');
 assert.equal(progress.found.length,70);
+assert.deepEqual(progress.room,{lamp:false,rain:true,watered:true,radio:false,cup:false,cupFull:false},
+ 'Interactions did not persist their environmental state');
 const savedCount=progress.found.length;
 await page.reload({waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>document.getElementById('srCount')?.textContent.includes('70'));
 assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('crilo_nothing_here_secrets_v1')).found.length),savedCount,
  'Discoveries did not survive reload');
+const reloadedRoom=await page.locator('#srScene').evaluate(el=>({
+ lamp:el.dataset.lamp,rain:el.dataset.rain,watered:el.dataset.watered,
+ radio:el.dataset.radio,cup:el.dataset.cup,cupWater:el.dataset.cupWater,
+ safe:el.dataset.safe,rug:el.dataset.rug
+}));
+assert.deepEqual(reloadedRoom,{lamp:'off',rain:'yes',watered:'yes',radio:'off',
+ cup:'set',cupWater:'empty',safe:'open',rug:'lift'},
+ 'Room visuals failed to restore from saved progress');
 // Responsive layout and dark theme on a fresh tab. No progress corruption.
 await page.setViewportSize({width:390,height:844});
 const mobile=await page.evaluate(()=>({
@@ -122,9 +140,10 @@ const mobile=await page.evaluate(()=>({
  count:document.getElementById('srCount').textContent
 }));
 assert(mobile.width<=mobile.viewport+2,'Horizontal overflow on mobile');
+await take('star',1,['star','1']); // physically tap a small mobile object
 await page.evaluate(()=>localStorage.setItem('crilo_theme','dark'));
 await page.reload({waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
 assert.deepEqual(errors,[]);
-console.log('PASS: 70/70 secrets, saved progress, mobile layout and dark theme');
+console.log('PASS: 70/70 physically clicked secrets, persistent room, keyboard modal, mobile and dark theme');
 await browser.close();
