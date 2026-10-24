@@ -53,7 +53,7 @@ assert.deepEqual(errors,[]);
 console.log('Loaded clean real HTML with 6 physical 3D faces');
 assert.equal(await page.locator('.nc-tactile-screw').count(),4);
 assert.equal(await page.locator('[data-hit^="vent-"]').count(),3);
-assert.equal(await page.locator('.nc-inspection-controls button').count(),9);
+assert.equal(await page.locator('.nc-inspection-controls button').count(),8);
 assert(await page.locator('#ncViewReset').isVisible());
 await page.locator('#ncZoomIn').click();
 assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.25);
