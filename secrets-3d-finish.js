@@ -112,6 +112,9 @@ export function finishMechanicalArtifact({
       B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
     }
     for(const x of [-1.22,1.22])for(const y of [-1.22,1.22]){
+      // A second decorative corner cap would cut through the iris service
+      // cassette. The cassette has its own captive screws instead.
+      if(face===backFace&&x>0&&y<0)continue;
       C(face,.092,.045,x,y,.15,darkMetal);
       C(face,.068,.042,x,y,.185,tinyGold);
       stud(face,x,y,.212,.035);
