@@ -6,6 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=5";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=2";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=2";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -317,6 +318,7 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat
 }):null;
+const pocketWorlds=embeddedGame?buildPocketWorlds({scene,box,cylinder,mat,setHit}):null;
 let currentGameState={};
 
 // Grounding is a real plane receiving the real shadow of the mechanism.
@@ -364,6 +366,10 @@ function toggleHatch(){
 }
 function clickAction(action){
  if(embeddedGame){
+  if(action.startsWith("thing:")){
+   window.CriloNothingHereCube?.activatePhysicalThing?.(action.slice(6));
+   return;
+  }
   const translate={
    front:currentGameState.a?"drawer-a":"latch",
    side:currentGameState.b?"drawer-b":"seam",
@@ -420,7 +426,8 @@ renderer.domElement.addEventListener("pointermove",e=>{
  if(!bounds.width||!bounds.height)return;
  pointer.set(((e.clientX-bounds.left)/bounds.width)*2-1,-((e.clientY-bounds.top)/bounds.height)*2+1);
  raycaster.setFromCamera(pointer,camera);
- renderer.domElement.style.cursor=raycaster.intersectObjects(interactiveMeshes,false).length?"pointer":"grab";
+ renderer.domElement.style.cursor=raycaster.intersectObjects(interactiveMeshes,false)
+  .some(hit=>hit.object.userData.action&&isMeshEffectivelyVisible(hit.object))?"pointer":"grab";
 });
 renderer.domElement.addEventListener("pointerup",e=>{
  if(!clickStart||Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7)return;
@@ -480,6 +487,15 @@ window.__nothing3DPreview={
  },
  get finishMeshCount(){return finish.meshCount()},
  get gameControls(){return gameHotspots?.actions||[]},
+ get physicalStoryObjects(){return pocketWorlds?.names||[]},
+ get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
+ projectPhysicalStoryObject(name){
+  const obj=pocketWorlds?.targets.get(name);
+  if(!obj||!isMeshEffectivelyVisible(obj))return null;
+  scene.updateWorldMatrix(true,true);
+  const p=obj.getWorldPosition(new THREE.Vector3()).project(camera);
+  return {x:(p.x+1)*.5*stage.clientWidth,y:(1-p.y)*.5*stage.clientHeight,depth:p.z};
+ },
  projectGameControl(name){
   const obj=gameHotspots?.targets.get(name);
   if(!obj)return null;
@@ -524,6 +540,7 @@ window.__nothing3DPreview={
   if(!embeddedGame)return;
   currentGameState=state||{};
   if(gameHotspots)gameHotspots.setState(currentGameState);
+  if(pocketWorlds)pocketWorlds.setState(currentGameState);
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
     obj.open=open;
