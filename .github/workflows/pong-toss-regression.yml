@@ -1,0 +1,36 @@
+name: Pong Toss regression checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ping-pong-toss.js'
+      - 'pong-toss.html'
+      - 'ping-pong-toss.css'
+      - 'scripts/verify-pong-toss.mjs'
+      - '.github/workflows/pong-toss-regression.yml'
+  pull_request:
+    paths:
+      - 'ping-pong-toss.js'
+      - 'pong-toss.html'
+      - 'ping-pong-toss.css'
+      - 'scripts/verify-pong-toss.mjs'
+      - '.github/workflows/pong-toss-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-250-combinations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out Crilo
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all levels and balls
+        run: node scripts/verify-pong-toss.mjs
