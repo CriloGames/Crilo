@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {batchStaticGeometry} from "./secrets-3d-batching.js";
+import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 
 /**
  * Physical finishing pass. Every ornamental element is a real 3D mesh,
