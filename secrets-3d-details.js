@@ -63,7 +63,12 @@ export function buildIntricateCube({
     // Inner panel is a real raised physical layer with corner detailing.
     for(const sy of [-1,1]){
       B(face,2.85,.055,.07,0,sy*1.38,.10,m,.016);
-      for(const sx of [-1,1])rivet(face,sx*1.31,sy*1.33,.16);
+      for(const sx of [-1,1]){
+        // The integrated iris service cassette occupies this corner.
+        // Avoid an orphaned shell rivet running through its backplate.
+        if(face===backFace&&sx>0&&sy<0)continue;
+        rivet(face,sx*1.31,sy*1.33,.16);
+      }
     }
     for(const sx of [-1,1])B(face,.055,2.63,.07,sx*1.39,0,.10,m,.018);
   };
