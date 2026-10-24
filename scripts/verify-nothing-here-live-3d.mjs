@@ -45,11 +45,22 @@ try{
  meshes:window.__nothing3DPreview.meshCount,
  controls:window.__nothing3DPreview.gameControls,
  visible:getComputedStyle(document.querySelector("#stage")).visibility,
- blockers:window.__nothing3DPreview.solidShellBlockerCount
+ blockers:window.__nothing3DPreview.solidShellBlockerCount,
+ floating:window.__nothing3DPreview.floatingScene,
+ plinth:window.__nothing3DPreview.pedestalMeshCount,
+ mounts:window.__nothing3DPreview.storyMounts,
+ pedestalSupports:window.__nothing3DPreview.pedestalSupportLengths.length
  }));
  assert.equal(initial.visible,"visible");
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  assert(initial.blockers>=15,"Physical casing is missing face occluders");
+ assert(initial.floating&&initial.plinth===0&&initial.pedestalSupports===0,
+   "Nothing Here must float without a stand, a floor or mechanical supports");
+ assert.equal(initial.mounts.length,15,"All miniature scenes must remain in the floating version");
+ assert(initial.mounts.every(p=>["frontFace","backFace","leftFace","rightFace","topFace","bottomFace"].includes(p.face)),
+   "A miniature is still mounted outside the rotating cube");
+ assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
+   "A miniature was lost or duplicated when removing the pedestal");
  assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("latch")),/front drawer/i,
   "The live latch needs an understandable 3D label");
  assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("seam")),/side/i,
@@ -213,12 +224,19 @@ try{
  const once=await state();
  assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
   "Existing automatic physical compartment item pickups stopped working");
+ // The underside's visible physical button must not be wired to the TOP
+ // triangle. It releases the ring and leaves the top secret untouched.
+ const topCountBefore=(await state()).topHits;
+ await activate("underside");
+ assert((await state()).bottom===true&&((await state()).ringTaken===true),
+   "The underside button must release the ring and add it to inventory");
+ assert.equal((await state()).topHits,topCountBefore,
+   "The underside control is incorrectly wired to the top lid");
  const collected=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
  for(const name of ["tooth","thread","pipe","extraKey","extraThread"])
   assert.equal(collected[name],false,"Collected physical piece is still visible on the box: "+name);
  // Assemble the original key from actual collected objects and solve the
  // physical 3D bag wheels without an HTML modal or a parallel progress store.
- await activate("underside");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,false,
  "Collected underside ring must physically disappear into inventory");
  await page.locator('#ncInventory [data-item="tooth"]').click();
