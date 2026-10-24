@@ -7,7 +7,7 @@ export function buildIntricateCube({
   box, cylinder, label, setHit, mat, animate, materials
 }) {
   const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
-  const {brass,metal,darkMetal,ivory,cavityMaterial}=materials;
+  const {brass,metal,darkMetal,ivory,cavityMaterial,rubber}=materials;
   const satin=mat(0x806e7c,.52,.4),steel=mat(0x88929c,.72,.27);
   const gold=mat(0xf2d5a1,.57,.24),pearl=mat(0xfff2da,.08,.27);
   const verdigris=mat(0x80b1a9,.43,.39),ebony=mat(0x343d48,.14,.5);
