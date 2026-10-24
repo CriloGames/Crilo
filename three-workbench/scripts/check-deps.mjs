@@ -1,17 +1,17 @@
 // Run inside three-workbench after npm install.
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
+import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import { acceleratedRaycast, computeBoundsTree } from 'three-mesh-bvh';
-const require = createRequire(import.meta.url);
+
 const pkgs = [
  ['three','0.186.1'],
  ['gsap','3.15.0'],
  ['three-mesh-bvh','0.9.16']
 ];
 for (const [name, expected] of pkgs) {
- const actual = require(name+'/package.json').version;
+ const actual = JSON.parse(readFileSync(new URL('../node_modules/'+name+'/package.json',import.meta.url),'utf8')).version;
  assert.equal(actual, expected, name+' version mismatch');
  console.log(name+': '+actual);
 }
