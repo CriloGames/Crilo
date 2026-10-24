@@ -102,8 +102,9 @@ await thing('cloud');await use('raindrop','pot');
 assert((await state()).tree,'The cloud did not water the planted acorn');
 assert((await state()).pocket.includes('bird'));
 await rotate(0,0);
+await pocket('bird');
 await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
-await pocket('bird');await page.locator('#ncOfferingTarget').click({timeout:7500});
+await page.locator('#ncOfferingTarget').click({timeout:7500});
 assert((await state()).moon,'Bird did not reveal the moon inside the cube');
 // Other independent paths: coin machine sugar and thread prism kite.
 await use('coin','machine');await use('sugar','cup');
