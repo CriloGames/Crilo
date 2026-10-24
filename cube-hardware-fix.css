@@ -1,0 +1,264 @@
+/* Nothing Here — physically attached cube mechanisms.
+   This sheet intentionally comes last: it replaces the legacy oversized
+   65-110px extrusion animations without altering the saved puzzle state. */
+
+/* Every mechanism starts with an immovable socket inset into its own face. */
+.nc-page .nc-cube .nc-mech-bay,
+.nc-page .nc-cube .nc-top-bay{
+ position:absolute;
+ display:block;
+ transform-style:preserve-3d;
+ overflow:visible;
+ z-index:9;
+ pointer-events:none;
+}
+.nc-page .nc-cube .nc-mech-bay-a{
+ left:23%;top:61%;width:57%;height:27%;
+ --metal:#a49aaa;--socket:#655a72;--enamel:#ded3e4;--rim:#81758c;
+}
+.nc-page .nc-cube .nc-mech-bay-b{
+ left:18%;top:44%;width:64%;height:28%;
+ --metal:#8bb7b9;--socket:#496d74;--enamel:#b1d7d2;--rim:#65888d;
+}
+.nc-page .nc-mech-bay .nc-bay-cavity{
+ position:absolute;inset:0;display:block;pointer-events:none;
+ border:3px solid var(--rim);border-radius:8px;
+ transform:translateZ(3px);
+ background:linear-gradient(145deg,#252d355e,var(--socket) 42%,#c8c5bc57 100%);
+ box-shadow:inset 0 6px 10px #22273396,inset 0 -3px 5px #fff3,0 0 0 3px #ffffffb3,0 0 0 5px var(--metal);
+}
+.nc-page .nc-mech-bay .nc-bay-cavity i{
+ position:absolute;left:10%;right:10%;height:4px;border-radius:4px;
+ background:linear-gradient(180deg,#faf8f0bd,#7a7b83c9);box-shadow:0 1px 2px #1e282f7a;
+}
+.nc-page .nc-mech-bay .nc-bay-cavity i:first-child{top:18%}
+.nc-page .nc-mech-bay .nc-bay-cavity i:last-child{bottom:17%}
+.nc-page .nc-mech-bay .nc-bay-track{
+ position:absolute;z-index:1;top:16%;bottom:13%;width:9px;
+ border:2px solid #4d5667;border-radius:4px;pointer-events:none;
+ background:linear-gradient(90deg,#a2a6b2,#edf1ed,#777885);
+ transform:translateZ(7px);box-shadow:0 2px 3px #29313985;
+}
+.nc-page .nc-mech-bay .nc-bay-track-left{left:-5px}
+.nc-page .nc-mech-bay .nc-bay-track-right{right:-5px}
+.nc-page .nc-mech-bay .nc-bay-trim{
+ position:absolute;inset:-5px;border:2px solid var(--rim);border-radius:9px;
+ box-shadow:inset 0 0 0 2px #fff9,0 3px 0 #606b6e5b;
+ pointer-events:none;transform:translateZ(8px);z-index:1;
+}
+
+/* The tray belongs to the fixed socket; it no longer uses top/left offsets
+   relative to the whole cube, which caused the detached appearance. */
+.nc-page .nc-mech-bay .nc-drawer{
+ position:absolute;inset:3px;
+ width:auto!important;height:auto!important;left:0!important;top:0!important;
+ display:block;opacity:1!important;
+ border:2px solid var(--rim);border-radius:6px;
+ background:linear-gradient(165deg,var(--enamel),var(--metal));
+ transform:translateZ(10px) translateY(0);
+ transform-origin:center 10%;
+ box-shadow:inset 0 0 0 3px #fff9,0 3px 0 #6c71807d,
+ 0 5px 8px #3a455459!important;
+ transition:none;
+ overflow:visible;pointer-events:none;
+ z-index:3;
+}
+.nc-page .nc-mech-bay .nc-drawer-rails{
+ left:0;right:0;top:10%;height:79%;z-index:-1;opacity:.6;
+}
+.nc-page .nc-mech-bay .nc-drawer-rails i{
+ height:100%;width:7px;background:linear-gradient(90deg,#7d808e,#eef1ec,#8f97a0);
+ border-color:#5f6b78;
+}
+.nc-page .nc-mech-bay .nc-drawer-interior{
+ position:absolute;inset:7px 8px 13px;z-index:2;display:grid;place-items:center;
+ border:2px solid #62596a;
+ background:radial-gradient(ellipse at 40% 35%,#a69cac,#4f4357);
+ box-shadow:inset 0 5px 6px #241e2d91,inset 0 0 0 3px #d8c1d143;
+ transform:translateZ(4px);
+ opacity:0;visibility:hidden;pointer-events:none;
+ transition:opacity .18s ease,visibility 0s linear .18s;
+}
+.nc-page .nc-mech-bay-b .nc-drawer-interior{border-color:#47727a;
+ background:radial-gradient(ellipse at 40% 35%,#8bbaba,#335c63);}
+.nc-page .nc-mech-bay .nc-drawer-interior>button{
+ position:relative;z-index:6;min-width:42px;min-height:37px;
+ max-width:100%;max-height:100%;border:0;background:none;
+ padding:0;pointer-events:none;
+}
+.nc-page .nc-mech-bay .nc-sculpt-key{transform:scale(.73)}
+.nc-page .nc-mech-bay .nc-sculpt-spool{transform:scale(.7) rotate(-20deg)}
+.nc-page .nc-mech-bay .nc-drawer-lip{
+ left:10%;right:10%;height:11px;bottom:-4px;
+ background:linear-gradient(#faf4e6,var(--metal));
+ border:2px solid var(--rim);
+ box-shadow:0 2px 0 #55606b59;
+ border-radius:2px 2px 5px 5px;transform:translateZ(6px);
+}
+.nc-page .nc-mech-bay .nc-drawer-lip-stud{height:3px;width:31px}
+.nc-page .nc-mech-bay .nc-drawer-fascia{
+ position:absolute;z-index:9;inset:0;pointer-events:none;
+ border:2px solid var(--rim);border-radius:5px;
+ display:flex;align-items:center;justify-content:center;
+ background:repeating-linear-gradient(90deg,#ffffff13 0 7px,#3b596112 7px 9px),
+ linear-gradient(152deg,#fff8,var(--enamel) 42%,var(--metal));
+ box-shadow:inset 0 0 0 3px #fff9,inset 0 -6px 9px #5d5d6630;
+ opacity:1;transform:translateZ(6px);
+ transition:opacity .18s,transform .38s ease-out,visibility 0s;
+}
+.nc-page .nc-mech-bay .nc-drawer-fascia i{
+ position:absolute;left:8%;top:19%;width:15px;height:15px;
+ border:2px solid #9e9aa2;border-radius:50%;
+ background:radial-gradient(circle at 30% 30%,#fff7d8,#c7ac87);
+ box-shadow:1px 2px 0 #63596a6b;
+}
+.nc-page .nc-mech-bay .nc-drawer-fascia b{
+ display:block;color:#596471;font-weight:900;letter-spacing:.11em;
+ font-size:clamp(7px,.72vw,9px);text-shadow:0 1px 0 #fff9;
+}
+.nc-page .nc-mech-bay .nc-drawer-fascia em{
+ position:absolute;right:10%;top:26%;height:16px;width:9px;
+ border-left:2px solid #5f6872;border-right:2px solid #5f6872;
+ border-radius:4px;opacity:.65;
+}
+
+/* Both drawers move only a few millimeters away from their rails.
+   A drawer stays in front of its own socket, not below the cube. */
+.nc-page.nc-a-open .nc-mech-bay-a #ncDrawerA{
+ animation:ncTrayAppear .67s cubic-bezier(.17,.75,.25,1) both;
+ pointer-events:auto;
+}
+.nc-page.nc-b-open .nc-mech-bay-b #ncDrawerB{
+ animation:ncSideTrayAppear .67s cubic-bezier(.17,.75,.25,1) both;
+ pointer-events:auto;
+}
+@keyframes ncTrayAppear{
+ 0%{transform:translateZ(10px) translateY(0)}
+ 70%{transform:translateZ(31px) translateY(20px)}
+ 100%{transform:translateZ(26px) translateY(16px)}
+}
+@keyframes ncSideTrayAppear{
+ 0%{transform:translateZ(10px) translateY(0)}
+ 70%{transform:translateZ(32px) translateY(18px)}
+ 100%{transform:translateZ(27px) translateY(14px)}
+}
+.nc-page.nc-a-open .nc-mech-bay-a .nc-drawer-interior,
+.nc-page.nc-b-open .nc-mech-bay-b .nc-drawer-interior{
+ opacity:1;visibility:visible;pointer-events:auto;transition-delay:.3s,0s;
+}
+.nc-page.nc-a-open .nc-mech-bay-a .nc-drawer-interior>button,
+.nc-page.nc-b-open .nc-mech-bay-b .nc-drawer-interior>button{pointer-events:auto}
+.nc-page.nc-a-open .nc-mech-bay-a .nc-drawer-fascia,
+.nc-page.nc-b-open .nc-mech-bay-b .nc-drawer-fascia{
+ opacity:0;visibility:hidden;transform:translateZ(8px) translateY(14px);
+ transition-delay:.12s,.12s,.4s;
+}
+.nc-page .nc-mech-bay .nc-drawer.nc-emptied .nc-sculpt-key,
+.nc-page .nc-mech-bay .nc-drawer.nc-emptied .nc-sculpt-spool{
+ opacity:.15;filter:grayscale(1);pointer-events:none;
+}
+
+/* The lid is permanently fastened along the REAR edge of a recessed well.
+   Its zero position is flush with the same surface as its hinge; opening
+   rotates around that axis rather than translating into the neighboring face. */
+.nc-page .nc-cube .nc-top-bay{
+ left:19%;top:15%;width:62%;height:63%;z-index:9;
+}
+.nc-page .nc-top-bay .nc-top-recess{
+ position:absolute;inset:0;transform:translateZ(3px);
+ border:3px solid #9a865b;border-radius:9px;pointer-events:none;
+ background:radial-gradient(ellipse at 45% 50%,#63543c,#9e865c 72%,#c8b991);
+ box-shadow:inset 0 10px 18px #42341eaa,inset 0 0 0 4px #e2c99b7d,
+ 0 0 0 4px #f7ebcfe8,0 3px 0 #83745b;
+}
+.nc-page .nc-top-bay .nc-top-hinge-bar{
+ position:absolute;left:7%;right:7%;top:-10px;height:14px;z-index:14;pointer-events:none;
+ display:flex;align-items:center;justify-content:space-between;
+ transform:translateZ(12px);
+}
+.nc-page .nc-top-bay .nc-top-hinge-bar i{
+ width:23%;height:100%;border:2px solid #826b44;border-radius:7px;
+ background:linear-gradient(#fff5d5,#c5a86e 47%,#8c7348 100%);
+ box-shadow:0 2px 0 #716041a6,inset 0 1px 0 #fff8;
+}
+.nc-page .nc-top-bay .nc-top-well{
+ position:absolute;inset:9%;left:9%;top:9%;width:82%;height:82%;
+ z-index:2;opacity:0;pointer-events:none;transform:translateZ(8px);
+ border:2px solid #9e8560;border-radius:7px;
+ background:linear-gradient(135deg,#6a5942,#897457);
+ box-shadow:inset 0 5px 12px #342917ce,inset 0 0 0 4px #f2d6a447;
+ transition:opacity .27s;
+}
+.nc-page.nc-top-open .nc-top-bay .nc-top-well{
+ opacity:1;pointer-events:auto;transform:translateZ(8px);
+}
+.nc-page .nc-top-bay .nc-top-well .nc-well-pipe{
+ position:absolute;z-index:9;left:16%;top:auto;bottom:5%;width:68%;
+ height:38px;padding:2px;pointer-events:auto;
+ background:linear-gradient(#f7e5be,#cdb38b);border-color:#867052;
+ border-radius:7px;
+}
+.nc-page .nc-top-bay .nc-top-well .nc-well-pipe:focus-visible{
+ outline:3px solid #8fc3a1;outline-offset:2px;
+}
+.nc-page .nc-top-bay .nc-lid{
+ position:absolute;inset:0;left:0;top:0;width:100%;height:100%;
+ z-index:11;display:block;opacity:1;pointer-events:none!important;
+ transform:translateZ(10px) rotateX(0deg);
+ transform-origin:50% 0;transition:transform .85s cubic-bezier(.2,.7,.2,1);
+ backface-visibility:visible;
+ border:3px solid #998157;border-radius:9px;
+ background:linear-gradient(146deg,#fcf1d4,#dfc89b 53%,#bba47b);
+ box-shadow:inset 0 0 0 3px #fff7,inset 0 0 0 7px #a78d5842,0 4px 0 #807052;
+}
+.nc-page.nc-top-open .nc-top-bay .nc-lid{
+ transform:translateZ(10px) rotateX(107deg);
+ box-shadow:inset 0 0 0 4px #fbeac2,0 2px 4px #69553465;
+}
+.nc-page .nc-top-bay .nc-lid-under{
+ inset:10px;border:1px solid #fff8;border-radius:5px;
+ box-shadow:inset 0 0 0 3px #967a5826;
+}
+.nc-page .nc-top-bay .nc-lid-mark{
+ position:absolute;inset:0;display:grid;place-items:center;
+ color:#b09870;opacity:.4;font-size:65px;pointer-events:none;
+}
+.nc-page .nc-top-bay .nc-hatch-engraving{
+ position:absolute;bottom:13%;left:50%;transform:translateX(-50%);
+ color:#91774f;font-size:8px;letter-spacing:.16em;font-weight:900;
+ pointer-events:none;white-space:nowrap;
+}
+.nc-page .nc-top-bay .nc-lid .nc-top-triangle{
+ position:absolute;top:15%;left:calc(50% - 29px);width:58px;height:55px;
+ z-index:14;pointer-events:auto;display:grid;place-items:center;
+ font-size:38px;line-height:1;
+ border:3px solid #9c8457;border-radius:8px;
+ background:linear-gradient(#fff2d3,#dbbf8e);
+ box-shadow:0 3px 0 #897553,inset 0 0 0 3px #fff7;
+}
+.nc-page .nc-top-bay .nc-lid .nc-top-triangle:hover{filter:brightness(1.08)}
+.nc-page .nc-top-bay .nc-lid .nc-top-triangle:active{transform:translateY(2px)}
+/* Earlier pointer fixes remain valid for the accessible hinge pins. */
+.nc-page .nc-top .nc-hinge-frame{z-index:4}
+.nc-page .nc-top .nc-hinge-frame>button{z-index:15}
+
+/* Small/mobile stage uses percentages so attachments scale with the cube. */
+@media(max-width:760px){
+ .nc-page .nc-mech-bay .nc-drawer-fascia b{font-size:7px;letter-spacing:.06em}
+ .nc-page .nc-mech-bay .nc-drawer-fascia i{height:10px;width:10px}
+ .nc-page .nc-mech-bay .nc-drawer-interior{inset:3px 4px 9px}
+ .nc-page .nc-mech-bay .nc-drawer-interior>button{min-width:35px;min-height:32px}
+ .nc-page .nc-top-bay .nc-lid .nc-top-triangle{
+  width:45px;height:41px;left:calc(50% - 22px);font-size:27px;
+ }
+ .nc-page .nc-top-bay .nc-lid-mark{font-size:41px}
+ .nc-page .nc-top-bay .nc-top-well .nc-well-pipe{height:30px}
+ .nc-page .nc-top-bay .nc-top-well .nc-sculpt-pipe{transform:scale(.78) rotate(-8deg)}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page .nc-top-bay .nc-lid{transition:none}
+ .nc-page.nc-a-open .nc-mech-bay-a #ncDrawerA,
+ .nc-page.nc-b-open .nc-mech-bay-b #ncDrawerB{animation-duration:.01ms}
+ .nc-page .nc-mech-bay .nc-drawer-fascia,
+ .nc-page .nc-mech-bay .nc-drawer-interior{transition:none}
+}
