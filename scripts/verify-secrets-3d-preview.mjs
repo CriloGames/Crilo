@@ -16,7 +16,12 @@ try {
   stage:document.querySelector('#stage')?.getBoundingClientRect()?.toJSON()
  }));
  assert.equal(state.engine,'three.js');
- assert(state.meshes>=500,'The artisan model is missing its physically modeled detailing: '+state.meshes);
+ assert(state.meshes>=180&&state.meshes<=800,
+ 'The physical model should remain detailed but GPU-batched: '+state.meshes+' draw meshes');
+const batches=await page.evaluate(()=>window.__nothing3DPreview.batching);
+const savings=batches.artisan.drawCallsSaved+batches.precision.drawCallsSaved;
+assert(savings>=150,'Too few static decorative meshes were batched: '+JSON.stringify(batches));
+console.log('Render batching:',batches,'saved',savings,'GPU draw calls');
 const finish=await page.evaluate(()=>({
  count:window.__nothing3DPreview.finishMeshCount,
  quality:window.__nothing3DPreview.finishQuality
