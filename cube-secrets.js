@@ -675,11 +675,13 @@ function info(){
   '<p>Some things you find can be used on other things. Select an item from your pocket to see what accepts it. Two pocket items only combine when they are actually compatible.</p>'+
   '<p>There are no levels. Things will happen without permission. Progress saves on this device.</p>','info');
 }
+const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||
+ /^(?:front-screw-|right-bolt-|hinge-|vent-)/.test(name);
 function hit(e){
  const el=e.target.closest('[data-hit]');if(!el||!$('ncCube').contains(el))return;
  // Pointer activation of the moving red dot is handled on pointerdown.
  // Preserve keyboard and screen-reader synthetic clicks (detail === 0).
- if(el.dataset.hit==='dot'&&e.detail!==0)return;
+ if(tactileHit(el.dataset.hit)&&e.detail!==0)return;
  e.stopPropagation();cubeHit(el.dataset.hit);
 }
 function eventThing(e){
@@ -696,8 +698,9 @@ function clickInventory(e){
 // a face behind the tray during its opening animation. Keyboard clicks still
 // use the normal delegated click handler; every pickup is idempotent.
 $('ncCube').addEventListener('pointerdown',event=>{
- const target=event.target.closest('[data-hit="drawer-a"],[data-hit="drawer-b"],[data-hit="top-reed"],[data-hit="dot"]');
+ const target=event.target.closest('[data-hit]');
  if(!target||event.button!==0||!event.isPrimary)return;
+ if(!['drawer-a','drawer-b','top-reed'].includes(target.dataset.hit)&&!tactileHit(target.dataset.hit))return;
  event.stopPropagation();
  cubeHit(target.dataset.hit);
 },true);
