@@ -71,7 +71,7 @@ s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInt
 s.rx=clamp(Number(raw.rx)||-18,-4000,4000);
 s.ry=clamp(Number(raw.ry)||-24,-4000,4000);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
-let toastTimeout=null,animationTimeout=null;
+let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
 function store(){
  try{localStorage.setItem(KEY,JSON.stringify({...s,seen:[...seen],pocket:[...pocket]}))}catch{}
@@ -140,7 +140,7 @@ function render(){
  $('ncDoorPlace').hidden=!s.doorOpen;
  if($('ncDoor'))$('ncDoor').classList.toggle('nc-door-open',s.doorOpen);
  for(const [name,on] of Object.entries({
- bag:s.bag, vase:s.doorOpen, squirrel:s.squirrel&&!s.barked,
+ bag:s.bag, vase:s.doorOpen, squirrel:s.squirrel&&(!s.barked||fleeing),
  pot:s.vase, musicbox:s.vase, cloud:s.cloud,
  cup:s.music,clock:s.watch,machine:s.mouse
  })){const node=prop(name);if(node)node.hidden=!on}
@@ -218,7 +218,7 @@ function use(item,thing){
   spend('acorn');s.plant=true;bloom('acorn','The acorn sprouts in dry dirt. It looks expectant.');
  }else if(item==='raindrop'&&thing==='pot'){
   spend('raindrop');s.tree=true;bloom('tree','The tiny tree grows into a giant tiny tree.');
-  gain('bird','A paper bird falls from its branches.');
+  gain('bird','A paper bird falls from its branches.');bloom('bird');
  }else if(item==='spring'&&thing==='musicbox'){
   spend('spring');s.music=true;s.cloud=true;s.cup=true;
   bloom('music','The music box plays a song that attracts a miniature rain cloud.');
@@ -248,7 +248,7 @@ function openBag(){
  if(!s.bagOpen){tell('The bag is locked. Its little brass keyhole seems very specific.');return}
  const sym=['○','✳','◇','☾'];
  modal('INSIDE THE BAG',s.bagSolved?'A suspicious lining':'The three hidden wheels',
-  '<p>Three small wheels are sewn into the lining. You have to make the shapes line up. Something clicks when they do.</p>'+
+  '<p>Three small wheels are sewn into the lining. A faded stitch reads: <strong>DIAMOND · CIRCLE · MOON.</strong></p>'+ 
   '<div class="nc-bag-wheels">'+[0,1,2].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+'" aria-label="Turn wheel '+(i+1)+'">'+sym[s.bagDials[i]]+'</button>').join('')+'</div>'+
   '<p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'These are not ordinary luggage wheels.')+'</p>','bag');
 }
@@ -291,7 +291,8 @@ function bark(){
   bloom('bark','After three pats, the dog lets out a shockingly loud BARK!');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
   bloom('vase','The squirrel knocks over an unseen vase. An acorn and a spring roll out.');
-  gain('acorn');gain('spring');incident('✺');
+  gain('acorn');gain('spring');bloom('spring');fleeing=true;incident('🐿');
+  setTimeout(()=>{fleeing=false;render()},1350);
   sound(215);
  }else if(s.dogHits<3)tell('The dog likes that. Keep petting.');
  else tell('The dog is now very proud of itself.');
