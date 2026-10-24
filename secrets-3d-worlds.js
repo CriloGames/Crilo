@@ -21,6 +21,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  scene.add(root);
  let parts=0;
  const items=new Map(),locations=new Map();
+ const puzzleControls=new Map(),bagDials=[],liftDoors=[];
  const B=(g,w,h,d,x,y,z,color,r=.027)=>{
   const o=box(g,w,h,d,x,y,z,color,r);
   o.castShadow=w>.13&&h>.12&&d>.09;parts++;return o;
@@ -84,6 +85,17 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
    C(g,.034,.02,x,.22,.161,m.dark,"z");
   }
   wire(g,[[-.12,.41,0],[-.10,.55,0],[.10,.55,0],[.12,.41,0]],.024,m.brass);
+  // The three combination tumblers are actual rotating bronze cylinders,
+  // fixed to a machined backplate on the bag, not modal-only buttons.
+  B(g,.43,.12,.034,0,.275,.153,m.dark,.017);
+  for(let i=0;i<3;i++){
+   const dial=new THREE.Group();
+   dial.position.set((i-1)*.13,.275,.197);g.add(dial);
+   C(dial,.047,.030,0,0,0,m.gold,"z");
+   B(dial,.011,.038,.012,0,.022,.022,m.black,.003);
+   C(dial,.012,.015,0,0,.025,m.copper,"z");
+   puzzleControls.set("thing:bag-dial-"+i,dial);bagDials.push(dial);
+  }
  }
  // Real opening doorway, jamb, inset raised panel, solid knob.
  {
@@ -201,7 +213,19 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   const g=toy("elevator");
   for(const x of [-.23,.23])B(g,.033,.72,.042,x,.39,0,m.brass,.012);
   for(const y of [.12,.71])B(g,.5,.035,.37,0,y,0,m.brass,.012);
-  for(const x of [-.105,.105])B(g,.20,.52,.045,x,.39,.17,m.gold,.016);
+  for(const x of [-.105,.105]){
+   const door=B(g,.20,.52,.045,x,.39,.17,m.gold,.016);
+   liftDoors.push(door);
+  }
+  // Four mechanically mounted brass call buttons next to the cage.
+  B(g,.18,.68,.16,.32,.39,.055,m.dark,.024);
+  for(let floor=1;floor<=4;floor++){
+   const button=new THREE.Group();
+   button.position.set(.32,.15+floor*.11,.159);g.add(button);
+   C(button,.043,.025,0,0,0,m.brass,"z");
+   C(button,.025,.028,0,0,.020,floor===4?m.pink:m.cream,"z");
+   puzzleControls.set("thing:elevator-floor-"+floor,button);
+  }
   C(g,.07,.03,0,.77,0,m.black,"z");
   C(g,.045,.014,0,.77,.04,m.blue,"z");
  }
@@ -266,6 +290,11 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
+  for(let i=0;i<bagDials.length;i++)
+   bagDials[i].rotation.z=((s.bagDials?.[i]||0)%4)*Math.PI/2;
+  liftDoors.forEach((panel,i)=>{
+   panel.position.x=(i===0?-1:1)*(s.floorFour?.18:.105);
+  });
   // The vase is part of the dog sequence: after it breaks it is replaced
   // with loose, disconnected pieces rather than a still-intact vase.
   const vase=items.get("vase");
@@ -274,11 +303,16 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit}){
  // Raycast targets must be registered AFTER sculpting the miniatures:
  // otherwise setHit traverses an empty group and none of them are clickable.
  for(const [name,{toy}] of items)setHit(toy,"thing:"+name);
+ // Register small control meshes AFTER their parent miniatures; otherwise
+ // the generic "inspect the bag" action would overwrite all dial hit IDs.
+ for(const [action,part] of puzzleControls)setHit(part,action);
  // Focus and hover belong to the outer stage; this geometry awards nothing.
  setState({});
  return {
   names:[...items.keys()],
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
+  puzzleTargets:puzzleControls,
+  puzzleActions:[...puzzleControls.keys()],
   setState,
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n)
