@@ -12,6 +12,7 @@ on:
       - 'cube-worlds.css'
       - 'cube-inspection.css'
       - 'cube-finish.css'
+      - 'cube-hardware-fix.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
