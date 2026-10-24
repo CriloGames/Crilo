@@ -372,11 +372,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const control=puzzleControls.get(action);
   if(!control||!action.startsWith("thing:elevator-floor-"))return false;
   gsap.killTweensOf(control.position);
-  control.position.z=.159;
-  if(reducedMotion){invalidate();return true;}
-  gsap.timeline({onUpdate:invalidate})
-   .to(control.position,{z:.113,duration:.12,ease:"power2.out"})
-   .to(control.position,{z:.159,duration:.27,ease:"back.out(2)"});
+  if(reducedMotion){control.position.z=.159;invalidate();return true;}
+  control.position.z=.105;invalidate();
+  gsap.to(control.position,{z:.159,duration:.32,delay:.085,
+   ease:"back.out(2)",onUpdate:invalidate});
   return true;
  }
  function setState(state){
