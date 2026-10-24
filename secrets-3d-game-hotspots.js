@@ -57,9 +57,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  // Front: actual fasteners are supplied by the base physical model.
  control(frontFace,"latch",-1.05,.11,brass,.145);
- engraving(frontFace,"PULL", -1.04,-.14,.35);
+ engraving(frontFace,"LATCH", -1.04,-.14,.43);
  control(frontFace,"dot",1.10,.15,red,.100);
- engraving(frontFace,"PRESS",1.08,-.12,.43);
+ engraving(frontFace,"RED",1.08,-.12,.36);
  tab(frontFace,"serial",0,1.38,nickel,.66,.11);
  // Raised center receiver, used both to inspect and to offer objects.
  const offering=node(frontFace,0,.59,.52);
@@ -68,7 +68,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  setHit(offering,"cube-offer");targets.set("cube-offer",offering);
  // Right: a service seam, sliding shutter and four genuine bolt heads.
  tab(rightFace,"seam",-.92,.26,copper,.22,.16);
- engraving(rightFace,"SLIDE",-.91,.49,.43);
+ engraving(rightFace,"SEAM",-.91,.49,.43);
  tab(rightFace,"shutter",.80,-1.09,nickel,.40,.19);
  engraving(rightFace,"SERVICE",.78,-1.33,.50);
  for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
@@ -82,15 +82,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  engraving(leftFace,"VENT",-.95,.26,.37);
  control(leftFace,"pressure",.88,.64,brass,.15);
- engraving(leftFace,"TURN",.91,.36,.35);
+ engraving(leftFace,"GAUGE",.91,.36,.46);
  control(leftFace,"dent",.88,-1.04,copper,.11);
- engraving(leftFace,"PUSH",.89,-1.31,.35);
+ engraving(leftFace,"DENT",.89,-1.31,.39);
  // Top: three separate hinge pins, and a tappable triangle physically
  // attached to the moving hatch. The pipe sits INSIDE the fixed well.
  for(const [i,x] of [-.54,0,.54].entries())control(topFace,"hinge-"+i,x,.86,nickel,.075);
  const triangle=tab(lidPivot,"triangle",0,-.42,brass,.30,.19);
- // The lid itself carries the prompt so it rotates with the mechanism.
- engraving(lidPivot,"TAP 3×",0,-.92,.52);
+ // The engraving identifies the component without disclosing a click count.
+ engraving(lidPivot,"TRIANGLE",0,-.92,.64);
  // The collectible is a genuine HOLLOW cylindrical pipe held inside a
  // recessed bracket, not another flat switch sitting on the cube face.
  const reed=node(topFace,.07,-.22,-.43);
@@ -106,7 +106,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Back: concentric optical controls and a rotating calibration gear.
  control(backFace,"eye",.07,-.12,glass,.17);
  control(backFace,"eye-ring",1.02,-1.03,brass,.14);
- engraving(backFace,"ROTATE",1.01,-.75,.49);
+ engraving(backFace,"IRIS",1.01,-.75,.39);
  // Story changes have real volume, not state indicators drawn over a canvas.
  const portalGroup=node(frontFace,0,.59,.69);
  const halo=new THREE.Mesh(new THREE.TorusGeometry(.245,.024,10,48),mat(0xb3a6df,.52,.20));
@@ -176,7 +176,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Bottom: actual protruding rubber support and a separate release hatch.
  control(bottomFace,"foot",-1.02,1.02,graphite,.16);
  control(bottomFace,"hatch",0,0,brass,.21);
- engraving(bottomFace,"OPEN",.50,-.07,.39);
+ engraving(bottomFace,"BASE",.50,-.07,.39);
  return {
   count:()=>count,
   actions:[...targets.keys()],
