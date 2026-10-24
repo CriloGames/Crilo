@@ -5,9 +5,11 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=5";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=3";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=1";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
+const embeddedGame=document.body.classList.contains("nc-page");
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
 const scene = new THREE.Scene();
@@ -311,6 +313,11 @@ const finish=finishMechanicalArtifact({
  front,side,lidPivot,box,cylinder,mat,
  materials:{brass,metal,darkMetal,ivory,rubber,cavityMaterial,enamel}
 });
+const gameHotspots=embeddedGame?buildGameHotspots({
+ faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
+ lidPivot,box,cylinder,setHit,mat
+}):null;
+let currentGameState={};
 
 // Grounding is a real plane receiving the real shadow of the mechanism.
 const floorMaterial=new THREE.MeshStandardMaterial({color:0xfdfdfb,roughness:.96});
@@ -356,6 +363,25 @@ function toggleHatch(){
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
 function clickAction(action){
+ if(embeddedGame){
+  const translate={
+   front:currentGameState.a?"drawer-a":"latch",
+   side:currentGameState.b?"drawer-b":"seam",
+   hatch:"triangle",
+   optic:"eye-ring",
+   pressure:"pressure",
+   lever:"dent",
+   latch:"dent",
+   eye:"eye-ring",
+   underside:"hatch",
+   "hatch-latch":"triangle",
+   "cube-offer":"cube-offer"
+  };
+  const name=translate[action]||action;
+  if(name==="top-reed"&&!currentGameState.top)return;
+  window.CriloNothingHereCube?.activatePhysical?.(name);
+  return;
+ }
  if(action==="front")toggleDrawer(front,"The lavender drawer");
  else if(action==="side")toggleDrawer(side,"The teal drawer");
  else if(action==="hatch")toggleHatch();
@@ -372,10 +398,10 @@ function clickAction(action){
   announce("A metal screw "+(s.removed?"unscrews out of the surface.":"threads back into its housing."));
  }
 }
-document.getElementById("drawerFront").addEventListener("click",()=>clickAction("front"));
-document.getElementById("drawerRight").addEventListener("click",()=>clickAction("side"));
-document.getElementById("hatchTop").addEventListener("click",()=>clickAction("hatch"));
-document.getElementById("reset").addEventListener("click",()=>{
+document.getElementById("drawerFront")?.addEventListener("click",()=>clickAction("front"));
+document.getElementById("drawerRight")?.addEventListener("click",()=>clickAction("side"));
+document.getElementById("hatchTop")?.addEventListener("click",()=>clickAction("hatch"));
+document.getElementById("reset")?.addEventListener("click",()=>{
  const home=stage.clientWidth<720?[6.95,5.75,9.35]:[5.7,4.7,7.8];
  animate(camera.position,{x:home[0],y:home[1],z:home[2]});
  animate(cube.rotation,{x:-.19,y:-.33,z:.02});
@@ -384,6 +410,10 @@ document.getElementById("reset").addEventListener("click",()=>{
 });
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
+function isMeshEffectivelyVisible(mesh){
+ for(let p=mesh;p;p=p.parent)if(!p.visible)return false;
+ return true;
+}
 renderer.domElement.addEventListener("pointerdown",e=>{clickStart={x:e.clientX,y:e.clientY}});
 renderer.domElement.addEventListener("pointermove",e=>{
  const bounds=renderer.domElement.getBoundingClientRect();
@@ -398,7 +428,7 @@ renderer.domElement.addEventListener("pointerup",e=>{
  pointer.set(((e.clientX-bounds.left)/bounds.width)*2-1,-((e.clientY-bounds.top)/bounds.height)*2+1);
  raycaster.setFromCamera(pointer,camera);
  const intersects=raycaster.intersectObjects(interactiveMeshes,false);
- const picked=intersects.find(item=>item.object.userData.action);
+ const picked=intersects.find(item=>item.object.userData.action && item.object.visible && isMeshEffectivelyVisible(item.object));
  if(picked)clickAction(picked.object.userData.action);
  clickStart=null;
 });
@@ -443,6 +473,7 @@ window.__nothing3DPreview={
   return n;
  },
  get finishMeshCount(){return finish.meshCount()},
+ get gameControls(){return gameHotspots?.actions||[]},
  get finishQuality(){return finish.quality},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
  get detailMeshCount(){return intricate.meshCount()},
@@ -456,6 +487,49 @@ window.__nothing3DPreview={
  get renderMode(){return "on-demand"},
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
- clickAction
+ clickAction,
+ setZoom(value){
+  if(!embeddedGame)return;
+  const mobile=stage.clientWidth<720;
+  const base=mobile?13.0:10.9;
+  const d=THREE.MathUtils.clamp(base/Math.max(.65,value),6.7,14);
+  camera.position.setLength(d);controls.update();invalidate();
+ },
+ setRotation(rx,ry){
+  if(!embeddedGame)return;
+  cube.rotation.x=THREE.MathUtils.degToRad(rx);
+  cube.rotation.y=THREE.MathUtils.degToRad(ry);
+  invalidate();
+ },
+ syncState(state){
+  if(!embeddedGame)return;
+  currentGameState=state||{};
+  if(gameHotspots)gameHotspots.setState(currentGameState);
+  for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
+   if(obj.open!==open){
+    obj.open=open;
+    if(obj.motion)obj.motion.kill();
+    if(reducedMotion)obj.drawer.position.z=open?.76:0;
+    else obj.motion=gsap.to(obj.drawer.position,{z:open?.76:0,duration:.64,ease:"power2.inOut",onUpdate:invalidate});
+   }
+  }
+  if(lidOpen!==!!state.top){
+   lidOpen=!!state.top;
+   hatchMotion=reducedMotion?null:{start:performance.now(),duration:920,from:lidPivot.rotation.x,to:lidOpen?-1.08:0};
+   if(reducedMotion)lidPivot.rotation.x=lidOpen?-1.08:0;
+  }
+  for(const screw of screws){
+   const num=Number(screw.id.slice(-1));
+   const removed=screw.id.startsWith("front-screw-") && state.screws?.includes(num);
+   if(screw.assembly.visible===removed)screw.assembly.visible=!removed;
+  }
+  invalidate();
+ }
 };
 announce("A hand-built mechanical curiosity — inspect the dials, rails, lenses and hidden compartments.");
+if(embeddedGame){
+ window.addEventListener("nc:statechange",event=>window.__nothing3DPreview.syncState(event.detail));
+ window.__nothing3DPreview.syncState(window.CriloNothingHereCube?.getState?.()||{});
+ document.body.classList.add("nc-physical-ready");
+ document.getElementById("ncPhysicalToggle")?.setAttribute("aria-pressed","true");
+}
