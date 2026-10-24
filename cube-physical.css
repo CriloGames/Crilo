@@ -1,3 +1,18 @@
+/* The fully physical diorama needs enough room for miniature objects
+   around the machine. The old CSS cube's narrow 620px inspection frame
+   clipped the metal stand and made the real props almost imperceptible. */
+.nc-page.nc-physical-ready .nc-world {
+ height:clamp(505px,69dvh,690px);
+ max-height:none;
+}
+.nc-page.nc-physical-ready .nc-world .nc-cube-zone {
+ width:min(860px,100%);
+ max-width:100%;
+}
+@media(max-width:700px){
+ .nc-page.nc-physical-ready .nc-world{height:clamp(450px,62dvh,600px)}
+ .nc-page.nc-physical-ready .nc-world .nc-cube-zone{width:100%}
+}
 /* A real WebGL cube is now the default visible Nothing Here object.
    The DOM/CSS cube remains a hidden, fully functional semantic fallback and
    authoritative event target so the original 60-secret story still works. */
