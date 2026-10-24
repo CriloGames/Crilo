@@ -1,4 +1,4 @@
-name: Nothing Here tactile-cube browser QA
+name: Nothing Here handcrafted cube browser QA
 
 on:
   push:
@@ -11,6 +11,7 @@ on:
       - 'cube-motion.css'
       - 'cube-worlds.css'
       - 'cube-inspection.css'
+      - 'cube-finish.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
@@ -36,7 +37,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify cube zoom, 52 secrets, mechanical clues and mobile layout
+      - name: Verify handcrafted materials, 60 secrets, zoom and mobile
         run: node scripts/verify-nothing-here.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
