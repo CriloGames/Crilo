@@ -55,6 +55,9 @@ try{
  assert.equal(worlds.all.length,15,"Missing modeled 3D story props");
  assert(worlds.visible.includes("bag")&&worlds.visible.includes("machine"),
   "The mouse did not physically reveal its bag and vending machine");
+ const chipHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
+ assert(chipHeight>20&&chipHeight<70,
+  "3D mode should keep an accessible compact story-object label, not a duplicate flat cartoon: "+chipHeight);
  // Exercise a real projected pointer click on the sculpted handbag, rather
  // than merely invoking an internal click API.
  const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
@@ -115,6 +118,8 @@ try{
  const classic=await page.evaluate(()=>window.CriloNothingHereCube.getState());
  assert(classic.plateOpen&&classic.a&&classic.b&&classic.top,"Classic view did not preserve the physical session");
  assert(await page.locator("#ncCube").isVisible(),"Classic 3D fallback is no longer available");
+ const classicHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
+ assert(classicHeight>=100,"Classic fallback must preserve full illustrated props");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"false");
  // Mobile physical version still loads, and 3D controls remain available.
  await page.setViewportSize({width:390,height:844});
