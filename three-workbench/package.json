@@ -1,0 +1,15 @@
+{
+  "name": "crilo-nothing-here-3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Physical 3D workbench for Nothing Here. GitHub Pages preview uses pinned browser ESM; npm is for local development and verification.",
+  "scripts": {
+    "check:deps": "node scripts/check-deps.mjs"
+  },
+  "dependencies": {
+    "three": "0.186.1",
+    "gsap": "3.15.0",
+    "three-mesh-bvh": "0.9.16"
+  }
+}
