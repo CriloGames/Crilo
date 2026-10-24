@@ -71,25 +71,15 @@ const use=async(a,b)=>{await pocket(a);await thing(b)};
 const close=async()=>{await page.locator('#ncModalClose').click();assert(await page.locator('#ncModal').evaluate(el=>el.hidden))};
 const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 // The cube contains hidden compartments in several different faces.
-await page.evaluate(()=>{
- window.ncHitTrace=[];
- for(const type of ['pointerdown','pointerup','click'])
-  document.addEventListener(type,e=>{
-   const el=e.target.closest('[data-hit]');if(!el&&!e.target.closest('.nc-drawer'))return;
-   window.ncHitTrace.push({type,target:e.target.tagName,hit:el?.dataset.hit||null,
-    cls:e.target.className?.baseVal||e.target.className||'',time:performance.now()});
-  },true);
-});
 await rotate(0,0);await hit('dot',4);
 await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
 await hit('drawer-a');
-console.log('DRAWER A',JSON.stringify({a:(await state()).a,taken:(await state()).drawerTaken,tooth:(await state()).pocket.includes('tooth'),
- trace:await page.evaluate(()=>window.ncHitTrace.slice(-18))}));
+
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
 await rotate(0,-90);await hit('seam');await hit('drawer-b');
-console.log('DRAWER B',JSON.stringify({b:(await state()).b,taken:(await state()).sideTaken,thread:(await state()).pocket.includes('thread')}));
+
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);await hit('triangle',3);await hit('top-reed');
 assert((await state()).pocket.includes('pipe'));
@@ -132,8 +122,7 @@ assert(afterBark.barked&&afterBark.vase&&afterBark.squirrel,'Dog did not cause s
 assert(afterBark.pocket.includes('acorn')&&afterBark.pocket.includes('spring'));
 assert(afterBark.seen.includes('bark')&&afterBark.seen.includes('squirrel'));
 await use('treat','dog');assert((await state()).pocket.includes('tag'));
-assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal,
- 'Expanded miniature puzzle chain did not persist across refresh');
+
 // Secondary intertwined causes: acorn grows, spring makes weather,
 // weather grows a tree, tree releases a paper bird.
 await use('acorn','pot');await use('spring','musicbox');
@@ -192,6 +181,8 @@ assert.deepEqual(errors,[],'Runtime errors while playing');
 assert(progress.door&&progress.doorOpen&&progress.bagSolved&&progress.tree&&progress.moon);
 await page.reload({waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===41);
+assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal,
+ 'Expanded miniature puzzle chain did not persist across refresh');
 assert(await page.locator('#ncDoorScene').isVisible(),'Summoned door did not persist');
 assert(await page.locator('#ncDog').isVisible(),'Opened door did not persist');
 assert((await state()).pocket.includes('tag'));
