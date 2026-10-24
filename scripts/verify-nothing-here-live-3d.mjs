@@ -49,6 +49,10 @@ try{
  for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring","vent-1","vent-2","vent-3","triangle","top-reed","foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
  }
+ assert(initial.controls.includes("cipher-strip"),
+  "The secret symbol order needs a physical rear-face inspection target");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),false,
+  "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
  await activate("latch");
@@ -112,6 +116,14 @@ try{
  await activate("optic");
  await activate("eye-ring");
  await activate("eye-ring");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),true,
+  "The copper cipher should emerge from behind the third calibration click");
+ const priorToReading=(await state()).seen.length;
+ await activate("cipher-strip");
+ assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾/,
+  "Inspecting the hidden brass strip must show the separate combination clue");
+ assert.equal((await state()).seen.length,priorToReading,
+  "Reading the decorative cipher must not grant duplicate secret rewards");
  const physical=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(physical.needle&&physical.light&&physical.backEye,
    "Saved puzzle actions are not driving real pressure, optical and iris hardware");
@@ -142,7 +154,15 @@ try{
  assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
  assert(bagSolved.bagSolved&&bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
   "3D bag wheels did not award the original combination secret and inventory");
- console.log("PASS: physical bag dials and original inventory unlock the 203 solution");
+ // Even after unlocking the luggage, the bag popup must not spoil the code.
+ await activate("thing:bag");
+ const bagDescription=await page.locator("#ncModalBody").innerText();
+ assert(!/diamond\s*[·•-]\s*circle\s*[·•-]\s*moon/i.test(bagDescription),
+  "The bag should never print its own three-symbol solution");
+ assert(!/◇\s*[·•-]\s*○\s*[·•-]\s*☾/.test(bagDescription),
+  "The hidden brass engraving must not appear in the bag's instructions");
+ await page.locator("#ncModalClose").click();
+ console.log("PASS: physical bag dials and original inventory unlock the 203 solution, but its modal hides the answer");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
@@ -157,6 +177,11 @@ try{
  const classicHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
  assert(classicHeight>=100,"Classic fallback must preserve full illustrated props");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"false");
+ assert.equal(await page.locator('[data-hit="cipher-strip"]').getAttribute("hidden"),null,
+  "Saved calibration must also expose the secret in the classic fallback");
+ await page.evaluate(()=>window.CriloNothingHereCube.activatePhysical("cipher-strip"));
+ assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾/,
+  "The classic accessible engraving did not reveal the relocated clue");
  // Mobile physical version still loads, and 3D controls remain available.
  await page.setViewportSize({width:390,height:844});
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded"});
