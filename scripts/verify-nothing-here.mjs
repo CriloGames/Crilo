@@ -6,7 +6,7 @@ const source=fs.readFileSync(new URL('../cube-secrets.js',import.meta.url),'utf8
 const html=fs.readFileSync(new URL('../secrets.html',import.meta.url),'utf8');
 new Function(source);
 const titles=[...source.matchAll(/^\s*\['([a-z-]+)','/gm)].map(x=>x[1]);
-assert.equal(titles.length,41,'The authored discovery catalog changed');
+assert.equal(titles.length,52,'The authored discovery catalog changed');
 assert.equal(new Set(titles).size,titles.length,'Duplicate discovery IDs');
 assert(!html.includes('auth-first-paint.js'),'Game must not depend on auth loading');
 const browser=await chromium.launch({headless:true});
@@ -51,6 +51,21 @@ assert(details.mechanisms&&details.mouse&&details.squirrel&&details.puppet&&deta
  'Missing scene actors or the motion stylesheet');
 assert.deepEqual(errors,[]);
 console.log('Loaded clean real HTML with 6 physical 3D faces');
+assert.equal(await page.locator('.nc-tactile-screw').count(),4);
+assert.equal(await page.locator('[data-hit^="vent-"]').count(),3);
+assert.equal(await page.locator('.nc-inspection-controls button').count(),9);
+assert(await page.locator('#ncViewReset').isVisible());
+await page.locator('#ncZoomIn').click();
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.25);
+await page.locator('#ncZoomIn').click();
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.5);
+await page.locator('#ncZoomOut').click();
+await page.locator('#ncPanMode').click();
+assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'true');
+await page.locator('#ncViewReset').click();
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
+assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'false');
+console.log('Zoom, pan toggle and reset work independently of gameplay');
 // Drag via pointer and verify the rotation changes; keyboard buttons remain as alternative.
 const zone=page.locator('#ncCubeZone');
 const before=await page.locator('#ncCube').evaluate(el=>el.style.transform);
@@ -72,25 +87,43 @@ const close=async()=>{await page.locator('#ncModalClose').click();assert(await p
 const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 // The cube contains hidden compartments in several different faces.
 await rotate(0,0);await hit('dot',4);
+await hit('front-screw-3');
+for(const n of [0,1,2])await hit('front-screw-'+n);
+assert.equal((await state()).screws.length,3,'Three real screws could not be removed');
+await page.locator('#ncOfferingTarget').click();
+assert((await state()).plateOpen,'The loose faceplate never lifted');
+assert(await page.locator('[data-item="cog"]').count(),'The hidden faceplate failed to provide the cog');
 await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
 await hit('drawer-a');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('tooth'),null,{timeout:4000});
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
-await rotate(0,-90);await hit('seam');await hit('drawer-b');
+await rotate(0,-90);await hit('right-bolt-1');await hit('seam');await hit('drawer-b');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('thread'),null,{timeout:4000});
 assert((await state()).pocket.includes('thread'));
-await rotate(-85,0);await hit('triangle',3);await hit('top-reed');
+await rotate(-85,0);
+for(const n of [0,1,2])await hit('hinge-'+n);
+assert(await page.locator('[data-item="washer"]').count(),'The hinge washer was unreachable');
+await hit('triangle',3);await hit('top-reed');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
 assert((await state()).pocket.includes('pipe'));
-await rotate(85,0);await hit('hatch');
+await rotate(85,0);await hit('hatch');await hit('foot');
 assert((await state()).pocket.includes('ring'));
-await rotate(0,90);await hit('dent');
+await rotate(0,90);
+for(const n of [3,1,2])await hit('vent-'+n);
+assert((await state()).ventOpen,'The engraved service sequence did not unlock the vent');
+assert(await page.locator('[data-item="shim"]').count(),'The vent did not release its copper shim');
+await hit('dent');
 assert(await page.locator('#ncAnimatedMouse').evaluate(el=>el.classList.contains('nc-running')),
  'The clockwork mouse did not animate when freed');
 assert(await page.locator('[data-thing="bag"]').isVisible(),'Mechanical mouse did not reveal bag');
 await rotate(0,180);await hit('eye');
+for(let i=0;i<3;i++)await hit('eye-ring');
+assert((await state()).eyeRingTicks>=3,'Eye calibration dial did not advance');
+await pocket('cog');await hit('eye');
+assert((await state()).opticOpened,'Cog did not power the back-eye mechanism');
+assert((await state()).pocket.includes('iris'),'Hidden eye did not release glass iris');
 assert((await state()).seen.includes('eye'));
 await combine('ring','tooth');
 assert((await state()).pocket.includes('key'));
@@ -127,6 +160,8 @@ await use('treat','dog');assert((await state()).pocket.includes('tag'));
 // Secondary intertwined causes: acorn grows, spring makes weather,
 // weather grows a tree, tree releases a paper bird.
 await use('acorn','pot');await use('spring','musicbox');
+await use('washer','musicbox');
+assert((await state()).clockHeart,'Hinge washer did not repair the tiny music box escapement');
 assert(await page.locator('[data-thing="cloud"]').isVisible());
 await thing('cloud');await use('raindrop','pot');
 assert(await page.locator('[data-thing="pot"]').evaluate(el=>el.classList.contains('nc-sprouting')),
@@ -140,6 +175,8 @@ await page.locator('#ncOfferingTarget').click({timeout:7500});
 assert((await state()).moon,'Bird did not reveal the moon inside the cube');
 // Other independent paths: coin machine sugar and thread prism kite.
 await use('coin','machine');await use('sugar','cup');
+await use('shim','machine');
+assert((await state()).shimUsed,'The machine service panel did not accept the copper shim');
 await thing('clock');await close();
 await combine('prism','thread');await use('kite','cloud');
 // The secondary puzzle chain must integrate with the established dog + clock story.
@@ -159,6 +196,8 @@ assert(await page.locator('[data-thing="telescope"]').isVisible(),'The moon did 
 await thing('telescope');
 await use('lens','telescope');
 assert((await state()).observed,'The telescope lens did not reveal the constellation');
+await use('iris','telescope');
+assert((await state()).secondSky,'The calibrated eye did not reveal a second celestial layer');
 assert(await page.locator('[data-item="starmap"]').count(),'The constellation failed to produce a chart');
 assert(await page.locator('#ncConstellation').evaluate(el=>getComputedStyle(el).transitionProperty.includes('opacity')),'The star scene lacks an animation');
 await use('stardust','musicbox');
@@ -181,7 +220,7 @@ assert.deepEqual(missing,[],'Some curated secrets cannot actually be discovered'
 assert.deepEqual(errors,[],'Runtime errors while playing');
 assert(progress.door&&progress.doorOpen&&progress.bagSolved&&progress.tree&&progress.moon);
 await page.reload({waitUntil:'domcontentloaded'});
-await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===41);
+await page.waitForFunction(()=>window.CriloNothingHereCube?.getState().seen.length===52);
 assert((await state()).floorFour&&(await state()).observed&&(await state()).dancer&&(await state()).portal,
  'Expanded miniature puzzle chain did not persist across refresh');
 assert(await page.locator('#ncDoorScene').isVisible(),'Summoned door did not persist');
@@ -227,4 +266,4 @@ assert(await outage.locator('#ncCube').isVisible());
 await outage.locator('[data-rotate="left"]').click();
 await outage.close();
 await browser.close();
-console.log('PASS: 41/41 connected discoveries, 3D cube, animated objects, elevator, moth, telescope, ballerina, steam train, parcel and portal; persistence; mobile; dark header.');
+console.log('PASS: 52/52 discoveries, inspectable screws, mechanical faceplate, coded vents, eye gearing, zoom, pan, miniature worlds, mobile, saved progress.');
