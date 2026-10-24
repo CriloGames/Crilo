@@ -88,8 +88,10 @@ assert.equal(await page.locator('#srDialogTitle').textContent(),'The safe is ope
 await dismiss();
 await click('#srJournalBtn');
 await dismiss();
-await click('#srHintBtn',3);
-await dismiss();
+for(let i=0;i<3;i++){
+ await click('#srHintBtn');
+ await dismiss();
+}
 await click('#srTitle',3);
 await click('#srFooterSecret',3);
 await page.keyboard.type('secret');
