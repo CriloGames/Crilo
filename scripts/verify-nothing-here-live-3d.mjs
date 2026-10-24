@@ -43,6 +43,10 @@ try{
  assert.equal(initial.visible,"visible");
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  assert(initial.blockers>=15,"Physical casing is missing face occluders");
+ assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("latch")),/front drawer/i,
+  "The live latch needs an understandable 3D label");
+ assert.match(await page.evaluate(()=>window.__nothing3DPreview.describeAction("seam")),/side/i,
+  "The side mechanism should identify itself");
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
  for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
@@ -82,7 +86,14 @@ try{
  const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
  assert(handbag&&handbag.x>10&&handbag.x<1280&&handbag.y>10&&handbag.y<860,
   "The sculpted handbag has no usable visible canvas projection: "+JSON.stringify(handbag));
+ const bagBefore=await page.locator("#ncNarrator").innerText();
  await page.locator("#stage canvas").click({position:{x:handbag.x,y:handbag.y},timeout:30000});
+ if(!(await page.locator("#ncNarrator").innerText()).includes("bag is locked"))
+  console.log("BAG POINTER DIAGNOSTIC",JSON.stringify({
+   projection:handbag,prior:bagBefore,
+   after:await page.locator("#ncNarrator").innerText(),
+   view:await page.evaluate(()=>({state:window.CriloNothingHereCube.getState(),miniatures:window.__nothing3DPreview.visiblePhysicalStoryObjects}))
+  }));
  assert((await page.locator("#ncNarrator").innerText()).includes("bag is locked"),
   "Clicking the actual 3D handbag mesh did not reach the existing bag puzzle");
  console.log("PASS: actual physical-pointer raycast activates the sculpted bag");
@@ -140,9 +151,14 @@ try{
  const once=await state();
  assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
   "Existing automatic physical compartment item pickups stopped working");
+ const collected=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
+ for(const name of ["tooth","thread","pipe","extraKey","extraThread"])
+  assert.equal(collected[name],false,"Collected physical piece is still visible on the box: "+name);
  // Assemble the original key from actual collected objects and solve the
  // physical 3D bag wheels without an HTML modal or a parallel progress store.
  await activate("underside");
+ assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,false,
+ "Collected underside ring must physically disappear into inventory");
  await page.locator('#ncInventory [data-item="tooth"]').click();
  await page.locator('#ncInventory [data-item="ring"]').click();
  assert((await state()).pocket.includes("key"),"Original key recipe failed");
@@ -228,6 +244,23 @@ try{
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{waitUntil:"domcontentloaded"});
  await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),"Classic fallback lost previously completed 3D secrets");
+ // Only a server-verified owner profile may consume the one-time local
+ // reset. A normal player must never lose their 60-secret save.
+ await page.evaluate(()=>{
+  window.Crilo.user={id:"test-regular-user"};
+  window.Crilo.profile={id:"test-regular-user",is_owner:false};
+  window.dispatchEvent(new CustomEvent("crilo-auth-ready"));
+ });
+ assert.equal((await state()).seen.length,60,"Normal player was incorrectly reset");
+ await page.evaluate(()=>{
+  window.Crilo.user={id:"test-owner-profile"};
+  window.Crilo.profile={id:"test-owner-profile",is_owner:true};
+  window.dispatchEvent(new CustomEvent("crilo-auth-ready"));
+ });
+ await page.waitForFunction(()=>localStorage.getItem("crilo_nothing_here_owner_reset_20261024_v1:test-owner-profile")==="done",{timeout:20000});
+ await page.waitForFunction(()=>window.CriloNothingHereCube?.getState?.().seen?.length===0,{timeout:60000});
+ assert.equal((await state()).pocket.length,0,"Owner reset did not clear inventory");
+ console.log("PASS: owner-only browser reset, no change to ordinary players");
  console.log("PASS: all 60 legacy completions, restored physical mechanisms, no repeat rewards, classic compatibility");
  assert.equal(errors.length,0,"3D integration produced browser exceptions: "+errors.join(" | "));
  console.log("PASS: desktop, mobile, classic fallback, persisted 60-secret engine, and zero browser exceptions");
