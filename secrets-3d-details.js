@@ -203,7 +203,7 @@ export function buildIntricateCube({
 
   // TOP: telescopic hinge barrel, lid brackets, engraved hatch, gears below.
   plates(topFace,brass);
-  plaque(topFace,"THREE TAPS",0,-1.21,1.03);
+  plaque(topFace,"UPPER HATCH",0,-1.21,1.03);
   for(const x of [-.64,-.29,.06,.41,.65]){
     const riv=C(topFace,.060,.06,x,topHole.h/2,.21,steel);
     riv.rotation.z=Math.PI/2;
