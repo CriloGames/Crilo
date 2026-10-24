@@ -23,6 +23,12 @@ on:
 permissions:
   contents: read
 
+# Do not run six resource-intensive Chromium/WebGL renderers against
+# intermediate commits while a newer game integration is already queued.
+concurrency:
+  group: nothing-here-3d-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   setup-and-preview:
     runs-on: ubuntu-24.04
