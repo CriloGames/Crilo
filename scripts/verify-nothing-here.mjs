@@ -76,12 +76,13 @@ await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
 await hit('drawer-a');
-
+await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('tooth'),null,{timeout:4000});
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
 await rotate(0,-90);await hit('seam');await hit('drawer-b');
-
+await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('thread'),null,{timeout:4000});
 assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);await hit('triangle',3);await hit('top-reed');
+await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
 assert((await state()).pocket.includes('pipe'));
 await rotate(85,0);await hit('hatch');
 assert((await state()).pocket.includes('ring'));
