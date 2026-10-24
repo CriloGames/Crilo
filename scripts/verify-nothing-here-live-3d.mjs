@@ -43,6 +43,9 @@ try{
  assert.equal(initial.visible,"visible");
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  assert(initial.blockers>=15,"Physical casing is missing face occluders");
+ const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
+ for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2","thing:elevator-floor-4"])
+  assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
  for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring","vent-1","vent-2","vent-3","triangle","top-reed","foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
  }
@@ -125,6 +128,21 @@ try{
  const once=await state();
  assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
   "Existing automatic physical compartment item pickups stopped working");
+ // Assemble the original key from actual collected objects and solve the
+ // physical 3D bag wheels without an HTML modal or a parallel progress store.
+ await activate("underside");
+ await page.locator('#ncInventory [data-item="tooth"]').click();
+ await page.locator('#ncInventory [data-item="ring"]').click();
+ assert((await state()).pocket.includes("key"),"Original key recipe failed");
+ await page.locator('#ncInventory [data-item="key"]').click();
+ await activate("thing:bag");
+ assert.equal((await state()).bagOpen,true,"3D bag cannot be unlocked with the original key");
+ for(const i of [0,0,2,2,2])await activate("thing:bag-dial-"+i);
+ const bagSolved=await state();
+ assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
+ assert(bagSolved.bagSolved&&bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
+  "3D bag wheels did not award the original combination secret and inventory");
+ console.log("PASS: physical bag dials and original inventory unlock the 203 solution");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
@@ -153,7 +171,8 @@ try{
   const original=JSON.parse(localStorage.getItem(key));
   Object.assign(original,{
    seen:ids,plateOpen:true,serviceOpen:true,pressureReady:true,
-   pressureTicks:3,eyeRingTicks:3,screws:[0,1,2],hingePins:[0,1,2]
+   pressureTicks:3,eyeRingTicks:3,screws:[0,1,2],hingePins:[0,1,2],
+   watch:true,tag:true,floorFour:false
   });
   localStorage.setItem(key,JSON.stringify(original));
  },sixtySecrets);
@@ -167,8 +186,12 @@ try{
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
+ await activate("thing:elevator-floor-4");
+ const fourthFloor=await state();
+ assert(fourthFloor.floorFour&&fourthFloor.pocket.includes("lens"),
+   "Physical elevator call button did not operate the original floor-four puzzle");
  await activate("dot");
- assert.equal((await state()).seen.length,60,"Repeating a previously found secret must not duplicate awards");
+ assert.equal((await state()).seen.length,60,"Repeating completed puzzles must not duplicate awards");
  await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{waitUntil:"domcontentloaded"});
  await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
