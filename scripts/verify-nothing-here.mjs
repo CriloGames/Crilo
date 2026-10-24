@@ -36,6 +36,18 @@ assert(await page.locator('#ncCube').isVisible(),'No 3D cube');
 const cubeCss=await page.locator('#ncCube').evaluate(el=>getComputedStyle(el).transformStyle);
 assert.equal(cubeCss,'preserve-3d','Cube faces are not actually three-dimensional');
 assert.equal(await page.locator('.nc-face').count(),6);
+for(const [bay,drawer] of [['ncDrawerBayA','ncDrawerA'],['ncDrawerBayB','ncDrawerB']]){
+ assert.equal(await page.locator('#'+bay+' > #'+drawer).count(),1,
+  'Drawer '+drawer+' must be physically mounted inside its face-specific bay');
+ assert.equal(await page.locator('#'+bay+' > .nc-bay-cavity').count(),1,'Missing recessed drawer cavity');
+ assert.equal(await page.locator('#'+bay+' > .nc-bay-track').count(),2,'Missing attached drawer runner rails');
+}
+assert.equal(await page.locator('#ncTopBay > #ncLid').count(),1,
+ 'Hatch must remain mounted to the same bay as its mechanical well');
+assert.equal(await page.locator('#ncTopBay > .nc-top-recess').count(),1,
+ 'Missing fixed hatch recess');
+assert.equal(await page.locator('#ncTopBay > .nc-top-hinge-bar').count(),1,
+ 'Missing physical top hinge bar');
 const details=await page.evaluate(()=>({
  rails:document.querySelectorAll('.nc-drawer-rails i').length,
  screws:document.querySelectorAll('.nc-front-screws i').length,
@@ -125,6 +137,13 @@ assert(await page.locator('[data-item="cog"]').count(),'The hidden faceplate fai
 await hit('latch');
 assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
  'Drawer did not start its physical rail-opening animation');
+await page.waitForTimeout(760);
+const trayTravel=await page.locator('#ncDrawerA').evaluate(el=>{
+ const m=new DOMMatrixReadOnly(getComputedStyle(el).transform);
+ return {out:m.m43,down:m.m42};
+});
+assert(trayTravel.out>9&&trayTravel.out<45&&trayTravel.down<35,
+ 'Key drawer separates too far from its rails: '+JSON.stringify(trayTravel));
 await hit('drawer-a');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('tooth'),null,{timeout:4000});
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
@@ -134,7 +153,14 @@ assert((await state()).pocket.includes('thread'));
 await rotate(-85,0);
 for(const n of [0,1,2])await hit('hinge-'+n);
 assert(await page.locator('[data-item="washer"]').count(),'The hinge washer was unreachable');
-await hit('triangle',3);await hit('top-reed');
+await hit('triangle',3);
+const hatchGeometry=await page.locator('#ncLid').evaluate(el=>{
+ const r=el.getBoundingClientRect(),bay=document.getElementById('ncTopBay').getBoundingClientRect();
+ const m=new DOMMatrixReadOnly(getComputedStyle(el).transform);
+ return {hingeHeight:bay.height,flapHeight:r.height,travelZ:m.m43};
+});
+assert(hatchGeometry.travelZ<30,'Top lid is detached from its hinge');
+await hit('top-reed');
 await page.waitForFunction(()=>window.CriloNothingHereCube.getState().pocket.includes('pipe'),null,{timeout:4000});
 assert((await state()).pocket.includes('pipe'));
 await rotate(85,0);await hit('hatch');await hit('foot');
