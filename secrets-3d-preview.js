@@ -346,6 +346,42 @@ scene.add(plinth);
 const plinthRim=new THREE.Mesh(new THREE.TorusGeometry(2.49,.018,8,104),brass);
 plinthRim.rotation.x=Math.PI/2;plinthRim.position.y=-2.195;scene.add(plinthRim);
 scene.add(floor);
+// A pair of articulated steel stays physically joins the rotating artifact
+// to its stationary brass plinth. Their ball joints track the real cube
+// transform instead of staying behind when the player rotates a face.
+const supportAxis=new THREE.Vector3(0,1,0);
+const supportLegs=[-.43,.43].map(x=>{
+ const anchor=new THREE.Vector3(x,-2.020,-.36);
+ const ball=new THREE.Mesh(new THREE.SphereGeometry(.10,14,10),brass);
+ ball.position.copy(anchor);scene.add(ball);
+ const shoe=new THREE.Mesh(new THREE.CylinderGeometry(.17,.20,.07,20),darkMetal);
+ shoe.position.set(x,-2.037,-.36);shoe.castShadow=true;scene.add(shoe);
+ const cubeBearing=new THREE.Group();cubeBearing.position.set(x,-1.70,-.46);
+ cube.add(cubeBearing);
+ const cap=new THREE.Mesh(new THREE.SphereGeometry(.10,14,10),metal);
+ cap.castShadow=true;cubeBearing.add(cap);
+ const rod=new THREE.Mesh(new THREE.CylinderGeometry(.066,.078,1,14),metal);
+ rod.castShadow=true;rod.receiveShadow=true;scene.add(rod);
+ const polishedPiston=new THREE.Mesh(new THREE.CylinderGeometry(.032,.032,1,12),brass);
+ polishedPiston.castShadow=false;scene.add(polishedPiston);
+ return {anchor,cubeBearing,rod,polishedPiston};
+});
+function updatePedestalSupports(){
+ cube.updateWorldMatrix(true,false);
+ for(const part of supportLegs){
+  const end=part.cubeBearing.getWorldPosition(new THREE.Vector3());
+  const direction=end.clone().sub(part.anchor);
+  const length=Math.max(.03,direction.length());
+  part.rod.position.copy(part.anchor).lerp(end,.48);
+  part.rod.quaternion.setFromUnitVectors(supportAxis,direction.clone().normalize());
+  part.rod.scale.y=length*.96;
+  // A sliding inner brass rod makes the attachment read as a functioning
+  // telescopic joint, not two rigid metal spikes glued onto the cube.
+  part.polishedPiston.position.copy(part.anchor).lerp(end,.83);
+  part.polishedPiston.quaternion.copy(part.rod.quaternion);
+  part.polishedPiston.scale.y=length*.33;
+ }
+}
 function announce(message){status.textContent=message;}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animate(object,props,duration=.82){
@@ -498,6 +534,7 @@ function drawFrame(){
  pendingFrame=0;
  controls.update();
  updateHatchBraces();
+ updatePedestalSupports();
  renderer.render(scene,camera);
  if(hatchMotion)invalidate();
 }
@@ -550,6 +587,7 @@ window.__nothing3DPreview={
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
  get solidShellBlockerCount(){return occlusionMeshes.length},
+ get pedestalSupportLengths(){updatePedestalSupports();return supportLegs.map(s=>s.rod.scale.y)},
  get physicalMechanismState(){return intricate.getState()},
  detailState:()=>intricate.getState(),
  get frontOpen(){return front.open},
