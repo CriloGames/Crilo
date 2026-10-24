@@ -86,9 +86,13 @@ try{
   assert(latchMotion.drawer>.02&&latchMotion.drawer<.9,
    "Drawer must visibly slide out of its track rather than teleport: "+JSON.stringify(latchMotion));
  }
- await page.waitForTimeout(840);
- assert(Math.abs((await page.evaluate(()=>window.__nothing3DPreview.drawerPositions.front))-.76)<.07,
-  "Open drawer did not settle against a physical end stop");
+ // Headless SwiftShader renders the highly detailed scene much more slowly
+ // than desktop GPUs. Test the completed mechanical position, not whether
+ // an arbitrary wall-clock sleep was long enough for requestAnimationFrame.
+ await page.waitForFunction(()=>Math.abs(window.__nothing3DPreview.drawerPositions.front-.76)<.07,
+  null,{timeout:18000});
+ assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
+ console.log("PASS: brass latch depressed, drawer extended and reached its end stop");
  await activate("side");
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
  await activate("eye");
