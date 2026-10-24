@@ -1,4 +1,4 @@
-name: Nothing Here handcrafted cube browser QA
+name: Nothing Here dimensional cube browser QA
 
 on:
   push:
@@ -13,6 +13,7 @@ on:
       - 'cube-inspection.css'
       - 'cube-finish.css'
       - 'cube-hardware-fix.css'
+      - 'cube-depth.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
       - '.github/workflows/nothing-here-check.yml'
