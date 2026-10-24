@@ -28,7 +28,9 @@ await page.addInitScript(()=>{
   sessionStorage.setItem('nc_qa_seeded','1');
  }
 });
-await page.goto('http://127.0.0.1:4173/secrets.html',{waitUntil:'domcontentloaded'});
+// The historic full 60-secret end-to-end suite checks the accessible
+// classic fallback. A separate WebGL integration suite verifies default 3D.
+await page.goto('http://127.0.0.1:4173/secrets.html?classic=1',{waitUntil:'domcontentloaded'});
 await page.waitForFunction(()=>!!window.CriloNothingHereCube);
 const bg=await page.evaluate(()=>getComputedStyle(document.body).backgroundColor);
 assert.equal(bg,'rgb(255, 255, 255)','Background should be pure white');
