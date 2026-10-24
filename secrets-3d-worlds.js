@@ -8,7 +8,7 @@ import {gsap} from "gsap";
  *
  * Puzzle logic and localStorage remain entirely in cube-secrets.js.
  */
-export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>{}}){
+export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate=()=>{}}){
  const m={
   brass:mat(0xbda174,.67,.34),gold:mat(0xf1d8a6,.32,.32),
   dark:mat(0x454653,.35,.53),wood:mat(0x916b5b,.17,.69),
@@ -18,8 +18,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   white:mat(0xe8e6df,.07,.4),black:mat(0x272f39,.19,.54),
   glass:mat(0xaacddc,.06,.18),copper:mat(0xba826a,.57,.42)
  };
- const root=new THREE.Group();
- scene.add(root);
+ const mounts=[];
  let parts=0;
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
@@ -86,35 +85,47 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   if(axis==="x")o.rotation.y=Math.PI/2;
   g.add(o);parts++;return o;
  };
- // Positions are on the machined presentation ring, not pasted on the
- // rotating cube. Each miniature rises from a little socket on the stand.
+ // Discoveries live in little bolt-on mechanical display sockets ON THE
+ // CUBE. They cannot stay on a stationary pedestal after the player rotates
+ // the floating box. Each socket is screwed into a specific actual face.
+ // Staggered positions leave the principal drawers, iris and switches clear.
  const slots=[
-  ["bag",-2.04,1.35],["door",-1.33,2.05],["dog",-.28,2.28],
-  ["vase",.78,2.25],["pot",1.72,1.69],["musicbox",2.30,.65],
-  ["cloud",-2.45,-.18],["cup",2.40,-.55],["clock",1.90,-1.46],
-  ["machine",1.03,-2.17],["elevator",-.06,-2.28],
-  ["moth",-1.19,-2.06],["telescope",-2.12,-1.20],
-  ["train",.08,1.69],["squirrel",-.95,1.51]
+  ["bag","frontFace",-1.00,.70],["machine","frontFace",1.02,.68],
+  ["door","rightFace",1.00,.71],["dog","rightFace",0,.70],
+  ["vase","rightFace",-1.0,-.96],
+  ["pot","backFace",-1.02,.68],["musicbox","backFace",0,.72],
+  ["cloud","backFace",1.03,.70],["squirrel","backFace",1.03,-.99],
+  ["cup","leftFace",.0,-1.0],["clock","leftFace",1.03,.7],
+  ["elevator","leftFace",-1.01,-.96],
+  ["moth","topFace",-1.04,.21],["telescope","topFace",1.04,-.65],
+  ["train","bottomFace",1.03,-.90]
  ];
- for(const [name,x,z] of slots){
-  const fixture=new THREE.Group();
-  fixture.position.set(x,-2.035,z);
-  root.add(fixture);locations.set(name,fixture);
+ for(const [name,faceName,x,y] of slots){
+  const face=faces[faceName],fixture=new THREE.Group();
+  fixture.position.set(x,y,.27);
+  face.add(fixture);locations.set(name,fixture);
+  mounts.push({name,face:faceName,x,y});
+  // A structural shelf, a backplate and two visible tiny bolts secure each
+  // model to the cube. No independent gallery base exists beneath the box.
   const stand=new THREE.Group();fixture.add(stand);
-  C(stand,.31,.045,0,-.014,0,m.dark);
-  C(stand,.27,.03,0,.017,0,m.brass);
-  C(stand,.225,.014,0,.038,0,m.cream);
-  const toy=new THREE.Group();toy.position.y=.075;fixture.add(toy);
-  // An invisible, camera-raycastable solid covers the sculpted miniature.
-  // Tiny handles and decorative joints otherwise leave frustrating gaps
-  // where a player can clearly see a model but cannot select it.
-  // It is deliberately NOT a visual billboard or floating flat overlay.
+  B(stand,.56,.45,.065,0,.15,-.04,m.dark,.020);
+  B(stand,.50,.37,.024,0,.16,.008,m.brass,.020);
+  B(stand,.57,.065,.42,0,-.035,.19,m.dark,.022);
+  B(stand,.53,.037,.39,0,.009,.19,m.gold,.020);
+  for(const px of [-.225,.225]){
+   C(stand,.024,.03,px,.28,.027,m.brass,"z");
+   C(stand,.024,.03,px,-.03,.416,m.brass,"z");
+  }
+  const toy=new THREE.Group();
+  toy.position.set(0,.03,.205);
+  toy.scale.setScalar(.69);
+  fixture.add(toy);
   const hitVolume=new THREE.Mesh(
-   new THREE.BoxGeometry(.58,.64,.42),
+   new THREE.BoxGeometry(.61,.71,.50),
    new THREE.MeshBasicMaterial({transparent:true,opacity:0,
     depthWrite:false,colorWrite:false,side:THREE.DoubleSide})
   );
-  hitVolume.position.set(0,.31,.075);
+  hitVolume.position.set(0,.33,.11);
   toy.add(hitVolume);toy.userData.pickVolume=hitVolume;parts++;
   items.set(name,{fixture,toy,stand,hitVolume,visible:false});
  }
@@ -450,6 +461,7 @@ export function buildPocketWorlds({scene,box,cylinder,mat,setHit,invalidate=()=>
   }),
   setState,
   meshCount:()=>parts,
-  visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n)
+  visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
+  getMountPositions:()=>mounts
  };
 }
