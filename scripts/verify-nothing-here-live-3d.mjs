@@ -170,15 +170,13 @@ try{
  assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
  assert(bagSolved.bagSolved&&bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
   "3D bag wheels did not award the original combination secret and inventory");
- // Even after unlocking the luggage, the bag popup must not spoil the code.
+ // Physical models must be operable without blocking the stage with a
+ // flat popup. The original accessible classic modal still exists.
  await activate("thing:bag");
- const bagDescription=await page.locator("#ncModalBody").innerText();
- assert(!/diamond\s*[·•-]\s*circle\s*[·•-]\s*moon/i.test(bagDescription),
-  "The bag should never print its own three-symbol solution");
- assert(!/◇\s*[·•-]\s*○\s*[·•-]\s*☾/.test(bagDescription),
-  "The hidden brass engraving must not appear in the bag's instructions");
- await page.locator("#ncModalClose").click();
- console.log("PASS: physical bag dials and original inventory unlock the 203 solution, but its modal hides the answer");
+ assert(await page.locator("#ncModal").isHidden(),
+  "Physical bag should not open an obstructing 2D dialog");
+ assert.match(await page.locator("#ncNarrator").innerText(),/bag.*pocket/i);
+ console.log("PASS: real 3D bag dials and inventory unlock the combination without a flat popup");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
@@ -193,6 +191,11 @@ try{
  const classicHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
  assert(classicHeight>=100,"Classic fallback must preserve full illustrated props");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"false");
+ await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalThing("bag"));
+ const bagDescription=await page.locator("#ncModalBody").innerText();
+ assert(!/diamond\s*[·•-]\s*circle\s*[·•-]\s*moon/i.test(bagDescription),
+  "Classic bag dialog still spoils the symbol solution");
+ await page.locator("#ncModalClose").click();
  assert.equal(await page.locator('[data-hit="cipher-strip"]').getAttribute("hidden"),null,
   "Saved calibration must also expose the secret in the classic fallback");
  await page.evaluate(()=>window.CriloNothingHereCube.activatePhysical("cipher-strip"));
