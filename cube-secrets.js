@@ -47,7 +47,7 @@ const glyphs={tooth:'⌗',ring:'◌',thread:'〰',pipe:'╱',reed:'ː',flute:'�
  key:'⚿',coin:'◉',treat:'♧',prism:'◇',acorn:'♠',spring:'⌁',
  raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04'};
 const recipe={
- 'reed+pipe':['flute','flute','The hollow pipe finally remembers how to sing.'],
+ 'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
  'prism+thread':['kite','kite','You have made a kite from almost nothing.']
 };
@@ -68,8 +68,8 @@ s.redHits=clamp(Number(raw.redHits)||0,0,30);
 s.dogHits=clamp(Number(raw.dogHits)||0,0,12);
 s.bagDials=Array.isArray(raw.bagDials)&&raw.bagDials.length===3?raw.bagDials.map(x=>clamp(Number(x)||0,0,3)):[0,0,0];
 s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-3):[];
-s.rx=clamp(Number(raw.rx)||-18,-4000,4000);
-s.ry=clamp(Number(raw.ry)||-24,-4000,4000);
+s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
+s.ry=clamp(Number.isFinite(raw.ry)?raw.ry:-24,-4000,4000);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
