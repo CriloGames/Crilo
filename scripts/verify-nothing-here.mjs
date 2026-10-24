@@ -36,6 +36,19 @@ assert(await page.locator('#ncCube').isVisible(),'No 3D cube');
 const cubeCss=await page.locator('#ncCube').evaluate(el=>getComputedStyle(el).transformStyle);
 assert.equal(cubeCss,'preserve-3d','Cube faces are not actually three-dimensional');
 assert.equal(await page.locator('.nc-face').count(),6);
+const details=await page.evaluate(()=>({
+ rails:document.querySelectorAll('.nc-drawer-rails i').length,
+ screws:document.querySelectorAll('.nc-front-screws i').length,
+ mechanisms:!!document.querySelector('.nc-top-well .nc-top-gear'),
+ mouse:!!document.querySelector('#ncAnimatedMouse .nc-mouse-wheels'),
+ squirrel:!!document.querySelector('#ncActionSquirrel .nc-run-body'),
+ puppet:!!document.querySelector('#ncDog .nc-dog-paw'),
+ css:[...document.styleSheets].some(s=>s.href?.includes('cube-motion.css'))
+}));
+assert.equal(details.rails,4,'Physical telescoping drawer rail components are missing');
+assert.equal(details.screws,4,'Structural cube hardware is missing');
+assert(details.mechanisms&&details.mouse&&details.squirrel&&details.puppet&&details.css,
+ 'Missing scene actors or the motion stylesheet');
 assert.deepEqual(errors,[]);
 console.log('Loaded clean real HTML with 6 physical 3D faces');
 // Drag via pointer and verify the rotation changes; keyboard buttons remain as alternative.
@@ -59,7 +72,10 @@ const close=async()=>{await page.locator('#ncModalClose').click();assert(await p
 const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 // The cube contains hidden compartments in several different faces.
 await rotate(0,0);await hit('dot',4);
-await hit('latch');await hit('drawer-a');
+await hit('latch');
+assert((await page.locator('#ncDrawerA').evaluate(el=>getComputedStyle(el).animationName)).includes('ncTrayAppear'),
+ 'Drawer did not start its physical rail-opening animation');
+await hit('drawer-a');
 assert((await state()).pocket.includes('tooth'),'Drawer did not yield key teeth');
 await rotate(0,-90);await hit('seam');await hit('drawer-b');
 assert((await state()).pocket.includes('thread'));
@@ -68,6 +84,8 @@ assert((await state()).pocket.includes('pipe'));
 await rotate(85,0);await hit('hatch');
 assert((await state()).pocket.includes('ring'));
 await rotate(0,90);await hit('dent');
+assert(await page.locator('#ncAnimatedMouse').evaluate(el=>el.classList.contains('nc-running')),
+ 'The clockwork mouse did not animate when freed');
 assert(await page.locator('[data-thing="bag"]').isVisible(),'Mechanical mouse did not reveal bag');
 await rotate(0,180);await hit('eye');
 assert((await state()).seen.includes('eye'));
@@ -85,10 +103,18 @@ await pocket('flute');
 assert.equal(await page.locator('#ncModalTitle').textContent(),'The flute');
 for(const n of [2,1,3])await page.locator('[data-note="'+n+'"]').click();
 assert(await page.locator('#ncDoorScene').isVisible(),'Flute melody did not make door appear');
+assert(await page.locator('#ncDoorScene').evaluate(el=>el.classList.contains('nc-arriving')),
+ 'The flute-summoned door failed to animate into view');
 // Dog / squirrel / vase chain is one causally linked sequence.
 await thing('door');
 assert(await page.locator('#ncDog').isVisible(),'Door did not reveal dog');
 await thing('dog',3);
+assert(await page.locator('#ncImpactWave').evaluate(el=>el.classList.contains('nc-running')),
+ 'The bark produced no expanding shockwave');
+assert(await page.locator('#ncActionSquirrel').evaluate(el=>el.classList.contains('nc-running')),
+ 'The fleeing squirrel had no choreographed run');
+assert(await page.locator('[data-thing="vase"]').evaluate(el=>el.classList.contains('nc-shattering')),
+ 'The vase did not physically topple');
 const afterBark=await state();
 assert(afterBark.barked&&afterBark.vase&&afterBark.squirrel,'Dog did not cause squirrel and vase collision');
 assert(afterBark.pocket.includes('acorn')&&afterBark.pocket.includes('spring'));
@@ -99,6 +125,8 @@ await use('treat','dog');assert((await state()).pocket.includes('tag'));
 await use('acorn','pot');await use('spring','musicbox');
 assert(await page.locator('[data-thing="cloud"]').isVisible());
 await thing('cloud');await use('raindrop','pot');
+assert(await page.locator('[data-thing="pot"]').evaluate(el=>el.classList.contains('nc-sprouting')),
+ 'The tree did not grow through an articulated animation');
 assert((await state()).tree,'The cloud did not water the planted acorn');
 assert((await state()).pocket.includes('bird'));
 await rotate(0,0);
@@ -153,4 +181,4 @@ assert(await outage.locator('#ncCube').isVisible());
 await outage.locator('[data-rotate="left"]').click();
 await outage.close();
 await browser.close();
-console.log('PASS: six-sided rotatable cube; 31 connected secrets; bag/flute/dog/squirrel chain; persistence; mobile; dark header; CDN outage.');
+console.log('PASS: detailed six-sided 3D cube; articulated rails; animated mouse, flute-door, dog bark, squirrel, shattering vase and growing tree; 31 secrets; persistence; mobile; dark header.');
