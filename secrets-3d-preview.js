@@ -298,22 +298,26 @@ function animate(object,props,duration=.82){
 }
 function toggleDrawer(target,caption){
  target.open=!target.open;
- // Brief overtravel followed by mechanical settling at the rail stop.
- gsap.killTweensOf(target.drawer.position);
+ // Cancel the entire previous timeline, including any queued settle tween.
+ // Killing only active properties can leave an old follow-through scheduled.
+ if(target.motion){target.motion.kill();target.motion=null;}
  if(reducedMotion){target.drawer.position.z=target.open?.76:0;}
  else{
-  gsap.timeline().to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
+  target.motion=gsap.timeline().to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
     .to(target.drawer.position,{z:target.open?.76:0,duration:.24,ease:"back.out(1.15)"});
  }
  announce(caption+(target.open?" opens into a real hollow box.":" slides fully into its socket."));
 }
+let lidMotion=null;
 function toggleHatch(){
  lidOpen=!lidOpen;
- gsap.killTweensOf(lidPivot.rotation);
+ // Cancel queued motions as well as active ones. The next tap must win,
+ // even after desktop→mobile resizing or rapid repeated open/close.
+ if(lidMotion){lidMotion.kill();lidMotion=null;}
  const hingeAngle=stage.clientWidth<720?-1.00:-1.08;
  if(reducedMotion)lidPivot.rotation.x=lidOpen?hingeAngle:0;
  else{
-  gsap.timeline().to(lidPivot.rotation,{x:lidOpen?hingeAngle-.10:.045,duration:.82,ease:"power2.inOut"})
+  lidMotion=gsap.timeline().to(lidPivot.rotation,{x:lidOpen?hingeAngle-.10:.045,duration:.82,ease:"power2.inOut"})
     .to(lidPivot.rotation,{x:lidOpen?hingeAngle:0,duration:.24,ease:"power2.out"});
  }
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
