@@ -197,6 +197,29 @@ html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop sma
  text-align:center;white-space:normal;letter-spacing:.015em;
 }
 .nc-page.nc-physical-ready #stage #ncPartHint[hidden]{display:none!important}
+/* Inspection is a point, not a second tooltip: four subtle corners sit
+   around the actual raycast target. No indicators appear before I is used. */
+.nc-page.nc-physical-ready #stage #ncKeyboardFocus {
+ position:absolute;z-index:12;pointer-events:none;
+ width:32px;height:32px;box-sizing:border-box;
+ transform:translate(-50%,-50%);
+ border:2px solid #3d8f81;border-radius:10px;
+ background:radial-gradient(circle,#fafffc20 0%,transparent 70%);
+ box-shadow:0 0 0 3px #fbfff9a6,0 0 15px 2px #488f896e;
+}
+.nc-page.nc-physical-ready #stage #ncKeyboardFocus[hidden]{display:none!important}
+html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncKeyboardFocus{
+ border-color:#93e5cc;
+ box-shadow:0 0 0 3px #182b2cb9,0 0 17px 3px #93e5cc7a;
+}
+@media(pointer:coarse){
+ .nc-page.nc-physical-ready #stage #ncKeyboardFocus{width:38px;height:38px}
+}
+@media(prefers-contrast:more){
+ .nc-page.nc-physical-ready #stage #ncKeyboardFocus{
+  border-width:3px;box-shadow:0 0 0 4px #ffffff;
+ }
+}
 html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
  background:#323d42f5;color:#f0ead9;border-color:#67777a;
 }
