@@ -17,11 +17,25 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
 camera.position.set(3.85,3.2,5.9);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+// A software-rendered or memory-constrained browser needs a lighter GPU
+// budget, not a frozen puzzle. Hardware renderers retain premium lighting,
+// shadows and full pixel density.
+const gl=renderer.getContext();
+const rendererInfo=gl.getExtension("WEBGL_debug_renderer_info");
+const gpuName=String(rendererInfo
+ ?gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL)
+ :gl.getParameter(gl.RENDERER)||"");
+const softwareGL=/swiftshader|llvmpipe|lavapipe|software raster/i.test(gpuName)
+ ||/HeadlessChrome/i.test(navigator.userAgent);
+const constrainedDevice=softwareGL||
+ (typeof navigator.deviceMemory==="number"&&navigator.deviceMemory<=2);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = .76;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
-renderer.shadowMap.enabled = true;
+renderer.setPixelRatio(constrainedDevice
+ ?Math.min(window.devicePixelRatio||1,.85)
+ :Math.min(window.devicePixelRatio||1,1.5));
+renderer.shadowMap.enabled = !constrainedDevice;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.domElement.setAttribute("aria-label", "Real three-dimensional cube with moving box drawers and lid");
 renderer.domElement.setAttribute("tabindex", "0");
@@ -60,7 +74,7 @@ controls.target.set(0, 0, 0);
 
 scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .57));
 const key = new THREE.DirectionalLight(0xfff6e7, 1.52);
-key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
+key.position.set(-3.4, 10.5, 6.6); key.castShadow = !constrainedDevice;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
 key.shadow.radius = 3;
@@ -851,6 +865,10 @@ window.__nothing3DPreview={
  get hatchBraceLengths(){updateHatchBraces();return hingeBraces.map(({body})=>body.scale.y)},
  get hatchAngle(){syncHatchMotion();return lidPivot.rotation.x},
  get renderMode(){return "on-demand"},
+ get performanceMode(){return {
+  softwareGL,constrainedDevice,rendererName:gpuName,
+  pixelRatio:renderer.getPixelRatio(),shadows:renderer.shadowMap.enabled
+ }},
  get navigationState(){return {panEnabled:controls.enablePan,
   target:controls.target.toArray(),camera:camera.position.toArray(),
   cameraReturning:!!cameraReturnMotion,
