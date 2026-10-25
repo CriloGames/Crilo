@@ -218,6 +218,11 @@ try{
    "Escape must leave keyboard inspection without triggering a puzzle");
  assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
    "Escape left the keyboard selection ring covering the 3D cube");
+ await page.keyboard.press("i");
+ await page.keyboard.press("Tab");
+ assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
+   "Tabbing from the 3D canvas left a stale inspection marker");
+ await page.locator("#stage canvas").focus();
  await page.locator("#ncViewReset").click();
  console.log("PASS: keyboard-visible fitting navigation, in-scene identity, arrows and Escape");
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
