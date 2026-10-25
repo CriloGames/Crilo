@@ -715,6 +715,8 @@ function visibleKeyboardTargets(){
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
 
+// Tab must leave keyboard inspection without leaving a stale halo on the box.
+renderer.domElement.addEventListener("blur",clearKeyboardInspection);
 renderer.domElement.addEventListener("pointerdown",e=>{
  clearKeyboardInspection();
  if(e.pointerType==="touch"){
@@ -828,6 +830,8 @@ renderer.domElement.addEventListener("keydown",event=>{
  }
  if(event.key.toLowerCase()==="i"||event.key==="["||event.key==="]"){
   event.preventDefault();
+  // A touch label timeout must never dismiss an active keyboard label.
+  if(keyboardIndex<0)dismissTouchHint();
   if(!keyboardTargets.length)keyboardTargets=visibleKeyboardTargets();
   if(!keyboardTargets.length){
    partHint.textContent="No reachable fittings from this angle. Rotate the cube to look closer.";
