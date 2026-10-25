@@ -619,8 +619,19 @@ try{
    toolbarRows:Math.abs(groups[0].top-groups[1].top),
    targets:targets.map(r=>[r.width,r.height])};
  });
- assert(mobileReview.cameraDistance>11.5&&mobileReview.cameraDistance<14,
-  "The portrait camera is cropping the entire cube: "+JSON.stringify(mobileReview));
+ assert(mobileReview.cameraDistance>13.1&&mobileReview.cameraDistance<13.8,
+  "The portrait cube must start with space around its open mechanisms: "+JSON.stringify(mobileReview));
+ const mobileZoomRange=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  view.setZoom(.81);
+  const zoomOut=Math.hypot(...view.navigationState.camera);
+  view.setZoom(1);
+  const normal=Math.hypot(...view.navigationState.camera);
+  return {zoomOut,normal};
+ });
+ assert(mobileZoomRange.zoomOut>15.8&&mobileZoomRange.zoomOut<=16.51&&
+  mobileZoomRange.normal>13.1&&mobileZoomRange.normal<13.8,
+  "Mobile users cannot back away far enough to inspect the entire opened artifact: "+JSON.stringify(mobileZoomRange));
  assert(mobileReview.scroll<=mobileReview.viewport+2&&mobileReview.toolbarRows<6&&
   mobileReview.targets.every(([w,h])=>w>=33&&h>=37),
   "Mobile toolbar has clipped, tiny or two-row controls: "+JSON.stringify(mobileReview));

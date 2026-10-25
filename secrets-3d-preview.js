@@ -51,14 +51,18 @@ studioRoom.dispose();pmrem.dispose();
 
 // A wider mobile overview keeps corners and opened hatches onscreen.
 // Players can zoom in on the tiny hardware when inspecting it.
-const MOBILE_HOME=[6.45,5.4,8.57];
+// A portrait projection needs extra clearance for the widest rotated face
+// and opened hinged lid. This home still leaves room to zoom toward details.
+const MOBILE_HOME=[7.15,6.02,9.55];
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = .075;
 controls.rotateSpeed = .40;
 controls.zoomSpeed = .30;
 controls.minDistance = 5.2;
-controls.maxDistance = 14;
+// Moving back must remain possible even after the 100% mobile overview;
+// previously the furthest zoom clipped the opened mechanism on phones.
+controls.maxDistance = 16.5;
 // Allow the box to move freely in frame without panning so far that it
 // becomes impossible to find. This does not constrain how it rotates.
 controls.minTargetRadius=0;
