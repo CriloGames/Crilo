@@ -83,6 +83,10 @@ try{
    path:"test-results/live-3d-first-load.png",timeout:60000
   });
  }catch(e){console.warn("Initial WebGL screenshot unavailable",String(e).slice(0,220))}
+ const instruction=await page.locator("#ncCubeHint").innerText();
+ assert(/drag to rotate/.test(instruction)&&/identify/.test(instruction)&&
+  !/correct|use the|sequence|number|unlock|solution/i.test(instruction),
+  "The floating cube should explain how to inspect it without giving away a puzzle: "+instruction);
  const initial=await page.evaluate(()=>({
  state:window.CriloNothingHereCube.getState(),
  meshes:window.__nothing3DPreview.meshCount,
