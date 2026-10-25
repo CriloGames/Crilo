@@ -88,7 +88,9 @@ try{
   hasButton:!!document.getElementById('ncResetCubeBtn')
  }));
  assert.deepEqual(afterReset,{discoveries:0,items:0,counter:'0',
-  otherSave:'keep-me',theme:'light',hasButton:true},
+  // The test's init script reapplies the saved dark preference on each navigation.
+  // Resetting the cube must leave that preference untouched.
+  otherSave:'keep-me',theme:'dark',hasButton:true},
   'Reset did not cleanly restart this cube, or damaged another save: '+JSON.stringify(afterReset));
  console.log('PASS: small two-step reset dialog, Escape, Cancel, confirmed restart and isolated localStorage');
 }finally{await browser.close()}
