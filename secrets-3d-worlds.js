@@ -42,7 +42,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
  });
- let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null;
+ let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let loadedOriginalStory=false;
  let lastDialValues=null,lastFloorFour=false,lastBagOpen=false;
@@ -146,7 +146,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // A hinged metal shroud physically conceals the tumblers before unlock.
   // Its hinge pins remain anchored to the bag, never floating in space.
   bagCover=new THREE.Group();bagCover.position.set(0,.395,.295);g.add(bagCover);
-  B(bagCover,.43,.155,.046,0,-.077,0,m.dark,.019);
+  const metalFlap=B(bagCover,.43,.155,.046,0,-.077,0,m.dark,.019);
+  metalFlap.castShadow=true;metalFlap.receiveShadow=true;
   B(bagCover,.345,.025,.020,0,-.072,.035,m.gold,.006);
   C(bagCover,.024,.018,0,-.119,.045,m.black,"z");
   for(const x of [-.17,.17]){
@@ -332,6 +333,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(const y of [.12,.71])B(g,.5,.035,.37,0,y,0,m.brass,.012);
   for(const x of [-.105,.105]){
    const door=B(g,.20,.52,.045,x,.39,.17,m.gold,.016);
+   // These shallow vertical ribs travel with the sliding door instead of
+   // hanging in the air when its leaves separate.
+   B(door,.013,.39,.012,x<0?-.071:.071,0,.033,m.brass,.004);
+   B(door,.105,.012,.012,0,-.14,.035,m.dark,.004);
    liftDoors.push(door);
   }
   // Four mechanically mounted brass call buttons next to the cage.
@@ -340,7 +345,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const button=new THREE.Group();
    button.position.set(.32,.15+floor*.11,.159);g.add(button);
    C(button,.043,.025,0,0,0,m.brass,"z");
-   C(button,.036,.028,0,0,.020,floor===4?m.pink:m.cream,"z");
+   // A uniquely colored correct floor would spoil the collar-tag clue.
+   C(button,.036,.028,0,0,.020,m.cream,"z");
    const digit=new THREE.Mesh(new THREE.PlaneGeometry(.053,.053),numerals[floor-1]);
    digit.position.z=.040;button.add(digit);parts++;
    // Each floor has its own tappable collar with clearance between keys.
@@ -351,6 +357,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    button.add(floorTouch);parts++;
    puzzleControls.set("thing:elevator-floor-"+floor,button);
   }
+  // A single arrival light above the floor controls only switches on
+  // AFTER a successful call; it is not an advance hint about floor four.
+  liftStatusGlass=mat(0x89cbb4,.1,.29);
+  liftStatusGlass.emissive.set(0x2fbb8d);
+  liftStatusGlass.emissiveIntensity=.04;
+  C(g,.049,.028,.32,.705,.164,m.brass,"z");
+  C(g,.032,.022,.32,.705,.185,liftStatusGlass,"z");
   C(g,.07,.03,0,.77,0,m.black,"z");
   C(g,.045,.014,0,.77,.04,m.blue,"z");
  }
@@ -583,6 +596,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     setPose(panel,"position","x",target,.83);
   });
   lastFloorFour=!!s.floorFour;
+  if(liftStatusGlass)liftStatusGlass.emissiveIntensity=s.floorFour?.9:.04;
   // The vase remains full-size in object space: its genuine fragments replace
   // the intact geometry, rather than squashing the original to fake breakage.
  }
@@ -607,6 +621,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
   getPose:()=>({
    bagCoverAngle:bagCover?.rotation.x??0,
+   liftLampLevel:liftStatusGlass?.emissiveIntensity??null,
    doorAngle:doorLeaf?.rotation.y??0,
    musicLidAngle:musicLid?.rotation.x??0,
    vaseWholeVisible:vaseWhole?.visible??false,

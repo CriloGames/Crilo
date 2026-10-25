@@ -110,6 +110,10 @@ try{
  assert(Math.hypot(...startCamera)<8.5,
   "The initial desktop cube was incorrectly framed at mobile camera distance: "+JSON.stringify(startCamera));
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
+ const pickStats=await page.evaluate(()=>window.__nothing3DPreview.raycastTargets);
+ assert.equal(pickStats.total,pickStats.unique,"Duplicate raycast targets waste mouse/touch time");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.liftLampLevel))<.15,
+  "The correct elevator floor must not be illuminated before discovery");
  assert(initial.blockers>=15,"Physical casing is missing face occluders");
  assert(initial.floating&&initial.plinth===0&&initial.pedestalSupports===0,
    "Nothing Here must float without a stand, a floor or mechanical supports");
@@ -426,7 +430,7 @@ try{
  await activate("thing:bag");
  assert(await page.locator("#ncModal").isHidden(),
   "Physical bag should not open an obstructing 2D dialog");
- assert.match(await page.locator("#ncNarrator").innerText(),/bag.*pocket/i);
+ assert.match(await page.locator("#ncNarrator").innerText(),/false bottom|bag.*pocket/i);
  console.log("PASS: actual pointer turns the bag dial; three-dimensional combination and inventory work");
  // The next chapter must ALSO be a physical puzzle: build the flute from
  // found parts, play three 3D keys, and open the original door with no modal.
@@ -570,6 +574,8 @@ try{
  const fourthFloor=await state();
  assert(fourthFloor.floorFour&&fourthFloor.pocket.includes("lens"),
    "Physical elevator call button did not operate the original floor-four puzzle");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.liftLampLevel))>.5,
+  "The physical arrival indicator should light up when the elevator unlocks");
  await activate("dot");
  assert.equal((await state()).seen.length,60,"Repeating completed puzzles must not duplicate awards");
  await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});

@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=23";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=24";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -105,6 +105,7 @@ cube.rotation.set(-.19, -.33, .02);
 scene.add(cube);
 let objectCount = 0;
 const interactiveMeshes = [];
+const interactiveMeshSet = new Set();
 // The solid enamel casing must block rays to clues on the opposite side.
 // Do not use all decorative geometry as blockers: a bezel or glass lens
 // could otherwise make a deliberately raised control unclickable.
@@ -125,7 +126,15 @@ function cylinder(parent,radius,depth,x,y,z,material) {
  parent.add(mesh);objectCount++;return mesh;
 }
 function setHit(obj,action){
- obj.traverse(node => {if(node.isMesh){node.userData.action=action;interactiveMeshes.push(node)}});
+ obj.traverse(node => {
+  if(!node.isMesh)return;
+  // Miniature controls inherit their parent's initial registration. Later
+  // action overrides must not double raycast work on the same geometry.
+  node.userData.action=action;
+  if(!interactiveMeshSet.has(node)){
+   interactiveMeshSet.add(node);interactiveMeshes.push(node);
+  }
+ });
  return obj;
 }
 function label(parent,text,w,h,x,y,z,background="#fff2de",ink="#6d6176"){
@@ -737,6 +746,7 @@ window.__nothing3DPreview={
   return n;
  },
  get finishMeshCount(){return finish.meshCount()},
+ get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
