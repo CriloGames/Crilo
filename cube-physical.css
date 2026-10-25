@@ -498,7 +498,7 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-selected{background:#315
 }
 .nc-page #ncModal .nc-reset-actions button{
  min-height:42px;padding:10px 15px;border-radius:10px;
- font:750 12px/1.25 inherit;cursor:pointer;
+ font-family:inherit;font-size:12px;font-weight:750;line-height:1.25;cursor:pointer;
 }
 .nc-page #ncModal #ncCancelCubeReset{
  border:1px solid #cbd7d5;background:#f8fbfa;color:#4e6668;
