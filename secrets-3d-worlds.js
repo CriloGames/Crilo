@@ -415,16 +415,22 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    if(visible&&newlyFound){
     gsap.killTweensOf(instance.fixture.scale);
     gsap.killTweensOf(instance.fixture.position);
-    if(firstRestore||reducedMotion){
-     // Restoring old progress must never replay discoveries on reload.
+    if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
+    const settle=()=>{
+     if(!instance.fixture.visible)return;
+     if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
      instance.fixture.scale.setScalar(1);
      instance.fixture.position.z=.27;
+     invalidate();
+    };
+    if(firstRestore||reducedMotion){
+     // Restored discoveries must be immediately stable.
+     settle();
     }else{
-     // A discovery physically emerges from its bolted recess, with a
-     // gentle overshoot and settled end pose rather than popping into view.
+     // A collectible physically emerges from its fastened display socket.
      instance.fixture.scale.setScalar(.62);
      instance.fixture.position.z=.13;
-     gsap.timeline({onUpdate:invalidate})
+     gsap.timeline({onUpdate:invalidate,onComplete:settle})
       .to(instance.fixture.scale,{
        x:1.045,y:1.045,z:1.045,duration:.43,ease:"power2.out"
       },0)
@@ -433,10 +439,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
        x:1,y:1,z:1,duration:.23,ease:"sine.out"
       },.43)
       .to(instance.fixture.position,{z:.27,duration:.23,ease:"sine.out"},.43);
+     // A slow graphics driver can throttle RAF for seconds. The mechanical
+     // end pose must still be reached on a fixed wall-clock deadline.
+     instance.finishTimer=setTimeout(()=>{
+      if(!instance.fixture.visible)return;
+      gsap.killTweensOf(instance.fixture.scale);
+      gsap.killTweensOf(instance.fixture.position);
+      settle();
+     },1350);
     }
    }else if(!visible){
-    // Ensure a reversed or restarted discovery doesn't inherit the pose
-    // of a cancelled entrance animation.
+    if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
     gsap.killTweensOf(instance.fixture.scale);
     gsap.killTweensOf(instance.fixture.position);
     instance.fixture.scale.setScalar(1);
