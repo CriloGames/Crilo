@@ -899,14 +899,34 @@ window.__nothing3DPreview={
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
     obj.open=open;
-    if(obj.motion)obj.motion.kill();
-    if(reducedMotion||restoring)obj.drawer.position.z=open?.76:0;
+    obj.motion?.kill();
+    if(obj.finishTimer){clearTimeout(obj.finishTimer);obj.finishTimer=null;}
+    const rest=open?.76:0;
+    const finish=()=>{
+     if(obj.open!==open)return; // A quick reversal wins.
+     if(obj.finishTimer){clearTimeout(obj.finishTimer);obj.finishTimer=null}
+     obj.drawer.position.z=rest;
+     obj.motion=null;
+     invalidate();
+    };
+    if(reducedMotion||restoring){obj.drawer.position.z=rest;invalidate();}
     else{
-     // Release catches, extend along both rails, then settle against the
-     // end stop. Reversing direction cancels the complete prior timeline.
-     obj.motion=gsap.timeline({onUpdate:invalidate})
-      .to(obj.drawer.position,{z:open?.87:-.04,duration:.47,ease:"power2.out"})
-      .to(obj.drawer.position,{z:open?.76:0,duration:.24,ease:"back.out(1.65)"});
+     // Extend on real tracks and lightly settle against the end stop.
+     // The absolute timer prevents an overloaded WebGL renderer from
+     // leaving a drawer permanently halfway through a timeline.
+     obj.motion=gsap.timeline({
+      onUpdate:invalidate,
+      onComplete:finish
+     }).to(obj.drawer.position,{
+      z:open?.85:-.035,duration:.44,ease:"power2.out"
+     }).to(obj.drawer.position,{
+      z:rest,duration:.25,ease:"back.out(1.55)"
+     });
+     obj.finishTimer=setTimeout(()=>{
+      if(obj.open!==open)return;
+      obj.motion?.kill();
+      finish();
+     },1700);
     }
    }
   }
