@@ -383,6 +383,19 @@ try{
  await page.locator('#ncInventory [data-item="key"]').click();
  await activate("thing:bag");
  assert.equal((await state()).bagOpen,true,"3D bag cannot be unlocked with the original key");
+ // A real mouse must be able to turn each dial independently, not strike
+ // the invisible whole-bag collider that formerly masked the tumblers.
+ const dialPointer=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const pos=view.projectPhysicalPuzzleControl("thing:bag-dial-1");
+  return pos?{...pos,hit:view.getPhysicalActionAt(pos.x,pos.y)}:null;
+ });
+ assert(dialPointer&&dialPointer.pick==="thing:bag-dial-1"&&dialPointer.hit==="thing:bag-dial-1",
+  "Unlocked bag's middle dial is masked: "+JSON.stringify(dialPointer));
+ await page.locator("#stage canvas").click({position:{x:dialPointer.x,y:dialPointer.y},timeout:30000});
+ assert.equal((await state()).bagDials[1],1,
+  "The mouse click failed to turn the physical bag dial");
+ for(let i=0;i<3;i++)await activate("thing:bag-dial-1");
  const wheelMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   const before=view.miniatureMechanismPose.bagDials[0];
@@ -403,7 +416,7 @@ try{
  assert(await page.locator("#ncModal").isHidden(),
   "Physical bag should not open an obstructing 2D dialog");
  assert.match(await page.locator("#ncNarrator").innerText(),/bag.*pocket/i);
- console.log("PASS: real 3D bag dials and inventory unlock the combination without a flat popup");
+ console.log("PASS: actual pointer turns the bag dial; three-dimensional combination and inventory work");
  // The next chapter must ALSO be a physical puzzle: build the flute from
  // found parts, play three 3D keys, and open the original door with no modal.
  await page.locator('#ncInventory [data-item="pipe"]').click();
@@ -519,13 +532,23 @@ try{
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
+ // Face the miniature elevator and physically press floor four with a
+ // real pointer, rather than advancing its puzzle state through an API.
  const liftMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   const before=view.miniatureMechanismPose.liftDoors[0];
-  view.clickAction("thing:elevator-floor-4");
+  view.setRotation(-19,95);
   return {before,button:view.miniatureMechanismPose.elevatorButton4,
    reduced:view.reducedMotion};
  });
+ const floorPointer=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const pos=view.projectPhysicalPuzzleControl("thing:elevator-floor-4");
+  return pos?{...pos,hit:view.getPhysicalActionAt(pos.x,pos.y)}:null;
+ });
+ assert(floorPointer&&floorPointer.pick==="thing:elevator-floor-4"&&floorPointer.hit==="thing:elevator-floor-4",
+  "Physical elevator fourth-floor button is masked: "+JSON.stringify(floorPointer));
+ await page.locator("#stage canvas").click({position:{x:floorPointer.x,y:floorPointer.y},timeout:30000});
  if(!liftMotion.reduced){
   assert(liftMotion.button<.152,"Elevator button did not depress");
   await page.waitForFunction(before=>window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]<before-.006,

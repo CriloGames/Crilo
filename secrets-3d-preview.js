@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=19";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=20";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -806,8 +806,25 @@ window.__nothing3DPreview={
   const obj=pocketWorlds?.puzzleTargets.get(name);
   if(!obj||!isMeshEffectivelyVisible(obj))return null;
   scene.updateWorldMatrix(true,true);
-  const pos=obj.getWorldPosition(new THREE.Vector3()).project(camera);
-  return {x:(pos.x+1)*.5*stage.clientWidth,y:(1-pos.y)*.5*stage.clientHeight,depth:pos.z};
+  const rect=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  // The reported point must actually select THIS tiny control rather than
+  // the parent model, its invisible selection box, or a neighbouring dial.
+  for(const [x,y,z] of [
+   [0,0,.095],[0,0,.065],[0,0,.035],
+   [-.025,0,.078],[.025,0,.078],
+   [0,-.025,.078],[0,.025,.078],[0,0,0]
+  ]){
+   const pos=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
+   const point={x:(pos.x+1)*.5*rect.width,
+    y:(1-pos.y)*.5*rect.height,depth:pos.z};
+   if(!fallback)fallback=point;
+   if(pos.z>=-1&&pos.z<=1&&point.x>=0&&point.x<=rect.width&&
+      point.y>=0&&point.y<=rect.height&&
+      pickVisibleAction(rect.left+point.x,rect.top+point.y)===name)
+    return {...point,pick:name};
+  }
+  return {...fallback,pick:null};
  },
  projectGameControl(name){
   const obj=gameHotspots?.targets.get(name);

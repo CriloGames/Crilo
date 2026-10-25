@@ -153,6 +153,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    B(dial,.012,.014,.012,0,.039,.030,m.black,.003);
    const glyph=new THREE.Mesh(new THREE.PlaneGeometry(.067,.067),glyphMaterials[0]);
    glyph.position.z=.047;dial.add(glyph);parts++;
+   // Dedicated fingertip hit target; it cannot overlap the next dial.
+   const dialTouch=new THREE.Mesh(new THREE.CylinderGeometry(.056,.056,.035,20),
+    new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
+     depthWrite:false,side:THREE.DoubleSide}));
+   dialTouch.rotation.x=Math.PI/2;dialTouch.position.z=.067;
+   dial.add(dialTouch);parts++;
    bagDialGlyphs.push(glyph);
    puzzleControls.set("thing:bag-dial-"+i,dial);bagDials.push(dial);
   }
@@ -318,6 +324,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    C(button,.036,.028,0,0,.020,floor===4?m.pink:m.cream,"z");
    const digit=new THREE.Mesh(new THREE.PlaneGeometry(.053,.053),numerals[floor-1]);
    digit.position.z=.040;button.add(digit);parts++;
+   // Each floor has its own tappable collar with clearance between keys.
+   const floorTouch=new THREE.Mesh(new THREE.CylinderGeometry(.051,.051,.034,20),
+    new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
+     depthWrite:false,side:THREE.DoubleSide}));
+   floorTouch.rotation.x=Math.PI/2;floorTouch.position.z=.063;
+   button.add(floorTouch);parts++;
    puzzleControls.set("thing:elevator-floor-"+floor,button);
   }
   C(g,.07,.03,0,.77,0,m.black,"z");
@@ -474,6 +486,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
+  // These generic transparent inspection boxes used to sit IN FRONT of
+  // real puzzle controls. The bag's actual leather stays selectable after
+  // opening, while its dials and all four elevator keys win the raycast.
+  const bagVolume=items.get("bag")?.hitVolume;
+  if(bagVolume)bagVolume.visible=!s.bagOpen;
+  const liftVolume=items.get("elevator")?.hitVolume;
+  if(liftVolume)liftVolume.visible=false;
   const newDialValues=[0,1,2].map(i=>(s.bagDials?.[i]||0)%4);
   for(let i=0;i<bagDials.length;i++){
    const value=newDialValues[i],dial=bagDials[i],glyph=bagDialGlyphs[i];
