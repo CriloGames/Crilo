@@ -176,7 +176,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // It emerges only after the player finds and combines its components.
  // Three genuine spring keypads trigger the SAME old note sequence logic.
  // There is no flat popup and no combination printed on the instrument.
- const flute=node(topFace,-.025,-.435,-.265);
+ // Seat the flute where the keys clear the lid and the casing's rim.
+  const flute=node(topFace,-.025,-.285,-.17);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
@@ -198,17 +199,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   wave.rotation.y=Math.PI/2;
   wave.visible=false;
   flute.add(wave);fluteWaves.push(wave);count++;
+  // Each key has a solid stem joining its raised socket to the tube.
+  B(flute,.038,.055,.20,x,.015,.065,brass,.012);
   const key=control(flute,"flute-note-"+i,x,.015,ivory,.065);
-  key.position.z=.135;
+  key.position.z=.18;
   // Slightly larger, completely invisible solid hit collar. Finger-size
   // input should work even when the rendered brass pad is only a few pixels.
   const touch=new THREE.Mesh(
-   new THREE.CylinderGeometry(.093,.093,.11,16),
+   new THREE.CylinderGeometry(.097,.097,.14,20),
    new THREE.MeshBasicMaterial({
     colorWrite:false,depthWrite:false,transparent:true,opacity:0
    })
   );
-  touch.rotation.x=Math.PI/2;touch.position.z=.115;
+  touch.rotation.x=Math.PI/2;touch.position.z=.145;
   key.add(touch);
   setHit(touch,"flute-note-"+i);
  }

@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=15";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=19";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -815,12 +815,14 @@ window.__nothing3DPreview={
   scene.updateWorldMatrix(true,true);
   const rect=renderer.domElement.getBoundingClientRect();
   let fallback=null;
-  // Prefer a genuinely reachable point on the modeled control. A center
-  // can be hidden by a rim or a partially opened lid even when the button
-  // is correctly visible and clickable from another angle.
+  // Sample across the raised key's real invisible fingertip collider;
+  // only return an actually reachable point verified by the real raycast.
+  const sampleDepth=name.startsWith("flute-note-") ? .185 : .14;
   for(const [x,y,z] of [
-   [0,0,.14],[0,0,.04],[.045,0,.14],[-.045,0,.14],
-   [0,.045,.14],[0,-.045,.14],
+   [0,0,sampleDepth],[0,0,.14],[0,0,.04],
+   [.045,0,sampleDepth],[-.045,0,sampleDepth],
+   [0,.045,sampleDepth],[0,-.045,sampleDepth],
+   [.065,0,.14],[-.065,0,.14],
    [.055,.055,.11],[-.055,-.055,.11],[0,0,0]
   ]){
    const p=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
