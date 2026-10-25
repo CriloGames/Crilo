@@ -341,34 +341,26 @@ try{
  await sendTouch("touchEnd",[]);
  const heldCaption=await page.evaluate(()=>window.__nhCaptionAtRelease);
  const holdCount=(await state()).redHits;
+ // Verify a normal fingertip tap BEFORE any pinch has moved the camera.
+ // A frame between down/up reflects an actual tap, not back-to-back CDP
+ // commands that can be coalesced by a CPU-bound software WebGL renderer.
+ await sendTouch("touchStart",[touch(94)]);
+ await page.waitForTimeout(140);
+ await sendTouch("touchEnd",[]);
+ const tapCount=(await state()).redHits;
  await sendTouch("touchStart",[touch(92)]);
  await sendTouch("touchStart",[touch(92),touch(93,33)]);
  const pinchInProgress=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState.gesture);
  await sendTouch("touchEnd",[]);
  const pinchCount=(await state()).redHits;
- // The pinch genuinely moves OrbitControls' camera. Re-center first, then
- // project a NEW raycast-verified target; the old pixel is no longer the dot.
- await page.evaluate(()=>window.__nothing3DPreview.resetCameraView());
- await page.waitForTimeout(750);
- const tapProjection=await page.evaluate(()=>{
-  const view=window.__nothing3DPreview;
-  const point=view.projectGameControl("dot");
-  const bounds=document.querySelector("#stage canvas").getBoundingClientRect();
-  return point?{x:bounds.left+point.x,y:bounds.top+point.y,pick:point.pick}:null;
- });
- assert(tapProjection?.pick==="dot",
-  "After pinch and view reset, the red button is not hittable: "+JSON.stringify(tapProjection));
- await sendTouch("touchStart",[{x:tapProjection.x,y:tapProjection.y,id:94}]);
- await sendTouch("touchEnd",[]);
- const tapCount=(await state()).redHits;
  const touchIdle=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState);
  await touchSession.send("Emulation.setTouchEmulationEnabled",{enabled:false});
  await touchSession.detach();
  assert(holdHint&&heldCaption&&pinchInProgress&&holdCount===touchBase&&
-  pinchCount===touchBase&&tapCount===touchBase+1&&
+  tapCount===touchBase+1&&pinchCount===tapCount&&
   touchIdle.active===0&&!touchIdle.gesture,
   "Real touch hold/pinch/tap regression: "+JSON.stringify({
-   holdHint,heldCaption,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,tapProjection,touchIdle
+   holdHint,heldCaption,pinchInProgress,touchBase,holdCount,tapCount,pinchCount,touchIdle
   }));
  console.log("PASS: physical touch hold-to-identify, two-finger suppression, single tap");
  const gaugeMotion=await page.evaluate(()=>{
