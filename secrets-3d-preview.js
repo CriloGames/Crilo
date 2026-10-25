@@ -489,22 +489,38 @@ document.getElementById("drawerFront")?.addEventListener("click",()=>clickAction
 document.getElementById("drawerRight")?.addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop")?.addEventListener("click",()=>clickAction("hatch"));
 let cameraReturnMotion=null;
+let cameraReturnDeadline=null;
+function cancelCameraReturn(){
+ if(cameraReturnDeadline!==null){clearTimeout(cameraReturnDeadline);cameraReturnDeadline=null}
+ cameraReturnMotion?.kill();cameraReturnMotion=null;
+ controls.enableDamping=true;
+}
 function returnCameraHome(){
  const home=stage.clientWidth<720?[5.6,4.7,7.45]:[4.2,3.5,6.45];
- cameraReturnMotion?.kill();
- cameraReturnMotion=null;
- if(reducedMotion){
-  camera.position.set(...home);
+ cancelCameraReturn();
+ // Flush leftover drag inertia before returning to the exact saved view.
+ // Otherwise the damping offset fights the animated orbit point and can
+ // leave the box subtly displaced after pressing Reset.
+ controls.enableDamping=false;
+ controls.update();
+ const finish=()=>{
+  if(cameraReturnDeadline!==null){clearTimeout(cameraReturnDeadline);cameraReturnDeadline=null}
+  cameraReturnMotion?.kill();cameraReturnMotion=null;
   controls.target.set(0,0,0);
+  camera.position.set(...home);
   cube.rotation.set(-.19,-.33,.02);
   controls.update();
+  controls.enableDamping=true;
   invalidate();
- }else{
-  // Move the orbit point AND the camera in the same timeline. Moving the
-  // target immediately while the camera eases makes the cube visibly jump.
+ };
+ if(reducedMotion){finish()}
+ else{
+  // The short failsafe protects the view on overloaded mobile and software
+  // WebGL renderers where a tween might never get its final animation frame.
+  cameraReturnDeadline=setTimeout(finish,1800);
   cameraReturnMotion=gsap.timeline({
    onUpdate:()=>{controls.update();invalidate();},
-   onComplete:()=>{cameraReturnMotion=null;invalidate();}
+   onComplete:finish
   });
   cameraReturnMotion.to(camera.position,{
    x:home[0],y:home[1],z:home[2],duration:.85,ease:"power2.inOut"
@@ -520,7 +536,7 @@ document.getElementById("reset")?.addEventListener("click",returnCameraHome);
 let cameraDragging=false;
 controls.addEventListener("start",()=>{
  // A user's next drag should override a camera animation immediately.
- cameraReturnMotion?.kill();cameraReturnMotion=null;
+ cancelCameraReturn();
  cameraDragging=true;
  renderer.domElement.style.cursor="grabbing";
  setPartHint(null);
@@ -678,7 +694,8 @@ function drawFrame(){
 controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
-  const base=stage.clientWidth<720?13:10;
+  const base=stage.clientWidth<720?
+   Math.hypot(5.6,4.7,7.45):Math.hypot(4.2,3.5,6.45);
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
    base/camera.position.distanceTo(controls.target)
   );
@@ -827,7 +844,8 @@ window.__nothing3DPreview={
  setZoom(value){
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
-  const base=mobile?13.0:10;
+  const base=mobile?
+   Math.hypot(5.6,4.7,7.45):Math.hypot(4.2,3.5,6.45);
   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
   const offset=camera.position.clone().sub(controls.target).setLength(d);
   camera.position.copy(controls.target).add(offset);
