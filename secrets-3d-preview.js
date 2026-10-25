@@ -659,6 +659,15 @@ renderer.domElement.addEventListener("pointerup",e=>{
  clearHover();
 });
 renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null;clearHover()});
+renderer.domElement.addEventListener("keydown",event=>{
+ if(!embeddedGame||!gameHotspots?.fluteVisible?.())return;
+ // Keyboard and assistive-technology players use these three instrument
+ // keys instead of hunting tiny 3D keycaps with a pointer.
+ if(["1","2","3"].includes(event.key)){
+  event.preventDefault();
+  clickAction("flute-note-"+event.key);
+ }
+});
 let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
@@ -893,6 +902,9 @@ window.__nothing3DPreview={
   looseSpool.visible=!currentGameState.sideTaken;
   undersideRing.visible=!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
+  renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
+   ?"3D puzzle cube. The collected flute has three playable keys. With this canvas focused, keys 1, 2 and 3 play its tones."
+   :"Rotatable three-dimensional puzzle cube with physical drawers, gears and hidden compartments.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   intricate.syncGameState(currentGameState,restoring);
   physicalStateInitialized=true;
