@@ -44,6 +44,16 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  });
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
+ let dogTail=null;
+ const cloudDrops=[],mothWings=[],trainWheels=[];
+ let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
+ const microTimers=new Map();
+ const settleMicro=(name,delay,settle)=>{
+  if(microTimers.has(name))clearTimeout(microTimers.get(name));
+  microTimers.set(name,setTimeout(()=>{
+   microTimers.delete(name);settle();invalidate();
+  },delay));
+ };
  let loadedOriginalStory=false;
  let lastDialValues=null,lastFloorFour=false,lastBagOpen=false;
  const bagDialGoals=[],bagDialSettleTimers=[];
@@ -214,7 +224,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    B(g,.085,.14,.13,x*1.65,.155,-.15,m.cream,.033);
   }
   torus(g,.13,.024,0,.47,.125,m.brass);
-  ball(g,.09,.19,.38,-.16,m.cream,[1.8,.5,.65]);
+  // The tail's pivot stays attached to the body during touch feedback.
+  dogTail=new THREE.Group();dogTail.position.set(.18,.37,-.16);g.add(dogTail);
+  ball(dogTail,.09,.047,0,0,m.cream,[1.7,.48,.62]);
+  wire(dogTail,[[.02,.01,0],[.12,.085,0],[.14,.17,0]],.024,m.cream);
  }
  // Fragile ceramic vase with narrow neck and dark opening.
  {
@@ -292,7 +305,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    ball(g,r,x,y,0,m.white,[1.2,.76,1]);
   }
   for(const x of [-.16,0,.16]){
-   ball(g,.035,x,.23,.065,m.blue,[.65,1.6,.65]);
+   cloudDrops.push(ball(g,.035,x,.23,.065,m.blue,[.65,1.6,.65]));
   }
  }
  // Small porcelain teacup with liquid and a physical ring handle.
@@ -376,6 +389,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(const s of [-1,1]){
    const wing=ball(g,.15,s*.15,.48,0,m.velvet,[1.05,.52,.35]);
    wing.rotation.z=s*.33;
+   mothWings.push({wing,side:s});
+   // Fine raised metal veins keep the physical wings recognizable up close.
+   for(const sign of [-1,1])wire(wing,[[0,0,.12],
+    [sign*.055,.025,.12],[sign*.10,.04,.10]],.006,m.brass);
    wire(g,[[0,.51,0],[s*.095,.63,0],[s*.16,.67,0]],.008,m.brass);
   }
   C(g,.07,.02,0,.34,0,m.brass);
@@ -402,7 +419,21 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   C(g,.10,.35,0,.39,0,m.brass,"z");
   B(g,.26,.21,.15,0,.43,-.18,m.green,.02);
   C(g,.050,.18,0,.57,.075,m.black);
-  for(const z of [-.15,.14])for(const x of [-.16,.16])C(g,.071,.035,x,.16,z,m.gold,"x");
+  for(const z of [-.15,.14])for(const x of [-.16,.16]){
+   const wheel=new THREE.Group();
+   wheel.position.set(x,.16,z);g.add(wheel);
+   C(wheel,.071,.035,0,0,0,m.gold,"x");
+   C(wheel,.025,.044,0,0,0,m.dark,"x");
+   // Raised studs and hub are captive to the spinning axle.
+   for(let n=0;n<5;n++){
+    const a=n*Math.PI*2/5;
+    ball(wheel,.012,x<0?-.031:.031,
+     Math.cos(a)*.05,Math.sin(a)*.05,m.brass);
+   }
+   trainWheels.push(wheel);
+  }
+  B(g,.30,.038,.085,0,.145,.005,m.brass,.008);
+  B(g,.10,.05,.07,0,.61,.076,m.copper,.012);
  }
  // Squirrel, with copper whiskers and genuinely curved swept tail.
  {
@@ -629,6 +660,54 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   });
   lastFloorFour=!!s.floorFour;
   if(liftStatusGlass)liftStatusGlass.emissiveIntensity=s.floorFour?.9:.04;
+  // Mechanisms react to completed actions, without looping or handing out
+  // extra rewards. Restored saves show their settled physical state.
+  const dogHits=Math.max(0,Number(s.dogHits)||0);
+  if(dogTail&&dogHits!==lastDogHits&&dogHits>0&&!firstRestore){
+   gsap.killTweensOf(dogTail.rotation);
+   if(reducedMotion){dogTail.rotation.z=0;invalidate();}
+   else{
+    gsap.timeline({onUpdate:invalidate})
+     .to(dogTail.rotation,{z:.46,duration:.16,ease:"sine.out"})
+     .to(dogTail.rotation,{z:-.28,duration:.18,ease:"sine.inOut"})
+     .to(dogTail.rotation,{z:0,duration:.24,ease:"sine.out"});
+    settleMicro("dog",1100,()=>{
+     gsap.killTweensOf(dogTail.rotation);dogTail.rotation.z=0;
+    });
+   }
+  }
+  lastDogHits=dogHits;
+  const raining=!!(s.cloud&&s.music);
+  if(raining!==lastRain){
+   cloudDrops.forEach((drop,i)=>{
+    gsap.killTweensOf(drop.position);
+    setPose(drop,"position","y",raining?.11+(i%2)*.043:.23,.48+i*.10,firstRestore);
+   });
+  }
+  lastRain=raining;
+  const mothTouched=!!s.mothTouched;
+  if(mothTouched!==lastMothTouched){
+   for(const {wing,side} of mothWings)
+    setPose(wing,"rotation","z",side*(mothTouched?.73:.33),.56,firstRestore);
+  }
+  lastMothTouched=mothTouched;
+  const movingTrain=!!s.train;
+  if(movingTrain!==lastTrain){
+   for(const wheel of trainWheels){
+    gsap.killTweensOf(wheel.rotation);
+    wheel.rotation.x=0;
+    if(movingTrain&&!firstRestore&&!reducedMotion)
+     gsap.to(wheel.rotation,{x:Math.PI*4,duration:1.45,
+      ease:"power2.out",onUpdate:invalidate});
+   }
+   if(movingTrain&&!firstRestore&&!reducedMotion)
+    settleMicro("train",1900,()=>{
+     for(const wheel of trainWheels){
+      gsap.killTweensOf(wheel.rotation);wheel.rotation.x=Math.PI*4;
+     }
+    });
+  }
+  lastTrain=movingTrain;
   // The vase remains full-size in object space: its genuine fragments replace
   // the intact geometry, rather than squashing the original to fake breakage.
  }
@@ -657,6 +736,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
   getPose:()=>({
+   dogTailAngle:dogTail?.rotation.z??null,
+   cloudDropHeights:cloudDrops.map(drop=>drop.position.y),
+   mothWingAngles:mothWings.map(({wing})=>wing.rotation.z),
+   trainWheelAngles:trainWheels.map(wheel=>wheel.rotation.x),
    bagCoverAngle:bagCover?.rotation.x??0,
    liftLampLevel:liftStatusGlass?.emissiveIntensity??null,
    doorAngle:doorLeaf?.rotation.y??0,

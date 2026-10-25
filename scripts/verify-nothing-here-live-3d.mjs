@@ -658,7 +658,8 @@ try{
    seen:ids,plateOpen:true,serviceOpen:true,pressureReady:true,
    pressureTicks:3,eyeRingTicks:20,screws:[0,1,2],hingePins:[0,1,2],
    watch:true,tag:true,floorFour:false,
-   door:true,doorOpen:true,music:true,vase:true
+   door:true,doorOpen:true,music:true,vase:true,cloud:true,
+   train:true,dogHits:2,mothTouched:true
   });
   localStorage.setItem(key,JSON.stringify(original));
  },sixtySecrets);
@@ -677,6 +678,17 @@ try{
   "Previously opened miniature doors and music-box lids did not restore their 3D hinge poses: "+JSON.stringify(vignette));
  assert(vignette.shardsVisible&&!vignette.vaseWholeVisible&&vignette.shardCount===12,
   "A broken vase must restore as solid individual ceramic shards: "+JSON.stringify(vignette));
+ assert(vignette.mothWingAngles.length===2&&
+  vignette.mothWingAngles[0]<-.69&&vignette.mothWingAngles[1]>.69,
+  "Clockwork moth wings did not restore their physical open pose: "+JSON.stringify(vignette));
+ assert(vignette.cloudDropHeights.length===3&&
+  vignette.cloudDropHeights.every(y=>y>.08&&y<.17),
+  "A saved rain cloud did not restore its individual drops: "+JSON.stringify(vignette));
+ assert(vignette.trainWheelAngles.length===4&&
+  vignette.trainWheelAngles.every(a=>Number.isFinite(a)),
+  "The miniature train lost its sculpted rotating axles: "+JSON.stringify(vignette));
+ assert(Math.abs(vignette.dogTailAngle)<.01,
+  "Saved dog tail did not rest on its own hinge");
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
