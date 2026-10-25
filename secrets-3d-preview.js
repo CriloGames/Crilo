@@ -1263,6 +1263,12 @@ if(embeddedGame){
  window.addEventListener("nc:statechange",event=>window.__nothing3DPreview.syncState(event.detail));
  window.__nothing3DPreview.syncState(window.CriloNothingHereCube?.getState?.()||{});
  document.body.classList.add("nc-physical-ready");
+ // Explain the gesture, not the solution. Real 3D touch users hold to
+ // identify an object without accidentally pressing a secret mechanism.
+ const gestureHint=document.getElementById("ncCubeHint");
+ if(gestureHint)gestureHint.textContent=window.matchMedia?.("(pointer:coarse)")?.matches
+  ?"drag to rotate · hold to identify"
+  :"drag to rotate · hover to identify";
  // Before physical mode activates the hidden canvas inherits the old CSS
  // cube's narrow width. Its initial ResizeObserver can incorrectly choose
  // MOBILE camera framing on a wide desktop, leaving the cube far away and
