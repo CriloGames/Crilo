@@ -169,7 +169,9 @@ export function buildIntricateCube({
   const arm=B(lever,.11,.29,.11,0,0,.13,steel,.04);
   B(lever,.24,.09,.13,0,.17,.21,ebony,.025);
   setHit(lever,"lever");registries.lever=arm;
-  label(rightFace,"SVC  3-1-2",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
+  // The vent order must be discovered behind the service bolt, not printed
+  // on the outside of the box before the player examines the mechanism.
+  label(rightFace,"SERVICE · ACCESS",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
   vent(rightFace,1.03,1.0,.39,3,ebony);
 
   // LEFT: two gears with actual teeth, a clockwork escapement, and grille.
