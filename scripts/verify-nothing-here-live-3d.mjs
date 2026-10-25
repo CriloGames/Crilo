@@ -229,6 +229,16 @@ try{
  assert(focusReticle.shown&&focusReticle.picked===keyInspection.selected,
    "Focus marker is not attached to the actual visible raycast hit: "+
    JSON.stringify({focusReticle,keyInspection}));
+ // Zooming changes the camera projection: never leave a keyboard reticle
+ // selecting the old raycast point, even before the next render frame.
+ await page.evaluate(()=>window.__nothing3DPreview.setZoom(.98));
+ const afterZoom=await page.evaluate(()=>({
+  ...window.__nothing3DPreview.keyboardInspectionState,
+  hintHidden:document.querySelector("#ncPartHint").hidden
+ }));
+ assert(afterZoom.selected===null&&!afterZoom.markerVisible&&afterZoom.hintHidden,
+   "Zoom preserved a stale keyboard target or hint: "+JSON.stringify(afterZoom));
+ await page.keyboard.press("i");
  const beforeArrow=await page.evaluate(()=>window.CriloNothingHereCube.getState().ry);
  await page.keyboard.press("ArrowRight");
  const afterArrow=await page.evaluate(()=>({
