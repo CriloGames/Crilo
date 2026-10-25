@@ -42,6 +42,10 @@ controls.rotateSpeed = .40;
 controls.zoomSpeed = .30;
 controls.minDistance = 5.2;
 controls.maxDistance = 14;
+// Allow the box to move freely in frame without panning so far that it
+// becomes impossible to find. This does not constrain how it rotates.
+controls.minTargetRadius=0;
+controls.maxTargetRadius=3.0;
 // Normal drag orbits. Right-drag / two fingers moves the floating cube in
 // the viewport; the Move button uses one-finger/left-drag for the same action.
 controls.enablePan = true;
@@ -471,12 +475,39 @@ function clickAction(action){
 document.getElementById("drawerFront")?.addEventListener("click",()=>clickAction("front"));
 document.getElementById("drawerRight")?.addEventListener("click",()=>clickAction("side"));
 document.getElementById("hatchTop")?.addEventListener("click",()=>clickAction("hatch"));
-document.getElementById("reset")?.addEventListener("click",()=>{
+let cameraReturnMotion=null;
+function returnCameraHome(){
  const home=stage.clientWidth<720?[5.6,4.7,7.45]:[4.2,3.5,6.45];
- animate(camera.position,{x:home[0],y:home[1],z:home[2]});
- animate(cube.rotation,{x:-.19,y:-.33,z:.02});
- controls.target.set(0,0,0);
+ cameraReturnMotion?.kill();
+ cameraReturnMotion=null;
+ if(reducedMotion){
+  camera.position.set(...home);
+  controls.target.set(0,0,0);
+  cube.rotation.set(-.19,-.33,.02);
+  controls.update();
+  invalidate();
+ }else{
+  // Move the orbit point AND the camera in the same timeline. Moving the
+  // target immediately while the camera eases makes the cube visibly jump.
+  cameraReturnMotion=gsap.timeline({
+   onUpdate:()=>{controls.update();invalidate();},
+   onComplete:()=>{cameraReturnMotion=null;invalidate();}
+  });
+  cameraReturnMotion.to(camera.position,{
+   x:home[0],y:home[1],z:home[2],duration:.85,ease:"power2.inOut"
+  },0).to(controls.target,{
+   x:0,y:0,z:0,duration:.85,ease:"power2.inOut"
+  },0).to(cube.rotation,{
+   x:-.19,y:-.33,z:.02,duration:.85,ease:"power2.inOut"
+  },0);
+ }
  announce("Camera returned to the physical cube.");
+}
+document.getElementById("reset")?.addEventListener("click",returnCameraHome);
+controls.addEventListener("start",()=>{
+ // A user's next drag should override a camera animation immediately.
+ cameraReturnMotion?.kill();cameraReturnMotion=null;
+ setPartHint(null);
 });
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
@@ -574,11 +605,9 @@ let cameraMode=null;
 const onResize=()=>{
  const r=stage.getBoundingClientRect();
  const mode=r.width<720?"mobile":"desktop";
- if(mode!==cameraMode){
-  cameraMode=mode;
-  const home=mode==="mobile"?[5.6,4.7,7.45]:[4.2,3.5,6.45];
-  camera.position.set(...home);
- }
+ // Initial framing is chosen at construction. A breakpoint crossing while
+ // inspecting an engraving must NOT reset a player's rotation, pan or zoom.
+ cameraMode=mode;
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
@@ -594,6 +623,8 @@ function invalidate(){
 }
 function drawFrame(){
  pendingFrame=0;
+ // OrbitControls emits "change" while damped motion is still settling,
+ // which schedules successive frames; a resting scene stays on demand.
  controls.update();
  updateHatchBraces();
  renderer.render(scene,camera);
@@ -735,7 +766,9 @@ window.__nothing3DPreview={
  get hatchAngle(){syncHatchMotion();return lidPivot.rotation.x},
  get renderMode(){return "on-demand"},
  get navigationState(){return {panEnabled:controls.enablePan,
-  target:controls.target.toArray(),camera:camera.position.toArray()}} ,
+  target:controls.target.toArray(),camera:camera.position.toArray(),
+  cameraReturning:!!cameraReturnMotion}} ,
+ resetCameraView:returnCameraHome,
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction,
