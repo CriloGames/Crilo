@@ -420,6 +420,11 @@ let lastClickedAction=null;
 function clickAction(action){
  lastClickedAction=action;
  if(embeddedGame){
+  if(action.startsWith("flute-note-")){
+   gameHotspots?.pulse(action);
+   window.CriloNothingHereCube?.activatePhysicalFluteNote?.(Number(action.slice(-1)));
+   return;
+  }
   if(action.startsWith("thing:bag-dial-")){
    window.CriloNothingHereCube?.activatePhysicalBagDial?.(Number(action.slice(-1)));
    return;
@@ -532,6 +537,7 @@ let clickStart=null;
 // Name what an object IS. Never tell the player its solution, use count,
 // compatible inventory item, or required sequence in a hover tooltip.
 const controlNames={
+ "flute-note-1":"Flute key I","flute-note-2":"Flute key II","flute-note-3":"Flute key III",
  front:"Lavender drawer",latch:"Front drawer latch",
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side panel seam","drawer-b":"Red thread spool",
@@ -795,6 +801,7 @@ window.__nothing3DPreview={
   elevatorButton4:pocketWorlds?.getElevatorButtonDepth?.(4)??null
  }},
  get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
+ get physicalFluteVisible(){return gameHotspots?.fluteVisible?.()||false},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
