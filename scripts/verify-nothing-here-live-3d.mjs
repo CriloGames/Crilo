@@ -383,6 +383,9 @@ try{
  await page.locator('#ncInventory [data-item="key"]').click();
  await activate("thing:bag");
  assert.equal((await state()).bagOpen,true,"3D bag cannot be unlocked with the original key");
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.bagCoverAngle < -1.3,
+  null,{timeout:17000,polling:250});
+ assert(await page.locator("#ncModal").isHidden(),"The 3D lock cover should not open a flat popup");
  // A real mouse must be able to turn each dial independently, not strike
  // the invisible whole-bag collider that formerly masked the tumblers.
  const dialPointer=await page.evaluate(()=>{

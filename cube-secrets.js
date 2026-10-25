@@ -562,7 +562,7 @@ function use(item,thing){
  if(item==='key'&&thing==='bag'){
   spend('key');s.bagOpen=true;
   if(document.body.classList.contains('nc-physical-ready'))
-   tell('The bag unlocks. Three brass combination wheels are now exposed on its actual 3D model. Turn them there.');
+   tell('The key turns. A small brass cover springs open on the bag.');
   else{tell('The key fits the bag. Its inside is bigger than its outside.');openBag()}
  }else if(item==='treat'&&thing==='dog'){
   spend('treat');s.tag=true;gain('tag');bloom('tag','The dog coughs up a numbered collar tag. It says 04.');
@@ -782,7 +782,7 @@ function clickThing(name){
  bloom('first');
  if(name==='bag'){
    if(s.bagOpen&&document.body.classList.contains('nc-physical-ready'))
-    tell(s.bagSolved?'The bag has been emptied into your pocket.':'Three tiny numbered brass wheels are attached to the bag. The code is hidden elsewhere on the cube.');
+    tell(s.bagSolved?'The false bottom is empty now.':'Three small metal tumblers sit beneath the open catch.');
    else openBag();
  }
  else if(name==='door'){

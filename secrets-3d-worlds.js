@@ -42,7 +42,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;
   return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
  });
- let bagDialPanel=null;
+ let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let loadedOriginalStory=false;
  let lastDialValues=null,lastFloorFour=false,lastBagOpen=false;
@@ -143,6 +143,16 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    C(g,.034,.02,x,.22,.161,m.dark,"z");
   }
   wire(g,[[-.12,.41,0],[-.10,.55,0],[.10,.55,0],[.12,.41,0]],.024,m.brass);
+  // A hinged metal shroud physically conceals the tumblers before unlock.
+  // Its hinge pins remain anchored to the bag, never floating in space.
+  bagCover=new THREE.Group();bagCover.position.set(0,.395,.295);g.add(bagCover);
+  B(bagCover,.43,.155,.046,0,-.077,0,m.dark,.019);
+  B(bagCover,.345,.025,.020,0,-.072,.035,m.gold,.006);
+  C(bagCover,.024,.018,0,-.119,.045,m.black,"z");
+  for(const x of [-.17,.17]){
+   C(g,.022,.048,x,.395,.29,m.brass,"x");
+   C(bagCover,.015,.018,x,-.041,.044,m.gold,"z");
+  }
   // The three combination tumblers are actual rotating bronze cylinders,
   // fixed to a machined backplate on the bag, not modal-only buttons.
   bagDialPanel=new THREE.Group();g.add(bagDialPanel);
@@ -151,6 +161,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const dial=new THREE.Group();
    dial.position.set((i-1)*.13,.275,.197);bagDialPanel.add(dial);
    C(dial,.047,.030,0,0,0,m.gold,"z");
+   // Seven small, physically raised grips give the tiny bronze drum
+   // useful machining detail without overlapping the adjacent wheels.
+   for(let notch=0;notch<7;notch++){
+    const angle=notch*Math.PI*2/7;
+    const grip=B(dial,.011,.021,.011,Math.cos(angle)*.042,
+     Math.sin(angle)*.042,.028,m.dark,.003);
+    grip.rotation.z=angle;
+   }
    B(dial,.012,.014,.012,0,.039,.030,m.black,.003);
    const glyph=new THREE.Mesh(new THREE.PlaneGeometry(.067,.067),glyphMaterials[0]);
    glyph.position.z=.047;dial.add(glyph);parts++;
@@ -384,6 +402,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  function inspect(name){
   const instance=items.get(name);
   if(!instance?.fixture.visible)return false;
+  // An opened lock demands fixed, reliably clickable tumblers.
+  if(name==="bag"&&bagDialPanel?.visible)return true;
   const object=instance.toy;
   gsap.killTweensOf(object.position);
   gsap.killTweensOf(object.rotation);
@@ -487,6 +507,21 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
+  if(!!s.bagOpen!==lastBagOpen&&bagCover){
+   if(bagCoverSettleTimer){clearTimeout(bagCoverSettleTimer);bagCoverSettleTimer=null;}
+   const coverAngle=s.bagOpen?-1.42:0;
+   setPose(bagCover,"rotation","x",coverAngle,.46,firstRestore);
+   if(!firstRestore&&!reducedMotion){
+    // A wall-clock end stop guarantees the newly exposed wheels stay free
+    // even on throttled software-rendered devices.
+    bagCoverSettleTimer=setTimeout(()=>{
+     gsap.killTweensOf(bagCover.rotation);
+     bagCover.rotation.x=coverAngle;
+     bagCoverSettleTimer=null;
+     invalidate();
+    },950);
+   }
+  }
   if(s.bagOpen&&!lastBagOpen){
    // An inventory key unlocks a mechanism. End any previous inspection
    // wobble before its delicate controls become reachable by the pointer.
@@ -571,6 +606,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
   getPose:()=>({
+   bagCoverAngle:bagCover?.rotation.x??0,
    doorAngle:doorLeaf?.rotation.y??0,
    musicLidAngle:musicLid?.rotation.x??0,
    vaseWholeVisible:vaseWhole?.visible??false,
