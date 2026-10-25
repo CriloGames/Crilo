@@ -795,6 +795,9 @@ function clearHover(){
 renderer.domElement.addEventListener("pointermove",e=>{
  if(clickStart&&e.pointerId===clickStart.pointerId&&
     Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
+ // Don't let an incidental mouse hover overwrite a keyboard-selected
+ // mechanism's name while its focus marker still points to that part.
+ if(keyboardIndex>=0)return;
  // Touch uses deliberate long-hold inspection; treating every finger drag
  // as mouse hover produces flashing labels while orbiting the cube.
  // Still cancel the inspection timer above when a finger begins dragging.
