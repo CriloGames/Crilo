@@ -122,7 +122,8 @@ export function buildIntricateCube({
   }
   C(frontDisc,.07,.045,.062,-.03,.276,ebony);
   edgeTicks(frontFace,0,.56,.66,28);
-  plaque(frontFace,"MODEL NO. 004",0,1.16,.98);
+  // The actual serial control is the only nameplate; a second stamped
+  // label above the large lens intersected the lens rim and its touch zone.
   const frontKnob=group(frontFace,-.95,.26,.16);
   C(frontKnob,.17,.10,0,0,.05,darkMetal);
   C(frontKnob,.13,.13,0,0,.13,gold);
@@ -141,7 +142,7 @@ export function buildIntricateCube({
 
   // RIGHT: precision pressure instrument, routed pipes and switch plate.
   plates(rightFace,verdigris);
-  const meter=group(rightFace,.18,.85,.14);
+  const meter=group(rightFace,.12,.77,.14);
   C(meter,.42,.14,0,0,0,darkMetal);
   C(meter,.35,.13,0,0,.11,gold);
   C(meter,.29,.08,0,0,.21,pearl);
@@ -156,7 +157,7 @@ export function buildIntricateCube({
   arrow.rotation.z=.08;
   C(needle,.044,.028,0,0,.024,metal);
   needle.rotation.z=-.5;
-  plaque(rightFace,"PRESSURE",.18,1.35,.70);
+  plaque(rightFace,"PRESSURE",.05,1.33,.70);
   setHit(meter,"pressure");
   registries.needle=needle;
   // independent copper tubes, clamps and inspection bolts
@@ -172,17 +173,20 @@ export function buildIntricateCube({
   // The vent order must be discovered behind the service bolt, not printed
   // on the outside of the box before the player examines the mechanism.
   label(rightFace,"SERVICE · ACCESS",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
-  vent(rightFace,1.03,1.0,.39,3,ebony);
+  // No fake upper-right vent: it occupied the exact service-bolt socket.
 
   // LEFT: two gears with actual teeth, a clockwork escapement, and grille.
   plates(leftFace,copper);
   plaque(leftFace,"MAKER'S SERVICE",0,1.27,1.15);
-  const wheelA=gear(leftFace,-.48,.33,.22,.44);
-  const wheelB=gear(leftFace,.44,-.25,.22,.29,steel,9);
+  // Smaller, deliberate gear cluster in the middle of the face: keep the
+  // left vent keys, pressure dial, and service catch free of ornamental teeth.
+  const wheelA=gear(leftFace,-.20,.04,.19,.31);
+  const wheelB=gear(leftFace,.39,-.40,.19,.235,steel,9);
   registries.wheelA=wheelA;registries.wheelB=wheelB;
-  flatLine(leftFace,-.48,.33,.44,-.25,.20,.09,darkMetal);
-  for(let i=0;i<4;i++)vent(leftFace,-.97,-.93+i*.23,.43,4);
-  const latch=group(leftFace,.84,.63,.18);
+  flatLine(leftFace,-.20,.04,.39,-.40,.15,.045,darkMetal);
+  // Omit four cosmetic grille bars: they resembled the real numbered vents
+  // and crowded the nearby hinged mechanisms.
+  const latch=group(leftFace,.99,-.44,.18);
   B(latch,.26,.55,.13,0,0,.04,metal,.035);
   const latchHandle=B(latch,.18,.12,.18,0,.10,.17,ivory,.035);
   setHit(latch,"service-latch");registries.latchHandle=latchHandle;
@@ -201,15 +205,10 @@ export function buildIntricateCube({
   // oversized raised clock-shaped dial duplicated the touch target and
   // physically overlapped its grille and label. This slim bezel sits UNDER
   // the actuator in the physical hotspot module; it has no second hit target.
+  // The actual iris actuator already has its own captive rim. The second
+  // dark rotating disc was co-planar with it and visually swallowed the knob.
+  // Retain a transform group for legacy animation, but no duplicate mesh.
   const backKnob=group(backFace,1.055,-1.30,.139);
-  backKnob.userData.noBatch=true; // animated retaining ring must remain real, not frozen into a static batch
-  C(backKnob,.156,.033,0,0,0,darkMetal);
-  ring(backKnob,.142,.015,0,0,.016,brass);
-  for(let i=0;i<8;i++){
-    const a=i*Math.PI/4;
-    const tick=B(backKnob,.027,.010,.012,Math.cos(a)*.131,Math.sin(a)*.131,.020,steel,.003);
-    tick.rotation.z=a;
-  }
   registries.backKnob=backKnob;
   plaque(backFace,"I SEE YOU",0,-1.36,.82);
 
