@@ -72,6 +72,17 @@ html[data-theme="dark"] .nc-page.nc-physical-ready .nc-cube-zone .nc-cube-hint{
  overflow:hidden;text-overflow:ellipsis;
  box-shadow:0 3px 12px #78818b10;pointer-events:none;
 }
+/* Live physical feedback is brief, never a permanent caption obscuring
+   tiny sculpted fittings at the top of the floating artifact. */
+.nc-page.nc-physical-ready #stage #status{
+ transition:opacity .35s ease,transform .35s ease;
+}
+.nc-page.nc-physical-ready #stage #status.nc-status-resting{
+ opacity:0;transform:translate(-50%,-5px);
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page.nc-physical-ready #stage #status{transition:none}
+}
 .nc-page .nc-physical-toggle{
  border:1px solid #d5dedf;
  border-radius:999px;
