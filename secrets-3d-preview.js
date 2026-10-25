@@ -655,7 +655,7 @@ function pickVisibleAction(clientX,clientY){
  * The default Tab key still moves normally to the toolbar and the pocket. */
 let keyboardTargets=[],keyboardIndex=-1;
 function clearKeyboardInspection(){
- if(keyboardIndex>=0)setPartHint(null);
+ if(keyboardIndex>=0){setPartHint(null);partHint.setAttribute("aria-live","off");}
  keyboardTargets=[];keyboardIndex=-1;
 }
 function visibleKeyboardTargets(){
@@ -896,6 +896,11 @@ window.__nothing3DPreview={
  get finishMeshCount(){return finish.meshCount()},
  get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
+ get keyboardInspectionState(){return {
+  count:keyboardTargets.length,
+  selected:keyboardIndex>=0?keyboardTargets[keyboardIndex]?.action:null,
+  label:keyboardIndex>=0?partHint.textContent:null
+ }},
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
