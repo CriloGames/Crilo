@@ -278,6 +278,9 @@ try{
   const view=window.__nothing3DPreview;
   for(let i=0;i<6;i++)view.clickAction("thing:bag");
  });
+ // Give the physical recoil its end-stop deadline before another UI click.
+ // Otherwise slow SwiftShader can postpone browser pointer dispatch.
+ await page.waitForTimeout(1025);
  await page.waitForFunction(()=>{
   const p=window.__nothing3DPreview.getMiniatureInspectionPose("bag");
   return p?.visible&&Math.abs(p.depth-.205)<.003&&Math.abs(p.tilt)<.003;
@@ -290,7 +293,9 @@ try{
  console.log("PASS: real pointer hits miniature; rapid taps leave it captive to its mount");
  // Items selected from the existing inventory must combine with a real 3D
  // model and write to the existing save key, not a separate 3D progress store.
- await page.locator('#ncInventory [data-item="coin"]').click();
+ // Inventory selection is DOM-based; the physical bag was already exercised
+ // through a real canvas pointer. Avoid an unrelated slow-GPU mouse wait.
+ await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>el.click());
  assert.equal((await state()).selected,"coin");
  await activate("thing:machine");
  let selectedState=await state();

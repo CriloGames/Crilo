@@ -419,6 +419,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   if(!instance?.fixture.visible)return false;
   // The precision tumblers should never move under the player's finger.
   if(name==="bag"&&bagDialPanel?.visible)return true;
+  // Limit repeated spring restarts on the same miniature. A quick series
+  // of taps should not monopolize frames on low-end mobile hardware.
+  const now=Date.now();
+  if(instance.lastInspectionAt&&now-instance.lastInspectionAt<220)return true;
+  instance.lastInspectionAt=now;
   const object=instance.toy,rest=.205;
   instance.inspectionMotion?.kill();
   if(instance.inspectionSettleTimer){
@@ -519,6 +524,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      },1350);
     }
    }else if(!visible){
+    instance.lastInspectionAt=0;
     instance.inspectionMotion?.kill();instance.inspectionMotion=null;
     if(instance.inspectionSettleTimer){
      clearTimeout(instance.inspectionSettleTimer);
