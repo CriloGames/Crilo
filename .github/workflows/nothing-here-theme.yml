@@ -1,0 +1,35 @@
+name: Nothing Here theme smoke check
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cube-physical.css'
+      - 'cube-inspection.css'
+      - 'secrets.html'
+      - 'scripts/verify-nothing-here-theme.mjs'
+      - '.github/workflows/nothing-here-theme.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nothing-here-theme-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  theme:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Serve game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nh-theme-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Check actual browser theme
+        run: node scripts/verify-nothing-here-theme.mjs
