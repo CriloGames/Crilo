@@ -779,11 +779,12 @@ function clearHover(){
  if(Date.now()>=touchHintUntil&&keyboardIndex<0)setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
- // Touch uses deliberate long-hold inspection; treating every finger drag
- // as mouse hover produces flashing labels while orbiting the cube.
- if(e.pointerType==="touch")return;
  if(clickStart&&e.pointerId===clickStart.pointerId&&
     Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
+ // Touch uses deliberate long-hold inspection; treating every finger drag
+ // as mouse hover produces flashing labels while orbiting the cube.
+ // Still cancel the inspection timer above when a finger begins dragging.
+ if(e.pointerType==="touch")return;
  if(cameraDragging||multiTouchGesture||
    clickStart&&Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7){
   clearHover();return;
