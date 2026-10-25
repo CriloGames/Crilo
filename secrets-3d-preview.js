@@ -49,6 +49,13 @@ controls.maxTargetRadius=3.0;
 // Normal drag orbits. Right-drag / two fingers moves the floating cube in
 // the viewport; the Move button uses one-finger/left-drag for the same action.
 controls.enablePan = true;
+// Explicit input mapping is necessary on browsers that default the secondary
+// mouse button to an alternative orbit gesture. Pan must behave consistently.
+controls.mouseButtons.LEFT=THREE.MOUSE.ROTATE;
+controls.mouseButtons.MIDDLE=THREE.MOUSE.DOLLY;
+controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
+controls.touches.ONE=THREE.TOUCH.ROTATE;
+controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
 controls.target.set(0, 0, 0);
 
 scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .70));
@@ -801,7 +808,9 @@ window.__nothing3DPreview={
  get renderMode(){return "on-demand"},
  get navigationState(){return {panEnabled:controls.enablePan,
   target:controls.target.toArray(),camera:camera.position.toArray(),
-  cameraReturning:!!cameraReturnMotion}} ,
+  cameraReturning:!!cameraReturnMotion,
+  panMode:controls.mouseButtons.LEFT===THREE.MOUSE.PAN,
+  rightPan:controls.mouseButtons.RIGHT===THREE.MOUSE.PAN}} ,
  resetCameraView:returnCameraHome,
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
@@ -820,6 +829,7 @@ window.__nothing3DPreview={
   if(!embeddedGame)return;
   controls.enablePan=true;
   controls.mouseButtons.LEFT=enabled?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;
+  controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
  setRotation(rx,ry){
