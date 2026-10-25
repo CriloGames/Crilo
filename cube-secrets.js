@@ -911,7 +911,8 @@ function info(){
  modal('A SLIGHTLY UNHELPFUL EXPLANATION','Turn it.',
   '<p>Drag to rotate, use the arrows, or zoom with the + / − buttons, your mouse wheel, or a two-finger pinch. Select ✥ to move a zoomed-in view. Press ↺ to reset.</p><p>Screws, vents, tiny markings, dial wheels and hinge pins are all worth inspecting.</p>'+
   '<p>Some discoveries are useful somewhere else. You can select an item and experiment with the other objects, or try combining two things in your pocket.</p>'+
-  '<p>Small engravings identify parts of the mechanism. Hover to see an object\'s name, or tap to explore. Objects you collect move into your pocket below.</p>'+
+  '<p>Small engravings identify parts of the mechanism. Hover to see an object\'s name, or tap to explore. Objects you collect move into your pocket below.</p>'+ 
+  '<p>Keyboard: focus the 3D cube, use arrow keys to turn it, I to inspect a visible fitting (Shift+I to go back), Enter to activate it, and Escape to stop inspecting. Tab moves to the other controls.</p>'+
  '<p>The journal records what you have discovered. Your progress saves on this device.</p>','info');
 }
 const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||name==='serial'||name==='pressure'||name==='shutter'||
