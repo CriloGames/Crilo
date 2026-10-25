@@ -769,6 +769,7 @@ window.__nothing3DPreview={
  get pedestalSupportLengths(){return []},
  get pedestalMeshCount(){return scene.children.filter(o=>/plinth|floor|support/i.test(o.name)).length},
  get storyMounts(){return pocketWorlds?.getMountPositions?.()||[]},
+ getStoryMountVisualState(name){return pocketWorlds?.getMountVisualState?.(name)||null},
  get physicalMechanismState(){return intricate.getState()},
  get miniatureMechanismPose(){return {
   bagDials:pocketWorlds?.getDialAngles?.()||[],
