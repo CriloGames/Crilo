@@ -46,6 +46,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let loadedOriginalStory=false;
  let lastDialValues=null,lastFloorFour=false,lastBagOpen=false;
+ const bagDialGoals=[],bagDialSettleTimers=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  const setPose=(object,axis,key,target,duration=.65,instant=false)=>{
   if(!object||Math.abs(object[axis][key]-target)<.001)return;
@@ -508,17 +509,34 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(let i=0;i<bagDials.length;i++){
    const value=newDialValues[i],dial=bagDials[i],glyph=bagDialGlyphs[i];
    if(!lastDialValues||firstRestore){
+    if(bagDialSettleTimers[i])clearTimeout(bagDialSettleTimers[i]);
+    bagDialSettleTimers[i]=null;
     gsap.killTweensOf(dial.rotation);
     gsap.killTweensOf(glyph.rotation);
-    dial.rotation.z=value*Math.PI/2;
-    glyph.rotation.z=-dial.rotation.z;
+    bagDialGoals[i]=value*Math.PI/2;
+    dial.rotation.z=bagDialGoals[i];
+    glyph.rotation.z=-bagDialGoals[i];
    }else if(value!==lastDialValues[i]){
     const turns=(value-lastDialValues[i]+4)%4;
-    // Forward-only ratchet: wrapping 3 -> 0 advances one detent, not
-    // backwards through three other symbols.
-    const end=dial.rotation.z+turns*Math.PI/2;
+    // Every click adds a complete detent to the intended angle, even if
+    // the previous tween has barely started. Four quick turns must make a
+    // whole revolution instead of four attempts at the same quarter-turn.
+    const end=(bagDialGoals[i]??dial.rotation.z)+turns*Math.PI/2;
+    bagDialGoals[i]=end;
     setPose(dial,"rotation","z",end,.33);
     setPose(glyph,"rotation","z",-end,.33);
+    // SwiftShader and background tabs can throttle animation frames. Force
+    // the precise final mechanical position on a fixed deadline without
+    // allowing an old timer to rewind a newer click.
+    if(bagDialSettleTimers[i])clearTimeout(bagDialSettleTimers[i]);
+    bagDialSettleTimers[i]=setTimeout(()=>{
+     if(bagDialGoals[i]!==end)return;
+     gsap.killTweensOf(dial.rotation);
+     gsap.killTweensOf(glyph.rotation);
+     dial.rotation.z=end;glyph.rotation.z=-end;
+     bagDialSettleTimers[i]=null;
+     invalidate();
+    },950);
    }
    glyph.material=glyphMaterials[value];
   }
