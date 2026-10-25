@@ -214,14 +214,49 @@ function modal(kicker,heading,body,type){
  $('ncModalEyebrow').textContent=kicker;
  $('ncModalTitle').textContent=heading;
  $('ncModalBody').innerHTML=body;
+ $('ncModal').querySelector('.nc-modal')?.classList.toggle('nc-reset-dialog',type==='reset');
  $('ncModal').hidden=false;$('gameInfoBtn')?.setAttribute('aria-expanded',String(type==='info'));
  $('ncModalClose').focus();
 }
 function closeModal(){
  if($('ncModal').hidden)return;
  $('ncModal').hidden=true;panel=null;
+ $('ncModal').querySelector('.nc-modal')?.classList.remove('nc-reset-dialog');
  $('gameInfoBtn')?.setAttribute('aria-expanded','false');
  if(previousFocus?.isConnected)previousFocus.focus();
+}
+// Destructive progress reset is opt-in and limited to this game's local
+// save slot. The first click opens a small accessible dialog; only pressing
+// the SECOND Reset button deletes progress. Other Crilo data is untouched.
+function openCubeResetConfirmation(){
+ modal('START AGAIN?','Reset the cube?',
+  '<p>Erase your Nothing Here discoveries, collected items, and puzzle progress saved in this browser? This cannot be undone.</p>'+
+  '<p>Other Crilo games and your account will not be affected.</p>'+
+  '<div class="nc-reset-actions">'+
+   '<button type="button" id="ncCancelCubeReset">Cancel</button>'+
+   '<button type="button" id="ncConfirmCubeReset" aria-label="Reset the Cube and erase local progress">Reset</button>'+
+  '</div>','reset');
+ // Put the safe action first, not the destructive button.
+ $('ncCancelCubeReset')?.focus();
+}
+function confirmCubeReset(){
+ if(panel!=='reset'||$('ncModal').hidden)return;
+ try{
+  localStorage.removeItem(KEY);
+  if(localStorage.getItem(KEY)!==null)throw new Error('Save is still present');
+ }catch(error){
+  tell('The browser could not clear this cube\'s save.');
+  const body=$('ncModalBody');
+  body.querySelector('.nc-reset-error')?.remove();
+  const notice=document.createElement('p');
+  notice.className='nc-reset-error';
+  notice.textContent='This browser did not allow the saved game to be cleared. Check site storage permissions and try again.';
+  body.prepend(notice);
+  return;
+ }
+ // The authoritative in-memory game state belongs to the old document.
+ // Reload once so puzzles, models, timers and inventory start together.
+ location.reload();
 }
 const prop=key=>document.querySelector('[data-thing="'+key+'"]');
 // Scene animation director. Events change immediately; motion is a visual
@@ -969,6 +1004,7 @@ $('ncSideObjects').addEventListener('click',eventThing);
 $('ncDoorScene').addEventListener('click',eventThing);
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
+$('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
 $('gameInfoBtn')?.addEventListener('click',info);
 $('ncModalClose').addEventListener('click',closeModal);
 $('ncModal').addEventListener('click',e=>{if(e.target===$('ncModal'))closeModal()});
@@ -993,6 +1029,11 @@ if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.p
  }
 },true);
 $('ncModalBody').addEventListener('click',e=>{
+ if(panel==='reset'){
+  if(e.target.closest('#ncCancelCubeReset'))closeModal();
+  else if(e.target.closest('#ncConfirmCubeReset'))confirmCubeReset();
+  return;
+ }
  const dial=e.target.closest('[data-dial]');if(dial&&panel==='bag'){turnBag(Number(dial.dataset.dial));return}
  const noteEl=e.target.closest('[data-note]');if(noteEl&&panel==='flute'){note(Number(noteEl.dataset.note));return}
  const floorEl=e.target.closest('[data-floor]');if(floorEl&&panel==='elevator'){callElevator(Number(floorEl.dataset.floor));return}
