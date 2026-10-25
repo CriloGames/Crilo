@@ -264,3 +264,13 @@ html[data-theme="dark"] .nc-page .nc-pocket-head .nc-pocket-held{
  .nc-page .nc-pocket-head{flex-wrap:wrap;row-gap:6px}
  .nc-page .nc-pocket-head .nc-pocket-held{max-width:100%;font-size:10px}
 }
+
+/* Tactile surface remains keyboard-discernible; finger holds label the hardware. */
+.nc-page.nc-physical-ready .nc-cube-zone #stage canvas:focus-visible{
+ outline:3px solid #6a9d92;outline-offset:-5px;border-radius:14px;
+}
+@media(pointer:coarse){
+ .nc-page.nc-physical-ready #stage #ncPartHint{
+  padding:9px 13px;min-width:92px;box-shadow:0 7px 22px #273b4055;
+ }
+}

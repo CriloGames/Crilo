@@ -305,6 +305,36 @@ try{
  await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
  assert.equal((await state()).redHits,5,
   "Clicking a visible physical red button did not trigger the original puzzle");
+ // Touch hold is inspection only; two simultaneous fingers must not activate
+ // puzzles. Send pointer streams to the real canvas, not the CSS fallback.
+ const touchCheck=await page.evaluate(async()=>{
+  const v=window.__nothing3DPreview,canvas=document.querySelector("#stage canvas");
+  const rect=canvas.getBoundingClientRect(),pt=v.projectGameControl("dot");
+  const start=window.CriloNothingHereCube.getState().redHits;
+  const fire=(kind,id)=>canvas.dispatchEvent(new PointerEvent(kind,{
+   bubbles:true,pointerId:id,pointerType:"touch",isPrimary:id===91,button:0,
+   buttons:kind==="pointerup"?0:1,clientX:rect.left+pt.x,clientY:rect.top+pt.y
+  }));
+  fire("pointerdown",91);
+  await new Promise(ok=>setTimeout(ok,670));
+  const hint=document.querySelector("#ncPartHint");
+  const identified=!hint.hidden&&/red button/i.test(hint.textContent);
+  fire("pointerup",91);
+  const afterHold=window.CriloNothingHereCube.getState().redHits;
+  fire("pointerdown",91);fire("pointerdown",92);
+  const gestureActive=v.touchInteractionState.gesture;
+  fire("pointerup",92);fire("pointerup",91);
+  const afterPinch=window.CriloNothingHereCube.getState().redHits;
+  fire("pointerdown",91);fire("pointerup",91);
+  const afterTap=window.CriloNothingHereCube.getState().redHits;
+  return {identified,gestureActive,start,afterHold,afterPinch,afterTap,
+   active:v.touchInteractionState.active,gesture:v.touchInteractionState.gesture};
+ });
+ assert(touchCheck.identified&&touchCheck.gestureActive&&
+  touchCheck.afterHold===touchCheck.start&&touchCheck.afterPinch===touchCheck.start&&
+  touchCheck.afterTap===touchCheck.start+1&&touchCheck.active===0&&!touchCheck.gesture,
+  "Touch identification/gesture blocking failed: "+JSON.stringify(touchCheck));
+ console.log("PASS: touchscreen hold-to-identify, two-finger suppression, single tap");
  const gaugeMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   view.clickAction("pressure");

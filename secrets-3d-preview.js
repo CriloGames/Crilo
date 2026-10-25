@@ -564,6 +564,11 @@ controls.addEventListener("end",()=>{
 });
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
 let clickStart=null;
+const touchPointers=new Set();
+let multiTouchGesture=false,inspectTimer=null;
+function stopInspectTimer(){
+ if(inspectTimer!==null){clearTimeout(inspectTimer);inspectTimer=null}
+}
 // Identify the actual object when hovered, not a generic "tap anywhere"
 // message. Inventory clues remain optional and never reveal a combination.
 // Name what an object IS. Never tell the player its solution, use count,
@@ -637,12 +642,27 @@ function pickVisibleAction(clientX,clientY){
     isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
 }
 renderer.domElement.addEventListener("pointerdown",e=>{
- if(e.button===0){
-  // Capture the intended real 3D control at press time. Under slow WebGL
-  // the key or its parent may animate before the matching pointer release;
-  // stationary clicks must not turn into misses or neighbouring actions.
-  clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
-   action:pickVisibleAction(e.clientX,e.clientY)};
+ if(e.pointerType==="touch"){
+  touchPointers.add(e.pointerId);
+  if(touchPointers.size>1){
+   multiTouchGesture=true;stopInspectTimer();clickStart=null;
+   clearHover();return;
+  }
+ }
+ if(e.button!==0||multiTouchGesture)return;
+ clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
+  pointerType:e.pointerType,action:pickVisibleAction(e.clientX,e.clientY),
+  inspected:false};
+ stopInspectTimer();
+ if(e.pointerType==="touch"&&clickStart.action){
+  const start=clickStart;
+  inspectTimer=setTimeout(()=>{
+   inspectTimer=null;
+   if(clickStart!==start||multiTouchGesture||touchPointers.size!==1)return;
+   start.inspected=true;
+   // Identification never discloses a sequence or uses the selected item.
+   setPartHint(start.action,{clientX:start.x,clientY:start.y});
+  },560);
  }
 });
 let hoverFrame=0,hoverPoint=null;
@@ -653,7 +673,9 @@ function clearHover(){
  setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
- if(cameraDragging||
+ if(clickStart&&e.pointerId===clickStart.pointerId&&
+    Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
+ if(cameraDragging||multiTouchGesture||
    clickStart&&Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7){
   clearHover();return;
  }
@@ -673,16 +695,28 @@ renderer.domElement.addEventListener("pointermove",e=>{
 renderer.domElement.addEventListener("pointerleave",clearHover);
 renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
 renderer.domElement.addEventListener("pointerup",e=>{
- const start=clickStart;clickStart=null;
- if(!start||start.pointerId!==e.pointerId||
-    Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)return;
- // A click below the drag threshold belongs to the object touched on
- // pointerdown, not whichever moving mesh happens to be under pointerup.
+ if(e.pointerType==="touch")touchPointers.delete(e.pointerId);
+ const start=clickStart;
+ if(start?.pointerId===e.pointerId)clickStart=null;
+ stopInspectTimer();
+ if(multiTouchGesture){
+  if(!touchPointers.size)multiTouchGesture=false;
+  clearHover();return;
+ }
+ if(!start||start.pointerId!==e.pointerId||start.inspected||
+    Math.hypot(e.clientX-start.x,e.clientY-start.y)>(start.pointerType==="touch"?12:7)){
+  clearHover();return;
+ }
  const action=start.action||pickVisibleAction(e.clientX,e.clientY);
  if(action)clickAction(action);
  clearHover();
 });
-renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null;clearHover()});
+renderer.domElement.addEventListener("pointercancel",e=>{
+ if(e.pointerType==="touch")touchPointers.delete(e.pointerId);
+ stopInspectTimer();clickStart=null;
+ if(!touchPointers.size)multiTouchGesture=false;
+ clearHover();
+});
 renderer.domElement.addEventListener("keydown",event=>{
  if(!embeddedGame||!gameHotspots?.fluteVisible?.())return;
  // Keyboard and assistive-technology players use these three instrument
@@ -747,6 +781,7 @@ window.__nothing3DPreview={
  },
  get finishMeshCount(){return finish.meshCount()},
  get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
+ get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
