@@ -125,6 +125,9 @@ s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
+// The pocket is re-rendered after every mechanical action. Newly found
+// highlights and keyboard focus must survive those renders.
+const pocketArrivalUntil=new Map();
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
 function store(){
@@ -154,10 +157,16 @@ function gain(id,message){
  if(!Object.hasOwn(names,id))return;
  if(!pocket.has(id)){
   const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
-  pocket.add(id);if(message)tell(message);render();flyToPocket(id,origin);
-  const found=document.querySelector('#ncInventory [data-item="'+id+'"]');
-  found?.classList.add('nc-item-new');
-  window.setTimeout(()=>found?.classList.remove('nc-item-new'),1100);
+  pocket.add(id);
+  pocketArrivalUntil.set(id,Date.now()+1150);
+  if(message)tell(message);
+  render();
+  flyToPocket(id,origin);
+  window.setTimeout(()=>{
+   pocketArrivalUntil.delete(id);
+   document.querySelector('#ncInventory [data-item="'+id+'"]')
+    ?.classList.remove('nc-item-new');
+  },1150);
  }
 }
 function spend(id){if(!pocket.has(id))return false;pocket.delete(id);if(selected===id)selected=null;return true}
@@ -306,11 +315,26 @@ function render(){
  cup:s.music,clock:s.watch,machine:s.mouse,
   elevator:s.watch&&s.tag,moth:s.floorFour,telescope:s.moon,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
- let str=[...pocket].map(id=>'<button type="button" class="nc-item'+(id===selected?' nc-selected':'')+
-   ''+
-   '" data-item="'+id+'" aria-pressed="'+String(selected===id)+'" draggable="true"><span aria-hidden="true">'+glyphs[id]+'</span>'+
+ const inventory=$('ncInventory');
+ const focusedItem=inventory.contains(document.activeElement)
+  ?document.activeElement.closest('[data-item]')?.dataset.item:null;
+ const now=Date.now();
+ const str=[...pocket].map(id=>'<button type="button" class="nc-item'+
+   (id===selected?' nc-selected':'')+
+   ((pocketArrivalUntil.get(id)||0)>now?' nc-item-new':'')+
+   '" data-item="'+id+'" aria-pressed="'+String(selected===id)+
+   '" draggable="true"><span aria-hidden="true">'+glyphs[id]+'</span>'+
    names[id]+'</button>').join('');
- $('ncInventory').innerHTML=str||'<span class="nc-empty">Nothing. Yet.</span>';
+ inventory.innerHTML=str||'<span class="nc-empty">Nothing. Yet.</span>';
+ // Keyboard players must not lose focus just because an unrelated gear
+ // was clicked or the same pocket item was selected again.
+ if(focusedItem&&pocket.has(focusedItem))
+  inventory.querySelector('[data-item="'+focusedItem+'"]')?.focus({preventScroll:true});
+ const held=$('ncPocketSelection');
+ if(held){
+  held.textContent=selected?'Holding '+names[selected]:'';
+  held.hidden=!selected;
+ }
  $('ncUnselect').hidden=!selected;
  // A selected item is clearly marked in the pocket, but never highlight
  // the correct combinations or recipient targets before discovery.
