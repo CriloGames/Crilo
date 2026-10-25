@@ -54,15 +54,24 @@ studioRoom.dispose();pmrem.dispose();
 // A portrait projection needs extra clearance for the widest rotated face
 // and opened hinged lid. This home still leaves room to zoom toward details.
 const MOBILE_HOME=[7.15,6.02,9.55];
+const DESKTOP_HOME=[3.85,3.2,5.9];
+const DEFAULT_ZOOM=.82,MAX_ZOOM=2;
+const baseHome=()=>stage.clientWidth<720?MOBILE_HOME:DESKTOP_HOME;
+const baseDistance=()=>Math.hypot(...baseHome());
+const zoomedHome=()=>baseHome().map(n=>n/DEFAULT_ZOOM);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = .075;
 controls.rotateSpeed = .40;
 controls.zoomSpeed = .30;
-controls.minDistance = 5.2;
-// Moving back must remain possible even after the 100% mobile overview;
-// previously the furthest zoom clipped the opened mechanism on phones.
-controls.maxDistance = 16.5;
+// Keep touch pinch, mouse wheel, buttons and the displayed percentage in
+// the same 82%–200% interval, including when the viewport changes width.
+function updateZoomBounds(){
+ const base=baseDistance();
+ controls.minDistance=base/MAX_ZOOM;
+ controls.maxDistance=base/DEFAULT_ZOOM;
+}
+updateZoomBounds();
 // Allow the box to move freely in frame without panning so far that it
 // becomes impossible to find. This does not constrain how it rotates.
 controls.minTargetRadius=0;
@@ -543,7 +552,7 @@ function cancelCameraReturn(){
  controls.enableDamping=true;
 }
 function returnCameraHome(){
- const home=stage.clientWidth<720?MOBILE_HOME:[3.85,3.2,5.9];
+ const home=embeddedGame?zoomedHome():baseHome();
  cancelCameraReturn();
  // Reset the *camera's real orbit point* synchronously. An animated GSAP
  // target used to fight OrbitControls' inertia and, on low-power hardware,
@@ -920,9 +929,11 @@ const onResize=()=>{
  // Initial mobile framing makes the entire box visible. Every subsequent
  // breakpoint crossing preserves the player's orbit, pan and zoom.
  if(cameraMode===null){
-  const initial=mode==="mobile"?MOBILE_HOME:[3.85,3.2,5.9];
+  const initial=embeddedGame?zoomedHome():baseHome();
   camera.position.set(...initial);
  }
+ // OrbitControls clamps physical wheel and pinch to the zoom range.
+ updateZoomBounds();
  cameraMode=mode;
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
@@ -949,10 +960,8 @@ function drawFrame(){
 controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
-  const base=stage.clientWidth<720?
-   Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
-   base/camera.position.distanceTo(controls.target)
+   baseDistance()/camera.position.distanceTo(controls.target)
   );
  }
 });
@@ -1151,13 +1160,10 @@ window.__nothing3DPreview={
  setZoom(value){
   if(!embeddedGame)return;
   clearKeyboardInspection();
-  const mobile=stage.clientWidth<720;
-  const base=mobile?
-   Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
-  // Keep the toolbar's zoom limits identical to OrbitControls so that
-   // touch zoom, the zoom buttons and Reset View agree at any screen size.
-   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),
-    controls.minDistance,controls.maxDistance);
+  // Match the real camera limits and the DOM zoom indicator at every width.
+  const d=THREE.MathUtils.clamp(
+   baseDistance()/THREE.MathUtils.clamp(value,DEFAULT_ZOOM,MAX_ZOOM),
+   controls.minDistance,controls.maxDistance);
   const offset=camera.position.clone().sub(controls.target).setLength(d);
   camera.position.copy(controls.target).add(offset);
   controls.update();invalidate();
@@ -1312,11 +1318,11 @@ if(embeddedGame){
  // Before physical mode activates the hidden canvas inherits the old CSS
  // cube's narrow width. Its initial ResizeObserver can incorrectly choose
  // MOBILE camera framing on a wide desktop, leaving the cube far away and
- // the zoom indicator at 74%. Re-frame ONCE using the actual visible stage.
+ // the zoom indicator incorrectly. Re-frame using the visible stage.
  cameraMode=null;
  onResize();
  controls.update();
- window.CriloNothingHereCube?.updatePhysicalViewZoom?.(1);
+ window.CriloNothingHereCube?.updatePhysicalViewZoom?.(DEFAULT_ZOOM);
  invalidate();
  document.getElementById("ncPhysicalToggle")?.setAttribute("aria-pressed","true");
 }
