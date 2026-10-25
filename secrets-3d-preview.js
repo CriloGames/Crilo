@@ -189,8 +189,8 @@ function makeCompartment(face,hole,palette,name){
  label(drawer,name,w*.55,.11,0,.16,.263,"#efe8db","#60686b");
  return {drawer,cavity,open:false};
 }
-const front=makeCompartment(frontFace,frontHole,enamel.front,"01 · KEY");
-const side=makeCompartment(rightFace,sideHole,enamel.right,"02 · THREAD");
+const front=makeCompartment(frontFace,frontHole,enamel.front,"01 · DRAWER");
+const side=makeCompartment(rightFace,sideHole,enamel.right,"02 · DRAWER");
 front.drawer.userData.action="front";
 side.drawer.userData.action="side";
 setHit(front.drawer,"front");setHit(side.drawer,"side");
