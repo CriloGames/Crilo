@@ -15,6 +15,8 @@ for(const file of ["secrets-3d-details.js","secrets-3d-game-hotspots.js"]){
   "A machine engraving gives away a mechanical puzzle before its hidden clue is found: "+file);
 }
 assert(!source.includes("function nextHint()"),"Journal must not surface unrequested solutions");
+assert(!source.includes("node.classList.toggle('nc-receptive'"),
+ "The inventory must not automatically illuminate compatible puzzle targets");
 import {chromium} from "playwright";
 const browser=await chromium.launch({headless:true,args:[
  "--enable-webgl","--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"
@@ -92,7 +94,7 @@ try{
  assert(Math.hypot(...afterResize.map((v,i)=>v-beforeResize[i]))<.25,
    "Mobile breakpoint snapped the cube back to its original position");
  await page.setViewportSize({width:1280,height:860});
- await page.evaluate(()=>window.__nothing3DPreview.resetCameraView());
+ await page.locator("#ncViewReset").click();
  await page.waitForFunction(()=>{
   const v=window.__nothing3DPreview.navigationState;
   return !v.cameraReturning&&Math.hypot(...v.target)<.05;
@@ -333,7 +335,17 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
- for(const n of [2,1,3])await activate("flute-note-"+n);
+ const key=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const pos=view.projectGameControl("flute-note-2");
+  return pos?{...pos,hit:view.getPhysicalActionAt(pos.x,pos.y)}:null;
+ });
+ assert(key&&key.pick==="flute-note-2"&&key.hit==="flute-note-2",
+   "Crafted 3D flute keys are obscured or impossible to click: "+JSON.stringify(key));
+ await page.locator("#stage canvas").click({position:{x:key.x,y:key.y},timeout:30000});
+ assert.deepEqual((await state()).fluteNotes,[2],
+   "The real pointer click on the second flute key didn't sound the original note");
+ for(const n of [1,3])await activate("flute-note-"+n);
  const melody=await state();
  assert(melody.door&&melody.seen.includes("door"),
   "Playing the original melody on the physical flute did not reveal the door");
