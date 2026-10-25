@@ -648,7 +648,57 @@ function pickVisibleAction(clientX,clientY){
   .find(hit=>hit.distance<=limit && hit.object.userData.action &&
     isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
 }
+
+/* Accessible physical inspection: the keyboard only cycles through parts
+ * that can actually be reached by the current camera ray. It never lists
+ * hidden mechanisms, highlights compatible items or reveals puzzle answers.
+ * The default Tab key still moves normally to the toolbar and the pocket. */
+let keyboardTargets=[],keyboardIndex=-1;
+function clearKeyboardInspection(){
+ if(keyboardIndex>=0)setPartHint(null);
+ keyboardTargets=[];keyboardIndex=-1;
+}
+function visibleKeyboardTargets(){
+ const rect=renderer.domElement.getBoundingClientRect();
+ if(!rect.width||!rect.height)return [];
+ scene.updateMatrixWorld(true);
+ const options=new Map(),center=new THREE.Vector3(),projected=new THREE.Vector3();
+ for(const mesh of interactiveMeshes){
+  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh))continue;
+  if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
+  center.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);
+  projected.copy(center).project(camera);
+  if(projected.z < -1||projected.z>1||Math.abs(projected.x)>1||Math.abs(projected.y)>1)continue;
+  const item={action:mesh.userData.action,
+   x:rect.left+(projected.x+1)*rect.width/2,
+   y:rect.top+(1-projected.y)*rect.height/2,
+   depth:camera.position.distanceTo(center)};
+  let list=options.get(item.action);
+  if(!list){list=[];options.set(item.action,list);}
+  // Keep just the near surfaces, not every bolt in a repeated mesh group.
+  list.push(item);
+  list.sort((a,b)=>a.depth-b.depth);
+  if(list.length>6)list.length=6;
+ }
+ const visible=new Map();
+ for(const [action,points] of options){
+  for(const p of points){
+   if(pickVisibleAction(p.x,p.y)===action){visible.set(action,p);break;}
+  }
+ }
+ // Small precision actuators can fall between mesh-center samples.
+ // A sparse, screen-space pass helps discover those without scanning the
+ // whole scene on every key press. Only actual raycast hits are considered.
+ for(const v of [.22,.39,.5,.61,.78])for(const u of [.2,.38,.5,.62,.8]){
+  const x=rect.left+rect.width*u,y=rect.top+rect.height*v;
+  const action=pickVisibleAction(x,y);
+  if(action&&!visible.has(action))visible.set(action,{action,x,y});
+ }
+ return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
+}
+
 renderer.domElement.addEventListener("pointerdown",e=>{
+ clearKeyboardInspection();
  if(e.pointerType==="touch"){
   touchPointers.add(e.pointerId);
   if(touchPointers.size>1){
@@ -747,11 +797,46 @@ renderer.domElement.addEventListener("pointercancel",e=>{
  clearHover();
 });
 renderer.domElement.addEventListener("keydown",event=>{
- if(!embeddedGame||!gameHotspots?.fluteVisible?.())return;
- // Keyboard and assistive-technology players use these three instrument
- // keys instead of hunting tiny 3D keycaps with a pointer.
- if(["1","2","3"].includes(event.key)){
+ if(!embeddedGame)return;
+ const directions={ArrowLeft:"left",ArrowRight:"right",
+  ArrowUp:"up",ArrowDown:"down"};
+ if(directions[event.key]){
   event.preventDefault();
+  clearKeyboardInspection();
+  // Use the same controls as the visible toolbar, which also keeps the
+  // Classic mode orientation in step with the physical cube.
+  document.querySelector('[data-rotate="'+directions[event.key]+'"]')?.click();
+  return;
+ }
+ if(event.key.toLowerCase()==="i"||event.key==="["||event.key==="]"){
+  event.preventDefault();
+  if(!keyboardTargets.length)keyboardTargets=visibleKeyboardTargets();
+  if(!keyboardTargets.length){
+   partHint.textContent="No reachable fittings from this angle. Rotate the cube to look closer.";
+   partHint.hidden=false;partHint.style.left="50%";partHint.style.top="18px";
+   partHint.setAttribute("aria-live","polite");
+   return;
+  }
+  const backwards=event.key==="["||event.shiftKey;
+  keyboardIndex=(keyboardIndex+(backwards?-1:1)+keyboardTargets.length)%keyboardTargets.length;
+  const target=keyboardTargets[keyboardIndex];
+  setPartHint(target.action,{clientX:target.x,clientY:target.y});
+  partHint.setAttribute("aria-live","polite");
+  return;
+ }
+ if((event.key==="Enter"||event.key===" ")&&keyboardIndex>=0){
+  event.preventDefault();
+  const action=keyboardTargets[keyboardIndex]?.action;
+  clearKeyboardInspection();
+  if(action)clickAction(action);
+  return;
+ }
+ if(event.key==="Escape"&&keyboardIndex>=0){
+  event.preventDefault();clearKeyboardInspection();return;
+ }
+ // The physical instrument is also playable without tiny pointer targets.
+ if(gameHotspots?.fluteVisible?.()&&["1","2","3"].includes(event.key)){
+  event.preventDefault();clearKeyboardInspection();
   clickAction("flute-note-"+event.key);
  }
 });
@@ -1021,8 +1106,8 @@ window.__nothing3DPreview={
   undersideRing.visible=!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
   renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
-   ?"3D puzzle cube. The collected flute has three playable keys. With this canvas focused, keys 1, 2 and 3 play its tones."
-   :"Rotatable three-dimensional puzzle cube with physical drawers, gears and hidden compartments.");
+   ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Keys 1, 2 and 3 play the collected flute."
+   :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   intricate.syncGameState(currentGameState,restoring);
   physicalStateInitialized=true;
