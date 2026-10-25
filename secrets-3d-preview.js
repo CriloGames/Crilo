@@ -675,8 +675,10 @@ const onResize=()=>{
  const mode=r.width<720?"mobile":"desktop";
  // Initial mobile framing makes the entire box visible. Every subsequent
  // breakpoint crossing preserves the player's orbit, pan and zoom.
- if(cameraMode===null&&mode==="mobile")
-  camera.position.set(5.6,4.7,7.45);
+ if(cameraMode===null){
+  const initial=mode==="mobile"?[5.6,4.7,7.45]:[3.85,3.2,5.9];
+  camera.position.set(...initial);
+ }
  cameraMode=mode;
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
@@ -1011,5 +1013,14 @@ if(embeddedGame){
  window.addEventListener("nc:statechange",event=>window.__nothing3DPreview.syncState(event.detail));
  window.__nothing3DPreview.syncState(window.CriloNothingHereCube?.getState?.()||{});
  document.body.classList.add("nc-physical-ready");
+ // Before physical mode activates the hidden canvas inherits the old CSS
+ // cube's narrow width. Its initial ResizeObserver can incorrectly choose
+ // MOBILE camera framing on a wide desktop, leaving the cube far away and
+ // the zoom indicator at 74%. Re-frame ONCE using the actual visible stage.
+ cameraMode=null;
+ onResize();
+ controls.update();
+ window.CriloNothingHereCube?.updatePhysicalViewZoom?.(1);
+ invalidate();
  document.getElementById("ncPhysicalToggle")?.setAttribute("aria-pressed","true");
 }
