@@ -304,13 +304,15 @@ function render(){
   elevator:s.watch&&s.tag,moth:s.floorFour,telescope:s.moon,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  let str=[...pocket].map(id=>'<button type="button" class="nc-item'+(id===selected?' nc-selected':'')+
-   (selected&&id!==selected&&recipe[sorted(selected,id)]?' nc-valid':'')+
+   ''+
    '" data-item="'+id+'" aria-pressed="'+String(selected===id)+'" draggable="true"><span aria-hidden="true">'+glyphs[id]+'</span>'+
    names[id]+'</button>').join('');
  $('ncInventory').innerHTML=str||'<span class="nc-empty">Nothing. Yet.</span>';
  $('ncUnselect').hidden=!selected;
+ // A selected item is clearly marked in the pocket, but never highlight
+ // the correct combinations or recipient targets before discovery.
  document.querySelectorAll('[data-thing]').forEach(node=>{
-  node.classList.toggle('nc-receptive',!!selected&&accepts(selected,node.dataset.thing));
+  node.classList.remove('nc-receptive');
  });
  store();
  // The physical renderer reflects the same authoritative puzzle state;
@@ -636,7 +638,7 @@ function take(item){
  if(!selected){selected=item;tell('Holding '+names[item]+'. Choose another pocket item or an object in the world.');render();return}
  if(item===selected){selected=null;render();return}
  const result=recipe[sorted(selected,item)];
- if(!result){selected=null;tell('Those have no business being combined. Neither was used up.');sound(185);render();return}
+ if(!result){tell('Those pieces do not fit. Both are still in your pocket.');sound(185);render();return}
  spend(selected);spend(item);gain(result[0],result[2]);selected=null;bloom(result[1],result[2]);render();
 }
 function openBag(){
@@ -748,7 +750,7 @@ function bark(){
 function clickThing(name){
  if(selected){
   if(use(selected,name))return;
-  tell('That '+names[selected]+' will not help here.');selected=null;render();return;
+  tell('That '+names[selected]+' does not seem to fit there.');render();return;
  }
  bloom('first');
  if(name==='bag'){
@@ -889,12 +891,12 @@ if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.p
  }
  // The engraved square is a real touch target, also usable by keyboard.
  if(selected&&e.target.closest('[data-thing="cube"]')){
-  if(!use(selected,'cube')){tell('The cube refuses that offering.');selected=null;render();}
+  if(!use(selected,'cube')){tell('The cube refuses that offering.');render();}
   e.stopPropagation();return;
  }
  if(selected&&!e.target.closest('button,[data-hit]')){
   if(use(selected,'cube')){e.stopPropagation();return}
-  tell('The cube refuses that offering.');selected=null;render();
+  tell('The cube refuses that offering.');render();
  }
 },true);
 $('ncModalBody').addEventListener('click',e=>{
