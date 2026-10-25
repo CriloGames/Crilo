@@ -503,6 +503,12 @@ function returnCameraHome(){
  // could leave the cube off-center indefinitely. The box still gets a
  // gentle mechanical settling turn when motion is allowed.
  controls.enableDamping=false;
+ // First update clears OrbitControls' accumulated gesture deltas. With
+ // panning enabled a queued _panOffset may otherwise get re-applied to
+ // target AFTER we set it to zero, visibly undoing the Reset button.
+ controls.target.set(0,0,0);
+ camera.position.set(...home);
+ controls.update();
  controls.target.set(0,0,0);
  camera.position.set(...home);
  controls.update();
