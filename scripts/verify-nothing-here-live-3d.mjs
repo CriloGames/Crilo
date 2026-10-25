@@ -320,6 +320,18 @@ try{
  const touchBase=(await state()).redHits;
  const touch=(id,dx=0)=>({x:touchPoint.x+dx,y:touchPoint.y,id});
  const sendTouch=(type,touchPoints)=>touchSession.send("Input.dispatchTouchEvent",{type,touchPoints});
+ // Observe the DOM immediately after the real pointerup listener finishes.
+ // A separate Playwright round-trip on a throttled software GPU can arrive
+ // AFTER the intentionally short post-release caption has expired.
+ await page.evaluate(()=>{
+  window.__nhCaptionAtRelease=null;
+  document.querySelector("#stage canvas").addEventListener("pointerup",()=>{
+   queueMicrotask(()=>{
+    const el=document.querySelector("#ncPartHint");
+    window.__nhCaptionAtRelease=!el.hidden&&/red button/i.test(el.textContent);
+   });
+  },{once:true});
+ });
  await sendTouch("touchStart",[touch(91)]);
  await page.waitForTimeout(680);
  const holdHint=await page.evaluate(()=>{
@@ -327,17 +339,26 @@ try{
   return !el.hidden&&/red button/i.test(el.textContent);
  });
  await sendTouch("touchEnd",[]);
- const heldCaption=await page.evaluate(()=>{
-  const el=document.querySelector("#ncPartHint");
-  return !el.hidden&&/red button/i.test(el.textContent);
- });
+ const heldCaption=await page.evaluate(()=>window.__nhCaptionAtRelease);
  const holdCount=(await state()).redHits;
  await sendTouch("touchStart",[touch(92)]);
  await sendTouch("touchStart",[touch(92),touch(93,33)]);
  const pinchInProgress=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState.gesture);
  await sendTouch("touchEnd",[]);
  const pinchCount=(await state()).redHits;
- await sendTouch("touchStart",[touch(94)]);
+ // The pinch genuinely moves OrbitControls' camera. Re-center first, then
+ // project a NEW raycast-verified target; the old pixel is no longer the dot.
+ await page.evaluate(()=>window.__nothing3DPreview.resetCameraView());
+ await page.waitForTimeout(750);
+ const tapProjection=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const point=view.projectGameControl("dot");
+  const bounds=document.querySelector("#stage canvas").getBoundingClientRect();
+  return point?{x:bounds.left+point.x,y:bounds.top+point.y,pick:point.pick}:null;
+ });
+ assert(tapProjection?.pick==="dot",
+  "After pinch and view reset, the red button is not hittable: "+JSON.stringify(tapProjection));
+ await sendTouch("touchStart",[{x:tapProjection.x,y:tapProjection.y,id:94}]);
  await sendTouch("touchEnd",[]);
  const tapCount=(await state()).redHits;
  const touchIdle=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState);
@@ -347,7 +368,7 @@ try{
   pinchCount===touchBase&&tapCount===touchBase+1&&
   touchIdle.active===0&&!touchIdle.gesture,
   "Real touch hold/pinch/tap regression: "+JSON.stringify({
-   holdHint,heldCaption,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,touchIdle
+   holdHint,heldCaption,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,tapProjection,touchIdle
   }));
  console.log("PASS: physical touch hold-to-identify, two-finger suppression, single tap");
  const gaugeMotion=await page.evaluate(()=>{
