@@ -546,8 +546,7 @@ try{
   const view=window.__nothing3DPreview;
   const before=view.miniatureMechanismPose.liftDoors[0];
   view.setRotation(-19,95);
-  return {before,button:view.miniatureMechanismPose.elevatorButton4,
-   reduced:view.reducedMotion};
+  return {before,reduced:view.reducedMotion};
  });
  const floorPointer=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
@@ -557,8 +556,11 @@ try{
  assert(floorPointer&&floorPointer.pick==="thing:elevator-floor-4"&&floorPointer.hit==="thing:elevator-floor-4",
   "Physical elevator fourth-floor button is masked: "+JSON.stringify(floorPointer));
  await page.locator("#stage canvas").click({position:{x:floorPointer.x,y:floorPointer.y},timeout:30000});
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.lastClickedAction),
+  "thing:elevator-floor-4","A real pointer failed to select elevator floor four");
  if(!liftMotion.reduced){
-  assert(liftMotion.button<.152,"Elevator button did not depress");
+  // The pre-click resting depth is not a pressed depth. Check the physical
+  // elevator doors after the actual click, even on throttled renderers.
   await page.waitForFunction(before=>window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]<before-.006,
    liftMotion.before,{timeout:12000});
  }
