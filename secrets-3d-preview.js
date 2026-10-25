@@ -698,9 +698,15 @@ function pickVisibleAction(clientX,clientY){
  * that can actually be reached by the current camera ray. It never lists
  * hidden mechanisms, highlights compatible items or reveals puzzle answers.
  * The default Tab key still moves normally to the toolbar and the pocket. */
-let keyboardTargets=[],keyboardIndex=-1;
+let keyboardTargets=[],keyboardIndex=-1,keyboardNoticeActive=false;
 function clearKeyboardInspection(){
- if(keyboardIndex>=0){setPartHint(null);partHint.setAttribute("aria-live","off");}
+ // Inspection may show either a selected physical part or the empty-angle
+ // notice. Both must close on Escape, Tab, rotation and touch input.
+ if(keyboardIndex>=0||keyboardNoticeActive){
+  setPartHint(null);
+  partHint.setAttribute("aria-live","off");
+ }
+ keyboardNoticeActive=false;
  placeKeyboardFocus(null);
  keyboardTargets=[];keyboardIndex=-1;
 }
@@ -869,11 +875,13 @@ renderer.domElement.addEventListener("keydown",event=>{
   if(keyboardIndex<0)dismissTouchHint();
   if(!keyboardTargets.length)keyboardTargets=visibleKeyboardTargets();
   if(!keyboardTargets.length){
+   keyboardNoticeActive=true;
    partHint.textContent="No reachable fittings from this angle. Rotate the cube to look closer.";
    partHint.hidden=false;partHint.style.left="50%";partHint.style.top="18px";
    partHint.setAttribute("aria-live","polite");
    return;
   }
+  keyboardNoticeActive=false;
   const backwards=event.key==="["||event.shiftKey;
   keyboardIndex=(keyboardIndex+(backwards?-1:1)+keyboardTargets.length)%keyboardTargets.length;
   const target=keyboardTargets[keyboardIndex];
@@ -889,7 +897,7 @@ renderer.domElement.addEventListener("keydown",event=>{
   if(action)clickAction(action);
   return;
  }
- if(event.key==="Escape"&&keyboardIndex>=0){
+ if(event.key==="Escape"&&(keyboardIndex>=0||keyboardNoticeActive)){
   event.preventDefault();clearKeyboardInspection();return;
  }
  // The physical instrument is also playable without tiny pointer targets.
@@ -960,7 +968,8 @@ window.__nothing3DPreview={
   count:keyboardTargets.length,
   selected:keyboardIndex>=0?keyboardTargets[keyboardIndex]?.action:null,
   label:keyboardIndex>=0?partHint.textContent:null,
-  markerVisible:!keyboardFocus.hidden
+  markerVisible:!keyboardFocus.hidden,
+  noticeVisible:keyboardNoticeActive&&!partHint.hidden
  }},
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
