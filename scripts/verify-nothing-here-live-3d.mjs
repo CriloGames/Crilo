@@ -11,7 +11,8 @@ assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrup
 // supplied as hover text, engravings, or automatic journal hints.
 for(const file of ["secrets-3d-details.js","secrets-3d-game-hotspots.js"]){
  const code=readFileSync(new URL("../"+file,import.meta.url),"utf8");
- assert(!/THREE TAPS|TAP 3×/.test(code),"A machine engraving gives away the lid puzzle: "+file);
+ assert(!/THREE TAPS|TAP 3×|SVC\\s+3-1-2/.test(code),
+  "A machine engraving gives away a mechanical puzzle before its hidden clue is found: "+file);
 }
 assert(!source.includes("function nextHint()"),"Journal must not surface unrequested solutions");
 import {chromium} from "playwright";
