@@ -53,10 +53,17 @@ page.on("pageerror",e=>errors.push(e.message));
 page.on("console",msg=>{
  if(msg.type()==="error" && !msg.text().includes("supabase"))errors.push(msg.text().slice(0,280));
 });
+// Simulate the database reads triggered by the account notification header
+// during auth-ready checks. They are unrelated to secret progression.
 const mock=`window.supabase={createClient:()=>({
  auth:{getSession:async()=>({data:{session:null},error:null}),
  onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),
- signOut:async()=>({error:null})},rpc:async()=>({data:null,error:null})
+ signOut:async()=>({error:null})},
+ rpc:async()=>({data:null,error:null}),
+ from:()=>({select(){return this},eq(){return this},order(){return this},
+  limit:async()=>({data:[],error:null}),
+  in:async()=>({data:[],error:null}),
+  maybeSingle:async()=>({data:null,error:null})})
 })};`;
 await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',
 r=>r.fulfill({status:200,body:mock,contentType:"application/javascript"}));
@@ -417,7 +424,18 @@ try{
  await page.locator("#stage canvas").click({position:{x:key.x,y:key.y},timeout:30000});
  assert.deepEqual((await state()).fluteNotes,[2],
    "The real pointer click on the second flute key didn't sound the original note");
- for(const n of [1,3])await activate("flute-note-"+n);
+ // Play the other two instrument keys through real pointer clicks as well.
+ for(const n of [1,3]){
+  const projected=await page.evaluate(n=>{
+   const view=window.__nothing3DPreview;
+   const pos=view.projectGameControl("flute-note-"+n);
+   return pos?{...pos,hit:view.getPhysicalActionAt(pos.x,pos.y)}:null;
+  },n);
+  assert(projected&&projected.pick==="flute-note-"+n&&projected.hit==="flute-note-"+n,
+   "Physical flute key "+n+" is unreachable by a pointer: "+JSON.stringify(projected));
+  await page.locator("#stage canvas").click({position:{x:projected.x,y:projected.y},timeout:30000});
+  assert.equal((await state()).fluteNotes.at(-1),n,"Pointer missed flute key "+n);
+ }
  const melody=await state();
  assert(melody.door&&melody.seen.includes("door"),
   "Playing the original melody on the physical flute did not reveal the door");
