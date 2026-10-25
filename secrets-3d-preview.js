@@ -760,7 +760,7 @@ function clearHover(){
  hoverPoint=null;
  renderer.domElement.style.cursor="grab";
  // Long-hold captions must survive finger release so players can read them.
- if(Date.now()>=touchHintUntil)setPartHint(null);
+ if(Date.now()>=touchHintUntil&&keyboardIndex<0)setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
  if(clickStart&&e.pointerId===clickStart.pointerId&&
@@ -862,6 +862,8 @@ renderer.domElement.addEventListener("keydown",event=>{
 let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
+ // A resize changes the projected selection point; avoid stale markers.
+ clearKeyboardInspection();
  const r=stage.getBoundingClientRect();
  const mode=r.width<720?"mobile":"desktop";
  // Initial mobile framing makes the entire box visible. Every subsequent
