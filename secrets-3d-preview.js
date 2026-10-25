@@ -722,6 +722,10 @@ renderer.domElement.addEventListener("pointerup",e=>{
   clearHover();return;
  }
  if(start?.inspected&&start.pointerId===e.pointerId){
+  // OrbitControls fires its own end handler before this canvas listener;
+  // it clears the caption. Restore the inspected identity on release and
+  // keep it visible long enough to read on an actual phone.
+  setPartHint(start.action,{clientX:start.x,clientY:start.y});
   pinTouchHint();clearHover();return;
  }
  if(!start||start.pointerId!==e.pointerId||
