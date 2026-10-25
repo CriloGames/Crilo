@@ -139,6 +139,28 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  C(reed,.038,.045,0,0,0,graphite);
  setHit(reed,"top-reed");targets.set("top-reed",reed);
+ // The combined flute is an actual instrument in the opened top well.
+ // It emerges only after the player finds and combines its components.
+ // Three genuine spring keypads trigger the SAME old note sequence logic.
+ // There is no flat popup and no combination printed on the instrument.
+ const flute=node(topFace,-.025,-.435,-.265);
+ const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
+ fluteTube.rotation.z=Math.PI/2;
+ flute.add(fluteTube);count++;
+ for(const x of [-.33,.33]){
+  const lip=new THREE.Mesh(new THREE.TorusGeometry(.065,.011,8,20),brass);
+  lip.position.x=x;lip.rotation.y=Math.PI/2;flute.add(lip);count++;
+ }
+ for(const x of [-.24,.24]){
+  B(flute,.07,.19,.075,x,-.045,-.033,graphite,.012);
+  C(flute,.029,.024,x,0,.063,brass);
+ }
+ for(let i=1;i<=3;i++){
+  const x=(i-2)*.205;
+  const key=control(flute,"flute-note-"+i,x,.015,ivory,.065);
+  key.position.z=.135;
+ }
+ flute.visible=false;
  // Back: concentric optical controls and a rotating calibration gear.
  control(backFace,"eye",.07,-.12,glass,.17);
  const eyeCipher=engraving(backFace,"2 · 1 · 3",.03,-.55,.53);
@@ -262,6 +284,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   targets,
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
+  fluteVisible:()=>flute.visible,
   getClueVisibility:()=>({
    serviceNumber:ventCipher.visible,
    footNumber:undersideCipher.visible,
@@ -292,6 +315,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
    pose(foot,"position","x",s.footChecked?-1.32:-1.02,
      previous.footChecked?-1.32:-1.02,restore,.46);
+   flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
    // The cog has fallen directly into inventory after the panel is opened.
