@@ -368,6 +368,24 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(const x of [-.075,.075])ball(g,.042,x,.57,.057,m.pink);
   wire(g,[[.08,.27,-.11],[.22,.38,-.17],[.22,.58,-.20],[.10,.69,-.16]],.055,m.wood);
  }
+ function inspect(name){
+  const instance=items.get(name);
+  if(!instance?.fixture.visible)return false;
+  const object=instance.toy;
+  gsap.killTweensOf(object.position);
+  gsap.killTweensOf(object.rotation);
+  // Objects acknowledge touch by briefly shifting in their captive
+  // mount. Never auto-rotate to a solution or falsely eject inventory.
+  if(reducedMotion){invalidate();return true;}
+  const front=object.position.z;
+  const lean=name==="bag"||name==="door"?-.055:.045;
+  gsap.timeline({onUpdate:invalidate})
+   .to(object.position,{z:front+.095,duration:.13,ease:"power2.out"},0)
+   .to(object.rotation,{z:lean,duration:.13,ease:"power2.out"},0)
+   .to(object.position,{z:front,duration:.42,ease:"back.out(1.8)"},.14)
+   .to(object.rotation,{z:0,duration:.40,ease:"back.out(1.8)"},.14);
+  return true;
+ }
  function pulse(action){
   const control=puzzleControls.get(action);
   if(!control||!action.startsWith("thing:elevator-floor-"))return false;
@@ -479,6 +497,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   pickVolumes:new Map([...items].map(([n,v])=>[n,v.hitVolume])),
   puzzleActions:[...puzzleControls.keys()],
   pulse,
+  inspect,
   getDialAngles:()=>bagDials.map(d=>d.rotation.z),
   getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
