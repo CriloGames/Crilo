@@ -413,7 +413,7 @@ try{
   const original=JSON.parse(localStorage.getItem(key));
   Object.assign(original,{
    seen:ids,plateOpen:true,serviceOpen:true,pressureReady:true,
-   pressureTicks:3,eyeRingTicks:3,screws:[0,1,2],hingePins:[0,1,2],
+   pressureTicks:3,eyeRingTicks:20,screws:[0,1,2],hingePins:[0,1,2],
    watch:true,tag:true,floorFour:false,
    door:true,doorOpen:true,music:true,vase:true
   });
@@ -426,6 +426,8 @@ try{
  assert.equal(await page.locator("#ncCount").innerText(),"60","Journal did not restore all sixty discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
+ assert.equal(migrated.eyeRingTicks,3,
+   "Legacy optical over-rotations must be normalized without losing saved discoveries");
  await page.waitForTimeout(770);
  const vignette=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose);
  assert(vignette.doorAngle<-.75&&vignette.musicLidAngle<-.70,
