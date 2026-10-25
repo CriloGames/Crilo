@@ -461,3 +461,73 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-selected{background:#315
  .nc-page .nc-pocket-label{gap:7px;}
  .nc-page .nc-pocket-count{font-size:9px;padding:3px 7px;}
 }
+
+
+/* An intentional new-game action, visually distinct from Reset View.
+   It works in the physical and accessible Classic modes. */
+.nc-page .nc-overline{flex-wrap:wrap;justify-content:flex-start;row-gap:8px}
+.nc-page .nc-overline .nc-reset-trigger{
+ margin-left:auto;border:1px solid #dfd7d6;border-radius:999px;
+ background:#fffaf9;color:#98696e;padding:8px 13px;
+ font-size:11px;font-weight:750;line-height:1.25;
+ white-space:nowrap;
+}
+.nc-page .nc-overline .nc-reset-trigger:hover{
+ background:#fff1ee;border-color:#caa8a3;color:#854e54;
+}
+.nc-page .nc-overline .nc-reset-trigger:focus-visible{
+ outline:3px solid #b7898b;outline-offset:2px;
+}
+@media(max-width:540px){
+ .nc-page .nc-overline{gap:7px}
+ .nc-page .nc-overline .nc-reset-trigger{margin-left:auto}
+}
+
+/* Two deliberate actions: open a small dialog, then confirm Reset.
+   No other storage is touched and the safe action receives first focus. */
+.nc-page #ncModal .nc-modal.nc-reset-dialog{
+ width:min(365px,100%);padding:20px 21px 21px;
+ border-radius:16px;box-shadow:5px 8px 0 #28303838;
+}
+.nc-page #ncModal .nc-modal.nc-reset-dialog h2{
+ font-size:clamp(23px,4vw,28px);
+}
+.nc-page #ncModal .nc-reset-actions{
+ display:flex;justify-content:flex-end;flex-wrap:wrap;
+ align-items:center;gap:9px;margin-top:18px;
+}
+.nc-page #ncModal .nc-reset-actions button{
+ min-height:42px;padding:10px 15px;border-radius:10px;
+ font:750 12px/1.25 inherit;cursor:pointer;
+}
+.nc-page #ncModal #ncCancelCubeReset{
+ border:1px solid #cbd7d5;background:#f8fbfa;color:#4e6668;
+}
+.nc-page #ncModal #ncCancelCubeReset:hover{background:#edf5f2}
+.nc-page #ncModal #ncConfirmCubeReset{
+ border:1px solid #a66065;background:#aa666a;color:#fff;
+}
+.nc-page #ncModal #ncConfirmCubeReset:hover{
+ background:#8e4c52;border-color:#8e4c52;
+}
+.nc-page #ncModal .nc-reset-actions button:focus-visible{
+ outline:3px solid #6eaea4;outline-offset:2px;
+}
+html[data-theme="dark"] .nc-page .nc-overline .nc-reset-trigger{
+ background:#393c42;color:#f1c8c8;border-color:#71545b;
+}
+html[data-theme="dark"] .nc-page .nc-overline .nc-reset-trigger:hover{
+ background:#503d44;color:#ffe2dc;border-color:#a7797e;
+}
+html[data-theme="dark"] .nc-page #ncModal .nc-modal.nc-reset-dialog{
+ background:#28343a;color:#f1f4f1;border-color:#667b7c;
+}
+html[data-theme="dark"] .nc-page #ncModal .nc-modal.nc-reset-dialog p{
+ color:#c2d0d0;
+}
+html[data-theme="dark"] .nc-page #ncModal #ncCancelCubeReset{
+ background:#34434a;color:#e1efea;border-color:#6a8585;
+}
+html[data-theme="dark"] .nc-page #ncModal #ncCancelCubeReset:hover{
+ background:#42545a;
+}
