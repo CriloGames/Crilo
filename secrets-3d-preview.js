@@ -644,9 +644,23 @@ function setPartHint(action,e){
  partHint.classList.remove("nc-can-use");
  partHint.hidden=false;
  if(e){
-  const b=stage.getBoundingClientRect();
-  partHint.style.left=Math.max(14,Math.min(b.width-32,e.clientX-b.left))+"px";
-  partHint.style.top=Math.max(24,Math.min(b.height-50,e.clientY-b.top-46))+"px";
+  // Position the *measured* label within the physical canvas. A fixed
+  // 32-pixel inset used to clip long miniature names on narrow phones,
+  // especially when the target was on the cube's extreme left/right edge.
+  const bounds=stage.getBoundingClientRect();
+  const width=partHint.offsetWidth;
+  const height=partHint.offsetHeight;
+  const x=e.clientX-bounds.left,y=e.clientY-bounds.top;
+  const inset=10;
+  const left=Math.max(width/2+inset,
+   Math.min(bounds.width-width/2-inset,x));
+  // Prefer a label above the fitting; move it below when near the top edge.
+  // This also keeps the keyboard inspection ring from covering the name.
+  let top=y-height-17;
+  if(top<inset)top=y+20;
+  top=Math.max(inset,Math.min(bounds.height-height-inset,top));
+  partHint.style.left=left+"px";
+  partHint.style.top=top+"px";
  }
 }
 function isMeshEffectivelyVisible(mesh){
@@ -765,6 +779,9 @@ function clearHover(){
  if(Date.now()>=touchHintUntil&&keyboardIndex<0)setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
+ // Touch uses deliberate long-hold inspection; treating every finger drag
+ // as mouse hover produces flashing labels while orbiting the cube.
+ if(e.pointerType==="touch")return;
  if(clickStart&&e.pointerId===clickStart.pointerId&&
     Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
  if(cameraDragging||multiTouchGesture||
