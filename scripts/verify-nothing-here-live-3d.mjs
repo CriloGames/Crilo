@@ -43,6 +43,13 @@ await page.addInitScript(()=>{
 try{
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded",timeout:30000});
  await page.waitForFunction(()=>document.body.classList.contains("nc-physical-ready")&&window.__nothing3DPreview?.ready,{timeout:60000});
+ // Capture a true WebGL reference BEFORE interactions. Even if a later
+ // puzzle regression fails, visual QA can inspect the precise rendered box.
+ try{
+  await page.screenshot({
+   path:"test-results/live-3d-first-load.png",timeout:60000
+  });
+ }catch(e){console.warn("Initial WebGL screenshot unavailable",String(e).slice(0,220))}
  const initial=await page.evaluate(()=>({
  state:window.CriloNothingHereCube.getState(),
  meshes:window.__nothing3DPreview.meshCount,
@@ -145,8 +152,17 @@ try{
  // Headless SwiftShader renders the highly detailed scene much more slowly
  // than desktop GPUs. Test the completed mechanical position, not whether
  // an arbitrary wall-clock sleep was long enough for requestAnimationFrame.
- await page.waitForFunction(()=>Math.abs(window.__nothing3DPreview.drawerPositions.front-.76)<.07,
-  null,{timeout:18000});
+ try{
+  await page.waitForFunction(()=>Math.abs(window.__nothing3DPreview.drawerPositions.front-.76)<.07,
+   null,{timeout:22000});
+ }catch(error){
+  const diagnostics=await page.evaluate(()=>({
+   position:window.__nothing3DPreview.drawerPositions,
+   state:window.CriloNothingHereCube.getState().a,
+   reducedMotion:window.__nothing3DPreview.reducedMotion
+  }));
+  throw new Error("Front drawer failed to reach mechanical stop: "+JSON.stringify(diagnostics),{cause:error});
+ }
  assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
  console.log("PASS: brass latch depressed, drawer extended and reached its end stop");
  await activate("side");
