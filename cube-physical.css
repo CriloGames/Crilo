@@ -58,6 +58,10 @@
  position:absolute;z-index:9;bottom:45px;pointer-events:none;
  color:#70858b;font-size:10px;
 }
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-cube-zone .nc-cube-hint{
+ color:#d0dedb;
+ text-shadow:0 1px 5px #101c20b0;
+}
 .nc-page #stage #status{
  position:absolute;z-index:2;top:9px;left:50%;right:auto;
  transform:translateX(-50%);
