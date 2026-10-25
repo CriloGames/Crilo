@@ -62,6 +62,12 @@ try{
  pedestalSupports:window.__nothing3DPreview.pedestalSupportLengths.length
  }));
  assert.equal(initial.visible,"visible");
+ const initialZoom=await page.locator("#ncZoomAmount").innerText();
+ assert(Math.abs(Number(initialZoom.replace("%",""))-100)<=2,
+  "Fresh desktop mode must frame the real 3D box at 100%, not a hidden mobile camera preset: "+initialZoom);
+ const startCamera=await page.evaluate(()=>window.__nothing3DPreview.navigationState.camera);
+ assert(Math.hypot(...startCamera)<8.5,
+  "The initial desktop cube was incorrectly framed at mobile camera distance: "+JSON.stringify(startCamera));
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  assert(initial.blockers>=15,"Physical casing is missing face occluders");
  assert(initial.floating&&initial.plinth===0&&initial.pedestalSupports===0,
