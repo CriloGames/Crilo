@@ -208,6 +208,14 @@ try{
    "Accessible 3D instructions do not describe keyboard inspection");
  assert(keyInspection.markerVisible,
    "Keyboard selection needs a visible reticle on the actual 3D part");
+ // Hovering with a physical mouse must not replace the actively selected
+ // keyboard object's name while its sight marker stays attached elsewhere.
+ const keyCanvas=await page.locator("#stage canvas").boundingBox();
+ await page.mouse.move(keyCanvas.x+keyCanvas.width*.86,keyCanvas.y+keyCanvas.height*.24);
+ await page.waitForTimeout(100);
+ const hoverLabel=await page.locator("#ncPartHint").innerText();
+ assert.equal(hoverLabel,keyInspection.label,
+   "Pointer hover stole the focused keyboard inspection label");
  const focusReticle=await page.evaluate(()=>{
   const el=document.querySelector("#ncKeyboardFocus");
   const canvas=document.querySelector("#stage canvas").getBoundingClientRect();
