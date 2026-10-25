@@ -660,6 +660,26 @@ try{
  assert.equal((await state()).plateOpen,true,"Mobile view lost the same saved run");
  const bounds=await page.locator("#stage canvas").boundingBox();
  assert(bounds&&bounds.width>200&&bounds.width<=390,"Real 3D mobile canvas does not fit viewport");
+ // Selecting a real component at phone width must never clip its label.
+ // This is particularly important for long object names near the edges.
+ await page.locator("#stage canvas").focus();
+ await page.keyboard.press("i");
+ const phoneHint=await page.evaluate(()=>{
+  const stage=document.querySelector("#stage").getBoundingClientRect();
+  const hint=document.querySelector("#ncPartHint");
+  const rect=hint.getBoundingClientRect();
+  const selection=window.__nothing3DPreview.keyboardInspectionState;
+  return {selected:selection.selected,visible:!hint.hidden,
+   inside:rect.left>=stage.left+5&&rect.right<=stage.right-5&&
+    rect.top>=stage.top+5&&rect.bottom<=stage.bottom-5,
+   hint:[rect.left,rect.top,rect.right,rect.bottom],
+   stage:[stage.left,stage.top,stage.right,stage.bottom]};
+ });
+ assert(phoneHint.selected&&phoneHint.visible&&phoneHint.inside,
+  "Mobile hardware inspection label was clipped by its 3D stage: "+
+   JSON.stringify(phoneHint));
+ await page.keyboard.press("Escape");
+
  const mobileReview=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   const groups=[...document.querySelector(".nc-inspection-controls").children]
