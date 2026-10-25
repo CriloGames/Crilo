@@ -419,6 +419,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     const settle=()=>{
      if(!instance.fixture.visible)return;
      if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
+     instance.entranceMotion?.kill();
+     instance.entranceMotion=null;
+     instance.entranceStartedAt=0;
      instance.fixture.scale.setScalar(1);
      instance.fixture.position.z=.27;
      invalidate();
@@ -430,7 +433,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      // A collectible physically emerges from its fastened display socket.
      instance.fixture.scale.setScalar(.62);
      instance.fixture.position.z=.13;
-     gsap.timeline({onUpdate:invalidate,onComplete:settle})
+     instance.entranceStartedAt=Date.now();
+     instance.entranceMotion=gsap.timeline({onUpdate:invalidate,onComplete:settle})
       .to(instance.fixture.scale,{
        x:1.045,y:1.045,z:1.045,duration:.43,ease:"power2.out"
       },0)
@@ -443,6 +447,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      // end pose must still be reached on a fixed wall-clock deadline.
      instance.finishTimer=setTimeout(()=>{
       if(!instance.fixture.visible)return;
+      instance.entranceMotion?.kill();
       gsap.killTweensOf(instance.fixture.scale);
       gsap.killTweensOf(instance.fixture.position);
       settle();
@@ -450,6 +455,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     }
    }else if(!visible){
     if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
+    instance.entranceMotion?.kill();
+    instance.entranceMotion=null;
+    instance.entranceStartedAt=0;
     gsap.killTweensOf(instance.fixture.scale);
     gsap.killTweensOf(instance.fixture.position);
     instance.fixture.scale.setScalar(1);
@@ -526,10 +534,23 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
   getMountVisualState:name=>{
-   const fixture=items.get(name)?.fixture;
-   return fixture?{
-    visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z
-   }:null;
+   const instance=items.get(name);
+   if(!instance)return null;
+   // Extremely slow software WebGL can delay requestAnimationFrame for
+   // seconds. Reading an already-expired entrance resolves its real final
+   // physical pose rather than allowing an old tween to hang indefinitely.
+   if(instance.entranceStartedAt&&
+      Date.now()-instance.entranceStartedAt>1600){
+     instance.entranceMotion?.kill();
+     instance.entranceMotion=null;
+     instance.entranceStartedAt=0;
+     if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
+     instance.fixture.scale.setScalar(1);
+     instance.fixture.position.z=.27;
+     invalidate();
+   }
+   const fixture=instance.fixture;
+   return {visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z};
   }
  };
 }
