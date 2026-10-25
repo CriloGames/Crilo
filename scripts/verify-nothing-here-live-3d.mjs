@@ -122,6 +122,12 @@ try{
    "A miniature is still mounted outside the rotating cube");
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
    "A miniature was lost or duplicated when removing the pedestal");
+ const mountColors=await page.evaluate(()=>window.__nothing3DPreview.storyMounts.map(
+  ({name})=>window.__nothing3DPreview.getMountVisualState(name)?.inlayColor));
+ assert(mountColors.length===15&&mountColors.every(Boolean)&&
+   new Set(mountColors).size>=7,
+   "The miniature worlds have lost their distinctive sculpted enamel inlays: "+
+   JSON.stringify(mountColors));
  const navigation=await page.evaluate(()=>window.__nothing3DPreview.navigationState);
  assert(navigation.panEnabled,"A floating cube should allow drag-to-move as well as orbit rotation");
  // Real mouse input: pan the floating cube, cross the mobile breakpoint,
