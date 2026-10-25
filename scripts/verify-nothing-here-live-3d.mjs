@@ -62,6 +62,14 @@ try{
  pedestalSupports:window.__nothing3DPreview.pedestalSupportLengths.length
  }));
  assert.equal(initial.visible,"visible");
+ const perf=await page.evaluate(()=>window.__nothing3DPreview.performanceMode);
+ assert(typeof perf.rendererName==="string"&&Number.isFinite(perf.pixelRatio),
+   "Adaptive 3D renderer did not report its active quality profile");
+ if(perf.softwareGL){
+  assert(perf.constrainedDevice&&!perf.shadows&&perf.pixelRatio<=.86,
+   "Headless SwiftShader must avoid high-resolution soft shadows: "+JSON.stringify(perf));
+ }
+ console.log("Adaptive WebGL quality:",JSON.stringify(perf));
  const initialZoom=await page.locator("#ncZoomAmount").innerText();
  assert(Math.abs(Number(initialZoom.replace("%",""))-100)<=2,
   "Fresh desktop mode must frame the real 3D box at 100%, not a hidden mobile camera preset: "+initialZoom);
