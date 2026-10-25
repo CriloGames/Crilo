@@ -989,7 +989,10 @@ window.__nothing3DPreview={
   const mobile=stage.clientWidth<720;
   const base=mobile?
    Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
-  const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
+  // Keep the toolbar's zoom limits identical to OrbitControls so that
+   // touch zoom, the zoom buttons and Reset View agree at any screen size.
+   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),
+    controls.minDistance,controls.maxDistance);
   const offset=camera.position.clone().sub(controls.target).setLength(d);
   camera.position.copy(controls.target).add(offset);
   controls.update();invalidate();
