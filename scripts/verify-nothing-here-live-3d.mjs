@@ -369,7 +369,15 @@ try{
   "Playing the flute unexpectedly consumed or duplicated the instrument");
  assert(await page.locator("#ncModal").isHidden(),
   "Playing the 3D flute opened an obstructive classic dialog");
- console.log("PASS: authentic playable 3D flute, original 213 melody and story progression");
+ // The same instrument must work with the keyboard without revealing the
+ // solution sequence or requiring any on-screen modal.
+ await page.locator("#stage canvas").focus();
+ await page.keyboard.press("1");
+ assert.equal((await state()).fluteNotes.at(-1),1,
+  "Keyboard players cannot operate the physical flute's first key");
+ assert.match(await page.locator("#stage canvas").getAttribute("aria-label"),/keys 1, 2 and 3/i,
+  "The keyboard controls need an accessible name once the instrument exists");
+ console.log("PASS: tactile physical flute, saved door discovery and keyboard access");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
