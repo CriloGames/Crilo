@@ -123,7 +123,7 @@ try{
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
    "A miniature was lost or duplicated when removing the pedestal");
  const mountColors=await page.evaluate(()=>window.__nothing3DPreview.storyMounts.map(
-  ({name})=>window.__nothing3DPreview.getMountVisualState(name)?.inlayColor));
+  ({name})=>window.__nothing3DPreview.getStoryMountVisualState(name)?.inlayColor));
  assert(mountColors.length===15&&mountColors.every(Boolean)&&
    new Set(mountColors).size>=7,
    "The miniature worlds have lost their distinctive sculpted enamel inlays: "+
