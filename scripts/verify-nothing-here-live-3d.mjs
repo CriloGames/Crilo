@@ -428,6 +428,17 @@ try{
  await page.waitForTimeout(140);
  await sendTouch("touchEnd",[]);
  const tapCount=(await state()).redHits;
+ // Dragging a finger must cancel the 560ms hold-to-identify timeout;
+ // otherwise the tooltip appears while players orbit the physical cube.
+ await sendTouch("touchStart",[touch(95)]);
+ await page.waitForTimeout(75);
+ await sendTouch("touchMove",[touch(95,45)]);
+ await page.waitForTimeout(650);
+ const dragHintHidden=await page.evaluate(()=>document.querySelector("#ncPartHint").hidden);
+ await sendTouch("touchEnd",[]);
+ const dragCount=(await state()).redHits;
+ assert(dragHintHidden&&dragCount===tapCount,
+  "Orbiting with a finger activated the mechanism or opened a stale inspection caption");
  const touchTarget=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   const rect=document.querySelector("#stage canvas").getBoundingClientRect();
