@@ -624,8 +624,10 @@ let cameraMode=null;
 const onResize=()=>{
  const r=stage.getBoundingClientRect();
  const mode=r.width<720?"mobile":"desktop";
- // Initial framing is chosen at construction. A breakpoint crossing while
- // inspecting an engraving must NOT reset a player's rotation, pan or zoom.
+ // Initial mobile framing makes the entire box visible. Every subsequent
+ // breakpoint crossing preserves the player's orbit, pan and zoom.
+ if(cameraMode===null&&mode==="mobile")
+  camera.position.set(5.6,4.7,7.45);
  cameraMode=mode;
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
@@ -653,7 +655,9 @@ controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
   const base=stage.clientWidth<720?13:10;
-  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(base/camera.position.length());
+  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
+   base/camera.position.distanceTo(controls.target)
+  );
  }
 });
 invalidate();
