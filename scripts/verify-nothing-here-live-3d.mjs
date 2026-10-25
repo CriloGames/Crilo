@@ -245,10 +245,14 @@ try{
    "Escape must leave keyboard inspection without triggering a puzzle");
  assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
    "Escape left the keyboard selection ring covering the 3D cube");
+ assert(await page.locator("#ncPartHint").isHidden(),
+   "Escape should dismiss the tooltip as well as the keyboard focus ring");
  await page.keyboard.press("i");
  await page.keyboard.press("Tab");
  assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
    "Tabbing from the 3D canvas left a stale inspection marker");
+ assert(await page.locator("#ncPartHint").isHidden(),
+   "Tabbing away from the canvas left a stale hardware tooltip");
  await page.locator("#stage canvas").focus();
  await page.locator("#ncViewReset").click();
  console.log("PASS: keyboard-visible fitting navigation, in-scene identity, arrows and Escape");
