@@ -56,7 +56,19 @@ try{
   )));
  assert.equal(new Set(observed.map(item=>item.geometry)).size,32,
   "Separate collectibles share indistinguishable placeholder artwork");
+ // Clicking a held item must not recreate the rest of the pocket's SVG
+ // collection, so drag, focus and the arrival pulse remain continuous.
+ await page.evaluate(()=>{
+  window.__pocketUntouched=document.querySelector('#ncInventory [data-item="lens"]');
+  window.__pocketClicked=document.querySelector('#ncInventory [data-item="key"]');
+ });
  await page.locator('#ncInventory [data-item="key"]').click();
+ const stable=await page.evaluate(()=>({
+  selected:document.querySelector('#ncInventory [data-item="key"]')===window.__pocketClicked,
+  sibling:document.querySelector('#ncInventory [data-item="lens"]')===window.__pocketUntouched
+ }));
+ assert(stable.selected&&stable.sibling,
+  "Pocket item selection rebuilt stable SVG elements: "+JSON.stringify(stable));
  assert.equal(await page.evaluate(()=>window.CriloNothingHereCube.getState().selected),
   "key","Selecting an inventory icon no longer picks up the correct item");
  assert.equal(await page.locator('#ncInventory [data-item="key"]').getAttribute("aria-pressed"),

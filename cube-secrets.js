@@ -358,13 +358,39 @@ function render(){
  const focusedItem=inventory.contains(document.activeElement)
   ?document.activeElement.closest('[data-item]')?.dataset.item:null;
  const now=Date.now();
- const str=[...pocket].map(id=>'<button type="button" class="nc-item'+
-   (id===selected?' nc-selected':'')+
-   ((pocketArrivalUntil.get(id)||0)>now?' nc-item-new':'')+
-   '" data-item="'+id+'" aria-pressed="'+String(selected===id)+
-   '" draggable="true" data-material="'+pocketMaterial(id)+'"><span class="nc-item-icon" aria-hidden="true">'+inventoryIcon(id)+'</span>'+
-   names[id]+'</button>').join('');
- inventory.innerHTML=str||'<span class="nc-empty">Nothing. Yet.</span>';
+ // Rebuilding the entire pocket after each physical 3D action used to
+ // discard every button and SVG, causing focus loss, flickering arrival
+ // animations, and unnecessary layout work as the collection grew.
+ // Keep a stable DOM node for each actual item. Only changed pocket
+ // contents are inserted or removed; no undiscovered item is created.
+ const existing=new Map([...inventory.querySelectorAll('.nc-item')]
+  .map(button=>[button.dataset.item,button]));
+ for(const [id,button] of existing){
+  if(!pocket.has(id)){button.remove();existing.delete(id)}
+ }
+ if(!pocket.size){
+  if(!inventory.querySelector('.nc-empty'))
+   inventory.innerHTML='<span class="nc-empty">Nothing. Yet.</span>';
+ }else{
+  inventory.querySelector('.nc-empty')?.remove();
+  for(const id of pocket){
+   let button=existing.get(id);
+   if(!button){
+    button=document.createElement('button');
+    button.type='button';
+    button.className='nc-item';
+    button.dataset.item=id;
+    button.draggable=true;
+    button.dataset.material=pocketMaterial(id);
+    button.innerHTML='<span class="nc-item-icon" aria-hidden="true">'+
+     inventoryIcon(id)+'</span>'+names[id];
+    inventory.appendChild(button);
+   }
+   button.classList.toggle('nc-selected',id===selected);
+   button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
+   button.setAttribute('aria-pressed',String(id===selected));
+  }
+ }
  // Keyboard players must not lose focus just because an unrelated gear
  // was clicked or the same pocket item was selected again.
  if(focusedItem&&pocket.has(focusedItem))
