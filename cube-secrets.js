@@ -118,7 +118,10 @@ s.ry=-32;
 s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
 s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
 s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3].includes(n)).slice(-3):[];
-s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,20);
+// Older saves allowed this mechanical ratchet to overrun indefinitely.
+// Normalize those poses to its real three-detent end stop without touching
+// the player's completed secrets or inventory.
+s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
