@@ -107,6 +107,15 @@ try{
    "Headless SwiftShader must avoid high-resolution soft shadows: "+JSON.stringify(perf));
  }
  console.log("Adaptive WebGL quality:",JSON.stringify(perf));
+ // Mechanical status messages may appear when a part moves, but their
+ // overlay must retreat so miniature fittings remain visible at rest.
+ await page.waitForFunction(()=>document.querySelector("#stage #status")?.classList.contains("nc-status-resting"),
+  null,{timeout:14000});
+ const restingFeedback=await page.evaluate(()=>{
+  const n=document.querySelector("#stage #status");
+  return {text:n.textContent,className:n.className};
+ });
+ assert(restingFeedback.text.length>0,"Physical feedback was discarded instead of resting");
  const initialZoom=await page.locator("#ncZoomAmount").innerText();
  assert(Math.abs(Number(initialZoom.replace("%",""))-100)<=2,
   "Fresh desktop mode must frame the real 3D box at 100%, not a hidden mobile camera preset: "+initialZoom);
