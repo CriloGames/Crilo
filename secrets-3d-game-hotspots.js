@@ -159,6 +159,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const x=(i-2)*.205;
   const key=control(flute,"flute-note-"+i,x,.015,ivory,.065);
   key.position.z=.135;
+  // Slightly larger, completely invisible solid hit collar. Finger-size
+  // input should work even when the rendered brass pad is only a few pixels.
+  const touch=new THREE.Mesh(
+   new THREE.CylinderGeometry(.093,.093,.11,16),
+   new THREE.MeshBasicMaterial({
+    colorWrite:false,depthWrite:false,transparent:true,opacity:0
+   })
+  );
+  touch.rotation.x=Math.PI/2;touch.position.z=.115;
+  key.add(touch);
+  setHit(touch,"flute-note-"+i);
  }
  flute.visible=false;
  // Back: concentric optical controls and a rotating calibration gear.
