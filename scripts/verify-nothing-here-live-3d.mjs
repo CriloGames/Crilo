@@ -63,6 +63,31 @@ try{
    "A miniature was lost or duplicated when removing the pedestal");
  const navigation=await page.evaluate(()=>window.__nothing3DPreview.navigationState);
  assert(navigation.panEnabled,"A floating cube should allow drag-to-move as well as orbit rotation");
+ // Real mouse input: pan the floating cube, cross the mobile breakpoint,
+ // then animate back to center. Resizing must not wipe a player's view.
+ const cubeCanvas=await page.locator("#stage canvas").boundingBox();
+ assert(cubeCanvas&&cubeCanvas.width>100,"Missing physical inspection canvas");
+ const cx=cubeCanvas.x+cubeCanvas.width*.5,cy=cubeCanvas.y+cubeCanvas.height*.5;
+ await page.mouse.move(cx,cy);
+ await page.mouse.down({button:"right"});
+ await page.mouse.move(cx+105,cy+40,{steps:5});
+ await page.mouse.up({button:"right"});
+ await page.waitForFunction(()=>
+   Math.hypot(...window.__nothing3DPreview.navigationState.target)>.10,
+   null,{timeout:15000});
+ await page.waitForTimeout(800);
+ const beforeResize=await page.evaluate(()=>window.__nothing3DPreview.navigationState.target);
+ await page.setViewportSize({width:390,height:844});
+ const afterResize=await page.evaluate(()=>window.__nothing3DPreview.navigationState.target);
+ assert(Math.hypot(...afterResize.map((v,i)=>v-beforeResize[i]))<.25,
+   "Mobile breakpoint snapped the cube back to its original position");
+ await page.setViewportSize({width:1280,height:860});
+ await page.evaluate(()=>window.__nothing3DPreview.resetCameraView());
+ await page.waitForFunction(()=>{
+  const v=window.__nothing3DPreview.navigationState;
+  return !v.cameraReturning&&Math.hypot(...v.target)<.05;
+ },null,{timeout:15000});
+ console.log("PASS: right-drag pan, mobile resize persistence, smooth reset to center");
  const hidden=await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility);
  assert(Object.values(hidden).every(value=>!value),
    "Numerical inscriptions must start concealed under their physical covers");
@@ -133,6 +158,11 @@ try{
  assert.equal(worlds.all.length,15,"Missing modeled 3D story props");
  assert(worlds.visible.includes("bag")&&worlds.visible.includes("machine"),
   "The mouse did not physically reveal its bag and vending machine");
+ await page.waitForFunction(()=>{
+  const v=window.__nothing3DPreview.getStoryMountVisualState("bag");
+  return v?.visible&&Math.abs(v.scale-1)<.035&&Math.abs(v.depth-.27)<.035;
+ },null,{timeout:14000});
+ console.log("PASS: new miniature discovery emerges and settles on its bolted shelf");
  const chipHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
  assert(chipHeight>20&&chipHeight<70,
   "3D mode should keep an accessible compact story-object label, not a duplicate flat cartoon: "+chipHeight);
@@ -285,7 +315,12 @@ try{
  assert(original && JSON.parse(original).plateOpen,"3D progression was not stored in the existing save slot");
  console.log("PASS real 3D: physical geometry, 60-secret progression, 3 compartments, item pickup and saved faceplate.");
  // The accessibility/classic fallback must restore exactly the same run.
- await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{waitUntil:"domcontentloaded"});
+ // Under software WebGL the previous context may take time to release GPU
+ // resources when switching into Classic. A navigation commit suffices; the
+ // subsequent explicit readiness wait verifies the actual document.
+ await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
+  waitUntil:"commit",timeout:90000
+ });
  await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
  const classic=await page.evaluate(()=>window.CriloNothingHereCube.getState());
  assert(classic.plateOpen&&classic.a&&classic.b&&classic.top,"Classic view did not preserve the physical session");
