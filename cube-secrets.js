@@ -934,8 +934,16 @@ function zoomTo(value){
 function resetView(){
  view.zoom=1;view.panX=0;view.panY=0;view.panMode=false;
  s.rx=-22;s.ry=-32;
- turn();updateView();
- window.__nothing3DPreview?.setZoom?.(1);
+ const physical=document.body.classList.contains('nc-physical-ready')&&
+  !!window.__nothing3DPreview?.resetCameraView;
+ // Classic view still uses its original synchronous 2D orientation.
+ // In 3D, let the scene interpolate the orbit, camera and box together.
+ if(!physical)turn();
+ updateView();
+ if(physical){
+  window.__nothing3DPreview.setPanMode(false);
+  window.__nothing3DPreview.resetCameraView();
+ }else window.__nothing3DPreview?.setZoom?.(1);
  tell('The mysterious object is back in its usual orientation.');
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
