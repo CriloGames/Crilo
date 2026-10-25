@@ -572,8 +572,10 @@ function returnCameraHome(){
 document.getElementById("reset")?.addEventListener("click",returnCameraHome);
 let cameraDragging=false;
 controls.addEventListener("start",()=>{
- // A user's next drag should override a camera animation immediately.
+ // Any orbit/zoom gesture invalidates the projected keyboard target.
+ // Hiding only the tooltip previously left a stale actionable ring behind.
  cancelCameraReturn();
+ clearKeyboardInspection();
  cameraDragging=true;
  renderer.domElement.style.cursor="grabbing";
  setPartHint(null);
@@ -1148,6 +1150,7 @@ window.__nothing3DPreview={
  get lastClickedAction(){return lastClickedAction},
  setZoom(value){
   if(!embeddedGame)return;
+  clearKeyboardInspection();
   const mobile=stage.clientWidth<720;
   const base=mobile?
    Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
