@@ -123,7 +123,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  engraving(frontFace,"LATCH", -1.04,-.14,.43);
  control(frontFace,"dot",1.10,.15,red,.100);
  engraving(frontFace,"RED",1.08,-.12,.36);
- tab(frontFace,"serial",0,1.38,nickel,.66,.11);
+ // A smaller real maker-stamp actuator sits beside the outer lens rather
+ // than directly through its upper brass rim and decorative inscription.
+ tab(frontFace,"serial",-.99,.96,nickel,.38,.10);
  // Raised center receiver, used both to inspect and to offer objects.
  const offering=node(frontFace,0,.59,.52);
  const symbol=C(offering,.13,.065,0,0,0,ivory);
@@ -131,9 +133,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  setHit(offering,"cube-offer");targets.set("cube-offer",offering);
  // Right: a service seam, sliding shutter and four genuine bolt heads.
  tab(rightFace,"seam",-.92,.26,copper,.22,.16);
- engraving(rightFace,"SEAM",-.91,.49,.43);
+ engraving(rightFace,"SEAM",-.91,.58,.43);
  tab(rightFace,"shutter",.80,-1.09,nickel,.40,.19);
- engraving(rightFace,"SERVICE",.78,-1.33,.50);
+ engraving(rightFace,"SERVICE",.72,-1.37,.43);
  for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
   control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
  // The vent order is engraved INSIDE the empty fastener recess: it is
@@ -149,7 +151,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  engraving(leftFace,"VENT",-.95,.26,.37);
  control(leftFace,"pressure",.88,.64,brass,.15);
- engraving(leftFace,"GAUGE",.91,.36,.46);
+ engraving(leftFace,"GAUGE",.89,.27,.46);
  control(leftFace,"dent",.88,-1.04,copper,.11);
  engraving(leftFace,"DENT",.89,-1.31,.39);
  // Top: three separate hinge pins, and a tappable triangle physically
