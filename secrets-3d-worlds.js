@@ -109,10 +109,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // A structural shelf, a backplate and two visible tiny bolts secure each
   // model to the cube. No independent gallery base exists beneath the box.
   const stand=new THREE.Group();fixture.add(stand);
-  B(stand,.56,.45,.065,0,.15,-.04,m.dark,.020);
-  B(stand,.50,.37,.024,0,.16,.008,m.brass,.020);
-  B(stand,.57,.065,.42,0,-.035,.19,m.dark,.022);
-  B(stand,.53,.037,.39,0,.009,.19,m.gold,.020);
+  // Slim captive brackets replace the heavy mini-gallery plinths. The
+  // machined metal is attached directly to the rotating cube face.
+  B(stand,.53,.42,.055,0,.15,-.04,m.dark,.020);
+  B(stand,.48,.36,.023,0,.16,.008,m.brass,.018);
+  B(stand,.56,.051,.37,0,-.035,.19,m.dark,.018);
+  B(stand,.50,.029,.35,0,.009,.19,m.gold,.012);
   for(const px of [-.225,.225]){
    C(stand,.024,.03,px,.28,.027,m.brass,"z");
    C(stand,.024,.03,px,-.03,.416,m.brass,"z");
@@ -415,21 +417,38 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  function inspect(name){
   const instance=items.get(name);
   if(!instance?.fixture.visible)return false;
-  // An opened lock demands fixed, reliably clickable tumblers.
+  // The precision tumblers should never move under the player's finger.
   if(name==="bag"&&bagDialPanel?.visible)return true;
-  const object=instance.toy;
+  const object=instance.toy,rest=.205;
+  instance.inspectionMotion?.kill();
+  if(instance.inspectionSettleTimer){
+   clearTimeout(instance.inspectionSettleTimer);
+   instance.inspectionSettleTimer=null;
+  }
   gsap.killTweensOf(object.position);
   gsap.killTweensOf(object.rotation);
-  // Objects acknowledge touch by briefly shifting in their captive
-  // mount. Never auto-rotate to a solution or falsely eject inventory.
-  if(reducedMotion){invalidate();return true;}
-  const front=object.position.z;
-  const lean=name==="bag"||name==="door"?-.055:.045;
-  gsap.timeline({onUpdate:invalidate})
-   .to(object.position,{z:front+.095,duration:.13,ease:"power2.out"},0)
-   .to(object.rotation,{z:lean,duration:.13,ease:"power2.out"},0)
-   .to(object.position,{z:front,duration:.42,ease:"back.out(1.8)"},.14)
-   .to(object.rotation,{z:0,duration:.40,ease:"back.out(1.8)"},.14);
+  // Restart from a real captive rest pose. Rapid repeated taps cannot
+  // add offsets until the model drifts out of its mounting socket.
+  object.position.set(0,.03,rest);
+  object.rotation.set(0,0,0);
+  const settle=()=>{
+   if(instance.inspectionSettleTimer){
+    clearTimeout(instance.inspectionSettleTimer);
+    instance.inspectionSettleTimer=null;
+   }
+   instance.inspectionMotion?.kill();instance.inspectionMotion=null;
+   object.position.set(0,.03,rest);
+   object.rotation.set(0,0,0);
+   invalidate();
+  };
+  if(reducedMotion){settle();return true;}
+  // The miniatures recoil along their mounting axis, not by floating and
+  // tilting into adjacent dials and shutters.
+  instance.inspectionMotion=gsap.timeline({onUpdate:invalidate,onComplete:settle})
+   .to(object.position,{z:rest+.047,duration:.12,ease:"power2.out"})
+   .to(object.position,{z:rest,duration:.30,ease:"back.out(1.35)"});
+  // Software renderers sometimes stall requestAnimationFrame indefinitely.
+  instance.inspectionSettleTimer=setTimeout(settle,900);
   return true;
  }
  function pulse(action){
@@ -500,6 +519,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      },1350);
     }
    }else if(!visible){
+    instance.inspectionMotion?.kill();instance.inspectionMotion=null;
+    if(instance.inspectionSettleTimer){
+     clearTimeout(instance.inspectionSettleTimer);
+     instance.inspectionSettleTimer=null;
+    }
+    instance.toy.position.set(0,.03,.205);
+    instance.toy.rotation.set(0,0,0);
     if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
     instance.entranceMotion?.kill();
     instance.entranceMotion=null;
@@ -616,6 +642,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   puzzleActions:[...puzzleControls.keys()],
   pulse,
   inspect,
+  getInspectionPose:name=>{
+   const instance=items.get(name);
+   return instance?{depth:instance.toy.position.z,
+    tilt:instance.toy.rotation.z,visible:instance.fixture.visible}:null;
+  },
   getDialAngles:()=>bagDials.map(d=>d.rotation.z),
   getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,

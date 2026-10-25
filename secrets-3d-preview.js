@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=24";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=25";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -945,6 +945,7 @@ window.__nothing3DPreview={
  get pedestalMeshCount(){return scene.children.filter(o=>/plinth|floor|support/i.test(o.name)).length},
  get storyMounts(){return pocketWorlds?.getMountPositions?.()||[]},
  getStoryMountVisualState(name){return pocketWorlds?.getMountVisualState?.(name)||null},
+ getMiniatureInspectionPose(name){return pocketWorlds?.getInspectionPose?.(name)||null},
  get physicalMechanismState(){return intricate.getState()},
  get miniatureMechanismPose(){return {
   bagDials:pocketWorlds?.getDialAngles?.()||[],

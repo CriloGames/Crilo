@@ -271,7 +271,23 @@ try{
  // Delayed automatic pickups can occur in the same second; testing the
  // actual last dispatched mesh selection avoids mistaking a later caption
  // update for an ignored click.
- console.log("PASS: actual physical-pointer raycast activates the sculpted bag");
+ // Repeated harmless inspections must never eject or permanently tilt
+ // a collectible sculpture, or award an unearned progress achievement.
+ const seenBeforeInspections=(await state()).seen;
+ await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  for(let i=0;i<6;i++)view.clickAction("thing:bag");
+ });
+ await page.waitForFunction(()=>{
+  const p=window.__nothing3DPreview.getMiniatureInspectionPose("bag");
+  return p?.visible&&Math.abs(p.depth-.205)<.003&&Math.abs(p.tilt)<.003;
+ },null,{timeout:15000,polling:250});
+ const inspection=await page.evaluate(()=>window.__nothing3DPreview.getMiniatureInspectionPose("bag"));
+ assert(inspection?.visible&&Math.abs(inspection.depth-.205)<.003&&Math.abs(inspection.tilt)<.003,
+  "Repeated inspections leave the miniature displaced from its mounting");
+ assert.deepEqual((await state()).seen,seenBeforeInspections,
+  "Inspecting a locked miniature awarded an unauthorized secret");
+ console.log("PASS: real pointer hits miniature; rapid taps leave it captive to its mount");
  // Items selected from the existing inventory must combine with a real 3D
  // model and write to the existing save key, not a separate 3D progress store.
  await page.locator('#ncInventory [data-item="coin"]').click();
