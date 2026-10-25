@@ -15,11 +15,11 @@ const stage = document.getElementById("stage");
 const status = document.getElementById("status");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
-camera.position.set(4.2,3.5,6.45);
+camera.position.set(3.85,3.2,5.9);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = .84;
+renderer.toneMappingExposure = .76;
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -32,7 +32,7 @@ const pmrem=new THREE.PMREMGenerator(renderer);
 const studioRoom=new RoomEnvironment();
 const studioReflection=pmrem.fromScene(studioRoom,.035);
 scene.environment=studioReflection.texture;
-scene.environmentIntensity=.79;
+scene.environmentIntensity=.62;
 studioRoom.dispose();pmrem.dispose();
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -58,19 +58,19 @@ controls.touches.ONE=THREE.TOUCH.ROTATE;
 controls.touches.TWO=THREE.TOUCH.DOLLY_PAN;
 controls.target.set(0, 0, 0);
 
-scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .70));
-const key = new THREE.DirectionalLight(0xfff6e7, 2.05);
+scene.add(new THREE.HemisphereLight(0xfff7e8, 0xa7a4b2, .57));
+const key = new THREE.DirectionalLight(0xfff6e7, 1.52);
 key.position.set(-3.4, 10.5, 6.6); key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
 key.shadow.normalBias = .025;
-key.shadow.radius = 4;
+key.shadow.radius = 3;
 key.shadow.camera.left = -8; key.shadow.camera.right = 8;
 key.shadow.camera.top = 8; key.shadow.camera.bottom = -8;
 key.shadow.bias = -.00028;
 scene.add(key);
-const fill = new THREE.DirectionalLight(0xb6daeb, .62);
+const fill = new THREE.DirectionalLight(0xb6daeb, .43);
 fill.position.set(7, 4, -6); scene.add(fill);
-const rim = new THREE.PointLight(0xffd0a0, 7.4, 20);
+const rim = new THREE.PointLight(0xffd0a0, 3.1, 20);
 rim.position.set(1, 5, -4); scene.add(rim);
 
 const mat = (color, metalness = .07, roughness = .36) =>
@@ -496,7 +496,7 @@ function cancelCameraReturn(){
  controls.enableDamping=true;
 }
 function returnCameraHome(){
- const home=stage.clientWidth<720?[5.6,4.7,7.45]:[4.2,3.5,6.45];
+ const home=stage.clientWidth<720?[5.6,4.7,7.45]:[3.85,3.2,5.9];
  cancelCameraReturn();
  // Flush leftover drag inertia before returning to the exact saved view.
  // Otherwise the damping offset fights the animated orbit point and can
@@ -695,7 +695,7 @@ controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
   const base=stage.clientWidth<720?
-   Math.hypot(5.6,4.7,7.45):Math.hypot(4.2,3.5,6.45);
+   Math.hypot(5.6,4.7,7.45):Math.hypot(3.85,3.2,5.9);
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
    base/camera.position.distanceTo(controls.target)
   );
@@ -864,7 +864,7 @@ window.__nothing3DPreview={
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
   const base=mobile?
-   Math.hypot(5.6,4.7,7.45):Math.hypot(4.2,3.5,6.45);
+   Math.hypot(5.6,4.7,7.45):Math.hypot(3.85,3.2,5.9);
   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
   const offset=camera.position.clone().sub(controls.target).setLength(d);
   camera.position.copy(controls.target).add(offset);
