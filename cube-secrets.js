@@ -315,7 +315,9 @@ function render(){
  store();
  // The physical renderer reflects the same authoritative puzzle state;
  // neither the 3D mesh nor its animation grants secrets independently.
- window.dispatchEvent(new CustomEvent('nc:statechange',{detail:{...s,selected}}));
+ window.dispatchEvent(new CustomEvent('nc:statechange',{
+  detail:{...s,pocket:[...pocket],selected}
+ }));
 }
 function collection(id){gain(id,'You found '+names[id]+'.')}
 // The visible contents of moving 3D compartments are collected after the
@@ -686,6 +688,13 @@ function callElevator(floor){
  render();
 }
 function openFlute(){
+ if(document.body.classList.contains('nc-physical-ready')){
+  // The instrument is genuinely modeled inside the hinged top well.
+  // Keep the puzzle on the real 3D box instead of opening an HTML modal.
+  tell(s.top?'The little flute rests in the upper compartment.':
+    'The flute sounds hollow. Something in the upper compartment may fit it.');
+  return;
+ }
  s.fluteNotes=[];
  modal('A VERY UNNECESSARY INSTRUMENT','The flute',
   '<p>It has three holes. Every breath becomes a different note.</p><div class="nc-flute-model" id="ncFluteModel"><span></span><span></span><span></span></div><div class="nc-flute-keys">'+
@@ -694,17 +703,23 @@ function openFlute(){
 }
 function note(i){
  s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-3);sound(390+i*135);
- cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
- $('ncFluteTrack').textContent='♪  '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join('  ');
+ const physical=document.body.classList.contains('nc-physical-ready');
+ if(!physical){
+  cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
+  $('ncFluteTrack').textContent='♪  '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join('  ');
+ }
  if(s.fluteNotes.join('')==='213'){
   if(!s.door){
     s.door=true;bloom('door','The flute has summoned a very real door from an extremely empty wall.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
    }
   else tell('The door recognizes that tune.');
-  closeModal();setTimeout(()=>$('ncDoorScene').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+  if(!physical){
+   closeModal();setTimeout(()=>$('ncDoorScene').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
+  }
  }else if(s.fluteNotes.length===3){
-  $('ncFluteTrack').textContent+='  ...nothing.';
+  if(!physical)$('ncFluteTrack').textContent+='  ...nothing.';
+  else tell('The three tones fade into the machinery. Nothing else moves.');
  }
  render();
 }
@@ -1075,6 +1090,10 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
  // The physical miniatures are visual counterparts of the EXISTING world
  // props. Selecting an inventory item and then a 3D object uses the same
  // recipe, discovery, modal and storage rules as clicking its HTML button.
+ activatePhysicalFluteNote(index){
+  if(!Number.isInteger(index)||index<1||index>3||!pocket.has('flute')||!s.top)return;
+  note(index);
+ },
  activatePhysicalBagDial(index){
   if(!Number.isInteger(index)||index<0||index>2)return;
   if(!s.bagOpen){
