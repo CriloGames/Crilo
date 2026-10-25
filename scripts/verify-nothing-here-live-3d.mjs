@@ -69,13 +69,22 @@ try{
  const cubeCanvas=await page.locator("#stage canvas").boundingBox();
  assert(cubeCanvas&&cubeCanvas.width>100,"Missing physical inspection canvas");
  const cx=cubeCanvas.x+cubeCanvas.width*.5,cy=cubeCanvas.y+cubeCanvas.height*.5;
+ // Test the primary, discoverable Move toggle first, using a real drag.
+ await page.locator("#ncPanMode").click();
+ assert((await page.evaluate(()=>window.__nothing3DPreview.navigationState)).panMode,
+   "The Move button must configure the actual 3D OrbitControls");
  await page.mouse.move(cx,cy);
- await page.mouse.down({button:"right"});
- await page.mouse.move(cx+105,cy+40,{steps:5});
- await page.mouse.up({button:"right"});
+ await page.mouse.down({button:"left"});
+ await page.mouse.move(cx+125,cy+45,{steps:12});
+ await page.mouse.up({button:"left"});
  await page.waitForFunction(()=>
-   Math.hypot(...window.__nothing3DPreview.navigationState.target)>.10,
-   null,{timeout:15000});
+   Math.hypot(...window.__nothing3DPreview.navigationState.target)>.06,
+   null,{timeout:25000});
+ await page.locator("#ncPanMode").click();
+ assert(!(await page.evaluate(()=>window.__nothing3DPreview.navigationState)).panMode,
+   "Switching back must restore orbit rotation");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.navigationState)).rightPan,
+   "Right-drag must stay a pan gesture when the default Rotate mode is selected");
  await page.waitForTimeout(800);
  const beforeResize=await page.evaluate(()=>window.__nothing3DPreview.navigationState.target);
  await page.setViewportSize({width:390,height:844});
@@ -88,7 +97,7 @@ try{
   const v=window.__nothing3DPreview.navigationState;
   return !v.cameraReturning&&Math.hypot(...v.target)<.05;
  },null,{timeout:15000});
- console.log("PASS: right-drag pan, mobile resize persistence, smooth reset to center");
+ console.log("PASS: real Move-mode pointer drag, orbit-mode restoration, mobile resize continuity and camera reset");
  const hidden=await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility);
  assert(Object.values(hidden).every(value=>!value),
    "Numerical inscriptions must start concealed under their physical covers");
@@ -111,6 +120,10 @@ try{
  }
  assert(initial.controls.includes("cipher-strip"),
   "The secret symbol order needs a physical rear-face inspection target");
+ for(const action of ["flute-note-1","flute-note-2","flute-note-3"])
+  assert(initial.controls.includes(action),"Missing playable instrument key: "+action);
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),false,
+  "A flute must not appear before its parts are found and combined");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),false,
   "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
@@ -310,6 +323,25 @@ try{
   "Physical bag should not open an obstructing 2D dialog");
  assert.match(await page.locator("#ncNarrator").innerText(),/bag.*pocket/i);
  console.log("PASS: real 3D bag dials and inventory unlock the combination without a flat popup");
+ // The next chapter must ALSO be a physical puzzle: build the flute from
+ // found parts, play three 3D keys, and open the original door with no modal.
+ await page.locator('#ncInventory [data-item="pipe"]').click();
+ await page.locator('#ncInventory [data-item="reed"]').click();
+ const instrument=await state();
+ assert(instrument.pocket.includes("flute")&&instrument.seen.includes("flute"),
+  "Original flute combination broke during the 3D migration");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
+  "The crafted flute did not materialize in the physical top compartment");
+ assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
+ for(const n of [2,1,3])await activate("flute-note-"+n);
+ const melody=await state();
+ assert(melody.door&&melody.seen.includes("door"),
+  "Playing the original melody on the physical flute did not reveal the door");
+ assert(melody.pocket.includes("flute"),
+  "Playing the flute unexpectedly consumed or duplicated the instrument");
+ assert(await page.locator("#ncModal").isHidden(),
+  "Playing the 3D flute opened an obstructive classic dialog");
+ console.log("PASS: authentic playable 3D flute, original 213 melody and story progression");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
