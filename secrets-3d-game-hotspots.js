@@ -231,6 +231,27 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const shutter=targets.get("shutter");
  // Bottom: actual protruding rubber support and a separate release hatch.
  const foot=control(bottomFace,"foot",-1.02,1.02,graphite,.16);
+ function revealPlate(object,ready,wasReady,restore){
+  const wasVisible=object.visible;
+  if(!ready){
+   gsap.killTweensOf(object.position);
+   object.visible=false;
+   object.position.z=.158;
+   return;
+  }
+  object.visible=true;
+  if(restore||reducedMotion){
+   object.position.z=.158;
+  }else if(!wasReady||!wasVisible){
+   // An engraving slides out of a recessed slot instead of magically
+   // appearing in front of opaque metal. No auto-revealed answer text.
+   gsap.killTweensOf(object.position);
+   object.position.z=.047;
+   gsap.to(object.position,{
+    z:.158,duration:.57,ease:"back.out(1.4)",onUpdate:invalidate
+   });
+  }
+ }
  const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
  undersideCipher.visible=false;
  control(bottomFace,"underside",0,0,brass,.21);
@@ -254,16 +275,21 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    const cipherReady=(s.eyeRingTicks||0)>=3;
    if(cipherReady&&!cipherStrip.visible){
     cipherStrip.visible=true;
-    cipherStrip.position.y=.085;
-    if(animate)animate(cipherStrip.position,{y:0},.48);
-    else cipherStrip.position.y=0;
+    cipherStrip.position.y=restore||reducedMotion?0:.085;
+    if(!restore&&!reducedMotion){
+     gsap.killTweensOf(cipherStrip.position);
+     gsap.to(cipherStrip.position,{
+      y:0,duration:.48,ease:"power2.out",onUpdate:invalidate
+     });
+    }
    }else if(!cipherReady){
+    gsap.killTweensOf(cipherStrip.position);
     cipherStrip.visible=false;
     cipherStrip.position.y=0;
    }
-   ventCipher.visible=!!s.rightBoltLoose;
-   undersideCipher.visible=!!s.footChecked;
-   eyeCipher.visible=!!s.back;
+   revealPlate(ventCipher,!!s.rightBoltLoose,!!previous.rightBoltLoose,restore);
+   revealPlate(undersideCipher,!!s.footChecked,!!previous.footChecked,restore);
+   revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
    pose(foot,"position","x",s.footChecked?-1.32:-1.02,
      previous.footChecked?-1.32:-1.02,restore,.46);
    portalGroup.visible=!!s.portal;
@@ -293,7 +319,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    previousState={
     plateOpen:!!s.plateOpen,eyeRingTicks:s.eyeRingTicks||0,
     pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
-    ventOpen:!!s.ventOpen,footChecked:!!s.footChecked
+    ventOpen:!!s.ventOpen,footChecked:!!s.footChecked,
+    rightBoltLoose:!!s.rightBoltLoose,back:!!s.back
    };
    invalidate();
   }
