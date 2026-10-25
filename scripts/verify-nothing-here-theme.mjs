@@ -40,4 +40,55 @@ try{
  console.log('Theme restored to light:',JSON.stringify(state));
  assert.notEqual(state.buttonBackground,'rgb(48, 64, 71)','Theme is stuck in dark mode');
  console.log('PASS: mobile toolbar loads, persisted dark color renders, and light mode restores');
+ // A fresh game remains safe until players choose Reset TWICE: once to
+ // open the compact confirmation, then explicitly inside that dialog.
+ const existingProgress=await page.evaluate(()=>{
+  localStorage.setItem('crilo_other_game_test_save','keep-me');
+  window.CriloNothingHereCube.activatePhysical('latch');
+  return window.CriloNothingHereCube.getState().seen.length;
+ });
+ assert(existingProgress>=2,'Could not create a local Nothing Here test save');
+ assert.equal(await page.locator('#ncConfirmCubeReset').count(),0,
+  'Destructive action must not exist in the page before confirmation');
+ await page.locator('#ncResetCubeBtn').click();
+ assert.equal(await page.locator('#ncModalTitle').innerText(),'Reset the cube?',
+  'The Reset the Cube button did not open the correct warning');
+ assert.equal(await page.evaluate(()=>document.activeElement.id),'ncCancelCubeReset',
+  'The safer Cancel action must receive initial focus');
+ const compact=await page.locator('#ncModal .nc-modal').boundingBox();
+ assert(compact?.width<=366,
+  'Reset confirmation should be a smaller popup, not a full-size modal');
+ assert.match(await page.locator('#ncModalBody').innerText(),/this browser|saved in this browser/i,
+  'Reset confirmation did not explain what would be erased');
+ assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).seen.length,existingProgress,
+  'Opening reset confirmation erased the progress before confirmation');
+ await page.keyboard.press('Escape');
+ assert(await page.locator('#ncModal').isHidden(),
+  'Escape must dismiss the reset confirmation');
+ assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).seen.length,existingProgress,
+  'Escape unexpectedly erased the game');
+ await page.locator('#ncResetCubeBtn').click();
+ await page.locator('#ncCancelCubeReset').click();
+ assert(await page.locator('#ncModal').isHidden(),
+  'Cancel must dismiss the reset popup');
+ assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).seen.length,existingProgress,
+  'Cancel unexpectedly erased the game');
+ await page.locator('#ncResetCubeBtn').click();
+ await Promise.all([
+  page.waitForNavigation({waitUntil:'domcontentloaded',timeout:30000}),
+  page.locator('#ncConfirmCubeReset').click()
+ ]);
+ await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:20000});
+ const afterReset=await page.evaluate(()=>({
+  discoveries:window.CriloNothingHereCube.getState().seen.length,
+  items:window.CriloNothingHereCube.getState().pocket.length,
+  counter:document.querySelector('#ncCount').textContent,
+  otherSave:localStorage.getItem('crilo_other_game_test_save'),
+  theme:localStorage.getItem('crilo_theme'),
+  hasButton:!!document.getElementById('ncResetCubeBtn')
+ }));
+ assert.deepEqual(afterReset,{discoveries:0,items:0,counter:'0',
+  otherSave:'keep-me',theme:'light',hasButton:true},
+  'Reset did not cleanly restart this cube, or damaged another save: '+JSON.stringify(afterReset));
+ console.log('PASS: small two-step reset dialog, Escape, Cancel, confirmed restart and isolated localStorage');
 }finally{await browser.close()}
