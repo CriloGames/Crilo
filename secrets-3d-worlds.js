@@ -100,6 +100,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // CUBE. They cannot stay on a stationary pedestal after the player rotates
  // the floating box. Each socket is screwed into a specific actual face.
  // Staggered positions leave the principal drawers, iris and switches clear.
+ // Reuse the existing enamel materials for sixteen-piece-free color
+ // variation. Previously every micro-world sat in the same brass socket,
+ // making neighboring miniatures merge into one visual cluster on phones.
+ // These accents only appear AFTER a world is discovered. They contain no
+ // numbers, symbols, instructions, or clues.
+ const mountAccents={
+  bag:m.velvet,machine:m.copper,door:m.blue,dog:m.pink,
+  vase:m.cream,pot:m.green,musicbox:m.velvet,cloud:m.blue,
+  squirrel:m.wood,cup:m.cream,clock:m.gold,elevator:m.blue,
+  moth:m.velvet,telescope:m.copper,train:m.wood
+ };
  const slots=[
   ["bag","frontFace",-1.00,.70],["machine","frontFace",1.02,.68],
   ["door","rightFace",1.00,.71],["dog","rightFace",0,.70],
@@ -122,7 +133,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Slim captive brackets replace the heavy mini-gallery plinths. The
   // machined metal is attached directly to the rotating cube face.
   B(stand,.53,.42,.055,0,.15,-.04,m.dark,.020);
-  B(stand,.48,.36,.023,0,.16,.008,m.brass,.018);
+  const inlay=B(stand,.48,.36,.023,0,.16,.008,mountAccents[name],.018);
+  // A narrow captive trim follows the top edge without inventing extra
+  // labels or interfering with precision bag and elevator controls.
+  B(stand,.38,.018,.018,0,.331,.035,m.gold,.006);
   B(stand,.56,.051,.37,0,-.035,.19,m.dark,.018);
   B(stand,.50,.029,.35,0,.009,.19,m.gold,.012);
   for(const px of [-.225,.225]){
@@ -140,7 +154,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   );
   hitVolume.position.set(0,.33,.11);
   toy.add(hitVolume);toy.userData.pickVolume=hitVolume;parts++;
-  items.set(name,{fixture,toy,stand,hitVolume,visible:false});
+  items.set(name,{fixture,toy,stand,inlay,hitVolume,visible:false});
  }
  const toy=name=>items.get(name).toy;
  // Travel bag: sculpted leather box, curved handle, buckles and working
@@ -769,7 +783,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      invalidate();
    }
    const fixture=instance.fixture;
-   return {visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z};
+   return {visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z,
+    inlayColor:instance.inlay.material.color.getHexString()};
   }
  };
 }
