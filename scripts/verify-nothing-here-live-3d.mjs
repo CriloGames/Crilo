@@ -327,6 +327,10 @@ try{
   return !el.hidden&&/red button/i.test(el.textContent);
  });
  await sendTouch("touchEnd",[]);
+ const heldCaption=await page.evaluate(()=>{
+  const el=document.querySelector("#ncPartHint");
+  return !el.hidden&&/red button/i.test(el.textContent);
+ });
  const holdCount=(await state()).redHits;
  await sendTouch("touchStart",[touch(92)]);
  await sendTouch("touchStart",[touch(92),touch(93,33)]);
@@ -339,11 +343,11 @@ try{
  const touchIdle=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState);
  await touchSession.send("Emulation.setTouchEmulationEnabled",{enabled:false});
  await touchSession.detach();
- assert(holdHint&&pinchInProgress&&holdCount===touchBase&&
+ assert(holdHint&&heldCaption&&pinchInProgress&&holdCount===touchBase&&
   pinchCount===touchBase&&tapCount===touchBase+1&&
   touchIdle.active===0&&!touchIdle.gesture,
   "Real touch hold/pinch/tap regression: "+JSON.stringify({
-   holdHint,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,touchIdle
+   holdHint,heldCaption,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,touchIdle
   }));
  console.log("PASS: physical touch hold-to-identify, two-finger suppression, single tap");
  const gaugeMotion=await page.evaluate(()=>{
@@ -557,6 +561,31 @@ try{
  assert.equal((await state()).plateOpen,true,"Mobile view lost the same saved run");
  const bounds=await page.locator("#stage canvas").boundingBox();
  assert(bounds&&bounds.width>200&&bounds.width<=390,"Real 3D mobile canvas does not fit viewport");
+ const mobileReview=await page.evaluate(()=>{
+  const v=window.__nothing3DPreview;
+  const groups=[...document.querySelector(".nc-inspection-controls").children]
+   .map(g=>g.getBoundingClientRect());
+  const targets=[...document.querySelectorAll(".nc-inspection-controls button")]
+   .map(b=>b.getBoundingClientRect());
+  return {cameraDistance:Math.hypot(...v.navigationState.camera),
+   scroll:document.documentElement.scrollWidth,
+   viewport:document.documentElement.clientWidth,
+   toolbarRows:Math.abs(groups[0].top-groups[1].top),
+   targets:targets.map(r=>[r.width,r.height])};
+ });
+ assert(mobileReview.cameraDistance>11.5&&mobileReview.cameraDistance<14,
+  "The portrait camera is cropping the entire cube: "+JSON.stringify(mobileReview));
+ assert(mobileReview.scroll<=mobileReview.viewport+2&&mobileReview.toolbarRows<6&&
+  mobileReview.targets.every(([w,h])=>w>=33&&h>=37),
+  "Mobile toolbar has clipped, tiny or two-row controls: "+JSON.stringify(mobileReview));
+ await page.evaluate(()=>document.documentElement.dataset.theme="dark");
+ const darkUi=await page.evaluate(()=>({
+  bg:getComputedStyle(document.querySelector("#ncZoomIn")).backgroundColor,
+  fg:getComputedStyle(document.querySelector("#ncZoomAmount")).color
+ }));
+ assert.equal(darkUi.bg,"rgb(48, 64, 71)","Dark mode still has a bright white zoom button");
+ assert.equal(darkUi.fg,"rgb(219, 233, 229)","Dark-mode zoom value has poor contrast");
+ console.log("PASS: framed mobile overview, readable single-row controls and dark-mode contrast");
  // All sixty existing awards must survive a real saved v3 session, without
  // splitting player history into a second Three.js storage namespace.
  await page.evaluate(ids=>{

@@ -274,3 +274,53 @@ html[data-theme="dark"] .nc-page .nc-pocket-head .nc-pocket-held{
   padding:9px 13px;min-width:92px;box-shadow:0 7px 22px #273b4055;
  }
 }
+
+/* The floating object should remain visible behind a single restrained
+   inspection toolbar, even at 390px-wide portrait dimensions. */
+@media(max-width:700px){
+ .nc-page.nc-physical-ready .nc-inspection-controls{
+  left:8px;right:8px;bottom:8px;gap:4px;flex-wrap:nowrap;
+  justify-content:space-between;
+ }
+ .nc-page.nc-physical-ready .nc-inspection-controls .nc-rotate-controls{gap:3px}
+ .nc-page.nc-physical-ready .nc-inspection-controls .nc-zoom-controls{
+  gap:2px;padding:3px;border-radius:12px;
+ }
+ .nc-page.nc-physical-ready .nc-inspection-controls button{
+  min-width:34px;width:34px;height:38px;min-height:38px;
+  border-radius:9px;font-size:17px;box-sizing:border-box;
+ }
+ .nc-page.nc-physical-ready .nc-zoom-controls #ncZoomAmount{
+  min-width:34px;font-size:10px;
+ }
+}
+@media(max-width:355px){
+ .nc-page.nc-physical-ready .nc-inspection-controls{
+  flex-wrap:wrap;justify-content:center;row-gap:5px;
+ }
+ .nc-page.nc-physical-ready .nc-world{height:clamp(485px,65dvh,620px)}
+}
+/* Give dark-mode users the same readable contrast as the rest of Crilo. */
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button,
+body[data-theme="dark"].nc-page.nc-physical-ready .nc-inspection-controls button{
+ background:#304047;color:#e4eee9;border-color:#65767b;
+ box-shadow:0 3px 10px #101c2140;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls .nc-zoom-controls,
+body[data-theme="dark"].nc-page.nc-physical-ready .nc-inspection-controls .nc-zoom-controls{
+ background:#293940dc;border-color:#566e73;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-zoom-controls #ncZoomAmount,
+body[data-theme="dark"].nc-page.nc-physical-ready .nc-zoom-controls #ncZoomAmount{
+ color:#dbe9e5;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button:hover,
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button:focus-visible{
+ background:#435a61;border-color:#9cc6b5;color:#fff;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready #ncPanMode[aria-pressed="true"]{
+ background:#38675b;border-color:#8fc3ad;color:#fff;
+}
+.nc-page.nc-physical-ready .nc-inspection-controls button:focus-visible{
+ outline:3px solid #80bca8;outline-offset:2px;
+}

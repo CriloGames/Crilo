@@ -49,6 +49,9 @@ scene.environment=studioReflection.texture;
 scene.environmentIntensity=.62;
 studioRoom.dispose();pmrem.dispose();
 
+// A wider mobile overview keeps corners and opened hatches onscreen.
+// Players can zoom in on the tiny hardware when inspecting it.
+const MOBILE_HOME=[6.45,5.4,8.57];
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = .075;
@@ -522,7 +525,7 @@ function cancelCameraReturn(){
  controls.enableDamping=true;
 }
 function returnCameraHome(){
- const home=stage.clientWidth<720?[5.6,4.7,7.45]:[3.85,3.2,5.9];
+ const home=stage.clientWidth<720?MOBILE_HOME:[3.85,3.2,5.9];
  cancelCameraReturn();
  // Reset the *camera's real orbit point* synchronously. An animated GSAP
  // target used to fight OrbitControls' inertia and, on low-power hardware,
@@ -650,6 +653,7 @@ renderer.domElement.addEventListener("pointerdown",e=>{
   }
  }
  if(e.button!==0||multiTouchGesture)return;
+ dismissTouchHint();
  clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
   pointerType:e.pointerType,action:pickVisibleAction(e.clientX,e.clientY),
   inspected:false};
@@ -666,11 +670,25 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  }
 });
 let hoverFrame=0,hoverPoint=null;
+let touchHintUntil=0,touchHintTimer=null;
+function dismissTouchHint(){
+ touchHintUntil=0;
+ if(touchHintTimer!==null){clearTimeout(touchHintTimer);touchHintTimer=null;}
+ setPartHint(null);
+}
+function pinTouchHint(){
+ touchHintUntil=Date.now()+1900;
+ if(touchHintTimer!==null)clearTimeout(touchHintTimer);
+ touchHintTimer=setTimeout(()=>{
+  touchHintTimer=null;touchHintUntil=0;setPartHint(null);
+ },1900);
+}
 function clearHover(){
  if(hoverFrame){cancelAnimationFrame(hoverFrame);hoverFrame=0;}
  hoverPoint=null;
  renderer.domElement.style.cursor="grab";
- setPartHint(null);
+ // Long-hold captions must survive finger release so players can read them.
+ if(Date.now()>=touchHintUntil)setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
  if(clickStart&&e.pointerId===clickStart.pointerId&&
@@ -703,7 +721,10 @@ renderer.domElement.addEventListener("pointerup",e=>{
   if(!touchPointers.size)multiTouchGesture=false;
   clearHover();return;
  }
- if(!start||start.pointerId!==e.pointerId||start.inspected||
+ if(start?.inspected&&start.pointerId===e.pointerId){
+  pinTouchHint();clearHover();return;
+ }
+ if(!start||start.pointerId!==e.pointerId||
     Math.hypot(e.clientX-start.x,e.clientY-start.y)>(start.pointerType==="touch"?12:7)){
   clearHover();return;
  }
@@ -734,7 +755,7 @@ const onResize=()=>{
  // Initial mobile framing makes the entire box visible. Every subsequent
  // breakpoint crossing preserves the player's orbit, pan and zoom.
  if(cameraMode===null){
-  const initial=mode==="mobile"?[5.6,4.7,7.45]:[3.85,3.2,5.9];
+  const initial=mode==="mobile"?MOBILE_HOME:[3.85,3.2,5.9];
   camera.position.set(...initial);
  }
  cameraMode=mode;
@@ -764,7 +785,7 @@ controls.addEventListener("change",()=>{
  invalidate();
  if(embeddedGame){
   const base=stage.clientWidth<720?
-   Math.hypot(5.6,4.7,7.45):Math.hypot(3.85,3.2,5.9);
+   Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
    base/camera.position.distanceTo(controls.target)
   );
@@ -958,7 +979,7 @@ window.__nothing3DPreview={
   if(!embeddedGame)return;
   const mobile=stage.clientWidth<720;
   const base=mobile?
-   Math.hypot(5.6,4.7,7.45):Math.hypot(3.85,3.2,5.9);
+   Math.hypot(...MOBILE_HOME):Math.hypot(3.85,3.2,5.9);
   const d=THREE.MathUtils.clamp(base/Math.max(.65,value),5.2,14);
   const offset=camera.position.clone().sub(controls.target).setLength(d);
   camera.position.copy(controls.target).add(offset);
