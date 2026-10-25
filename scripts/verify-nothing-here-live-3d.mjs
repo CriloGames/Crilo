@@ -117,11 +117,31 @@ try{
  });
  assert(restingFeedback.text.length>0,"Physical feedback was discarded instead of resting");
  const initialZoom=await page.locator("#ncZoomAmount").innerText();
- assert(Math.abs(Number(initialZoom.replace("%",""))-100)<=2,
-  "Fresh desktop mode must frame the real 3D box at 100%, not a hidden mobile camera preset: "+initialZoom);
+ assert.equal(initialZoom,"82%",
+  "Fresh desktop 3D view must begin zoomed out at 82%: "+initialZoom);
  const startCamera=await page.evaluate(()=>window.__nothing3DPreview.navigationState.camera);
- assert(Math.hypot(...startCamera)<8.5,
-  "The initial desktop cube was incorrectly framed at mobile camera distance: "+JSON.stringify(startCamera));
+ assert(Math.hypot(...startCamera)>9.2&&Math.hypot(...startCamera)<9.65,
+  "The initial desktop camera must match the 82% readout: "+JSON.stringify(startCamera));
+ // The maximum must be reachable with the physical camera, not merely
+ // displayed in the label. Overshoot attempts should stop at exactly 200%.
+ const desktopZoom=await page.evaluate(()=>{
+  window.CriloNothingHereCube.zoomTo(2.5);
+  return {indicator:document.querySelector("#ncZoomAmount").textContent,
+   value:window.CriloNothingHereCube.getView().zoom,
+   distance:Math.hypot(...window.__nothing3DPreview.navigationState.camera)};
+ });
+ assert(desktopZoom.indicator==="200%"&&desktopZoom.value===2&&
+  desktopZoom.distance>3.75&&desktopZoom.distance<4,
+  "Desktop 3D cannot reach precisely 200%: "+JSON.stringify(desktopZoom));
+ await page.locator("#ncViewReset").click();
+ const resetZoom=await page.evaluate(()=>({
+  indicator:document.querySelector("#ncZoomAmount").textContent,
+  value:window.CriloNothingHereCube.getView().zoom,
+  distance:Math.hypot(...window.__nothing3DPreview.navigationState.camera)
+ }));
+ assert(resetZoom.indicator==="82%"&&resetZoom.value===.82&&
+   resetZoom.distance>9.2&&resetZoom.distance<9.65,
+  "Reset View did not return to the default 82%: "+JSON.stringify(resetZoom));
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  const pickStats=await page.evaluate(()=>window.__nothing3DPreview.raycastTargets);
  assert.equal(pickStats.total,pickStats.unique,"Duplicate raycast targets waste mouse/touch time");
@@ -770,19 +790,28 @@ try{
    toolbarRows:Math.abs(groups[0].top-groups[1].top),
    targets:targets.map(r=>[r.width,r.height])};
  });
- assert(mobileReview.cameraDistance>13.1&&mobileReview.cameraDistance<13.8,
-  "The portrait cube must start with space around its open mechanisms: "+JSON.stringify(mobileReview));
+ assert(mobileReview.cameraDistance>16.1&&mobileReview.cameraDistance<16.5,
+  "The portrait cube must start at the wider 82% overview: "+JSON.stringify(mobileReview));
+ assert.equal(await page.locator("#ncZoomAmount").innerText(),"82%",
+  "Mobile camera and displayed default zoom must agree");
  const mobileZoomRange=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
-  view.setZoom(.81);
+  view.setZoom(.5);
   const zoomOut=Math.hypot(...view.navigationState.camera);
   view.setZoom(1);
   const normal=Math.hypot(...view.navigationState.camera);
-  return {zoomOut,normal};
+  window.CriloNothingHereCube.zoomTo(2.6);
+  const maxIndicator=document.querySelector("#ncZoomAmount").textContent;
+  const zoomIn=Math.hypot(...view.navigationState.camera);
+  window.CriloNothingHereCube.resetView();
+  return {zoomOut,normal,zoomIn,maxIndicator,
+   reset:document.querySelector("#ncZoomAmount").textContent};
  });
- assert(mobileZoomRange.zoomOut>15.8&&mobileZoomRange.zoomOut<=16.51&&
-  mobileZoomRange.normal>13.1&&mobileZoomRange.normal<13.8,
-  "Mobile users cannot back away far enough to inspect the entire opened artifact: "+JSON.stringify(mobileZoomRange));
+ assert(mobileZoomRange.zoomOut>16.1&&mobileZoomRange.zoomOut<16.5&&
+  mobileZoomRange.normal>13.1&&mobileZoomRange.normal<13.8&&
+  mobileZoomRange.zoomIn>6.5&&mobileZoomRange.zoomIn<6.9&&
+  mobileZoomRange.maxIndicator==="200%"&&mobileZoomRange.reset==="82%",
+  "Mobile 3D zoom, range, or reset disagrees with 82–200%: "+JSON.stringify(mobileZoomRange));
  assert(mobileReview.scroll<=mobileReview.viewport+2&&mobileReview.toolbarRows<6&&
   mobileReview.targets.every(([w,h])=>w>=33&&h>=37),
   "Mobile toolbar has clipped, tiny or two-row controls: "+JSON.stringify(mobileReview));
