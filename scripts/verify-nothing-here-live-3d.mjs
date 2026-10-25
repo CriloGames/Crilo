@@ -172,6 +172,35 @@ try{
   "The triangle hover label should identify an object, not tell players how many presses solve it");
  assert(!/press|three times|tap|click to apply|try turning|loosen|use held item|rotate|visit floor/i.test(neutralLabels.join(" | ")),
   "Hover text is disclosing mechanical steps or compatible-item solutions: "+neutralLabels.join(" | "));
+ // A focused 3D canvas must work without mouse precision, but inspection
+ // only names raycast-reachable surfaces, never uncollected hidden secrets.
+ await page.locator("#stage canvas").focus();
+ await page.keyboard.press("i");
+ const keyInspection=await page.evaluate(()=>({
+  ...window.__nothing3DPreview.keyboardInspectionState,
+  tooltip:document.querySelector("#ncPartHint")?.textContent,
+  visible:!document.querySelector("#ncPartHint")?.hidden,
+  aria:document.querySelector("#stage canvas")?.getAttribute("aria-label")
+ }));
+ assert(keyInspection.count>=1&&keyInspection.selected&&keyInspection.label&&
+   keyInspection.visible&&keyInspection.tooltip===keyInspection.label,
+   "Keyboard I does not select an actually visible 3D fitting: "+JSON.stringify(keyInspection));
+ assert(/arrow keys|enter|escape/i.test(keyInspection.aria),
+   "Accessible 3D instructions do not describe keyboard inspection");
+ const beforeArrow=await page.evaluate(()=>window.CriloNothingHereCube.getState().ry);
+ await page.keyboard.press("ArrowRight");
+ const afterArrow=await page.evaluate(()=>({
+  ry:window.CriloNothingHereCube.getState().ry,
+  selected:window.__nothing3DPreview.keyboardInspectionState.selected
+ }));
+ assert(afterArrow.ry>beforeArrow+40&&afterArrow.selected===null,
+   "3D canvas arrow keys failed to rotate or clear the prior inspection");
+ await page.keyboard.press("i");
+ await page.keyboard.press("Escape");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.selected),null,
+   "Escape must leave keyboard inspection without triggering a puzzle");
+ await page.locator("#ncViewReset").click();
+ console.log("PASS: keyboard-visible fitting navigation, in-scene identity, arrows and Escape");
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
  for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
