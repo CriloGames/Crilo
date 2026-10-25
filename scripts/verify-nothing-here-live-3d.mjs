@@ -13,15 +13,15 @@ assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrup
 const catalogSet=new Set(sixtySecrets);
 const namesText=source.split("const names={")[1]?.split("const glyphs=")[0]||"";
 const glyphText=source.split("const glyphs={")[1]?.split("const recipe=")[0]||"";
-const itemIds=new Set([...namesText.matchAll(/\\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
-const glyphIds=new Set([...glyphText.matchAll(/\\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
+const itemIds=new Set([...namesText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
+const glyphIds=new Set([...glyphText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
 assert.equal(itemIds.size,32,"An existing pocket item disappeared from the canonical catalog");
 assert.deepEqual([...glyphIds].sort(),[...itemIds].sort(),
  "Some collectible has no corresponding visual inventory glyph");
-const directAwards=new Set([...source.matchAll(/\\bbloom\\('([^']+)'/g)].map(m=>m[1]));
+const directAwards=new Set([...source.matchAll(/\bbloom\('([^']+)'/g)].map(m=>m[1]));
 const recipeText=source.split("const recipe={")[1]?.split("const sorted=")[0]||"";
 const craftedAwards=new Set();
-for(const [,left,right,product,award] of recipeText.matchAll(/'([a-z]+)\\+([a-z]+)':\\['([^']+)','([^']+)'/g)){
+for(const [,left,right,product,award] of recipeText.matchAll(/'([a-z]+)\+([a-z]+)':\['([^']+)','([^']+)'/g)){
  for(const name of [left,right,product])assert(itemIds.has(name),
   "Craft recipe references an unknown inventory item: "+name);
  assert(catalogSet.has(award),"Craft recipe references an unknown secret: "+award);
@@ -30,7 +30,7 @@ for(const [,left,right,product,award] of recipeText.matchAll(/'([a-z]+)\\+([a-z]
 assert.equal(craftedAwards.size,3,"A key original combination or secret has disappeared");
 for(const id of sixtySecrets)assert(directAwards.has(id)||craftedAwards.has(id),
  "Unreachable secret: "+id+" has no awarding event or crafting rule");
-for(const [,item] of source.matchAll(/\\b(?:gain|spend)\\('([^']+)'/g))
+for(const [,item] of source.matchAll(/\b(?:gain|spend)\('([^']+)'/g))
  assert(itemIds.has(item),"A puzzle uses an item not defined in the pocket: "+item);
 console.log("PASS: all 60 award paths, 32 named pocket objects, and three craft recipes are consistent");
 // The object names may aid orientation, but puzzle solutions must NOT be
