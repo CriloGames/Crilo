@@ -504,9 +504,17 @@ function returnCameraHome(){
  announce("Camera returned to the physical cube.");
 }
 document.getElementById("reset")?.addEventListener("click",returnCameraHome);
+let cameraDragging=false;
 controls.addEventListener("start",()=>{
  // A user's next drag should override a camera animation immediately.
  cameraReturnMotion?.kill();cameraReturnMotion=null;
+ cameraDragging=true;
+ renderer.domElement.style.cursor="grabbing";
+ setPartHint(null);
+});
+controls.addEventListener("end",()=>{
+ cameraDragging=false;
+ renderer.domElement.style.cursor="grab";
  setPartHint(null);
 });
 const pointer=new THREE.Vector2(),raycaster=new THREE.Raycaster();
@@ -593,7 +601,8 @@ function clearHover(){
  setPartHint(null);
 }
 renderer.domElement.addEventListener("pointermove",e=>{
- if(clickStart&&Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7){
+ if(cameraDragging||
+   clickStart&&Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7){
   clearHover();return;
  }
  // Mouse movement may fire hundreds of times during a slow WebGL frame.
@@ -610,6 +619,7 @@ renderer.domElement.addEventListener("pointermove",e=>{
  });
 });
 renderer.domElement.addEventListener("pointerleave",clearHover);
+renderer.domElement.addEventListener("contextmenu",e=>e.preventDefault());
 renderer.domElement.addEventListener("pointerup",e=>{
  const start=clickStart;clickStart=null;
  if(!start||start.pointerId!==e.pointerId||
