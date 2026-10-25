@@ -350,6 +350,11 @@ function render(){
   elevator:s.watch&&s.tag,moth:s.floorFour,telescope:s.moon,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  const inventory=$('ncInventory');
+ const count=$('ncPocketCount');
+ if(count){
+  count.textContent=pocket.size+' carried';
+  count.setAttribute('aria-label',pocket.size+' items carried');
+ }
  const focusedItem=inventory.contains(document.activeElement)
   ?document.activeElement.closest('[data-item]')?.dataset.item:null;
  const now=Date.now();

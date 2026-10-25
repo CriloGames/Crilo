@@ -22,6 +22,10 @@ try{
  });
  await page.waitForFunction(()=>document.querySelectorAll("#ncInventory .nc-item").length===32,
   null,{timeout:30000});
+ assert.equal(await page.locator("#ncPocketCount").innerText(),"32 carried",
+  "The pocket count must represent actual inventory, not unrevealed rewards");
+ assert.equal(await page.locator("#ncPocketCount").getAttribute("aria-label"),"32 items carried",
+  "The number of carried objects needs an accessible label");
  const observed=await page.evaluate(()=>{
   const buttons=[...document.querySelectorAll("#ncInventory .nc-item")];
   return buttons.map(button=>{
@@ -57,6 +61,8 @@ try{
   "key","Selecting an inventory icon no longer picks up the correct item");
  assert.equal(await page.locator('#ncInventory [data-item="key"]').getAttribute("aria-pressed"),
   "true","Selected pocket item no longer communicates state to assistive technology");
+ assert.equal(await page.locator("#ncPocketCount").innerText(),"32 carried",
+  "Selecting an item must not remove it from the pocket");
  await page.evaluate(()=>{document.documentElement.dataset.theme="dark"});
  const contrast=await page.locator('#ncInventory [data-item="lens"] .nc-item-icon')
   .evaluate(node=>getComputedStyle(node).color);
