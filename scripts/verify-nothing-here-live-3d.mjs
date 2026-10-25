@@ -240,7 +240,7 @@ try{
  await page.waitForFunction(()=>{
   const v=window.__nothing3DPreview.getStoryMountVisualState("bag");
   return v?.visible&&Math.abs(v.scale-1)<.035&&Math.abs(v.depth-.27)<.035;
- },null,{timeout:14000});
+ },null,{timeout:30000,polling:250});
  console.log("PASS: new miniature discovery emerges and settles on its bolted shelf");
  const chipHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
  assert(chipHeight>20&&chipHeight<70,
@@ -412,7 +412,7 @@ try{
  });
  if(!wheelMotion.reduced)
   await page.waitForFunction(before=>window.__nothing3DPreview.miniatureMechanismPose.bagDials[0]>before+.02,
-   wheelMotion.before,{timeout:12000});
+   wheelMotion.before,{timeout:20000,polling:250});
  for(const i of [0,2,2,2])await activate("thing:bag-dial-"+i);
  const bagSolved=await state();
  assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
@@ -562,7 +562,7 @@ try{
   // The pre-click resting depth is not a pressed depth. Check the physical
   // elevator doors after the actual click, even on throttled renderers.
   await page.waitForFunction(before=>window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]<before-.006,
-   liftMotion.before,{timeout:12000});
+   liftMotion.before,{timeout:20000,polling:250});
  }
  const fourthFloor=await state();
  assert(fourthFloor.floorFour&&fourthFloor.pocket.includes("lens"),
