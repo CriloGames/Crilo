@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'cube-physical.css'
+      - 'cube-secrets.js'
+      - 'scripts/verify-nothing-here-pocket.mjs'
       - 'cube-inspection.css'
       - 'secrets.html'
       - 'scripts/verify-nothing-here-theme.mjs'
@@ -31,5 +33,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nh-theme-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Check actual browser theme
-        run: node scripts/verify-nothing-here-theme.mjs
+      - name: Check actual browser theme and pocket artwork
+        run: |
+          node scripts/verify-nothing-here-theme.mjs
+          node scripts/verify-nothing-here-pocket.mjs
