@@ -341,3 +341,24 @@ html[data-theme="dark"] body.nc-page .nc-inspection-controls #ncZoomAmount{color
 html[data-theme="dark"] body.nc-page .nc-inspection-controls #ncPanMode[aria-pressed="true"]{
  background:#38675b!important;border-color:#8fc3ad!important;color:#fff!important;
 }
+
+/* Pocket miniatures share one crafted vector style, not platform-specific emoji. */
+.nc-page .nc-pocket .nc-item{gap:8px;min-height:48px;padding:6px 10px;max-width:100%;text-align:left;line-height:1.25}
+.nc-page .nc-pocket .nc-item-icon{
+ flex:0 0 35px;display:grid;place-items:center;width:35px;height:35px;box-sizing:border-box;
+ border-radius:9px;background:linear-gradient(145deg,#ffffff,#f4ebe6);
+ border:1px solid #d6c8be;color:#916a5e;box-shadow:inset 0 1px 0 #ffffff,0 2px 5px #26343a10;
+}
+.nc-page .nc-pocket .nc-item[data-material="metal"] .nc-item-icon{background:linear-gradient(145deg,#fffdf6,#eee0c7);color:#937341;border-color:#d5bf98}
+.nc-page .nc-pocket .nc-item[data-material="glass"] .nc-item-icon{background:linear-gradient(145deg,#f8ffff,#e0eff3);color:#518697;border-color:#a9cbd2}
+.nc-page .nc-pocket .nc-item[data-material="paper"] .nc-item-icon{background:linear-gradient(145deg,#fffdf8,#f1e6d5);color:#88715f;border-color:#d9c9b5}
+.nc-page .nc-pocket .nc-item-art{display:block;width:27px;height:27px;overflow:visible}
+.nc-inventory-fly .nc-item-art{display:block;width:30px;height:30px;margin:auto;color:#927763;filter:drop-shadow(0 1px 2px #26364240)}
+.nc-page .nc-pocket .nc-item.nc-selected .nc-item-icon{outline:2px solid #83b7a2;outline-offset:1px}
+.nc-page .nc-pocket .nc-item:focus-visible{outline:3px solid #78bca5;outline-offset:2px}
+html[data-theme="dark"] .nc-page .nc-pocket .nc-item-icon,
+html[data-theme="dark"] .nc-page .nc-pocket .nc-item[data-material] .nc-item-icon{
+ background:linear-gradient(145deg,#4d575b,#2d3b42);color:#e4c6a4;border-color:#627179;
+}
+html[data-theme="dark"] .nc-page .nc-pocket .nc-item[data-material="glass"] .nc-item-icon{color:#a6dce4}
+@media(max-width:490px){.nc-page .nc-pocket .nc-item{min-height:46px;padding:5px 8px;font-size:11px}.nc-page .nc-pocket .nc-item-icon{flex-basis:33px;width:33px;height:33px}.nc-page .nc-pocket .nc-item-art{width:25px;height:25px}}

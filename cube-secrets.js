@@ -77,16 +77,50 @@ const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollo
  cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer',
  fork:'silver tuning fork',cylinder:'wax sound cylinder',tape:'punched paper tape',
  letter:'folded letter',envelope:'sealed return envelope'};
-const glyphs={tooth:'⌗',ring:'◌',thread:'〰',pipe:'╱',reed:'ː',flute:'♫',
- key:'⚿',coin:'◉',treat:'♧',prism:'◇',acorn:'♠',spring:'⌁',
- raindrop:'◕',bird:'➤',kite:'◈',sugar:'□',bell:'♧',tag:'04',
- lens:'◎',stardust:'✧',starmap:'✳',parcel:'▣',postcard:'▧',
- cog:'⚙',iris:'◉',shim:'⌁',washer:'◌',fork:'♩',cylinder:'▥',tape:'▤',letter:'✉',envelope:'✉'};
+const glyphs={tooth:'M7 10V22l4 3 4-4 4 4 4-4 2-11M7 10q9-9 18 0M12 12v8m4-8v8m4-8v8',
+ ring:'M16 5a11 11 0 1 0 0 22 11 11 0 1 0 0-22M16 9a7 7 0 1 0 0 14 7 7 0 1 0 0-14',
+ thread:'M6 24q11-3 6-12t11-1-2 9-6 2 1 6 10-5',
+ pipe:'M5 21 21 5l6 6-16 16-6-6Zm15-14 5 5M8 21l3 3',
+ reed:'M13 4h6l2 24H11L13 4Zm-1 5h8m-8 14h8m-4-10v2m0 3v2',
+ flute:'M4 12h23v9H4v-9Zm4-2v13m14-13v13M12 16h1m4 0h1m8-4v9',
+ key:'M11 6a6 6 0 1 0 0 12 6 6 0 1 0 0-12Zm0 4v4m5 1 11 11m-2-4-3 3m-3-6-3 3',
+ coin:'M16 4a12 12 0 1 0 0 24 12 12 0 1 0 0-24Zm0 4a8 8 0 1 0 0 16 8 8 0 1 0 0-16Zm0 2-4 6 4 6 4-6-4-6',
+ treat:'M7 13Q2 10 5 7t6 2h10q6-5 8-1t-4 6q6 4 3 7t-7-1H11q-3 5-6 2t2-9',
+ prism:'M16 4 28 27H4L16 4Zm0 0v23M4 27l12-9 12 9',
+ acorn:'M9 14q-2 10 7 14 9-4 7-14M7 14q1-9 9-9t9 9q-9 6-18 0M16 5V2m0 2 4-2',
+ spring:'M7 4v6q0 4 18 4t-18 7 18 7M5 4h4m14 24h4',
+ raindrop:'M16 3Q7 16 7 20a9 9 0 0 0 18 0Q25 16 16 3ZM11 20q0 5 5 5',
+ bird:'M3 18 16 5l2 13 11 5-13 2-13-7Zm13-13-3 14-10-1m15 0-2 7',
+ kite:'M16 3 27 15 16 25 5 15 16 3Zm0 0v22M5 15h22m-11 10 5 3-4 3',
+ sugar:'M16 4 27 10v12l-11 6-11-6V10l11-6ZM5 10l11 6 11-6M16 16v12',
+ bell:'M10 20v-8q0-7 6-7t6 7v8l3 4H7l3-4Zm3 7q3 4 6 0M16 5V3',
+ tag:'M5 7h12l10 10-10 10L5 15V7Zm6 3a2 2 0 1 0 0 4 2 2 0 1 0 0-4',
+ lens:'M15 5a10 10 0 1 0 0 20 10 10 0 1 0 0-20Zm0 4a6 6 0 1 0 0 12 6 6 0 1 0 0-12M22 22l7 7',
+ stardust:'M14 3l3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Zm11 19 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3',
+ starmap:'M4 7l8-3 8 3 8-3v21l-8 3-8-3-8 3V7Zm8-3v21m8-18v21m-4-17 1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3',
+ parcel:'M16 3 28 10v13l-12 7-12-7V10l12-7ZM4 10l12 7 12-7M16 17v13M10 6l12 8',
+ postcard:'M3 6h26v20H3V6Zm14 3v14m3-8h6m-6 4h6m-6 4h5m-19-3 4-5 5 5',
+ cog:'M13 3h6l1 4 3 2 4-1 3 6-3 2v3l3 2-3 6-4-1-3 2-1 4h-6l-1-4-3-2-4 1-3-6 3-2v-3l-3-2 3-6 4 1 3-2 1-4ZM16 12a5 5 0 1 0 0 10 5 5 0 1 0 0-10',
+ iris:'M16 4a12 12 0 1 0 0 24 12 12 0 1 0 0-24M16 6l6 5-1 8-8 4-6-7 3-7 6-3Zm6 5 5 5-6 3m-8 4-2 4',
+ shim:'M5 11 23 4l4 7-18 7-4-7Zm4 7 5 10 12-5-3-6',
+ washer:'M16 5a11 11 0 1 0 0 22 11 11 0 1 0 0-22Zm0 6a5 5 0 1 0 0 10 5 5 0 1 0 0-10',
+ fork:'M9 4v12a7 7 0 0 0 14 0V4M16 23v7m-4 0h8M9 4h3m8 0h3',
+ cylinder:'M6 7a10 4 0 1 0 20 0 10 4 0 1 0-20 0m0 0v18a10 4 0 0 0 20 0V7M6 14a10 4 0 0 0 20 0M6 20a10 4 0 0 0 20 0',
+ tape:'M4 7h24v18H4V7Zm0 4h24M4 21h24m-20-5h1m5 0h1m7 0h1m3 0h1',
+ letter:'M9 3h13l5 5v21H9V3Zm13 0v6h5M13 14h10m-10 5h10m-10 5h6',
+ envelope:'M3 8h26v18H3V8Zm0 2 13 10 13-10M3 26l10-9m16 9-10-9'};
 const recipe={
  'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
  'prism+thread':['kite','kite','You have made a kite from almost nothing.']
 };
+// Author-drawn silhouettes render identically across operating systems.
+// Each pocket label remains visible, so identity never depends on color.
+const pocketMetal=new Set(['tooth','ring','flute','key','coin','spring','bell','tag','cog','shim','washer','fork']);
+const pocketGlass=new Set(['prism','raindrop','sugar','lens','stardust','iris']);
+const pocketPaper=new Set(['bird','starmap','parcel','postcard','tape','letter','envelope']);
+const pocketMaterial=id=>pocketMetal.has(id)?'metal':pocketGlass.has(id)?'glass':pocketPaper.has(id)?'paper':'organic';
+const inventoryIcon=id=>'<svg class="nc-item-art" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="'+(glyphs[id]||glyphs.stardust)+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const sorted=(a,b)=>[a,b].sort().join('+');
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
@@ -235,7 +269,7 @@ function flyToPocket(id,origin){
   :origin?.getBoundingClientRect?.()||$('ncCube').getBoundingClientRect();
  if(!dest||!from)return;
  const node=document.createElement('div');node.className='nc-inventory-fly';
- node.textContent=glyphs[id]||'✧';
+ node.innerHTML=inventoryIcon(id);
  const x=from.left+from.width/2-20,y=from.top+from.height/2-20;
  node.style.left=x+'px';node.style.top=y+'px';
  node.style.setProperty('--tx',dest.left+dest.width/2-x-20+'px');
@@ -323,7 +357,7 @@ function render(){
    (id===selected?' nc-selected':'')+
    ((pocketArrivalUntil.get(id)||0)>now?' nc-item-new':'')+
    '" data-item="'+id+'" aria-pressed="'+String(selected===id)+
-   '" draggable="true"><span aria-hidden="true">'+glyphs[id]+'</span>'+
+   '" draggable="true" data-material="'+pocketMaterial(id)+'"><span class="nc-item-icon" aria-hidden="true">'+inventoryIcon(id)+'</span>'+
    names[id]+'</button>').join('');
  inventory.innerHTML=str||'<span class="nc-empty">Nothing. Yet.</span>';
  // Keyboard players must not lose focus just because an unrelated gear
