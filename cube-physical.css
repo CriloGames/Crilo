@@ -115,14 +115,30 @@ html[data-theme="dark"] .nc-page .nc-physical-toggle{
    showing duplicated flat CSS props alongside their sculpted 3D counterparts.
    The classic view retains every full-sized illustrated object untouched. */
 .nc-page.nc-physical-ready .nc-side-objects {
- max-width:960px;
+ max-width:min(960px,100%);
  min-height:0;
  margin:5px auto 7px;
  display:flex;
  align-items:center;
- justify-content:center;
- flex-wrap:wrap;
+ justify-content:safe center;
+ flex-wrap:nowrap;
  gap:7px;
+ overflow-x:auto;
+ overflow-y:hidden;
+ padding:5px 7px 10px;
+ box-sizing:border-box;
+ scrollbar-width:thin;
+ scrollbar-color:#9cbdb2 transparent;
+ scroll-snap-type:x proximity;
+ scroll-padding-inline:10px;
+ overscroll-behavior-inline:contain;
+ -webkit-overflow-scrolling:touch;
+}
+/* Collected story characters can fill the screen; the single-row tray
+   remains navigable with touch, a trackpad or keyboard focus. */
+.nc-page.nc-physical-ready .nc-side-objects .nc-prop:not([hidden]){
+ flex:0 0 auto;
+ scroll-snap-align:start;
 }
 .nc-page.nc-physical-ready .nc-side-objects .nc-prop:not([hidden]) {
  width:auto;
@@ -155,6 +171,9 @@ html[data-theme="dark"] .nc-page .nc-physical-toggle{
  background:#eaf5ee;
  border-color:#9dc3b0;
  box-shadow:0 3px 0 #9baaa244;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects {
+ scrollbar-color:#647f7d transparent;
 }
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-side-objects .nc-prop {
  background:#2c3739;
