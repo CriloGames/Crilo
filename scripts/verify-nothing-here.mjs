@@ -107,24 +107,36 @@ assert.equal(await page.locator('[data-hit^="vent-"]').count(),3);
 assert.equal(await page.locator('.nc-inspection-controls button').count(),8);
 assert(await page.locator('#ncViewReset').isVisible());
 await page.locator('#ncZoomIn').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.12);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,.94);
 await page.locator('#ncZoomIn').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.24);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1.06);
 await page.locator('#ncZoomOut').click();
 await page.locator('#ncPanMode').click();
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'true');
 await page.locator('#ncViewReset').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,.82);
 await page.locator('#ncCubeZone').hover({position:{x:20,y:80}});
 await page.mouse.wheel(0,-200);
-await page.waitForFunction(()=>window.CriloNothingHereCube.getView().zoom>1);
+await page.waitForFunction(()=>window.CriloNothingHereCube.getView().zoom>.82);
 const wheelZoom=await page.evaluate(()=>window.CriloNothingHereCube.getView().zoom);
-assert(wheelZoom<=1.08,
+assert(wheelZoom<=.90,
  'Wheel zoom is still too sensitive: '+wheelZoom);
 await page.locator('#ncViewReset').click();
-assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,1);
+assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getView())).zoom,.82);
 assert.equal(await page.locator('#ncPanMode').getAttribute('aria-pressed'),'false');
-console.log('Dampened button/wheel zoom, pan toggle and reset work independently of gameplay');
+// Classic fallback shares the same 82–200% bounds as physical Three.js.
+const hardLimits=await page.evaluate(()=>{
+ window.CriloNothingHereCube.zoomTo(2.8);
+ const max={zoom:window.CriloNothingHereCube.getView().zoom,
+  label:document.querySelector('#ncZoomAmount').textContent};
+ window.CriloNothingHereCube.zoomTo(.5);
+ const min={zoom:window.CriloNothingHereCube.getView().zoom,
+  label:document.querySelector('#ncZoomAmount').textContent};
+ return {max,min};
+});
+assert.deepEqual(hardLimits,{max:{zoom:2,label:'200%'},min:{zoom:.82,label:'82%'}},
+ 'Classic view must clamp between 82 and 200 percent: '+JSON.stringify(hardLimits));
+console.log('Dampened button/wheel zoom, 82–200% bounds, pan toggle and reset work independently of gameplay');
 // Drag via pointer and verify the rotation changes; keyboard buttons remain as alternative.
 const zone=page.locator('#ncCubeZone');
 const before=await page.locator('#ncCube').evaluate(el=>el.style.transform);
