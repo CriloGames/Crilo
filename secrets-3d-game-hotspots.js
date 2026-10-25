@@ -69,6 +69,21 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   C(cap,size,.075,0,0,.048,color);
   const cross=B(cap,size*.9,.014,.018,0,0,.093,graphite,.004);
   cross.rotation.z=Math.PI/4;
+  // Tiny switches must be playable by fingers, not just a precision mouse.
+  // The extra hit area is invisible and grows only on major named controls;
+  // fasteners and closely spaced code buttons remain individually selectable.
+  if(["dot","pressure","dent","eye-ring","foot","underside"].includes(name)){
+   const touchRadius=Math.max(.14,size*1.35);
+   const touch=new THREE.Mesh(
+    new THREE.CylinderGeometry(touchRadius,touchRadius,.042,20),
+    new THREE.MeshBasicMaterial({
+     transparent:true,opacity:0,colorWrite:false,depthWrite:false,
+     side:THREE.DoubleSide
+    })
+   );
+   touch.rotation.x=Math.PI/2;touch.position.z=.142;
+   g.add(touch);
+  }
   actuators.set(name,cap);
   setHit(g,name);targets.set(name,g);return g;
  }
