@@ -585,21 +585,40 @@ function pickVisibleAction(clientX,clientY){
 renderer.domElement.addEventListener("pointerdown",e=>{
  if(e.button===0)clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId};
 });
+let hoverFrame=0,hoverPoint=null;
+function clearHover(){
+ if(hoverFrame){cancelAnimationFrame(hoverFrame);hoverFrame=0;}
+ hoverPoint=null;
+ renderer.domElement.style.cursor="grab";
+ setPartHint(null);
+}
 renderer.domElement.addEventListener("pointermove",e=>{
- const action=pickVisibleAction(e.clientX,e.clientY);
- renderer.domElement.style.cursor=action?"pointer":"grab";
- setPartHint(action,e);
+ if(clickStart&&Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>7){
+  clearHover();return;
+ }
+ // Mouse movement may fire hundreds of times during a slow WebGL frame.
+ // Query actual geometry just once per display frame, never each pixel.
+ hoverPoint={clientX:e.clientX,clientY:e.clientY};
+ if(hoverFrame)return;
+ hoverFrame=requestAnimationFrame(()=>{
+  hoverFrame=0;
+  const point=hoverPoint;
+  if(!point||clickStart)return;
+  const action=pickVisibleAction(point.clientX,point.clientY);
+  renderer.domElement.style.cursor=action?"pointer":"grab";
+  setPartHint(action,point);
+ });
 });
-renderer.domElement.addEventListener("pointerleave",()=>setPartHint(null));
+renderer.domElement.addEventListener("pointerleave",clearHover);
 renderer.domElement.addEventListener("pointerup",e=>{
  const start=clickStart;clickStart=null;
  if(!start||start.pointerId!==e.pointerId||
     Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)return;
  const action=pickVisibleAction(e.clientX,e.clientY);
  if(action)clickAction(action);
- setPartHint(null);
+ clearHover();
 });
-renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null;setPartHint(null)});
+renderer.domElement.addEventListener("pointercancel",()=>{clickStart=null;clearHover()});
 let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
