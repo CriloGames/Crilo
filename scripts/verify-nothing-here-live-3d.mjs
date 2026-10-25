@@ -108,10 +108,10 @@ try{
    "Mobile breakpoint snapped the cube back to its original position");
  await page.setViewportSize({width:1280,height:860});
  await page.locator("#ncViewReset").click();
- await page.waitForFunction(()=>{
-  const v=window.__nothing3DPreview.navigationState;
-  return !v.cameraReturning&&Math.hypot(...v.target)<.05;
- },null,{timeout:15000});
+ const recentered=await page.evaluate(()=>window.__nothing3DPreview.navigationState);
+ assert(!recentered.cameraReturning&&Math.hypot(...recentered.target)<.05,
+   "The real Reset View button did not immediately recenter the 3D orbit target: "+
+    JSON.stringify(recentered));
  console.log("PASS: real Move-mode pointer drag, orbit-mode restoration, mobile resize continuity and camera reset");
  const hidden=await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility);
  assert(Object.values(hidden).every(value=>!value),
