@@ -187,6 +187,21 @@ try{
    "Keyboard I does not select an actually visible 3D fitting: "+JSON.stringify(keyInspection));
  assert(/arrow keys|enter|escape/i.test(keyInspection.aria),
    "Accessible 3D instructions do not describe keyboard inspection");
+ assert(keyInspection.markerVisible,
+   "Keyboard selection needs a visible reticle on the actual 3D part");
+ const focusReticle=await page.evaluate(()=>{
+  const el=document.querySelector("#ncKeyboardFocus");
+  const canvas=document.querySelector("#stage canvas").getBoundingClientRect();
+  const r=el.getBoundingClientRect();
+  return {shown:!el.hidden,
+   x:r.left+r.width/2,y:r.top+r.height/2,
+   picked:window.__nothing3DPreview.getPhysicalActionAt(
+    r.left+r.width/2-canvas.left,r.top+r.height/2-canvas.top)
+  };
+ });
+ assert(focusReticle.shown&&focusReticle.picked===keyInspection.selected,
+   "Focus marker is not attached to the actual visible raycast hit: "+
+   JSON.stringify({focusReticle,keyInspection}));
  const beforeArrow=await page.evaluate(()=>window.CriloNothingHereCube.getState().ry);
  await page.keyboard.press("ArrowRight");
  const afterArrow=await page.evaluate(()=>({
@@ -195,10 +210,14 @@ try{
  }));
  assert(afterArrow.ry>beforeArrow+40&&afterArrow.selected===null,
    "3D canvas arrow keys failed to rotate or clear the prior inspection");
+ assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
+   "The 3D focus reticle should clear after the cube rotates");
  await page.keyboard.press("i");
  await page.keyboard.press("Escape");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.selected),null,
    "Escape must leave keyboard inspection without triggering a puzzle");
+ assert(!(await page.evaluate(()=>window.__nothing3DPreview.keyboardInspectionState.markerVisible)),
+   "Escape left the keyboard selection ring covering the 3D cube");
  await page.locator("#ncViewReset").click();
  console.log("PASS: keyboard-visible fitting navigation, in-scene identity, arrows and Escape");
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
