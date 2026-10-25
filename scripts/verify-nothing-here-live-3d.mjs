@@ -584,7 +584,10 @@ try{
  await page.evaluate(()=>{
   window.Crilo.user={id:"test-owner-profile"};
   window.Crilo.profile={id:"test-owner-profile",is_owner:true};
-  window.dispatchEvent(new CustomEvent("crilo-auth-ready"));
+  // Owner progress reset correctly reloads this document. Schedule its
+  // auth event on the next browser task so evaluate can return before
+  // navigation destroys the execution context on slower CI machines.
+  setTimeout(()=>window.dispatchEvent(new CustomEvent("crilo-auth-ready")),0);
  });
  await page.waitForFunction(()=>localStorage.getItem("crilo_nothing_here_owner_reset_20261024_v1:test-owner-profile")==="done",{timeout:20000});
  await page.waitForFunction(()=>window.CriloNothingHereCube?.getState?.().seen?.length===0,{timeout:60000});
