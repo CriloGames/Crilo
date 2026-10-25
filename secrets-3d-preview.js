@@ -796,10 +796,29 @@ window.__nothing3DPreview={
  },
  projectGameControl(name){
   const obj=gameHotspots?.targets.get(name);
-  if(!obj)return null;
+  if(!obj||!isMeshEffectivelyVisible(obj))return null;
   scene.updateWorldMatrix(true,true);
-  const pos=obj.getWorldPosition(new THREE.Vector3()).project(camera);
-  return {x:(pos.x+1)*.5*stage.clientWidth,y:(1-pos.y)*.5*stage.clientHeight,depth:pos.z};
+  const rect=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  // Prefer a genuinely reachable point on the modeled control. A center
+  // can be hidden by a rim or a partially opened lid even when the button
+  // is correctly visible and clickable from another angle.
+  for(const [x,y,z] of [
+   [0,0,.14],[0,0,.04],[.045,0,.14],[-.045,0,.14],
+   [0,.045,.14],[0,-.045,.14],
+   [.055,.055,.11],[-.055,-.055,.11],[0,0,0]
+  ]){
+   const p=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
+   const point={
+    x:(p.x+1)*.5*stage.clientWidth,
+    y:(1-p.y)*.5*stage.clientHeight,depth:p.z
+   };
+   if(!fallback)fallback=point;
+   if(p.z>=-1&&p.z<=1&&
+    pickVisibleAction(rect.left+point.x,rect.top+point.y)===name)
+    return {...point,pick:name};
+  }
+  return {...fallback,pick:null};
  },
  get finishQuality(){return finish.quality},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
