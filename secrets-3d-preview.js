@@ -430,6 +430,7 @@ function clickAction(action){
    return;
   }
   if(action.startsWith("thing:")){
+   pocketWorlds?.inspect?.(action.slice(6));
    window.CriloNothingHereCube?.activatePhysicalThing?.(action.slice(6));
    return;
   }
