@@ -45,7 +45,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let bagDialPanel=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let loadedOriginalStory=false;
- let lastDialValues=null,lastFloorFour=false;
+ let lastDialValues=null,lastFloorFour=false,lastBagOpen=false;
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  const setPose=(object,axis,key,target,duration=.65,instant=false)=>{
   if(!object||Math.abs(object[axis][key]-target)<.001)return;
@@ -486,6 +486,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
+  if(s.bagOpen&&!lastBagOpen){
+   // An inventory key unlocks a mechanism. End any previous inspection
+   // wobble before its delicate controls become reachable by the pointer.
+   const bag=items.get("bag")?.toy;
+   if(bag){
+    gsap.killTweensOf(bag.position);gsap.killTweensOf(bag.rotation);
+    bag.position.set(0,.03,.205);bag.rotation.set(0,0,0);
+    invalidate();
+   }
+  }
+  lastBagOpen=!!s.bagOpen;
   // These generic transparent inspection boxes used to sit IN FRONT of
   // real puzzle controls. The bag's actual leather stays selectable after
   // opening, while its dials and all four elevator keys win the raycast.

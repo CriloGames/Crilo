@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=20";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=21";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -449,8 +449,11 @@ function clickAction(action){
    return;
   }
   if(action.startsWith("thing:")){
-   pocketWorlds?.inspect?.(action.slice(6));
+   // Using a pocket item can instantly expose a precision control. Avoid
+   // jostling the entire sculpture while the player is aiming at it.
+   const usingInventory=!!window.CriloNothingHereCube?.getState?.().selected;
    window.CriloNothingHereCube?.activatePhysicalThing?.(action.slice(6));
+   if(!usingInventory)pocketWorlds?.inspect?.(action.slice(6));
    return;
   }
   const translate={
