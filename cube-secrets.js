@@ -414,7 +414,7 @@ function inspectHardware(name){
     s.plateOpen=true;gain('cog');
     bloom('faceplate','With the third screw out, a spring lifts the enamel plate. A brass drive cog drops into your pocket.');
     cue('ncCube','nc-scene-blink',800);
-   }else tell('A real screw came out. The other fasteners might be real too.');
+   }else tell('A real screw came out. The empty socket has surprisingly fine threads.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
    sound(620);
   }else tell('Nothing to unscrew here. The empty hole is threaded.');
@@ -770,7 +770,7 @@ function bark(){
    scatter('#add0d0',17,prop('vase'));
   setTimeout(()=>{fleeing=false;render()},1350);
   sound(215);
- }else if(s.dogHits<3)tell('The dog likes that. Keep petting.');
+ }else if(s.dogHits<3)tell('The little dog leans against your hand, its collar jingling softly.');
  else tell('The dog is now very proud of itself.');
  render();
 }
@@ -1134,7 +1134,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
  activatePhysicalBagDial(index){
   if(!Number.isInteger(index)||index<0||index>2)return;
   if(!s.bagOpen){
-   tell('The brass tumblers are held by the bag lock. Find its key first.');
+   tell('The small brass wheels are fixed firmly beneath the locked clasp.');
    return;
   }
   turnBag(index);
