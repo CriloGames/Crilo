@@ -803,7 +803,7 @@ renderer.domElement.addEventListener("pointermove",e=>{
     Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
  // Don't let an incidental mouse hover overwrite a keyboard-selected
  // mechanism's name while its focus marker still points to that part.
- if(keyboardIndex>=0)return;
+ if(keyboardIndex>=0||keyboardNoticeActive)return;
  // Touch uses deliberate long-hold inspection; treating every finger drag
  // as mouse hover produces flashing labels while orbiting the cube.
  // Still cancel the inspection timer above when a finger begins dragging.
@@ -819,7 +819,9 @@ renderer.domElement.addEventListener("pointermove",e=>{
  hoverFrame=requestAnimationFrame(()=>{
   hoverFrame=0;
   const point=hoverPoint;
-  if(!point||clickStart)return;
+  // A queued hover raycast can finish *after* the user presses I. Never
+  // replace an active keyboard-selected object with a stale pointer label.
+  if(!point||clickStart||keyboardIndex>=0||keyboardNoticeActive)return;
   const action=pickVisibleAction(point.clientX,point.clientY);
   renderer.domElement.style.cursor=action?"pointer":"grab";
   setPartHint(action,point);
