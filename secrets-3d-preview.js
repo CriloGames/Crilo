@@ -610,6 +610,23 @@ if(!embeddedGame){
  partHint.style.cssText="position:absolute;z-index:9;pointer-events:none;transform:translateX(-50%);background:#fff9e9ee;border:1px solid #a0b5ae;border-radius:9px;padding:6px 11px;box-shadow:0 4px 14px #384b5230;color:#4b6568;font:700 12px system-ui,sans-serif;max-width:230px;text-align:center;";
 }
 stage.appendChild(partHint);
+// Only point out hardware that is already reachable from the current camera.
+// Do not expose hidden clues or automatically suggest matching pocket items.
+const keyboardFocus=document.createElement("span");
+keyboardFocus.id="ncKeyboardFocus";
+keyboardFocus.setAttribute("aria-hidden","true");
+keyboardFocus.hidden=true;
+if(!embeddedGame){
+ keyboardFocus.style.cssText="position:absolute;z-index:8;pointer-events:none;width:34px;height:34px;border:2px solid #5b8d81;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 4px #fff8;";
+}
+stage.appendChild(keyboardFocus);
+function placeKeyboardFocus(target){
+ if(!target){keyboardFocus.hidden=true;return;}
+ const b=stage.getBoundingClientRect();
+ keyboardFocus.style.left=Math.max(16,Math.min(b.width-16,target.x-b.left))+"px";
+ keyboardFocus.style.top=Math.max(16,Math.min(b.height-16,target.y-b.top))+"px";
+ keyboardFocus.hidden=false;
+}
 function describeAction(action){
  if(!action)return "";
  if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
@@ -656,6 +673,7 @@ function pickVisibleAction(clientX,clientY){
 let keyboardTargets=[],keyboardIndex=-1;
 function clearKeyboardInspection(){
  if(keyboardIndex>=0){setPartHint(null);partHint.setAttribute("aria-live","off");}
+ placeKeyboardFocus(null);
  keyboardTargets=[];keyboardIndex=-1;
 }
 function visibleKeyboardTargets(){
@@ -821,6 +839,7 @@ renderer.domElement.addEventListener("keydown",event=>{
   keyboardIndex=(keyboardIndex+(backwards?-1:1)+keyboardTargets.length)%keyboardTargets.length;
   const target=keyboardTargets[keyboardIndex];
   setPartHint(target.action,{clientX:target.x,clientY:target.y});
+  placeKeyboardFocus(target);
   partHint.setAttribute("aria-live","polite");
   return;
  }
@@ -899,7 +918,8 @@ window.__nothing3DPreview={
  get keyboardInspectionState(){return {
   count:keyboardTargets.length,
   selected:keyboardIndex>=0?keyboardTargets[keyboardIndex]?.action:null,
-  label:keyboardIndex>=0?partHint.textContent:null
+  label:keyboardIndex>=0?partHint.textContent:null,
+  markerVisible:!keyboardFocus.hidden
  }},
  get gameControls(){return gameHotspots?.actions||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
