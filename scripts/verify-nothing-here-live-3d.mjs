@@ -305,36 +305,47 @@ try{
  await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
  assert.equal((await state()).redHits,5,
   "Clicking a visible physical red button did not trigger the original puzzle");
- // Touch hold is inspection only; two simultaneous fingers must not activate
- // puzzles. Send pointer streams to the real canvas, not the CSS fallback.
- const touchCheck=await page.evaluate(async()=>{
-  const v=window.__nothing3DPreview,canvas=document.querySelector("#stage canvas");
-  const rect=canvas.getBoundingClientRect(),pt=v.projectGameControl("dot");
-  const start=window.CriloNothingHereCube.getState().redHits;
-  const fire=(kind,id)=>canvas.dispatchEvent(new PointerEvent(kind,{
-   bubbles:true,pointerId:id,pointerType:"touch",isPrimary:id===91,button:0,
-   buttons:kind==="pointerup"?0:1,clientX:rect.left+pt.x,clientY:rect.top+pt.y
-  }));
-  fire("pointerdown",91);
-  await new Promise(ok=>setTimeout(ok,670));
-  const hint=document.querySelector("#ncPartHint");
-  const identified=!hint.hidden&&/red button/i.test(hint.textContent);
-  fire("pointerup",91);
-  const afterHold=window.CriloNothingHereCube.getState().redHits;
-  fire("pointerdown",91);fire("pointerdown",92);
-  const gestureActive=v.touchInteractionState.gesture;
-  fire("pointerup",92);fire("pointerup",91);
-  const afterPinch=window.CriloNothingHereCube.getState().redHits;
-  fire("pointerdown",91);fire("pointerup",91);
-  const afterTap=window.CriloNothingHereCube.getState().redHits;
-  return {identified,gestureActive,start,afterHold,afterPinch,afterTap,
-   active:v.touchInteractionState.active,gesture:v.touchInteractionState.gesture};
+ // Exercise real Chrome touch input. Hand-built PointerEvents are not
+ // active browser pointers and make OrbitControls.setPointerCapture throw.
+ const touchSession=await page.context().newCDPSession(page);
+ await touchSession.send("Emulation.setTouchEmulationEnabled",{enabled:true,maxTouchPoints:2});
+ const touchPoint=await page.evaluate(()=>{
+  const v=window.__nothing3DPreview;
+  const rect=document.querySelector("#stage canvas").getBoundingClientRect();
+  const pos=v.projectGameControl("dot");
+  return {x:rect.left+pos.x,y:rect.top+pos.y};
  });
- assert(touchCheck.identified&&touchCheck.gestureActive&&
-  touchCheck.afterHold===touchCheck.start&&touchCheck.afterPinch===touchCheck.start&&
-  touchCheck.afterTap===touchCheck.start+1&&touchCheck.active===0&&!touchCheck.gesture,
-  "Touch identification/gesture blocking failed: "+JSON.stringify(touchCheck));
- console.log("PASS: touchscreen hold-to-identify, two-finger suppression, single tap");
+ assert(Number.isFinite(touchPoint.x)&&Number.isFinite(touchPoint.y),
+  "The red button cannot be projected for touch QA");
+ const touchBase=(await state()).redHits;
+ const touch=(id,dx=0)=>({x:touchPoint.x+dx,y:touchPoint.y,id});
+ const sendTouch=(type,touchPoints)=>touchSession.send("Input.dispatchTouchEvent",{type,touchPoints});
+ await sendTouch("touchStart",[touch(91)]);
+ await page.waitForTimeout(680);
+ const holdHint=await page.evaluate(()=>{
+  const el=document.querySelector("#ncPartHint");
+  return !el.hidden&&/red button/i.test(el.textContent);
+ });
+ await sendTouch("touchEnd",[]);
+ const holdCount=(await state()).redHits;
+ await sendTouch("touchStart",[touch(92)]);
+ await sendTouch("touchStart",[touch(92),touch(93,33)]);
+ const pinchInProgress=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState.gesture);
+ await sendTouch("touchEnd",[]);
+ const pinchCount=(await state()).redHits;
+ await sendTouch("touchStart",[touch(94)]);
+ await sendTouch("touchEnd",[]);
+ const tapCount=(await state()).redHits;
+ const touchIdle=await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState);
+ await touchSession.send("Emulation.setTouchEmulationEnabled",{enabled:false});
+ await touchSession.detach();
+ assert(holdHint&&pinchInProgress&&holdCount===touchBase&&
+  pinchCount===touchBase&&tapCount===touchBase+1&&
+  touchIdle.active===0&&!touchIdle.gesture,
+  "Real touch hold/pinch/tap regression: "+JSON.stringify({
+   holdHint,pinchInProgress,touchBase,holdCount,pinchCount,tapCount,touchIdle
+  }));
+ console.log("PASS: physical touch hold-to-identify, two-finger suppression, single tap");
  const gaugeMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   view.clickAction("pressure");
