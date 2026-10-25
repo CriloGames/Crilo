@@ -718,6 +718,32 @@ try{
    JSON.stringify(phoneHint));
  await page.keyboard.press("Escape");
 
+ // Stress all miniatures without awarding secrets: the old wrapped layout
+ // grew to several congested rows on a phone. The new row must scroll
+ // internally and leave the page width unchanged.
+ const discoveryTray=await page.evaluate(()=>{
+  const tray=document.querySelector("#ncSideObjects");
+  const buttons=[...tray.querySelectorAll(".nc-prop")];
+  const saved=buttons.map(button=>button.hidden);
+  buttons.forEach(button=>button.hidden=false);
+  const boxes=buttons.map(button=>button.getBoundingClientRect());
+  const result={
+   role:tray.getAttribute("role"),
+   description:tray.getAttribute("aria-label"),
+   wrap:getComputedStyle(tray).flexWrap,
+   overflow:getComputedStyle(tray).overflowX,
+   topRange:Math.max(...boxes.map(x=>x.top))-Math.min(...boxes.map(x=>x.top)),
+   hasInternalScroll:tray.scrollWidth>tray.clientWidth+30,
+   fitsPage:document.documentElement.scrollWidth<=window.innerWidth+2
+  };
+  buttons.forEach((button,i)=>button.hidden=saved[i]);
+  return result;
+ });
+ assert(discoveryTray.role==="group"&&/swipe|tab/i.test(discoveryTray.description)&&
+  discoveryTray.wrap==="nowrap"&&discoveryTray.overflow==="auto"&&
+  discoveryTray.topRange<4&&discoveryTray.hasInternalScroll&&discoveryTray.fitsPage,
+  "Discovered miniatures are still wrapped into a crowded mobile layout: "+
+  JSON.stringify(discoveryTray));
  const mobileReview=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   const groups=[...document.querySelector(".nc-inspection-controls").children]
