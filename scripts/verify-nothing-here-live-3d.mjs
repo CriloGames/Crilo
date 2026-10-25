@@ -603,13 +603,26 @@ try{
  assert(mobileReview.scroll<=mobileReview.viewport+2&&mobileReview.toolbarRows<6&&
   mobileReview.targets.every(([w,h])=>w>=33&&h>=37),
   "Mobile toolbar has clipped, tiny or two-row controls: "+JSON.stringify(mobileReview));
- await page.evaluate(()=>document.documentElement.dataset.theme="dark");
+ await page.evaluate(()=>{
+  // Use Crilo's actual persistent theme source. Late auth/profile setup may
+  // legitimately repaint the theme from localStorage between browser calls.
+  localStorage.setItem("crilo_theme","dark");
+  document.documentElement.dataset.theme="dark";
+ });
  const darkUi=await page.evaluate(()=>({
+  theme:document.documentElement.dataset.theme,
+  matches:document.querySelector("#ncZoomIn").matches(
+   'html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button'),
   bg:getComputedStyle(document.querySelector("#ncZoomIn")).backgroundColor,
   fg:getComputedStyle(document.querySelector("#ncZoomAmount")).color
  }));
  assert.equal(darkUi.bg,"rgb(48, 64, 71)","Dark mode still has a bright white zoom button");
  assert.equal(darkUi.fg,"rgb(219, 233, 229)","Dark-mode zoom value has poor contrast");
+ assert(darkUi.theme==="dark"&&darkUi.matches,"Dark mode selector did not match the physical page: "+JSON.stringify(darkUi));
+ await page.evaluate(()=>{
+  localStorage.setItem("crilo_theme","light");
+  document.documentElement.dataset.theme="light";
+ });
  console.log("PASS: framed mobile overview, readable single-row controls and dark-mode contrast");
  // All sixty existing awards must survive a real saved v3 session, without
  // splitting player history into a second Three.js storage namespace.

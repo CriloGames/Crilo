@@ -303,23 +303,23 @@ html[data-theme="dark"] .nc-page .nc-pocket-head .nc-pocket-held{
 /* Give dark-mode users the same readable contrast as the rest of Crilo. */
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button,
 body[data-theme="dark"].nc-page.nc-physical-ready .nc-inspection-controls button{
- background:#304047;color:#e4eee9;border-color:#65767b;
+ background:#304047!important;color:#e4eee9!important;border-color:#65767b!important;
  box-shadow:0 3px 10px #101c2140;
 }
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls .nc-zoom-controls,
 body[data-theme="dark"].nc-page.nc-physical-ready .nc-inspection-controls .nc-zoom-controls{
- background:#293940dc;border-color:#566e73;
+ background:#293940dc!important;border-color:#566e73!important;
 }
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-zoom-controls #ncZoomAmount,
 body[data-theme="dark"].nc-page.nc-physical-ready .nc-zoom-controls #ncZoomAmount{
- color:#dbe9e5;
+ color:#dbe9e5!important;
 }
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button:hover,
 html[data-theme="dark"] .nc-page.nc-physical-ready .nc-inspection-controls button:focus-visible{
- background:#435a61;border-color:#9cc6b5;color:#fff;
+ background:#435a61!important;border-color:#9cc6b5!important;color:#fff!important;
 }
 html[data-theme="dark"] .nc-page.nc-physical-ready #ncPanMode[aria-pressed="true"]{
- background:#38675b;border-color:#8fc3ad;color:#fff;
+ background:#38675b!important;border-color:#8fc3ad!important;color:#fff!important;
 }
 .nc-page.nc-physical-ready .nc-inspection-controls button:focus-visible{
  outline:3px solid #80bca8;outline-offset:2px;
