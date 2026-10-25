@@ -330,6 +330,9 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #ncPanMode[aria-pressed="true
 html[data-theme="dark"] body.nc-page .nc-inspection-controls :is(.nc-rotate-controls,.nc-zoom-controls) button{
  background-color:#304047!important;background-image:none!important;
  color:#e4eee9!important;border-color:#65767b!important;
+ /* Do not animate a light control into dark mode while slow WebGL stalls
+    paint frames. The actual theme is an accessibility/contrast preference. */
+ transition:none!important;
 }
 html[data-theme="dark"] body.nc-page .nc-inspection-controls .nc-zoom-controls{
  background:#293940dc!important;border-color:#566e73!important;

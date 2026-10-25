@@ -27,6 +27,8 @@ try{
  assert(state.matched,'Dark controls CSS selector does not match the actual DOM');
  assert.equal(state.buttonBackground,'rgb(48, 64, 71)','Dark zoom button remains white');
  assert.equal(state.zoomColor,'rgb(219, 233, 229)','Dark zoom value has unreadable text');
+ assert.equal(await page.locator('#ncZoomIn').evaluate(el=>getComputedStyle(el).transitionDuration),'0s',
+  'A hardware-constrained browser may leave the dark-theme button mid-transition');
  await page.evaluate(()=>{
    localStorage.setItem('crilo_theme','light');
    document.documentElement.dataset.theme='light';
