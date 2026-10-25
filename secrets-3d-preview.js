@@ -402,7 +402,21 @@ let physicalStateInitialized=false;
 // The puzzle box floats in an empty room. The player can orbit and pan
 // the whole object without a pedestal, ground plane or support rods.
 const floatingScene=true;
-function announce(message){status.textContent=message;}
+// The rendered cube should be the focus, not a permanent text overlay.
+// Keep mechanical feedback visible briefly, then return its small status pill
+// to rest. The separate narrator still retains puzzle text below the stage.
+let statusRestTimer=null;
+function announce(message){
+ if(!status)return;
+ status.textContent=message;
+ if(!embeddedGame)return;
+ status.classList.remove("nc-status-resting");
+ if(statusRestTimer!==null)clearTimeout(statusRestTimer);
+ statusRestTimer=setTimeout(()=>{
+  statusRestTimer=null;
+  status.classList.add("nc-status-resting");
+ },3200);
+}
 const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 function animate(object,props,duration=.82){
  if(reducedMotion){Object.assign(object,props);return}
