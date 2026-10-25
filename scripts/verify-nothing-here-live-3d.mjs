@@ -603,9 +603,14 @@ try{
  assert(mobileReview.scroll<=mobileReview.viewport+2&&mobileReview.toolbarRows<6&&
   mobileReview.targets.every(([w,h])=>w>=33&&h>=37),
   "Mobile toolbar has clipped, tiny or two-row controls: "+JSON.stringify(mobileReview));
- const darkUi=await page.evaluate(()=>{
+ await page.evaluate(()=>{
   localStorage.setItem("crilo_theme","dark");
   document.documentElement.dataset.theme="dark";
+ });
+ // Theme paint is animated over 150ms; checking in the same task reads
+ // the old white background mid-transition despite correct loaded CSS.
+ await page.waitForTimeout(275);
+ const darkUi=await page.evaluate(()=>{
   const button=document.querySelector("#ncZoomIn");
   const zoom=document.querySelector("#ncZoomAmount");
   return {theme:document.documentElement.dataset.theme,
@@ -615,7 +620,7 @@ try{
    bg:getComputedStyle(button).backgroundColor,
    fg:getComputedStyle(zoom).color};
  });
- assert.equal(darkUi.bg,"rgb(48, 64, 71)","Dark mode still has a bright white zoom button");
+ assert.equal(darkUi.bg,"rgb(48, 64, 71)","Dark mode still has a bright white zoom button: "+JSON.stringify(darkUi));
  assert.equal(darkUi.fg,"rgb(219, 233, 229)","Dark-mode zoom value has poor contrast");
  assert(darkUi.theme==="dark"&&darkUi.matches,"Dark mode selector did not match the physical page: "+JSON.stringify(darkUi));
  await page.evaluate(()=>{

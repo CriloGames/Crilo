@@ -31,6 +31,9 @@ try{
    localStorage.setItem('crilo_theme','light');
    document.documentElement.dataset.theme='light';
  });
+ // The toolbar intentionally animates its background for .15s. Test its
+ // settled visible colors rather than the first transition frame.
+ await page.waitForTimeout(275);
  state=await sample();
  console.log('Theme restored to light:',JSON.stringify(state));
  assert.notEqual(state.buttonBackground,'rgb(48, 64, 71)','Theme is stuck in dark mode');
