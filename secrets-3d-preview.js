@@ -498,38 +498,22 @@ function cancelCameraReturn(){
 function returnCameraHome(){
  const home=stage.clientWidth<720?[5.6,4.7,7.45]:[3.85,3.2,5.9];
  cancelCameraReturn();
- // Flush leftover drag inertia before returning to the exact saved view.
- // Otherwise the damping offset fights the animated orbit point and can
- // leave the box subtly displaced after pressing Reset.
+ // Reset the *camera's real orbit point* synchronously. An animated GSAP
+ // target used to fight OrbitControls' inertia and, on low-power hardware,
+ // could leave the cube off-center indefinitely. The box still gets a
+ // gentle mechanical settling turn when motion is allowed.
  controls.enableDamping=false;
+ controls.target.set(0,0,0);
+ camera.position.set(...home);
  controls.update();
- const finish=()=>{
-  if(cameraReturnDeadline!==null){clearTimeout(cameraReturnDeadline);cameraReturnDeadline=null}
-  cameraReturnMotion?.kill();cameraReturnMotion=null;
-  controls.target.set(0,0,0);
-  camera.position.set(...home);
-  cube.rotation.set(-.19,-.33,.02);
-  controls.update();
-  controls.enableDamping=true;
-  invalidate();
- };
- if(reducedMotion){finish()}
- else{
-  // The short failsafe protects the view on overloaded mobile and software
-  // WebGL renderers where a tween might never get its final animation frame.
-  cameraReturnDeadline=setTimeout(finish,1800);
-  cameraReturnMotion=gsap.timeline({
-   onUpdate:()=>{controls.update();invalidate();},
-   onComplete:finish
-  });
-  cameraReturnMotion.to(camera.position,{
-   x:home[0],y:home[1],z:home[2],duration:.85,ease:"power2.inOut"
-  },0).to(controls.target,{
-   x:0,y:0,z:0,duration:.85,ease:"power2.inOut"
-  },0).to(cube.rotation,{
-   x:-.19,y:-.33,z:.02,duration:.85,ease:"power2.inOut"
-  },0);
- }
+ controls.enableDamping=true;
+ gsap.killTweensOf(cube.rotation);
+ if(reducedMotion)cube.rotation.set(-.19,-.33,.02);
+ else gsap.to(cube.rotation,{
+  x:-.19,y:-.33,z:.02,duration:.42,ease:"power2.out",
+  onUpdate:invalidate,onComplete:invalidate
+ });
+ invalidate();
  announce("Camera returned to the physical cube.");
 }
 document.getElementById("reset")?.addEventListener("click",returnCameraHome);
