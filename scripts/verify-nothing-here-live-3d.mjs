@@ -393,8 +393,16 @@ try{
  assert(dialPointer&&dialPointer.pick==="thing:bag-dial-1"&&dialPointer.hit==="thing:bag-dial-1",
   "Unlocked bag's middle dial is masked: "+JSON.stringify(dialPointer));
  await page.locator("#stage canvas").click({position:{x:dialPointer.x,y:dialPointer.y},timeout:30000});
- assert.equal((await state()).bagDials[1],1,
-  "The mouse click failed to turn the physical bag dial");
+ const clickedDial=await page.evaluate(()=>({
+  action:window.__nothing3DPreview.lastClickedAction,
+  state:window.CriloNothingHereCube.getState().bagDials,
+  current:window.__nothing3DPreview.projectPhysicalPuzzleControl("thing:bag-dial-1"),
+  visible:window.__nothing3DPreview.visiblePhysicalStoryObjects
+ }));
+ assert.equal(clickedDial.action,"thing:bag-dial-1",
+  "Pointer release did not dispatch the dial selected on press: "+JSON.stringify(clickedDial));
+ assert.equal(clickedDial.state[1],1,
+  "The mouse click failed to turn the physical bag dial: "+JSON.stringify(clickedDial));
  for(let i=0;i<3;i++)await activate("thing:bag-dial-1");
  const wheelMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;

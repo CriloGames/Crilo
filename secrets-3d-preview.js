@@ -625,7 +625,13 @@ function pickVisibleAction(clientX,clientY){
     isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
 }
 renderer.domElement.addEventListener("pointerdown",e=>{
- if(e.button===0)clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId};
+ if(e.button===0){
+  // Capture the intended real 3D control at press time. Under slow WebGL
+  // the key or its parent may animate before the matching pointer release;
+  // stationary clicks must not turn into misses or neighbouring actions.
+  clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
+   action:pickVisibleAction(e.clientX,e.clientY)};
+ }
 });
 let hoverFrame=0,hoverPoint=null;
 function clearHover(){
@@ -658,7 +664,9 @@ renderer.domElement.addEventListener("pointerup",e=>{
  const start=clickStart;clickStart=null;
  if(!start||start.pointerId!==e.pointerId||
     Math.hypot(e.clientX-start.x,e.clientY-start.y)>7)return;
- const action=pickVisibleAction(e.clientX,e.clientY);
+ // A click below the drag threshold belongs to the object touched on
+ // pointerdown, not whichever moving mesh happens to be under pointerup.
+ const action=start.action||pickVisibleAction(e.clientX,e.clientY);
  if(action)clickAction(action);
  clearHover();
 });
