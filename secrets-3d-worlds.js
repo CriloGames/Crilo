@@ -391,8 +391,39 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   };
   for(const [name,instance] of items){
    const visible=!!show[name];
+   const newlyFound=visible&&!instance.visible;
    instance.fixture.visible=visible;
    instance.visible=visible;
+   if(visible&&newlyFound){
+    gsap.killTweensOf(instance.fixture.scale);
+    gsap.killTweensOf(instance.fixture.position);
+    if(firstRestore||reducedMotion){
+     // Restoring old progress must never replay discoveries on reload.
+     instance.fixture.scale.setScalar(1);
+     instance.fixture.position.z=.27;
+    }else{
+     // A discovery physically emerges from its bolted recess, with a
+     // gentle overshoot and settled end pose rather than popping into view.
+     instance.fixture.scale.setScalar(.62);
+     instance.fixture.position.z=.13;
+     gsap.timeline({onUpdate:invalidate})
+      .to(instance.fixture.scale,{
+       x:1.045,y:1.045,z:1.045,duration:.43,ease:"power2.out"
+      },0)
+      .to(instance.fixture.position,{z:.31,duration:.43,ease:"power2.out"},0)
+      .to(instance.fixture.scale,{
+       x:1,y:1,z:1,duration:.23,ease:"sine.out"
+      },.43)
+      .to(instance.fixture.position,{z:.27,duration:.23,ease:"sine.out"},.43);
+    }
+   }else if(!visible){
+    // Ensure a reversed or restarted discovery doesn't inherit the pose
+    // of a cancelled entrance animation.
+    gsap.killTweensOf(instance.fixture.scale);
+    gsap.killTweensOf(instance.fixture.position);
+    instance.fixture.scale.setScalar(1);
+    instance.fixture.position.z=.27;
+   }
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
@@ -461,6 +492,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   setState,
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
-  getMountPositions:()=>mounts
+  getMountPositions:()=>mounts,
+  getMountVisualState:name=>{
+   const fixture=items.get(name)?.fixture;
+   return fixture?{
+    visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z
+   }:null;
+  }
  };
 }
