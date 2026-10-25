@@ -305,6 +305,22 @@ try{
  const once=await state();
  assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
   "Existing automatic physical compartment item pickups stopped working");
+ // Re-rendering the authoritative state must not eject keyboard users from
+ // the pocket or silently lose selected tools.
+ await page.locator('#ncInventory [data-item="tooth"]').focus();
+ await activate("serial");
+ assert.equal(await page.evaluate(()=>document.activeElement?.dataset.item),"tooth",
+  "An unrelated mechanical event stole keyboard focus from the pocket");
+ await page.locator('#ncInventory [data-item="tooth"]').click();
+ assert.match(await page.locator("#ncPocketSelection").innerText(),/holding.*key teeth/i,
+  "Selecting a pocket tool should identify what is being held");
+ assert.equal((await state()).selected,"tooth",
+  "Pocket selection failed to persist in canonical state");
+ await page.locator("#ncUnselect").click();
+ assert.equal((await state()).selected,null,
+  "Putting an item down failed to clear held-item selection");
+ assert(await page.locator("#ncPocketSelection").isHidden(),
+  "The held-item chip remained onscreen after putting the item away");
  // The underside's visible physical button must not be wired to the TOP
  // triangle. It releases the ring and leaves the top secret untouched.
  const topCountBefore=(await state()).topHits;
