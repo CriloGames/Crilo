@@ -324,3 +324,17 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #ncPanMode[aria-pressed="true
 .nc-page.nc-physical-ready .nc-inspection-controls button:focus-visible{
  outline:3px solid #80bca8;outline-offset:2px;
 }
+
+/* Explicit dark controls for both Classic and real Three.js inspection.
+   Page theme is independent of the transient WebGL ready class. */
+html[data-theme="dark"] body.nc-page .nc-inspection-controls :is(.nc-rotate-controls,.nc-zoom-controls) button{
+ background-color:#304047!important;background-image:none!important;
+ color:#e4eee9!important;border-color:#65767b!important;
+}
+html[data-theme="dark"] body.nc-page .nc-inspection-controls .nc-zoom-controls{
+ background:#293940dc!important;border-color:#566e73!important;
+}
+html[data-theme="dark"] body.nc-page .nc-inspection-controls #ncZoomAmount{color:#dbe9e5!important;}
+html[data-theme="dark"] body.nc-page .nc-inspection-controls #ncPanMode[aria-pressed="true"]{
+ background:#38675b!important;border-color:#8fc3ad!important;color:#fff!important;
+}
