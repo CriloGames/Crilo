@@ -1040,7 +1040,9 @@ $('ncModalBody').addEventListener('click',e=>{
 });
 // View manipulation is deliberately separate from saved puzzle progress.
 // Zooming never consumes an item, and a reset also restores a readable angle.
-const view={zoom:1,panX:0,panY:0,panMode:false};
+// The cube starts pulled back so every side fits. Zoom is strictly 82–200%.
+const MIN_ZOOM=.82,MAX_ZOOM=2;
+const view={zoom:MIN_ZOOM,panX:0,panY:0,panMode:false};
 const pointers=new Map();
 let dragOrigin=null,pinchOrigin=null;
 function viewLimits(){
@@ -1061,14 +1063,14 @@ function updateView(){
  zone.classList.toggle('nc-pan-mode',view.panMode);
 }
 function zoomTo(value){
- const newZoom=clamp(Math.round(value*100)/100,.82,2.35);
+ const newZoom=clamp(Math.round(value*100)/100,MIN_ZOOM,MAX_ZOOM);
  if(newZoom===view.zoom)return;
  view.zoom=newZoom;
  updateView();
  window.__nothing3DPreview?.setZoom?.(view.zoom);
 }
 function resetView(){
- view.zoom=1;view.panX=0;view.panY=0;view.panMode=false;
+ view.zoom=MIN_ZOOM;view.panX=0;view.panY=0;view.panMode=false;
  s.rx=-22;s.ry=-32;
  const physical=document.body.classList.contains('nc-physical-ready')&&
   !!window.__nothing3DPreview?.resetCameraView;
@@ -1079,7 +1081,7 @@ function resetView(){
  if(physical){
   window.__nothing3DPreview.setPanMode(false);
   window.__nothing3DPreview.resetCameraView();
- }else window.__nothing3DPreview?.setZoom?.(1);
+ }else window.__nothing3DPreview?.setZoom?.(MIN_ZOOM);
  tell('The mysterious object is back in its usual orientation.');
 }
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -1221,7 +1223,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
   // OrbitControls owns physical mouse-wheel zoom. Mirror only its value
   // into the already-visible zoom percentage and subsequent button steps.
   if(!Number.isFinite(value))return;
-  view.zoom=clamp(Math.round(value*100)/100,.65,2.35);
+  view.zoom=clamp(Math.round(value*100)/100,MIN_ZOOM,MAX_ZOOM);
   updateView();
  },
  rotate:(x,y)=>{s.rx=x;s.ry=y;turn()},
