@@ -13,9 +13,27 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // The housing stays bolted to the face; only its independently modeled
  // actuator travels into the socket. Clicks never move entire puzzle faces.
  const actuators=new Map();
+ let fluteWaves=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let previousState=null;
  function pulse(action){
+  if(action.startsWith("flute-note-")&&flute.visible&&!reducedMotion){
+   // Only show the note produced by the player; the correct melody
+   // remains a secret. A tiny brass-colored sound ripple escapes the pipe.
+   const index=Number(action.slice(-1))-1;
+   const wave=fluteWaves[index];
+   if(wave){
+    gsap.killTweensOf(wave.scale);
+    gsap.killTweensOf(wave.material);
+    wave.scale.setScalar(.45);
+    wave.material.opacity=.72;
+    wave.visible=true;
+    gsap.to(wave.scale,{x:1.8,y:1.8,z:1.8,duration:.48,
+     ease:"power1.out",onUpdate:invalidate});
+    gsap.to(wave.material,{opacity:0,duration:.46,ease:"power1.out",
+     onUpdate:invalidate,onComplete:()=>{wave.visible=false;invalidate()}});
+   }
+  }
   const head=actuators.get(action);
   if(!head)return false;
   gsap.killTweensOf(head.position);
@@ -157,6 +175,14 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  for(let i=1;i<=3;i++){
   const x=(i-2)*.205;
+  const wave=new THREE.Mesh(new THREE.TorusGeometry(.116,.013,7,32),
+   new THREE.MeshBasicMaterial({
+    color:0xe3c78c,transparent:true,opacity:0,depthWrite:false
+   }));
+  wave.position.set(x,.11,.075);
+  wave.rotation.y=Math.PI/2;
+  wave.visible=false;
+  flute.add(wave);fluteWaves.push(wave);count++;
   const key=control(flute,"flute-note-"+i,x,.015,ivory,.065);
   key.position.z=.135;
   // Slightly larger, completely invisible solid hit collar. Finger-size
