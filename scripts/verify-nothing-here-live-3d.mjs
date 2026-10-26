@@ -122,6 +122,11 @@ try{
    washer:view.getPhysicalPickupRevealState("washer"),
    iris:view.getPhysicalPickupRevealState("iris"),
    fork:view.getPhysicalPickupRevealState("fork"),
+   cogCover:view.frontCogHatchPose,
+   pendingVisible:view.physicalPickupIds.filter(id=>
+    view.getPhysicalPickupRevealState(id)?.visible),
+   physicallyVisible:view.physicalPickupIds.filter(id=>
+    view.getPhysicalPickupRevealState(id)?.onScene),
    visible:view.visiblePhysicalStoryObjects};
  });
  console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
@@ -144,6 +149,31 @@ try{
   "Unlocked collectibles are still floating outside their attached trays");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
   "Opened mechanisms must never conceal their physically revealed rewards");
+ assert(unlocked.cogCover?.open&&unlocked.cogCover.angle < -1.15,
+  "Three front screws did not physically hinge the service cover open");
+ const origins=Object.fromEntries(unlocked.items.map(entry=>[entry.id,entry.source]));
+ const expectedOrigins={
+  cog:"front-cog-pocket",shim:"vent-pocket",cylinder:"service-pocket",
+  acorn:"vase",spring:"vase",bell:"underside",
+  washer:"hinge-0",iris:"eye",fork:"pressure",
+  sugar:"machine",tag:"dog",postcard:"dog",starmap:"telescope",
+  tape:"musicbox",letter:"clock",envelope:"train"
+ };
+ for(const [item,source] of Object.entries(expectedOrigins))
+  assert.equal(origins[item],source,
+   "Reward "+item+" is physically mounted to an unrelated source");
+ assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
+  "Not every reward remains visible when all mechanisms open: "+
+  JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
+ assert(unlocked.items.every(item=>item.mounted&&item.faceDepth<.7),
+  "A reward is detached from its captive housing or sticks too far out: "+
+   JSON.stringify(unlocked.items.filter(item=>!item.mounted||item.faceDepth>=.7)));
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
+ const cogTarget=await auditPage.evaluate(()=>
+  window.__nothing3DPreview.projectPhysicalPickup("cog"));
+ assert.equal(cogTarget?.pick,"pickup:cog",
+  "Removing three screws must expose a genuinely selectable cog inside its opened hinged compartment: "+
+  JSON.stringify(cogTarget));
  await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const forkTarget=await auditPage.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalPickup("fork"));
