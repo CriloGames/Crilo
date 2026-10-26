@@ -687,7 +687,7 @@ try{
  // triangle. It releases the ring and leaves the top secret untouched.
  const topCountBefore=(await state()).topHits;
  await activate("underside");
- assert((await state()).bottom===true&&((await state()).ringTaken===false,
+ assert((await state()).bottom===true&&(await state()).ringTaken===false,
    "The underside button must release a physical ring without pocketing it");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,true,
    "The released underside ring must remain visibly on the cube");
