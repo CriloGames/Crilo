@@ -291,7 +291,9 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   getRevealState:id=>{
    const root=instances.get(id);
    if(!root)return null;
-   return {visible:root.visible,depth:root.userData.pickupModel.position.z,
+   let onScene=true;
+   for(let part=root;part;part=part.parent)if(!part.visible){onScene=false;break;}
+   return {visible:root.visible,onScene,depth:root.userData.pickupModel.position.z,
     scale:root.userData.pickupModel.scale.x,
     socketGlow:root.userData.pickupSocketMaterial.emissiveIntensity};
   },
