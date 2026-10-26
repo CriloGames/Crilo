@@ -244,7 +244,9 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     root.visible=visible;
     model.position.z=0;
     model.scale.setScalar(1);
-    material.emissiveIntensity=0;
+    // A faint, steady rim remains while the discovered object is awaiting
+    // collection. This never points at undiscovered puzzle targets.
+    material.emissiveIntensity=visible?.14:0;
     if(visible&&!firstState){
      revealCount++;
      if(!reducedMotion){
@@ -257,7 +259,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
       gsap.to(model.position,{z:0,duration:.54,ease:"back.out(1.3)",onUpdate:invalidate});
       gsap.to(model.scale,{x:1,y:1,z:1,duration:.54,
        ease:"back.out(1.45)",onUpdate:invalidate});
-      gsap.to(material,{emissiveIntensity:0,duration:1.1,
+      gsap.to(material,{emissiveIntensity:.14,duration:1.1,
        ease:"power2.out",onUpdate:invalidate});
      }
     }
