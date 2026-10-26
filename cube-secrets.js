@@ -889,7 +889,8 @@ function openFlute(){
   '</div><div class="nc-flute-track" id="ncFluteTrack">♪  ·  ·  ·</div>', 'flute');
 }
 function note(i){
- s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-3);sound(390+i*135);
+ s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-3);
+ window.NothingHereAudio?.playFluteNote?.(i);
  const physical=document.body.classList.contains('nc-physical-ready');
  if(!physical){
   cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
