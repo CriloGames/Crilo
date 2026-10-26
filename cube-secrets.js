@@ -182,8 +182,16 @@ function sound(freq=530){
 function bloom(id,comment){
  if(!title.has(id)||seen.has(id))return false;
  seen.add(id);
- let t=$('ncToast');t.textContent='✳  '+title.get(id);t.hidden=false;
- clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>t.hidden=true,2700);
+ // In physical 3D, the reward lives in the inventory and journal, not as
+ // an oversized flying notification pasted over the mechanical box.
+ const physical=document.body.classList.contains('nc-physical-ready');
+ const t=$('ncToast');
+ clearTimeout(toastTimeout);
+ t.hidden=physical;
+ if(!physical){
+  t.textContent='✳  '+title.get(id);
+  toastTimeout=setTimeout(()=>t.hidden=true,2700);
+ }
  if(comment)tell(comment);
  sound(495+seen.size*12);render();return true;
 }
@@ -275,7 +283,7 @@ function cue(el,className,duration=1150){
  cueTimers.set(el,timer);
 }
 function scatter(color='#e4b2af',count=10,source=null){
- if(reducedMotion)return;
+ if(reducedMotion||document.body.classList.contains('nc-physical-ready'))return;
  const area=$('ncWorld'),layer=$('ncFragments');
  if(!area||!layer)return;
  const world=area.getBoundingClientRect();
@@ -294,7 +302,9 @@ function scatter(color='#e4b2af',count=10,source=null){
  }
 }
 function flyToPocket(id,origin){
- if(reducedMotion)return;
+ // Collected objects disappear from their real socket and reappear inside
+ // the pocket. No 2D sprite should float in front of the Three.js artifact.
+ if(reducedMotion||document.body.classList.contains('nc-physical-ready'))return;
  const target=document.querySelector('#ncInventory [data-item="'+id+'"]');
  const dest=target?.getBoundingClientRect();
  const physical=document.body.classList.contains('nc-physical-ready')
@@ -313,11 +323,12 @@ function flyToPocket(id,origin){
  setTimeout(()=>node.remove(),900);
 }
 function floatNote(origin){
- if(reducedMotion||!origin)return;
+ if(reducedMotion||!origin||document.body.classList.contains('nc-physical-ready'))return;
  const node=document.createElement('span');node.className='nc-musical-note';node.textContent='♪';
  origin.appendChild(node);setTimeout(()=>node.remove(),1260);
 }
 function incident(symbol){
+ if(document.body.classList.contains('nc-physical-ready'))return;
  const node=$('ncIncident');$('ncIncidentIcon').textContent=symbol;
  node.classList.remove('nc-incident-pop');void node.offsetWidth;node.classList.add('nc-incident-pop');
  clearTimeout(animationTimeout);animationTimeout=setTimeout(()=>node.classList.remove('nc-incident-pop'),1100);
