@@ -3,10 +3,10 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=12";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=6";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=16";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=27";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=13";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=17";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=28";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -371,9 +371,8 @@ ringHub.position.z=-.035;undersideRing.add(ringHub);
 // A lift pin, rather than a painted symbol, marks where to inspect the ring.
 const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
 setHit(undersideRing,"underside");
-// Reserve the middle of the rear face for its three discovered sculptures.
-// The original wide plaque ran straight through their heads.
-label(backFace,"IS ANYONE THERE?",2.35,.23,0,1.28,.102,"#e1eecf","#698267");
+// The rear face has a functional optic and three miniature sockets.
+// The former wide static nameplate covered the figures when they emerged.
 // Raised physical ring on the back face.
 const lensOuter=new THREE.Mesh(new THREE.TorusGeometry(.72,.083,15,72),metal);
 lensOuter.position.set(0,-.18,.19);backFace.add(lensOuter);objectCount++;
@@ -987,6 +986,8 @@ window.__nothing3DPreview={
   noticeVisible:keyboardNoticeActive&&!partHint.hidden
  }},
  get gameControls(){return gameHotspots?.actions||[]},
+ get permanentControlClearanceViolations(){return gameHotspots?.getClearanceViolations?.()||[]},
+ get permanentFaceFootprints(){return gameHotspots?.getPermanentFaceFootprints?.()||[]},
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  projectItemSource(item){
