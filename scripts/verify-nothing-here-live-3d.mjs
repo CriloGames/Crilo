@@ -329,7 +329,8 @@ try{
  const allRewardMeshes=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupIds);
  assert.equal(allRewardMeshes.length,25,"Not every newly discovered item has a physical pickup model");
  const guide=await page.locator(".nc-combine-guide").innerText();
- assert(/select one item.*select another/i.test(guide),
+ assert(/select one pocket item.*a second/i.test(guide)&&
+   /combine/i.test(guide),
   "Players need persistent instructions for combining inventory items");
  const latchMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
