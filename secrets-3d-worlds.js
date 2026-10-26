@@ -48,7 +48,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let dogTail=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
- let lastVaseBroken=false,lastDancerVisible=false;
+ let lastVaseBroken=false,lastDancerVisible=false,lastSeedPlanted=false,lastTreeGrown=false;
  const microTimers=new Map();
  const settleMicro=(name,delay,settle)=>{
   if(microTimers.has(name))clearTimeout(microTimers.get(name));
@@ -288,14 +288,20 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   vaseFragments.visible=false;
  }
- // Flowerpot and actual little tree. Its branches only appear once watered.
- const branches=new THREE.Group();
+ // Both planting and watering have their own real 3D result. The seed
+ // sprouts above the pot rim, then becomes a tree anchored in that SAME
+ // opening; there are no detached leaf or popup animations.
+ const branches=new THREE.Group(),sprout=new THREE.Group();
  {
   const g=toy("pot");
   const pot=C(g,.21,.30,0,.19,0,m.wood);
   pot.scale.set(1.0,1,1);
   C(g,.24,.035,0,.36,0,m.brass);
   C(g,.18,.015,0,.38,0,m.dark);
+  sprout.position.set(0,.37,0);g.add(sprout);
+  wire(sprout,[[0,0,0],[.014,.07,0],[0,.15,.01]],.015,m.wood);
+  ball(sprout,.067,-.062,.13,.02,m.leaf,[1.12,.56,.64]);
+  ball(sprout,.066,.065,.16,-.02,m.leaf,[1.10,.54,.66]);
   branches.position.set(0,.37,0);g.add(branches);
   C(branches,.045,.38,0,.19,0,m.wood);
   for(const [x,y,z] of [[-.14,.40,.00],[.12,.51,.04],[0,.63,0]]){
@@ -612,7 +618,28 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     instance.fixture.position.z=.27;
    }
   }
+  sprout.visible=!!s.plant&&!s.tree;
   branches.visible=!!s.tree;
+  if(sprout.visible&&!lastSeedPlanted&&!firstRestore&&!reducedMotion){
+   gsap.killTweensOf(sprout.scale);
+   sprout.scale.setScalar(.16);
+   gsap.to(sprout.scale,{x:1,y:1,z:1,duration:.66,
+    ease:"back.out(1.18)",onUpdate:invalidate});
+   settleMicro("seed",1000,()=>{
+    gsap.killTweensOf(sprout.scale);sprout.scale.setScalar(1);
+   });
+  }else if(firstRestore||reducedMotion) sprout.scale.setScalar(1);
+  if(s.tree&&!lastTreeGrown&&!firstRestore&&!reducedMotion){
+   gsap.killTweensOf(branches.scale);
+   branches.scale.setScalar(.17);
+   gsap.to(branches.scale,{x:1,y:1,z:1,duration:1.18,
+    ease:"back.out(1.06)",onUpdate:invalidate});
+   settleMicro("tree",1650,()=>{
+    gsap.killTweensOf(branches.scale);branches.scale.setScalar(1);
+   });
+  }else if(firstRestore||reducedMotion) branches.scale.setScalar(1);
+  lastSeedPlanted=!!s.plant;
+  lastTreeGrown=!!s.tree;
   dancer.visible=!!s.dancer;
   // Starting the tiny dancer now physically turns the figure on the
   // music-box spindle instead of only toggling a static model. A restored
@@ -844,7 +871,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    dancerRotation:dancer.rotation.y,
    watchHourAngle:watchHourHand?.rotation.z??null,
    watchMinuteAngle:watchMinuteHand?.rotation.z??null,
-   vendingTrayDepth:vendingTray?.position.z??null
+   vendingTrayDepth:vendingTray?.position.z??null,
+   seedSproutVisible:sprout.visible,
+   treeGrowthScale:branches.scale.y
   }),
   setState,
   meshCount:()=>parts,
