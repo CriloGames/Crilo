@@ -116,6 +116,7 @@ try{
  const unlocked=await auditPage.evaluate(()=>{
   const view=window.__nothing3DPreview;
   return {geometry:view.unlockedGeometryAudit,
+   rewards:view.physicalRewardPlacementAudit,
    movingHardware:view.unlockedMechanismClashes,
    trays:view.physicalPickupTrays,
    items:view.physicalPickupLayout,
@@ -165,6 +166,12 @@ try{
  assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
   "Not every reward remains visible when all mechanisms open: "+
   JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
+ assert(unlocked.rewards?.measured.length===25,
+  "Some pending rewards have no real rendered item geometry");
+ assert.deepEqual(unlocked.rewards.overhangs,[],
+  "At least one unlocked reward is hanging past its box face or detached");
+ assert.deepEqual(unlocked.rewards.overlaps,[],
+  "Two distinct reward meshes physically intersect after unlock");
  assert(unlocked.items.every(item=>item.mounted&&item.faceDepth<.7),
   "A reward is detached from its captive housing or sticks too far out: "+
    JSON.stringify(unlocked.items.filter(item=>!item.mounted||item.faceDepth>=.7)));
