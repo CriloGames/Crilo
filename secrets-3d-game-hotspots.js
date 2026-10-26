@@ -97,10 +97,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    ?Math.max(.14,size*1.35):size*1.2;
   reserve(face,name,x,y,radius*2,radius*2);
   const g=node(face,x,y,.19);
-  C(g,size*1.20,.06,0,0,0,graphite);
+  // Satin-metal annular socket instead of a thick black puck over a gauge.
+  C(g,size*1.12,.040,0,0,0,nickel);
   const cap=new THREE.Group();g.add(cap);
   C(cap,size,.075,0,0,.048,color);
-  const cross=B(cap,size*.9,.014,.018,0,0,.093,graphite,.004);
+  const cross=B(cap,size*.56,.011,.012,0,0,.093,graphite,.003);
   cross.rotation.z=Math.PI/4;
   // Tiny switches must be playable by fingers, not just a precision mouse.
   // The extra hit area is invisible and grows only on major named controls;
@@ -123,10 +124,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  function tab(face,name,x,y,color=brass,w=.27,h=.12){
   reserve(face,name,x,y,w+.075,h+.06);
   const g=node(face,x,y,.18);
-  B(g,w+.075,h+.06,.055,0,0,0,graphite,.025);
+  // Physical side-tab on a slender polished-metal carrier, not a tall
+  // black cuboid that looks accidentally pasted over neighboring labels.
+  B(g,w+.048,h+.034,.037,0,0,0,nickel,.017);
   const slider=new THREE.Group();g.add(slider);
-  B(slider,w,h,.085,0,0,.057,color,.025);
-  B(slider,w*.54,.016,.013,0,0,.113,ivory,.005);
+  B(slider,w,h,.063,0,0,.046,color,.019);
+  B(slider,w*.42,.012,.012,0,0,.088,ivory,.004);
   actuators.set(name,slider);
   setHit(g,name);targets.set(name,g);return g;
  }
@@ -139,7 +142,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   if(!["3 · 1 · 2","2 · 1 · 3","Ⅱ · Ⅰ · Ⅲ"].includes(words))
    reserve(face,"plaque "+words,x,y,w+.055,.186);
   const g=node(face,x,y,.158),h=.143;
-  B(g,w+.055,h+.043,.054,0,0,0,graphite,.020);
+  B(g,w+.045,h+.029,.036,0,0,0,nickel,.014);
   B(g,w,h,.020,0,0,.035,ivory,.012);
   const canvas=document.createElement("canvas");canvas.width=384;canvas.height=108;
   const ctx=canvas.getContext("2d");
