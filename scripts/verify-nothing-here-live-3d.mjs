@@ -477,7 +477,11 @@ try{
  // clickable from the initial three-quarter perspective. Rotate the cube
  // toward the camera before testing a real pointer action; don't pretend
  // that occluded parts should be clickable through the solid casing.
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(-22,33));
+ // Turn with the real player's arrow control, keeping the saved
+ // orientation in sync with the rendered mesh. A preview-only rotation
+ // can later be overwritten by the canonical puzzle controller.
+ await page.locator('[data-rotate="right"]').click();
+ assert((await state()).ry>0,"Player rotation did not expose the front-left bag");
  await page.waitForFunction(()=>
   window.__nothing3DPreview.projectPhysicalStoryObject("bag")?.pick==="thing:bag",
   null,{timeout:16000,polling:250});
