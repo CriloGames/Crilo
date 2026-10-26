@@ -669,8 +669,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    1.08,firstRestore);
   setPose(watchMinuteHand,"rotation","z",tapeRead?-17*Math.PI/30:0,
    1.08,firstRestore);
-  const vendValue=!!s.shimUsed?.39:
-   Array.isArray(s.seen)&&s.seen.includes("machine")?.32:.225;
+  const vendValue=s.shimUsed ? .39 :
+   (Array.isArray(s.seen)&&s.seen.includes("machine") ? .32 : .225);
   setPose(vendingTray,"position","z",vendValue,.62,firstRestore);
   // The code wheels are hidden inside the luggage lining until the
   // original key has released its catch; before then, clicking the bag
