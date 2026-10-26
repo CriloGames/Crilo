@@ -131,12 +131,6 @@ const pocket=new Set((Array.isArray(raw.pocket)?raw.pocket:[]).filter(k=>Object.
 // magically pocket an item or lose an unlocked reward.
 const pendingPickups=new Set((Array.isArray(raw.pendingPickups)?raw.pendingPickups:[])
  .filter(k=>Object.hasOwn(names,k)&&!pocket.has(k)));
-// The accessible Classic fallback has no 3D pickup meshes. Let anyone
-// continuing a 3D save there collect the previously discovered items.
-if(new URLSearchParams(location.search).get('classic')==='1'){
- for(const id of pendingPickups)pocket.add(id);
- pendingPickups.clear();
-}
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
@@ -500,32 +494,7 @@ function collectPhysicalPickup(id){
  render();
  return true;
 }
-// The visible contents of moving 3D compartments are collected after the
-// mechanical animation completes, even when a moving face retargets a tap.
-// Directly tapping an exposed item still picks it up immediately.
-const compartmentTimer=new Map();
-function scheduleCompartment(thing){
- // A physical collectible must remain in its compartment until tapped.
- if(!new URLSearchParams(location.search).has('classic')&&
-    document.body.classList.contains('nc-physical-ready'))return;
- if(compartmentTimer.has(thing))return;
- const specs={tooth:['a','drawerTaken',1100],thread:['b','sideTaken',1100],pipe:['top','pipeTaken',1300]};
- const [open,taken,ms]=specs[thing];
- const captionAtOpen=$('ncNarrator')?.textContent;
- const timer=setTimeout(()=>{
-  compartmentTimer.delete(thing);
-  if(!s[open]||s[taken]||document.body.classList.contains('nc-physical-ready'))return;
-  s[taken]=true;
-  // A delayed auto-pickup must not overwrite the clue the player is
-  // actively reading from a newer interaction. The part still flies into
-  // the pocket and is visibly highlighted.
-  const caption=$('ncNarrator')?.textContent===captionAtOpen
-   ?'A little '+names[thing]+' slides into your pocket.':null;
-  gain(thing,caption);
-  render();
- },ms);
- compartmentTimer.set(thing,timer);
-}
+// Exposed 3D objects wait for a deliberate click; never auto-add them.
 function inspectHardware(name){
  if(name==='serial'){
   s.serialRead=true;
@@ -637,18 +606,18 @@ function cubeHit(name){
  if(inspectHardware(name)){render();return}
  if(selected&&name==='eye'&&use(selected,'eye'))return;
  if(name==='latch'){
-  if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.');scheduleCompartment('tooth')}
+  if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.')}
   else tell(s.drawerTaken?'This tiny drawer is empty now.':'There is a strange, key-shaped piece inside.');
  }else if(name==='drawer-a'){
   if(!s.drawerTaken){s.drawerTaken=true;collection('tooth');tell('The teeth of something that once opened a lock.')}
  }else if(name==='seam'){
-  if(!s.b){s.b=true;bloom('thread','A horizontal compartment seems to have been there all along.');scheduleCompartment('thread')}
+  if(!s.b){s.b=true;bloom('thread','A horizontal compartment seems to have been there all along.')}
   else tell(s.sideTaken?'Only a loose red fiber remains.':'That is definitely a spool of thread.');
  }else if(name==='drawer-b'){
   if(!s.sideTaken){s.sideTaken=true;collection('thread');tell('It is red thread. It refuses to explain itself.')}
  }else if(name==='triangle'){
   s.topHits++;
-  if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.');scheduleCompartment('pipe')}
+  if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
   else tell(s.top?'Something hollow lies under the lid.':'A small catch shifts inside the lid.');
  }else if(name==='top-reed'){
   if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
@@ -1277,11 +1246,6 @@ document.addEventListener('drop',e=>{
 });
 turn();render();
 // Restore an already-open mechanism if the player refreshed mid-animation.
-if(new URLSearchParams(location.search).get('classic')==='1'){
- if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
- if(s.b&&!s.sideTaken)scheduleCompartment('thread');
- if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
-}
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
  getItemName:id=>names[id]||null,
  getView:()=>({...view}),zoomTo,resetView,
