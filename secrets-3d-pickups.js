@@ -214,7 +214,12 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   const surface= id==="washer"
    ?{face:faces.topFace,x:-.54,y:.86,z:.20}
    :id==="iris"
-    ?{face:faces.backFace,x:.56,y:.77,z:.20}:null;
+    ?{face:faces.backFace,x:.56,y:.77,z:.20}
+   :id==="fork"
+    // The old fork socket was parented *inside the pressure knob*, so
+    // the revealed reward obscured the gauge dial and its pointer.
+    // Park it in the empty enamel above the instrument instead.
+    ?{face:faces.leftFace,x:.95,y:1.23,z:.20}:null;
   const root=new THREE.Group();
   const [px,py]=locations[slot]||locations[0];
   // The carrier is supported by its own face-mounted bracket. Item
