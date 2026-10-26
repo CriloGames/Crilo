@@ -383,7 +383,9 @@ try{
  assert(optical.clue.y<optical.eye.y-.9&&optical.clue.y> -1.51,
   "The eye code must fit fully below the optics and above the cube's rim");
  const originalView=await state();
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(0,180));
+ // Face the back directly, as a player would when reading fine engraving.
+ // An oblique angle can place a raised rim in front of a recessed symbol.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-22,213));
  try{
   await page.waitForFunction(()=>{
    const p=window.__nothing3DPreview.eyeClueReadability;
@@ -471,6 +473,14 @@ try{
   "Miniature pickup cradles are oversized or too small for real fingers");
  // Exercise a real projected pointer click on the sculpted handbag, rather
  // than merely invoking an internal click API.
+ // The bag is mounted near the front-left corner, so it is not always
+ // clickable from the initial three-quarter perspective. Rotate the cube
+ // toward the camera before testing a real pointer action; don't pretend
+ // that occluded parts should be clickable through the solid casing.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-22,33));
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.projectPhysicalStoryObject("bag")?.pick==="thing:bag",
+  null,{timeout:16000,polling:250});
  const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
  assert(handbag&&handbag.x>10&&handbag.x<1280&&handbag.y>10&&handbag.y<860,
   "The sculpted handbag has no usable visible canvas projection: "+JSON.stringify(handbag));
