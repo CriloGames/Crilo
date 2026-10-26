@@ -1271,10 +1271,13 @@ document.addEventListener('drop',e=>{
 });
 turn();render();
 // Restore an already-open mechanism if the player refreshed mid-animation.
-if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
-if(s.b&&!s.sideTaken)scheduleCompartment('thread');
-if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
+if(new URLSearchParams(location.search).get('classic')==='1'){
+ if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
+ if(s.b&&!s.sideTaken)scheduleCompartment('thread');
+ if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
+}
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
+ getItemName:id=>names[id]||null,
  getView:()=>({...view}),zoomTo,resetView,
  updatePhysicalViewZoom(value){
   // OrbitControls owns physical mouse-wheel zoom. Mirror only its value
