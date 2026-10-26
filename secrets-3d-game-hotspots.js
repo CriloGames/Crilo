@@ -237,12 +237,13 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  C(reed,.038,.045,0,0,0,graphite);
  setHit(reed,"top-reed");targets.set("top-reed",reed);
- // The combined flute is an actual instrument in the opened top well.
- // It emerges only after the player finds and combines its components.
- // Three genuine spring keypads trigger the SAME old note sequence logic.
- // There is no flat popup and no combination printed on the instrument.
- // Seat the flute where the keys clear the lid and the casing's rim.
-  const flute=node(topFace,-.025,-.285,-.17);
+ // The combined flute is a real, clickable instrument attached to
+ // the OUTSIDE of the hinged top lid. It must work even if the separate
+ // top-hatch puzzle has not been solved yet. Placing it down in the closed
+ // well used to hide all three keys under solid metal. Parenting it to the
+ // lid also keeps it bolted to the box when the lid eventually opens.
+ // No floating popup, automatic puzzle solution, or detached instrument.
+ const flute=node(lidPivot,-.025,-.965,.19);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
