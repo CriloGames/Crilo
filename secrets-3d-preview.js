@@ -1019,6 +1019,30 @@ window.__nothing3DPreview={
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
+ projectPhysicalPickup(id){
+  const root=physicalPickups?.targets.get(id);
+  if(!root||!isMeshEffectivelyVisible(root))return null;
+  scene.updateWorldMatrix(true,true);
+  const bounds=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  // The contact point must pass the same true raycast as a user click.
+  for(const [x,y,z] of [
+   [0,0,.13],[0,0,.22],[0,0,.07],
+   [-.055,0,.15],[.055,0,.15],
+   [0,-.045,.15],[0,.045,.15],
+   [-.08,-.04,.15],[.08,-.04,.15]
+  ]){
+   const point=root.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
+   const p={x:(point.x+1)*bounds.width/2,
+    y:(1-point.y)*bounds.height/2,depth:point.z};
+   if(!fallback)fallback=p;
+   if(point.z>=-1&&point.z<=1&&p.x>=0&&p.x<=bounds.width&&
+      p.y>=0&&p.y<=bounds.height&&
+      pickVisibleAction(bounds.left+p.x,bounds.top+p.y)==="pickup:"+id)
+    return {...p,pick:"pickup:"+id};
+  }
+  return {...fallback,pick:null};
+ },
  projectItemSource(item){
   const sources={
    tooth:looseKey,thread:looseSpool,pipe:gameHotspots?.targets.get("top-reed"),
