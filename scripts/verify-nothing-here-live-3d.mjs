@@ -142,6 +142,13 @@ try{
  assert(resetZoom.indicator==="82%"&&resetZoom.value===.82&&
    resetZoom.distance>9.2&&resetZoom.distance<9.65,
   "Reset View did not return to the default 82%: "+JSON.stringify(resetZoom));
+ const clearance=await page.evaluate(()=>({
+  faults:window.__nothing3DPreview.permanentControlClearanceViolations,
+  entries:window.__nothing3DPreview.permanentFaceFootprints
+ }));
+ assert(clearance.entries.length>=19&&clearance.faults.length===0,
+  "A real mechanism or label overlaps another permanent control: "+
+   JSON.stringify(clearance));
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  const pickStats=await page.evaluate(()=>window.__nothing3DPreview.raycastTargets);
  assert.equal(pickStats.total,pickStats.unique,"Duplicate raycast targets waste mouse/touch time");
@@ -432,6 +439,19 @@ try{
  await activate("hatch-latch"); // An additional metal control still routes to the real triangle.
  await activate("dot");await activate("dot");await activate("dot");await activate("dot");
  assert.equal((await state()).redHits,4,"Red-dot sequence lost state parity");
+ assert((await state()).pocket.includes("bell"),
+  "The bell must still be collected without a floating reward popup");
+ const quietRewards=await page.evaluate(()=>{
+  const hidden=id=>getComputedStyle(document.getElementById(id)).display==="none";
+  return {toast:hidden("ncToast"),incident:hidden("ncIncident"),
+   cartoonCharacters:hidden("ncAnimationLayer"),
+   duplicateDoor:hidden("ncDoorScene"),
+   noFlyingItem:document.querySelectorAll(".nc-inventory-fly").length===0,
+   noShards:document.querySelectorAll("#ncFragments > *").length===0};
+ });
+ assert(Object.values(quietRewards).every(Boolean),
+  "Real 3D has legacy cartoon reward popups or flying bell art: "+
+   JSON.stringify(quietRewards));
  // Real users click meshes, not the programmatic inspection API. Project a
  // raised 3D button into the actual canvas and exercise pointer raycasting.
  const button=await page.evaluate(()=>window.__nothing3DPreview.projectGameControl("dot"));
