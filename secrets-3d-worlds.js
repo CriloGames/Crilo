@@ -900,6 +900,67 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
+  // Measure rendered solids in the *face's local coordinate system* after
+  // unlock animations. Static socket spacing cannot catch a raised tree,
+  // opened door, extended vending tray, or rewards in front of a mount.
+  // Ignore invisible raycast meshes and undiscovered models.
+  getUnlockedGeometryAudit:()=>{
+   cube.updateMatrixWorld(true);
+   const bounds=[];
+   for(const {name,face:faceName} of mounts){
+    const item=items.get(name);
+    if(!item?.fixture.visible)continue;
+    const face=faces[faceName];
+    const inverse=face.matrixWorld.clone().invert();
+    const min=new THREE.Vector3(Infinity,Infinity,Infinity);
+    const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
+    let solids=0;
+    item.fixture.traverse(mesh=>{
+     if(!mesh.isMesh)return;
+     for(let node=mesh;node&&node!==item.fixture.parent;node=node.parent)
+      if(!node.visible)return;
+     const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+     if(mats.every(m=>m?.colorWrite===false||m?.opacity===0))return;
+     const geometry=mesh.geometry;
+     if(!geometry.boundingBox)geometry.computeBoundingBox();
+     const b=geometry.boundingBox;
+     if(!b)return;
+     const matrix=new THREE.Matrix4().multiplyMatrices(inverse,mesh.matrixWorld);
+     for(const x of [b.min.x,b.max.x])
+      for(const y of [b.min.y,b.max.y])
+       for(const z of [b.min.z,b.max.z]){
+        const p=new THREE.Vector3(x,y,z).applyMatrix4(matrix);
+        min.min(p);max.max(p);
+       }
+     solids++;
+    });
+    if(solids)bounds.push({name,face:faceName,solids,
+     min:min.toArray().map(x=>+x.toFixed(3)),
+     max:max.toArray().map(x=>+x.toFixed(3))});
+   }
+   const clashes=[],overhangs=[],protrusions=[];
+   // Visible miniatures should fit *inside* their physical cube edge.
+   // Small bevels and inset shells are allowed; no prop floats across a
+   // corner or pokes a long distance outward when its mechanism activates.
+   for(const b of bounds){
+    if(b.min[0]<-1.62||b.max[0]>1.62||
+       b.min[1]<-1.62||b.max[1]>1.62)
+     overhangs.push({name:b.name,face:b.face,min:b.min,max:b.max});
+    if(b.max[2]>1.03)
+     protrusions.push({name:b.name,face:b.face,depth:b.max[2]});
+   }
+   for(let i=0;i<bounds.length;i++)for(let j=i+1;j<bounds.length;j++){
+    const a=bounds[i],b=bounds[j];
+    if(a.face!==b.face)continue;
+    const dx=Math.min(a.max[0],b.max[0])-Math.max(a.min[0],b.min[0]);
+    const dy=Math.min(a.max[1],b.max[1])-Math.max(a.min[1],b.min[1]);
+    const dz=Math.min(a.max[2],b.max[2])-Math.max(a.min[2],b.min[2]);
+    if(dx>.06&&dy>.06&&dz>.06)
+     clashes.push({first:a.name,second:b.name,face:a.face,
+      overlap:[dx,dy,dz].map(x=>+x.toFixed(3))});
+   }
+   return {bounds,clashes,overhangs,protrusions};
+  },
   // A compact layout audit only considers actual physical mount plates and
   // permanent real controls, not intentionally nested pieces within a model.
   // The name and face are supplied to browser QA without revealing clues.
