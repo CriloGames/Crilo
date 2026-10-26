@@ -359,9 +359,19 @@ try{
  for(const n of [3,1,2])await activate("vent-"+n);
  assert((await state()).ventOpen&&(await state()).pocket.includes("shim"),
   "Three-one-two did not unlock the original vent reward");
- await page.waitForFunction(()=>
-  window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.18,
-  null,{timeout:18000,polling:250});
+ try{
+  await page.waitForFunction(()=>
+   window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.18,
+   null,{timeout:18000,polling:250});
+ }catch(error){
+  const diagnosis=await page.evaluate(()=>({
+   feedback:window.__nothing3DPreview.physicalMechanicalFeedback,
+   ventOpen:window.CriloNothingHereCube.getState().ventOpen,
+   ventSequence:window.CriloNothingHereCube.getState().ventSequence,
+   reduced:window.__nothing3DPreview.reducedMotion
+  }));
+  throw new Error("Solved vent shutter did not reach its end stop: "+JSON.stringify(diagnosis),{cause:error});
+ }
  const openVent=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(openVent.ventHatchOffset<-.18,
   "The real vent shutter did not retract into its final open position");
