@@ -118,9 +118,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // Previous locations sat inside the live maker stamp, pressure instrument,
  // red switch, service lever and the four underside shock feet.
  // Keep the display sockets clear of those permanent puzzle mechanisms.
+ // Top face: outer brackets must not intersect the real hinged lid's
+ // -.85..+.85 sweep. The two miniatures sit entirely on its fixed rails.
+ // Right face: the dog is shifted off the teal sliding drawer's bezel,
+ // including the opened state where its depth increases.
  const slots=[
   ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.18,.74],
-  ["door","rightFace",-1.01,.80],["dog","rightFace",1.01,.08],
+  ["door","rightFace",-1.01,.80],["dog","rightFace",1.16,.08],
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
   ["vase","bottomFace",0,1.12],
@@ -128,7 +132,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
-  ["moth","topFace",-1.04,.21],["telescope","topFace",1.04,-.65],
+  ["moth","topFace",-1.15,.21],["telescope","topFace",1.15,-.65],
   ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
