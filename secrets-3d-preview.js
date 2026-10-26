@@ -374,13 +374,10 @@ ringHub.position.z=-.035;undersideRing.add(ringHub);
 // A lift pin, rather than a painted symbol, marks where to inspect the ring.
 const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
 setHit(undersideRing,"pickup:ring");
-// The rear face has a functional optic and three miniature sockets.
-// The former wide static nameplate covered the figures when they emerged.
-// Raised physical ring on the back face.
-const lensOuter=new THREE.Mesh(new THREE.TorusGeometry(.72,.083,15,72),metal);
-lensOuter.position.set(0,-.18,.19);backFace.add(lensOuter);objectCount++;
-const lens=cylinder(backFace,.50,.12,0,-.18,.18,mat(0x8ea7a3,.12,.20));
-const pupil=cylinder(backFace,.22,.14,.16,-.21,.27,mat(0x4e6774,.12,.25));
+// The rear optic is an actual almond-shaped mechanical eye authored with
+// its own eyelids, iris and pupil in the real 3D hotspot module. Do not
+// overlay it with another circular peephole or a floating rectangular pupil:
+// those older pieces hid the eye and partially buried the revealed clue.
 
 // Premium precision-mechanism model: raised/engraved detail on all six real
 // faces and additional raycast-selectable hardware, kept separate from the
