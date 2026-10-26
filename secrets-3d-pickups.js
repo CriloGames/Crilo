@@ -28,14 +28,44 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   iris:["eye",0]
  };
  const instances=new Map();
+ // Collectibles are carried by captive, shallow slide-out trays; they
+ // never hover out in front of the miniature when a secret unlocks.
+ const trays=new Map();
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let firstState=true,revealCount=0;
- // Source miniatures use an honest 2x2 tray, not four items crossing
- // each other's hitboxes. Center spacing is 0.32 x 0.25, and each
- // collectible has a smaller (but independently tappable) footprint.
+ // Center spacing remains 0.32 x 0.25 for separately tappable objects.
+ // Move the lower row toward its mount: the previous -.37 offset left
+ // objects dangling beyond the shelf and in front of corner screws.
  const locations={
-  0:[-.16,-.12],1:[.16,-.12],2:[-.16,-.37],3:[.16,-.37]
+  0:[-.16,-.04],1:[.16,-.04],2:[-.16,-.29],3:[.16,-.29]
  };
+ const slotCount=new Map();
+ for(const [source,slot] of Object.values(sources))
+  slotCount.set(source,Math.max(slotCount.get(source)||0,slot+1));
+ function miniTray(host,source){
+  let tray=trays.get(source);
+  if(tray)return tray;
+  const group=new THREE.Group();
+  group.position.z=.385;
+  host.add(group);
+  const rows=(slotCount.get(source)||1)>2?2:1;
+  const height=rows===2?.44:.27;
+  const middle=rows===2?-.165:-.065;
+  // A continuous metal back and two telescoping arms connect the
+  // rewards to the miniature's real bolted bracket.
+  box(group,.585,height,.050,0,middle,0,ink,.021);
+  box(group,.543,height-.040,.022,0,middle,.037,metal,.016);
+  for(const x of [-.246,.246]){
+   box(group,.027,height-.050,.024,x,middle,.052,copper,.006);
+   box(group,.043,.09,.28,x,-.012,-.118,ink,.008);
+  }
+  box(group,.50,.030,.034,0,middle-height/2+.020,.061,copper,.008);
+  // The carrier retracts completely once its final visible item is taken.
+  group.visible=false;
+  tray={group,source};
+  trays.set(source,tray);
+  return tray;
+ }
  function built(group,id){
   const material=["prism","raindrop","sugar","lens","stardust","iris"].includes(id)
    ?(id==="sugar"?sugar:glass):
@@ -179,11 +209,21 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   const atMini=!!worlds?.getPickupHost?.(source);
   const root=new THREE.Group();
   const [px,py]=locations[slot]||locations[0];
-  // Every miniature has its own shallow brass shelf. The pickup lives
-  // in front of the source's hit volume, but below the working controls.
-  root.position.set(atMini?px:0,atMini?py:0,atMini?.78:.27);
-  root.scale.setScalar(atMini?.78:1);
-  host.add(root);
+  // The carrier is supported by its own face-mounted bracket. Item
+  // models sit just forward of it, not separated from the cube by air.
+  if(atMini){
+   const tray=miniTray(host,source);
+   root.position.set(px,py,.10);
+   root.scale.setScalar(.78);
+   tray.group.add(root);
+  }else{
+   root.position.set(0,0,.20);
+   host.add(root);
+   // Fasteners and dials also need an actual tethered metal cradle.
+   // Keep its back embedded in the parent hardware, not floating
+   // above the action surface.
+   box(host,.205,.195,.18,0,-.09,.12,ink,.012);
+  }
   // Every small found object has a bolted shallow cradle with a dark
   // machined inset. The object rests in the socket; it is not a flat
   // cartoon, a badge, or a reward that floats away from the cube.
@@ -221,7 +261,15 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   getPending:()=>[...instances].filter(([,v])=>v.visible).map(([id])=>id),
   getLayout:()=>[...instances].map(([id,root])=>({
    id,source:sources[id][0],slot:sources[id][1],
-   position:root.position.toArray(),scale:root.scale.x
+   position:root.position.toArray(),scale:root.scale.x,
+   mounted:root.parent===trays.get(sources[id][0])?.group||!trays.has(sources[id][0]),
+   // Full protrusion from the fixture's face, including the item itself.
+   faceDepth:trays.has(sources[id][0])?.585:.385
+  })),
+  getTrayState:()=>[...trays].map(([source,{group}])=>({
+   source,visible:group.visible,
+   depth:group.position.z,
+   visibleItems:group.children.filter(node=>node.userData.pickupModel&&node.visible).length
   })),
   getRevealCount:()=>revealCount,
   getRevealState:id=>{
@@ -264,6 +312,11 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
      }
     }
     invalidate();
+   }
+   for(const [source,{group}] of trays){
+    const active=[...instances].some(([id,root])=>
+     sources[id][0]===source&&root.visible);
+    if(group.visible!==active){group.visible=active;invalidate();}
    }
    firstState=false;
   }
