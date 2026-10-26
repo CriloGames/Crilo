@@ -748,7 +748,7 @@ try{
   "Unlocking the bag must reveal three individually collectible physical objects");
  for(const id of ["reed","treat","prism"])await collect(id);
  // Physical models must be operable without blocking the stage with a
- // flat popup. The original accessible classic modal still exists.
+ // flat popup. The internal puzzle engine retains its controls invisibly.
  await activate("thing:bag");
  assert(await page.locator("#ncModal").isHidden(),
   "Physical bag should not open an obstructing 2D dialog");
@@ -1044,7 +1044,7 @@ try{
  await page.waitForFunction(()=>window.CriloNothingHereCube?.getState?.().seen?.length===0,{timeout:60000});
  assert.equal((await state()).pocket.length,0,"Owner reset did not clear inventory");
  console.log("PASS: owner-only browser reset, no change to ordinary players");
- console.log("PASS: all 60 legacy completions, restored physical mechanisms, no repeat rewards, classic compatibility");
+ console.log("PASS: 60 saved discoveries, restored physical mechanisms, no repeat rewards, only real 3D");
  assert.equal(errors.length,0,"3D integration produced browser exceptions: "+errors.join(" | "));
- console.log("PASS: desktop, mobile, classic fallback, persisted 60-secret engine, and zero browser exceptions");
+ console.log("PASS: desktop/mobile 3D only, 60-secret saves, and zero browser exceptions");
 }finally{await browser.close()}
