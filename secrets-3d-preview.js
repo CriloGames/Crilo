@@ -512,9 +512,12 @@ function clickAction(action){
    if(!usingInventory)pocketWorlds?.inspect?.(action.slice(6));
    return;
   }
+  // The drawer and its loose contents are different physical surfaces.
+  // Clicking the opened drawer casing must NEVER pocket an item. Only the
+  // selectable key-shaped piece or spool receives a "pickup" raycast.
   const translate={
-   front:currentGameState.a?"drawer-a":"latch",
-   side:currentGameState.b?"drawer-b":"seam",
+   front:"latch",
+   side:"seam",
    hatch:"triangle",
    optic:"eye-ring",
    pressure:"pressure",
