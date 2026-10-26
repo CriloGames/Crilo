@@ -419,8 +419,9 @@ try{
   state:window.__nothing3DPreview.getPhysicalPickupRevealState("shim")
  }));
  assert(shimReveal.count>=1&&shimReveal.state?.visible&&
-  Number.isFinite(shimReveal.state.scale)&&Number.isFinite(shimReveal.state.depth),
-  "Revealed collectible did not physically emerge from its socket: "+JSON.stringify(shimReveal));
+  Number.isFinite(shimReveal.state.scale)&&Number.isFinite(shimReveal.state.depth)&&
+  shimReveal.state.socketGlow>.10,
+  "Revealed collectible did not physically emerge from its illuminated socket: "+JSON.stringify(shimReveal));
  await collect("shim");
  assert.equal(await page.evaluate(()=>
    window.__nothing3DPreview.getPhysicalPickupRevealState("shim")?.visible),false,
