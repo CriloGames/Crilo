@@ -3,7 +3,7 @@ import {chromium} from 'playwright';
 
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
-const url='http://127.0.0.1:4173/secrets.html?classic=1';
+const url='http://127.0.0.1:4173/secrets.html';
 const sample=()=>page.evaluate(()=>{
  const button=document.querySelector('#ncZoomIn');
  const zoom=document.querySelector('#ncZoomAmount');
