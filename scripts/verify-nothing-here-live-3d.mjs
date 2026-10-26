@@ -74,6 +74,77 @@ await page.addInitScript(()=>{
  }
 });
 try{
+ // Force every miniature, open hinged component, and waiting reward into
+ // the SAME fully unlocked 3D scene. Existing clearance audits only checked
+ // fixed mounting rectangles; they missed floating pickups and animated
+ // props protruding past a neighboring frame after discovery.
+ const auditPage=await browser.newPage({
+  viewport:{width:1280,height:860},reducedMotion:"reduce"
+ });
+ await auditPage.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',
+  route=>route.fulfill({status:200,body:mock,contentType:"application/javascript"}));
+ await auditPage.addInitScript((ids)=>{
+  localStorage.setItem("crilo_nothing_here_cube_v3",JSON.stringify({
+   seen:ids,pocket:["flute","key"],
+   pendingPickups:[
+    "coin","reed","treat","prism","sugar","tag","postcard",
+    "acorn","spring","raindrop","bird","lens","stardust",
+    "starmap","parcel","envelope","tape","letter","bell",
+    "fork","shim","cog","washer","cylinder","iris"
+   ],
+   a:true,b:true,top:true,bottom:true,back:true,mouse:true,
+   bag:true,bagOpen:true,bagSolved:true,door:true,doorOpen:true,
+   squirrel:true,vase:true,plant:true,tree:true,music:true,
+   cloud:true,cup:true,watch:true,machine:true,tag:true,
+   floorFour:true,mothTouched:true,moon:true,dancer:true,
+   train:true,portal:true,ventOpen:true,plateOpen:true,
+   pressureReady:true,pressureTicks:3,eyeRingTicks:3,
+   serviceOpen:true,tapeInserted:true,shimUsed:true,
+   screws:[0,1,2],hingePins:[0,1,2],rightBoltLoose:true,
+   footChecked:true
+  }));
+ },sixtySecrets);
+ await auditPage.goto("http://127.0.0.1:4173/secrets.html",{
+  waitUntil:"domcontentloaded",timeout:30000
+ });
+ await auditPage.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{
+  timeout:60000
+ });
+ const unlocked=await auditPage.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  return {geometry:view.unlockedGeometryAudit,
+   movingHardware:view.unlockedMechanismClashes,
+   trays:view.physicalPickupTrays,
+   items:view.physicalPickupLayout,
+   washer:view.getPhysicalPickupRevealState("washer"),
+   iris:view.getPhysicalPickupRevealState("iris"),
+   visible:view.visiblePhysicalStoryObjects};
+ });
+ console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
+ assert.equal(unlocked.visible.length,15,
+  "The fully opened cube is missing a miniature: "+JSON.stringify(unlocked.visible));
+ assert.equal(unlocked.geometry.bounds.length,15,
+  "A miniature has no visible solid geometry in the unlocked cube");
+ assert.deepEqual(unlocked.geometry.overhangs,[],
+  "An unlocked miniature protrudes past its cube-face edge");
+ assert.deepEqual(unlocked.geometry.protrusions,[],
+  "An unlocked prop projects unnaturally far from its metal mounting face");
+ assert.deepEqual(unlocked.geometry.clashes,[],
+  "Two unlocked physical miniatures overlap in 3D");
+ assert.deepEqual(unlocked.movingHardware,[],
+  "An opened drawer or hinged lid clips through an unlocked miniature");
+ assert(unlocked.trays.length>=12&&
+  unlocked.trays.filter(tray=>tray.visible).length>=12&&
+  unlocked.items.filter(item=>item.source==="bag").every(item=>
+   item.mounted&&item.faceDepth<.65),
+  "Unlocked collectibles are still floating outside their attached trays");
+ assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
+  "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
+ await auditPage.screenshot({path:"test-results/live-3d-all-unlocked.png",
+  timeout:60000});
+ await auditPage.close();
+ console.log("PASS: all fifteen unlocked miniatures, physical rewards and moving parts fit their cube faces");
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded",timeout:30000});
  await page.waitForFunction(()=>document.body.classList.contains("nc-physical-ready")&&window.__nothing3DPreview?.ready,{timeout:60000});
  // Capture a true WebGL reference BEFORE interactions. Even if a later
@@ -1158,77 +1229,6 @@ try{
  await page.waitForFunction(()=>window.CriloNothingHereCube?.getState?.().seen?.length===0,{timeout:60000});
  assert.equal((await state()).pocket.length,0,"Owner reset did not clear inventory");
  console.log("PASS: owner-only browser reset, no change to ordinary players");
- // Force every miniature, open hinged component, and waiting reward into
- // the SAME fully unlocked 3D scene. Existing clearance audits only checked
- // fixed mounting rectangles; they missed floating pickups and animated
- // props protruding past a neighboring frame after discovery.
- const auditPage=await browser.newPage({
-  viewport:{width:1280,height:860},reducedMotion:"reduce"
- });
- await auditPage.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*',
-  route=>route.fulfill({status:200,body:mock,contentType:"application/javascript"}));
- await auditPage.addInitScript((ids)=>{
-  localStorage.setItem("crilo_nothing_here_cube_v3",JSON.stringify({
-   seen:ids,pocket:["flute","key"],
-   pendingPickups:[
-    "coin","reed","treat","prism","sugar","tag","postcard",
-    "acorn","spring","raindrop","bird","lens","stardust",
-    "starmap","parcel","envelope","tape","letter","bell",
-    "fork","shim","cog","washer","cylinder","iris"
-   ],
-   a:true,b:true,top:true,bottom:true,back:true,mouse:true,
-   bag:true,bagOpen:true,bagSolved:true,door:true,doorOpen:true,
-   squirrel:true,vase:true,plant:true,tree:true,music:true,
-   cloud:true,cup:true,watch:true,machine:true,tag:true,
-   floorFour:true,mothTouched:true,moon:true,dancer:true,
-   train:true,portal:true,ventOpen:true,plateOpen:true,
-   pressureReady:true,pressureTicks:3,eyeRingTicks:3,
-   serviceOpen:true,tapeInserted:true,shimUsed:true,
-   screws:[0,1,2],hingePins:[0,1,2],rightBoltLoose:true,
-   footChecked:true
-  }));
- },sixtySecrets);
- await auditPage.goto("http://127.0.0.1:4173/secrets.html",{
-  waitUntil:"domcontentloaded",timeout:30000
- });
- await auditPage.waitForFunction(()=>window.__nothing3DPreview?.ready&&
-  document.body.classList.contains("nc-physical-ready"),{
-  timeout:60000
- });
- const unlocked=await auditPage.evaluate(()=>{
-  const view=window.__nothing3DPreview;
-  return {geometry:view.unlockedGeometryAudit,
-   movingHardware:view.unlockedMechanismClashes,
-   trays:view.physicalPickupTrays,
-   items:view.physicalPickupLayout,
-   washer:view.getPhysicalPickupRevealState("washer"),
-   iris:view.getPhysicalPickupRevealState("iris"),
-   visible:view.visiblePhysicalStoryObjects};
- });
- console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
- assert.equal(unlocked.visible.length,15,
-  "The fully opened cube is missing a miniature: "+JSON.stringify(unlocked.visible));
- assert.equal(unlocked.geometry.bounds.length,15,
-  "A miniature has no visible solid geometry in the unlocked cube");
- assert.deepEqual(unlocked.geometry.overhangs,[],
-  "An unlocked miniature protrudes past its cube-face edge");
- assert.deepEqual(unlocked.geometry.protrusions,[],
-  "An unlocked prop projects unnaturally far from its metal mounting face");
- assert.deepEqual(unlocked.geometry.clashes,[],
-  "Two unlocked physical miniatures overlap in 3D");
- assert.deepEqual(unlocked.movingHardware,[],
-  "An opened drawer or hinged lid clips through an unlocked miniature");
- assert(unlocked.trays.length>=12&&
-  unlocked.trays.filter(tray=>tray.visible).length>=12&&
-  unlocked.items.filter(item=>item.source==="bag").every(item=>
-   item.mounted&&item.faceDepth<.65),
-  "Unlocked collectibles are still floating outside their attached trays");
- assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
-  "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
- await auditPage.screenshot({path:"test-results/live-3d-all-unlocked.png",
-  timeout:60000});
- await auditPage.close();
- console.log("PASS: all fifteen unlocked miniatures, physical rewards and moving parts fit their cube faces");
  console.log("PASS: 60 saved discoveries, restored physical mechanisms, no repeat rewards, only real 3D");
  assert.equal(errors.length,0,"3D integration produced browser exceptions: "+errors.join(" | "));
  console.log("PASS: desktop/mobile 3D only, 60-secret saves, and zero browser exceptions");
