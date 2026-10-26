@@ -901,7 +901,7 @@ try{
    pressureTicks:3,eyeRingTicks:20,screws:[0,1,2],hingePins:[0,1,2],
    watch:true,tag:true,floorFour:false,
    door:true,doorOpen:true,music:true,vase:true,cloud:true,
-   dancer:true,tapeInserted:true,shimUsed:true,
+   dancer:true,tapeInserted:true,shimUsed:true,plant:true,tree:true,
    train:true,dogHits:2,mothTouched:true
   });
   localStorage.setItem(key,JSON.stringify(original));
@@ -927,6 +927,9 @@ try{
  assert(vignette.watchHourAngle< -2&&vignette.watchMinuteAngle< -1.7&&
   vignette.vendingTrayDepth>.37,
   "The tape-driven clock hands and coin-return tray must preserve their final physical poses: "+
+   JSON.stringify(vignette));
+ assert(vignette.treeGrowthScale>.99&&!vignette.seedSproutVisible,
+  "Watered miniature pot did not restore its full-size tree with the seedling concealed: "+
    JSON.stringify(vignette));
  assert(vignette.mothWingAngles.length===2&&
   vignette.mothWingAngles[0]<-.69&&vignette.mothWingAngles[1]>.69,
