@@ -16,6 +16,7 @@ on:
       - 'cube-depth.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
+      - 'scripts/verify-nothing-here-pocket.mjs'
       - 'nothing-here-audio.js'
       - 'audio/nothing-here/**'
       - 'NOTHING-HERE-AUDIO-CREDITS.md'
@@ -47,6 +48,8 @@ jobs:
           sleep 2
       - name: Verify single 3D view, preserved saves, retired Classic URLs and retry
         run: node scripts/verify-nothing-here.mjs
+      - name: Verify all 32 inventory silhouettes and keyboard-friendly selection
+        run: node scripts/verify-nothing-here-pocket.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
         uses: actions/upload-artifact@v4
