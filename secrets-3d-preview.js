@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=14";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=24";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=25";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=41";
 import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=9";
 
