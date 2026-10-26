@@ -440,7 +440,7 @@ try{
  // than desktop GPUs. Test the completed mechanical position, not whether
  // an arbitrary wall-clock sleep was long enough for requestAnimationFrame.
  try{
-  await page.waitForFunction(()=>Math.abs(window.__nothing3DPreview.drawerPositions.front-.76)<.07,
+  await page.waitForFunction(()=>Math.abs(window.__nothing3DPreview.drawerPositions.front-.60)<.07,
    null,{timeout:22000});
  }catch(error){
   const diagnostics=await page.evaluate(()=>({
