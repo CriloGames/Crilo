@@ -93,7 +93,12 @@
   if(song.paused){
    song.volume=.12;
    const promise=song.play();
-   promise?.then?.(()=>fadeMusic(.20,650)).catch?.(()=>{
+   promise?.then?.(()=>{
+    // A fast On→Off click can beat the browser's asynchronous play()
+    // permission/decoding promise. Never restart muted music afterward.
+    if(!musicEnabled||document.hidden){song.pause();song.volume=0;return;}
+    fadeMusic(.20,650);
+   }).catch?.(()=>{
     // Keep the control enabled: another gesture can unlock it.
     song.pause();
    });
@@ -103,13 +108,20 @@
  function setMusic(on){
   musicEnabled=!!on;save(keyMusic,musicEnabled);syncUi();
   if(musicEnabled){gestureReady=true;startMusic()}
-  else fadeMusic(0,200);
+  else if(music){
+   // Off means silent immediately, including while a fade is underway.
+   if(music._fadeFrame)cancelAnimationFrame(music._fadeFrame);
+   music.pause();music.volume=0;
+  }
  }
  function setSfx(on){
   sfxEnabled=!!on;save(keySfx,sfxEnabled);
   if(!sfxEnabled){
    for(const a of active){a.pause();a.currentTime=0}
    active.clear();
+   // The handcrafted flute uses Web Audio rather than a sampled element.
+   // Suspending it makes the effects toggle truly mute both sound engines.
+   if(fluteContext?.state==="running")fluteContext.suspend().catch(()=>{});
   }
   syncUi();
   if(sfxEnabled)play('select');
@@ -126,7 +138,9 @@
    a.preload='auto';a.volume=levels[kind]||.20;
    let usedRemote=base.src===soundSrc(kind,true);
    a.addEventListener('error',()=>{
-    if(!usedRemote){usedRemote=true;a.src=soundSrc(kind,true);a.play().catch(()=>{})}
+    if(!usedRemote&&sfxEnabled&&!document.hidden){
+     usedRemote=true;a.src=soundSrc(kind,true);a.play().catch(()=>active.delete(a));
+    }
    },{once:true});
    active.add(a);
    a.addEventListener('ended',()=>active.delete(a),{once:true});
