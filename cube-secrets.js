@@ -174,15 +174,8 @@ function store(){
 }
 function tell(message){$('ncNarrator').textContent=message}
 function sound(freq=530){
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!sound.ctx)sound.ctx=new AC();
-  const c=sound.ctx,o=c.createOscillator(),g=c.createGain();
-  o.type='sine';o.frequency.setValueAtTime(freq,c.currentTime);
-  o.frequency.exponentialRampToValueAtTime(freq*.75,c.currentTime+.13);
-  g.gain.setValueAtTime(.055,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.18);
-  o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.19);
- }catch{}
+ // Real CC0 mechanical samples replace the old generic oscillator beep.
+ window.NothingHereAudio?.toneFor?.(freq);
 }
 function bloom(id,comment){
  if(!title.has(id)||seen.has(id))return false;
@@ -198,7 +191,7 @@ function bloom(id,comment){
   toastTimeout=setTimeout(()=>t.hidden=true,2700);
  }
  if(comment)tell(comment);
- sound(495+seen.size*12);render();return true;
+ window.NothingHereAudio?.play?.('discovery');render();return true;
 }
 function gain(id,message,direct=false){
  if(!Object.hasOwn(names,id)||pocket.has(id))return;
@@ -208,6 +201,7 @@ function gain(id,message,direct=false){
   // pick-up timer, generated reward popup or duplicate entry.
   if(!pendingPickups.has(id)){
    pendingPickups.add(id);
+   window.NothingHereAudio?.play?.('reveal');
    tell('A '+names[id]+' is ready to collect. Find it on the cube and press it.');
    render();
   }
@@ -217,6 +211,7 @@ function gain(id,message,direct=false){
  if(!pocket.has(id)){
   const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
   pocket.add(id);
+  window.NothingHereAudio?.play?.('pickup');
   pocketArrivalUntil.set(id,Date.now()+1150);
   if(message)tell(message);
   render();
@@ -819,11 +814,12 @@ function use(item,thing){
 }
 function take(item){
  if(!pocket.has(item))return;
- if(!selected){selected=item;tell('Holding '+names[item]+'. Choose another pocket item or an object in the world.');render();return}
- if(item===selected){selected=null;render();return}
+ if(!selected){selected=item;window.NothingHereAudio?.play?.('select');tell('Holding '+names[item]+'. Choose another pocket item or an object in the world.');render();return}
+ if(item===selected){selected=null;window.NothingHereAudio?.play?.('release');render();return}
  const result=recipe[sorted(selected,item)];
  if(!result){tell('Those pieces do not fit. Both are still in your pocket.');sound(185);render();return}
  spend(selected);spend(item);
+ window.NothingHereAudio?.play?.('select');
  // Combining is an intentional inventory interaction, not a hidden
  // world reward. The assembled tool stays in the pocket immediately.
  gain(result[0],result[2],true);selected=null;bloom(result[1],result[2]);render();
@@ -1010,6 +1006,7 @@ function info(){
   '<p>Some discoveries are useful somewhere else. You can select an item and experiment with the other objects, or try combining two things in your pocket.</p>'+
   '<p>Small engravings identify parts of the mechanism. In real 3D, hover with a mouse or touch and hold on a phone to identify an object without activating it. Found items stay physically on the cube until you press them, then move to your pocket below.</p>'+ 
   '<p>Keyboard: focus the 3D cube, use arrow keys to turn it, I to inspect a visible fitting (Shift+I to go back), Enter to activate it, and Escape to stop inspecting. Tab moves to the other controls.</p>'+
+ '<p>Sounds and lobby music have independent on/off controls above the cube. Music begins only after you enable it. The licensed audio sources are listed in the project credits.</p>'+
  '<p>The journal records what you have discovered. Your progress saves on this device.</p>','info');
 }
 const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||name==='serial'||name==='pressure'||name==='shutter'||
