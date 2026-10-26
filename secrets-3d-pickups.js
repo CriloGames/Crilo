@@ -224,6 +224,13 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    position:root.position.toArray(),scale:root.scale.x
   })),
   getRevealCount:()=>revealCount,
+  getRevealState:id=>{
+   const root=instances.get(id);
+   if(!root)return null;
+   return {visible:root.visible,depth:root.userData.pickupModel.position.z,
+    scale:root.userData.pickupModel.scale.x,
+    socketGlow:root.userData.pickupSocketMaterial.emissiveIntensity};
+  },
   setState(state){
    const pending=new Set(state?.pendingPickups||[]);
    for(const [id,root] of instances){
