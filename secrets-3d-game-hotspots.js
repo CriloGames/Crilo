@@ -161,8 +161,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  C(offering,.080,.072,0,0,.052,glass);
  setHit(offering,"cube-offer");targets.set("cube-offer",offering);
  // Right: a service seam, sliding shutter and four genuine bolt heads.
- tab(rightFace,"seam",-.92,.26,copper,.22,.16);
- engraving(rightFace,"SEAM",-.91,.58,.43);
+ // This slim service switch belongs on the *outer rail*, not partly
+ // inside the real teal drawer bezel. Its plaque sits below the switch.
+ tab(rightFace,"seam",-1.13,.31,copper,.22,.16);
+ engraving(rightFace,"SEAM",-1.13,.02,.43);
  tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
  engraving(rightFace,"SERVICE",.58,-1.39,.43);
  for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
