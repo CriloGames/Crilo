@@ -7,7 +7,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=14";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=24";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
-import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=5";
+import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=6";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -1068,6 +1068,7 @@ window.__nothing3DPreview={
  getPhysicalPickupRevealState(id){return physicalPickups?.getRevealState?.(id)||null},
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
  get physicalPickupLayout(){return physicalPickups?.getLayout?.()||[]},
+ get physicalPickupTrays(){return physicalPickups?.getTrayState?.()||[]},
  projectPhysicalPickup(id){
   const root=physicalPickups?.targets.get(id);
   if(!root||!isMeshEffectivelyVisible(root))return null;
