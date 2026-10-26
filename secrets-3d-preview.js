@@ -989,10 +989,109 @@ controls.addEventListener("change",()=>{
   );
  }
 });
+
 invalidate();
+
+// On-demand structural inspector. Three.js already ships reliable Box3
+// bounds and wireframe helpers, so no unlicensed assets or extra runtime
+// packages are required. It is intentionally absent from normal gameplay.
+const geometryInspectionLayer=new THREE.Group();
+geometryInspectionLayer.name="Crilo diagnostic bounds — not gameplay";
+scene.add(geometryInspectionLayer);
+let geometryInspectorMode="off";
+let geometryInspectorObjects=0;
+function updateGeometryInspection(mode=geometryInspectorMode){
+ if(!["off","models","rewards","mechanisms","all"].includes(mode))mode="off";
+ geometryInspectorMode=mode;
+ for(const helper of [...geometryInspectionLayer.children]){
+  geometryInspectionLayer.remove(helper);
+  helper.dispose();
+  helper.material?.dispose?.();
+ }
+ geometryInspectorObjects=0;
+ if(mode==="off"){invalidate();return {mode,count:0};}
+ scene.updateMatrixWorld(true);
+ const objects=[];
+ if(mode==="models"||mode==="all")
+  for(const [name,obj] of pocketWorlds?.targets||[])
+   objects.push([name,obj,0x36c8e3]);
+ if(mode==="rewards"||mode==="all")
+  for(const [name,obj] of physicalPickups?.targets||[])
+   objects.push([name,obj,0xf6a643]);
+ if(mode==="mechanisms"||mode==="all"){
+  for(const [name,obj] of gameHotspots?.targets||[])
+   objects.push([name,obj,0xbd9aff]);
+  for(const [name,obj] of [["front drawer",front.drawer],
+   ["right drawer",side.drawer],["top lid",lidPivot]])
+   objects.push([name,obj,0xf17883]);
+ }
+ for(const [name,obj,color] of objects){
+  if(!obj||!isMeshEffectivelyVisible(obj))continue;
+  const extent=new THREE.Box3().makeEmpty();
+  obj.traverse(mesh=>{
+   if(!mesh.isMesh||!isMeshEffectivelyVisible(mesh))return;
+   const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+   if(materials.every(m=>m?.colorWrite===false||m?.opacity===0))return;
+   extent.expandByObject(mesh,true);
+  });
+  if(extent.isEmpty())continue;
+  const helper=new THREE.Box3Helper(extent,color);
+  helper.name="3D bounds: "+name;
+  helper.material.depthTest=false;
+  helper.material.transparent=true;
+  helper.material.opacity=.84;
+  helper.renderOrder=999;
+  geometryInspectionLayer.add(helper);
+  geometryInspectorObjects++;
+ }
+ invalidate();
+ return {mode,count:geometryInspectorObjects};
+}
+const debugging3D=new URLSearchParams(location.search).get("inspect3d")==="1";
+if(debugging3D){
+ const dock=document.createElement("div");
+ dock.setAttribute("aria-label","3D structure inspection");
+ dock.style.cssText="position:absolute;z-index:10;top:8px;right:8px;"+
+  "width:min(270px,calc(100% - 20px));padding:10px;border-radius:12px;"+
+  "border:1px solid #c2c3bb;background:#f6f4edee;color:#283940;"+
+  "box-shadow:0 6px 24px #1c273331;font:12px/1.45 system-ui,sans-serif";
+ const heading=document.createElement("strong");
+ heading.textContent="3D geometry inspector";
+ dock.append(heading);
+ const description=document.createElement("p");
+ description.textContent="Blue: miniature · amber: reward · purple: control · red: moving lid or drawer";
+ description.style.margin="5px 0";
+ dock.append(description);
+ const controls=document.createElement("div");
+ controls.style.cssText="display:flex;flex-wrap:wrap;gap:5px";
+ const statusLine=document.createElement("output");
+ statusLine.style.cssText="display:block;margin-top:7px;font-size:11px";
+ for(const mode of ["off","models","rewards","mechanisms","all"]){
+  const button=document.createElement("button");
+  button.type="button";
+  button.textContent=mode==="off"?"Off":mode[0].toUpperCase()+mode.slice(1);
+  button.style.cssText="padding:5px 7px;border-radius:7px;cursor:pointer;"+
+   "border:1px solid #b0b9b5;background:#fff;color:#263b42;font-size:11px";
+  button.addEventListener("click",()=>{
+   const result=updateGeometryInspection(mode);
+   const audit=pocketWorlds?.getUnlockedGeometryAudit?.();
+   statusLine.textContent=result.count+" 3D boxes · "+
+    (audit?.clashes.length||0)+" model clashes · "+
+    (audit?.overhangs.length||0)+" cube-edge overhangs";
+  });
+  controls.append(button);
+ }
+ dock.append(controls,statusLine);
+ stage.append(dock);
+}
 window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
+ setGeometryInspector:mode=>updateGeometryInspection(mode),
+ get geometryInspectorState(){return {
+  mode:geometryInspectorMode,count:geometryInspectorObjects,
+  enabled:debugging3D
+ }},
  get meshCount(){
   let n=0;
   scene.traverse(node=>{if(node.isMesh)n++});
