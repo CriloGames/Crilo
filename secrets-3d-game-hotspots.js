@@ -398,7 +398,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
   getMechanicalFeedback:()=>({
-   ventHatchOffset:ventCover.position.x,
+   ventHatchOffset:ventCover.position.y,
    redCollarAngle:redCollar.rotation.z,
    redRewardGlow:redCollarMaterial.emissiveIntensity
   }),
@@ -433,8 +433,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
    // Correctly ordered vent keys withdraw the captive shutter over the
    // physical grille. A restored save shows the final pose immediately.
-   pose(ventCover,"position","x",s.ventOpen?.36:0,
-    previous.ventOpen?.36:0,restore,.68);
+   pose(ventCover,"position","y",s.ventOpen?-.28:0,
+    previous.ventOpen?-.28:0,restore,.68);
    const clicks=Math.max(0,Number(s.redHits)||0);
    pose(redCollar,"rotation","z",clicks*.28,
     (Number(previous.redHits)||0)*.28,restore,.27);
