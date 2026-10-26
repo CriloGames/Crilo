@@ -435,9 +435,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    // physical grille. A restored save shows the final pose immediately.
    pose(ventCover,"position","y",s.ventOpen?-.20:0,
     previous.ventOpen?-.20:0,restore,.68);
-   if(ventSettleTimer!==null){clearTimeout(ventSettleTimer);ventSettleTimer=null;}
-   if(!restore&&!reducedMotion&&!!s.ventOpen!==!!previous.ventOpen){
-    // A dropped WebGL frame must not leave a solved shutter half open.
+   // Only replace an outstanding settle deadline when the actual puzzle
+   // changes. Re-rendering an unchanged state must NOT cancel the one-shot
+   // fallback while a software GPU has stalled its animation frames.
+   const ventChanged=!!s.ventOpen!==!!previous.ventOpen;
+   if(restore||reducedMotion||ventChanged){
+    if(ventSettleTimer!==null)clearTimeout(ventSettleTimer);
+    ventSettleTimer=null;
+   }
+   if(!restore&&!reducedMotion&&ventChanged){
     const end=s.ventOpen?-.20:0;
     ventSettleTimer=setTimeout(()=>{
      gsap.killTweensOf(ventCover.position);
