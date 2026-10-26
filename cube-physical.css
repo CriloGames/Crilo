@@ -620,3 +620,27 @@ html[data-theme="dark"] .nc-page.nc-physical-only #ncRetry3D{
  .nc-page.nc-physical-only .nc-world{height:clamp(450px,62dvh,600px)}
  .nc-page.nc-physical-only .nc-world .nc-cube-zone{width:100%}
 }
+
+/* Pending physical objects are part of the discovery loop, not a modal.
+   The inset metal-chip treatment sits naturally inside the pocket and
+   disappears when every revealed object has been collected. */
+.nc-page .nc-pocket .nc-awaiting-pickups{
+ margin:10px 0 1px;padding:9px 11px;
+ border:1px solid #c6d8cb;border-radius:8px;
+ color:#486857;background:linear-gradient(115deg,#f6faf6,#edf5ee);
+ font-size:11px;line-height:1.5;letter-spacing:.005em;
+}
+.nc-page .nc-pocket .nc-awaiting-pickups[hidden]{display:none!important}
+.nc-page .nc-pocket .nc-awaiting-symbol{
+ display:inline-grid;place-items:center;width:20px;height:20px;
+ margin-right:4px;vertical-align:middle;
+ background:#e1eee1;border:1px solid #bfd2c1;border-radius:50%;
+ color:#5a876e;font-size:12px;
+}
+html[data-theme="dark"] .nc-page .nc-pocket .nc-awaiting-pickups{
+ color:#cee2d2;background:linear-gradient(115deg,#2e4640,#354b42);
+ border-color:#668777;
+}
+html[data-theme="dark"] .nc-page .nc-pocket .nc-awaiting-symbol{
+ color:#c5e8d4;background:#446653;border-color:#70977a;
+}
