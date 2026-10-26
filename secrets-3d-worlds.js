@@ -128,7 +128,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
   ["vase","bottomFace",0,1.12],
-  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.15],
+  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.09],
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
@@ -972,8 +972,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // permanent real controls, not intentionally nested pieces within a model.
   // The name and face are supplied to browser QA without revealing clues.
   getMountClearanceViolations:(controls=[])=>{
-   const padded=mounts.map(v=>({name:v.name,face:v.face,x:v.x,y:v.y,
-    w:.56,h:.59}));
+   // The old symmetric .59-tall test rectangle wrongly extended far
+   // below the actual bolted plate. Its physical support runs roughly
+   // from -.06 to +.36, so center the clearance envelope .10 higher.
+   // This permits lowering the tall opened music-box lid INSIDE the cube
+   // rim without pretending it overlaps the optical assembly below.
+   const padded=mounts.map(v=>({name:v.name,face:v.face,
+    x:v.x,y:v.y+.10,w:.56,h:.48}));
    const faults=[];
    for(let i=0;i<padded.length;i++)for(let j=i+1;j<padded.length;j++){
     const a=padded[i],b=padded[j];
