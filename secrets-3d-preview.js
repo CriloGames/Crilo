@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=14";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=24";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=36";
 import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=6";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -1134,6 +1134,7 @@ window.__nothing3DPreview={
  }},
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
+ get unlockedGeometryAudit(){return pocketWorlds?.getUnlockedGeometryAudit?.()||null},
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
  getPhysicalActionAt(x,y){
   const r=renderer.domElement.getBoundingClientRect();
