@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {gsap} from "gsap";
 
 // Every reward lives in a real, selectable three-dimensional cradle attached
 // to its source miniature or mechanism. Puzzle state and inventory decisions
@@ -27,6 +28,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   iris:["eye",0]
  };
  const instances=new Map();
+ const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+ let firstState=true,revealCount=0;
  // Source miniatures use an honest 2x2 tray, not four items crossing
  // each other's hitboxes. Center spacing is 0.32 x 0.25, and each
  // collectible has a smaller (but independently tappable) footprint.
@@ -184,7 +187,13 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // Every small found object has a bolted shallow cradle with a dark
   // machined inset. The object rests in the socket; it is not a flat
   // cartoon, a badge, or a reward that floats away from the cube.
-  box(root,.225,.036,.14,0,-.116,-.048,ink,.013);
+  // Give each socket its own tiny emissive enamel insert. The glow is
+  // reserved for items that have ALREADY been revealed by puzzle logic;
+  // it never points at undiscovered mechanisms or correct answers.
+  const socketMaterial=ink.clone();
+  socketMaterial.emissive.setHex(0xa18a55);
+  socketMaterial.emissiveIntensity=0;
+  box(root,.225,.036,.14,0,-.116,-.048,socketMaterial,.013);
   box(root,.19,.013,.12,0,-.087,-.008,metal,.005);
   for(const x of [-.082,.082]){
    const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.014,8),copper);
@@ -201,6 +210,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     depthWrite:false,side:THREE.DoubleSide}));
   target.position.z=.085;root.add(target);
   setHit(root,"pickup:"+id);
+  root.userData.pickupModel=model;
+  root.userData.pickupSocketMaterial=socketMaterial;
   root.visible=false;
   instances.set(id,root);
  }
@@ -212,12 +223,40 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    id,source:sources[id][0],slot:sources[id][1],
    position:root.position.toArray(),scale:root.scale.x
   })),
+  getRevealCount:()=>revealCount,
   setState(state){
    const pending=new Set(state?.pendingPickups||[]);
    for(const [id,root] of instances){
     const visible=pending.has(id);
-    if(root.visible!==visible){root.visible=visible;invalidate();}
+    if(root.visible===visible)continue;
+    const model=root.userData.pickupModel;
+    const material=root.userData.pickupSocketMaterial;
+    gsap.killTweensOf(model.position);
+    gsap.killTweensOf(model.scale);
+    gsap.killTweensOf(material);
+    root.visible=visible;
+    model.position.z=0;
+    model.scale.setScalar(1);
+    material.emissiveIntensity=0;
+    if(visible&&!firstState){
+     revealCount++;
+     if(!reducedMotion){
+      // A short rise from the real socket, not a floating 2D reward popup.
+      // The cradle and hit target never move, keeping pointer selection
+      // reliable even on slow phones and software WebGL.
+      model.position.z=-.105;
+      model.scale.setScalar(.66);
+      material.emissiveIntensity=.72;
+      gsap.to(model.position,{z:0,duration:.54,ease:"back.out(1.3)",onUpdate:invalidate});
+      gsap.to(model.scale,{x:1,y:1,z:1,duration:.54,
+       ease:"back.out(1.45)",onUpdate:invalidate});
+      gsap.to(material,{emissiveIntensity:0,duration:1.1,
+       ease:"power2.out",onUpdate:invalidate});
+     }
+    }
+    invalidate();
    }
+   firstState=false;
   }
  };
 }
