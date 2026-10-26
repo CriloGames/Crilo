@@ -149,6 +149,11 @@ try{
  assert(clearance.entries.length>=19&&clearance.faults.length===0,
   "A real mechanism or label overlaps another permanent control: "+
    JSON.stringify(clearance));
+ const miniatureClashes=await page.evaluate(()=>
+  window.__nothing3DPreview.miniatureControlClearanceViolations);
+ assert.deepEqual(miniatureClashes,[],
+  "A revealed sculpture intrudes into another miniature or playable fitting: "+
+   JSON.stringify(miniatureClashes));
  assert(initial.meshes>300,"Live stage is not rendering actual physical geometry");
  const pickStats=await page.evaluate(()=>window.__nothing3DPreview.raycastTargets);
  assert.equal(pickStats.total,pickStats.unique,"Duplicate raycast targets waste mouse/touch time");
@@ -513,7 +518,9 @@ try{
  await sendTouch("touchEnd",[]);
  const dragCount=(await state()).redHits;
  assert(dragHintHidden&&dragCount===tapCount,
-  "Orbiting with a finger activated the mechanism or opened a stale inspection caption");
+  "Orbiting with a finger activated the mechanism or opened a stale inspection caption: "+
+   JSON.stringify({dragHintHidden,dragCount,tapCount,holdCount,touchBase,
+    pointerState:await page.evaluate(()=>window.__nothing3DPreview.touchInteractionState)}));
  const touchTarget=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   const rect=document.querySelector("#stage canvas").getBoundingClientRect();
