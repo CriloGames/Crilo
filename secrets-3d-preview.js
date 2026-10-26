@@ -1364,15 +1364,8 @@ if(embeddedGame){
  if(gestureHint)gestureHint.textContent=window.matchMedia?.("(pointer:coarse)")?.matches
   ?"drag to rotate · hold to identify"
   :"drag to rotate · hover to identify";
- // The legacy world buttons are still useful to people navigating by
- // keyboard. They now form one quiet, horizontally scrollable discovery
- // tray instead of covering multiple rows beneath the 3D artifact.
- const discoveredTray=document.getElementById("ncSideObjects");
- if(discoveredTray){
-  discoveredTray.setAttribute("role","group");
-  discoveredTray.setAttribute("aria-label",
-   "Discovered miniature objects. Swipe sideways or use Tab to explore more.");
- }
+ // The old illustrated-world buttons are now invisible puzzle-event nodes.
+ // All playable objects belong to the physical cube and keyboard inspection.
  // Before physical mode activates the hidden canvas inherits the old CSS
  // cube's narrow width. Its initial ResizeObserver can incorrectly choose
  // MOBILE camera framing on a wide desktop, leaving the cube far away and
@@ -1382,5 +1375,4 @@ if(embeddedGame){
  controls.update();
  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(DEFAULT_ZOOM);
  invalidate();
- document.getElementById("ncPhysicalToggle")?.setAttribute("aria-pressed","true");
 }
