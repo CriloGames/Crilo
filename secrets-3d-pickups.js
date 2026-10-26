@@ -320,6 +320,62 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    depth:group.position.z,
    visibleItems:group.children.filter(node=>node.userData.pickupModel&&node.visible).length
   })),
+  // Examine the *actual transformed reward geometry* in the coordinate
+  // frame of the face it is mounted to. This catches items colliding
+  // after all 60 secrets are restored, not merely static socket centers.
+  getPlacementAudit:()=>{
+   const measured=[],overlaps=[],overhangs=[];
+   const parents=Object.entries(faces);
+   for(const [id,root] of instances){
+    if(!root.visible)continue;
+    let ancestor=root,faceName=null,face=null,sceneVisible=true;
+    while(ancestor){
+     if(!ancestor.visible)sceneVisible=false;
+     const match=parents.find(([,node])=>node===ancestor);
+     if(match){[faceName,face]=match;break;}
+     ancestor=ancestor.parent;
+    }
+    if(!sceneVisible||!face){overhangs.push({id,problem:"detached or hidden source"});continue;}
+    root.updateWorldMatrix(true,true);
+    const toFace=face.matrixWorld.clone().invert();
+    const min=new THREE.Vector3(Infinity,Infinity,Infinity);
+    const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
+    let pieces=0;
+    root.traverse(mesh=>{
+     if(!mesh.isMesh||!mesh.visible)return;
+     const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+     if(mats.every(m=>m?.colorWrite===false||m?.opacity===0))return;
+     if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+     const b=mesh.geometry.boundingBox;
+     if(!b)return;
+     const matrix=new THREE.Matrix4().multiplyMatrices(toFace,mesh.matrixWorld);
+     for(const x of [b.min.x,b.max.x])
+      for(const y of [b.min.y,b.max.y])
+       for(const z of [b.min.z,b.max.z]){
+        const p=new THREE.Vector3(x,y,z).applyMatrix4(matrix);
+        min.min(p);max.max(p);
+       }
+     pieces++;
+    });
+    if(!pieces){overhangs.push({id,problem:"no visible item geometry"});continue;}
+    const item={id,source:sources[id][0],face:faceName,pieces,
+     min:min.toArray().map(v=>+v.toFixed(3)),
+     max:max.toArray().map(v=>+v.toFixed(3))};
+    measured.push(item);
+    if(min.x< -1.63||max.x>1.63||min.y< -1.63||max.y>1.63||
+      max.z>1.05)overhangs.push(item);
+   }
+   for(let i=0;i<measured.length;i++)for(let j=i+1;j<measured.length;j++){
+    const a=measured[i],b=measured[j];
+    if(a.face!==b.face)continue;
+    const shared=[0,1,2].map(k=>
+     Math.min(a.max[k],b.max[k])-Math.max(a.min[k],b.min[k]));
+    if(shared[0]>.024&&shared[1]>.024&&shared[2]>.018)
+     overlaps.push({first:a.id,second:b.id,face:a.face,
+      shared:shared.map(v=>+v.toFixed(3))});
+   }
+   return {measured,overlaps,overhangs};
+  },
   getRevealCount:()=>revealCount,
   getRevealState:id=>{
    const root=instances.get(id);
