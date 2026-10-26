@@ -185,16 +185,16 @@ export function buildIntricateCube({
   const latchHandle=B(latch,.18,.12,.18,0,.10,.17,ivory,.035);
   setHit(latch,"service-latch");registries.latchHandle=latchHandle;
 
-  // BACK: real optical housing and clockwork collar around the existing lens.
+  // BACK: a single shaped optical cassette replaces the former circular
+  // bullseye lens, redundant engraved tick ring and crowded rim screws.
+  // The mechanical almond eye is constructed in the hotspot module at the
+  // exact same center, and the lower code now has its own isolated socket.
   plates(backFace,verdigris);
-  edgeTicks(backFace,0,-.18,.95,32);
-  const lensGuard=group(backFace,0,-.18,.10);
-  ring(lensGuard,.97,.043,0,0,.045,metal);
-  for(let i=0;i<10;i++){
-    const a=i*Math.PI/5;
-    const riv=C(lensGuard,.043,.035,Math.cos(a)*.84,Math.sin(a)*.84,.13,brass);
-    riv.rotation.z=a;
-  }
+  const eyeHousing=group(backFace,0,-.18,.095);
+  B(eyeHousing,1.76,1.01,.060,0,0,0,darkMetal,.115);
+  B(eyeHousing,1.68,.93,.028,0,0,.046,verdigris,.095);
+  for(const x of [-.80,.80])for(const y of [-.39,.39])
+    raisedScrew(eyeHousing,x,y,.068);
   // A low-profile backing collar for the ONE real iris control. The old
   // oversized raised clock-shaped dial duplicated the touch target and
   // physically overlapped its grille and label. This slim bezel sits UNDER
@@ -204,7 +204,9 @@ export function buildIntricateCube({
   // Retain a transform group for legacy animation, but no duplicate mesh.
   const backKnob=group(backFace,1.055,-1.30,.139);
   registries.backKnob=backKnob;
-  plaque(backFace,"I SEE YOU",0,-1.36,.82);
+  // Leave the bottom-center rail unobstructed. The revealed 2 · 1 · 3
+  // clue slides into this space after the eye is pressed; it must never
+  // be covered by a permanent "I SEE YOU" plaque.
 
   // TOP: telescopic hinge barrel, lid brackets, engraved hatch, gears below.
   plates(topFace,brass);
