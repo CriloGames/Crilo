@@ -126,6 +126,17 @@ let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
 const pocket=new Set((Array.isArray(raw.pocket)?raw.pocket:[]).filter(k=>Object.hasOwn(names,k)));
+// A physical pickup is a found object still lying in its real 3D source.
+// Persist it separately from collected inventory so refreshing cannot
+// magically pocket an item or lose an unlocked reward.
+const pendingPickups=new Set((Array.isArray(raw.pendingPickups)?raw.pendingPickups:[])
+ .filter(k=>Object.hasOwn(names,k)&&!pocket.has(k)));
+// The accessible Classic fallback has no 3D pickup meshes. Let anyone
+// continuing a 3D save there collect the previously discovered items.
+if(new URLSearchParams(location.search).get('classic')==='1'){
+ for(const id of pendingPickups)pocket.add(id);
+ pendingPickups.clear();
+}
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
@@ -165,7 +176,7 @@ const pocketArrivalUntil=new Map();
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
 function store(){
- try{localStorage.setItem(KEY,JSON.stringify({...s,seen:[...seen],pocket:[...pocket]}))}catch{}
+ try{localStorage.setItem(KEY,JSON.stringify({...s,seen:[...seen],pocket:[...pocket],pendingPickups:[...pendingPickups]}))}catch{}
 }
 function tell(message){$('ncNarrator').textContent=message}
 function sound(freq=530){
@@ -195,8 +206,20 @@ function bloom(id,comment){
  if(comment)tell(comment);
  sound(495+seen.size*12);render();return true;
 }
-function gain(id,message){
- if(!Object.hasOwn(names,id))return;
+function gain(id,message,direct=false){
+ if(!Object.hasOwn(names,id)||pocket.has(id))return;
+ if(!direct&&document.body.classList.contains('nc-physical-ready')){
+  // Actual rewards remain where they were revealed. The player must
+  // press the little 3D model to move it to inventory; no automatic
+  // pick-up timer, generated reward popup or duplicate entry.
+  if(!pendingPickups.has(id)){
+   pendingPickups.add(id);
+   tell('A '+names[id]+' is ready to collect. Find it on the cube and press it.');
+   render();
+  }
+  return;
+ }
+ pendingPickups.delete(id);
  if(!pocket.has(id)){
   const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
   pocket.add(id);
@@ -456,22 +479,38 @@ function render(){
  // The physical renderer reflects the same authoritative puzzle state;
  // neither the 3D mesh nor its animation grants secrets independently.
  window.dispatchEvent(new CustomEvent('nc:statechange',{
-  detail:{...s,pocket:[...pocket],selected}
+  detail:{...s,pocket:[...pocket],pendingPickups:[...pendingPickups],selected}
  }));
 }
-function collection(id){gain(id,'You found '+names[id]+'.')}
+function collection(id){gain(id,'You found '+names[id]+'.',true)}
+function collectPhysicalPickup(id){
+ if(!Object.hasOwn(names,id))return false;
+ if(id==='tooth'&&s.a&&!s.drawerTaken){cubeHit('drawer-a');return true}
+ if(id==='thread'&&s.b&&!s.sideTaken){cubeHit('drawer-b');return true}
+ if(id==='pipe'&&s.top&&!s.pipeTaken){cubeHit('top-reed');return true}
+ if(id==='ring'&&s.bottom&&!s.ringTaken){
+  s.ringTaken=true;collection('ring');render();return true;
+ }
+ if(!pendingPickups.has(id))return false;
+ gain(id,'You picked up '+names[id]+'.',true);
+ render();
+ return true;
+}
 // The visible contents of moving 3D compartments are collected after the
 // mechanical animation completes, even when a moving face retargets a tap.
 // Directly tapping an exposed item still picks it up immediately.
 const compartmentTimer=new Map();
 function scheduleCompartment(thing){
+ // A physical collectible must remain in its compartment until tapped.
+ if(!new URLSearchParams(location.search).has('classic')&&
+    document.body.classList.contains('nc-physical-ready'))return;
  if(compartmentTimer.has(thing))return;
  const specs={tooth:['a','drawerTaken',1100],thread:['b','sideTaken',1100],pipe:['top','pipeTaken',1300]};
  const [open,taken,ms]=specs[thing];
  const captionAtOpen=$('ncNarrator')?.textContent;
  const timer=setTimeout(()=>{
   compartmentTimer.delete(thing);
-  if(!s[open]||s[taken])return;
+  if(!s[open]||s[taken]||document.body.classList.contains('nc-physical-ready'))return;
   s[taken]=true;
   // A delayed auto-pickup must not overwrite the clue the player is
   // actively reading from a newer interaction. The part still flies into
@@ -611,7 +650,11 @@ function cubeHit(name){
   if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','A brass ring falls out of the underside.');}
-  if(!s.ringTaken){s.ringTaken=true;collection('ring');}
+  if(!s.ringTaken){
+   if(document.body.classList.contains('nc-physical-ready'))
+    tell('The underside mechanism releases a brass ring. Press the ring to collect it.');
+   else{s.ringTaken=true;collection('ring')}
+  }
  }else if(name==='dent'){
   if(!s.mouse){s.mouse=true;s.left=true;s.bag=true;s.machine=true;
    bloom('mouse','A clockwork mouse skitters away. It has left a handbag and a coin behind.');
@@ -777,7 +820,10 @@ function take(item){
  if(item===selected){selected=null;render();return}
  const result=recipe[sorted(selected,item)];
  if(!result){tell('Those pieces do not fit. Both are still in your pocket.');sound(185);render();return}
- spend(selected);spend(item);gain(result[0],result[2]);selected=null;bloom(result[1],result[2]);render();
+ spend(selected);spend(item);
+ // Combining is an intentional inventory interaction, not a hidden
+ // world reward. The assembled tool stays in the pocket immediately.
+ gain(result[0],result[2],true);selected=null;bloom(result[1],result[2]);render();
 }
 function openBag(){
  if(!s.bagOpen){tell('The bag is locked. Its little brass keyhole seems very specific.');return}
@@ -1228,7 +1274,7 @@ turn();render();
 if(s.a&&!s.drawerTaken)scheduleCompartment('tooth');
 if(s.b&&!s.sideTaken)scheduleCompartment('thread');
 if(s.top&&!s.pipeTaken)scheduleCompartment('pipe');
-window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...seen],selected}),
+window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
  getView:()=>({...view}),zoomTo,resetView,
  updatePhysicalViewZoom(value){
   // OrbitControls owns physical mouse-wheel zoom. Mirror only its value
@@ -1238,6 +1284,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],seen:[...see
   updateView();
  },
  rotate:(x,y)=>{s.rx=x;s.ry=y;turn()},
+ activatePhysicalPickup:collectPhysicalPickup,
  activatePhysical(name){
   if(name==='cube-offer'){
    // Reuse the original item-combination and faceplate logic.
