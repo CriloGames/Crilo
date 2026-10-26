@@ -104,7 +104,9 @@ try{
    footChecked:true
   }));
  },sixtySecrets);
- await auditPage.goto("http://127.0.0.1:4173/secrets.html",{
+ // A dedicated inspector renders wireframe solid envelopes; no admin
+ // account, browser extension, or spoiler-filled Classic mode is required.
+ await auditPage.goto("http://127.0.0.1:4173/secrets.html?inspect3d=1",{
   waitUntil:"domcontentloaded",timeout:30000
  });
  await auditPage.waitForFunction(()=>window.__nothing3DPreview?.ready&&
@@ -141,8 +143,27 @@ try{
   "Unlocked collectibles are still floating outside their attached trays");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
   "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
- await auditPage.screenshot({path:"test-results/live-3d-all-unlocked.png",
+ const inspector=await auditPage.evaluate(()=>
+  window.__nothing3DPreview.setGeometryInspector("all"));
+ assert(inspector.mode==="all"&&inspector.count>=40,
+  "Structural inspector failed to draw miniature, reward and mechanism bounds: "+
+   JSON.stringify(inspector));
+ await auditPage.screenshot({path:"test-results/live-3d-unlocked-wireframe.png",
   timeout:60000});
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setGeometryInspector("off"));
+ // Review ALL SIX faces in unlocked condition. A single pretty front
+ // screenshot previously missed oversized hardware on the gauge/back.
+ const views=[
+  ["front",-15,0],["right",-15,90],["back",-15,180],
+  ["left",-15,270],["top",-75,0],["bottom",75,0]
+ ];
+ for(const [name,rx,ry] of views){
+  await auditPage.evaluate(([a,b])=>
+   window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
+  await auditPage.screenshot({
+   path:"test-results/live-3d-unlocked-"+name+".png",timeout:60000
+  });
+ }
  await auditPage.close();
  console.log("PASS: all fifteen unlocked miniatures, physical rewards and moving parts fit their cube faces");
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded",timeout:30000});
