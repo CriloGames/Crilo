@@ -414,7 +414,17 @@ try{
   (await state()).pendingPickups.includes("shim")&&
   !(await state()).pocket.includes("shim"),
   "The vent must leave a copper shim physically waiting, not auto-collect it");
+ const shimReveal=await page.evaluate(()=>({
+  count:window.__nothing3DPreview.physicalPickupRevealCount,
+  state:window.__nothing3DPreview.getPhysicalPickupRevealState("shim")
+ }));
+ assert(shimReveal.count>=1&&shimReveal.state?.visible&&
+  Number.isFinite(shimReveal.state.scale)&&Number.isFinite(shimReveal.state.depth),
+  "Revealed collectible did not physically emerge from its socket: "+JSON.stringify(shimReveal));
  await collect("shim");
+ assert.equal(await page.evaluate(()=>
+   window.__nothing3DPreview.getPhysicalPickupRevealState("shim")?.visible),false,
+   "The revealed metal shim stayed on the cube after being collected");
  try{
   await page.waitForFunction(()=>
    window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.18,
