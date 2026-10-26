@@ -111,16 +111,20 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   squirrel:m.wood,cup:m.cream,clock:m.gold,elevator:m.blue,
   moth:m.velvet,telescope:m.copper,train:m.wood
  };
+ // Every bolted miniature needs a separate bit of real panel area.
+ // Previous locations sat inside the live maker stamp, pressure instrument,
+ // red switch, service lever and the four underside shock feet.
+ // Keep the display sockets clear of those permanent puzzle mechanisms.
  const slots=[
-  ["bag","frontFace",-1.00,.70],["machine","frontFace",1.02,.68],
-  ["door","rightFace",1.00,.71],["dog","rightFace",0,.70],
-  ["vase","rightFace",-1.0,-.96],
+  ["bag","frontFace",-1.00,-.81],["machine","frontFace",1.02,.74],
+  ["door","rightFace",-1.01,.80],["dog","rightFace",1.01,.08],
+  ["vase","leftFace",1.03,1.13],
   ["pot","backFace",-1.02,.68],["musicbox","backFace",0,.72],
-  ["cloud","backFace",1.03,.70],["squirrel","bottomFace",-1.04,-.86],
-  ["cup","leftFace",.0,-1.0],["clock","leftFace",1.03,.7],
+  ["cloud","backFace",1.03,.70],["squirrel","bottomFace",-1.03,.28],
+  ["cup","leftFace",.0,-1.0],["clock","frontFace",1.03,-.83],
   ["elevator","leftFace",-1.01,-.96],
   ["moth","topFace",-1.04,.21],["telescope","topFace",1.04,-.65],
-  ["train","bottomFace",1.03,-.90]
+  ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
   const face=faces[faceName],fixture=new THREE.Group();
