@@ -100,7 +100,15 @@ try{
  });
  assert(enabledAudio.played&&enabledAudio.state.sfxEnabled&&!enabledAudio.state.musicEnabled,
   "Re-enabling sound did not restore the sampled mechanical effects");
- console.log("PASS: eleven downloaded CC0 sound samples, looping CC0 music, independent toggles and persistent mute");
+ // Toggle music before its pending play promise has necessarily settled.
+ // Off must win, regardless of the browser's asynchronous audio decoding.
+ await page.locator("#ncMusicToggle").click();
+ await page.locator("#ncMusicToggle").click();
+ await page.waitForTimeout(320);
+ const promptlyMuted=await page.evaluate(()=>window.NothingHereAudio.getState());
+ assert(!promptlyMuted.musicEnabled&&!promptlyMuted.musicPlaying,
+  "A pending music play() restarted the soundtrack after switching it off: "+JSON.stringify(promptlyMuted));
+ console.log("PASS: eleven downloaded CC0 sound samples, independent toggles, persistent mute and rapid On/Off");
  await page.goto(base+"?classic=1",{waitUntil:"domcontentloaded",timeout:30000});
  await page.waitForFunction(()=>!new URL(location.href).searchParams.has("classic")&&
   !!window.CriloNothingHereCube?.getState,{timeout:15000});
