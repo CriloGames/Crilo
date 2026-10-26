@@ -243,7 +243,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // well used to hide all three keys under solid metal. Parenting it to the
  // lid also keeps it bolted to the box when the lid eventually opens.
  // No floating popup, automatic puzzle solution, or detached instrument.
- const flute=node(lidPivot,-.025,-.965,.19);
+ // Mount near the hinged upper rail, away from the TRIANGLE switch
+ // and the lower inscription, so the new instrument reveals no old clue
+ // and never masks the lid's working puzzle hardware.
+ const flute=node(lidPivot,-.025,-.12,.19);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
