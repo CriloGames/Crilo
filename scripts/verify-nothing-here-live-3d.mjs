@@ -803,34 +803,26 @@ try{
   "The keyboard controls need an accessible name once the instrument exists");
  console.log("PASS: tactile physical flute, saved door discovery and keyboard access");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
- assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"true");
+ assert.equal(await page.locator("#ncPhysicalToggle").count(),0,
+  "The Classic/3D mode switch must not appear in the 3D-only game");
+ assert(await page.locator("#ncCube").isHidden()&&await page.locator("#ncSideObjects").isHidden(),
+  "The illustrated Classic cube or flat miniature collection became visible");
  const original=await page.evaluate(()=>localStorage.getItem("crilo_nothing_here_cube_v3"));
  assert(original && JSON.parse(original).plateOpen,"3D progression was not stored in the existing save slot");
  console.log("PASS real 3D: physical geometry, 60-secret progression, 3 compartments, item pickup and saved faceplate.");
- // The accessibility/classic fallback must restore exactly the same run.
- // Under software WebGL the previous context may take time to release GPU
- // resources when switching into Classic. A navigation commit suffices; the
- // subsequent explicit readiness wait verifies the actual document.
- await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
-  waitUntil:"commit",timeout:90000
- });
- await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
- const classic=await page.evaluate(()=>window.CriloNothingHereCube.getState());
- assert(classic.plateOpen&&classic.a&&classic.b&&classic.top,"Classic view did not preserve the physical session");
- assert(await page.locator("#ncCube").isVisible(),"Classic 3D fallback is no longer available");
- const classicHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
- assert(classicHeight>=100,"Classic fallback must preserve full illustrated props");
- assert.equal(await page.locator("#ncPhysicalToggle").getAttribute("aria-pressed"),"false");
- await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalThing("bag"));
- const bagDescription=await page.locator("#ncModalBody").innerText();
- assert(!/diamond\s*[·•-]\s*circle\s*[·•-]\s*moon/i.test(bagDescription),
-  "Classic bag dialog still spoils the symbol solution");
- await page.locator("#ncModalClose").click();
- assert.equal(await page.locator('[data-hit="cipher-strip"]').getAttribute("hidden"),null,
-  "Saved calibration must also expose the secret in the classic fallback");
- await page.evaluate(()=>window.CriloNothingHereCube.activatePhysical("cipher-strip"));
- assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾/,
-  "The classic accessible engraving did not reveal the relocated clue");
+ // Reload the real 3D cube and check that existing discoveries,
+ // physical pickups and inventory survive without a separate play mode.
+ await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const saved3D=await state();
+ assert(saved3D.plateOpen&&saved3D.a&&saved3D.b&&saved3D.top,
+  "The single 3D game did not preserve the original physical session");
+ assert(await page.locator("#stage canvas").isVisible()&&
+   await page.locator("#ncCube").isHidden(),
+  "An illustrated fallback appeared after a 3D save reload");
+ assert.equal(await page.locator("#ncPhysicalToggle").count(),0,
+  "The retired Classic view switch returned after reload");
  // Mobile physical version still loads, and 3D controls remain available.
  await page.setViewportSize({width:390,height:844});
  await page.goto("http://127.0.0.1:4173/secrets.html",{waitUntil:"domcontentloaded"});
@@ -858,32 +850,15 @@ try{
    JSON.stringify(phoneHint));
  await page.keyboard.press("Escape");
 
- // Stress all miniatures without awarding secrets: the old wrapped layout
- // grew to several congested rows on a phone. The new row must scroll
- // internally and leave the page width unchanged.
- const discoveryTray=await page.evaluate(()=>{
-  const tray=document.querySelector("#ncSideObjects");
-  const buttons=[...tray.querySelectorAll(".nc-prop")];
-  const saved=buttons.map(button=>button.hidden);
-  buttons.forEach(button=>button.hidden=false);
-  const boxes=buttons.map(button=>button.getBoundingClientRect());
-  const result={
-   role:tray.getAttribute("role"),
-   description:tray.getAttribute("aria-label"),
-   wrap:getComputedStyle(tray).flexWrap,
-   overflow:getComputedStyle(tray).overflowX,
-   topRange:Math.max(...boxes.map(x=>x.top))-Math.min(...boxes.map(x=>x.top)),
-   hasInternalScroll:tray.scrollWidth>tray.clientWidth+30,
-   fitsPage:document.documentElement.scrollWidth<=window.innerWidth+2
-  };
-  buttons.forEach((button,i)=>button.hidden=saved[i]);
-  return result;
- });
- assert(discoveryTray.role==="group"&&/swipe|tab/i.test(discoveryTray.description)&&
-  discoveryTray.wrap==="nowrap"&&discoveryTray.overflow==="auto"&&
-  discoveryTray.topRange<4&&discoveryTray.hasInternalScroll&&discoveryTray.fitsPage,
-  "Discovered miniatures are still wrapped into a crowded mobile layout: "+
-  JSON.stringify(discoveryTray));
+ // The duplicate illustrated objects are gone, including on narrow screens.
+ // Only the physical 3D sculptures are allowed to act as world objects.
+ assert(await page.locator("#ncSideObjects").isHidden()&&
+   await page.locator("#ncDoorScene").isHidden()&&
+   await page.locator("#ncCube").isHidden(),
+  "Mobile layout exposed the removed Classic presentation");
+ assert(await page.evaluate(()=>
+  document.documentElement.scrollWidth<=window.innerWidth+2),
+  "Removing Classic must not produce horizontal mobile overflow");
  const mobileReview=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   const groups=[...document.querySelector(".nc-inspection-controls").children]
@@ -1037,9 +1012,18 @@ try{
  await activate("dot");
  assert.equal((await state()).seen.length,60,"Repeating completed puzzles must not duplicate awards");
  await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
- await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{waitUntil:"domcontentloaded"});
- await page.waitForFunction(()=>!!window.CriloNothingHereCube,{timeout:30000});
- assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),"Classic fallback lost previously completed 3D secrets");
+ // Old links must transparently normalize to the one supported 3D game.
+ await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
+  waitUntil:"domcontentloaded"});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ assert(!new URL(page.url()).searchParams.has("classic"),
+  "Legacy ?classic=1 URL was not normalized to the supported 3D experience");
+ assert(await page.locator("#stage canvas").isVisible()&&
+   await page.locator("#ncCube").isHidden(),
+  "The retired illustrated mode is still reachable from a legacy URL");
+ assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
+  "Opening a former Classic URL changed physical 3D progress");
  // Only a server-verified owner profile may consume the one-time local
  // reset. A normal player must never lose their 60-secret save.
  await page.evaluate(()=>{
