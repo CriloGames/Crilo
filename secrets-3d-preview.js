@@ -436,15 +436,20 @@ function animate(object,props,duration=.82){
  if(reducedMotion){Object.assign(object,props);return}
  gsap.to(object,{...props,duration,ease:"power3.inOut",onUpdate:invalidate});
 }
+// The trays stay captive on their rails. The original .76-unit resting
+// extension looked like detached shoeboxes on the unlocked faces and
+// crowded neighboring fasteners, especially on phone-sized canvases.
+const DRAWER_REST_EXTENSION=.60;
+const DRAWER_SPRING_EXTENSION=.68;
 function toggleDrawer(target,caption){
  target.open=!target.open;
  // Cancel the entire previous timeline, including any queued settle tween.
  // Killing only active properties can leave an old follow-through scheduled.
  if(target.motion){target.motion.kill();target.motion=null;}
- if(reducedMotion){target.drawer.position.z=target.open?.76:0;}
+ if(reducedMotion){target.drawer.position.z=target.open?DRAWER_REST_EXTENSION:0;}
  else{
-  target.motion=gsap.timeline({onUpdate:invalidate}).to(target.drawer.position,{z:target.open?.88:-.05,duration:.46,ease:"power2.out"})
-    .to(target.drawer.position,{z:target.open?.76:0,duration:.24,ease:"back.out(1.15)"});
+  target.motion=gsap.timeline({onUpdate:invalidate}).to(target.drawer.position,{z:target.open?DRAWER_SPRING_EXTENSION:-.05,duration:.46,ease:"power2.out"})
+    .to(target.drawer.position,{z:target.open?DRAWER_REST_EXTENSION:0,duration:.24,ease:"back.out(1.15)"});
  }
  invalidate();
  announce(caption+(target.open?" opens into a real hollow box.":" slides fully into its socket."));
@@ -1463,7 +1468,7 @@ window.__nothing3DPreview={
     obj.open=open;
     obj.motion?.kill();
     if(obj.finishTimer){clearTimeout(obj.finishTimer);obj.finishTimer=null;}
-    const rest=open?.76:0;
+    const rest=open?DRAWER_REST_EXTENSION:0;
     const finish=()=>{
      if(obj.open!==open)return; // A quick reversal wins.
      if(obj.finishTimer){clearTimeout(obj.finishTimer);obj.finishTimer=null}
@@ -1480,7 +1485,7 @@ window.__nothing3DPreview={
       onUpdate:invalidate,
       onComplete:finish
      }).to(obj.drawer.position,{
-      z:open?.85:-.035,duration:.44,ease:"power2.out"
+      z:open?DRAWER_SPRING_EXTENSION:-.035,duration:.44,ease:"power2.out"
      }).to(obj.drawer.position,{
       z:rest,duration:.25,ease:"back.out(1.55)"
      });
