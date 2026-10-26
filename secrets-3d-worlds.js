@@ -44,6 +44,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  });
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
+ let watchHourHand=null,watchMinuteHand=null,vendingTray=null;
  let dogTail=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
@@ -350,8 +351,16 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const a=i*Math.PI/6;
    B(g,.025,.011,.01,Math.cos(a)*.155,.35+Math.sin(a)*.155,.083,m.dark,.005);
   }
-  wire(g,[[0,.35,.087],[.00,.47,.087]],.009,m.dark);
-  wire(g,[[0,.35,.087],[.092,.27,.087]],.009,m.wood);
+  // Both hands pivot on a real central pin. Feeding punched tape to the
+  // watch drives the metal hands to the time in the recovered letter, rather
+  // than just granting an inventory item with no visible cube response.
+  watchHourHand=new THREE.Group();
+  watchHourHand.position.set(0,.35,.099);g.add(watchHourHand);
+  B(watchHourHand,.026,.135,.018,0,.056,0,m.wood,.007);
+  watchMinuteHand=new THREE.Group();
+  watchMinuteHand.position.set(0,.35,.108);g.add(watchMinuteHand);
+  B(watchMinuteHand,.017,.175,.018,0,.080,0,m.dark,.006);
+  C(g,.024,.018,0,.35,.128,m.gold,"z");
   C(g,.055,.043,0,.60,0,m.gold);
  }
  // Vending machine has a physical glass panel and dispensed sugar tray.
@@ -360,7 +369,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   B(g,.44,.70,.34,0,.39,0,m.blue,.027);
   B(g,.29,.29,.024,-.032,.51,.184,m.dark,.015);
   for(let i=0;i<4;i++)B(g,.22,.013,.016,-.032,.4+i*.056,.204,m.brass,.006);
-  B(g,.27,.083,.09,0,.17,.20,m.dark,.016);
+  // A real coin-return mouth with a captive sliding sugar tray. The tray
+  // extends when money is accepted and a little farther after the jam is
+  // cleared; rewards still go straight to inventory with no pop-out sprite.
+  B(g,.29,.10,.09,0,.17,.19,m.dark,.016);
+  vendingTray=new THREE.Group();
+  vendingTray.position.set(0,.17,.225);g.add(vendingTray);
+  B(vendingTray,.245,.072,.068,0,0,0,m.brass,.013);
+  B(vendingTray,.169,.022,.011,0,.013,.040,m.cream,.005);
   B(g,.12,.06,.03,.135,.39,.187,m.gold,.007);
   C(g,.045,.022,.13,.53,.193,m.cream,"z");
  }
@@ -646,6 +662,16 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    });
   }
   lastVaseBroken=!!s.vase;
+  // The 4:17 correspondence changes the watch's *actual* dial. Keep
+  // the final angle on reload and don't replay the discovery animation.
+  const tapeRead=!!s.tapeInserted;
+  setPose(watchHourHand,"rotation","z",tapeRead?-(4+17/60)*Math.PI/6:0,
+   1.08,firstRestore);
+  setPose(watchMinuteHand,"rotation","z",tapeRead?-17*Math.PI/30:0,
+   1.08,firstRestore);
+  const vendValue=!!s.shimUsed?.39:
+   Array.isArray(s.seen)&&s.seen.includes("machine")?.32:.225;
+  setPose(vendingTray,"position","z",vendValue,.62,firstRestore);
   // The code wheels are hidden inside the luggage lining until the
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
@@ -815,7 +841,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    shardsVisible:vaseFragments?.visible??false,
    shardCount:vaseFragments?.children.length??0,
    vaseShardSpread:vaseFragments?.children.reduce((sum,shard)=>sum+Math.hypot(shard.position.x,shard.position.z),0)??0,
-   dancerRotation:dancer.rotation.y
+   dancerRotation:dancer.rotation.y,
+   watchHourAngle:watchHourHand?.rotation.z??null,
+   watchMinuteAngle:watchMinuteHand?.rotation.z??null,
+   vendingTrayDepth:vendingTray?.position.z??null
   }),
   setState,
   meshCount:()=>parts,
