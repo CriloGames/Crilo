@@ -1,0 +1,164 @@
+import * as THREE from "three";
+
+// Every reward lives in a real, selectable three-dimensional cradle attached
+// to its source miniature or mechanism. Puzzle state and inventory decisions
+// remain solely in cube-secrets.js; this module only displays saved pickups.
+export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,setHit,invalidate=()=>{}}){
+ const metal=mat(0xe6c994,.72,.32);
+ const copper=mat(0xc58b72,.65,.36);
+ const ink=mat(0x38444c,.35,.52);
+ const paper=mat(0xf7e7cb,.04,.82);
+ const glass=mat(0x9bd9dc,.15,.20);
+ const leaf=mat(0x9cb78b,.08,.75);
+ const sugar=mat(0xfffaf0,.04,.78);
+ const porcelain=mat(0xd6b5b9,.08,.65);
+ // The first four original collectibles already have dedicated models
+ // inside the sliding compartments and under the cube.
+ const sources={
+  coin:["bag",0],reed:["bag",1],treat:["bag",2],prism:["bag",3],
+  sugar:["machine",0],tag:["dog",0],postcard:["dog",1],
+  acorn:["squirrel",0],spring:["squirrel",1],
+  raindrop:["cloud",0],bird:["pot",0],
+  lens:["elevator",0],stardust:["moth",0],starmap:["telescope",0],
+  parcel:["train",0],envelope:["train",1],
+  tape:["musicbox",0],letter:["clock",0],
+  bell:["dot",0],fork:["pressure",0],shim:["vent-3",0],
+  cog:["cube-offer",0],washer:["hinge-0",0],cylinder:["shutter",0],
+  iris:["eye",0]
+ };
+ const instances=new Map();
+ const locations={
+  0:[-.20,-.16],1:[-.06,-.245],2:[.10,-.16],3:[.24,-.245]
+ };
+ function built(group,id){
+  const material=["prism","raindrop","sugar","lens","stardust","iris"].includes(id)
+   ?(id==="sugar"?sugar:glass):
+   ["bird","starmap","parcel","postcard","tape","letter","envelope"].includes(id)?paper:
+   ["acorn","treat","reed"].includes(id)?leaf:metal;
+  const add=(geo,m=material,x=0,y=0,z=0)=>{
+   const part=new THREE.Mesh(geo,m);
+   part.position.set(x,y,z);part.castShadow=true;part.receiveShadow=true;
+   group.add(part);return part;
+  };
+  const B=(w,h,d,x=0,y=0,z=0,m=material)=>
+   add(new THREE.BoxGeometry(w,h,d),m,x,y,z);
+  const C=(r,d,x=0,y=0,z=0,m=material)=>
+   add(new THREE.CylinderGeometry(r,r,d,18),m,x,y,z);
+  const ring=(r,t=0.023,z=.045,m=material)=>
+   add(new THREE.TorusGeometry(r,t,8,24),m,0,0,z);
+  if(["coin","tag","lens","iris"].includes(id)){
+   const disc=C(.093,.032,0,0,.025);
+   disc.rotation.x=Math.PI/2;
+   ring(.073,.014,.052,id==="tag"?copper:metal);
+   if(id==="tag")B(.040,.030,.023,0,0,.065,ink);
+  }else if(["washer"].includes(id)){
+   ring(.090,.026,.045);
+  }else if(id==="bell"){
+   const cone=add(new THREE.ConeGeometry(.10,.15,18),copper,0,-.015,.04);
+   cone.rotation.z=Math.PI;
+   ring(.105,.016,.047);
+   const clapper=C(.027,.04,0,-.095,.05,ink);
+   clapper.rotation.x=Math.PI/2;
+  }else if(id==="fork"){
+   B(.02,.18,.028,0,-.012,.05,metal);
+   for(const x of [-.05,.05])B(.020,.132,.026,x,.062,.05);
+   B(.10,.024,.02,0,.01,.05);
+  }else if(id==="spring"){
+   const curve=new THREE.CatmullRomCurve3(Array.from({length:33},(_,i)=>{
+    const t=i/32*Math.PI*7;
+    return new THREE.Vector3(Math.cos(t)*.058,-.097+i/32*.194,
+     .050+Math.sin(t)*.058);
+   }));
+   add(new THREE.TubeGeometry(curve,64,.013,6,false),copper);
+  }else if(id==="prism"){
+   add(new THREE.TetrahedronGeometry(.115),glass,0,0,.06).rotation.y=.35;
+  }else if(id==="raindrop"){
+   add(new THREE.SphereGeometry(.08,16,12),glass,0,-.012,.06)
+    .scale.set(.68,1.37,.55);
+  }else if(id==="acorn"){
+   add(new THREE.SphereGeometry(.075,14,10),leaf,0,-.020,.07);
+   const cap=C(.083,.03,0,.046,.07,copper);cap.rotation.x=Math.PI/2;
+  }else if(["cog","shim"].includes(id)){
+   if(id==="cog"){
+    C(.067,.04,0,0,.05,copper).rotation.x=Math.PI/2;
+    for(let i=0;i<8;i++){
+     const a=i*Math.PI/4;
+     B(.043,.036,.035,Math.cos(a)*.09,Math.sin(a)*.09,.050);
+    }
+    ring(.034,.012,.078,ink);
+   }else B(.16,.042,.027,0,0,.06,copper).rotation.z=.28;
+  }else if(id==="sugar"){
+   const cube=B(.135,.135,.135,0,0,.075,sugar);
+   cube.rotation.set(.19,.27,.15);
+  }else if(["cylinder","reed"].includes(id)){
+   const tube=C(.062,.18,0,0,.06,id==="reed"?leaf:copper);
+   tube.rotation.z=Math.PI/2;
+   for(const x of [-.08,.08]){
+    const cap=C(.064,.026,x,0,.06,ink);cap.rotation.z=Math.PI/2;
+   }
+  }else if(["stardust"].includes(id)){
+   const star=new THREE.Shape();
+   for(let i=0;i<10;i++){
+    const a=i*Math.PI/5-Math.PI/2,r=i%2?.04:.109;
+    if(i===0)star.moveTo(Math.cos(a)*r,Math.sin(a)*r);
+    else star.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+   }
+   star.closePath();
+   add(new THREE.ExtrudeGeometry(star,{depth:.035,bevelEnabled:true,
+    bevelSize:.009,bevelThickness:.007,bevelSegments:1}),glass,0,0,.048);
+  }else if(["bird"].includes(id)){
+   const left=B(.14,.095,.016,-.045,.018,.06,paper);
+   const right=B(.14,.095,.016,.045,.018,.06,paper);
+   left.rotation.z=-.6;right.rotation.z=.6;
+   B(.044,.15,.018,0,-.023,.069,porcelain);
+  }else if(["paper","starmap","postcard","tape","letter","envelope","parcel"].includes(id)){
+   const fold=id==="parcel"? .13:.17;
+   const sheet=B(fold,fold*.74,id==="parcel"?.10:.027,0,0,.065,paper);
+   if(id==="parcel")sheet.rotation.z=.12;
+   for(let i=0;i<3;i++)B(fold*.58,.008,.006,0,.035-i*.027,.083,ink);
+  }else if(id==="treat"){
+   B(.17,.075,.045,0,0,.06,leaf);
+   for(const x of [-.08,.08]){add(new THREE.SphereGeometry(.04,10,8),leaf,x,0,.06);}
+  }else{
+   B(.13,.085,.055,0,0,.065,material);
+   B(.09,.018,.013,0,.008,.10,ink);
+  }
+ }
+ for(const [id,[source,slot]] of Object.entries(sources)){
+  const host=worlds?.getPickupHost?.(source)||
+   hotspots?.targets?.get(source);
+  if(!host)throw Error("No physical pickup origin for "+id+": "+source);
+  const atMini=!!worlds?.getPickupHost?.(source);
+  const root=new THREE.Group();
+  const [px,py]=locations[slot]||locations[0];
+  // Every miniature has its own shallow brass shelf. The pickup lives
+  // in front of the source's hit volume, but below the working controls.
+  root.position.set(atMini?px:0,atMini?py:0,atMini?.78:.27);
+  host.add(root);
+  const cradle=box(root,.19,.028,.11,0,-.115,-.045,ink,.012);
+  box(root,.17,.013,.13,0,-.092,-.017,metal,.005);
+  const model=new THREE.Group();model.position.y=.005;root.add(model);
+  built(model,id);
+  // Tiny objects still have a reliable fingertip-sized, depth-aware
+  // physical picking surface, restricted to the object itself.
+  const target=new THREE.Mesh(new THREE.BoxGeometry(.21,.23,.095),
+   new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
+    depthWrite:false,side:THREE.DoubleSide}));
+  target.position.z=.085;root.add(target);
+  setHit(root,"pickup:"+id);
+  root.visible=false;
+  instances.set(id,root);
+ }
+ return {
+  ids:[...instances.keys()],
+  targets:instances,
+  getPending:()=>[...instances].filter(([,v])=>v.visible).map(([id])=>id),
+  setState(state){
+   const pending=new Set(state?.pendingPickups||[]);
+   for(const [id,root] of instances){
+    const visible=pending.has(id);
+    if(root.visible!==visible){root.visible=visible;invalidate();}
+   }
+  }
+ };
+}
