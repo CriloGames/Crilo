@@ -7,7 +7,7 @@ import {chromium} from "playwright";
 
 const html=readFileSync(new URL("../secrets.html",import.meta.url),"utf8");
 const source=readFileSync(new URL("../cube-secrets.js",import.meta.url),"utf8");
-const titles=[...source.matchAll(/^\\s*\\['([a-z-]+)','/gm)].map(m=>m[1]);
+const titles=source.split("\n").filter(line=>line.trimStart().startsWith("['")).map(line=>line.trim().split("'")[1]);
 assert.equal(titles.length,60,"Original secrets were lost");
 assert.equal(new Set(titles).size,60,"Duplicate secret IDs");
 assert(!html.includes('id="ncPhysicalToggle"'),"Legacy Classic switch returned");
