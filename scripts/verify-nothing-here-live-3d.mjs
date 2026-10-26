@@ -487,7 +487,33 @@ try{
  assert.equal(handbag.pick,"thing:bag",
   "The 3D bag is hidden behind the box or its hit region is unreachable: "+JSON.stringify(handbag));
  const bagBefore=await page.locator("#ncNarrator").innerText();
+ // Capture the exact input ray at pointer-down. A point may be correct
+ // before Playwright scrolls/focuses the canvas yet dispatch to a different
+ // mechanism when it actually lands, especially under software WebGL.
+ await page.evaluate(()=>{
+  window.__bagPointerEvents=[];
+  document.querySelector("#stage canvas").addEventListener("pointerdown",e=>{
+   const r=e.currentTarget.getBoundingClientRect();
+   window.__bagPointerEvents.push({
+    clientX:e.clientX,clientY:e.clientY,
+    localX:e.clientX-r.left,localY:e.clientY-r.top,
+    picked:window.__nothing3DPreview.getPhysicalActionAt(e.clientX-r.left,e.clientY-r.top),
+    cubeRotation:window.__nothing3DPreview.navigationState,
+    rect:{left:r.left,top:r.top,width:r.width,height:r.height}
+   });
+  },{capture:true,once:true});
+ });
  await page.locator("#stage canvas").click({position:{x:handbag.x,y:handbag.y},timeout:30000});
+ const bagInput=await page.evaluate(({x,y})=>{
+  const r=document.querySelector("#stage canvas").getBoundingClientRect();
+  return {events:window.__bagPointerEvents,
+   atProjected:window.__nothing3DPreview.getPhysicalActionAt(x,y),
+   freshProjection:window.__nothing3DPreview.projectPhysicalStoryObject("bag"),
+   clientCanvas:{left:r.left,top:r.top,width:r.width,height:r.height},
+   clicked:window.__nothing3DPreview.lastClickedAction};
+ },handbag);
+ if(bagInput.clicked!=="thing:bag")
+  console.log("BAG INPUT RAYCAST DIAGNOSTIC",JSON.stringify(bagInput));
  if(!(await page.locator("#ncNarrator").innerText()).includes("bag is locked"))
   console.log("BAG POINTER DIAGNOSTIC",JSON.stringify({
    projection:handbag,prior:bagBefore,
