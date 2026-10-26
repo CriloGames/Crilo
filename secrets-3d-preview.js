@@ -371,7 +371,9 @@ ringHub.position.z=-.035;undersideRing.add(ringHub);
 // A lift pin, rather than a painted symbol, marks where to inspect the ring.
 const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
 setHit(undersideRing,"underside");
-label(backFace,"IS ANYONE THERE?",2.35,.32,0,.95,.102,"#e1eecf","#698267");
+// Reserve the middle of the rear face for its three discovered sculptures.
+// The original wide plaque ran straight through their heads.
+label(backFace,"IS ANYONE THERE?",2.35,.23,0,1.28,.102,"#e1eecf","#698267");
 // Raised physical ring on the back face.
 const lensOuter=new THREE.Mesh(new THREE.TorusGeometry(.72,.083,15,72),metal);
 lensOuter.position.set(0,-.18,.19);backFace.add(lensOuter);objectCount++;
