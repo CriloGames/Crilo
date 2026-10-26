@@ -479,7 +479,11 @@ function render(){
  // The physical renderer reflects the same authoritative puzzle state;
  // neither the 3D mesh nor its animation grants secrets independently.
  window.dispatchEvent(new CustomEvent('nc:statechange',{
-  detail:{...s,pocket:[...pocket],pendingPickups:[...pendingPickups],selected}
+  // Always send the discovery catalog alongside the physical inventory.
+  // Story props (such as the vending tray) depend on awarded discoveries,
+  // not just boolean puzzle flags. Missing "seen" rewound their movements
+  // on the next render even though the save itself was correct.
+  detail:{...s,seen:[...seen],pocket:[...pocket],pendingPickups:[...pendingPickups],selected}
  }));
 }
 function collection(id){gain(id,'You found '+names[id]+'.',true)}
