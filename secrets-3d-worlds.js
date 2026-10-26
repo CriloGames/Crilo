@@ -116,12 +116,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // red switch, service lever and the four underside shock feet.
  // Keep the display sockets clear of those permanent puzzle mechanisms.
  const slots=[
-  ["bag","frontFace",-1.00,-.81],["machine","frontFace",1.02,.74],
+  ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.02,.74],
   ["door","rightFace",-1.01,.80],["dog","rightFace",1.01,.08],
   ["vase","leftFace",1.03,1.13],
-  ["pot","backFace",-1.02,.68],["musicbox","backFace",0,.72],
-  ["cloud","backFace",1.03,.70],["squirrel","bottomFace",-1.03,.28],
-  ["cup","leftFace",.0,-1.0],["clock","frontFace",1.03,-.83],
+  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.12],
+  ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
+  ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
   ["moth","topFace",-1.04,.21],["telescope","topFace",1.04,-.65],
   ["train","bottomFace",1.03,.28]
