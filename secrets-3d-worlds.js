@@ -49,6 +49,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
  let lastVaseBroken=false,lastDancerVisible=false,lastSeedPlanted=false,lastTreeGrown=false;
+ let lastVendingDepth=.225,lastTapeRead=false;
  const microTimers=new Map();
  const settleMicro=(name,delay,settle)=>{
   if(microTimers.has(name))clearTimeout(microTimers.get(name));
@@ -692,13 +693,30 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // The 4:17 correspondence changes the watch's *actual* dial. Keep
   // the final angle on reload and don't replay the discovery animation.
   const tapeRead=!!s.tapeInserted;
-  setPose(watchHourHand,"rotation","z",tapeRead?-(4+17/60)*Math.PI/6:0,
-   1.08,firstRestore);
-  setPose(watchMinuteHand,"rotation","z",tapeRead?-17*Math.PI/30:0,
-   1.08,firstRestore);
+  const hourEnd=tapeRead?-(4+17/60)*Math.PI/6:0;
+  const minuteEnd=tapeRead?-17*Math.PI/30:0;
+  setPose(watchHourHand,"rotation","z",hourEnd,1.08,firstRestore);
+  setPose(watchMinuteHand,"rotation","z",minuteEnd,1.08,firstRestore);
+  if(tapeRead!==lastTapeRead&&!firstRestore&&!reducedMotion){
+   settleMicro("watch",1550,()=>{
+    gsap.killTweensOf(watchHourHand.rotation);
+    gsap.killTweensOf(watchMinuteHand.rotation);
+    watchHourHand.rotation.z=hourEnd;watchMinuteHand.rotation.z=minuteEnd;
+   });
+  }
+  lastTapeRead=tapeRead;
   const vendValue=s.shimUsed ? .39 :
    (Array.isArray(s.seen)&&s.seen.includes("machine") ? .32 : .225);
   setPose(vendingTray,"position","z",vendValue,.62,firstRestore);
+  if(Math.abs(vendValue-lastVendingDepth)>.001&&!firstRestore&&!reducedMotion){
+   const target=vendValue;
+   settleMicro("vending",1100,()=>{
+    if(lastVendingDepth!==target)return;
+    gsap.killTweensOf(vendingTray.position);
+    vendingTray.position.z=target;
+   });
+  }
+  lastVendingDepth=vendValue;
   // The code wheels are hidden inside the luggage lining until the
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
