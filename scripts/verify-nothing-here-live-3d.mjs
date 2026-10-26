@@ -351,6 +351,21 @@ try{
  await activate("right-bolt-1");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
   "Removing the service bolt must uncover its genuine inscribed number");
+ // A successfully entered service sequence must now move a *real*
+ // bolted-on vent cover; simply adding a shim to inventory is not enough.
+ const ventBefore=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert(Math.abs(ventBefore.ventHatchOffset)<.001,
+  "The vent grille begins open before the numbered switches are pressed");
+ for(const n of [3,1,2])await activate("vent-"+n);
+ assert((await state()).ventOpen&&(await state()).pocket.includes("shim"),
+  "Three-one-two did not unlock the original vent reward");
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.25,
+  null,{timeout:18000,polling:250});
+ const openVent=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert(openVent.ventHatchOffset<-.25,
+  "The real vent shutter did not retract into its final open position");
+ console.log("PASS: three numbered physical switches withdraw the metal vent shutter");
  await activate("foot");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).footNumber,
   "The folded-back foot must uncover the hidden underside inscription");
@@ -446,6 +461,11 @@ try{
  assert.equal((await state()).redHits,4,"Red-dot sequence lost state parity");
  assert((await state()).pocket.includes("bell"),
   "The bell must still be collected without a floating reward popup");
+ const redFeedback=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0,
+  "Four presses must change the real red control's retaining ring, not show a floating bell: "+
+   JSON.stringify(redFeedback));
  const quietRewards=await page.evaluate(()=>{
   const hidden=id=>getComputedStyle(document.getElementById(id)).display==="none";
   return {toast:hidden("ncToast"),incident:hidden("ncIncident"),
@@ -896,6 +916,9 @@ try{
   "Previously opened miniature doors and music-box lids did not restore their 3D hinge poses: "+JSON.stringify(vignette));
  assert(vignette.shardsVisible&&!vignette.vaseWholeVisible&&vignette.shardCount===12,
   "A broken vase must restore as solid individual ceramic shards: "+JSON.stringify(vignette));
+ assert(vignette.vaseShardSpread>.5&&Math.abs(vignette.dancerRotation)<.05,
+  "Saved miniature shards and dancer must settle physically without replaying old actions: "+
+   JSON.stringify(vignette));
  assert(vignette.mothWingAngles.length===2&&
   vignette.mothWingAngles[0]<-.69&&vignette.mothWingAngles[1]>.69,
   "Clockwork moth wings did not restore their physical open pose: "+JSON.stringify(vignette));
@@ -907,6 +930,10 @@ try{
   "The miniature train lost its sculpted rotating axles: "+JSON.stringify(vignette));
  assert(Math.abs(vignette.dogTailAngle)<.01,
   "Saved dog tail did not rest on its own hinge");
+ const reloadedFeedback=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert(reloadedFeedback.ventHatchOffset<-.25&&reloadedFeedback.redRewardGlow>.65,
+  "Completed mechanical effects must survive a save/reload: "+JSON.stringify(reloadedFeedback));
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
