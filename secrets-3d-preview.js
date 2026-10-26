@@ -1019,6 +1019,7 @@ window.__nothing3DPreview={
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
+ get physicalPickupLayout(){return physicalPickups?.getLayout?.()||[]},
  projectPhysicalPickup(id){
   const root=physicalPickups?.targets.get(id);
   if(!root||!isMeshEffectivelyVisible(root))return null;
