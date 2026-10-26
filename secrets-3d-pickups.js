@@ -27,8 +27,11 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   iris:["eye",0]
  };
  const instances=new Map();
+ // Source miniatures use an honest 2x2 tray, not four items crossing
+ // each other's hitboxes. Center spacing is 0.32 x 0.25, and each
+ // collectible has a smaller (but independently tappable) footprint.
  const locations={
-  0:[-.20,-.16],1:[-.06,-.245],2:[.10,-.16],3:[.24,-.245]
+  0:[-.16,-.12],1:[.16,-.12],2:[-.16,-.37],3:[.16,-.37]
  };
  function built(group,id){
   const material=["prism","raindrop","sugar","lens","stardust","iris"].includes(id)
@@ -134,9 +137,19 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // Every miniature has its own shallow brass shelf. The pickup lives
   // in front of the source's hit volume, but below the working controls.
   root.position.set(atMini?px:0,atMini?py:0,atMini?.78:.27);
+  root.scale.setScalar(atMini?.78:1);
   host.add(root);
-  const cradle=box(root,.19,.028,.11,0,-.115,-.045,ink,.012);
-  box(root,.17,.013,.13,0,-.092,-.017,metal,.005);
+  // Every small found object has a bolted shallow cradle with a dark
+  // machined inset. The object rests in the socket; it is not a flat
+  // cartoon, a badge, or a reward that floats away from the cube.
+  box(root,.225,.036,.14,0,-.116,-.048,ink,.013);
+  box(root,.19,.013,.12,0,-.087,-.008,metal,.005);
+  for(const x of [-.082,.082]){
+   const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.014,8),copper);
+   bolt.rotation.x=Math.PI/2;
+   bolt.position.set(x,-.108,.063);
+   root.add(bolt);
+  }
   const model=new THREE.Group();model.position.y=.005;root.add(model);
   built(model,id);
   // Tiny objects still have a reliable fingertip-sized, depth-aware
@@ -153,6 +166,10 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   ids:[...instances.keys()],
   targets:instances,
   getPending:()=>[...instances].filter(([,v])=>v.visible).map(([id])=>id),
+  getLayout:()=>[...instances].map(([id,root])=>({
+   id,source:sources[id][0],slot:sources[id][1],
+   position:root.position.toArray(),scale:root.scale.x
+  })),
   setState(state){
    const pending=new Set(state?.pendingPickups||[]);
    for(const [id,root] of instances){
