@@ -560,7 +560,7 @@ function inspectHardware(name){
    s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
    if(s.screws.length===3){
     s.plateOpen=true;gain('cog');
-    bloom('faceplate','With the third screw out, a spring lifts the enamel plate. A brass drive cog drops into your pocket.');
+    bloom('faceplate','With the third screw out, a spring lifts the enamel plate. A brass drive cog rises into the exposed socket.');
     cue('ncCube','nc-scene-blink',800);
    }else tell('A real screw came out. The empty socket has surprisingly fine threads.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
@@ -755,7 +755,7 @@ function use(item,thing){
   bloom('portal','The paper sinks through solid enamel. A tiny landscape appears inside the cube.');
  }else if(item==='cog'&&thing==='eye'){
   spend('cog');s.opticOpened=true;gain('iris');
-  bloom('hidden-optic','The brass gear meshes with the eye. A tiny glass iris falls into your pocket.');
+  bloom('hidden-optic','The brass gear meshes with the eye. A tiny glass iris comes loose inside its socket.');
  }else if(item==='iris'&&thing==='telescope'){
   spend('iris');s.secondSky=true;
   bloom('second-sky','For an instant, the telescope sees two different skies at once.');
