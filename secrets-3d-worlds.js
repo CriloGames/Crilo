@@ -47,6 +47,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let dogTail=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
+ let lastVaseBroken=false,lastDancerVisible=false;
  const microTimers=new Map();
  const settleMicro=(name,delay,settle)=>{
   if(microTimers.has(name))clearTimeout(microTimers.get(name));
@@ -278,6 +279,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    }),i%4===0?m.cream:m.pink);
    shard.position.set(Math.cos(angle)*radius,.071+Math.min(.02,i%4*.005),Math.sin(angle)*radius);
    shard.rotation.set(-Math.PI/2+(i%4)*.15,angle,(i%3-1)*.20);
+   shard.userData.restPosition=shard.position.clone();
+   shard.userData.restRotation=shard.rotation.clone();
    shard.scale.setScalar(.85+(i%4)*.14);
    shard.castShadow=false;shard.receiveShadow=true;
    vaseFragments.add(shard);parts++;
@@ -595,10 +598,54 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   branches.visible=!!s.tree;
   dancer.visible=!!s.dancer;
+  // Starting the tiny dancer now physically turns the figure on the
+  // music-box spindle instead of only toggling a static model. A restored
+  // game keeps the settled pose and never replays completed discoveries.
+  if(s.dancer&&!lastDancerVisible&&!firstRestore&&!reducedMotion){
+   gsap.killTweensOf(dancer.rotation);
+   dancer.rotation.y=0;
+   gsap.to(dancer.rotation,{y:Math.PI*2,duration:1.45,
+    ease:"power2.inOut",onUpdate:invalidate,
+    onComplete:()=>{dancer.rotation.y=0;invalidate()}});
+   settleMicro("dancer",1900,()=>{
+    gsap.killTweensOf(dancer.rotation);dancer.rotation.y=0;
+   });
+  }else if(!s.dancer){
+   gsap.killTweensOf(dancer.rotation);dancer.rotation.y=0;
+  }
+  lastDancerVisible=!!s.dancer;
   setPose(doorLeaf,"rotation","y",s.doorOpen?-.98:0,.65,firstRestore);
   setPose(musicLid,"rotation","x",s.music?-.91:0,.65,firstRestore);
   if(vaseWhole)vaseWhole.visible=!s.vase;
   if(vaseFragments)vaseFragments.visible=!!s.vase;
+  if(vaseFragments&&s.vase&&!lastVaseBroken&&!firstRestore&&!reducedMotion){
+   // A dog bark fractures the real pottery. Twelve captive ceramic pieces
+   // scatter onto their existing little shelf, not off the face or into a
+   // separate popup. Their end poses are deterministic and save-safe.
+   vaseFragments.children.forEach((piece,i)=>{
+    const p=piece.userData.restPosition,r=piece.userData.restRotation;
+    gsap.killTweensOf(piece.position);gsap.killTweensOf(piece.rotation);
+    piece.position.set(0,.31,0);piece.rotation.set(-.4,0,0);
+    gsap.to(piece.position,{x:p.x,y:p.y,z:p.z,
+     duration:.45+i*.025,ease:"power2.out",onUpdate:invalidate});
+    gsap.to(piece.rotation,{x:r.x,y:r.y,z:r.z,
+     duration:.43+i*.025,ease:"power2.out",onUpdate:invalidate});
+   });
+   settleMicro("vase",1150,()=>{
+    vaseFragments.children.forEach(piece=>{
+     gsap.killTweensOf(piece.position);gsap.killTweensOf(piece.rotation);
+     piece.position.copy(piece.userData.restPosition);
+     piece.rotation.copy(piece.userData.restRotation);
+    });
+   });
+  }else if(!s.vase){
+   vaseFragments?.children.forEach(piece=>{
+    gsap.killTweensOf(piece.position);gsap.killTweensOf(piece.rotation);
+    piece.position.copy(piece.userData.restPosition);
+    piece.rotation.copy(piece.userData.restRotation);
+   });
+  }
+  lastVaseBroken=!!s.vase;
   // The code wheels are hidden inside the luggage lining until the
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
@@ -766,7 +813,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    musicLidAngle:musicLid?.rotation.x??0,
    vaseWholeVisible:vaseWhole?.visible??false,
    shardsVisible:vaseFragments?.visible??false,
-   shardCount:vaseFragments?.children.length??0
+   shardCount:vaseFragments?.children.length??0,
+   vaseShardSpread:vaseFragments?.children.reduce((sum,shard)=>sum+Math.hypot(shard.position.x,shard.position.z),0)??0,
+   dancerRotation:dancer.rotation.y
   }),
   setState,
   meshCount:()=>parts,
