@@ -18,14 +18,18 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
  const sources={
   coin:["bag",0],reed:["bag",1],treat:["bag",2],prism:["bag",3],
   sugar:["machine",0],tag:["dog",0],postcard:["dog",1],
-  acorn:["squirrel",0],spring:["squirrel",1],
+  // The vase breaks and its contents spill out there. Neither reward
+  // should materialize at the squirrel that merely knocked it over.
+  acorn:["vase",0],spring:["vase",1],
   raindrop:["cloud",0],bird:["pot",0],
   lens:["elevator",0],stardust:["moth",0],starmap:["telescope",0],
   parcel:["train",0],envelope:["train",1],
   tape:["musicbox",0],letter:["clock",0],
-  bell:["dot",0],fork:["pressure",0],shim:["vent-3",0],
-  cog:["cube-offer",0],washer:["hinge-0",0],cylinder:["shutter",0],
-  iris:["eye",0]
+  // Each mechanism reward originates in its unlocked recess, not on
+  // whichever actuator triggered the mechanism. Bell releases underneath.
+  bell:["underside",0],fork:["pressure",0],shim:["vent-pocket",0],
+  cog:["front-cog-pocket",0],washer:["hinge-0",0],
+  cylinder:["service-pocket",0],iris:["eye",0]
  };
  const instances=new Map();
  // Collectibles are carried by captive, shallow slide-out trays; they
@@ -211,15 +215,19 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // parented to hinge-0: that pin is already hidden and would make the
   // essential washer permanently invisible. Anchor it to the empty seat.
   // Likewise, do not hide the mechanical eye behind its loose glass iris.
-  const surface= id==="washer"
+  const surface=id==="washer"
+   // The last pin is physically withdrawn, so keep the washer in the
+   // permanently attached top hinge seat, not in a vanished pin.
    ?{face:faces.topFace,x:-.54,y:.86,z:.20}
    :id==="iris"
-    ?{face:faces.backFace,x:.56,y:.77,z:.20}
+    // Small output recess joined to the right shoulder of the glass eye.
+    ?{face:faces.backFace,x:.91,y:.25,z:.20}
    :id==="fork"
-    // The old fork socket was parented *inside the pressure knob*, so
-    // the revealed reward obscured the gauge dial and its pointer.
-    // Park it in the empty enamel above the instrument instead.
-    ?{face:faces.leftFace,x:.95,y:1.23,z:.20}:null;
+    // A narrow instrument holder above the gauge clears the actual needle.
+    ?{face:faces.leftFace,x:.95,y:1.23,z:.20}
+   :id==="bell"
+    // The red switch releases a bell from a hidden underside slot.
+    ?{face:faces.bottomFace,x:0,y:-1.16,z:.20}:null;
   const root=new THREE.Group();
   const [px,py]=locations[slot]||locations[0];
   // The carrier is supported by its own face-mounted bracket. Item
@@ -235,6 +243,21 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     retainer.position.set(surface.x,surface.y,surface.z);
     surface.face.add(retainer);
    }else host.add(retainer);
+   // Machined lead-ins make each output an identifiable part of the
+   // mechanism before unlock, without exposing the reward or answer.
+   // Their fixed components are shallow and avoid covering buttons.
+   if(id==="fork"){
+    const link=new THREE.Group();
+    faces.leftFace.add(link);
+    box(link,.028,.22,.031,.95,1.065,.175,copper,.006);
+    box(link,.18,.026,.038,.95,1.175,.176,metal,.008);
+   }
+   if(id==="iris"){
+    box(faces.backFace,.21,.025,.030,.80,.22,.162,copper,.007);
+   }
+   if(id==="bell"){
+    box(faces.bottomFace,.26,.034,.045,0,-1.34,.157,copper,.009);
+   }
    // The collectible and its bracket are a single physical assembly,
    // hidden together when the player has not yet earned the object.
    // Gauge and face fittings need a tiny socket, not the thick black
