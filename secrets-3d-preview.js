@@ -5,9 +5,9 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=14";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=25";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=26";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=41";
-import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=10";
+import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=11";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -1396,6 +1396,7 @@ window.__nothing3DPreview={
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
  get physicalMechanicalFeedback(){return gameHotspots?.getMechanicalFeedback?.()||null},
+ get frontCogHatchPose(){return gameHotspots?.getCogHatchPose?.()||null},
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
  detailState:()=>intricate.getState(),
