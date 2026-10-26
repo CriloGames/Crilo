@@ -114,14 +114,55 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    const right=B(.14,.095,.016,.045,.018,.06,paper);
    left.rotation.z=-.6;right.rotation.z=.6;
    B(.044,.15,.018,0,-.023,.069,porcelain);
-  }else if(["paper","starmap","postcard","tape","letter","envelope","parcel"].includes(id)){
-   const fold=id==="parcel"? .13:.17;
-   const sheet=B(fold,fold*.74,id==="parcel"?.10:.027,0,0,.065,paper);
-   if(id==="parcel")sheet.rotation.z=.12;
-   for(let i=0;i<3;i++)B(fold*.58,.008,.006,0,.035-i*.027,.083,ink);
+  }else if(id==="starmap"){
+   // A folded chart with tiny star punches and an embossed constellation.
+   B(.185,.138,.024,0,0,.064,paper);
+   B(.009,.137,.008,-.035,0,.081,copper);
+   for(const [x,y] of [[-.057,.029],[.003,.045],[.054,.011],[-.021,-.035],[.069,-.044]])
+    add(new THREE.SphereGeometry(.011,7,5),metal,x,y,.081);
+   for(const [x,y,ang] of [[-.028,.035,.25],[.027,.023,-.43],[.016,-.025,.3]]){
+    const link=B(.064,.007,.007,x,y,.082,ink);link.rotation.z=ang;
+   }
+  }else if(id==="postcard"){
+   B(.185,.125,.021,0,0,.061,paper);
+   B(.174,.114,.006,0,0,.075,copper);
+   B(.161,.103,.006,0,0,.079,paper);
+   B(.041,.039,.011,.055,.027,.088,leaf);
+   for(let i=0;i<3;i++)B(.064,.007,.006,-.036,.027-i*.032,.089,ink);
+  }else if(id==="tape"){
+   // A literal punched music tape with staggered holes, not another page.
+   B(.208,.083,.021,0,0,.064,paper);
+   B(.201,.008,.009,0,.033,.081,copper);
+   B(.201,.008,.009,0,-.033,.081,copper);
+   for(let i=0;i<9;i++)
+    B(.010,.011,.009,-.084+i*.021,i%3===0?.016:-.016,.082,ink);
+  }else if(id==="letter"){
+   B(.164,.173,.024,0,0,.060,paper).rotation.z=-.075;
+   B(.140,.007,.008,0,.053,.082,copper);
+   for(let i=0;i<4;i++)
+    B(i===3?.075:.113,.007,.009,-(i===3?.018:0),.027-i*.035,.084,ink);
+  }else if(id==="envelope"){
+   B(.186,.123,.032,0,0,.061,paper);
+   // An actual folded triangular flap sits on top of the sealed envelope.
+   const triangle=new THREE.Shape();
+   triangle.moveTo(-.083,.045);triangle.lineTo(.083,.045);
+   triangle.lineTo(0,-.041);triangle.closePath();
+   const flap=add(new THREE.ShapeGeometry(triangle),copper,0,0,.081);
+   flap.material.side=THREE.DoubleSide;
+   add(new THREE.SphereGeometry(.015,10,7),porcelain,0,-.022,.089);
+  }else if(id==="parcel"){
+   const packageBody=B(.145,.122,.112,0,0,.085,paper);
+   packageBody.rotation.z=.07;
+   B(.021,.124,.012,0,0,.147,copper);
+   B(.149,.019,.012,0,0,.147,copper);
+   B(.044,.023,.012,.028,.028,.157,ink);
   }else if(id==="treat"){
-   B(.17,.075,.045,0,0,.06,leaf);
-   for(const x of [-.08,.08]){add(new THREE.SphereGeometry(.04,10,8),leaf,x,0,.06);}
+   // A small baked dog biscuit: connected bone-shaped ends in warm clay.
+   B(.143,.064,.045,0,0,.065,copper);
+   for(const x of [-.078,.078]){
+    add(new THREE.SphereGeometry(.034,10,8),copper,x,.021,.065);
+    add(new THREE.SphereGeometry(.034,10,8),copper,x,-.021,.065);
+   }
   }else{
    B(.13,.085,.055,0,0,.065,material);
    B(.09,.018,.013,0,.008,.10,ink);
