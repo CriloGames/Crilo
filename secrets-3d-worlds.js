@@ -128,7 +128,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
   ["vase","bottomFace",0,1.12],
-  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.19],
+  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.15],
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
@@ -327,7 +327,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(let i=0;i<7;i++)B(g,.043,.022,.10,-.17+i*.055,.31,.22,i%2?m.cream:m.dark,.008);
   torus(g,.07,.018,.275,.24,.01,m.gold,"x");
   wire(g,[[.27,.27,.01],[.34,.34,.01],[.38,.34,.01]],.013,m.brass);
-  dancer.position.set(0,.44,0);g.add(dancer);
+  // Seat the dancer's spindle in the actual music-box housing. Its old
+  // floating .44 pivot left a visible gap and pushed the figure across
+  // the cube's upper frame after the music-box reward unlocked.
+  dancer.position.set(0,.32,0);g.add(dancer);
   C(dancer,.025,.16,0,.09,0,m.brass);
   ball(dancer,.064,0,.24,0,m.cream);
   C(dancer,.13,.073,0,.055,0,m.pink);
