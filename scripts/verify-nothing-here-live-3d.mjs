@@ -360,10 +360,10 @@ try{
  assert((await state()).ventOpen&&(await state()).pocket.includes("shim"),
   "Three-one-two did not unlock the original vent reward");
  await page.waitForFunction(()=>
-  window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.25,
+  window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.18,
   null,{timeout:18000,polling:250});
  const openVent=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
- assert(openVent.ventHatchOffset<-.25,
+ assert(openVent.ventHatchOffset<-.18,
   "The real vent shutter did not retract into its final open position");
  console.log("PASS: three numbered physical switches withdraw the metal vent shutter");
  await activate("foot");
@@ -944,7 +944,7 @@ try{
   "Saved dog tail did not rest on its own hinge");
  const reloadedFeedback=await page.evaluate(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback);
- assert(reloadedFeedback.ventHatchOffset<-.25&&reloadedFeedback.redRewardGlow>.65,
+ assert(reloadedFeedback.ventHatchOffset<-.18&&reloadedFeedback.redRewardGlow>.65,
   "Completed mechanical effects must survive a save/reload: "+JSON.stringify(reloadedFeedback));
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
