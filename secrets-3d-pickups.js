@@ -147,8 +147,9 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    const triangle=new THREE.Shape();
    triangle.moveTo(-.083,.045);triangle.lineTo(.083,.045);
    triangle.lineTo(0,-.041);triangle.closePath();
-   const flap=add(new THREE.ShapeGeometry(triangle),copper,0,0,.081);
-   flap.material.side=THREE.DoubleSide;
+   const flapMaterial=copper.clone();
+   flapMaterial.side=THREE.DoubleSide;
+   add(new THREE.ShapeGeometry(triangle),flapMaterial,0,0,.081);
    add(new THREE.SphereGeometry(.015,10,7),porcelain,0,-.022,.089);
   }else if(id==="parcel"){
    const packageBody=B(.145,.122,.112,0,0,.085,paper);
