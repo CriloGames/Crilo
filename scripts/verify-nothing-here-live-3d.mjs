@@ -916,9 +916,16 @@ try{
  await page.waitForTimeout(1400);
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews),1,
   "Extracted 3D screws remained visibly attached to the faceplate");
+ // Opening either case exposes a selectable piece. Tapping its solid
+ // casing again must not magically pocket the item without pressing it.
+ await page.evaluate(()=>{
+  window.__nothing3DPreview.clickAction("front");
+  window.__nothing3DPreview.clickAction("side");
+ });
  const beforeManualPickup=await state();
- assert(["tooth","thread","pipe"].every(id=>!beforeManualPickup.pocket.includes(id)),
-  "Contents of 3D drawers must not be automatically collected");
+ assert(["tooth","thread","pipe"].every(id=>!beforeManualPickup.pocket.includes(id))&&
+  !beforeManualPickup.drawerTaken&&!beforeManualPickup.sideTaken,
+  "Clicking an opened drawer housing must not collect its loose item");
  for(const id of ["tooth","thread","pipe"])await collect(id);
  const once=await state();
  assert(["tooth","thread","pipe"].every(id=>once.pocket.includes(id)),
