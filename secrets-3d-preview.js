@@ -1151,6 +1151,7 @@ window.__nothing3DPreview={
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
+ get physicalMechanicalFeedback(){return gameHotspots?.getMechanicalFeedback?.()||null},
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
  detailState:()=>intricate.getState(),
