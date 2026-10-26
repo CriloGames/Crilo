@@ -776,7 +776,7 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  dismissTouchHint();
  clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
   pointerType:e.pointerType,action:pickVisibleAction(e.clientX,e.clientY),
-  inspected:false};
+  inspected:false,moved:false};
  stopInspectTimer();
  if(e.pointerType==="touch"&&clickStart.action){
   const start=clickStart;
@@ -812,7 +812,13 @@ function clearHover(){
 }
 renderer.domElement.addEventListener("pointermove",e=>{
  if(clickStart&&e.pointerId===clickStart.pointerId&&
-    Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9)stopInspectTimer();
+    Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9){
+   clickStart.moved=true;
+   stopInspectTimer();
+   // A drag is not an inspection. Remove even a still-pinned caption from
+   // the previous hold, and don't let the old timer revive it mid-orbit.
+   dismissTouchHint();
+ }
  // Don't let an incidental mouse hover overwrite a keyboard-selected
  // mechanism's name while its focus marker still points to that part.
  if(keyboardIndex>=0||keyboardNoticeActive)return;
@@ -850,6 +856,9 @@ renderer.domElement.addEventListener("pointerup",e=>{
   if(!touchPointers.size)multiTouchGesture=false;
   clearHover();return;
  }
+ if(start?.moved&&start.pointerId===e.pointerId){
+  dismissTouchHint();clearHover();return;
+ }
  if(start?.inspected&&start.pointerId===e.pointerId){
   // OrbitControls fires its own end handler before this canvas listener;
   // it clears the caption. Restore the inspected identity on release and
@@ -869,7 +878,7 @@ renderer.domElement.addEventListener("pointercancel",e=>{
  if(e.pointerType==="touch")touchPointers.delete(e.pointerId);
  stopInspectTimer();clickStart=null;
  if(!touchPointers.size)multiTouchGesture=false;
- clearHover();
+ dismissTouchHint();clearHover();
 });
 renderer.domElement.addEventListener("keydown",event=>{
  if(!embeddedGame)return;
