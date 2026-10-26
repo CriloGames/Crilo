@@ -1281,9 +1281,17 @@ window.__nothing3DPreview={
  },
  setRotation(rx,ry){
   if(!embeddedGame)return;
+  // Player rotation must supersede any old Reset View tween. With a slow
+  // WebGL renderer, stale animation frames can otherwise turn the cube
+  // after the player has aimed at a miniature and before their tap lands.
+  gsap.killTweensOf(cube.rotation);
   cube.rotation.x=THREE.MathUtils.degToRad(rx);
   cube.rotation.y=THREE.MathUtils.degToRad(ry);
   invalidate();
+ },
+ get cubeRotationDegrees(){
+  return {rx:THREE.MathUtils.radToDeg(cube.rotation.x),
+   ry:THREE.MathUtils.radToDeg(cube.rotation.y)};
  },
  syncState(state){
   if(!embeddedGame)return;
