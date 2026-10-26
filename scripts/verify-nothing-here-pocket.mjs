@@ -17,7 +17,7 @@ await page.addInitScript(items=>{
  }));
 },ids);
 try{
- await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
+ await page.goto("http://127.0.0.1:4173/secrets.html",{
   waitUntil:"domcontentloaded",timeout:30000
  });
  await page.waitForFunction(()=>document.querySelectorAll("#ncInventory .nc-item").length===32,
@@ -81,7 +81,7 @@ try{
  assert(contrast!=="rgb(145, 106, 94)"&&contrast!=="rgb(0, 0, 0)",
   "Glass icons did not adjust for dark mode");
  assert.deepEqual(errors,[],"Pocket rendering threw a browser exception");
- console.log("PASS: all 32 distinct vector pocket items, readable icon size, Classic restore, selection and dark-mode contrast");
+ console.log("PASS: all 32 distinct vector pocket items, readable icon size, 3D-only restore, selection and dark-mode contrast");
 }finally{
  await browser.close();
 }
