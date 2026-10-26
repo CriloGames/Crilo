@@ -6,7 +6,8 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=13";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=21";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=34";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
+import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=1";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -244,6 +245,7 @@ function keyShape(parent) {
  return found;
 }
 const looseKey=keyShape(front.drawer);
+setHit(looseKey,"pickup:tooth");
 function spoolShape(parent) {
  const g=new THREE.Group();g.position.set(0,-.09,-.19);g.rotation.z=.40;parent.add(g);
  const wood=mat(0xd5ac84,.05,.5),thread=mat(0xb883a9,.09,.53);
@@ -252,6 +254,7 @@ function spoolShape(parent) {
  return g;
 }
 const looseSpool=spoolShape(side.drawer);
+setHit(looseSpool,"pickup:thread");
 
 // The top door pivots on a real axis along its rear edge.
 const hatch = new THREE.Group();topFace.add(hatch);
@@ -370,7 +373,7 @@ const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.205,.012,7,40),metal);
 ringHub.position.z=-.035;undersideRing.add(ringHub);
 // A lift pin, rather than a painted symbol, marks where to inspect the ring.
 const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
-setHit(undersideRing,"underside");
+setHit(undersideRing,"pickup:ring");
 // The rear face has a functional optic and three miniature sockets.
 // The former wide static nameplate covered the figures when they emerged.
 // Raised physical ring on the back face.
@@ -405,6 +408,10 @@ const gameHotspots=embeddedGame?buildGameHotspots({
 const pocketWorlds=embeddedGame?buildPocketWorlds({
  cube,faces:{frontFace,backFace,leftFace,rightFace,topFace,bottomFace},
  box,cylinder,mat,setHit,invalidate
+}):null;
+const physicalPickups=embeddedGame?buildPhysicalPickups({
+ faces:{frontFace,backFace,leftFace,rightFace,topFace,bottomFace},
+ worlds:pocketWorlds,hotspots:gameHotspots,box,cylinder,mat,setHit,invalidate
 }):null;
 let currentGameState={};
 let physicalStateInitialized=false;
@@ -474,6 +481,10 @@ let lastClickedAction=null;
 function clickAction(action){
  lastClickedAction=action;
  if(embeddedGame){
+  if(action.startsWith("pickup:")){
+   window.CriloNothingHereCube?.activatePhysicalPickup?.(action.slice(7));
+   return;
+  }
   if(action.startsWith("flute-note-")){
    gameHotspots?.pulse(action);
    window.CriloNothingHereCube?.activatePhysicalFluteNote?.(Number(action.slice(-1)));
@@ -655,6 +666,8 @@ function placeKeyboardFocus(target){
 }
 function describeAction(action){
  if(!action)return "";
+ if(action.startsWith("pickup:"))
+  return "Take "+(window.CriloNothingHereCube?.getItemName?.(action.slice(7))||"found item");
  if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
@@ -1004,6 +1017,8 @@ window.__nothing3DPreview={
  },
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
+ get physicalPickupIds(){return physicalPickups?.ids||[]},
+ get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
  projectItemSource(item){
   const sources={
    tooth:looseKey,thread:looseSpool,pipe:gameHotspots?.targets.get("top-reed"),
@@ -1205,14 +1220,15 @@ window.__nothing3DPreview={
   const restoring=!physicalStateInitialized;
   // Inventory changes are authoritative: empty trays and sockets physically
   // lose their parts on pickup, including every historically duplicated mesh.
-  looseKey.visible=!currentGameState.drawerTaken;
-  looseSpool.visible=!currentGameState.sideTaken;
-  undersideRing.visible=!currentGameState.ringTaken;
+  looseKey.visible=!!currentGameState.a&&!currentGameState.drawerTaken;
+  looseSpool.visible=!!currentGameState.b&&!currentGameState.sideTaken;
+  undersideRing.visible=!!currentGameState.bottom&&!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
   renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
    ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Keys 1, 2 and 3 play the collected flute."
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
+  if(physicalPickups)physicalPickups.setState(currentGameState);
   intricate.syncGameState(currentGameState,restoring);
   physicalStateInitialized=true;
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
