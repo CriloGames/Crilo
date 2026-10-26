@@ -5,9 +5,9 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=14";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=23";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=24";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
-import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=3";
+import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=4";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -1064,6 +1064,8 @@ window.__nothing3DPreview={
  },
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
+ get physicalPickupRevealCount(){return physicalPickups?.getRevealCount?.()||0},
+ getPhysicalPickupRevealState(id){return physicalPickups?.getRevealState?.(id)||null},
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
  get physicalPickupLayout(){return physicalPickups?.getLayout?.()||[]},
  projectPhysicalPickup(id){
