@@ -174,6 +174,28 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   new THREE.TorusGeometry(.155,.012,7,36,Math.PI*.46),redCollarMaterial);
  redCollar.add(redIndex);count++;
  engraving(frontFace,"RED",1.08,-.25,.36);
+ // The three removable front screws mechanically free a captive
+ // service hatch. The reward gear is seated BEHIND this hatch, not in the
+ // main lens or in an unrelated cube offering button.
+ // The slim left rail lies between SERIAL, LATCH and the optical bezel.
+ reserve(frontFace,"cog service hatch",-1.15,.56,.34,.32);
+ const cogPort=node(frontFace,-1.15,.56,.19);
+ C(cogPort,.168,.035,0,0,0,nickel);
+ C(cogPort,.132,.021,0,0,.027,graphite);
+ const cogPocket=node(cogPort,0,0,.047);
+ targets.set("front-cog-pocket",cogPocket);
+ // A real pin on the left edge supports the small cover; its hinge travels
+ // sideways into the adjacent clear rail without masking the reward.
+ const cogCover=node(cogPort,-.149,0,.079);
+ C(cogCover,.024,.062,0,0,.007,brass);
+ const cogCoverDisc=node(cogCover,.149,0,.031);
+ C(cogCoverDisc,.162,.030,0,0,0,graphite);
+ C(cogCoverDisc,.144,.017,0,0,.024,nickel);
+ C(cogCoverDisc,.026,.025,0,0,.046,brass);
+ for(const y of [-.08,.08])C(cogCoverDisc,.013,.012,.09,y,.043,brass);
+ // The socket is a pocket: its cover moves, but does not spawn the gear.
+ // A loaded save restores the open cover immediately without reanimation.
+ const cogDoorPose=()=>cogCover.rotation.y;
  // A smaller real maker-stamp actuator sits beside the outer lens rather
  // than directly through its upper brass rim and decorative inscription.
  tab(frontFace,"serial",-.99,.96,nickel,.38,.10);
@@ -212,6 +234,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  B(ventHatch,.393,.193,.024,0,0,.035,graphite,.016);
  for(const y of [-.068,-.017,.034,.085])
   B(ventHatch,.33,.009,.012,0,y,.054,nickel,.004);
+ // The shim actually lives UNDER the sliding grille, rather than
+ // materializing on the third numbered vent button.
+ const ventPocket=node(ventHatch,0,.015,.085);
+ targets.set("vent-pocket",ventPocket);
  const ventCover=new THREE.Group();ventCover.position.set(0,0,.075);ventHatch.add(ventCover);
  B(ventCover,.365,.166,.039,0,0,0,graphite,.014);
  B(ventCover,.306,.012,.016,0,0,.028,brass,.005);
@@ -386,14 +412,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  portalCore.material.emissiveIntensity=.37;
  const tinyLandscape=B(portalGroup,.24,.052,.037,0,-.075,.04,mat(0x7eae95,.12,.49),.02);
  portalGroup.visible=false;
- const exposedCog=node(frontFace,0,.59,.47);
- const gearHub=C(exposedCog,.12,.09,0,0,0,brass);
- for(let i=0;i<10;i++){
-  const a=2*Math.PI*i/10;
-  const spoke=B(exposedCog,.105,.039,.04,Math.cos(a)*.15,Math.sin(a)*.15,.06,nickel,.007);
-  spoke.rotation.z=a;
- }
- exposedCog.visible=false;
+ // The real cog is a single collectible in cogPocket. Do not draw
+ // a duplicated fake gear on the center optic or offer a ghost reward.
+ // The wax cylinder is seated behind the actual service shutter.
+ // Keep its carrier anchored to the fixed face, not the moving button.
+ const servicePocket=node(rightFace,.58,-1.08,.15);
+ targets.set("service-pocket",servicePocket);
  const resonator=node(rightFace,.58,-1.08,.15);
  C(resonator,.28,.055,0,0,-.14,graphite);
  const resonatorLight=C(resonator,.15,.055,0,0,-.10,glass);
@@ -487,6 +511,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  return {
   count:()=>count,
   getClearanceViolations,
+  getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   actions:[...targets.keys()],
   targets,
@@ -567,12 +592,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
-   // The cog has fallen directly into inventory after the panel is opened.
-   // Only the socket stays behind; a second cog must not remain on the cube.
-   exposedCog.visible=false;
+   // Removing the third screw releases the cover on a real hinge,
+   // exposing the gear's already-machined socket. No second decorative
+   // gear ever appears on the large glass eye.
+   pose(cogCover,"rotation","y",s.plateOpen?-1.30:0,
+    previous.plateOpen?-1.30:0,restore,.72);
    resonator.visible=!!s.resonance;
-   pose(receiver,"position","x",s.plateOpen?.37:0,
-    previous.plateOpen?.37:0,restore,.7);
    pose(eyeGear,"rotation","z",(s.eyeRingTicks||0)*Math.PI/8,
     (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
    pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
