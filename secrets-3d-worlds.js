@@ -118,7 +118,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const slots=[
   ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.02,.74],
   ["door","rightFace",-1.01,.80],["dog","rightFace",1.01,.08],
-  ["vase","leftFace",1.03,1.13],
+  // Vase sits with the squirrel underneath: the previous left-face mount
+  // clipped the playable pressure gauge and its label.
+  ["vase","bottomFace",0,1.00],
   ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.12],
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
@@ -770,6 +772,28 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
+  // A compact layout audit only considers actual physical mount plates and
+  // permanent real controls, not intentionally nested pieces within a model.
+  // The name and face are supplied to browser QA without revealing clues.
+  getMountClearanceViolations:(controls=[])=>{
+   const padded=mounts.map(v=>({name:v.name,face:v.face,x:v.x,y:v.y,
+    w:.56,h:.59}));
+   const faults=[];
+   for(let i=0;i<padded.length;i++)for(let j=i+1;j<padded.length;j++){
+    const a=padded[i],b=padded[j];
+    if(a.face===b.face&&
+      Math.abs(a.x-b.x)<(a.w+b.w)/2+.02&&
+      Math.abs(a.y-b.y)<(a.h+b.h)/2+.02)
+     faults.push(a.face+": "+a.name+" miniature overlaps "+b.name);
+   }
+   for(const a of padded)for(const b of controls){
+    if(a.face===b.face&&
+      Math.abs(a.x-b.x)<(a.w+b.w)/2+.02&&
+      Math.abs(a.y-b.y)<(a.h+b.h)/2+.02)
+     faults.push(a.face+": "+a.name+" miniature clips "+b.name);
+   }
+   return faults;
+  },
   getMountVisualState:name=>{
    const instance=items.get(name);
    if(!instance)return null;
