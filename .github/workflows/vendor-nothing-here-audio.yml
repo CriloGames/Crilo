@@ -1,0 +1,79 @@
+name: Install licensed Nothing Here audio packs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/vendor-nothing-here-audio.yml'
+      - 'nothing-here-audio.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: vendor-nothing-here-cc0-audio
+  cancel-in-progress: false
+
+jobs:
+  vendor-cc0-audio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Download pinned CC0 sound packs and lobby music
+        shell: bash
+        env:
+          SOURCE_ROOT: https://raw.githubusercontent.com/blancmathis/Super_Bash_Folds/1028a3b739ef54efdcbe5a2ef0ad1714fe569c47/public/assets/audio/open
+        run: |
+          set -euo pipefail
+          mkdir -p audio/nothing-here/sfx audio/nothing-here/music
+          while IFS= read -r relative; do
+            curl --fail --location --silent --show-error \
+              --retry 3 --retry-delay 2 --connect-timeout 12 --max-time 90 \
+              "${SOURCE_ROOT}/${relative}" -o "audio/nothing-here/${relative}"
+          done <<'AUDIO_FILES'
+music/menu-loop.ogg
+sfx/menu-move.ogg
+sfx/menu-confirm.ogg
+sfx/menu-back.ogg
+sfx/item-pickup.ogg
+sfx/item-spawn.ogg
+sfx/hit-light.ogg
+sfx/hit-medium.ogg
+sfx/hit-heavy.ogg
+sfx/grab.ogg
+sfx/land.ogg
+sfx/ready.ogg
+AUDIO_FILES
+          cat > /tmp/nothing-here-audio.sha256 <<'EXPECTED_HASHES'
+3028433d60fa198ac919a934aef07256e1bf81eeb585f25426fd57f2a76cee7d  audio/nothing-here/music/menu-loop.ogg
+ad09146e4ea33b931b2f5dfb4051a4f1fe4a36f1a48c42c5e9269c292ae21214  audio/nothing-here/sfx/menu-move.ogg
+33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c  audio/nothing-here/sfx/menu-confirm.ogg
+61581c58194e3f19f531072edabbc344204c7e0a2887b8ededce4357bcf09195  audio/nothing-here/sfx/menu-back.ogg
+43d086d50f90493a98cd2e09aa6dbf150d164f1578e1ec768d21cb185571ad87  audio/nothing-here/sfx/item-pickup.ogg
+2379b58f953e3d86982aa8cddcae763022c6258e9820171bf905ce58b4e97766  audio/nothing-here/sfx/item-spawn.ogg
+d0bf60905b59ff630ffe01eb0edeeacd2504eaa8fb6523aeef7d2458b78264d3  audio/nothing-here/sfx/hit-light.ogg
+6492f9ccbc8d24dcef607bb1b48790b7870961474561f7fe5601e1c73a3018ef  audio/nothing-here/sfx/hit-medium.ogg
+4ab53b26f4ea575120dcc1348526c9e0db2afc6af7a442aa0489bdead2ca80b6  audio/nothing-here/sfx/hit-heavy.ogg
+7642a4fd43e547afe4f7adfadb3dabb681c0ff512f52c1674bae30a726841faf  audio/nothing-here/sfx/grab.ogg
+8b513c2f0316324060b9174b8f28df6c2147418c506e6a53b77f18e149a5547b  audio/nothing-here/sfx/land.ogg
+1b1211b6360aae37ea685fee057bcabd034a749c1dfac6a9d643086d96e9b9aa  audio/nothing-here/sfx/ready.ogg
+EXPECTED_HASHES
+          sha256sum --check /tmp/nothing-here-audio.sha256
+          test "$(find audio/nothing-here -name '*.ogg' | wc -l)" -eq 12
+      - name: Commit verified binary assets to the site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add audio/nothing-here
+          if git diff --cached --quiet; then
+            echo 'All audio files already exist with the expected contents.'
+            exit 0
+          fi
+          git commit -m "Nothing Here: vendor 11 CC0 Kenney effects and CC0 lobby loop"
+          git push origin HEAD:main
