@@ -144,7 +144,7 @@ try{
   "Unlocked collectibles are still floating outside their attached trays");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
   "Opened mechanisms must never conceal their physically revealed rewards");
- await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-15,270));
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const forkTarget=await auditPage.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalPickup("fork"));
  assert.equal(forkTarget?.pick,"pickup:fork",
@@ -164,8 +164,8 @@ try{
  // Review ALL SIX faces in unlocked condition. A single pretty front
  // screenshot previously missed oversized hardware on the gauge/back.
  const views=[
-  ["front",-15,0],["right",-15,90],["back",-15,180],
-  ["left",-15,270],["top",-75,0],["bottom",75,0]
+  ["front",-15,0],["left",-15,90],["back",-15,180],
+  ["right",-15,270],["top",-75,0],["bottom",75,0]
  ];
  for(const [name,rx,ry] of views){
   await auditPage.evaluate(([a,b])=>
@@ -178,7 +178,7 @@ try{
  // looked acceptable at 82% but obstructed the glass eye, gauge and RED.
  await auditPage.evaluate(()=>window.__nothing3DPreview.setZoom(1.55));
  for(const [name,rx,ry] of [
-  ["glass-eye",0,180],["gauge",0,270],["red-switch",0,0]
+  ["glass-eye",0,180],["gauge",0,90],["red-switch",0,0]
  ]){
   await auditPage.evaluate(([a,b])=>
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
