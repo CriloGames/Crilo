@@ -197,16 +197,10 @@ export function finishMechanicalArtifact({
     for(const x of [-.145,.145])stud(clasp,x,0,.095,.026);
   }
 
-  // Side: visible copper pipes have elbows, collars, clamps and service seals.
-  path(rightFace,[[-.94,1.22,.19],[-.94,.94,.19],[-.84,.83,.22],[-.76,.83,.21]],.026,copper);
-  path(rightFace,[[.95,.20,.18],[1.04,.11,.23],[1.04,-.64,.22],[.87,-.81,.20]],.026,copper);
-  for(const y of [.98,.42,-.13,-.57]){
-    B(rightFace,.24,.09,.07,1.04,y,.25,metal,.023);
-    stud(rightFace,1.04,y,.30,.021);
-  }
-  for(const x of [-1.01,.98])for(const y of [-.38,-.21]){
-    B(rightFace,.17,.029,.035,x,y,.20,cream,.005);
-  }
+  // Right-face service parts are already modeled with raised rails,
+  // real corner bolts, a shutter and two mounted miniature characters.
+  // Independent copper pipes and braces previously pierced the dog/door
+  // sculptures and the drawer bezel, so the fake pipe overlay is omitted.
 
   // The left and underside already have real numbered vents, a dent,
   // corner feet, and a lock dial. Prior finishing-pass grilles covered
