@@ -1106,7 +1106,8 @@ function resetView(){
  s.rx=-22;s.ry=-32;
  const physical=document.body.classList.contains('nc-physical-ready')&&
   !!window.__nothing3DPreview?.resetCameraView;
- // Classic view still uses its original synchronous 2D orientation.
+ // A 3D camera reset handles the visible scene; the legacy orientation
+ // remains an internal state value for backwards-compatible saved games.
  // In 3D, let the scene interpolate the orbit, camera and box together.
  if(!physical)turn();
  updateView();
