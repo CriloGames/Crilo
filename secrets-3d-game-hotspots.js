@@ -195,7 +195,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Their shared hatch is tucked below the label, above the elevator mount,
  // and left of the gears, with a true recessed cavity under its shutter.
  // No flat reward screen or extra selectable fake vent.
- const ventHatch=node(leftFace,-.99,-.20,.155);
+ const ventHatch=node(leftFace,-.99,-.04,.155);
  B(ventHatch,.47,.26,.048,0,0,0,brass,.020);
  B(ventHatch,.393,.193,.024,0,0,.035,graphite,.016);
  for(const y of [-.068,-.017,.034,.085])
@@ -433,12 +433,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
    // Correctly ordered vent keys withdraw the captive shutter over the
    // physical grille. A restored save shows the final pose immediately.
-   pose(ventCover,"position","y",s.ventOpen?-.28:0,
-    previous.ventOpen?-.28:0,restore,.68);
+   pose(ventCover,"position","y",s.ventOpen?-.20:0,
+    previous.ventOpen?-.20:0,restore,.68);
    if(ventSettleTimer!==null){clearTimeout(ventSettleTimer);ventSettleTimer=null;}
    if(!restore&&!reducedMotion&&!!s.ventOpen!==!!previous.ventOpen){
     // A dropped WebGL frame must not leave a solved shutter half open.
-    const end=s.ventOpen?-.28:0;
+    const end=s.ventOpen?-.20:0;
     ventSettleTimer=setTimeout(()=>{
      gsap.killTweensOf(ventCover.position);
      ventCover.position.y=end;
