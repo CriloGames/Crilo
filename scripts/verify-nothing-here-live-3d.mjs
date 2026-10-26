@@ -417,9 +417,24 @@ try{
   return v?.visible&&Math.abs(v.scale-1)<.035&&Math.abs(v.depth-.27)<.035;
  },null,{timeout:30000,polling:250});
  console.log("PASS: new miniature discovery emerges and settles on its bolted shelf");
- const chipHeight=await page.locator('#ncSideObjects [data-thing="bag"]').evaluate(el=>el.getBoundingClientRect().height);
- assert(chipHeight>20&&chipHeight<70,
-  "3D mode should keep an accessible compact story-object label, not a duplicate flat cartoon: "+chipHeight);
+ // Classic artwork was removed. No illustrated duplicate should return
+ // when the physical bag and machine are discovered.
+ assert(await page.locator("#ncSideObjects").isHidden()&&
+   await page.locator('#ncSideObjects [data-thing="bag"]').isHidden(),
+  "The retired illustrated story objects reappeared after discovering a miniature");
+ // A small brass cradle must separate each of the bag's four found pieces,
+ // both visually and as an independent pointer target.
+ const bagSlots=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupLayout
+  .filter(item=>item.source==="bag"));
+ assert.equal(bagSlots.length,4,"The physical bag needs four separate pickup sockets");
+ for(let i=0;i<bagSlots.length;i++)for(let j=i+1;j<bagSlots.length;j++){
+  const a=bagSlots[i],b=bagSlots[j];
+  assert(Math.abs(a.position[0]-b.position[0])>=.22||
+   Math.abs(a.position[1]-b.position[1])>=.22,
+   "Physical bag pickups were mounted inside each other's hit area: "+JSON.stringify({a,b}));
+ }
+ assert(bagSlots.every(p=>p.scale<.9&&p.scale>.7),
+  "Miniature pickup cradles are oversized or too small for real fingers");
  // Exercise a real projected pointer click on the sculpted handbag, rather
  // than merely invoking an internal click API.
  const handbag=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalStoryObject("bag"));
@@ -467,6 +482,9 @@ try{
  const coinBefore=await state();
  assert(coinBefore.pendingPickups.includes("coin")&&!coinBefore.pocket.includes("coin"),
   "Mechanical mouse magically pocketed the coin without a pickup click");
+ assert(await page.locator("#ncAwaitingPickups").isVisible()&&
+  /waiting on the cube/.test(await page.locator("#ncAwaitingPickups").innerText()),
+  "The pocket must explain how to collect revealed physical items");
  const coinPos=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalPickup("coin"));
  assert(coinPos?.pick==="pickup:coin",
   "The physical coin is not reachable by raycast from the cube: "+JSON.stringify(coinPos));
@@ -480,6 +498,8 @@ try{
  // through a real canvas pointer. Avoid an unrelated slow-GPU mouse wait.
  await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>el.click());
  assert.equal((await state()).selected,"coin");
+ assert.match(await page.locator("#ncCombineGuide").innerText(),/Holding.*second pocket item/i,
+  "Holding an inventory object needs clear instructions without revealing answers");
  await activate("thing:machine");
  let selectedState=await state();
  assert(selectedState.seen.includes("machine")&&selectedState.pendingPickups.includes("sugar")&&
