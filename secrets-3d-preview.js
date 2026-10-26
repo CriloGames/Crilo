@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=13";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=21";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=22";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
 import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=3";
 
@@ -1013,6 +1013,33 @@ window.__nothing3DPreview={
   )||[];
  },
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
+ get eyeClueLayout(){return gameHotspots?.getEyeClueLayout?.()||null},
+ get eyeClueReadability(){
+  const clue=gameHotspots?.getEyeClueObject?.();
+  if(!clue||!isMeshEffectivelyVisible(clue))return {revealed:false};
+  // Real camera-space visibility: the first visible ray intersection
+  // through the clue's engraved center must belong to its physical plate,
+  // not to the old circular lens, frame, or adjacent iris enclosure.
+  scene.updateMatrixWorld(true);
+  const rect=renderer.domElement.getBoundingClientRect();
+  const target=clue.localToWorld(new THREE.Vector3(0,0,.085));
+  const projected=target.clone().project(camera);
+  const px=(projected.x+1)*rect.width/2;
+  const py=(1-projected.y)*rect.height/2;
+  const scanner=new THREE.Raycaster(
+   camera.position,target.clone().sub(camera.position).normalize());
+  const hits=scanner.intersectObject(cube,true)
+   .filter(hit=>isMeshEffectivelyVisible(hit.object));
+  const closest=hits[0]?.object;
+  let belongs=false;
+  for(let parent=closest;parent;parent=parent.parent){
+   if(parent===clue){belongs=true;break;}
+  }
+  return {revealed:true,x:px,y:py,depth:projected.z,
+   inView:projected.z>=-1&&projected.z<=1&&
+    px>=0&&px<=rect.width&&py>=0&&py<=rect.height,
+   unobstructed:belongs,raycastHits:hits.length};
+ },
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
