@@ -314,6 +314,23 @@ try{
   "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
+ const collect=async id=>{
+  const before=await state();
+  assert(before.pendingPickups.includes(id)||(id==="ring"&&before.bottom&&!before.ringTaken)||
+   (id==="tooth"&&before.a&&!before.drawerTaken)||
+   (id==="thread"&&before.b&&!before.sideTaken)||
+   (id==="pipe"&&before.top&&!before.pipeTaken),
+   "Expected a tangible collectible to be waiting on the cube: "+id);
+  await activate("pickup:"+id);
+  const after=await state();
+  assert(after.pocket.includes(id)&&!after.pendingPickups.includes(id),
+   "Clicking the 3D "+id+" failed to put it in the pocket: "+JSON.stringify(after.pendingPickups));
+ };
+ const allRewardMeshes=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupIds);
+ assert.equal(allRewardMeshes.length,25,"Not every newly discovered item has a physical pickup model");
+ const guide=await page.locator(".nc-combine-guide").innerText();
+ assert(/select one item.*select another/i.test(guide),
+  "Players need persistent instructions for combining inventory items");
  const latchMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   view.clickAction("latch");
@@ -357,8 +374,11 @@ try{
  assert(Math.abs(ventBefore.ventHatchOffset)<.001,
   "The vent grille begins open before the numbered switches are pressed");
  for(const n of [3,1,2])await activate("vent-"+n);
- assert((await state()).ventOpen&&(await state()).pocket.includes("shim"),
-  "Three-one-two did not unlock the original vent reward");
+ assert((await state()).ventOpen&&
+  (await state()).pendingPickups.includes("shim")&&
+  !(await state()).pocket.includes("shim"),
+  "The vent must leave a copper shim physically waiting, not auto-collect it");
+ await collect("shim");
  try{
   await page.waitForFunction(()=>
    window.__nothing3DPreview.physicalMechanicalFeedback.ventHatchOffset<-.18,
@@ -442,6 +462,18 @@ try{
  assert.deepEqual((await state()).seen,seenBeforeInspections,
   "Inspecting a locked miniature awarded an unauthorized secret");
  console.log("PASS: real pointer hits miniature; rapid taps leave it captive to its mount");
+ // The mouse leaves a physical coin next to the bag. Test a real
+ // on-canvas pointer to that item before spending it in the machine.
+ const coinBefore=await state();
+ assert(coinBefore.pendingPickups.includes("coin")&&!coinBefore.pocket.includes("coin"),
+  "Mechanical mouse magically pocketed the coin without a pickup click");
+ const coinPos=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalPickup("coin"));
+ assert(coinPos?.pick==="pickup:coin",
+  "The physical coin is not reachable by raycast from the cube: "+JSON.stringify(coinPos));
+ await page.locator("#stage canvas").click({position:{x:coinPos.x,y:coinPos.y},timeout:30000});
+ assert((await state()).pocket.includes("coin")&&
+   !(await state()).pendingPickups.includes("coin"),
+  "Clicking the actual 3D coin did not collect it");
  // Items selected from the existing inventory must combine with a real 3D
  // model and write to the existing save key, not a separate 3D progress store.
  // Inventory selection is DOM-based; the physical bag was already exercised
@@ -450,8 +482,10 @@ try{
  assert.equal((await state()).selected,"coin");
  await activate("thing:machine");
  let selectedState=await state();
- assert(selectedState.seen.includes("machine")&&selectedState.pocket.includes("sugar"),
-  "Coin into 3D vending machine failed the canonical inventory recipe");
+ assert(selectedState.seen.includes("machine")&&selectedState.pendingPickups.includes("sugar")&&
+  !selectedState.pocket.includes("sugar"),
+  "Coin must dispense a physical sugar cube rather than pocketing it automatically");
+ await collect("sugar");
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.30,
   null,{timeout:16000,polling:250});
@@ -473,8 +507,10 @@ try{
  await activate("hatch-latch"); // An additional metal control still routes to the real triangle.
  await activate("dot");await activate("dot");await activate("dot");await activate("dot");
  assert.equal((await state()).redHits,4,"Red-dot sequence lost state parity");
- assert((await state()).pocket.includes("bell"),
-  "The bell must still be collected without a floating reward popup");
+ assert((await state()).pendingPickups.includes("bell")&&
+   !(await state()).pocket.includes("bell"),
+  "The 3D bell must wait to be clicked after the red button sequence");
+ await collect("bell");
  const redFeedback=await page.evaluate(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0,
@@ -624,9 +660,13 @@ try{
  await page.waitForTimeout(1400);
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews),1,
   "Extracted 3D screws remained visibly attached to the faceplate");
+ const beforeManualPickup=await state();
+ assert(["tooth","thread","pipe"].every(id=>!beforeManualPickup.pocket.includes(id)),
+  "Contents of 3D drawers must not be automatically collected");
+ for(const id of ["tooth","thread","pipe"])await collect(id);
  const once=await state();
- assert(once.pocket.includes("tooth")&&once.pocket.includes("thread")&&once.pocket.includes("pipe"),
-  "Existing automatic physical compartment item pickups stopped working");
+ assert(["tooth","thread","pipe"].every(id=>once.pocket.includes(id)),
+  "Manually picking the original physical drawer contents failed");
  // Re-rendering the authoritative state must not eject keyboard users from
  // the pocket or silently lose selected tools.
  await page.locator('#ncInventory [data-item="tooth"]').focus();
@@ -647,8 +687,11 @@ try{
  // triangle. It releases the ring and leaves the top secret untouched.
  const topCountBefore=(await state()).topHits;
  await activate("underside");
- assert((await state()).bottom===true&&((await state()).ringTaken===true),
-   "The underside button must release the ring and add it to inventory");
+ assert((await state()).bottom===true&&((await state()).ringTaken===false,
+   "The underside button must release a physical ring without pocketing it");
+ assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,true,
+   "The released underside ring must remain visibly on the cube");
+ await collect("ring");
  assert.equal((await state()).topHits,topCountBefore,
    "The underside control is incorrectly wired to the top lid");
  const collected=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
@@ -700,8 +743,10 @@ try{
  for(const i of [0,2,2,2])await activate("thing:bag-dial-"+i);
  const bagSolved=await state();
  assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
- assert(bagSolved.bagSolved&&bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
-  "3D bag wheels did not award the original combination secret and inventory");
+ assert(bagSolved.bagSolved&&["reed","treat","prism"].every(id=>bagSolved.pendingPickups.includes(id))&&
+   !bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
+  "Unlocking the bag must reveal three individually collectible physical objects");
+ for(const id of ["reed","treat","prism"])await collect(id);
  // Physical models must be operable without blocking the stage with a
  // flat popup. The original accessible classic modal still exists.
  await activate("thing:bag");
@@ -984,8 +1029,9 @@ try{
    liftMotion.before,{timeout:20000,polling:250});
  }
  const fourthFloor=await state();
- assert(fourthFloor.floorFour&&fourthFloor.pocket.includes("lens"),
-   "Physical elevator call button did not operate the original floor-four puzzle");
+ assert(fourthFloor.floorFour&&fourthFloor.pendingPickups.includes("lens"),
+   "The physical elevator must reveal a real lens instead of automatically pocketing it");
+ await collect("lens");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.liftLampLevel))>.5,
   "The physical arrival indicator should light up when the elevator unlocks");
  await activate("dot");
