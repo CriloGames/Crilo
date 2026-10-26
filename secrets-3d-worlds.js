@@ -116,12 +116,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // red switch, service lever and the four underside shock feet.
  // Keep the display sockets clear of those permanent puzzle mechanisms.
  const slots=[
-  ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.02,.74],
+  ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.18,.74],
   ["door","rightFace",-1.01,.80],["dog","rightFace",1.01,.08],
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
-  ["vase","bottomFace",0,1.00],
-  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.12],
+  ["vase","bottomFace",0,1.12],
+  ["pot","backFace",-1.16,.73],["musicbox","backFace",0,1.19],
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
@@ -791,6 +791,24 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
       Math.abs(a.x-b.x)<(a.w+b.w)/2+.02&&
       Math.abs(a.y-b.y)<(a.h+b.h)/2+.02)
      faults.push(a.face+": "+a.name+" miniature clips "+b.name);
+   }
+   // Circle-versus-rectangle envelopes catch collisions with the permanent
+   // sculpted lens, rear iris, underside lock and meter, even though those
+   // background mechanisms are authored by independent geometry modules.
+   const fixed=[
+    {face:"frontFace",name:"front optical bezel",x:0,y:.56,r:.76},
+    {face:"rightFace",name:"pressure instrument",x:.12,y:.77,r:.42},
+    {face:"backFace",name:"rear iris bezel",x:0,y:-.18,r:.97},
+    {face:"bottomFace",name:"underbody lock",x:0,y:0,r:.67},
+    {face:"leftFace",name:"clockwork gear A",x:-.20,y:.04,r:.31},
+    {face:"leftFace",name:"clockwork gear B",x:.39,y:-.40,r:.235}
+   ];
+   for(const a of padded)for(const b of fixed){
+    if(a.face!==b.face)continue;
+    const dx=Math.max(0,Math.abs(a.x-b.x)-a.w/2);
+    const dy=Math.max(0,Math.abs(a.y-b.y)-a.h/2);
+    if(Math.hypot(dx,dy)<b.r+.025)
+     faults.push(a.face+": "+a.name+" sculpture clips "+b.name);
    }
    return faults;
   },
