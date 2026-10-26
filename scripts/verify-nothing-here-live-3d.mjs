@@ -443,6 +443,10 @@ try{
  assert(selectedState.seen.includes("machine")&&selectedState.pocket.includes("sugar"),
   "Coin into 3D vending machine failed the canonical inventory recipe");
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.30,
+  null,{timeout:16000,polling:250});
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.30,
+  "A collected sugar reward must visibly extend the real vending-machine tray");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
  await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
  const triangleMotion=await page.evaluate(()=>{
@@ -897,6 +901,7 @@ try{
    pressureTicks:3,eyeRingTicks:20,screws:[0,1,2],hingePins:[0,1,2],
    watch:true,tag:true,floorFour:false,
    door:true,doorOpen:true,music:true,vase:true,cloud:true,
+   dancer:true,tapeInserted:true,shimUsed:true,
    train:true,dogHits:2,mothTouched:true
   });
   localStorage.setItem(key,JSON.stringify(original));
@@ -918,6 +923,10 @@ try{
   "A broken vase must restore as solid individual ceramic shards: "+JSON.stringify(vignette));
  assert(vignette.vaseShardSpread>.5&&Math.abs(vignette.dancerRotation)<.05,
   "Saved miniature shards and dancer must settle physically without replaying old actions: "+
+   JSON.stringify(vignette));
+ assert(vignette.watchHourAngle< -2&&vignette.watchMinuteAngle< -1.7&&
+  vignette.vendingTrayDepth>.37,
+  "The tape-driven clock hands and coin-return tray must preserve their final physical poses: "+
    JSON.stringify(vignette));
  assert(vignette.mothWingAngles.length===2&&
   vignette.mothWingAngles[0]<-.69&&vignette.mothWingAngles[1]>.69,
