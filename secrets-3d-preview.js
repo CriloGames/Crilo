@@ -1039,10 +1039,28 @@ window.__nothing3DPreview={
   for(let parent=closest;parent;parent=parent.parent){
    if(parent===clue){belongs=true;break;}
   }
+  // Include the actual blocker in QA diagnostics. The clue must be
+  // genuinely visible, rather than simply passing a two-dimensional
+  // clearance calculation while another mesh masks the engraving.
+  const blocker=!belongs&&hits[0]?{
+   type:closest.type,geometry:closest.geometry?.type,
+   action:closest.userData?.action||null,
+   name:closest.name||null,
+   distance:hits[0].distance,
+   location:closest.getWorldPosition(new THREE.Vector3()).toArray(),
+   parents:(()=>{const chain=[];for(let p=closest.parent;p&&chain.length<5;p=p.parent)
+    chain.push({name:p.name||null,position:p.position.toArray()});
+    return chain})()
+  }:null;
+  const clueHit=hits.find(hit=>{
+   for(let p=hit.object;p;p=p.parent)if(p===clue)return true;
+   return false;
+  });
   return {revealed:true,x:px,y:py,depth:projected.z,
    inView:projected.z>=-1&&projected.z<=1&&
     px>=0&&px<=rect.width&&py>=0&&py<=rect.height,
-   unobstructed:belongs,raycastHits:hits.length};
+   unobstructed:belongs,raycastHits:hits.length,
+   blocker,clueDistance:clueHit?.distance??null};
  },
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
