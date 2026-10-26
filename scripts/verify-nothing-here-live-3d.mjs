@@ -858,6 +858,15 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
+ // The crafted flute lives on the top face, which may be edge-on or hidden
+ // after inspecting the front bag. A player must turn toward the top before
+ // trying its real fingertip keys; they should never click through the box.
+ for(let turn=0;turn<2;turn++){
+  const reachable=await page.evaluate(()=>
+   window.__nothing3DPreview.projectGameControl("flute-note-2")?.pick==="flute-note-2");
+  if(reachable)break;
+  await page.locator('[data-rotate="up"]').click();
+ }
  const key=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   const pos=view.projectGameControl("flute-note-2");
