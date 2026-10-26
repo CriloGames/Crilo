@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=13";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=18";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=29";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=30";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -997,6 +997,11 @@ window.__nothing3DPreview={
  get gameControls(){return gameHotspots?.actions||[]},
  get permanentControlClearanceViolations(){return gameHotspots?.getClearanceViolations?.()||[]},
  get permanentFaceFootprints(){return gameHotspots?.getPermanentFaceFootprints?.()||[]},
+ get miniatureControlClearanceViolations(){
+  return pocketWorlds?.getMountClearanceViolations?.(
+   gameHotspots?.getPermanentFaceFootprints?.()||[]
+  )||[];
+ },
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  projectItemSource(item){
