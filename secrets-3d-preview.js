@@ -7,7 +7,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=13";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=21";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=35";
-import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=2";
+import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=3";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
