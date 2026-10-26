@@ -120,9 +120,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  // Front: actual fasteners are supplied by the base physical model.
  control(frontFace,"latch",-1.05,.11,brass,.145);
- engraving(frontFace,"LATCH", -1.04,-.14,.43);
+ engraving(frontFace,"LATCH", -1.04,-.30,.43);
  control(frontFace,"dot",1.10,.15,red,.100);
- engraving(frontFace,"RED",1.08,-.12,.36);
+ engraving(frontFace,"RED",1.08,-.25,.36);
  // A smaller real maker-stamp actuator sits beside the outer lens rather
  // than directly through its upper brass rim and decorative inscription.
  tab(frontFace,"serial",-.99,.96,nickel,.38,.10);
@@ -134,8 +134,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Right: a service seam, sliding shutter and four genuine bolt heads.
  tab(rightFace,"seam",-.92,.26,copper,.22,.16);
  engraving(rightFace,"SEAM",-.91,.58,.43);
- tab(rightFace,"shutter",.80,-1.09,nickel,.40,.19);
- engraving(rightFace,"SERVICE",.72,-1.37,.43);
+ tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
+ engraving(rightFace,"SERVICE",.58,-1.39,.43);
  for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
   control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
  // The vent order is engraved INSIDE the empty fastener recess: it is
@@ -153,7 +153,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  control(leftFace,"pressure",.88,.64,brass,.15);
  engraving(leftFace,"GAUGE",.89,.27,.46);
  control(leftFace,"dent",.88,-1.04,copper,.11);
- engraving(leftFace,"DENT",.89,-1.31,.39);
+ engraving(leftFace,"DENT",.89,-1.36,.39);
  // Top: three separate hinge pins, and a tappable triangle physically
  // attached to the moving hatch. The pipe sits INSIDE the fixed well.
  for(const [i,x] of [-.54,0,.54].entries())control(topFace,"hinge-"+i,x,.86,nickel,.075);
@@ -259,7 +259,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   spoke.rotation.z=a;
  }
  exposedCog.visible=false;
- const resonator=node(rightFace,.80,-1.09,.15);
+ const resonator=node(rightFace,.58,-1.08,.15);
  C(resonator,.28,.055,0,0,-.14,graphite);
  const resonatorLight=C(resonator,.15,.055,0,0,-.10,glass);
  resonatorLight.material.emissive=new THREE.Color(0x3d898c);
@@ -334,7 +334,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
  undersideCipher.visible=false;
  control(bottomFace,"underside",0,0,brass,.21);
- engraving(bottomFace,"BASE",.50,-.07,.39);
+ // No floating BASE plaque across the working central underside dial.
  return {
   count:()=>count,
   actions:[...targets.keys()],
@@ -385,8 +385,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
    pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
     (previous.pressureTicks||0)*Math.PI/6,restore,.58);
-   pose(shutter,"position","x",s.serviceOpen?1.05:.80,
-    previous.serviceOpen?1.05:.80,restore,.64);
+   pose(shutter,"position","x",s.serviceOpen?.78:.58,
+    previous.serviceOpen?.78:.58,restore,.64);
    resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
