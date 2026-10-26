@@ -1056,21 +1056,24 @@ const debugging3D=new URLSearchParams(location.search).get("inspect3d")==="1";
 if(debugging3D){
  const dock=document.createElement("div");
  dock.setAttribute("aria-label","3D structure inspection");
- dock.style.cssText="position:absolute;z-index:10;top:8px;right:8px;"+
-  "width:min(270px,calc(100% - 20px));padding:10px;border-radius:12px;"+
-  "border:1px solid #c2c3bb;background:#f6f4edee;color:#283940;"+
-  "box-shadow:0 6px 24px #1c273331;font:12px/1.45 system-ui,sans-serif";
+ // Place the diagnostic toolbar outside the camera viewport. It previously
+ // covered the upper cube corner in every screenshot from our test suite.
+ dock.style.cssText="display:flex;align-items:center;gap:9px;flex-wrap:wrap;"+
+  "width:min(1120px,calc(100% - 20px));margin:7px auto 5px;"+
+  "padding:7px 10px;border-radius:10px;"+
+  "border:1px solid #c2c3bb;background:#f6f4ed;color:#283940;"+
+  "font:12px/1.35 system-ui,sans-serif";
  const heading=document.createElement("strong");
  heading.textContent="3D geometry inspector";
  dock.append(heading);
  const description=document.createElement("p");
  description.textContent="Blue: miniature · amber: reward · purple: control · red: moving lid or drawer";
- description.style.margin="5px 0";
+ description.style.margin="0";
  dock.append(description);
  const controls=document.createElement("div");
  controls.style.cssText="display:flex;flex-wrap:wrap;gap:5px";
  const statusLine=document.createElement("output");
- statusLine.style.cssText="display:block;margin-top:7px;font-size:11px";
+ statusLine.style.cssText="font-size:11px";
  for(const mode of ["off","models","rewards","mechanisms","all"]){
   const button=document.createElement("button");
   button.type="button";
@@ -1087,7 +1090,9 @@ if(debugging3D){
   controls.append(button);
  }
  dock.append(controls,statusLine);
- stage.append(dock);
+ const workspace=stage.closest(".nc-world");
+ if(workspace?.parentElement)workspace.before(dock);
+ else stage.before(dock);
 }
 window.__nothing3DPreview={
  ready:true,
