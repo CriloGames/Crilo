@@ -124,7 +124,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // including the opened state where its depth increases.
  const slots=[
   ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.18,.74],
-  ["door","rightFace",-1.01,.80],["dog","rightFace",1.16,.08],
+  ["door","rightFace",-.90,.80],["dog","rightFace",1.16,.08],
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
   ["vase","bottomFace",0,1.12],
@@ -145,13 +145,18 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const stand=new THREE.Group();fixture.add(stand);
   // Slim captive brackets replace the heavy mini-gallery plinths. The
   // machined metal is attached directly to the rotating cube face.
-  B(stand,.53,.42,.055,0,.15,-.04,m.dark,.020);
-  const inlay=B(stand,.48,.36,.023,0,.16,.008,mountAccents[name],.018);
-  // A narrow captive trim follows the top edge without inventing extra
-  // labels or interfering with precision bag and elevator controls.
-  B(stand,.38,.018,.018,0,.331,.035,m.gold,.006);
-  B(stand,.56,.051,.37,0,-.035,.19,m.dark,.018);
-  B(stand,.50,.029,.35,0,.009,.19,m.gold,.012);
+  // The old solid black plinths made every unlocked scene look like
+  // a stack of dark shoeboxes. These are small open brass brackets,
+  // while the pastel inlay is flush with the actual cube face.
+  for(const x of [-.221,.221])
+   B(stand,.024,.34,.044,x,.15,-.055,m.brass,.006);
+  B(stand,.43,.021,.035,0,.319,-.036,m.brass,.006);
+  const inlay=B(stand,.43,.305,.016,0,.16,-.024,mountAccents[name],.012);
+  B(stand,.34,.014,.012,0,.322,.011,m.gold,.004);
+  // The floor is a thin shelf rooted to the frame, rather than a
+  // .37-deep black block protruding beneath the miniature.
+  B(stand,.49,.031,.17,0,-.040,.115,m.brass,.010);
+  B(stand,.44,.013,.15,0,-.014,.120,m.gold,.006);
   for(const px of [-.225,.225]){
    C(stand,.024,.03,px,.28,.027,m.brass,"z");
    C(stand,.024,.03,px,-.03,.416,m.brass,"z");
