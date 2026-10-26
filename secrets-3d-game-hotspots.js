@@ -38,6 +38,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let previousState=null,ventSettleTimer=null;
  function pulse(action){
+  if(action==="eye"){
+   // The player sees the eyelid close and reopen at the touched model.
+   gsap.killTweensOf(blinkLid.scale);
+   blinkLid.scale.y=reducedMotion?0:1;
+   if(!reducedMotion)gsap.to(blinkLid.scale,{
+    y:0,duration:.42,ease:"power2.out",onUpdate:invalidate
+   });
+   invalidate();return true;
+  }
   if(action.startsWith("flute-note-")&&flute.visible&&!reducedMotion){
    // Only show the note produced by the player; the correct melody
    // remains a secret. A tiny brass-colored sound ripple escapes the pipe.
@@ -272,9 +281,74 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   setHit(touch,"flute-note-"+i);
  }
  flute.visible=false;
- // Back: concentric optical controls and a rotating calibration gear.
- control(backFace,"eye",.07,-.12,glass,.17);
- const eyeCipher=engraving(backFace,"2 · 1 · 3",.03,-.55,.53);
+ // The rear eye must look like an actual eye, rather than the old
+ // circular control marked with a cross. Sculpt an almond-shaped white
+ // eyeball inside two curved mechanical eyelids, a colored iris, a black
+ // pupil and two real glass highlights. This is the sole clickable eye.
+ reserve(backFace,"eye",0,-.18,1.48,.77);
+ const eyeBody=node(backFace,0,-.18,.192);
+ const eyeShape=new THREE.Shape();
+ eyeShape.moveTo(-.68,0);
+ eyeShape.bezierCurveTo(-.38,.35,.37,.35,.68,0);
+ eyeShape.bezierCurveTo(.37,-.35,-.38,-.35,-.68,0);
+ eyeShape.closePath();
+ const eyeOuter=new THREE.Mesh(new THREE.ExtrudeGeometry(eyeShape,{
+  depth:.045,bevelEnabled:true,bevelThickness:.018,bevelSize:.018,
+  bevelSegments:2,curveSegments:32
+ }),graphite);
+ eyeOuter.castShadow=false;eyeBody.add(eyeOuter);count++;
+ const eyeWhiteMaterial=mat(0xf1e9d7,.10,.20);
+ const white=new THREE.Mesh(new THREE.ShapeGeometry(eyeShape,32),eyeWhiteMaterial);
+ white.scale.set(.90,.81,1);white.position.z=.078;eyeBody.add(white);count++;
+ const eyeLidMaterial=mat(0xc7976b,.69,.30);
+ const eyeLidLine=(upper)=>{
+  const curve=new THREE.CubicBezierCurve3(
+   new THREE.Vector3(-.68,0,.092),
+   new THREE.Vector3(-.39,upper?.37:-.37,.105),
+   new THREE.Vector3(.39,upper?.37:-.37,.105),
+   new THREE.Vector3(.68,0,.092)
+  );
+  const lid=new THREE.Mesh(new THREE.TubeGeometry(curve,36,.034,8,false),eyeLidMaterial);
+  lid.castShadow=false;eyeBody.add(lid);count++;
+ };
+ eyeLidLine(true);eyeLidLine(false);
+ const eyeIris=new THREE.Group();
+ eyeIris.position.set(.07,-.018,.108);eyeBody.add(eyeIris);
+ const irisMaterial=mat(0x5a9d9e,.26,.16);
+ irisMaterial.emissive=new THREE.Color(0x255c61);
+ irisMaterial.emissiveIntensity=.12;
+ const irisDisc=new THREE.Mesh(new THREE.SphereGeometry(.212,28,20),irisMaterial);
+ irisDisc.scale.set(1,1,.28);eyeIris.add(irisDisc);count++;
+ const irisRim=new THREE.Mesh(new THREE.TorusGeometry(.20,.020,9,40),eyeLidMaterial);
+ irisRim.position.z=.027;eyeIris.add(irisRim);count++;
+ // Tiny radial etched fibers distinguish this from another plain blue dial.
+ for(let i=0;i<20;i++){
+  const a=i*Math.PI/10,ray=new THREE.Mesh(
+   new THREE.BoxGeometry(.043,.007,.006),i%2?graphite:ivory);
+  ray.position.set(Math.cos(a)*.139,Math.sin(a)*.139,.039);
+  ray.rotation.z=a;eyeIris.add(ray);count++;
+ }
+ const eyePupilMaterial=mat(0x15212a,.15,.10);
+ const eyePupil=new THREE.Mesh(new THREE.SphereGeometry(.098,24,18),eyePupilMaterial);
+ eyePupil.scale.z=.40;eyePupil.position.z=.061;eyeIris.add(eyePupil);count++;
+ for(const [x,y,r] of [[-.050,.061,.033],[.052,-.038,.014]]){
+  const reflection=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),ivory);
+  reflection.scale.z=.4;reflection.position.set(x,y,.107);
+  eyeIris.add(reflection);count++;
+ }
+ // Pressing the eye briefly closes a captive upper eyelid, then the iris
+ // centers as the hidden engraved code is mechanically revealed below.
+ const blinkShape=new THREE.Shape();
+ blinkShape.moveTo(-.61,0);
+ blinkShape.bezierCurveTo(-.38,.275,.38,.275,.61,0);
+ blinkShape.lineTo(-.61,0);
+ const blinkLid=new THREE.Mesh(new THREE.ShapeGeometry(blinkShape,24),eyeLidMaterial);
+ blinkLid.position.z=.196;blinkLid.scale.y=0;eyeBody.add(blinkLid);count++;
+ setHit(eyeBody,"eye");targets.set("eye",eyeBody);
+ // Keep the 2 · 1 · 3 clue on the free bottom-center rail, NOT inside
+ // the eyelids or the circular lens. It has its own clear embossed plate.
+ // Left is the bag-code cassette, right is the iris gear enclosure.
+ const eyeCipher=engraving(backFace,"2 · 1 · 3",.075,-1.395,.70);
  eyeCipher.visible=false;
  // One purposeful, flush-mounted iris control. The engraved header,
  // protected grille and small ratcheting dial share a single bolted housing,
@@ -410,6 +484,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    bagCode:cipherStrip.visible
   }),
   cipherVisible:()=>cipherStrip.visible,
+  getEyeClueObject:()=>eyeCipher,
+  getEyeClueLayout:()=>({
+   eye:{x:0,y:-.18,width:1.48,height:.77},
+   clue:{x:eyeCipher.position.x,y:eyeCipher.position.y,width:.755,height:.19,
+    z:eyeCipher.position.z,visible:eyeCipher.visible},
+   iris:{x:1.055,y:-1.095,width:.49,height:.725},
+   bagCode:{x:-.93,y:-1.25,width:.86,height:.29},
+   eyeVisual:{hasAlmond:true,irisX:eyeIris.position.x,pupilVisible:eyePupil.visible}
+  }),
   setState(s){
    const restore=!previousState;
    const previous=previousState||{};
@@ -431,6 +514,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    revealPlate(ventCipher,!!s.rightBoltLoose,!!previous.rightBoltLoose,restore);
    revealPlate(undersideCipher,!!s.footChecked,!!previous.footChecked,restore);
    revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
+   pose(eyeIris,"position","x",s.back?0:.07,
+    previous.back?0:.07,restore,.50);
+   irisMaterial.emissiveIntensity=s.back?.28:.12;
    // Correctly ordered vent keys withdraw the captive shutter over the
    // physical grille. A restored save shows the final pose immediately.
    pose(ventCover,"position","y",s.ventOpen?-.20:0,
