@@ -362,9 +362,42 @@ try{
  await activate("side");
  assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
  await activate("eye");
- assert.equal((await state()).back,true,"Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
+ assert.equal((await state()).back,true,
+  "Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).eyeNumber,
   "The eye must reveal its engraving ON the floating cube");
+ // Eye geometry should be an actual almond with separate iris and pupil.
+ // The revealed numbers belong on the bottom-center rail, not under the
+ // optical glass, a permanent plaque, or the bag/iris cassettes.
+ const optical=await page.evaluate(()=>window.__nothing3DPreview.eyeClueLayout);
+ assert(optical?.eyeVisual?.hasAlmond&&optical.clue.visible,
+  "Mechanical eye did not render an almond-shaped eyelid and physical code");
+ const overlaps=(a,b,pad=.065)=>Math.abs(a.x-b.x)<(a.width+b.width)/2+pad&&
+  Math.abs(a.y-b.y)<(a.height+b.height)/2+pad;
+ assert(!overlaps(optical.eye,optical.clue)&&
+  !overlaps(optical.iris,optical.clue)&&
+  !overlaps(optical.bagCode,optical.clue),
+  "The revealed eye code intersects the lens, iris or bag cassette: "+
+  JSON.stringify(optical));
+ assert(optical.clue.y<optical.eye.y-.9&&optical.clue.y> -1.51,
+  "The eye code must fit fully below the optics and above the cube's rim");
+ const originalView=await state();
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(0,180));
+ try{
+  await page.waitForFunction(()=>{
+   const p=window.__nothing3DPreview.eyeClueReadability;
+   return p.revealed&&p.inView&&p.unobstructed;
+  },null,{timeout:18000,polling:250});
+ }catch(error){
+  const diagnosis=await page.evaluate(()=>({
+   eye:window.__nothing3DPreview.eyeClueLayout,
+   projection:window.__nothing3DPreview.eyeClueReadability
+  }));
+  throw new Error("Rear-eye code is covered or out of view: "+JSON.stringify(diagnosis),{cause:error});
+ }
+ await page.evaluate(view=>window.__nothing3DPreview.setRotation(view.rx,view.ry),
+  originalView);
+ console.log("PASS: almond-shaped mechanical eye reveals an unobstructed 2-1-3 inscription");
  await activate("right-bolt-1");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
   "Removing the service bolt must uncover its genuine inscribed number");
