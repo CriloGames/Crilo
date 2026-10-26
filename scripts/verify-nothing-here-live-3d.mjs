@@ -143,6 +143,9 @@ try{
   "Unlocked collectibles are still floating outside their attached trays");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
   "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
+ // Inspection UI must not obscure the artifact it is meant to inspect.
+ assert.equal(await auditPage.locator('#stage [aria-label="3D structure inspection"]').count(),0,
+  "The inspection control panel covers the cube itself");
  const inspector=await auditPage.evaluate(()=>
   window.__nothing3DPreview.setGeometryInspector("all"));
  assert(inspector.mode==="all"&&inspector.count>=40,
@@ -162,6 +165,18 @@ try{
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
   await auditPage.screenshot({
    path:"test-results/live-3d-unlocked-"+name+".png",timeout:60000
+  });
+ }
+ // Close-range references specifically expose bulky black housings that
+ // looked acceptable at 82% but obstructed the glass eye, gauge and RED.
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setZoom(1.55));
+ for(const [name,rx,ry] of [
+  ["glass-eye",0,180],["gauge",0,270],["red-switch",0,0]
+ ]){
+  await auditPage.evaluate(([a,b])=>
+   window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
+  await auditPage.screenshot({
+   path:"test-results/live-3d-close-"+name+".png",timeout:60000
   });
  }
  await auditPage.close();
