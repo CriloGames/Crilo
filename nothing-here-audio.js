@@ -134,6 +134,38 @@
    return true;
   }catch{return false}
  }
+ let fluteContext=null;
+ function playFluteNote(number){
+  if(!sfxEnabled||document.hidden)return false;
+  const notes=[523.25,659.26,783.99];
+  const frequency=notes[number-1];
+  if(!frequency)return false;
+  try{
+   const Engine=window.AudioContext||window.webkitAudioContext;
+   if(!Engine)return play('select');
+   if(!fluteContext||fluteContext.state==='closed')fluteContext=new Engine();
+   if(fluteContext.state==='suspended')fluteContext.resume()?.catch?.(()=>{});
+   const t=fluteContext.currentTime;
+   const voice=fluteContext.createGain();
+   voice.gain.setValueAtTime(.0001,t);
+   voice.gain.exponentialRampToValueAtTime(.065,t+.062);
+   voice.gain.exponentialRampToValueAtTime(.036,t+.19);
+   voice.gain.exponentialRampToValueAtTime(.0001,t+.53);
+   voice.connect(fluteContext.destination);
+   // A soft wooden flute timbre from a fundamental plus faint overtones.
+   for(const [ratio,volume] of [[1,1],[2,.18],[3,.055]]){
+    const oscillator=fluteContext.createOscillator();
+    oscillator.type='sine';
+    oscillator.frequency.setValueAtTime(frequency*ratio,t);
+    oscillator.frequency.setValueAtTime(frequency*ratio*1.006,t+.14);
+    const tone=fluteContext.createGain();tone.gain.value=volume;
+    oscillator.connect(tone).connect(voice);
+    oscillator.start(t);oscillator.stop(t+.56);
+   }
+   latestEffect='flute';
+   return true;
+  }catch{return play('select')}
+ }
  function toneFor(freq){
   const n=Number(freq);
   if(!Number.isFinite(n))return play('tap');
@@ -172,7 +204,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,action,setSfx,setMusic,
+  play,toneFor,playFluteNote,action,setSfx,setMusic,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,musicCreated:!!music,
    musicPlaying:!!music&&!music.paused,
