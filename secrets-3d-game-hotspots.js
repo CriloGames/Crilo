@@ -438,25 +438,39 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const shutter=targets.get("shutter");
  // Bottom: actual protruding rubber support and a separate release hatch.
  const foot=control(bottomFace,"foot",-1.02,1.02,graphite,.16);
+ const engravedSettleTimers=new WeakMap();
  function revealPlate(object,ready,wasReady,restore){
   const wasVisible=object.visible;
+  const clearDeadline=()=>{
+   const timer=engravedSettleTimers.get(object);
+   if(timer!==undefined){
+    clearTimeout(timer);engravedSettleTimers.delete(object);
+   }
+  };
   if(!ready){
-   gsap.killTweensOf(object.position);
+   clearDeadline();gsap.killTweensOf(object.position);
    object.visible=false;
    object.position.z=.158;
    return;
   }
   object.visible=true;
   if(restore||reducedMotion){
+   clearDeadline();gsap.killTweensOf(object.position);
    object.position.z=.158;
   }else if(!wasReady||!wasVisible){
-   // An engraving slides out of a recessed slot instead of magically
-   // appearing in front of opaque metal. No auto-revealed answer text.
-   gsap.killTweensOf(object.position);
+   // Reveal by sliding up from the actual slot. Never stop with the
+   // numbers buried in opaque enamel if a mobile/SwiftShader frame stalls.
+   clearDeadline();gsap.killTweensOf(object.position);
    object.position.z=.047;
    gsap.to(object.position,{
     z:.158,duration:.57,ease:"back.out(1.4)",onUpdate:invalidate
    });
+   engravedSettleTimers.set(object,setTimeout(()=>{
+    engravedSettleTimers.delete(object);
+    if(!object.visible)return;
+    gsap.killTweensOf(object.position);
+    object.position.z=.158;invalidate();
+   },1150));
   }
  }
  const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
