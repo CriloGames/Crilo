@@ -16,6 +16,9 @@ on:
       - 'cube-depth.css'
       - 'secret-room.css'
       - 'scripts/verify-nothing-here.mjs'
+      - 'secrets-3d-preview.js'
+      - 'secrets-3d-pickups.js'
+      - 'cube-physical.css'
       - '.github/workflows/nothing-here-check.yml'
   workflow_dispatch:
 
@@ -39,7 +42,7 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify handcrafted materials, 60 secrets, zoom and mobile
+      - name: Verify single 3D view, preserved saves, retired Classic URLs and retry
         run: node scripts/verify-nothing-here.mjs
       - name: Preserve desktop and mobile snapshots
         if: always()
