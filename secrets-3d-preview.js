@@ -488,15 +488,18 @@ function clickAction(action){
    return;
   }
   if(action.startsWith("thing:bag-dial-")){
+   window.NothingHereAudio?.play?.('gear');
    window.CriloNothingHereCube?.activatePhysicalBagDial?.(Number(action.slice(-1)));
    return;
   }
   if(action.startsWith("thing:elevator-floor-")){
+   window.NothingHereAudio?.play?.('drawer');
    pocketWorlds?.pulse?.(action);
    window.CriloNothingHereCube?.activatePhysicalElevatorFloor?.(Number(action.slice(-1)));
    return;
   }
   if(action.startsWith("thing:")){
+   window.NothingHereAudio?.play?.('tap');
    // Using a pocket item can instantly expose a precision control. Avoid
    // jostling the entire sculpture while the player is aiming at it.
    const usingInventory=!!window.CriloNothingHereCube?.getState?.().selected;
@@ -524,6 +527,7 @@ function clickAction(action){
     action.startsWith("top-screw-")?"hinge-"+Math.min(2,Number(action.slice(-1))):
     translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
+  window.NothingHereAudio?.action?.(name);
   // The hardware reacts to touch even if the original secret does not
   // unlock. Motion conveys interactivity but never reveals a solution.
   if(gameHotspots){
