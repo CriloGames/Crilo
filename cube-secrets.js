@@ -666,7 +666,7 @@ function cubeHit(name){
  }else if(name==='dot'){
   s.redHits++;
   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
-  if(s.redHits===4){bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube's underside.');gain('bell');}
+  if(s.redHits===4){bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube’s underside.');gain('bell');}
   else if(s.redHits>4)tell('The red dot refuses to admit it has a function.');
   else tell('click.');
  }
@@ -755,7 +755,7 @@ function use(item,thing){
   bloom('portal','The paper sinks through solid enamel. A tiny landscape appears inside the cube.');
  }else if(item==='cog'&&thing==='eye'){
   spend('cog');s.opticOpened=true;gain('iris');
-  bloom('hidden-optic','The drive cog engages the optical mechanism. A glass iris slips into the eye's small side retainer.');
+  bloom('hidden-optic','The drive cog engages the optical mechanism. A glass iris slips into the eye’s small side retainer.');
  }else if(item==='iris'&&thing==='telescope'){
   spend('iris');s.secondSky=true;
   bloom('second-sky','For an instant, the telescope sees two different skies at once.');
@@ -919,7 +919,7 @@ function bark(){
   s.barked=true;s.squirrel=true;s.vase=true;
   bloom('bark','After three pats, the dog lets out a shockingly loud BARK!');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
-  bloom('vase','The squirrel knocks the underside's ceramic vase off balance. Its cracked base reveals an acorn and a clockwork spring.');
+  bloom('vase','The squirrel knocks the underside’s ceramic vase off balance. Its cracked base reveals an acorn and a clockwork spring.');
   gain('acorn');gain('spring');bloom('spring');fleeing=true;
    cue('ncDog','nc-howling',1250);
    cue('ncImpactWave','nc-running',1250);
