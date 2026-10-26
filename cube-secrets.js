@@ -418,6 +418,36 @@ function render(){
   count.textContent=pocket.size+' carried';
   count.setAttribute('aria-label',pocket.size+' items carried');
  }
+ // Clear feedback for the new physical-only pickup behavior. Do not
+ // list items, signal which mechanism they belong to, or spoil a recipe.
+ const awaiting=$('ncAwaitingPickups'),awaitingLabel=$('ncAwaitingCount');
+ if(awaiting&&awaitingLabel){
+  const n=pendingPickups.size;
+  awaiting.hidden=n===0;
+  if(n){
+   awaitingLabel.textContent=n===1
+    ?'1 object is waiting on the cube. Press it to collect.'
+    :n+' objects are waiting on the cube. Press each one to collect.';
+  }
+ }
+ const combineGuide=$('ncCombineGuide');
+ if(combineGuide){
+  const action=selected
+   ?'Holding '+names[selected]+'. Select a second pocket item to combine, or press a part of the cube to try using it.'
+   :'Select one pocket item, then a second to combine them. Or select an item and press a part of the cube to try using it.';
+  const current=combineGuide.querySelector('.nc-combine-instructions');
+  if(current)current.textContent=action;
+  else{
+   combineGuide.textContent='';
+   const strong=document.createElement('strong');
+   strong.textContent='Combine items: ';
+   combineGuide.append(strong);
+   const prose=document.createElement('span');
+   prose.className='nc-combine-instructions';
+   prose.textContent=action;
+   combineGuide.append(prose);
+  }
+ }
  const focusedItem=inventory.contains(document.activeElement)
   ?document.activeElement.closest('[data-item]')?.dataset.item:null;
  const now=Date.now();
