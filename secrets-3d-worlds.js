@@ -859,6 +859,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  setState({});
  return {
   names:[...items.keys()],
+  // Collectibles bolt to the same moving cube face as the object that
+  // dispenses them. No duplicate flat or floating reward panel.
+  getPickupHost:name=>items.get(name)?.fixture||null,
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
   pickVolumes:new Map([...items].map(([n,v])=>[n,v.hitVolume])),
