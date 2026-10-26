@@ -1135,6 +1135,51 @@ window.__nothing3DPreview={
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
  get unlockedGeometryAudit(){return pocketWorlds?.getUnlockedGeometryAudit?.()||null},
+ get unlockedMechanismClashes(){
+  // Inspect actual transformed triangles' enclosing boxes, not static UI
+  // footprints: an opened drawer or a hinged hatch can sweep through a
+  // nearby miniature after its discovery.
+  const minis=pocketWorlds?.getUnlockedGeometryAudit?.().bounds||[];
+  if(!minis.length)return [];
+  cube.updateMatrixWorld(true);
+  const conflicts=[];
+  for(const [name,face,assembly] of [
+   ["front drawer",frontFace,front.drawer],
+   ["side drawer",rightFace,side.drawer],
+   ["top hatch",topFace,lidPivot]
+  ]){
+   const min=new THREE.Vector3(Infinity,Infinity,Infinity);
+   const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
+   const inverse=face.matrixWorld.clone().invert();
+   assembly.traverse(mesh=>{
+    if(!mesh.isMesh||!isMeshEffectivelyVisible(mesh))return;
+    const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+    if(mats.every(m=>m?.colorWrite===false||m?.opacity===0))return;
+    if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+    const b=mesh.geometry.boundingBox;if(!b)return;
+    const xform=new THREE.Matrix4().multiplyMatrices(inverse,mesh.matrixWorld);
+    for(const x of [b.min.x,b.max.x])
+     for(const y of [b.min.y,b.max.y])
+      for(const z of [b.min.z,b.max.z]){
+       const point=new THREE.Vector3(x,y,z).applyMatrix4(xform);
+       min.min(point);max.max(point);
+      }
+   });
+   const minA=min.toArray(),maxA=max.toArray();
+   const faceName=name==="front drawer"?"frontFace":
+    name==="side drawer"?"rightFace":"topFace";
+   for(const world of minis){
+    if(world.face!==faceName)continue;
+    const overlap=[0,1,2].map(axis=>
+     Math.min(maxA[axis],world.max[axis])-
+     Math.max(minA[axis],world.min[axis]));
+    if(overlap.every(v=>v>.045))
+     conflicts.push({hardware:name,miniature:world.name,
+      overlap:overlap.map(v=>+v.toFixed(3))});
+   }
+  }
+  return conflicts;
+ },
  get visiblePhysicalStoryObjects(){return pocketWorlds?.visibleNames()||[]},
  getPhysicalActionAt(x,y){
   const r=renderer.domElement.getBoundingClientRect();
