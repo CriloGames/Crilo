@@ -13,6 +13,27 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // The housing stays bolted to the face; only its independently modeled
  // actuator travels into the socket. Clicks never move entire puzzle faces.
  const actuators=new Map();
+ // Reserve two-dimensional footprints on the actual solid cube face, not
+ // arbitrary HTML positions. A CI audit catches any new plaque or control
+ // placed inside another active touch area.
+ const clearanceFootprints=[];
+ const faceName=face=>Object.entries(faces)
+  .find(([,root])=>root===face)?.[0]||null;
+ function reserve(face,name,x,y,w,h){
+  const faceId=faceName(face);
+  if(faceId)clearanceFootprints.push({face:faceId,name,x,y,w,h});
+ }
+ function getClearanceViolations(padding=.035){
+  const faults=[];
+  for(let i=0;i<clearanceFootprints.length;i++)for(let j=i+1;j<clearanceFootprints.length;j++){
+   const a=clearanceFootprints[i],b=clearanceFootprints[j];
+   if(a.face!==b.face)continue;
+   if(Math.abs(a.x-b.x)<(a.w+b.w)/2+padding&&
+      Math.abs(a.y-b.y)<(a.h+b.h)/2+padding)
+    faults.push(a.face+": "+a.name+" overlaps "+b.name);
+  }
+  return faults;
+ }
  let fluteWaves=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let previousState=null;
@@ -63,6 +84,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const a=cylinder(g,r,d,x,y,z,m);a.castShadow=false;count++;return a;
  }
  function control(face,name,x,y,color=brass,size=.115){
+  const radius=["dot","pressure","dent","eye-ring","foot","underside"].includes(name)
+   ?Math.max(.14,size*1.35):size*1.2;
+  reserve(face,name,x,y,radius*2,radius*2);
   const g=node(face,x,y,.19);
   C(g,size*1.20,.06,0,0,0,graphite);
   const cap=new THREE.Group();g.add(cap);
@@ -88,6 +112,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   setHit(g,name);targets.set(name,g);return g;
  }
  function tab(face,name,x,y,color=brass,w=.27,h=.12){
+  reserve(face,name,x,y,w+.075,h+.06);
   const g=node(face,x,y,.18);
   B(g,w+.075,h+.06,.055,0,0,0,graphite,.025);
   const slider=new THREE.Group();g.add(slider);
@@ -100,6 +125,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Tiny engraved plates make the machine readable even when not hovering.
  // These are solid bolted-on housings, not detached 2D text overlays.
  function engraving(face,words,x,y,w=.47){
+  // Conditional inscriptions are only exposed after their covering control
+  // has physically moved; audit permanent visible faceplates separately.
+  if(!["3 · 1 · 2","2 · 1 · 3","Ⅱ · Ⅰ · Ⅲ"].includes(words))
+   reserve(face,"plaque "+words,x,y,w+.055,.186);
   const g=node(face,x,y,.158),h=.143;
   B(g,w+.055,h+.043,.054,0,0,0,graphite,.020);
   B(g,w,h,.020,0,0,.035,ivory,.012);
@@ -337,6 +366,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // No floating BASE plaque across the working central underside dial.
  return {
   count:()=>count,
+  getClearanceViolations,
+  getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   actions:[...targets.keys()],
   targets,
   pulse,
