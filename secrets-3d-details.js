@@ -137,8 +137,8 @@ export function buildIntricateCube({
   C(statusLight,.12,.05,0,0,0,darkMetal);
   const bulb=C(statusLight,.074,.06,0,0,.05,ebony);
   bulb.userData.noBatch=true;registries.bulb=bulb;
-  vent(frontFace,-.98,-.16,.47,4);
-  vent(frontFace,.95,-.16,.47,4);
+  // The real LATCH and RED identification plaques occupy this belt.
+  // Two extra cosmetic grilles were cutting through those plate edges.
 
   // RIGHT: precision pressure instrument, routed pipes and switch plate.
   plates(rightFace,verdigris);
