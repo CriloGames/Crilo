@@ -644,3 +644,53 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-awaiting-pickups{
 html[data-theme="dark"] .nc-page .nc-pocket .nc-awaiting-symbol{
  color:#c5e8d4;background:#446653;border-color:#70977a;
 }
+
+
+/* Nothing Here: two independent audio channels. Mechanical samples and the
+   CC0 lobby music have separate persisted settings; mobile controls wrap
+   without floating over the cube. */
+.nc-page .nc-overline .nc-audio-controls{
+ display:flex;align-items:center;justify-content:center;
+ flex-wrap:wrap;gap:6px;margin-left:auto;
+}
+.nc-page .nc-overline .nc-audio-toggle{
+ display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ border:1px solid #c6dcd3;background:#f0f7f1;color:#426456;
+ padding:7px 10px;min-height:34px;border-radius:999px;
+ font-family:inherit;font-size:11px;font-weight:760;line-height:1.15;
+ white-space:nowrap;cursor:pointer;transition:background .18s,border-color .18s,color .18s;
+}
+.nc-page .nc-overline .nc-audio-toggle:hover{
+ border-color:#91b6a6;background:#e7f2ea;
+}
+.nc-page .nc-overline .nc-audio-toggle.nc-audio-disabled{
+ color:#807f82;border-color:#d3d4d3;background:#f1f1ef;
+}
+.nc-page .nc-overline .nc-audio-toggle.nc-audio-disabled:hover{
+ border-color:#b7c2b9;background:#e9eeeb;
+}
+.nc-page .nc-overline .nc-audio-toggle .nc-audio-state{
+ font-weight:800;color:inherit;opacity:.78;
+}
+.nc-page .nc-overline .nc-audio-ico{font-size:14px;line-height:1}
+.nc-page .nc-overline .nc-audio-toggle:focus-visible{
+ outline:3px solid #80b79b;outline-offset:2px;
+}
+.nc-page .nc-overline .nc-audio-controls+.nc-reset-trigger{margin-left:0}
+html[data-theme="dark"] .nc-page .nc-overline .nc-audio-toggle{
+ background:#30443d;border-color:#507a69;color:#d4ebdf;
+}
+html[data-theme="dark"] .nc-page .nc-overline .nc-audio-toggle:hover{
+ background:#3a5549;border-color:#7fa994;
+}
+html[data-theme="dark"] .nc-page .nc-overline .nc-audio-toggle.nc-audio-disabled{
+ background:#383e43;border-color:#5b6466;color:#b7c2c3;
+}
+@media(max-width:620px){
+ .nc-page .nc-overline{display:flex;flex-wrap:wrap;column-gap:7px;row-gap:8px}
+ .nc-page .nc-overline .nc-audio-controls{
+  order:3;margin-left:0;width:100%;justify-content:center;
+ }
+ .nc-page .nc-overline .nc-reset-trigger{margin-left:auto}
+ .nc-page .nc-overline .nc-audio-toggle{min-height:38px;flex:1 1 auto;max-width:160px}
+}
