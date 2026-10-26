@@ -124,7 +124,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // including the opened state where its depth increases.
  const slots=[
   ["bag","frontFace",-1.17,-.81],["machine","frontFace",1.18,.74],
-  ["door","rightFace",-.90,.80],["dog","rightFace",1.16,.08],
+  ["door","rightFace",-.76,.80],["dog","rightFace",1.16,.08],
   // Vase sits with the squirrel underneath: the previous left-face mount
   // clipped the playable pressure gauge and its label.
   ["vase","bottomFace",0,1.12],
