@@ -156,11 +156,9 @@ export function buildIntricateCube({
   plaque(rightFace,"PRESSURE",.05,1.33,.70);
   setHit(meter,"pressure");
   registries.needle=needle;
-  // independent copper tubes, clamps and inspection bolts
-  for(const p of [[-.99,.72,-.99,1.16],[-.99,.72,-.68,.72],[-.68,.72,-.68,1.05]]){
-    flatLine(rightFace,...p,.19,.041,copper);
-  }
-  for(let i=0;i<3;i++)rivet(rightFace,-.99,.77+i*.18,.23);
+  // The revealed door is now mounted on this upper-left section.
+  // Decorative pipes and three ornamental rivets previously ran straight
+  // through the physical door frame. No working plumbing is removed.
   const lever=group(rightFace,-.99,-1.06,.16);
   B(lever,.48,.43,.12,0,0,0,metal,.045);
   const arm=B(lever,.11,.29,.11,0,0,.13,steel,.04);
