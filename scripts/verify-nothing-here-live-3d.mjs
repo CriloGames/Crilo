@@ -1198,6 +1198,7 @@ try{
  const unlocked=await auditPage.evaluate(()=>{
   const view=window.__nothing3DPreview;
   return {geometry:view.unlockedGeometryAudit,
+   movingHardware:view.unlockedMechanismClashes,
    trays:view.physicalPickupTrays,
    items:view.physicalPickupLayout,
    washer:view.getPhysicalPickupRevealState("washer"),
@@ -1215,6 +1216,8 @@ try{
   "An unlocked prop projects unnaturally far from its metal mounting face");
  assert.deepEqual(unlocked.geometry.clashes,[],
   "Two unlocked physical miniatures overlap in 3D");
+ assert.deepEqual(unlocked.movingHardware,[],
+  "An opened drawer or hinged lid clips through an unlocked miniature");
  assert(unlocked.trays.length>=12&&
   unlocked.trays.filter(tray=>tray.visible).length>=12&&
   unlocked.items.filter(item=>item.source==="bag").every(item=>
