@@ -124,18 +124,14 @@ export function buildIntricateCube({
   edgeTicks(frontFace,0,.56,.66,28);
   // The actual serial control is the only nameplate; a second stamped
   // label above the large lens intersected the lens rim and its touch zone.
+  // The physical front already has a working LATCH at (-1.05,.11)
+  // and RED button at (1.10,.15). Additional decorative circular switches
+  // were occupying those exact hit targets. Keep logical animation anchors
+  // but do not render duplicate knobs over real puzzle controls.
   const frontKnob=group(frontFace,-.95,.26,.16);
-  C(frontKnob,.17,.10,0,0,.05,darkMetal);
-  C(frontKnob,.13,.13,0,0,.13,gold);
-  for(let i=0;i<11;i++){
-    const a=i*2*Math.PI/11;
-    B(frontKnob,.025,.042,.045,Math.cos(a)*.13,Math.sin(a)*.13,.21,steel,.006);
-  }
-  setHit(frontKnob,"optic");
   registries.optic=frontKnob;
-  const statusLight=group(frontFace,1.06,.20,.21);
-  C(statusLight,.12,.05,0,0,0,darkMetal);
-  const bulb=C(statusLight,.074,.06,0,0,.05,ebony);
+  const statusLight=group(frontFace,1.06,.20,.09);
+  const bulb=C(statusLight,.03,.018,0,0,0,ebony);
   bulb.userData.noBatch=true;registries.bulb=bulb;
   // The real LATCH and RED identification plaques occupy this belt.
   // Two extra cosmetic grilles were cutting through those plate edges.
