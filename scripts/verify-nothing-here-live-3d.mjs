@@ -121,6 +121,7 @@ try{
    items:view.physicalPickupLayout,
    washer:view.getPhysicalPickupRevealState("washer"),
    iris:view.getPhysicalPickupRevealState("iris"),
+   fork:view.getPhysicalPickupRevealState("fork"),
    visible:view.visiblePhysicalStoryObjects};
  });
  console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
@@ -141,8 +142,14 @@ try{
   unlocked.items.filter(item=>item.source==="bag").every(item=>
    item.mounted&&item.faceDepth<.65),
   "Unlocked collectibles are still floating outside their attached trays");
- assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
-  "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
+ assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
+  "Opened mechanisms must never conceal their physically revealed rewards");
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-15,270));
+ const forkTarget=await auditPage.evaluate(()=>
+  window.__nothing3DPreview.projectPhysicalPickup("fork"));
+ assert.equal(forkTarget?.pick,"pickup:fork",
+  "The opened gauge's tuning fork must be accessible without hiding its needle: "+
+   JSON.stringify(forkTarget));
  // Inspection UI must not obscure the artifact it is meant to inspect.
  assert.equal(await auditPage.locator('#stage [aria-label="3D structure inspection"]').count(),0,
   "The inspection control panel covers the cube itself");
