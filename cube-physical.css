@@ -694,3 +694,18 @@ html[data-theme="dark"] .nc-page .nc-overline .nc-audio-toggle.nc-audio-disabled
  .nc-page .nc-overline .nc-reset-trigger{margin-left:auto}
  .nc-page .nc-overline .nc-audio-toggle{min-height:38px;flex:1 1 auto;max-width:160px}
 }
+
+
+/* The old dark-only controls set !important backgrounds. An explicit light
+   counterpart prevents a stale-looking charcoal zoom button after the user
+   switches the page theme, including before WebGL finishes initializing. */
+html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls :is(.nc-rotate-controls,.nc-zoom-controls) button{
+ background-color:#fffefa!important;background-image:none!important;
+ color:#506272!important;border-color:#c5d4d5!important;
+}
+html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls .nc-zoom-controls{
+ background:#fffdf9e8!important;border-color:#e2e8e7!important;
+}
+html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls #ncZoomAmount{
+ color:#506e76!important;
+}
