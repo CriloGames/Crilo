@@ -842,7 +842,9 @@ function turnBag(i){
   s.bagSolved=true;gain('reed');gain('treat');gain('prism');
   bloom('bag-code','Under the false bottom: a reed, a biscuit and a glass prism.');
   const bagNote=$('ncBagNote');
-  if(bagNote)bagNote.textContent='A tiny false bottom has opened. Its contents are in your pocket.';
+  if(bagNote)bagNote.textContent=document.body.classList.contains('nc-physical-ready')
+   ?'The false bottom opens. Press each of the three small objects to collect them.'
+   :'A tiny false bottom has opened. Its contents are in your pocket.';
   cue('ncBagInterior','nc-unlatched',1100);scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
   incident('✳');
  }else sound(350+i*50);
@@ -1003,7 +1005,7 @@ function info(){
  modal('A SLIGHTLY UNHELPFUL EXPLANATION','Turn it.',
   '<p>Drag to rotate, use the arrows, or zoom with the + / − buttons, your mouse wheel, or a two-finger pinch. Select ✥ to move a zoomed-in view. Press ↺ to reset.</p><p>Screws, vents, tiny markings, dial wheels and hinge pins are all worth inspecting.</p>'+
   '<p>Some discoveries are useful somewhere else. You can select an item and experiment with the other objects, or try combining two things in your pocket.</p>'+
-  '<p>Small engravings identify parts of the mechanism. In real 3D, hover with a mouse or touch and hold on a phone to identify an object without activating it; tap to explore. Objects you collect move into your pocket below.</p>'+ 
+  '<p>Small engravings identify parts of the mechanism. In real 3D, hover with a mouse or touch and hold on a phone to identify an object without activating it. Found items stay physically on the cube until you press them, then move to your pocket below.</p>'+ 
   '<p>Keyboard: focus the 3D cube, use arrow keys to turn it, I to inspect a visible fitting (Shift+I to go back), Enter to activate it, and Escape to stop inspecting. Tab moves to the other controls.</p>'+
  '<p>The journal records what you have discovered. Your progress saves on this device.</p>','info');
 }
