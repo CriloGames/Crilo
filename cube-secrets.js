@@ -534,7 +534,7 @@ function inspectHardware(name){
    sound(265+s.pressureTicks*130);
    if(s.pressureTicks>=3){
     s.pressureReady=true;gain('fork');
-    bloom('pressure-dial','The brass manometer reaches three. A slender tuning fork unclips from the gauge.');
+    bloom('pressure-dial','The manometer reaches three, releasing the tuning fork held in its slim upper retaining bracket.');
     scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
    }else tell('The little gauge needle settles onto another engraved tick.');
   }else tell('The pressure holds steady at three, though there is nothing inside.');
@@ -544,7 +544,7 @@ function inspectHardware(name){
   if(!s.resonance){tell('The blue service hatch shivers, but its sound-operated latch is sealed.');return true}
   if(!s.serviceOpen){
    s.serviceOpen=true;gain('cylinder');
-   bloom('service-shutter','The resonator slides on brass rails. Inside is a grooved wax cylinder.');
+   bloom('service-shutter','The service shutter slides aside and exposes a grooved wax cylinder in its recessed holder.');
    cue('ncWorld','nc-shudder',450);scatter('#a4cbca',11,document.querySelector('[data-hit="shutter"]'));
   }else tell('The little service cavity is empty now. Its spring still hums.');
   return true;
@@ -560,7 +560,7 @@ function inspectHardware(name){
    s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
    if(s.screws.length===3){
     s.plateOpen=true;gain('cog');
-    bloom('faceplate','With the third screw out, a spring lifts the enamel plate. A brass drive cog rises into the exposed socket.');
+    bloom('faceplate','The third screw releases a small service hatch beside the front lens. Inside its captive brass socket is a drive cog you can pick up.');
     cue('ncCube','nc-scene-blink',800);
    }else tell('A real screw came out. The empty socket has surprisingly fine threads.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
@@ -585,7 +585,7 @@ function inspectHardware(name){
   s.ventSequence.push(n);s.ventSequence=s.ventSequence.slice(-3);
   if(s.ventSequence.join('')==='312'){
    s.ventOpen=true;gain('shim');
-   bloom('vent-sequence','Three—one—two. The vent grille moves and reveals a copper shim.');
+   bloom('vent-sequence','Three—one—two. The slotted vent shutter retracts, exposing a copper shim in the cavity beneath it.');
    cue('ncWorld','nc-shudder',430);scatter('#d1a996',9,document.querySelector('[data-hit="'+name+'"]'));
   }else if(s.ventSequence.length===3){
    s.ventSequence=[n];tell('Wrong combination. The little vents reset with a hollow clack.');
@@ -613,7 +613,7 @@ function inspectHardware(name){
   if(!s.hingePins.includes(n)){
    s.hingePins.push(n);sound(350+n*125);
    if(s.hingePins.length===3){
-    gain('washer');bloom('hinge-pin','All three hinge pins have shifted. A miniature washer rolls out.');
+    gain('washer');bloom('hinge-pin','The third hinge pin withdraws. A loose washer is now resting in the empty hinge seat.');
     scatter('#e0c88a',8,document.querySelector('[data-hit="'+name+'"]'));
    }else tell('A tiny hinge pin moves. It seems to unlock another piece.');
   }else tell('This hinge pin is already loose.');
@@ -659,14 +659,14 @@ function cubeHit(name){
    bloom('bag');gain('coin');incident('🐁');
   } else tell('Only the faint sound of tiny metallic footsteps remains.');
  }else if(name==='eye'){
-  if(!s.back){s.back=true;bloom('eye','The eye blinks: TWO · ONE · THREE. Nobody says what that means.');}
+  if(!s.back){s.back=true;bloom('eye','The eyelid retracts to reveal a stamped numerical sequence below the glass eye.');}
   else if(document.body.classList.contains('nc-physical-ready'))
   tell('Engraved behind the eye: TWO · ONE · THREE. The optical ring beside it also turns.');
  else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">TWO · ONE · THREE</p><p>Someone scratched those words into the cube from the inside.</p>','eye');
  }else if(name==='dot'){
   s.redHits++;
   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
-  if(s.redHits===4){bloom('bell','Something jingles from the bottom of the cube.');gain('bell');}
+  if(s.redHits===4){bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube's underside.');gain('bell');}
   else if(s.redHits>4)tell('The red dot refuses to admit it has a function.');
   else tell('click.');
  }
@@ -755,7 +755,7 @@ function use(item,thing){
   bloom('portal','The paper sinks through solid enamel. A tiny landscape appears inside the cube.');
  }else if(item==='cog'&&thing==='eye'){
   spend('cog');s.opticOpened=true;gain('iris');
-  bloom('hidden-optic','The brass gear meshes with the eye. A tiny glass iris comes loose inside its socket.');
+  bloom('hidden-optic','The drive cog engages the optical mechanism. A glass iris slips into the eye's small side retainer.');
  }else if(item==='iris'&&thing==='telescope'){
   spend('iris');s.secondSky=true;
   bloom('second-sky','For an instant, the telescope sees two different skies at once.');
@@ -919,7 +919,7 @@ function bark(){
   s.barked=true;s.squirrel=true;s.vase=true;
   bloom('bark','After three pats, the dog lets out a shockingly loud BARK!');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
-  bloom('vase','The squirrel knocks over an unseen vase. An acorn and a spring roll out.');
+  bloom('vase','The squirrel knocks the underside's ceramic vase off balance. Its cracked base reveals an acorn and a clockwork spring.');
   gain('acorn');gain('spring');bloom('spring');fleeing=true;
    cue('ncDog','nc-howling',1250);
    cue('ncImpactWave','nc-running',1250);
@@ -1074,7 +1074,7 @@ $('ncCubeZone').addEventListener('click',e=>{
  if(blockedClick){e.stopImmediatePropagation();e.preventDefault();blockedClick=false;return}
 if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.plateOpen){
   s.plateOpen=true;gain('cog');
-  bloom('faceplate','The loosened faceplate shifts aside. A brass drive cog was hiding underneath.');
+  bloom('faceplate','The front service hatch swings open. A brass drive cog is seated in the compartment beside the lens.');
   cue('ncCube','nc-scene-blink',750);scatter('#bdabce',10,$('ncOfferingTarget'));
   render();e.stopPropagation();return;
  }
