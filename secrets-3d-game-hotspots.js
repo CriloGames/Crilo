@@ -150,7 +150,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Front: actual fasteners are supplied by the base physical model.
  control(frontFace,"latch",-1.05,.11,brass,.145);
  engraving(frontFace,"LATCH", -1.04,-.30,.43);
- control(frontFace,"dot",1.10,.15,red,.100);
+ const redSwitch=control(frontFace,"dot",1.10,.15,red,.100);
+ // The red button's retaining collar turns a small detent on every press,
+ // and only glows AFTER the hidden reward is collected. No popup, visible
+ // click counter, or advance clue about the required press count.
+ const redCollarMaterial=mat(0xd6b29a,.54,.30);
+ redCollarMaterial.emissive.setHex(0x659e83);
+ redCollarMaterial.emissiveIntensity=0;
+ const redCollar=new THREE.Group();redCollar.position.z=.111;redSwitch.add(redCollar);
+ const redIndex=new THREE.Mesh(
+  new THREE.TorusGeometry(.155,.012,7,36,Math.PI*.46),redCollarMaterial);
+ redCollar.add(redIndex);count++;
  engraving(frontFace,"RED",1.08,-.25,.36);
  // A smaller real maker-stamp actuator sits beside the outer lens rather
  // than directly through its upper brass rim and decorative inscription.
@@ -181,6 +191,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   engraving(leftFace,String(i),-.65,y,.15);
  }
  engraving(leftFace,"VENT",-.95,.26,.37);
+ // The numbered vent keys must have a consequence *on the metal face*.
+ // Their shared hatch is tucked below the label, above the elevator mount,
+ // and left of the gears, with a true recessed cavity under its shutter.
+ // No flat reward screen or extra selectable fake vent.
+ const ventHatch=node(leftFace,-.99,-.20,.155);
+ B(ventHatch,.47,.26,.048,0,0,0,brass,.020);
+ B(ventHatch,.393,.193,.024,0,0,.035,graphite,.016);
+ for(const y of [-.068,-.017,.034,.085])
+  B(ventHatch,.33,.009,.012,0,y,.054,nickel,.004);
+ const ventCover=new THREE.Group();ventCover.position.set(0,0,.075);ventHatch.add(ventCover);
+ B(ventCover,.365,.166,.039,0,0,0,graphite,.014);
+ B(ventCover,.306,.012,.016,0,0,.028,brass,.005);
+ for(const x of [-.14,.14])C(ventCover,.013,.013,x,0,.031,nickel);
  control(leftFace,"pressure",.88,.64,brass,.15);
  engraving(leftFace,"GAUGE",.89,.27,.46);
  control(leftFace,"dent",.88,-1.04,copper,.11);
@@ -374,6 +397,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   targets,
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
+  getMechanicalFeedback:()=>({
+   ventHatchOffset:ventCover.position.x,
+   redCollarAngle:redCollar.rotation.z,
+   redRewardGlow:redCollarMaterial.emissiveIntensity
+  }),
   fluteVisible:()=>flute.visible,
   getClueVisibility:()=>({
    serviceNumber:ventCipher.visible,
@@ -403,6 +431,14 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    revealPlate(ventCipher,!!s.rightBoltLoose,!!previous.rightBoltLoose,restore);
    revealPlate(undersideCipher,!!s.footChecked,!!previous.footChecked,restore);
    revealPlate(eyeCipher,!!s.back,!!previous.back,restore);
+   // Correctly ordered vent keys withdraw the captive shutter over the
+   // physical grille. A restored save shows the final pose immediately.
+   pose(ventCover,"position","x",s.ventOpen?.36:0,
+    previous.ventOpen?.36:0,restore,.68);
+   const clicks=Math.max(0,Number(s.redHits)||0);
+   pose(redCollar,"rotation","z",clicks*.28,
+    (Number(previous.redHits)||0)*.28,restore,.27);
+   redCollarMaterial.emissiveIntensity=clicks>=4?.75:0;
    pose(foot,"position","x",s.footChecked?-1.32:-1.02,
      previous.footChecked?-1.32:-1.02,restore,.46);
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
@@ -433,7 +469,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    previousState={
     plateOpen:!!s.plateOpen,eyeRingTicks:s.eyeRingTicks||0,
     pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
-    ventOpen:!!s.ventOpen,footChecked:!!s.footChecked,
+    ventOpen:!!s.ventOpen,redHits:Number(s.redHits)||0,
+    footChecked:!!s.footChecked,
     rightBoltLoose:!!s.rightBoltLoose,back:!!s.back
    };
    invalidate();
