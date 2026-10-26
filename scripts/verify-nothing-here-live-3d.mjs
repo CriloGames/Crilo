@@ -1200,6 +1200,8 @@ try{
   return {geometry:view.unlockedGeometryAudit,
    trays:view.physicalPickupTrays,
    items:view.physicalPickupLayout,
+   washer:view.getPhysicalPickupRevealState("washer"),
+   iris:view.getPhysicalPickupRevealState("iris"),
    visible:view.visiblePhysicalStoryObjects};
  });
  console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
@@ -1218,6 +1220,8 @@ try{
   unlocked.items.filter(item=>item.source==="bag").every(item=>
    item.mounted&&item.faceDepth<.65),
   "Unlocked collectibles are still floating outside their attached trays");
+ assert(unlocked.washer?.onScene&&unlocked.iris?.onScene,
+  "Removing a hinge or opening the eye must not conceal its newly unlocked reward");
  await auditPage.screenshot({path:"test-results/live-3d-all-unlocked.png",
   timeout:60000});
  await auditPage.close();
