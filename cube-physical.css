@@ -576,3 +576,47 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-pickup-guide{color:#acc7bd}
  .nc-page .nc-pocket .nc-combine-guide,
  .nc-page .nc-pocket .nc-pickup-guide{font-size:11px}
 }
+
+/* Single supported presentation: the physical Three.js cube.
+   The old CSS faces and story buttons remain DOM-only compatibility
+   targets for the sixty puzzle events, never an alternate visible game. */
+.nc-page.nc-physical-only .nc-world{
+ height:clamp(505px,69dvh,690px);
+ max-height:none;
+}
+.nc-page.nc-physical-only .nc-world .nc-cube-zone{
+ width:min(860px,100%);
+ max-width:100%;
+}
+.nc-page.nc-physical-only #stage{
+ visibility:visible;
+ opacity:1;
+ pointer-events:auto;
+}
+.nc-page.nc-physical-only #ncCube,
+.nc-page.nc-physical-only #ncSideObjects,
+.nc-page.nc-physical-only #ncDoorScene,
+.nc-page.nc-physical-only #ncAnimationLayer,
+.nc-page.nc-physical-only #ncIncident,
+.nc-page.nc-physical-only #ncConstellation,
+.nc-page.nc-physical-only .nc-silhouette,
+.nc-page.nc-physical-only .nc-stage{
+ display:none!important;
+}
+.nc-page.nc-physical-only #ncRetry3D{
+ position:absolute;top:50%;left:50%;z-index:20;
+ transform:translate(-50%,-50%);
+ background:#f8fbf9;color:#375951;border:1px solid #a6c2b7;
+ border-radius:12px;padding:12px 22px;cursor:pointer;font-weight:750;font-size:13px;font-family:inherit;line-height:1.3;
+ box-shadow:0 5px 18px #23302b2c;
+}
+.nc-page.nc-physical-only #ncRetry3D:focus-visible{
+ outline:3px solid #76bb9f;outline-offset:3px;
+}
+html[data-theme="dark"] .nc-page.nc-physical-only #ncRetry3D{
+ color:#e5f0eb;background:#31483e;border-color:#769e89;
+}
+@media(max-width:700px){
+ .nc-page.nc-physical-only .nc-world{height:clamp(450px,62dvh,600px)}
+ .nc-page.nc-physical-only .nc-world .nc-cube-zone{width:100%}
+}
