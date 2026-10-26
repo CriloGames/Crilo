@@ -36,7 +36,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  let fluteWaves=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
- let previousState=null;
+ let previousState=null,ventSettleTimer=null;
  function pulse(action){
   if(action.startsWith("flute-note-")&&flute.visible&&!reducedMotion){
    // Only show the note produced by the player; the correct melody
@@ -435,6 +435,16 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    // physical grille. A restored save shows the final pose immediately.
    pose(ventCover,"position","y",s.ventOpen?-.28:0,
     previous.ventOpen?-.28:0,restore,.68);
+   if(ventSettleTimer!==null){clearTimeout(ventSettleTimer);ventSettleTimer=null;}
+   if(!restore&&!reducedMotion&&!!s.ventOpen!==!!previous.ventOpen){
+    // A dropped WebGL frame must not leave a solved shutter half open.
+    const end=s.ventOpen?-.28:0;
+    ventSettleTimer=setTimeout(()=>{
+     gsap.killTweensOf(ventCover.position);
+     ventCover.position.y=end;
+     ventSettleTimer=null;invalidate();
+    },1100);
+   }
    const clicks=Math.max(0,Number(s.redHits)||0);
    pose(redCollar,"rotation","z",clicks*.28,
     (Number(previous.redHits)||0)*.28,restore,.27);
