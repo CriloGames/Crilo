@@ -51,15 +51,15 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   const rows=(slotCount.get(source)||1)>2?2:1;
   const height=rows===2?.44:.27;
   const middle=rows===2?-.165:-.065;
-  // A continuous metal back and two telescoping arms connect the
-  // rewards to the miniature's real bolted bracket.
-  box(group,.585,height,.050,0,middle,0,ink,.021);
-  box(group,.543,height-.040,.022,0,middle,.037,metal,.016);
-  for(const x of [-.246,.246]){
-   box(group,.027,height-.050,.024,x,middle,.052,copper,.006);
-   box(group,.043,.09,.28,x,-.012,-.118,ink,.008);
+  // Open brass carrier rails replace the old *solid black rectangle*.
+  // Players can see the enamel and original mechanics between the objects.
+  // The two short stems connect the rail to the underlying miniature shelf.
+  for(const x of [-.237,.237]){
+   box(group,.018,height-.06,.017,x,middle,.017,metal,.006);
+   box(group,.025,.040,.24,x,-.005,-.118,copper,.006);
   }
-  box(group,.50,.030,.034,0,middle-height/2+.020,.061,copper,.008);
+  box(group,.49,.019,.025,0,middle-height/2+.02,.041,metal,.006);
+  box(group,.49,.014,.013,0,middle+height/2-.015,.020,copper,.004);
   // The carrier retracts completely once its final visible item is taken.
   group.visible=false;
   tray={group,source};
@@ -232,10 +232,13 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    }else host.add(retainer);
    // The collectible and its bracket are a single physical assembly,
    // hidden together when the player has not yet earned the object.
-   root.position.set(0,0,.17);
+   // Gauge and face fittings need a tiny socket, not the thick black
+   // square that covered the manometer and pressure needle.
+   root.position.set(0,0,.125);
+   root.scale.setScalar(.87);
    retainer.add(root);
-   box(retainer,.205,.195,.145,0,-.087,.080,ink,.012);
-   box(retainer,.17,.024,.04,0,-.145,.169,copper,.006);
+   box(retainer,.145,.074,.065,0,-.105,.026,metal,.008);
+   box(retainer,.105,.018,.035,0,-.141,.064,copper,.005);
    retainer.visible=false;
    root.userData.pickupRetainer=retainer;
   }
@@ -248,12 +251,14 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   const socketMaterial=ink.clone();
   socketMaterial.emissive.setHex(0xa18a55);
   socketMaterial.emissiveIntensity=0;
-  box(root,.225,.036,.14,0,-.116,-.048,socketMaterial,.013);
-  box(root,.19,.013,.12,0,-.087,-.008,metal,.005);
+  // A narrow recess and retaining lip, not another black tile behind
+  // each item. Keep the fine physical detail and its subtle found glow.
+  box(root,.151,.019,.065,0,-.097,-.027,socketMaterial,.007);
+  box(root,.175,.014,.048,0,-.085,-.002,metal,.005);
   for(const x of [-.082,.082]){
    const bolt=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.014,8),copper);
    bolt.rotation.x=Math.PI/2;
-   bolt.position.set(x,-.108,.063);
+   bolt.position.set(x,-.095,.035);
    root.add(bolt);
   }
   const model=new THREE.Group();model.position.y=.005;root.add(model);
@@ -280,7 +285,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    mounted:root.parent===trays.get(sources[id][0])?.group||
     root.parent===root.userData.pickupRetainer,
    // Full protrusion from the fixture's face, including the item itself.
-   faceDepth:trays.has(sources[id][0])?.585:.47
+   faceDepth:trays.has(sources[id][0])?.585:.43
   })),
   getTrayState:()=>[...trays].map(([source,{group}])=>({
    source,visible:group.visible,
