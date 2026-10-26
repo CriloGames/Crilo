@@ -207,6 +207,14 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    hotspots?.targets?.get(source);
   if(!host)throw Error("No physical pickup origin for "+id+": "+source);
   const atMini=!!worlds?.getPickupHost?.(source);
+  // A washer discovered by extracting all three hinge pins cannot be
+  // parented to hinge-0: that pin is already hidden and would make the
+  // essential washer permanently invisible. Anchor it to the empty seat.
+  // Likewise, do not hide the mechanical eye behind its loose glass iris.
+  const surface= id==="washer"
+   ?{face:faces.topFace,x:-.54,y:.86,z:.20}
+   :id==="iris"
+    ?{face:faces.backFace,x:.56,y:.77,z:.20}:null;
   const root=new THREE.Group();
   const [px,py]=locations[slot]||locations[0];
   // The carrier is supported by its own face-mounted bracket. Item
@@ -217,12 +225,19 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    root.scale.setScalar(.78);
    tray.group.add(root);
   }else{
-   root.position.set(0,0,.20);
-   host.add(root);
-   // Fasteners and dials also need an actual tethered metal cradle.
-   // Keep its back embedded in the parent hardware, not floating
-   // above the action surface.
-   box(host,.205,.195,.18,0,-.09,.12,ink,.012);
+   const retainer=new THREE.Group();
+   if(surface){
+    retainer.position.set(surface.x,surface.y,surface.z);
+    surface.face.add(retainer);
+   }else host.add(retainer);
+   // The collectible and its bracket are a single physical assembly,
+   // hidden together when the player has not yet earned the object.
+   root.position.set(0,0,.17);
+   retainer.add(root);
+   box(retainer,.205,.195,.145,0,-.087,.080,ink,.012);
+   box(retainer,.17,.024,.04,0,-.145,.169,copper,.006);
+   retainer.visible=false;
+   root.userData.pickupRetainer=retainer;
   }
   // Every small found object has a bolted shallow cradle with a dark
   // machined inset. The object rests in the socket; it is not a flat
@@ -262,9 +277,10 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   getLayout:()=>[...instances].map(([id,root])=>({
    id,source:sources[id][0],slot:sources[id][1],
    position:root.position.toArray(),scale:root.scale.x,
-   mounted:root.parent===trays.get(sources[id][0])?.group||!trays.has(sources[id][0]),
+   mounted:root.parent===trays.get(sources[id][0])?.group||
+    root.parent===root.userData.pickupRetainer,
    // Full protrusion from the fixture's face, including the item itself.
-   faceDepth:trays.has(sources[id][0])?.585:.385
+   faceDepth:trays.has(sources[id][0])?.585:.47
   })),
   getTrayState:()=>[...trays].map(([source,{group}])=>({
    source,visible:group.visible,
@@ -290,6 +306,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     gsap.killTweensOf(model.scale);
     gsap.killTweensOf(material);
     root.visible=visible;
+    if(root.userData.pickupRetainer)
+     root.userData.pickupRetainer.visible=visible;
     model.position.z=0;
     model.scale.setScalar(1);
     // A faint, steady rim remains while the discovered object is awaiting
