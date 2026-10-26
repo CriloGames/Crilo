@@ -58,6 +58,49 @@ try{
  };
  await check();
  console.log("PASS: physical cube is the only visible game, player saves untouched");
+ // Independent CC0 audio channels must not autoplay, must persist, and
+ // must not depend on the rest of Crilo's global sound preference.
+ const audio=await page.evaluate(()=>window.NothingHereAudio?.getState?.());
+ assert(audio&&audio.sfxEnabled&&!audio.musicEnabled&&!audio.musicPlaying&&
+  audio.soundFileCount===11,
+  "Default audio settings are not separate or silently autoplayed: "+JSON.stringify(audio));
+ assert.equal(await page.locator("#ncSfxToggle").getAttribute("aria-pressed"),"true");
+ assert.equal(await page.locator("#ncMusicToggle").getAttribute("aria-pressed"),"false");
+ for(const file of [
+  "audio/nothing-here/sfx/menu-move.ogg",
+  "audio/nothing-here/sfx/hit-medium.ogg",
+  "audio/nothing-here/sfx/item-pickup.ogg",
+  "audio/nothing-here/music/menu-loop.ogg"
+ ]){
+  const result=await page.evaluate(async path=>{
+   const response=await fetch(path);
+   const bytes=await response.arrayBuffer();
+   return {ok:response.ok,length:bytes.byteLength,contentType:response.headers.get("content-type")};
+  },file);
+  assert(result.ok&&result.length>4000,
+   "Bundled CC0 audio file missing or empty: "+JSON.stringify({file,result}));
+ }
+ await page.locator("#ncSfxToggle").click();
+ assert.equal(await page.locator("#ncSfxToggle").getAttribute("aria-pressed"),"false");
+ assert.equal(await page.evaluate(()=>window.NothingHereAudio.play("tap")),false);
+ await page.locator("#ncMusicToggle").click();
+ const onMusic=await page.evaluate(()=>window.NothingHereAudio.getState());
+ assert(onMusic.musicEnabled&&onMusic.musicCreated&&onMusic.musicLoop,
+  "Enabling lobby music did not initialize looping soundtrack: "+JSON.stringify(onMusic));
+ await page.reload({waitUntil:"domcontentloaded",timeout:30000});
+ await page.waitForFunction(()=>!!window.NothingHereAudio&&!!window.CriloNothingHereCube,{timeout:15000});
+ const restoredAudio=await page.evaluate(()=>window.NothingHereAudio.getState());
+ assert(!restoredAudio.sfxEnabled&&restoredAudio.musicEnabled,
+  "Sound and music preferences did not survive refresh: "+JSON.stringify(restoredAudio));
+ await page.locator("#ncMusicToggle").click();
+ await page.locator("#ncSfxToggle").click();
+ const enabledAudio=await page.evaluate(()=>{
+  const controller=window.NothingHereAudio;
+  return {played:controller.play("gear"),state:controller.getState()};
+ });
+ assert(enabledAudio.played&&enabledAudio.state.sfxEnabled&&!enabledAudio.state.musicEnabled,
+  "Re-enabling sound did not restore the sampled mechanical effects");
+ console.log("PASS: eleven downloaded CC0 sound samples, looping CC0 music, independent toggles and persistent mute");
  await page.goto(base+"?classic=1",{waitUntil:"domcontentloaded",timeout:30000});
  await page.waitForFunction(()=>!new URL(location.href).searchParams.has("classic")&&
   !!window.CriloNothingHereCube?.getState,{timeout:15000});
