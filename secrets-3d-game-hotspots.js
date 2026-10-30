@@ -507,6 +507,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
  undersideCipher.visible=false;
  control(bottomFace,"underside",0,0,brass,.21);
+ // A concealed return slot in the cube underside opens when the fourth
+ // red-button detent catches. The bell is a separate collectible seated
+ // inside this port (created by the pickups module), not a black cube
+ // mysteriously appearing on the red button's face.
+ const bellPort=node(bottomFace,0,-1.16,.125);
+ B(bellPort,.294,.237,.028,0,0,0,nickel,.016);
+ B(bellPort,.229,.179,.017,0,0,.027,graphite,.009);
+ const bellHatch=node(bellPort,0,0,.052);
+ B(bellHatch,.256,.205,.031,0,0,0,nickel,.014);
+ B(bellHatch,.216,.151,.012,0,0,.023,brass,.008);
+ B(bellHatch,.084,.012,.012,0,0,.031,graphite,.003);
  // No floating BASE plaque across the working central underside dial.
  return {
   count:()=>count,
@@ -520,7 +531,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   getMechanicalFeedback:()=>({
    ventHatchOffset:ventCover.position.y,
    redCollarAngle:redCollar.rotation.z,
-   redRewardGlow:redCollarMaterial.emissiveIntensity
+   redRewardGlow:redCollarMaterial.emissiveIntensity,
+   bellHatchOffset:bellHatch.position.x
   }),
   fluteVisible:()=>flute.visible,
   getClueVisibility:()=>({
@@ -587,6 +599,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    pose(redCollar,"rotation","z",clicks*.28,
     (Number(previous.redHits)||0)*.28,restore,.27);
    redCollarMaterial.emissiveIntensity=clicks>=4?.75:0;
+   pose(bellHatch,"position","x",clicks>=4?.305:0,
+    (Number(previous.redHits)||0)>=4?.305:0,restore,.46);
    pose(foot,"position","x",s.footChecked?-1.32:-1.02,
      previous.footChecked?-1.32:-1.02,restore,.46);
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");

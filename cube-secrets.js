@@ -138,11 +138,16 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
- shimUsed:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
+ shimUsed:false,coinReturned:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
  serialRead:false,pressureReady:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
+// Older saves predate a distinct coin-return origin. Only migrate a
+// returning, still-uncollected coin as a vending-machine reward; a coin
+// waiting in the original bag must not teleport when the machine is fixed.
+if(typeof raw.coinReturned!=="boolean")
+ s.coinReturned=!!s.shimUsed&&pendingPickups.has("coin")&&!pocket.has("coin");
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 s.topHits=clamp(Number(raw.topHits)||0,0,12);
 s.redHits=clamp(Number(raw.redHits)||0,0,30);
@@ -760,8 +765,16 @@ function use(item,thing){
   spend('iris');s.secondSky=true;
   bloom('second-sky','For an instant, the telescope sees two different skies at once.');
  }else if(item==='shim'&&thing==='machine'){
-  spend('shim');s.shimUsed=true;gain('coin');
-  bloom('service-bolt','The copper shim releases the machine\'s jammed coin-return mechanism.');
+  spend('shim');s.shimUsed=true;
+  // A coin can only be returned if the original was spent. If it is
+  // still in the player's pocket or uncollected at the mouse's bag,
+  // repairing the machine opens an EMPTY return slot instead.
+  const coinOwed=!pocket.has('coin')&&!pendingPickups.has('coin');
+  s.coinReturned=coinOwed;
+  if(coinOwed)gain('coin');
+  bloom('service-bolt',coinOwed
+   ?'The copper shim frees the jammed return. A spent coin rolls out of the vending machine.'
+   :'The copper shim frees the vending machine return. The tray is empty; there is no spent coin to refund.');
  }else if(item==='washer'&&thing==='musicbox'){
   spend('washer');s.clockHeart=true;
   bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');

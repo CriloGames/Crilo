@@ -164,7 +164,7 @@ try{
   cog:"front-cog-pocket",shim:"vent-pocket",cylinder:"service-pocket",
   acorn:"vase",spring:"vase",bell:"underside",
   washer:"hinge-0",iris:"eye",fork:"pressure",
-  sugar:"machine",tag:"dog",postcard:"dog",starmap:"telescope",
+  coin:"machine",sugar:"machine",tag:"dog",postcard:"dog",starmap:"telescope",
   tape:"musicbox",letter:"clock",envelope:"train"
  };
  for(const [item,source] of Object.entries(expectedOrigins))
@@ -728,6 +728,10 @@ try{
  assert(await page.locator("#ncAwaitingPickups").isVisible()&&
   /waiting on the cube/.test(await page.locator("#ncAwaitingPickups").innerText()),
   "The pocket must explain how to collect revealed physical items");
+ const firstCoinOrigin=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalPickupLayout.find(x=>x.id==="coin")?.source);
+ assert.equal(firstCoinOrigin,"bag",
+  "The mouse's initial coin must originate in the luggage, not the machine");
  const coinPos=await page.evaluate(()=>window.__nothing3DPreview.projectPhysicalPickup("coin"));
  assert(coinPos?.pick==="pickup:coin",
   "The physical coin is not reachable by raycast from the cube: "+JSON.stringify(coinPos));
@@ -776,7 +780,8 @@ try{
  await collect("bell");
  const redFeedback=await page.evaluate(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback);
- assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0,
+ assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&
+   redFeedback.bellHatchOffset>.25,
   "Four presses must change the real red control's retaining ring, not show a floating bell: "+
    JSON.stringify(redFeedback));
  const quietRewards=await page.evaluate(()=>{

@@ -32,6 +32,10 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   cylinder:["service-pocket",0],iris:["eye",0]
  };
  const instances=new Map();
+ // The coin can return a SECOND time after the shim repairs the vending
+ // machine. It must then appear at the machine's coin-return slot, not
+ // mysteriously back inside the original mouse's luggage.
+ const mountedSources=new Map(Object.entries(sources).map(([id,[source]])=>[id,source]));
  // Collectibles are carried by captive, shallow slide-out trays; they
  // never hover out in front of the miniature when a secret unlocks.
  const trays=new Map();
@@ -308,9 +312,10 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   targets:instances,
   getPending:()=>[...instances].filter(([,v])=>v.visible).map(([id])=>id),
   getLayout:()=>[...instances].map(([id,root])=>({
-   id,source:sources[id][0],slot:sources[id][1],
+   id,source:mountedSources.get(id),
+   slot:id==="coin"&&mountedSources.get(id)==="machine"?1:sources[id][1],
    position:root.position.toArray(),scale:root.scale.x,
-   mounted:root.parent===trays.get(sources[id][0])?.group||
+   mounted:root.parent===trays.get(mountedSources.get(id))?.group||
     root.parent===root.userData.pickupRetainer,
    // Full protrusion from the fixture's face, including the item itself.
    faceDepth:trays.has(sources[id][0])?.585:.43
@@ -358,7 +363,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
      pieces++;
     });
     if(!pieces){overhangs.push({id,problem:"no visible item geometry"});continue;}
-    const item={id,source:sources[id][0],face:faceName,pieces,
+    const item={id,source:mountedSources.get(id),face:faceName,pieces,
      min:min.toArray().map(v=>+v.toFixed(3)),
      max:max.toArray().map(v=>+v.toFixed(3))};
     measured.push(item);
@@ -388,6 +393,30 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   },
   setState(state){
    const pending=new Set(state?.pendingPickups||[]);
+   // Repairing the machine with the copper shim returns the original
+   // spent coin at its own vending slot. No duplicate is minted and the
+   // luggage never magically produces a replacement coin.
+   // Distinguish a genuine refund from the machine merely being
+   // unjammed while the original coin remains in the bag or pocket.
+   const returned=typeof state?.coinReturned==="boolean"
+    ?state.coinReturned:!!state?.shimUsed;
+   const coinSource=returned?"machine":"bag";
+   const coin=instances.get("coin");
+   if(coin&&mountedSources.get("coin")!==coinSource){
+    const newHost=worlds?.getPickupHost?.(coinSource);
+    if(newHost){
+     const holder=miniTray(newHost,coinSource);
+     gsap.killTweensOf(coin.userData.pickupModel.position);
+     gsap.killTweensOf(coin.userData.pickupModel.scale);
+     coin.userData.pickupModel.position.z=0;
+     coin.userData.pickupModel.scale.setScalar(1);
+     holder.group.add(coin);
+     const [x,y]=locations[returned?1:0];
+     coin.position.set(x,y,.10);
+     mountedSources.set("coin",coinSource);
+     invalidate();
+    }
+   }
    for(const [id,root] of instances){
     const visible=pending.has(id);
     if(root.visible===visible)continue;
@@ -424,7 +453,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    }
    for(const [source,{group}] of trays){
     const active=[...instances].some(([id,root])=>
-     sources[id][0]===source&&root.visible);
+     mountedSources.get(id)===source&&root.visible);
     if(group.visible!==active){group.visible=active;invalidate();}
    }
    firstState=false;
