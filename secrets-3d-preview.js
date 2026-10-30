@@ -4,7 +4,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=15";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=7";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=8";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=27";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=42";
 import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=13";
@@ -1378,6 +1378,7 @@ window.__nothing3DPreview={
   return {...fallback,pick:null};
  },
  get finishQuality(){return finish.quality},
+ get decorativeCornerCaps(){return finish.getDecorativeCornerCaps?.()||[]},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},

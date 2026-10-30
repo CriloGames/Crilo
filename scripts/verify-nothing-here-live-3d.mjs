@@ -119,6 +119,7 @@ try{
    rewards:view.physicalRewardPlacementAudit,
    movingHardware:view.unlockedMechanismClashes,
    pressureGauge:view.pressureGaugeAssembly,
+   decorativeCornerCaps:view.decorativeCornerCaps,
    trays:view.physicalPickupTrays,
    items:view.physicalPickupLayout,
    washer:view.getPhysicalPickupRevealState("washer"),
@@ -144,6 +145,11 @@ try{
   "Two unlocked physical miniatures overlap in 3D");
  assert.deepEqual(unlocked.movingHardware,[],
   "An opened drawer or hinged lid clips through an unlocked miniature");
+ assert(unlocked.decorativeCornerCaps?.length===11&&
+  unlocked.decorativeCornerCaps.every(cap=>
+   !["frontFace","rightFace","topFace"].includes(cap.face)),
+  "Cosmetic screws must not stack onto the real puzzle fasteners on front, right or top: "+
+   JSON.stringify(unlocked.decorativeCornerCaps));
  assert(unlocked.pressureGauge?.face==="leftFace"&&
   Math.abs(unlocked.pressureGauge.x-.88)<.001&&
   Math.abs(unlocked.pressureGauge.y-.64)<.001&&
@@ -222,7 +228,8 @@ try{
  // looked acceptable at 82% but obstructed the glass eye, gauge and RED.
  await auditPage.evaluate(()=>window.__nothing3DPreview.setZoom(1.55));
  for(const [name,rx,ry] of [
-  ["glass-eye",0,180],["gauge",0,90],["red-switch",0,0]
+  ["glass-eye",0,180],["gauge",0,90],["red-switch",0,0],
+  ["top-corner-screws",-72,0]
  ]){
   await auditPage.evaluate(([a,b])=>
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);

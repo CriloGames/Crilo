@@ -102,8 +102,10 @@ export function finishMechanicalArtifact({
     const groove=B(g,r*.94,.012,.008,x,y,z+.023,deep,.003);
     groove.rotation.z=Math.PI/4;
   };
-  // A manufactured edge has two separate flush trims, narrow gasket line,
-  // and corner fasteners. Keep edges inside the real shell.
+  // A manufactured edge has two separate flush trims and a narrow gasket.
+  // Track decorative caps separately from REAL puzzle fasteners; duplicating
+  // both at the same corner previously produced stacks of overlapping screws.
+  const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
       B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
@@ -112,9 +114,15 @@ export function finishMechanicalArtifact({
       B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
     }
     for(const x of [-1.22,1.22])for(const y of [-1.22,1.22]){
-      // A second decorative corner cap would cut through the iris service
-      // cassette. The cassette has its own captive screws instead.
-      if(face===backFace&&x>0&&y<0)continue;
+      // These three faces already have four functional, removable screws
+      // at +/-1.25 or +/-1.33. The old purely decorative caps at +/-1.22
+      // intersected those screws (and their retaining collars), resulting
+      // in the visibly stacked brass cylinders. Keep the working screws,
+      // and leave their surrounding machined trim clean.
+      if(face===frontFace||face===rightFace||face===topFace||
+         (face===backFace&&x>0&&y<0))continue;
+      decorativeCornerCaps.push({face:face===leftFace?"leftFace":
+       face===bottomFace?"bottomFace":"backFace",x,y});
       C(face,.092,.045,x,y,.15,darkMetal);
       C(face,.068,.042,x,y,.185,tinyGold);
       stud(face,x,y,.212,.035);
@@ -235,6 +243,7 @@ export function finishMechanicalArtifact({
   });
   return {
     meshCount:()=>partCount,
+    getDecorativeCornerCaps:()=>decorativeCornerCaps.map(cap=>({...cap})),
     batching,
     get quality(){return "enamel, brushed brass, smoked optics, layered hardware"},
     textures:[enamelNoise,brushedNoise]
