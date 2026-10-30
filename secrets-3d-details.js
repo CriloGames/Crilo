@@ -136,25 +136,29 @@ export function buildIntricateCube({
   // The real LATCH and RED identification plaques occupy this belt.
   // Two extra cosmetic grilles were cutting through those plate edges.
 
-  // RIGHT: precision pressure instrument, routed pipes and switch plate.
+  // One real gauge, directly behind its working pressure switch on the
+  // left face. The former oversized right-hand dial was disconnected
+  // from the button and its tuning-fork output bracket.
   plates(rightFace,verdigris);
-  const meter=group(rightFace,.12,.77,.14);
-  C(meter,.42,.14,0,0,0,darkMetal);
-  C(meter,.35,.13,0,0,.11,gold);
-  C(meter,.29,.08,0,0,.21,pearl);
-  ring(meter,.335,.025,0,0,.26,brass);
+  const meter=group(leftFace,.88,.64,.111);
+  // Deliberately recessed under the working brass actuator; only the
+  // needle's outer tip emerges from the central control.
+  C(meter,.312,.032,0,0,0,darkMetal);
+  C(meter,.280,.030,0,0,.027,gold);
+  C(meter,.249,.018,0,0,.051,pearl);
+  ring(meter,.283,.015,0,0,.071,brass);
   for(let i=0;i<12;i++){
     const a=-Math.PI*.85+i*(Math.PI*1.7/11);
-    const mark=B(meter,i%3===0?.095:.060,.012,.014,Math.cos(a)*.25,Math.sin(a)*.25,.277,darkMetal,.002);
+    const mark=B(meter,i%3===0?.058:.033,.009,.009,
+      Math.cos(a)*.220,Math.sin(a)*.220,.083,darkMetal,.002);
     mark.rotation.z=a;
   }
-  const needle=group(meter,0,0,.307);
-  const arrow=B(needle,.24,.022,.024,-.065,0,0,copper,.004);
+  const needle=group(meter,0,0,.093);
+  const arrow=B(needle,.205,.014,.009,-.123,0,0,copper,.003);
   arrow.rotation.z=.08;
-  C(needle,.044,.028,0,0,.024,metal);
+  C(needle,.024,.014,0,0,.008,metal);
   needle.rotation.z=-.5;
-  plaque(rightFace,"PRESSURE",.05,1.33,.70);
-  setHit(meter,"pressure");
+  // The hotspot's button is the ONLY hit target: no phantom dial clicks.
   registries.needle=needle;
   // The revealed door is now mounted on this upper-left section.
   // Decorative pipes and three ornamental rivets previously ran straight
@@ -169,7 +173,7 @@ export function buildIntricateCube({
   label(rightFace,"SERVICE · ACCESS",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
   // No fake upper-right vent: it occupied the exact service-bolt socket.
 
-  // LEFT: two gears with actual teeth, a clockwork escapement, and grille.
+  // LEFT: an integrated pressure dial, vent keys, and clockwork gears.
   plates(leftFace,copper);
   plaque(leftFace,"MAKER'S SERVICE",0,1.27,1.15);
   // Smaller, deliberate gear cluster in the middle of the face: keep the
@@ -356,7 +360,7 @@ export function buildIntricateCube({
     return labels[action];
   }
   const batching=batchStaticGeometry(cube,authoredMeshes,{
-    dynamicRoots:[front.drawer,side.drawer,lidPivot,wheelA,wheelB],
+    dynamicRoots:[front.drawer,side.drawer,lidPivot,wheelA,wheelB,needle],
     protectedMeshes:[bulb,...irisBlades],
     label:"precision"
   });
@@ -366,6 +370,11 @@ export function buildIntricateCube({
     actions:Object.keys(labels),
     getState:()=>({...live}),
     syncGameState,
+    getGaugeAssembly:()=>({
+      face:meter.parent===leftFace?"leftFace":"unexpected",
+      x:meter.position.x,y:meter.position.y,
+      radius:.312,needleAngle:needle.rotation.z
+    }),
     getCollectibleVisibility:()=>({tooth:frontKey.visible,thread:sideThread.visible}),
     operate
   };

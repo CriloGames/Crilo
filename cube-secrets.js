@@ -717,7 +717,7 @@ function use(item,thing){
    tell('The key turns. A small brass cover springs open on the bag.');
   else{tell('The key fits the bag. Its inside is bigger than its outside.');openBag()}
  }else if(item==='treat'&&thing==='dog'){
-  spend('treat');s.tag=true;gain('tag');bloom('tag','The dog coughs up a numbered collar tag. It says 04.');
+  spend('treat');s.tag=true;gain('tag');bloom('tag','The dog shakes a numbered tag loose from its collar. It rests in the nearby tray, marked 04.');
  }else if(item==='acorn'&&thing==='pot'){
   spend('acorn');s.plant=true;bloom('acorn','The acorn sprouts in dry dirt. It looks expectant.');
  }else if(item==='raindrop'&&thing==='pot'){
@@ -843,7 +843,7 @@ function turnBag(i){
   const bagNote=$('ncBagNote');
   if(bagNote)bagNote.textContent=document.body.classList.contains('nc-physical-ready')
    ?'The false bottom opens. Press each of the three small objects to collect them.'
-   :'A tiny false bottom has opened. Its contents are in your pocket.';
+   :'The false bottom has opened. Its three items are waiting in their physical slots.';
   cue('ncBagInterior','nc-unlatched',1100);scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
   incident('✳');
  }else sound(350+i*50);
@@ -957,7 +957,7 @@ function clickThing(name){
  else if(name==='pot')tell(s.tree?'An impossible tiny tree, growing indoors.':s.plant?'The acorn is thirsty.':'It is a pot with some dry soil.');
  else if(name==='musicbox')tell(s.music?'The music box smells faintly of rain.':'There is a spring-shaped hole in its clockwork.');
  else if(name==='cloud'){
-  if(s.music){gain('raindrop','You caught a raindrop in your palm.');bloom('rain');incident('💧')}
+  if(s.music){gain('raindrop','A raindrop settles in the cloud’s attached collecting tray.');bloom('rain');incident('💧')}
   else tell('A cloud the size of a sandwich.');
  }else if(name==='cup')tell(s.watch?'The bottom of the cup is a tiny hole in time.':'It could use some sugar.');
  else if(name==='clock'){

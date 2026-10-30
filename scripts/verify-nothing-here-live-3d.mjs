@@ -118,6 +118,7 @@ try{
   return {geometry:view.unlockedGeometryAudit,
    rewards:view.physicalRewardPlacementAudit,
    movingHardware:view.unlockedMechanismClashes,
+   pressureGauge:view.pressureGaugeAssembly,
    trays:view.physicalPickupTrays,
    items:view.physicalPickupLayout,
    washer:view.getPhysicalPickupRevealState("washer"),
@@ -143,6 +144,12 @@ try{
   "Two unlocked physical miniatures overlap in 3D");
  assert.deepEqual(unlocked.movingHardware,[],
   "An opened drawer or hinged lid clips through an unlocked miniature");
+ assert(unlocked.pressureGauge?.face==="leftFace"&&
+  Math.abs(unlocked.pressureGauge.x-.88)<.001&&
+  Math.abs(unlocked.pressureGauge.y-.64)<.001&&
+  unlocked.pressureGauge.radius<.33,
+  "A compact pressure dial must surround the actual left-face actuator: "+
+   JSON.stringify(unlocked.pressureGauge));
  assert(unlocked.trays.length>=12&&
   unlocked.trays.filter(tray=>tray.visible).length>=12&&
   unlocked.items.filter(item=>item.source==="bag").every(item=>
@@ -881,6 +888,10 @@ try{
    head:view.physicalActuatorDepths.pressure,reduced:view.reducedMotion};
  });
  assert(gaugeMotion.needle,"Pressure motion failed to advance the real needle");
+ const gaugeLocation=await page.evaluate(()=>window.__nothing3DPreview.pressureGaugeAssembly);
+ assert(gaugeLocation?.face==="leftFace"&&gaugeLocation.radius<.33,
+  "The visible needle is disconnected from its working switch: "+
+  JSON.stringify(gaugeLocation));
  if(!gaugeMotion.reduced)assert(gaugeMotion.head<-.003,
   "Pressure knob does not move under the fingertip");
  for(let i=0;i<2;i++)await activate("pressure");

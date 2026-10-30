@@ -1003,7 +1003,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    // background mechanisms are authored by independent geometry modules.
    const fixed=[
     {face:"frontFace",name:"front optical bezel",x:0,y:.56,r:.76},
-    {face:"rightFace",name:"pressure instrument",x:.12,y:.77,r:.42},
+    {face:"leftFace",name:"pressure instrument",x:.88,y:.64,r:.312},
     {face:"backFace",name:"rear iris bezel",x:0,y:-.18,r:.97},
     {face:"bottomFace",name:"underbody lock",x:0,y:0,r:.67},
     {face:"leftFace",name:"clockwork gear A",x:-.20,y:.04,r:.31},
