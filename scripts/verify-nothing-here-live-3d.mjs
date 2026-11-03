@@ -424,7 +424,7 @@ try{
   for(const [face,rx,ry,names] of [
    ["left",-15,90,["vent-1","vent-2","vent-3","vent-4","pressure","dent"]],
    ["right",-15,270,["right-bolt-1"]],
-   ["top",-75,0,["hinge-0","hinge-1","hinge-2"]]
+   ["top",75,0,["hinge-0","hinge-1","hinge-2"]]
   ]){
    view.setRotation(rx,ry);
    for(const name of names){
