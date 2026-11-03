@@ -1115,11 +1115,13 @@ function finishGoalStation(parent,station,h){
   }
   plate(.07,.46,.09,-1.345,h+.10,.77,brass);
  }else if(station===4||station===5){
-  // Thin cabinet door reveal and punched ventilation slots.
-  plate(.016,h*.68,.023,0,h*.50,1.149,dark);
+  // Reposition every metal finishing detail with the actual door face,
+  // avoiding the common 'floating knob' appearance of scaled-down cabinets.
+  const z=settings.n===5?.700:settings.n===41?.920:1.149;
+  plate(.016,h*.68,.023,0,h*.50,z,dark);
   for(const side of [-1,1]){
-   for(let i=0;i<4;i++)plate(.34,.018,.015,side*.83,h*.20+i*.068,1.157,dark);
-   stud(side*1.54,h*.49,1.160,.025,brass);
+   for(let i=0;i<4;i++)plate(.34,.018,.015,side*.83,h*.20+i*.068,z+.008,dark);
+   stud(side*1.54,h*.49,z+.011,.025,brass);
   }
  }else if(station===7){
   // Printer output slot, small display panel and tactile controls.
@@ -2023,7 +2025,10 @@ function validateLevelReadability(){
    side=decor.side||1;
   let best={score:Infinity,x:baseX,z:baseZ,rect:null};
   for(const slide of [0,.65,1.30,1.95,2.45]){
-   for(const depth of [0,-.65,-1.25]){
+   // Do not return that desk backwards through the freestanding prop.
+   const depths=decor.label==='side-office'&&settings.n===2?
+    [0,.65,1.25]:[0,-.65,-1.25];
+   for(const depth of depths){
     // Room walls are at +/-8m; previous limit silently hid all plants
     // authored at +/-6.82m, even when they were safely inside the room.
     if(Math.abs(decor.anchorX+side*slide)>7.15)continue;
@@ -2340,7 +2345,10 @@ function buildWorld(){
   const showSideDesk=artPlan.sideDesks===2||
    (artPlan.sideDesks===1&&side=== (settings.x>=0?-1:1));
   if(showSideDesk){
-   const z=roomEnd+2.55+(settings.roomVariant?.36:0),x=side*5.65;
+   // Level 2's side desk and freestanding filing shelf occupied the same
+   // volume. Give that optional workstation a different bay.
+   const z=roomEnd+(settings.n===2?4.30:2.55)+(settings.roomVariant?.36:0),
+    x=side*5.65;
    const sideSet=new THREE.Group();sideSet.userData.qaRole='side-office';group.add(sideSet);
    desk(sideSet,x,z,2.9,1.48,1.00,wood,metal);
    if(artPlan.heroExtras)officeMonitor(sideSet,x,1.08,z-.22,-side*.16);
@@ -2439,11 +2447,17 @@ function buildWorld(){
   meshBox(farDesk,.10,.52,2.1,-1.34,stationY+.12,0,dark);
  }else if(station===4||station===5){
   const cabinets=createMat(station===5?0x60737c:0x8a948e,.8,.06);
-  meshBox(farDesk,3.5,stationY,2.1,0,stationY/2,0,cabinets);
-  meshBox(farDesk,3.7,.17,2.29,0,stationY+.04,0,wood);
+  // The level-5 filing cabinet overlapped its bank tray, and the level-41
+  // counter's front lip overlapped its required spring cart. Reduce only
+  // those physical housings, leaving the ball path and cup unchanged.
+  const bodyDepth=settings.n===5?1.27:settings.n===41?1.73:2.1;
+  const capDepth=settings.n===5?1.39:settings.n===41?1.82:2.29;
+  const doorZ=bodyDepth*.5+.035;
+  meshBox(farDesk,3.5,stationY,bodyDepth,0,stationY/2,0,cabinets);
+  meshBox(farDesk,3.7,.17,capDepth,0,stationY+.04,0,wood);
   for(const x of [-.85,.85]){
-   meshBox(farDesk,1.40,stationY*.75,.06,x,stationY*.49,1.085,cream);
-   meshBox(farDesk,.12,.42,.05,x+.42,stationY*.49,1.13,metal);
+   meshBox(farDesk,1.40,stationY*.75,.06,x,stationY*.49,doorZ,cream);
+   meshBox(farDesk,.12,.42,.05,x+.42,stationY*.49,doorZ+.045,metal);
   }
  }else if(station===6){
   // Deep bay window with a slim sill, a completely different distant target.
