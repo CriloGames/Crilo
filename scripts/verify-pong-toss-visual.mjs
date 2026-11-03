@@ -68,7 +68,51 @@ const hook=[
  '    target:!!cupGroup,physicsBodies:physicsBodies.length,',
  '    overlayHidden:!!el.overlay?.hidden,',
  '    intersectionCount:contacts.length,intersections:contacts.slice(0,12)};',
- ' }',
+ ' },',
+ " animated:()=>{",
+ "  const staticParts=[];",
+ "  group.traverse(node=>{",
+ "   const role=node.userData.qaRole;",
+ "   if(!role||role===\"moving-gate\"||!node.visible)return;",
+ "   node.traverse(mesh=>{",
+ "    if(!mesh.isMesh||!mesh.visible||mesh.userData.decorative)return;",
+ "    if(![\"BoxGeometry\",\"CylinderGeometry\",\"SphereGeometry\",\"ConeGeometry\",\"LatheGeometry\"].includes(mesh.geometry?.type))return;",
+ "    const mat=Array.isArray(mesh.material)?mesh.material[0]:mesh.material;",
+ "    if(mat?.transparent&&mat.opacity<.90)return;",
+ "    staticParts.push({role,mesh});",
+ "   });",
+ "  });",
+ "  const gates=obstacles.filter(o=>o.type===\"barrier\").map(o=>o.obj);",
+ "  const cupShell=cupGroup?.children.find(o=>o.geometry?.type===\"LatheGeometry\");",
+ "  const hits=[];",
+ "  for(const t of [0,.35,.75,1.25,1.8,2.6,3.5,4.8]){",
+ "   tickObstacles(t*1000);group.updateMatrixWorld(true);",
+ "   const movers=[];",
+ "   for(const gate of gates)gate.traverse(mesh=>{",
+ "    if(mesh.isMesh&&!mesh.userData.decorative&&mesh.geometry?.type===\"BoxGeometry\")",
+ "     movers.push({role:\"moving-gate\",mesh});",
+ "   });",
+ "   if(cupShell)movers.push({role:\"moving-cup\",mesh:cupShell});",
+ "   for(const moved of movers){",
+ "    const a=new THREE.Box3().setFromObject(moved.mesh);",
+ "    for(const fixed of staticParts){",
+ "     if(moved.role===\"moving-cup\"&&fixed.role===\"goal-station\")continue;",
+ "     const b=new THREE.Box3().setFromObject(fixed.mesh);",
+ "     if(!a.intersectsBox(b))continue;",
+ "     const dx=Math.min(a.max.x,b.max.x)-Math.max(a.min.x,b.min.x);",
+ "     const dy=Math.min(a.max.y,b.max.y)-Math.max(a.min.y,b.min.y);",
+ "     const dz=Math.min(a.max.z,b.max.z)-Math.max(a.min.z,b.min.z);",
+ "     if(Math.min(dx,dy,dz)<.085||dx*dy*dz<.008)continue;",
+ "     hits.push({time:t,a:moved.role,b:fixed.role,volume:+(dx*dy*dz).toFixed(3)});",
+ "     if(hits.length>=50)break;",
+ "    }",
+ "    if(hits.length>=50)break;",
+ "   }",
+ "   if(hits.length>=50)break;",
+ "  }",
+ "  tickObstacles(0);renderer.render(scene,camera);",
+ "  return hits;",
+ " }",
  '};'
 ].join('\n');
 const game=rawJs.replace(marker,'loadLevel(level);\n'+hook+'\nawait init();');
@@ -113,8 +157,9 @@ try{
    ((i.a==='colleague'&&i.b==='chair')||
     (i.a==='chair'&&i.b==='colleague')));
   if(unintended.length)clearanceFailures.push({level:n,contacts:unintended});
+  const animated=await page.evaluate(()=>window.__pongVisual.animated());
   if(!screenshotLevels.has(n)){
-   records.push({...result,screenshot:null});
+   records.push({...result,animatedContacts:animated,screenshot:null});
    continue;
   }
   await page.waitForTimeout(120);
@@ -127,7 +172,7 @@ try{
   assert(colors.size>120,'Screenshot appears blank: level '+n);
   const filename='level-'+String(n).padStart(2,'0')+'.png';
   fs.writeFileSync(path.join(folder,filename),png);
-  records.push({...result,colors:colors.size,screenshot:filename});
+  records.push({...result,animatedContacts:animated,colors:colors.size,screenshot:filename});
  }
  await page.close();
 }finally{
@@ -140,6 +185,7 @@ assert.deepEqual(clearanceFailures,[],
  'Independent 3D assemblies clip: '+JSON.stringify(clearanceFailures));
 console.log(JSON.stringify({
  passed:records.length,levels,errors,
+ animatedSummary:records.filter(r=>r.animatedContacts?.length).map(r=>({level:r.level,contacts:r.animatedContacts.slice(0,6)})),
  intersectionSummary:records.map(r=>({
   level:r.level,count:r.intersectionCount,top:r.intersections.slice(0,3)
  })).filter(x=>x.count>0)
