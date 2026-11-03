@@ -119,10 +119,12 @@ export function finishMechanicalArtifact({
       // On the left the numbered vent controls and elevator occupy the left
       // rail: the old 0.09-radius decorative caps visibly covered those tabs
       // (including the overlapping gold disc in the reported screenshot).
-      if(face===frontFace||face===rightFace||face===topFace||
-         face===bottomFace||(face===leftFace&&x<0)||
-         (face===backFace&&x>0&&y<0))continue;
-      decorativeCornerCaps.push({face:face===leftFace?"leftFace":"backFace",
+      // Rear corners sit directly beneath the hidden cipher cassette and
+      // miniature worlds. These bolts are not needed to hold the frame.
+      // Keep just two unobtrusive fixed flush rivets on the LEFT's free
+      // outer rail, never the numbered vent rail (x<0).
+      if(face!==leftFace||x<0)continue;
+      decorativeCornerCaps.push({face:"leftFace",
        x,y,radius:.036,functional:false});
       C(face,.036,.018,x,y,.128,satin);
       const flush=B(face,.032,.006,.005,x,y,.141,deep,.002);
