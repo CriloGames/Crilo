@@ -163,11 +163,8 @@ try{
   "Two unlocked physical miniatures overlap in 3D");
  assert.deepEqual(unlocked.movingHardware,[],
   "An opened drawer or hinged lid clips through an unlocked miniature");
- assert(unlocked.decorativeCornerCaps?.length===2&&
-  unlocked.decorativeCornerCaps.every(cap=>
-   cap.face==="leftFace"&&cap.x>0&&cap.radius<=.04&&!cap.functional),
-  "Only two tiny noninteractive flush rivets may remain, clear of the numbered vent rail: "+
-   JSON.stringify(unlocked.decorativeCornerCaps));
+ assert.deepEqual(unlocked.decorativeCornerCaps,[],
+  "The finish layer still duplicates the separate precision-layer corner screws");
  const boltAudit=await auditPage.evaluate(()=>window.__nothing3DPreview.liveFastenerAudit);
  assert.equal(boltAudit.frontScrews.length,4,
   "The three front service screws and one disguised spring button must survive");
@@ -389,6 +386,27 @@ try{
    Math.abs(fitting.y-cap.y)<fitting.h/2+cap.radius+.018),
    "A decorative screw intersects a playable button: "+
     JSON.stringify({cap,fitting}));
+ }
+ const cosmetic=await page.evaluate(()=>({
+  nameplates:window.__nothing3DPreview.decorativeNameplates,
+  copper:window.__nothing3DPreview.dentedCopperShape
+ }));
+ assert(cosmetic.copper?.profileMesh&&cosmetic.copper.depth>.050&&
+  cosmetic.copper.center<cosmetic.copper.rim-.050&&
+  !cosmetic.copper.labelOnFace&&
+  Math.abs(cosmetic.copper.x-.88)<.01,
+  "The copper catch is still just a flat slotted disc with a misleading DENT label: "+
+   JSON.stringify(cosmetic.copper));
+ assert(cosmetic.nameplates.length>=2&&
+  cosmetic.nameplates.every(n=>!["NOTHING BELOW","MAKER'S SERVICE"].includes(n.text)),
+  "An outdated ornamental nameplate still covers a working mechanism: "+
+   JSON.stringify(cosmetic.nameplates));
+ for(const plate of cosmetic.nameplates)for(const fitting of clearance.entries){
+  if(plate.face!==fitting.face)continue;
+  const dx=Math.abs(plate.x-fitting.x),dy=Math.abs(plate.y-fitting.y);
+  assert(!(dx<(plate.w+fitting.w)/2+.01&&dy<(plate.h+fitting.h)/2+.01),
+   "A physical ornamental title covers the player's actual switch or engraved legend: "+
+    JSON.stringify({plate,fitting}));
  }
  const hardware=await page.evaluate(()=>window.__nothing3DPreview.liveFastenerAudit);
  assert(hardware.frontScrews.length===4&&hardware.duplicatedSideScrews.length===0&&
@@ -998,8 +1016,8 @@ try{
  assert(button&&button.x>0&&button.y>0,
   "Red button does not have a visible projected position");
  await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
- assert.equal((await state()).redHits,5,
-  "Clicking a visible physical red button did not trigger the original puzzle");
+ assert.equal((await state()).redHits,4,
+  "A finished red switch must stay at its physical fourth-detent stop");
  // Exercise real Chrome touch input. Hand-built PointerEvents are not
  // active browser pointers and make OrbitControls.setPointerCapture throw.
  const touchSession=await page.context().newCDPSession(page);
@@ -1097,6 +1115,14 @@ try{
  if(!gaugeMotion.reduced)assert(gaugeMotion.head<-.003,
   "Pressure knob does not move under the fingertip");
  for(let i=0;i<2;i++)await activate("pressure");
+ const gaugeText=await page.locator("#ncNarrator").innerText();
+ assert.match(gaugeText,/calibration needle|third mark|retaining pin/i,
+  "Finishing a mechanical calibration must explain what it released: "+gaugeText);
+ await activate("pressure");
+ const gaugeLocked=await page.locator("#ncNarrator").innerText();
+ assert.match(gaugeLocked,/third mark|fork.*bracket/i);
+ assert(!/though there is nothing inside|holds steady at three/i.test(gaugeLocked),
+  "The completed gauge still tells the player an unexplained, meaningless number");
  await activate("optic");
  await activate("eye-ring");
  await activate("eye-ring");
