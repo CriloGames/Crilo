@@ -219,6 +219,35 @@ try{
  assert(unlocked.items.every(item=>item.mounted&&item.faceDepth<.7),
   "A reward is detached from its captive housing or sticks too far out: "+
    JSON.stringify(unlocked.items.filter(item=>!item.mounted||item.faceDepth>=.7)));
+ // The underside ring was previously centered inside the large decorative
+ // dial, rendering the required key ingredient physically unreachable.
+ // Verify the RETURN port is separate from every fixed foot, the central
+ // wheel and the bell, with the sliding musical-foot clue fully exposed.
+ const underside=await auditPage.evaluate(()=>
+  window.__nothing3DPreview.undersideMechanismLayout);
+ const separation=Math.hypot(
+  underside.ring.x-underside.wheel.x,underside.ring.y-underside.wheel.y);
+ assert(underside.ring.visible&&underside.ring.grip&&
+  underside.ring.depth>.22&&
+  separation>underside.ring.radius+underside.wheel.radius+.075,
+  "The ring is still buried under the central underside mechanism: "+
+   JSON.stringify(underside));
+ for(const [fx,fy] of underside.fixedFeet)
+  assert(Math.hypot(underside.ring.x-fx,underside.ring.y-fy)>.5,
+   "The ring return socket overlaps an underside support foot");
+ assert(Math.hypot(underside.ring.x-underside.bell.x,
+  underside.ring.y-underside.bell.y)>.6,
+  "The brass ring socket obstructs the bell's separate output chute");
+ const clue=underside.musicalClue,foot=underside.sliderFoot;
+ assert(clue.visible&&foot.y+foot.radius<clue.y-clue.height/2-.05,
+  "The real sliding rubber foot is still covering the underside inscription: "+
+   JSON.stringify({clue,foot}));
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+ const visibleRing=await auditPage.evaluate(()=>
+  window.__nothing3DPreview.projectOriginalPickup("ring"));
+ assert.equal(visibleRing?.pick,"pickup:ring",
+  "Even a fully unlocked brass ring cannot be selected by real 3D raycasting: "+
+   JSON.stringify({underside,visibleRing}));
  await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
  const cogTarget=await auditPage.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalPickup("cog"));
@@ -1129,7 +1158,30 @@ try{
    "The underside button must release a physical ring without pocketing it");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,true,
    "The released underside ring must remain visibly on the cube");
- await collect("ring");
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.undersideMechanismLayout.ring.depth>.242,
+  null,{timeout:12000});
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+ const ringClick=await page.evaluate(()=>
+  window.__nothing3DPreview.projectOriginalPickup("ring"));
+ assert.equal(ringClick?.pick,"pickup:ring",
+  "The released ring is visible but covered by another mesh or lacks a usable hitbox: "+
+   JSON.stringify(ringClick));
+ const glowBeforeRing=await page.evaluate(()=>
+  window.__nothing3DPreview.getPickupGlowState("ring"));
+ assert(glowBeforeRing?.active&&glowBeforeRing.haloVisible,
+  "The physically available brass ring should be highlighted for collection");
+ // Use an ACTUAL browser mouse click, not the internal clickAction shortcut.
+ // Previous tests passed while this required ring was impossible to reach.
+ await page.locator("#stage canvas").click({
+  position:{x:ringClick.x,y:ringClick.y},timeout:30000
+ });
+ const ringCollected=await state();
+ assert(ringCollected.ringTaken&&ringCollected.pocket.includes("ring"),
+  "Clicking the open center of the brass ring failed to collect it");
+ assert.equal(await page.evaluate(()=>
+   window.__nothing3DPreview.getPickupGlowState("ring")?.active),false,
+  "The ring's highlight did not disappear when its physical mesh was collected");
  assert.equal((await state()).topHits,topCountBefore,
    "The underside control is incorrectly wired to the top lid");
  const collected=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
