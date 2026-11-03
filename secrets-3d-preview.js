@@ -1364,7 +1364,7 @@ window.__nothing3DPreview={
    const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
    const inverse=face.matrixWorld.clone().invert();
    assembly.traverse(mesh=>{
-    if(!mesh.isMesh||!isMeshEffectivelyVisible(mesh))return;
+    if(!mesh.isMesh||!isMeshEffectivelyVisible(mesh)||mesh.userData.pickupAura)return;
     const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
     if(mats.every(m=>m?.colorWrite===false||m?.opacity===0))return;
     if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
