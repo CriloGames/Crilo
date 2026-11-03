@@ -1513,6 +1513,26 @@ window.__nothing3DPreview={
  get frontCogHatchPose(){return gameHotspots?.getCogHatchPose?.()||null},
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
+ // Check physical hardware, not only the saved puzzle state: no visible
+ // fake screw should be able to turn or cover another real actuator.
+ get liveFastenerAudit(){
+  const interactive=new Set([...interactiveMeshSet]
+   .filter(mesh=>isMeshEffectivelyVisible(mesh)).map(mesh=>mesh.userData.action)
+   .filter(Boolean));
+  const physical=[...screws].map(screw=>screw.id);
+  const game=gameHotspots?.actions||[];
+  return {
+   frontScrews:physical.filter(id=>id.startsWith("front-screw-")),
+   duplicatedSideScrews:physical.filter(id=>id.startsWith("side-screw-")),
+   duplicatedTopScrews:physical.filter(id=>id.startsWith("top-screw-")),
+   functionalServiceBolts:game.filter(id=>id.startsWith("right-bolt-")),
+   functionalHingePins:game.filter(id=>id.startsWith("hinge-")),
+   phantomClickable:[...interactive].filter(id=>
+    id==="lever"||id==="service-latch"||
+    id.startsWith("side-screw-")||id.startsWith("top-screw-")||
+    /^right-bolt-[023]$/.test(id))
+  };
+ },
  detailState:()=>intricate.getState(),
  get frontOpen(){return front.open},
  get sideOpen(){return side.open},
