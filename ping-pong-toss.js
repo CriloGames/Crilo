@@ -732,32 +732,62 @@ function worldClean(){
 
 // Procedural texture atlas: no external images, subtle realism at low cost.
 function roomTexture(kind,seed,rx=1,ry=1){
+ // Detailed local procedural materials with no image requests.
  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;
  const ctx=canvas.getContext('2d');if(!ctx)return null;
- let x=(seed*49373+911)%2147483647;
- const rand=()=>{x=(x*48271)%2147483647;return x/2147483647;};
- ctx.fillStyle=kind==='wall'?'#eee8e2':kind==='carpet'?'#c2cbc8':'#e3d3c1';
- ctx.fillRect(0,0,256,256);
+ let state=(Math.abs(seed)*49373+911)%2147483647||1;
+ const rand=()=>{state=state*48271%2147483647;return state/2147483647;};
+ const stroke=(x,y,x2,y2,c,w)=>{
+  ctx.strokeStyle=c;ctx.lineWidth=w;ctx.beginPath();
+  ctx.moveTo(x,y);ctx.lineTo(x2,y2);ctx.stroke();
+ };
  if(kind==='wood'){
-  for(let j=0;j<210;j++){
-   const y=rand()*256;
-   ctx.strokeStyle=rand()<.55?'rgba(70,47,31,.12)':'rgba(255,255,255,.13)';
-   ctx.lineWidth=.4+rand()*1.2;ctx.beginPath();ctx.moveTo(0,y);
-   ctx.bezierCurveTo(60,y+rand()*5-2,190,y+rand()*5-2,256,y+rand()*5-2);ctx.stroke();
+  // Soft laminate board joints, fine wavy grain and occasional knots.
+  ctx.fillStyle='#eee2d1';ctx.fillRect(0,0,256,256);
+  for(let board=0;board<4;board++){
+   const y0=board*64;
+   ctx.fillStyle=board%2?'rgba(113,77,46,.05)':'rgba(255,255,255,.04)';
+   ctx.fillRect(0,y0,256,64);
+   stroke(0,y0+.6,256,y0+.6,'rgba(73,48,31,.22)',1);
+   stroke(0,y0+2,256,y0+2,'rgba(255,255,255,.23)',1);
+   for(let i=0;i<56;i++){
+    const y=y0+3+rand()*57;
+    ctx.strokeStyle=rand()<.58?'rgba(90,60,40,.12)':'rgba(255,255,255,.19)';
+    ctx.lineWidth=.3+rand()*.8;ctx.beginPath();ctx.moveTo(-4,y);
+    ctx.bezierCurveTo(65,y+(rand()-.5)*6,190,y+(rand()-.5)*6,260,y+(rand()-.5)*4);
+    ctx.stroke();
+   }
+   if(board%2){
+    const x=35+rand()*170,y=y0+12+rand()*39;
+    for(let k=0;k<3;k++){
+     ctx.strokeStyle='rgba(92,59,35,'+(0.08-k*.018)+')';
+     ctx.lineWidth=.6;ctx.beginPath();ctx.ellipse(x,y,5+k*4,2+k*1.2,0,0,Math.PI*2);ctx.stroke();
+    }
+   }
   }
+ }else if(kind==='carpet'){
+  // Fine loop pile replaces chunky random noise.
+  ctx.fillStyle='#d4dad4';ctx.fillRect(0,0,256,256);
+  for(let y=0;y<256;y+=4)for(let x=0;x<256;x+=4){
+   ctx.fillStyle=(x+y)%12<5?'rgba(47,72,67,.11)':'rgba(255,255,255,.18)';
+   ctx.fillRect(x+(y%8===0?0:2),y,1.3,2.4);
+  }
+  stroke(0,255.5,256,255.5,'rgba(48,75,69,.12)',1);
+  stroke(255.5,0,255.5,256,'rgba(48,75,69,.12)',1);
  }else{
-  const n=kind==='carpet'?8500:4600;
-  for(let j=0;j<n;j++){
-   ctx.fillStyle=rand()<.5?'rgba(28,38,40,.075)':'rgba(255,255,255,.07)';
-   const px=rand()*256,py=rand()*256;
-   ctx.fillRect(px,py,kind==='carpet'?2:1,kind==='carpet'?2:1);
-  }
+  // Restrained painted-plaster grain, with no distracting grid.
+  ctx.fillStyle='#f4f0e9';ctx.fillRect(0,0,256,256);
+ }
+ const flecks=kind==='carpet'?2600:kind==='wall'?4200:550;
+ for(let n=0;n<flecks;n++){
+  ctx.fillStyle=rand()<.5?'rgba(48,70,65,.065)':'rgba(255,255,255,.19)';
+  ctx.fillRect(rand()*256,rand()*256,.6+rand()*1.1,.6+rand());
  }
  const texture=new THREE.CanvasTexture(canvas);
  texture.colorSpace=THREE.SRGBColorSpace;
  texture.wrapS=texture.wrapT=THREE.RepeatWrapping;
  texture.repeat.set(rx,ry);
- texture.anisotropy=Math.min(4,renderer?.capabilities?.getMaxAnisotropy?.()||1);
+ texture.anisotropy=Math.min(8,renderer?.capabilities?.getMaxAnisotropy?.()||1);
  return texture;
 }
 function skylineTexture(seed,night,sunset){
