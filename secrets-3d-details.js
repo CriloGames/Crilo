@@ -19,6 +19,12 @@ export function buildIntricateCube({
   const enamelTrim=mat(0xe6dac7,.24,.35);
   const live={dialSteps:0,needle:false,lever:false,light:false,topLatch:false,backEye:false,underside:false,service:false};
   const registries={};
+  const nameplates=[];
+  const faceName=face=>[
+   ["frontFace",frontFace],["backFace",backFace],
+   ["leftFace",leftFace],["rightFace",rightFace],
+   ["topFace",topFace],["bottomFace",bottomFace]
+  ].find(([,root])=>face===root)?.[0]||null;
   let detailsCount=0;
   const authoredMeshes=[];
   // Small machined features receive normal PBR lighting but do not each
@@ -52,6 +58,7 @@ export function buildIntricateCube({
     const g=new THREE.Group();g.position.set(x,y,z);face.add(g);return g;
   };
   const plaque=(face,s,x,y,w=.58)=>{
+    nameplates.push({face:faceName(face),text:s,x,y,w:w+.08,h:.19});
     B(face,w+.08,.19,.06,x,y,.122,enamelTrim,.025);
     label(face,s,w,.106,x,y,.17,"#f5e8cc","#655e62");
     for(const dx of [-w/2,w/2])C(face,.024,.031,x+dx,y,.166,steel);
@@ -177,9 +184,10 @@ export function buildIntricateCube({
   }
   registries.lever=arm;
   // The vent order must be discovered behind the service bolt, not printed
-  // on the outside of the box before the player examines the mechanism.
-  label(rightFace,"SERVICE · ACCESS",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
-  // No fake upper-right vent: it occupied the exact service-bolt socket.
+  // The real SERVICE engraving is already stamped next to the shutter.
+  // A second SERVICE · ACCESS label ran across this rail, adding clutter
+  // and nearly touching the real engraved plate. One clear label suffices.
+  // No fake upper-right vent: it occupied the service-bolt socket.
 
   // LEFT: an integrated pressure dial, vent keys, and clockwork gears.
   plates(leftFace,copper);
@@ -401,6 +409,7 @@ export function buildIntricateCube({
     actions:Object.keys(labels),
     getState:()=>({...live}),
     syncGameState,
+    getNameplates:()=>nameplates.map(n=>({...n})),
     getGaugeAssembly:()=>({
       face:meter.parent===leftFace?"leftFace":"unexpected",
       x:meter.position.x,y:meter.position.y,
