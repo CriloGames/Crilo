@@ -493,20 +493,8 @@ function toggleHatch(){
  invalidate();
  announce("The top hatch "+(lidOpen?"swings on its actual brass hinge.":"closes flush with the cube."));
 }
-function turnFixedFastener(action){
- const screw=screws.find(item=>item.id===action);
- if(!screw||!screw.assembly.visible)return;
- screw.motion?.kill();
- gsap.killTweensOf(screw.assembly.position);
- gsap.killTweensOf(screw.assembly.rotation);
- if(reducedMotion){invalidate();return;}
- const depth=screw.assembly.position.z;
- screw.motion=gsap.timeline({onUpdate:invalidate})
-  .to(screw.assembly.rotation,{z:screw.assembly.rotation.z+Math.PI*.6,
-   duration:.28,ease:"power2.inOut"},0)
-  .to(screw.assembly.position,{z:depth+.085,duration:.25,ease:"power2.out"},0)
-  .to(screw.assembly.position,{z:depth,duration:.27,ease:"back.out(1.6)"});
-}
+// Decorative screws are fixed to their housings. Only the actual three
+// front fasteners, one service bolt and three hinge pins can withdraw.
 let lastClickedAction=null;
 // Physical casing, drawers and the lid are passive inspection targets.
 // The moving parts may ONLY respond to their distinct mechanical actuators.
@@ -573,11 +561,8 @@ function clickAction(action){
   // Clicking the opened drawer casing must NEVER pocket an item. Only the
   // selectable key-shaped piece or spool receives a "pickup" raycast.
   const translate={
-   optic:"eye-ring",
    pressure:"pressure",
-   lever:"dent",
    latch:"latch",
-   "service-latch":"shutter",
    eye:"eye",
    underside:"hatch",
    "hatch-latch":"triangle",
@@ -591,13 +576,27 @@ function clickAction(action){
   // Retired mock controls must not remotely operate an unrelated mechanism
   // across the cube: the real eye, gauge, dent and shutter have their own
   // physical actuators.
-  if(["optic","lever","service-latch"].includes(action))return;
+  if(["optic","lever","service-latch",
+      "right-bolt-0","right-bolt-2","right-bolt-3"].includes(action))return;
   const name=translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
   window.NothingHereAudio?.action?.(name);
-  // The hardware reacts to touch even if the original secret does not
-  // unlock. Motion conveys interactivity but never reveals a solution.
-  if(gameHotspots){
+  // A solved mechanism stays against its real mechanical end stop. It
+  // must not keep wiggling when pressed with no remaining outcome.
+  const stopped=
+   name==="latch"&&currentGameState.a||
+   name==="seam"&&currentGameState.b||
+   name==="triangle"&&currentGameState.top||
+   name==="underside"&&currentGameState.bottom||
+   name==="dot"&&currentGameState.redHits>=4||
+   name==="dent"&&currentGameState.mouse||
+   name==="pressure"&&currentGameState.pressureReady||
+   name==="eye-ring"&&currentGameState.eyeRingTicks>=3||
+   name==="serial"&&currentGameState.serialRead||
+   name==="foot"&&currentGameState.footChecked||
+   name==="shutter"&&currentGameState.serviceOpen||
+   name.startsWith("vent-")&&currentGameState.ventOpen;
+  if(!stopped&&gameHotspots){
    if(!gameHotspots.pulse(action))gameHotspots.pulse(name);
   }
   window.CriloNothingHereCube?.activatePhysical?.(name);
