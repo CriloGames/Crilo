@@ -485,7 +485,9 @@ try{
  for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2",
   "thing:bag-dial-3","thing:bag-release","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
- for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring","vent-1","vent-2","vent-3","triangle","top-reed","foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
+ for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring",
+  "vent-1","vent-2","vent-3","vent-4","triangle","top-reed",
+  "foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
  }
  assert(initial.controls.includes("cipher-strip"),
@@ -615,7 +617,10 @@ try{
  const ventBefore=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(Math.abs(ventBefore.ventHatchOffset)<.001,
   "The vent grille begins open before the numbered switches are pressed");
- for(const n of [3,1,2])await activate("vent-"+n);
+ for(const n of [3,1,4])await activate("vent-"+n);
+ assert.equal((await state()).ventOpen,false,
+  "The vent must not unlock from a short guessed three-press sequence");
+ for(const n of [2,3])await activate("vent-"+n);
  assert((await state()).ventOpen&&
   (await state()).pendingPickups.includes("shim")&&
   !(await state()).pocket.includes("shim"),
@@ -1162,9 +1167,16 @@ try{
   await page.locator("#stage canvas").click({position:{x:projected.x,y:projected.y},timeout:30000});
   assert.equal((await state()).fluteNotes.at(-1),n,"Pointer missed flute key "+n);
  }
+ assert.equal((await state()).door,false,
+  "A three-note guess must not conjure the door from the real flute");
+ // The two physical engravings provide different halves of one score,
+ // rather than an instantly guessable three-button sequence.
+ for(const n of [1,3,2])await activate("flute-note-"+n);
  const melody=await state();
+ assert.deepEqual(melody.fluteNotes,[2,1,3,1,3,2],
+  "The original physical flute failed to retain the complete six-note score");
  assert(melody.door&&melody.seen.includes("door"),
-  "Playing the original melody on the physical flute did not reveal the door");
+  "Combining the two hidden score fragments did not reveal the door");
  assert(melody.pocket.includes("flute"),
   "Playing the flute unexpectedly consumed or duplicated the instrument");
  assert(await page.locator("#ncModal").isHidden(),
