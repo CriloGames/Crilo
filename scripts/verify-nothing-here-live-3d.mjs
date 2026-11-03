@@ -163,11 +163,24 @@ try{
   "Two unlocked physical miniatures overlap in 3D");
  assert.deepEqual(unlocked.movingHardware,[],
   "An opened drawer or hinged lid clips through an unlocked miniature");
- assert(unlocked.decorativeCornerCaps?.length===11&&
+ assert(unlocked.decorativeCornerCaps?.length===2&&
   unlocked.decorativeCornerCaps.every(cap=>
-   !["frontFace","rightFace","topFace"].includes(cap.face)),
-  "Cosmetic screws must not stack onto the real puzzle fasteners on front, right or top: "+
+   cap.face==="leftFace"&&cap.x>0&&cap.radius<=.04&&!cap.functional),
+  "Only two tiny noninteractive flush rivets may remain, clear of the numbered vent rail: "+
    JSON.stringify(unlocked.decorativeCornerCaps));
+ const boltAudit=await auditPage.evaluate(()=>window.__nothing3DPreview.liveFastenerAudit);
+ assert.equal(boltAudit.frontScrews.length,4,
+  "The three front service screws and one disguised spring button must survive");
+ assert.equal(boltAudit.duplicatedSideScrews.length,0,
+  "Decorative side screws are still superimposed on the one real service bolt");
+ assert.equal(boltAudit.duplicatedTopScrews.length,0,
+  "Fake removable top screws overlap the real three hinge pins");
+ assert.deepEqual(boltAudit.functionalServiceBolts,["right-bolt-1"],
+  "Every visible removable side bolt must have a real service outcome");
+ assert.deepEqual(boltAudit.functionalHingePins.sort(),["hinge-0","hinge-1","hinge-2"],
+  "The top must have exactly three physical working hinge pins");
+ assert.deepEqual(boltAudit.phantomClickable,[],
+  "Visible false controls still respond to clicks without useful mechanical outcomes");
  assert(unlocked.pressureGauge?.face==="leftFace"&&
   Math.abs(unlocked.pressureGauge.x-.88)<.001&&
   Math.abs(unlocked.pressureGauge.y-.64)<.001&&
@@ -332,6 +345,23 @@ try{
  assert(clearance.entries.length>=19&&clearance.faults.length===0,
   "A real mechanism or label overlaps another permanent control: "+
    JSON.stringify(clearance));
+ // Include the finishing layer: it once placed a large decorative screw
+ // directly over the first vent tab. Hotspot-only QA did not catch it.
+ const fineCaps=await page.evaluate(()=>window.__nothing3DPreview.decorativeCornerCaps);
+ for(const cap of fineCaps)for(const fitting of clearance.entries){
+  if(fitting.face!==cap.face)continue;
+  assert(!(Math.abs(fitting.x-cap.x)<fitting.w/2+cap.radius+.018&&
+   Math.abs(fitting.y-cap.y)<fitting.h/2+cap.radius+.018),
+   "A decorative screw intersects a playable button: "+
+    JSON.stringify({cap,fitting}));
+ }
+ const hardware=await page.evaluate(()=>window.__nothing3DPreview.liveFastenerAudit);
+ assert(hardware.frontScrews.length===4&&hardware.duplicatedSideScrews.length===0&&
+  hardware.duplicatedTopScrews.length===0&&
+  hardware.functionalServiceBolts.length===1&&
+  hardware.functionalHingePins.length===3&&
+  hardware.phantomClickable.length===0,
+  "The live cube still exposes redundant or no-op moving screws: "+JSON.stringify(hardware));
  const miniatureClashes=await page.evaluate(()=>
   window.__nothing3DPreview.miniatureControlClearanceViolations);
  assert.deepEqual(miniatureClashes,[],
@@ -510,6 +540,14 @@ try{
   "cube-offer"
  ])await activate(action);
  const sealed=await state();
+ // These obsolete controls used to animate and silently operate a puzzle
+ // on a different face. Invoking them must never affect saved progress.
+ for(const fake of ["side-screw-1","top-screw-3","right-bolt-0",
+  "right-bolt-2","right-bolt-3","lever","service-latch"])
+  await activate(fake);
+ const afterFake=await state();
+ assert.deepEqual(afterFake,sealed,
+  "A removed decorative or remote-acting control still changes puzzle progress");
  const lockedGlows=await page.evaluate(()=>{
   const game=window.__nothing3DPreview;
   return Object.fromEntries(["tooth","thread","pipe","ring","coin","cog"]
