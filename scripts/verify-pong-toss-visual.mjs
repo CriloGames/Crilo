@@ -125,7 +125,9 @@ const browser=await chromium.launch({headless:true,args:[
  '--enable-webgl','--disable-dev-shm-usage','--disable-gpu-sandbox'
 ]});
 const levels=Array.from({length:50},(_,i)=>i+1);
-const screenshotLevels=new Set([1,2,3,4,5,6,7,8,9,10,17,28,39,50]);
+// Capture all 50 rooms, including every intermediate challenge, not
+// just the previously hand-picked sample.
+const screenshotLevels=new Set(levels);
 const records=[],errors=[],clearanceFailures=[];
 try{
  const page=await browser.newPage({viewport:{width:1160,height:780},deviceScaleFactor:1});
@@ -185,6 +187,10 @@ try{
 assert.deepEqual(errors,[],'Browser exceptions');
 assert.deepEqual(clearanceFailures,[],
  'Independent 3D assemblies clip: '+JSON.stringify(clearanceFailures));
+const motionFailures=records.filter(r=>r.animatedContacts?.length)
+ .map(r=>({level:r.level,contacts:r.animatedContacts}));
+assert.deepEqual(motionFailures,[],
+ 'Animated objects intersect room props: '+JSON.stringify(motionFailures));
 console.log(JSON.stringify({
  passed:records.length,levels,errors,
  animatedSummary:records.filter(r=>r.animatedContacts?.length).map(r=>({level:r.level,contacts:r.animatedContacts.slice(0,6)})),
