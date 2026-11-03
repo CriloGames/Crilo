@@ -565,7 +565,9 @@ function inspectHardware(name){
    s.serviceOpen=true;gain('cylinder');
    bloom('service-shutter','The service shutter slides aside and exposes a grooved wax cylinder in its recessed holder.');
    cue('ncWorld','nc-shudder',450);scatter('#a4cbca',11,document.querySelector('[data-hit="shutter"]'));
-  }else tell('The service shutter is already open. Its recessed holder is empty.');
+  }else tell(pendingPickups.has('cylinder')
+    ?'The service shutter is open. The grooved wax cylinder is still seated in the holder; press it to collect it.'
+    :'The service shutter is open. Its cylinder holder is empty.');
   return true;
  }
  if(name.startsWith('front-screw-')){
@@ -642,8 +644,11 @@ function inspectHardware(name){
   return true;
  }
  if(name==='foot'){
-  s.footChecked=true;bloom('underside-foot','The rubber foot slides along its track, revealing a short musical inscription in the exposed metal.');
-  tell('The rubber foot slides toward the outer rim, uncovering a second row of three musical marks.');
+  if(!s.footChecked){
+   s.footChecked=true;
+   bloom('underside-foot','The rubber foot slides along its track, revealing a short musical inscription in the exposed metal.');
+   tell('The rubber foot slides toward the outer rim, uncovering a second row of three musical marks.');
+  }else tell('The rubber foot is already at the end of its rail. Three musical marks remain visible in the gap.');
   return true;
  }
  return false;
@@ -661,12 +666,16 @@ function cubeHit(name){
  if(selected&&name==='eye'&&use(selected,'eye'))return;
  if(name==='latch'){
   if(!s.a){s.a=true;bloom('drawer','The front latch retracts. The drawer extends on its two metal runners, revealing a key-shaped piece.')}
-  else tell(s.drawerTaken?'This tiny drawer is empty now.':'There is a strange, key-shaped piece inside.');
+  else tell(s.drawerTaken
+   ?'The front drawer is already extended, and its metal tray is empty.'
+   :'The front drawer is open. A small toothed metal piece is still resting in its tray.');
  }else if(name==='drawer-a'){
   if(!s.drawerTaken){s.drawerTaken=true;collection('tooth');tell('The teeth of something that once opened a lock.')}
  }else if(name==='seam'){
   if(!s.b){s.b=true;bloom('thread','The side release disengages. The teal drawer slides outward, exposing a red spool in its tray.')}
-  else tell(s.sideTaken?'Only a loose red fiber remains.':'That is definitely a spool of thread.');
+  else tell(s.sideTaken
+   ?'The teal drawer is still open. Its spool holder is empty.'
+   :'The teal drawer is open. A red spool is resting in its holder; press the spool to collect it.');
  }else if(name==='drawer-b'){
   if(!s.sideTaken){s.sideTaken=true;collection('thread');tell('It is red thread. It refuses to explain itself.')}
  }else if(name==='triangle'){
@@ -684,12 +693,12 @@ function cubeHit(name){
    if(document.body.classList.contains('nc-physical-ready'))
     tell('The brass ring is resting in its own return socket, away from the central dial. Press the ring to collect it.');
    else{s.ringTaken=true;collection('ring')}
-  }
+  }else tell('The underside return socket is empty. The brass ring is already in your inventory.');
  }else if(name==='dent'){
   if(!s.mouse){s.mouse=true;s.left=true;s.bag=true;s.machine=true;
    bloom('mouse','The recessed copper catch releases a spring inside the box. A clockwork mouse escapes, leaving a small bag and coin in their front-face holders.');
    bloom('bag');gain('coin');incident('🐁');
-  } else tell('The copper release catch has already sprung. The mouse is gone; the bag and coin remain where it left them.');
+  } else tell('The copper catch is already released. The mouse escaped; its small bag is accessible on the front face.');
  }else if(name==='eye'){
   if(!s.back){s.back=true;bloom('eye','The rear eyelid slides aside. A short sequence of musical marks becomes visible beneath the lens.');}
   else if(document.body.classList.contains('nc-physical-ready'))
@@ -703,7 +712,7 @@ function cubeHit(name){
    if(s.redHits===4){
     bloom('bell','The red ratchet reaches its stop. A shutter on the underside slides aside, exposing a bell in its small return tray.');
     gain('bell');
-   }else tell('click.');
+   }else tell('The red switch settles one detent deeper. Its retaining collar rotates with the click.');
   }
  }
  render();
@@ -1019,9 +1028,14 @@ function clickThing(name,actuator=false){
  }
  bloom('first');
  if(name==='bag'){
-   if(s.bagOpen&&document.body.classList.contains('nc-physical-ready'))
-    tell(s.bagSolved?'The false bottom is empty now.':'Four independently turning symbol wheels sit behind the bag's brass catch.');
-   else openBag();
+   if(s.bagOpen&&document.body.classList.contains('nc-physical-ready')){
+    const waiting=['reed','treat','prism'].filter(id=>pendingPickups.has(id));
+    tell(s.bagSolved
+     ?waiting.length
+       ?'The false bottom is open. '+waiting.length+' small objects are still resting in their separate holders.'
+       :'The false bottom is open. All three objects have been collected.'
+     :'Four symbol wheels and a separate spring catch are visible inside the opened bag.');
+   }else openBag();
  }
  else if(name==='door'){
   if(document.body.classList.contains('nc-physical-ready')&&!actuator&&!s.doorOpen){
@@ -1069,7 +1083,7 @@ function clickThing(name,actuator=false){
   if(!s.parcelTaken){
    s.parcelTaken=true;gain('parcel','The tiny train delivers a parcel with no return address.');
    bloom('parcel','A steam-powered locomotive has delivered you one absurdly small parcel.');
-  }else tell('The tiny train continues its endless commute below the page.');
+  }else tell('The miniature locomotive remains on its short rail. The parcel tray has already been emptied.');
   cue(prop('train'),'nc-train-whistle',900);
  }
  render();
