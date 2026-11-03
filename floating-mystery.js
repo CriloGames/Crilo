@@ -23,7 +23,7 @@
   lost_button:'<rect x="9" y="7" width="32" height="36" rx="9" fill="#ead6f7"/><circle cx="25" cy="25" r="12" fill="#f7f1ff"/><circle cx="21" cy="21" r="2.2" fill="#826b9e" stroke="none"/><circle cx="29" cy="21" r="2.2" fill="#826b9e" stroke="none"/><circle cx="21" cy="29" r="2.2" fill="#826b9e" stroke="none"/><circle cx="29" cy="29" r="2.2" fill="#826b9e" stroke="none"/>'
  };
  const stylesheet=document.createElement('link');
- stylesheet.rel='stylesheet';stylesheet.href='floating-mystery.css?v=3';
+ stylesheet.rel='stylesheet';stylesheet.href='floating-mystery.css?v=4';
  document.head.append(stylesheet);
  const page=(location.pathname.split('/').pop()||'index.html').toLowerCase();
  const $=id=>document.getElementById(id);
@@ -57,24 +57,33 @@
   const overlay=document.createElement('dialog');
   overlay.className='crilo-wandering-dialog';
   overlay.setAttribute('aria-labelledby','criloWanderingTitle');
+  overlay.setAttribute('aria-describedby','criloWanderingStory criloWanderingRarity');
   const card=document.createElement('div');card.className='crilo-wandering-card';
   const close=document.createElement('button');close.type='button';
   close.className='crilo-wandering-close';close.textContent='×';close.setAttribute('aria-label','Close curiosity');
-  const eyebrow=document.createElement('span');eyebrow.className='crilo-wandering-eyebrow';eyebrow.textContent='A LITTLE DISCOVERY';
+  const eyebrow=document.createElement('span');
+  eyebrow.className='crilo-wandering-eyebrow';eyebrow.textContent='MYSTERY FOUND';
   const picture=document.createElement('span');picture.className='crilo-wandering-large-art';
   picture.innerHTML=svg(key);
-  const title=document.createElement('h2');title.id='criloWanderingTitle';title.textContent=name;
-  const info=document.createElement('p');info.textContent=story;
+  // Keep articles grammatical for all six actual names.
+  const foundName=name.replace(/^The /,'the ').replace(/^An /,'an ').replace(/^A /,'a ');
+  const title=document.createElement('h2');
+  title.id='criloWanderingTitle';title.textContent='You found '+foundName+'.';
+  const info=document.createElement('p');
+  info.id='criloWanderingStory';info.className='crilo-wandering-story';info.textContent=story;
+  const rarity=document.createElement('p');
+  rarity.id='criloWanderingRarity';rarity.className='crilo-wandering-rarity';
+  rarity.textContent='These only show up on about 8% of eligible page visits. There are six to find.';
   const result=document.createElement('p');result.className='crilo-wandering-result';
   result.textContent=wasNew?
-   'Added to your Mystery Collection! ('+count+' / 6 found)':
-   'Already in your Mystery Collection.';
+   'Saved to your collection · '+count+' of 6 found':
+   'You already found this one · '+count+' of 6 found';
   const small=document.createElement('p');small.className='crilo-wandering-note';
-  small.textContent='Just a collectible. No points, extra spins, or leaderboard advantage.';
+  small.textContent='Just for collecting. It won\'t change your score.';
   const navigate=document.createElement('a');
   navigate.className='crilo-wandering-link';navigate.href='profile.html';
-  navigate.textContent='View Mystery Collection in Statistics →';
-  card.append(close,eyebrow,picture,title,info,result,small,navigate);
+  navigate.textContent='See your Mystery Collection';
+  card.append(close,eyebrow,picture,title,info,rarity,result,small,navigate);
   overlay.append(card);document.body.append(overlay);
   close.addEventListener('click',()=>overlay.close());
   overlay.addEventListener('click',event=>{if(event.target===overlay)overlay.close()});

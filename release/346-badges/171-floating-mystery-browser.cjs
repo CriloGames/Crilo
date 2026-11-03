@@ -31,7 +31,7 @@ assert.match(profile,/addEventListener\('crilo-mystery-discovered'/);
 for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','settings.html',
                    'friends.html','badge-sets.html','shape-of-sound.html','moderation.html','owner-analytics.html']){
  const html=fs.readFileSync(path,'utf8');
- assert.match(html,/floating-mystery\.js\?v=6/,path+' must allow page discoveries');
+ assert.match(html,/floating-mystery\.js\?v=7/,path+' must allow page discoveries');
 }
 (async()=>{
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
@@ -81,9 +81,15 @@ for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','
     'Repeated auth and scroll events never reroll');
    await page.locator('.crilo-wandering-find').click();
    await page.locator('.crilo-wandering-dialog').waitFor({state:'visible'});
-   assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/The Napping Duck/);
-   assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/Added to your Mystery Collection/);
-   assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/Just a collectible/);
+   assert.equal(await page.locator('.crilo-wandering-dialog h2').textContent(),
+    'You found the Napping Duck.');
+   assert.match(await page.locator('.crilo-wandering-rarity').textContent(),/8%.*eligible page visits/);
+   assert.match(await page.locator('.crilo-wandering-result').textContent(),
+    /Saved to your collection · 1 of 6 found/);
+   assert.match(await page.locator('.crilo-wandering-note').textContent(),/won't change your score/);
+   const dialogBounds=await page.locator('.crilo-wandering-dialog').boundingBox();
+   assert(dialogBounds.x>=0&&dialogBounds.x+dialogBounds.width<=width+1,
+    'The discovery popup overflows horizontally at '+width+'px');
    assert.equal(await page.locator('.crilo-wandering-find').count(),0);
    assert.equal(await page.evaluate(()=>window.__float.claimed),1,'Saved once');
    assert.equal(await page.evaluate(()=>window.__float.events),1,'Notify Statistics to refresh');
@@ -112,8 +118,9 @@ for(const path of ['index.html','leaderboard.html','ducks.html','profile.html','
   await page.addScriptTag({content:js});
   await page.locator('.crilo-wandering-find').waitFor({state:'visible'});
   await page.locator('.crilo-wandering-find').click();
-  assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/Already in your Mystery Collection/);
-  assert.equal(await page.locator('.crilo-wandering-dialog').getByRole('heading').textContent(),'An Absurdly Tiny Crown');
+  assert.match(await page.locator('.crilo-wandering-dialog').textContent(),/You already found this one/);
+  assert.equal(await page.locator('.crilo-wandering-dialog').getByRole('heading').textContent(),
+   'You found an Absurdly Tiny Crown.');
   await page.close();
 
   // Same account in two real browser tabs: claiming on one hides the visitor
