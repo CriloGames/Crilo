@@ -163,7 +163,9 @@ try{
    continue;
   }
   await page.waitForTimeout(120);
-  const png=await page.screenshot({type:'png'});
+  // Snapshot the entire 3D canvas, not just the portion visible below the
+  // website header in a viewport-sized browser screenshot.
+  const png=await page.locator('#ptCanvas').screenshot({type:'png'});
   const image=PNG.sync.read(png),colors=new Set();
   for(let y=20;y<image.height;y+=21)for(let x=20;x<image.width;x+=21){
    const j=(y*image.width+x)*4;
