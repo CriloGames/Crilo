@@ -7,7 +7,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=15";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=8";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=29";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=43";
-import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=13";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=14";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -410,6 +410,27 @@ const physicalPickups=embeddedGame?buildPhysicalPickups({
  faces:{frontFace,backFace,leftFace,rightFace,topFace,bottomFace},
  worlds:pocketWorlds,hotspots:gameHotspots,box,cylinder,mat,setHit,invalidate
 }):null;
+// Four original collectibles predate the newer pickup-cradle models. They
+// must receive the SAME subtle glow while revealed and lose it immediately
+// after a deliberate click. Their own geometry remains the only hit target.
+const originalPickupGlow=embeddedGame?{
+ tooth:attachCollectibleGlow({
+  root:looseKey,model:looseKey,size:.54,depth:-.175,
+  offsetX:0,offsetY:-.07,invalidate
+ }),
+ thread:attachCollectibleGlow({
+  root:looseSpool,model:looseSpool,size:.44,depth:-.25,invalidate,
+  color:0xf0c6e5
+ }),
+ pipe:attachCollectibleGlow({
+  root:gameHotspots.targets.get("top-reed"),
+  model:gameHotspots.targets.get("top-reed"),
+  size:.48,depth:-.095,invalidate
+ }),
+ ring:attachCollectibleGlow({
+  root:undersideRing,model:undersideRing,size:.48,depth:-.06,invalidate
+ })
+}:null;
 let currentGameState={};
 let physicalStateInitialized=false;
 
@@ -1252,6 +1273,10 @@ window.__nothing3DPreview={
  get physicalPickupIds(){return physicalPickups?.ids||[]},
  get physicalPickupRevealCount(){return physicalPickups?.getRevealCount?.()||0},
  getPhysicalPickupRevealState(id){return physicalPickups?.getRevealState?.(id)||null},
+ getPickupGlowState(id){
+  return physicalPickups?.getRevealState?.(id)?.glow||
+   originalPickupGlow?.[id]?.getState?.()||null;
+ },
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
  get physicalPickupLayout(){return physicalPickups?.getLayout?.()||[]},
  get physicalPickupTrays(){return physicalPickups?.getTrayState?.()||[]},
@@ -1542,6 +1567,12 @@ window.__nothing3DPreview={
   looseSpool.visible=!!currentGameState.b&&!currentGameState.sideTaken;
   undersideRing.visible=!!currentGameState.bottom&&!currentGameState.ringTaken;
   if(gameHotspots)gameHotspots.setState(currentGameState);
+  originalPickupGlow?.tooth.setActive(looseKey.visible);
+  originalPickupGlow?.thread.setActive(looseSpool.visible);
+  originalPickupGlow?.pipe.setActive(
+   !!currentGameState.top&&!currentGameState.pipeTaken
+  );
+  originalPickupGlow?.ring.setActive(undersideRing.visible);
   renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
    ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Keys 1, 2 and 3 play the collected flute."
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
