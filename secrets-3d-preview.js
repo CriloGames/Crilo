@@ -1341,6 +1341,53 @@ window.__nothing3DPreview={
   return physicalPickups?.getRevealState?.(id)?.glow||
    originalPickupGlow?.[id]?.getState?.()||null;
  },
+ // Underside accessibility inspector: the ring must have a real open
+ // socket, stay outside the central wheel's solid radius, and remain
+ // retrievable through the same mouse raycaster the player uses.
+ get undersideMechanismLayout(){
+  const ringAt=undersideRing.position;
+  return {
+   ring:{x:ringAt.x,y:ringAt.y,depth:ringAt.z,
+    visible:undersideRing.visible,radius:undersideReturn.radius,
+    grip:!!ringGrip.userData.action},
+   socket:{x:undersideReturn.x,y:undersideReturn.y,radius:.23},
+   wheel:{x:0,y:0,radius:.67,depth:.4},
+   fixedFeet:[[-1.08,-1.08],[1.08,-1.08],[1.08,1.08]],
+   sliderFoot:{
+    x:gameHotspots?.targets.get("foot")?.position.x??-1.02,
+    y:gameHotspots?.targets.get("foot")?.position.y??1.02,
+    radius:.186
+   },
+   musicalClue:{x:-1.01,y:1.00,width:.665,height:.172,
+    visible:!!currentGameState.footChecked},
+   bell:{x:0,y:-1.16}
+  };
+ },
+ projectOriginalPickup(id){
+  const root={tooth:looseKey,thread:looseSpool,
+   pipe:gameHotspots?.targets.get("top-reed"),ring:undersideRing}[id];
+  if(!root||!isMeshEffectivelyVisible(root))return null;
+  scene.updateWorldMatrix(true,true);
+  const bounds=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  for(const [x,y,z] of [
+   [0,0,.13],[0,0,.10],[0,0,.065],
+   [-.08,0,.12],[.08,0,.12],
+   [0,.08,.12],[0,-.08,.12],
+   [-.13,-.08,.08],[.13,-.08,.08]
+  ]){
+   const projected=root.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
+   const point={x:(projected.x+1)*bounds.width/2,
+    y:(1-projected.y)*bounds.height/2,depth:projected.z};
+   if(!fallback)fallback=point;
+   if(projected.z>=-1&&projected.z<=1&&
+     point.x>=0&&point.x<=bounds.width&&
+     point.y>=0&&point.y<=bounds.height&&
+     pickVisibleAction(bounds.left+point.x,bounds.top+point.y)==="pickup:"+id)
+    return {...point,pick:"pickup:"+id};
+  }
+  return {...fallback,pick:null};
+ },
  get visiblePhysicalPickups(){return physicalPickups?.getPending?.()||[]},
  get physicalPickupLayout(){return physicalPickups?.getLayout?.()||[]},
  get physicalPickupTrays(){return physicalPickups?.getTrayState?.()||[]},
