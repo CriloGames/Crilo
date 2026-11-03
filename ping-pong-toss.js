@@ -72,6 +72,7 @@ function chooseProjectile(id){
 }
 let playing=false,paused=false,flight=false,charging=false,chargeFrom=0,chargeSource=null,gesture=null;
 let aimYaw=0,aimPitch=.70,power=.32,chargeAnchor=.20,lastNow=0,toastUntil=0,toastMessage='';
+let lastMouseAimPoint=null,aimPowerLocked=false,chargeStartPower=.32;
 let frisbeeTilt=0; // Selected disc roll, in radians; positive banks right.
 const FRISBEE_MAX_PITCH=1.28,FRISBEE_MIN_PITCH=-.18,FRISBEE_MAX_YAW=1.34;
 const FRISBEE_MAX_TILT=40*Math.PI/180;
@@ -605,12 +606,18 @@ function hideOverlay(){el.overlay.hidden=true;playing=true;paused=false;}
 function cupVariant(kind){
  return ['PAPER CUP','CERAMIC MUG','TALL BUCKET','COLOUR BOWL','WIRE BASKET','FILE BIN','TROPHY CUP'][kind];
 }
-function loadLevel(n){
+function loadLevel(n,{keepAim=false}={}){
  if(!Number.isInteger(n)||n<1||n>unlocked)return;
+ // A same-level restart should not move the throwing line. Entering a new
+ // level or choosing a different throwable still uses its authored setup.
+ keepAim=keepAim&&n===level;
  level=n;settings=stageSettings(level);chosenChapter=chapterIndex(level);
  attempts=0;shotT=0;simTime=0;flight=false;paused=false;
  // Give the first wall lesson a useful starting preview instead of aiming
  // directly at a cup that cannot score without touching the wall first.
+ if(!keepAim){
+ aimPowerLocked=false;
+ lastMouseAimPoint=null;
  aimYaw=(settings.n===22||settings.n===40)?
   Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
    settings.d*settings.wallPlan[0].fraction+.37):
@@ -619,8 +626,10 @@ function loadLevel(n){
    Math.atan2(settings.x,settings.d);
  aimPitch=projectileId==='frisbee'?(settings.springRequired?.20:settings.bankRequired?.22:.18):
   settings.n===50?.43:settings.bankRequired?.31:settings.springRequired?.32:.70;
+ power=idealPower();
+ }
  updateFrisbeeControls();
- power=idealPower();ball.active=false;resetBall();
+ ball.active=false;resetBall();
  if(hasRenderer){buildWorld();tickObstacles(0);}
  buildUi();updatePower();
  const roadblock=settings.obstaclePlan.map(o=>o[0].replaceAll('_',' '));
@@ -4299,7 +4308,9 @@ function inputAim(clientX,clientY){
   Math.atan2(settings.wallPlan[0].side*settings.wallPlan[0].x,
    settings.d*settings.wallPlan[0].fraction+.37):
   settings.n===50?Math.atan2(settings.springX,LAUNCH_Z-settings.springZ):
-  Math.atan2(target.x,settings.d);
+  // A moving cup must not shift the entire aiming coordinate system.
+  // The pointer is tied to the authored station, not its animated pose.
+  Math.atan2(settings.x,settings.d);
  aimYaw=projectileId==='frisbee'?
   clamp(baseline+(nx-.5)*2.45,-FRISBEE_MAX_YAW,FRISBEE_MAX_YAW):
   clamp(baseline+(nx-.5)*1.65,-MAX_AIM_YAW,MAX_AIM_YAW);
@@ -4309,15 +4320,30 @@ function inputAim(clientX,clientY){
   settings.bankRequired||settings.springRequired?
   clamp(.52+(.5-ny)*1.04,.13,1.04):
   clamp(.70+(.5-ny)*.52,.27,1.04);
- if(!charging)power=idealPower();
+ // Once a throw has been made, preserve the last power and its trajectory
+ // while the player makes fine mouse-angle corrections for the next attempt.
+ if(!charging&&!aimPowerLocked)power=idealPower();
  updatePower();
+}
+// Pointermove can fire repeatedly with identical coordinates, for example
+// after a captured throw ends. Never let these events reset the aiming line.
+function trackMouseAim(e){
+ if(lastMouseAimPoint&&
+    Math.abs(e.clientX-lastMouseAimPoint.x)<.25&&
+    Math.abs(e.clientY-lastMouseAimPoint.y)<.25)return;
+ lastMouseAimPoint={x:e.clientX,y:e.clientY};
+ inputAim(e.clientX,e.clientY);
 }
 function startCharge(source){
  if(!playing||paused||flight||charging)return;
  getGameAudio();
  charging=true;chargeSource=source;chargeFrom=performance.now();
+ chargeStartPower=power;
  lastChargeAimPreview=-1000;
- chargeAnchor=settings.wall?.06:clamp(idealPower()-(settings.n===50?.20:.13),.06,.87);
+ // Reattempts begin from the last thrown power, not a fresh auto-aim
+ // solution. A deliberate hold still changes the meter as before.
+ const referencePower=aimPowerLocked?power:idealPower();
+ chargeAnchor=settings.wall?.06:clamp(referencePower-(settings.n===50?.20:.13),.06,.87);
  power=chargeAnchor;
  hear(510,.048,'triangle',.013);updatePower();
 }
@@ -4333,7 +4359,7 @@ function cancelCharge(){
  if(!charging)return;
  charging=false;chargeSource=null;gesture=null;
  if(!flight){
-  power=idealPower();
+  power=chargeStartPower;
   updatePower();
  }
 }
@@ -4341,6 +4367,7 @@ function launch(){
  if(!playing||paused||flight||!charging)return;
  chargeTick(performance.now());
  charging=false;chargeSource=null;gesture=null;flight=true;attempts++;
+ aimPowerLocked=true;
  const v=makeVelocity(power);
  ball={x:launchOffset(),y:LAUNCH_Y,z:LAUNCH_Z,vx:v.vx,vy:v.vy,vz:v.vz,
   active:true,bounces:0,bankHits:0,springHits:0,wallHits:0,hoopsPassed:0,contacts:0,trail:[]};
@@ -4831,21 +4858,25 @@ el.discTilt.addEventListener('input',()=>{
 });
 el.canvas.addEventListener('pointermove',e=>{
  if(!playing||flight)return;
- if(gesture&&gesture.id===e.pointerId)flickAim(e);
- else if(e.pointerType!=='touch')inputAim(e.clientX,e.clientY);
+ // Mouse aim is tied to the actual cursor; dragging only charges power.
+ // Touch keeps the existing relative flick gesture for mobile players.
+ if(gesture&&gesture.id===e.pointerId&&e.pointerType==='touch')flickAim(e);
+ else if(e.pointerType!=='touch')trackMouseAim(e);
 });
 el.canvas.addEventListener('pointerdown',e=>{
  if(e.button!==0||!playing||paused||flight||charging)return;
  e.preventDefault();
  el.canvas.setPointerCapture?.(e.pointerId);
- inputAim(e.clientX,e.clientY);
+ if(e.pointerType==='touch')inputAim(e.clientX,e.clientY);
+ else trackMouseAim(e);
  gesture={id:e.pointerId,x:e.clientX,y:e.clientY,yaw:aimYaw,pitch:aimPitch,moved:false};
  startCharge('pointer');
 });
 const release=e=>{
  if(chargeSource!=='pointer'||!gesture||gesture.id!==e.pointerId)return;
  e.preventDefault();
- flickAim(e);
+ if(e.pointerType==='touch')flickAim(e);
+ else trackMouseAim(e);
  launch();
  try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
 };
@@ -4862,7 +4893,7 @@ document.addEventListener('keydown',e=>{
  if(key==='r'){
   e.preventDefault();
   // Holding R must not rebuild 3D geometry dozens of times per second.
-  if(!e.repeat)loadLevel(level);
+  if(!e.repeat)loadLevel(level,{keepAim:true});
   return;
  }
  if(key==='escape'){
@@ -4888,7 +4919,7 @@ document.addEventListener('keydown',e=>{
   if(key==='arrowright'||key==='d')aimYaw=clamp(aimYaw+amount,-yawLimit,yawLimit);
   if(key==='arrowup'||key==='w')aimPitch=clamp(aimPitch+amount,minPitch,maxPitch);
   if(key==='arrowdown'||key==='s')aimPitch=clamp(aimPitch-amount,minPitch,maxPitch);
-  if(!charging)power=idealPower();updatePower();
+  if(!charging&&!aimPowerLocked)power=idealPower();updatePower();
  }else if(e.code==='Space'&&!e.repeat){
   e.preventDefault();startCharge('keyboard');
  }
