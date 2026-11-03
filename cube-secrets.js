@@ -452,7 +452,7 @@ function render(){
  if(combineGuide){
   const action=selected
    ?'Holding '+names[selected]+'. Select a second pocket item to combine, or hover over a 3D object (touch and hold on phones). A green reaction means you can use the item there—press the object to try it.'
-   :'Items marked ✧ may react with something on the cube or combine with another item. Select one pocket item, then a second to combine them. To test the cube, hold an item and inspect its parts.';
+   :'Items marked ✧ USE may react with a part of the cube or combine with another item. Select one pocket item, then a second to combine them. To test the cube, hold an item and inspect its parts.';
   const current=combineGuide.querySelector('.nc-combine-instructions');
   if(current)current.textContent=action;
   else{
@@ -501,6 +501,7 @@ function render(){
     !!recipe[sorted(selected,id)];
    button.classList.toggle('nc-selected',id===selected);
    button.classList.toggle('nc-item-reactive',itemMayReact(id));
+   button.classList.toggle('nc-item-playable',id==='flute');
    button.classList.toggle('nc-item-combine-match',combinesWithHeld);
    button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
    button.title=combinesWithHeld?'Combines with the held item':
