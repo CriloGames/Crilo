@@ -799,7 +799,8 @@ function describeAction(action){
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
- if(action.startsWith("front-screw-"))return "Faceplate screw";
+ if(action==="front-screw-3")return "Captive spring fastener";
+ if(action.startsWith("front-screw-"))return "Removable faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
  if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
  if(action.startsWith("vent-"))return "Vent switch "+action.slice(-1);
