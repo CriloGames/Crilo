@@ -66,12 +66,28 @@ assert(tactile.light&&tactile.needle&&tactile.lever&&tactile.service&&tactile.ba
  'The new 3D mechanics do not respond to individual interactions');
 await page.screenshot({path:'test-results/3d-precision-details-desktop.png',animations:'disabled',timeout:60000});
 console.log('All seven precision mechanisms respond to selections');
+ // The tactile check legitimately pressed the side lever and lid latch.
+ // Restore both to closed before verifying the no-shortcuts rule.
+ await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  p.clickAction('lever');p.clickAction('hatch-latch');
+ });
  await page.locator('#drawerFront').click();
- await page.waitForFunction(()=>window.__nothing3DPreview.frontOpen===true);
  await page.locator('#drawerRight').click();
- await page.waitForFunction(()=>window.__nothing3DPreview.sideOpen===true);
  await page.locator('#hatchTop').click();
- await page.waitForFunction(()=>window.__nothing3DPreview.topOpen===true);
+ assert.deepEqual(await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  return [p.frontOpen,p.sideOpen,p.topOpen];
+ }),[false,false,false],"Direct drawer/hatch presses bypass the controls");
+ // Only the distinct real 3D actuator buttons can move the hardware.
+ await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  p.clickAction('service-latch');p.clickAction('lever');p.clickAction('hatch-latch');
+ });
+ await page.waitForFunction(()=>{
+  const p=window.__nothing3DPreview;
+  return p.frontOpen&&p.sideOpen&&p.topOpen;
+ });
  await page.waitForTimeout(1200);
  const braceLengths=await page.evaluate(()=>window.__nothing3DPreview.hatchBraceLengths);
  console.log('HATCH DEBUG',await page.evaluate(()=>({
@@ -94,9 +110,18 @@ assert(positions.front&&positions.side&&positions.top);
  await page.locator('#drawerFront').click();
  await page.locator('#drawerRight').click();
  await page.locator('#hatchTop').click();
- assert.equal(await page.evaluate(()=>window.__nothing3DPreview.frontOpen),false);
- assert.equal(await page.evaluate(()=>window.__nothing3DPreview.sideOpen),false);
- assert.equal(await page.evaluate(()=>window.__nothing3DPreview.topOpen),false);
+ assert.deepEqual(await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  return [p.frontOpen,p.sideOpen,p.topOpen];
+ }),[true,true,true],"Clicking an open drawer/lid cannot close the hardware");
+ await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  p.clickAction('service-latch');p.clickAction('lever');p.clickAction('hatch-latch');
+ });
+ assert.deepEqual(await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  return [p.frontOpen,p.sideOpen,p.topOpen];
+ }),[false,false,false],"Only switches may close a prototype drawer");
  await page.setViewportSize({width:390,height:844});
  await page.waitForTimeout(400);
  const mobile=await page.evaluate(()=>({width:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,canvas:document.querySelector('canvas').getBoundingClientRect().width}));
@@ -104,6 +129,14 @@ assert(positions.front&&positions.side&&positions.top);
  assert(mobile.canvas<=mobile.client,'Mobile canvas wider than viewport');
  await page.locator('#drawerFront').click();
  await page.locator('#hatchTop').click();
+ assert.deepEqual(await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  return [p.frontOpen,p.topOpen];
+ }),[false,false],"Mobile direct surface click opened the drawer or lid");
+ await page.evaluate(()=>{
+  const p=window.__nothing3DPreview;
+  p.clickAction('service-latch');p.clickAction('hatch-latch');
+ });
  await page.waitForTimeout(1200);
  const mobileBraces=await page.evaluate(()=>window.__nothing3DPreview.hatchBraceLengths);
  assert(mobileBraces.every(n=>n>1.0),'The open mobile hatch lost its physical supports: '+mobileBraces);
