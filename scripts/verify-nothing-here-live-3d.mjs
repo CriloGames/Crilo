@@ -497,6 +497,23 @@ try{
   "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
+ // A decorative surface is NOT the puzzle input. Try every tempting
+ // shortcut before any latch, button, key or door is available.
+ for(const action of [
+  "front","side","hatch",
+  "pickup:tooth","pickup:thread","pickup:pipe","pickup:ring",
+  "thing:bag-dial-0","thing:door-handle","thing:elevator-floor-4",
+  "cube-offer"
+ ])await activate(action);
+ const sealed=await state();
+ assert(!sealed.a&&!sealed.b&&!sealed.top&&!sealed.bottom&&
+  !sealed.doorOpen&&!sealed.plateOpen&&
+  !sealed.drawerTaken&&!sealed.sideTaken&&!sealed.pipeTaken,
+  "A closed physical puzzle can be bypassed just by clicking its surface");
+ assert.equal(sealed.topHits,0,
+  "Pressing the lid instead of its triangle must not shift the catch");
+ assert(!sealed.pocket.includes("tooth")&&!sealed.pocket.includes("thread"),
+  "A sealed drawer handed out contents without its release button");
  const collect=async id=>{
   const before=await state();
   assert(before.pendingPickups.includes(id)||(id==="ring"&&before.bottom&&!before.ringTaken)||
@@ -544,7 +561,11 @@ try{
  assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
  console.log("PASS: brass latch depressed, drawer extended and reached its end stop");
  await activate("side");
- assert.equal((await state()).b,true,"Physical side tray did not unlock original story");
+ assert.equal((await state()).b,false,
+  "Clicking the teal drawer directly must never open its lock");
+ await activate("seam");
+ assert.equal((await state()).b,true,
+  "The distinct physical side release button must open the teal drawer");
  await activate("eye");
  assert.equal((await state()).back,true,
   "Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
@@ -793,9 +814,12 @@ try{
  if(!triangleMotion.reduced)
   assert(triangleMotion.depth<-.007,"Triangle should depress into its brass spring housing: "+JSON.stringify(triangleMotion));
  for(let i=0;i<2;i++)await activate("triangle");
- assert.equal((await state()).top,true,"Three physical lid taps did not open original hatch");
+ assert.equal((await state()).top,true,"Three physical triangle presses did not open the hatch");
+ const topBeforeClick=await page.evaluate(()=>window.__nothing3DPreview.topOpen);
  await activate("hatch");
  assert.equal((await state()).top,true);
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.topOpen),topBeforeClick,
+  "Clicking the open hatch must not independently close it");
  await activate("hatch-latch"); // An additional metal control still routes to the real triangle.
  await activate("dot");await activate("dot");await activate("dot");await activate("dot");
  assert.equal((await state()).redHits,4,"Red-dot sequence lost state parity");
@@ -954,9 +978,14 @@ try{
  for(const n of [1,2])await activate("front-screw-"+n);
  let s=await state();
  assert(s.screws.length===3,"Three physical faceplate screws did not reach the original backend");
+ assert(s.plateOpen,"The third real screw should release the faceplate on its own");
+ const beforeEmptyReceiver={seen:s.seen.length,pocket:s.pocket.length,pending:s.pendingPickups.length};
  await activate("cube-offer");
  s=await state();
- assert(s.plateOpen,"The original faceplate did not open from the physical 3D receiver");
+ assert.deepEqual(
+  {seen:s.seen.length,pocket:s.pocket.length,pending:s.pendingPickups.length},
+  beforeEmptyReceiver,
+  "An empty offering receiver must not grant a discovery or a reward");
  assert(s.seen.includes("faceplate")&&s.seen.includes("pipe")&&s.seen.includes("drawer"),
   "Physical actions failed to award the existing discovery catalog");
  await page.waitForTimeout(1400);
