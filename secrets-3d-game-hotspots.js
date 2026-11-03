@@ -135,17 +135,31 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   C(g,size*1.12,.040,0,0,0,nickel);
   const cap=new THREE.Group();g.add(cap);
   if(name==="dent"){
-   // Actual die-struck copper: a visibly off-center hollow with a
-   // bevelled rim and irregular bruise, not an ordinary flat screw.
-   C(cap,size,.064,0,0,.048,color);
-   const rim=new THREE.Mesh(
-    new THREE.TorusGeometry(size*.48,.013,9,32),nickel);
-   rim.position.set(-.013,.011,.085);rim.scale.y=.79;
-   cap.add(rim);count++;
-   C(cap,size*.43,.004,-.013,.011,.082,graphite);
-   C(cap,size*.30,.004,-.024,.019,.084,copper);
-   const strike=B(cap,.053,.008,.006,-.026,.027,.090,nickel,.002);
-   strike.rotation.z=-.35;
+   // Shape the copper itself with a genuine concave die-struck depression.
+   // The middle of this lathed surface is ~.063 deeper than its raised lip:
+   // it cannot be mistaken for the flat, slotted screws on the other faces.
+   const profile=[
+    new THREE.Vector2(0,-.025),
+    new THREE.Vector2(size*.85,-.025),
+    new THREE.Vector2(size,0),
+    new THREE.Vector2(size,.055),
+    new THREE.Vector2(size*.85,.072),
+    new THREE.Vector2(size*.67,.065),
+    new THREE.Vector2(size*.51,.047),
+    new THREE.Vector2(size*.30,.023),
+    new THREE.Vector2(0,.009)
+   ];
+   const dieMetal=color.clone();
+   dieMetal.side=THREE.DoubleSide;
+   const dentSurface=new THREE.Mesh(new THREE.LatheGeometry(profile,48),dieMetal);
+   dentSurface.rotation.x=Math.PI/2;
+   dentSurface.position.z=.025;
+   dentSurface.castShadow=true;cap.add(dentSurface);count++;
+   // Fine diagonal score INSIDE the depressed metal, not a slot screwed
+   // onto a flat outer cap. Its slight offset looks actually stamped.
+   const strike=B(cap,.034,.006,.004,-.025,.017,.054,graphite,.002);
+   strike.rotation.z=-.32;
+   g.userData.dentProfile={rim:.097,center:.034,depth:.063};
   }else{
    C(cap,size,.075,0,0,.048,color);
    const cross=B(cap,size*.56,.011,.012,0,0,.093,graphite,.003);
