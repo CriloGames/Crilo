@@ -773,6 +773,15 @@ if(!embeddedGame){
  partHint.style.cssText="position:absolute;z-index:9;pointer-events:none;transform:translateX(-50%);background:#fff9e9ee;border:1px solid #a0b5ae;border-radius:9px;padding:6px 11px;box-shadow:0 4px 14px #384b5230;color:#4b6568;font:700 12px system-ui,sans-serif;max-width:230px;text-align:center;";
 }
 stage.appendChild(partHint);
+// A lightweight screen-space confirmation ONLY while the cursor or touch
+// inspection is over an actually compatible 3D part. Hidden secrets are
+// never highlighted on their own and this overlay never receives clicks.
+const fitHalo=document.createElement("span");
+fitHalo.id="ncItemFitHalo";
+fitHalo.setAttribute("aria-hidden","true");
+fitHalo.hidden=true;
+stage.appendChild(fitHalo);
+let displayedHintAction=null,displayedHintPoint=null;
 // Only point out hardware that is already reachable from the current camera.
 // Do not expose hidden clues or automatically suggest matching pocket items.
 const keyboardFocus=document.createElement("span");
@@ -807,11 +816,20 @@ function describeAction(action){
  return controlNames[action]||"Mechanical fitting";
 }
 function setPartHint(action,e){
- if(!action){partHint.hidden=true;return}
- partHint.textContent=describeAction(action);
- partHint.classList.remove("nc-can-use");
+ if(!action){
+  partHint.hidden=true;fitHalo.hidden=true;
+  displayedHintAction=null;displayedHintPoint=null;
+  return;
+ }
+ const fits=embeddedGame&&!!window.CriloNothingHereCube
+  ?.canUseSelectedWithAction?.(action);
+ partHint.textContent=describeAction(action)+(fits?" · Use held item here":"");
+ partHint.classList.toggle("nc-can-use",!!fits);
+ fitHalo.hidden=!fits;
  partHint.hidden=false;
+ displayedHintAction=action;
  if(e){
+  displayedHintPoint={clientX:e.clientX,clientY:e.clientY};
   // Position the *measured* label within the physical canvas. A fixed
   // 32-pixel inset used to clip long miniature names on narrow phones,
   // especially when the target was on the cube's extreme left/right edge.
@@ -819,6 +837,10 @@ function setPartHint(action,e){
   const width=partHint.offsetWidth;
   const height=partHint.offsetHeight;
   const x=e.clientX-bounds.left,y=e.clientY-bounds.top;
+  if(fits){
+   fitHalo.style.left=x+"px";
+   fitHalo.style.top=y+"px";
+  }
   const inset=10;
   const left=Math.max(width/2+inset,
    Math.min(bounds.width-width/2-inset,x));
@@ -985,6 +1007,8 @@ renderer.domElement.addEventListener("pointermove",e=>{
   const action=pickVisibleAction(point.clientX,point.clientY);
   renderer.domElement.style.cursor=action?"pointer":"grab";
   setPartHint(action,point);
+  if(action&&window.CriloNothingHereCube?.canUseSelectedWithAction?.(action))
+   renderer.domElement.style.cursor="pointer";
  });
 });
 renderer.domElement.addEventListener("pointerleave",clearHover);
@@ -1660,6 +1684,10 @@ window.__nothing3DPreview={
  get reducedMotion(){return reducedMotion},
  get screwsOut(){return screws.filter(s=>s.removed).length},
  clickAction,
+ get itemFitHint(){return {
+  action:displayedHintAction,active:!fitHalo.hidden,
+  label:partHint.hidden?null:partHint.textContent
+ }},
  get lastClickedAction(){return lastClickedAction},
  setZoom(value){
   if(!embeddedGame)return;
@@ -1816,7 +1844,12 @@ window.__nothing3DPreview={
 };
 announce("A hand-built mechanical curiosity — inspect the dials, rails, lenses and hidden compartments.");
 if(embeddedGame){
- window.addEventListener("nc:statechange",event=>window.__nothing3DPreview.syncState(event.detail));
+ window.addEventListener("nc:statechange",event=>{
+  window.__nothing3DPreview.syncState(event.detail);
+  // Using or putting down an item must remove stale "fits here" feedback.
+  if(!partHint.hidden&&displayedHintAction)
+   setPartHint(displayedHintAction,displayedHintPoint);
+ });
  window.__nothing3DPreview.syncState(window.CriloNothingHereCube?.getState?.()||{});
  document.body.classList.add("nc-physical-ready");
  // Explain the gesture, not the solution. Real 3D touch users hold to
