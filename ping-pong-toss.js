@@ -2564,9 +2564,25 @@ function buildWorld(){
   for(const side of [-1,1])meshBox(cupGroup,.10,h*.75,.08,side*r*.85,h*.52,0,lipMat);
  }
  if(kind===4||kind===5){
-  const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r*.96,r*.7,h*.77,20,1,true),
-   new THREE.MeshStandardMaterial({color:kind===4?0xabb7b1:0x927965,transparent:true,opacity:.47,wireframe:true}));
-  mesh.position.y=h*.4;cupGroup.add(mesh);
+  // Modeled sheet-metal bands replace the old wireframe placeholder.
+  // They sit on the tapered shell and leave the goal mouth unobstructed.
+  const reinforcement=finishMat(kind===4?0x8fa7aa:0xc2a487,'anodized');
+  for(const t of [.22,.56,.80]){
+   const rr=baseRadius+(r-baseRadius)*t*.98;
+   const band=new THREE.Mesh(new THREE.TorusGeometry(rr,.011,8,48),reinforcement);
+   band.rotation.x=Math.PI/2;band.position.y=h*t;
+   cupGroup.add(ornament(band));
+  }
+  for(let i=0;i<4;i++){
+   const a=Math.PI*.25+i*Math.PI/2;
+   const path=[.24,.45,.66,.80].map(t=>{
+    const rr=baseRadius+(r-baseRadius)*t;
+    return new THREE.Vector3(Math.cos(a)*rr,h*t,Math.sin(a)*rr);
+   });
+   const rib=new THREE.Mesh(new THREE.TubeGeometry(
+    new THREE.CatmullRomCurve3(path),12,.009,6,false),reinforcement);
+   cupGroup.add(ornament(rib));
+  }
  }
  if(kind===6){
   const gold=createMat(0xe4ba6c,.35,.46);
