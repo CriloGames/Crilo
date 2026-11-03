@@ -424,26 +424,26 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  resonatorLight.material.emissive=new THREE.Color(0x3d898c);
  resonatorLight.material.emissiveIntensity=.3;
  resonator.visible=false;
- // Rear-face cipher: the bag combination is deliberately NOT printed inside
- // the bag. Calibrating the eye ring three times uncovers an inset brass
- // ribbon beside the lens. All three glyphs have true geometric relief.
+ // The four-symbol sequence is engraved on a separate rear optical
+ // cassette, hidden until the player calibrates the iris. Never print the
+ // solution on the bag's own four metal wheels or on a hover tooltip.
  const cipherMount=node(backFace,-.93,-1.25,.225);
  B(cipherMount,.86,.29,.082,0,0,0,graphite,.034);
  B(cipherMount,.80,.24,.032,0,0,.040,nickel,.025);
  const cipherStrip=new THREE.Group();cipherStrip.position.set(0,0,.062);
  cipherMount.add(cipherStrip);
  B(cipherStrip,.76,.205,.045,0,0,.014,brass,.025);
- B(cipherStrip,.675,.145,.014,0,0,.047,ivory,.013);
- // ◇ : a die-cut, rotated metal lozenge.
- const diamond=B(cipherStrip,.104,.104,.024,-.220,0,.068,graphite,.008);
+ B(cipherStrip,.695,.145,.014,0,0,.047,ivory,.013);
+ // Four actually sculpted emblems: diamond, ring, crescent and eight-rayed
+ // asterisk, each seated in a distinct column of the metal cassette.
+ const symbolX=[-.275,-.092,.092,.275];
+ const diamond=B(cipherStrip,.082,.082,.022,symbolX[0],0,.068,graphite,.007);
  diamond.rotation.z=Math.PI/4;
- const diamondPin=B(cipherStrip,.033,.033,.026,-.220,0,.085,nickel,.004);
+ const diamondPin=B(cipherStrip,.024,.024,.026,symbolX[0],0,.084,nickel,.003);
  diamondPin.rotation.z=Math.PI/4;
- // ○ : a raised open circle, not a bitmap.
- const cipherCircle=new THREE.Mesh(new THREE.TorusGeometry(.072,.015,9,28),graphite);
- cipherCircle.position.set(0,0,.073);cipherCircle.castShadow=false;
+ const cipherCircle=new THREE.Mesh(new THREE.TorusGeometry(.053,.012,9,28),graphite);
+ cipherCircle.position.set(symbolX[1],0,.073);cipherCircle.castShadow=false;
  cipherStrip.add(cipherCircle);count++;
- // ☾ : a bevelled crescent cut from an extruded metal shape.
  const crescentShape=new THREE.Shape();
  crescentShape.moveTo(.019,.079);
  crescentShape.bezierCurveTo(-.103,.077,-.103,-.077,.019,-.079);
@@ -452,9 +452,23 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   depth:.017,bevelEnabled:true,bevelThickness:.004,bevelSize:.004,
   bevelSegments:1,curveSegments:14
  }),graphite);
- crescent.position.set(.229,0,.062);
+ crescent.position.set(symbolX[2],0,.062);
+ crescent.scale.set(.78,.78,1);
  crescent.castShadow=false;cipherStrip.add(crescent);count++;
- for(const x of [-.355,.355])C(cipherStrip,.024,.030,x,0,.065,nickel);
+ const starShape=new THREE.Shape();
+ for(let n=0;n<16;n++){
+  const a=n*Math.PI/8-Math.PI/2,r=n%2===0?.073:.026;
+  const px=Math.cos(a)*r,py=Math.sin(a)*r;
+  if(n===0)starShape.moveTo(px,py);else starShape.lineTo(px,py);
+ }
+ starShape.closePath();
+ const star=new THREE.Mesh(new THREE.ExtrudeGeometry(starShape,{
+  depth:.015,bevelEnabled:true,bevelThickness:.003,bevelSize:.003,
+  bevelSegments:1,curveSegments:1
+ }),graphite);
+ star.position.set(symbolX[3],0,.068);
+ star.castShadow=false;cipherStrip.add(star);count++;
+ for(const x of [-.355,.355])C(cipherStrip,.017,.026,x,0,.066,nickel);
  setHit(cipherStrip,"cipher-strip");targets.set("cipher-strip",cipherStrip);
  cipherStrip.visible=false;
  const miniMoon=node(backFace,-.72,.42,.24);
