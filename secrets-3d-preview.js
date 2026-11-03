@@ -823,7 +823,7 @@ function setPartHint(action,e){
  }
  const fits=embeddedGame&&!!window.CriloNothingHereCube
   ?.canUseSelectedWithAction?.(action);
- partHint.textContent=describeAction(action)+(fits?" · Use held item here":"");
+ partHint.textContent=describeAction(action)+(fits?" · Fits here":"");
  partHint.classList.toggle("nc-can-use",!!fits);
  fitHalo.hidden=!fits;
  partHint.hidden=false;
