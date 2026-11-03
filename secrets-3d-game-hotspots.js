@@ -139,7 +139,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  function engraving(face,words,x,y,w=.47){
   // Conditional inscriptions are only exposed after their covering control
   // has physically moved; audit permanent visible faceplates separately.
-  if(!["3 · 1 · 2","2 · 1 · 3","Ⅱ · Ⅰ · Ⅲ"].includes(words))
+  if(!["3 · 1 · 4 · 2 · 3","A / Ⅱ · Ⅰ · Ⅲ","B / Ⅰ · Ⅲ · Ⅱ"].includes(words))
    reserve(face,"plaque "+words,x,y,w+.055,.186);
   const g=node(face,x,y,.158),h=.143;
   B(g,w+.045,h+.029,.036,0,0,0,nickel,.014);
@@ -215,13 +215,14 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
  // The vent order is engraved INSIDE the empty fastener recess: it is
  // not visible until the player actually loosens the appropriate bolt.
- const ventCipher=engraving(rightFace,"3 · 1 · 2",.98,1.25,.50);
+ const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.91,1.25,.75);
  ventCipher.visible=false;
- // Left: the same three numbered physical vent switches used by the
- // original 3-1-2 sequence and an adjustable real pressure control.
- for(let i=1;i<=3;i++){
-  const y=1.08-(i-1)*.27;
-  tab(leftFace,"vent-"+i,-.98,y,graphite,.27,.14);
+ // Four small numbered switches run a five-step service sequence.
+ // Each has a separate finger-size contact without overlap; the matching
+ // code stays behind the removable rivet on the opposite side.
+ for(let i=1;i<=4;i++){
+  const y=1.165-(i-1)*.22;
+  tab(leftFace,"vent-"+i,-.98,y,graphite,.23,.115);
   engraving(leftFace,String(i),-.65,y,.15);
  }
  engraving(leftFace,"VENT",-.95,.26,.37);
@@ -381,7 +382,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Keep the 2 · 1 · 3 clue on the free bottom-center rail, NOT inside
  // the eyelids or the circular lens. It has its own clear embossed plate.
  // Left is the bag-code cassette, right is the iris gear enclosure.
- const eyeCipher=engraving(backFace,"2 · 1 · 3",.075,-1.395,.70);
+ const eyeCipher=engraving(backFace,"A / Ⅱ · Ⅰ · Ⅲ",.075,-1.395,.70);
  eyeCipher.visible=false;
  // One purposeful, flush-mounted iris control. The engraved header,
  // protected grille and small ratcheting dial share a single bolted housing,
@@ -518,7 +519,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    },1150));
   }
  }
- const undersideCipher=engraving(bottomFace,"Ⅱ · Ⅰ · Ⅲ",-1.01,1.00,.53);
+ const undersideCipher=engraving(bottomFace,"B / Ⅰ · Ⅲ · Ⅱ",-1.01,1.00,.62);
  undersideCipher.visible=false;
  control(bottomFace,"underside",0,0,brass,.21);
  // A concealed return slot in the cube underside opens when the fourth
