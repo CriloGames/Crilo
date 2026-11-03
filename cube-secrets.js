@@ -551,19 +551,21 @@ function inspectHardware(name){
    sound(265+s.pressureTicks*130);
    if(s.pressureTicks>=3){
     s.pressureReady=true;gain('fork');
-    bloom('pressure-dial','The manometer reaches three, releasing the tuning fork held in its slim upper retaining bracket.');
+    bloom('pressure-dial','The calibration needle reaches its third mark. A retaining pin retracts, leaving a small tuning fork in the bracket beside the dial.');
     scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
-   }else tell('The little gauge needle settles onto another engraved tick.');
-  }else tell('The pressure holds steady at three, though there is nothing inside.');
+   }else tell('The calibration knob advances the needle by one marked step. A small catch beside the dial remains closed.');
+  }else tell(pendingPickups.has('fork')
+   ?'The calibration mechanism is latched at its third mark. The tuning fork is still in the bracket beside the dial.'
+   :'The calibration mechanism is latched at its third mark. Its empty bracket shows where the tuning fork was held.');
   return true;
  }
  if(name==='shutter'){
-  if(!s.resonance){tell('The blue service hatch shivers, but its sound-operated latch is sealed.');return true}
+  if(!s.resonance){tell('The shutter is held by a vibrating spring catch. The small groove beside it looks designed to respond to sound.');return true}
   if(!s.serviceOpen){
    s.serviceOpen=true;gain('cylinder');
    bloom('service-shutter','The service shutter slides aside and exposes a grooved wax cylinder in its recessed holder.');
    cue('ncWorld','nc-shudder',450);scatter('#a4cbca',11,document.querySelector('[data-hit="shutter"]'));
-  }else tell('The little service cavity is empty now. Its spring still hums.');
+  }else tell('The service shutter is already open. Its recessed holder is empty.');
   return true;
  }
  if(name.startsWith('front-screw-')){
@@ -576,12 +578,12 @@ function inspectHardware(name){
     cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
    }else tell('The captive button has already reached its mechanical end stop.');
   }else if(!s.screws.includes(n)){
-   s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
+   s.screws.push(n);bloom('fastener','The front screw comes free, leaving an empty threaded socket in the service cover.');
    if(s.screws.length===3){
     s.plateOpen=true;gain('cog');
     bloom('faceplate','The third screw releases a small service hatch beside the front lens. Inside its captive brass socket is a drive cog you can pick up.');
     cue('ncCube','nc-scene-blink',800);
-   }else tell('A real screw came out. The empty socket has surprisingly fine threads.');
+   }else tell('The screw has been removed from the front cover. The remaining fasteners still hold it closed.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
    sound(620);
   }else tell('Nothing to unscrew here. The empty hole is threaded.');
@@ -591,9 +593,9 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(n===1&&!s.rightBoltLoose){
    s.rightBoltLoose=true;
-   tell('A service rivet comes out. Behind it is a row of five minute service marks.');
+   tell('The removable service bolt withdraws. Five tiny marks are engraved inside its socket.');
    scatter('#9ec7c9',7,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(n===1)tell('The missing rivet exposes five engraved service marks.');
+  }else if(n===1)tell('The service bolt is already out; the five stamped marks are visible in its socket.');
   else tell(['The first rivet has a slot shaped like a minus sign.',
    '', 'The third rivet was installed backwards.','The fourth rivet holds the drawer rail.'][n]);
   return true;
@@ -635,13 +637,13 @@ function inspectHardware(name){
    if(s.hingePins.length===3){
     gain('washer');bloom('hinge-pin','The third hinge pin withdraws. A loose washer is now resting in the empty hinge seat.');
     scatter('#e0c88a',8,document.querySelector('[data-hit="'+name+'"]'));
-   }else tell('A tiny hinge pin moves. It seems to unlock another piece.');
+   }else tell('The hinge pin pulls clear of its bracket, leaving one open mounting hole.');
   }else tell('This hinge pin is already loose.');
   return true;
  }
  if(name==='foot'){
-  s.footChecked=true;bloom('underside-foot','Under the rubber foot is a second three-note musical inscription.');
-  tell('The foot folds back. A second line reads Ⅰ · Ⅲ · Ⅱ.');
+  s.footChecked=true;bloom('underside-foot','The rubber foot slides along its track, revealing a short musical inscription in the exposed metal.');
+  tell('The rubber foot slides toward the outer rim, uncovering a second row of three musical marks.');
   return true;
  }
  return false;
@@ -658,12 +660,12 @@ function cubeHit(name){
  if(inspectHardware(name)){render();return}
  if(selected&&name==='eye'&&use(selected,'eye'))return;
  if(name==='latch'){
-  if(!s.a){s.a=true;bloom('drawer','A drawer slides straight out of a wall that cannot contain drawers.')}
+  if(!s.a){s.a=true;bloom('drawer','The front latch retracts. The drawer extends on its two metal runners, revealing a key-shaped piece.')}
   else tell(s.drawerTaken?'This tiny drawer is empty now.':'There is a strange, key-shaped piece inside.');
  }else if(name==='drawer-a'){
   if(!s.drawerTaken){s.drawerTaken=true;collection('tooth');tell('The teeth of something that once opened a lock.')}
  }else if(name==='seam'){
-  if(!s.b){s.b=true;bloom('thread','A horizontal compartment seems to have been there all along.')}
+  if(!s.b){s.b=true;bloom('thread','The side release disengages. The teal drawer slides outward, exposing a red spool in its tray.')}
   else tell(s.sideTaken?'Only a loose red fiber remains.':'That is definitely a spool of thread.');
  }else if(name==='drawer-b'){
   if(!s.sideTaken){s.sideTaken=true;collection('thread');tell('It is red thread. It refuses to explain itself.')}
@@ -671,25 +673,25 @@ function cubeHit(name){
   if(s.top)tell('The lid is already resting against its open hinge stops.');
   else{
    s.topHits++;
-   if(s.topHits>=3){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
+   if(s.topHits>=3){s.top=true;bloom('pipe','The third catch moves. The top lid opens on its hinges, revealing a hollow wooden tube in the compartment.')}
    else tell('A small catch shifts inside the lid.');
   }
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The hollow wooden tube comes free of its upper retaining bracket.')}
  }else if(name==='hatch'){
-  if(!s.bottom){s.bottom=true;bloom('ring','A brass ring falls out of the underside.');}
+  if(!s.bottom){s.bottom=true;bloom('ring','The underside release opens a separate return pocket. A brass ring slides forward into view.');}
   if(!s.ringTaken){
    if(document.body.classList.contains('nc-physical-ready'))
-    tell('The underside mechanism releases a brass ring. Press the ring to collect it.');
+    tell('The brass ring is resting in its own return socket, away from the central dial. Press the ring to collect it.');
    else{s.ringTaken=true;collection('ring')}
   }
  }else if(name==='dent'){
   if(!s.mouse){s.mouse=true;s.left=true;s.bag=true;s.machine=true;
-   bloom('mouse','A clockwork mouse skitters away. It has left a handbag and a coin behind.');
+   bloom('mouse','The recessed copper catch releases a spring inside the box. A clockwork mouse escapes, leaving a small bag and coin in their front-face holders.');
    bloom('bag');gain('coin');incident('🐁');
-  } else tell('Only the faint sound of tiny metallic footsteps remains.');
+  } else tell('The copper release catch has already sprung. The mouse is gone; the bag and coin remain where it left them.');
  }else if(name==='eye'){
-  if(!s.back){s.back=true;bloom('eye','The eyelid retracts to reveal a stamped numerical sequence below the glass eye.');}
+  if(!s.back){s.back=true;bloom('eye','The rear eyelid slides aside. A short sequence of musical marks becomes visible beneath the lens.');}
   else if(document.body.classList.contains('nc-physical-ready'))
   tell('Below the eye is the first three-note fragment. The optical ring beside it also turns.');
  else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">Ⅰ / Ⅱ · Ⅰ · Ⅲ</p><p>There may be another half of this musical sequence.</p>','eye');
@@ -697,9 +699,9 @@ function cubeHit(name){
   if(s.redHits>=4)tell('The red switch is latched in its final detent.');
   else{
    s.redHits++;
-   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
+   if(s.redHits===1)bloom('dot','The small red switch depresses into its collar. A ratchet advances behind the faceplate.');
    if(s.redHits===4){
-    bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube’s underside.');
+    bloom('bell','The red ratchet reaches its stop. A shutter on the underside slides aside, exposing a bell in its small return tray.');
     gain('bell');
    }else tell('click.');
   }
@@ -809,10 +811,10 @@ function use(item,thing){
   bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');
  }else if(item==='fork'&&thing==='cube'){
   spend('fork');s.resonance=true;
-  bloom('resonance','The tuning fork sings against the enamel. Something slides open on the blue side.');
+  bloom('resonance','The tuning fork vibrates against the cube. Its resonance disengages the shutter on the teal side.');
  }else if(item==='cylinder'&&thing==='musicbox'){
   spend('cylinder');s.cylinderMounted=true;gain('tape');
-  bloom('wax-cylinder','A tiny wax voice plays backwards. The box prints a narrow strip of punched tape.');
+  bloom('wax-cylinder','The wax cylinder seats in the music-box mechanism. As it turns, a narrow strip of punched tape emerges from the paper slot.');
  }else if(item==='tape'&&thing==='clock'){
   spend('tape');s.tapeInserted=true;gain('letter');
   bloom('paper-tape','The clock reads the perforations, coughs at 4:17, and folds a letter for someone.');
@@ -905,7 +907,7 @@ function pressBagRelease(){
  return true;
 }
 function openElevator(){
- bloom('lift','A brass elevator has appeared. It has four floors and absolutely no building.');
+ bloom('lift','A tiny four-stop lift is mounted to the cube. Its four separate buttons operate the carriage.');
  modal('AT THE EDGE OF THE ROOM',s.floorFour?'The fourth-floor lift':'The miniature elevator',
   '<p>Four buttons. The elevator is smaller than the dog\'s collar tag.</p>'+
   '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>04</span></div>'+
@@ -932,7 +934,7 @@ function openFlute(){
  if(document.body.classList.contains('nc-physical-ready')){
   // The instrument is genuinely modeled inside the hinged top well.
   // Keep the puzzle on the real 3D box instead of opening an HTML modal.
-  tell(s.top?'The little flute rests in the upper compartment.':
+  tell(s.top?'The hollow tube is stored in the upper compartment until it is collected.':
     'The flute sounds hollow. Something in the upper compartment may fit it.');
   return;
  }
@@ -984,7 +986,7 @@ function bark(){
    scatter('#add0d0',17,prop('vase'));
   setTimeout(()=>{fleeing=false;render()},1350);
   sound(215);
- }else if(s.dogHits<3)tell('The little dog leans against your hand, its collar jingling softly.');
+ }else if(s.dogHits<3)tell('The dog turns toward your hand. Its numbered collar tag remains fastened.');
  else tell('The dog is now very proud of itself.');
  render();
 }
@@ -1018,7 +1020,7 @@ function clickThing(name,actuator=false){
  bloom('first');
  if(name==='bag'){
    if(s.bagOpen&&document.body.classList.contains('nc-physical-ready'))
-    tell(s.bagSolved?'The false bottom is empty now.':'Three small metal tumblers sit beneath the open catch.');
+    tell(s.bagSolved?'The false bottom is empty now.':'Four independently turning symbol wheels sit behind the bag's brass catch.');
    else openBag();
  }
  else if(name==='door'){
