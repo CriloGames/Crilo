@@ -1,0 +1,42 @@
+name: Pong Toss visual shape and texture audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ping-pong-toss.js'
+      - 'pong-toss.html'
+      - 'ping-pong-toss.css'
+      - 'scripts/verify-pong-toss-visual.mjs'
+      - '.github/workflows/pong-toss-visual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-levels:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser and screenshot tools
+        run: |
+          npm install --no-save playwright@1.56.1 pngjs@7.0.0
+          npx playwright install --with-deps chromium
+      - name: Start test server
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/pong-art-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Render and inspect representative 3D levels
+        run: node scripts/verify-pong-toss-visual.mjs
+      - name: Save screenshots and scene report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pong-toss-visual-audit
+          path: artifacts/pong-toss-visual/
+          retention-days: 14
