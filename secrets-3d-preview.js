@@ -654,7 +654,7 @@ const controlNames={
  "thing:door-handle":"Little door knob",
  front:"Lavender drawer",latch:"Front drawer latch",
  "drawer-a":"Small metal teeth",side:"Teal drawer",
- seam:"Side panel seam","drawer-b":"Red thread spool",
+ seam:"Side drawer release button","drawer-b":"Red thread spool",
  hatch:"Hinged top panel",triangle:"Brass triangle",
  "top-reed":"Hollow wooden tube",foot:"Rubber foot",
  underside:"Underside mechanism",dent:"Dented copper switch",
