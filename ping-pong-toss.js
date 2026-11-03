@@ -2992,7 +2992,17 @@ function buildWorld(){
     meshBox(g,.055,.012,.028,-.25+k*.10,1.462,-.24,cream).castShadow=false;
   }else if(style==='partition'){
    oy=2.02;w=.82;h=1.82;depth=.24;
-   meshBox(g,w,h,depth,0,oy,0,createMat(0x7d9298));
+   const fabric=createMat(0x879d9b,.90,.02);
+   fabric.map=roomTexture('carpet',level*11+i,2,2);
+   meshBox(g,w,h,depth,0,oy,0,fabric);
+   // Powder-coated aluminum edge rails surround the woven acoustic panel.
+   const partitionEdge=finishMat(0x5e7b83,'anodized');
+   for(const sx of [-1,1]){
+    detailBox(g,.047,h-.13,.035,sx*(w*.5-.025),oy,depth*.50,partitionEdge);
+    detailBox(g,.047,h-.13,.035,sx*(w*.5-.025),oy,-depth*.50,partitionEdge);
+   }
+   for(const sy of [-1,1])
+    detailBox(g,w-.04,.045,.035,0,oy+sy*(h*.5-.03),depth*.50,partitionEdge);
    meshBox(g,w*.9,.14,.29,0,oy+h*.5,0,metal);
    for(let k=0;k<3;k++)meshBox(g,.46,.10,.025,0,oy+.3-k*.22,-.135,paper);
   }else if(style==='printer'||style==='projector'){
@@ -3022,6 +3032,13 @@ function buildWorld(){
    meshBox(g,1.02,.12,.95,0,1.12,0,metal);
    for(const sx of [-1,1])for(const sz of [-1,1])
     meshBox(g,.10,.80,.10,sx*.42,1.40,sz*.43,dark);
+   const cartGrip=createMat(0x314950,.91,.02);
+   detailBox(g,.91,.012,.84,0,1.873,0,cartGrip);
+   for(const sx of [-1,1])for(const sz of [-1,1]){
+    const rivet=new THREE.Mesh(new THREE.SphereGeometry(.020,8,6),
+     finishMat(0xc1ccc9,'anodized'));
+    rivet.position.set(sx*.44,1.873,sz*.45);g.add(ornament(rivet));
+   }
   }else if(style==='books'||style==='files'||style==='folders'){
    oy=1.82;w=.98;h=.66;depth=.65;
    for(let k=0;k<5;k++){
@@ -3035,8 +3052,15 @@ function buildWorld(){
   }else{
    // Parcels and generic padded trays are still physically meaningful.
    oy=1.60;w=.90;h=.73;depth=.75;
-   for(let k=0;k<3;k++)
+   for(let k=0;k<3;k++){
     meshBox(g,.80,.23,.70,0,1.25+k*.25,0,paint);
+    // Paper shipping slips are affixed to the crate, never floating.
+    detailBox(g,.27,.12,.010,-.15,1.25+k*.25,.359,
+     createMat(0xeee4d3,.87));
+    for(let tick=0;tick<3;tick++)
+     detailBox(g,.16-tick*.025,.006,.009,-.17,1.29+k*.25-tick*.027,.369,
+      createMat(0x758187,.9));
+   }
    meshBox(g,.03,.65,.78,0,1.50,0,cream);
   }
   // Floor-supported modular obstacle furniture. Every raised prop uses the
@@ -3083,6 +3107,14 @@ function buildWorld(){
   const shutter=style==='panel';
   const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
   meshBox(g,shutter?1.05:1.14,shutter?.52:.31,.24,0,0,0,body);
+  // Front plate, gasket and fasteners: a sliding mechanical part, not a slab.
+  const shutterFace=finishMat(0x536e79,'enamel');
+  detailBox(g,shutter?.83:.91,shutter?.35:.17,.026,0,0,.137,shutterFace);
+  for(const sx of [-1,1])for(const sy of [-1,1]){
+   const fixing=new THREE.Mesh(new THREE.SphereGeometry(.019,8,6),metal);
+   fixing.position.set(sx*.40,sy*(shutter?.19:.105),.156);
+   g.add(ornament(fixing));
+  }
   meshBox(g,.53,.042,.05,0,.04,-.15,cream);
   // Bright but restrained edge-notches identify the moving hazard at a glance.
   for(let k=0;k<3;k++)
