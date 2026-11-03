@@ -122,6 +122,11 @@ const pocketPaper=new Set(['bird','starmap','parcel','postcard','tape','letter',
 const pocketMaterial=id=>pocketMetal.has(id)?'metal':pocketGlass.has(id)?'glass':pocketPaper.has(id)?'paper':'organic';
 const inventoryIcon=id=>'<svg class="nc-item-art" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="'+(glyphs[id]||glyphs.stardust)+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const sorted=(a,b)=>[a,b].sort().join('+');
+// Six distinct stamped symbols and four independently turning wheels.
+// A dedicated mechanical release must be pressed AFTER the correct code;
+// simply cycling past an answer never opens the bag's false bottom.
+const BAG_SYMBOLS=['○','✳','◇','☾','△','□'];
+const BAG_CODE=[2,0,3,1];
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
@@ -152,7 +157,10 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 s.topHits=clamp(Number(raw.topHits)||0,0,12);
 s.redHits=clamp(Number(raw.redHits)||0,0,30);
 s.dogHits=clamp(Number(raw.dogHits)||0,0,12);
-s.bagDials=Array.isArray(raw.bagDials)&&raw.bagDials.length===3?raw.bagDials.map(x=>clamp(Number(x)||0,0,3)):[0,0,0];
+// Migrate the original three-wheel save without erasing solved bags,
+// pocket items or earlier dial choices. The fourth wheel starts at zero.
+s.bagDials=Array.from({length:4},(_,i)=>
+ clamp(Number(Array.isArray(raw.bagDials)?raw.bagDials[i]:0)||0,0,BAG_SYMBOLS.length-1));
 s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-3):[];
 s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
 // Orientation is a view, not story progress. Always start from an attractive
@@ -850,29 +858,41 @@ function take(item){
 }
 function openBag(){
  if(!s.bagOpen){tell('The bag is locked. Its little brass keyhole seems very specific.');return}
- const sym=['○','✳','◇','☾'];
- modal('INSIDE THE BAG',s.bagSolved?'A suspicious lining':'The three hidden wheels',
-  '<p>Three little wheels are sewn into the lining. The stitching is newer than the bag, and nothing explains their order.</p>'+
-  '<div class="nc-bag-interior" id="ncBagInterior"><div class="nc-bag-wheels">'+[0,1,2].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+'" aria-label="Turn wheel '+(i+1)+'">'+sym[s.bagDials[i]]+'</button>').join('')+'</div>'+
-  '</div><p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'These are not ordinary luggage wheels.')+'</p>','bag');
+ modal('INSIDE THE BAG',s.bagSolved?'A suspicious lining':'The captive symbol mechanism',
+  '<p>Four stamped wheels are retained by a separate brass release. Each has six marks, and none of them opens the compartment just by turning.</p>'+
+  '<div class="nc-bag-interior" id="ncBagInterior"><div class="nc-bag-wheels">'+
+   [0,1,2,3].map(i=>'<button class="nc-dial" type="button" data-dial="'+i+
+    '" aria-label="Turn wheel '+(i+1)+'">'+BAG_SYMBOLS[s.bagDials[i]]+'</button>').join('')+
+  '</div><button type="button" id="ncBagRelease" data-bag-release aria-label="Press bag release">Press brass catch</button>'+
+  '</div><p class="nc-modal-note" id="ncBagNote">'+(s.bagSolved?'The false bottom has already opened.':'The four wheels do not operate the release themselves.')+'</p>','bag');
 }
 function turnBag(i){
- if(s.bagSolved)return;
- s.bagDials[i]=(s.bagDials[i]+1)%4;
+ if(!Number.isInteger(i)||i<0||i>=BAG_CODE.length||!s.bagOpen||s.bagSolved)return;
+ s.bagDials[i]=(s.bagDials[i]+1)%BAG_SYMBOLS.length;
  const dialButton=document.querySelector('[data-dial="'+i+'"]');
- if(dialButton)dialButton.textContent=['○','✳','◇','☾'][s.bagDials[i]];
- if(s.bagDials.join('')==='203'){
-  s.bagSolved=true;gain('reed');gain('treat');gain('prism');
-  bloom('bag-code','Under the false bottom: a reed, a biscuit and a glass prism.');
-  const bagNote=$('ncBagNote');
-  if(bagNote)bagNote.textContent=document.body.classList.contains('nc-physical-ready')
-   ?'The false bottom opens. Press each of the three small objects to collect them.'
-   :'The false bottom has opened. Its three items are waiting in their physical slots.';
-  cue('ncBagInterior','nc-unlatched',1100);scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
-  incident('✳');
- }else sound(350+i*50);
- // Also update physical 3D dial positions and persist the very same save.
+ if(dialButton)dialButton.textContent=BAG_SYMBOLS[s.bagDials[i]];
+ sound(350+i*50);
+ // Aligning a combination must never automatically hand out the rewards.
+ // The player must deliberately operate the catch on the real bag.
  render();
+}
+function pressBagRelease(){
+ if(!s.bagOpen){tell('The little brass catch is still beneath the locked cover.');return false}
+ if(s.bagSolved){tell('The false bottom has already opened.');return true}
+ if(s.bagDials.some((n,i)=>n!==BAG_CODE[i])){
+  tell('The four tumblers resist the catch. The lining remains closed.');
+  sound(210);render();return false;
+ }
+ s.bagSolved=true;
+ gain('reed');gain('treat');gain('prism');
+ bloom('bag-code','The brass catch releases the false bottom. Three separate objects are seated inside.');
+ const bagNote=$('ncBagNote');
+ if(bagNote)bagNote.textContent='The lining is open. Its three objects can be picked up separately.';
+ cue('ncBagInterior','nc-unlatched',1100);
+ scatter('#d2b5a1',13,document.querySelector('#ncBagInterior'));
+ incident('✳');
+ render();
+ return true;
 }
 function openElevator(){
  bloom('lift','A brass elevator has appeared. It has four floors and absolutely no building.');
@@ -1138,6 +1158,7 @@ $('ncModalBody').addEventListener('click',e=>{
   else if(e.target.closest('#ncConfirmCubeReset'))confirmCubeReset();
   return;
  }
+ if(e.target.closest('[data-bag-release]')&&panel==='bag'){pressBagRelease();return}
  const dial=e.target.closest('[data-dial]');if(dial&&panel==='bag'){turnBag(Number(dial.dataset.dial));return}
  const noteEl=e.target.closest('[data-note]');if(noteEl&&panel==='flute'){note(Number(noteEl.dataset.note));return}
  const floorEl=e.target.closest('[data-floor]');if(floorEl&&panel==='elevator'){callElevator(Number(floorEl.dataset.floor));return}
@@ -1351,12 +1372,16 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   note(index);
  },
  activatePhysicalBagDial(index){
-  if(!Number.isInteger(index)||index<0||index>2)return;
+  if(!Number.isInteger(index)||index<0||index>=BAG_CODE.length)return;
   if(!s.bagOpen){
    tell('The small brass wheels are fixed firmly beneath the locked clasp.');
    return;
   }
   turnBag(index);
+ },
+ activatePhysicalBagRelease(){
+  if(!thingPresent('bag'))return false;
+  return pressBagRelease();
  },
  activatePhysicalElevatorFloor(floor){
   if(!Number.isInteger(floor)||floor<1||floor>4||!s.watch||!s.tag)return;
