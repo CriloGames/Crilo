@@ -480,17 +480,26 @@ function turnFixedFastener(action){
   .to(screw.assembly.position,{z:depth,duration:.27,ease:"back.out(1.6)"});
 }
 let lastClickedAction=null;
+// Physical casing, drawers and the lid are passive inspection targets.
+// The moving parts may ONLY respond to their distinct mechanical actuators.
+// This also applies in the standalone 3D preview: no press-to-open shortcut.
+const passiveSurfaces=new Set(["front","side","hatch"]);
+function inspectPassiveSurface(action){
+ window.NothingHereAudio?.play?.("tap");
+ if(embeddedGame)window.CriloNothingHereCube?.inspectPhysicalSurface?.(action);
+ else announce({
+  front:"The drawer is held by a separate mechanical catch.",
+  side:"The side compartment is retained by its release.",
+  hatch:"The lid is secured by its upper latch."
+ }[action]);
+}
 function clickAction(action){
  lastClickedAction=action;
+ if(passiveSurfaces.has(action)){
+  inspectPassiveSurface(action);
+  return;
+ }
  if(embeddedGame){
-  // The tray / lid mesh is a solid physical surface, NOT a substitute for
-  // its separate brass latch, side release, or top triangle. This applies
-  // identically to mouse, touch, and keyboard activation.
-  if(action==="front"||action==="side"||action==="hatch"){
-   window.NothingHereAudio?.play?.("tap");
-   window.CriloNothingHereCube?.inspectPhysicalSurface?.(action);
-   return;
-  }
   if(action.startsWith("pickup:")){
    window.CriloNothingHereCube?.activatePhysicalPickup?.(action.slice(7));
    return;
@@ -557,11 +566,14 @@ function clickAction(action){
   window.CriloNothingHereCube?.activatePhysical?.(name);
   return;
  }
- if(action==="front")toggleDrawer(front,"The lavender drawer");
- else if(action==="side")toggleDrawer(side,"The teal drawer");
- else if(action==="hatch")toggleHatch();
- else if(intricate.actions.includes(action)||action==="service-latch"){
+ // In the standalone inspection model, actuators move the hardware,
+ // never the drawer/door mesh itself. The live game uses saved puzzle
+ // state to animate these same assemblies after each correct input.
+ if(intricate.actions.includes(action)||action==="service-latch"){
   const description=intricate.operate(action==="service-latch"?"latch":action);
+  if(action==="service-latch")toggleDrawer(front,"The lavender drawer");
+  else if(action==="lever")toggleDrawer(side,"The teal drawer");
+  else if(action==="hatch-latch")toggleHatch();
   if(description)announce(description);
  }
  else if(action.includes("-screw-")){
