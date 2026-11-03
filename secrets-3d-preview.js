@@ -1602,6 +1602,8 @@ window.__nothing3DPreview={
  getStoryMountVisualState(name){return pocketWorlds?.getMountVisualState?.(name)||null},
  getMiniatureInspectionPose(name){return pocketWorlds?.getInspectionPose?.(name)||null},
  get physicalMechanismState(){return intricate.getState()},
+ get decorativeNameplates(){return intricate.getNameplates?.()||[]},
+ get dentedCopperShape(){return gameHotspots?.getDentedCopperShape?.()||null},
  get pressureGaugeAssembly(){return intricate.getGaugeAssembly?.()||null},
  get miniatureMechanismPose(){return {
   bagDials:pocketWorlds?.getDialAngles?.()||[],
