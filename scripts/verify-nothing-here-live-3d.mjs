@@ -510,6 +510,14 @@ try{
   "cube-offer"
  ])await activate(action);
  const sealed=await state();
+ const lockedGlows=await page.evaluate(()=>{
+  const game=window.__nothing3DPreview;
+  return Object.fromEntries(["tooth","thread","pipe","ring","coin","cog"]
+   .map(id=>[id,game.getPickupGlowState(id)]));
+ });
+ assert(Object.values(lockedGlows).every(glow=>glow&&
+  !glow.active&&!glow.haloVisible&&glow.surfaceEmission===0),
+  "A locked object must not reveal itself with a glow: "+JSON.stringify(lockedGlows));
  assert(!sealed.a&&!sealed.b&&!sealed.top&&!sealed.bottom&&
   !sealed.doorOpen&&!sealed.plateOpen&&
   !sealed.drawerTaken&&!sealed.sideTaken&&!sealed.pipeTaken,
@@ -525,10 +533,22 @@ try{
    (id==="thread"&&before.b&&!before.sideTaken)||
    (id==="pipe"&&before.top&&!before.pipeTaken),
    "Expected a tangible collectible to be waiting on the cube: "+id);
+  const glowBefore=await page.evaluate(item=>
+   window.__nothing3DPreview.getPickupGlowState(item),id);
+  assert(glowBefore?.active&&glowBefore?.haloVisible&&
+   glowBefore.haloOpacity>.14&&glowBefore.haloOpacity<.45&&
+   glowBefore.surfaceEmission>0&&!glowBefore.raycastable,
+   "Collectible should have a restrained, non-clickable item halo: "+
+    JSON.stringify({id,glowBefore}));
   await activate("pickup:"+id);
   const after=await state();
   assert(after.pocket.includes(id)&&!after.pendingPickups.includes(id),
    "Clicking the 3D "+id+" failed to put it in the pocket: "+JSON.stringify(after.pendingPickups));
+  const glowAfter=await page.evaluate(item=>
+   window.__nothing3DPreview.getPickupGlowState(item),id);
+  assert(!glowAfter?.active&&!glowAfter.haloVisible&&
+   glowAfter.surfaceEmission===0,
+   "A collected item left behind a ghost halo: "+JSON.stringify({id,glowAfter}));
  };
  const allRewardMeshes=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupIds);
  assert.equal(allRewardMeshes.length,25,"Not every newly discovered item has a physical pickup model");
@@ -631,8 +651,11 @@ try{
  }));
  assert(shimReveal.count>=1&&shimReveal.state?.visible&&
   Number.isFinite(shimReveal.state.scale)&&Number.isFinite(shimReveal.state.depth)&&
-  shimReveal.state.socketGlow>.10,
-  "Revealed collectible did not physically emerge from its illuminated socket: "+JSON.stringify(shimReveal));
+  shimReveal.state.socketGlow>.10&&
+  shimReveal.state.glow?.active&&shimReveal.state.glow?.haloVisible&&
+  shimReveal.state.glow.surfaceEmission>0,
+  "Revealed item must have its own quiet lit surface and a real socket: "+
+   JSON.stringify(shimReveal));
  await collect("shim");
  assert.equal(await page.evaluate(()=>
    window.__nothing3DPreview.getPhysicalPickupRevealState("shim")?.visible),false,
