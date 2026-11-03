@@ -633,7 +633,7 @@ function clickAction(action){
   // Retired mock controls must not remotely operate an unrelated mechanism
   // across the cube: the real eye, gauge, dent and shutter have their own
   // physical actuators.
-  if(["optic","lever","service-latch",
+  if(["optic","lever","service-latch","hatch-latch",
       "right-bolt-0","right-bolt-2","right-bolt-3"].includes(action))return;
   const name=translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
