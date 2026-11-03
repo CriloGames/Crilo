@@ -618,6 +618,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   getClearanceViolations,
   getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
+  getDentedCopperShape:()=>{
+   const obj=targets.get("dent"),data=obj?.userData.dentProfile;
+   return obj&&data?{
+    x:obj.position.x,y:obj.position.y,depth:data.depth,
+    rim:data.rim,center:data.center,
+    profileMesh:obj.children.some(group=>group.children?.some(mesh=>
+     mesh.isMesh&&mesh.geometry?.type==="LatheGeometry")),
+    labelOnFace:clearanceFootprints.some(row=>
+     row.face==="leftFace"&&row.name==="plaque DENT")
+   }:null;
+  },
   actions:[...targets.keys()],
   targets,
   pulse,
