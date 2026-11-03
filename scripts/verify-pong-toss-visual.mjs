@@ -16,6 +16,8 @@ const hook=[
  ' ready:()=>hasRenderer&&!!renderer&&!!scene&&!!camera&&!!group,',
  ' stage:(n)=>{',
  '  unlocked=50;loadLevel(n);group.updateMatrixWorld(true);',
+ '  // Capture the actual 3D room, not the blurred stage-intro modal.',
+ '  if(el.overlay)el.overlay.hidden=true;',
  '  let meshes=0,decorative=0,textured=0,invalid=0,wireframe=0;',
  '  group.traverse(obj=>{',
  '   if(!obj.isMesh)return;meshes++;',
@@ -64,6 +66,7 @@ const hook=[
  '  return {level,meshes,decorative,textured,invalid,wireframe,',
  '    triangles:renderer.info.render.triangles,',
  '    target:!!cupGroup,physicsBodies:physicsBodies.length,',
+ '    overlayHidden:!!el.overlay?.hidden,',
  '    intersectionCount:contacts.length,intersections:contacts.slice(0,12)};',
  ' }',
  '};'
@@ -102,6 +105,7 @@ try{
   assert(result.textured>=3,'Room maps missing: level '+n);
   assert(result.physicsBodies>10,'Physics meshes missing: level '+n);
   assert(result.target,'Goal missing: level '+n);
+  assert(result.overlayHidden,'Intro overlay obscures screenshot: level '+n);
   assert(result.triangles>100,'3D scene did not render: level '+n);
   // Seated people naturally intersect their chair cushions. All other
   // independent solid assemblies must remain spatially separate.
