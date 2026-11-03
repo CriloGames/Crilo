@@ -1120,21 +1120,17 @@ $('ncUnselect').addEventListener('click',()=>{selected=null;render()});
 $('ncCubeZone').addEventListener('click',e=>{
  if(e.target.closest?.('#stage'))return; // Routed through 3D clickAction, not an empty-zone offering.
  if(blockedClick){e.stopImmediatePropagation();e.preventDefault();blockedClick=false;return}
-if(!selected&&e.target.closest('[data-thing="cube"]')&&s.screws.length===3&&!s.plateOpen){
-  s.plateOpen=true;gain('cog');
-  bloom('faceplate','The front service hatch swings open. A brass drive cog is seated in the compartment beside the lens.');
-  cue('ncCube','nc-scene-blink',750);scatter('#bdabce',10,$('ncOfferingTarget'));
-  render();e.stopPropagation();return;
- }
+ // Only physically removing the required fasteners can release the
+ // service cover. Clicking the engraved receiver is not a substitute.
  // The engraved square is a real touch target, also usable by keyboard.
  if(selected&&e.target.closest('[data-thing="cube"]')){
   if(!use(selected,'cube')){tell('The cube refuses that offering.');render();}
   e.stopPropagation();return;
  }
- if(selected&&!e.target.closest('button,[data-hit]')){
-  if(use(selected,'cube')){e.stopPropagation();return}
-  tell('The cube refuses that offering.');render();
- }
+ // An inventory object must be placed on its actual receiver. Clicking
+ // empty cube space must never quietly use it or complete a puzzle.
+ // This rule applies to mouse, touch, keyboard and any legacy DOM layer.
+ 
 },true);
 $('ncModalBody').addEventListener('click',e=>{
  if(panel==='reset'){
@@ -1338,8 +1334,13 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
  activatePhysicalPickup:collectPhysicalPickup,
  activatePhysical(name){
   if(name==='cube-offer'){
-   // Reuse the original item-combination and faceplate logic.
-   $('ncOfferingTarget').click();
+   // This is an offering port, not an all-purpose secret-unlock button.
+   // The service faceplate is freed by removing its screws only.
+   if(!selected){tell('The receiver is empty. Its metal rim is smooth.');return;}
+   if(!use(selected,'cube')){
+    tell('That offering does not fit the receiver.');
+    render();
+   }
   }else cubeHit(name);
  },
  // The physical miniatures are visual counterparts of the EXISTING world
