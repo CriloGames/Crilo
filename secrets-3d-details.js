@@ -5,7 +5,8 @@ import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 // All coordinates below are local to their own solid cube face.
 export function buildIntricateCube({
   cube, faces, front, side, lidPivot, topHole,
-  box, cylinder, label, setHit, mat, animate, materials
+  box, cylinder, label, setHit, mat, animate, materials,
+  liveGame=false
 }) {
   const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
   const {brass,metal,darkMetal,ivory,cavityMaterial,rubber}=materials;
@@ -163,11 +164,18 @@ export function buildIntricateCube({
   // The revealed door is now mounted on this upper-left section.
   // Decorative pipes and three ornamental rivets previously ran straight
   // through the physical door frame. No working plumbing is removed.
-  const lever=group(rightFace,-.99,-1.06,.16);
-  B(lever,.48,.43,.12,0,0,0,metal,.045);
-  const arm=B(lever,.11,.29,.11,0,0,.13,steel,.04);
-  B(lever,.24,.09,.13,0,.17,.21,ebony,.025);
-  setHit(lever,"lever");registries.lever=arm;
+  // The old right-hand lever teleported actions to the unrelated left
+  // dent/mouse puzzle. Keep its demo animation only: it should not appear
+  // as a phantom working control on the actual 60-secret cube.
+  let arm=null;
+  if(!liveGame){
+    const lever=group(rightFace,-.99,-1.06,.16);
+    B(lever,.48,.43,.12,0,0,0,metal,.045);
+    arm=B(lever,.11,.29,.11,0,0,.13,steel,.04);
+    B(lever,.24,.09,.13,0,.17,.21,ebony,.025);
+    setHit(lever,"lever");
+  }
+  registries.lever=arm;
   // The vent order must be discovered behind the service bolt, not printed
   // on the outside of the box before the player examines the mechanism.
   label(rightFace,"SERVICE · ACCESS",.70,.145,0,-1.27,.18,"#e2f2e7","#55737a");
@@ -184,10 +192,16 @@ export function buildIntricateCube({
   flatLine(leftFace,-.20,.04,.39,-.40,.15,.045,darkMetal);
   // Omit four cosmetic grille bars: they resembled the real numbered vents
   // and crowded the nearby hinged mechanisms.
-  const latch=group(leftFace,.99,-.44,.18);
-  B(latch,.26,.55,.13,0,0,.04,metal,.035);
-  const latchHandle=B(latch,.18,.12,.18,0,.10,.17,ivory,.035);
-  setHit(latch,"service-latch");registries.latchHandle=latchHandle;
+  // Likewise, a lever drawn here used to activate the right-hand service
+  // shutter remotely. That duplicate control had no physical linkage.
+  let latchHandle=null;
+  if(!liveGame){
+    const latch=group(leftFace,.99,-.44,.18);
+    B(latch,.26,.55,.13,0,0,.04,metal,.035);
+    latchHandle=B(latch,.18,.12,.18,0,.10,.17,ivory,.035);
+    setHit(latch,"service-latch");
+  }
+  registries.latchHandle=latchHandle;
 
   // BACK: a single shaped optical cassette replaces the former circular
   // bullseye lens, redundant engraved tick ring and crowded rim screws.
@@ -250,7 +264,10 @@ export function buildIntricateCube({
     flatLine(baseDial,Math.cos(a)*.28,Math.sin(a)*.28,Math.cos(a)*.46,Math.sin(a)*.46,.16,.026,ivory);
   }
   C(baseDial,.16,.14,0,0,.19,gold);
-  setHit(baseDial,"underside");registries.baseDial=baseDial;
+  // The playable cube's smaller real UNDER actuator occupies the center
+  // of this dial. A giant second clickable disc hid which part did work.
+  if(!liveGame)setHit(baseDial,"underside");
+  registries.baseDial=baseDial;
   plaque(bottomFace,"NOTHING BELOW",0,-1.17,1.10);
 
   // Drawer interiors: fitted lining, runners and articulated possessions.
@@ -318,8 +335,8 @@ export function buildIntricateCube({
     pose(frontKnob,"rotation","z",steps*.5);
     irisBlades.forEach((blade,i)=>pose(blade,"rotation","z",i*Math.PI/4+.47+steps*.16));
     pose(needle,"rotation","z",-.5+pressure*(1.75/3));
-    pose(arm,"rotation","x",s.mouse?-.46:0);
-    pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
+    if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
+    if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
     pose(backKnob,"rotation","z",s.back?Math.PI/2:0);
     pose(baseDial,"rotation","z",s.bottom?Math.PI/3:0);
     pose(tooth,"position","z",s.top?-.06:.09);
