@@ -623,6 +623,9 @@ try{
   return {actuator:view.physicalActuatorDepths.latch,reduced:view.reducedMotion};
  });
  assert.equal((await state()).a,true,"Physical front catch did not unlock the original drawer (was mapped to the mouse)");
+ const keyLayers=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
+ assert(keyLayers.tooth&&!keyLayers.extraKey,
+  "The key is rendered twice in the same drawer, causing intersecting gold geometry");
  if(!latchMotion.reduced){
   assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
   await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
@@ -649,6 +652,9 @@ try{
  assert.equal((await state()).b,false,
   "Clicking the teal drawer directly must never open its lock");
  await activate("seam");
+ const spoolLayers=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
+ assert(spoolLayers.thread&&!spoolLayers.extraThread,
+  "A second decorative thread spool is intersecting the real collectible");
  assert.equal((await state()).b,true,
   "The distinct physical side release button must open the teal drawer");
  await activate("eye");
