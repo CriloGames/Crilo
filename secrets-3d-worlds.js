@@ -239,7 +239,19 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   B(doorLeaf,.405,.625,.072,.214,.32,0,m.wood,.018);
   B(doorLeaf,.30,.27,.029,.214,.41,.053,m.cream,.014);
   B(doorLeaf,.29,.16,.029,.214,.12,.053,m.velvet,.012);
-  C(doorLeaf,.041,.05,.352,.28,.070,m.gold,"z");
+  // A separate operating knob. Touching the wooden door only inspects it.
+  const doorKnob=new THREE.Group();
+  doorKnob.position.set(.352,.28,.086);doorLeaf.add(doorKnob);
+  C(doorKnob,.049,.062,0,0,0,m.gold,"z");
+  // The invisible fingertip sphere stays over the raised knob rather than
+  // claiming the whole door. This makes mobile activation forgiving.
+  const knobTouch=new THREE.Mesh(
+   new THREE.SphereGeometry(.105,14,10),
+   new THREE.MeshBasicMaterial({transparent:true,opacity:0,
+    colorWrite:false,depthWrite:false})
+  );
+  knobTouch.position.z=.078;doorKnob.add(knobTouch);
+  puzzleControls.set("thing:door-handle",doorKnob);
   for(const y of [.16,.49])C(g,.026,.075,-.22,y,.102,m.brass);
  }
  // Dog with actual muzzle, paws, nose, ears and collar.
