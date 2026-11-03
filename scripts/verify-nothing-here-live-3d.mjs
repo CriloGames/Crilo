@@ -954,7 +954,41 @@ try{
  assert.equal((await state()).selected,"coin");
  assert.match(await page.locator("#ncCombineGuide").innerText(),/Holding.*second pocket item/i,
   "Holding an inventory object needs clear instructions without revealing answers");
+ const coinUsability=await page.evaluate(()=>{
+  const game=window.CriloNothingHereCube;
+  const button=document.querySelector('#ncInventory [data-item="coin"]');
+  return {reactive:button.classList.contains("nc-item-reactive"),
+   style:getComputedStyle(button,"::after").content,
+   title:button.title,match:game.canUseSelectedWithAction("thing:machine"),
+   unrelated:game.canUseSelectedWithAction("latch"),
+   locked:game.canUseSelectedWithAction("thing:dog")};
+ });
+ assert(coinUsability.reactive&&coinUsability.match&&
+  !coinUsability.unrelated&&!coinUsability.locked&&
+  /✧/.test(coinUsability.style),
+  "Inventory should visibly mark usable items but only recognize their real targets: "+
+   JSON.stringify(coinUsability));
+ // Confirm a genuine mouse hover triggers the green in-scene response
+ // before the player clicks. Nothing elsewhere on the cube lights up.
+ const vendingHover=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  view.setRotation(-13,0);
+  return view.projectPhysicalStoryObject("machine");
+ });
+ assert(vendingHover?.pick==="thing:machine",
+  "A known usable miniature cannot be identified with the real mouse raycaster: "+
+   JSON.stringify(vendingHover));
+ const canvasRect=await page.locator("#stage canvas").boundingBox();
+ await page.mouse.move(canvasRect.x+vendingHover.x,canvasRect.y+vendingHover.y);
+ await page.waitForFunction(()=>window.__nothing3DPreview.itemFitHint.active,
+  null,{timeout:12000});
+ const fitHint=await page.evaluate(()=>window.__nothing3DPreview.itemFitHint);
+ assert.equal(fitHint.action,"thing:machine",
+  "Hover compatibility feedback was not attached to the correct physical model");
+ assert.match(fitHint.label,/vending machine.*use held item here/i);
  await activate("thing:machine");
+ assert.equal((await page.evaluate(()=>window.__nothing3DPreview.itemFitHint.active)),false,
+  "The green compatibility ring remains after the item was spent");
  let selectedState=await state();
  assert(selectedState.seen.includes("machine")&&selectedState.pendingPickups.includes("sugar")&&
   !selectedState.pocket.includes("sugar"),
@@ -1240,6 +1274,15 @@ try{
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,false,
  "Collected underside ring must physically disappear into inventory");
  await page.locator('#ncInventory [data-item="tooth"]').click();
+ const ringCombine=await page.locator('#ncInventory [data-item="ring"]').evaluate(el=>({
+  marked:el.classList.contains("nc-item-combine-match"),
+  style:getComputedStyle(el,"::after").content,
+  aria:el.getAttribute("aria-label")
+ }));
+ assert(ringCombine.marked&&/combine/i.test(ringCombine.style)&&
+  /combines with the held item/i.test(ringCombine.aria),
+  "A compatible SECOND inventory piece must visibly react while holding the first: "+
+   JSON.stringify(ringCombine));
  await page.locator('#ncInventory [data-item="ring"]').click();
  assert((await state()).pocket.includes("key"),"Original key recipe failed");
  await page.locator('#ncInventory [data-item="key"]').click();
