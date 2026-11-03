@@ -569,10 +569,12 @@ function inspectHardware(name){
  if(name.startsWith('front-screw-')){
   const n=Number(name.slice(-1));
   if(n===3){
-   s.falseScrewTurns++;
-   bloom('false-screw','The last screw turns freely but never rises. It is a disguised button.');
-   tell(s.screws.length===3?'It clicks. The front panel can now be lifted.':'This screw is strange: no threads, just a spring.');
-   cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
+   if(!s.falseScrewTurns){
+    s.falseScrewTurns=1;
+    bloom('false-screw','The captive fastener depresses once. It is a spring button, not a screw.');
+    tell('This unusual fastener has a captive spring. It settles firmly against its end stop.');
+    cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
+   }else tell('The captive button has already reached its mechanical end stop.');
   }else if(!s.screws.includes(n)){
    s.screws.push(n);bloom('fastener','The screw spirals out and leaves a real threaded hole.');
    if(s.screws.length===3){
@@ -666,9 +668,12 @@ function cubeHit(name){
  }else if(name==='drawer-b'){
   if(!s.sideTaken){s.sideTaken=true;collection('thread');tell('It is red thread. It refuses to explain itself.')}
  }else if(name==='triangle'){
-  s.topHits++;
-  if(s.topHits>=3&&!s.top){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
-  else tell(s.top?'Something hollow lies under the lid.':'A small catch shifts inside the lid.');
+  if(s.top)tell('The lid is already resting against its open hinge stops.');
+  else{
+   s.topHits++;
+   if(s.topHits>=3){s.top=true;bloom('pipe','A lid rises. There is something that looks like a flute before it became a flute.')}
+   else tell('A small catch shifts inside the lid.');
+  }
  }else if(name==='top-reed'){
   if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('A beautifully useless wooden pipe.')}
  }else if(name==='hatch'){
@@ -689,11 +694,15 @@ function cubeHit(name){
   tell('Below the eye is the first three-note fragment. The optical ring beside it also turns.');
  else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">Ⅰ / Ⅱ · Ⅰ · Ⅲ</p><p>There may be another half of this musical sequence.</p>','eye');
  }else if(name==='dot'){
-  s.redHits++;
-  if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
-  if(s.redHits===4){bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube’s underside.');gain('bell');}
-  else if(s.redHits>4)tell('The red dot refuses to admit it has a function.');
-  else tell('click.');
+  if(s.redHits>=4)tell('The red switch is latched in its final detent.');
+  else{
+   s.redHits++;
+   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
+   if(s.redHits===4){
+    bloom('bell','A spring catches inside the red switch. Something jingles from a little opening on the cube’s underside.');
+    gain('bell');
+   }else tell('click.');
+  }
  }
  render();
  if(name==='latch'&&s.a)cue('ncWorld','nc-shudder',400);
