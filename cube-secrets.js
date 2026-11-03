@@ -121,6 +121,16 @@ const pocketGlass=new Set(['prism','raindrop','sugar','lens','stardust','iris'])
 const pocketPaper=new Set(['bird','starmap','parcel','postcard','tape','letter','envelope']);
 const pocketMaterial=id=>pocketMetal.has(id)?'metal':pocketGlass.has(id)?'glass':pocketPaper.has(id)?'paper':'organic';
 const inventoryIcon=id=>'<svg class="nc-item-art" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="'+(glyphs[id]||glyphs.stardust)+'" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+// A pocket item can matter beyond simply being collected. The marking below
+// shows POTENTIAL, not which unseen puzzle it solves. We only confirm a match
+// after the player deliberately inspects an object while holding the item.
+const craftParts=new Set(Object.keys(recipe).flatMap(pair=>pair.split('+')));
+const worldUseItems=new Set([
+ 'key','treat','acorn','raindrop','spring','coin','kite','sugar','bird',
+ 'bell','lens','stardust','starmap','parcel','postcard','cog','iris',
+ 'shim','washer','fork','cylinder','tape','letter','envelope'
+]);
+const itemMayReact=id=>craftParts.has(id)||worldUseItems.has(id);
 const sorted=(a,b)=>[a,b].sort().join('+');
 // Six distinct stamped symbols and four independently turning wheels.
 // A dedicated mechanical release must be pressed AFTER the correct code;
@@ -441,8 +451,8 @@ function render(){
  const combineGuide=$('ncCombineGuide');
  if(combineGuide){
   const action=selected
-   ?'Holding '+names[selected]+'. Select a second pocket item to combine, or press a part of the cube to try using it.'
-   :'Select one pocket item, then a second to combine them. Or select an item and press a part of the cube to try using it.';
+   ?'Holding '+names[selected]+'. Select a second pocket item to combine, or hover over a 3D object (touch and hold on phones). A green reaction means you can use the item there—press the object to try it.'
+   :'Items marked ✧ may react with something on the cube or combine with another item. Select one pocket item, then a second to combine them. To test the cube, hold an item and inspect its parts.';
   const current=combineGuide.querySelector('.nc-combine-instructions');
   if(current)current.textContent=action;
   else{
@@ -487,8 +497,18 @@ function render(){
      inventoryIcon(id)+'</span>'+names[id];
     inventory.appendChild(button);
    }
+   const combinesWithHeld=!!selected&&id!==selected&&
+    !!recipe[sorted(selected,id)];
    button.classList.toggle('nc-selected',id===selected);
+   button.classList.toggle('nc-item-reactive',itemMayReact(id));
+   button.classList.toggle('nc-item-combine-match',combinesWithHeld);
    button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
+   button.title=combinesWithHeld?'Combines with the held item':
+    craftParts.has(id)&&worldUseItems.has(id)?'Can be used or combined':
+    craftParts.has(id)?'Can combine with another object':
+    worldUseItems.has(id)?'Can react with something on the cube':
+    id==='flute'?'Playable musical instrument':'Collected clue';
+   button.setAttribute('aria-label',names[id]+'. '+button.title);
    button.setAttribute('aria-pressed',String(id===selected));
   }
  }
@@ -752,6 +772,19 @@ function accepts(item,thing){
  ||item==='tape'&&thing==='clock'&&s.watch&&!s.tapeInserted
  ||item==='letter'&&thing==='train'&&s.train&&!s.letterMailed
  ||item==='envelope'&&thing==='door'&&s.doorOpen&&!s.doorReplied;
+}
+// One shared source of truth for raycast, mouse hover and touch/keyboard
+// compatibility feedback. This checks the REAL item-use conditions. It
+// cannot reveal locked props or grant the result by itself.
+function canUseSelectedWithAction(action){
+ if(!selected||!pocket.has(selected)||!action)return false;
+ const thing=action==='cube-offer'?'cube':
+  action==='thing:door-handle'?'door':
+  action.startsWith('thing:')&&!action.startsWith('thing:bag-dial-')&&
+    !action.startsWith('thing:elevator-floor-')&&action!=='thing:bag-release'
+   ?action.slice(6):
+  action==='eye'?'eye':null;
+ return !!thing&&accepts(selected,thing);
 }
 function use(item,thing){
  if(!pocket.has(item)||!accepts(item,thing))return false;
@@ -1369,6 +1402,7 @@ turn();render();
 // Restore an already-open mechanism if the player refreshed mid-animation.
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
  getItemName:id=>names[id]||null,
+ canUseSelectedWithAction,
  getView:()=>({...view}),zoomTo,resetView,
  updatePhysicalViewZoom(value){
   // OrbitControls owns physical mouse-wheel zoom. Mirror only its value
