@@ -362,6 +362,29 @@ try{
   hardware.functionalHingePins.length===3&&
   hardware.phantomClickable.length===0,
   "The live cube still exposes redundant or no-op moving screws: "+JSON.stringify(hardware));
+ // Real mouse hit testing on the same left-face vent shown overlapping
+ // the brass corner screw in the screenshot. Geometry envelopes alone can
+ // pass while a button is visually hidden behind an unrelated 3D mesh.
+ const inputClearance=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const readings=[];
+  for(const [face,rx,ry,names] of [
+   ["left",-15,90,["vent-1","vent-2","vent-3","vent-4","pressure","dent"]],
+   ["right",-15,270,["right-bolt-1"]],
+   ["top",-75,0,["hinge-0","hinge-1","hinge-2"]]
+  ]){
+   view.setRotation(rx,ry);
+   for(const name of names){
+    const hit=view.projectGameControl(name);
+    readings.push({face,name,hit:hit?.pick??null});
+   }
+  }
+  view.setRotation(-22,-32);
+  return readings;
+ });
+ assert(inputClearance.every(entry=>entry.hit===entry.name),
+  "A physical vent, service bolt or hinge is masked by overlapping geometry: "+
+  JSON.stringify(inputClearance));
  const miniatureClashes=await page.evaluate(()=>
   window.__nothing3DPreview.miniatureControlClearanceViolations);
  assert.deepEqual(miniatureClashes,[],
