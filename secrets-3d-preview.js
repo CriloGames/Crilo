@@ -373,8 +373,10 @@ if(!embeddedGame){
 // the bell output and the musical clue, connected by a short guide channel.
 const undersideReturn={x:1.03,y:-.28,z:.248,radius:.235};
 const ringChannel=new THREE.Group();bottomFace.add(ringChannel);
-box(ringChannel,.52,.066,.035,.76,-.28,.117,metal,.012);
-box(ringChannel,.46,.026,.020,.77,-.28,.142,darkMetal,.006);
+// Guide lands just OUTSIDE the dial's .67-radius casting. Earlier rails
+// extended under the solid dial and made another unintended intersection.
+box(ringChannel,.36,.048,.026,.83,-.28,.108,metal,.009);
+box(ringChannel,.31,.019,.014,.85,-.28,.130,darkMetal,.005);
 const undersideRingSeat=new THREE.Group();
 undersideRingSeat.position.set(undersideReturn.x,undersideReturn.y,.155);
 bottomFace.add(undersideRingSeat);
