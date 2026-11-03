@@ -242,7 +242,7 @@ try{
  assert(clue.visible&&foot.y+foot.radius<clue.y-clue.height/2-.05,
   "The real sliding rubber foot is still covering the underside inscription: "+
    JSON.stringify({clue,foot}));
- await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+ await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
  const visibleRing=await auditPage.evaluate(()=>
   window.__nothing3DPreview.projectOriginalPickup("ring"));
  assert.equal(visibleRing?.pick,"pickup:ring",
@@ -275,7 +275,7 @@ try{
  // screenshot previously missed oversized hardware on the gauge/back.
  const views=[
   ["front",-15,0],["left",-15,90],["back",-15,180],
-  ["right",-15,270],["top",-75,0],["bottom",75,0]
+  ["right",-15,270],["top",75,0],["bottom",-75,0]
  ];
  for(const [name,rx,ry] of views){
   await auditPage.evaluate(([a,b])=>
@@ -289,7 +289,7 @@ try{
  await auditPage.evaluate(()=>window.__nothing3DPreview.setZoom(1.55));
  for(const [name,rx,ry] of [
   ["glass-eye",0,180],["gauge",0,90],["red-switch",0,0],
-  ["top-corner-screws",-72,0]
+  ["top-corner-screws",72,0]
  ]){
   await auditPage.evaluate(([a,b])=>
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
@@ -1161,7 +1161,7 @@ try{
  await page.waitForFunction(()=>
   window.__nothing3DPreview.undersideMechanismLayout.ring.depth>.242,
   null,{timeout:12000});
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
  const ringClick=await page.evaluate(()=>
   window.__nothing3DPreview.projectOriginalPickup("ring"));
  assert.equal(ringClick?.pick,"pickup:ring",
