@@ -199,11 +199,16 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Tiny engraved plates make the machine readable even when not hovering.
  // These are solid bolted-on housings, not detached 2D text overlays.
  function engraving(face,words,x,y,w=.47){
+  // The four numbered vent legends are closer together than the larger
+  // descriptive nameplates. Give the numerals compact fitted bezels so
+  // none of their neighbouring metal frames collide or trigger the
+  // cross-face safety margin used by geometric QA.
+  const h=/^[1-4]$/.test(words)?.116:.143;
   // Conditional inscriptions are only exposed after their covering control
   // has physically moved; audit permanent visible faceplates separately.
   if(!["3 · 1 · 4 · 2 · 3","A / Ⅱ · Ⅰ · Ⅲ","B / Ⅰ · Ⅲ · Ⅱ"].includes(words))
-   reserve(face,"plaque "+words,x,y,w+.055,.186);
-  const g=node(face,x,y,.158),h=.143;
+   reserve(face,"plaque "+words,x,y,w+.055,h+.043);
+  const g=node(face,x,y,.158);
   B(g,w+.045,h+.029,.036,0,0,0,nickel,.014);
   B(g,w,h,.020,0,0,.035,ivory,.012);
   const canvas=document.createElement("canvas");canvas.width=384;canvas.height=108;
