@@ -49,7 +49,7 @@ try{
    };
   });
   assert(!view.toggle&&view.stage&&!view.illustratedCube&&!view.flatMiniatures&&
-   !view.legacyDoor&&view.reset&&view.journal&&/combine items/i.test(view.combine),
+   !view.legacyDoor&&view.reset&&view.journal&&/try things/i.test(view.combine)&&/fit together/i.test(view.combine),
    "Legacy gameplay is visible or essential 3D controls are missing: "+JSON.stringify(view));
   assert.deepEqual(view.progress.pendingPickups.sort(),["coin","prism"],
    "The old Classic route must not automatically collect waiting 3D rewards");
