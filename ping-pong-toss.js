@@ -1237,34 +1237,36 @@ function monitorTexture(seed){
 }
 function officeMonitor(parent,x,y,z,angle=0){
  const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=angle;parent.add(g);
+ // +Z faces the player, whose throw travels toward -Z. Previously the
+ // textured display faced away, leaving plain dark monitor backs visible.
  const plastic=createMat(0x313c47,.63,.18);
  meshBox(g,1.45,.88,.11,0,.56,0,plastic);
  // Rounded glass and bezel accents let the workstation read as one device.
  const bezel=finishMat(0x546d77,'anodized');
- detailBox(g,1.34,.745,.013,0,.565,-.071,bezel);
+ detailBox(g,1.34,.745,.013,0,.565,.071,bezel);
  const litScreen=new THREE.MeshBasicMaterial({
   color:0xc2d3d0,map:monitorTexture(level),toneMapped:true
  });
- meshBox(g,1.27,.69,.013,0,.57,-.086,litScreen);
+ meshBox(g,1.27,.69,.013,0,.57,.086,litScreen);
  // One restrained screen reflection, angled away from the shot lane.
  const reflection=new THREE.Mesh(new THREE.PlaneGeometry(.18,.63),
   new THREE.MeshBasicMaterial({color:0xc9f2f4,transparent:true,
    opacity:.075,depthWrite:false,side:THREE.DoubleSide}));
- reflection.rotation.z=.17;reflection.position.set(.42,.57,-.098);
+ reflection.rotation.z=.17;reflection.position.set(.42,.57,.098);
  g.add(reflection);
- detailBox(g,.18,.012,.015,0,.160,-.080,finishMat(0x778d94,'anodized'));
+ detailBox(g,.18,.012,.015,0,.160,.080,finishMat(0x778d94,'anodized'));
  const webcam=new THREE.Mesh(new THREE.SphereGeometry(.019,8,6),
   createMat(0x0e2737,.21,.34));
- webcam.position.set(0,.998,-.068);g.add(ornament(webcam));
+ webcam.position.set(0,.998,.068);g.add(ornament(webcam));
  const led=new THREE.Mesh(new THREE.SphereGeometry(.014,7,5),
   new THREE.MeshBasicMaterial({color:0x9de4bd}));
- led.position.set(.64,.17,-.075);g.add(led);
+ led.position.set(.64,.17,.075);g.add(led);
  meshBox(g,.09,.45,.10,0,-.11,.06,plastic);
  meshBox(g,.65,.04,.31,0,-.31,.18,plastic);
  // Vent perforations and discreet metallic foot rim.
  const vents=createMat(0x1b303b,.75);
  for(let k=0;k<7;k++)
-  detailBox(g,.050,.012,.018,-.25+k*.08,.95,.045,vents);
+  detailBox(g,.050,.012,.018,-.25+k*.08,.95,-.045,vents);
  detailBox(g,.68,.016,.30,0,-.326,.18,bezel);
  return g;
 }
