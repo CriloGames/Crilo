@@ -12,9 +12,9 @@ function getAuraTexture(){
  const canvas=document.createElement("canvas");canvas.width=128;canvas.height=128;
  const ctx=canvas.getContext("2d");
  const gradient=ctx.createRadialGradient(64,64,5,64,64,63);
- gradient.addColorStop(0,"rgba(255,255,255,.72)");
- gradient.addColorStop(.29,"rgba(255,255,255,.42)");
- gradient.addColorStop(.58,"rgba(255,255,255,.14)");
+ gradient.addColorStop(0,"rgba(255,255,255,.96)");
+ gradient.addColorStop(.29,"rgba(255,255,255,.70)");
+ gradient.addColorStop(.58,"rgba(255,255,255,.30)");
  gradient.addColorStop(1,"rgba(255,255,255,0)");
  ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);
  auraTexture=new THREE.CanvasTexture(canvas);
@@ -42,7 +42,7 @@ function scheduleAuras(){
 // never become hitboxes and are excluded from solid geometry inspection.
 export function attachCollectibleGlow({
  root,model=root,invalidate=()=>{},color=0xffe0a6,
- size=.275,depth=-.025,offsetX=0,offsetY=0
+ size=.355,depth=.035,offsetX=0,offsetY=0
 }){
  const materialCopies=new Map();
  const litMaterials=[];
@@ -79,9 +79,11 @@ export function attachCollectibleGlow({
   invalidate,
   apply(nextPhase){
    phase=nextPhase;
-   const breathe=.13+.10*phase;
+   // Noticeable even when the cube is not zoomed in, with a slow pulse.
+   const breathe=.53+.30*phase;
    for(const material of litMaterials)material.emissiveIntensity=breathe;
-   haloMaterial.opacity=.22+.12*phase;
+   haloMaterial.opacity=.45+.18*phase;
+   halo.scale.setScalar(1+.09*phase);
   },
   setActive(ready){
    ready=!!ready;
@@ -95,11 +97,13 @@ export function attachCollectibleGlow({
     activeAuras.delete(effect);
     for(const material of litMaterials)material.emissiveIntensity=0;
     haloMaterial.opacity=0;
+    halo.scale.setScalar(1);
    }
    scheduleAuras();invalidate();
   },
   getState:()=>({
    active,haloVisible:halo.visible,haloOpacity:haloMaterial.opacity,
+   haloDepth:halo.position.z,haloScale:halo.scale.x,
    surfaceEmission:litMaterials[0]?.emissiveIntensity||0,
    glowMeshes:1,raycastable:false,phase
   })
