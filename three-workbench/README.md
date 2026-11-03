@@ -43,6 +43,34 @@ python3 -m http.server 4173
 Open `http://localhost:4173/secrets-3d-preview.html`. Internet access is needed for
 the pinned CDN ESM modules; a later production bundling step can remove that dependency.
 
+## Structural and visual quality assurance
+
+Nothing Here now has an **optional** triangle-accurate collision inspector:
+
+1. Open `https://crilo.fun/secrets.html?inspect3d=1` (developer use only).
+2. Select **Check actual surfaces** in the inspection toolbar.
+3. Review the report in the browser's Developer Tools console. It first checks
+   visible 3D bounds and uses **three-mesh-bvh** to confirm intersections
+   between distinct real geometry surfaces. AABBs alone can over-report.
+4. Toggle Models, Rewards, Mechanisms, or All to draw their 3D bounds.
+   This remains invisible during ordinary gameplay.
+
+The GitHub Actions physical 3D workflow runs `scripts/verify-nothing-here-live-3d.mjs`,
+which now includes the detailed BVH audit for all 15 miniatures, 25
+collectibles, and representative moving mechanisms.
+
+It also runs `three-workbench/scripts/verify-visual-regression.mjs`, which uses
+**pixelmatch** and **pngjs** to photograph all six faces in locked,
+partly-unlocked and fully-unlocked scenes. It pixel-compares restored views
+against their saved-state reference frames and stores raw/difference PNGs
+as the `nothing-here-real-3d-previews` GitHub Actions artifact.
+
+The screenshots compare **within one controlled CI run**, not across releases
+with approved golden master images. This reliably detects unexpected differences
+after reloading a saved game, but does not automatically certify visual taste.
+
+No player-facing dependency is installed; these libraries run only in QA.
+
 ## Optional Blender
 
 For custom modeled assets, install Blender from https://www.blender.org/download/.

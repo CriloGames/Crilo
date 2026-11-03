@@ -11,5 +11,9 @@
     "three": "0.186.1",
     "gsap": "3.15.0",
     "three-mesh-bvh": "0.9.16"
+  },
+  "devDependencies": {
+    "pixelmatch": "7.1.0",
+    "pngjs": "7.0.0"
   }
 }

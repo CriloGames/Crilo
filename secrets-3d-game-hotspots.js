@@ -36,7 +36,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  let fluteWaves=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
- let previousState=null,ventSettleTimer=null;
+ let previousState=null,ventSettleTimer=null,bellSettleTimer=null;
  function pulse(action){
   if(action==="eye"){
    // The player sees the eyelid close and reopen at the touched model.
@@ -601,6 +601,23 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    redCollarMaterial.emissiveIntensity=clicks>=4?.75:0;
    pose(bellHatch,"position","x",clicks>=4?.305:0,
     (Number(previous.redHits)||0)>=4?.305:0,restore,.46);
+   // With slow software WebGL the browser can delay animation frames
+   // beyond the click and collection. Guarantee the hatch completes its
+   // REAL sliding motion, even if GSAP's animation loop is starved.
+   const bellReady=clicks>=4;
+   const bellWasReady=(Number(previous.redHits)||0)>=4;
+   if(restore||reducedMotion||bellReady!==bellWasReady){
+    if(bellSettleTimer!==null)clearTimeout(bellSettleTimer);
+    bellSettleTimer=null;
+   }
+   if(!restore&&!reducedMotion&&bellReady!==bellWasReady){
+    bellSettleTimer=setTimeout(()=>{
+     gsap.killTweensOf(bellHatch.position);
+     bellHatch.position.x=bellReady?.305:0;
+     bellSettleTimer=null;
+     invalidate();
+    },1050);
+   }
    pose(foot,"position","x",s.footChecked?-1.32:-1.02,
      previous.footChecked?-1.32:-1.02,restore,.46);
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");

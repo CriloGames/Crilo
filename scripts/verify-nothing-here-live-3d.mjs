@@ -135,6 +135,24 @@ try{
  console.log("UNLOCKED GEOMETRY AUDIT",JSON.stringify(unlocked));
  assert.equal(unlocked.visible.length,15,
   "The fully opened cube is missing a miniature: "+JSON.stringify(unlocked.visible));
+ // Extra diagnostic package is loaded only inside the inspector; the game
+ // itself is not saddled with a 3D BVH calculation on every frame.
+ const surfaces=await auditPage.evaluate(async()=>
+  window.__nothing3DPreview.getDetailedCollisionReport());
+ assert(surfaces.library==="three-mesh-bvh"&&
+  surfaces.selfTest?.intersecting&&surfaces.selfTest?.separated&&
+  surfaces.groups.models===15&&surfaces.groups.rewards===25&&
+  !surfaces.truncated,
+  "High-precision mesh audit unavailable or incomplete: "+JSON.stringify(surfaces));
+ const unintended=surfaces.intersections.filter(hit=>
+  (hit.first.startsWith("model:")&&hit.second.startsWith("model:"))||
+  (hit.first.startsWith("reward:")&&hit.second.startsWith("reward:")));
+ assert.deepEqual(unintended,[],
+  "Two independent miniatures or collected-item models intersect at the triangle level");
+ console.log("PASS: BVH 3D triangle collision pass",JSON.stringify({
+  assemblies:surfaces.totalAssemblies,bounds:surfaces.broadPhasePairs,
+  meshPairs:surfaces.meshPairsTested,intersections:surfaces.totalIntersections
+ }));
  assert.equal(unlocked.geometry.bounds.length,15,
   "A miniature has no visible solid geometry in the unlocked cube");
  assert.deepEqual(unlocked.geometry.overhangs,[],
@@ -785,6 +803,11 @@ try{
    !(await state()).pocket.includes("bell"),
   "The 3D bell must wait to be clicked after the red button sequence");
  await collect("bell");
+ // Animations intentionally settle over time. Do not read a position in
+ // the same execution tick as the fourth press and call it a failure.
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.bellHatchOffset>.25,
+  null,{timeout:6000,polling:100});
  const redFeedback=await page.evaluate(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&

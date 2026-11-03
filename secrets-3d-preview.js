@@ -5,7 +5,7 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=15";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=8";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=27";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=28";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=42";
 import {buildPhysicalPickups} from "./secrets-3d-pickups.js?v=13";
 
@@ -1008,6 +1008,26 @@ geometryInspectionLayer.name="Crilo diagnostic bounds — not gameplay";
 scene.add(geometryInspectionLayer);
 let geometryInspectorMode="off";
 let geometryInspectorObjects=0;
+async function scanRealSurfaceCollisions(){
+ // Load the larger BVH package ONLY for the opt-in structural inspector.
+ // Normal visitors and the standalone preview have no additional load.
+ scene.updateMatrixWorld(true);
+ const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=1");
+ const rewards=new Map();
+ for(const [id,root] of physicalPickups?.targets||[])
+  rewards.set(id,root.userData.pickupModel||root);
+ const mechanisms=new Map([
+  ["front drawer",front.drawer],
+  ["right drawer",side.drawer],
+  ["top hatch",lidPivot]
+ ]);
+ for(const [name,obj] of gameHotspots?.getSpatialMechanisms?.()||[])
+  mechanisms.set(name,obj);
+ return scanSpatialIntersections({
+  models:pocketWorlds?.targets||new Map(),
+  rewards,mechanisms
+ });
+}
 function updateGeometryInspection(mode=geometryInspectorMode){
  if(!["off","models","rewards","mechanisms","all"].includes(mode))mode="off";
  geometryInspectorMode=mode;
@@ -1092,6 +1112,27 @@ if(debugging3D){
   });
   controls.append(button);
  }
+ const surfaceButton=document.createElement("button");
+ surfaceButton.type="button";
+ surfaceButton.textContent="Check actual surfaces";
+ surfaceButton.style.cssText="padding:5px 8px;border-radius:7px;cursor:pointer;"+
+  "border:1px solid #b0b9b5;background:#fff;color:#263b42;font-size:11px";
+ surfaceButton.addEventListener("click",async()=>{
+  surfaceButton.disabled=true;statusLine.textContent="Checking 3D triangles…";
+  try{
+   const result=await scanRealSurfaceCollisions();
+   statusLine.textContent=result.totalIntersections+" confirmed mesh crossings · "+
+    result.broadPhasePairs+" bounding candidates"+
+    (result.truncated?" · scan limit reached":"");
+   console.info("Nothing Here detailed 3D surface report",result);
+   if(result.totalIntersections)
+    console.table(result.intersections);
+  }catch(error){
+   statusLine.textContent="Surface audit unavailable: "+String(error).slice(0,100);
+   console.error("Nothing Here surface audit error",error);
+  }finally{surfaceButton.disabled=false}
+ });
+ controls.append(surfaceButton);
  dock.append(controls,statusLine);
  const workspace=stage.closest(".nc-world");
  if(workspace?.parentElement)workspace.before(dock);
@@ -1101,6 +1142,7 @@ window.__nothing3DPreview={
  ready:true,
  engine:"three.js",
  setGeometryInspector:mode=>updateGeometryInspection(mode),
+ getDetailedCollisionReport:()=>scanRealSurfaceCollisions(),
  get geometryInspectorState(){return {
   mode:geometryInspectorMode,count:geometryInspectorObjects,
   enabled:debugging3D

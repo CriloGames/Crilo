@@ -13,6 +13,7 @@ on:
       - 'secrets-3d-game-hotspots.js'
       - 'secrets-3d-worlds.js'
       - 'secrets-3d-pickups.js'
+      - 'secrets-3d-spatial-qa.js'
       - 'secrets.html'
       - 'cube-secrets.js'
       - 'cube-physical.css'
@@ -33,7 +34,7 @@ concurrency:
 jobs:
   setup-and-preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 18
+    timeout-minutes: 23
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,6 +56,8 @@ jobs:
           node --check secrets-3d-game-hotspots.js
           node --check secrets-3d-worlds.js
           node --check secrets-3d-pickups.js
+          node --check secrets-3d-spatial-qa.js
+          node --check three-workbench/scripts/verify-visual-regression.mjs
           node --check scripts/verify-nothing-here-live-3d.mjs
           node --check scripts/verify-secrets-3d-preview.mjs
       - name: Install browser for physical preview
@@ -71,7 +74,11 @@ jobs:
         run: |
           mkdir -p test-results
           node scripts/verify-nothing-here-live-3d.mjs
+      - name: Compare all six faces across locked and unlocked states
+        if: ${{ !cancelled() }}
+        run: node three-workbench/scripts/verify-visual-regression.mjs
       - name: Test real 3D drawer and hatch behavior
+        if: ${{ !cancelled() }}
         run: node scripts/verify-secrets-3d-preview.mjs
       - name: Save 3D preview screenshots
         if: always()
