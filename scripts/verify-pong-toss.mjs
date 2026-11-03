@@ -149,6 +149,43 @@ for(const theme of ['dark','light'])
  assert(css.includes('html[data-theme="'+theme+'"] body.pt-page{'));
 for(const id of new Set([...source.matchAll(/\$\('([^']+)'\)/g)].map(m=>m[1])))
  assert(html.includes('id="'+id+'"'),'Missing HTML control '+id);
+// Verify actual cursor aim functions, rather than duplicating the formulas.
+const aimCode=cut('function inputAim(','function startCharge(');
+const aimProbe=new Function([
+ 'const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));',
+ 'const LAUNCH_Z=4.25,MAX_AIM_YAW=1.02;',
+ 'const FRISBEE_MAX_YAW=1.34,FRISBEE_MIN_PITCH=-.18,FRISBEE_MAX_PITCH=1.28;',
+ 'const el={canvas:{getBoundingClientRect:()=>({left:0,top:0,width:1000,height:700})}};',
+ 'const settings={n:1,d:5,x:1,wallPlan:[],springRequired:false,bankRequired:false};',
+ "let target={x:1},projectileId='ping',charging=false,aimPowerLocked=false;",
+ 'let lastMouseAimPoint=null,aimYaw=0,aimPitch=.7,power=.32,updates=0;',
+ 'const idealPower=()=>.4+Math.abs(aimYaw)*.08;',
+ 'const updatePower=()=>{updates++;};',
+ aimCode,
+ 'const cursor={clientX:640,clientY:260};',
+ 'trackMouseAim(cursor);',
+ 'const initial={yaw:aimYaw,pitch:aimPitch,power,updates};',
+ 'target.x=-4;',
+ 'trackMouseAim(cursor);',
+ 'const afterIdle={yaw:aimYaw,pitch:aimPitch,power,updates};',
+ 'trackMouseAim({clientX:641,clientY:260});',
+ 'const afterOnePixel={yaw:aimYaw,pitch:aimPitch,power};',
+ 'aimPowerLocked=true;power=.76;',
+ 'trackMouseAim({clientX:642,clientY:260});',
+ 'const afterShot={yaw:aimYaw,pitch:aimPitch,power};',
+ 'return {initial,afterIdle,afterOnePixel,afterShot};'
+].join('\n'))();
+assert.deepEqual(aimProbe.afterIdle,aimProbe.initial,
+ 'A stationary mouse or moving cup must not reset the aim');
+assert(Math.abs(aimProbe.afterOnePixel.yaw-aimProbe.initial.yaw)<.01,
+ 'A moving cup must not shift the mouse aim baseline');
+assert.equal(aimProbe.afterShot.power,.76,
+ 'Mouse correction after throw must retain the last shot power');
+assert(source.includes("if(e.pointerType==='touch')flickAim(e);")&&
+ source.includes("else trackMouseAim(e);"),
+ 'Mouse release must not apply the relative touch flick');
+assert(source.includes('loadLevel(level,{keepAim:true})'),
+ 'Restart must preserve the aiming line');
 console.log('PASS:',results.count,'combinations,',results.shots,
  'flight simulations,',results.checks,'checks.');
 console.log('NOTE: these isolated mechanics tests do not verify every complete 3D scoring route.');
