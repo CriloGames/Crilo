@@ -1075,6 +1075,65 @@ function desk(parent,x,z,w,d,h,top,legs){
  }
  return g;
 }
+// Decorative manufacturing details for the existing goal furniture.
+// Using ornament() keeps every solid collision box and shot solution intact.
+function finishGoalStation(parent,station,h){
+ const metal=finishMat(0xb7c8c7,'anodized');
+ const dark=finishMat(0x3c525a,'enamel');
+ const brass=finishMat(0xd2b58d,'anodized');
+ const note=createMat(0xece6d8,.92);
+ const plate=(w,hh,d,x,y,z,mat)=>detailBox(parent,w,hh,d,x,y,z,mat);
+ const stud=(x,y,z,r=.024,mat=metal)=>{
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),mat);
+  dot.position.set(x,y,z);parent.add(ornament(dot));
+ };
+ if(station===1){
+  // Proper inset filing labels, drawer gaps and keyed pulls.
+  for(let i=0;i<3;i++){
+   const y=.23+(i+.5)*(h-.28)/3;
+   plate(2.40,.014,.016,0,y+(h-.28)/6-.014,1.230,dark);
+   plate(.47,.09,.018,-.62,y+.055,1.244,metal);
+   plate(.35,.06,.016,-.62,y+.055,1.259,note);
+   stud(.84,y+.055,1.246,.036,brass);
+  }
+ }else if(station===2||station===8){
+  // Visible shelf edging and two supported ends, not bare slabs.
+  for(const y of (station===2?[h]:[.55,1.10,h])){
+   plate(station===2?3.24:3.06,.015,.024,0,y+.061,.90,brass);
+   for(const side of [-1,1]){
+    plate(.07,.13,.12,side*(station===2?1.63:1.49),y-.075,.64,metal);
+    stud(side*(station===2?1.62:1.48),y-.035,.708,.024,brass);
+   }
+  }
+ }else if(station===3){
+  // Non-slip trolley tray and finished caster wheel bearings.
+  plate(2.38,.012,1.87,0,h+.083,0,dark);
+  for(const x of [-1.07,1.07])for(const z of [-.80,.80]){
+   const ring=new THREE.Mesh(new THREE.TorusGeometry(.085,.014,8,24),metal);
+   ring.rotation.y=Math.PI/2;ring.position.set(x+.045,.14,z);
+   parent.add(ornament(ring));
+  }
+  plate(.07,.46,.09,-1.345,h+.10,.77,brass);
+ }else if(station===4||station===5){
+  // Thin cabinet door reveal and punched ventilation slots.
+  plate(.016,h*.68,.023,0,h*.50,1.149,dark);
+  for(const side of [-1,1]){
+   for(let i=0;i<4;i++)plate(.34,.018,.015,side*.83,h*.20+i*.068,1.157,dark);
+   stud(side*1.54,h*.49,1.160,.025,brass);
+  }
+ }else if(station===7){
+  // Printer output slot, small display panel and tactile controls.
+  plate(1.21,.023,.050,.12,h+.091,1.20,dark);
+  plate(.58,.015,.31,.86,h+.219,-.81,metal);
+  stud(1.20,h+.224,-.81,.046,brass);
+  stud(1.02,h+.224,-.81,.030,dark);
+ }else if(station===9){
+  // Recessed elliptical worktop inlay.
+  const inlay=new THREE.Mesh(new THREE.TorusGeometry(1.67,.014,8,64),brass);
+  inlay.rotation.x=Math.PI/2;inlay.scale.y=.70;
+  inlay.position.y=h+.083;parent.add(ornament(inlay));
+ }
+}
 function plant(parent,x,z,h=.92){
  const g=new THREE.Group();g.position.set(x,0,z);parent.add(g);
  const pot=createMat(0xb88771,.72),lip=createMat(0xd1a28a,.62);
@@ -2412,6 +2471,7 @@ function buildWorld(){
   meshBox(farDesk,.70,stationY-.15,.58,0,(stationY-.15)*.5,0,metal);
   meshBox(farDesk,2.45,.10,1.20,0,.12,0,dark);
  }
+ finishGoalStation(farDesk,station,stationY);
  // A quiet, grounded highlight brings attention to the exact scoring table.
  // It behaves like a soft inlay, not a glowing billboard blocking the target.
  const accentDisc=new THREE.Mesh(new THREE.CircleGeometry(Math.min(1.21,settings.radius*2.12),48),
