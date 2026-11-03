@@ -1065,7 +1065,7 @@ async function scanRealSurfaceCollisions(){
  // Load the larger BVH package ONLY for the opt-in structural inspector.
  // Normal visitors and the standalone preview have no additional load.
  scene.updateMatrixWorld(true);
- const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=1");
+ const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=2");
  const rewards=new Map();
  for(const [id,root] of physicalPickups?.targets||[])
   rewards.set(id,root.userData.pickupModel||root);
