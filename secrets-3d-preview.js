@@ -366,20 +366,75 @@ if(!embeddedGame){
 // The playable cube instead uses ONE genuine service bolt and THREE hinge
 // pins from gameHotspots. Constructing these extra arrays on top of them
 // produced overlapping screws, fake rotating fasteners and duplicate clues.
-// The ring is a separate physical collectible on the underside. Once
-// discovered it MUST leave the cube; the empty brass seat remains.
-const undersideRingSeat=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.05,32),cavityMaterial);
-undersideRingSeat.rotation.x=Math.PI/2;
-undersideRingSeat.position.set(-.43,-.23,.128);bottomFace.add(undersideRingSeat);
-const undersideRing=new THREE.Group();undersideRing.position.set(-.43,-.23,.174);
+// The central underside wheel occupies a radius of .67 and rises above .4.
+// Mounting the ring at (-.43,-.23) buried it INSIDE that wheel, so even a
+// bright halo could not make the item visible or clickable. A dedicated
+// machined return pocket now sits well clear of the wheel, the four feet,
+// the bell output and the musical clue, connected by a short guide channel.
+const undersideReturn={x:1.03,y:-.28,z:.248,radius:.235};
+const ringChannel=new THREE.Group();bottomFace.add(ringChannel);
+box(ringChannel,.52,.066,.035,.76,-.28,.117,metal,.012);
+box(ringChannel,.46,.026,.020,.77,-.28,.142,darkMetal,.006);
+const undersideRingSeat=new THREE.Group();
+undersideRingSeat.position.set(undersideReturn.x,undersideReturn.y,.155);
+bottomFace.add(undersideRingSeat);
+cylinder(undersideRingSeat,.230,.045,0,0,0,darkMetal);
+const returnRim=new THREE.Mesh(new THREE.TorusGeometry(.222,.018,10,40),metal);
+returnRim.position.z=.028;undersideRingSeat.add(returnRim);
+for(const xx of [-.17,.17])
+ box(undersideRingSeat,.035,.040,.023,xx,-.18,.031,brass,.007);
+const undersideRing=new THREE.Group();
+undersideRing.position.set(undersideReturn.x,undersideReturn.y,undersideReturn.z);
 bottomFace.add(undersideRing);
 const ringArtifact=new THREE.Mesh(new THREE.TorusGeometry(.15,.040,10,36),brass);
 ringArtifact.castShadow=true;undersideRing.add(ringArtifact);
-const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.205,.012,7,40),metal);
-ringHub.position.z=-.035;undersideRing.add(ringHub);
-// A lift pin, rather than a painted symbol, marks where to inspect the ring.
-const ringPin=box(undersideRing,.10,.036,.035,0,-.13,.040,ivory,.009);
+// The fine secondary edge belongs to the ring, not to the fixed socket.
+const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.186,.011,7,40),metal);
+ringHub.position.z=-.027;undersideRing.add(ringHub);
+box(undersideRing,.10,.032,.027,0,-.13,.016,ivory,.007);
+// A transparent fingertip target fills the open center of the ring. Without
+// this, Three.js only raycasts the thin torus and clicking its center fails.
+const ringGrip=new THREE.Mesh(
+ new THREE.CylinderGeometry(.206,.206,.034,32),
+ new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
+  depthWrite:false,side:THREE.DoubleSide})
+);
+ringGrip.rotation.x=Math.PI/2;
+ringGrip.position.z=.078;
+undersideRing.add(ringGrip);
 setHit(undersideRing,"pickup:ring");
+undersideRing.visible=false;
+let ringWasReleased=false,ringReleaseMotion=null,ringSettleTimer=null;
+function settleUndersideRing(){
+ if(ringSettleTimer!==null){clearTimeout(ringSettleTimer);ringSettleTimer=null;}
+ ringReleaseMotion?.kill();ringReleaseMotion=null;
+ undersideRing.position.z=undersideReturn.z;
+ undersideRing.rotation.z=0;
+ invalidate();
+}
+function syncUndersideRing(ready,restoring){
+ if(!ready){
+  if(ringSettleTimer!==null){clearTimeout(ringSettleTimer);ringSettleTimer=null;}
+  ringReleaseMotion?.kill();ringReleaseMotion=null;
+  undersideRing.visible=false;ringWasReleased=false;
+  undersideRing.position.z=undersideReturn.z;undersideRing.rotation.z=0;
+  return;
+ }
+ undersideRing.visible=true;
+ if(ringWasReleased)return;
+ ringWasReleased=true;
+ if(restoring||reducedMotion){settleUndersideRing();return;}
+ // The object emerges from its OWN real return slot after the underside
+ // wheel releases, and stays on the cube until the user clicks the ring.
+ undersideRing.position.z=.148;
+ undersideRing.rotation.z=-.35;
+ ringReleaseMotion=gsap.timeline({
+  onUpdate:invalidate,onComplete:settleUndersideRing
+ }).to(undersideRing.position,{z:undersideReturn.z,duration:.66,ease:"back.out(1.2)"},0)
+  .to(undersideRing.rotation,{z:0,duration:.66,ease:"power2.out"},0);
+ ringSettleTimer=setTimeout(settleUndersideRing,1100);
+ invalidate();
+}
 // The rear optic is an actual almond-shaped mechanical eye authored with
 // its own eyelids, iris and pupil in the real 3D hotspot module. Do not
 // overlay it with another circular peephole or a floating rectangular pupil:
@@ -1594,7 +1649,7 @@ window.__nothing3DPreview={
   // lose their parts on pickup, including every historically duplicated mesh.
   looseKey.visible=!!currentGameState.a&&!currentGameState.drawerTaken;
   looseSpool.visible=!!currentGameState.b&&!currentGameState.sideTaken;
-  undersideRing.visible=!!currentGameState.bottom&&!currentGameState.ringTaken;
+  syncUndersideRing(!!currentGameState.bottom&&!currentGameState.ringTaken,restoring);
   if(gameHotspots)gameHotspots.setState(currentGameState);
   originalPickupGlow?.tooth.setActive(looseKey.visible);
   originalPickupGlow?.thread.setActive(looseSpool.visible);
