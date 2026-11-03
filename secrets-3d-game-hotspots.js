@@ -134,9 +134,23 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   // Satin-metal annular socket instead of a thick black puck over a gauge.
   C(g,size*1.12,.040,0,0,0,nickel);
   const cap=new THREE.Group();g.add(cap);
-  C(cap,size,.075,0,0,.048,color);
-  const cross=B(cap,size*.56,.011,.012,0,0,.093,graphite,.003);
-  cross.rotation.z=Math.PI/4;
+  if(name==="dent"){
+   // Actual die-struck copper: a visibly off-center hollow with a
+   // bevelled rim and irregular bruise, not an ordinary flat screw.
+   C(cap,size,.064,0,0,.048,color);
+   const rim=new THREE.Mesh(
+    new THREE.TorusGeometry(size*.48,.013,9,32),nickel);
+   rim.position.set(-.013,.011,.085);rim.scale.y=.79;
+   cap.add(rim);count++;
+   C(cap,size*.43,.004,-.013,.011,.082,graphite);
+   C(cap,size*.30,.004,-.024,.019,.084,copper);
+   const strike=B(cap,.053,.008,.006,-.026,.027,.090,nickel,.002);
+   strike.rotation.z=-.35;
+  }else{
+   C(cap,size,.075,0,0,.048,color);
+   const cross=B(cap,size*.56,.011,.012,0,0,.093,graphite,.003);
+   cross.rotation.z=Math.PI/4;
+  }
   // Tiny switches must be playable by fingers, not just a precision mouse.
   // The extra hit area is invisible and grows only on major named controls;
   // fasteners and closely spaced code buttons remain individually selectable.
@@ -284,9 +298,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  B(ventCover,.306,.012,.016,0,0,.028,brass,.005);
  for(const x of [-.14,.14])C(ventCover,.013,.013,x,0,.031,nickel);
  control(leftFace,"pressure",.88,.64,brass,.15);
- engraving(leftFace,"GAUGE",.89,.27,.46);
- control(leftFace,"dent",.88,-1.04,copper,.11);
- engraving(leftFace,"DENT",.89,-1.36,.39);
+ engraving(leftFace,"CALIBRATE",.89,.27,.55);
+ // The copper plunger's off-center depression identifies it physically.
+ // A redundant DENT plaque made it look like a labelled mystery button,
+ // and collided with the lower panel trim, so omit that plate entirely.
+ control(leftFace,"dent",.88,-.95,copper,.11);
  // Top: three separate hinge pins, and a tappable triangle physically
  // attached to the moving hatch. The pipe sits INSIDE the fixed well.
  for(const [i,x] of [-.54,0,.54].entries())control(topFace,"hinge-"+i,x,.86,nickel,.075);
