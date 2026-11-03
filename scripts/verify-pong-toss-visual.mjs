@@ -29,10 +29,42 @@ const hook=[
  '       !Number.isFinite(p.getZ(i))){invalid++;break;}',
  '   }',
  '  });',
+ '  // Check deep intersections between INDEPENDENT object assemblies.',
+ '  // Touching frame supports and decorations inside one assembly are intentional.',
+ '  const assemblies=[];',
+ '  group.traverse(root=>{',
+ '   if(!root.userData.qaRole||!root.visible)return;',
+ '   const parts=[];',
+ '   root.traverse(mesh=>{',
+ '    if(!mesh.isMesh||!mesh.visible||mesh.userData.decorative)return;',
+ '    if(!["BoxGeometry","CylinderGeometry","SphereGeometry","ConeGeometry","LatheGeometry"].includes(mesh.geometry?.type))return;',
+ '    const mat=Array.isArray(mesh.material)?mesh.material[0]:mesh.material;',
+ '    if(mat?.transparent&&mat.opacity<.9)return;',
+ '    const box=new THREE.Box3().setFromObject(mesh);',
+ '    if(box.isEmpty())return;',
+ '    parts.push({box,type:mesh.geometry.type});',
+ '   });',
+ '   if(parts.length)assemblies.push({role:root.userData.qaRole,parts});',
+ '  });',
+ '  const contacts=[];',
+ '  for(let a=0;a<assemblies.length;a++)for(let b=a+1;b<assemblies.length;b++){',
+ '   const A=assemblies[a],B=assemblies[b];',
+ '   for(const u of A.parts)for(const v of B.parts){',
+ '    if(!u.box.intersectsBox(v.box))continue;',
+ '    const dx=Math.min(u.box.max.x,v.box.max.x)-Math.max(u.box.min.x,v.box.min.x);',
+ '    const dy=Math.min(u.box.max.y,v.box.max.y)-Math.max(u.box.min.y,v.box.min.y);',
+ '    const dz=Math.min(u.box.max.z,v.box.max.z)-Math.max(u.box.min.z,v.box.min.z);',
+ '    if(Math.min(dx,dy,dz)<.085||dx*dy*dz<.008)continue;',
+ '    contacts.push({a:A.role,b:B.role,depth:+Math.min(dx,dy,dz).toFixed(3),',
+ '     volume:+(dx*dy*dz).toFixed(3),types:u.type+"/"+v.type});',
+ '   }',
+ '  }',
+ '  contacts.sort((a,b)=>b.volume-a.volume);',
  '  renderer.render(scene,camera);',
  '  return {level,meshes,decorative,textured,invalid,wireframe,',
  '    triangles:renderer.info.render.triangles,',
- '    target:!!cupGroup,physicsBodies:physicsBodies.length};',
+ '    target:!!cupGroup,physicsBodies:physicsBodies.length,',
+ '    intersectionCount:contacts.length,intersections:contacts.slice(0,12)};',
  ' }',
  '};'
 ].join('\n');
@@ -45,7 +77,8 @@ const browser=await chromium.launch({headless:true,args:[
  '--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader',
  '--enable-webgl','--disable-dev-shm-usage','--disable-gpu-sandbox'
 ]});
-const levels=[1,2,3,4,5,6,7,8,9,10,17,28,39,50];
+const levels=Array.from({length:50},(_,i)=>i+1);
+const screenshotLevels=new Set([1,2,3,4,5,6,7,8,9,10,17,28,39,50]);
 const records=[],errors=[];
 try{
  const page=await browser.newPage({viewport:{width:1160,height:780},deviceScaleFactor:1});
@@ -70,6 +103,16 @@ try{
   assert(result.physicsBodies>10,'Physics meshes missing: level '+n);
   assert(result.target,'Goal missing: level '+n);
   assert(result.triangles>100,'3D scene did not render: level '+n);
+  // A deliberate coworker desk/torso intersection is a regression.
+  const torsoClips=result.intersections.filter(i=>
+   (i.a==='colleague'&&i.b==='coworker-table')||
+   (i.b==='colleague'&&i.a==='coworker-table'));
+  assert.equal(torsoClips.length,0,
+   'Coworker desk clips through body on level '+n+': '+JSON.stringify(torsoClips));
+  if(!screenshotLevels.has(n)){
+   records.push({...result,screenshot:null});
+   continue;
+  }
   await page.waitForTimeout(120);
   const png=await page.screenshot({type:'png'});
   const image=PNG.sync.read(png),colors=new Set();
@@ -89,4 +132,9 @@ try{
   JSON.stringify({records,errors},null,2));
 }
 assert.deepEqual(errors,[],'Browser exceptions');
-console.log(JSON.stringify({passed:records.length,levels,errors},null,2));
+console.log(JSON.stringify({
+ passed:records.length,levels,errors,
+ intersectionSummary:records.map(r=>({
+  level:r.level,count:r.intersectionCount,top:r.intersections.slice(0,3)
+ })).filter(x=>x.count>0)
+},null,2));
