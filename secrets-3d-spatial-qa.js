@@ -14,7 +14,7 @@ function effectivelyVisible(node){
  return true;
 }
 function visibleMesh(mesh){
- if(!mesh.isMesh||!effectivelyVisible(mesh))return false;
+ if(!mesh.isMesh||!effectivelyVisible(mesh)||mesh.userData.pickupAura)return false;
  const materials=Array.isArray(mesh.material)?mesh.material:[mesh.material];
  return materials.some(m=>m&&m.visible!==false&&m.colorWrite!==false&&m.opacity!==0);
 }
