@@ -161,7 +161,7 @@ s.dogHits=clamp(Number(raw.dogHits)||0,0,12);
 // pocket items or earlier dial choices. The fourth wheel starts at zero.
 s.bagDials=Array.from({length:4},(_,i)=>
  clamp(Number(Array.isArray(raw.bagDials)?raw.bagDials[i]:0)||0,0,BAG_SYMBOLS.length-1));
-s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-3):[];
+s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-6):[];
 s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
 // Orientation is a view, not story progress. Always start from an attractive
 // three-quarter front angle even if the player left the cube upside down.
@@ -169,7 +169,7 @@ s.rx=-22;
 s.ry=-32;
 s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
 s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
-s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3].includes(n)).slice(-3):[];
+s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3,4].includes(n)).slice(-5):[];
 // Older saves allowed this mechanical ratchet to overrun indefinitely.
 // Normalize those poses to its real three-detent end stop without touching
 // the player's completed secrets or inventory.
@@ -589,9 +589,9 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(n===1&&!s.rightBoltLoose){
    s.rightBoltLoose=true;
-   tell('A service rivet comes out. Scratched behind it: THREE, ONE, TWO.');
+   tell('A service rivet comes out. Behind it is a row of five minute service marks.');
    scatter('#9ec7c9',7,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(n===1)tell('The missing rivet exposes a tiny service number: 312.');
+  }else if(n===1)tell('The missing rivet exposes five engraved service marks.');
   else tell(['The first rivet has a slot shaped like a minus sign.',
    '', 'The third rivet was installed backwards.','The fourth rivet holds the drawer rail.'][n]);
   return true;
@@ -599,12 +599,13 @@ function inspectHardware(name){
  if(name.startsWith('vent-')){
   const n=Number(name.slice(-1));
   if(s.ventOpen){tell('The service grille has already opened.');return true}
-  s.ventSequence.push(n);s.ventSequence=s.ventSequence.slice(-3);
-  if(s.ventSequence.join('')==='312'){
+  if(!Number.isInteger(n)||n<1||n>4)return true;
+  s.ventSequence.push(n);s.ventSequence=s.ventSequence.slice(-5);
+  if(s.ventSequence.join('')==='31423'){
    s.ventOpen=true;gain('shim');
-   bloom('vent-sequence','Three—one—two. The slotted vent shutter retracts, exposing a copper shim in the cavity beneath it.');
+   bloom('vent-sequence','The five-step mechanism releases. The slotted shutter retracts, exposing a copper shim in its cavity.');
    cue('ncWorld','nc-shudder',430);scatter('#d1a996',9,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(s.ventSequence.length===3){
+  }else if(s.ventSequence.length===5){
    s.ventSequence=[n];tell('Wrong combination. The little vents reset with a hollow clack.');
    sound(200);
   }else{tell('Click. The vent holds the last button down for a moment.');sound(270+n*90)}
@@ -637,8 +638,8 @@ function inspectHardware(name){
   return true;
  }
  if(name==='foot'){
-  s.footChecked=true;bloom('underside-foot','Under the rubber foot: a mirrored maker\'s note. 2 · 1 · 3.');
-  tell('The foot folds back. An inscription underneath reads 2 · 1 · 3.');
+  s.footChecked=true;bloom('underside-foot','Under the rubber foot is a second three-note musical inscription.');
+  tell('The foot folds back. A second line reads Ⅰ · Ⅲ · Ⅱ.');
   return true;
  }
  return false;
@@ -685,8 +686,8 @@ function cubeHit(name){
  }else if(name==='eye'){
   if(!s.back){s.back=true;bloom('eye','The eyelid retracts to reveal a stamped numerical sequence below the glass eye.');}
   else if(document.body.classList.contains('nc-physical-ready'))
-  tell('Engraved behind the eye: TWO · ONE · THREE. The optical ring beside it also turns.');
- else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">TWO · ONE · THREE</p><p>Someone scratched those words into the cube from the inside.</p>','eye');
+  tell('Below the eye is the first three-note fragment. The optical ring beside it also turns.');
+ else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">Ⅰ / Ⅱ · Ⅰ · Ⅲ</p><p>There may be another half of this musical sequence.</p>','eye');
  }else if(name==='dot'){
   s.redHits++;
   if(s.redHits===1)bloom('dot','Do not push the red dot. (You pushed the red dot.)');
@@ -933,14 +934,15 @@ function openFlute(){
   '</div><div class="nc-flute-track" id="ncFluteTrack">♪  ·  ·  ·</div>', 'flute');
 }
 function note(i){
- s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-3);
+ if(!Number.isInteger(i)||i<1||i>3)return;
+ s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-6);
  window.NothingHereAudio?.playFluteNote?.(i);
  const physical=document.body.classList.contains('nc-physical-ready');
  if(!physical){
   cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
   $('ncFluteTrack').textContent='♪  '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join('  ');
  }
- if(s.fluteNotes.join('')==='213'){
+ if(s.fluteNotes.join('')==='213132'){
   if(!s.door){
     s.door=true;bloom('door','The flute has summoned a very real door from an extremely empty wall.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
@@ -949,9 +951,9 @@ function note(i){
   if(!physical){
    closeModal();setTimeout(()=>$('ncDoorScene').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   }
- }else if(s.fluteNotes.length===3){
+ }else if(s.fluteNotes.length===6){
   if(!physical)$('ncFluteTrack').textContent+='  ...nothing.';
-  else tell('The three tones fade into the machinery. Nothing else moves.');
+  else tell('The six tones fade into the machinery. Nothing else moves.');
  }
  render();
 }
