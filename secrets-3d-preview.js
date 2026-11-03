@@ -483,6 +483,14 @@ let lastClickedAction=null;
 function clickAction(action){
  lastClickedAction=action;
  if(embeddedGame){
+  // The tray / lid mesh is a solid physical surface, NOT a substitute for
+  // its separate brass latch, side release, or top triangle. This applies
+  // identically to mouse, touch, and keyboard activation.
+  if(action==="front"||action==="side"||action==="hatch"){
+   window.NothingHereAudio?.play?.("tap");
+   window.CriloNothingHereCube?.inspectPhysicalSurface?.(action);
+   return;
+  }
   if(action.startsWith("pickup:")){
    window.CriloNothingHereCube?.activatePhysicalPickup?.(action.slice(7));
    return;
@@ -503,6 +511,12 @@ function clickAction(action){
    window.CriloNothingHereCube?.activatePhysicalElevatorFloor?.(Number(action.slice(-1)));
    return;
   }
+  if(action==="thing:door-handle"){
+   window.NothingHereAudio?.play?.("gear");
+   pocketWorlds?.pulse?.(action);
+   window.CriloNothingHereCube?.activatePhysicalDoorHandle?.();
+   return;
+  }
   if(action.startsWith("thing:")){
    window.NothingHereAudio?.play?.('tap');
    // Using a pocket item can instantly expose a precision control. Avoid
@@ -516,9 +530,6 @@ function clickAction(action){
   // Clicking the opened drawer casing must NEVER pocket an item. Only the
   // selectable key-shaped piece or spool receives a "pickup" raycast.
   const translate={
-   front:"latch",
-   side:"seam",
-   hatch:"triangle",
    optic:"eye-ring",
    pressure:"pressure",
    lever:"dent",
@@ -628,6 +639,7 @@ function stopInspectTimer(){
 // compatible inventory item, or required sequence in a hover tooltip.
 const controlNames={
  "flute-note-1":"Flute key I","flute-note-2":"Flute key II","flute-note-3":"Flute key III",
+ "thing:door-handle":"Little door knob",
  front:"Lavender drawer",latch:"Front drawer latch",
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side panel seam","drawer-b":"Red thread spool",
@@ -679,6 +691,7 @@ function describeAction(action){
   return "Take "+(window.CriloNothingHereCube?.getItemName?.(action.slice(7))||"found item");
  if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
+ if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
  if(action.startsWith("front-screw-"))return "Faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
