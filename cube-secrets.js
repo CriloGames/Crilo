@@ -513,6 +513,10 @@ function render(){
 function collection(id){gain(id,'You found '+names[id]+'.',true)}
 function collectPhysicalPickup(id){
  if(!Object.hasOwn(names,id))return false;
+ // A visible key or spool is not a free shortcut into a sealed mechanism.
+ // The canonical story state, not raycast visibility alone, authorizes it.
+ if((id==='tooth'&&!s.a)||(id==='thread'&&!s.b)||
+    (id==='pipe'&&!s.top)||(id==='ring'&&!s.bottom))return false;
  if(id==='tooth'&&s.a&&!s.drawerTaken){cubeHit('drawer-a');return true}
  if(id==='thread'&&s.b&&!s.sideTaken){cubeHit('drawer-b');return true}
  if(id==='pipe'&&s.top&&!s.pipeTaken){cubeHit('top-reed');return true}
@@ -632,6 +636,13 @@ function inspectHardware(name){
  return false;
 }
 function cubeHit(name){
+ // The 2D fallback, keyboard activation and Three.js raycasts share ONE
+ // authority. Being able to address a hidden item never bypasses its catch.
+ if(name==='drawer-a'&&!s.a||name==='drawer-b'&&!s.b||
+    name==='top-reed'&&!s.top){
+  tell('The object is still sealed behind its compartment.');
+  return;
+ }
  bloom('first');
  if(inspectHardware(name)){render();return}
  if(selected&&name==='eye'&&use(selected,'eye'))return;
@@ -946,7 +957,29 @@ function bark(){
  else tell('The dog is now very proud of itself.');
  render();
 }
-function clickThing(name){
+// Only physically present miniatures can be used. The old invisible DOM
+// event nodes and exported 3D control API must not bypass discoveries.
+function thingPresent(name){
+ return !!({
+  bag:s.bag,door:s.door,dog:s.doorOpen,vase:s.doorOpen,
+  squirrel:s.squirrel,pot:s.vase,musicbox:s.vase,cloud:s.cloud,
+  cup:s.music,clock:s.watch,machine:s.mouse,elevator:s.watch&&s.tag,
+  moth:s.floorFour,telescope:s.moon,train:s.train
+ })[name];
+}
+function inspectPhysicalSurface(name){
+ const messages={
+  front:s.a?'The drawer is extended on its rails.':'The drawer front will not pull free of its catch.',
+  side:s.b?'The side compartment is already extended.':'The side drawer is held in its metal frame.',
+  hatch:s.top?'The top hatch is resting open on its hinges.':'The top hatch is held shut by its catch.'
+ };
+ if(Object.hasOwn(messages,name))tell(messages[name]);
+}
+function clickThing(name,actuator=false){
+ if(!thingPresent(name)){
+  tell('There is nothing to operate here yet.');
+  return;
+ }
  if(selected){
   if(use(selected,name))return;
   tell('That '+names[selected]+' does not seem to fit there.');render();return;
@@ -958,7 +991,9 @@ function clickThing(name){
    else openBag();
  }
  else if(name==='door'){
-  if(!s.doorOpen){
+  if(document.body.classList.contains('nc-physical-ready')&&!actuator&&!s.doorOpen){
+   tell('The little door is shut. Its knob is still in place.');
+  }else if(!s.doorOpen){
     s.doorOpen=true;bloom('dog','Behind the door: a polite little dog and something balanced overhead.');
     cue('ncDoor','nc-opening',1190);
     scatter('#e8ceae',8,$('ncDoor'));
@@ -1299,6 +1334,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   updateView();
  },
  rotate:(x,y)=>{s.rx=x;s.ry=y;turn()},
+ inspectPhysicalSurface,
  activatePhysicalPickup:collectPhysicalPickup,
  activatePhysical(name){
   if(name==='cube-offer'){
@@ -1330,6 +1366,10 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   const supported=new Set(['bag','door','dog','vase','squirrel','pot','musicbox',
    'cloud','cup','clock','machine','elevator','moth','telescope','train']);
   if(supported.has(name))clickThing(name);
+ },
+ activatePhysicalDoorHandle(){
+  if(!thingPresent('door'))return;
+  clickThing('door',true);
  },
  get physicalReady(){return document.body.classList.contains('nc-physical-ready')}
 };
