@@ -37,6 +37,40 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  let fluteWaves=[];
  const reducedMotion=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
  let previousState=null,ventSettleTimer=null,bellSettleTimer=null;
+ const releasingFasteners=new Map();
+ function fastenerPose(id,part,removed,wasRemoved,restore){
+  const inFlight=releasingFasteners.get(id);
+  if(inFlight&&removed)return; // Other secrets can re-render mid-animation.
+  if(inFlight){
+   clearTimeout(inFlight.timer);
+   inFlight.tween.kill();releasingFasteners.delete(id);
+  }
+  gsap.killTweensOf(part.position);gsap.killTweensOf(part.rotation);
+  if(!removed){
+   part.visible=true;part.position.z=.19;part.rotation.z=0;
+   return;
+  }
+  if(restore||reducedMotion||wasRemoved){
+   part.visible=false;part.position.z=.19;part.rotation.z=0;
+   return;
+  }
+  // A real unscrewing action: rotate, pull outward from the threaded seat,
+  // then leave the recess EMPTY. Never merely wobble and spring back.
+  part.visible=true;
+  const finish=()=>{
+   const motion=releasingFasteners.get(id);
+   if(motion){clearTimeout(motion.timer);releasingFasteners.delete(id);}
+   gsap.killTweensOf(part.position);gsap.killTweensOf(part.rotation);
+   part.visible=false;invalidate();
+  };
+  const tween=gsap.timeline({onUpdate:invalidate,onComplete:finish})
+   .to(part.rotation,{z:Math.PI*2,duration:.55,ease:"power1.inOut"},0)
+   .to(part.position,{z:.43,duration:.55,ease:"power2.out"},0);
+  // Throttled GPUs cannot leave a half-extracted fastener covering the
+  // exposed clue or reward forever. Always settle on a wall-clock deadline.
+  const timer=setTimeout(finish,950);
+  releasingFasteners.set(id,{tween,timer});
+ }
  function pulse(action){
   if(action==="eye"){
    // The player sees the eyelid close and reopen at the touched model.
@@ -659,8 +693,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
-    else if(name==="right-bolt-1")g.visible=!s.rightBoltLoose;
-    else if(name.startsWith("hinge-"))g.visible=!s.hingePins?.includes(Number(name.slice(-1)));
+    else if(name==="right-bolt-1")
+     fastenerPose(name,g,!!s.rightBoltLoose,!!previous.rightBoltLoose,restore);
+    else if(name.startsWith("hinge-"))
+     fastenerPose(name,g,!!s.hingePins?.includes(Number(name.slice(-1))),
+      !!previous.hingePins?.includes(Number(name.slice(-1))),restore);
     else if(name==="shutter")pose(g,"rotation","z",s.serviceOpen?.12:0,
       previous.serviceOpen?.12:0,restore,.60);
     else if(name.startsWith("vent-"))pose(g,"position","z",s.ventOpen?.23:.18,
@@ -671,7 +708,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
     ventOpen:!!s.ventOpen,redHits:Number(s.redHits)||0,
     footChecked:!!s.footChecked,
-    rightBoltLoose:!!s.rightBoltLoose,back:!!s.back
+    rightBoltLoose:!!s.rightBoltLoose,
+    hingePins:[...(s.hingePins||[])],back:!!s.back
    };
    invalidate();
   }
