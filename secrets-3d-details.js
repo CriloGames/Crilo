@@ -250,10 +250,16 @@ export function buildIntricateCube({
   // BOTTOM: actual shock-absorbing feet and circular lockwork.
   plates(bottomFace,satin);
   for(const x of [-1,1])for(const y of [-1,1]){
+    // The upper-left foot is a REAL sliding puzzle catch, authored in the
+    // hotspot layer. A fourth fixed rubber foot here covered the hidden
+    // musical inscription and physically merged with the live control.
+    if(x===-1&&y===1)continue;
     const foot=group(bottomFace,x*1.08,y*1.08,.16);
-    C(foot,.23,.18,0,0,.04,rubber);
-    C(foot,.16,.02,0,0,.155,darkMetal);
-    raisedScrew(foot,0,0,.19);
+    C(foot,.205,.13,0,0,.035,rubber);
+    C(foot,.128,.019,0,0,.111,darkMetal);
+    // Three flush, NONINTERACTIVE support feet need no movable screwheads.
+    const inset=C(foot,.038,.011,0,0,.124,metal);
+    inset.castShadow=false;
   }
   const baseDial=group(bottomFace,0,0,.15);
   C(baseDial,.67,.10,0,0,0,metal);
