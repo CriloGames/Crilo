@@ -782,7 +782,15 @@ try{
  assert(openVent.ventHatchOffset<-.18,
   "The real vent shutter did not retract into its final open position");
  console.log("PASS: three numbered physical switches withdraw the metal vent shutter");
- await activate("foot");
+ // Test the actual visible foot, not a hidden programmatic action.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
+ const footClick=await page.evaluate(()=>
+  window.__nothing3DPreview.projectGameControl("foot"));
+ assert.equal(footClick?.pick,"foot",
+  "The moving underside foot is obscured by its mounting hardware: "+JSON.stringify(footClick));
+ await page.locator("#stage canvas").click({
+  position:{x:footClick.x,y:footClick.y},timeout:30000
+ });
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).footNumber,
   "The folded-back foot must uncover the hidden underside inscription");
  await activate("service-latch");
@@ -1159,7 +1167,15 @@ try{
  // The underside's visible physical button must not be wired to the TOP
  // triangle. It releases the ring and leaves the top secret untouched.
  const topCountBefore=(await state()).topHits;
- await activate("underside");
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
+ const undersideSwitch=await page.evaluate(()=>
+  window.__nothing3DPreview.projectGameControl("underside"));
+ assert.equal(undersideSwitch?.pick,"underside",
+  "The central underside button is hidden by the decorative brass hub: "+
+   JSON.stringify(undersideSwitch));
+ await page.locator("#stage canvas").click({
+  position:{x:undersideSwitch.x,y:undersideSwitch.y},timeout:30000
+ });
  assert((await state()).bottom===true&&(await state()).ringTaken===false,
    "The underside button must release a physical ring without pocketing it");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible)).ring,true,
