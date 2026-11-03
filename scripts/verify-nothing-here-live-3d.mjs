@@ -239,9 +239,15 @@ try{
   underside.ring.y-underside.bell.y)>.6,
   "The brass ring socket obstructs the bell's separate output chute");
  const clue=underside.musicalClue,foot=underside.sliderFoot;
- assert(clue.visible&&foot.y+foot.radius<clue.y-clue.height/2-.05,
-  "The real sliding rubber foot is still covering the underside inscription: "+
+ assert(clue.visible&&foot.y-foot.radius>clue.y+clue.height/2+.05,
+  "The real rubber foot must slide past the entire inscription toward the free rim: "+
    JSON.stringify({clue,foot}));
+ // The squirrel's physical miniature occupies the inner-left underside. The
+ // foot must remain outside that sculptural bay, not relocate into it.
+ assert(foot.y-foot.radius>.85&&foot.x-foot.radius> -1.61&&
+   foot.y+foot.radius<1.61,
+  "The moved foot overlaps the squirrel or protrudes past the edge: "+
+   JSON.stringify(foot));
  await auditPage.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
  const visibleRing=await auditPage.evaluate(()=>
   window.__nothing3DPreview.projectOriginalPickup("ring"));
