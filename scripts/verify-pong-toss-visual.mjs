@@ -103,12 +103,13 @@ try{
   assert(result.physicsBodies>10,'Physics meshes missing: level '+n);
   assert(result.target,'Goal missing: level '+n);
   assert(result.triangles>100,'3D scene did not render: level '+n);
-  // A deliberate coworker desk/torso intersection is a regression.
-  const torsoClips=result.intersections.filter(i=>
-   (i.a==='colleague'&&i.b==='coworker-table')||
-   (i.b==='colleague'&&i.a==='coworker-table'));
-  assert.equal(torsoClips.length,0,
-   'Coworker desk clips through body on level '+n+': '+JSON.stringify(torsoClips));
+  // Seated people naturally intersect their chair cushions. All other
+  // independent solid assemblies must remain spatially separate.
+  const unintended=result.intersections.filter(i=>!
+   ((i.a==='colleague'&&i.b==='chair')||
+    (i.a==='chair'&&i.b==='colleague')));
+  assert.equal(unintended.length,0,
+   'Independent 3D assemblies clip on level '+n+': '+JSON.stringify(unintended));
   if(!screenshotLevels.has(n)){
    records.push({...result,screenshot:null});
    continue;
