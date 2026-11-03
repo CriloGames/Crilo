@@ -1,6 +1,112 @@
 import * as THREE from "three";
 import {gsap} from "gsap";
 
+// One shared, very low-frequency pulse drives all *already revealed*
+// collectibles. Never pulse unfinished clues, locked mechanisms, or entire
+// compartments. This preserves the scene's on-demand rendering budget.
+let auraTexture=null,auraTimer=null;
+const activeAuras=new Set();
+const motionReduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
+function getAuraTexture(){
+ if(auraTexture)return auraTexture;
+ const canvas=document.createElement("canvas");canvas.width=128;canvas.height=128;
+ const ctx=canvas.getContext("2d");
+ const gradient=ctx.createRadialGradient(64,64,5,64,64,63);
+ gradient.addColorStop(0,"rgba(255,255,255,.72)");
+ gradient.addColorStop(.29,"rgba(255,255,255,.42)");
+ gradient.addColorStop(.58,"rgba(255,255,255,.14)");
+ gradient.addColorStop(1,"rgba(255,255,255,0)");
+ ctx.fillStyle=gradient;ctx.fillRect(0,0,128,128);
+ auraTexture=new THREE.CanvasTexture(canvas);
+ auraTexture.colorSpace=THREE.SRGBColorSpace;
+ return auraTexture;
+}
+function updateAuraTick(){
+ const phase=(1+Math.sin(Date.now()*Math.PI*2/3600))*.5;
+ const redraw=new Set();
+ for(const effect of activeAuras){
+  effect.apply(phase);
+  redraw.add(effect.invalidate);
+ }
+ for(const refresh of redraw)refresh();
+}
+function scheduleAuras(){
+ if(activeAuras.size&&!motionReduced){
+  if(auraTimer===null)auraTimer=setInterval(updateAuraTick,240);
+ }else if(auraTimer!==null){
+  clearInterval(auraTimer);auraTimer=null;
+ }
+}
+// Attach only AFTER the game's actual raycast surfaces are registered.
+// The aura is a non-interactive plane BEHIND the collectible; its meshes
+// never become hitboxes and are excluded from solid geometry inspection.
+export function attachCollectibleGlow({
+ root,model=root,invalidate=()=>{},color=0xffe0a6,
+ size=.275,depth=-.025,offsetX=0,offsetY=0
+}){
+ const materialCopies=new Map();
+ const litMaterials=[];
+ model.traverse(part=>{
+  if(!part.isMesh||!part.material||part.material.isShaderMaterial)return;
+  const materials=Array.isArray(part.material)?part.material:[part.material];
+  const localMaterials=materials.map(original=>{
+   if(!original?.emissive)return original;
+   if(!materialCopies.has(original)){
+    const copy=original.clone();
+    copy.emissive.setHex(color);
+    copy.emissiveIntensity=0;
+    materialCopies.set(original,copy);
+    litMaterials.push(copy);
+   }
+   return materialCopies.get(original);
+  });
+  part.material=Array.isArray(part.material)?localMaterials:localMaterials[0];
+ });
+ const haloMaterial=new THREE.MeshBasicMaterial({
+  map:getAuraTexture(),color,transparent:true,opacity:0,
+  blending:THREE.AdditiveBlending,depthWrite:false,depthTest:true,
+  side:THREE.DoubleSide,toneMapped:false
+ });
+ const halo=new THREE.Mesh(new THREE.PlaneGeometry(size,size),haloMaterial);
+ halo.position.set(offsetX,offsetY,depth);
+ halo.visible=false;
+ halo.renderOrder=1;
+ halo.userData.pickupAura=true;
+ halo.userData.decorative=true;
+ root.add(halo);
+ let active=false,phase=.5;
+ const effect={
+  invalidate,
+  apply(nextPhase){
+   phase=nextPhase;
+   const breathe=.13+.10*phase;
+   for(const material of litMaterials)material.emissiveIntensity=breathe;
+   haloMaterial.opacity=.22+.12*phase;
+  },
+  setActive(ready){
+   ready=!!ready;
+   if(active===ready)return;
+   active=ready;
+   halo.visible=active;
+   if(active){
+    activeAuras.add(effect);
+    effect.apply(.5);
+   }else{
+    activeAuras.delete(effect);
+    for(const material of litMaterials)material.emissiveIntensity=0;
+    haloMaterial.opacity=0;
+   }
+   scheduleAuras();invalidate();
+  },
+  getState:()=>({
+   active,haloVisible:halo.visible,haloOpacity:haloMaterial.opacity,
+   surfaceEmission:litMaterials[0]?.emissiveIntensity||0,
+   glowMeshes:1,raycastable:false,phase
+  })
+ };
+ return effect;
+}
+
 // Every reward lives in a real, selectable three-dimensional cradle attached
 // to its source miniature or mechanism. Puzzle state and inventory decisions
 // remain solely in cube-secrets.js; this module only displays saved pickups.
@@ -302,6 +408,13 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     depthWrite:false,side:THREE.DoubleSide}));
   target.position.z=.085;root.add(target);
   setHit(root,"pickup:"+id);
+  // Do NOT register the glow with setHit: clicking the soft halo must
+  // never pick up an item outside its real fingertip-sized hit target.
+  root.userData.pickupGlow=attachCollectibleGlow({
+   root,model,invalidate,
+   color:["prism","raindrop","sugar","lens","stardust","iris"].includes(id)
+    ?0x9ce6eb:0xffd49a
+  });
   root.userData.pickupModel=model;
   root.userData.pickupSocketMaterial=socketMaterial;
   root.visible=false;
@@ -347,7 +460,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     const max=new THREE.Vector3(-Infinity,-Infinity,-Infinity);
     let pieces=0;
     root.traverse(mesh=>{
-     if(!mesh.isMesh||!mesh.visible)return;
+     if(!mesh.isMesh||!mesh.visible||mesh.userData.pickupAura)return;
      const mats=Array.isArray(mesh.material)?mesh.material:[mesh.material];
      if(mats.every(m=>m?.colorWrite===false||m?.opacity===0))return;
      if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
@@ -389,7 +502,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    for(let part=root;part;part=part.parent)if(!part.visible){onScene=false;break;}
    return {visible:root.visible,onScene,depth:root.userData.pickupModel.position.z,
     scale:root.userData.pickupModel.scale.x,
-    socketGlow:root.userData.pickupSocketMaterial.emissiveIntensity};
+    socketGlow:root.userData.pickupSocketMaterial.emissiveIntensity,
+    glow:root.userData.pickupGlow?.getState?.()||null};
   },
   setState(state){
    const pending=new Set(state?.pendingPickups||[]);
@@ -426,6 +540,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     gsap.killTweensOf(model.scale);
     gsap.killTweensOf(material);
     root.visible=visible;
+    root.userData.pickupGlow?.setActive(visible);
     if(root.userData.pickupRetainer)
      root.userData.pickupRetainer.visible=visible;
     model.position.z=0;
