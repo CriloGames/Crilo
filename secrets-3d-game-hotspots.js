@@ -211,8 +211,14 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  engraving(rightFace,"RELEASE",-1.13,.02,.43);
  tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
  engraving(rightFace,"SERVICE",.58,-1.39,.43);
- for(const [n,x,y] of [[0,-1.23,1.20],[1,1.23,1.20],[2,-1.23,-1.24],[3,1.23,-1.24]])
-  control(rightFace,"right-bolt-"+n,x,y,n===1?copper:nickel,.065);
+ // There is ONE removable service bolt on this face. The other three
+ // were fake moving screwheads with no unlock effect, duplicated again by
+ // the base model and confused with corner trim. Remove those click targets
+ // entirely rather than pretending every decorative rivet is a mechanism.
+ const serviceSocket=node(rightFace,1.23,1.20,.133);
+ C(serviceSocket,.083,.019,0,0,0,graphite);
+ C(serviceSocket,.060,.018,0,0,.015,nickel);
+ const serviceBolt=control(rightFace,"right-bolt-1",1.23,1.20,copper,.065);
  // The vent order is engraved INSIDE the empty fastener recess: it is
  // not visible until the player actually loosens the appropriate bolt.
  const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.91,1.25,.75);
