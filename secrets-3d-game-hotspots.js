@@ -682,8 +682,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
      invalidate();
     },1050);
    }
-   pose(foot,"position","y",s.footChecked?1.37:1.02,
-     previous.footChecked?1.37:1.02,restore,.46);
+   pose(foot,"position","y",s.footChecked?1.35:1.02,
+     previous.footChecked?1.35:1.02,restore,.46);
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
