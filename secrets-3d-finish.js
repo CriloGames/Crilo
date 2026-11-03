@@ -113,23 +113,11 @@ export function finishMechanicalArtifact({
       B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
       B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
     }
-    for(const x of [-1.22,1.22])for(const y of [-1.22,1.22]){
-      // Flush FIXED rivets, never false movable screws. Front, right and top
-      // have real puzzle fasteners. Bottom corners belong to the rubber feet.
-      // On the left the numbered vent controls and elevator occupy the left
-      // rail: the old 0.09-radius decorative caps visibly covered those tabs
-      // (including the overlapping gold disc in the reported screenshot).
-      // Rear corners sit directly beneath the hidden cipher cassette and
-      // miniature worlds. These bolts are not needed to hold the frame.
-      // Keep just two unobtrusive fixed flush rivets on the LEFT's free
-      // outer rail, never the numbered vent rail (x<0).
-      if(face!==leftFace||x<0)continue;
-      decorativeCornerCaps.push({face:"leftFace",
-       x,y,radius:.036,functional:false});
-      C(face,.036,.018,x,y,.128,satin);
-      const flush=B(face,.032,.006,.005,x,y,.141,deep,.002);
-      flush.rotation.z=.42;
-    }
+    // No second set of corner rivets: the precision panel already has
+    // fixed screwheads at (+/-1.31,+/-1.33). Even the reduced .036 caps at
+    // (+1.22,+/-1.22) sat against those screws, producing the overlapping
+    // clusters shown in the user's close-up. One modeled fastener per spot.
+
   }
   machinedPanel(frontFace,tinyGold);
   machinedPanel(rightFace,teal);
