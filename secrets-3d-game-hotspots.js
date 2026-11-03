@@ -522,8 +522,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
  const shutter=targets.get("shutter");
- // Bottom: actual protruding rubber support and a separate release hatch.
+ // One genuine movable rubber foot conceals the second musical phrase.
+ // The other three fixed feet are purely structural, in the details layer.
+ // The captive diagonal slide ends clear of the engraving, instead of
+ // retracting only .30 sideways and continuing to cover half the text.
+ const footTrack=node(bottomFace,-1.14,.78,.114);
+ const rail=B(footTrack,.51,.064,.024,0,0,0,nickel,.012);
+ rail.rotation.z=Math.atan2(.46,.24);
+ B(footTrack,.51,.022,.014,0,0,.022,graphite,.006).rotation.z=Math.atan2(.46,.24);
  const foot=control(bottomFace,"foot",-1.02,1.02,graphite,.16);
+ C(foot,.186,.055,0,0,.018,graphite);
+ C(foot,.165,.020,0,0,.049,nickel);
  const engravedSettleTimers=new WeakMap();
  function revealPlate(object,ready,wasReady,restore){
   const wasVisible=object.visible;
@@ -673,8 +682,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
      invalidate();
     },1050);
    }
-   pose(foot,"position","x",s.footChecked?-1.32:-1.02,
-     previous.footChecked?-1.32:-1.02,restore,.46);
+   pose(foot,"position","x",s.footChecked?-1.26:-1.02,
+     previous.footChecked?-1.26:-1.02,restore,.46);
+   pose(foot,"position","y",s.footChecked?.56:1.02,
+     previous.footChecked?.56:1.02,restore,.46);
    flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
