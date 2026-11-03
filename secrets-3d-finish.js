@@ -114,18 +114,19 @@ export function finishMechanicalArtifact({
       B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
     }
     for(const x of [-1.22,1.22])for(const y of [-1.22,1.22]){
-      // These three faces already have four functional, removable screws
-      // at +/-1.25 or +/-1.33. The old purely decorative caps at +/-1.22
-      // intersected those screws (and their retaining collars), resulting
-      // in the visibly stacked brass cylinders. Keep the working screws,
-      // and leave their surrounding machined trim clean.
+      // Flush FIXED rivets, never false movable screws. Front, right and top
+      // have real puzzle fasteners. Bottom corners belong to the rubber feet.
+      // On the left the numbered vent controls and elevator occupy the left
+      // rail: the old 0.09-radius decorative caps visibly covered those tabs
+      // (including the overlapping gold disc in the reported screenshot).
       if(face===frontFace||face===rightFace||face===topFace||
+         face===bottomFace||(face===leftFace&&x<0)||
          (face===backFace&&x>0&&y<0))continue;
-      decorativeCornerCaps.push({face:face===leftFace?"leftFace":
-       face===bottomFace?"bottomFace":"backFace",x,y});
-      C(face,.092,.045,x,y,.15,darkMetal);
-      C(face,.068,.042,x,y,.185,tinyGold);
-      stud(face,x,y,.212,.035);
+      decorativeCornerCaps.push({face:face===leftFace?"leftFace":"backFace",
+       x,y,radius:.036,functional:false});
+      C(face,.036,.018,x,y,.128,satin);
+      const flush=B(face,.032,.006,.005,x,y,.141,deep,.002);
+      flush.rotation.z=.42;
     }
   }
   machinedPanel(frontFace,tinyGold);
@@ -165,13 +166,11 @@ export function finishMechanicalArtifact({
   dome.position.set(0,0,.14);
   frontLens.add(dome);partCount++;
   C(frontLens,.045,.06,-.085,.09,.235,cream);
-  // Real conduit loops, small terminals and raised switch labels.
-  path(frontFace,[[-.91,.02,.13],[-.82,.13,.20],[-.63,.16,.21],[-.59,.33,.18]],.018,copper);
-  path(frontFace,[[.91,.04,.13],[.85,.20,.23],[.65,.26,.21],[.61,.38,.18]],.018,copper);
-  for(const x of [-.91,.91]){
-    B(frontFace,.21,.12,.075,x,.04,.18,darkMetal,.024);
-    stud(frontFace,x,.04,.24,.031);
-  }
+  // The previous copper tubing and black rectangular terminal blocks sat
+  // directly under LATCH (-1.05,.11) and RED (+1.10,.15). As a result,
+  // the round live actuators physically cut through two fake housings.
+  // Leave the real button collars and their engraved nameplates unobscured.
+  // No dead-end conduit or fake fastener is needed at these positions.
   // Extra bolted sealing frame around the full-size key drawer.
   function bezel(face,hole) {
     const {x,y,w,h}=hole;
