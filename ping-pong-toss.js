@@ -2031,7 +2031,9 @@ function validateLevelReadability(){
    for(const depth of depths){
     // Room walls are at +/-8m; previous limit silently hid all plants
     // authored at +/-6.82m, even when they were safely inside the room.
-    if(Math.abs(decor.anchorX+side*slide)>7.15)continue;
+    // Wide side desks must also clear the 8m side walls at full width.
+    const maxX=decor.label==='side-office'?6.45:7.15;
+    if(Math.abs(decor.anchorX+side*slide)>maxX)continue;
     const x=baseX+side*slide,z=baseZ+depth;
     obj.visible=true;obj.position.set(x,obj.position.y,z);
     obj.updateWorldMatrix(true,true);
@@ -2348,7 +2350,8 @@ function buildWorld(){
    // Level 2's side desk and freestanding filing shelf occupied the same
    // volume. Give that optional workstation a different bay.
    const z=roomEnd+(settings.n===2?4.30:2.55)+(settings.roomVariant?.36:0),
-    x=side*5.65;
+    // Keep this desk away from both the filing stand AND coworker table.
+    x=side*(settings.n===2?6.05:5.65);
    const sideSet=new THREE.Group();sideSet.userData.qaRole='side-office';group.add(sideSet);
    desk(sideSet,x,z,2.9,1.48,1.00,wood,metal);
    if(artPlan.heroExtras)officeMonitor(sideSet,x,1.08,z-.22,-side*.16);
