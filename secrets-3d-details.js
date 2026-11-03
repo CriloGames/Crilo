@@ -261,18 +261,26 @@ export function buildIntricateCube({
     const inset=C(foot,.038,.011,0,0,.124,metal);
     inset.castShadow=false;
   }
-  const baseDial=group(bottomFace,0,0,.15);
-  C(baseDial,.67,.10,0,0,0,metal);
-  C(baseDial,.53,.12,0,0,.08,satin);
-  ring(baseDial,.60,.035,0,0,.15,brass);
+  // This is the engraved STATIONARY FACE of the underside mechanism.
+  // The earlier thick central brass hub reached z=.41, physically hiding
+  // the live button below it. Recess the face and leave a true open central
+  // socket: the functional smaller actuator now sits ABOVE every layer.
+  const baseDial=group(bottomFace,0,0,.11);
+  C(baseDial,.67,.085,0,0,0,metal);
+  C(baseDial,.53,.085,0,0,.055,satin);
+  ring(baseDial,.60,.026,0,0,.115,brass);
   for(let i=0;i<12;i++){
     const a=i*Math.PI/6;
-    flatLine(baseDial,Math.cos(a)*.28,Math.sin(a)*.28,Math.cos(a)*.46,Math.sin(a)*.46,.16,.026,ivory);
+    flatLine(baseDial,Math.cos(a)*.28,Math.sin(a)*.28,
+     Math.cos(a)*.46,Math.sin(a)*.46,.133,.023,ivory);
   }
-  C(baseDial,.16,.14,0,0,.19,gold);
-  // The playable cube's smaller real UNDER actuator occupies the center
-  // of this dial. A giant second clickable disc hid which part did work.
-  if(!liveGame)setHit(baseDial,"underside");
+  ring(baseDial,.275,.014,0,0,.15,gold);
+  // In the standalone demo, this visual dial is the only mechanism.
+  // The live game instead has its own genuinely clickable center button.
+  if(!liveGame){
+    C(baseDial,.135,.043,0,0,.174,gold);
+    setHit(baseDial,"underside");
+  }
   registries.baseDial=baseDial;
   plaque(bottomFace,"NOTHING BELOW",0,-1.17,1.10);
 
