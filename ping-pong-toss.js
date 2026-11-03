@@ -3311,6 +3311,15 @@ const PAD_GRIP_BY_LEVEL={
   const gasket=new THREE.Mesh(new THREE.TorusGeometry(.65,.035,10,48),rubber);
   gasket.rotation.x=Math.PI/2;gasket.position.y=padY-.046;
   padVisuals.add(gasket);
+  // Discreet molded anti-slip dots improve the spring-plate surface without
+  // participating in physics or blocking the numbered markers.
+  const moldedGrip=createMat(0x38675e,.84,.06);
+  for(let k=0;k<20;k++){
+   const angle=k*Math.PI/10,rad=.44+(k%2)*.10;
+   const dot=new THREE.Mesh(new THREE.SphereGeometry(.014,8,6),moldedGrip);
+   dot.position.set(Math.cos(angle)*rad,padY+.052,Math.sin(angle)*rad);
+   padVisuals.add(ornament(dot));
+  }
   const topInlay=new THREE.Mesh(new THREE.CircleGeometry(.52,48),
    new THREE.MeshBasicMaterial({color:0xa4e8c8,transparent:true,
     opacity:.15,depthWrite:false,side:THREE.DoubleSide}));
