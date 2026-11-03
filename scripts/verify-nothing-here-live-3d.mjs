@@ -669,9 +669,8 @@ try{
  const allRewardMeshes=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupIds);
  assert.equal(allRewardMeshes.length,25,"Not every newly discovered item has a physical pickup model");
  const guide=await page.locator(".nc-combine-guide").innerText();
- assert(/select one pocket item.*a second/i.test(guide)&&
-   /combine/i.test(guide),
-  "Players need persistent instructions for combining inventory items");
+ assert(/Try things:.*Pick an item.*fit together/i.test(guide),
+  "The pocket should explain item use in one plain-English sentence");
  const latchMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   view.clickAction("latch");
@@ -952,8 +951,11 @@ try{
  // through a real canvas pointer. Avoid an unrelated slow-GPU mouse wait.
  await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>el.click());
  assert.equal((await state()).selected,"coin");
- assert.match(await page.locator("#ncCombineGuide").innerText(),/Holding.*second pocket item/i,
-  "Holding an inventory object needs clear instructions without revealing answers");
+ assert.match(await page.locator("#ncCombineGuide").innerText(),/Try it:.*glows green.*combine/i,
+  "After selecting an item the pocket needs one clear next step");
+ assert.equal(await page.locator("#ncUnselect").innerText(),"clear selection");
+ assert(await page.locator("#ncPocket").evaluate(el=>el.classList.contains("nc-holding")),
+  "Selection should replace default guidance, not stack another paragraph");
  const coinUsability=await page.evaluate(()=>{
   const game=window.CriloNothingHereCube;
   const button=document.querySelector('#ncInventory [data-item="coin"]');
@@ -965,8 +967,8 @@ try{
  });
  assert(coinUsability.reactive&&coinUsability.match&&
   !coinUsability.unrelated&&!coinUsability.locked&&
-  /✧/.test(coinUsability.style),
-  "Inventory should visibly mark usable items but only recognize their real targets: "+
+  /✦/.test(coinUsability.style)&&!/use/i.test(coinUsability.style),
+  "Potentially useful items should have only a subtle mark, not loud USE pills: "+
    JSON.stringify(coinUsability));
  // Confirm a genuine mouse hover triggers the green in-scene response
  // before the player clicks. Nothing elsewhere on the cube lights up.
@@ -985,7 +987,7 @@ try{
  const fitHint=await page.evaluate(()=>window.__nothing3DPreview.itemFitHint);
  assert.equal(fitHint.action,"thing:machine",
   "Hover compatibility feedback was not attached to the correct physical model");
- assert.match(fitHint.label,/vending machine.*use held item here/i);
+ assert.match(fitHint.label,/vending machine.*fits here/i);
  await activate("thing:machine");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.itemFitHint.active)),false,
   "The green compatibility ring remains after the item was spent");
@@ -1279,8 +1281,8 @@ try{
   style:getComputedStyle(el,"::after").content,
   aria:el.getAttribute("aria-label")
  }));
- assert(ringCombine.marked&&/combine/i.test(ringCombine.style)&&
-  /combines with the held item/i.test(ringCombine.aria),
+ assert(ringCombine.marked&&/fits/i.test(ringCombine.style)&&
+  /fits with the item you are holding/i.test(ringCombine.aria),
   "A compatible SECOND inventory piece must visibly react while holding the first: "+
    JSON.stringify(ringCombine));
  await page.locator('#ncInventory [data-item="ring"]').click();
