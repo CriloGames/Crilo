@@ -2024,7 +2024,9 @@ function validateLevelReadability(){
   let best={score:Infinity,x:baseX,z:baseZ,rect:null};
   for(const slide of [0,.65,1.30,1.95,2.45]){
    for(const depth of [0,-.65,-1.25]){
-    if(Math.abs(decor.anchorX+side*slide)>6.60)continue;
+    // Room walls are at +/-8m; previous limit silently hid all plants
+    // authored at +/-6.82m, even when they were safely inside the room.
+    if(Math.abs(decor.anchorX+side*slide)>7.15)continue;
     const x=baseX+side*slide,z=baseZ+depth;
     obj.visible=true;obj.position.set(x,obj.position.y,z);
     obj.updateWorldMatrix(true,true);
@@ -2339,7 +2341,7 @@ function buildWorld(){
    (artPlan.sideDesks===1&&side=== (settings.x>=0?-1:1));
   if(showSideDesk){
    const z=roomEnd+2.55+(settings.roomVariant?.36:0),x=side*5.65;
-   const sideSet=new THREE.Group();group.add(sideSet);
+   const sideSet=new THREE.Group();sideSet.userData.qaRole='side-office';group.add(sideSet);
    desk(sideSet,x,z,2.9,1.48,1.00,wood,metal);
    if(artPlan.heroExtras)officeMonitor(sideSet,x,1.08,z-.22,-side*.16);
    else stackBooks(sideSet,x,1.15,z-.25,2,level);
@@ -2348,7 +2350,7 @@ function buildWorld(){
    decorCandidates.push({obj:sideSet,side,anchorX:x,label:'side-office'});
   }
   if(artPlan.sidePlants){
-   const cornerPlant=new THREE.Group();group.add(cornerPlant);
+   const cornerPlant=new THREE.Group();cornerPlant.userData.qaRole='corner-plant';group.add(cornerPlant);
    plant(cornerPlant,side*6.82,roomEnd+1.05,.91);
    decorCandidates.push({obj:cornerPlant,side,anchorX:side*6.82,
     label:'corner-plant'});
@@ -2381,7 +2383,7 @@ function buildWorld(){
  // Keep the foreground clear so the ball and target remain unobstructed.
  // Five distinct target furniture stations. Each cup now belongs to a
  // believable location: wooden desk, filing cabinet, shelf, cart or counter.
- const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);group.add(farDesk);
+ const farDesk=new THREE.Group();farDesk.position.set(settings.x,0,settings.targetZ);farDesk.userData.qaRole='goal-station';group.add(farDesk);
  const stationNames=['desk','drawer','shelf','trolley','counter','cabinet','window','printer','archive','conference'];
  const station=Math.max(0,stationNames.indexOf(settings.station)),stationY=settings.topPad+.03;
  // Endgame spring carts need a clear physical landing area. A full
@@ -2667,24 +2669,38 @@ function buildWorld(){
  const coworkerX=settings.x>=0?-3.30:3.30;
  const coworkerZ=settings.targetZ+1.45;
  {
-  // One coherent vignette: desk, chair and colleague travel together.
+  // A coherent scene: grounded desk in front of the colleague, chair behind.
+  // The old floating tabletop at z-.23 cut straight through the torso.
   const vignette=new THREE.Group();group.add(vignette);
+  vignette.userData.coworkerScene=true;
   const colleague=officeColleague(vignette,coworkerX,coworkerZ,level);
+  colleague.userData.qaRole='colleague';
   colleague.rotation.y=(settings.tier%3-1)*.19;
   ambient.push({type:'colleague',obj:colleague});
-  officeChair(vignette,coworkerX,coworkerZ+.43);
-  meshBox(vignette,2.25,.13,1.05,coworkerX,1.07,coworkerZ-.23,wood);
-  officeMug(vignette,coworkerX+((level%2)?-.68:.68),1.15,
-   coworkerZ-.38,0xb8a18d,.73);
-  // Keep the person placed beside the shot lane on every single level.
-  // They remain hit-able, rather than being moved offscreen as decoration.
-  vignette.userData.coworkerScene=true;
+  const chair=officeChair(vignette,coworkerX,coworkerZ+.43);
+  chair.userData.qaRole='chair';
+  const table=new THREE.Group();table.userData.qaRole='coworker-table';
+  vignette.add(table);
+  const tableZ=coworkerZ-.91;
+  meshBox(table,2.25,.13,1.05,coworkerX,1.07,tableZ,wood);
+  const tableLegMat=finishMat(0x667d82,'anodized');
+  for(const sx of [-1,1])for(const sz of [-1,1]){
+   const lx=coworkerX+sx*.96,lz=tableZ+sz*.40;
+   const leg=new THREE.Mesh(new THREE.CylinderGeometry(.048,.063,1.005,12),tableLegMat);
+   leg.position.set(lx,.5025,lz);leg.castShadow=true;table.add(leg);
+   const foot=new THREE.Mesh(new THREE.CylinderGeometry(.082,.082,.029,12),
+    createMat(0x2d4148,.87));
+   foot.position.set(lx,.018,lz);table.add(ornament(foot));
+  }
+  // The mug is supported by the tabletop, not hanging over its front edge.
+  officeMug(table,coworkerX+((level%2)?-.68:.68),1.15,
+   tableZ-.04,0xb8a18d,.73);
  }
  // The cup's warm rim and coaster identify the target; no floating sign
  // obscures the throw trajectory or turns the 3D scene into a HUD.
  // Every level gets its own recognizable environmental centerpiece,
  // positioned to the SIDE of the goal so visual variety never hides the cup.
- const feature=new THREE.Group();
+ const feature=new THREE.Group();feature.userData.qaRole='office-feature';
  const featureSide=settings.x>=0?-1:1;
  feature.position.set(featureSide*4.30,0,settings.targetZ-1.15);
  group.add(feature);
@@ -2939,7 +2955,7 @@ function buildWorld(){
   const bankMat=finishMat(0x536e7c,'anodized'),
    rubber=createMat(0xba826c,.76,.02);
   const tape=finishMat(0xf3c88b,'enamel');
-  const tray=new THREE.Group();tray.position.set(x,0,z);group.add(tray);
+  const tray=new THREE.Group();tray.position.set(x,0,z);tray.userData.qaRole='bank-tray';group.add(tray);
   // The tray is solid beyond the rubber disk. Only the specialist
   // rebound art is excluded from generic furniture collision.
   const bounceArt=new THREE.Group();tray.add(bounceArt);
@@ -2982,7 +2998,7 @@ function buildWorld(){
  for(let i=0;i<settings.obstaclePlan.length;i++){
   const [style,t,offset]=settings.obstaclePlan[i];
   const x=settings.x*t+offset,z=LAUNCH_Z-settings.d*t;
-  const g=new THREE.Group();g.position.set(x,0,z);group.add(g);
+  const g=new THREE.Group();g.position.set(x,0,z);g.userData.qaRole='stage-obstacle';group.add(g);
   // Shared neutral treatment lets colored trick-shot objects stand out.
   const paint=createMat(style==='plant'?0x7c9b89:style==='cart'?0x6a8894:0x84949b,.67);
   let oy=1.65,w=.80,h=.86,depth=.52;
@@ -3104,7 +3120,7 @@ function buildWorld(){
   // or up/down travel leaves an opening for a well-timed throw.
   const x=lane.x+clamp(offset,-.16,.16),
    midY=lane.y,z=LAUNCH_Z-settings.d*t;
-  const g=new THREE.Group();g.position.set(x,midY,z);group.add(g);
+  const g=new THREE.Group();g.position.set(x,midY,z);g.userData.qaRole='moving-gate';group.add(g);
   const mount=new THREE.Group();mount.position.set(x,0,z);group.add(mount);
   const shutter=style==='panel';
   const body=createMat(shutter?0x889fab:0xa08b82,.55,.18);
@@ -3312,7 +3328,7 @@ const PAD_GRIP_BY_LEVEL={
   const fraction=settings.springFractions[i],z=LAUNCH_Z-settings.d*fraction,
    x=settings.x*fraction+(settings.padCount>1?(i===0?-.15:(settings.secondPadOffset??.10)):0),
    padY=1.14+(settings.padCount>1&&i===1?.16:0);
-  const cart=new THREE.Group();cart.position.set(x,0,z);group.add(cart);
+  const cart=new THREE.Group();cart.position.set(x,0,z);cart.userData.qaRole='spring-cart';group.add(cart);
   // Only the circular spring animation uses special collision handling.
   // The cart's tabletop, frame, support legs and wheels MUST stay in
   // buildPhysicsBodies(); skipping the entire cart let balls pass through it.
