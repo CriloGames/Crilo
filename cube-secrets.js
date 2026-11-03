@@ -449,17 +449,20 @@ function render(){
   }
  }
  const combineGuide=$('ncCombineGuide');
+ $('ncPocket')?.classList.toggle('nc-holding',!!selected);
  if(combineGuide){
   const action=selected
-   ?'Holding '+names[selected]+'. Select a second pocket item to combine, or hover over a 3D object (touch and hold on phones). A green reaction means you can use the item there—press the object to try it.'
-   :'Items marked ✧ USE may react with a part of the cube or combine with another item. Select one pocket item, then a second to combine them. To test the cube, hold an item and inspect its parts.';
+   ?'Look around the cube. If something glows green, try it there. Or pick another item to combine.'
+   :'Pick an item, then try it on the cube. Some items fit together, too.';
+  const strong=combineGuide.querySelector('strong');
+  if(strong)strong.textContent=selected?'Try it: ':'Try things: ';
   const current=combineGuide.querySelector('.nc-combine-instructions');
   if(current)current.textContent=action;
   else{
    combineGuide.textContent='';
-   const strong=document.createElement('strong');
-   strong.textContent='Combine items: ';
-   combineGuide.append(strong);
+   const heading=document.createElement('strong');
+   heading.textContent=selected?'Try it: ':'Try things: ';
+   combineGuide.append(heading);
    const prose=document.createElement('span');
    prose.className='nc-combine-instructions';
    prose.textContent=action;
@@ -504,11 +507,12 @@ function render(){
    button.classList.toggle('nc-item-playable',id==='flute');
    button.classList.toggle('nc-item-combine-match',combinesWithHeld);
    button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
-   button.title=combinesWithHeld?'Combines with the held item':
-    craftParts.has(id)&&worldUseItems.has(id)?'Can be used or combined':
-    craftParts.has(id)?'Can combine with another object':
-    worldUseItems.has(id)?'Can react with something on the cube':
-    id==='flute'?'Playable musical instrument':'Collected clue';
+   button.title=combinesWithHeld?'Fits with the item you are holding':
+    id===selected?'Click again to put it down':
+    id==='flute'?'Play this instrument':
+    craftParts.has(id)&&worldUseItems.has(id)?'Might work on the cube or with another item':
+    craftParts.has(id)?'Might fit with another item':
+    worldUseItems.has(id)?'Might work on the cube':'Collected item';
    button.setAttribute('aria-label',names[id]+'. '+button.title);
    button.setAttribute('aria-pressed',String(id===selected));
   }
@@ -714,12 +718,12 @@ function cubeHit(name){
    if(document.body.classList.contains('nc-physical-ready'))
     tell('The brass ring is resting in its own return socket, away from the central dial. Press the ring to collect it.');
    else{s.ringTaken=true;collection('ring')}
-  }else tell('The underside return socket is empty. The brass ring is already in your inventory.');
+  }else tell('Nothing left in that slot. You already took the ring.');
  }else if(name==='dent'){
   if(!s.mouse){s.mouse=true;s.left=true;s.bag=true;s.machine=true;
    bloom('mouse','The recessed copper catch releases a spring inside the box. A clockwork mouse escapes, leaving a small bag and coin in their front-face holders.');
    bloom('bag');gain('coin');incident('🐁');
-  } else tell('The copper catch is already released. The mouse escaped; its small bag is accessible on the front face.');
+  } else tell('The mouse is gone. It left a little bag on the front.');
  }else if(name==='eye'){
   if(!s.back){s.back=true;bloom('eye','The rear eyelid slides aside. A short sequence of musical marks becomes visible beneath the lens.');}
   else if(document.body.classList.contains('nc-physical-ready'))
@@ -901,10 +905,10 @@ function use(item,thing){
 }
 function take(item){
  if(!pocket.has(item))return;
- if(!selected){selected=item;window.NothingHereAudio?.play?.('select');tell('Holding '+names[item]+'. Choose another pocket item or an object in the world.');render();return}
+ if(!selected){selected=item;window.NothingHereAudio?.play?.('select');tell('Try '+names[item]+' on something.');render();return}
  if(item===selected){selected=null;window.NothingHereAudio?.play?.('release');render();return}
  const result=recipe[sorted(selected,item)];
- if(!result){tell('Those pieces do not fit. Both are still in your pocket.');sound(185);render();return}
+ if(!result){tell('No luck. Those two don’t fit together.');sound(185);render();return}
  spend(selected);spend(item);
  window.NothingHereAudio?.play?.('select');
  // Combining is an intentional inventory interaction, not a hidden
