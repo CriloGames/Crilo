@@ -482,7 +482,8 @@ try{
  await page.locator("#ncViewReset").click();
  console.log("PASS: keyboard-visible fitting navigation, in-scene identity, arrows and Escape");
  const spatialPuzzles=await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions);
- for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2","thing:elevator-floor-4"])
+ for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2",
+  "thing:bag-dial-3","thing:bag-release","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
  for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring","vent-1","vent-2","vent-3","triangle","top-reed","foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
@@ -502,7 +503,8 @@ try{
  for(const action of [
   "front","side","hatch",
   "pickup:tooth","pickup:thread","pickup:pipe","pickup:ring",
-  "thing:bag-dial-0","thing:door-handle","thing:elevator-floor-4",
+  "thing:bag-dial-0","thing:bag-dial-3","thing:bag-release",
+  "thing:door-handle","thing:elevator-floor-4",
   "cube-offer"
  ])await activate(action);
  const sealed=await state();
@@ -964,8 +966,8 @@ try{
   "The fully calibrated iris must stop instead of rotating beyond its physical limit");
  const priorToReading=(await state()).seen.length;
  await activate("cipher-strip");
- assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾/,
-  "Inspecting the hidden brass strip must show the separate combination clue");
+ assert.match(await page.locator("#ncNarrator").innerText(),/◇\s*·\s*○\s*·\s*☾\s*·\s*✳/,
+  "Inspecting the hidden brass strip must show all four real combination glyphs");
  assert.equal((await state()).seen.length,priorToReading,
   "Reading the decorative cipher must not grant duplicate secret rewards");
  const physical=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
@@ -1048,6 +1050,10 @@ try{
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.bagCoverAngle < -1.3,
   null,{timeout:17000,polling:250});
  assert(await page.locator("#ncModal").isHidden(),"The 3D lock cover should not open a flat popup");
+ // Releasing a bag with incorrect symbols must leave its contents sealed.
+ await activate("thing:bag-release");
+ assert.equal((await state()).bagSolved,false,
+  "Pressing the spring catch bypassed the actual four-wheel cipher");
  // A real mouse must be able to turn each dial independently, not strike
  // the invisible whole-bag collider that formerly masked the tumblers.
  const dialPointer=await page.evaluate(()=>{
@@ -1068,7 +1074,9 @@ try{
   "Pointer release did not dispatch the dial selected on press: "+JSON.stringify(clickedDial));
  assert.equal(clickedDial.state[1],1,
   "The mouse click failed to turn the physical bag dial: "+JSON.stringify(clickedDial));
- for(let i=0;i<3;i++)await activate("thing:bag-dial-1");
+ // Six detents, not four: one pointer click + five wheel presses makes
+ // a complete revolution and returns the center-left wheel to circle.
+ for(let i=0;i<5;i++)await activate("thing:bag-dial-1");
  const wheelMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   const before=view.miniatureMechanismPose.bagDials[0];
@@ -1078,12 +1086,33 @@ try{
  if(!wheelMotion.reduced)
   await page.waitForFunction(before=>window.__nothing3DPreview.miniatureMechanismPose.bagDials[0]>before+.02,
    wheelMotion.before,{timeout:20000,polling:250});
- for(const i of [0,2,2,2])await activate("thing:bag-dial-"+i);
+ for(const i of [0,2,2,2,3])await activate("thing:bag-dial-"+i);
+ const aligned=await state();
+ assert.deepEqual(aligned.bagDials,[2,0,3,1],
+  "Four distinct physical bag wheel values must match the hidden embossed symbols");
+ assert.equal(aligned.bagSolved,false,
+  "Cycling through the correct combination must NOT open the false bottom");
+ assert(!aligned.pendingPickups.includes("prism"),
+  "A dial secretly handed out a reward without pressing the release catch");
+ // A genuine mouse press on the *separate* sculpted catch completes it.
+ const releasePoint=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const pos=view.projectPhysicalPuzzleControl("thing:bag-release");
+  return pos?{...pos,hit:view.getPhysicalActionAt(pos.x,pos.y)}:null;
+ });
+ assert(releasePoint&&releasePoint.pick==="thing:bag-release"&&
+   releasePoint.hit==="thing:bag-release",
+  "The new brass catch cannot be selected as its own 3D mechanism: "+
+  JSON.stringify(releasePoint));
+ await page.locator("#stage canvas").click({
+  position:{x:releasePoint.x,y:releasePoint.y},timeout:30000
+ });
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.lastClickedAction),
+  "thing:bag-release","Mouse press hit the bag body instead of its spring catch");
  const bagSolved=await state();
- assert.deepEqual(bagSolved.bagDials,[2,0,3],"Physical bag wheel values diverged from the original code");
  assert(bagSolved.bagSolved&&["reed","treat","prism"].every(id=>bagSolved.pendingPickups.includes(id))&&
    !bagSolved.pocket.includes("prism")&&bagSolved.seen.includes("bag-code"),
-  "Unlocking the bag must reveal three individually collectible physical objects");
+  "Only the real bag release after the code must expose individually collectible items");
  for(const id of ["reed","treat","prism"])await collect(id);
  // Physical models must be operable without blocking the stage with a
  // flat popup. The internal puzzle engine retains its controls invisibly.
