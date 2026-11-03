@@ -514,6 +514,12 @@ function clickAction(action){
    window.CriloNothingHereCube?.activatePhysicalBagDial?.(Number(action.slice(-1)));
    return;
   }
+  if(action==="thing:bag-release"){
+   window.NothingHereAudio?.play?.('gear');
+   pocketWorlds?.pulse?.(action);
+   window.CriloNothingHereCube?.activatePhysicalBagRelease?.();
+   return;
+  }
   if(action.startsWith("thing:elevator-floor-")){
    window.NothingHereAudio?.play?.('drawer');
    pocketWorlds?.pulse?.(action);
@@ -702,6 +708,7 @@ function describeAction(action){
  if(action.startsWith("pickup:"))
   return "Take "+(window.CriloNothingHereCube?.getItemName?.(action.slice(7))||"found item");
  if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
+ if(action==="thing:bag-release")return "Bag spring catch";
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
