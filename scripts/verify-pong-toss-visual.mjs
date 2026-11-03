@@ -79,7 +79,7 @@ const browser=await chromium.launch({headless:true,args:[
 ]});
 const levels=Array.from({length:50},(_,i)=>i+1);
 const screenshotLevels=new Set([1,2,3,4,5,6,7,8,9,10,17,28,39,50]);
-const records=[],errors=[];
+const records=[],errors=[],clearanceFailures=[];
 try{
  const page=await browser.newPage({viewport:{width:1160,height:780},deviceScaleFactor:1});
  page.on('pageerror',e=>errors.push(e.message));
@@ -108,8 +108,7 @@ try{
   const unintended=result.intersections.filter(i=>!
    ((i.a==='colleague'&&i.b==='chair')||
     (i.a==='chair'&&i.b==='colleague')));
-  assert.equal(unintended.length,0,
-   'Independent 3D assemblies clip on level '+n+': '+JSON.stringify(unintended));
+  if(unintended.length)clearanceFailures.push({level:n,contacts:unintended});
   if(!screenshotLevels.has(n)){
    records.push({...result,screenshot:null});
    continue;
@@ -130,9 +129,11 @@ try{
 }finally{
  await browser.close();
  fs.writeFileSync(path.join(folder,'report.json'),
-  JSON.stringify({records,errors},null,2));
+  JSON.stringify({records,errors,clearanceFailures},null,2));
 }
 assert.deepEqual(errors,[],'Browser exceptions');
+assert.deepEqual(clearanceFailures,[],
+ 'Independent 3D assemblies clip: '+JSON.stringify(clearanceFailures));
 console.log(JSON.stringify({
  passed:records.length,levels,errors,
  intersectionSummary:records.map(r=>({
