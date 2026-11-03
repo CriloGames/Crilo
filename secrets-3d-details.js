@@ -249,10 +249,18 @@ export function buildIntricateCube({
     B(lidPivot,.18,.13,.06,x,-.95,.13,brass,.02);
   }
   B(lidPivot,1.22,.06,.06,0,-1.04,.13,metal,.02);
-  const latchTop=group(topFace,0,-topHole.h/2-.16,.18);
-  B(latchTop,.44,.17,.11,0,0,0,metal,.025);
-  const tooth=B(latchTop,.17,.12,.13,0,0,.09,ivory,.02);
-  setHit(latchTop,"hatch-latch");registries.tooth=tooth;
+  // The moving lid already contains its own working triangle catch.
+  // A SECOND independent latch on the fixed frame used to open the same
+  // hatch without moving the triangle. Omit that misleading shortcut in
+  // the playable cube, retaining tactile controls in the standalone demo.
+  let tooth=null;
+  if(!liveGame){
+   const latchTop=group(topFace,0,-topHole.h/2-.16,.18);
+   B(latchTop,.44,.17,.11,0,0,0,metal,.025);
+   tooth=B(latchTop,.17,.12,.13,0,0,.09,ivory,.02);
+   setHit(latchTop,"hatch-latch");
+  }
+  registries.tooth=tooth;
   for(const x of [-.24,.32]){
     gear(topFace,x,.12,-.51,.14,gearMetal,9);
   }
@@ -363,7 +371,7 @@ export function buildIntricateCube({
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
     pose(backKnob,"rotation","z",s.back?Math.PI/2:0);
     pose(baseDial,"rotation","z",s.bottom?Math.PI/3:0);
-    pose(tooth,"position","z",s.top?-.06:.09);
+    if(tooth)pose(tooth,"position","z",s.top?-.06:.09);
     bulb.material=live.light?activeBulbMaterial:restoredBulbMaterial;
     // The original pickup geometries independently disappear upon
     // collection. This detailing module contains no shadow duplicates.
