@@ -183,7 +183,9 @@ export function buildIntricateCube({
 
   // LEFT: an integrated pressure dial, vent keys, and clockwork gears.
   plates(leftFace,copper);
-  plaque(leftFace,"MAKER'S SERVICE",0,1.27,1.15);
+  // A compact service inscription sits between the top bolt and numbered
+  // keys; the former full-width sign overlapped switch 1's number plate.
+  plaque(leftFace,"SERVICE PANEL",.35,1.29,.77);
   // Smaller, deliberate gear cluster in the middle of the face: keep the
   // left vent keys, pressure dial, and service catch free of ornamental teeth.
   const wheelA=gear(leftFace,-.20,.04,.19,.31);
@@ -282,7 +284,10 @@ export function buildIntricateCube({
     setHit(baseDial,"underside");
   }
   registries.baseDial=baseDial;
-  plaque(bottomFace,"NOTHING BELOW",0,-1.17,1.10);
+  // The lower central plate is a functioning bell-return chute. A large
+  // "NOTHING BELOW" nameplate was installed directly UNDER its brass hatch:
+  // the hatch covered the middle of the words and the caption contradicted
+  // the real items on this face. Keep the output completely unobstructed.
 
   // Drawer interiors: fitted lining, runners and articulated possessions.
   for(const [obj,name] of [[front,"LAVENDER"],[side,"TEAL"]]){
