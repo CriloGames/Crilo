@@ -288,15 +288,12 @@ export function buildIntricateCube({
     B(g,.10,.052,.10,0,.22,.335,ivory,.015);
     label(g,name,.43,.066,0,-.29,.263,"#f3e6de","#6c6267");
   }
-  // Align the detailed metalwork with the original collectible body: one
-  // complete key is visible, never two overlapping pickups.
-  const frontKey=group(front.drawer,.06,-.10,-.12);
-  ring(frontKey,.105,.026,-.19,0,0,gold);
-  B(frontKey,.38,.06,.06,.03,0,0,gold,.015);
-  B(frontKey,.064,.11,.065,.18,-.045,0,gold,.008);
-  const sideThread=group(side.drawer,0,-.09,-.19);
-  sideThread.rotation.z=.40;
-  for(let i=0;i<7;i++)ring(sideThread,.12+i*.007,.012,0,0,.05-i*.039,copper);
+  // Original key and thread spool are already complete meshes in the base
+  // model, with the actual selectable pickup action attached. The previous
+  // "detail pass" sculpted a SECOND key at the exact same coordinates and
+  // seven torus rings through the original spool. Those overlapping copies
+  // caused z-fighting and visually muddied the real items. Never duplicate
+  // them; the actual collectible geometry is the one source of truth.
 
   // Physical scratch marks, satin brushed blocks and index screws at the edge
   // of each panel. These are all visible from rotating the scene.
@@ -341,10 +338,8 @@ export function buildIntricateCube({
     pose(baseDial,"rotation","z",s.bottom?Math.PI/3:0);
     pose(tooth,"position","z",s.top?-.06:.09);
     bulb.material=live.light?activeBulbMaterial:restoredBulbMaterial;
-    // Collected components must physically disappear from the tray. Their
-    // inventory record remains in the original saved 60-secret engine.
-    frontKey.visible=!s.drawerTaken;
-    sideThread.visible=!s.sideTaken;
+    // The original pickup geometries independently disappear upon
+    // collection. This detailing module contains no shadow duplicates.
   }
 
   const labels={
@@ -392,7 +387,7 @@ export function buildIntricateCube({
       x:meter.position.x,y:meter.position.y,
       radius:.312,needleAngle:needle.rotation.z
     }),
-    getCollectibleVisibility:()=>({tooth:frontKey.visible,thread:sideThread.visible}),
+    getCollectibleVisibility:()=>({tooth:false,thread:false}),
     operate
   };
 }
