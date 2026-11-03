@@ -358,8 +358,14 @@ function screwsFor(face,tag,spots) {
  }
 }
 screwsFor(frontFace,"front", [[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
-screwsFor(rightFace,"side",[[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
-screwsFor(topFace,"top",[[-1.25,1.25],[1.25,1.25],[-1.25,-1.25],[1.25,-1.25]]);
+if(!embeddedGame){
+ // The workbench demo retains its traditional loose screw inspection.
+ screwsFor(rightFace,"side",[[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
+ screwsFor(topFace,"top",[[-1.25,1.25],[1.25,1.25],[-1.25,-1.25],[1.25,-1.25]]);
+}
+// The playable cube instead uses ONE genuine service bolt and THREE hinge
+// pins from gameHotspots. Constructing these extra arrays on top of them
+// produced overlapping screws, fake rotating fasteners and duplicate clues.
 // The ring is a separate physical collectible on the underside. Once
 // discovered it MUST leave the cube; the empty brass seat remains.
 const undersideRingSeat=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.05,32),cavityMaterial);
@@ -576,11 +582,16 @@ function clickAction(action){
    "hatch-latch":"triangle",
    "cube-offer":"cube-offer"
   };
-  // Two families of precision fasteners share the original service clues,
-  // rather than pretending to be clickable but silently doing nothing.
-  const name=action.startsWith("side-screw-")?"right-bolt-"+action.slice(-1):
-    action.startsWith("top-screw-")?"hinge-"+Math.min(2,Number(action.slice(-1))):
-    translate[action]||action;
+  // Never accept phantom screw IDs for hardware that is NOT modeled in
+  // the live game. Especially do not make a fourth fake top screw operate
+  // the real third hinge pin across the face.
+  if(action.startsWith("side-screw-")||action.startsWith("top-screw-"))
+   return;
+  // Retired mock controls must not remotely operate an unrelated mechanism
+  // across the cube: the real eye, gauge, dent and shutter have their own
+  // physical actuators.
+  if(["optic","lever","service-latch"].includes(action))return;
+  const name=translate[action]||action;
   if(name==="top-reed"&&!currentGameState.top)return;
   window.NothingHereAudio?.action?.(name);
   // The hardware reacts to touch even if the original secret does not
@@ -588,8 +599,6 @@ function clickAction(action){
   if(gameHotspots){
    if(!gameHotspots.pulse(action))gameHotspots.pulse(name);
   }
-  if(action.startsWith("side-screw-")||action.startsWith("top-screw-"))
-   turnFixedFastener(action);
   window.CriloNothingHereCube?.activatePhysical?.(name);
   return;
  }
