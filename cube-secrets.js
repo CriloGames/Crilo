@@ -621,7 +621,7 @@ function inspectHardware(name){
  }
  if(name==='cipher-strip'){
   if(s.eyeRingTicks<3){tell('There is only a closed seam here. The optical ring might move it.');return true}
-  tell('Beneath the calibrated rear lens, a miniature brass ribbon bears three marks: ◇ · ○ · ☾.');
+  tell('Beneath the calibrated rear lens, a brass ribbon bears four distinct marks: ◇ · ○ · ☾ · ✳.');
   sound(575);
   return true;
  }
