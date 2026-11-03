@@ -22,9 +22,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let parts=0;
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
+ let bagReleaseCap=null;
  // The bag code wheels have legible stamped symbols directly on their metal
  // faces. Updating a dial changes its own inlay instead of showing a popup.
- const glyphMaterials=["○","✳","◇","☾"].map(symbol=>{
+ const glyphMaterials=["○","✳","◇","☾","△","□"].map(symbol=>{
   const canvas=document.createElement("canvas");canvas.width=canvas.height=256;
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,256,256);
@@ -198,27 +199,24 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    C(g,.022,.048,x,.395,.29,m.brass,"x");
    C(bagCover,.015,.018,x,-.041,.044,m.gold,"z");
   }
-  // The three combination tumblers are actual rotating bronze cylinders,
-  // fixed to a machined backplate on the bag, not modal-only buttons.
+  // Four independently rotating, stamped bronze wheels. Each has six
+  // positions; their smaller fingertip colliders never overlap next door.
   bagDialPanel=new THREE.Group();g.add(bagDialPanel);
-  B(bagDialPanel,.43,.12,.034,0,.275,.153,m.dark,.017);
-  for(let i=0;i<3;i++){
+  B(bagDialPanel,.43,.119,.034,0,.275,.153,m.dark,.017);
+  for(let i=0;i<4;i++){
    const dial=new THREE.Group();
-   dial.position.set((i-1)*.13,.275,.197);bagDialPanel.add(dial);
-   C(dial,.047,.030,0,0,0,m.gold,"z");
-   // Seven small, physically raised grips give the tiny bronze drum
-   // useful machining detail without overlapping the adjacent wheels.
-   for(let notch=0;notch<7;notch++){
-    const angle=notch*Math.PI*2/7;
-    const grip=B(dial,.011,.021,.011,Math.cos(angle)*.042,
-     Math.sin(angle)*.042,.028,m.dark,.003);
+   dial.position.set((i-1.5)*.101,.275,.197);bagDialPanel.add(dial);
+   C(dial,.040,.030,0,0,0,m.gold,"z");
+   for(let notch=0;notch<8;notch++){
+    const angle=notch*Math.PI/4;
+    const grip=B(dial,.008,.016,.009,Math.cos(angle)*.036,
+     Math.sin(angle)*.036,.028,m.dark,.003);
     grip.rotation.z=angle;
    }
-   B(dial,.012,.014,.012,0,.039,.030,m.black,.003);
-   const glyph=new THREE.Mesh(new THREE.PlaneGeometry(.067,.067),glyphMaterials[0]);
+   B(dial,.008,.012,.010,0,.032,.030,m.black,.003);
+   const glyph=new THREE.Mesh(new THREE.PlaneGeometry(.057,.057),glyphMaterials[0]);
    glyph.position.z=.047;dial.add(glyph);parts++;
-   // Dedicated fingertip hit target; it cannot overlap the next dial.
-   const dialTouch=new THREE.Mesh(new THREE.CylinderGeometry(.056,.056,.035,20),
+   const dialTouch=new THREE.Mesh(new THREE.CylinderGeometry(.046,.046,.034,22),
     new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
      depthWrite:false,side:THREE.DoubleSide}));
    dialTouch.rotation.x=Math.PI/2;dialTouch.position.z=.067;
@@ -226,6 +224,21 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    bagDialGlyphs.push(glyph);
    puzzleControls.set("thing:bag-dial-"+i,dial);bagDials.push(dial);
   }
+  // Separate spring-loaded catch under the row of wheels. Turning a wheel
+  // does not touch this control or open the false bottom automatically.
+  const release=new THREE.Group();
+  release.position.set(0,.105,.185);g.add(release);
+  B(release,.19,.078,.026,0,0,0,m.dark,.012);
+  bagReleaseCap=new THREE.Group();bagReleaseCap.position.z=.032;
+  release.add(bagReleaseCap);
+  B(bagReleaseCap,.155,.051,.029,0,0,.010,m.brass,.009);
+  B(bagReleaseCap,.085,.009,.010,0,0,.030,m.black,.003);
+  const pushVolume=new THREE.Mesh(new THREE.BoxGeometry(.173,.072,.038),
+   new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
+    depthWrite:false,side:THREE.DoubleSide}));
+  pushVolume.position.z=.051;release.add(pushVolume);parts++;
+  puzzleControls.set("thing:bag-release",release);
+  release.userData.mechanicalActuator=bagReleaseCap;
  }
  // Real opening doorway, jamb, inset raised panel, solid knob.
  {
@@ -559,6 +572,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  }
  function pulse(action){
   const control=puzzleControls.get(action);
+  if(action==="thing:bag-release"&&bagReleaseCap&&control?.visible){
+   gsap.killTweensOf(bagReleaseCap.position);
+   bagReleaseCap.position.z=reducedMotion?.032:.007;
+   invalidate();
+   if(!reducedMotion)gsap.to(bagReleaseCap.position,{z:.032,
+    duration:.29,delay:.07,ease:"back.out(2)",onUpdate:invalidate});
+   return true;
+  }
   if(!control||!action.startsWith("thing:elevator-floor-"))return false;
   gsap.killTweensOf(control.position);
   if(reducedMotion){control.position.z=.159;invalidate();return true;}
@@ -745,6 +766,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // original key has released its catch; before then, clicking the bag
   // still reaches the locked-bag clue instead of an inaccessible dial.
   if(bagDialPanel)bagDialPanel.visible=!!s.bagOpen;
+  const bagRelease=puzzleControls.get("thing:bag-release");
+  if(bagRelease)bagRelease.visible=!!s.bagOpen;
   if(!!s.bagOpen!==lastBagOpen&&bagCover){
    if(bagCoverSettleTimer){clearTimeout(bagCoverSettleTimer);bagCoverSettleTimer=null;}
    const coverAngle=s.bagOpen?-1.42:0;
@@ -778,7 +801,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   if(bagVolume)bagVolume.visible=!s.bagOpen;
   const liftVolume=items.get("elevator")?.hitVolume;
   if(liftVolume)liftVolume.visible=false;
-  const newDialValues=[0,1,2].map(i=>(s.bagDials?.[i]||0)%4);
+  const newDialValues=bagDials.map((_,i)=>(s.bagDials?.[i]||0)%glyphMaterials.length);
   for(let i=0;i<bagDials.length;i++){
    const value=newDialValues[i],dial=bagDials[i],glyph=bagDialGlyphs[i];
    if(!lastDialValues||firstRestore){
@@ -786,15 +809,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     bagDialSettleTimers[i]=null;
     gsap.killTweensOf(dial.rotation);
     gsap.killTweensOf(glyph.rotation);
-    bagDialGoals[i]=value*Math.PI/2;
+    bagDialGoals[i]=value*Math.PI/3;
     dial.rotation.z=bagDialGoals[i];
     glyph.rotation.z=-bagDialGoals[i];
    }else if(value!==lastDialValues[i]){
-    const turns=(value-lastDialValues[i]+4)%4;
-    // Every click adds a complete detent to the intended angle, even if
-    // the previous tween has barely started. Four quick turns must make a
-    // whole revolution instead of four attempts at the same quarter-turn.
-    const end=(bagDialGoals[i]??dial.rotation.z)+turns*Math.PI/2;
+    const turns=(value-lastDialValues[i]+glyphMaterials.length)%glyphMaterials.length;
+    // Count clockwise detents even when the player clicks faster than
+    // GSAP can render; six clicks return to exactly the same glyph.
+    const end=(bagDialGoals[i]??dial.rotation.z)+turns*Math.PI/3;
     bagDialGoals[i]=end;
     setPose(dial,"rotation","z",end,.33);
     setPose(glyph,"rotation","z",-end,.33);
