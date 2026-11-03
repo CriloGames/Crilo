@@ -597,8 +597,10 @@ try{
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
-   glowBefore.haloOpacity>.14&&glowBefore.haloOpacity<.45&&
-   glowBefore.surfaceEmission>0&&!glowBefore.raycastable,
+   glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
+   glowBefore.surfaceEmission>=.53&&glowBefore.surfaceEmission<=.84&&
+   glowBefore.haloScale>=1&&glowBefore.haloScale<=1.10&&
+   !glowBefore.raycastable,
    "Collectible should have a restrained, non-clickable item halo: "+
     JSON.stringify({id,glowBefore}));
   await activate("pickup:"+id);
@@ -720,7 +722,8 @@ try{
   Number.isFinite(shimReveal.state.scale)&&Number.isFinite(shimReveal.state.depth)&&
   shimReveal.state.socketGlow>.10&&
   shimReveal.state.glow?.active&&shimReveal.state.glow?.haloVisible&&
-  shimReveal.state.glow.surfaceEmission>0,
+  shimReveal.state.glow.surfaceEmission>=.53&&
+  shimReveal.state.glow.haloDepth>0,
   "Revealed item must have its own quiet lit surface and a real socket: "+
    JSON.stringify(shimReveal));
  await collect("shim");
