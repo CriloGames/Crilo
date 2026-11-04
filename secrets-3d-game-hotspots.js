@@ -290,6 +290,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // not visible until the player actually loosens the appropriate bolt.
  const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.91,1.25,.75);
  ventCipher.visible=false;
+ // Once exposed, the actual engraved strip can be pressed to read its
+ // tiny marks. This adds no pop-up or duplicate off-box clue.
+ setHit(ventCipher,"read:vents");targets.set("read:vents",ventCipher);
  // Four small numbered switches run a five-step service sequence.
  // Each has a separate finger-size contact without overlap; the matching
  // code stays behind the removable rivet on the opposite side.
@@ -482,6 +485,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Left is the bag-code cassette, right is the iris gear enclosure.
  const eyeCipher=engraving(backFace,"A / Ⅱ · Ⅰ · Ⅲ",.075,-1.395,.70);
  eyeCipher.visible=false;
+ setHit(eyeCipher,"read:score-a");targets.set("read:score-a",eyeCipher);
  // One purposeful, flush-mounted iris control. The engraved header,
  // protected grille and small ratcheting dial share a single bolted housing,
  // with deliberate gaps so the large optical lens remains visually dominant.
@@ -628,6 +632,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  const undersideCipher=engraving(bottomFace,"B / Ⅰ · Ⅲ · Ⅱ",-1.01,1.00,.62);
  undersideCipher.visible=false;
+ setHit(undersideCipher,"read:score-b");targets.set("read:score-b",undersideCipher);
  control(bottomFace,"underside",0,0,brass,.21);
  // A concealed return slot in the cube underside opens when the fourth
  // red-button detent catches. The bell is a separate collectible seated
