@@ -176,7 +176,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // and the lower rivet ON the projecting shelf (front z=.200).
   // The old lower cap was centered at z=.416, over .20 away from metal.
   for(const px of [-.225,.225]){
-   C(stand,.024,.03,px,.28,-.002,m.brass,"z");
+   // Upper heads align with the .319-high crossbar and their captive
+   // sleeves, not empty enamel beside it.
+   C(stand,.024,.03,px,.312,-.005,m.brass,"z");
    C(stand,.024,.03,px,-.03,.212,m.brass,"z");
   }
   const toy=new THREE.Group();
