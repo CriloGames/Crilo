@@ -250,13 +250,95 @@ for(const [id,owned] of [
  }
 }
 let selected=null,fluteTrayOpen=false,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
+let changesOpen=false;
+const changeNotes={
+ drawer:'Front latch released. The lavender drawer opened on its runners.',
+ thread:'Side release moved. The teal drawer opened with a red spool inside.',
+ pipe:'Top hatch opened. A hollow tube is lying in the exposed well.',
+ ring:'Underside return slot opened. A brass ring is waiting in its holder.',
+ mouse:'Copper catch released a mouse. A bag and vending machine appeared on the front.',
+ eye:'The rear eye opened, exposing an engraved musical phrase marked A.',
+ dot:'The red button moved a ratchet behind the front panel.',
+ bell:'An underside shutter opened, exposing a little bell.',
+ key:'Two metal pieces locked together to make a key.',
+ bag-code:'The bag catch opened its false bottom. Three small objects are inside.',
+ flute:'The hollow tube and reed became a playable flute.',
+ door:'The melody released a tiny door on the cube.',
+ dog:'The little door opened. A dog is behind it.',
+ vase:'The vase broke. Check its fragments for loose contents.',
+ music:'The music box started. A tiny cloud appeared.',
+ tree:'The small plant grew. Something is caught in its branches.',
+ moon:'A paper bird disappeared into the cube. A tiny moon appeared.',
+ fourth:'The fourth-floor lift opened. A lens and clockwork moth appeared.',
+ constellation:'The telescope focused with its lens. A star chart was exposed.',
+ dancer:'The music-box dancer emerged after its mechanism was fed.',
+ railway:'A tiny railway and train appeared on the cube.',
+ portal:'The postcard passed through the enamel. A little landscape appeared.',
+ faceplate:'The front fasteners released a small service hatch beside the lens.',
+ 'vent-sequence':'The five vent presses released a sliding grille with a copper shim inside.',
+ 'eye-dial':'The rear optical ring reached its stop. A small brass strip is exposed.',
+ 'hidden-optic':'The drive cog engaged the eye mechanism. A loose glass iris was exposed.',
+ 'service-bolt':'The repaired vending machine opened a second drawer containing a brass seal.',
+ 'hinge-pin':'The last removable hinge pin came free. A washer remains in its seat.',
+ 'clockwork-heart':'The washer repaired the music box’s small clockwork mechanism.',
+ 'underside-foot':'A rubber foot slid aside, revealing a musical phrase marked B.',
+ 'pressure-dial':'The pressure needle reached its stop. A tuning fork sits in the holder above.',
+ resonance:'The tuning fork released the catch that holds the service shutter.',
+ 'service-shutter':'The service shutter opened. A grooved wax cylinder is inside.',
+ 'wax-cylinder':'The wax cylinder fitted the music box. Punched paper tape emerged.',
+ 'paper-tape':'The clock read the paper tape and produced a letter.',
+ 'outgoing-mail':'The tiny train took the letter and returned a sealed envelope.',
+ 'return-letter':'The door opened the returned letter.'
+};
+const recentChanges=(Array.isArray(raw.recentChanges)?raw.recentChanges:[])
+ .filter(entry=>entry&&typeof entry.id==='string'&&
+  typeof entry.message==='string'&&entry.message.length<=230).slice(0,4);
+const itemInspections={
+ tooth:'Its teeth look like part of a larger key.',
+ ring:'A solid brass ring, shaped to fit around another piece.',
+ thread:'A short spool of thread, good for tying something lightweight.',
+ pipe:'A hollow tube with a gap for a reed.',
+ reed:'A small reed that could vibrate inside a tube.',
+ key:'A complete metal key. Its teeth are cut to fit a small lock.',
+ coin:'A stamped coin, sized for a narrow slot.',
+ treat:'A biscuit with little tooth marks on the edge.',
+ prism:'A glass triangle that can catch and bend light.',
+ acorn:'The shell is intact. It could still grow.',
+ spring:'A tightly wound spring, made to power something small.',
+ raindrop:'A bead of water that has somehow kept its shape.',
+ bird:'A folded paper bird, delicate but surprisingly sturdy.',
+ kite:'A tiny kite. Its thread is taut.',
+ sugar:'A little cube of sugar.',
+ bell:'Its clapper is loose. It rings when moved.',
+ tag:'A metal collar tag with a number stamped on it.',
+ lens:'A glass lens with a fitted metal rim.',
+ stardust:'Fine glitter from the clockwork moth.',
+ starmap:'A star chart folded into a small square.',
+ parcel:'A wrapped package with no sender.',
+ postcard:'A small postcard with a strange scene on its front.',
+ cog:'A brass gear, machined for a drive socket.',
+ iris:'A loose glass iris with curved edges.',
+ shim:'A thin copper wedge. The edge looks shaped to free a tight mechanism.',
+ washer:'A flat metal ring from the hinge.',
+ fork:'Two polished metal tines. They hum when touched.',
+ cylinder:'A grooved cylinder made to rotate inside a mechanism.',
+ tape:'A strip of punched paper with uneven rows of holes.',
+ letter:'A folded letter waiting to be delivered.',
+ envelope:'A sealed envelope addressed to someone.'
+};
+function rememberChange(id,message=changeNotes[id]){
+ if(!message)return;
+ if(recentChanges[0]?.id===id&&recentChanges[0]?.message===message)return;
+ recentChanges.unshift({id,message});
+ recentChanges.length=Math.min(4,recentChanges.length);
+}
 // The pocket is re-rendered after every mechanical action. Newly found
 // highlights and keyboard focus must survive those renders.
 const pocketArrivalUntil=new Map();
 let toastTimeout=null,animationTimeout=null,fleeing=false;
 const story={};
 function store(){
- try{localStorage.setItem(KEY,JSON.stringify({...s,seen:[...seen],pocket:[...pocket],pendingPickups:[...pendingPickups]}))}catch{}
+ try{localStorage.setItem(KEY,JSON.stringify({...s,seen:[...seen],pocket:[...pocket],pendingPickups:[...pendingPickups],recentChanges}))}catch{}
 }
 function tell(message){$('ncNarrator').textContent=message}
 function sound(freq=530){
@@ -266,6 +348,7 @@ function sound(freq=530){
 function bloom(id,comment){
  if(!title.has(id)||seen.has(id))return false;
  seen.add(id);
+ rememberChange(id);
  // In physical 3D, the reward lives in the inventory and journal, not as
  // an oversized flying notification pasted over the mechanical box.
  const physical=document.body.classList.contains('nc-physical-ready');
@@ -433,6 +516,26 @@ function incident(symbol){
 }
 function render(){
  $('ncCount').textContent=seen.size;
+ const recent=$('ncLastChanges'),toggleChanges=$('ncChangesToggle');
+ const listChanges=$('ncChangesList'),countChanges=$('ncChangesCount');
+ if(recent&&toggleChanges&&listChanges&&countChanges){
+  recent.hidden=!recentChanges.length;
+  countChanges.textContent=recentChanges.length?'('+recentChanges.length+')':'';
+  toggleChanges.setAttribute('aria-expanded',String(changesOpen));
+  listChanges.hidden=!changesOpen;
+  if(changesOpen){
+   const shown=recentChanges.map(e=>e.id+':'+e.message).join('|');
+   if(listChanges.dataset.shown!==shown){
+    listChanges.replaceChildren();
+    for(const entry of recentChanges){
+     const li=document.createElement('li');
+     li.textContent=entry.message;
+     listChanges.append(li);
+    }
+    listChanges.dataset.shown=shown;
+   }
+  }
+ }
  document.body.classList.toggle('nc-a-open',s.a);
  document.body.classList.toggle('nc-b-open',s.b);
  document.body.classList.toggle('nc-top-open',s.top);
@@ -515,8 +618,9 @@ function render(){
  $('ncPocket')?.classList.toggle('nc-holding',!!selected);
  if(combineGuide){
   const action=selected
-   ?'Look around the cube. If something glows green, try it there. Or pick another item to combine.'
-   :'Pick an item, then try it on the cube. Some items fit together, too.';
+   ?(itemInspections[selected]||'Look closely at the object you are holding.')+
+    ' If a fitting glows green while you inspect it, try the item there. You can also choose another inventory item to combine.'
+   :'Pick an item to inspect it. Some fit other objects on the cube; some can be combined in your pocket.';
   const strong=combineGuide.querySelector('strong');
   if(strong)strong.textContent=selected?'Try it: ':'Try things: ';
   const current=combineGuide.querySelector('.nc-combine-instructions');
@@ -602,6 +706,11 @@ function render(){
    const progress=fluteTray.querySelectorAll('#ncFluteNoteSteps i');
    const entered=s.door?Math.min(6,s.fluteNotes.length):s.fluteNotes.length;
    progress.forEach((lamp,i)=>lamp.classList.toggle('is-lit',i<entered));
+   const scoreState=$('ncFluteScores');
+   if(scoreState){
+    scoreState.textContent='Engraved scores: A '+(s.back?'found':'not found')+
+     ' · B '+(s.footChecked?'found':'not found')+'.';
+   }
    const status=$('ncFluteStatus');
    if(status)status.textContent=s.door?
     'The tiny door is already open. You can still play the flute.':
@@ -1031,10 +1140,10 @@ function use(item,thing){
 }
 function take(item){
  if(!pocket.has(item))return;
- if(!selected){selected=item;window.NothingHereAudio?.play?.('select');tell('Try '+names[item]+' on something.');render();return}
+ if(!selected){selected=item;window.NothingHereAudio?.play?.('select');tell('Holding '+names[item]+'. '+(itemInspections[item]||'Try fitting it to something on the cube.'));render();return}
  if(item===selected){selected=null;window.NothingHereAudio?.play?.('release');render();return}
  const result=recipe[sorted(selected,item)];
- if(!result){tell('No luck. Those two don’t fit together.');sound(185);render();return}
+ if(!result){tell('The '+names[selected]+' and '+names[item]+' do not join. Both items are still in your pocket.');sound(185);render();return}
  spend(selected);spend(item);
  window.NothingHereAudio?.play?.('select');
  // Combining is an intentional inventory interaction, not a hidden
@@ -1371,6 +1480,10 @@ $('ncSideObjects').addEventListener('click',eventThing);
 $('ncDoorScene').addEventListener('click',eventThing);
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
+$('ncChangesToggle')?.addEventListener('click',()=>{
+ changesOpen=!changesOpen;
+ render();
+});
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
 $('gameInfoBtn')?.addEventListener('click',info);
 $('ncModalClose').addEventListener('click',closeModal);
