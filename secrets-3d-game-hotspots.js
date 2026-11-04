@@ -357,16 +357,13 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  C(reed,.038,.045,0,0,0,graphite);
  setHit(reed,"top-reed");targets.set("top-reed",reed);
- // The combined flute is a real, clickable instrument attached to
- // the OUTSIDE of the hinged top lid. It must work even if the separate
- // top-hatch puzzle has not been solved yet. Placing it down in the closed
- // well used to hide all three keys under solid metal. Parenting it to the
- // lid also keeps it bolted to the box when the lid eventually opens.
- // No floating popup, automatic puzzle solution, or detached instrument.
- // Mount near the hinged upper rail, away from the TRIANGLE switch
- // and the lower inscription, so the new instrument reveals no old clue
- // and never masks the lid's working puzzle hardware.
- const flute=node(lidPivot,-.025,-.12,.19);
+ // The physical flute is clamped to the FIXED lower rail of the top
+ // face. Previously it was parented to the hinged lid and rotated nearly
+ // edge-on when that lid opened: the instrument appeared unclickable from
+ // any normal top view. The permanent rail keeps all three keys facing
+ // the player without floating over the compartment or obstructing its
+ // triangle latch. The nameplate occupies the opposite half of the rail.
+ const flute=node(topFace,-.66,-1.12,.17);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
