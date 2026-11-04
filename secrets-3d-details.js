@@ -64,6 +64,9 @@ export function buildIntricateCube({
     for(const dx of [-w/2,w/2])C(face,.024,.031,x+dx,y,.166,steel);
   };
   const rivet=(face,x,y,z=.15)=>{
+    // Actual shank behind the rivet joins the raised trim rail. Previously
+    // its head began beyond the panel and looked like a loose gold stud.
+    C(face,.030,.114,x,y,z-.057,steel);
     C(face,.046,.031,x,y,z,metal);
     B(face,.047,.008,.01,x,y,z+.022,ebony,.003);
   };
@@ -322,13 +325,22 @@ export function buildIntricateCube({
     B(g,1.04,.031,.50,0,-.272,-.26,felt,.01);
     for(const x of [-.43,.43]){
       B(g,.041,.32,.54,x,-.11,-.26,metal,.01);
-      for(const z of [-.47,-.26,-.05]) B(g,.068,.07,.060,x,-.11,z,steel,.01);
+      // Captive guide shoes are mounted directly on the continuous rail
+      // rather than existing as independent brass cubes beyond its face.
+      for(const z of [-.47,-.26,-.05])
+       B(g,.068,.07,.060,x,-.11,z,steel,.01);
     }
     for(const x of [-.27,.27])B(g,.07,.25,.034,x,-.11,-.57,ivory,.012);
-    // telescoping drawer guide visible only during extension
+    // Real captured telescoping slides. The previous .63/.66-long bars
+    // separated by a visible .08 gap when the tray reached z=.60.
+    // A .94 moving tongue and .88 fixed sleeve remain interlocked through
+    // the full stroke, and the fixed sleeve meets its cavity sidewall.
     for(const x of [-.59,.59]){
-      B(g,.035,.045,.63,x,-.04,-.27,darkMetal,.01);
-      B(obj.cavity,.047,.039,.66,x,-.04,-.39,metal,.01);
+      B(g,.046,.051,.94,x,-.04,-.28,darkMetal,.011);
+      B(obj.cavity,.101,.061,.88,x*1.035,-.04,-.42,metal,.011);
+      // Small rolling guide is a captive part OF the moving tray, not
+      // an independent hovering stud inside its opened socket.
+      B(g,.063,.063,.064,x,-.04,-.56,steel,.011);
     }
     B(g,.22,.035,.08,0,.22,.28,metal,.009);
     B(g,.10,.052,.10,0,.22,.335,ivory,.015);
