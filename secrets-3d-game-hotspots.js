@@ -761,8 +761,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
      invalidate();
     },1050);
    }
-   pose(foot,"position","y",s.footChecked?1.35:1.02,
-     previous.footChecked?1.35:1.02,restore,.46);
+   // Once the rubber foot is slid aside, its now-useless oversized
+   // finger collider must not steal clicks from the B music inscription.
+   // Keep the actual metal/rubber foot visible at its end stop but make
+   // the newly revealed plate the frontmost selectable control.
+   foot.traverse(part=>{
+    if(!part.isMesh)return;
+    if(part.userData.action==="foot"||part.userData.action===null)
+     part.userData.action=s.footChecked?null:"foot";
+   });
+   pose(foot,"position","y",s.footChecked?1.42:1.02,
+     previous.footChecked?1.42:1.02,restore,.46);
    // A crafted flute exists on the outside of the lid even when an older
    // save is missing its top-open flag. Pocket ownership is authoritative.
    flute.visible=Array.isArray(s.pocket)&&s.pocket.includes("flute");
