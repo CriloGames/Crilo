@@ -257,6 +257,9 @@ const changeNotes={
  pipe:'Top hatch opened. A hollow tube is lying in the exposed well.',
  ring:'Underside return slot opened. A brass ring is waiting in its holder.',
  mouse:'Copper catch released a mouse. A bag and vending machine appeared on the front.',
+ machine:'The vending machine accepted a coin. A sugar cube is in its little tray.',
+ rain:'The cloud produced a drop of water in its holder.',
+ parcel:'The tiny train delivered a wrapped parcel.',
  eye:'The rear eye opened, exposing an engraved musical phrase marked A.',
  dot:'The red button moved a ratchet behind the front panel.',
  bell:'An underside shutter opened, exposing a little bell.',
@@ -380,6 +383,8 @@ function gain(id,message,direct=false){
  if(!pocket.has(id)){
   const origin=document.activeElement?.closest?.('[data-hit],[data-thing],[data-dial]')||null;
   pocket.add(id);
+  // Record only actually collected objects, never clues still locked away.
+  if(direct)rememberChange('collected:'+id,'Collected '+names[id]+'. It is now in your pocket.');
   window.NothingHereAudio?.play?.('pickup');
   pocketArrivalUntil.set(id,Date.now()+1150);
   if(message)tell(message);
@@ -927,7 +932,9 @@ function cubeHit(name){
   else{
    s.topHits++;
    if(s.topHits>=3){s.top=true;bloom('pipe','The third catch moves. The top lid opens on its hinges, revealing a hollow wooden tube in the compartment.')}
-   else tell('A small catch shifts inside the lid.');
+   else tell(s.topHits===1
+    ?'The triangular button sinks in. One internal catch moves, but the lid is still fastened.'
+    :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
   if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The hollow wooden tube comes free of its upper retaining bracket.')}
@@ -1422,7 +1429,7 @@ function info(){
   '<p>Small engravings identify parts of the mechanism. In real 3D, hover with a mouse or touch and hold on a phone to identify an object without activating it. Found items stay physically on the cube until you press them, then move to your pocket below.</p>'+ 
   '<p>Keyboard: focus the 3D cube, use arrow keys to turn it, I to inspect a visible fitting (Shift+I to go back), Enter to activate it, and Escape to stop inspecting. Tab moves to the other controls.</p>'+
  '<p>Sounds and lobby music have independent on/off controls above the cube. Music begins only after you enable it. The licensed audio sources are listed in the project credits.</p>'+
- '<p>The journal records what you have discovered. Your progress saves on this device.</p>','info');
+ '<p>The journal records what you have discovered. “What changed?” below the cube keeps a short history of mechanisms you actually opened. Neither list reveals untouched codes.</p><p>Your progress saves on this device.</p>','info');
 }
 const tactileHit=name=>name==='dot'||name==='foot'||name==='eye-ring'||name==='serial'||name==='pressure'||name==='shutter'||
  /^(?:front-screw-|right-bolt-|hinge-|vent-)/.test(name);
