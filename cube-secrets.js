@@ -620,7 +620,7 @@ function render(){
   const action=selected
    ?(itemInspections[selected]||'Look closely at the object you are holding.')+
     ' If a fitting glows green while you inspect it, try the item there. You can also choose another inventory item to combine.'
-   :'Pick an item to inspect it. Some fit other objects on the cube; some can be combined in your pocket.';
+   :'Pick an item to inspect it. Some fit together in your pocket; others work on the cube.';
   const strong=combineGuide.querySelector('strong');
   if(strong)strong.textContent=selected?'Try it: ':'Try things: ';
   const current=combineGuide.querySelector('.nc-combine-instructions');
