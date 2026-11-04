@@ -156,7 +156,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
- shimUsed:false,coinReturned:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
+ shimUsed:false,coinReturned:false,refundRedeemed:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
  serialRead:false,pressureReady:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
@@ -207,6 +207,12 @@ const recoverReward=(id,unspent)=>{
  recoveredFromSave.push(id);
 };
 recoverReward('coin',s.mouse&&!seen.has('machine'));
+// Repaired machines must return a usable coin even when the original
+// purchase happened after the shim repair (or in an older save).
+if(s.shimUsed&&seen.has('machine')&&!s.refundRedeemed&&!pocket.has('coin')){
+ s.coinReturned=true;
+ recoverReward('coin',true);
+}
 recoverReward('reed',s.bagSolved&&!seen.has('flute')&&!pocket.has('flute'));
 recoverReward('treat',s.bagSolved&&!s.tag);
 recoverReward('prism',s.bagSolved&&!seen.has('kite')&&!pocket.has('kite'));
@@ -862,7 +868,7 @@ function accepts(item,thing){
  ||item==='acorn'&&thing==='pot'&&!s.plant
  ||item==='raindrop'&&thing==='pot'&&s.plant&&!s.tree
  ||item==='spring'&&thing==='musicbox'&&!s.music
- ||item==='coin'&&thing==='machine'
+ ||item==='coin'&&thing==='machine'&&!s.refundRedeemed
  ||item==='kite'&&thing==='cloud'&&s.cloud&&!s.kite
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
@@ -915,7 +921,23 @@ function use(item,thing){
   bloom('music','The music box plays a song that attracts a miniature rain cloud.');
   bloom('cloud');incident('♪');
  }else if(item==='coin'&&thing==='machine'){
-  spend('coin');gain('sugar');bloom('machine','The machine accepts money but dispenses sugar cubes.');
+  spend('coin');
+  if(s.shimUsed&&seen.has('machine')&&s.coinReturned&&!s.refundRedeemed){
+   // The refunded coin pays for an actual service payoff instead of an
+   // unusable second sugar cube. Keep the original 60-secret catalog.
+   s.refundRedeemed=true;
+   bloom('service-bolt','The returned coin turns the repaired service wheel. A stamped brass certificate slides out beneath the vending tray.');
+   tell('A second, shallower drawer slides from the machine. It carries a stamped brass service seal.');
+  }else{
+   gain('sugar');
+   bloom('machine','The vending machine accepts the first coin and dispenses a sugar cube.');
+   // If repairs preceded the purchase, issue the owed return now.
+   if(s.shimUsed&&!s.coinReturned&&!s.refundRedeemed){
+    s.coinReturned=true;
+    gain('coin');
+    tell('The repaired return drops the coin back into a second little tray. The sugar cube is waiting beside it.');
+   }
+  }
  }else if(item==='kite'&&thing==='cloud'){
   spend('kite');s.kite=true;bloom('kite','The kite becomes a weather vane and flies out of this dimension.');incident('◇');
  }else if(item==='sugar'&&thing==='cup'){
@@ -954,9 +976,9 @@ function use(item,thing){
   const coinOwed=!pocket.has('coin')&&!pendingPickups.has('coin');
   s.coinReturned=coinOwed;
   if(coinOwed)gain('coin');
-  bloom('service-bolt',coinOwed
-   ?'The copper shim frees the jammed return. A spent coin rolls out of the vending machine.'
-   :'The copper shim frees the vending machine return. The tray is empty; there is no spent coin to refund.');
+  tell(coinOwed
+   ?'The copper shim frees the jammed return. A spent coin rolls out of the machine. The service wheel behind its slot is now exposed.'
+   :'The copper shim frees the jammed return. No coin is inside yet; its service wheel is ready for the next purchase.');
  }else if(item==='washer'&&thing==='musicbox'){
   spend('washer');s.clockHeart=true;
   bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');
@@ -1244,7 +1266,11 @@ function clickThing(name,actuator=false){
   if(document.body.classList.contains('nc-physical-ready'))
    tell('The miniature clock has stopped at 4:17. Another object might make its mechanism run.');
   else modal('CLOCK DEPARTMENT','4:17','<p>Nothing is wrong with this clock. It just refuses to acknowledge the existence of other times.</p>','clock');
- }else if(name==='machine')tell('INSERT COIN. It is remarkably confident.');
+ }else if(name==='machine')tell(s.refundRedeemed
+  ?'The repair seal is visible in the narrow second drawer. This machine has nothing else to sell.'
+  :s.shimUsed
+   ?'The repaired return mechanism has a second little slot beneath the sugar tray.'
+   :'INSERT COIN. The return slot beneath the tray is jammed.');
  else if(name==='elevator'){
   if(document.body.classList.contains('nc-physical-ready')){
    bloom('lift','The lift has four brass buttons. Its moving doors look strangely real.');
