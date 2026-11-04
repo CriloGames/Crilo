@@ -379,6 +379,13 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    root.position.set(0,0,.125);
    root.scale.setScalar(.87);
    retainer.add(root);
+   // Any outward-facing service reward mounted directly on enamel needs
+   // a real stem from the case to its miniature holder. Formerly the
+   // bracket started z=.193 ahead of a .073-thick shell: from a side view
+   // its screws and the object appeared to be floating in empty space.
+   // Internal-recess rewards already attach to a physical socket host.
+   if(surface)
+    box(retainer,.064,.062,.176,0,-.105,-.073,metal,.010);
    box(retainer,.145,.074,.065,0,-.105,.026,metal,.008);
    box(retainer,.105,.018,.035,0,-.141,.064,copper,.005);
    retainer.visible=false;
