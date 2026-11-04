@@ -243,7 +243,7 @@ for(const [id,owned] of [
   pocket.add(id);pendingPickups.delete(id);recoveredFromSave.push(id);
  }
 }
-let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
+let selected=null,fluteTrayOpen=false,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 // The pocket is re-rendered after every mechanical action. Newly found
 // highlights and keyboard focus must survive those renders.
 const pocketArrivalUntil=new Map();
@@ -562,11 +562,13 @@ function render(){
    button.classList.toggle('nc-selected',id===selected);
    button.classList.toggle('nc-item-reactive',itemMayReact(id));
    button.classList.toggle('nc-item-playable',id==='flute');
+   if(id==='flute')button.setAttribute('aria-expanded',String(fluteTrayOpen));
+   else button.removeAttribute('aria-expanded');
    button.classList.toggle('nc-item-combine-match',combinesWithHeld);
    button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
    button.title=combinesWithHeld?'Fits with the item you are holding':
     id===selected?'Click again to put it down':
-    id==='flute'?'Play this instrument':
+    id==='flute'?'Open the flute keys below to play six notes':
     craftParts.has(id)&&worldUseItems.has(id)?'Might work on the cube or with another item':
     craftParts.has(id)?'Might fit with another item':
     worldUseItems.has(id)?'Might work on the cube':'Collected item';
@@ -584,6 +586,24 @@ function render(){
   held.hidden=!selected;
  }
  $('ncUnselect').hidden=!selected;
+ // This playable instrument is in the pocket, not a detached fullscreen
+ // dialog. It uses the SAME canonical note engine as the physical keys.
+ const fluteTray=$('ncFluteTray');
+ if(fluteTray){
+  const show=fluteTrayOpen&&pocket.has('flute');
+  fluteTray.hidden=!show;
+  if(show){
+   const progress=fluteTray.querySelectorAll('#ncFluteNoteSteps i');
+   const entered=s.door?Math.min(6,s.fluteNotes.length):s.fluteNotes.length;
+   progress.forEach((lamp,i)=>lamp.classList.toggle('is-lit',i<entered));
+   const status=$('ncFluteStatus');
+   if(status)status.textContent=s.door?
+    'The tiny door is already open. You can still play the flute.':
+    entered?'Notes played: '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join(' · ')+
+     ' ('+entered+' of 6).':
+     'Ready. Play six notes. A wrong phrase resets so you can try again.';
+  }
+ }
  // A selected item is clearly marked in the pocket, but never highlight
  // the correct combinations or recipient targets before discovery.
  document.querySelectorAll('[data-thing]').forEach(node=>{
@@ -1078,22 +1098,27 @@ function callElevator(floor){
  render();
 }
 function openFlute(){
- if(document.body.classList.contains('nc-physical-ready')){
-  // The instrument is genuinely modeled inside the hinged top well.
-  // Keep the puzzle on the real 3D box instead of opening an HTML modal.
-  tell(pocket.has('flute')?
-   'The assembled flute is on the top lid. Its three little keys play the notes stamped in two fragments, A and B.':
-   'A hollow tube and another small part might make a playable instrument.');
+ if(!pocket.has('flute')){
+  tell('A hollow tube and a tiny reed can make an instrument, but it has to be assembled first.');
   return;
  }
+ // Clicking the inventory flute OPENS actual note buttons, even if the
+ // hinged lid is facing away from the player or an old save lacks top=true.
+ fluteTrayOpen=!fluteTrayOpen;
+ selected=null;
+ render();
+ tell(fluteTrayOpen?
+  'The flute is ready in your inventory. Press one of the three keys. Two engraved phrases on the cube, A and B, form a six-note melody.':
+  'The flute is closed in your inventory. Click it again when you want to play.');
+}
+function resetFlutePhrase(){
+ if(!pocket.has('flute'))return;
  s.fluteNotes=[];
- modal('A VERY UNNECESSARY INSTRUMENT','The flute',
-  '<p>It has three holes. Every breath becomes a different note.</p><div class="nc-flute-model" id="ncFluteModel"><span></span><span></span><span></span></div><div class="nc-flute-keys">'+
-  [1,2,3].map(i=>'<button type="button" data-note="'+i+'" aria-label="Blow flute note '+i+'">'+i+'</button>').join('')+
-  '</div><div class="nc-flute-track" id="ncFluteTrack">♪  ·  ·  ·</div>', 'flute');
+ render();
+ tell('The flute returns to its starting note. Try a fresh six-note phrase.');
 }
 function note(i){
- if(!Number.isInteger(i)||i<1||i>3)return;
+ if(!Number.isInteger(i)||i<1||i>3||!pocket.has('flute'))return;
  if(s.door){
   // The instrument remains playable after unlocking the door; this also
   // keeps keyboard interaction and audio functional on completed saves.
@@ -1277,7 +1302,9 @@ function eventThing(e){
 }
 function clickInventory(e){
  const item=e.target.closest('[data-item]');
- if(item)take(item.dataset.item);
+ if(!item)return;
+ if(item.dataset.item==='flute'){openFlute();return}
+ take(item.dataset.item);
 }
 // Chromium can project a hinged 3D control at one screen coordinate while
 // routing the pointer to its flat parent instead. Fall back to the actual
@@ -1499,14 +1526,14 @@ document.addEventListener('keydown',e=>{
   }
  }
 });
-// A flute is played, not combined indiscriminately. Inventory navigation is click and keyboard accessible.
-$('ncInventory').addEventListener('dblclick',e=>{
- const el=e.target.closest('[data-item]');
- if(el?.dataset.item==='flute')openFlute();
-});
-$('ncInventory').addEventListener('click',e=>{
- const el=e.target.closest('[data-item]');
- if(el?.dataset.item==='flute'){selected=null;render();openFlute();}
+// The inventory flute opens real inline keys on the FIRST click.
+// Avoid two competing click handlers that used to select then immediately
+// deselect the same tool, leaving only an unhelpful sentence.
+$('ncFluteTray')?.addEventListener('click',e=>{
+ const key=e.target.closest('[data-flute-key]');
+ if(key){note(Number(key.dataset.fluteKey));return}
+ if(e.target.closest('#ncFluteClose')){openFlute();return}
+ if(e.target.closest('#ncFluteStartOver'))resetFlutePhrase();
 });
 $('ncInventory').addEventListener('dragstart',e=>{
  const el=e.target.closest('[data-item]');
@@ -1553,7 +1580,9 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
  // props. Selecting an inventory item and then a 3D object uses the same
  // recipe, discovery, modal and storage rules as clicking its HTML button.
  activatePhysicalFluteNote(index){
-  if(!Number.isInteger(index)||index<1||index>3||!pocket.has('flute')||!s.top)return;
+  // Inventory ownership is the condition for playing. An old save with
+  // the completed flute must never get stuck behind a missing lid flag.
+  if(!Number.isInteger(index)||index<1||index>3||!pocket.has('flute'))return;
   note(index);
  },
  activatePhysicalBagDial(index){
