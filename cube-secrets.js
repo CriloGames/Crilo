@@ -137,6 +137,9 @@ const sorted=(a,b)=>[a,b].sort().join('+');
 // simply cycling past an answer never opens the bag's false bottom.
 const BAG_SYMBOLS=['○','✳','◇','☾','△','□'];
 const BAG_CODE=[2,0,3,1];
+// These are mirrored by the ACTUAL engraved codes on the six 3D faces.
+const VENT_CODE=[3,1,4,2,3];
+const FLUTE_CODE=[2,1,3,1,3,2];
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
@@ -180,6 +183,9 @@ s.ry=-32;
 s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
 s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
 s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3,4].includes(n)).slice(-5):[];
+// Migrate a failed, half-cleared attempt without making the next correct
+// sequence mysteriously fail after a page reload.
+if(!s.ventOpen&&s.ventSequence.length>=VENT_CODE.length)s.ventSequence=[];
 // Older saves allowed this mechanical ratchet to overrun indefinitely.
 // Normalize those poses to its real three-detent end stop without touching
 // the player's completed secrets or inventory.
@@ -620,9 +626,9 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(n===1&&!s.rightBoltLoose){
    s.rightBoltLoose=true;
-   tell('The removable service bolt withdraws. Five tiny marks are engraved inside its socket.');
+   tell('The service bolt comes free. A five-part engraving appears beside its empty socket. The numbered switches are on the opposite face.');
    scatter('#9ec7c9',7,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(n===1)tell('The bolt’s out. You can see five little marks inside the hole.');
+  }else if(n===1)tell('The service bolt is out. Its five-part engraving faces the numbered vent switches across the cube.');
   else tell(['The first rivet has a slot shaped like a minus sign.',
    '', 'The third rivet was installed backwards.','The fourth rivet holds the drawer rail.'][n]);
   return true;
@@ -631,15 +637,22 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(s.ventOpen){tell('The grille’s already open.');return true}
   if(!Number.isInteger(n)||n<1||n>4)return true;
-  s.ventSequence.push(n);s.ventSequence=s.ventSequence.slice(-5);
-  if(s.ventSequence.join('')==='31423'){
+  s.ventSequence.push(n);
+  if(s.ventSequence.join('')===VENT_CODE.join('')){
    s.ventOpen=true;gain('shim');
    bloom('vent-sequence','The five-step mechanism releases. The slotted shutter retracts, exposing a copper shim in its cavity.');
+   tell('All five vent switches seat correctly. The grille slides aside and exposes a copper shim in its holder.');
    cue('ncWorld','nc-shudder',430);scatter('#d1a996',9,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(s.ventSequence.length===5){
-   s.ventSequence=[n];tell('Wrong order. The switches click back into place.');
+  }else if(s.ventSequence.length>=VENT_CODE.length){
+   // Every failed attempt really resets. Retaining the last key used to
+   // leave a hidden partial attempt between full retries.
+   s.ventSequence=[];
+   tell('The five vent switches spring back. Nothing opened; try the sequence again from the first switch.');
    sound(200);
-  }else{tell('Click. The switch stays down for a second.');sound(270+n*90)}
+  }else{
+   tell('Vent switch '+n+' clicks. '+s.ventSequence.length+' of five presses registered.');
+   sound(270+n*90);
+  }
   return true;
  }
  if(name==='eye-ring'){
@@ -672,7 +685,7 @@ function inspectHardware(name){
   if(!s.footChecked){
    s.footChecked=true;
    bloom('underside-foot','The rubber foot slides along its track, revealing a short musical inscription in the exposed metal.');
-   tell('The rubber foot slides toward the outer rim, uncovering a second row of three musical marks.');
+   tell('The foot slides aside. Three musical marks stamped B appear in the metal, with another fragment marked A elsewhere on the cube.');
   }else tell('The foot won’t slide any farther. Three marks are showing underneath.');
   return true;
  }
