@@ -716,6 +716,9 @@ try{
   "Real 3D eye must reveal the original eye clue, not merely move the calibration dial");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).eyeNumber,
   "The eye must reveal its engraving ON the floating cube");
+ await activate("read:score-a");
+ assert.match(await page.locator("#ncNarrator").innerText(),/Ⅱ · Ⅰ · Ⅲ/,
+  "The revealed score A must be inspectable in plain language");
  // Eye geometry should be an actual almond with separate iris and pupil.
  // The revealed numbers belong on the bottom-center rail, not under the
  // optical glass, a permanent plaque, or the bag/iris cassettes.
@@ -753,6 +756,9 @@ try{
  await activate("right-bolt-1");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
   "Removing the service bolt must uncover its genuine inscribed number");
+ await activate("read:vents");
+ assert.match(await page.locator("#ncNarrator").innerText(),/3 · 1 · 4 · 2 · 3/,
+  "The unbolted vent sequence is not readable from its engraved strip");
  // A successfully entered service sequence must now move a *real*
  // bolted-on vent cover; simply adding a shim to inventory is not enough.
  const ventBefore=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
@@ -823,6 +829,9 @@ try{
  });
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).footNumber,
   "The folded-back foot must uncover the hidden underside inscription");
+ await activate("read:score-b");
+ assert.match(await page.locator("#ncNarrator").innerText(),/Ⅰ · Ⅲ · Ⅱ/,
+  "The underside phrase B must be readable after its foot slides aside");
  await activate("service-latch");
  assert.equal((await state()).serviceOpen,false,"The sound-operated latch must remain locked until resonance");
  // The original 2D side-prop chain is now mirrored by fifteen
