@@ -288,8 +288,14 @@ box(lidPivot,.83,.028,.024,0,-topHole.h/2,.186,metal,.007);
 // leave the demo's fixed metal barrels intersecting the removable pins.
 if(!embeddedGame)for(const xx of [-.49,0,.49]){
  const pin = cylinder(topFace,.083,.34,xx,topHole.h/2,.15,metal);
- // Hinge axle follows the X axis, not the direction of the screw heads.
- pin.rotation.y=Math.PI/2;
+ // Cylinder axes start as Y. Rotation about Z, not Y, produces an X axle.
+ // The previous rotation.y left these barrels pointing through the lid.
+ pin.rotation.z=Math.PI/2;
+}else for(const xx of [-.79,.79]){
+ // Fixed end knuckles visually join the rear lid to the case without
+ // crossing the three separately extractable hinge-pin heads.
+ const knuckle=cylinder(topFace,.049,.135,xx,topHole.h/2,.13,metal);
+ knuckle.rotation.z=Math.PI/2;
 }
 lidPivot.userData.action="hatch";setHit(lidPivot,"hatch");
 // Articulated gas struts connect the stationary cavity to the moving lid.
@@ -830,7 +836,7 @@ function describeAction(action){
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
- if(action==="front-screw-3")return "Captive spring fastener";
+ if(action==="front-screw-3")return "Unslotted corner fitting";
  if(action.startsWith("front-screw-"))return "Removable faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
  if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
