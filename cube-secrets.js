@@ -741,7 +741,7 @@ function cubeHit(name){
   if(!s.back){s.back=true;bloom('eye','The rear eyelid slides aside. A short sequence of musical marks becomes visible beneath the lens.');}
   else if(document.body.classList.contains('nc-physical-ready'))
   tell('Below the eye is the first three-note fragment. The optical ring beside it also turns.');
- else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">Ⅰ / Ⅱ · Ⅰ · Ⅲ</p><p>There may be another half of this musical sequence.</p>','eye');
+ else modal('REVERSE SIDE','A message with no sender','<p class="nc-clue">A / Ⅱ · Ⅰ · Ⅲ</p><p>There may be another half of this musical sequence.</p>','eye');
  }else if(name==='dot'){
   if(s.redHits>=4)tell('The red switch won’t push in any farther.');
   else{
