@@ -1793,6 +1793,26 @@ try{
    "Save repair duplicated an item consumed by a later puzzle: "+id);
  assert(recovery.fork?.visible,
   "Recovered tuning fork is not visible at its original physical source");
+ // Resume a saved but UNSOLVED game after abandoning half a code. These
+ // transient presses must not remain as invisible leading digits/notes.
+ await page.evaluate(()=>{
+  const key="crilo_nothing_here_cube_v3";
+  const save=JSON.parse(localStorage.getItem(key));
+  save.ventOpen=false;save.ventSequence=[2,4];
+  save.door=false;save.fluteNotes=[1,1,2];
+  localStorage.setItem(key,JSON.stringify(save));
+ });
+ await page.reload({waitUntil:"domcontentloaded"});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const cleanCodes=await state();
+ assert.deepEqual(cleanCodes.ventSequence,[],
+  "Resuming a partially entered vent code did not start fresh");
+ assert.deepEqual(cleanCodes.fluteNotes,[],
+  "Resuming a partially entered melody preserved invisible old notes");
+ assert(cleanCodes.bagSolved&&cleanCodes.plateOpen,
+  "Resetting transient codes wiped unrelated solved progress");
+ console.log("PASS: old partial code attempts reset on reload while solved catches stay open");
  console.log("PASS: older saves recover unfinished mechanisms without granting spent clues");
  console.log("PASS: owner-only browser reset, no change to ordinary players");
  console.log("PASS: 60 saved discoveries, restored physical mechanisms, no repeat rewards, only real 3D");
