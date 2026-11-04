@@ -596,6 +596,12 @@ function clickAction(action){
    window.CriloNothingHereCube?.activatePhysicalPickup?.(action.slice(7));
    return;
   }
+  if(action==="flute-body"){
+   // The instrument body should be selectable. Open its larger keys in the
+   // existing pocket rather than showing a floating puzzle popup.
+   window.CriloNothingHereCube?.openFluteFromBox?.();
+   return;
+  }
   if(action.startsWith("flute-note-")){
    gameHotspots?.pulse(action);
    window.CriloNothingHereCube?.activatePhysicalFluteNote?.(Number(action.slice(-1)));
@@ -771,6 +777,7 @@ function stopInspectTimer(){
 // Name what an object IS. Never tell the player its solution, use count,
 // compatible inventory item, or required sequence in a hover tooltip.
 const controlNames={
+ "flute-body":"Playable flute",
  "flute-note-1":"Flute key I","flute-note-2":"Flute key II","flute-note-3":"Flute key III",
  "thing:door-handle":"Little door knob",
  front:"Lavender drawer",latch:"Front drawer latch",
