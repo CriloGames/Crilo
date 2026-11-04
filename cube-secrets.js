@@ -944,15 +944,19 @@ function turnBag(i){
  const dialButton=document.querySelector('[data-dial="'+i+'"]');
  if(dialButton)dialButton.textContent=BAG_SYMBOLS[s.bagDials[i]];
  sound(350+i*50);
- // Aligning a combination must never automatically hand out the rewards.
- // The player must deliberately operate the catch on the real bag.
+ if(s.bagDials.every((n,j)=>n===BAG_CODE[j]))
+  tell('All four bag wheels settle into their notches. The brass catch below is still closed.');
+ else tell('Bag wheel '+(i+1)+' now shows '+BAG_SYMBOLS[s.bagDials[i]]+'. Release the separate catch only when the four markings match.');
+ // The symbols turning alone never grant the reward; release is deliberate.
  render();
 }
 function pressBagRelease(){
  if(!s.bagOpen){tell('The little brass catch is still beneath the locked cover.');return false}
  if(s.bagSolved){tell('The false bottom has already opened.');return true}
  if(s.bagDials.some((n,i)=>n!==BAG_CODE[i])){
-  tell('The four tumblers resist the catch. The lining remains closed.');
+  tell(s.eyeRingTicks>=3?
+   'The catch resists. Those four marks do not match the strip beside the rear eye.':
+   'The catch resists. Four matching marks are engraved on another part of the box.');
   sound(210);render();return false;
  }
  s.bagSolved=true;
@@ -978,7 +982,14 @@ function callElevator(floor){
  const text=$('ncLiftMessage')||{textContent:''};
  sound(240+floor*110);
  document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('nc-floor-active',Number(b.dataset.floor)===floor));
- if(floor!==4){text.textContent=['','Nobody lives on floor one.','A miniature tumbleweed rolls by.','The doors open onto a painted brick wall.'][floor];return}
+ if(floor!==4){
+  const answer=['','Floor 01: no one is home.','Floor 02: a miniature tumbleweed rolls by.','Floor 03: a painted brick wall.'][floor];
+  text.textContent=answer;
+  // There is no modal in 3D, so a dummy text object silently discarded
+  // all non-fourth-floor results before this fix.
+  if(document.body.classList.contains('nc-physical-ready'))tell(answer);
+  return;
+ }
  if(!s.floorFour){
   s.floorFour=true;
   gain('lens','The tiny lift delivers a silver lens wrapped in tissue.');
@@ -987,15 +998,21 @@ function callElevator(floor){
   scatter('#c6b7d9',16,prop('elevator'));
   cue(prop('moth'),'nc-moth-arrive',1700);
   text.textContent='Floor 04: a silver lens, and something fluttering nearby.';
- }else text.textContent='Floor 04 is still full of empty little corridors.';
+  if(document.body.classList.contains('nc-physical-ready'))
+   tell('Floor 04 opens. A silver lens waits in the lift tray, and a tiny mechanical moth appears.');
+ }else{
+  text.textContent='Floor 04 is open. The lens either still rests in its holder or has been collected.';
+  if(document.body.classList.contains('nc-physical-ready'))tell(text.textContent);
+ }
  render();
 }
 function openFlute(){
  if(document.body.classList.contains('nc-physical-ready')){
   // The instrument is genuinely modeled inside the hinged top well.
   // Keep the puzzle on the real 3D box instead of opening an HTML modal.
-  tell(s.top?'The hollow tube is stored in the upper compartment until it is collected.':
-    'The flute sounds hollow. Something in the upper compartment may fit it.');
+  tell(pocket.has('flute')?
+   'The assembled flute is on the top lid. Its three little keys play the notes stamped in two fragments, A and B.':
+   'A hollow tube and another small part might make a playable instrument.');
   return;
  }
  s.fluteNotes=[];
@@ -1006,25 +1023,34 @@ function openFlute(){
 }
 function note(i){
  if(!Number.isInteger(i)||i<1||i>3)return;
- s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-6);
+ if(s.door){tell('That melody has already opened the miniature door.');render();return}
+ s.fluteNotes.push(i);
  window.NothingHereAudio?.playFluteNote?.(i);
  const physical=document.body.classList.contains('nc-physical-ready');
  if(!physical){
   cue('ncFluteModel','nc-playing',380);floatNote($('ncFluteModel'));
   $('ncFluteTrack').textContent='♪  '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join('  ');
  }
- if(s.fluteNotes.join('')==='213132'){
+ if(s.fluteNotes.join('')===FLUTE_CODE.join('')){
   if(!s.door){
-    s.door=true;bloom('door','The flute has summoned a very real door from an extremely empty wall.');
+    s.door=true;
+    bloom('door','The six-note melody unlatches a miniature door on the box.');
+    tell('The six notes match the two engraved phrases. A little door swings loose on the box.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
    }
   else tell('The door recognizes that tune.');
   if(!physical){
    closeModal();setTimeout(()=>$('ncDoorScene').scrollIntoView({behavior:'smooth',block:'nearest'}),80);
   }
- }else if(s.fluteNotes.length===6){
-  if(!physical)$('ncFluteTrack').textContent+='  ...nothing.';
-  else tell('The last note fades. Nothing opens.');
+ }else if(s.fluteNotes.length===FLUTE_CODE.length){
+  // Each melody is a complete six-key attempt, never a hidden rolling
+  // six-note buffer that confuses the next attempt after failure.
+  s.fluteNotes=[];
+  if(!physical)$('ncFluteTrack').textContent+='  ...nothing. Try again.';
+  tell('Those six notes did not open anything. The flute resets for a fresh six-note phrase.');
+ }else{
+  tell('Flute: '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join(' · ')+
+   ' ('+s.fluteNotes.length+' of six notes).');
  }
  render();
 }
