@@ -1062,6 +1062,34 @@ try{
   null,{timeout:16000,polling:250});
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.30,
   "A collected sugar reward must visibly extend the real vending-machine tray");
+ // The earlier refund awarded an EXTRA sugar cube with nowhere to go after
+ // the teacup was solved. The repaired machine must return ONE coin and
+ // redeem it for a DIFFERENT physical service result, not redundant sugar.
+ await page.locator('#ncInventory [data-item="shim"]').click();
+ await activate("thing:machine");
+ const refund=await state();
+ assert(refund.shimUsed&&refund.coinReturned&&refund.pendingPickups.includes("coin"),
+  "Unjamming the machine did not issue its owed second coin");
+ assert(!refund.seen.includes("service-bolt"),
+  "Maintenance's final secret should require the refunded coin, not just the shim");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalPickupLayout.find(x=>x.id==="coin")?.source),"machine",
+  "The second coin must emerge from the repaired machine, not teleport to the bag");
+ await collect("coin");
+ await page.locator('#ncInventory [data-item="coin"]').click();
+ assert(await page.evaluate(()=>window.CriloNothingHereCube.canUseSelectedWithAction("thing:machine")),
+  "The refunded coin cannot be spent at the repaired vending machine");
+ await activate("thing:machine");
+ const redeemed=await state();
+ assert(redeemed.refundRedeemed&&redeemed.seen.includes("service-bolt")&&
+  !redeemed.pocket.includes("coin")&&!redeemed.pendingPickups.includes("sugar"),
+  "The refunded coin should reveal its unique service seal, not orphan another sugar cube");
+ assert(await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
+  "The second coin did not reveal a physical stamped brass certificate in the machine");
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.44,
+  null,{timeout:16000,polling:250});
+ console.log("PASS: refunded second coin opens its own service drawer and awards the maintenance secret");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
  await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
  const triangleMotion=await page.evaluate(()=>{
