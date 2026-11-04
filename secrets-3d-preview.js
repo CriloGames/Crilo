@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=20";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=21";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=10";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=34";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=43";
@@ -284,7 +284,9 @@ box(lidPivot,topHole.w-.19,topHole.h-.19,.038,0,-topHole.h/2,.082,ivory,.05);
 // to float when seen from the hatch underside.
 box(lidPivot,1.05,.17,.058,0,-topHole.h/2,.139,ivory,.026);
 box(lidPivot,.83,.028,.024,0,-topHole.h/2,.186,metal,.007);
-for(const xx of [-.49,0,.49]){
+// The live hinge pins in gameHotspots occupy this same axis. Do not
+// leave the demo's fixed metal barrels intersecting the removable pins.
+if(!embeddedGame)for(const xx of [-.49,0,.49]){
  const pin = cylinder(topFace,.083,.34,xx,topHole.h/2,.15,metal);
  // Hinge axle follows the X axis, not the direction of the screw heads.
  pin.rotation.y=Math.PI/2;
@@ -390,10 +392,11 @@ undersideRing.position.set(undersideReturn.x,undersideReturn.y,undersideReturn.z
 bottomFace.add(undersideRing);
 const ringArtifact=new THREE.Mesh(new THREE.TorusGeometry(.15,.040,10,36),brass);
 ringArtifact.castShadow=true;undersideRing.add(ringArtifact);
-// The fine secondary edge belongs to the ring, not to the fixed socket.
-const ringHub=new THREE.Mesh(new THREE.TorusGeometry(.186,.011,7,40),metal);
-ringHub.position.z=-.027;undersideRing.add(ringHub);
-box(undersideRing,.10,.032,.027,0,-.13,.016,ivory,.007);
+// Keep one clean solid ring. The old second torus intersected both this
+// outer ring AND the fixed socket lip, leaving a thick fused double outline.
+// A short machined grip is fastened to the ring's lower edge instead.
+box(undersideRing,.080,.052,.035,0,-.158,-.004,metal,.010);
+box(undersideRing,.045,.010,.009,0,-.159,.019,ivory,.003);
 // A transparent fingertip target fills the open center of the ring. Without
 // this, Three.js only raycasts the thin torus and clicking its center fails.
 const ringGrip=new THREE.Mesh(
