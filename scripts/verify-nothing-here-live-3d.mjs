@@ -1699,6 +1699,40 @@ try{
  await page.waitForFunction(()=>localStorage.getItem("crilo_nothing_here_owner_reset_20261024_v1:test-owner-profile")==="done",{timeout:20000});
  await page.waitForFunction(()=>window.CriloNothingHereCube?.getState?.().seen?.length===0,{timeout:60000});
  assert.equal((await state()).pocket.length,0,"Owner reset did not clear inventory");
+ // Simulate a legacy save that records already-open catches but lost the
+ // separate pending-reward array. Don't force the player to reset sixty
+ // discoveries or recreate tools already spent in another puzzle.
+ await page.evaluate(()=>{
+  localStorage.setItem("crilo_nothing_here_cube_v3",JSON.stringify({
+   seen:["first","key","flute","kite","machine"],
+   pocket:[],pendingPickups:[],
+   a:true,b:true,top:true,mouse:true,bag:true,
+   bagOpen:true,bagSolved:true,door:true,doorOpen:true,
+   pressureReady:true,pressureTicks:3,ventOpen:true,
+   plateOpen:true,screws:[0,1,2],hingePins:[0,1,2],
+   redHits:4,rightBoltLoose:true
+  }));
+ });
+ await page.reload({waitUntil:"domcontentloaded"});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const recovery=await page.evaluate(()=>({
+  recovered:window.CriloNothingHereCube.getSaveRecoveryAudit(),
+  saved:window.CriloNothingHereCube.getState(),
+  fork:window.__nothing3DPreview.getPhysicalPickupRevealState("fork")
+ }));
+ for(const id of ["treat","sugar","bell","fork","shim","cog","washer"]){
+  assert(recovery.recovered.includes(id)&&recovery.saved.pendingPickups.includes(id),
+   "A previously unlocked physical reward was lost permanently: "+id);
+ }
+ for(const id of ["flute","kite"])assert(recovery.saved.pocket.includes(id),
+  "A previously crafted but unspent tool disappeared on migration: "+id);
+ for(const id of ["key","reed","prism","coin"])
+  assert(!recovery.recovered.includes(id),
+   "Save repair duplicated an item consumed by a later puzzle: "+id);
+ assert(recovery.fork?.visible,
+  "Recovered tuning fork is not visible at its original physical source");
+ console.log("PASS: older saves recover unfinished mechanisms without granting spent clues");
  console.log("PASS: owner-only browser reset, no change to ordinary players");
  console.log("PASS: 60 saved discoveries, restored physical mechanisms, no repeat rewards, only real 3D");
  assert.equal(errors.length,0,"3D integration produced browser exceptions: "+errors.join(" | "));
