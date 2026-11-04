@@ -192,6 +192,53 @@ if(!s.ventOpen&&s.ventSequence.length>=VENT_CODE.length)s.ventSequence=[];
 s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
+// Repair orphaned physical rewards from saves made before independent
+// "found but not picked up" state was consistently persisted. Never
+// restore something that a downstream puzzle has already consumed.
+// Recovered items return to THEIR ORIGINAL PHYSICAL HOLDER, not the pocket.
+const recoveredFromSave=[];
+const recoverReward=(id,unspent)=>{
+ if(!unspent||pocket.has(id)||pendingPickups.has(id))return;
+ pendingPickups.add(id);
+ recoveredFromSave.push(id);
+};
+recoverReward('coin',s.mouse&&!seen.has('machine'));
+recoverReward('reed',s.bagSolved&&!seen.has('flute')&&!pocket.has('flute'));
+recoverReward('treat',s.bagSolved&&!s.tag);
+recoverReward('prism',s.bagSolved&&!seen.has('kite')&&!pocket.has('kite'));
+recoverReward('tag',s.tag&&s.doorOpen);
+recoverReward('sugar',seen.has('machine')&&!s.watch);
+recoverReward('acorn',s.vase&&!s.plant);
+recoverReward('spring',s.vase&&!s.music);
+recoverReward('raindrop',s.music&&!s.tree);
+recoverReward('bird',s.tree&&!s.moon);
+recoverReward('bell',s.redHits>=4);
+recoverReward('fork',s.pressureReady&&!s.resonance);
+recoverReward('shim',s.ventOpen&&!s.shimUsed);
+recoverReward('cog',s.plateOpen&&!s.opticOpened);
+recoverReward('washer',s.hingePins.length===3&&!s.clockHeart);
+recoverReward('cylinder',s.serviceOpen&&!s.cylinderMounted);
+recoverReward('iris',s.opticOpened&&!s.secondSky);
+recoverReward('lens',s.floorFour&&!s.observed);
+recoverReward('starmap',s.observed&&!s.train);
+recoverReward('stardust',s.mothTouched&&!s.dancer);
+recoverReward('parcel',s.parcelTaken&&!seen.has('postcard'));
+recoverReward('postcard',seen.has('postcard')&&!s.portal);
+recoverReward('tape',s.cylinderMounted&&!s.tapeInserted);
+recoverReward('letter',s.tapeInserted&&!s.letterMailed);
+recoverReward('envelope',s.letterMailed&&!s.doorReplied);
+// Crafted tools are immediately put in inventory when built. If an older
+// save lost one but records its crafting discovery, restore that ownership.
+// Reusing an already consumed key or kite must never unlock a second puzzle.
+for(const [id,owned] of [
+ ['key',seen.has('key')&&!s.bagOpen],
+ ['flute',seen.has('flute')],
+ ['kite',seen.has('kite')&&!s.kite]
+]){
+ if(owned&&!pocket.has(id)){
+  pocket.add(id);pendingPickups.delete(id);recoveredFromSave.push(id);
+ }
+}
 let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 // The pocket is re-rendered after every mechanical action. Newly found
 // highlights and keyboard focus must survive those renders.
@@ -1453,6 +1500,7 @@ document.addEventListener('drop',e=>{
 turn();render();
 // Restore an already-open mechanism if the player refreshed mid-animation.
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
+ getSaveRecoveryAudit:()=>[...recoveredFromSave],
  getItemName:id=>names[id]||null,
  canUseSelectedWithAction,
  getView:()=>({...view}),zoomTo,resetView,
