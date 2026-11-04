@@ -616,6 +616,26 @@ function collectPhysicalPickup(id){
 }
 // Exposed 3D objects wait for a deliberate click; never auto-add them.
 function inspectHardware(name){
+ // Codes are read from their actual, exposed metal plates. A hidden plate
+ // remains silent even if a script tries to call its action directly.
+ if(name==='read:vents'){
+  tell(s.rightBoltLoose?
+   'The opened service-bolt recess reads: 3 · 1 · 4 · 2 · 3. Four numbered vent switches are on the opposite face.':
+   'The service bolt still covers the engraved strip.');
+  return true;
+ }
+ if(name==='read:score-a'){
+  tell(s.back?
+   'Inscription A, beneath the eye: Ⅱ · Ⅰ · Ⅲ. These are musical notes for the small flute.':
+   'The eye still covers this part of the brass.');
+  return true;
+ }
+ if(name==='read:score-b'){
+  tell(s.footChecked?
+   'Inscription B, under the moved rubber foot: Ⅰ · Ⅲ · Ⅱ. The flute has three matching keys.':
+   'A rubber foot is still covering this inscription.');
+  return true;
+ }
  if(name==='serial'){
   s.serialRead=true;
   bloom('maker-stamp','Stamped beneath the maker\'s seal: PROPERTY OF NOBODY / 04 / CALIBRATE TO THREE.');
