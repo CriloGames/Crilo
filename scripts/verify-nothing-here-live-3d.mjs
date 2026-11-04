@@ -452,6 +452,13 @@ try{
  assert(initial.floating&&initial.plinth===0&&initial.pedestalSupports===0,
    "Nothing Here must float without a stand, a floor or mechanical supports");
  assert.equal(initial.mounts.length,15,"All miniature scenes must remain in the floating version");
+ const hardwareMounts=await page.evaluate(()=>
+  window.__nothing3DPreview.miniatureHardwareAttachmentAudit);
+ assert(hardwareMounts.length===15&&hardwareMounts.every(h=>
+  h.standoffs===4&&h.shellMounted&&h.upperSeated&&h.lowerSeated),
+  "One of the fifteen display sockets has floating screws, open air under its rivets, "+
+  "or no real connection to the cube: "+JSON.stringify(hardwareMounts));
+ console.log("PASS: all 15 miniature display mounts have 4 solid support shafts and seated brass fasteners");
  assert(initial.mounts.every(p=>["frontFace","backFace","leftFace","rightFace","topFace","bottomFace"].includes(p.face)),
    "A miniature is still mounted outside the rotating cube");
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
