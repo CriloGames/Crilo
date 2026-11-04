@@ -174,7 +174,11 @@ s.dogHits=clamp(Number(raw.dogHits)||0,0,12);
 // pocket items or earlier dial choices. The fourth wheel starts at zero.
 s.bagDials=Array.from({length:4},(_,i)=>
  clamp(Number(Array.isArray(raw.bagDials)?raw.bagDials[i]:0)||0,0,BAG_SYMBOLS.length-1));
-s.fluteNotes=Array.isArray(raw.fluteNotes)?raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-6):[];
+// A code attempt is not a permanent discovery. If the door is still
+// locked, a refreshed game begins a new six-note phrase, not an invisible
+// suffix left from yesterday. Completed melodies retain their history.
+s.fluteNotes=s.door&&Array.isArray(raw.fluteNotes)?
+ raw.fluteNotes.filter(x=>Number.isInteger(x)&&x>=1&&x<=3).slice(-6):[];
 s.rx=clamp(Number.isFinite(raw.rx)?raw.rx:-18,-4000,4000);
 // Orientation is a view, not story progress. Always start from an attractive
 // three-quarter front angle even if the player left the cube upside down.
@@ -182,10 +186,10 @@ s.rx=-22;
 s.ry=-32;
 s.screws=Array.isArray(raw.screws)?[...new Set(raw.screws.filter(n=>[0,1,2].includes(n)))]:[];
 s.hingePins=Array.isArray(raw.hingePins)?[...new Set(raw.hingePins.filter(n=>[0,1,2].includes(n)))]:[];
-s.ventSequence=Array.isArray(raw.ventSequence)?raw.ventSequence.filter(n=>[1,2,3,4].includes(n)).slice(-5):[];
-// Migrate a failed, half-cleared attempt without making the next correct
-// sequence mysteriously fail after a page reload.
-if(!s.ventOpen&&s.ventSequence.length>=VENT_CODE.length)s.ventSequence=[];
+// Partial vent presses are transient, not progression. They reset on
+// reload so an old attempt cannot silently pollute the next five presses.
+s.ventSequence=s.ventOpen&&Array.isArray(raw.ventSequence)?
+ raw.ventSequence.filter(n=>[1,2,3,4].includes(n)).slice(-5):[];
 // Older saves allowed this mechanical ratchet to overrun indefinitely.
 // Normalize those poses to its real three-detent end stop without touching
 // the player's completed secrets or inventory.
