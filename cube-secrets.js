@@ -1702,6 +1702,10 @@ turn();render();
 window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPickups:[...pendingPickups],seen:[...seen],selected}),
  getSaveRecoveryAudit:()=>[...recoveredFromSave],
  getItemName:id=>names[id]||null,
+ // The physical six-symbol wheels are small. Inspection can name what is
+ // CURRENTLY on a visible dial without revealing the target combination.
+ getBagDialSymbol:index=>Number.isInteger(index)&&index>=0&&index<4&&s.bagOpen
+  ?BAG_SYMBOLS[s.bagDials[index]]:null,
  canUseSelectedWithAction,
  getView:()=>({...view}),zoomTo,resetView,
  updatePhysicalViewZoom(value){
