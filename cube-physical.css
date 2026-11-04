@@ -864,3 +864,46 @@ html[data-theme="dark"] .nc-page .nc-flute-note-steps i.is-lit{background:#8bceb
  .nc-page .nc-flute-play-key,
  .nc-page .nc-flute-note-steps i{transition:none}
 }
+
+/* Recent mechanical changes are opt-in, not a popup or a hint over the box.
+   The narrator remains the only always-visible game text. */
+.nc-page .nc-last-changes{
+ max-width:830px;margin:7px auto 0;padding:0 10px;
+ color:#647b75;text-align:left;
+}
+.nc-page .nc-last-changes[hidden],
+.nc-page .nc-changes-list[hidden]{display:none!important}
+.nc-page .nc-changes-toggle{
+ display:inline-flex;align-items:center;gap:7px;padding:5px 7px;
+ background:transparent;border:0;border-radius:6px;
+ color:#668077;font:650 11px/1.25 inherit;letter-spacing:.015em;
+ cursor:pointer;transition:background .12s,color .12s;
+}
+.nc-page .nc-changes-toggle:hover{background:#ddece632;color:#496b5c}
+.nc-page .nc-changes-toggle:focus-visible{outline:2px solid #679b86;outline-offset:2px}
+.nc-page .nc-changes-chevron{display:inline-block;font-size:15px;line-height:.7;transition:transform .15s}
+.nc-page .nc-changes-toggle[aria-expanded="true"] .nc-changes-chevron{transform:rotate(180deg)}
+.nc-page .nc-changes-list{
+ margin:5px 0 5px 2px;padding:9px 12px 10px 25px;
+ border-left:2px solid #c7dbd1;
+ border-radius:0 7px 7px 0;background:#f4f8f6;
+ font-size:11px;line-height:1.55;
+}
+.nc-page .nc-changes-list li{padding:2px 0 2px 2px}
+.nc-page .nc-changes-list li+li{border-top:1px solid #e1ebe6}
+.nc-page .nc-flute-scores{margin:-5px 0 0;color:#467963;font-size:11px;font-weight:650;}
+html[data-theme="dark"] .nc-page .nc-last-changes{color:#9fbfb3}
+html[data-theme="dark"] .nc-page .nc-changes-toggle{color:#b8d3c5}
+html[data-theme="dark"] .nc-page .nc-changes-toggle:hover{background:#496a5d40;color:#d5f2e1}
+html[data-theme="dark"] .nc-page .nc-changes-list{
+ border-left-color:#527966;background:#2b3f3c;color:#d0e2d9;
+}
+html[data-theme="dark"] .nc-page .nc-changes-list li+li{border-color:#3e5550}
+html[data-theme="dark"] .nc-page .nc-flute-scores{color:#9bdec0}
+@media(max-width:490px){
+ .nc-page .nc-last-changes{margin-top:4px;padding:0 4px}
+ .nc-page .nc-changes-list{padding:8px 10px 8px 22px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page .nc-changes-toggle,.nc-page .nc-changes-chevron{transition:none}
+}
