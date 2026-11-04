@@ -1255,8 +1255,15 @@ try{
  assert.match(gaugeLocked,/third mark|fork.*bracket/i);
  assert(!/though there is nothing inside|holds steady at three/i.test(gaugeLocked),
   "The completed gauge still tells the player an unexplained, meaningless number");
+ // The retired decorative "optic" fitting is deliberately inert. Three
+ // presses on the one REAL eye-ring actuator must expose the brass strip.
  await activate("optic");
+ assert.equal((await state()).eyeRingTicks,0,
+  "Retired decorative optic still turns the real optical ring remotely");
  await activate("eye-ring");
+ await activate("eye-ring");
+ assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),false,
+  "Copper cipher became visible before three real calibration clicks");
  await activate("eye-ring");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),true,
   "The copper cipher should emerge from behind the third calibration click");
