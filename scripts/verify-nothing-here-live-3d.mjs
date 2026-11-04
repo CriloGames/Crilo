@@ -1451,6 +1451,45 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
+ // A new player should understand the flute ON FIRST CLICK in inventory.
+ // The same canonical note engine powers both the inline keys and the
+ // three raised metal controls on the cube.
+ await page.locator('#ncInventory [data-item="flute"]').click();
+ assert(await page.locator("#ncFluteTray").isVisible(),
+  "Clicking a found flute in inventory opened no playable controls");
+ assert.equal(await page.locator('#ncInventory [data-item="flute"]').getAttribute("aria-expanded"),"true");
+ assert(await page.locator("#ncModal").isHidden(),
+  "Flute inventory interaction must not open a floating old-style puzzle");
+ assert.match(await page.locator("#ncFluteTray").innerText(),/engraved musical phrases marked A and B/i,
+  "The inventory instrument does not explain where its notes come from");
+ await page.locator('#ncFluteTray [data-flute-key="1"]').click();
+ assert.deepEqual((await state()).fluteNotes,[1],
+  "The new inventory key was decorative rather than playable");
+ assert.equal(await page.locator("#ncFluteNoteSteps .is-lit").count(),1,
+  "Pressing the inventory flute did not move its six-note progress display");
+ await page.locator("#ncFluteStartOver").click();
+ assert.deepEqual((await state()).fluteNotes,[],
+  "The explicit flute Start over button did not clear an abandoned melody");
+ assert(await page.locator("#ncFluteTray").isVisible(),
+  "Resetting a melody unexpectedly hid its instrument");
+ // Clicking the physical flute body should open the same inline instrument
+ // even if its individual keycaps are visually too small for a player.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+ const tube=await page.evaluate(()=>{
+  const v=window.__nothing3DPreview;
+  const p=v.projectGameControl("flute-body");
+  return p?{...p,hit:v.getPhysicalActionAt(p.x,p.y)}:null;
+ });
+ assert(tube?.pick==="flute-body"&&tube.hit==="flute-body",
+  "The visible flute body is not a working pointer target: "+JSON.stringify(tube));
+ await page.locator("#ncFluteClose").click();
+ assert(await page.locator("#ncFluteTray").isHidden());
+ await page.locator("#stage canvas").click({
+  position:{x:tube.x,y:tube.y},timeout:30000
+ });
+ assert(await page.locator("#ncFluteTray").isVisible(),
+  "A click on the actual physical flute did not expose the playable keys");
+ await page.locator("#ncFluteClose").click();
  for(const n of [1,1,1,1,1,1])await activate("flute-note-"+n);
  assert.deepEqual((await state()).fluteNotes,[],
   "Six incorrect flute notes must clear before the next attempt");
