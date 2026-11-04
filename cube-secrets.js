@@ -1104,12 +1104,15 @@ function openFlute(){
  }
  // Clicking the inventory flute OPENS actual note buttons, even if the
  // hinged lid is facing away from the player or an old save lacks top=true.
- fluteTrayOpen=!fluteTrayOpen;
+ fluteTrayOpen=true;
  selected=null;
  render();
- tell(fluteTrayOpen?
-  'The flute is ready in your inventory. Press one of the three keys. Two engraved phrases on the cube, A and B, form a six-note melody.':
-  'The flute is closed in your inventory. Click it again when you want to play.');
+ tell('The flute is ready in your inventory. Press its three keys. Two engraved phrases on the cube, A and B, form a six-note melody.');
+}
+function closeFlute(){
+ fluteTrayOpen=false;
+ render();
+ tell('The flute keys are put away. Click the flute in your inventory to play again.');
 }
 function resetFlutePhrase(){
  if(!pocket.has('flute'))return;
@@ -1532,7 +1535,7 @@ document.addEventListener('keydown',e=>{
 $('ncFluteTray')?.addEventListener('click',e=>{
  const key=e.target.closest('[data-flute-key]');
  if(key){note(Number(key.dataset.fluteKey));return}
- if(e.target.closest('#ncFluteClose')){openFlute();return}
+ if(e.target.closest('#ncFluteClose')){closeFlute();return}
  if(e.target.closest('#ncFluteStartOver'))resetFlutePhrase();
 });
 $('ncInventory').addEventListener('dragstart',e=>{
