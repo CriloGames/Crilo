@@ -1633,13 +1633,20 @@ window.__nothing3DPreview={
   // Sample across the raised key's real invisible fingertip collider;
   // only return an actually reachable point verified by the real raycast.
   const sampleDepth=name.startsWith("flute-note-") ? .185 : .14;
-  for(const [x,y,z] of [
+  // The flute tube is rotated 90 degrees around Z, so its cylinder axis
+  // is local Y. Probe both *ends* of the actual tube, away from the three
+  // individual keycaps that legitimately take precedence in the middle.
+  const candidates=name==="flute-body" ? [
+   [0,-.28,.035],[0,.28,.035],[0,-.31,0],[0,.31,0],
+   [0,-.23,.055],[0,.23,.055],[0,0,0]
+  ] : [
    [0,0,sampleDepth],[0,0,.14],[0,0,.04],
    [.045,0,sampleDepth],[-.045,0,sampleDepth],
    [0,.045,sampleDepth],[0,-.045,sampleDepth],
    [.065,0,.14],[-.065,0,.14],
    [.055,.055,.11],[-.055,-.055,.11],[0,0,0]
-  ]){
+  ];
+  for(const [x,y,z] of candidates){
    const p=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
    const point={
     x:(p.x+1)*.5*stage.clientWidth,
