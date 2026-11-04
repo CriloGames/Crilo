@@ -1023,7 +1023,15 @@ function openFlute(){
 }
 function note(i){
  if(!Number.isInteger(i)||i<1||i>3)return;
- if(s.door){tell('That melody has already opened the miniature door.');render();return}
+ if(s.door){
+  // The instrument remains playable after unlocking the door; this also
+  // keeps keyboard interaction and audio functional on completed saves.
+  s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-FLUTE_CODE.length);
+  window.NothingHereAudio?.playFluteNote?.(i);
+  tell('The little door is already open, but the flute can still be played.');
+  render();return;
+ }
+ if(s.fluteNotes.length>=FLUTE_CODE.length)s.fluteNotes=[];
  s.fluteNotes.push(i);
  window.NothingHereAudio?.playFluteNote?.(i);
  const physical=document.body.classList.contains('nc-physical-ready');
