@@ -19,6 +19,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   glass:mat(0xaacddc,.06,.18),copper:mat(0xba826a,.57,.42)
  };
  const mounts=[];
+ // The live QA can inspect real modeled fastener coordinates and confirm
+ // that every miniature has continuous mounting shafts, seated screwheads,
+ // and no unsupported floating fittings.
+ const mountHardware=[];
  let parts=0;
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
@@ -156,8 +160,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // decorative screws, so the entire plaque looked suspended in midair.
   // Sleeve local range [-.245,-.015] crosses the cube's actual skin near
   // world z=.07 and reaches the fixture's rear rails near world z=.22.
+  const mountStandoffs=[];
   for(const px of [-.21,.21])for(const py of [.28,-.035]){
-   C(stand,.032,.230,px,py,-.130,m.brass,"z");
+   mountStandoffs.push(C(stand,.032,.230,px,py,-.130,m.brass,"z"));
    C(stand,.041,.018,px,py,-.012,m.gold,"z");
   }
   // The old solid black plinths made every unlocked scene look like
@@ -165,22 +170,24 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // while the pastel inlay is flush with the actual cube face.
   for(const x of [-.221,.221])
    B(stand,.024,.34,.044,x,.15,-.055,m.brass,.006);
-  B(stand,.43,.021,.035,0,.319,-.036,m.brass,.006);
+  const crossbar=B(stand,.43,.021,.035,0,.319,-.036,m.brass,.006);
   const inlay=B(stand,.43,.305,.016,0,.16,-.024,mountAccents[name],.012);
   B(stand,.34,.014,.012,0,.322,.011,m.gold,.004);
   // The floor is a thin shelf rooted to the frame, rather than a
   // .37-deep black block protruding beneath the miniature.
-  B(stand,.49,.031,.17,0,-.040,.115,m.brass,.010);
+  const shelf=B(stand,.49,.031,.17,0,-.040,.115,m.brass,.010);
   B(stand,.44,.013,.15,0,-.014,.120,m.gold,.006);
   // The upper rivet must sit ON the upper crossbar (front z=-.018),
   // and the lower rivet ON the projecting shelf (front z=.200).
   // The old lower cap was centered at z=.416, over .20 away from metal.
+  const upperHeads=[],lowerHeads=[];
   for(const px of [-.225,.225]){
    // Upper heads align with the .319-high crossbar and their captive
    // sleeves, not empty enamel beside it.
-   C(stand,.024,.03,px,.312,-.005,m.brass,"z");
-   C(stand,.024,.03,px,-.03,.212,m.brass,"z");
+   upperHeads.push(C(stand,.024,.03,px,.312,-.005,m.brass,"z"));
+   lowerHeads.push(C(stand,.024,.03,px,-.03,.212,m.brass,"z"));
   }
+  mountHardware.push({name,fixture,mountStandoffs,crossbar,shelf,upperHeads,lowerHeads});
   const toy=new THREE.Group();
   toy.position.set(0,.03,.205);
   toy.scale.setScalar(.69);
@@ -985,6 +992,33 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
+  getHardwareAttachmentAudit:()=>{
+   // All values below come from the actual Three.js geometric parameters,
+   // not a second manually maintained map of where screws SHOULD be.
+   // The face's outer enamel is about z=.0725. Every stand-off needs to
+   // cross that surface and touch the miniature's fixed upper rail.
+   const extent=(mesh)=>{
+    const p=mesh.geometry.parameters;
+    const depth=mesh.geometry.type==="CylinderGeometry"?p.height:p.depth;
+    return [mesh.position.z-depth/2,mesh.position.z+depth/2];
+   };
+   return mountHardware.map(h=>{
+    const bar=extent(h.crossbar),shelf=extent(h.shelf);
+    const shellMounted=h.mountStandoffs.every(stem=>
+     h.fixture.position.z+extent(stem)[0]<=.073 &&
+     extent(stem)[1]>=bar[0]-.025);
+    const upperSeated=h.upperHeads.every(head=>
+     extent(head)[0]<=bar[1]+.008 &&
+     Math.abs(head.position.y-h.crossbar.position.y)<=
+      h.crossbar.geometry.parameters.height/2+head.geometry.parameters.radiusTop+.003);
+    const lowerSeated=h.lowerHeads.every(head=>
+     extent(head)[0]<=shelf[1]+.008 &&
+     Math.abs(head.position.y-h.shelf.position.y)<=
+      h.shelf.geometry.parameters.height/2+head.geometry.parameters.radiusTop+.003);
+    return {name:h.name,standoffs:h.mountStandoffs.length,
+     shellMounted,upperSeated,lowerSeated};
+   });
+  },
   // Measure rendered solids in the *face's local coordinate system* after
   // unlock animations. Static socket spacing cannot catch a raised tree,
   // opened door, extended vending tray, or rewards in front of a mount.
