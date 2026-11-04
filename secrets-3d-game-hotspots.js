@@ -370,12 +370,18 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
+ // The curved body itself was never a registered hit target. Players
+ // naturally clicked the flute, but only three tiny separate keys worked.
+ // Touching its body now opens the instrument in the inventory.
+ setHit(fluteTube,"flute-body");targets.set("flute-body",fluteTube);
  for(const x of [-.33,.33]){
   const lip=new THREE.Mesh(new THREE.TorusGeometry(.065,.011,8,20),brass);
   lip.position.x=x;lip.rotation.y=Math.PI/2;flute.add(lip);count++;
+  setHit(lip,"flute-body");
  }
  for(const x of [-.24,.24]){
-  B(flute,.07,.19,.075,x,-.045,-.033,graphite,.012);
+  const brace=B(flute,.07,.19,.075,x,-.045,-.033,graphite,.012);
+  setHit(brace,"flute-body");
   C(flute,.029,.024,x,0,.063,brass);
  }
  for(let i=1;i<=3;i++){
@@ -760,7 +766,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    }
    pose(foot,"position","y",s.footChecked?1.35:1.02,
      previous.footChecked?1.35:1.02,restore,.46);
-   flute.visible=!!s.top&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
+   // A crafted flute exists on the outside of the lid even when an older
+   // save is missing its top-open flag. Pocket ownership is authoritative.
+   flute.visible=Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
    // Removing the third screw releases the cover on a real hinge,
