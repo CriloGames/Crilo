@@ -758,10 +758,23 @@ try{
  const ventBefore=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(Math.abs(ventBefore.ventHatchOffset)<.001,
   "The vent grille begins open before the numbered switches are pressed");
+ // Wrong codes must clear the saved sequence and its five physical lamps.
+ for(const n of [2,2,2,2,2])await activate("vent-"+n);
+ assert.deepEqual((await state()).ventSequence,[],
+  "A failed vent code left a stale partial sequence");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.ventStepsShown),0,
+  "Wrong vent code did not reset the physical five-step display");
  for(const n of [3,1,4])await activate("vent-"+n);
  assert.equal((await state()).ventOpen,false,
   "The vent must not unlock from a short guessed three-press sequence");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.ventStepsShown),3,
+  "Partial vent phrase must show three entered steps");
  for(const n of [2,3])await activate("vent-"+n);
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.ventStepsShown),5,
+  "Completed vent phrase must display all five steps");
  assert((await state()).ventOpen&&
   (await state()).pendingPickups.includes("shim")&&
   !(await state()).pocket.includes("shim"),
@@ -1333,6 +1346,9 @@ try{
  const aligned=await state();
  assert.deepEqual(aligned.bagDials,[2,0,3,1],
   "Four distinct physical bag wheel values must match the hidden embossed symbols");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalScenePose.bagCatchReady),true,
+  "The real spring catch must indicate when all four bag glyphs align");
  assert.equal(aligned.bagSolved,false,
   "Cycling through the correct combination must NOT open the false bottom");
  assert(!aligned.pendingPickups.includes("prism"),
@@ -1374,6 +1390,13 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
+ for(const n of [1,1,1,1,1,1])await activate("flute-note-"+n);
+ assert.deepEqual((await state()).fluteNotes,[],
+  "Six incorrect flute notes must clear before the next attempt");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),0,
+  "Failed melody must reset all six flute inlays");
+ assert.match(await page.locator("#ncNarrator").innerText(),/flute resets/i);
  // The crafted flute lives on the top face, which may be edge-on or hidden
  // after inspecting the front bag. A player must turn toward the top before
  // trying its real fingertip keys; they should never click through the box.
@@ -1407,6 +1430,10 @@ try{
  }
  assert.equal((await state()).door,false,
   "A three-note guess must not conjure the door from the real flute");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),3,
+  "Three flute presses must illuminate exactly three mechanical indicators");
+ assert.match(await page.locator("#ncNarrator").innerText(),/3 of six notes/i);
  // The two physical engravings provide different halves of one score,
  // rather than an instantly guessable three-button sequence.
  for(const n of [1,3,2])await activate("flute-note-"+n);
@@ -1415,6 +1442,9 @@ try{
   "The original physical flute failed to retain the complete six-note score");
  assert(melody.door&&melody.seen.includes("door"),
   "Combining the two hidden score fragments did not reveal the door");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),6,
+  "Successful six-note phrase must leave six lit inlays");
  assert(melody.pocket.includes("flute"),
   "Playing the flute unexpectedly consumed or duplicated the instrument");
  assert(await page.locator("#ncModal").isHidden(),
