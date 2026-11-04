@@ -811,7 +811,7 @@ try{
  const openVent=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
  assert(openVent.ventHatchOffset<-.18,
   "The real vent shutter did not retract into its final open position");
- console.log("PASS: three numbered physical switches withdraw the metal vent shutter");
+ console.log("PASS: five-press code on four numbered vent switches opens the real metal grille");
  // Test the actual visible foot, not a hidden programmatic action.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-75,0));
  const footClick=await page.evaluate(()=>
@@ -1310,6 +1310,19 @@ try{
  await activate("thing:bag-release");
  assert.equal((await state()).bagSolved,false,
   "Pressing the spring catch bypassed the actual four-wheel cipher");
+ // Audit ALL FOUR physical wheels: one working middle button is not
+ // enough when the combination requires every separate digit.
+ const dialReachability=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  return [0,1,2,3].map(i=>{
+   const name="thing:bag-dial-"+i;
+   const point=view.projectPhysicalPuzzleControl(name);
+   return {name,pick:point?.pick,hit:point?view.getPhysicalActionAt(point.x,point.y):null};
+  });
+ });
+ assert(dialReachability.every(p=>p.pick===p.name&&p.hit===p.name),
+  "One or more bag wheels are blocked by visible metal or neighboring hitboxes: "+
+  JSON.stringify(dialReachability));
  // A real mouse must be able to turn each dial independently, not strike
  // the invisible whole-bag collider that formerly masked the tumblers.
  const dialPointer=await page.evaluate(()=>{
