@@ -352,11 +352,21 @@ function screwsFor(face,tag,spots) {
   collar.position.z=.021;socket.add(collar);
   assembly.position.set(x,y,.13);
   face.add(assembly);
-  cylinder(assembly,.035,.16,0,0,-.034,darkMetal);
-  cylinder(assembly,.068,.065,0,0,.035,brass);
-  box(assembly,.092,.012,.016,0,0,.080,darkMetal,.006);
+  const captiveButton=tag==="front"&&i===3;
+  if(captiveButton){
+   // Unlike the three actual removable screws, this is a spring plunger.
+   // The rounded, unslotted top stays captive and depresses when touched.
+   cylinder(assembly,.041,.112,0,0,-.028,darkMetal);
+   cylinder(assembly,.085,.040,0,0,.041,brass);
+   cylinder(assembly,.054,.013,0,0,.069,ivory);
+  }else{
+   cylinder(assembly,.035,.16,0,0,-.034,darkMetal);
+   cylinder(assembly,.068,.065,0,0,.035,brass);
+   box(assembly,.092,.012,.016,0,0,.080,darkMetal,.006);
+  }
   const key=tag+"-screw-"+i;
-  setHit(assembly,key);screws.push({id:key,assembly,removed:false});
+  setHit(assembly,key);
+  screws.push({id:key,assembly,removed:false,captiveButton});
  }
 }
 screwsFor(frontFace,"front", [[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
@@ -1657,6 +1667,8 @@ window.__nothing3DPreview={
   const game=gameHotspots?.actions||[];
   return {
    frontScrews:physical.filter(id=>id.startsWith("front-screw-")),
+   removableFrontScrews:screws.filter(v=>v.id.startsWith("front-screw-")&&!v.captiveButton).map(v=>v.id),
+   captiveFrontButton:screws.find(v=>v.captiveButton)?.id||null,
    duplicatedSideScrews:physical.filter(id=>id.startsWith("side-screw-")),
    duplicatedTopScrews:physical.filter(id=>id.startsWith("top-screw-")),
    functionalServiceBolts:game.filter(id=>id.startsWith("right-bolt-")),
