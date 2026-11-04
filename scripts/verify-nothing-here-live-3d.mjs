@@ -750,15 +750,43 @@ try{
   }));
   throw new Error("Rear-eye code is covered or out of view: "+JSON.stringify(diagnosis),{cause:error});
  }
+ // The exposed plate must be directly selectable, not merely readable by
+ // a diagnostic camera ray that ignores input hitboxes.
+ const scoreAPoint=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const p=view.projectGameControl("read:score-a");
+  return p?{...p,hit:view.getPhysicalActionAt(p.x,p.y)}:null;
+ });
+ assert(scoreAPoint?.pick==="read:score-a"&&scoreAPoint.hit==="read:score-a",
+  "The exposed rear musical inscription cannot be physically selected: "+JSON.stringify(scoreAPoint));
+ await page.locator("#stage canvas").click({
+  position:{x:scoreAPoint.x,y:scoreAPoint.y},timeout:30000
+ });
+ assert.match(await page.locator("#ncNarrator").innerText(),/Ⅱ · Ⅰ · Ⅲ/,
+  "Clicking score A must make its already visible notes readable");
  await page.evaluate(view=>window.__nothing3DPreview.setRotation(view.rx,view.ry),
   originalView);
- console.log("PASS: almond-shaped mechanical eye reveals an unobstructed 2-1-3 inscription");
+ console.log("PASS: engraved rear score A is visible, readable and clickable");
  await activate("right-bolt-1");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
   "Removing the service bolt must uncover its genuine inscribed number");
  await activate("read:vents");
  assert.match(await page.locator("#ncNarrator").innerText(),/3 · 1 · 4 · 2 · 3/,
   "The unbolted vent sequence is not readable from its engraved strip");
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,270));
+ const ventPlatePoint=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const p=view.projectGameControl("read:vents");
+  return p?{...p,hit:view.getPhysicalActionAt(p.x,p.y)}:null;
+ });
+ assert(ventPlatePoint?.pick==="read:vents"&&ventPlatePoint.hit==="read:vents",
+  "The exposed service-bolt code is not clickable: "+JSON.stringify(ventPlatePoint));
+ await page.locator("#stage canvas").click({
+  position:{x:ventPlatePoint.x,y:ventPlatePoint.y},timeout:30000
+ });
+ assert.match(await page.locator("#ncNarrator").innerText(),/3 · 1 · 4 · 2 · 3/);
+ await page.evaluate(view=>window.__nothing3DPreview.setRotation(view.rx,view.ry),
+  originalView);
  // A successfully entered service sequence must now move a *real*
  // bolted-on vent cover; simply adding a shim to inventory is not enough.
  const ventBefore=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanicalFeedback);
@@ -832,6 +860,17 @@ try{
  await activate("read:score-b");
  assert.match(await page.locator("#ncNarrator").innerText(),/Ⅰ · Ⅲ · Ⅱ/,
   "The underside phrase B must be readable after its foot slides aside");
+ const scoreBPoint=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const p=view.projectGameControl("read:score-b");
+  return p?{...p,hit:view.getPhysicalActionAt(p.x,p.y)}:null;
+ });
+ assert(scoreBPoint?.pick==="read:score-b"&&scoreBPoint.hit==="read:score-b",
+  "The slid-aside foot still blocks the second music engraving: "+JSON.stringify(scoreBPoint));
+ await page.locator("#stage canvas").click({
+  position:{x:scoreBPoint.x,y:scoreBPoint.y},timeout:30000
+ });
+ assert.match(await page.locator("#ncNarrator").innerText(),/Ⅰ · Ⅲ · Ⅱ/);
  await activate("service-latch");
  assert.equal((await state()).serviceOpen,false,"The sound-operated latch must remain locked until resonance");
  // The original 2D side-prop chain is now mirrored by fifteen
