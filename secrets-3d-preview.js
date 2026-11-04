@@ -685,6 +685,15 @@ function clickAction(action){
  else if(action.includes("-screw-")){
   const s=screws.find(item=>item.id===action);
   if(!s)return;
+  if(s.captiveButton){
+   // A spring-loaded button never unscrews, including in the workbench.
+   s.motion?.kill();
+   s.motion=gsap.timeline({onUpdate:invalidate})
+    .to(s.assembly.position,{z:.07,duration:.12,ease:"power2.out"})
+    .to(s.assembly.position,{z:.13,duration:.28,ease:"back.out(2)"});
+   announce("The captive spring button presses in and returns.");
+   return;
+  }
   s.removed=!s.removed;
   animate(s.assembly.position,{z:s.removed?.55:.13},.44);
   animate(s.assembly.rotation,{z:s.removed?Math.PI*2:0},.44);
