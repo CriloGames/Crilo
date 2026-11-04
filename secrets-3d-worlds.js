@@ -151,6 +151,15 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const stand=new THREE.Group();fixture.add(stand);
   // Slim captive brackets replace the heavy mini-gallery plinths. The
   // machined metal is attached directly to the rotating cube face.
+  // Four machined stand-off sleeves BRIDGE the real enamel face and this
+  // fixture. Previously the mount sat at z=.27 with no metal behind its
+  // decorative screws, so the entire plaque looked suspended in midair.
+  // Sleeve local range [-.245,-.015] crosses the cube's actual skin near
+  // world z=.07 and reaches the fixture's rear rails near world z=.22.
+  for(const px of [-.21,.21])for(const py of [.28,-.035]){
+   C(stand,.032,.230,px,py,-.130,m.brass,"z");
+   C(stand,.041,.018,px,py,-.012,m.gold,"z");
+  }
   // The old solid black plinths made every unlocked scene look like
   // a stack of dark shoeboxes. These are small open brass brackets,
   // while the pastel inlay is flush with the actual cube face.
@@ -163,9 +172,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // .37-deep black block protruding beneath the miniature.
   B(stand,.49,.031,.17,0,-.040,.115,m.brass,.010);
   B(stand,.44,.013,.15,0,-.014,.120,m.gold,.006);
+  // The upper rivet must sit ON the upper crossbar (front z=-.018),
+  // and the lower rivet ON the projecting shelf (front z=.200).
+  // The old lower cap was centered at z=.416, over .20 away from metal.
   for(const px of [-.225,.225]){
-   C(stand,.024,.03,px,.28,.027,m.brass,"z");
-   C(stand,.024,.03,px,-.03,.416,m.brass,"z");
+   C(stand,.024,.03,px,.28,-.002,m.brass,"z");
+   C(stand,.024,.03,px,-.03,.212,m.brass,"z");
   }
   const toy=new THREE.Group();
   toy.position.set(0,.03,.205);
