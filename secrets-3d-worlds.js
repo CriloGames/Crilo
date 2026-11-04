@@ -23,6 +23,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
  let bagReleaseCap=null;
+ // Only the actual brass catch uses this material: a correctly aligned
+ // combination gets a gentle glint, rather than lighting every brass part.
+ const bagCatchMetal=mat(0xbca078,.67,.32);
+ bagCatchMetal.emissive=new THREE.Color(0x4da88a);
+ bagCatchMetal.emissiveIntensity=0;
  // The bag code wheels have legible stamped symbols directly on their metal
  // faces. Updating a dial changes its own inlay instead of showing a popup.
  const glyphMaterials=["○","✳","◇","☾","△","□"].map(symbol=>{
@@ -231,7 +236,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   B(release,.19,.078,.026,0,0,0,m.dark,.012);
   bagReleaseCap=new THREE.Group();bagReleaseCap.position.z=.032;
   release.add(bagReleaseCap);
-  B(bagReleaseCap,.155,.051,.029,0,0,.010,m.brass,.009);
+  B(bagReleaseCap,.155,.051,.029,0,0,.010,bagCatchMetal,.009);
   B(bagReleaseCap,.085,.009,.010,0,0,.030,m.black,.003);
   const pushVolume=new THREE.Mesh(new THREE.BoxGeometry(.173,.072,.038),
    new THREE.MeshBasicMaterial({transparent:true,opacity:0,colorWrite:false,
@@ -836,6 +841,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    glyph.material=glyphMaterials[value];
   }
   lastDialValues=newDialValues;
+  // A physical confirmation that the correct four glyphs were entered,
+  // but never an automatic release of the bag's false bottom.
+  const matching=s.bagOpen&&Array.isArray(s.bagDials)&&
+   s.bagDials.length===4&&s.bagDials.every((value,i)=>value===[2,0,3,1][i]);
+  bagCatchMetal.emissiveIntensity=matching&&!s.bagSolved?.78:0;
   liftDoors.forEach((panel,i)=>{
    const target=(i===0?-1:1)*(s.floorFour?.18:.105);
    if(firstRestore||reducedMotion)panel.position.x=target;
@@ -928,6 +938,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    mothWingAngles:mothWings.map(({wing})=>wing.rotation.z),
    trainWheelAngles:trainWheels.map(wheel=>wheel.rotation.x),
    bagCoverAngle:bagCover?.rotation.x??0,
+   bagCatchReady:bagCatchMetal.emissiveIntensity>.25,
    liftLampLevel:liftStatusGlass?.emissiveIntensity??null,
    doorAngle:doorLeaf?.rotation.y??0,
    musicLidAngle:musicLid?.rotation.x??0,
