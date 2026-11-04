@@ -708,6 +708,18 @@ try{
   throw new Error("Front drawer failed to reach mechanical stop: "+JSON.stringify(diagnostics),{cause:error});
  }
  assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
+ assert(await page.locator("#ncLastChanges").isVisible(),
+  "A new mechanism opened without offering the optional recent-changes history");
+ assert(await page.locator("#ncChangesList").isHidden(),
+  "Recent changes should be collapsed and should not clutter the 3D scene");
+ await page.locator("#ncChangesToggle").click();
+ assert.equal(await page.locator("#ncChangesToggle").getAttribute("aria-expanded"),"true");
+ assert.match(await page.locator("#ncChangesList").innerText(),/front latch.*lavender drawer/i,
+  "The player cannot tell which mechanical part just moved");
+ await page.locator("#ncChangesToggle").click();
+ assert(await page.locator("#ncChangesList").isHidden(),
+  "Recent changes cannot be dismissed without losing the progress itself");
+ console.log("PASS: recent mechanism history stays unobtrusive and explains cause and effect");
  console.log("PASS: brass latch depressed, drawer extended and reached its end stop");
  await activate("side");
  assert.equal((await state()).b,false,
