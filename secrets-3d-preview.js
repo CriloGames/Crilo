@@ -841,7 +841,13 @@ function describeAction(action){
  if(!action)return "";
  if(action.startsWith("pickup:"))
   return "Take "+(window.CriloNothingHereCube?.getItemName?.(action.slice(7))||"found item");
- if(action.startsWith("thing:bag-dial-"))return "Bag dial "+(Number(action.slice(-1))+1);
+ if(action.startsWith("thing:bag-dial-")){
+  const n=Number(action.slice(-1));
+  const symbol=window.CriloNothingHereCube?.getBagDialSymbol?.(n);
+  // A tiny stamped mark can be hard to read at phone scale. Repeat only
+  // the mark currently visible under the pointer; never suggest the code.
+  return "Bag wheel "+(n+1)+(symbol?" · "+symbol:"");
+ }
  if(action==="thing:bag-release")return "Bag spring catch";
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
