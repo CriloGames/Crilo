@@ -1041,7 +1041,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     {face:"backFace",name:"rear iris bezel",x:0,y:-.18,r:.97},
     {face:"bottomFace",name:"underbody lock",x:0,y:0,r:.67},
     {face:"leftFace",name:"clockwork gear A",x:-.20,y:.04,r:.31},
-    {face:"leftFace",name:"clockwork gear B",x:.39,y:-.40,r:.235}
+    {face:"leftFace",name:"clockwork gear B",x:.23,y:-.27,r:.235}
    ];
    for(const a of padded)for(const b of fixed){
     if(a.face!==b.face)continue;
