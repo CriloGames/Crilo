@@ -98,8 +98,13 @@ export function finishMechanicalArtifact({
     const g=new THREE.Group();g.position.set(x,y,z);parent.add(g);return g;
   };
   const stud=(g,x,y,z=.14,r=.039)=>{
-    C(g,r,.033,x,y,z,brass);
-    const groove=B(g,r*.94,.012,.008,x,y,z+.023,deep,.003);
+    // A real fixed screw has a shaft that goes INTO its parent part.
+    // On the hinged lid / sliding drawers the head must move together
+    // with that parent. Keep the shank and head in the same local group.
+    const screw=group(g,x,y,z);
+    C(screw,r*.60,.144,0,0,-.072,brass);
+    C(screw,r,.033,0,0,0,brass);
+    const groove=B(screw,r*.94,.012,.008,0,0,.023,deep,.003);
     groove.rotation.z=Math.PI/4;
   };
   // A manufactured edge has two separate flush trims and a narrow gasket.
