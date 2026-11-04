@@ -244,7 +244,10 @@ export function buildIntricateCube({
 
   // TOP: telescopic hinge barrel, lid brackets, engraved hatch, gears below.
   plates(topFace,brass);
-  plaque(topFace,"UPPER HATCH",0,-1.21,1.03);
+  // The working flute now occupies the left half of this stationary rail.
+  // Move the purely identifying plate to the right so neither piece
+  // masks the other (standalone demonstrator keeps its centered plate).
+  plaque(topFace,"UPPER HATCH",liveGame?.82:0,-1.21,1.03);
   // The live game has THREE functional hinge pins on this exact rail.
   // Five ornamental pins intersected them and concealed the working tips.
   if(!liveGame)for(const x of [-.64,-.29,.06,.41,.65]){
