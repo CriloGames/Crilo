@@ -50,7 +50,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  });
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
- let watchHourHand=null,watchMinuteHand=null,vendingTray=null;
+ let watchHourHand=null,watchMinuteHand=null,vendingTray=null,vendingServiceSeal=null;
  let dogTail=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
@@ -426,6 +426,18 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   vendingTray.position.set(0,.17,.225);g.add(vendingTray);
   B(vendingTray,.245,.072,.068,0,0,0,m.brass,.013);
   B(vendingTray,.169,.022,.011,0,.013,.040,m.cream,.005);
+  // The refunded SECOND coin drives its own shallow brass inspection
+  // seal, NOT another sugar cube. The seal sits in the real sliding tray
+  // and persists on reload instead of popping out as a 2D overlay.
+  vendingServiceSeal=new THREE.Group();
+  vendingServiceSeal.position.set(0,0,.064);
+  vendingTray.add(vendingServiceSeal);
+  B(vendingServiceSeal,.172,.080,.019,0,0,0,m.gold,.008);
+  const firstCheck=B(vendingServiceSeal,.009,.033,.006,-.031,-.004,.014,m.dark,.002);
+  firstCheck.rotation.z=-.65;
+  const secondCheck=B(vendingServiceSeal,.009,.059,.006,.004,.008,.015,m.dark,.002);
+  secondCheck.rotation.z=.67;
+  vendingServiceSeal.visible=false;
   B(g,.12,.06,.03,.135,.39,.187,m.gold,.007);
   C(g,.045,.022,.13,.53,.193,m.cream,"z");
  }
@@ -755,8 +767,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    });
   }
   lastTapeRead=tapeRead;
-  const vendValue=s.shimUsed ? .39 :
+  const vendValue=s.refundRedeemed ? .47 : s.shimUsed ? .39 :
    (Array.isArray(s.seen)&&s.seen.includes("machine") ? .32 : .225);
+  if(vendingServiceSeal)vendingServiceSeal.visible=!!s.refundRedeemed;
   setPose(vendingTray,"position","z",vendValue,.62,firstRestore);
   if(Math.abs(vendValue-lastVendingDepth)>.001&&!firstRestore&&!reducedMotion){
    const target=vendValue;
@@ -950,6 +963,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    watchHourAngle:watchHourHand?.rotation.z??null,
    watchMinuteAngle:watchMinuteHand?.rotation.z??null,
    vendingTrayDepth:vendingTray?.position.z??null,
+   vendingServiceSealVisible:vendingServiceSeal?.visible??false,
    seedSproutVisible:sprout.visible,
    treeGrowthScale:branches.scale.y
   }),
