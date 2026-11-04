@@ -1579,6 +1579,14 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
  // The physical miniatures are visual counterparts of the EXISTING world
  // props. Selecting an inventory item and then a 3D object uses the same
  // recipe, discovery, modal and storage rules as clicking its HTML button.
+ openFluteFromBox(){
+  if(!pocket.has('flute'))return;
+  fluteTrayOpen=true;
+  selected=null;
+  render();
+  tell('The flute is playable. Press one of its three raised keys, or use the larger keys in your inventory below.');
+  $('ncFluteTray')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+ },
  activatePhysicalFluteNote(index){
   // Inventory ownership is the condition for playing. An old save with
   // the completed flute must never get stuck behind a missing lid flag.
