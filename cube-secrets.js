@@ -264,7 +264,7 @@ const changeNotes={
  dot:'The red button moved a ratchet behind the front panel.',
  bell:'An underside shutter opened, exposing a little bell.',
  key:'Two metal pieces locked together to make a key.',
- bag-code:'The bag catch opened its false bottom. Three small objects are inside.',
+ 'bag-code':'The bag catch opened its false bottom. Three small objects are inside.',
  flute:'The hollow tube and reed became a playable flute.',
  door:'The melody released a tiny door on the cube.',
  dog:'The little door opened. A dog is behind it.',
