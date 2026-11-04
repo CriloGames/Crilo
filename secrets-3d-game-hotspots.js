@@ -316,6 +316,18 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  B(ventCover,.365,.166,.039,0,0,0,graphite,.014);
  B(ventCover,.306,.012,.016,0,0,.028,brass,.005);
  for(const x of [-.14,.14])C(ventCover,.013,.013,x,0,.031,nickel);
+ // Five fixed inlaid lamps show the number of received key presses. The
+ // hidden sequence still must be found; the lamps do not disclose it.
+ const ventStepLights=[];
+ for(let i=0;i<5;i++){
+  const x=(i-2)*.065;
+  C(ventHatch,.020,.011,x,.114,.109,graphite);
+  const lamp=mat(0x7ca29b,.13,.27);
+  lamp.emissive=new THREE.Color(0x5eb59d);
+  lamp.emissiveIntensity=0;
+  C(ventHatch,.012,.012,x,.114,.121,lamp);
+  ventStepLights.push(lamp);
+ }
  control(leftFace,"pressure",.88,.64,brass,.15);
  engraving(leftFace,"CALIBRATE",.89,.27,.55);
  // The copper plunger's off-center depression identifies it physically.
@@ -388,6 +400,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   touch.rotation.x=Math.PI/2;touch.position.z=.145;
   key.add(touch);
   setHit(touch,"flute-note-"+i);
+ }
+ // Six small inlaid dots along the physical flute show input progress.
+ // They are part of the instrument and are not extra clickable controls.
+ const fluteStepLights=[];
+ for(let i=0;i<6;i++){
+  const x=(i-2.5)*.095;
+  const lamp=mat(0x7e9b87,.11,.31);
+  lamp.emissive=new THREE.Color(0x7dd3b2);
+  lamp.emissiveIntensity=0;
+  C(flute,.011,.010,x,-.018,.072,lamp);
+  fluteStepLights.push(lamp);
  }
  flute.visible=false;
  // The rear eye must look like an actual eye, rather than the old
@@ -642,7 +665,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    ventHatchOffset:ventCover.position.y,
    redCollarAngle:redCollar.rotation.z,
    redRewardGlow:redCollarMaterial.emissiveIntensity,
-   bellHatchOffset:bellHatch.position.x
+   bellHatchOffset:bellHatch.position.x,
+   ventStepsShown:ventStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
+   fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length
   }),
   fluteVisible:()=>flute.visible,
   getClueVisibility:()=>({
@@ -758,6 +783,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     else if(name.startsWith("vent-"))pose(g,"position","z",s.ventOpen?.23:.18,
       previous.ventOpen?.23:.18,restore,.65);
    }
+   // Saved code buffers drive the small lamp inlays. An incorrect five-
+   // or six-step attempt visibly resets its respective indicator row.
+   const ventSteps=s.ventOpen?5:Math.min(5,s.ventSequence?.length||0);
+   const fluteSteps=s.door?6:Math.min(6,s.fluteNotes?.length||0);
+   ventStepLights.forEach((lamp,i)=>lamp.emissiveIntensity=i<ventSteps?1.1:0);
+   fluteStepLights.forEach((lamp,i)=>lamp.emissiveIntensity=i<fluteSteps?.85:0);
    previousState={
     plateOpen:!!s.plateOpen,eyeRingTicks:s.eyeRingTicks||0,
     pressureTicks:s.pressureTicks||0,serviceOpen:!!s.serviceOpen,
