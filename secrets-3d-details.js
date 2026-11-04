@@ -75,6 +75,11 @@ export function buildIntricateCube({
         // The integrated iris service cassette occupies this corner.
         // Avoid an orphaned shell rivet running through its backplate.
         if(face===backFace&&sx>0&&sy<0)continue;
+        // Front corner screws are real removable hardware; a second
+        // decorative rivet in the same hole made both shapes collide.
+        if(face===frontFace)continue;
+        // The right-hand service bolt occupies this upper corner.
+        if(face===rightFace&&sx>0&&sy>0)continue;
         rivet(face,sx*1.31,sy*1.33,.16);
       }
     }
@@ -197,9 +202,10 @@ export function buildIntricateCube({
   // Smaller, deliberate gear cluster in the middle of the face: keep the
   // left vent keys, pressure dial, and service catch free of ornamental teeth.
   const wheelA=gear(leftFace,-.20,.04,.19,.31);
-  const wheelB=gear(leftFace,.39,-.40,.19,.235,steel,9);
+  // Pitch circles nearly touch: these are a gear pair, not two isolated
+  // discs joined by a bar that passed through their centers.
+  const wheelB=gear(leftFace,.23,-.27,.19,.235,steel,9);
   registries.wheelA=wheelA;registries.wheelB=wheelB;
-  flatLine(leftFace,-.20,.04,.39,-.40,.15,.045,darkMetal);
   // Omit four cosmetic grille bars: they resembled the real numbered vents
   // and crowded the nearby hinged mechanisms.
   // Likewise, a lever drawn here used to activate the right-hand service
@@ -239,7 +245,9 @@ export function buildIntricateCube({
   // TOP: telescopic hinge barrel, lid brackets, engraved hatch, gears below.
   plates(topFace,brass);
   plaque(topFace,"UPPER HATCH",0,-1.21,1.03);
-  for(const x of [-.64,-.29,.06,.41,.65]){
+  // The live game has THREE functional hinge pins on this exact rail.
+  // Five ornamental pins intersected them and concealed the working tips.
+  if(!liveGame)for(const x of [-.64,-.29,.06,.41,.65]){
     const riv=C(topFace,.060,.06,x,topHole.h/2,.21,steel);
     riv.rotation.z=Math.PI/2;
   }
@@ -332,7 +340,10 @@ export function buildIntricateCube({
 
   // Physical scratch marks, satin brushed blocks and index screws at the edge
   // of each panel. These are all visible from rotating the scene.
-  for(const f of [frontFace,leftFace,rightFace,topFace,bottomFace,backFace]){
+  // Six copies of these raised marks ran straight through the live
+  // miniature shelves (bag, clock, elevator and rear displays). They are
+  // workbench texture samples, not actual puzzle hardware.
+  if(!liveGame)for(const f of [frontFace,leftFace,rightFace,topFace,bottomFace,backFace]){
     for(const y of [-1.08,-.97]){
       B(f,.34,.015,.010,-1.00,y,.105,ivory,.003);
     }
@@ -367,6 +378,10 @@ export function buildIntricateCube({
     pose(frontKnob,"rotation","z",steps*.5);
     irisBlades.forEach((blade,i)=>pose(blade,"rotation","z",i*Math.PI/4+.47+steps*.16));
     pose(needle,"rotation","z",-.5+pressure*(1.75/3));
+    // Unlocking the vent drives two meshing clockwork wheels in opposite
+    // directions, with the smaller one turning faster by the gear ratio.
+    pose(wheelA,"rotation","z",s.ventOpen?Math.PI/3:0);
+    pose(wheelB,"rotation","z",s.ventOpen?-(Math.PI/3)*(.31/.235):0);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
     pose(backKnob,"rotation","z",s.back?Math.PI/2:0);
