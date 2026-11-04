@@ -131,6 +131,12 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    ?Math.max(.14,size*1.35):size*1.2;
   reserve(face,name,x,y,radius*2,radius*2);
   const g=node(face,x,y,.19);
+  // The old control was a thin floating disc: the enamel ends around
+  // z=.073 while its rear lip began at z=.170. A captive cylindrical
+  // barrel now spans the actual gap, inset into the shell. It remains
+  // stationary when the inner button depresses or a fastener withdraws.
+  const anchor=C(g,size*.90,.152,0,0,-.076,nickel);
+  anchor.userData.mechanicalMount=true;
   // Satin-metal annular socket instead of a thick black puck over a gauge.
   C(g,size*1.12,.040,0,0,0,nickel);
   const cap=new THREE.Group();g.add(cap);
@@ -186,6 +192,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  function tab(face,name,x,y,color=brass,w=.27,h=.12){
   reserve(face,name,x,y,w+.075,h+.06);
   const g=node(face,x,y,.18);
+  // The slider's rear lip is at z=.162, far ahead of the solid enamel.
+  // A recessed machined seat now joins it to the parent face, including
+  // the actual moving lid on which the triangle catch is installed.
+  const seat=B(g,w+.025,h+.017,.130,0,0,-.063,nickel,.013);
+  seat.userData.mechanicalMount=true;
   // Physical side-tab on a slender polished-metal carrier, not a tall
   // black cuboid that looks accidentally pasted over neighboring labels.
   B(g,w+.048,h+.034,.037,0,0,0,nickel,.017);
@@ -209,6 +220,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   if(!["3 · 1 · 4 · 2 · 3","A / Ⅱ · Ⅰ · Ⅲ","B / Ⅰ · Ⅲ · Ⅱ"].includes(words))
    reserve(face,"plaque "+words,x,y,w+.055,h+.043);
   const g=node(face,x,y,.158);
+  // Hidden inscriptions carry their mounting foot WITH the sliding
+  // plate. A fixed orphaned bracket would remain visible before reveal.
+  const anchor=B(g,w+.025,h+.015,.113,0,0,-.057,nickel,.010);
+  anchor.userData.mechanicalMount=true;
   B(g,w+.045,h+.029,.036,0,0,0,nickel,.014);
   B(g,w,h,.020,0,0,.035,ivory,.012);
   const canvas=document.createElement("canvas");canvas.width=384;canvas.height=108;
