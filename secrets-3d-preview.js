@@ -1352,6 +1352,9 @@ window.__nothing3DPreview={
    gameHotspots?.getPermanentFaceFootprints?.()||[]
   )||[];
  },
+ get miniatureHardwareAttachmentAudit(){
+  return pocketWorlds?.getHardwareAttachmentAudit?.()||[];
+ },
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get eyeClueLayout(){return gameHotspots?.getEyeClueLayout?.()||null},
  get eyeClueReadability(){
