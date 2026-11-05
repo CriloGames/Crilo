@@ -226,7 +226,7 @@ function makeCompartment(face,hole,palette,name){
  box(drawer,W,H,.135,0,0,.18,palette,.048);
  box(drawer,W-.13,.03,.11,0,-H/2+.16,.28,metal,.012);
  box(drawer,.30,.08,.045,0,-.13,.275,ivory,.032);
- label(drawer,name,w*.55,.11,0,.16,.263,"#efe8db","#60686b");
+ // The real drawer handle identifies this part on hover; no nameplate.
  return {drawer,cavity,open:false};
 }
 const front=makeCompartment(frontFace,frontHole,enamel.front,"01 · DRAWER");
