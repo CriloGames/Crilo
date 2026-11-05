@@ -1,4 +1,4 @@
-// Verify all 32 item silhouettes in a real browser without loading WebGL.
+// Verify all 33 item silhouettes in a real browser without loading WebGL.
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {chromium} from "playwright";
@@ -6,7 +6,7 @@ import {chromium} from "playwright";
 const source=readFileSync(new URL("../cube-secrets.js",import.meta.url),"utf8");
 const namesText=source.split("const names={")[1]?.split("const glyphs=")[0]||"";
 const ids=[...namesText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(match=>match[1]);
-assert.equal(ids.length,32,"Pocket catalog should contain exactly 32 items");
+assert.equal(ids.length,33,"Pocket catalog should contain exactly 33 items");
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:390,height:844}});
 const errors=[];
@@ -20,11 +20,11 @@ try{
  await page.goto("http://127.0.0.1:4173/secrets.html",{
   waitUntil:"domcontentloaded",timeout:30000
  });
- await page.waitForFunction(()=>document.querySelectorAll("#ncInventory .nc-item").length===32,
+ await page.waitForFunction(()=>document.querySelectorAll("#ncInventory .nc-item").length===33,
   null,{timeout:30000});
- assert.equal(await page.locator("#ncPocketCount").innerText(),"32 carried",
+ assert.equal(await page.locator("#ncPocketCount").innerText(),"33 carried",
   "The pocket count must represent actual inventory, not unrevealed rewards");
- assert.equal(await page.locator("#ncPocketCount").getAttribute("aria-label"),"32 items carried",
+ assert.equal(await page.locator("#ncPocketCount").getAttribute("aria-label"),"33 items carried",
   "The number of carried objects needs an accessible label");
  const observed=await page.evaluate(()=>{
   const buttons=[...document.querySelectorAll("#ncInventory .nc-item")];
@@ -44,7 +44,7 @@ try{
    };
   });
  });
- assert.equal(observed.length,32);
+ assert.equal(observed.length,33);
  assert.deepEqual(observed.map(item=>item.id).sort(),ids.sort(),
   "Saved pocket did not restore the complete item catalog");
  assert(observed.every(item=>item.hasSvg&&item.geometry?.length>12&&
@@ -54,7 +54,7 @@ try{
    item=>!(item.hasSvg&&item.shapeW>8&&item.shapeH>8&&item.width>=24&&
     item.height>=24&&item.hitHeight>=42&&item.label.length>2&&item.material&&item.accessible)
   )));
- assert.equal(new Set(observed.map(item=>item.geometry)).size,32,
+ assert.equal(new Set(observed.map(item=>item.geometry)).size,33,
   "Separate collectibles share indistinguishable placeholder artwork");
  // Clicking a held item must not recreate the rest of the pocket's SVG
  // collection, so drag, focus and the arrival pulse remain continuous.
@@ -73,7 +73,7 @@ try{
   "key","Selecting an inventory icon no longer picks up the correct item");
  assert.equal(await page.locator('#ncInventory [data-item="key"]').getAttribute("aria-pressed"),
   "true","Selected pocket item no longer communicates state to assistive technology");
- assert.equal(await page.locator("#ncPocketCount").innerText(),"32 carried",
+ assert.equal(await page.locator("#ncPocketCount").innerText(),"33 carried",
   "Selecting an item must not remove it from the pocket");
  await page.evaluate(()=>{document.documentElement.dataset.theme="dark"});
  const contrast=await page.locator('#ncInventory [data-item="lens"] .nc-item-icon')
@@ -81,7 +81,7 @@ try{
  assert(contrast!=="rgb(145, 106, 94)"&&contrast!=="rgb(0, 0, 0)",
   "Glass icons did not adjust for dark mode");
  assert.deepEqual(errors,[],"Pocket rendering threw a browser exception");
- console.log("PASS: all 32 distinct vector pocket items, readable icon size, 3D-only restore, selection and dark-mode contrast");
+ console.log("PASS: all 33 distinct vector pocket items, readable icon size, 3D-only restore, selection and dark-mode contrast");
 }finally{
  await browser.close();
 }
