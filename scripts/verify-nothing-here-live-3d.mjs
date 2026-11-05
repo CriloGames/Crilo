@@ -400,9 +400,8 @@ try{
   Math.abs(cosmetic.copper.x-.88)<.01,
   "The copper catch is still just a flat slotted disc with a misleading DENT label: "+
    JSON.stringify(cosmetic.copper));
- assert(cosmetic.nameplates.length>=2&&
-  cosmetic.nameplates.every(n=>!["NOTHING BELOW","MAKER'S SERVICE"].includes(n.text)),
-  "An outdated ornamental nameplate still covers a working mechanism: "+
+ assert.equal(cosmetic.nameplates.length,0,
+  "The cube still contains redundant ornamental nameplates: "+
    JSON.stringify(cosmetic.nameplates));
  for(const plate of cosmetic.nameplates)for(const fitting of clearance.entries){
   if(plate.face!==fitting.face)continue;
