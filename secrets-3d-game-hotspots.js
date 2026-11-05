@@ -614,6 +614,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  B(insertedServiceKey,.028,.043,.012,-.049,-.007,.006,brass,.004);
  B(insertedServiceKey,.022,.015,.014,.058,-.016,.006,nickel,.004);
  insertedServiceKey.visible=false;
+ // The keyhole itself is an actual pointer target, not dead decoration.
+ // The returned service key can be selected and clicked directly here.
+ setHit(serviceKeyway,"shutter");
  // One genuine movable rubber foot conceals the second musical phrase.
  // The other three fixed feet are purely structural, in the details layer.
  // A short VERTICAL captive slide retracts toward the outside upper rim.
