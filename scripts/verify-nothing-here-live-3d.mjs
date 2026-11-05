@@ -87,7 +87,9 @@ try{
   localStorage.setItem("crilo_nothing_here_cube_v3",JSON.stringify({
    seen:ids,pocket:["flute","key"],
    pendingPickups:[
-    "coin","reed","treat","prism","sugar","tag","postcard",
+    // A redeemed coin and the service key occupy the SAME machine slot
+    // at different moments. Only one may exist in a valid physical scene.
+    "reed","treat","prism","sugar","tag","postcard",
     "acorn","spring","raindrop","bird","lens","stardust",
     "starmap","parcel","envelope","tape","letter","bell",
     "fork","shim","cog","washer","cylinder","iris","seal"
@@ -141,7 +143,7 @@ try{
   window.__nothing3DPreview.getDetailedCollisionReport());
  assert(surfaces.library==="three-mesh-bvh"&&
   surfaces.selfTest?.intersecting&&surfaces.selfTest?.separated&&
-  surfaces.groups.models===15&&surfaces.groups.rewards===26&&
+  surfaces.groups.models===15&&surfaces.groups.rewards===25&&
   !surfaces.truncated,
   "High-precision mesh audit unavailable or incomplete: "+JSON.stringify(surfaces));
  const unintended=surfaces.intersections.filter(hit=>
@@ -204,10 +206,10 @@ try{
  for(const [item,source] of Object.entries(expectedOrigins))
   assert.equal(origins[item],source,
    "Reward "+item+" is physically mounted to an unrelated source");
- assert(unlocked.pendingVisible.length===26&&unlocked.physicallyVisible.length===26,
+ assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
   "Not every reward remains visible when all mechanisms open: "+
   JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
- assert(unlocked.rewards?.measured.length===26,
+ assert(unlocked.rewards?.measured.length===25,
   "Some pending rewards have no real rendered item geometry");
  assert.deepEqual(unlocked.rewards.overhangs,[],
   "At least one unlocked reward is hanging past its box face or detached");
