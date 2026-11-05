@@ -111,10 +111,10 @@ async function refundCoin(page,{realPointer=false}={}){
   "The real brass service key is not visible and collectible in 3D");
  assert(await page.evaluate(()=>
   window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
-  "The service certificate has no visible physical counterpart");
+  "The service-key tray has no visible mechanical counterpart");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.44,
   "The vending machine's second tray is still closed");
- assert.match(await page.locator("#ncNarrator").innerText(),/brass service seal/i);
+ assert.match(await page.locator("#ncNarrator").innerText(),/brass service key/i);
  await act(page,"thing:machine");
  assert(!(await state(page)).pendingPickups.includes("coin"),
   "A completed machine spawned another refunded coin on inspection");
