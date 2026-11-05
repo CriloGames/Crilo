@@ -1134,6 +1134,17 @@ try{
   assert(triangleMotion.depth<-.007,"Triangle should depress into its brass spring housing: "+JSON.stringify(triangleMotion));
  for(let i=0;i<2;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical triangle presses did not open the hatch");
+ // The hatch's wheels must now do an actual job: rotate together on
+ // seated spindles and retract both clips from the collectible tube.
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.topRetainerAssembly.released,
+  null,{timeout:12000,polling:100});
+ const tubeDrive=await page.evaluate(()=>window.__nothing3DPreview.topRetainerAssembly);
+ assert(tubeDrive.gears.length===2&&tubeDrive.gears[0].angle>.8&&
+  tubeDrive.gears[1].angle<-.8&&
+  tubeDrive.clipOffsets[0]<-.10&&tubeDrive.clipOffsets[1]>.10,
+  "The hatch opened without rotating its connected gear train and freeing the tube: "+
+  JSON.stringify(tubeDrive));
  const topBeforeClick=await page.evaluate(()=>window.__nothing3DPreview.topOpen);
  await activate("hatch");
  assert.equal((await state()).top,true);
