@@ -369,6 +369,8 @@ function ongoingMechanisms(){
  if(s.bagOpen&&!s.bagSolved)
   add('Bag wheels','Four wheels rotate independently. The spring catch is a separate control.'+
    (s.eyeRingTicks===3?' A four-symbol strip is visible near the rear iris.':''));
+ if(s.bagSolved&&['reed','treat','prism'].some(id=>pendingPickups.has(id)))
+  add('Bag lining','The false bottom is open. Loose objects are still in its individual holders.');
  if(s.rightBoltLoose&&!s.ventOpen)
   add('Vent switches','A five-mark service plate is exposed on the right. Four numbered switches are on the left. Registered: '+s.ventSequence.length+'/5.');
  if(s.ventOpen&&pendingPickups.has('shim'))
@@ -376,6 +378,14 @@ function ongoingMechanisms(){
  if(pocket.has('flute')&&!s.door)
   add('Flute','The instrument has three keys and needs six notes. Visible score fragments: '+
    (s.back?'A':'—')+' / '+(s.footChecked?'B':'—')+'.');
+ if(s.vase&&['acorn','spring'].some(id=>pendingPickups.has(id)))
+  add('Broken vase','The squirrel knocked the vase loose. Its acorn and spring have not both been collected.');
+ if(s.music&&pendingPickups.has('raindrop'))
+  add('Little cloud','The music box started. A raindrop is waiting in the cloud’s collector.');
+ if(s.tree&&pendingPickups.has('bird'))
+  add('Grown tree','There is a folded bird caught in the miniature tree.');
+ if(s.tag&&pendingPickups.has('tag'))
+  add('Dog collar','The numbered collar tag is resting in the dog’s tray.');
  if(seen.has('machine')&&!s.shimUsed&&!s.refundRedeemed)
   add('Vending machine','The first purchase worked, but the coin-return slot is still jammed.');
  if(s.shimUsed&&seen.has('machine')&&!s.refundRedeemed)
@@ -398,9 +408,13 @@ function ongoingMechanisms(){
  if(s.tapeInserted&&!s.letterMailed)
   add('Clock reader','The clock has read the tape. A folded letter is available.'+
    (pendingPickups.has('letter')?' It is still at the clock.':''));
+ if(s.watch&&s.tag&&!s.floorFour)
+  add('Miniature lift','The lift has four buttons. A small number is stamped on the collar tag.');
  if(s.floorFour&&!s.observed)
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
+ if(s.mothTouched&&pendingPickups.has('stardust'))
+  add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
  if(s.observed&&!s.train)
   add('Telescope','The telescope has focused. A folded star chart was produced.'+
    (pendingPickups.has('starmap')?' The chart is still in its holder.':''));
