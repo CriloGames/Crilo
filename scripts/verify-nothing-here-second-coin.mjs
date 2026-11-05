@@ -286,6 +286,38 @@ try{
   await close();
   console.log("PASS: a legacy second coin already in pocket now redeems correctly");
  }
+ // Previously completed calibrations should NOT force a former player
+ // to replay already-earned rewards, but the newly authored physical gear
+ // maze must remain playable rather than pre-solved on arrival.
+ {
+  const {page,close}=await scenario("pre-maze-earned-fork",{
+   seen:["first","pressure-dial"],pressureReady:true,pressureTicks:3,
+   pocket:["fork"],pendingPickups:[]
+  });
+  const legacy=await state(page);
+  assert(legacy.legacyGearBypass&&!legacy.gearMazeSolved&&legacy.pocket.includes("fork"),
+   "Old players lost their tuning fork or their new gear puzzle was solved automatically");
+  await act(page,"gear-small");
+  assert((await state(page)).gearMazeIndex===1,
+   "Players with earlier calibration progress cannot turn the newly functional gears");
+  await close();
+  console.log("PASS: prior fork owners keep it and can still play new gear maze");
+ }
+ // An earlier migration briefly stamped the new gears solved at zero
+ // actual turns. Detect that exact synthetic state, not real solutions.
+ {
+  const {page,close}=await scenario("previous-synthetic-gear-migration",{
+   seen:["first","pressure-dial"],pressureReady:true,pressureTicks:3,
+   gearMazeSolved:true,gearMazeIndex:10,gearMazeTurns:0,
+   pocket:["fork"],pendingPickups:[]
+  });
+  assert(!(await state(page)).gearMazeSolved&&
+   (await state(page)).legacyGearBypass&&
+   (await state(page)).pocket.includes("fork"),
+   "The earlier automatic migration has locked the owner out of the new gear maze");
+  await close();
+  console.log("PASS: synthetic auto-solved gears are reopened without resetting earned items");
+ }
  // Players may solve the meshed-wheel channel BEFORE touching the
  // calibration dial. In this order its screw must retract the latch but
  // must not invent a tuning fork until the needle also reaches its stop.
