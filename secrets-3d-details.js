@@ -478,7 +478,7 @@ export function buildIntricateCube({
     pose(needle,"rotation","z",-.5+pressure*(1.75/3));
     // Neither wheel spins magically when the vent grille opens. Only an
     // actual gear press turns the pair, with their tooth radii in ratio.
-    const turns=Math.max(-48,Math.min(48,Number(s.gearMazeTurns)||0));
+    const turns=Math.max(-720,Math.min(720,Number(s.gearMazeTurns)||0));
     const gearRotation=-turns*Math.PI/12;
     pose(wheelA,"rotation","z",gearRotation);
     pose(wheelB,"rotation","z",-gearRotation*(.31/.235));
