@@ -121,6 +121,14 @@ async function refundCoin(page,{realPointer=false}={}){
  // Real downstream use: the discovered key must physically fit the
  // service shutter. A new player must not get the wax cylinder just by
  // obtaining a badge or a duplicate sugar cube.
+ const shutterBefore=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert(shutterBefore.shutterClearance.gapToInsetStripe>.03&&
+  shutterBefore.shutterClearance.gapBelowDrawer>.03,
+  "Service cassette crosses the black border or the drawer bezel: "+JSON.stringify(shutterBefore));
+ assert(Math.abs(shutterBefore.shutterHousing.x-shutterBefore.servicePocket.x)<.001&&
+  Math.abs(shutterBefore.shutterHousing.y-shutterBefore.servicePocket.y)<.001,
+  "Wax cylinder has a disconnected source away from its real shutter: "+JSON.stringify(shutterBefore));
  await act(page,"shutter");
  assert(!(await state(page)).serviceOpen,
   "Service shutter opened without the brass key or sound release");
@@ -203,6 +211,17 @@ async function refundCoin(page,{realPointer=false}={}){
  assert((await state(page)).serviceOpen&&
   (await state(page)).pendingPickups.includes("cylinder"),
   "Second coin and tuning fork did not jointly expose the real wax cylinder");
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.shutterLeafX>.22,
+  null,{timeout:12000,polling:100});
+ const shutterAfter=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert.deepEqual(shutterAfter.shutterHousing,shutterBefore.shutterHousing,
+  "The whole gray cassette slid away instead of only its captive door");
+ assert(shutterAfter.serviceKeyInserted&&
+  shutterAfter.shutterLeafX>shutterBefore.shutterLeafX+.25,
+  "The key disappeared or the shutter leaf did not retract inside its rails: "+
+   JSON.stringify({shutterBefore,shutterAfter}));
 }
 
 try{
