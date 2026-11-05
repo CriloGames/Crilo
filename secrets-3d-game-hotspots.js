@@ -311,7 +311,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    B(shutterCassette,.020,.005,.006,x,sy*.124,.114,graphite,.002);
   }
  }
- const shutterSlide=node(shutterCassette,-.070,0,0);
+ const shutterSlide=node(shutterCassette,-.050,0,0);
  // This captive tongue fills the gap between the moving leaf and its
  // recessed slideway. It stays inside the visible metal rails at all times.
  B(shutterSlide,.306,.123,.045,0,0,.075,graphite,.014);
@@ -894,8 +894,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     (previous.pressureTicks||0)*Math.PI/6,restore,.58);
    // Only the DOOR moves along its tracks; the chassis, key and
    // resonance receptor all remain bolted to the right-hand panel.
-   pose(shutterSlide,"position","x",s.serviceOpen?.270:-.070,
-    previous.serviceOpen?.270:-.070,restore,.64);
+   pose(shutterSlide,"position","x",s.serviceOpen?.270:-.050,
+    previous.serviceOpen?.270:-.050,restore,.64);
    resonatorLight.material.emissiveIntensity=s.resonance?1.4:.10;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
