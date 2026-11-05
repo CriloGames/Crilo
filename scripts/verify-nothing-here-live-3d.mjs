@@ -15,7 +15,7 @@ const namesText=source.split("const names={")[1]?.split("const glyphs=")[0]||"";
 const glyphText=source.split("const glyphs={")[1]?.split("const recipe=")[0]||"";
 const itemIds=new Set([...namesText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
 const glyphIds=new Set([...glyphText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
-assert.equal(itemIds.size,32,"An existing pocket item disappeared from the canonical catalog");
+assert.equal(itemIds.size,33,"An existing pocket item disappeared from the canonical catalog");
 assert.deepEqual([...glyphIds].sort(),[...itemIds].sort(),
  "Some collectible has no corresponding visual inventory glyph");
 const directAwards=new Set([...source.matchAll(/\bbloom\('([^']+)'/g)].map(m=>m[1]));
@@ -32,7 +32,7 @@ for(const id of sixtySecrets)assert(directAwards.has(id)||craftedAwards.has(id),
  "Unreachable secret: "+id+" has no awarding event or crafting rule");
 for(const [,item] of source.matchAll(/\b(?:gain|spend)\('([^']+)'/g))
  assert(itemIds.has(item),"A puzzle uses an item not defined in the pocket: "+item);
-console.log("PASS: all 60 award paths, 32 named pocket objects, and three craft recipes are consistent");
+console.log("PASS: all 60 award paths, 33 named pocket objects, and three craft recipes are consistent");
 // The object names may aid orientation, but puzzle solutions must NOT be
 // supplied as hover text, engravings, or automatic journal hints.
 for(const file of ["secrets-3d-details.js","secrets-3d-game-hotspots.js"]){
@@ -90,7 +90,7 @@ try{
     "coin","reed","treat","prism","sugar","tag","postcard",
     "acorn","spring","raindrop","bird","lens","stardust",
     "starmap","parcel","envelope","tape","letter","bell",
-    "fork","shim","cog","washer","cylinder","iris"
+    "fork","shim","cog","washer","cylinder","iris","seal"
    ],
    a:true,b:true,top:true,bottom:true,back:true,mouse:true,
    bag:true,bagOpen:true,bagSolved:true,door:true,doorOpen:true,
@@ -99,7 +99,7 @@ try{
    floorFour:true,mothTouched:true,moon:true,dancer:true,
    train:true,portal:true,ventOpen:true,plateOpen:true,
    pressureReady:true,pressureTicks:3,eyeRingTicks:3,
-   serviceOpen:true,tapeInserted:true,shimUsed:true,
+   serviceOpen:true,serviceSealInserted:true,tapeInserted:true,shimUsed:true,
    screws:[0,1,2],hingePins:[0,1,2],rightBoltLoose:true,
    footChecked:true
   }));
@@ -141,7 +141,7 @@ try{
   window.__nothing3DPreview.getDetailedCollisionReport());
  assert(surfaces.library==="three-mesh-bvh"&&
   surfaces.selfTest?.intersecting&&surfaces.selfTest?.separated&&
-  surfaces.groups.models===15&&surfaces.groups.rewards===25&&
+  surfaces.groups.models===15&&surfaces.groups.rewards===26&&
   !surfaces.truncated,
   "High-precision mesh audit unavailable or incomplete: "+JSON.stringify(surfaces));
  const unintended=surfaces.intersections.filter(hit=>
@@ -204,10 +204,10 @@ try{
  for(const [item,source] of Object.entries(expectedOrigins))
   assert.equal(origins[item],source,
    "Reward "+item+" is physically mounted to an unrelated source");
- assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
+ assert(unlocked.pendingVisible.length===26&&unlocked.physicallyVisible.length===26,
   "Not every reward remains visible when all mechanisms open: "+
   JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
- assert(unlocked.rewards?.measured.length===25,
+ assert(unlocked.rewards?.measured.length===26,
   "Some pending rewards have no real rendered item geometry");
  assert.deepEqual(unlocked.rewards.overhangs,[],
   "At least one unlocked reward is hanging past its box face or detached");
@@ -674,7 +674,7 @@ try{
    "A collected item left behind a ghost halo: "+JSON.stringify({id,glowAfter}));
  };
  const allRewardMeshes=await page.evaluate(()=>window.__nothing3DPreview.physicalPickupIds);
- assert.equal(allRewardMeshes.length,25,"Not every newly discovered item has a physical pickup model");
+ assert.equal(allRewardMeshes.length,26,"Not every newly discovered item has a physical pickup model");
  const guide=await page.locator(".nc-combine-guide").innerText();
  assert(/Try things:.*Pick an item.*fit together/i.test(guide),
   "The pocket should explain item use in one plain-English sentence");
@@ -1101,14 +1101,21 @@ try{
  await activate("thing:machine");
  const redeemed=await state();
  assert(redeemed.refundRedeemed&&redeemed.seen.includes("service-bolt")&&
-  !redeemed.pocket.includes("coin")&&!redeemed.pendingPickups.includes("sugar"),
-  "The refunded coin should reveal its unique service seal, not orphan another sugar cube");
+  !redeemed.pocket.includes("coin")&&redeemed.pendingPickups.includes("seal")&&
+  !redeemed.pendingPickups.includes("sugar"),
+  "The refunded coin should reveal a physical service key rather than extra sugar");
+ const serviceTool=await page.evaluate(()=>({
+  pickup:window.__nothing3DPreview.getPhysicalPickupRevealState("seal"),
+  layout:window.__nothing3DPreview.physicalPickupLayout.find(x=>x.id==="seal")
+ }));
+ assert(serviceTool.pickup?.visible&&serviceTool.layout?.source==="machine",
+  "The refunded coin did not physically expose its usable service key in the vending machine");
  assert(await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
   "The second coin did not reveal a physical stamped brass certificate in the machine");
  await page.waitForFunction(()=>
   window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.44,
   null,{timeout:16000,polling:250});
- console.log("PASS: refunded second coin opens its own service drawer and awards the maintenance secret");
+ console.log("PASS: refunded second coin exposes a real service key required for later service shutter");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
  await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
  const triangleMotion=await page.evaluate(()=>{
