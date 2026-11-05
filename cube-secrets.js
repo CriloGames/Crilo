@@ -1136,13 +1136,13 @@ function cubeHit(name){
   if(s.top)tell('The lid is already resting against its open hinge stops.');
   else{
    s.topHits++;
-   if(s.topHits>=3){s.top=true;bloom('pipe','The third catch moves. The top lid opens on its hinges, revealing a hollow wooden tube in the compartment.')}
+   if(s.topHits>=3){s.top=true;bloom('pipe','The third catch releases the hatch. As the lid rises, two meshed gears draw back the retaining clips around a wooden tube in its cradle.')}
    else tell(s.topHits===1
     ?'The triangular button sinks in. One internal catch moves, but the lid is still fastened.'
     :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The hollow wooden tube comes free of its upper retaining bracket.')}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends.')}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','The underside release opens a separate return pocket. A brass ring slides forward into view.');}
   if(!s.ringTaken){
