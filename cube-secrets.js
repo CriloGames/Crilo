@@ -212,7 +212,7 @@ s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 s.gearMazeIndex=clamp(Number(raw.gearMazeIndex)||0,0,GEAR_MAZE_DIRECTIONS.length);
-s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-48,48);
+s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-720,720);
 // Respect the tuning fork already earned in older versions WITHOUT
 // silently auto-solving the newly playable gears. The first release
 // mistakenly marked previous pressure-dial players' gears complete. That
@@ -949,7 +949,7 @@ function inspectHardware(name){
   const before=s.gearMazeIndex;
   const forward=GEAR_MAZE_DIRECTIONS[before];
   const backward=before>0?-GEAR_MAZE_DIRECTIONS[before-1]:0;
-  s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-48,48);
+  s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-720,720);
   if(dir===forward)s.gearMazeIndex++;
   else if(dir===backward)s.gearMazeIndex--;
   if(s.gearMazeIndex>=GEAR_MAZE_DIRECTIONS.length){
