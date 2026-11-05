@@ -216,19 +216,24 @@ export function buildIntricateCube({
   // jumps between unrelated parts of the cube.
   const gearMazeDirections=[1,1,1,-1,-1,1,1,1,-1,-1];
   const gearMazeAngles=[-128,-92,-56,-20,-58,-96,-60,-24,12,-25,-62];
-  const gearMazeRadii=[.132,.132,.132,.132,.176,.176,.205,.205,.205,.226,.226];
+  const gearMazeRadii=[.095,.095,.095,.095,.145,.145,.195,.195,.195,.245,.245];
   const gearMazePoints=gearMazeAngles.map((angle,i)=>{
    const a=angle*Math.PI/180,r=gearMazeRadii[i];
    return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.145);
   });
   // The bore and groove are part of the wheel; the screw rides within it.
   // The raised brass lips and darker inner channel read as a shallow cut.
-  C(wheelA,.242,.023,0,0,.117,gearMetal);
+  C(wheelA,.278,.023,0,0,.117,gearMetal);
+  // This broad moving face plate is fastened through its bearing, not
+  // floating above the older gear blank. Four concealed steel spacers
+  // bridge the solid gear hub and its upper engraved surface.
+  for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5])
+   C(wheelA,.018,.093,Math.cos(a)*.205,Math.sin(a)*.205,.077,steel);
   const grooveCurve=new THREE.CatmullRomCurve3(
    gearMazePoints.map(p=>p.clone()),false,"centripetal",.24);
-  const lip=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.019,7,false),brass);
+  const lip=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.014,7,false),brass);
   lip.castShadow=false;wheelA.add(lip);detailsCount++;
-  const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.012,8,false),ebony);
+  const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.009,8,false),ebony);
   channel.position.z=.008;channel.castShadow=false;wheelA.add(channel);detailsCount++;
   const follower=new THREE.Group();wheelA.add(follower);
   follower.position.copy(gearMazePoints[0]);follower.position.z=.184;
