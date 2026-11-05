@@ -124,6 +124,8 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"shutter");
  assert(!(await state(page)).serviceOpen,
   "Service shutter opened without the brass key or sound release");
+ assert.match(await page.locator("#ncMechanismsList").innerText(),/Service key/,
+  "The earned brass key is not reflected in the live mechanism log");
  await collect(page,"seal");
  await useItem(page,"seal","shutter");
  assert((await state(page)).serviceSealInserted&&
@@ -154,7 +156,18 @@ try{
    mouse:true,bag:true,machine:true,ventOpen:true,
    pocket:["shim","sugar"],pendingPickups:[]
   });
+  assert(await page.locator("#ncMechanisms").isVisible(),
+   "Previously discovered mechanisms must have an optional readable status");
+  assert(await page.locator("#ncMechanismsList").isHidden(),
+   "Mechanism log should start collapsed to keep the cube uncluttered");
+  await page.locator("#ncMechanismsToggle").click();
+  assert.match(await page.locator("#ncMechanismsList").innerText(),/Vending machine.*coin-return slot is still jammed/s,
+   "Unresolved machine state is not explained in ordinary physical language");
+  assert.doesNotMatch(await page.locator("#ncMechanismsList").innerText(),/3\s*·\s*1\s*·\s*4/,
+   "An unopened code was leaked by the progress summary");
   await useItem(page,"shim","machine");
+  assert.match(await page.locator("#ncMechanismsList").innerText(),/Coin return.*working coin return/s,
+   "Fixing the jam did not update the visible mechanism state");
   await refundCoin(page,{realPointer:true});
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
