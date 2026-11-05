@@ -14,7 +14,7 @@ const catalog=[
  ['mouse','You have disturbed a mechanical mouse.'],
  ['eye','An eye that gives directions.'],
  ['dot','The forbidden little red dot.'],
- ['bell','A bell with no purpose.'],
+ ['bell','A bell with a surprisingly loud voice.'],
  ['key','That is definitely a key.'],
  ['bag','Luggage, for no reason.'],
  ['bag-code','The bag has a false bottom.'],
@@ -1173,7 +1173,12 @@ function use(item,thing){
  }else if(item==='bird'&&thing==='cube'){
   spend('bird');s.moon=true;bloom('moon','The paper bird flies into the cube. A tiny moon takes its place.');incident('☾');
  }else if(item==='bell'&&thing==='dog'){
-  sound(820);tell('The dog looks offended. It prefers being petted.');
+  // The bell is NOT a dead-end inventory item. Its audible cause has a
+  // concrete effect on the dog, squirrel, and physically cracked vase.
+  // Petting three times remains a second, fully valid way to start this.
+  sound(820);
+  if(!s.barked)bark('bell');
+  else tell('The bell rings again. The dog looks toward the empty ledge where the startled squirrel used to sit.');
  }else if(item==='lens'&&thing==='telescope'){
   spend('lens');s.observed=true;
   bloom('constellation','The lens focuses on a constellation that has never existed.');
@@ -1414,13 +1419,16 @@ function note(i){
  }
  render();
 }
-function bark(){
+function bark(trigger='pet'){
+ if(trigger==='bell'&&!s.barked)s.dogHits=Math.max(2,s.dogHits);
  s.dogHits++;
  cue('ncDog','nc-petting',520);
  if(s.dogHits===1)bloom('dog','The dog tilts its head, wondering whether you are real.');
  if(s.dogHits===3&&!s.barked){
   s.barked=true;s.squirrel=true;s.vase=true;
-  bloom('bark','After three pats, the dog lets out a shockingly loud BARK!');
+  bloom('bark',trigger==='bell'
+   ?'The small bell rings. The surprised dog lets out a loud bark, startling the squirrel perched on the ledge above the door.'
+   :'After three pats, the dog lets out a loud bark that startles the squirrel above its door.');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
   bloom('vase','The squirrel knocks the underside’s ceramic vase off balance. Its cracked base reveals an acorn and a clockwork spring.');
   gain('acorn');gain('spring');bloom('spring');fleeing=true;
