@@ -223,9 +223,14 @@ export function buildIntricateCube({
    {r:.210,start:-130,end:130},
    {r:.245,start:130,end:-115}
   ];
+  // Rotate the *entire* carved spiral so that its outlet actually meets
+  // the raised linkage entering the pressure-dial lock. Previously the
+  // captive screw finished at the lower-left of its wheel while the rail
+  // inexplicably began near the upper-right. The turn sequence is intact.
+  const gearMazeOrientation=156;
   const mazePoint=(radius,angle)=>new THREE.Vector3(
-   Math.cos(angle*Math.PI/180)*radius,
-   Math.sin(angle*Math.PI/180)*radius,.145
+   Math.cos((angle+gearMazeOrientation)*Math.PI/180)*radius,
+   Math.sin((angle+gearMazeOrientation)*Math.PI/180)*radius,.145
   );
   const gearMazePoints=[mazePoint(mazeStages[0].r,mazeStages[0].start)];
   const groovePoints=[gearMazePoints[0].clone()];
@@ -273,14 +278,22 @@ export function buildIntricateCube({
   screwSlot.rotation.z=.56;
   // A small captive tab holds the calibration bracket shut until the
   // screw reaches the open end. This is the maze's physical consequence.
-  // A real guide links the grooved wheel's upper bearing to the dial's
-  // retainer. Without this shallow dogleg rail the little brass tongue
-  // appeared to retract by magic when a distant wheel was solved. Route
-  // behind both gears and stop LEFT of the pressure dial's needle housing.
-  flatLine(leftFace,-.03,.295,.22,.47,.118,.030,steel);
-  flatLine(leftFace,.22,.47,.54,.66,.118,.030,steel);
-  for(const [x,y] of [[.22,.47],[.49,.635]])
-   C(leftFace,.025,.021,x,y,.131,brass);
+  // The final screw socket now sits NEXT to the exit of the carved track.
+  // A raised rail carries the motion out of the rotating wheel. At the
+  // brass transfer bearing it descends to the lower, stationary dial catch.
+  // Keep both runs above the panel: the former rail was 0.22 units behind
+  // the screw, making the linkage look like unrelated decoration.
+  const gearRailEntry={x:-.063,y:.243,z:.344};
+  flatLine(leftFace,gearRailEntry.x,gearRailEntry.y,.22,.47,.344,.033,steel);
+  flatLine(leftFace,.22,.47,.54,.66,.197,.033,steel);
+  // A fixed guide at the channel mouth catches the screw ONLY when it
+  // reaches the last notch, not on each turn of the moving wheel.
+  C(leftFace,.043,.023,gearRailEntry.x,gearRailEntry.y,.341,darkMetal);
+  ring(leftFace,.040,.008,gearRailEntry.x,gearRailEntry.y,.359,brass);
+  // Vertical transfer shaft with collars connecting the two rail heights.
+  C(leftFace,.023,.176,.22,.47,.268,steel);
+  for(const z of [.187,.353])C(leftFace,.038,.018,.22,.47,z,brass);
+  C(leftFace,.029,.038,.52,.648,.186,steel);
   const dialCatch=group(leftFace,.54,.66,.164);
   B(dialCatch,.175,.078,.039,0,0,0,steel,.009);
   const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
@@ -550,6 +563,16 @@ export function buildIntricateCube({
       directions:[...gearMazeDirections],
       grooveCount:gearMazePoints.length,
       follower:{x:follower.position.x,y:follower.position.y,z:follower.position.z},
+      // World-on-face location (after the rotating wheel's angle): the last
+      // notch must physically line up with the transfer rail on completion.
+      exit:{
+       x:wheelA.position.x+finishPoint.x*Math.cos(wheelA.rotation.z)-
+          finishPoint.y*Math.sin(wheelA.rotation.z),
+       y:wheelA.position.y+finishPoint.x*Math.sin(wheelA.rotation.z)+
+          finishPoint.y*Math.cos(wheelA.rotation.z),
+       z:wheelA.position.z+finishPoint.z
+      },
+      railEntry:{...gearRailEntry},
       dialTongueX:dialTongue.position.x
     }),
     getGaugeAssembly:()=>({
