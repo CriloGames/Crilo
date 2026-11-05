@@ -184,6 +184,17 @@ async function refundCoin(page,{realPointer=false}={}){
   "Completing the carved gear maze did not withdraw the clamp and expose the fork");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
   null,{timeout:11000});
+ // The last carved notch must really meet the raised transfer rail.
+ await page.waitForFunction(()=>{
+  const m=window.__nothing3DPreview.physicalGearMaze;
+  return m&&Math.hypot(m.exit.x-m.railEntry.x,
+   m.exit.y-m.railEntry.y)<.023&&
+   Math.abs(m.exit.z-m.railEntry.z)<.025;
+ },null,{timeout:12000,polling:100});
+ const gearExit=await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze);
+ assert(Math.hypot(gearExit.exit.x-gearExit.railEntry.x,
+   gearExit.exit.y-gearExit.railEntry.y)<.023,
+  "The captive screw finishes away from its release rail: "+JSON.stringify(gearExit));
  await collect(page,"fork");
  await useItem(page,"fork","cube");
  assert((await state(page)).resonance,
