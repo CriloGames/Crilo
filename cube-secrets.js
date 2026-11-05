@@ -264,7 +264,7 @@ for(const [id,owned] of [
  }
 }
 let selected=null,fluteTrayOpen=false,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
-let changesOpen=false;
+let changesOpen=false,mechanismsOpen=false;
 const changeNotes={
  drawer:'Front latch released. The lavender drawer opened on its runners.',
  thread:'Side release moved. The teal drawer opened with a red spool inside.',
@@ -349,6 +349,65 @@ function rememberChange(id,message=changeNotes[id]){
  if(recentChanges[0]?.id===id&&recentChanges[0]?.message===message)return;
  recentChanges.unshift({id,message});
  recentChanges.length=Math.min(4,recentChanges.length);
+}
+// A compact, opt-in record of only the mechanisms a player has PHYSICALLY
+// discovered. Never show undiscovered items, future puzzle destinations,
+// code digits, or a prescribed solution. This is an observation log, not an
+// automatic hint system. It prevents losing track after rotating six faces.
+function ongoingMechanisms(){
+ const list=[],add=(name,detail)=>list.push({name,detail});
+ if(s.a&&!s.drawerTaken)
+  add('Front drawer','The latch is open. A toothed metal piece is still in the drawer.');
+ if(s.b&&!s.sideTaken)
+  add('Side drawer','The teal drawer is open. Its red spool has not been picked up.');
+ if(s.top&&!s.pipeTaken)
+  add('Top hatch','The lid has opened. A hollow tube is still in its compartment.');
+ if(s.bottom&&!s.ringTaken)
+  add('Underside pocket','The bottom compartment is open. Its brass ring is still there.');
+ if(s.bag&&!s.bagOpen)
+  add('Bag lock','The bag has a small metal keyhole beneath its clasp.');
+ if(s.bagOpen&&!s.bagSolved)
+  add('Bag wheels','Four wheels rotate independently. The spring catch is a separate control.'+
+   (s.eyeRingTicks===3?' A four-symbol strip is visible near the rear iris.':''));
+ if(s.rightBoltLoose&&!s.ventOpen)
+  add('Vent switches','A five-mark service plate is exposed on the right. Four numbered switches are on the left. Registered: '+s.ventSequence.length+'/5.');
+ if(s.ventOpen&&pendingPickups.has('shim'))
+  add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
+ if(pocket.has('flute')&&!s.door)
+  add('Flute','The instrument has three keys and needs six notes. Visible score fragments: '+
+   (s.back?'A':'—')+' / '+(s.footChecked?'B':'—')+'.');
+ if(seen.has('machine')&&!s.shimUsed&&!s.refundRedeemed)
+  add('Vending machine','The first purchase worked, but the coin-return slot is still jammed.');
+ if(s.shimUsed&&seen.has('machine')&&!s.refundRedeemed)
+  add('Coin return','The return slot has been repaired. The machine now has a working coin return.'+
+   (pendingPickups.has('coin')?' A coin is in the tray.':''));
+ if(s.refundRedeemed&&!s.serviceSealInserted&&!s.serviceOpen)
+  add('Service key','The second vending tray opened.'+
+   (pendingPickups.has('seal')?' Its brass key has not been picked up.':
+    pocket.has('seal')?' You are carrying the brass key.':''));
+ if(!s.serviceOpen&&(s.serviceSealInserted||s.resonance||seen.has('pressure-dial'))){
+  const key=s.serviceSealInserted?'Keyway engaged':'Keyway empty';
+  const catchState=s.resonance?'Spring catch released':'Spring catch engaged';
+  add('Service shutter',key+' · '+catchState+'. Both fittings are part of the same shutter.');
+ }
+ if(s.serviceOpen&&!s.cylinderMounted)
+  add('Open service shutter','The shutter is open. A grooved wax cylinder came out of this compartment.'+
+   (pendingPickups.has('cylinder')?' It is still in its holder.':''));
+ if(s.cylinderMounted&&!s.tapeInserted)
+  add('Music box drive','The wax cylinder is installed. Punched paper emerged from the music box.');
+ if(s.tapeInserted&&!s.letterMailed)
+  add('Clock reader','The clock has read the tape. A folded letter is available.'+
+   (pendingPickups.has('letter')?' It is still at the clock.':''));
+ if(s.floorFour&&!s.observed)
+  add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
+   (pendingPickups.has('lens')?' The lens is still in the lift.':''));
+ if(s.observed&&!s.train)
+  add('Telescope','The telescope has focused. A folded star chart was produced.'+
+   (pendingPickups.has('starmap')?' The chart is still in its holder.':''));
+ if(s.letterMailed&&!s.doorReplied)
+  add('Returned mail','The train has returned a sealed envelope.'+
+   (pendingPickups.has('envelope')?' It is waiting at the station.':''));
+ return list;
 }
 // The pocket is re-rendered after every mechanical action. Newly found
 // highlights and keyboard focus must survive those renders.
@@ -553,6 +612,31 @@ function render(){
      listChanges.append(li);
     }
     listChanges.dataset.shown=shown;
+   }
+  }
+ }
+ const mechanisms=$('ncMechanisms'),mechanismsToggle=$('ncMechanismsToggle');
+ const mechanismsList=$('ncMechanismsList'),mechanismsCount=$('ncMechanismsCount');
+ if(mechanisms&&mechanismsToggle&&mechanismsList&&mechanismsCount){
+  const active=ongoingMechanisms();
+  mechanisms.hidden=!active.length;
+  mechanismsCount.textContent=active.length?'('+active.length+')':'';
+  mechanismsToggle.setAttribute('aria-expanded',String(mechanismsOpen));
+  mechanismsList.hidden=!mechanismsOpen;
+  if(mechanismsOpen){
+   const snapshot=active.map(e=>e.name+':'+e.detail).join('|');
+   if(mechanismsList.dataset.shown!==snapshot){
+    mechanismsList.replaceChildren();
+    for(const entry of active){
+     const li=document.createElement('li');
+     const heading=document.createElement('strong');
+     heading.textContent=entry.name;
+     const detail=document.createElement('span');
+     detail.textContent=entry.detail;
+     li.append(heading,detail);
+     mechanismsList.append(li);
+    }
+    mechanismsList.dataset.shown=snapshot;
    }
   }
  }
@@ -1522,6 +1606,10 @@ $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
 $('ncChangesToggle')?.addEventListener('click',()=>{
  changesOpen=!changesOpen;
+ render();
+});
+$('ncMechanismsToggle')?.addEventListener('click',()=>{
+ mechanismsOpen=!mechanismsOpen;
  render();
 });
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
