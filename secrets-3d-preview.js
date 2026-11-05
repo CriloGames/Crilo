@@ -792,7 +792,7 @@ const controlNames={
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
  "hatch-latch":"Lid latch","cipher-strip":"Engraved brass strip",
- "read:vents":"VENT ORDER plate",
+ "read:vents":"Five-number brass strip",
  "read:score-a":"Engraved musical phrase A",
  "read:score-b":"Engraved musical phrase B",
  "right-bolt-1":"Service bolt",
