@@ -31,10 +31,14 @@ for(const part of ['diamond','cipherCircle','crescent','star'])
  assert(hotspots.includes('const '+part+'='),'Missing sculpted bag cipher emblem '+part);
 
 const ventCode=digits(match(logic,/const VENT_CODE=\[([^\]]+)\]/,'vent sequence'));
-const ventLabel=match(hotspots,/engraving\(rightFace,"([^"]+)",\.91,1\.25/,'service bolt inscription');
+const ventLabel=match(hotspots,/engraving\(rightFace,"([^"]+)",[\d.]+,[\d.]+,\.80\)/,'service bolt inscription');
 const ventDigits=[...ventLabel.matchAll(/[1-4]/g)].map(m=>Number(m[0]));
 assert.deepEqual(ventDigits,ventCode,
  'The hidden service-bolt inscription gives a different sequence from the actual vents');
+assert(hotspots.includes('ctx.fillText("VENT ORDER"'),
+ 'Exposed vent plate needs a visible label linking it to the four numbered switches');
+assert(hotspots.includes('getServiceCodeClearance:'),
+ 'Service code has no clearance audit for the removable bolt and adjacent teal rail');
 assert(logic.includes("===VENT_CODE.join('')"),
  'The vent buttons no longer use the same code as the engraved clue');
 
