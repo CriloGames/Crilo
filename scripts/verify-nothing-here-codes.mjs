@@ -60,9 +60,9 @@ assert(details.includes('new THREE.TubeGeometry(grooveCurve')&&
 assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
  preview.includes('gameHotspots.targets.set("gear-small"'),
  'The maze gears are not reachable by the 3D interaction raycaster');
-assert(logic.includes('s.pressureReady&&s.gearMazeSolved')&&
+assert(logic.includes("s.pressureReady&&(s.gearMazeSolved||s.legacyGearBypass)")&&
  logic.includes("s.gearMazeIndex++"),
- 'The real gear maze has stopped participating in the tuning-fork unlock');
+ 'The real gear maze has stopped gating new tuning forks or preserving earned legacy forks');
 
 const roman={'Ⅰ':1,'Ⅱ':2,'Ⅲ':3};
 const decode=value=>[...value].filter(x=>roman[x]).map(x=>roman[x]);
