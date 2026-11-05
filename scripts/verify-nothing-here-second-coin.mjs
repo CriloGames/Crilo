@@ -151,7 +151,9 @@ async function refundCoin(page,{realPointer=false}={}){
   return {small,large,model:v.physicalGearMaze};
  });
  assert(gears.model?.face==="leftFace"&&
-  gears.model.directions.length===10&&gears.model.grooveCount===11,
+  gears.model.directions.length>=29&&
+  gears.model.grooveCount===gears.model.directions.length+1&&
+  gears.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5,
   "Gear maze is not a carved 3D track on the left face: "+JSON.stringify(gears));
  assert(gears.small?.pick==="gear-small"&&gears.large?.pick==="gear-large",
   "One of the working gears cannot be reached with the pointer: "+JSON.stringify(gears));
@@ -174,9 +176,9 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"gear-large");
  assert.equal((await state(page)).gearMazeIndex,1,
   "Turning the larger wheel backwards cannot reverse the screw through the track");
- for(const action of ["gear-small","gear-small","gear-large","gear-large",
-  "gear-small","gear-small","gear-small","gear-large","gear-large"])
-  await act(page,action);
+ const directionSteps=gears.model.directions;
+ for(let i=1;i<directionSteps.length;i++)
+  await act(page,directionSteps[i]===1?"gear-small":"gear-large");
  assert((await state(page)).gearMazeSolved&&
   (await state(page)).pendingPickups.includes("fork"),
   "Completing the carved gear maze did not withdraw the clamp and expose the fork");
@@ -325,9 +327,12 @@ try{
   const {page,close}=await scenario("gear-before-pressure",{
    seen:[],pocket:[],pendingPickups:[]
   });
-  for(const name of ["gear-small","gear-small","gear-small","gear-large",
-   "gear-large","gear-small","gear-small","gear-small","gear-large","gear-large"])
-   await act(page,name);
+  const directions=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalGearMaze.directions);
+  assert(directions.length>=29&&new Set(directions).size===2,
+   "The new physical gear maze has too few moves or no directional reversals");
+  for(const direction of directions)
+   await act(page,direction===1?"gear-small":"gear-large");
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
    !opened.pendingPickups.includes("fork"),
