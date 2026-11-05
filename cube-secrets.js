@@ -210,8 +210,9 @@ s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-48,48);
 // Existing progress was earned before the gears became a puzzle. Treat
 // any previously completed pressure dial or recovered fork as already
 // calibrated, not as a new lock placed in front of an old saved reward.
-if(s.pressureReady||s.resonance||pocket.has('fork')||
-   pendingPickups.has('fork')||seen.has('pressure-dial')){
+if(typeof raw.gearMazeSolved!=='boolean'&&
+   (s.pressureReady||s.resonance||pocket.has('fork')||
+    pendingPickups.has('fork')||seen.has('pressure-dial'))){
  s.gearMazeSolved=true;
  s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
 }
