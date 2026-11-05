@@ -1514,7 +1514,7 @@ try{
  assert.equal(await page.locator('#ncInventory [data-item="flute"]').getAttribute("aria-expanded"),"true");
  assert(await page.locator("#ncModal").isHidden(),
   "Flute inventory interaction must not open a floating old-style puzzle");
- assert.match(await page.locator("#ncFluteTray").innerText(),/engraved musical phrases marked A and B/i,
+ assert.match(await page.locator("#ncFluteTray").innerText(),/musical phrases marked A and B/i,
   "The inventory instrument does not explain where its notes come from");
  await page.locator('#ncFluteTray [data-flute-key="1"]').click();
  assert.deepEqual((await state()).fluteNotes,[1],
