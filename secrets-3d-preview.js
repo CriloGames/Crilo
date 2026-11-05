@@ -483,6 +483,17 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat,animate,invalidate
 }):null;
+// The live precision model already sculpted both meshed gears. Give each
+// wheel a distinct physical action; the click genuinely turns that wheel,
+// while the other moves the opposite way through their shared teeth.
+if(gameHotspots){
+ const gears=intricate.getGearMazeTargets?.();
+ if(gears){
+  gameHotspots.targets.set("gear-large",gears.large);
+  gameHotspots.targets.set("gear-small",gears.small);
+  gameHotspots.actions.push("gear-large","gear-small");
+ }
+}
 // The miniature discoveries attach to actual cube faces, never an
 // unrelated ground pedestal.
 const pocketWorlds=embeddedGame?buildPocketWorlds({
@@ -788,6 +799,7 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
+ "gear-large":"Grooved brass wheel","gear-small":"Small drive wheel",
  "cube-offer":"Circular brass receiver",
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
@@ -1684,6 +1696,7 @@ window.__nothing3DPreview={
  get decorativeNameplates(){return intricate.getNameplates?.()||[]},
  get dentedCopperShape(){return gameHotspots?.getDentedCopperShape?.()||null},
  get pressureGaugeAssembly(){return intricate.getGaugeAssembly?.()||null},
+ get physicalGearMaze(){return intricate.getGearMazeAssembly?.()||null},
  get miniatureMechanismPose(){return {
   bagDials:pocketWorlds?.getDialAngles?.()||[],
   liftDoors:pocketWorlds?.getLiftDoorPositions?.()||[],
