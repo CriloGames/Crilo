@@ -139,6 +139,41 @@ async function refundCoin(page,{realPointer=false}={}){
  assert(!(await state(page)).serviceOpen,
   "A fitted key bypassed the vibrating spring catch without the tuning fork");
  for(let i=0;i<3;i++)await act(page,"pressure");
+ assert((await state(page)).pressureReady&&
+  !(await state(page)).pendingPickups.includes("fork"),
+  "Pressure dial alone bypassed the still-secured gear-maze screw");
+ // The first input must be a real pointer click on the actual small gear.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
+ const gears=await page.evaluate(()=>{
+  const v=window.__nothing3DPreview;
+  const small=v.projectGameControl("gear-small");
+  const large=v.projectGameControl("gear-large");
+  return {small,large,model:v.physicalGearMaze};
+ });
+ assert(gears.model?.face==="leftFace"&&
+  gears.model.directions.length===10&&gears.model.grooveCount===11,
+  "Gear maze is not a carved 3D track on the left face: "+JSON.stringify(gears));
+ assert(gears.small?.pick==="gear-small"&&gears.large?.pick==="gear-large",
+  "One of the working gears cannot be reached with the pointer: "+JSON.stringify(gears));
+ await page.locator("#stage canvas").click({
+  position:{x:gears.small.x,y:gears.small.y},timeout:25000
+ });
+ assert.equal((await state(page)).gearMazeIndex,1,
+  "Clicking the small drive wheel did not move the captive screw one groove step");
+ // The alternating channel reverses at its switchbacks; wrong turns
+ // visibly stop or backtrack instead of silently granting the key.
+ await act(page,"gear-small");
+ await act(page,"gear-large");
+ assert.equal((await state(page)).gearMazeIndex,1,
+  "Turning the larger wheel backwards cannot reverse the screw through the track");
+ for(const action of ["gear-small","gear-small","gear-large","gear-large",
+  "gear-small","gear-small","gear-small","gear-large","gear-large"])
+  await act(page,action);
+ assert((await state(page)).gearMazeSolved&&
+  (await state(page)).pendingPickups.includes("fork"),
+  "Completing the carved gear maze did not withdraw the clamp and expose the fork");
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
+  null,{timeout:11000});
  await collect(page,"fork");
  await useItem(page,"fork","cube");
  assert((await state(page)).resonance,
