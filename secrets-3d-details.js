@@ -209,6 +209,46 @@ export function buildIntricateCube({
   // discs joined by a bar that passed through their centers.
   const wheelB=gear(leftFace,.23,-.27,.19,.235,steel,9);
   registries.wheelA=wheelA;registries.wheelB=wheelB;
+  // A REAL captive-screw maze. The path is engraved directly into the
+  // larger moving gear's metal face, not into a detached screen overlay.
+  // Its alternating arcs connect through diagonal crossovers: trace the
+  // channel and change direction at each hairpin. The follower never
+  // jumps between unrelated parts of the cube.
+  const gearMazeDirections=[1,1,1,-1,-1,1,1,1,-1,-1];
+  const gearMazeAngles=[-128,-92,-56,-20,-58,-96,-60,-24,12,-25,-62];
+  const gearMazeRadii=[.132,.132,.132,.132,.176,.176,.205,.205,.205,.226,.226];
+  const gearMazePoints=gearMazeAngles.map((angle,i)=>{
+   const a=angle*Math.PI/180,r=gearMazeRadii[i];
+   return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.174);
+  });
+  // The bore and groove are part of the wheel; the screw rides within it.
+  // The raised brass lips and darker inner channel read as a shallow cut.
+  C(wheelA,.242,.023,0,0,.117,gearMetal);
+  const grooveCurve=new THREE.CatmullRomCurve3(
+   gearMazePoints.map(p=>p.clone()),false,"centripetal",.24);
+  const lip=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.019,7,false),brass);
+  lip.castShadow=false;wheelA.add(lip);detailsCount++;
+  const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.012,8,false),ebony);
+  channel.position.z=.008;channel.castShadow=false;wheelA.add(channel);detailsCount++;
+  const follower=new THREE.Group();wheelA.add(follower);
+  follower.position.copy(gearMazePoints[0]);follower.position.z=.210;
+  C(follower,.014,.067,0,0,-.016,steel);
+  C(follower,.029,.021,0,0,.021,gold);
+  const screwSlot=B(follower,.030,.008,.006,0,0,.036,ebony,.002);
+  screwSlot.rotation.z=.56;
+  // A small captive tab holds the calibration bracket shut until the
+  // screw reaches the open end. This is the maze's physical consequence.
+  const dialCatch=group(leftFace,.54,.66,.164);
+  B(dialCatch,.175,.078,.039,0,0,0,steel,.009);
+  const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
+  for(const x of [-.054,.054])C(dialCatch,.013,.016,x,0,.030,gold);
+  if(liveGame){
+   // The pair are two real input directions: turn one or the other gear.
+   // Raycast geometry is registered only after all sculpted parts exist.
+   setHit(wheelA,"gear-large");setHit(wheelB,"gear-small");
+  }
+  registries.gearMaze={follower,points:gearMazePoints,dialTongue,
+   directions:gearMazeDirections,wheelA,wheelB};
   // Omit four cosmetic grille bars: they resembled the real numbered vents
   // and crowded the nearby hinged mechanisms.
   // Likewise, a lever drawn here used to activate the right-hand service
@@ -393,10 +433,21 @@ export function buildIntricateCube({
     pose(frontKnob,"rotation","z",steps*.5);
     irisBlades.forEach((blade,i)=>pose(blade,"rotation","z",i*Math.PI/4+.47+steps*.16));
     pose(needle,"rotation","z",-.5+pressure*(1.75/3));
-    // Unlocking the vent drives two meshing clockwork wheels in opposite
-    // directions, with the smaller one turning faster by the gear ratio.
-    pose(wheelA,"rotation","z",s.ventOpen?Math.PI/3:0);
-    pose(wheelB,"rotation","z",s.ventOpen?-(Math.PI/3)*(.31/.235):0);
+    // Neither wheel spins magically when the vent grille opens. Only an
+    // actual gear press turns the pair, with their tooth radii in ratio.
+    const turns=Math.max(-48,Math.min(48,Number(s.gearMazeTurns)||0));
+    const gearRotation=-turns*Math.PI/12;
+    pose(wheelA,"rotation","z",gearRotation);
+    pose(wheelB,"rotation","z",-gearRotation*(.31/.235));
+    const progress=Math.max(0,Math.min(
+     gearMazeDirections.length,Number(s.gearMazeIndex)||0));
+    const pinTarget=gearMazePoints[progress];
+    pose(follower,"position","x",pinTarget.x);
+    pose(follower,"position","y",pinTarget.y);
+    // At the end the captive screw backs OUT of its channel. Simultaneously
+    // the adjacent lock tongue withdraws from the calibration dial.
+    pose(follower,"position","z",s.gearMazeSolved?.275:.210);
+    pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
     pose(backKnob,"rotation","z",s.back?Math.PI/2:0);
@@ -448,6 +499,15 @@ export function buildIntricateCube({
     getState:()=>({...live}),
     syncGameState,
     getNameplates:()=>nameplates.map(n=>({...n})),
+    getGearMazeAssembly:()=>({
+      face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
+      large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z},
+      small:{x:wheelB.position.x,y:wheelB.position.y,angle:wheelB.rotation.z},
+      directions:[...gearMazeDirections],
+      grooveCount:gearMazePoints.length,
+      follower:{x:follower.position.x,y:follower.position.y,z:follower.position.z},
+      dialTongueX:dialTongue.position.x
+    }),
     getGaugeAssembly:()=>({
       face:meter.parent===leftFace?"leftFace":"unexpected",
       x:meter.position.x,y:meter.position.y,
