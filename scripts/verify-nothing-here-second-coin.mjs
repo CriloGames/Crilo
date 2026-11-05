@@ -22,10 +22,11 @@ const mock=`window.supabase={createClient:()=>({
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
+ const action=thing==="shutter"?"shutter":thing==="cube"?"cube-offer":"thing:"+thing;
  await page.locator('#ncInventory [data-item="'+item+'"]').click();
  assert.equal((await state(page)).selected,item,
   "Selecting "+item+" in inventory failed");
- assert(await page.evaluate(a=>window.CriloNothingHereCube.canUseSelectedWithAction(a),"thing:"+thing),
+ assert(await page.evaluate(a=>window.CriloNothingHereCube.canUseSelectedWithAction(a),action),
   item+" has no valid physical target "+thing);
  if(realPointer){
   const p=await page.evaluate(t=>{
@@ -33,10 +34,10 @@ const useItem=async(page,item,thing,{realPointer=false}={})=>{
    const point=v.projectPhysicalStoryObject(t);
    return point?{...point,actual:v.getPhysicalActionAt(point.x,point.y)}:null;
   },thing);
-  assert(p?.pick==="thing:"+thing&&p.actual==="thing:"+thing,
+  assert(p?.pick===action&&p.actual===action,
    "Selected "+item+" cannot be used on visible "+thing+" with a real pointer: "+JSON.stringify(p));
   await page.locator("#stage canvas").click({position:{x:p.x,y:p.y},timeout:25000});
- }else await act(page,"thing:"+thing);
+ }else await act(page,action);
 };
 const collect=async(page,item)=>{
  assert((await state(page)).pendingPickups.includes(item),
@@ -100,6 +101,14 @@ async function refundCoin(page,{realPointer=false}={}){
   "Second coin was not consumed exactly once");
  assert.equal(s.pendingPickups.includes("sugar"),sugarStillWaiting,
   "Second coin changed an earlier sugar pickup instead of opening the new service drawer");
+ assert(s.pendingPickups.includes("seal")&&!s.pocket.includes("seal"),
+  "Second coin made only a decorative seal instead of a usable physical key");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalPickupLayout.find(x=>x.id==="seal")?.source),"machine",
+  "The brass service key did not originate from the vending machine");
+ assert((await page.evaluate(()=>
+  window.__nothing3DPreview.getPhysicalPickupRevealState("seal")))?.visible,
+  "The real brass service key is not visible and collectible in 3D");
  assert(await page.evaluate(()=>
   window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
   "The service certificate has no visible physical counterpart");
@@ -109,6 +118,32 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"thing:machine");
  assert(!(await state(page)).pendingPickups.includes("coin"),
   "A completed machine spawned another refunded coin on inspection");
+ // Real downstream use: the discovered key must physically fit the
+ // service shutter. A new player must not get the wax cylinder just by
+ // obtaining a badge or a duplicate sugar cube.
+ await act(page,"shutter");
+ assert(!(await state(page)).serviceOpen,
+  "Service shutter opened without the brass key or sound release");
+ await collect(page,"seal");
+ await useItem(page,"seal","shutter");
+ assert((await state(page)).serviceSealInserted&&
+  !(await state(page)).pocket.includes("seal"),
+  "Using the brass key did not seat it in the matching service keyway");
+ assert(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback.serviceKeyInserted),
+  "The brass service key does not visibly insert into the real shutter");
+ await act(page,"shutter");
+ assert(!(await state(page)).serviceOpen,
+  "A fitted key bypassed the vibrating spring catch without the tuning fork");
+ for(let i=0;i<3;i++)await act(page,"pressure");
+ await collect(page,"fork");
+ await useItem(page,"fork","cube");
+ assert((await state(page)).resonance,
+  "The tuning fork cannot release the shutter's sound-operated catch");
+ await act(page,"shutter");
+ assert((await state(page)).serviceOpen&&
+  (await state(page)).pendingPickups.includes("cylinder"),
+  "Second coin and tuning fork did not jointly expose the real wax cylinder");
 }
 
 try{
@@ -125,13 +160,14 @@ try{
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const saved=await state(page);
   assert(saved.refundRedeemed&&saved.seen.includes("service-bolt")&&
-    !saved.pendingPickups.includes("coin"),
+    saved.serviceSealInserted&&saved.serviceOpen&&
+    !saved.pendingPickups.includes("coin")&&!saved.pendingPickups.includes("seal"),
    "Refreshing the solved machine rewound or duplicated the second coin");
   assert(await page.evaluate(()=>
    window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
    "The second drawer disappeared after save reload");
   await close();
-  console.log("PASS: spent coin -> actual returned coin pointer -> sealed second drawer -> persistent save");
+  console.log("PASS: spent coin -> returned coin pointer -> collectible key -> keyway + resonance -> wax cylinder -> saved");
  }
  // Order B: repair before the very first coin is inserted. It must not
  // prematurely refund a coin still in the original bag/player pocket.
@@ -150,7 +186,7 @@ try{
    "The first payment stopped delivering its original sugar cube");
   await refundCoin(page);
   await close();
-  console.log("PASS: repair-first ordering still makes first sugar, then one refund, then seal");
+  console.log("PASS: repair-first ordering still makes first sugar, then one refund, then unlocks wax cylinder");
  }
  // Order C: older player save with a spent first coin and jam already
  // repaired, but no separate pending reward: recover it ON the cube.
@@ -165,7 +201,7 @@ try{
    "An older repaired machine stranded its returned coin permanently");
   await refundCoin(page);
   await close();
-  console.log("PASS: old saves recover the unspent second coin and it still physically redeems");
+  console.log("PASS: old saves recover the unspent coin and its brass key still opens the shutter");
  }
  // Older saves sometimes had the returned coin ALREADY IN INVENTORY but
  // a false coinReturned flag. That exact mismatch used to silently award
@@ -184,8 +220,12 @@ try{
   await useItem(page,"coin","machine");
   const redeemed=await state(page);
   assert(redeemed.refundRedeemed&&!redeemed.pocket.includes("coin")&&
-    !redeemed.pendingPickups.includes("sugar"),
-   "Old pocketed refund still turned into duplicate sugar");
+    !redeemed.pendingPickups.includes("sugar")&&redeemed.pendingPickups.includes("seal"),
+   "Old pocketed refund still turned into duplicate sugar or cosmetic seal");
+  await collect(page,"seal");
+  await useItem(page,"seal","shutter");
+  assert((await state(page)).serviceSealInserted,
+   "An old returned coin produces a key that cannot actually fit its keyway");
   await close();
   console.log("PASS: a legacy second coin already in pocket now redeems correctly");
  }
@@ -203,16 +243,24 @@ try{
    door:true,doorOpen:true,
    pocket:["fork"],pendingPickups:[]
   });
-  await page.locator('#ncInventory [data-item="fork"]').click();
-  assert(await page.evaluate(()=>
-   window.CriloNothingHereCube.canUseSelectedWithAction("cube-offer")),
-   "The tuning fork cannot fit the actual physical receiver");
-  await act(page,"cube-offer");
+  // This migrated session already paid the second coin, but never had
+  // a useful service key in the older release. It should be recovered
+  // PHYSICALLY at the vending machine, not inserted automatically.
+  assert((await state(page)).pendingPickups.includes("seal"),
+   "Previously spent second coin was not upgraded to a collectible key");
+  await collect(page,"seal");
+  await useItem(page,"fork","cube");
   assert((await state(page)).resonance,
-   "Fork never releases the vibration-operated shutter");
+   "Fork never releases the vibrating spring catch");
+  await act(page,"shutter");
+  assert(!(await state(page)).serviceOpen,
+   "Resonance alone should not bypass the missing brass service key");
+  await useItem(page,"seal","shutter");
+  assert((await state(page)).serviceSealInserted,
+   "Previously earned second coin cannot activate the shutter keyway");
   await act(page,"shutter");
   assert((await state(page)).serviceOpen,
-   "Unlocked service shutter refuses to open");
+   "Both the key and sound release were met but service shutter stayed shut");
   await collect(page,"cylinder");
   await useItem(page,"cylinder","musicbox");
   assert((await state(page)).cylinderMounted,"Wax cylinder failed to turn music box");
@@ -260,15 +308,16 @@ try{
   const final=await state(page);
   assert(final.doorReplied&&final.seen.includes("return-letter"),
    "Returned envelope never opened the last door secret");
-  for(const item of ["fork","cylinder","tape","letter","envelope"])
+  for(const item of ["fork","seal","cylinder","tape","letter","envelope"])
    assert(!final.pocket.includes(item)&&!final.pendingPickups.includes(item),
     "Downstream mechanism duplicated spent "+item);
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
-   restored.cylinderMounted&&restored.train&&restored.portal&&
-   restored.dancer&&!restored.pendingPickups.includes("envelope"),
+   restored.cylinderMounted&&restored.serviceSealInserted&&restored.train&&
+   restored.portal&&restored.dancer&&!restored.pendingPickups.includes("envelope")&&
+   !restored.pendingPickups.includes("seal"),
    "Reloading restored spent late-game parts or lost final secret");
   await close();
   console.log("PASS: fork/shutter/wax/tape/clock, lift/lens/stars/railway, moth/dancer, parcel/postcard/portal, and envelope/door");
