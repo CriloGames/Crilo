@@ -602,6 +602,18 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
  const shutter=targets.get("shutter");
+ // A narrow captive brass keyway is machined into the SAME moving
+ // shutter plate. The tool earned from the second coin is visibly seated
+ // here and moves with the shutter instead of floating near it.
+ const serviceKeyway=node(shutter,.095,-.027,.112);
+ B(serviceKeyway,.140,.051,.019,0,0,0,nickel,.010);
+ B(serviceKeyway,.103,.016,.009,0,0,.015,graphite,.003);
+ for(const x of [-.057,.057])C(serviceKeyway,.010,.016,x,0,.016,brass);
+ const insertedServiceKey=node(serviceKeyway,-.010,0,.029);
+ B(insertedServiceKey,.115,.024,.012,0,0,0,brass,.004);
+ B(insertedServiceKey,.028,.043,.012,-.049,-.007,.006,brass,.004);
+ B(insertedServiceKey,.022,.015,.014,.058,-.016,.006,nickel,.004);
+ insertedServiceKey.visible=false;
  // One genuine movable rubber foot conceals the second musical phrase.
  // The other three fixed feet are purely structural, in the details layer.
  // A short VERTICAL captive slide retracts toward the outside upper rim.
@@ -690,7 +702,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    redRewardGlow:redCollarMaterial.emissiveIntensity,
    bellHatchOffset:bellHatch.position.x,
    ventStepsShown:ventStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
-   fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length
+   fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
+   serviceKeyInserted:insertedServiceKey.visible
   }),
   fluteVisible:()=>flute.visible,
   getClueVisibility:()=>({
@@ -798,6 +811,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    pose(cogCover,"rotation","y",s.plateOpen?-1.30:0,
     previous.plateOpen?-1.30:0,restore,.72);
    resonator.visible=!!s.resonance;
+   insertedServiceKey.visible=!!s.serviceSealInserted;
    pose(eyeGear,"rotation","z",(s.eyeRingTicks||0)*Math.PI/8,
     (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
    pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
