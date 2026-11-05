@@ -580,16 +580,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // the moving cover. It must not remain at the old y=-1.08 stripe.
  const servicePocket=node(rightFace,serviceShutterMount.x,serviceShutterMount.y,.16);
  targets.set("service-pocket",servicePocket);
- // This is a permanent, small resonance receptor machined into the
- // cassette's right shoulder. It glows AFTER the fork was used, instead
- // of an entire black circular disk appearing from nowhere.
- const resonator=node(shutter,.290,0,.113);
- // A permanent steel sleeve connects the small sensor to the case,
- // rather than leaving a glowing ring suspended above the shutter.
- C(resonator,.051,.086,0,0,-.047,nickel);
- C(resonator,.058,.034,0,0,0,graphite);
- C(resonator,.047,.020,0,0,.020,nickel);
- const resonatorLight=C(resonator,.031,.016,0,0,.037,glass);
+ // A small resonance indicator is captive in the fixed lower track,
+ // immediately below (but clear of) the lock cylinder. Both stay behind
+ // when the cover slides right; no bolt or sensor pierces the moving leaf.
+ const resonator=node(shutter,-.300,-.113,.113);
+ // The steel sleeve is seated in the cassette's lower guide rail.
+ C(resonator,.025,.086,0,0,-.047,nickel);
+ C(resonator,.030,.034,0,0,0,graphite);
+ C(resonator,.024,.020,0,0,.020,nickel);
+ const resonatorLight=C(resonator,.018,.016,0,0,.037,glass);
  resonatorLight.material=resonatorLight.material.clone();
  resonatorLight.material.emissive=new THREE.Color(0x3d898c);
  resonatorLight.material.emissiveIntensity=.10;
@@ -760,6 +759,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
    serviceKeyInserted:insertedServiceKey.visible,
    shutterHousing:{x:shutter.position.x,y:shutter.position.y},
+   resonatorMount:{x:resonator.position.x,y:resonator.position.y},
+   serviceKeywayX:serviceKeyway.position.x,
    shutterLeafX:shutterSlide.position.x,
    shutterRailBounds:{left:-.421,right:.443},
    servicePocket:{x:servicePocket.position.x,y:servicePocket.position.y},
