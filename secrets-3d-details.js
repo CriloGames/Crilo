@@ -57,12 +57,8 @@ export function buildIntricateCube({
   const group=(face,x=0,y=0,z=0)=>{
     const g=new THREE.Group();g.position.set(x,y,z);face.add(g);return g;
   };
-  const plaque=(face,s,x,y,w=.58)=>{
-    nameplates.push({face:faceName(face),text:s,x,y,w:w+.08,h:.19});
-    B(face,w+.08,.19,.06,x,y,.122,enamelTrim,.025);
-    label(face,s,w,.106,x,y,.17,"#f5e8cc","#655e62");
-    for(const dx of [-w/2,w/2])C(face,.024,.031,x+dx,y,.166,steel);
-  };
+  // Nameplates are deliberately absent. Hover/keyboard focus identifies
+  // hardware, while real cipher and numeric input plates remain elsewhere.
   const rivet=(face,x,y,z=.15)=>{
     // Actual shank behind the rivet joins the raised trim rail. Previously
     // its head began beyond the panel and looked like a loose gold stud.
@@ -201,7 +197,7 @@ export function buildIntricateCube({
   plates(leftFace,copper);
   // A compact service inscription sits between the top bolt and numbered
   // keys; the former full-width sign overlapped switch 1's number plate.
-  plaque(leftFace,"SERVICE PANEL",.35,1.29,.77);
+
   // Smaller, deliberate gear cluster in the middle of the face: keep the
   // left vent keys, pressure dial, and service catch free of ornamental teeth.
   const wheelA=gear(leftFace,-.20,.04,.19,.31);
@@ -295,7 +291,7 @@ export function buildIntricateCube({
   // The working flute now occupies the left half of this stationary rail.
   // Move the purely identifying plate to the right so neither piece
   // masks the other (standalone demonstrator keeps its centered plate).
-  plaque(topFace,"UPPER HATCH",liveGame?.82:0,-1.21,1.03);
+
   // The live game has THREE functional hinge pins on this exact rail.
   // Five ornamental pins intersected them and concealed the working tips.
   if(!liveGame)for(const x of [-.64,-.29,.06,.41,.65]){
@@ -389,7 +385,7 @@ export function buildIntricateCube({
     }
     B(g,.22,.035,.08,0,.22,.28,metal,.009);
     B(g,.10,.052,.10,0,.22,.335,ivory,.015);
-    label(g,name,.43,.066,0,-.29,.263,"#f3e6de","#6c6267");
+
   }
   // Original key and thread spool are already complete meshes in the base
   // model, with the actual selectable pickup action attached. The previous
