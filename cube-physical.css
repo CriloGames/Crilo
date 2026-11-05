@@ -958,3 +958,15 @@ html[data-theme="dark"] .nc-page .nc-mechanisms-list span{color:#b9d0c4}
  .nc-page .nc-mechanisms{padding:0 4px}
  .nc-page .nc-mechanisms-list{grid-template-columns:1fr}
 }
+
+/* The saved light theme must win over an earlier dark-only body attribute.
+   Use the complete background shorthand: the original dark rule also used
+   background:...!important and could leave charcoal behind on a theme
+   switch even after the button text had become light-mode colored. */
+html[data-theme="light"] body.nc-page .nc-inspection-controls :is(.nc-rotate-controls,.nc-zoom-controls) button,
+html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls :is(.nc-rotate-controls,.nc-zoom-controls) button{
+ background:#fffefa!important;
+ background-image:none!important;
+ color:#506272!important;
+ border-color:#c5d4d5!important;
+}
