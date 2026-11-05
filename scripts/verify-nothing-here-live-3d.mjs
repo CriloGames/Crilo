@@ -425,7 +425,7 @@ try{
   const view=window.__nothing3DPreview;
   const readings=[];
   for(const [face,rx,ry,names] of [
-   ["left",-15,90,["vent-1","vent-2","vent-3","vent-4","pressure","dent"]],
+   ["left",-15,90,["vent-1","vent-2","vent-3","vent-4","pressure","dent","gear-small","gear-large"]],
    ["right",-15,270,["right-bolt-1"]],
    ["top",75,0,["hinge-0","hinge-1","hinge-2"]]
   ]){
@@ -601,7 +601,7 @@ try{
  for(const id of ["thing:bag-dial-0","thing:bag-dial-1","thing:bag-dial-2",
   "thing:bag-dial-3","thing:bag-release","thing:elevator-floor-4"])
   assert(spatialPuzzles.includes(id),"Missing real 3D puzzle button: "+id);
- for(const c of ["latch","seam","dot","dent","pressure","eye","eye-ring",
+ for(const c of ["latch","seam","dot","dent","pressure","gear-large","gear-small","eye","eye-ring",
   "vent-1","vent-2","vent-3","vent-4","triangle","top-reed",
   "foot","hatch","cube-offer","serial","shutter","right-bolt-1","hinge-0"]){
   assert(initial.controls.includes(c),"Missing physical target for original puzzle action: "+c);
@@ -1282,6 +1282,39 @@ try{
  assert.match(gaugeLocked,/third mark|fork.*bracket/i);
  assert(!/though there is nothing inside|holds steady at three/i.test(gaugeLocked),
   "The completed gauge still tells the player an unexplained, meaningless number");
+ assert((await state()).pressureReady&&!(await state()).gearMazeSolved&&
+  !(await state()).pendingPickups.includes("fork"),
+  "An unscrewed calibration gauge bypassed the new gear lock");
+ const spiral=await page.evaluate(()=>{
+  const v=window.__nothing3DPreview;
+  v.setRotation(-15,90);
+  return {model:v.physicalGearMaze,small:v.projectGameControl("gear-small"),
+   large:v.projectGameControl("gear-large")};
+ });
+ assert(spiral.model?.face==="leftFace"&&spiral.model.grooveCount===11&&
+  spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
+  "The carved switchback gears are not both readable and clickable: "+JSON.stringify(spiral));
+ const rect=await page.locator("#stage canvas").boundingBox();
+ await page.mouse.click(rect.x+spiral.small.x,rect.y+spiral.small.y);
+ assert.equal((await state()).gearMazeIndex,1,
+  "Clicking the smaller gear did not advance its actual captive screw");
+ await activate("gear-small");
+ await activate("gear-large");
+ assert.equal((await state()).gearMazeIndex,1,
+  "Counter-rotating the larger gear did not retrace the physical groove");
+ await activate("gear-small");
+ await activate("gear-small");
+ await activate("gear-small");
+ assert.equal((await state()).gearMazeIndex,3,
+  "At the first switchback an incorrect turn should reach a hard stop");
+ for(const name of ["gear-large","gear-large","gear-small","gear-small",
+  "gear-small","gear-large","gear-large"])await activate(name);
+ assert((await state()).gearMazeSolved&&
+  (await state()).pendingPickups.includes("fork"),
+  "Finishing the spiral did not retract the latch and expose the tuning fork");
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
+  null,{timeout:12000});
+ console.log("PASS: two real meshed gears, visible captive screw, counter-rotation, switchbacks, and fork-lock release");
  // The retired decorative "optic" fitting is deliberately inert. Three
  // presses on the one REAL eye-ring actuator must expose the brass strip.
  await activate("optic");
