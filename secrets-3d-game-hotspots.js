@@ -757,7 +757,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    servicePocket:{x:servicePocket.position.x,y:servicePocket.position.y},
    shutterClearance:{
     gapToInsetStripe:(serviceShutterMount.y-serviceShutterMount.h/2)-(-1.125),
-    gapBelowDrawer:(serviceShutterMount.y+serviceShutterMount.h/2)-(-.694)
+    gapBelowDrawer:(-.694)-(serviceShutterMount.y+serviceShutterMount.h/2)
    }
   }),
   fluteVisible:()=>flute.visible,
