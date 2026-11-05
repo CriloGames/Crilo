@@ -312,6 +312,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   }
  }
  const shutterSlide=node(shutterCassette,-.070,0,0);
+ // This captive tongue fills the gap between the moving leaf and its
+ // recessed slideway. It stays inside the visible metal rails at all times.
+ B(shutterSlide,.306,.123,.045,0,0,.075,graphite,.014);
  B(shutterSlide,.345,.164,.060,0,0,.101,nickel,.023);
  B(shutterSlide,.299,.116,.016,0,0,.141,graphite,.015);
  B(shutterSlide,.274,.081,.011,0,0,.155,nickel,.010);
@@ -581,6 +584,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // cassette's right shoulder. It glows AFTER the fork was used, instead
  // of an entire black circular disk appearing from nowhere.
  const resonator=node(shutter,.290,0,.113);
+ // A permanent steel sleeve connects the small sensor to the case,
+ // rather than leaving a glowing ring suspended above the shutter.
+ C(resonator,.051,.086,0,0,-.047,nickel);
  C(resonator,.058,.034,0,0,0,graphite);
  C(resonator,.047,.020,0,0,.020,nickel);
  const resonatorLight=C(resonator,.031,.016,0,0,.037,glass);
@@ -649,6 +655,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // with the door. An actual recessed vertical keyhole replaces the former
  // meaningless white-and-gold line painted on a gray rectangle.
  const serviceKeyway=node(shutter,-.298,0,.116);
+ // The lock barrel has a real shank sunk into the fixed chassis.
+ C(serviceKeyway,.044,.090,0,0,-.049,graphite);
  C(serviceKeyway,.057,.026,0,0,0,nickel);
  C(serviceKeyway,.043,.018,0,0,.018,graphite);
  B(serviceKeyway,.013,.057,.008,0,-.006,.031,graphite,.003);
