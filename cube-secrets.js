@@ -141,6 +141,10 @@ const BAG_CODE=[2,0,3,1];
 // These are mirrored by the ACTUAL engraved codes on the six 3D faces.
 const VENT_CODE=[3,1,4,2,3];
 const FLUTE_CODE=[2,1,3,1,3,2];
+// The winding channel is physically cut into the large gear. Turn one
+// wheel to move its captive screw forward; the other reverses the pair.
+// Hairpin bends in the groove are the only clue to the needed reversals.
+const GEAR_MAZE_DIRECTIONS=[1,1,1,-1,-1,1,1,1,-1,-1];
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
@@ -158,7 +162,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
  shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
- serialRead:false,pressureReady:false,resonance:false,serviceOpen:false,
+ serialRead:false,pressureReady:false,gearMazeSolved:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
@@ -201,6 +205,17 @@ s.ventSequence=s.ventOpen&&Array.isArray(raw.ventSequence)?
 s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
+s.gearMazeIndex=clamp(Number(raw.gearMazeIndex)||0,0,GEAR_MAZE_DIRECTIONS.length);
+s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-48,48);
+// Existing progress was earned before the gears became a puzzle. Treat
+// any previously completed pressure dial or recovered fork as already
+// calibrated, not as a new lock placed in front of an old saved reward.
+if(s.pressureReady||s.resonance||pocket.has('fork')||
+   pendingPickups.has('fork')||seen.has('pressure-dial')){
+ s.gearMazeSolved=true;
+ s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
+}
+if(s.gearMazeSolved)s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
 // Repair orphaned physical rewards from saves made before independent
 // "found but not picked up" state was consistently persisted. Never
 // restore something that a downstream puzzle has already consumed.
@@ -233,7 +248,7 @@ recoverReward('spring',s.vase&&!s.music);
 recoverReward('raindrop',s.music&&!s.tree);
 recoverReward('bird',s.tree&&!s.moon);
 recoverReward('bell',s.redHits>=4);
-recoverReward('fork',s.pressureReady&&!s.resonance);
+recoverReward('fork',s.pressureReady&&s.gearMazeSolved&&!s.resonance);
 recoverReward('shim',s.ventOpen&&!s.shimUsed);
 recoverReward('cog',s.plateOpen&&!s.opticOpened);
 recoverReward('washer',s.hingePins.length===3&&!s.clockHeart);
@@ -375,6 +390,11 @@ function ongoingMechanisms(){
   add('Vent switches','A five-mark service plate is exposed on the right. Four numbered switches are on the left. Registered: '+s.ventSequence.length+'/5.');
  if(s.ventOpen&&pendingPickups.has('shim'))
   add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
+ if(!s.gearMazeSolved&&(s.gearMazeIndex>0||s.pressureTicks>0))
+  add('Calibration gears','A captive screw is following the groove on the larger wheel. Both meshed wheels turn, but in opposite directions.'+
+   (s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
+ if(s.gearMazeSolved&&!s.pressureReady)
+  add('Released calibration latch','The grooved screw has reached its end stop. The brass tongue beside the dial is withdrawn.');
  if(pocket.has('flute')&&!s.door)
   add('Flute','The instrument has three keys and needs six notes. Visible score fragments: '+
    (s.back?'A':'—')+' / '+(s.footChecked?'B':'—')+'.');
@@ -900,18 +920,57 @@ function inspectHardware(name){
   cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
   return true;
  }
+ if(name==='gear-small'||name==='gear-large'){
+  const dir=name==='gear-small'?1:-1;
+  if(s.gearMazeSolved){
+   tell('The captive screw has cleared the last groove and the brass calibration tongue stays withdrawn.');
+   return true;
+  }
+  const before=s.gearMazeIndex;
+  const forward=GEAR_MAZE_DIRECTIONS[before];
+  const backward=before>0?-GEAR_MAZE_DIRECTIONS[before-1]:0;
+  s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-48,48);
+  if(dir===forward)s.gearMazeIndex++;
+  else if(dir===backward)s.gearMazeIndex--;
+  if(s.gearMazeIndex>=GEAR_MAZE_DIRECTIONS.length){
+   s.gearMazeSolved=true;
+   s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
+   rememberChange('calibration-gear','The captive screw cleared the last switchback. A short brass latch withdrew beside the calibration dial.');
+   if(s.pressureReady&&!s.resonance){
+    gain('fork');
+    tell('The screw comes out of the last bend. The latch beside the calibrated dial withdraws, and a tuning fork is uncovered in its holder.');
+   }else{
+    tell('The captive screw rises out of the last bend and pulls the brass latch clear of the dial. The needle can still be calibrated.');
+   }
+  }else if(s.gearMazeIndex>before){
+   tell(before===0
+    ?'Turning the smaller wheel drives the large grooved wheel the other way. The captive screw begins to travel along the cut.'
+    :'The screw follows the next section of the groove. The two wheels counter-rotate.');
+  }else if(s.gearMazeIndex<before){
+   tell('The screw retraces part of its track. Both wheels turn together through their meshed teeth.');
+  }else{
+   tell('The screw stops against the wall of the channel. The other wheel can turn the pair the opposite way.');
+  }
+  sound(280+s.gearMazeIndex*18);
+  return true;
+ }
  if(name==='pressure'){
   if(!s.pressureReady){
    s.pressureTicks++;
    sound(265+s.pressureTicks*130);
    if(s.pressureTicks>=3){
-    s.pressureReady=true;gain('fork');
-    bloom('pressure-dial','The calibration needle reaches its third mark. A retaining pin retracts, leaving a small tuning fork in the bracket beside the dial.');
+    s.pressureReady=true;
+    if(s.gearMazeSolved)gain('fork');
+    bloom('pressure-dial',s.gearMazeSolved
+     ?'The needle reaches its third mark. The released brass tongue lets the tuning fork slide into its holder.'
+     :'The needle reaches its third mark, but a short brass tongue still holds the tuning-fork retainer. The nearby meshed gears carry a captive screw in a grooved track.');
     scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
    }else tell('The calibration knob advances the needle by one marked step. A small catch beside the dial remains closed.');
-  }else tell(pendingPickups.has('fork')
-   ?'The calibration mechanism is latched at its third mark. The tuning fork is still in the bracket beside the dial.'
-   :'The calibration mechanism is latched at its third mark. Its empty bracket shows where the tuning fork was held.');
+  }else tell(!s.gearMazeSolved
+   ?'The needle is aligned at its third mark, but a brass latch still holds the tuning-fork retainer. The grooved gears beside it have not released the latch.'
+   :pendingPickups.has('fork')
+    ?'The dial is calibrated and its catch is clear. The tuning fork is still in the bracket beside the dial.'
+    :'The calibration mechanism is open. Its empty bracket shows where the tuning fork was held.');
   return true;
  }
  if(name==='shutter'){
