@@ -102,6 +102,7 @@ try{
    train:true,portal:true,ventOpen:true,plateOpen:true,
    pressureReady:true,pressureTicks:3,eyeRingTicks:3,
    serviceOpen:true,serviceSealInserted:true,tapeInserted:true,shimUsed:true,
+   refundRedeemed:true, // no simultaneous refunded coin and machine service key
    screws:[0,1,2],hingePins:[0,1,2],rightBoltLoose:true,
    footChecked:true
   }));
