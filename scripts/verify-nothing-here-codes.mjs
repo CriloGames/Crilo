@@ -35,8 +35,8 @@ const ventLabel=match(hotspots,/engraving\(rightFace,"([^"]+)",[\d.]+,[\d.]+,\.8
 const ventDigits=[...ventLabel.matchAll(/[1-4]/g)].map(m=>Number(m[0]));
 assert.deepEqual(ventDigits,ventCode,
  'The hidden service-bolt inscription gives a different sequence from the actual vents');
-assert(hotspots.includes('ctx.fillText("VENT ORDER"'),
- 'Exposed vent plate needs a visible label linking it to the four numbered switches');
+assert(!hotspots.includes('ctx.fillText("VENT ORDER"'),
+ 'The exposed strip must not print the puzzle answer category on the metal');
 assert(hotspots.includes('getServiceCodeClearance:'),
  'Service code has no clearance audit for the removable bolt and adjacent teal rail');
 assert(logic.includes("===VENT_CODE.join('')"),
