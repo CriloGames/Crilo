@@ -207,11 +207,16 @@ const recoverReward=(id,unspent)=>{
  recoveredFromSave.push(id);
 };
 recoverReward('coin',s.mouse&&!seen.has('machine'));
-// Repaired machines must return a usable coin even when the original
-// purchase happened after the shim repair (or in an older save).
-if(s.shimUsed&&seen.has('machine')&&!s.refundRedeemed&&!pocket.has('coin')){
+// The first purchase is recorded by "machine". Once a shim has repaired
+// that already-paid machine, ANY remaining coin is the RETURNED coin:
+// this includes older saves where coinReturned was incorrectly false while
+// the player had already collected the refund into their pocket. Previously
+// those users could spend that coin and receive useless extra sugar instead
+// of the second service drawer. Reconcile the saved origin without deleting
+// or auto-collecting the physical coin.
+if(s.shimUsed&&seen.has('machine')){
  s.coinReturned=true;
- recoverReward('coin',true);
+ if(!s.refundRedeemed)recoverReward('coin',!pocket.has('coin'));
 }
 recoverReward('reed',s.bagSolved&&!seen.has('flute')&&!pocket.has('flute'));
 recoverReward('treat',s.bagSolved&&!s.tag);
