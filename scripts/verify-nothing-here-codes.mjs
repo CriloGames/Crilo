@@ -69,10 +69,10 @@ assert(details.includes('new THREE.TubeGeometry(grooveCurve')&&
  // The final carved groove must enter the real, raised release rail after
  // the wheel's last turn. Otherwise the player sees two unrelated devices.
 const gearOrientation=Number(match(details,
- /const gearMazeOrientation=([\\d.-]+);/,'clockwork groove orientation'));
-const wheelMount=details.match(/const wheelA=gear\\(leftFace,([\\d.-]+),([\\d.-]+),([\\d.-]+),([\\d.-]+)\\)/);
+ /const gearMazeOrientation=([\d.-]+);/,'clockwork groove orientation'));
+const wheelMount=details.match(/const wheelA=gear\(leftFace,([\d.-]+),([\d.-]+),([\d.-]+),([\d.-]+)\)/);
 assert(wheelMount,'Missing large physical gear bearing');
-const stages=[...details.matchAll(/\\{r:([\\d.]+),start:([-\\d.]+),end:([-\\d.]+)\\}/g)];
+const stages=[...details.matchAll(/\{r:([\d.]+),start:([-\d.]+),end:([-\d.]+)\}/g)];
 assert.equal(stages.length,6,'The gear labyrinth no longer has six physical lanes');
 const [lastRadius,,lastEnd]=stages.at(-1).slice(1).map(Number);
 const finalWheelAngle=gearSteps.reduce((sum,turn)=>sum-turn*15,0);
@@ -80,7 +80,7 @@ const exitAngle=(lastEnd+gearOrientation+finalWheelAngle)*Math.PI/180;
 const exitX=Number(wheelMount[1])+Math.cos(exitAngle)*lastRadius;
 const exitY=Number(wheelMount[2])+Math.sin(exitAngle)*lastRadius;
 const exitZ=Number(wheelMount[3])+.145;
-const railMatch=details.match(/const gearRailEntry=\\{x:([-\\d.]+),y:([-\\d.]+),z:([-\\d.]+)\\}/);
+const railMatch=details.match(/const gearRailEntry=\{x:([-\d.]+),y:([-\d.]+),z:([-\d.]+)\}/);
 assert(railMatch,'Missing raised physical release rail');
 const [,railX,railY,railZ]=railMatch.map(Number);
 assert(Math.hypot(exitX-railX,exitY-railY)<.023&&
