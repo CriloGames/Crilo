@@ -659,6 +659,7 @@ try{
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
+    glowBefore.color===0xb45cff&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
    glowBefore.surfaceEmission>=.53&&glowBefore.surfaceEmission<=.84&&
    glowBefore.haloScale>=1&&glowBefore.haloScale<=1.10&&
@@ -1449,7 +1450,8 @@ try{
    JSON.stringify(ringClick));
  const glowBeforeRing=await page.evaluate(()=>
   window.__nothing3DPreview.getPickupGlowState("ring"));
- assert(glowBeforeRing?.active&&glowBeforeRing.haloVisible,
+ assert(glowBeforeRing?.active&&glowBeforeRing.haloVisible&&
+   glowBeforeRing.color===0xb45cff,
   "The physically available brass ring should be highlighted for collection");
  // Use an ACTUAL browser mouse click, not the internal clickAction shortcut.
  // Previous tests passed while this required ring was impossible to reach.
