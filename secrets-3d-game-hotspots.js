@@ -243,7 +243,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  }
  // Front: actual fasteners are supplied by the base physical model.
  control(frontFace,"latch",-1.05,.11,brass,.145);
- engraving(frontFace,"LATCH", -1.04,-.30,.43);
+
  const redSwitch=control(frontFace,"dot",1.10,.15,red,.100);
  // The red button's retaining collar turns a small detent on every press,
  // and only glows AFTER the hidden reward is collected. No popup, visible
@@ -255,7 +255,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const redIndex=new THREE.Mesh(
   new THREE.TorusGeometry(.155,.012,7,36,Math.PI*.46),redCollarMaterial);
  redCollar.add(redIndex);count++;
- engraving(frontFace,"RED",1.08,-.25,.36);
+
  // The three removable front screws mechanically free a captive
  // service hatch. The reward gear is seated BEHIND this hatch, not in the
  // main lens or in an unrelated cube offering button.
@@ -290,9 +290,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // This slim service switch belongs on the *outer rail*, not partly
  // inside the real teal drawer bezel. Its plaque sits below the switch.
  tab(rightFace,"seam",-1.13,.31,copper,.22,.16);
- engraving(rightFace,"RELEASE",-1.13,.02,.43);
+
  tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
- engraving(rightFace,"SERVICE",.58,-1.39,.43);
+
  // There is ONE removable service bolt on this face. The other three
  // were fake moving screwheads with no unlock effect, duplicated again by
  // the base model and confused with corner trim. Remove those click targets
@@ -323,7 +323,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   tab(leftFace,"vent-"+i,-.98,y,graphite,.23,.115);
   engraving(leftFace,String(i),-.65,y,.15);
  }
- engraving(leftFace,"VENT",-.95,.26,.37);
+
  // The numbered vent keys must have a consequence *on the metal face*.
  // Their shared hatch is tucked below the label, above the elevator mount,
  // and left of the gears, with a true recessed cavity under its shutter.
@@ -354,7 +354,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   ventStepLights.push(lamp);
  }
  control(leftFace,"pressure",.88,.64,brass,.15);
- engraving(leftFace,"CALIBRATE",.89,.27,.55);
+
  // The copper plunger's off-center depression identifies it physically.
  // A redundant DENT plaque made it look like a labelled mystery button,
  // and collided with the lower panel trim, so omit that plate entirely.
@@ -366,7 +366,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // API alias for the actual top lid, not the underside hatch.
  targets.set("hatch",triangle);
  // The engraving identifies the component without disclosing a click count.
- engraving(lidPivot,"TRIANGLE",0,-.92,.64);
+
  // The collectible is a genuine HOLLOW cylindrical pipe held inside a
  // recessed bracket, not another flat switch sitting on the cube face.
  const reed=node(topFace,.07,-.22,-.43);
@@ -521,7 +521,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  for(const x of [-.207,.207])for(const y of [-.302,.302]){
    C(irisModule,.023,.027,x,y,.080,brass);
  }
- engraving(backFace,"IRIS",1.055,-.817,.335);
+
  const irisGrille=node(backFace,1.055,-1.060,.181);
  B(irisGrille,.350,.157,.038,0,0,0,graphite,.020);
  B(irisGrille,.295,.105,.024,0,0,.032,nickel,.013);
