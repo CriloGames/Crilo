@@ -127,7 +127,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
  // inside the sliding compartments and under the cube.
  const sources={
   coin:["bag",0],reed:["bag",1],treat:["bag",2],prism:["bag",3],
-  sugar:["machine",0],tag:["dog",0],postcard:["dog",1],
+  sugar:["machine",0],seal:["machine",1],tag:["dog",0],postcard:["dog",1],
   // The vase breaks and its contents spill out there. Neither reward
   // should materialize at the squirrel that merely knocked it over.
   acorn:["vase",0],spring:["vase",1],
@@ -200,7 +200,15 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    add(new THREE.CylinderGeometry(r,r,d,18),m,x,y,z);
   const ring=(r,t=0.023,z=.045,m=material)=>
    add(new THREE.TorusGeometry(r,t,8,24),m,0,0,z);
-  if(["coin","tag","lens","iris"].includes(id)){
+  if(id==="seal"){
+   // The reclaimed service key is a slim notched blade that the player
+   // physically removes from the machine. It is not a flat reward badge.
+   B(.145,.087,.020,-.022,0,.054,metal);
+   B(.055,.081,.025,.074,0,.056,copper);
+   B(.020,.046,.026,.104,-.018,.061,ink);
+   B(.025,.014,.028,-.059,.019,.069,ink);
+   C(.017,.020,-.075,-.005,.068,ink).rotation.x=Math.PI/2;
+  }else if(["coin","tag","lens","iris"].includes(id)){
    const disc=C(.093,.032,0,0,.025);
    disc.rotation.x=Math.PI/2;
    ring(.073,.014,.052,id==="tag"?copper:metal);
