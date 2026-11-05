@@ -160,6 +160,14 @@ async function refundCoin(page,{realPointer=false}={}){
  });
  assert.equal((await state(page)).gearMazeIndex,1,
   "Clicking the small drive wheel did not move the captive screw one groove step");
+ // A refresh must retain a partially unscrewed follower without allowing
+ // the older pressure-dial migration to mark this NEW puzzle complete.
+ await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+ assert((await state(page)).gearMazeIndex===1&&
+   !(await state(page)).gearMazeSolved&&
+   !(await state(page)).pendingPickups.includes("fork"),
+  "Refreshing a partially turned maze incorrectly completed it or awarded the fork");
  // The alternating channel reverses at its switchbacks; wrong turns
  // visibly stop or backtrack instead of silently granting the key.
  await act(page,"gear-small");
