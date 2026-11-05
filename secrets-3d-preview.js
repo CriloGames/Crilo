@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=28";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=29";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=11";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=44";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=47";
@@ -917,6 +917,9 @@ if(!embeddedGame){
 }
 stage.appendChild(keyboardFocus);
 function placeKeyboardFocus(target){
+ // The same purple language identifies a real collectible on mouse,
+ // touch and keyboard inspection, never a still-locked secret.
+ keyboardFocus.classList.toggle("nc-is-pickup",!!target?.action?.startsWith("pickup:"));
  if(!target){keyboardFocus.hidden=true;return;}
  const b=stage.getBoundingClientRect();
  keyboardFocus.style.left=Math.max(16,Math.min(b.width-16,target.x-b.left))+"px";
@@ -948,6 +951,7 @@ function describeAction(action){
 function setPartHint(action,e){
  if(!action){
   partHint.hidden=true;fitHalo.hidden=true;
+  partHint.classList.remove("nc-is-pickup");
   displayedHintAction=null;displayedHintPoint=null;
   return;
  }
@@ -955,6 +959,7 @@ function setPartHint(action,e){
   ?.canUseSelectedWithAction?.(action);
  partHint.textContent=describeAction(action)+(fits?" · Fits here":"");
  partHint.classList.toggle("nc-can-use",!!fits);
+ partHint.classList.toggle("nc-is-pickup",action.startsWith("pickup:"));
  fitHalo.hidden=!fits;
  partHint.hidden=false;
  displayedHintAction=action;
