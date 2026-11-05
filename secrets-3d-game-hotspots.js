@@ -298,20 +298,20 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const serviceShutterMount={x:.59,y:-.92,w:.73,h:.32};
  reserve(rightFace,"shutter",serviceShutterMount.x,serviceShutterMount.y,
   serviceShutterMount.w+.045,serviceShutterMount.h+.035);
- const shutter=node(rightFace,serviceShutterMount.x,serviceShutterMount.y,.150);
- B(shutter,.73,.32,.118,0,0,-.055,graphite,.030);
- B(shutter,.681,.273,.030,0,0,.016,nickel,.024);
- B(shutter,.572,.198,.024,0,0,.043,graphite,.017);
+ const shutterCassette=node(rightFace,serviceShutterMount.x,serviceShutterMount.y,.150);
+ B(shutterCassette,.73,.32,.118,0,0,-.055,graphite,.030);
+ B(shutterCassette,.681,.273,.030,0,0,.016,nickel,.024);
+ B(shutterCassette,.572,.198,.024,0,0,.043,graphite,.017);
  // Captive rails stay attached when the leaf slides right, with obvious
  // end stops and bolts. They stop above the dark decorative shell stripe.
  for(const sy of [-1,1]){
-  B(shutter,.855,.024,.043,.015,sy*.124,.071,brass,.009);
+  B(shutterCassette,.855,.024,.043,.015,sy*.124,.071,brass,.009);
   for(const x of [-.335,.335]){
-   C(shutter,.020,.021,x,sy*.124,.098,nickel);
-   B(shutter,.020,.005,.006,x,sy*.124,.114,graphite,.002);
+   C(shutterCassette,.020,.021,x,sy*.124,.098,nickel);
+   B(shutterCassette,.020,.005,.006,x,sy*.124,.114,graphite,.002);
   }
  }
- const shutterSlide=node(shutter,-.070,0,0);
+ const shutterSlide=node(shutterCassette,-.070,0,0);
  B(shutterSlide,.345,.164,.060,0,0,.101,nickel,.023);
  B(shutterSlide,.299,.116,.016,0,0,.141,graphite,.015);
  B(shutterSlide,.274,.081,.011,0,0,.155,nickel,.010);
@@ -320,9 +320,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // A fixed lip at the end of each guide prevents the traveling door
  // from looking as though it can slide off the cube completely.
  for(const x of [-.410,.432])
-  B(shutter,.022,.100,.048,x,0,.083,nickel,.008);
+  B(shutterCassette,.022,.100,.048,x,0,.083,nickel,.008);
  actuators.set("shutter",shutterSlide);
- setHit(shutter,"shutter");targets.set("shutter",shutter);
+ setHit(shutterCassette,"shutter");targets.set("shutter",shutterCassette);
 
  // There is ONE removable service bolt on this face. The other three
  // were fake moving screwheads with no unlock effect, duplicated again by
