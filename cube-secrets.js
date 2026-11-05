@@ -76,7 +76,7 @@ const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollo
  parcel:'miniature parcel',postcard:'postcard from nowhere',
  cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer',
  fork:'silver tuning fork',cylinder:'wax sound cylinder',tape:'punched paper tape',
- letter:'folded letter',envelope:'sealed return envelope'};
+ letter:'folded letter',envelope:'sealed return envelope',seal:'brass service key'};
 const glyphs={tooth:'M7 10V22l4 3 4-4 4 4 4-4 2-11M7 10q9-9 18 0M12 12v8m4-8v8m4-8v8',
  ring:'M16 5a11 11 0 1 0 0 22 11 11 0 1 0 0-22M16 9a7 7 0 1 0 0 14 7 7 0 1 0 0-14',
  thread:'M6 24q11-3 6-12t11-1-2 9-6 2 1 6 10-5',
@@ -108,7 +108,8 @@ const glyphs={tooth:'M7 10V22l4 3 4-4 4 4 4-4 2-11M7 10q9-9 18 0M12 12v8m4-8v8m4
  cylinder:'M6 7a10 4 0 1 0 20 0 10 4 0 1 0-20 0m0 0v18a10 4 0 0 0 20 0V7M6 14a10 4 0 0 0 20 0M6 20a10 4 0 0 0 20 0',
  tape:'M4 7h24v18H4V7Zm0 4h24M4 21h24m-20-5h1m5 0h1m7 0h1m3 0h1',
  letter:'M9 3h13l5 5v21H9V3Zm13 0v6h5M13 14h10m-10 5h10m-10 5h6',
- envelope:'M3 8h26v18H3V8Zm0 2 13 10 13-10M3 26l10-9m16 9-10-9'};
+ envelope:'M3 8h26v18H3V8Zm0 2 13 10 13-10M3 26l10-9m16 9-10-9',
+ seal:'M4 10h15l3 4-3 4H4v-8Zm6 3h4m8 1h6v6h-3v3h-3v-3l-3-3'};
 const recipe={
  'pipe+reed':['flute','flute','The hollow pipe finally remembers how to sing.'],
  'ring+tooth':['key','key','Those two pieces click together, perfectly.'],
@@ -116,7 +117,7 @@ const recipe={
 };
 // Author-drawn silhouettes render identically across operating systems.
 // Each pocket label remains visible, so identity never depends on color.
-const pocketMetal=new Set(['tooth','ring','flute','key','coin','spring','bell','tag','cog','shim','washer','fork']);
+const pocketMetal=new Set(['tooth','ring','flute','key','coin','spring','bell','tag','cog','shim','washer','fork','seal']);
 const pocketGlass=new Set(['prism','raindrop','sugar','lens','stardust','iris']);
 const pocketPaper=new Set(['bird','starmap','parcel','postcard','tape','letter','envelope']);
 const pocketMaterial=id=>pocketMetal.has(id)?'metal':pocketGlass.has(id)?'glass':pocketPaper.has(id)?'paper':'organic';
@@ -128,7 +129,7 @@ const craftParts=new Set(Object.keys(recipe).flatMap(pair=>pair.split('+')));
 const worldUseItems=new Set([
  'key','treat','acorn','raindrop','spring','coin','kite','sugar','bird',
  'bell','lens','stardust','starmap','parcel','postcard','cog','iris',
- 'shim','washer','fork','cylinder','tape','letter','envelope'
+ 'shim','washer','fork','cylinder','tape','letter','envelope','seal'
 ]);
 const itemMayReact=id=>craftParts.has(id)||worldUseItems.has(id);
 const sorted=(a,b)=>[a,b].sort().join('+');
@@ -156,11 +157,15 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
- shimUsed:false,coinReturned:false,refundRedeemed:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
+ shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
  serialRead:false,pressureReady:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
+// Older runs opened the service shutter before the key existed. Respect
+// their completed chain; never relock a wax cylinder or final mailed letter.
+if(s.serviceOpen||s.cylinderMounted||s.tapeInserted||s.letterMailed||s.doorReplied)
+ s.serviceSealInserted=true;
 // Older saves predate a distinct coin-return origin. Only migrate a
 // returning, still-uncollected coin as a vending-machine reward; a coin
 // waiting in the original bag must not teleport when the machine is fixed.
@@ -233,6 +238,10 @@ recoverReward('shim',s.ventOpen&&!s.shimUsed);
 recoverReward('cog',s.plateOpen&&!s.opticOpened);
 recoverReward('washer',s.hingePins.length===3&&!s.clockHeart);
 recoverReward('cylinder',s.serviceOpen&&!s.cylinderMounted);
+// A previously redeemed second coin made a decorative seal with no use.
+// Upgrade that earned discovery into an actual physical service key at
+// the machine, without granting it directly or duplicating spent keys.
+recoverReward('seal',s.refundRedeemed&&!s.serviceSealInserted&&!s.serviceOpen);
 recoverReward('iris',s.opticOpened&&!s.secondSky);
 recoverReward('lens',s.floorFour&&!s.observed);
 recoverReward('starmap',s.observed&&!s.train);
@@ -286,7 +295,7 @@ const changeNotes={
  'vent-sequence':'The five vent presses released a sliding grille with a copper shim inside.',
  'eye-dial':'The rear optical ring reached its stop. A small brass strip is exposed.',
  'hidden-optic':'The drive cog engaged the eye mechanism. A loose glass iris was exposed.',
- 'service-bolt':'The repaired vending machine opened a second drawer containing a brass seal.',
+ 'service-bolt':'The repaired machine opened a second drawer. A small brass service key is inside.',
  'hinge-pin':'The last removable hinge pin came free. A washer remains in its seat.',
  'clockwork-heart':'The washer repaired the music box’s small clockwork mechanism.',
  'underside-foot':'A rubber foot slid aside, revealing a musical phrase marked B.',
@@ -327,6 +336,7 @@ const itemInspections={
  cog:'A brass gear, machined for a drive socket.',
  iris:'A loose glass iris with curved edges.',
  shim:'A thin copper wedge. The edge looks shaped to free a tight mechanism.',
+ seal:'A flat brass service key with a narrow notched tip. It came from the machine’s second drawer.',
  washer:'A flat metal ring from the hinge.',
  fork:'Two polished metal tines. They hum when touched.',
  cylinder:'A grooved cylinder made to rotate inside a mechanism.',
@@ -807,7 +817,18 @@ function inspectHardware(name){
   return true;
  }
  if(name==='shutter'){
-  if(!s.resonance){tell('The shutter is held by a vibrating spring catch. The small groove beside it looks designed to respond to sound.');return true}
+  if(selected&&use(selected,'shutter'))return true;
+  if(s.serviceOpen){tell(pendingPickups.has('cylinder')
+    ?'The service shutter is already open. A wax cylinder is resting in its holder.'
+    :'The service shutter is open and its wax-cylinder holder is empty.');return true}
+  if(!s.serviceSealInserted){
+   tell('The service shutter has a small rectangular keyway beside its vibrating spring catch. The keyway is empty.');
+   return true;
+  }
+  if(!s.resonance){
+   tell('The brass service key is seated in its lock, but the vibrating spring catch still holds the shutter shut.');
+   return true;
+  }
   if(!s.serviceOpen){
    s.serviceOpen=true;gain('cylinder');
    bloom('service-shutter','The service shutter slides aside and exposes a grooved wax cylinder in its recessed holder.');
@@ -990,6 +1011,7 @@ function accepts(item,thing){
  ||item==='raindrop'&&thing==='pot'&&s.plant&&!s.tree
  ||item==='spring'&&thing==='musicbox'&&!s.music
  ||item==='coin'&&thing==='machine'&&!s.refundRedeemed
+ ||item==='seal'&&thing==='shutter'&&s.refundRedeemed&&!s.serviceSealInserted&&!s.serviceOpen
  ||item==='kite'&&thing==='cloud'&&s.cloud&&!s.kite
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
@@ -1019,7 +1041,7 @@ function canUseSelectedWithAction(action){
   action.startsWith('thing:')&&!action.startsWith('thing:bag-dial-')&&
     !action.startsWith('thing:elevator-floor-')&&action!=='thing:bag-release'
    ?action.slice(6):
-  action==='eye'?'eye':null;
+  action==='eye'?'eye':action==='shutter'?'shutter':null;
  return !!thing&&accepts(selected,thing);
 }
 function use(item,thing){
@@ -1044,11 +1066,12 @@ function use(item,thing){
  }else if(item==='coin'&&thing==='machine'){
   spend('coin');
   if(s.shimUsed&&seen.has('machine')&&s.coinReturned&&!s.refundRedeemed){
-   // The refunded coin pays for an actual service payoff instead of an
-   // unusable second sugar cube. Keep the original 60-secret catalog.
+   // The returned coin opens a MEANINGFUL physical repair tool, not a
+   // cosmetic certificate or another useless sugar cube.
    s.refundRedeemed=true;
-   bloom('service-bolt','The returned coin turns the repaired service wheel. A stamped brass certificate slides out beneath the vending tray.');
-   tell('A second, shallower drawer slides from the machine. It carries a stamped brass service seal.');
+   gain('seal');
+   bloom('service-bolt','The returned coin opens the vending machine’s second drawer. A notched brass service key rests in its holder.');
+   tell('A small brass service key is sitting in the machine’s second tray. Press it to collect it.');
   }else{
    gain('sugar');
    bloom('machine','The vending machine accepts the first coin and dispenses a sugar cube.');
@@ -1100,6 +1123,9 @@ function use(item,thing){
   tell(coinOwed
    ?'The copper shim frees the jammed return. A spent coin rolls out of the machine. The service wheel behind its slot is now exposed.'
    :'The copper shim frees the jammed return. No coin is inside yet; its service wheel is ready for the next purchase.');
+ }else if(item==='seal'&&thing==='shutter'){
+  spend('seal');s.serviceSealInserted=true;
+  tell('The brass service key slides into the matching keyway beside the shutter. Its locking bar withdraws. The spring catch still needs to disengage before the shutter can open.');
  }else if(item==='washer'&&thing==='musicbox'){
   spend('washer');s.clockHeart=true;
   bloom('clockwork-heart','You repaired the tiny escapement. The music box begins to tick between songs.');
@@ -1388,7 +1414,9 @@ function clickThing(name,actuator=false){
    tell('The miniature clock has stopped at 4:17. Another object might make its mechanism run.');
   else modal('CLOCK DEPARTMENT','4:17','<p>Nothing is wrong with this clock. It just refuses to acknowledge the existence of other times.</p>','clock');
  }else if(name==='machine')tell(s.refundRedeemed
-  ?'The repair seal is visible in the narrow second drawer. This machine has nothing else to sell.'
+  ?(pendingPickups.has('seal')
+    ?'A brass service key is still resting in the machine’s second tray. Press it to pick it up.'
+    :'The repaired machine has completed its second transaction. The service-key tray is empty.')
   :s.shimUsed
    ?'The repaired return mechanism has a second little slot beneath the sugar tray.'
    :'INSERT COIN. The return slot beneath the tray is jammed.');
