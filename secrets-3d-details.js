@@ -499,6 +499,7 @@ export function buildIntricateCube({
     getState:()=>({...live}),
     syncGameState,
     getNameplates:()=>nameplates.map(n=>({...n})),
+    getGearMazeTargets:()=>({large:wheelA,small:wheelB}),
     getGearMazeAssembly:()=>({
       face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
       large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z},
