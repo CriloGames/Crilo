@@ -286,6 +286,27 @@ try{
   await close();
   console.log("PASS: a legacy second coin already in pocket now redeems correctly");
  }
+ // Players may solve the meshed-wheel channel BEFORE touching the
+ // calibration dial. In this order its screw must retract the latch but
+ // must not invent a tuning fork until the needle also reaches its stop.
+ {
+  const {page,close}=await scenario("gear-before-pressure",{
+   seen:[],pocket:[],pendingPickups:[]
+  });
+  for(const name of ["gear-small","gear-small","gear-small","gear-large",
+   "gear-large","gear-small","gear-small","gear-small","gear-large","gear-large"])
+   await act(page,name);
+  const opened=await state(page);
+  assert(opened.gearMazeSolved&&!opened.pressureReady&&
+   !opened.pendingPickups.includes("fork"),
+   "Unscrewing the gear maze alone gave an uncalibrated tuning fork");
+  for(let i=0;i<3;i++)await act(page,"pressure");
+  assert((await state(page)).pendingPickups.includes("fork"),
+   "Calibrating the already released dial did not expose the physically earned fork");
+  await collect(page,"fork");
+  await close();
+  console.log("PASS: gear-first and pressure-first orders unlock the same genuine calibration reward");
+ }
  // The red-switch bell used to have an apparently valid "use on dog"
  // target that did NOTHING. Ringing it must now cause the same observable
  // dog -> squirrel -> broken-vase chain as petting the dog three times.
