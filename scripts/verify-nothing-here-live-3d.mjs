@@ -1170,10 +1170,27 @@ try{
    JSON.stringify(quietRewards));
  // Real users click meshes, not the programmatic inspection API. Project a
  // raised 3D button into the actual canvas and exercise pointer raycasting.
- const button=await page.evaluate(()=>window.__nothing3DPreview.projectGameControl("dot"));
+ // On a long WebGL inspection session the sticky site header can cover
+ // the top of the canvas after Playwright scrolls it into view, preventing
+ // a genuine mouse click despite a correct 3D raycast. Position the chosen
+ // dot visibly BELOW the header, then click its actual viewport coordinate.
+ await page.evaluate(()=>{
+  const canvas=document.querySelector("#stage canvas");
+  const rect=canvas.getBoundingClientRect();
+  const p=window.__nothing3DPreview.projectGameControl("dot");
+  const header=document.querySelector("header.topbar");
+  const obscuredBy=(header?.getBoundingClientRect().bottom||0)+28;
+  if(p&&rect.top+p.y<obscuredBy)
+   window.scrollBy(0,rect.top+p.y-obscuredBy);
+ });
+ const button=await page.evaluate(()=>{
+  const p=window.__nothing3DPreview.projectGameControl("dot");
+  const rect=document.querySelector("#stage canvas").getBoundingClientRect();
+  return p?{...p,screenX:rect.left+p.x,screenY:rect.top+p.y}:null;
+ });
  assert(button&&button.x>0&&button.y>0,
   "Red button does not have a visible projected position");
- await page.locator("#stage canvas").click({position:{x:button.x,y:button.y},timeout:30000});
+ await page.mouse.click(button.screenX,button.screenY);
  assert.equal((await state()).redHits,4,
   "A finished red switch must stay at its physical fourth-detent stop");
  // Exercise real Chrome touch input. Hand-built PointerEvents are not
