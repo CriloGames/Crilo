@@ -82,14 +82,15 @@ async function refundCoin(page,{realPointer=false}={}){
   assert((await state(page)).pocket.includes("coin"),
    "Real mouse click missed the refunded coin");
  }else await collect(page,"coin");
+ const sugarStillWaiting=(await state(page)).pendingPickups.includes("sugar");
  await useItem(page,"coin","machine");
  s=await state(page);
  assert(s.refundRedeemed&&s.seen.includes("service-bolt"),
   "Second coin did not reveal the separate service-drawer discovery");
  assert(!s.pocket.includes("coin")&&!s.pendingPickups.includes("coin"),
   "Second coin was not consumed exactly once");
- assert(!s.pendingPickups.includes("sugar"),
-  "Second coin dispensed an unusable duplicate sugar reward");
+ assert.equal(s.pendingPickups.includes("sugar"),sugarStillWaiting,
+  "Second coin changed an earlier sugar pickup instead of opening the new service drawer");
  assert(await page.evaluate(()=>
   window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
   "The service certificate has no visible physical counterpart");
