@@ -877,7 +877,7 @@ function inspectHardware(name){
  // remains silent even if a script tries to call its action directly.
  if(name==='read:vents'){
   tell(s.rightBoltLoose?
-   'The opened service-bolt recess reads: 3 · 1 · 4 · 2 · 3. Four numbered vent switches are on the opposite face.':
+   'The VENT ORDER plate below the removed service bolt reads: 3 · 1 · 4 · 2 · 3. Four numbered vent switches are on the opposite face.':
    'The service bolt still covers the engraved strip.');
   return true;
  }
@@ -961,9 +961,9 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(n===1&&!s.rightBoltLoose){
    s.rightBoltLoose=true;
-   tell('The service bolt comes free. A five-part engraving appears beside its empty socket. The numbered switches are on the opposite face.');
+   tell('The service bolt comes free. A VENT ORDER plate rises from its separate mount below the empty socket. Four numbered switches sit on the opposite face.');
    scatter('#9ec7c9',7,document.querySelector('[data-hit="'+name+'"]'));
-  }else if(n===1)tell('The service bolt is out. Its five-part engraving faces the numbered vent switches across the cube.');
+  }else if(n===1)tell('The bolt is out. The five-mark VENT ORDER plate is uncovered below its socket. The numbered switches are on the opposite face.');
   else tell(['The first rivet has a slot shaped like a minus sign.',
    '', 'The third rivet was installed backwards.','The fourth rivet holds the drawer rail.'][n]);
   return true;
