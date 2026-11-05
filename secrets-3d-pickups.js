@@ -41,7 +41,7 @@ function scheduleAuras(){
 // The aura is a non-interactive plane BEHIND the collectible; its meshes
 // never become hitboxes and are excluded from solid geometry inspection.
 export function attachCollectibleGlow({
- root,model=root,invalidate=()=>{},color=0xffe0a6,
+ root,model=root,invalidate=()=>{},color=0xb45cff,
  size=.355,depth=.035,offsetX=0,offsetY=0
 }){
  const materialCopies=new Map();
@@ -102,7 +102,7 @@ export function attachCollectibleGlow({
    scheduleAuras();invalidate();
   },
   getState:()=>({
-   active,haloVisible:halo.visible,haloOpacity:haloMaterial.opacity,
+   active,color:haloMaterial.color.getHex(),haloVisible:halo.visible,haloOpacity:haloMaterial.opacity,
    haloDepth:halo.position.z,haloScale:halo.scale.x,
    surfaceEmission:litMaterials[0]?.emissiveIntensity||0,
    glowMeshes:1,raycastable:false,phase
@@ -406,7 +406,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // reserved for items that have ALREADY been revealed by puzzle logic;
   // it never points at undiscovered mechanisms or correct answers.
   const socketMaterial=ink.clone();
-  socketMaterial.emissive.setHex(0xa18a55);
+  socketMaterial.emissive.setHex(0xb45cff);
   socketMaterial.emissiveIntensity=0;
   // A narrow recess and retaining lip, not another black tile behind
   // each item. Keep the fine physical detail and its subtle found glow.
@@ -430,9 +430,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // Do NOT register the glow with setHit: clicking the soft halo must
   // never pick up an item outside its real fingertip-sized hit target.
   root.userData.pickupGlow=attachCollectibleGlow({
-   root,model,invalidate,
-   color:["prism","raindrop","sugar","lens","stardust","iris"].includes(id)
-    ?0x9ce6eb:0xffd49a
+   root,model,invalidate
   });
   root.userData.pickupModel=model;
   root.userData.pickupSocketMaterial=socketMaterial;
