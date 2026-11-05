@@ -394,7 +394,7 @@ function ongoingMechanisms(){
  if(s.b&&!s.sideTaken)
   add('Side drawer','The teal drawer is open. Its red spool has not been picked up.');
  if(s.top&&!s.pipeTaken)
-  add('Top hatch','The lid has opened. A hollow tube is still in its compartment.');
+  add('Top hatch','The lid lifted the twin gears and drew the tube clips open. A wooden tube is resting in its cradle.');
  if(s.bottom&&!s.ringTaken)
   add('Underside pocket','The bottom compartment is open. Its brass ring is still there.');
  if(s.bag&&!s.bagOpen)
