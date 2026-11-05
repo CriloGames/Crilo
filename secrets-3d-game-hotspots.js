@@ -214,7 +214,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   // descriptive nameplates. Give the numerals compact fitted bezels so
   // none of their neighbouring metal frames collide or trigger the
   // cross-face safety margin used by geometric QA.
-  const h=/^[1-4]$/.test(words)?.116:.143;
+  const isVentOrder=words==="3 · 1 · 4 · 2 · 3";
+  const h=isVentOrder?.232:/^[1-4]$/.test(words)?.116:.143;
   // Conditional inscriptions are only exposed after their covering control
   // has physically moved; audit permanent visible faceplates separately.
   if(!["3 · 1 · 4 · 2 · 3","A / Ⅱ · Ⅰ · Ⅲ","B / Ⅰ · Ⅲ · Ⅱ"].includes(words))
@@ -230,8 +231,20 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,384,108);
   ctx.fillStyle="#58616a";ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.font="bold 52px system-ui,sans-serif";
-  ctx.fillText(words,192,58,360);
+  if(isVentOrder){
+   // Two clear reading levels INSIDE one mechanically mounted plate.
+   // A small VENT legend makes the connection to the opposite face fair,
+   // without drawing a second metal label through a bolt or trim rail.
+   ctx.font="700 25px system-ui,sans-serif";
+   ctx.fillStyle="#657b76";
+   ctx.fillText("VENT ORDER",192,27,350);
+   ctx.fillStyle="#34454a";
+   ctx.font="800 43px system-ui,sans-serif";
+   ctx.fillText(words,192,77,360);
+  }else{
+   ctx.font="bold 52px system-ui,sans-serif";
+   ctx.fillText(words,192,58,360);
+  }
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
   const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w*.90,h*.79),
    new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
@@ -301,10 +314,17 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  C(serviceSocket,.083,.019,0,0,0,graphite);
  C(serviceSocket,.060,.018,0,0,.015,nickel);
  const serviceBolt=control(rightFace,"right-bolt-1",1.23,1.20,copper,.065);
- // The vent order is engraved INSIDE the empty fastener recess: it is
- // not visible until the player actually loosens the appropriate bolt.
- const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.91,1.25,.75);
+ // The removable bolt releases a captive number plate just BELOW and
+ // LEFT of its socket. The previous strip at (.91,1.25) physically cut
+ // through the bolt at (1.23,1.20), the upper teal rail at y=1.38,
+ // and its own backing panel. Give the inscription its own clean face
+ // footprint, away from screws/hinges, and enough height for an actual
+ // "VENT ORDER" heading as well as five readable numbers.
+ const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.58,.97,.80);
  ventCipher.visible=false;
+ const ventCipherMount={x:.58,y:.97,w:.80,h:.232,
+  boltX:1.23,boltY:1.20,boltRadius:.14,topRailY:1.38,
+  topRailHalfH:.04};
  // Once exposed, the actual engraved strip can be pressed to read its
  // tiny marks. This adds no pop-up or duplicate off-box clue.
  setHit(ventCipher,"read:vents");targets.set("read:vents",ventCipher);
@@ -709,6 +729,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    serviceKeyInserted:insertedServiceKey.visible
   }),
   fluteVisible:()=>flute.visible,
+  getServiceCodeClearance:()=>{
+   const p=ventCipherMount;
+   // Actual visible plate is w+.045 by h+.029. Including screw-head
+   // radius, it must not overlap the removable bolt or the top trim.
+   const plateHalfW=(p.w+.045)/2,plateHalfH=(p.h+.029)/2;
+   const dx=Math.max(0,Math.abs(p.x-p.boltX)-plateHalfW);
+   const dy=Math.max(0,Math.abs(p.y-p.boltY)-plateHalfH);
+   const gapToBolt=Math.hypot(dx,dy)-p.boltRadius;
+   const gapToRail=p.topRailY-p.topRailHalfH-(p.y+plateHalfH);
+   return {gapToBolt,gapToRail,clear:gapToBolt>.02&&gapToRail>.06,
+    plate:{x:p.x,y:p.y,w:p.w+.045,h:p.h+.029},
+    bolt:{x:p.boltX,y:p.boltY}};
+  },
   getClueVisibility:()=>({
    serviceNumber:ventCipher.visible,
    footNumber:undersideCipher.visible,
