@@ -21,13 +21,22 @@ const mock=`window.supabase={createClient:()=>({
 })};`;
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
-const useItem=async(page,item,thing)=>{
+const useItem=async(page,item,thing,{realPointer=false}={})=>{
  await page.locator('#ncInventory [data-item="'+item+'"]').click();
  assert.equal((await state(page)).selected,item,
   "Selecting "+item+" in inventory failed");
  assert(await page.evaluate(a=>window.CriloNothingHereCube.canUseSelectedWithAction(a),"thing:"+thing),
   item+" has no valid physical target "+thing);
- await act(page,"thing:"+thing);
+ if(realPointer){
+  const p=await page.evaluate(t=>{
+   const v=window.__nothing3DPreview;
+   const point=v.projectPhysicalStoryObject(t);
+   return point?{...point,actual:v.getPhysicalActionAt(point.x,point.y)}:null;
+  },thing);
+  assert(p?.pick==="thing:"+thing&&p.actual==="thing:"+thing,
+   "Selected "+item+" cannot be used on visible "+thing+" with a real pointer: "+JSON.stringify(p));
+  await page.locator("#stage canvas").click({position:{x:p.x,y:p.y},timeout:25000});
+ }else await act(page,"thing:"+thing);
 };
 const collect=async(page,item)=>{
  assert((await state(page)).pendingPickups.includes(item),
@@ -83,7 +92,7 @@ async function refundCoin(page,{realPointer=false}={}){
    "Real mouse click missed the refunded coin");
  }else await collect(page,"coin");
  const sugarStillWaiting=(await state(page)).pendingPickups.includes("sugar");
- await useItem(page,"coin","machine");
+ await useItem(page,"coin","machine",{realPointer});
  s=await state(page);
  assert(s.refundRedeemed&&s.seen.includes("service-bolt"),
   "Second coin did not reveal the separate service-drawer discovery");
@@ -158,17 +167,40 @@ try{
   await close();
   console.log("PASS: old saves recover the unspent second coin and it still physically redeems");
  }
+ // Older saves sometimes had the returned coin ALREADY IN INVENTORY but
+ // a false coinReturned flag. That exact mismatch used to silently award
+ // an extra sugar cube when the user spent their second coin.
+ {
+  const {page,close}=await scenario("legacy-pocket-coin",{
+   seen:["first","mouse","bag","machine","service-bolt"],
+   mouse:true,bag:true,machine:true,shimUsed:true,
+   coinReturned:false,refundRedeemed:false,
+   pocket:["coin","sugar"],pendingPickups:[]
+  });
+  const recovered=await state(page);
+  assert(recovered.coinReturned&&recovered.pocket.includes("coin")&&
+   !recovered.pendingPickups.includes("coin"),
+   "Existing returned coin was duplicated or wrongly treated as a first purchase");
+  await useItem(page,"coin","machine");
+  const redeemed=await state(page);
+  assert(redeemed.refundRedeemed&&!redeemed.pocket.includes("coin")&&
+    !redeemed.pendingPickups.includes("sugar"),
+   "Old pocketed refund still turned into duplicate sugar");
+  await close();
+  console.log("PASS: a legacy second coin already in pocket now redeems correctly");
+ }
  // After the machine, the other late mechanisms are independent, but
  // all must still lead to a reachable physical reward and the final letter.
  {
   const {page,close}=await scenario("late-game-chain",{
    seen:["first","mouse","bag","machine","service-bolt","music","teacup",
-     "railway","door","dog","pressure-dial"],
+     "door","dog","pressure-dial","moon"],
    mouse:true,bag:true,machine:true,shimUsed:true,
    coinReturned:true,refundRedeemed:true,
    pressureReady:true,ventOpen:true,
    music:true,cloud:true,cup:true,watch:true,
-   vase:true,train:true,door:true,doorOpen:true,
+   vase:true,moon:true,tag:true,train:false,floorFour:false,
+   door:true,doorOpen:true,
    pocket:["fork"],pendingPickups:[]
   });
   await page.locator('#ncInventory [data-item="fork"]').click();
@@ -188,6 +220,39 @@ try{
   await useItem(page,"tape","clock");
   assert((await state(page)).tapeInserted,"Punched tape failed to operate clock");
   await collect(page,"letter");
+  // The watch and recovered collar tag make the fourth lift button
+  // meaningful. Its lens produces the telescope chart, which unlocks
+  // the railway needed to post the late-game letter.
+  await act(page,"thing:elevator-floor-4");
+  assert((await state(page)).floorFour,
+   "Fourth-floor lift did not reveal its lens and moth");
+  await collect(page,"lens");
+  await useItem(page,"lens","telescope");
+  assert((await state(page)).observed,
+   "The recovered telescope lens failed to focus its sky");
+  await collect(page,"starmap");
+  await useItem(page,"starmap","elevator");
+  assert((await state(page)).train,
+   "Star chart failed to create the tiny railway and delivery train");
+  // The mechanical moth must remain useful after the lift unlock.
+  await act(page,"thing:moth");
+  await collect(page,"stardust");
+  await useItem(page,"stardust","musicbox");
+  assert((await state(page)).dancer,
+   "Moth dust stopped activating the clockwork music-box dancer");
+  // The train offers an independent parcel branch as well as delivering
+  // the written message. Both physical outputs must be reachable.
+  await act(page,"thing:train");
+  await collect(page,"parcel");
+  await useItem(page,"parcel","dog");
+  await collect(page,"postcard");
+  await page.locator('#ncInventory [data-item="postcard"]').click();
+  assert(await page.evaluate(()=>
+   window.CriloNothingHereCube.canUseSelectedWithAction("cube-offer")),
+   "The postcard cannot enter the physical cube offering port");
+  await act(page,"cube-offer");
+  assert((await state(page)).portal,
+   "Postcard never revealed the miniature portal scene");
   await useItem(page,"letter","train");
   assert((await state(page)).letterMailed,"Train failed to mail the letter");
   await collect(page,"envelope");
@@ -202,10 +267,11 @@ try{
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
-   restored.cylinderMounted&&!restored.pendingPickups.includes("envelope"),
+   restored.cylinderMounted&&restored.train&&restored.portal&&
+   restored.dancer&&!restored.pendingPickups.includes("envelope"),
    "Reloading restored spent late-game parts or lost final secret");
   await close();
-  console.log("PASS: fork -> shutter -> wax cylinder -> tape -> clock -> letter -> train -> envelope -> door");
+  console.log("PASS: fork/shutter/wax/tape/clock, lift/lens/stars/railway, moth/dancer, parcel/postcard/portal, and envelope/door");
  }
  console.log("PASS: all second-coin orders, actual 3D clicks, legacy save repair, and downstream mechanisms");
 }finally{
