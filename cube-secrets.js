@@ -222,7 +222,7 @@ s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-48,48);
 const preMazeReward=s.pressureReady||s.resonance||pocket.has('fork')||
  pendingPickups.has('fork')||seen.has('pressure-dial');
 const autoSolvedOldMaze=raw.gearMazeSolved===true&&
- Number(raw.gearMazeIndex)===GEAR_MAZE_DIRECTIONS.length&&
+ [10,GEAR_MAZE_DIRECTIONS.length].includes(Number(raw.gearMazeIndex))&&
  !Number(raw.gearMazeTurns)&&preMazeReward&&!raw.legacyGearBypass&&
  !raw.gearMazePlayed&&
  !(Array.isArray(raw.recentChanges)&&
