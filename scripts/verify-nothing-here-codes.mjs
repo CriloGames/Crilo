@@ -7,6 +7,8 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const logic=read('cube-secrets.js');
 const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
+const details=read('secrets-3d-details.js');
+const preview=read('secrets-3d-preview.js');
 const match=(source,pattern,label)=>{
  const result=source.match(pattern);
  assert(result,'Missing '+label+' in authored scene or puzzle logic');
@@ -41,6 +43,26 @@ assert(hotspots.includes('getServiceCodeClearance:'),
  'Service code has no clearance audit for the removable bolt and adjacent teal rail');
 assert(logic.includes("===VENT_CODE.join('')"),
  'The vent buttons no longer use the same code as the engraved clue');
+// The two visible gears are one ten-turn mechanical maze, not decorative
+// discs that magically rotate as a side effect of the vent code.
+const gearSteps=digits(match(logic,
+ /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'gear maze directions'));
+const physicalGearSteps=digits(match(details,
+ /const gearMazeDirections=\[([^\]]+)\]/,'sculpted gear track'));
+assert.deepEqual(physicalGearSteps,gearSteps,
+ 'The physical switchback channel differs from the turn directions needed by the game');
+assert(gearSteps.includes(1)&&gearSteps.includes(-1)&&
+ gearSteps.some((v,i)=>i>0&&v!==gearSteps[i-1]),
+ 'The groove has no actual reversals; the purported maze is a one-way click counter');
+assert(details.includes('new THREE.TubeGeometry(grooveCurve')&&
+ details.includes('getGearMazeTargets:')&&details.includes('getGearMazeAssembly:'),
+ 'The meshed gears need a visible continuous groove, follower and touch targets');
+assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
+ preview.includes('gameHotspots.targets.set("gear-small"'),
+ 'The maze gears are not reachable by the 3D interaction raycaster');
+assert(logic.includes('s.pressureReady&&s.gearMazeSolved')&&
+ logic.includes("s.gearMazeIndex++"),
+ 'The real gear maze has stopped participating in the tuning-fork unlock');
 
 const roman={'Ⅰ':1,'Ⅱ':2,'Ⅲ':3};
 const decode=value=>[...value].filter(x=>roman[x]).map(x=>roman[x]);
