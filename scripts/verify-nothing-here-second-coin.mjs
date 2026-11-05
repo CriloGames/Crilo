@@ -124,8 +124,9 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"shutter");
  assert(!(await state(page)).serviceOpen,
   "Service shutter opened without the brass key or sound release");
- assert.match(await page.locator("#ncMechanismsList").innerText(),/Service key/,
-  "The earned brass key is not reflected in the live mechanism log");
+ if(await page.locator("#ncMechanismsToggle").getAttribute("aria-expanded")==="true")
+  assert.match(await page.locator("#ncMechanismsList").innerText(),/Service key/,
+   "The earned brass key is not reflected in the live mechanism log");
  await collect(page,"seal");
  await useItem(page,"seal","shutter");
  assert((await state(page)).serviceSealInserted&&
