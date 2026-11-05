@@ -214,8 +214,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   // descriptive nameplates. Give the numerals compact fitted bezels so
   // none of their neighbouring metal frames collide or trigger the
   // cross-face safety margin used by geometric QA.
-  const isVentOrder=words==="3 · 1 · 4 · 2 · 3";
-  const h=isVentOrder?.232:/^[1-4]$/.test(words)?.116:.143;
+  const h=/^[1-4]$/.test(words)?.116:.143;
   // Conditional inscriptions are only exposed after their covering control
   // has physically moved; audit permanent visible faceplates separately.
   if(!["3 · 1 · 4 · 2 · 3","A / Ⅱ · Ⅰ · Ⅲ","B / Ⅰ · Ⅲ · Ⅱ"].includes(words))
@@ -231,20 +230,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,384,108);
   ctx.fillStyle="#58616a";ctx.textAlign="center";ctx.textBaseline="middle";
-  if(isVentOrder){
-   // Two clear reading levels INSIDE one mechanically mounted plate.
-   // A small VENT legend makes the connection to the opposite face fair,
-   // without drawing a second metal label through a bolt or trim rail.
-   ctx.font="700 25px system-ui,sans-serif";
-   ctx.fillStyle="#657b76";
-   ctx.fillText("VENT ORDER",192,27,350);
-   ctx.fillStyle="#34454a";
-   ctx.font="800 43px system-ui,sans-serif";
-   ctx.fillText(words,192,77,360);
-  }else{
-   ctx.font="bold 52px system-ui,sans-serif";
-   ctx.fillText(words,192,58,360);
-  }
+  ctx.font="bold 52px system-ui,sans-serif";
+  ctx.fillText(words,192,58,360);
   const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;
   const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w*.90,h*.79),
    new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false}));
@@ -318,11 +305,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // LEFT of its socket. The previous strip at (.91,1.25) physically cut
  // through the bolt at (1.23,1.20), the upper teal rail at y=1.38,
  // and its own backing panel. Give the inscription its own clean face
- // footprint, away from screws/hinges, and enough height for an actual
- // "VENT ORDER" heading as well as five readable numbers.
+ // footprint, away from screws and hinges. Only the five stamped marks
+ // are shown; the game does not announce what the combination operates.
  const ventCipher=engraving(rightFace,"3 · 1 · 4 · 2 · 3",.58,.97,.80);
  ventCipher.visible=false;
- const ventCipherMount={x:.58,y:.97,w:.80,h:.232,
+ const ventCipherMount={x:.58,y:.97,w:.80,h:.143,
   boltX:1.23,boltY:1.20,boltRadius:.14,topRailY:1.38,
   topRailHalfH:.04};
  // Once exposed, the actual engraved strip can be pressed to read its
