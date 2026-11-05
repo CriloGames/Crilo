@@ -205,37 +205,71 @@ export function buildIntricateCube({
   // discs joined by a bar that passed through their centers.
   const wheelB=gear(leftFace,.23,-.27,.19,.235,steel,9);
   registries.wheelA=wheelA;registries.wheelB=wheelB;
-  // A REAL captive-screw maze. The path is engraved directly into the
-  // larger moving gear's metal face, not into a detached screen overlay.
-  // Its alternating arcs connect through diagonal crossovers: trace the
-  // channel and change direction at each hairpin. The follower never
-  // jumps between unrelated parts of the cube.
-  const gearMazeDirections=[1,1,1,-1,-1,1,1,1,-1,-1];
-  const gearMazeAngles=[-128,-92,-56,-20,-58,-96,-60,-24,12,-25,-62];
-  const gearMazeRadii=[.095,.095,.095,.095,.145,.145,.195,.195,.195,.245,.245];
-  const gearMazePoints=gearMazeAngles.map((angle,i)=>{
-   const a=angle*Math.PI/180,r=gearMazeRadii[i];
-   return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.145);
+  // Six successive semicircular-to-three-quarter channels, connected by
+  // narrow radial switchbacks, form ONE continuous captive-screw labyrinth.
+  // A simple two-hook engraving looked solved after a couple of clicks;
+  // this longer cut fills the wheel's face and visibly tells the player
+  // WHY its direction must change. Each outer lane has its own separation
+  // and the screw never needs to jump across an unconnected line.
+  const gearMazeDirections=[
+   1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
+   1,1,1,1,1,-1,-1,-1,-1,-1
+  ];
+  const mazeStages=[
+   {r:.070,start:-142,end:138},
+   {r:.105,start:138,end:-133},
+   {r:.140,start:-133,end:135},
+   {r:.175,start:135,end:-130},
+   {r:.210,start:-130,end:130},
+   {r:.245,start:130,end:-115}
+  ];
+  const mazePoint=(radius,angle)=>new THREE.Vector3(
+   Math.cos(angle*Math.PI/180)*radius,
+   Math.sin(angle*Math.PI/180)*radius,.145
+  );
+  const gearMazePoints=[mazePoint(mazeStages[0].r,mazeStages[0].start)];
+  const groovePoints=[gearMazePoints[0].clone()];
+  mazeStages.forEach((stage,i)=>{
+   if(i){
+    const oldRadius=mazeStages[i-1].r;
+    // The radial connector is a visible machined switchback, not an
+    // invisible jump; turning the opposite wheel traverses this bridge.
+    for(let j=1;j<=6;j++)groovePoints.push(
+     mazePoint(oldRadius+(stage.r-oldRadius)*j/6,stage.start));
+    gearMazePoints.push(mazePoint(stage.r,stage.start));
+   }
+   for(let j=1;j<=36;j++)
+    groovePoints.push(mazePoint(stage.r,stage.start+
+     (stage.end-stage.start)*j/36));
+   for(let j=1;j<=4;j++)
+    gearMazePoints.push(mazePoint(stage.r,stage.start+
+     (stage.end-stage.start)*j/4));
   });
-  // The bore and groove are part of the wheel; the screw rides within it.
-  // The raised brass lips and darker inner channel read as a shallow cut.
-  C(wheelA,.278,.023,0,0,.117,gearMetal);
-  // This broad moving face plate is fastened through its bearing, not
-  // floating above the older gear blank. Four concealed steel spacers
-  // bridge the solid gear hub and its upper engraved surface.
+  if(gearMazePoints.length!==gearMazeDirections.length+1)
+   throw new Error("Mechanical screw maze and its visible groove have different lengths");
+  const mazeFace=mat(0xd6bb8e,.39,.43);
+  C(wheelA,.278,.023,0,0,.117,mazeFace);
+  // Fix the raised face to the real center bearing with visible seated
+  // spokes underneath, rather than leaving an impossible floating disc.
   for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5])
    C(wheelA,.018,.093,Math.cos(a)*.205,Math.sin(a)*.205,.077,steel);
+  ring(wheelA,.274,.007,0,0,.136,brass);
   const grooveCurve=new THREE.CatmullRomCurve3(
-   gearMazePoints.map(p=>p.clone()),false,"centripetal",.24);
-  const lip=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.014,7,false),brass);
+   groovePoints,false,"centripetal",.18);
+  const lip=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,450,.013,7,false),brass);
   lip.castShadow=false;wheelA.add(lip);detailsCount++;
-  const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.009,8,false),ebony);
-  channel.position.z=.008;channel.castShadow=false;wheelA.add(channel);detailsCount++;
+  const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,450,.009,8,false),ebony);
+  channel.position.z=.007;channel.castShadow=false;wheelA.add(channel);detailsCount++;
+  // The entry and the exit are different machined end-stops, not printed
+  // directions or arrow hints. The player must trace the real channel.
+  const finishPoint=gearMazePoints[gearMazePoints.length-1];
+  C(wheelA,.021,.012,finishPoint.x,finishPoint.y,.161,gold);
+  C(wheelA,.031,.016,0,0,.152,steel);
   const follower=new THREE.Group();wheelA.add(follower);
-  follower.position.copy(gearMazePoints[0]);follower.position.z=.184;
-  C(follower,.014,.067,0,0,-.016,steel);
-  C(follower,.029,.021,0,0,.021,gold);
-  const screwSlot=B(follower,.030,.008,.006,0,0,.036,ebony,.002);
+  follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
+  C(follower,.012,.065,0,0,-.016,steel);
+  C(follower,.019,.020,0,0,.021,gold);
+  const screwSlot=B(follower,.024,.007,.005,0,0,.036,ebony,.002);
   screwSlot.rotation.z=.56;
   // A small captive tab holds the calibration bracket shut until the
   // screw reaches the open end. This is the maze's physical consequence.
