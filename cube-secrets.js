@@ -162,7 +162,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
  shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
- serialRead:false,pressureReady:false,gearMazeSolved:false,legacyGearBypass:false,resonance:false,serviceOpen:false,
+ serialRead:false,pressureReady:false,gearMazeSolved:false,gearMazePlayed:false,legacyGearBypass:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
@@ -217,7 +217,10 @@ const preMazeReward=s.pressureReady||s.resonance||pocket.has('fork')||
  pendingPickups.has('fork')||seen.has('pressure-dial');
 const autoSolvedOldMaze=raw.gearMazeSolved===true&&
  Number(raw.gearMazeIndex)===GEAR_MAZE_DIRECTIONS.length&&
- !Number(raw.gearMazeTurns)&&preMazeReward&&!raw.legacyGearBypass;
+ !Number(raw.gearMazeTurns)&&preMazeReward&&!raw.legacyGearBypass&&
+ !raw.gearMazePlayed&&
+ !(Array.isArray(raw.recentChanges)&&
+   raw.recentChanges.some(e=>e?.id==='calibration-gear'));
 if(preMazeReward&&(typeof raw.gearMazeSolved!=='boolean'||autoSolvedOldMaze)){
  s.legacyGearBypass=true;
  s.gearMazeSolved=false;
@@ -936,6 +939,7 @@ function inspectHardware(name){
    tell('The captive screw has cleared the last groove and the brass calibration tongue stays withdrawn.');
    return true;
   }
+  s.gearMazePlayed=true;
   const before=s.gearMazeIndex;
   const forward=GEAR_MAZE_DIRECTIONS[before];
   const backward=before>0?-GEAR_MAZE_DIRECTIONS[before-1]:0;
