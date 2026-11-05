@@ -273,6 +273,14 @@ export function buildIntricateCube({
   screwSlot.rotation.z=.56;
   // A small captive tab holds the calibration bracket shut until the
   // screw reaches the open end. This is the maze's physical consequence.
+  // A real guide links the grooved wheel's upper bearing to the dial's
+  // retainer. Without this shallow dogleg rail the little brass tongue
+  // appeared to retract by magic when a distant wheel was solved. Route
+  // behind both gears and stop LEFT of the pressure dial's needle housing.
+  flatLine(leftFace,-.03,.295,.22,.47,.118,.030,steel);
+  flatLine(leftFace,.22,.47,.54,.66,.118,.030,steel);
+  for(const [x,y] of [[.22,.47],[.49,.635]])
+   C(leftFace,.025,.021,x,y,.131,brass);
   const dialCatch=group(leftFace,.54,.66,.164);
   B(dialCatch,.175,.078,.039,0,0,0,steel,.009);
   const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
