@@ -907,3 +907,54 @@ html[data-theme="dark"] .nc-page .nc-flute-scores{color:#9bdec0}
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-changes-toggle,.nc-page .nc-changes-chevron{transition:none}
 }
+
+/* Mechanical progress is readable on demand and never covers the object.
+   Only components already exposed by the player's own actions are listed. */
+.nc-page .nc-mechanisms{
+ max-width:830px;margin:2px auto 7px;padding:0 10px;text-align:left;
+ color:#566f65;
+}
+.nc-page .nc-mechanisms[hidden],
+.nc-page .nc-mechanisms-list[hidden]{display:none!important}
+.nc-page .nc-mechanisms-toggle{
+ display:inline-flex;align-items:center;gap:7px;padding:5px 7px;
+ border:0;border-radius:6px;background:transparent;color:#5c766b;
+ cursor:pointer;font:650 11px/1.3 system-ui,sans-serif;
+ letter-spacing:.015em;
+}
+.nc-page .nc-mechanisms-toggle:hover{
+ background:#ddece632;color:#365b4f;
+}
+.nc-page .nc-mechanisms-toggle:focus-visible{
+ outline:2px solid #679b86;outline-offset:2px;
+}
+.nc-page .nc-mechanisms-toggle[aria-expanded="true"] .nc-changes-chevron{
+ transform:rotate(180deg);
+}
+.nc-page .nc-mechanisms-list{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));
+ gap:7px;margin:7px 0 6px;padding:0;list-style:none;
+}
+.nc-page .nc-mechanisms-list li{
+ display:flex;flex-direction:column;gap:4px;
+ padding:9px 11px;border:1px solid #d8e4dc;border-radius:8px;
+ background:#f6f8f5;
+ font-size:11px;line-height:1.5;
+}
+.nc-page .nc-mechanisms-list strong{
+ color:#375b4e;font-size:11px;letter-spacing:.025em;
+}
+.nc-page .nc-mechanisms-list span{color:#597067}
+html[data-theme="dark"] .nc-page .nc-mechanisms-toggle{color:#b8d3c5}
+html[data-theme="dark"] .nc-page .nc-mechanisms-toggle:hover{
+ background:#496a5d40;color:#d5f2e1;
+}
+html[data-theme="dark"] .nc-page .nc-mechanisms-list li{
+ background:#283d38;border-color:#466157;
+}
+html[data-theme="dark"] .nc-page .nc-mechanisms-list strong{color:#c7e5d5}
+html[data-theme="dark"] .nc-page .nc-mechanisms-list span{color:#b9d0c4}
+@media(max-width:490px){
+ .nc-page .nc-mechanisms{padding:0 4px}
+ .nc-page .nc-mechanisms-list{grid-template-columns:1fr}
+}
