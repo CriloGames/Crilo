@@ -7,7 +7,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=28";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=11";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=44";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=47";
-import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=17";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -588,8 +588,7 @@ const originalPickupGlow=embeddedGame?{
   offsetX:0,offsetY:-.07,invalidate
  }),
  thread:attachCollectibleGlow({
-  root:looseSpool,model:looseSpool,size:.44,depth:-.25,invalidate,
-  color:0xf0c6e5
+  root:looseSpool,model:looseSpool,size:.44,depth:-.25,invalidate
  }),
  pipe:attachCollectibleGlow({
   root:gameHotspots.targets.get("top-reed"),
