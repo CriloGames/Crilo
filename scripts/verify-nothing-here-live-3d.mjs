@@ -1290,7 +1290,10 @@ try{
   return {model:v.physicalGearMaze,small:v.projectGameControl("gear-small"),
    large:v.projectGameControl("gear-large")};
  });
- assert(spiral.model?.face==="leftFace"&&spiral.model.grooveCount===11&&
+ assert(spiral.model?.face==="leftFace"&&
+  spiral.model.directions.length>=29&&
+  spiral.model.grooveCount===spiral.model.directions.length+1&&
+  spiral.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5&&
   spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
   "The carved switchback gears are not both readable and clickable: "+JSON.stringify(spiral));
  const rect=await page.locator("#stage canvas").boundingBox();
@@ -1304,10 +1307,13 @@ try{
  await activate("gear-small");
  await activate("gear-small");
  await activate("gear-small");
- assert.equal((await state()).gearMazeIndex,3,
-  "At the first switchback an incorrect turn should reach a hard stop");
- for(const name of ["gear-large","gear-large","gear-small","gear-small",
-  "gear-small","gear-large","gear-large"])await activate(name);
+ assert.equal((await state()).gearMazeIndex,4,
+  "Four forward steps should reach the first switchback in the visible channel");
+ await activate("gear-small");
+ assert.equal((await state()).gearMazeIndex,4,
+  "Continuing to turn the wrong wheel at the switchback must reach a hard stop");
+ for(let i=4;i<spiral.model.directions.length;i++)
+  await activate(spiral.model.directions[i]===1?"gear-small":"gear-large");
  assert((await state()).gearMazeSolved&&
   (await state()).pendingPickups.includes("fork"),
   "Finishing the spiral did not retract the latch and expose the tuning fork");
