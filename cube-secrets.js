@@ -1438,7 +1438,7 @@ function bark(trigger='pet'){
  s.dogHits++;
  cue('ncDog','nc-petting',520);
  if(s.dogHits===1)bloom('dog','The dog tilts its head, wondering whether you are real.');
- if(s.dogHits===3&&!s.barked){
+ if(s.dogHits>=3&&!s.barked){
   s.barked=true;s.squirrel=true;s.vase=true;
   bloom('bark',trigger==='bell'
    ?'The small bell rings. The surprised dog lets out a loud bark, startling the squirrel perched on the ledge above the door.'
