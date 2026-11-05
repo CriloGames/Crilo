@@ -43,17 +43,26 @@ assert(hotspots.includes('getServiceCodeClearance:'),
  'Service code has no clearance audit for the removable bolt and adjacent teal rail');
 assert(logic.includes("===VENT_CODE.join('')"),
  'The vent buttons no longer use the same code as the engraved clue');
-// The two visible gears are one ten-turn mechanical maze, not decorative
-// discs that magically rotate as a side effect of the vent code.
+for(const name of ['LATCH','RED','RELEASE','SERVICE','VENT','CALIBRATE','TRIANGLE','IRIS'])
+ assert(!hotspots.includes(',"'+name+'",'),
+  'A redundant '+name+' nameplate has been reintroduced over a working object');
+assert(!details.includes('plaque(')&&!preview.includes('label(drawer,name,'),
+ 'Decorative label plates must be removed from the hardware and drawers');
+assert(hotspots.includes('engraving(leftFace,String(i)')&&
+ hotspots.includes('engraving(backFace,"A /')&&
+ hotspots.includes('engraving(bottomFace,"B /'),
+ 'The numbered input legends and two real code plates must remain readable');
+// The two visible gears must drive a multi-lane captive-screw labyrinth,
+// not a decorative couple of hooks or a one-button click counter.
 const gearSteps=digits(match(logic,
  /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'gear maze directions'));
 const physicalGearSteps=digits(match(details,
  /const gearMazeDirections=\[([^\]]+)\]/,'sculpted gear track'));
 assert.deepEqual(physicalGearSteps,gearSteps,
  'The physical switchback channel differs from the turn directions needed by the game');
-assert(gearSteps.includes(1)&&gearSteps.includes(-1)&&
- gearSteps.some((v,i)=>i>0&&v!==gearSteps[i-1]),
- 'The groove has no actual reversals; the purported maze is a one-way click counter');
+assert(gearSteps.length>=29&&
+ gearSteps.filter((v,i)=>i>0&&v!==gearSteps[i-1]).length>=5,
+ 'The maze needs at least six genuine lanes and five directional switchbacks');
 assert(details.includes('new THREE.TubeGeometry(grooveCurve')&&
  details.includes('getGearMazeTargets:')&&details.includes('getGearMazeAssembly:'),
  'The meshed gears need a visible continuous groove, follower and touch targets');
