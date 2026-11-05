@@ -162,7 +162,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
  shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
- serialRead:false,pressureReady:false,gearMazeSolved:false,resonance:false,serviceOpen:false,
+ serialRead:false,pressureReady:false,gearMazeSolved:false,legacyGearBypass:false,resonance:false,serviceOpen:false,
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
@@ -207,14 +207,22 @@ s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 s.gearMazeIndex=clamp(Number(raw.gearMazeIndex)||0,0,GEAR_MAZE_DIRECTIONS.length);
 s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-48,48);
-// Existing progress was earned before the gears became a puzzle. Treat
-// any previously completed pressure dial or recovered fork as already
-// calibrated, not as a new lock placed in front of an old saved reward.
-if(typeof raw.gearMazeSolved!=='boolean'&&
-   (s.pressureReady||s.resonance||pocket.has('fork')||
-    pendingPickups.has('fork')||seen.has('pressure-dial'))){
- s.gearMazeSolved=true;
- s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
+// Respect the tuning fork already earned in older versions WITHOUT
+// silently auto-solving the newly playable gears. The first release
+// mistakenly marked previous pressure-dial players' gears complete. That
+// auto-migration always left the wheel at turn=0; a genuinely solved maze
+// advances the net wheel by two steps. Reopen only those synthetic saves.
+// The previously collected/used fork is never deleted or duplicated.
+const preMazeReward=s.pressureReady||s.resonance||pocket.has('fork')||
+ pendingPickups.has('fork')||seen.has('pressure-dial');
+const autoSolvedOldMaze=raw.gearMazeSolved===true&&
+ Number(raw.gearMazeIndex)===GEAR_MAZE_DIRECTIONS.length&&
+ !Number(raw.gearMazeTurns)&&preMazeReward&&!raw.legacyGearBypass;
+if(preMazeReward&&(typeof raw.gearMazeSolved!=='boolean'||autoSolvedOldMaze)){
+ s.legacyGearBypass=true;
+ s.gearMazeSolved=false;
+ s.gearMazeIndex=0;
+ s.gearMazeTurns=0;
 }
 if(s.gearMazeSolved)s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
 // Repair orphaned physical rewards from saves made before independent
@@ -249,7 +257,7 @@ recoverReward('spring',s.vase&&!s.music);
 recoverReward('raindrop',s.music&&!s.tree);
 recoverReward('bird',s.tree&&!s.moon);
 recoverReward('bell',s.redHits>=4);
-recoverReward('fork',s.pressureReady&&s.gearMazeSolved&&!s.resonance);
+recoverReward('fork',s.pressureReady&&(s.gearMazeSolved||s.legacyGearBypass)&&!s.resonance);
 recoverReward('shim',s.ventOpen&&!s.shimUsed);
 recoverReward('cog',s.plateOpen&&!s.opticOpened);
 recoverReward('washer',s.hingePins.length===3&&!s.clockHeart);
@@ -393,7 +401,8 @@ function ongoingMechanisms(){
   add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
  if(!s.gearMazeSolved&&(s.gearMazeIndex>0||s.pressureTicks>0))
   add('Calibration gears','A captive screw is following the groove on the larger wheel. Both meshed wheels turn, but in opposite directions.'+
-   (s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
+   (s.legacyGearBypass?' Your previously earned calibration item is still yours.':
+    s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
  if(s.gearMazeSolved&&!s.pressureReady)
   add('Released calibration latch','The grooved screw has reached its end stop. The brass tongue beside the dial is withdrawn.');
  if(pocket.has('flute')&&!s.door)
@@ -967,8 +976,10 @@ function inspectHardware(name){
      :'The needle reaches its third mark, but a short brass tongue still holds the tuning-fork retainer. The nearby meshed gears carry a captive screw in a grooved track.');
     scatter('#e4c99b',9,document.querySelector('[data-hit="pressure"]'));
    }else tell('The calibration knob advances the needle by one marked step. A small catch beside the dial remains closed.');
-  }else tell(!s.gearMazeSolved
+  }else tell(!s.gearMazeSolved&&!s.legacyGearBypass
    ?'The needle is aligned at its third mark, but a brass latch still holds the tuning-fork retainer. The grooved gears beside it have not released the latch.'
+   :!s.gearMazeSolved&&s.legacyGearBypass
+    ?'The dial was calibrated in an earlier run. Its earned item remains yours, though the two meshed gears still have a captive screw to investigate.'
    :pendingPickups.has('fork')
     ?'The dial is calibrated and its catch is clear. The tuning fork is still in the bracket beside the dial.'
     :'The calibration mechanism is open. Its empty bracket shows where the tuning fork was held.');
