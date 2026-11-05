@@ -257,6 +257,31 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncKeyboardFocus{
 html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint{
  background:#323d42f5;color:#f0ead9;border-color:#67777a;
 }
+/* Purple always means a physically found object can be pocketed.
+   This mirrors its in-world emissive halo without marking any puzzle
+   actuator as collectible or creating another permanent nameplate. */
+.nc-page.nc-physical-ready #stage #ncPartHint.nc-is-pickup:not(.nc-can-use){
+ background:#f5eafeed;color:#56277a;border-color:#b45cff;
+ box-shadow:0 5px 18px #a347d348,inset 0 0 0 1px #dcb0ff;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncPartHint.nc-is-pickup:not(.nc-can-use){
+ background:#382445f2;color:#f2dcff;border-color:#cb88ff;
+ box-shadow:0 5px 20px #8c36d36d;
+}
+.nc-page.nc-physical-ready #stage #ncKeyboardFocus.nc-is-pickup{
+ border-color:#b45cff;
+ background:radial-gradient(circle,#c475ff30 0%,transparent 74%);
+ box-shadow:0 0 0 3px #fff8,0 0 17px 3px #b45cff88;
+}
+html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncKeyboardFocus.nc-is-pickup{
+ border-color:#d29aff;
+ box-shadow:0 0 0 3px #21152db9,0 0 18px 4px #b45cff99;
+}
+@media(prefers-contrast:more){
+ .nc-page.nc-physical-ready #stage #ncKeyboardFocus.nc-is-pickup{
+  border-width:3px;box-shadow:0 0 0 4px #fff;
+ }
+}
 @media (pointer:coarse){
  .nc-page.nc-physical-ready #stage #ncPartHint{font-size:11px;max-width:185px}
 }
