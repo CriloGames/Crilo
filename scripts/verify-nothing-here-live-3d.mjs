@@ -792,6 +792,11 @@ try{
  await activate("right-bolt-1");
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalClueVisibility)).serviceNumber,
   "Removing the service bolt must uncover its genuine inscribed number");
+ const servicePlate=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceCodeClearance);
+ assert(servicePlate?.clear&&servicePlate.gapToBolt>.02&&
+  servicePlate.gapToRail>.06,
+  "The vent order plate overlaps its bolt or teal trim rail: "+JSON.stringify(servicePlate));
  await activate("read:vents");
  assert.match(await page.locator("#ncNarrator").innerText(),/3 · 1 · 4 · 2 · 3/,
   "The unbolted vent sequence is not readable from its engraved strip");
