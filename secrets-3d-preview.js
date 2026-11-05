@@ -1690,6 +1690,7 @@ window.__nothing3DPreview={
   elevatorButton4:pocketWorlds?.getElevatorButtonDepth?.(4)??null
  }},
  get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
+ get physicalServiceCodeClearance(){return gameHotspots?.getServiceCodeClearance?.()||null},
  get physicalFluteVisible(){return gameHotspots?.fluteVisible?.()||false},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
