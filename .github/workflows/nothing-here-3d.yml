@@ -60,6 +60,7 @@ jobs:
           node --check secrets-3d-spatial-qa.js
           node --check three-workbench/scripts/verify-visual-regression.mjs
           node --check scripts/verify-nothing-here-live-3d.mjs
+          node --check scripts/verify-nothing-here-second-coin.mjs
           node --check scripts/verify-secrets-3d-preview.mjs
           node --check scripts/verify-nothing-here-codes.mjs
       - name: Verify that every engraved puzzle code actually operates its mechanism
@@ -72,6 +73,11 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
           sleep 2
+      # The vending-machine second-coin and all later deliveries have their
+      # own shorter browser walkthrough. Report a dead end before rendering
+      # the whole six-face visual museum for the full integration suite.
+      - name: Verify refunded coin, save recovery and downstream puzzle chain
+        run: node scripts/verify-nothing-here-second-coin.mjs
       # Run real playable-game interaction checks first. A failure should not
       # require a three-minute software-rendered museum screenshot beforehand.
       - name: Verify live 60-secret Three.js integration
