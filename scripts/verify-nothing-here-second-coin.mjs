@@ -243,6 +243,27 @@ try{
   await close();
   console.log("PASS: a legacy second coin already in pocket now redeems correctly");
  }
+ // The red-switch bell used to have an apparently valid "use on dog"
+ // target that did NOTHING. Ringing it must now cause the same observable
+ // dog -> squirrel -> broken-vase chain as petting the dog three times.
+ {
+  const {page,close}=await scenario("bell-is-not-dead-end",{
+   seen:["first","door","dog","bell"],door:true,doorOpen:true,
+   redHits:4,pocket:["bell"],pendingPickups:[]
+  });
+  assert(await page.locator("#ncMechanisms").isHidden(),
+   "The progress panel revealed a future puzzle before it was encountered");
+  await useItem(page,"bell","dog");
+  const sounded=await state(page);
+  assert(sounded.barked&&sounded.squirrel&&sounded.vase&&
+   sounded.seen.includes("bark")&&sounded.seen.includes("vase")&&
+   sounded.pendingPickups.includes("acorn")&&sounded.pendingPickups.includes("spring"),
+   "Using the bell on the dog failed to trigger its physical vase-and-pickups chain");
+  assert.match(await page.locator("#ncNarrator").innerText(),/acorn|spring|vase/i,
+   "The bell did something but the player was not told what changed");
+  await close();
+  console.log("PASS: bell rings -> dog barks -> squirrel escapes -> vase breaks -> two real pickups");
+ }
  // After the machine, the other late mechanisms are independent, but
  // all must still lead to a reachable physical reward and the final letter.
  {
