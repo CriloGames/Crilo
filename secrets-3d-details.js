@@ -219,7 +219,7 @@ export function buildIntricateCube({
   const gearMazeRadii=[.132,.132,.132,.132,.176,.176,.205,.205,.205,.226,.226];
   const gearMazePoints=gearMazeAngles.map((angle,i)=>{
    const a=angle*Math.PI/180,r=gearMazeRadii[i];
-   return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.174);
+   return new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,.145);
   });
   // The bore and groove are part of the wheel; the screw rides within it.
   // The raised brass lips and darker inner channel read as a shallow cut.
@@ -231,7 +231,7 @@ export function buildIntricateCube({
   const channel=new THREE.Mesh(new THREE.TubeGeometry(grooveCurve,132,.012,8,false),ebony);
   channel.position.z=.008;channel.castShadow=false;wheelA.add(channel);detailsCount++;
   const follower=new THREE.Group();wheelA.add(follower);
-  follower.position.copy(gearMazePoints[0]);follower.position.z=.210;
+  follower.position.copy(gearMazePoints[0]);follower.position.z=.184;
   C(follower,.014,.067,0,0,-.016,steel);
   C(follower,.029,.021,0,0,.021,gold);
   const screwSlot=B(follower,.030,.008,.006,0,0,.036,ebony,.002);
@@ -446,7 +446,7 @@ export function buildIntricateCube({
     pose(follower,"position","y",pinTarget.y);
     // At the end the captive screw backs OUT of its channel. Simultaneously
     // the adjacent lock tongue withdraws from the calibration dial.
-    pose(follower,"position","z",s.gearMazeSolved?.275:.210);
+    pose(follower,"position","z",s.gearMazeSolved?.253:.184);
     pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
