@@ -144,7 +144,13 @@ const FLUTE_CODE=[2,1,3,1,3,2];
 // The winding channel is physically cut into the large gear. Turn one
 // wheel to move its captive screw forward; the other reverses the pair.
 // Hairpin bends in the groove are the only clue to the needed reversals.
-const GEAR_MAZE_DIRECTIONS=[1,1,1,-1,-1,1,1,1,-1,-1];
+// Six concentric lanes with five physical hairpins. Neither wheel is a
+// "solve" button: the smaller turns forward, the larger turns backward.
+// The brass captive screw must actually follow the channel to its outlet.
+const GEAR_MAZE_DIRECTIONS=[
+ 1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
+ 1,1,1,1,1,-1,-1,-1,-1,-1
+];
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
