@@ -18,6 +18,7 @@ on:
       - 'cube-secrets.js'
       - 'cube-physical.css'
       - 'scripts/verify-nothing-here-live-3d.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-3d.yml'
