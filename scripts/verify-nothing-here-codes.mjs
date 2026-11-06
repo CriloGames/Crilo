@@ -235,6 +235,8 @@ for(let i=0;i<wallEdges.length;i++)
 assert(details.includes('flatLine(wheelA,x1,y1,x2,y2,.170,.010,wallColor);'),
  'Maze walls have become detached from the machined brass plate');
 
+assert(2*.035*Math.sin(1.25/2)>.032+.005,
+ 'The central exit aperture is too narrow for the captured brass ball');
 assert(details.includes('const mazeSectorCount=16;')&&
  details.includes('const mazeRingCount=6;')&&
  details.includes('const mazeInnerRadius=.082;')&&
@@ -243,7 +245,7 @@ assert(details.includes('const mazeSectorCount=16;')&&
  details.includes('const openEdges=new Set();')&&
  details.includes('if(!openEdges.has(edgeKey(cell,nextSector)))')&&
  details.includes('if(!openEdges.has(edgeKey(cell,nextRing)))')&&
- details.includes('goalCollar.rotation.z=mouthAngle+.475;')&&
+ details.includes('goalCollar.rotation.z=mouthAngle+.625;')&&
  details.includes('const goalSocket=goalCollar;'),
  'The real maze walls, connected groove or OPEN center exit is missing');
 assert(details.includes('const mazeTravel={index:0,branch:0};')&&
