@@ -154,12 +154,15 @@ export function buildIntricateCube({
   // from the button and its tuning-fork output bracket.
   plates(rightFace,verdigris);
   const meter=group(leftFace,.88,.64,.111);
+  // Compact pressure dial; the outer ring remains exposed for dragging.
+  meter.scale.setScalar(.90);
   // Deliberately recessed under the working brass actuator; only the
   // needle's outer tip emerges from the central control.
   C(meter,.312,.032,0,0,0,darkMetal);
   C(meter,.280,.030,0,0,.027,gold);
   C(meter,.249,.018,0,0,.051,pearl);
   ring(meter,.283,.015,0,0,.071,brass);
+  ring(meter,.291,.008,0,0,.103,steel);
   for(let i=0;i<12;i++){
     const a=-Math.PI*.85+i*(Math.PI*1.7/11);
     const mark=B(meter,i%3===0?.058:.033,.009,.009,
@@ -441,10 +444,10 @@ export function buildIntricateCube({
     depthWrite:false,side:THREE.DoubleSide
   });
   function radialDialTarget(action,top){
-    const cy=top?.250:-.250;
+    const cy=top?.252:-.252;
     const target=group(meter,0,cy,.168);
     const touch=new THREE.Mesh(
-      new THREE.RingGeometry(.214,.300,48,1,
+      new THREE.RingGeometry(.203,.307,48,1,
         top?0:Math.PI,Math.PI),dialTouchMat);
     touch.position.y=-cy;target.add(touch);
     dialTargets.set(action,target);
@@ -800,7 +803,7 @@ export function buildIntricateCube({
     syncGameState,
     getNameplates:()=>nameplates.map(n=>({...n})),
     getGearMazeTargets:()=>({
-       large:mazePlate,small:wheelB,
+       large:mazePlate,small:wheelB,dial:meter,
        directional:new Map(dialTargets)
      }),
      getGearMazeAssembly:()=>({
@@ -847,7 +850,7 @@ export function buildIntricateCube({
      getGaugeAssembly:()=>({
       face:meter.parent===leftFace?"leftFace":"unexpected",
       x:meter.position.x,y:meter.position.y,
-      radius:.312,needleAngle:needle.rotation.z
+      radius:.281,needleAngle:needle.rotation.z
     }),
     getCollectibleVisibility:()=>({tooth:false,thread:false}),
     operate
