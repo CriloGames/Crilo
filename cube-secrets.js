@@ -524,9 +524,9 @@ function ongoingMechanisms(){
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
  if(s.moon&&!(s.top&&s.pipeTaken))
-   add('Yellow roof','A counterweight released inside the box. The hinged upper compartment still has to be cleared.');
-  if((s.moon||s.serialRead)&&s.top&&s.pipeTaken&&!s.observatoryRaised)
-   add('Yellow roof','A round brass button is exposed inside the hinged compartment. The small roof dome is still closed.');
+   add('Yellow roof','A counterweight shifted somewhere beneath the yellow roof.');
+  if(s.top&&s.pipeTaken&&!s.observatoryRaised)
+   add('Yellow roof','The upper compartment is open and the wooden cradle is empty. A small round button sits below it.');
   if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
  if(seen.has('observatory')&&!s.observed)
@@ -1217,7 +1217,8 @@ function cubeHit(name){
  if(name==='observatory-release'){
   if(!s.top)tell('The roof release is enclosed by the hinged panel.');
   else if(!s.pipeTaken)tell('The button moves slightly, but the loaded cradle holds the lift in its housing.');
-  else if(!s.moon&&!s.serialRead)tell('The button sinks against a firm internal catch. Something is still latched inside.');
+  // The loaded tube cradle is the physical safety catch. The release must
+  // work after clearing it, without a remote paper-bird or stamp action.
   else if(!s.observatoryRaised){
    s.observatoryRaised=true;
    bloom('observatory','The roof sleeve slowly lifts a closed ivory dome. At full height, its two curved halves hinge apart to reveal the telescope inside.');
@@ -1247,7 +1248,7 @@ function cubeHit(name){
     :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell(s.moon?'The wooden tube lifts out. Its cradle is clear, exposing a small brass push button beside it.':'The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends. A round hatch remains locked nearby.');}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The wooden tube lifts out. Both retaining clips stay retracted. A small round push button is now exposed below the empty cradle.');}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','The underside release opens a separate return pocket. A brass ring slides forward into view.');}
   if(!s.ringTaken){
@@ -1374,7 +1375,7 @@ function use(item,thing){
   spend('bird');s.moon=true;
    bloom('moon','The folded paper bird slips into the cube and tips a moon-shaped counterweight. A faint mechanism clicks under the yellow roof.');
    if(s.top&&s.pipeTaken)
-    tell('A counterweight clicks inside the hinged compartment. Its round brass release button is now free to move.');
+    tell('A counterweight clicks beneath the yellow roof. The cleared wooden cradle remains undisturbed.');
    else tell('A round mechanism has stirred beneath the top hatch. Its upper cradle still needs to be cleared.');
    incident('☾');
  }else if(item==='bell'&&thing==='dog'){
