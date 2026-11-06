@@ -639,20 +639,20 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // half-cylinder, NOT a second lid, and it faces the front (-Y) of the
   // yellow roof panel. It rests on the circular bronze inset.
   const frontSill=new THREE.Mesh(
-   new THREE.CylinderGeometry(.287,.287,.105,48,1,true,
+   new THREE.CylinderGeometry(.287,.287,.115,48,1,true,
     -Math.PI/2,Math.PI),m.cream);
   frontSill.rotation.x=Math.PI/2;
   // Embed the bottom of the wall into the box; its upper half remains
   // prominently above the yellow roof, like the reference's front guard.
-  frontSill.position.z=.114;
+  frontSill.position.z=.065;
   frontSill.castShadow=true;
   frontSill.receiveShadow=true;
   g.add(frontSill);parts++;
   const sillTop=[],sillInner=[];
   for(let i=0;i<=36;i++){
    const angle=Math.PI+Math.PI*i/36;
-   sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.168]);
-   sillInner.push([.279*Math.cos(angle),.279*Math.sin(angle),.157]);
+   sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.1225]);
+   sillInner.push([.279*Math.cos(angle),.279*Math.sin(angle),.114]);
   }
   wire(g,sillTop,.005,m.gold);
   wire(g,sillInner,.003,m.dark);
@@ -663,9 +663,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // charcoal disk. The shell and curving front guard now enclose it.
   C(g,.236,.012,0,0,.021,mat(0x66605b,.10,.70),"z");
   observatoryScope=new THREE.Group();
-  // The telescope must sit INSIDE the mouth rather than protruding out
-  // of a hole. This also makes the ivory roof itself the primary form.
-  observatoryScope.position.set(0,.065,.030);
+  // The telescope remains anchored inside the bay, with only its front
+  // objective extending slightly through the arch for a clear overhead view.
+  observatoryScope.position.set(0,.015,.030);
   observatoryScope.scale.setScalar(.82);
   observatoryScope.rotation.y=-.12;
   g.add(observatoryScope);
