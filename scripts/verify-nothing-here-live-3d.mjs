@@ -1362,12 +1362,12 @@ try{
    outward:v.projectGameControl("maze-out")};
  });
  assert(maze.model?.face==="leftFace"&&
-  maze.model.mazeStyle==="single-solution eight-ring circular labyrinth"&&
-  maze.model.networkCells===193&&maze.model.networkChannels===192&&
-  maze.model.extraConnections===0&&maze.model.branches>=35&&
-  maze.model.raisedWalls>=120&&maze.model.stationaryFace&&
+  maze.model.mazeStyle==="continuous six-ring circular labyrinth"&&
+  maze.model.networkCells===97&&maze.model.networkChannels===96&&
+  maze.model.extraConnections===0&&maze.model.branches>=10&&
+  maze.model.raisedWalls>=40&&maze.model.stationaryFace&&
    maze.model.uniqueSolution&&maze.model.exitApproaches===1&&
-   maze.model.ballRadius>=.0084&&maze.model.guidedSegments>0&&
+   maze.model.ballRadius>=.0084&&maze.model.visibleBlockedEdges===96&&maze.model.wallMeshes===2&&maze.model.mouthSector===8&&
   Math.abs(maze.model.faceAngle)<.000001&&
   maze.model.followerTrackDistance<.000001,
   "The white face is not stationary or the eight-ring maze failed to construct: "+
