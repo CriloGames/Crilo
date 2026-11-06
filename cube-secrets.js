@@ -1686,7 +1686,13 @@ function inspectPhysicalSurface(name){
 function clickThing(name,actuator=false){
  if(!thingPresent(name)){
   if(name==='telescope'){
-   tell('The small ivory observatory dome is closed. Its seam is still latched.');
+   // The roof itself is not a second fake button. Its physical latch is
+   // elsewhere, and inspecting it names only the currently visible blocker.
+   tell(!s.top
+    ?'The ivory dome is seated flush with the roof. Its mechanism is enclosed by the hinged yellow panel.'
+    :!s.pipeTaken
+     ?'The dome is still closed. A wooden tube remains clamped in the open compartment.'
+     :'The upper compartment is clear. A small round button sits below the empty wooden cradle.');
    return;
   }
   tell('There is nothing to operate here yet.');
