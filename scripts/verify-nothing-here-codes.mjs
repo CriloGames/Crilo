@@ -86,8 +86,8 @@ assert(hotspots.includes('engraving(leftFace,String(i)')&&
  'The numbered input legends and two real code plates must remain readable');
 // The two gear wheels and four adjacent real buttons must now navigate a
 // connected POLAR GRAPH. The 29-step sequence only exists for old saves:
-// physical gameplay can travel around the rings, in and out, including
-// through 30+ genuine alternate loops. No off-graph movement is permitted.
+// physical gameplay can travel around the rings and radially through
+// twelve genuine alternate loops. No off-graph movement is permitted.
 const gearSteps=digits(match(logic,
  /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'legacy gear route'));
 const physicalGearSteps=digits(match(details,
@@ -116,7 +116,7 @@ assert.deepEqual(gameArray('GEAR_MAZE_JUNCTIONS'),modelJunctions,
 assert.equal(mainCells.length,64,'The legacy main route has been truncated');
 assert.equal(stepMarks.length,30,'A previous save can no longer be restored');
 assert.equal(mainCells.at(-1),96,'The maze still traps the ball before its central exit');
-assert(extraEdges.length>=30,'The supposedly branched maze is still mostly a single corridor');
+assert(extraEdges.length>=18,'The labyrinth lost its alternate passages');
 const polarNeighbors=(a,b)=>{
  if(a===96||b===96)return (a===96&&b<16)||(b===96&&a<16);
  const ar=Math.floor(a/16),br=Math.floor(b/16);
@@ -150,8 +150,8 @@ blindPaths.forEach((path,i)=>
 extraEdges.forEach(path=>addRoute(path));
 assert.equal(graph.size,97,
  'Every reachable ring cell and the center should be present');
-assert.equal(openEdges.size-graph.size+1,30,
- 'The maze must have thirty actual alternate loops, not painted branches');
+assert.equal(openEdges.size-graph.size+1,12,
+ 'The maze must have a deliberately intricate twelve-loop layout');
 const reachable=new Set([80]),queue=[80];
 while(queue.length){
  const cell=queue.shift();
@@ -164,7 +164,7 @@ assert.equal(reachable.size,graph.size,
  'At least one carved maze corridor is disconnected from the entrance');
 assert(reachable.has(96),'The central release socket cannot be entered');
 const navigableChoices=[...graph.values()].filter(x=>x.size>=3).length;
-assert(navigableChoices>=35,
+assert(navigableChoices>=24,
  'The maze still offers too few meaningful navigation choices');
 let radial=0;
 for(const [cell,neighbors] of graph)
@@ -174,14 +174,15 @@ for(const [cell,neighbors] of graph)
 assert(radial>=40,
  'The up/down radial buttons have too few actual open crossovers');
 assert(details.includes('getGearMazeTargets:()=>({')&&
- details.includes('directional:new Map(mazePadButtons)')&&
- details.includes('["maze-in",0,.107,Math.PI/2]')&&
- details.includes('["maze-out",0,-.107,-Math.PI/2]')&&
- details.includes('["maze-ccw",-.105,0,Math.PI]')&&
- details.includes('["maze-cw",.105,0,0]')&&
+ details.includes('directional:new Map(wheelContacts)')&&
+ details.includes('wheelContact(wheelA,"maze-ccw",-.374,0,.190')&&
+ details.includes('wheelContact(wheelA,"maze-cw",.374,0,.190')&&
+ details.includes('wheelContact(wheelB,"maze-in",0,.149,.223')&&
+ details.includes('wheelContact(wheelB,"maze-out",0,-.149,.223')&&
  preview.includes('for(const [action,part] of gears.directional||[])')&&
- preview.includes('clickAction(mazeKey[event.key.toLowerCase()]'),
- 'The player cannot physically choose four directions or use WASD');
+ !details.includes('const mazePad=')&&
+ !preview.includes('clickAction(mazeKey[event.key.toLowerCase()]'),
+ 'Both wheels must carry their own four tactile contacts, never a D-pad');
 assert(details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
  details.includes('const curve=mazeEdgeCurves.get(edgeKey(')&&
  details.includes('onUpdate:seatFollower,onComplete:seatFollower')&&
@@ -205,18 +206,18 @@ for(let ring=0;ring<6;ring++)for(let sector=0;sector<16;sector++){
  const next=ring*16+(sector+1)%16;
  if(!openEdges.has(edgeKey(cell,next))){
   const angle=Math.PI/2+(sector+.5)*Math.PI*2/16;
-  const r0=radius-(ring===0?.003:.015),r1=radius+.015;
+  const r0=radius-(ring===0?.003:.013),r1=radius+.013;
   wallEdges.push([[Math.cos(angle)*r0,Math.sin(angle)*r0],
    [Math.cos(angle)*r1,Math.sin(angle)*r1]]);
  }
  if(ring<5&&!openEdges.has(edgeKey(cell,cell+16))){
-  const r=radius+.022,a=Math.PI/2+(sector-.31)*Math.PI*2/16;
-  const b=Math.PI/2+(sector+.31)*Math.PI*2/16;
+  const r=radius+.022,a=Math.PI/2+(sector-.35)*Math.PI*2/16;
+  const b=Math.PI/2+(sector+.35)*Math.PI*2/16;
   wallEdges.push([[Math.cos(a)*r,Math.sin(a)*r],
    [Math.cos(b)*r,Math.sin(b)*r]]);
  }
 }
-assert(wallEdges.length>=45&&wallEdges.length<=75,
+assert(wallEdges.length>=65&&wallEdges.length<=80,
  'The radial maze has broken wall geometry or missing blockers');
 const pointDistance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
 const projectPoint=(p,a,b)=>{
@@ -245,7 +246,9 @@ for(let i=0;i<wallEdges.length;i++)
  for(let j=i+1;j<wallEdges.length;j++)
   assert(segmentGap(wallEdges[i],wallEdges[j])>.00990,
    'Two nearby raised maze walls overlap');
-assert(details.includes('flatLine(wheelA,x1,y1,x2,y2,.170,.010,wallColor);'),
+assert(details.includes('flatLine(wheelA,x1,y1,x2,y2,.170,.007,wallColor);')&&
+ details.includes('function circularWall(radius,first,last)')&&
+ details.includes('circularWall(r,a0,a1);'),
  'The raised maze walls are no longer seated against the brass plate');
 const wheelMount=details.match(
  /const wheelA=gear\(leftFace,([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+),gearMetal,15\)/);
