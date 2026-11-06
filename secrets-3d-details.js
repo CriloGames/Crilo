@@ -662,8 +662,8 @@ export function buildIntricateCube({
     getGearMazeTargets:()=>({large:wheelA,small:wheelB}),
     getGearMazeAssembly:()=>({
       face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
-      large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z},
-      small:{x:wheelB.position.x,y:wheelB.position.y,angle:wheelB.rotation.z},
+      large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z,pitchRadius:.405},
+      small:{x:wheelB.position.x,y:wheelB.position.y,angle:wheelB.rotation.z,pitchRadius:.235},
       directions:[...gearMazeDirections],
       grooveCount:gearMazePoints.length,
       grooveSegments:grooveSegments.length,
