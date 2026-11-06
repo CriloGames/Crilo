@@ -1662,7 +1662,8 @@ function inspectPhysicalSurface(name){
  const messages={
   front:s.a?'The drawer is extended on its rails.':'The drawer front will not pull free of its catch.',
   side:s.b?'The side drawer’s already open.':'The side drawer is held in its metal frame.',
-  hatch:s.top?'The top hatch is resting open on its hinges.':'The top hatch is held shut by its catch.'
+  hatch:s.top?'The top hatch is resting open on its hinges.':'The top hatch is held shut by its catch.',
+   'gear-large':'The white maze is fixed. Turn the black drive cog to move the ball.'
  };
  if(Object.hasOwn(messages,name))tell(messages[name]);
 }
