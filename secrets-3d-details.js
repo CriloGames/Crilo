@@ -720,7 +720,10 @@ export function buildIntricateCube({
      animate(part.rotation,{z:value},.16);
     };
     turnPose(wheelA,gearRotation);
-    turnPose(mazePlate,gearRotation);
+    // The ivory face is fixed to the box. The black pinion drives only
+    // the toothed carrier behind it, while the roller follows its channels.
+    gsap.killTweensOf(mazePlate.rotation);
+    mazePlate.rotation.z=0;
     turnPose(wheelB,-gearRotation*(.405/.235));
     const cell=Number.isInteger(s.gearMazeCell)&&
      mazeGraph.has(s.gearMazeCell)?s.gearMazeCell:legacyMazeCell(s);
