@@ -70,7 +70,10 @@ export function buildIntricateCube({
     const collar=C(face,r*1.12,.021,x,y,rearZ,brass);
     for(const sign of [-1,1])
       C(face,.012,.023,x+sign*r*.98,y,.091,steel);
+    // Preserve the original mounting object for runtime attachment QA.
+    // Decorative batching may merge other hardware, not its retained axle.
     shaft.userData.mechanicalMount=true;
+    shaft.userData.noBatch=true;
     axleMounts.push({name,footZ,tipZ,rearZ,r,shaft,seat,collar});
     return shaft;
   };
