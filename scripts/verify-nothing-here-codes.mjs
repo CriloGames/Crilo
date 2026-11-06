@@ -141,7 +141,7 @@ const passages=(source,name)=>match(source,
 const edges=passages(details,'mazePassages');
 assert.deepEqual(edges,passages(logic,'MAZE_PASSAGES'),
  'A visual opening is blocked in the playable map (or vice versa)');
-assert.equal(edges.length,205,'The six-ring labyrinth lost carved passages');
+assert.equal(edges.length,192,'The eight-ring labyrinth must have exactly N-1 connected passages');
 assert.equal(route[0],168,'The entrance must be on the outside at six o’clock');
 assert.equal(route.at(-1),192,'The visible path must reach the central socket');
 const edgeKey=(a,b)=>Math.min(a,b)+':'+Math.max(a,b);
@@ -164,8 +164,8 @@ for(const [x,y] of edges){
  graph.get(a).add(b);graph.get(b).add(a);
 }
 assert.equal(graph.size,193,'One of the six circular tracks is disconnected');
-assert.equal(edges.length-graph.size+1,13,
- 'The maze must have real alternative routes and some dead ends');
+assert.equal(edges.length-graph.size+1,0,
+ 'A connected maze with N-1 passages must have just one solution path');
 for(let i=1;i<route.length;i++)
  assert(open.has(edgeKey(route[i-1],route[i])),
   'The saved route cannot be traversed through the carved walls');
@@ -209,7 +209,7 @@ for(let i=1;i<navigator.route.length;i++){
   'A dragged maze command does not match the physical route '+previous+' to '+next);
 }
 assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[11],
- 'The central socket must have two real entrance mouths');
+ 'The center must have exactly one real entrance');
 assert(details.includes('mazeSectors=24,mazeRings=8')&&
  details.includes('mazeStartAngle=-Math.PI/2')&&
  details.includes('const mazeInnerRadius=.075')===false&&
@@ -217,11 +217,20 @@ assert(details.includes('mazeSectors=24,mazeRings=8')&&
  details.includes('function closedArcRuns(radius,blocked)')&&
  details.includes('const outerRimRadius=.338'),
  'The sculpture is not the dense eight-ring design');
-assert(details.includes('new THREE.SphereGeometry(.007,18,14)')&&
+assert(details.includes('new THREE.SphereGeometry(.0084,20,16)')&&
  details.includes('C(follower,.005,.044,0,0,-.011,steel)')&&
- details.includes('const innerMouthAngle=mazeStartAngle+11*sectorWidth')&&
- details.includes('Math.PI*2-sectorWidth),goalMetal)'),
- 'The captive pin must fit the narrowest sector and the goal collar must be open');
+ details.includes('const centerMouthWidth=3.0*sectorWidth')&&
+ details.includes('const goalCollarGap=4*sectorWidth')&&
+ details.includes('Math.PI*2-goalCollarGap),goalMetal)')&&
+ (2*.025*Math.sin((4*Math.PI*2/24)/2)-.006)>2*.0084,
+ 'The center collar must physically fit the enlarged captive ball');
+assert(details.includes('for(const curve of mazeEdgeCurves.values())')&&
+ details.includes('const channelGuides=new THREE.LineSegments(')&&
+ details.includes('mazePlate.add(channelGuides);detailsCount++;'),
+ 'All 192 connected playable passages must have continuous guide engravings');
+assert(details.includes('uniqueSolution:mazeEdgeCurves.size===mazeGraph.size-1')&&
+ details.includes('exitApproaches:mazeGraph.get(mazeGoal)?.size||0'),
+ 'The physical maze must expose only one center approach and one solution');
 assert(details.includes('const mazeWall=mat(0x292521')&&
  details.includes('strokeWall(new THREE.LineCurve3(')&&
  details.includes('strokeWall(new THREE.CatmullRomCurve3(')&&
@@ -257,9 +266,13 @@ assert(details.includes('meter.scale.setScalar(.90)')&&
  details.includes('new THREE.RingGeometry(.203,.307,48,1,'),
  'The smaller gauge with the exposed outer rim has been lost');
 assert(preview.includes('const driveSign=drag.action==="gear-small"?-1:1;')&&
- preview.includes('drag.remainder=Math.max(-.78,Math.min(.78,drag.remainder+delta))')&&
+ preview.includes('drag.remainder=Math.max(-.72,Math.min(.72,drag.remainder+delta))')&&
  preview.includes('clickAction(clockwise?"maze-cw":"maze-ccw")'),
  'The fixed white face and black gear must support reversible drag movement');
+assert(preview.includes('Math.abs(drag.remainder)>=.22')&&
+ preview.includes('Math.abs(drag.remainder)>=22')&&
+ preview.includes('drag.remainder+=clockwise?-.22:.22'),
+ 'The slightly eased wheel and dial drag thresholds were removed');
 assert(preview.includes('renderer.domElement.setPointerCapture(e.pointerId)')&&
  preview.includes('controls.enabled=false;clickStart=null;')&&
  preview.includes('const diff=Math.atan2(Math.sin(angle-drag.lastAngle)')&&
