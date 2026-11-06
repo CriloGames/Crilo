@@ -144,6 +144,17 @@ export function finishMechanicalArtifact({
   // Lens: multiple glass layers, physical hood, inner iris and precise brass
   // retaining ring. The transparent convex cap catches the environment.
   const frontLens=group(frontFace,0,.56,.27);
+  // The ornamental outer optic used to hover well above the enamel.
+  // A hollow cast-metal sleeve physically bridges the cube skin and lens;
+  // leave the center open for the working iris and transparent objective.
+  const lensBarrel=new THREE.Mesh(new THREE.CylinderGeometry(
+    .758,.758,.183,72,1,true),metal);
+  lensBarrel.rotation.x=Math.PI/2;
+  lensBarrel.position.z=-.0915;
+  lensBarrel.castShadow=false;frontLens.add(lensBarrel);partCount++;
+  finishedMeshes.push(lensBarrel);
+  torus(frontLens,.758,.035,0,0,-.181,metal); // touches enamel
+  torus(frontLens,.758,.020,0,0,-.018,deep); // joins front rim
   torus(frontLens,.76,.031,0,0,0,tinyGold);
   torus(frontLens,.69,.014,0,0,.03,deep);
   for(let i=0;i<16;i++){
@@ -160,6 +171,10 @@ export function finishMechanicalArtifact({
   dome.scale.z=.42;
   dome.position.set(0,0,.14);
   frontLens.add(dome);partCount++;
+  // A captured glass bezel makes the convex optic feel installed rather
+  // than a translucent cone floating in front of the instrument.
+  torus(frontLens,.310,.024,0,0,.145,deep);
+  torus(frontLens,.314,.013,0,0,.169,tinyGold);
   C(frontLens,.045,.06,-.085,.09,.235,cream);
   // The previous copper tubing and black rectangular terminal blocks sat
   // directly under LATCH (-1.05,.11) and RED (+1.10,.15). As a result,
@@ -239,6 +254,13 @@ export function finishMechanicalArtifact({
     meshCount:()=>partCount,
     getDecorativeCornerCaps:()=>decorativeCornerCaps.map(cap=>({...cap})),
     batching,
+    getLensMountAudit:()=>({
+      face:"frontFace",skinZ:.0725,backFlangeZ:.27-.181,
+      barrelBottomZ:.27-.0915-.183/2,
+      barrelTopZ:.27-.0915+.183/2,
+      outerRimRearZ:.27-.031,
+      glassSeatRadius:.310,continuous:true
+    }),
     get quality(){return "enamel, brushed brass, smoked optics, layered hardware"},
     textures:[enamelNoise,brushedNoise]
   };
