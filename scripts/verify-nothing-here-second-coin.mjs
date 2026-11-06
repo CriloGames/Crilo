@@ -218,12 +218,16 @@ async function refundCoin(page,{realPointer=false}={}){
  await dragWheel("gear-small","ccw");
  assert.equal((await state(page)).gearMazeCell,169,
   "Dragging black cog did not rotate the connected carrier");
+ await page.waitForFunction(()=>{
+  const g=window.__nothing3DPreview?.physicalGearMaze;
+  return g&&Math.abs(g.faceAngle)<.000001&&
+   Math.abs(g.carrierAngle)>.0001&&
+   Math.abs(g.blackCogAngle)>.0001;
+ },null,{timeout:12000});
  const geared=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
- assert(Math.abs(geared.faceAngle)<.000001&&
-  Math.abs(geared.carrierAngle)>.0001&&
-  Math.abs(geared.blackCogAngle)>.0001,
-  "The black cog and carrier did not move independently of the white face");
+ assert(geared.stationaryFace&&Math.abs(geared.faceAngle)<.000001,
+  "The black cog turned but the white maze also rotated");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
  assert.equal((await state(page)).gearMazeCell,169,
