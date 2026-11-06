@@ -72,21 +72,6 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   releasingFasteners.set(id,{tween,timer});
  }
  function pulse(action){
-  if(action==="shutter"){
-   // The lockable sliding plate is NOT a pushbutton. Before both catches
-   // release it rattles a few millimetres on its real guide rails; when
-   // unlocked its single leaf travels horizontally under setState().
-   // Never make the entire shutter sink into the cube on a click.
-   gsap.killTweensOf(shutterSlide.position);
-   const resting=previousState?.serviceOpen?.270:-.050;
-   shutterSlide.position.x=resting;
-   if(!reducedMotion){
-    gsap.timeline({onUpdate:invalidate})
-     .to(shutterSlide.position,{x:resting+.016,duration:.09,ease:"power2.out"})
-     .to(shutterSlide.position,{x:resting,duration:.22,ease:"back.out(2)"});
-   }else invalidate();
-   return true;
-  }
   if(action==="eye"){
    // The player sees the eyelid close and reopen at the touched model.
    gsap.killTweensOf(blinkLid.scale);
@@ -306,41 +291,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // inside the real teal drawer bezel. Its plaque sits below the switch.
  tab(rightFace,"seam",-1.13,.31,copper,.22,.16);
 
- // The lower service shutter must be a real recessed sliding cassette,
- // not a free-floating gray button sitting over the horizontal face trim.
- // It belongs BETWEEN the drawer's bottom bezel and the black inset line.
- // The chassis is FIXED to the enamel; only the central cover moves.
- const serviceShutterMount={x:.59,y:-.92,w:.73,h:.32};
- reserve(rightFace,"shutter",serviceShutterMount.x,serviceShutterMount.y,
-  serviceShutterMount.w+.045,serviceShutterMount.h+.035);
- const shutterCassette=node(rightFace,serviceShutterMount.x,serviceShutterMount.y,.150);
- B(shutterCassette,.73,.32,.118,0,0,-.055,graphite,.030);
- B(shutterCassette,.681,.273,.030,0,0,.016,nickel,.024);
- B(shutterCassette,.572,.198,.024,0,0,.043,graphite,.017);
- // Captive rails stay attached when the leaf slides right, with obvious
- // end stops and bolts. They stop above the dark decorative shell stripe.
- for(const sy of [-1,1]){
-  B(shutterCassette,.855,.024,.043,.015,sy*.124,.071,brass,.009);
-  for(const x of [-.335,.335]){
-   C(shutterCassette,.020,.021,x,sy*.124,.098,nickel);
-   B(shutterCassette,.020,.005,.006,x,sy*.124,.114,graphite,.002);
-  }
- }
- const shutterSlide=node(shutterCassette,-.050,0,0);
- // This captive tongue fills the gap between the moving leaf and its
- // recessed slideway. It stays inside the visible metal rails at all times.
- B(shutterSlide,.306,.123,.045,0,0,.075,graphite,.014);
- B(shutterSlide,.345,.164,.060,0,0,.101,nickel,.023);
- B(shutterSlide,.299,.116,.016,0,0,.141,graphite,.015);
- B(shutterSlide,.274,.081,.011,0,0,.155,nickel,.010);
- for(const y of [-.048,.048])
-  B(shutterSlide,.225,.007,.012,0,y,.164,brass,.003);
- // A fixed lip at the end of each guide prevents the traveling door
- // from looking as though it can slide off the cube completely.
- for(const x of [-.410,.432])
-  B(shutterCassette,.022,.100,.048,x,0,.083,nickel,.008);
- actuators.set("shutter",shutterSlide);
- setHit(shutterCassette,"shutter");targets.set("shutter",shutterCassette);
+ tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
 
  // There is ONE removable service bolt on this face. The other three
  // were fake moving screwheads with no unlock effect, duplicated again by
@@ -591,22 +542,16 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  portalGroup.visible=false;
  // The real cog is a single collectible in cogPocket. Do not draw
  // a duplicated fake gear on the center optic or offer a ghost reward.
- // The wax cylinder comes from the REAL fixed cavity, revealed behind
- // the moving cover. It must not remain at the old y=-1.08 stripe.
- const servicePocket=node(rightFace,serviceShutterMount.x,serviceShutterMount.y,.16);
+ // The wax cylinder is seated behind the actual service shutter.
+ // Keep its carrier anchored to the fixed face, not the moving button.
+ const servicePocket=node(rightFace,.58,-1.08,.15);
  targets.set("service-pocket",servicePocket);
- // A small resonance indicator is captive in the fixed lower track,
- // immediately below (but clear of) the lock cylinder. Both stay behind
- // when the cover slides right; no bolt or sensor pierces the moving leaf.
- const resonator=node(shutterCassette,-.300,-.113,.113);
- // The steel sleeve is seated in the cassette's lower guide rail.
- C(resonator,.025,.086,0,0,-.047,nickel);
- C(resonator,.030,.034,0,0,0,graphite);
- C(resonator,.024,.020,0,0,.020,nickel);
- const resonatorLight=C(resonator,.018,.016,0,0,.037,glass);
- resonatorLight.material=resonatorLight.material.clone();
+ const resonator=node(rightFace,.58,-1.08,.15);
+ C(resonator,.28,.055,0,0,-.14,graphite);
+ const resonatorLight=C(resonator,.15,.055,0,0,-.10,glass);
  resonatorLight.material.emissive=new THREE.Color(0x3d898c);
- resonatorLight.material.emissiveIntensity=.10;
+ resonatorLight.material.emissiveIntensity=.3;
+ resonator.visible=false;
  // The four-symbol sequence is engraved on a separate rear optical
  // cassette, hidden until the player calibrates the iris. Never print the
  // solution on the bag's own four metal wheels or on a hover tooltip.
@@ -664,24 +609,20 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
  const shutter=targets.get("shutter");
- // The service key belongs to the FIXED left lock barrel. It must stay
- // seated when the unlocked shutter moves, rather than skidding sideways
- // with the door. An actual recessed vertical keyhole replaces the former
- // meaningless white-and-gold line painted on a gray rectangle.
- const serviceKeyway=node(shutter,-.298,0,.116);
- // The lock barrel has a real shank sunk into the fixed chassis.
- C(serviceKeyway,.044,.090,0,0,-.049,graphite);
- C(serviceKeyway,.057,.026,0,0,0,nickel);
- C(serviceKeyway,.043,.018,0,0,.018,graphite);
- B(serviceKeyway,.013,.057,.008,0,-.006,.031,graphite,.003);
- B(serviceKeyway,.033,.014,.008,0,-.025,.035,graphite,.003);
- const insertedServiceKey=node(serviceKeyway,0,0,.044);
- B(insertedServiceKey,.017,.076,.014,0,.009,.003,brass,.004);
- B(insertedServiceKey,.059,.017,.016,0,.037,.008,brass,.004);
- C(insertedServiceKey,.027,.014,0,.047,.015,brass);
+ // A narrow captive brass keyway is machined into the SAME moving
+ // shutter plate. The tool earned from the second coin is visibly seated
+ // here and moves with the shutter instead of floating near it.
+ const serviceKeyway=node(shutter,.095,-.027,.112);
+ B(serviceKeyway,.140,.051,.019,0,0,0,nickel,.010);
+ B(serviceKeyway,.103,.016,.009,0,0,.015,graphite,.003);
+ for(const x of [-.057,.057])C(serviceKeyway,.010,.016,x,0,.016,brass);
+ const insertedServiceKey=node(serviceKeyway,-.010,0,.029);
+ B(insertedServiceKey,.115,.024,.012,0,0,0,brass,.004);
+ B(insertedServiceKey,.028,.043,.012,-.049,-.007,.006,brass,.004);
+ B(insertedServiceKey,.022,.015,.014,.058,-.016,.006,nickel,.004);
  insertedServiceKey.visible=false;
- // Both the key slot and the panel remain selectable for this one
- // service-shutter action. No extra invented puzzle input is introduced.
+ // The keyhole itself is an actual pointer target, not dead decoration.
+ // The returned service key can be selected and clicked directly here.
  setHit(serviceKeyway,"shutter");
  // One genuine movable rubber foot conceals the second musical phrase.
  // The other three fixed feet are purely structural, in the details layer.
@@ -763,23 +704,6 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   },
   actions:[...targets.keys()],
   targets,
-  // The optional Three.js/BVH surface scanner must include the *working*
-  // mechanisms, not only drawers and miniatures. Returning an independent
-  // assembly per component lets it detect a real sculpture clipping the
-  // service cassette, front ratchet, removable hatch or moving lower port.
-  // Keep these out of the gameplay path: no meshes or hitboxes are added.
-  getSpatialMechanisms:()=>new Map([
-   ["front ratchet",redSwitch],
-   ["front cog service hatch",cogPort],
-   ["service shutter cassette",shutter],
-   ["service bolt socket",serviceSocket],
-   ["vent release grille",ventCover],
-   ["rear optical eye",eyeBody],
-   ["rear cipher cassette",cipherMount],
-   ["calibration dial",pressureKnob],
-   ["underside movable foot",foot],
-   ["underside bell hatch",bellPort]
-  ]),
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
   getMechanicalFeedback:()=>({
@@ -789,17 +713,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    bellHatchOffset:bellHatch.position.x,
    ventStepsShown:ventStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
    fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
-   serviceKeyInserted:insertedServiceKey.visible,
-   shutterHousing:{x:shutter.position.x,y:shutter.position.y},
-   resonatorMount:{x:resonator.position.x,y:resonator.position.y},
-   serviceKeywayX:serviceKeyway.position.x,
-   shutterLeafX:shutterSlide.position.x,
-   shutterRailBounds:{left:-.421,right:.443},
-   servicePocket:{x:servicePocket.position.x,y:servicePocket.position.y},
-   shutterClearance:{
-    gapToInsetStripe:(serviceShutterMount.y-serviceShutterMount.h/2)-(-1.125),
-    gapBelowDrawer:(-.694)-(serviceShutterMount.y+serviceShutterMount.h/2)
-   }
+   serviceKeyInserted:insertedServiceKey.visible
   }),
   fluteVisible:()=>flute.visible,
   getServiceCodeClearance:()=>{
@@ -919,16 +833,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    // gear ever appears on the large glass eye.
    pose(cogCover,"rotation","y",s.plateOpen?-1.30:0,
     previous.plateOpen?-1.30:0,restore,.72);
+   resonator.visible=!!s.resonance;
    insertedServiceKey.visible=!!s.serviceSealInserted;
    pose(eyeGear,"rotation","z",(s.eyeRingTicks||0)*Math.PI/8,
     (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
    pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
     (previous.pressureTicks||0)*Math.PI/6,restore,.58);
-   // Only the DOOR moves along its tracks; the chassis, key and
-   // resonance receptor all remain bolted to the right-hand panel.
-   pose(shutterSlide,"position","x",s.serviceOpen?.270:-.050,
-    previous.serviceOpen?.270:-.050,restore,.64);
-   resonatorLight.material.emissiveIntensity=s.resonance?1.4:.10;
+   pose(shutter,"position","x",s.serviceOpen?.78:.58,
+    previous.serviceOpen?.78:.58,restore,.64);
+   resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
     else if(name==="right-bolt-1")
@@ -936,6 +849,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     else if(name.startsWith("hinge-"))
      fastenerPose(name,g,!!s.hingePins?.includes(Number(name.slice(-1))),
       !!previous.hingePins?.includes(Number(name.slice(-1))),restore);
+    else if(name==="shutter")pose(g,"rotation","z",s.serviceOpen?.12:0,
+      previous.serviceOpen?.12:0,restore,.60);
     else if(name.startsWith("vent-"))pose(g,"position","z",s.ventOpen?.23:.18,
       previous.ventOpen?.23:.18,restore,.65);
    }
