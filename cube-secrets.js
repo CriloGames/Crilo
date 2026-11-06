@@ -328,7 +328,7 @@ const changeNotes={
  tree:'The small plant grew. Something is caught in its branches.',
  moon:'A paper bird disappeared into the cube. A tiny moon appeared.',
  fourth:'The fourth-floor lift opened. A lens and clockwork moth appeared.',
- constellation:'The telescope focused with its lens. A star chart was exposed.',
+ constellation:'The first fitted optic brought a constellation into focus. A star chart slid into its holder.',
  dancer:'The music-box dancer emerged after its mechanism was fed.',
  railway:'A tiny railway and train appeared on the cube.',
  portal:'The postcard passed through the enamel. A little landscape appeared.',
@@ -951,8 +951,8 @@ function inspectHardware(name){
   s.serialRead=true;
   bloom('maker-stamp','Stamped beneath the maker\'s seal: PROPERTY OF NOBODY / 04 / CALIBRATE TO THREE.');
   tell(newlyOpened
-   ?'The brass maker’s stamp sinks into its housing. A small lift emerges from a recessed carriage on the adjacent side. The maker’s plate is stamped 04.'
-   :'The stamped plate remains depressed. Its marking reads 04. The side carriage stays exposed.');
+   ?'The maker’s stamp trips an internal catch. A little lift rises from its bolted side rail. The inspection plate is marked 04.'
+   :'The inspection plate still reads 04. Its neighboring lift stays accessible.');
   cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
   return true;
  }
