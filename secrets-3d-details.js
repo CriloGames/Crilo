@@ -249,6 +249,11 @@ export function buildIntricateCube({
   const goalMetal=mat(0xf0c582,.35,.21);
   const goalLit=mat(0xffdea2,.3,.18);
   goalLit.emissive.setHex(0x9a6122);goalLit.emissiveIntensity=.95;
+  // Four retained bearing posts bridge the fixed labyrinth plate to the
+  // moving gear below. Seen from the side there is no unsupported floating
+  // slab, while the toothed drive rim can still rotate beneath the plate.
+  for(const a of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
+    C(mazePlate,.018,.083,Math.cos(a)*.295,Math.sin(a)*.295,.074,steel);
   // Square floor recessed into a genuine circular gear carrier; the relief
   // walls are separate solid 3D metal ribs with real open intersections.
   C(mazePlate,.363,.034,0,0,.113,darkMetal);
