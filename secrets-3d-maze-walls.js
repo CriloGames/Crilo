@@ -55,7 +55,27 @@ export function buildMazeWalls({THREE,plate,openEdges,key,sectors,rings,
   if(openEdges.has(edge))return false;
   blocked.add(edge);return true;
  });
- drawBoundary(innerRadius-pitch/2,innerMask);
+ // Widen the final top-facing goal mouth without opening another
+ // navigable route. Connected tapered cheeks link the flared inner lip
+ // to each adjoining ring-zero radial wall at its exact endpoint.
+ const innerLip=innerRadius-pitch/2;
+ const flare=.12*step;
+ for(const [start,end] of curvedRuns(innerMask)){
+  const left=startAngle+(start-.5)*step;
+  const right=startAngle+(end-.5)*step;
+  const flaredLeft=left+flare,flaredRight=right-flare;
+  arc(innerLip,flaredLeft,flaredRight);
+  // The shoulders join the existing radial walls at radius innerRadius.
+  // No detached maze lines or accessible false center entrances.
+  paths.push([
+   {x:innerRadius*Math.cos(left),y:innerRadius*Math.sin(left)},
+   {x:innerLip*Math.cos(flaredLeft),y:innerLip*Math.sin(flaredLeft)}
+  ]);
+  paths.push([
+   {x:innerLip*Math.cos(flaredRight),y:innerLip*Math.sin(flaredRight)},
+   {x:innerRadius*Math.cos(right),y:innerRadius*Math.sin(right)}
+  ]);
+ }
  // Bottom perimeter opening is centered on sector zero.
  arc(innerRadius+(rings-.5)*pitch,
   startAngle+step/2,startAngle+Math.PI*2-step/2);
@@ -97,5 +117,6 @@ export function buildMazeWalls({THREE,plate,openEdges,key,sectors,rings,
  relief(.009,.174,bevel);
  relief(.006,.183,ink);
  return {wallRuns:paths.length,blockedEdges:blocked.size,
-  wallLayers:2,entranceSector:0,exitSector:sectors/2};
+  wallLayers:2,entranceSector:0,exitSector:sectors/2,
+  centerFlareRadians:2*flare};
 }
