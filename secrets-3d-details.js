@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import {gsap} from "gsap";
 import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
