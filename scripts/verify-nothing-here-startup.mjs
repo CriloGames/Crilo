@@ -18,8 +18,8 @@ await mkdir("test-results",{recursive:true});
 const cases=[
  {label:"fresh-desktop",viewport:{width:1280,height:850},seed:null},
  {label:"saved-mobile",viewport:{width:390,height:844},
-  seed:{seen:["first"],gearMazePlayed:true,gearMazeLayoutVersion:5,
-   gearMazeCell:169,gearMazeSolved:false,gearMazeTurns:1}}
+  seed:{seen:["first"],gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
 const browser=await chromium.launch({headless:true,args:[
  "--no-sandbox","--enable-webgl","--use-gl=angle",
