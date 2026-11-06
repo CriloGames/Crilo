@@ -189,10 +189,15 @@ assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[11],
 assert(details.includes('mazeSectors=24,mazeRings=8')&&
  details.includes('mazeStartAngle=-Math.PI/2')&&
  details.includes('const mazeInnerRadius=.075')===false&&
- details.includes('mazeInnerRadius=.068,mazePitch=.0345')&&
+ details.includes('mazeInnerRadius=.082,mazePitch=.0325')&&
  details.includes('function closedArcRuns(radius,blocked)')&&
  details.includes('const outerRimRadius=.338'),
  'The sculpture is not the dense eight-ring design');
+assert(details.includes('new THREE.SphereGeometry(.007,18,14)')&&
+ details.includes('C(follower,.005,.044,0,0,-.011,steel)')&&
+ details.includes('const innerMouthAngle=mazeStartAngle+11*sectorWidth')&&
+ details.includes('Math.PI*2-sectorWidth),goalMetal)'),
+ 'The captive pin must fit the narrowest sector and the goal collar must be open');
 assert(details.includes('const mazeWall=mat(0x292521')&&
  details.includes('strokeWall(new THREE.LineCurve3(')&&
  details.includes('strokeWall(new THREE.CatmullRomCurve3(')&&
