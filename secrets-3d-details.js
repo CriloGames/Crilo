@@ -225,7 +225,7 @@ export function buildIntricateCube({
   const mazeRouteCells=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
   const mazePassages="0-1 0-23 1-2 2-3 3-27 4-5 5-6 5-29 7-8 7-31 8-9 9-33 10-11 10-34 11-12 11-192 13-14 13-37 14-15 15-39 16-17 16-40 17-41 18-42 19-20 19-43 20-21 21-22 22-23 22-46 23-47 24-47 24-48 25-49 26-50 27-51 28-29 28-52 30-31 31-32 32-33 33-57 34-35 35-59 36-37 36-60 37-61 38-39 38-62 39-63 40-64 41-42 42-43 44-45 45-69 46-47 48-49 49-50 49-73 50-74 51-75 52-53 53-77 54-55 54-78 55-56 56-57 57-58 57-81 58-59 59-83 60-84 62-63 62-86 63-64 63-87 64-88 65-66 66-67 67-68 68-69 69-70 70-71 70-94 71-95 72-95 73-97 74-98 75-76 76-100 77-78 78-102 79-103 80-81 80-104 82-83 82-106 84-85 84-108 85-109 86-87 88-89 89-90 91-115 92-93 92-116 93-94 93-117 94-118 95-119 96-97 96-120 98-122 99-100 101-102 102-103 103-127 104-128 105-106 105-129 107-108 107-131 108-132 109-110 110-111 112-113 112-136 113-114 113-137 114-115 114-138 116-117 117-141 119-143 120-121 120-143 120-144 121-122 121-145 122-146 123-124 124-125 124-148 125-126 126-127 126-150 127-128 129-130 130-154 131-132 132-133 133-134 134-135 135-159 136-137 138-162 139-140 140-141 141-165 142-166 144-145 144-167 145-146 146-170 147-171 148-172 149-150 149-173 150-151 151-175 152-153 153-154 154-155 155-156 156-157 157-158 159-183 160-161 160-184 161-162 163-164 164-165 164-188 165-166 166-167 166-190 168-169 168-191 169-170 170-171 173-174 175-176 176-177 177-178 178-179 179-180 180-181 181-182 182-183 184-185 185-186 186-187 187-188 188-189 190-191".split(" ").map(e=>e.split("-").map(Number));
   const mazeOrigin=168,mazeGoal=192,mazeSectors=24,mazeRings=8;
-  const mazeStartAngle=-Math.PI/2,mazeInnerRadius=.068,mazePitch=.0345;
+  const mazeStartAngle=-Math.PI/2,mazeInnerRadius=.082,mazePitch=.0325;
   const mazePlate=group(leftFace,-.18,0,.19);
   const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
   const mazeGraph=new Map(),mazeEdgeCurves=new Map(),openEdges=new Set();
@@ -483,8 +483,8 @@ export function buildIntricateCube({
     const i=Math.max(0,Math.min(29,Number(state.gearMazeIndex)||0));
     return mazeRouteCells[Math.round(i/29*(mazeRouteCells.length-1))];
   }
-  C(follower,.007,.044,0,0,-.011,steel);
-  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0085,18,14),gold);
+  C(follower,.005,.044,0,0,-.011,steel);
+  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.007,18,14),gold);
   captiveBall.position.z=.012;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
