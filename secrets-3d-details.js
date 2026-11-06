@@ -361,8 +361,11 @@ export function buildIntricateCube({
     let run=[];
     const flush=()=>{
       if(!run.length)return;
-      const a0=mazeStartAngle+(run[0]-.48)*sectorWidth;
-      const a1=a0+(run.length-.04)*sectorWidth;
+      // Leave a real ball-width opening at each radial gate. A one-sector
+      // notch at the innermost ring used to be narrower than the roller.
+      const wallTrim=.13;
+      const a0=mazeStartAngle+(run[0]-.48+wallTrim)*sectorWidth;
+      const a1=a0+(run.length-.04-2*wallTrim)*sectorWidth;
       curvedWall(radius,a0,a1);run=[];
     };
     for(const sector of order){
