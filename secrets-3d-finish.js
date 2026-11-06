@@ -236,12 +236,20 @@ export function finishMechanicalArtifact({
   for(const y of [-.23,-1.18]){
     B(lidPivot,1.27,.043,.055,0,y,-.093,satin,.016);
   }
-  // Hatch interior retaining studs and wire guides, mounted to fixed top.
-  for(const s of [-1,1]){
-    const g=group(topFace,s*.65,.25,-.18);
+  // The two interior studs now sit in U-shaped wall brackets, not midair.
+  // The side-well casting already exists at |x|≈.815 and covers z=-.74..0.
+  // Each short bracket overlaps the stud at |x|=.65 and sidewall at .815.
+  // Decorative guide pipes now terminate in the actual tube saddle.
+  for(const sign of [-1,1]){
+    B(topFace,.19,.082,.079,sign*.772,.25,-.18,metal,.014);
+    const g=group(topFace,sign*.65,.25,-.18);
     C(g,.105,.10,0,0,0,metal);
     C(g,.054,.042,0,0,.065,tinyGold);
-    path(topFace,[[s*.58,.14,-.36],[s*.48,.02,-.34],[s*.36,-.10,-.42]],.016,copper);
+    path(topFace,[
+      [sign*.65,.25,-.18],[sign*.58,.14,-.36],
+      [sign*.48,.02,-.34],[sign*.36,-.10,-.42],
+      [sign*.29,-.22,-.52]
+    ],.016,copper);
   }
 
   // The player-facing box is now fully suspended. Do not construct an
