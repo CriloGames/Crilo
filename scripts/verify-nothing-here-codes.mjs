@@ -151,7 +151,7 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
 for(const expected of [
- '["moth","topFace",-1.15,.21],["telescope","topFace",0,1.08]',
+ '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.08]',
  'item.stand.visible=false;',
  'item.fixture.position.z=.089;',
  'item.mountRing=C(g,.315,.032,0,0,.008,m.brass,"z");',
