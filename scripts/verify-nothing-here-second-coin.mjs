@@ -156,8 +156,11 @@ async function refundCoin(page,{realPointer=false}={}){
   gears.model.directions.length>=29&&
   gears.model.grooveCount===gears.model.directions.length+1&&
   gears.model.grooveSegments===gears.model.directions.length&&
-  gears.model.mazeStyle==="angular labyrinth"&&
+  gears.model.mazeStyle==="concentric radial labyrinth"&&
   gears.model.branches===5&&
+  gears.model.goalSocketOpen&&
+  gears.model.raisedWalls>=80&&
+  gears.model.networkCells===64&&
   gears.model.followerTrackDistance<.000001&&
   gears.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5,
   "Gear maze is not a carved 3D track on the left face: "+JSON.stringify(gears));
@@ -228,6 +231,8 @@ async function refundCoin(page,{realPointer=false}={}){
    "The pin escaped its rendered groove during a gear movement: "+
     JSON.stringify(physical));
  }
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze.exitReached)),
+  "The captive ball never reached the central receiving socket");
  assert((await state(page)).gearMazeSolved&&
   (await state(page)).pendingPickups.includes("fork"),
   "Completing the carved gear maze did not withdraw the clamp and expose the fork");
