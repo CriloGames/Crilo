@@ -352,11 +352,9 @@ export function buildIntricateCube({
   goalCollar.position.z=.177;
   goalCollar.rotation.z=mouthAngle+.475;
   wheelA.add(goalCollar);detailsCount++;
-  const goalSocket=C(wheelA,.017,.007,0,0,.168,goalLit);
-  goalSocket.material=mazeInset;
-  // A dim, noninteractive inner bezel indicates the target without
-  // drawing arrows or blocking the working pin.
-  C(wheelA,.008,.004,0,0,.176,goalMetal);
+  // Leave the socket hollow: the screw physically occupies this space
+  // on completion. A decorative solid stud would obstruct the exit.
+  const goalSocket=goalCollar;
   // Improve the small drive gear: a visible center spindle, four radial
   // machined spokes and a dark knurled grip. It remains one clickable gear.
   C(wheelB,.163,.027,0,0,.107,darkMetal);
@@ -653,7 +651,11 @@ export function buildIntricateCube({
     }else seatFollower();
     // At the end the captive screw backs OUT of its channel. Simultaneously
     // the adjacent lock tongue withdraws from the calibration dial.
-    pose(follower,"position","z",s.gearMazeSolved?.253:.184);
+    // Seat the pin DOWN into the central receiving pocket when solved;
+    // the previous animation lifted it off the wheel as though escaping
+    // through an invisible roof.
+    pose(follower,"position","z",s.gearMazeSolved?.171:.184);
+    goalSocket.material=s.gearMazeSolved?goalLit:goalMetal;
     pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
