@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=44";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=45";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=12";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=53";
@@ -923,10 +923,10 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"Hold and trace the white maze left or right · face stays still",
- "gear-small":"Hold and turn the black drive cog · moves the brass carrier",
- "maze-in":"Hold the dial rim and drag up or down",
- "maze-out":"Hold the dial rim and drag up or down",
+ "gear-large":"White maze ← →",
+ "gear-small":"Black drive cog ← →",
+ "maze-in":"Dial rim ↑ ↓",
+ "maze-out":"Dial rim ↑ ↓",
  "cube-offer":"Circular brass receiver",
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
