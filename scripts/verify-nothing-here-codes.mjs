@@ -205,6 +205,11 @@ assert(hotspots.includes('const moonStem=C(miniMoon,')&&
  hotspots.includes('getFixedMountAudit:()=>fixedMounts.map(')&&
  hotspots.includes('const redSwitch=control(frontFace,"dot"'),
  'Hidden discoveries must retain their mounts without changing the red button');
+assert(hotspots.includes('const fluteMountFeet=[];')&&
+ hotspots.includes('fluteMountFeet.push(foot);')&&
+ hotspots.includes('getFluteMountAudit:()=>fluteMountFeet.map(')&&
+ preview.includes('flute=gameHotspots?.getFluteMountAudit?.()||[]'),
+ 'Collectible flute saddles lost their real mounting feet');
 assert(preview.includes('get physicalAttachmentAudit(){')&&
  preview.includes('miniatures=pocketWorlds?.getHardwareAttachmentAudit')&&
  preview.includes('intentionalExceptions:["red button index arc"'),
