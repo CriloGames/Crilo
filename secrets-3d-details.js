@@ -349,7 +349,19 @@ export function buildIntricateCube({
   mazePlate.add(entryMark);detailsCount++;
   // Two physical mouths lead into the bright central receiving socket.
   // The mouth itself has no solid bolt blocking either entrance.
-  const goalSocket=ring(mazePlate,.034,.004,0,0,.189,goalMetal);
+  // Two genuine gaps in the socket collar, aligned to the two playable
+  // center-entry spokes. A closed decorative ring made the exit look sealed.
+  const goalMouthSectors=[2,7],goalCollarParts=[];
+  for(let i=0;i<goalMouthSectors.length;i++){
+    const from=mazeStartAngle+(goalMouthSectors[i]+.34)*sectorWidth;
+    const to=mazeStartAngle+(goalMouthSectors[(i+1)%2]+
+      (i===0?-.34:mazeSectors-.34))*sectorWidth;
+    const lip=new THREE.Mesh(new THREE.TorusGeometry(
+      .034,.004,8,48,to-from),goalMetal);
+    lip.position.z=.189;lip.rotation.z=from;lip.castShadow=false;
+    mazePlate.add(lip);goalCollarParts.push(lip);detailsCount++;
+  }
+  const goalSocket=goalCollarParts[0];
   C(mazePlate,.029,.010,0,0,.172,mazeInset);
   // Quiet hardware detailing, well outside the playable circular groove.
   for(let i=0;i<8;i++){
