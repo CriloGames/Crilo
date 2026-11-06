@@ -423,6 +423,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   setHit(lip,"flute-body");
  }
  for(const x of [-.24,.24]){
+  // The removable flute and its two saddles must appear as ONE mounted
+  // object. Backing feet touch the solid top-face rail at z≈.0725 and
+  // disappear together with the instrument before it is collected.
+  const foot=B(flute,.105,.174,.095,x,-.045,-.074,nickel,.014);
+  foot.userData.mechanicalMount=true;
   const brace=B(flute,.07,.19,.075,x,-.045,-.033,graphite,.012);
   setHit(brace,"flute-body");
   C(flute,.029,.024,x,0,.063,brass);
