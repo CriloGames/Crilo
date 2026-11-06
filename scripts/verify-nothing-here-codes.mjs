@@ -178,6 +178,22 @@ assert(!preview.includes('hatchConnectingRods')&&
  !preview.includes('const crankPin=cylinder(rotor'),
  'Loose wires or obsolete rotating crank rods returned');
 
+// The white maze is a passive inspection surface, not another
+// directional control. Only black-cog dragging moves around a ring; the
+// calibration dial separately handles radial moves.
+assert(preview.includes('"gear-large":"White maze",')&&
+ !preview.includes('"gear-large":"White maze ← →",')&&
+ preview.includes('const gearDragActions=new Set(["gear-small","maze-in","maze-out"]);')&&
+ preview.includes('const passiveSurfaces=new Set(["front","side","hatch","gear-large"]);')&&
+ preview.includes('const driveSign=-1;')&&
+ !preview.includes('const driveSign=drag.action==="gear-small"?-1:1;')&&
+ logic.includes("if(name==='gear-large'){")&&
+ logic.includes("if(name==='gear-small'||")&&
+ !logic.includes('const direction=name==="gear-large"')&&
+ details.includes('wheelTouchControls:["gear-small",...dialTargets.keys()],')&&
+ details.includes('passiveInspectionTarget:"gear-large"'),
+ "The white labyrinth can drive the ball or an active control was mislabeled");
+
 // Do not confuse transform parenting with PHYSICAL attachment: gears, optics,
 // service fixtures, miniature worlds and interior studs need metal between
 // their visible backs and the case. Keep the red-index arc intentionally free.
