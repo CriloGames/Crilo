@@ -167,7 +167,7 @@ for(const expected of [
  "item.stand.visible=false;item.fixture.position.z=.060;",
  "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
  "const OBSERVATORY_RADIUS=.289,OBSERVATORY_SEAM=.012;",
- "const OBSERVATORY_REAR=-.41;",
+ "const OBSERVATORY_REAR=Math.PI/4;",
  "const OBSERVATORY_TRAVEL=Math.PI/2+OBSERVATORY_REAR+.025;",
  "const OBSERVATORY_SLAT_COUNT=16;",
  "observatoryPanels.push({panel,thetaStart,thetaEnd});",
@@ -181,6 +181,7 @@ for(const expected of [
  "shutterProgress:observatoryShutter.progress,",
  "visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,",
  "rearCapVisible:!!observatoryRearCap?.visible,",
+ "retainedDomeFraction:(Math.PI/2-OBSERVATORY_REAR)/Math.PI,",
  "upperSeated:base?.shutterHub?.parent===base?.toy,",
  "lowerSeated:base?.instrument?.parent===base?.toy",
  "telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");",
@@ -191,11 +192,11 @@ for(const expected of [
 // a tall solid curved front wall, and a telescope set BACK inside the arch.
 // The previous design's tiny rear cap and buried wall looked like a flat hole.
 for(const required of [
- 'const OBSERVATORY_REAR=-.41;',
+ 'const OBSERVATORY_REAR=Math.PI/4;',
  'const burgundy=mat(0x74403f,.13,.74);',
  'burgundy.side=THREE.DoubleSide;',
- 'const canopyEdge=[],insideBraces=[-.28,.03,.32,.61,.90,1.19];',
- 'for(const theta of [-.07,.39,.84,1.23]){',
+ 'const canopyEdge=[],insideBraces=[.86,1.10,1.34];',
+ 'for(const theta of [.95,1.22,1.45]){',
  'new THREE.ExtrudeGeometry(parapetOutline,{',
  'observatoryParapet.position.z=parapetBottom;',
  'sillTop.push([.297*Math.cos(t),.297*Math.sin(t),.126]);',
@@ -204,7 +205,7 @@ for(const required of [
  'observatoryScope.scale.setScalar(.85);',
  'canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR)',
  'canopyCrownZ:OBSERVATORY_SEAM+',
- 'frontSillTopZ:parapetBottom+parapetHeight+.003,',
+ 'frontSillTopZ:.018+.105+.003,',
  'objectiveFrontY:observatoryScope.position.y+',
  'objectiveCenterZ:observatoryScope.position.z+'
 ]) assert(worlds.includes(required),
