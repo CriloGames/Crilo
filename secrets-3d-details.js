@@ -306,6 +306,18 @@ export function buildIntricateCube({
   openEntryRim.position.z=.159;
   openEntryRim.rotation.z=mazeEntranceAngle+.21;
   wheelA.add(openEntryRim);detailsCount++;
+  // A small integral triangle on the twelve-o'clock lip, pointing into
+  // the first opening, is readable without an extra text label.
+  const entryMarkShape=new THREE.Shape();
+  entryMarkShape.moveTo(0,-.018);
+  entryMarkShape.lineTo(-.018,.014);
+  entryMarkShape.lineTo(.018,.014);
+  entryMarkShape.closePath();
+  const entryMark=new THREE.Mesh(new THREE.ExtrudeGeometry(
+   entryMarkShape,{depth:.006,bevelEnabled:false}),brass);
+  entryMark.position.set(0,.354,.164);
+  entryMark.castShadow=false;
+  wheelA.add(entryMark);detailsCount++;
   ring(wheelA,.363,.010,0,0,.103,steel);
   // Quietly countersunk casing screws. They sit outside ALL channels
   // and have smaller, darker heads than the former obvious gold studs.
@@ -451,10 +463,15 @@ export function buildIntricateCube({
    follower.position.x=channelPoint.x;
    follower.position.y=channelPoint.y;
   }
-  C(follower,.012,.065,0,0,-.016,steel);
-  C(follower,.019,.020,0,0,.021,gold);
-  const screwSlot=B(follower,.024,.007,.005,0,0,.036,ebony,.002);
-  screwSlot.rotation.z=.56;
+  // A captured brass roller, not a conspicuous decorative screwhead.
+  // Its narrow axle actually reaches into the channel; the small sphere
+  // rides just above the raised labyrinth walls without touching them.
+  C(follower,.011,.053,0,0,-.016,steel);
+  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(
+   .016,16,12),gold);
+  captiveBall.position.z=.015;
+  captiveBall.castShadow=false;
+  follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
   // floating black stick, with a random stud halfway along it, suspended
