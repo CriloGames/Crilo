@@ -141,39 +141,39 @@ const BAG_CODE=[2,0,3,1];
 // These are mirrored by the ACTUAL engraved codes on the six 3D faces.
 const VENT_CODE=[3,1,4,2,3];
 const FLUTE_CODE=[2,1,3,1,3,2];
-// Five concentric rings, genuine carved paths and an open central socket.
-// Only the exposed large and small gears turn the roller around the rings;
-// the upper/lower edge of the existing dial moves it between rings.
+// Six fully connected concentric rings, now rendered as engraved WALLS
+// rather than dark square-looking route tiles. Each logical passage is
+// matched to the physical opening on the sculpted 3D labyrinth.
 const GEAR_MAZE_DIRECTIONS=[
  1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
  1,1,1,1,1,-1,-1,-1,-1,-1
 ];
-const MAZE_ROUTE_CELLS=[48,49,50,51,39,38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
-const MAZE_PASSAGES="0-11 1-13 2-3 2-60 4-5 4-16 5-6 6-7 6-18 7-8 7-19 7-60 8-9 8-20 9-10 9-21 10-11 11-23 12-13 13-14 13-25 14-26 15-16 16-17 17-18 18-19 18-30 19-20 20-21 21-22 22-23 23-35 24-35 24-36 25-37 26-27 26-38 27-28 27-39 28-29 30-31 30-42 31-32 31-43 32-33 33-34 34-35 34-46 36-37 36-47 38-39 39-51 40-41 41-53 42-43 43-44 43-55 44-45 44-56 45-46 45-57 46-47 48-49 48-59 49-50 50-51 51-52 52-53 54-55 58-59".split(" ").map(x=>x.split("-").map(Number));
-const MAZE_ORIGIN=48,MAZE_GOAL=60,MAZE_LAYOUT_VERSION=3;
-const MAZE_SECTORS=12,MAZE_RINGS=5;
+const MAZE_ROUTE_CELLS=[90,107,106,105,104,86,87,69,68,67,66,48,47,46,64,82,83,101,100,99,98,97,96,78,79,80,62,63,45,44,26,25,7,6,5,4,22,40,39,38,37,19,1,2,108];
+const MAZE_PASSAGES="0-1 0-17 1-2 1-19 2-20 2-108 3-21 4-5 4-22 5-6 6-7 7-25 8-9 9-10 9-27 11-12 11-29 11-108 12-13 12-30 13-14 14-15 16-17 16-34 18-35 18-36 19-37 20-21 22-40 23-24 24-42 25-26 26-44 27-28 28-29 30-31 31-32 31-49 32-50 33-34 33-51 35-53 36-53 37-38 38-39 39-40 40-58 41-42 41-59 42-43 43-61 44-45 45-63 46-47 46-64 47-48 48-66 50-51 51-52 52-53 54-55 54-71 55-56 56-57 56-74 57-75 58-59 59-77 60-61 62-63 62-80 63-81 64-82 65-83 66-67 67-68 68-69 69-87 70-71 70-88 71-89 72-73 72-89 73-74 73-91 74-75 75-76 76-94 77-95 78-79 78-96 79-80 82-83 83-101 84-85 84-102 85-86 86-87 86-104 88-89 89-107 90-91 90-107 91-92 92-93 93-94 96-97 97-98 98-99 99-100 100-101 102-103 103-104 104-105 105-106 106-107".split(" ").map(x=>x.split("-").map(Number));
+const MAZE_ORIGIN=90,MAZE_GOAL=108,MAZE_LAYOUT_VERSION=4;
+const MAZE_SECTORS=18,MAZE_RINGS=6;
 const MAZE_GRAPH=new Map();
 for(const [x,y] of MAZE_PASSAGES){
  const a=Math.min(x,y),b=Math.max(x,y);
  const sameRing=a!==MAZE_GOAL&&b!==MAZE_GOAL&&
-   Math.floor(a/MAZE_SECTORS)===Math.floor(b/MAZE_SECTORS);
- const angular=sameRing&&
-  ((a%MAZE_SECTORS+1)%MAZE_SECTORS===b%MAZE_SECTORS||
-   (b%MAZE_SECTORS+1)%MAZE_SECTORS===a%MAZE_SECTORS);
- const radial=b-a===MAZE_SECTORS||b===MAZE_GOAL&&a<MAZE_SECTORS;
- if(!angular&&!radial)throw Error("Maze passage crosses a closed wall");
+  Math.floor(a/MAZE_SECTORS)===Math.floor(b/MAZE_SECTORS);
+ const angular=sameRing&&(
+  (a%MAZE_SECTORS+1)%MAZE_SECTORS===b%MAZE_SECTORS||
+  (b%MAZE_SECTORS+1)%MAZE_SECTORS===a%MAZE_SECTORS);
+ const radial=b-a===MAZE_SECTORS||
+  b===MAZE_GOAL&&a<MAZE_SECTORS;
+ if(!angular&&!radial)throw Error("Carved maze route crosses solid brass");
  if(!MAZE_GRAPH.has(a))MAZE_GRAPH.set(a,new Set());
  if(!MAZE_GRAPH.has(b))MAZE_GRAPH.set(b,new Set());
- if(MAZE_GRAPH.get(a).has(b))throw Error("Duplicate carved corridor");
+ if(MAZE_GRAPH.get(a).has(b))throw Error("Duplicate physical corridor");
  MAZE_GRAPH.get(a).add(b);MAZE_GRAPH.get(b).add(a);
 }
-if(MAZE_GRAPH.size!==61||MAZE_PASSAGES.length!==70)
- throw Error("Physical maze and game topology disagree");
+if(MAZE_GRAPH.size!==109||MAZE_PASSAGES.length!==116)
+ throw Error("Maze model and navigation map disagree");
 function mazeDestination(cell,direction){
  if(!MAZE_GRAPH.has(cell))return null;
  if(cell===MAZE_GOAL)
-  return direction==="maze-out"?
-   [...MAZE_GRAPH.get(cell)][0]:null;
+  return direction==="maze-out"?[...MAZE_GRAPH.get(cell)][0]:null;
  const sector=cell%MAZE_SECTORS,ring=Math.floor(cell/MAZE_SECTORS);
  const next=direction==="maze-ccw"?
   ring*MAZE_SECTORS+(sector+1)%MAZE_SECTORS:
@@ -279,9 +279,10 @@ if(s.gearMazeSolved){
  s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
  s.gearMazeBranch=0;
 }
-// Version 2 used square coordinates. Do not interpret its cell number
-// as a circular coordinate: recover the nearest previously completed
-// milestone, preserving earned inventory, pressure and solved progress.
+// Versions 2 and 3 used different radial coordinates. Never interpret
+// an earlier cell ID as the position on the new six-ring sculpture.
+// Recover the nearest milestone instead, preserving earned inventory,
+// calibration progress and all legitimate completed puzzle rewards.
 const legacyMazeCell=MAZE_ROUTE_CELLS[Math.round(
  s.gearMazeIndex/GEAR_MAZE_DIRECTIONS.length*(MAZE_ROUTE_CELLS.length-1))];
 s.gearMazeCell=s.gearMazeSolved?MAZE_GOAL:
