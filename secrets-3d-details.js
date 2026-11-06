@@ -645,7 +645,7 @@ export function buildIntricateCube({
     // Seat the pin DOWN into the central receiving pocket when solved;
     // the previous animation lifted it off the wheel as though escaping
     // through an invisible roof.
-    pose(follower,"position","z",s.gearMazeSolved?.172:.178);
+    pose(follower,"position","z",s.gearMazeSolved?.173:.176);
     goalSocket.material=s.gearMazeSolved?goalLit:goalMetal;
     pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
