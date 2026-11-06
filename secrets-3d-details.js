@@ -210,275 +210,79 @@ export function buildIntricateCube({
   // All corridors are physically connected. The very last segment reaches
   // a genuine OPEN socket at the center of the wheel, not a painted goal
   // that traps the screw before it can exit.
+
   const gearMazeDirections=[
    1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
    1,1,1,1,1,-1,-1,-1,-1,-1
   ];
-  const mazeRouteCells=[
-   80,95,94,78,77,76,75,59,58,57,73,74,90,89,88,87,
-   71,55,54,38,22,23,39,40,41,42,26,27,43,44,28,29,
-   45,61,62,46,47,63,79,64,48,32,16,17,33,49,65,66,
-   67,83,84,68,52,36,35,34,18,19,3,4,20,21,5,96
-  ];
-  // Segment boundaries correspond to the already-saved 0..29 gear
-  // progress. A single turn traverses 1..3 physically contiguous cells.
-  const mazeStepMarks=[
-   0,2,5,7,9,11,13,16,18,20,22,24,27,29,31,
-   33,35,38,40,42,44,46,49,51,53,55,58,60,62,63
-  ];
-  const mazeJunctions=[4,9,14,19,24];
-  // Distinct connected blind passages, each of varying length. They
-  // contain no shared cells, do not collide with the winning route, and
-  // have a positive end-stop at their final cell. Two input turns reach
-  // each branch's far end regardless of its actual path length.
-  const mazeBlindCells=[
-   [56,72],
-   [6,7,8,24,25,9,10],
-   [30,31,15,14,13,12,11],
-   [0,1,2],
-   [37,53,69,70,86,85]
-  ];
-  // These additional physically open joins turn the old tree into a true
-  // navigable maze. Players may circle, cross between rings, and approach
-  // the goal by different routes. Only the final center aperture is the win.
-  // All joins are adjacent polar cells, never diagonal shortcuts.
-  // Fewer open crossovers make real maze walls without losing
-  // multiple solutions or any of the 97 connected cells.
-  const mazeExtraEdges=[
-   [62,78],[17,18],[32,47],[4,5],
-   [80,81],[81,82],[75,91],[91,92],[92,93],[93,94],
-   [49,50],[50,51],[51,52],[59,60],[60,61],
-   [61,77],[42,58],[20,36],[19,35],[67,68]
-  ];
-  const mazeOrigin=80,mazeGoal=96;
-  const mazeSectorCount=16;
-  const mazeRingCount=6;
-  const mazeInnerRadius=.082;
-  const mazeRingPitch=.044;
-  const mazeOuterRadius=mazeInnerRadius+(mazeRingCount-1)*mazeRingPitch;
-  const mazeEntranceAngle=Math.PI/2;
-  // Every node is in the same physical wheel coordinate system. Number
-  // 96 is the empty center receiving socket, not a seventh maze ring.
-  const mazeCellPoint=cell=>{
-   if(cell===96)return new THREE.Vector3(0,0,.156);
-   const ringIndex=Math.floor(cell/mazeSectorCount);
-   const sector=cell%mazeSectorCount;
-   const angle=mazeEntranceAngle+sector*Math.PI*2/mazeSectorCount;
-   const r=mazeInnerRadius+ringIndex*mazeRingPitch;
-   return new THREE.Vector3(Math.cos(angle)*r,Math.sin(angle)*r,.156);
-  };
-  const makeCorridor=cells=>{
-   const route=new THREE.CurvePath();
-   for(let i=0;i<cells.length-1;i++)
-    route.add(new THREE.LineCurve3(
-     mazeCellPoint(cells[i]),mazeCellPoint(cells[i+1])));
-   return route;
-  };
-  const grooveSegments=[];
-  const grooveCurve=new THREE.CurvePath();
-  const deadEndCurves=new Map();
-  const gearMazePoints=mazeStepMarks.map(k=>mazeCellPoint(mazeRouteCells[k]));
-  for(let step=0;step<gearMazeDirections.length;step++){
-   const cells=mazeRouteCells.slice(mazeStepMarks[step],
-    mazeStepMarks[step+1]+1);
-   const corridor=makeCorridor(cells);
-   grooveSegments.push(corridor);
-   grooveCurve.add(corridor);
-  }
-  mazeJunctions.forEach((step,i)=>{
-   const index=mazeStepMarks[step];
-   deadEndCurves.set(step,makeCorridor([
-    mazeRouteCells[index],...mazeBlindCells[i]
-   ]));
-  });
-  const extraCorridors=mazeExtraEdges.map(([from,to])=>
-   makeCorridor([from,to]));
-  // The graph, the drawable channels and the moving ball all use this
-  // single undirected edge registry. No invisible links or ghost walls.
-  const mazeGraph=new Map(),mazeEdgeCurves=new Map();
+
+  // Fixed machined grid, NOT another concentric ring diagram. Turning the
+  // real paired gears drives a captive pin through connected square lanes.
+  const mazeRouteCells=[0,9,18,19,28,37,36,45,54,63,64,73,74,75,66,57,48,39,30,21,22,31,40];
+  const mazePassages="0-1 0-9 1-10 2-11 3-4 3-12 4-5 5-6 6-7 6-15 7-8 7-16 8-17 9-10 9-18 11-12 12-13 13-14 13-22 14-15 14-23 15-24 16-25 17-26 18-19 19-20 19-28 20-29 21-22 21-30 22-31 23-24 23-32 24-33 25-34 26-35 27-28 28-37 29-38 30-39 31-32 31-40 33-34 35-44 36-37 36-45 37-38 38-47 39-48 40-41 40-49 41-42 42-43 42-51 44-53 45-46 45-54 46-47 46-55 48-57 49-50 50-59 51-52 51-60 52-61 53-62 54-55 54-63 56-57 56-65 57-66 58-59 58-67 59-68 60-69 61-70 62-71 63-64 64-73 65-66 66-75 67-76 68-69 69-78 70-79 71-80 72-73 73-74 74-75 76-77 77-78 78-79 79-80".split(" ").map(e=>e.split("-").map(Number));
+  const mazeOrigin=0,mazeGoal=40,mazeSide=9,mazePitch=.056;
+  const mazePlate=group(leftFace,-.18,0,.19);
   const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
-  const registerCorridor=cells=>{
-   for(let i=1;i<cells.length;i++){
-    const a=cells[i-1],b=cells[i],key=edgeKey(a,b);
-    if(mazeEdgeCurves.has(key))
-     throw new Error("Duplicate carved maze corridor "+key);
-    mazeEdgeCurves.set(key,new THREE.LineCurve3(
-     mazeCellPoint(Math.min(a,b)),mazeCellPoint(Math.max(a,b))));
+  const mazeGraph=new Map(),mazeEdgeCurves=new Map(),openEdges=new Set();
+  const mazeCellPoint=cell=>new THREE.Vector3(
+    (cell%9-4)*mazePitch,(4-Math.floor(cell/9))*mazePitch,.156);
+  for(const [a,b] of mazePassages){
+    if(a<0||b>80||!(b-a===9||
+      (Math.floor(a/9)===Math.floor(b/9)&&b-a===1)))
+      throw Error("Maze corridor crosses solid material");
+    const key=edgeKey(a,b);
+    if(openEdges.has(key))throw Error("Duplicate maze channel");
+    openEdges.add(key);
     if(!mazeGraph.has(a))mazeGraph.set(a,new Set());
     if(!mazeGraph.has(b))mazeGraph.set(b,new Set());
     mazeGraph.get(a).add(b);mazeGraph.get(b).add(a);
-   }
-  };
-  registerCorridor(mazeRouteCells);
-  mazeJunctions.forEach((step,i)=>registerCorridor([
-   mazeRouteCells[mazeStepMarks[step]],...mazeBlindCells[i]]));
-  mazeExtraEdges.forEach(edge=>registerCorridor(edge));
-  if(mazeRouteCells.length!==64||mazeStepMarks.length!==30||
-     grooveSegments.length!==gearMazeDirections.length||
-     gearMazePoints.length!==gearMazeDirections.length+1||
-     mazeJunctions.some((step,i)=>
-      mazeStepMarks[step]!==[9,20,31,42,53][i])||
-     mazeRouteCells.at(-1)!==96)
-   throw new Error("Circular labyrinth routes do not reach the center socket");
-  // Low, milled-brass maze plate with a black recessed path and thin
-  // polished edges. Dark lanes remain readable even at default zoom.
-  // None of the walls is a separate loose prop: every channel mesh is
-  // parented to the rotating brass wheel and shares its exact path.
-  // Warm ivory and fine graphite walls evoke a traditional
-  // concentric maze, rather than a patchy brown schematic.
-  const mazeFace=mat(0xeee7d9,.42,.29);
-  const mazeInset=mat(0x25282d,.42,.35);
-  const cutRim=mat(0xd4b784,.50,.26);
-  const goalMetal=mat(0xffd58e,.40,.21);
-  const goalLit=mat(0xf9c467,.32,.24);
-  goalLit.emissive.setHex(0xb87423);
-  goalLit.emissiveIntensity=.8;
-  C(wheelA,.357,.037,0,0,.112,darkMetal);
-  C(wheelA,.346,.026,0,0,.134,mazeInset);
-  C(wheelA,.337,.013,0,0,.153,mazeFace);
-  // A real gap in the retaining rim at twelve o'clock identifies the
-  // entrance. The ball is already captive inside the first short corridor.
-  const openEntryRim=new THREE.Mesh(new THREE.TorusGeometry(
-   .339,.009,8,72,Math.PI*2-.42),brass);
-  openEntryRim.position.z=.159;
-  openEntryRim.rotation.z=mazeEntranceAngle+.21;
-  wheelA.add(openEntryRim);detailsCount++;
-  // A small integral triangle on the twelve-o'clock lip, pointing into
-  // the first opening, is readable without an extra text label.
-  const entryMarkShape=new THREE.Shape();
-  entryMarkShape.moveTo(0,-.018);
-  entryMarkShape.lineTo(-.018,.014);
-  entryMarkShape.lineTo(.018,.014);
-  entryMarkShape.closePath();
-  const entryMark=new THREE.Mesh(new THREE.ExtrudeGeometry(
-   entryMarkShape,{depth:.006,bevelEnabled:false}),brass);
-  entryMark.position.set(0,.354,.164);
-  entryMark.castShadow=false;
-  wheelA.add(entryMark);detailsCount++;
-  ring(wheelA,.363,.010,0,0,.103,steel);
-  // Quietly countersunk casing screws. They sit outside ALL channels
-  // and have smaller, darker heads than the former obvious gold studs.
-  for(let i=0;i<8;i++){
-   const angle=(i+.5)*Math.PI/4;
-   const x=Math.cos(angle)*.377,y=Math.sin(angle)*.377;
-   C(wheelA,.013,.017,x,y,.116,steel);
-   const slot=B(wheelA,.014,.004,.004,x,y,.126,ebony,.001);
-   slot.rotation.z=angle+.35;
+    mazeEdgeCurves.set(key,new THREE.LineCurve3(mazeCellPoint(a),mazeCellPoint(b)));
   }
-  // The carved track lip follows exactly the same non-intersecting
-  // connected polar graph used by the captive pin.
-  const routeSamples=mazeRouteCells.length*14;
-  const lip=new THREE.Mesh(new THREE.TubeGeometry(
-   grooveCurve,routeSamples,.010,7,false),cutRim);
-  lip.castShadow=false;wheelA.add(lip);detailsCount++;
-  const channel=new THREE.Mesh(new THREE.TubeGeometry(
-   grooveCurve,routeSamples,.0067,8,false),ebony);
-  channel.position.z=.005;channel.castShadow=false;
-  wheelA.add(channel);detailsCount++;
-  // Real maze WALLS, not just painted dark lines: the closed edges of
-  // the polar cell graph become raised brass barriers. Leave a gap only
-  // where a physically traversable corridor connects adjacent cells.
-  // Adjacent barriers stop short of each other; they never overlap and
-  // they never intersect a playable groove.
-  const openEdges=new Set(mazeEdgeCurves.keys());
-  const wallColor=mat(0x262930,.41,.32);
+  if(mazeGraph.size!==81||openEdges.size!==93)throw Error("Invalid maze layout");
+  const gearMazePoints=mazeRouteCells.map(mazeCellPoint);
+  const grooveSegments=mazeRouteCells.slice(1).map((c,i)=>
+    mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],c)));
+  const startPoint=gearMazePoints[0],finishPoint=gearMazePoints.at(-1);
+  const mazeInset=mat(0x212a32,.35,.43);
+  const mazeWalls=mat(0xf0e3cc,.43,.22);
+  const mazeAccent=mat(0xb89967,.45,.30);
+  const goalMetal=mat(0xf0c582,.35,.21);
+  const goalLit=mat(0xffdea2,.3,.18);
+  goalLit.emissive.setHex(0x9a6122);goalLit.emissiveIntensity=.95;
+  // Square floor recessed into a genuine circular gear carrier; the relief
+  // walls are separate solid 3D metal ribs with real open intersections.
+  C(mazePlate,.363,.034,0,0,.113,darkMetal);
+  C(mazePlate,.358,.018,0,0,.143,ivory);
+  B(mazePlate,.510,.510,.014,0,0,.152,mazeInset,.006);
+  ring(mazePlate,.373,.008,0,0,.131,steel);
+  ring(mazePlate,.386,.005,0,0,.124,mazeAccent);
+  const boundary=9*mazePitch/2;
   let mazeWallCount=0;
-  const sectorWidth=Math.PI*2/mazeSectorCount;
-  function wallSegment(x1,y1,x2,y2){
-   // Short radial partitions are solid graphite ribs, seated directly
-   // against the ivory plate. No detached floating labels or screws.
-   const o=flatLine(wheelA,x1,y1,x2,y2,.170,.007,wallColor);
-   o.castShadow=false;mazeWallCount++;
+  function wall(x,y,w,h){
+    const m=B(mazePlate,w,h,.024,x,y,.169,mazeWalls,.001);
+    m.castShadow=false;mazeWallCount++;
   }
-  function circularWall(radius,first,last){
-   // Unlike a single rectangular chord, this metal rib follows the
-   // actual concentric circle. This is what gives the panel its fine
-   // classical labyrinth appearance, even when viewed at an angle.
-   const points=Array.from({length:9},(_,k)=>{
-    const a=first+(last-first)*k/8;
-    return new THREE.Vector3(Math.cos(a)*radius,
-     Math.sin(a)*radius,.164);
-   });
-   const curve=new THREE.CatmullRomCurve3(points,false,"centripetal",.12);
-   const rib=new THREE.Mesh(new THREE.TubeGeometry(
-    curve,18,.0037,6,false),wallColor);
-   rib.castShadow=false;wheelA.add(rib);detailsCount++;
-   mazeWallCount++;
+  for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+    const cell=r*9+c,x=(c-4)*mazePitch,y=(4-r)*mazePitch;
+    if(c<8&&!openEdges.has(edgeKey(cell,cell+1)))
+      wall(x+mazePitch/2,y,.009,mazePitch-.002);
+    if(r<8&&!openEdges.has(edgeKey(cell,cell+9)))
+      wall(x,y-mazePitch/2,mazePitch-.002,.009);
+    if(r===0&&c!==0)wall(x,boundary,mazePitch-.002,.009);
+    if(r===8)wall(x,-boundary,mazePitch-.002,.009);
+    if(c===0)wall(-boundary,y,.009,mazePitch-.002);
+    if(c===8)wall(boundary,y,.009,mazePitch-.002);
   }
-  for(let ringIndex=0;ringIndex<mazeRingCount;ringIndex++){
-   const radius=mazeInnerRadius+ringIndex*mazeRingPitch;
-   for(let sector=0;sector<mazeSectorCount;sector++){
-    const cell=ringIndex*mazeSectorCount+sector;
-    const nextSector=ringIndex*mazeSectorCount+
-     (sector+1)%mazeSectorCount;
-    if(!openEdges.has(edgeKey(cell,nextSector))){
-     // Angular door blocked: short radial wall halfway between sectors.
-     const a=mazeEntranceAngle+(sector+.5)*sectorWidth;
-     const r0=radius-(ringIndex===0?.003:.013);
-     const r1=radius+.013;
-     wallSegment(Math.cos(a)*r0,Math.sin(a)*r0,
-      Math.cos(a)*r1,Math.sin(a)*r1);
-    }
-    if(ringIndex+1<mazeRingCount){
-     const nextRing=cell+mazeSectorCount;
-     if(!openEdges.has(edgeKey(cell,nextRing))){
-      // Radial door blocked: one continuous, short brass wall at
-      // the midpoint of the two rings. Avoid three overlapping wall
-      // segments fighting one another at their shared endpoints.
-      const r=radius+mazeRingPitch/2;
-      const a0=mazeEntranceAngle+(sector-.35)*sectorWidth;
-      const a1=mazeEntranceAngle+(sector+.35)*sectorWidth;
-      circularWall(r,a0,a1);
-     }
-    }
-   }
-  }
-  // Extra carved links form actual loops and radial crossovers.
-  // Each adds the identical brass lip/dark trench as the main route.
-  for(const corridor of extraCorridors){
-   const rim=new THREE.Mesh(new THREE.TubeGeometry(
-    corridor,12,.010,7,false),cutRim);
-   rim.castShadow=false;wheelA.add(rim);detailsCount++;
-   const trench=new THREE.Mesh(new THREE.TubeGeometry(
-    corridor,12,.0067,8,false),ebony);
-   trench.position.z=.005;trench.castShadow=false;
-   wheelA.add(trench);detailsCount++;
-  }
-  for(const [junction,blind] of deadEndCurves){
-   const branches=mazeBlindCells[mazeJunctions.indexOf(junction)];
-   const border=new THREE.Mesh(new THREE.TubeGeometry(
-    blind,branches.length*12,.010,7,false),cutRim);
-   border.castShadow=false;wheelA.add(border);detailsCount++;
-   const darkSlot=new THREE.Mesh(new THREE.TubeGeometry(
-    blind,branches.length*12,.0067,8,false),ebony);
-   darkSlot.position.z=.005;darkSlot.castShadow=false;
-   wheelA.add(darkSlot);detailsCount++;
-   // A fitted plug terminates each false path. Subtle, not bright gold.
-   const end=blind.getPoint(1);
-   C(wheelA,.009,.013,end.x,end.y,.161,steel);
-  }
-  const startPoint=gearMazePoints[0];
-  const finishPoint=gearMazePoints.at(-1);
-  // The top tooth marks the real ENTRANCE. This ring is intentionally
-  // incomplete at the outer edge so the start looks mechanically open.
-  const entryCollar=new THREE.Mesh(new THREE.TorusGeometry(
-   .020,.004,7,32,Math.PI*1.43),steel);
-  entryCollar.position.set(startPoint.x,startPoint.y,.177);
-  entryCollar.rotation.z=mazeEntranceAngle+.32;
-  wheelA.add(entryCollar);detailsCount++;
-  // Actual exit: a dark, recessed central chamber, fed by the last
-  // inward radial passage. Its bright collar is OPEN on the side of the
-  // incoming passage; a complete ring used to block the supposed exit.
-  C(wheelA,.030,.009,0,0,.162,mazeInset);
-  const mouthAngle=mazeEntranceAngle+5*Math.PI*2/mazeSectorCount;
-  const goalCollar=new THREE.Mesh(new THREE.TorusGeometry(
-   .035,.005,8,48,Math.PI*2-1.25),goalMetal);
-  goalCollar.position.z=.177;
-  goalCollar.rotation.z=mouthAngle+.625;
-  wheelA.add(goalCollar);detailsCount++;
-  // Leave the socket hollow: the screw physically occupies this space
-  // on completion. A decorative solid stud would obstruct the exit.
-  const goalSocket=goalCollar;
+  // The only perimeter notch is the start; the center is a real open
+  // receiving socket. Neither location reveals the correct route.
+  const arrow=new THREE.Shape();
+  arrow.moveTo(-.009,0);arrow.lineTo(.009,0);
+  arrow.lineTo(0,-.014);arrow.closePath();
+  const startMark=new THREE.Mesh(new THREE.ShapeGeometry(arrow),goalMetal);
+  startMark.position.set(startPoint.x,boundary+.006,.178);
+  mazePlate.add(startMark);detailsCount++;
+  C(mazePlate,.018,.007,0,0,.154,ebony);
+  const goalSocket=ring(mazePlate,.024,.003,0,0,.167,goalMetal);
   // Improve the small drive gear: a visible center spindle, four radial
   // machined spokes and a dark knurled grip. It remains one clickable gear.
   C(wheelB,.163,.027,0,0,.107,darkMetal);
@@ -494,60 +298,52 @@ export function buildIntricateCube({
   C(wheelB,.034,.021,0,0,.189,steel);
   const centerSlot=B(wheelB,.041,.007,.006,0,0,.203,ebony,.003);
   centerSlot.rotation.z=.43;
-  // Integrated contact heads on the ACTUAL wheels; no separate keypad.
+
+  // Four halves of the ACTUAL wheel surfaces, with no detachable button pad.
   const wheelContacts=new Map();
-  function wheelContact(wheel,name,x,y,z,angle,radius=.023){
-   const touch=group(wheel,x,y,z);
-   C(touch,radius,.019,0,0,0,darkMetal);
-   C(touch,radius*.73,.008,0,0,.012,brass);
-   const glyph=new THREE.Group();glyph.rotation.z=angle;touch.add(glyph);
-   B(glyph,radius*.80,.0035,.003,-.002,0,.018,ebony,.001);
-   for(const sign of [-1,1]){
-    const head=B(glyph,radius*.46,.0035,.003,radius*.22,
-     sign*radius*.18,.018,ebony,.001);
-    head.rotation.z=sign*.65;
-   }
-   if(liveGame)setHit(touch,name);
-   wheelContacts.set(name,touch);
+  const touchMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,
+    colorWrite:false,depthWrite:false,side:THREE.DoubleSide});
+  const half=(parent,name,inner,outer,start,z)=>{
+    const obj=new THREE.Mesh(new THREE.RingGeometry(
+      inner,outer,32,1,start,Math.PI),touchMat);
+    obj.position.z=z;parent.add(obj);wheelContacts.set(name,obj);
+  };
+  half(mazePlate,"maze-left",.359,.439,Math.PI/2,.214);
+  half(mazePlate,"maze-right",.359,.439,-Math.PI/2,.214);
+  const smallTouchFace=group(leftFace,wheelB.position.x,
+    wheelB.position.y,wheelB.position.z);
+  half(smallTouchFace,"maze-up",.043,.199,0,.238);
+  half(smallTouchFace,"maze-down",.043,.199,Math.PI,.238);
+  // Very small etched chevrons on the existing rims, not raised controls.
+  for(const sign of [-1,1]){
+    const m=group(mazePlate,sign*.397,0,.173);
+    for(const d of [-1,1])
+      flatLine(m,-sign*.006,d*.010,sign*.005,0,.001,.003,mazeAccent);
+    const n=group(smallTouchFace,0,sign*.183,.223);
+    for(const d of [-1,1])
+      flatLine(n,d*.009,0,0,sign*.011,.001,.003,mazeAccent);
   }
-  const follower=new THREE.Group();wheelA.add(follower);
-  follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
-  // The ball has a CELL, not a scripted progress counter. Its tween
-  // travels along one real open edge at a time; at a junction the player
-  // chooses the next edge using the physical four-way selector.
+  const follower=new THREE.Group();mazePlate.add(follower);
+  follower.position.copy(startPoint);follower.position.z=.207;
   const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};
-  let mazeLastProgress=0,mazeLastBranch=0;
+  let mazeLastProgress=0;
   const mazeTravelPoint=()=>{
-   if(mazeTravel.from===mazeTravel.to)return mazeCellPoint(mazeTravel.to);
-   const curve=mazeEdgeCurves.get(edgeKey(mazeTravel.from,mazeTravel.to));
-   if(!curve)throw new Error("Maze follower attempted a closed wall");
-   return curve.getPoint(
-    mazeTravel.from<mazeTravel.to?mazeTravel.t:1-mazeTravel.t);
+    if(mazeTravel.from===mazeTravel.to)return mazeCellPoint(mazeTravel.to);
+    const curve=mazeEdgeCurves.get(edgeKey(mazeTravel.from,mazeTravel.to));
+    if(!curve)throw Error("The maze pin attempted to cross a wall");
+    return curve.getPoint(mazeTravel.from<mazeTravel.to?
+      mazeTravel.t:1-mazeTravel.t);
   };
   function seatFollower(){
-   const p=mazeTravelPoint();
-   follower.position.x=p.x;
-   follower.position.y=p.y;
+    const p=mazeTravelPoint();follower.position.x=p.x;follower.position.y=p.y;
   }
   function legacyMazeCell(state){
-   const index=Math.max(0,Math.min(gearMazeDirections.length,
-    Number(state.gearMazeIndex)||0));
-   if(state.gearMazeBranch>0&&mazeJunctions.includes(index)){
-    const branch=mazeBlindCells[mazeJunctions.indexOf(index)];
-    return branch[Math.max(0,Math.min(branch.length-1,
-     Math.ceil(branch.length*state.gearMazeBranch/2)-1))];
-   }
-   return mazeRouteCells[mazeStepMarks[index]];
+    const i=Math.max(0,Math.min(29,Number(state.gearMazeIndex)||0));
+    return mazeRouteCells[Math.round(i/29*(mazeRouteCells.length-1))];
   }
-  // A captured brass roller, not a conspicuous decorative screwhead.
-  // Its narrow axle actually reaches into the channel; the small sphere
-  // rides just above the raised labyrinth walls without touching them.
-  C(follower,.011,.053,0,0,-.016,steel);
-  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(
-   .016,16,12),gold);
-  captiveBall.position.z=.015;
-  captiveBall.castShadow=false;
-  follower.add(captiveBall);detailsCount++;
+  C(follower,.010,.043,0,0,-.012,steel);
+  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.015,16,12),gold);
+  captiveBall.position.z=.012;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
   // floating black stick, with a random stud halfway along it, suspended
@@ -586,18 +382,12 @@ export function buildIntricateCube({
   const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
   for(const x of [-.054,.054])C(dialCatch,.013,.016,x,0,.030,gold);
   if(liveGame){
-   // The pair are two real input directions: turn one or the other gear.
-   // Raycast geometry is registered only after all sculpted parts exist.
-   setHit(wheelA,"gear-large");setHit(wheelB,"gear-small");
-   // Rim studs rotate with the gears; clicking the stud, not a
-   // detached controller, selects the desired route direction.
-   wheelContact(wheelA,"maze-ccw",-.374,0,.190,Math.PI,.023);
-   wheelContact(wheelA,"maze-cw",.374,0,.190,0,.023);
-   wheelContact(wheelB,"maze-in",0,.149,.223,Math.PI/2,.026);
-   wheelContact(wheelB,"maze-out",0,-.149,.223,-Math.PI/2,.026);
+    setHit(mazePlate,"gear-large");
+    for(const [name,part] of wheelContacts)setHit(part,name);
+    setHit(wheelA,"gear-large");setHit(wheelB,"gear-small");
   }
   registries.gearMaze={follower,points:gearMazePoints,dialTongue,
-   directions:gearMazeDirections,wheelA,wheelB};
+    directions:gearMazeDirections,wheelA,wheelB};
   // Omit four cosmetic grille bars: they resembled the real numbered vents
   // and crowded the nearby hinged mechanisms.
   // Likewise, a lever drawn here used to activate the right-hand service
@@ -792,7 +582,6 @@ export function buildIntricateCube({
      mazeGraph.has(s.gearMazeCell)?s.gearMazeCell:legacyMazeCell(s);
     mazeLastProgress=Math.max(0,Math.min(gearMazeDirections.length,
      Number(s.gearMazeIndex)||0));
-    mazeLastBranch=Number(s.gearMazeBranch)||0;
     if(instant){
      gsap.killTweensOf(mazeTravel);
      mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
@@ -817,7 +606,7 @@ export function buildIntricateCube({
     // Seat the pin DOWN into the central receiving pocket when solved;
     // the previous animation lifted it off the wheel as though escaping
     // through an invisible roof.
-    pose(follower,"position","z",s.gearMazeSolved?.171:.184);
+    pose(follower,"position","z",s.gearMazeSolved?.186:.207);
     goalSocket.material=s.gearMazeSolved?goalLit:goalMetal;
     pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
@@ -872,61 +661,45 @@ export function buildIntricateCube({
     syncGameState,
     getNameplates:()=>nameplates.map(n=>({...n})),
     getGearMazeTargets:()=>({
-      large:wheelA,small:wheelB,
+      large:mazePlate,small:wheelB,
       directional:new Map(wheelContacts)
     }),
     getGearMazeAssembly:()=>({
-      face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
-      large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z,pitchRadius:.405},
-      small:{x:wheelB.position.x,y:wheelB.position.y,angle:wheelB.rotation.z,pitchRadius:.235},
-      directions:[...gearMazeDirections],
-      grooveCount:gearMazePoints.length,
-      grooveSegments:grooveSegments.length,
-      mazeCellSize:mazeRingPitch,
-      mazeStyle:"concentric radial labyrinth",
-      networkCells:mazeGraph.size,
-      networkChannels:mazeEdgeCurves.size,
-      extraConnections:mazeExtraEdges.length,
-      wheelTouchControls:[...wheelContacts.keys()],
-      raisedWalls:mazeWallCount,
-      exitReached:mazeTravel.to===mazeGoal&&mazeTravel.t>=.999,
-      goalSocketOpen:true,
-      branches:mazeJunctions.length,
-      junctions:[...mazeJunctions],
-      cell:mazeTravel.to,
-      followerFrom:mazeTravel.from,
-      followerPhase:mazeTravel.t,
-      availableDirections:(()=>{
-       const c=mazeTravel.to,opts=mazeGraph.get(c)||new Set();
-       return [...opts].map(n=>{
-        if(n===mazeGoal)return "maze-in";
-        if(c===mazeGoal)return "maze-out";
-        const r=Math.floor(c/16),nr=Math.floor(n/16);
-        if(nr<r)return "maze-in";
-        if(nr>r)return "maze-out";
-        return (n%16-c%16+16)%16===1?"maze-cw":"maze-ccw";
-       });
-      })(),
-      branchDepth:mazeLastBranch,
-      followerProgress:mazeLastProgress,
-      followerTrackDistance:Math.hypot(
-       follower.position.x-mazeTravelPoint().x,
-       follower.position.y-mazeTravelPoint().y
-      ),
-      follower:{x:follower.position.x,y:follower.position.y,z:follower.position.z},
-      // World-on-face location (after the rotating wheel's angle): the last
-      // notch must physically line up with the transfer rail on completion.
-      exit:{
-       x:wheelA.position.x+finishPoint.x*Math.cos(wheelA.rotation.z)-
-          finishPoint.y*Math.sin(wheelA.rotation.z),
-       y:wheelA.position.y+finishPoint.x*Math.sin(wheelA.rotation.z)+
-          finishPoint.y*Math.cos(wheelA.rotation.z),
-       z:wheelA.position.z+finishPoint.z
-      },
-      railEntry:{...gearRailEntry},
-      dialTongueX:dialTongue.position.x
-    }),
-    getGaugeAssembly:()=>({
+       face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
+       large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z,pitchRadius:.405},
+       small:{x:wheelB.position.x,y:wheelB.position.y,angle:wheelB.rotation.z,pitchRadius:.235},
+       directions:[...gearMazeDirections],
+       grooveCount:gearMazePoints.length,
+       grooveSegments:grooveSegments.length,
+       mazeCellSize:mazePitch,
+       mazeStyle:"machined square labyrinth",
+       networkCells:mazeGraph.size,
+       networkChannels:mazeEdgeCurves.size,
+       extraConnections:mazePassages.length-80,
+       wheelTouchControls:[...wheelContacts.keys()],
+       raisedWalls:mazeWallCount,
+       exitReached:mazeTravel.to===mazeGoal&&mazeTravel.t>=.999,
+       goalSocketOpen:true,
+       branches:[...mazeGraph.values()].filter(x=>x.size>=3).length,
+       cell:mazeTravel.to,
+       followerFrom:mazeTravel.from,
+       followerPhase:mazeTravel.t,
+       availableDirections:(()=>{
+         const c=mazeTravel.to,links=mazeGraph.get(c)||new Set();
+         return [...links].map(n=>n===c-9?"maze-up":
+           n===c+9?"maze-down":n===c-1?"maze-left":"maze-right");
+       })(),
+       followerProgress:mazeLastProgress,
+       followerTrackDistance:Math.hypot(follower.position.x-mazeTravelPoint().x,
+         follower.position.y-mazeTravelPoint().y),
+       follower:{x:follower.position.x,y:follower.position.y,z:follower.position.z},
+       exit:{x:mazePlate.position.x+finishPoint.x,
+        y:mazePlate.position.y+finishPoint.y,
+        z:mazePlate.position.z+finishPoint.z},
+       railEntry:{...gearRailEntry},
+       dialTongueX:dialTongue.position.x
+     }),
+     getGaugeAssembly:()=>({
       face:meter.parent===leftFace?"leftFace":"unexpected",
       x:meter.position.x,y:meter.position.y,
       radius:.312,needleAngle:needle.rotation.z
