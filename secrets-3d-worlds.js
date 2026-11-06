@@ -142,7 +142,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
-  ["moth","topFace",-1.15,.21],["telescope","topFace",1.15,-.65],
+  ["moth","topFace",-1.15,.21],["telescope","topFace",1.15,.21],
   ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
@@ -518,76 +518,48 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // A recognizable miniature BRASS REFRACTING TELESCOPE, permanently
- // mounted to the cube's open shelf. The previous model was a short pipe
- // with a few unattached brown rods and discs; it did not read as an
- // optical instrument or show where either missing part belonged.
- //
- // This one has a continuous tube from the eyepiece to a flared objective,
- // a brass yoke, three legs *seated on the existing shelf*, a focus wheel,
- // and two separately supported optical sockets. The silver lens fits the
- // large front objective. The glass iris fits the smaller side port.
- // Both empty sockets are visible without revealing the solution.
+ // Compact upward-facing observatory: a balanced brass yoke on the cube's
+ // top rail replaces the bulky horizontal tripod. Its two removable optics
+ // stay in separate, visible, physically connected sockets.
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  {
   const g=toy("telescope");
-  // Feet contact the miniature's narrow metal shelf. All three legs
-  // connect to the same central swivel, not a collection of loose sticks.
-  const footPositions=[[-.194,-.084,-.118],[.194,-.084,-.118],
-   [0,-.084,-.188]];
-  const joint=[0,.288,-.047];
-  for(const [x,y,z] of footPositions){
-   wire(g,[joint,[x*.44,.102,z*.48],[x,y,z]],.022,m.wood);
-   ball(g,.032,x,y,z,m.dark,[1.10,.66,1.15]);
-   C(g,.015,.036,x,y+.026,z,m.brass,"y");
+  // Low symmetrical foot intersects the real mount shelf.
+  B(g,.35,.046,.20,0,-.088,-.116,m.dark,.017);
+  B(g,.36,.017,.215,0,-.061,-.116,m.brass,.009);
+  for(const x of [-.116,.116]){
+   B(g,.036,.29,.058,x,.078,-.066,m.brass,.011);
+   C(g,.030,.025,x,-.054,-.066,m.gold,"x");
+   C(g,.042,.022,x,.235,-.035,m.gold,"x");
+   C(g,.020,.029,x,.235,-.035,m.dark,"x");
   }
-  // A captive brass gimbal and two side ears carry the weight of the
-  // telescope. The tube itself remains attached to this pivot.
-  C(g,.067,.028,0,.288,-.047,m.dark,"y");
-  C(g,.051,.037,0,.311,-.047,m.gold,"y");
-  B(g,.082,.143,.081,0,.371,-.047,m.brass,.015);
-  for(const x of [-.107,.107]){
-   B(g,.029,.097,.065,x,.421,-.047,m.gold,.008);
-   C(g,.022,.014,x,.460,-.047,m.dark,"x");
-  }
-  // The barrel reads as a telescope from ANY angle: long continuous
-  // tapered-looking stepped tube, narrow eyepiece, dark objective opening
-  // and raised machined end rings, instead of a cylinder pointing straight
-  // out of the panel. Its main optical axis is the local X axis.
+  // Physical pivot supports the short inclined optical barrel.
+  C(g,.044,.265,0,.235,-.035,m.dark,"x");
+  B(g,.091,.075,.100,0,.238,-.018,m.brass,.018);
   const tube=new THREE.Group();
-  tube.position.set(0,.465,-.047);
-  tube.rotation.z=.11; // small deliberate elevation
+  tube.position.set(0,.242,-.018);
+  tube.rotation.x=1.16; // skyward, not sideways
   g.add(tube);
-  C(tube,.095,.50,-.003,0,0,m.brass,"x");
-  C(tube,.087,.185,-.212,0,0,m.copper,"x");
-  for(const x of [-.245,.07,.222])
-   C(tube,.103,.023,x,0,0,m.gold,"x");
-  // Rear focusing drawtube and recognizable black eyepiece.
-  C(tube,.053,.133,-.305,0,0,m.dark,"x");
-  C(tube,.066,.038,-.362,0,0,m.gold,"x");
-  C(tube,.044,.056,-.401,0,0,m.dark,"x");
-  C(tube,.034,.011,-.435,0,0,m.black,"x");
-  // Objective bell and genuine *empty* lens seat.
-  C(tube,.119,.082,.267,0,0,m.gold,"x");
-  C(tube,.128,.026,.304,0,0,m.brass,"x");
-  C(tube,.105,.010,.321,0,0,m.black,"x");
-  torus(tube,.120,.010,.332,0,0,m.gold,"x");
-  telescopeLensGlass=C(tube,.103,.014,.339,0,0,m.glass,"x");
+  C(tube,.080,.34,0,-.004,0,m.brass);
+  C(tube,.068,.133,0,-.120,0,m.copper);
+  for(const y of [-.146,.016,.115])C(tube,.086,.019,0,y,0,m.gold);
+  C(tube,.046,.086,0,-.216,0,m.dark);
+  C(tube,.056,.023,0,-.256,0,m.gold);
+  C(tube,.031,.037,0,-.282,0,m.black);
+  C(tube,.103,.052,0,.175,0,m.gold);
+  C(tube,.096,.018,0,.209,0,m.black);
+  torus(tube,.099,.010,0,.224,0,m.gold,"y");
+  telescopeLensGlass=C(tube,.080,.012,0,.225,0,m.glass);
   telescopeLensGlass.visible=false;
-  // Focus knob on top, with a physical stem right into the barrel.
-  B(tube,.046,.072,.051,-.090,.098,0,m.brass,.010);
-  C(tube,.058,.027,-.090,.148,0,m.dark,"y");
-  C(tube,.044,.031,-.090,.166,0,m.gold,"y");
-  for(const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5])
-   ball(tube,.009,-.090+Math.cos(angle)*.034,.184,
-    Math.sin(angle)*.034,m.dark);
-  // Secondary iris is in an intentional SIDE SERVICE PORT, not a floating
-  // circular badge. Solid support reaches the tube at z≈+.09.
-  B(tube,.100,.074,.116,.095,.010,.085,m.brass,.014);
-  C(tube,.063,.034,.095,.010,.145,m.dark,"z");
-  C(tube,.056,.019,.095,.010,.168,m.black,"z");
-  torus(tube,.061,.009,.095,.010,.180,m.gold,"z");
-  telescopeIrisGlass=C(tube,.047,.012,.095,.010,.187,m.glass,"z");
+  // Captive focus wheel and a supported secondary optic.
+  C(tube,.026,.054,.099,-.063,0,m.brass,"x");
+  C(tube,.049,.019,.126,-.063,0,m.dark,"x");
+  torus(tube,.044,.007,.138,-.063,0,m.gold,"x");
+  B(tube,.095,.075,.095,0,.026,.085,m.brass,.012);
+  C(tube,.056,.020,0,.026,.133,m.dark,"z");
+  C(tube,.049,.015,0,.026,.149,m.black,"z");
+  torus(tube,.053,.008,0,.026,.161,m.gold,"z");
+  telescopeIrisGlass=C(tube,.039,.011,0,.026,.163,m.glass,"z");
   telescopeIrisGlass.visible=false;
  }
  // Working railroad carriage: continuous track, ties, locomotive wheels
@@ -633,12 +605,6 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const modelSupports=[];
  const modelBases=[];
  for(const [name,item] of items){
-  if(name==="telescope"){
-   // Its three independently modeled tripod feet physically touch the
-   // same shelf; adding a center pole would ruin the telescope silhouette.
-   modelBases.push({name,method:"tripod",toy:item.toy,lowest:-.105});
-   continue;
-  }
   const toy=item.toy;
   toy.updateWorldMatrix(true,true);
   const toToy=toy.matrixWorld.clone().invert();
