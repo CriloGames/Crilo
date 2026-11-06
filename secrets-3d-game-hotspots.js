@@ -126,6 +126,21 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  function C(g,r,d,x,y,z,m){
   const a=cylinder(g,r,d,x,y,z,m);a.castShadow=false;count++;return a;
  }
+ // Physically retained stationary assemblies. A Three.js parent link
+ // is not a mechanical support; these cross the enamel at z=.0725.
+ // The intentionally hovering red-button index and portal are excluded.
+ const fixedMounts=[];
+ function seatFixture(face,name,x,y,rearZ,r=.065,baseZ=.060){
+  const tipZ=rearZ+.016;
+  if(tipZ<=baseZ)throw Error("Invalid hardware depth for "+name);
+  const stem=C(face,r,tipZ-baseZ,x,y,(tipZ+baseZ)/2,graphite);
+  stem.userData.mechanicalMount=true;
+  const foot=C(face,r*1.45,.022,x,y,.083,nickel);
+  const cap=C(face,r*1.10,.018,x,y,rearZ,brass);
+  fixedMounts.push({name,face:faceName(face),stem,foot,cap,
+   baseZ,tipZ,rearZ});
+  return stem;
+ }
  function control(face,name,x,y,color=brass,size=.115){
   const radius=["dot","pressure","dent","eye-ring","foot","underside"].includes(name)
    ?Math.max(.14,size*1.35):size*1.2;
@@ -261,6 +276,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // main lens or in an unrelated cube offering button.
  // The slim left rail lies between SERIAL, LATCH and the optical bezel.
  reserve(frontFace,"cog service hatch",-1.15,.56,.34,.32);
+ seatFixture(frontFace,"cog service cassette",-1.15,.56,.171,.087);
  const cogPort=node(frontFace,-1.15,.56,.19);
  C(cogPort,.168,.035,0,0,0,nickel);
  C(cogPort,.132,.021,0,0,.027,graphite);
@@ -282,6 +298,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // than directly through its upper brass rim and decorative inscription.
  tab(frontFace,"serial",-.99,.96,nickel,.38,.10);
  // Raised center receiver, used both to inspect and to offer objects.
+ seatFixture(frontFace,"optic offering receiver",0,.59,.490,.045,.265);
  const offering=node(frontFace,0,.59,.52);
  const symbol=C(offering,.13,.065,0,0,0,ivory);
  C(offering,.080,.072,0,0,.052,glass);
@@ -297,6 +314,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // were fake moving screwheads with no unlock effect, duplicated again by
  // the base model and confused with corner trim. Remove those click targets
  // entirely rather than pretending every decorative rivet is a mechanism.
+ seatFixture(rightFace,"service bolt socket",1.23,1.20,.121,.052);
  const serviceSocket=node(rightFace,1.23,1.20,.133);
  C(serviceSocket,.083,.019,0,0,0,graphite);
  C(serviceSocket,.060,.018,0,0,.015,nickel);
@@ -328,6 +346,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // Their shared hatch is tucked below the label, above the elevator mount,
  // and left of the gears, with a true recessed cavity under its shutter.
  // No flat reward screen or extra selectable fake vent.
+ for(const x of [-1.145,-.835])
+  seatFixture(leftFace,"vent grille bracket "+x,x,-.04,.129,.040);
  const ventHatch=node(leftFace,-.99,-.04,.155);
  B(ventHatch,.47,.26,.048,0,0,0,brass,.020);
  B(ventHatch,.393,.193,.024,0,0,.035,graphite,.016);
@@ -447,6 +467,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // eyeball inside two curved mechanical eyelids, a colored iris, a black
  // pupil and two real glass highlights. This is the sole clickable eye.
  reserve(backFace,"eye",0,-.18,1.48,.77);
+ for(const x of [-.47,.47])for(const y of [-.39,.03])
+  seatFixture(backFace,"rear eye bracket "+x+"/"+y,x,y,.199,.041);
  const eyeBody=node(backFace,0,-.18,.192);
  const eyeShape=new THREE.Shape();
  eyeShape.moveTo(-.68,0);
@@ -556,6 +578,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // The four-symbol sequence is engraved on a separate rear optical
  // cassette, hidden until the player calibrates the iris. Never print the
  // solution on the bag's own four metal wheels or on a hover tooltip.
+ for(const x of [-1.20,-.66])
+  seatFixture(backFace,"cipher retainer "+x,x,-1.25,.197,.039);
  const cipherMount=node(backFace,-.93,-1.25,.225);
  B(cipherMount,.86,.29,.082,0,0,0,graphite,.034);
  B(cipherMount,.80,.24,.032,0,0,.040,nickel,.025);
@@ -601,6 +625,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  setHit(cipherStrip,"cipher-strip");targets.set("cipher-strip",cipherStrip);
  cipherStrip.visible=false;
  const miniMoon=node(backFace,-.72,.42,.24);
+ // The hidden discovery and its support disappear as one assembly.
+ const moonStem=C(miniMoon,.068,.17,0,0,-.115,graphite);
+ moonStem.userData.mechanicalMount=true;
+ C(miniMoon,.085,.025,0,0,-.042,brass);
  C(miniMoon,.18,.085,0,0,0,ivory);
  for(const xy of [[-.05,.035],[.07,-.035]])C(miniMoon,.034,.015,xy[0],xy[1],.053,nickel);
  miniMoon.visible=false;
@@ -679,6 +707,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // red-button detent catches. The bell is a separate collectible seated
  // inside this port (created by the pickups module), not a black cube
  // mysteriously appearing on the red button's face.
+ seatFixture(bottomFace,"bell return cassette",0,-1.16,.107,.067);
  const bellPort=node(bottomFace,0,-1.16,.125);
  B(bellPort,.294,.237,.028,0,0,0,nickel,.016);
  B(bellPort,.229,.179,.017,0,0,.027,graphite,.009);
@@ -690,6 +719,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  return {
   count:()=>count,
   getClearanceViolations,
+  getFixedMountAudit:()=>fixedMounts.map(f=>({
+   name:f.name,face:f.face,
+   reachesEnamel:f.baseZ<=.0725,
+   meetsFixture:f.tipZ>=f.rearZ,
+   actualBottom:f.stem.position.z-f.stem.geometry.parameters.height/2,
+   actualTop:f.stem.position.z+f.stem.geometry.parameters.height/2,
+   seated:!!f.foot&&!!f.cap,
+   actionRegistered:!!f.stem.userData.action
+  })),
   getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   getDentedCopperShape:()=>{
