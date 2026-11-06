@@ -385,10 +385,24 @@ export function buildIntricateCube({
   let mazeWallCount=0;
   const sectorWidth=Math.PI*2/mazeSectorCount;
   function wallSegment(x1,y1,x2,y2){
-   // Center of the wall, 0.02 units above the dark channel. A flat
-   // machined beam is fast to render and respects the actual graph.
+   // Short radial partitions are solid graphite ribs, seated directly
+   // against the ivory plate. No detached floating labels or screws.
    const o=flatLine(wheelA,x1,y1,x2,y2,.170,.007,wallColor);
-   o.castShadow=false;
+   o.castShadow=false;mazeWallCount++;
+  }
+  function circularWall(radius,first,last){
+   // Unlike a single rectangular chord, this metal rib follows the
+   // actual concentric circle. This is what gives the panel its fine
+   // classical labyrinth appearance, even when viewed at an angle.
+   const points=Array.from({length:9},(_,k)=>{
+    const a=first+(last-first)*k/8;
+    return new THREE.Vector3(Math.cos(a)*radius,
+     Math.sin(a)*radius,.164);
+   });
+   const curve=new THREE.CatmullRomCurve3(points,false,"centripetal",.12);
+   const rib=new THREE.Mesh(new THREE.TubeGeometry(
+    curve,18,.0037,6,false),wallColor);
+   rib.castShadow=false;wheelA.add(rib);detailsCount++;
    mazeWallCount++;
   }
   for(let ringIndex=0;ringIndex<mazeRingCount;ringIndex++){
@@ -414,8 +428,7 @@ export function buildIntricateCube({
       const r=radius+mazeRingPitch/2;
       const a0=mazeEntranceAngle+(sector-.35)*sectorWidth;
       const a1=mazeEntranceAngle+(sector+.35)*sectorWidth;
-      wallSegment(Math.cos(a0)*r,Math.sin(a0)*r,
-       Math.cos(a1)*r,Math.sin(a1)*r);
+      circularWall(r,a0,a1);
      }
     }
    }
