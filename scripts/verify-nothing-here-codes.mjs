@@ -95,9 +95,34 @@ assert.deepEqual(physicalGearSteps,gearSteps,
 assert(gearSteps.length>=29&&
  gearSteps.filter((v,i)=>i>0&&v!==gearSteps[i-1]).length>=5,
  'The maze needs at least six genuine lanes and five directional switchbacks');
-assert(details.includes('new THREE.TubeGeometry(grooveCurve')&&
+assert(details.includes('const grooveCurve=new THREE.CurvePath();')&&
+ details.includes('new THREE.TubeGeometry(\n   grooveCurve,')&&
  details.includes('getGearMazeTargets:')&&details.includes('getGearMazeAssembly:'),
  'The meshed gears need a visible continuous groove, follower and touch targets');
+
+// The player needs meaningful false routes, not merely a prettier spiral.
+// Every groove is carved from the same physical spline that positions its
+// captive pin. This prevents GSAP's old independent x/y tweens from taking
+// diagonal shortcuts across solid brass.
+assert(details.includes('const deadEndCurves=new Map();')&&
+ details.includes('mazeJunctions.push(junction);')&&
+ details.includes('const blind=Array.from({length:17}')&&
+ details.includes('const mazeTravel={index:0,branch:0};')&&
+ details.includes('const channelPoint=pointOnTrack(mazeTravel.index,')&&
+ details.includes('onUpdate:seatFollower,onComplete:seatFollower')&&
+ details.includes('const grooveSegments=[];')&&
+ !details.includes('pose(follower,"position","x"')&&
+ !details.includes('pose(follower,"position","y"'),
+ 'A real 3D maze needs five reachable dead ends and a spline-bound pin');
+const gameJunctions=digits(match(logic,
+ /const GEAR_MAZE_JUNCTIONS=\[([^\]]+)\]/,'working dead-end junctions'));
+assert.deepEqual(gameJunctions,[4,9,14,19,24],
+ 'The playable forks do not meet the engraved lane crossovers');
+assert(logic.includes('s.gearMazeBranch=1;')&&
+ logic.includes('else if(dir===-forward&&beforeBranch<2)s.gearMazeBranch++;')&&
+ logic.includes('if(moved)s.gearMazeTurns=clamp(')&&
+ logic.includes('s.gearMazeBranch=0;'),
+ 'A wrong gear must enter a captive blind route and physically stop at its tip');
  // The final carved groove must enter the real, raised release rail after
  // the wheel's last turn. Otherwise the player sees two unrelated devices.
 const gearOrientation=Number(match(details,
