@@ -1305,7 +1305,7 @@ async function scanRealSurfaceCollisions(){
  // Load the larger BVH package ONLY for the opt-in structural inspector.
  // Normal visitors and the standalone preview have no additional load.
  scene.updateMatrixWorld(true);
- const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=2");
+ const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=3");
  const rewards=new Map();
  for(const [id,root] of physicalPickups?.targets||[])
   rewards.set(id,root.userData.pickupModel||root);
@@ -1415,6 +1415,7 @@ if(debugging3D){
   try{
    const result=await scanRealSurfaceCollisions();
    statusLine.textContent=result.totalIntersections+" confirmed mesh crossings · "+
+    result.mechanismPairsTested+" hardware pairs · "+
     result.broadPhasePairs+" bounding candidates"+
     (result.truncated?" · scan limit reached":"");
    console.info("Nothing Here detailed 3D surface report",result);
