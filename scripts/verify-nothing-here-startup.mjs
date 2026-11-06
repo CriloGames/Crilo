@@ -75,6 +75,7 @@ try{
     const view=window.__nothing3DPreview;
     const canvas=document.querySelector("#stage canvas");
     const state=window.CriloNothingHereCube?.getState?.();
+    const attachments=view?.physicalAttachmentAudit;
     return {
      ready:view?.ready===true,
      physical:document.body.classList.contains("nc-physical-ready"),
@@ -84,6 +85,13 @@ try{
      canvas:!!canvas&&canvas.width>0&&canvas.height>0,
      meshCount:view?.meshCount||0,
      mazeChannels:view?.physicalGearMaze?.networkChannels||0,
+     mounts:attachments?{
+      okay:attachments.okay,issues:attachments.issues,
+      wheels:attachments.wheels.length,fixed:attachments.fixed.length,
+      miniatures:attachments.miniatures.length,
+      frontLens:attachments.lens?.barrelRetained,
+      exceptions:attachments.intentionalExceptions
+     }:null,
      progress:state?{cell:state.gearMazeCell,solved:state.gearMazeSolved,
       played:state.gearMazePlayed}:null
     };
@@ -91,6 +99,10 @@ try{
    assert(result.ready&&result.physical&&!result.retry&&result.canvas&&
     result.meshCount>80&&result.mazeChannels>0,
     "The real WebGL game did not initialize: "+JSON.stringify(result));
+   assert(result.mounts?.okay&&result.mounts.wheels>=2&&
+    result.mounts.fixed>=12&&result.mounts.miniatures>=15&&
+    result.mounts.frontLens===true,
+    "Mechanical attachment QA failed: "+JSON.stringify(result.mounts));
    if(check.seed){
     assert.equal(result.progress?.cell,check.seed.gearMazeCell,
      "Loading the 3D scene corrupted the saved maze position");
