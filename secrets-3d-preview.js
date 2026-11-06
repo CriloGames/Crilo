@@ -581,7 +581,7 @@ function syncUndersideRing(ready,restoring){
 const intricate=buildIntricateCube({
  cube,faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  front,side,lidPivot,topHole,
- box,cylinder,label,setHit,mat,animate:(object,props,duration=.8)=>animate(object,props,duration),
+ box,cylinder,label,setHit,mat,animate:(object,props,duration=.8)=>animate(object,props,duration),invalidate,
  materials:{brass,metal,darkMetal,ivory,cavityMaterial,rubber},
  liveGame:embeddedGame
 });
