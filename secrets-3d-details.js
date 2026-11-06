@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import {gsap} from "gsap";
 import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
+import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=1";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
 // All coordinates below are local to their own solid cube face.
@@ -275,168 +276,16 @@ export function buildIntricateCube({
     mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],cell)));
   const startPoint=gearMazePoints[0],finishPoint=gearMazePoints.at(-1);
 
-  // An understated continuous inlay traces EVERY traversable channel,
-  // including dead ends. Unlike disconnected ornament, these are sampled
-  // from mazeEdgeCurves itself, the very curves used to animate the pin.
-  // One LineSegments draw keeps the extra detail inexpensive.
-  const guideCoordinates=[];
-  for(const curve of mazeEdgeCurves.values()){
-    const count=Math.max(6,Math.ceil(curve.getLength()*220));
-    for(let i=1;i<count;i++){
-      const a=curve.getPoint((i-1)/(count-1));
-      const b=curve.getPoint(i/(count-1));
-      guideCoordinates.push(a.x,a.y,.173,b.x,b.y,.173);
-    }
-  }
-  const guideGeometry=new THREE.BufferGeometry();
-  guideGeometry.setAttribute("position",
-    new THREE.Float32BufferAttribute(guideCoordinates,3));
-  const channelGuides=new THREE.LineSegments(guideGeometry,
-    new THREE.LineBasicMaterial({
-      color:0xac9270,transparent:true,opacity:.72,depthWrite:false
-    }));
-  channelGuides.frustumCulled=false;
-  mazePlate.add(channelGuides);detailsCount++;
-  // Clean ivory face with recessed ink-dark ENGRAVED BOUNDARIES.
-  // No black filled-in route ribbons, repeating squares or loose wire ends.
-  const mazeFace=mat(0xf5ead7,.43,.29);
-  const mazeWall=mat(0x292521,.22,.68);
-  const wallBevel=mat(0xd6c3a0,.4,.36);
-  const goalMetal=mat(0xe1aa52,.35,.27);
-  const goalLit=mat(0xffda94,.32,.2);
-  goalLit.emissive.setHex(0xac752a);goalLit.emissiveIntensity=.9;
-  mazeWall.emissive=new THREE.Color(0x080707);
-  // The ivory maze is fixed to its bearing plate. Only the meshed gear
-  // carrier underneath rotates when the black drive cog is dragged.
-  for(const a of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
-    C(mazePlate,.016,.077,Math.cos(a)*.327,
-      Math.sin(a)*.327,.076,steel);
-  C(mazePlate,.365,.034,0,0,.112,darkMetal);
-  C(mazePlate,.354,.024,0,0,.143,mazeFace);
-  C(mazePlate,.334,.012,0,0,.160,mazeFace);
-  ring(mazePlate,.358,.007,0,0,.161,brass);
-  ring(mazePlate,.375,.006,0,0,.132,steel);
-  ring(mazePlate,.389,.005,0,0,.124,brass);
-
-  let mazeWallCount=0;
-  const strokeWall=curve=>{
-    // A shallow warmer bevel below the charcoal ridge gives the look of
-    // a properly milled groove, while the 2mm-dark line stays razor crisp.
-    for(const [radius,z,material] of [
-      [.0055,.183,wallBevel],[.0028,.189,mazeWall]
-    ]){
-      const mesh=new THREE.Mesh(new THREE.TubeGeometry(
-        curve,Math.max(12,Math.round(curve.getLength()*240)),
-        radius,8,false),material);
-      mesh.position.z=z-.156;
-      mesh.castShadow=false;mazePlate.add(mesh);detailsCount++;
-    }
-    mazeWallCount++;
-  };
-  const radialWall=(angle,r0,r1)=>{
-    strokeWall(new THREE.LineCurve3(
-      new THREE.Vector3(r0*Math.cos(angle),r0*Math.sin(angle),.156),
-      new THREE.Vector3(r1*Math.cos(angle),r1*Math.sin(angle),.156)));
-  };
-  const curvedWall=(radius,a0,a1)=>{
-    // Array.from's mapper receives (value,index), not the result array.
-    // Compute count up front so wall segments always initialize correctly.
-    const count=Math.max(5,Math.ceil(Math.abs(a1-a0)*radius*150));
-    const points=Array.from({length:count},(_,i)=>{
-      const a=a0+(a1-a0)*i/(count-1);
-      return new THREE.Vector3(radius*Math.cos(a),radius*Math.sin(a),.156);
-    });
-    strokeWall(new THREE.CatmullRomCurve3(points,false,"centripetal",.14));
-  };
-  // Merge consecutive CLOSED radial sectors into long, flowing arc
-  // strokes. Rendering one little square per cell was the old visual bug.
-  function closedArcRuns(radius,blocked){
-    const firstOpen=blocked.findIndex(v=>!v);
-    if(firstOpen<0){
-      curvedWall(radius,mazeStartAngle,mazeStartAngle+Math.PI*2);
-      return;
-    }
-    const order=Array.from({length:mazeSectors},(_,i)=>
-      (firstOpen+1+i)%mazeSectors);
-    let run=[];
-    const flush=()=>{
-      if(!run.length)return;
-      // Leave a real ball-width opening at each radial gate. A one-sector
-      // notch at the innermost ring used to be narrower than the roller.
-      const wallTrim=.13;
-      const a0=mazeStartAngle+(run[0]-.48+wallTrim)*sectorWidth;
-      const a1=a0+(run.length-.04-2*wallTrim)*sectorWidth;
-      curvedWall(radius,a0,a1);run=[];
-    };
-    for(const sector of order){
-      if(blocked[sector])run.push(sector);
-      else flush();
-    }
-    flush();
-  }
-  // Seven detailed circular boundaries fill the inner and outer tracks, with
-  // openings only where the pin can actually traverse radially.
-  for(let r=0;r<mazeRings-1;r++){
-    const blocked=Array.from({length:mazeSectors},(_,k)=>
-      !openEdges.has(edgeKey(r*mazeSectors+k,
-        (r+1)*mazeSectors+k)));
-    closedArcRuns(mazeInnerRadius+(r+.5)*mazePitch,blocked);
-  }
-  // Staggered radial cross-walls. Rounded continuous curves, not boxes.
-  for(let r=0;r<mazeRings;r++)for(let k=0;k<mazeSectors;k++){
-    const a=r*mazeSectors+k;
-    const b=r*mazeSectors+(k+1)%mazeSectors;
-    if(openEdges.has(edgeKey(a,b)))continue;
-    const angle=mazeStartAngle+(k+.5)*sectorWidth;
-    const radius=mazeInnerRadius+r*mazePitch;
-    radialWall(angle,radius-mazePitch*.50,
-      radius+mazePitch*.50);
-  }
-  // The unique final approach must be wider than the captive ball.
-  // Its previous one-sector gate was narrower than the ball diameter.
-  const centerApproach=11;
-  const centerMouthAngle=mazeStartAngle+centerApproach*sectorWidth;
-  const centerMouthWidth=3.0*sectorWidth;
-  curvedWall(.050,centerMouthAngle+centerMouthWidth/2,
-    centerMouthAngle+Math.PI*2-centerMouthWidth/2);
-  // Rounded guide cheeks give the last radial move a visible funnel.
-  // Both stop short of the innermost lane to avoid blocking side travel.
-  for(const side of [-1,1]){
-    const angle=centerMouthAngle+side*sectorWidth*1.45;
-    radialWall(angle,.051,.065);
-  }
-
-  // The outer circle is continuous except for the clear entry notch at
-  // six o'clock. The captive roller remains constrained inside this rim.
-  const outerRimRadius=.338;
-  curvedWall(outerRimRadius,mazeStartAngle+sectorWidth*.37,
-    mazeStartAngle+Math.PI*2-sectorWidth*.37);
-  const entryArrow=new THREE.Shape();
-  entryArrow.moveTo(-.009,0);entryArrow.lineTo(.009,0);
-  entryArrow.lineTo(0,.014);entryArrow.closePath();
-  const entryMark=new THREE.Mesh(new THREE.ShapeGeometry(entryArrow),
-    goalMetal);
-  entryMark.position.set(startPoint.x,-.354,.188);
-  mazePlate.add(entryMark);detailsCount++;
-  // A real opening in the central brass collar lines up with the only
-  // permitted inner-ring mouth (sector 11). Never make the roller appear to
-  // pass through a solid ring at the goal.
-  const innerMouthAngle=centerMouthAngle;
-  const goalCollarGap=4*sectorWidth;
-  const goalSocket=new THREE.Mesh(new THREE.TorusGeometry(
-    .025,.003,8,64,Math.PI*2-goalCollarGap),goalMetal);
-  goalSocket.rotation.z=innerMouthAngle+goalCollarGap/2;
-  goalSocket.position.z=.186;
-  mazePlate.add(goalSocket);detailsCount++;
-  C(mazePlate,.022,.007,0,0,.173,ebony);
-
-  // Four small flush rivets on the carrier, not distracting fasteners
-  // scattered across the maze itself.
-  for(let i=0;i<4;i++){
-    const a=(i+.5)*Math.PI/2;
-    const x=.378*Math.cos(a),y=.378*Math.sin(a);
-    C(mazePlate,.009,.009,x,y,.147,steel);
-  }
+  // Walls and playable grooves share ONE connected geometry graph.
+  const {mazeWallCount,mazeRelief,goalSocket,goalMetal,goalLit,
+    centerMouthWidth,goalCollarGap,goalSector,added}=sculptMaze({
+    THREE,plate:mazePlate,C,ring,mat,
+    materials:{darkMetal,brass,steel,ebony},
+    openEdges,key:edgeKey,sectors:mazeSectors,rings:mazeRings,
+    innerRadius:mazeInnerRadius,pitch:mazePitch,
+    startAngle:mazeStartAngle
+  });
+  detailsCount+=added;
   // Improve the small drive gear: a visible center spindle, four radial
   // machined spokes and a dark knurled grip. It remains one clickable gear.
   C(wheelB,.163,.027,0,0,.107,darkMetal);
@@ -862,7 +711,7 @@ export function buildIntricateCube({
        grooveCount:gearMazePoints.length,
        grooveSegments:grooveSegments.length,
        mazeCellSize:mazePitch,
-       mazeStyle:"single-solution eight-ring circular labyrinth",
+       mazeStyle:"continuous six-ring circular labyrinth",
        networkCells:mazeGraph.size,
        networkChannels:mazeEdgeCurves.size,
        extraConnections:mazeEdgeCurves.size-mazeGraph.size+1,
@@ -877,7 +726,11 @@ export function buildIntricateCube({
        centerMouthWidth,
        goalCollarGap,
        ballRadius:.0084,
-       guidedSegments:guideCoordinates.length/6,
+       guidedSegments:0,
+       visibleBlockedEdges:mazeRelief.blockedEdges,
+       wallMeshes:mazeRelief.wallLayers,
+       mouthSector:goalSector,
+       entranceSector:0,
        exitApproaches:mazeGraph.get(mazeGoal)?.size||0,
        uniqueSolution:mazeEdgeCurves.size===mazeGraph.size-1,
        physicalChannelConnected:true,
