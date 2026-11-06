@@ -151,7 +151,7 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
 for(const expected of [
- '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.08]',
+ '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.14]',
  'item.stand.visible=false;',
  'item.fixture.position.z=.060;',
  'item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");',
@@ -177,7 +177,10 @@ assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
  preview.includes('cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
  finish.includes('if(face===topFace&&s===-1){')&&
- finish.includes('B(face,.90,.030,.041,side*.84,-1.22,.105,accent,.012);'),
+ finish.includes('torus(face,goldR,.014,0,domeY,.105,accent);')&&
+ finish.includes('torus(face,inkR,.005,0,domeY,.13,deep);')&&
+ finish.includes('const goldJoin=Math.sqrt(goldR**2-(goldY-domeY)**2);')&&
+ finish.includes('const inkJoin=Math.sqrt(inkR**2-(inkY-domeY)**2);'),
  "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
 assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  !worlds.includes('modelBases.push({name,method:"tripod"')&&
