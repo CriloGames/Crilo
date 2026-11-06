@@ -267,9 +267,9 @@ export function buildIntricateCube({
     mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],c)));
   const startPoint=gearMazePoints[0],finishPoint=gearMazePoints.at(-1);
   const mazeFace=mat(0xe9dec9,.44,.29);
-  const mazeInset=mat(0x22282f,.40,.39);
+  const mazeInset=mat(0x282d33,.40,.39);
   const channelLip=mat(0xb69c74,.55,.34);
-  const mazeWall=mat(0xf4e9d5,.43,.27);
+  const mazeWall=mat(0xf4ead7,.43,.27);
   const goalMetal=mat(0xf1c679,.38,.24);
   const goalLit=mat(0xffe5a1,.28,.20);
   goalLit.emissive.setHex(0xa76723);goalLit.emissiveIntensity=1.15;
@@ -285,35 +285,64 @@ export function buildIntricateCube({
   ring(mazePlate,.357,.010,0,0,.161,brass);
   ring(mazePlate,.373,.006,0,0,.132,steel);
   ring(mazePlate,.388,.006,0,0,.123,brass);
-  // Mill the *actual open edges* into the ivory plate. A curved edge is
-  // sampled as a true circular arc, never a straight shortcut across rings.
-  for(const edge of mazeEdgeCurves.values()){
-    const lip=new THREE.Mesh(new THREE.TubeGeometry(
-      edge,14,.013,6,false),channelLip);
-    lip.position.z=.018;lip.castShadow=false;mazePlate.add(lip);detailsCount++;
-    const trench=new THREE.Mesh(new THREE.TubeGeometry(
-      edge,14,.0105,7,false),mazeInset);
-    trench.position.z=.023;trench.castShadow=false;
-    mazePlate.add(trench);detailsCount++;
+  // The reference artwork uses thick sculptural ivory walls over deep,
+  // nearly-black machined passages. Flat ribbons instead of thin tubes make
+  // the channel floor continuous; circular joints eliminate detached chips.
+  // A softly darker border hints at a bevel without tracing the answer.
+  const trenchBevel=mat(0x655444,.55,.36);
+  const channelDark=mat(0x1d2227,.40,.43);
+  function carvedRibbon(curve,width,z,material){
+    const points=curve.getPoints(18);
+    const left=[],right=[];
+    for(let i=0;i<points.length;i++){
+      const p=points[i],prev=points[Math.max(0,i-1)],
+        next=points[Math.min(points.length-1,i+1)];
+      const dx=next.x-prev.x,dy=next.y-prev.y,
+        length=Math.hypot(dx,dy)||1;
+      const ox=-dy/length*width/2,oy=dx/length*width/2;
+      left.push([p.x+ox,p.y+oy]);
+      right.push([p.x-ox,p.y-oy]);
+    }
+    const shape=new THREE.Shape();
+    shape.moveTo(left[0][0],left[0][1]);
+    for(let i=1;i<left.length;i++)shape.lineTo(...left[i]);
+    for(let i=right.length-1;i>=0;i--)shape.lineTo(...right[i]);
+    shape.closePath();
+    const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shape),material);
+    mesh.position.z=z;
+    mesh.castShadow=false;
+    mazePlate.add(mesh);detailsCount++;
+    return mesh;
+  }
+  for(const curve of mazeEdgeCurves.values()){
+    carvedRibbon(curve,.034,.178,trenchBevel);
+    carvedRibbon(curve,.028,.180,channelDark);
   }
   for(const cell of mazeGraph.keys()){
     const p=mazeCellPoint(cell);
-    C(mazePlate,cell===mazeGoal?.029:.011,.006,p.x,p.y,.178,mazeInset);
+    const junction=new THREE.Mesh(new THREE.CircleGeometry(.017,22),
+      trenchBevel);
+    junction.position.set(p.x,p.y,.178);
+    junction.castShadow=false;mazePlate.add(junction);detailsCount++;
+    const floor=new THREE.Mesh(new THREE.CircleGeometry(
+      cell===mazeGoal?.030:.0145,24),channelDark);
+    floor.position.set(p.x,p.y,.181);
+    floor.castShadow=false;mazePlate.add(floor);detailsCount++;
   }
   const openEdges=new Set(mazeEdgeCurves.keys());
   let mazeWallCount=0;
   const sectorWidth=Math.PI*2/mazeSectors;
   const radialWall=(a,r0,r1)=>{
     const o=flatLine(mazePlate,r0*Math.cos(a),r0*Math.sin(a),
-      r1*Math.cos(a),r1*Math.sin(a),.186,.0085,mazeWall);
+      r1*Math.cos(a),r1*Math.sin(a),.191,.019,mazeWall);
     o.castShadow=false;mazeWallCount++;
   };
   const curvedWall=(radius,a0,a1,material=mazeWall)=>{
     const arc=new THREE.ArcCurve(0,0,radius,a0,a1,false);
-    const points=arc.getPoints(10).map(p=>new THREE.Vector3(p.x,p.y,.183));
+    const points=arc.getPoints(14).map(p=>new THREE.Vector3(p.x,p.y,.192));
     const mesh=new THREE.Mesh(new THREE.TubeGeometry(
       new THREE.CatmullRomCurve3(points,false,"centripetal",.16),
-      20,.0055,7,false),material);
+      26,.010,8,false),material);
     mesh.castShadow=false;mazePlate.add(mesh);detailsCount++;mazeWallCount++;
   };
   for(let r=0;r<mazeRings;r++)for(let k=0;k<mazeSectors;k++){
@@ -410,8 +439,8 @@ export function buildIntricateCube({
     // Small inlaid chevrons on the existing bezel, not extra buttons.
     const indicator=group(meter,0,cy,.095);
     for(const sign of [-1,1])
-      flatLine(indicator,sign*.013,top?-.008:.008,
-        0,top?.008:-.008,.002,.003,brass);
+      flatLine(indicator,sign*.022,top?-.011:.011,
+        0,top?.018:-.018,.002,.004,brass);
   }
   radialDialTarget("maze-in",true);
   radialDialTarget("maze-out",false);
