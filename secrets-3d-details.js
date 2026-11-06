@@ -242,14 +242,13 @@ export function buildIntricateCube({
   // navigable maze. Players may circle, cross between rings, and approach
   // the goal by different routes. Only the final center aperture is the win.
   // All joins are adjacent polar cells, never diagonal shortcuts.
+  // Fewer open crossovers make real maze walls without losing
+  // multiple solutions or any of the 97 connected cells.
   const mazeExtraEdges=[
-   [62,78],[61,77],[43,59],[42,58],[41,57],[20,36],
-   [39,55],[58,74],[73,89],[19,35],[21,22],[78,79],
-   [17,18],[33,34],[64,65],[48,49],[27,28],[44,45],
-   [32,47],[62,63],[45,46],[67,68],[74,75],[38,39],
-   [42,43],[4,5],[19,20],[80,81],[81,82],
-   [75,91],[91,92],[92,93],[93,94],
-   [49,50],[50,51],[51,52],[59,60],[60,61]
+   [62,78],[17,18],[32,47],[4,5],
+   [80,81],[81,82],[75,91],[91,92],[92,93],[93,94],
+   [49,50],[50,51],[51,52],[59,60],[60,61],
+   [61,77],[42,58],[20,36],[19,35],[67,68]
   ];
   const mazeOrigin=80,mazeGoal=96;
   const mazeSectorCount=16;
@@ -325,9 +324,11 @@ export function buildIntricateCube({
   // polished edges. Dark lanes remain readable even at default zoom.
   // None of the walls is a separate loose prop: every channel mesh is
   // parented to the rotating brass wheel and shares its exact path.
-  const mazeFace=mat(0xbe9a68,.43,.28);
-  const mazeInset=mat(0x362d29,.44,.35);
-  const cutRim=mat(0xe5ca9b,.50,.23);
+  // Warm ivory and fine graphite walls evoke a traditional
+  // concentric maze, rather than a patchy brown schematic.
+  const mazeFace=mat(0xeee7d9,.42,.29);
+  const mazeInset=mat(0x25282d,.42,.35);
+  const cutRim=mat(0xd4b784,.50,.26);
   const goalMetal=mat(0xffd58e,.40,.21);
   const goalLit=mat(0xf9c467,.32,.24);
   goalLit.emissive.setHex(0xb87423);
@@ -380,13 +381,13 @@ export function buildIntricateCube({
   // Adjacent barriers stop short of each other; they never overlap and
   // they never intersect a playable groove.
   const openEdges=new Set(mazeEdgeCurves.keys());
-  const wallColor=mat(0xd2b483,.52,.27);
+  const wallColor=mat(0x262930,.41,.32);
   let mazeWallCount=0;
   const sectorWidth=Math.PI*2/mazeSectorCount;
   function wallSegment(x1,y1,x2,y2){
    // Center of the wall, 0.02 units above the dark channel. A flat
    // machined beam is fast to render and respects the actual graph.
-   const o=flatLine(wheelA,x1,y1,x2,y2,.170,.010,wallColor);
+   const o=flatLine(wheelA,x1,y1,x2,y2,.170,.007,wallColor);
    o.castShadow=false;
    mazeWallCount++;
   }
@@ -399,8 +400,8 @@ export function buildIntricateCube({
     if(!openEdges.has(edgeKey(cell,nextSector))){
      // Angular door blocked: short radial wall halfway between sectors.
      const a=mazeEntranceAngle+(sector+.5)*sectorWidth;
-     const r0=radius-(ringIndex===0?.003:.015);
-     const r1=radius+.015;
+     const r0=radius-(ringIndex===0?.003:.013);
+     const r1=radius+.013;
      wallSegment(Math.cos(a)*r0,Math.sin(a)*r0,
       Math.cos(a)*r1,Math.sin(a)*r1);
     }
@@ -411,8 +412,8 @@ export function buildIntricateCube({
       // the midpoint of the two rings. Avoid three overlapping wall
       // segments fighting one another at their shared endpoints.
       const r=radius+mazeRingPitch/2;
-      const a0=mazeEntranceAngle+(sector-.31)*sectorWidth;
-      const a1=mazeEntranceAngle+(sector+.31)*sectorWidth;
+      const a0=mazeEntranceAngle+(sector-.35)*sectorWidth;
+      const a1=mazeEntranceAngle+(sector+.35)*sectorWidth;
       wallSegment(Math.cos(a0)*r,Math.sin(a0)*r,
        Math.cos(a1)*r,Math.sin(a1)*r);
      }
@@ -480,40 +481,22 @@ export function buildIntricateCube({
   C(wheelB,.034,.021,0,0,.189,steel);
   const centerSlot=B(wheelB,.041,.007,.006,0,0,.203,ebony,.003);
   centerSlot.rotation.z=.43;
-  // A captive four-way mechanical selector beside the gear pair.
-  // Left/right traverse a ring; up/down move INWARD/OUTWARD between
-  // rings. These are real raycast buttons (not a floating HTML popup).
-  // The small and large gears also remain usable for ring rotation.
-  const mazePad=group(leftFace,.84,-.43,.130);
-  B(mazePad,.360,.370,.035,0,0,0,darkMetal,.028);
-  B(mazePad,.328,.338,.010,0,0,.025,metal,.025);
-  const mazePadButtons=new Map();
-  const padLayout=[
-   ["maze-in",0,.107,Math.PI/2],
-   ["maze-out",0,-.107,-Math.PI/2],
-   ["maze-ccw",-.105,0,Math.PI],
-   ["maze-cw",.105,0,0]
-  ];
-  for(const [name,x,y,angle] of padLayout){
-   const button=group(mazePad,x,y,.057);
-   B(button,.085,.075,.035,0,0,0,brass,.010);
-   // One fixed glyph assembly rotates as a whole. The arrowheads
-   // previously stayed on the right side even for the UP/DOWN keys.
-   const glyph=new THREE.Group();
-   glyph.rotation.z=angle;
-   button.add(glyph);
-   B(glyph,.033,.006,.007,-.004,0,.024,ebony,.002);
-   for(const side of [-1,1]){
-    const head=B(glyph,.019,.006,.007,.017,
-     side*.008,.024,ebony,.001);
-    head.rotation.z=side*.72;
+  // Integrated contact heads on the ACTUAL wheels; no separate keypad.
+  const wheelContacts=new Map();
+  function wheelContact(wheel,name,x,y,z,angle,radius=.023){
+   const touch=group(wheel,x,y,z);
+   C(touch,radius,.019,0,0,0,darkMetal);
+   C(touch,radius*.73,.008,0,0,.012,brass);
+   const glyph=new THREE.Group();glyph.rotation.z=angle;touch.add(glyph);
+   B(glyph,radius*.80,.0035,.003,-.002,0,.018,ebony,.001);
+   for(const sign of [-1,1]){
+    const head=B(glyph,radius*.46,.0035,.003,radius*.22,
+     sign*radius*.18,.018,ebony,.001);
+    head.rotation.z=sign*.65;
    }
-   if(liveGame)setHit(button,name);
-   mazePadButtons.set(name,button);
+   if(liveGame)setHit(touch,name);
+   wheelContacts.set(name,touch);
   }
-  // A recessed fixed bearing behind the cross ties the four inputs into
-  // the same miniature mechanism. It cannot be clicked independently.
-  C(mazePad,.021,.012,0,0,.034,steel);
   const follower=new THREE.Group();wheelA.add(follower);
   follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
   // The ball has a CELL, not a scripted progress counter. Its tween
@@ -593,6 +576,12 @@ export function buildIntricateCube({
    // The pair are two real input directions: turn one or the other gear.
    // Raycast geometry is registered only after all sculpted parts exist.
    setHit(wheelA,"gear-large");setHit(wheelB,"gear-small");
+   // Rim studs rotate with the gears; clicking the stud, not a
+   // detached controller, selects the desired route direction.
+   wheelContact(wheelA,"maze-ccw",-.374,0,.190,Math.PI,.023);
+   wheelContact(wheelA,"maze-cw",.374,0,.190,0,.023);
+   wheelContact(wheelB,"maze-in",0,.149,.223,Math.PI/2,.026);
+   wheelContact(wheelB,"maze-out",0,-.149,.223,-Math.PI/2,.026);
   }
   registries.gearMaze={follower,points:gearMazePoints,dialTongue,
    directions:gearMazeDirections,wheelA,wheelB};
@@ -871,7 +860,7 @@ export function buildIntricateCube({
     getNameplates:()=>nameplates.map(n=>({...n})),
     getGearMazeTargets:()=>({
       large:wheelA,small:wheelB,
-      directional:new Map(mazePadButtons)
+      directional:new Map(wheelContacts)
     }),
     getGearMazeAssembly:()=>({
       face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
@@ -885,6 +874,7 @@ export function buildIntricateCube({
       networkCells:mazeGraph.size,
       networkChannels:mazeEdgeCurves.size,
       extraConnections:mazeExtraEdges.length,
+      wheelTouchControls:[...wheelContacts.keys()],
       raisedWalls:mazeWallCount,
       exitReached:mazeTravel.to===mazeGoal&&mazeTravel.t>=.999,
       goalSocketOpen:true,
