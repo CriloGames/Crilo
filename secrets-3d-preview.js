@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=36";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=37";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=11";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=50";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=49";
@@ -919,10 +919,10 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"Large labyrinth wheel · rotate counterclockwise",
- "gear-small":"Small drive wheel · rotate clockwise",
- "maze-in":"Upper dial rim · move toward center",
- "maze-out":"Lower dial rim · move toward outer edge",
+ "gear-large":"Hold and turn the large wheel left",
+ "gear-small":"Hold and turn the small wheel right",
+ "maze-in":"Hold the dial rim and drag up or down",
+ "maze-out":"Hold the dial rim and drag up or down",
  "cube-offer":"Circular brass receiver",
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
@@ -1109,6 +1109,85 @@ function visibleKeyboardTargets(){
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
 
+// Turn the physical wheels with the mouse or finger instead of clicking
+// through fixed positions. Capture first so OrbitControls cannot rotate the
+// entire cube while the player is operating a visible wheel.
+const gearDragParts=intricate.getGearMazeTargets?.()||null;
+const gearDragActions=new Set(["gear-large","gear-small","maze-in","maze-out"]);
+let gearDrag=null;
+function endGearDrag(pointerId){
+ if(!gearDrag||pointerId!==gearDrag.pointerId)return false;
+ const id=gearDrag.pointerId;gearDrag=null;
+ controls.enabled=true;
+ if(renderer.domElement.hasPointerCapture?.(id))
+  renderer.domElement.releasePointerCapture(id);
+ renderer.domElement.style.cursor="grab";
+ invalidate();return true;
+}
+renderer.domElement.addEventListener("pointerdown",e=>{
+ if(!embeddedGame||e.button!==0)return;
+ if(gearDrag){endGearDrag(gearDrag.pointerId);return;}
+ if(window.CriloNothingHereCube?.getState?.().selected)return;
+ const action=pickVisibleAction(e.clientX,e.clientY);
+ if(!gearDragActions.has(action))return;
+ const root=action==="gear-large"?gearDragParts?.large:
+  action==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
+ if(!root)return;
+ scene.updateMatrixWorld(true);camera.updateMatrixWorld();
+ const p=root.getWorldPosition(new THREE.Vector3()).project(camera);
+ const rect=renderer.domElement.getBoundingClientRect();
+ const cx=rect.left+(p.x+1)*rect.width/2;
+ const cy=rect.top+(1-p.y)*rect.height/2;
+ const dx=e.clientX-cx,dy=e.clientY-cy;
+ gearDrag={pointerId:e.pointerId,action,cx,cy,
+  lastAngle:Math.atan2(dy,dx),lastX:e.clientX,lastY:e.clientY,
+  rim:Math.hypot(dx,dy)>13,remainder:0,steps:0};
+ controls.enabled=false;clickStart=null;
+ stopInspectTimer();clearKeyboardInspection();dismissTouchHint();clearHover();
+ renderer.domElement.setPointerCapture(e.pointerId);
+ renderer.domElement.style.cursor="grabbing";
+ e.preventDefault();e.stopImmediatePropagation();
+},true);
+renderer.domElement.addEventListener("pointermove",e=>{
+ const drag=gearDrag;
+ if(!drag||e.pointerId!==drag.pointerId)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(drag.action==="maze-in"||drag.action==="maze-out"){
+  // The dial's exposed rim is a vertical slide: UP advances inward;
+  // DOWN retracts outward. The pressure switch at its center stays a click.
+  drag.remainder=Math.max(-75,Math.min(75,
+   drag.remainder+drag.lastY-e.clientY));
+  drag.lastY=e.clientY;
+  for(let i=0;i<3&&Math.abs(drag.remainder)>=25;i++){
+   const inward=drag.remainder>0;
+   clickAction(inward?"maze-in":"maze-out");
+   drag.remainder+=inward?-25:25;drag.steps++;
+  }
+ }else{
+  const angle=Math.atan2(e.clientY-drag.cy,e.clientX-drag.cx);
+  const diff=Math.atan2(Math.sin(angle-drag.lastAngle),
+   Math.cos(angle-drag.lastAngle));
+  // When grabbing the center rather than the outer rim, horizontal
+  // movement provides a stable alternative to angular motion.
+  const delta=drag.rim?
+   (drag.action==="gear-large"?-diff:diff):
+   (e.clientX-drag.lastX)*(drag.action==="gear-large"?-1:1)/115;
+  drag.lastAngle=angle;drag.lastX=e.clientX;
+  drag.remainder=Math.max(0,Math.min(.68,drag.remainder+delta));
+  for(let i=0;i<3&&drag.remainder>=.245;i++){
+   clickAction(drag.action);drag.remainder-=.245;drag.steps++;
+  }
+ }
+ invalidate();
+},true);
+for(const eventName of ["pointerup","pointercancel","lostpointercapture"])
+ renderer.domElement.addEventListener(eventName,e=>{
+  if(!gearDrag||e.pointerId!==gearDrag.pointerId)return;
+  if(eventName!=="lostpointercapture"){
+   e.preventDefault();e.stopImmediatePropagation();
+  }
+  endGearDrag(e.pointerId);
+ },true);
 // Tab must leave keyboard inspection without leaving a stale halo on the box.
 renderer.domElement.addEventListener("blur",clearKeyboardInspection);
 renderer.domElement.addEventListener("pointerdown",e=>{
@@ -1486,6 +1565,7 @@ window.__nothing3DPreview={
  get finishMeshCount(){return finish.meshCount()},
  get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
+ get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
  get keyboardInspectionState(){return {
   count:keyboardTargets.length,
   selected:keyboardIndex>=0?keyboardTargets[keyboardIndex]?.action:null,
