@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import {gsap} from "gsap";
 import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
-import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=1";
+import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=2";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
 // All coordinates below are local to their own solid cube face.
@@ -398,7 +398,8 @@ export function buildIntricateCube({
     return mazeRouteCells[Math.round(i/29*(mazeRouteCells.length-1))];
   }
   C(follower,.005,.044,0,0,-.011,steel);
-  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0084,20,16),gold);
+  // Dark graphite ball stands clearly against the ivory face and brass goal.
+ const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0084,20,16),mat(0x121821,.23,.30));
   captiveBall.position.z=0;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
