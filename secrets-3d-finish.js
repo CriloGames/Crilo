@@ -113,43 +113,28 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // Two exposed inlaid leads curve gently toward the observatory,
-      // then bend DOWN through captive round bushings into the cube shell.
-      // Their tips finish BELOW the enamel skin (z=.0725), not abruptly
-      // in midair or draped across the sealed hemisphere.
+      // Straight parallel inlaid traces as on the original roof panel.
+      // They terminate cleanly inside four round, bolted entry bushings,
+      // instead of visibly curving or stopping abruptly near the dome.
+      // Both pairs stay outside the 0.315-radius dome socket at (0,-1.14).
       if(face===topFace&&s===-1){
-        const leads=[
-          {y:-1.22,z:.105,r:.014,paint:accent,
-           port:{x:.390,y:-1.185},
-           route:[
-            [1.29,-1.22,.105],[1.01,-1.22,.105],
-            [.77,-1.22,.105],[.62,-1.22,.105],
-            [.51,-1.208,.105],[.445,-1.19,.105],
-            [.416,-1.182,.100],[.401,-1.184,.082],
-            [.394,-1.185,.053],[.390,-1.185,.028]
-           ]},
-          {y:-1.125,z:.13,r:.005,paint:deep,
-           port:{x:.420,y:-1.060},
-           route:[
-            [1.20,-1.125,.13],[.96,-1.125,.13],
-            [.76,-1.125,.13],[.62,-1.118,.13],
-            [.535,-1.106,.13],[.477,-1.082,.13],
-            [.443,-1.067,.119],[.429,-1.062,.098],
-            [.423,-1.060,.065],[.420,-1.060,.028]
-           ]}
+        const traces=[
+          {y:-1.22,z:.105,width:.030,depth:.041,material:accent,
+           end:1.29,port:.390,round:.012},
+          {y:-1.125,z:.112,width:.010,depth:.016,material:deep,
+           end:1.20,port:.390,round:.004}
         ];
-        for(const lead of leads)for(const sign of [-1,1]){
-          path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),
-           lead.r,lead.paint);
-        }
-        // A single low-profile, cast-in wire-entry plate per side replaces
-        // the four exposed circular eyelets. The pair of traces passes
-        // through two narrow slots in each plate and disappears below the
-        // enamel surface. The plate reaches into the physical roof skin.
-        for(const sign of [-1,1]){
-          B(face,.093,.202,.024,sign*.405,-1.1225,.073,metal,.012);
-          B(face,.046,.014,.006,sign*.390,-1.185,.089,deep,.003);
-          B(face,.046,.014,.006,sign*.420,-1.060,.089,deep,.003);
+        for(const trace of traces)for(const sign of [-1,1]){
+          const begin=trace.port+.020;
+          B(face,trace.end-begin,trace.width,trace.depth,
+           sign*(trace.end+begin)/2,trace.y,trace.z,
+           trace.material,trace.round);
+          const x=sign*trace.port,y=trace.y;
+          // The line enters a continuous, recessed round ferrule with
+          // its bore anchored in the fixed enamel, not in the dome.
+          C(face,.027,.012,x,y,.076,metal);
+          C(face,.019,.010,x,y,.086,deep);
+          torus(face,.026,.005,x,y,.096,accent);
         }
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
