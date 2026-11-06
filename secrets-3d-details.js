@@ -299,7 +299,13 @@ export function buildIntricateCube({
   C(wheelA,.357,.037,0,0,.112,darkMetal);
   C(wheelA,.346,.026,0,0,.134,mazeInset);
   C(wheelA,.337,.013,0,0,.153,mazeFace);
-  ring(wheelA,.349,.009,0,0,.157,brass);
+  // A real gap in the retaining rim at twelve o'clock identifies the
+  // entrance. The ball is already captive inside the first short corridor.
+  const openEntryRim=new THREE.Mesh(new THREE.TorusGeometry(
+   .339,.009,8,72,Math.PI*2-.42),brass);
+  openEntryRim.position.z=.159;
+  openEntryRim.rotation.z=mazeEntranceAngle+.21;
+  wheelA.add(openEntryRim);detailsCount++;
   ring(wheelA,.363,.010,0,0,.103,steel);
   // Quietly countersunk casing screws. They sit outside ALL channels
   // and have smaller, darker heads than the former obvious gold studs.
@@ -320,6 +326,62 @@ export function buildIntricateCube({
    grooveCurve,routeSamples,.0067,8,false),ebony);
   channel.position.z=.005;channel.castShadow=false;
   wheelA.add(channel);detailsCount++;
+  // Real maze WALLS, not just painted dark lines: the closed edges of
+  // the polar cell graph become raised brass barriers. Leave a gap only
+  // where a physically traversable corridor connects adjacent cells.
+  // Adjacent barriers stop short of each other; they never overlap and
+  // they never intersect a playable groove.
+  const openEdges=new Set();
+  const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
+  function markRoute(cells){
+   for(let k=1;k<cells.length;k++)
+    openEdges.add(edgeKey(cells[k-1],cells[k]));
+  }
+  markRoute(mazeRouteCells);
+  mazeJunctions.forEach((step,i)=>
+   markRoute([mazeRouteCells[mazeStepMarks[step]],...mazeBlindCells[i]]));
+  const wallColor=mat(0xd2b483,.52,.27);
+  let mazeWallCount=0;
+  const sectorWidth=Math.PI*2/mazeSectorCount;
+  function wallSegment(x1,y1,x2,y2){
+   // Center of the wall, 0.02 units above the dark channel. A flat
+   // machined beam is fast to render and respects the actual graph.
+   const o=flatLine(wheelA,x1,y1,x2,y2,.181,.010,wallColor);
+   o.castShadow=false;
+   mazeWallCount++;
+  }
+  for(let ringIndex=0;ringIndex<mazeRingCount;ringIndex++){
+   const radius=mazeInnerRadius+ringIndex*mazeRingPitch;
+   for(let sector=0;sector<mazeSectorCount;sector++){
+    const cell=ringIndex*mazeSectorCount+sector;
+    const nextSector=ringIndex*mazeSectorCount+
+     (sector+1)%mazeSectorCount;
+    if(!openEdges.has(edgeKey(cell,nextSector))){
+     // Angular door blocked: short radial wall halfway between sectors.
+     const a=mazeEntranceAngle+(sector+.5)*sectorWidth;
+     const r0=radius-.017,r1=radius+.017;
+     wallSegment(Math.cos(a)*r0,Math.sin(a)*r0,
+      Math.cos(a)*r1,Math.sin(a)*r1);
+    }
+    if(ringIndex+1<mazeRingCount){
+     const nextRing=cell+mazeSectorCount;
+     if(!openEdges.has(edgeKey(cell,nextRing))){
+      // Radial door blocked: short curved brass wall across the ray.
+      // Split the circular span into three tiny sections. The gaps
+      // between neighboring separator walls prevent mesh intersections.
+      const r=radius+mazeRingPitch/2;
+      const a0=mazeEntranceAngle+(sector-.375)*sectorWidth;
+      const a1=mazeEntranceAngle+(sector+.375)*sectorWidth;
+      for(let k=0;k<3;k++){
+       const a=a0+(a1-a0)*k/3;
+       const b=a0+(a1-a0)*(k+1)/3;
+       wallSegment(Math.cos(a)*r,Math.sin(a)*r,
+        Math.cos(b)*r,Math.sin(b)*r);
+      }
+     }
+    }
+   }
+  }
   for(const [junction,blind] of deadEndCurves){
    const branches=mazeBlindCells[mazeJunctions.indexOf(junction)];
    const border=new THREE.Mesh(new THREE.TubeGeometry(
@@ -721,6 +783,7 @@ export function buildIntricateCube({
       networkCells:mazeRouteCells.length,
       networkChannels:mazeRouteCells.length-1+
        mazeBlindCells.reduce((n,branch)=>n+branch.length,0),
+      raisedWalls:mazeWallCount,
       exitReached:Math.abs(mazeTravel.index-gearMazeDirections.length)<.00001,
       goalSocketOpen:true,
       branches:mazeJunctions.length,
