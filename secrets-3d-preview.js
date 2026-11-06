@@ -389,19 +389,28 @@ const hatchRacks=tubeRetainers.map((keeper,i)=>{
 // midway between the left and right lift struts. Its own rooted stalk
 // remains clear of the tube cradle and all rotating gears.
 const observatoryButtonBase=new THREE.Group();
-observatoryButtonBase.position.set(0,-.476,-.257);
+observatoryButtonBase.position.set(0,-.476,-.218);
 chamber.add(observatoryButtonBase);
 // The captive riser physically bridges the cavity floor (-.725) and
 // the button's backplate. A raised face without this would hover in air.
-cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);
+cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);
 cylinder(observatoryButtonBase,.104,.026,0,0,-.016,darkMetal);
-cylinder(observatoryButtonBase,.086,.027,0,0,.005,brass);
+// The rim lights up subtly after the tube clears the mechanical interlock.
+const observatorySwitchRim=brass.clone();
+observatorySwitchRim.emissive=new THREE.Color(0x85531b);
+observatorySwitchRim.emissiveIntensity=.025;
+cylinder(observatoryButtonBase,.086,.027,0,0,.005,observatorySwitchRim);
 const observatoryButtonCap=new THREE.Group();
 observatoryButtonCap.position.z=.034;
 observatoryButtonBase.add(observatoryButtonCap);
 // Slightly taller, brightly edged release cap to read as a usable part.
-cylinder(observatoryButtonCap,.069,.034,0,0,0,metal);
-cylinder(observatoryButtonCap,.055,.014,0,0,.026,ivory);
+cylinder(observatoryButtonCap,.075,.034,0,0,0,metal);
+cylinder(observatoryButtonCap,.059,.014,0,0,.026,ivory);
+// Invisible finger-sized capture collar is attached to the button cap.
+const observatoryHitPaint=new THREE.MeshBasicMaterial({
+ transparent:true,opacity:0,depthWrite:false,colorWrite:false
+});
+cylinder(observatoryButtonCap,.102,.012,0,0,.036,observatoryHitPaint);
 const moonCrest=new THREE.Mesh(new THREE.TorusGeometry(.030,.006,6,20,Math.PI*1.45),brass);
 moonCrest.position.set(.008,0,.042);observatoryButtonCap.add(moonCrest);
 objectCount++;
@@ -951,7 +960,7 @@ const controlNames={
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side drawer release button","drawer-b":"Red thread spool",
  hatch:"Hinged top panel",triangle:"Lid release button",
- "top-reed":"Hollow wooden tube","observatory-release":"Round brass release button",foot:"Rubber foot",
+ "top-reed":"Hollow wooden tube","observatory-release":"Observatory release button",foot:"Rubber foot",
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
@@ -2128,6 +2137,8 @@ window.__nothing3DPreview={
   looseSpool.visible=!!currentGameState.b&&!currentGameState.sideTaken;
   syncUndersideRing(!!currentGameState.bottom&&!currentGameState.ringTaken,restoring);
   if(gameHotspots)gameHotspots.setState(currentGameState);
+   observatorySwitchRim.emissiveIntensity=currentGameState.top&&
+    currentGameState.pipeTaken&&!currentGameState.observatoryRaised?.24:.025;
   originalPickupGlow?.tooth.setActive(looseKey.visible);
   originalPickupGlow?.thread.setActive(looseSpool.visible);
   originalPickupGlow?.pipe.setActive(
