@@ -385,6 +385,21 @@ const hatchRacks=tubeRetainers.map((keeper,i)=>{
   keeper.clip.position.y+railY-.032,-.465,darkMetal,.005);
  return rack;
 });
+// The roof lift is released by a real button INSIDE the hinged compartment.
+// It sits beside the wooden cradle, not in the gear/rack travel paths.
+const observatoryButtonBase=new THREE.Group();
+observatoryButtonBase.position.set(.608,-.482,-.366);
+chamber.add(observatoryButtonBase);
+cylinder(observatoryButtonBase,.112,.025,0,0,-.016,darkMetal);
+cylinder(observatoryButtonBase,.092,.028,0,0,.005,brass);
+const observatoryButtonCap=new THREE.Group();
+observatoryButtonCap.position.z=.023;observatoryButtonBase.add(observatoryButtonCap);
+cylinder(observatoryButtonCap,.072,.032,0,0,0,metal);
+cylinder(observatoryButtonCap,.052,.014,0,0,.023,ivory);
+const moonCrest=new THREE.Mesh(new THREE.TorusGeometry(.029,.006,6,20,Math.PI*1.45),brass);
+moonCrest.position.set(.008,0,.036);observatoryButtonCap.add(moonCrest);
+objectCount++;
+setHit(observatoryButtonCap,"observatory-release");
 const lidPivot=new THREE.Group();lidPivot.position.set(0,topHole.h/2,.15);topFace.add(lidPivot);
 box(lidPivot,topHole.w,topHole.h,.13,0,-topHole.h/2,0,enamel.top,.07);
 box(lidPivot,topHole.w-.19,topHole.h-.19,.038,0,-topHole.h/2,.082,ivory,.05);
@@ -726,6 +741,18 @@ function clickAction(action){
   return;
  }
  if(embeddedGame){
+  if(action==="observatory-release"){
+   if(!currentGameState.top)return;
+   if(!currentGameState.observatoryRaised){
+    gsap.killTweensOf(observatoryButtonCap.position);
+    observatoryButtonCap.position.z=-.014;
+    gsap.to(observatoryButtonCap.position,{z:.023,duration:.35,
+     ease:"back.out(2)",onUpdate:invalidate});
+   }
+   window.NothingHereAudio?.play?.("gear");
+   window.CriloNothingHereCube?.activatePhysical?.("observatory-release");
+   return;
+  }
   if(action.startsWith("pickup:")){
    window.CriloNothingHereCube?.activatePhysicalPickup?.(action.slice(7));
    return;
@@ -918,7 +945,7 @@ const controlNames={
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side drawer release button","drawer-b":"Red thread spool",
  hatch:"Hinged top panel",triangle:"Brass triangle",
- "top-reed":"Hollow wooden tube",foot:"Rubber foot",
+ "top-reed":"Hollow wooden tube","observatory-release":"Round brass release button",foot:"Rubber foot",
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
