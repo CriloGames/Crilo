@@ -344,8 +344,8 @@ const recentChanges=(Array.isArray(raw.recentChanges)?raw.recentChanges:[])
  .filter(entry=>entry&&typeof entry.id==='string'&&
   typeof entry.message==='string'&&entry.message.length<=230).slice(0,4);
 const itemInspections={
- tooth:'Its teeth look like part of a larger key.',
- ring:'A solid brass ring, shaped to fit around another piece.',
+ tooth:'A toothed shaft with a two-prong coupling. The handle is missing.',
+ ring:'A heavy brass ring with a small flat mounting lug.',
  thread:'A short spool of thread, good for tying something lightweight.',
  pipe:'A hollow tube with a gap for a reed.',
  reed:'A small reed that could vibrate inside a tube.',
