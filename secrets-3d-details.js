@@ -602,7 +602,7 @@ export function buildIntricateCube({
   // shutter remotely. That duplicate control had no physical linkage.
   let latchHandle=null;
   if(!liveGame){
-    const latch=group(leftFace,.99,-.44,.18);
+    const latch=group(leftFace,.98,-1.05,.18);
     B(latch,.26,.55,.13,0,0,.04,metal,.035);
     latchHandle=B(latch,.18,.12,.18,0,.10,.17,ivory,.035);
     setHit(latch,"service-latch");
