@@ -497,13 +497,16 @@ export function buildIntricateCube({
   for(const [name,x,y,angle] of padLayout){
    const button=group(mazePad,x,y,.057);
    B(button,.085,.075,.035,0,0,0,brass,.010);
-   // An inset arrow, made of three connected machined strokes.
-   const shaft=B(button,.034,.006,.007,-.003,0,.024,ebony,.002);
-   shaft.rotation.z=angle;
+   // One fixed glyph assembly rotates as a whole. The arrowheads
+   // previously stayed on the right side even for the UP/DOWN keys.
+   const glyph=new THREE.Group();
+   glyph.rotation.z=angle;
+   button.add(glyph);
+   B(glyph,.033,.006,.007,-.004,0,.024,ebony,.002);
    for(const side of [-1,1]){
-    const head=B(button,.018,.005,.007,.022,
-     side*.010,.024,ebony,.001);
-    head.rotation.z=angle+side*.66;
+    const head=B(glyph,.019,.006,.007,.017,
+     side*.008,.024,ebony,.001);
+    head.rotation.z=side*.72;
    }
    if(liveGame)setHit(button,name);
    mazePadButtons.set(name,button);
