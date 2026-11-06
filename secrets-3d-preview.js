@@ -601,18 +601,16 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat,animate,invalidate
 }):null;
-// The white labyrinth face is stationary. The black pinion drives the
-// exposed toothed brass carrier, while dragging the white face guides
-// the captive pin left/right without rotating the engraved maze itself.
+// The white maze is a fixed inspection surface. Only the black drive cog
+// controls angular movement; the dial rim still shifts the ball radially.
 if(gameHotspots){
  const gears=intricate.getGearMazeTargets?.();
  if(gears){
   gameHotspots.targets.set("gear-large",gears.large);
   gameHotspots.targets.set("gear-small",gears.small);
   gameHotspots.actions.push("gear-large","gear-small");
-  // Real tactile points built directly into each gear: the large
-  // labyrinth wheel controls ring travel, and the small gear's two
-  // exposed surface halves select vertical travel. No separate maze keypad.
+  // The white labyrinth is inspection-only. The black cog turns the carrier
+  // while the existing dial rim controls radial movement.
   for(const [action,part] of gears.directional||[]){
    gameHotspots.targets.set(action,part);
    gameHotspots.actions.push(action);
@@ -710,14 +708,15 @@ let lastClickedAction=null;
 // Physical casing, drawers and the lid are passive inspection targets.
 // The moving parts may ONLY respond to their distinct mechanical actuators.
 // This also applies in the standalone 3D preview: no press-to-open shortcut.
-const passiveSurfaces=new Set(["front","side","hatch"]);
+const passiveSurfaces=new Set(["front","side","hatch","gear-large"]);
 function inspectPassiveSurface(action){
  window.NothingHereAudio?.play?.("tap");
  if(embeddedGame)window.CriloNothingHereCube?.inspectPhysicalSurface?.(action);
  else announce({
   front:"The drawer is held by a separate mechanical catch.",
   side:"The side compartment is retained by its release.",
-  hatch:"The lid is secured by its upper latch."
+  hatch:"The lid is secured by its upper latch.",
+  "gear-large":"The maze face stays still. Turn the black drive cog to move the captive ball."
  }[action]);
 }
 function clickAction(action){
@@ -923,7 +922,7 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"White maze ← →",
+ "gear-large":"White maze",
  "gear-small":"Black drive cog ← →",
  "maze-in":"Dial rim ↑ ↓",
  "maze-out":"Dial rim ↑ ↓",
@@ -1117,7 +1116,7 @@ function visibleKeyboardTargets(){
 // through fixed positions. Capture first so OrbitControls cannot rotate the
 // entire cube while the player is operating a visible wheel.
 const gearDragParts=intricate.getGearMazeTargets?.()||null;
-const gearDragActions=new Set(["gear-large","gear-small","maze-in","maze-out"]);
+const gearDragActions=new Set(["gear-small","maze-in","maze-out"]);
 let gearDrag=null;
 function endGearDrag(pointerId){
  if(!gearDrag||pointerId!==gearDrag.pointerId)return false;
@@ -1134,8 +1133,7 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  if(window.CriloNothingHereCube?.getState?.().selected)return;
  const action=pickVisibleAction(e.clientX,e.clientY);
  if(!gearDragActions.has(action))return;
- const root=action==="gear-large"?gearDragParts?.large:
-  action==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
+ const root=action==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
  if(!root)return;
  scene.updateMatrixWorld(true);camera.updateMatrixWorld();
  const p=root.getWorldPosition(new THREE.Vector3()).project(camera);
@@ -1172,12 +1170,9 @@ renderer.domElement.addEventListener("pointermove",e=>{
   const angle=Math.atan2(e.clientY-drag.cy,e.clientX-drag.cx);
   const diff=Math.atan2(Math.sin(angle-drag.lastAngle),
    Math.cos(angle-drag.lastAngle));
-  // The WHITE labyrinth is a stationary guide: either drag direction
-  // moves its captive pin left/right around an open curved lane. The BLACK
-  // cog turns the toothed carrier underneath, in the opposite physical
-  // direction because the two gears mesh. Reversing a drag must reverse
-  // the pin immediately; never clamp the gesture to one direction.
-  const driveSign=drag.action==="gear-small"?-1:1;
+  // Only the black drive cog can initiate this angular movement.
+  // Dragging the fixed white maze cannot start a gear movement.
+  const driveSign=-1;
   const delta=drag.rim?
    diff*driveSign:(e.clientX-drag.lastX)*driveSign/115;
   drag.lastAngle=angle;drag.lastX=e.clientX;
