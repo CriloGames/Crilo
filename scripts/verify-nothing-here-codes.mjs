@@ -207,7 +207,7 @@ assert(!worlds.includes('const parapetOutline=new THREE.Shape();')&&
 // The roof's equator, its metal socket and the telescope all stay fixed.
 assert(worlds.includes('domeSeamHeight:items.get("telescope")?.fixture.position.z+')&&
  worlds.includes('roofShell.position.z=OBSERVATORY_SEAM;g.add(roofShell);')&&
- worlds.includes('C(g,.256,.052,0,0,-.018,m.dark,"z");')&&
+ worlds.includes('B(g,.572,.568,.022,0,0,.002,m.cream,.044);')&&
  preview.includes('observatoryButtonBase.position.set(0,-.476,-.218);')&&
  preview.includes('cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
