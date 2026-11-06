@@ -217,7 +217,7 @@ for(const must of [
  'const parapetOutline=new THREE.Shape();',
  'const wallGeometry=new THREE.ExtrudeGeometry(parapetOutline,{',
  'observatoryParapet=new THREE.Mesh(wallGeometry,m.cream);',
- 'const deck=mat(0xb9aea1,.12,.70);',
+ 'C(g,.268,.014,0,0,.019,mat(0xb9aea1,.12,.70),"z");',
  'const begin=thetaStart+travel,end=thetaEnd+travel;',
  'position.setXYZ(id,OBSERVATORY_RADIUS*nx,',
  'normal.setXYZ(id,nx,ny,nz);',
