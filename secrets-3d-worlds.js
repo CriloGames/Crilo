@@ -723,12 +723,32 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.rearCap=observatoryRearCap;
   item.instrument=observatoryScope;
  }
+ // The garage shutter follows the dome's SPHERICAL rails. Rigid X-axis
+ // rotation was slicing white panels through the telescope instead.
  const applyObservatoryRoll=()=>{
   const travel=observatoryShutter.progress*OBSERVATORY_TRAVEL;
-  for(const {panel,thetaStart} of observatoryPanels){
-   panel.rotation.x=-travel;
-   // Moving slats wind under the short rear cap and are hidden there.
-   panel.visible=thetaStart+travel<OBSERVATORY_REAR;
+  for(const {panel,thetaStart,thetaEnd} of observatoryPanels){
+   const begin=thetaStart+travel,end=thetaEnd+travel;
+   panel.visible=begin<OBSERVATORY_REAR-.002;
+   if(!panel.visible)continue;
+   const position=panel.geometry.getAttribute("position");
+   const normal=panel.geometry.getAttribute("normal");
+   for(let row=0;row<=OBSERVATORY_ROWS;row++){
+    const theta=begin+(end-begin)*row/OBSERVATORY_ROWS;
+    for(let col=0;col<=OBSERVATORY_COLUMNS;col++){
+     const phi=Math.PI*col/OBSERVATORY_COLUMNS;
+     const nx=Math.cos(theta)*Math.cos(phi);
+     const ny=Math.sin(theta);
+     const nz=Math.cos(theta)*Math.sin(phi);
+     const id=row*(OBSERVATORY_COLUMNS+1)+col;
+     position.setXYZ(id,OBSERVATORY_RADIUS*nx,
+      OBSERVATORY_RADIUS*ny,OBSERVATORY_RADIUS*nz);
+     normal.setXYZ(id,nx,ny,nz);
+    }
+   }
+   position.needsUpdate=true;
+   normal.needsUpdate=true;
+   panel.geometry.computeBoundingSphere();
   }
   observatoryRoller.rotation.x=travel*2.6;
   invalidate();
