@@ -6,7 +6,7 @@ import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 // All coordinates below are local to their own solid cube face.
 export function buildIntricateCube({
   cube, faces, front, side, lidPivot, topHole,
-  box, cylinder, label, setHit, mat, animate, materials,
+  box, cylinder, label, setHit, mat, animate, invalidate=()=>{}, materials,
   liveGame=false
 }) {
   const {frontFace,rightFace,leftFace,topFace,bottomFace,backFace}=faces;
@@ -463,6 +463,25 @@ export function buildIntricateCube({
   const follower=new THREE.Group();mazePlate.add(follower);
   follower.position.copy(startPoint);follower.position.z=.211;
   const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};
+  // Queue consecutive real channels during quick wheel turns instead of
+  // restarting the ball animation and teleporting between maze positions.
+  const mazeQueue=[];
+  let mazeVisualTarget=mazeOrigin,mazeTween=null;
+  function animateNextMazeEdge(){
+    if(mazeTween||!mazeQueue.length)return;
+    const next=mazeQueue.shift(),from=mazeTravel.to;
+    if(!mazeGraph.get(from)?.has(next))
+      throw Error("The wheel queued a closed corridor");
+    mazeTravel.from=from;mazeTravel.to=next;mazeTravel.t=0;
+    seatFollower();invalidate();
+    mazeTween=gsap.to(mazeTravel,{t:1,duration:.16,ease:"none",
+      onUpdate:()=>{seatFollower();invalidate();},
+      onComplete:()=>{
+        mazeTween=null;seatFollower();invalidate();
+        animateNextMazeEdge();
+      }
+    });
+  }
   let mazeLastProgress=0;
   const mazeTravelPoint=()=>{
     if(mazeTravel.from===mazeTravel.to)return mazeCellPoint(mazeTravel.to);
@@ -715,34 +734,39 @@ export function buildIntricateCube({
     // actual gear press turns the pair, with their tooth radii in ratio.
     const turns=Math.max(-720,Math.min(720,Number(s.gearMazeTurns)||0));
     const gearRotation=-turns*Math.PI/12;
-    pose(wheelA,"rotation","z",gearRotation);
-     // The labyrinth face itself rotates with its meshed carrier, not
-     // merely a hidden toothed ring; the ball stays captive inside it.
-     pose(mazePlate,"rotation","z",gearRotation);
-    pose(wheelB,"rotation","z",-gearRotation*(.405/.235));
+    // A drag notch needs immediate visible hardware feedback. The next
+    // gear action can arrive before the previous ball segment finishes.
+    const turnPose=(part,value)=>{
+     if(instant){part.rotation.z=value;return;}
+     gsap.killTweensOf(part.rotation);
+     animate(part.rotation,{z:value},.16);
+    };
+    turnPose(wheelA,gearRotation);
+    turnPose(mazePlate,gearRotation);
+    turnPose(wheelB,-gearRotation*(.405/.235));
     const cell=Number.isInteger(s.gearMazeCell)&&
      mazeGraph.has(s.gearMazeCell)?s.gearMazeCell:legacyMazeCell(s);
     mazeLastProgress=Math.max(0,Math.min(gearMazeDirections.length,
      Number(s.gearMazeIndex)||0));
     if(instant){
      gsap.killTweensOf(mazeTravel);
+     mazeTween=null;mazeQueue.length=0;
+     mazeVisualTarget=cell;
      mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
-     seatFollower();
-    }else if(cell!==mazeTravel.to){
-     gsap.killTweensOf(mazeTravel);
-     const from=mazeTravel.to;
-     if(mazeGraph.get(from)?.has(cell)){
-      mazeTravel.from=from;mazeTravel.to=cell;mazeTravel.t=0;
-      seatFollower();
-      gsap.to(mazeTravel,{t:1,duration:.26,ease:"power2.inOut",
-       onUpdate:seatFollower,onComplete:seatFollower});
+     seatFollower();invalidate();
+    }else if(cell!==mazeVisualTarget){
+     if(mazeGraph.get(mazeVisualTarget)?.has(cell)){
+      mazeQueue.push(cell);mazeVisualTarget=cell;
+      animateNextMazeEdge();
      }else{
-      // Saved games from an older version may identify a different
-      // milestone. Restore directly; never animate through solid brass.
+      // Old saves can jump between layouts. Only restore those directly;
+      // live wheel inputs ALWAYS travel along the contiguous physical edge.
+      gsap.killTweensOf(mazeTravel);
+      mazeTween=null;mazeQueue.length=0;mazeVisualTarget=cell;
       mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
-      seatFollower();
+      seatFollower();invalidate();
      }
-    }else seatFollower();
+    }else if(!mazeTween&&!mazeQueue.length)seatFollower();
     // At the end the captive screw backs OUT of its channel. Simultaneously
     // the adjacent lock tongue withdraws from the calibration dial.
     // Seat the pin DOWN into the central receiving pocket when solved;
