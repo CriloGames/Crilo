@@ -656,6 +656,17 @@ try{
  const afterFake=await state();
  assert.deepEqual(afterFake,sealed,
   "A removed decorative or remote-acting control still changes puzzle progress");
+ // Both locked drawers are genuine sealed compartments, not thinner
+ // inserts inside through-holes that reveal the inside at first glance.
+ const sealedDrawers=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals);
+ for(const [name,seal] of Object.entries(sealedDrawers)){
+  assert(seal.closed&&seal.joined&&
+   seal.panelOverlapX>=.05&&seal.panelOverlapY>=.05&&
+   seal.tongue.w>=seal.opening.w-.03&&
+   seal.tongue.h>=seal.opening.h-.03&&
+   seal.tongue.back<0&&seal.tongue.front>0,
+   name+" drawer exposes its cavity before the latch opens: "+JSON.stringify(seal));
+ }
  const lockedGlows=await page.evaluate(()=>{
   const game=window.__nothing3DPreview;
   return Object.fromEntries(["tooth","thread","pipe","ring","coin","cog"]
@@ -715,7 +726,10 @@ try{
   "The key is rendered twice in the same drawer, causing intersecting gold geometry");
  if(!latchMotion.reduced){
   assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
-  await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
+  const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
+ assert(!openLavender.closed&&openLavender.joined,
+  "The lavender seal must retract with its drawer, not remain over the hole");
+ await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
    null,{timeout:15000});
 
  }
