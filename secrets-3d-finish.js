@@ -151,7 +151,10 @@ export function finishMechanicalArtifact({
     .758,.758,.183,72,1,true),metal);
   lensBarrel.rotation.x=Math.PI/2;
   lensBarrel.position.z=-.0915;
-  lensBarrel.castShadow=false;frontLens.add(lensBarrel);partCount++;
+  lensBarrel.castShadow=false;
+  lensBarrel.userData.mechanicalMount=true;
+  lensBarrel.userData.noBatch=true;
+  frontLens.add(lensBarrel);partCount++;
   finishedMeshes.push(lensBarrel);
   torus(frontLens,.758,.035,0,0,-.181,metal); // touches enamel
   torus(frontLens,.758,.020,0,0,-.018,deep); // joins front rim
@@ -263,11 +266,18 @@ export function finishMechanicalArtifact({
     getDecorativeCornerCaps:()=>decorativeCornerCaps.map(cap=>({...cap})),
     batching,
     getLensMountAudit:()=>({
-      face:"frontFace",skinZ:.0725,backFlangeZ:.27-.181,
-      barrelBottomZ:.27-.0915-.183/2,
-      barrelTopZ:.27-.0915+.183/2,
+      face:frontLens.parent===frontFace?"frontFace":"unexpected",
+      skinZ:.0725,backFlangeZ:.27-.181,
+      barrelBottomZ:.27+lensBarrel.position.z-
+       lensBarrel.geometry.parameters.height/2,
+      barrelTopZ:.27+lensBarrel.position.z+
+       lensBarrel.geometry.parameters.height/2,
       outerRimRearZ:.27-.031,
-      glassSeatRadius:.310,continuous:true
+      glassSeatRadius:.310,
+      barrelRetained:lensBarrel.parent===frontLens,
+      backFlangeTouchesSkin:(.27-.181-.035)<=.0725,
+      connectedToFrontRim:(.27+lensBarrel.position.z+
+       lensBarrel.geometry.parameters.height/2)>.27-.031
     }),
     get quality(){return "enamel, brushed brass, smoked optics, layered hardware"},
     textures:[enamelNoise,brushedNoise]
