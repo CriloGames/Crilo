@@ -9,6 +9,24 @@ const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
+// Load-order regression: geometry builders and OrbitControls callbacks can
+// invalidate the view before the resize handler is installed. The render
+// scheduler MUST be initialized before scene construction begins, or it
+// throws ReferenceError: Cannot access 'pendingFrame' before initialization.
+const schedulerDeclarations=[...preview.matchAll(/\blet pendingFrame=0;/g)];
+assert.equal(schedulerDeclarations.length,1,
+ '3D rendering must have exactly one initialized frame scheduler');
+const schedulerPos=schedulerDeclarations[0].index;
+const scenePos=preview.indexOf('const scene = new THREE.Scene();');
+const meshPos=preview.indexOf('const intricate=buildIntricateCube({');
+const worldPos=preview.indexOf('const pocketWorlds=embeddedGame?buildPocketWorlds({');
+assert(scenePos>schedulerPos&&meshPos>schedulerPos,
+ '3D geometry is constructed before pendingFrame exists; scene import will crash');
+assert(worldPos<0||worldPos>schedulerPos,
+ '3D miniatures initialize before the frame scheduler and can crash the import');
+assert(preview.includes('function invalidate(){')&&
+ preview.includes('if(!pendingFrame)pendingFrame=requestAnimationFrame(drawFrame);'),
+ 'On-demand render scheduler is absent or no longer rate-limited');
 const match=(source,pattern,label)=>{
  const result=source.match(pattern);
  assert(result,'Missing '+label+' in authored scene or puzzle logic');
