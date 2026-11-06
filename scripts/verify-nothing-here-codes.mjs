@@ -153,7 +153,7 @@ assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[2,7],
 assert([...graph.keys()].every(cell=>
  cell===goal||Math.floor(cell/12)<5),
  'The graph uses an invalid radius');
-assert(details.includes('const mazeSectors=12,mazeRings=5')&&
+assert(details.includes('mazeSectors=12,mazeRings=5')&&
  details.includes('new THREE.ArcCurve(0,0,radius')&&
  details.includes('const goalMouthSectors=[2,7]')&&
  details.includes('const goalSocket=goalCollarParts[0]'),
