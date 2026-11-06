@@ -316,9 +316,11 @@ export function buildIntricateCube({
       new THREE.Vector3(r1*Math.cos(angle),r1*Math.sin(angle),.156)));
   };
   const curvedWall=(radius,a0,a1)=>{
-    const points=Array.from({length:Math.max(5,Math.ceil(
-      Math.abs(a1-a0)*radius*150))},(_,i,arr)=>{
-      const a=a0+(a1-a0)*i/(arr.length-1);
+    // Array.from's mapper receives (value,index), not the result array.
+    // Compute count up front so wall segments always initialize correctly.
+    const count=Math.max(5,Math.ceil(Math.abs(a1-a0)*radius*150));
+    const points=Array.from({length:count},(_,i)=>{
+      const a=a0+(a1-a0)*i/(count-1);
       return new THREE.Vector3(radius*Math.cos(a),radius*Math.sin(a),.156);
     });
     strokeWall(new THREE.CatmullRomCurve3(points,false,"centripetal",.14));
