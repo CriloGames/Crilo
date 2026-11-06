@@ -69,6 +69,20 @@ async function scenario(name,seed){
   await ctx.close();
  }};
 }
+// A real roof release is necessary before fitting either optical component.
+async function deployObservatory(page){
+ for(let n=0;n<3;n++)await act(page,"triangle");
+ assert((await state(page)).top,"The upper hinged lid failed to open");
+ await act(page,"top-reed");
+ assert((await state(page)).pipeTaken,"The tube still obstructs the lift");
+ await act(page,"observatory-release");
+ const s=await state(page);
+ const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
+ assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
+  pose.lift>.39&&pose.doorAngles.length===2&&
+  pose.doorAngles.every(angle=>Math.abs(angle)>1),
+  "The physical roof button failed to raise and open the observatory");
+}
 async function refundCoin(page,{realPointer=false}={}){
  let s=await state(page);
  assert(s.coinReturned&&s.shimUsed&&!s.refundRedeemed,
@@ -476,8 +490,11 @@ try{
    "Independent optics test started with story-chain progress");
   const initialWorlds=await page.evaluate(()=>
    window.__nothing3DPreview.visiblePhysicalStoryObjects);
-  assert(initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
-   "The telescope must be physically present from the start, while the side lift is still covered");
+  const closedDome=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalScenePose.observatory);
+  assert(closedDome.installed&&!closedDome.deployed&&
+   !initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
+   "The roof observatory should start with its closed dome installed");
   const emptyOptics=await page.evaluate(()=>
    window.__nothing3DPreview.physicalScenePose.telescopeOptics);
   assert(!emptyOptics.lens&&!emptyOptics.iris,
@@ -488,8 +505,8 @@ try{
   assert((await page.evaluate(()=>
    window.__nothing3DPreview.visiblePhysicalStoryObjects)).includes("elevator"),
    "Maker's stamp did not reveal an actual side-mounted miniature lift");
-  // Either floor 04 or the optical cog may be solved first. Do the
-  // independent silver-lens path now, without the dog's collar.
+  // The maker stamp unlocks this early path without the dog or the bird.
+  await deployObservatory(page);
   await act(page,"thing:elevator-floor-4");
   assert((await state(page)).floorFour&&!((await state(page)).tag),
    "Fourth-floor cage incorrectly depends on obtaining the dog's tag");
@@ -541,6 +558,8 @@ try{
   for(let n=0;n<3;n++)await act(page,"eye-ring");
   await useItem(page,"cog","eye");
   await collect(page,"iris");
+  await act(page,"serial");
+  await deployObservatory(page);
   await useItem(page,"iris","telescope");
   let focused=await state(page);
   assert(focused.observed&&focused.telescopeIrisMounted&&!focused.telescopeLensMounted&&
@@ -631,6 +650,7 @@ try{
   assert((await state(page)).floorFour,
    "Fourth-floor lift did not reveal its lens and moth");
   await collect(page,"lens");
+  await deployObservatory(page);
   await useItem(page,"lens","telescope");
   assert((await state(page)).observed,
    "The recovered telescope lens failed to focus its sky");
