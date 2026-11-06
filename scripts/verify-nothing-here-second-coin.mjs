@@ -144,7 +144,8 @@ async function refundCoin(page,{realPointer=false}={}){
  assert((await state(page)).pressureReady&&
   !(await state(page)).pendingPickups.includes("fork"),
   "Pressure dial alone bypassed the still-secured gear-maze screw");
- // The first input must be a real pointer click on the actual small gear.
+ // Test the actual wheel hardware, not a removed square controller:
+ // outer brass rim for around-ring travel, smaller gear for radial travel.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const gears=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
@@ -158,49 +159,45 @@ async function refundCoin(page,{realPointer=false}={}){
  assert(gears.model?.face==="leftFace"&&
   gears.model.mazeStyle==="concentric radial labyrinth"&&
   gears.model.networkCells===97&&
-  gears.model.networkChannels>=120&&
-  gears.model.extraConnections>=30&&
-  gears.model.raisedWalls>=45&&
+  gears.model.networkChannels>=105&&
+  gears.model.extraConnections===20&&
+  gears.model.raisedWalls>=60&&
   gears.model.goalSocketOpen&&
   gears.model.followerTrackDistance<.000001,
-  "The multi-route circular maze did not render: "+JSON.stringify(gears));
+  "The ivory concentric maze did not render: "+JSON.stringify(gears));
  for(const [name,label] of [["in","maze-in"],["out","maze-out"],
   ["cw","maze-cw"],["ccw","maze-ccw"]])
   assert(gears[name]?.pick===label,
-   "The physical maze directional button cannot be reached: "+label);
+   "Wheel-mounted contact is not physically reachable: "+label);
  assert(gears.small?.pick==="gear-small",
-  "The original small gear cannot be reached with a real pointer");
+  "The actual small gear is blocked by the old separate keypad");
  await page.locator("#stage canvas").click({
-  position:{x:gears.small.x,y:gears.small.y},timeout:25000
+  position:{x:gears.ccw.x,y:gears.ccw.y},timeout:25000
  });
  assert.equal((await state(page)).gearMazeCell,95,
-  "Clicking the small gear did not move into the adjacent ring channel");
- // Loading during the maze must restore the REAL cell, not an obsolete
- // 29-step index or a completed fork reward.
+  "The large wheel's rim contact did not travel around the outside ring");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
  assert((await state(page)).gearMazeCell===95&&
    !(await state(page)).gearMazeSolved&&
    !(await state(page)).pendingPickups.includes("fork"),
-  "Partially explored maze position was lost on refresh");
- await act(page,"gear-small");
+  "Refreshing an unfinished maze lost its physically saved cell");
+ await act(page,"maze-ccw");
  assert.equal((await state(page)).gearMazeCell,94,
-  "The small gear no longer travels around the circular ring");
- // Move inward using the ACTUAL mounted physical button, not a hidden
- // developer API. Move back outward to prove both radial directions work.
+  "The labyrinth wheel no longer moves around the outside ring");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
- const inward=await page.evaluate(()=>
-  window.__nothing3DPreview.projectGameControl("maze-in"));
- assert(inward?.pick==="maze-in",
-  "Radial 'in' button is covered by unrelated 3D hardware");
+ const small=await page.evaluate(()=>
+  window.__nothing3DPreview.projectGameControl("gear-small"));
+ assert(small?.pick==="gear-small",
+  "The little gear's real center cannot be pressed");
  await page.locator("#stage canvas").click({
-  position:{x:inward.x,y:inward.y},timeout:25000
+  position:{x:small.x,y:small.y},timeout:25000
  });
  assert.equal((await state(page)).gearMazeCell,78,
-  "Inward button cannot move between concentric maze rings");
+  "Pressing the small gear did not shift inward at an open crossover");
  await act(page,"maze-out");
  assert.equal((await state(page)).gearMazeCell,94,
-  "Outward button cannot reverse to a larger ring");
+  "The little gear's outward contact cannot undo an inward shift");
  await act(page,"maze-in");
  const route=[
   ["maze-in",62],["maze-in",46],
