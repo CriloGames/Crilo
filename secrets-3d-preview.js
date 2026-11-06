@@ -308,8 +308,8 @@ for(const sx of [-1,1])
 for(const sy of [-1,1])
  box(chamber,topHole.w-.13,.065,.74,0,sy*(topHole.h/2-.035),-.37,cavityMaterial,.015);
 // The open hatch contains one machine, not two unrelated decorative gears.
-// Its rear hinge drives a meshed pair of wheels; offset crank pins pull
-// the spring retainers away from the wooden tube in its fitted cradle.
+// Its rear hinge drives two meshed wheels and their captive toothed racks,
+// sliding the wooden tube's retaining clips along fixed metal guides.
 // No extra arbitrary gear-click puzzle is imposed on the existing sequence.
 const hatchDriveBack=box(chamber,1.23,.54,.074,0,.265,-.643,darkMetal,.034);
 box(chamber,1.13,.045,.07,0,.535,-.550,metal,.015);
@@ -336,9 +336,8 @@ const driveGear=(x,r,teeth)=>{
   tooth.rotation.z=a;
  }
  cylinder(rotor,.059,.091,0,0,.054,metal);
- // An eccentric steel pin is part of the rotating gear, not a loose stud.
- const crankPin=cylinder(rotor,.028,.038,0,-r*.51,.105,brass);
- hatchDriveGears.push({rotor,r,x,crankPin,bearing,axle});
+ // A fixed-journal wheel, without protruding crank wires.
+ hatchDriveGears.push({rotor,r,x,bearing,axle});
  return rotor;
 };
 // Pitch radii add up to the axle separation: the teeth actually mesh.
@@ -366,12 +365,23 @@ const tubeRetainers=[-1,1].map(sign=>{
  cylinder(clip,.016,.043,0,.063,.047,darkMetal);
  return {sign,restX,clip};
 });
-// Separate articulated rods make the wheels' action visible at a glance:
-// wheel cam pin -> steel connecting rod -> sliding tube retainer.
-const hatchConnectingRods=hatchDriveGears.map(()=>{
- const rod=new THREE.Mesh(new THREE.CylinderGeometry(.016,.016,1,10),metal);
- rod.castShadow=true;rod.receiveShadow=true;chamber.add(rod);
- return rod;
+// Two captive toothed racks replace the impossible moving wires. The
+// gears rotate on fixed axles while the racks slide in separate metal guides.
+// Each rack is rigidly connected to the appropriate tube-end retainer.
+const hatchRacks=tubeRetainers.map((keeper,i)=>{
+ const left=i===0,offset=left?.12:-.12;
+ const rack=new THREE.Group();keeper.clip.add(rack);
+ const railY=left?.210:.242;
+ box(rack,.033,.205,.051,0,.125,-.018,metal,.006);
+ box(rack,.20,.027,.049,offset/2,.213,-.018,darkMetal,.007);
+ box(rack,.425,.032,.057,offset,railY,-.018,metal,.006);
+ for(let k=0;k<11;k++)
+  box(rack,.026,.025,.050,offset+(k-5)*.036,
+   railY+.028,-.018,brass,.002);
+ // Fixed guide is attached to the housing, not to the rotating wheel.
+ box(chamber,.62,.016,.063,keeper.restX+offset+keeper.sign*.035,
+  keeper.clip.position.y+railY-.032,-.465,darkMetal,.005);
+ return rack;
 });
 const lidPivot=new THREE.Group();lidPivot.position.set(0,topHole.h/2,.15);topFace.add(lidPivot);
 box(lidPivot,topHole.w,topHole.h,.13,0,-topHole.h/2,0,enamel.top,.07);
@@ -430,23 +440,15 @@ function syncHatchMotion(){
 }
 function updateHatchBraces(){
  syncHatchMotion();
- // The open lid is the physical input to the hidden gear train.
- // As it rises, the two wheels counter-rotate and their crank rods
- // retract the tube's end clips along the fixed metal guides.
+ // The lid rotates the meshed gear pair, driving two guided toothed racks.
  const release=Math.min(1,Math.abs(lidPivot.rotation.x)/1.08);
  const angle=release*1.40;
- hatchDriveGears[0].rotor.rotation.z=angle;
- hatchDriveGears[1].rotor.rotation.z=-angle*(.205/.175);
- for(let i=0;i<tubeRetainers.length;i++){
-  const keeper=tubeRetainers[i],drive=hatchDriveGears[i];
+ // Left wheel clockwise drives its rack left; right wheel counterclockwise
+ // drives its rack right. The two end clips open without flexible wires.
+ hatchDriveGears[0].rotor.rotation.z=-angle;
+ hatchDriveGears[1].rotor.rotation.z=angle*(.205/.175);
+ for(const keeper of tubeRetainers)
   keeper.clip.position.x=keeper.restX+keeper.sign*.135*release;
-  const crank=new THREE.Vector3(0,-drive.r*.51,.105)
-   .applyAxisAngle(new THREE.Vector3(0,0,1),drive.rotor.rotation.z)
-   .add(drive.rotor.position);
-  const shoe=new THREE.Vector3(
-   keeper.clip.position.x,keeper.clip.position.y+.084,-.372);
-  aimBar(hatchConnectingRods[i],crank,shoe);
- }
  for(const {x,body,piston} of hingeBraces){
   const mount=new THREE.Vector3(x,-.42,-.19);
   const moving=new THREE.Vector3(x,-.98,.04)
