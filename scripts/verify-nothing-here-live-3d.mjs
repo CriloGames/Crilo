@@ -1361,8 +1361,11 @@ try{
   spiral.model.directions.length>=29&&
   spiral.model.grooveCount===spiral.model.directions.length+1&&
   spiral.model.grooveSegments===spiral.model.directions.length&&
-  spiral.model.mazeStyle==="angular labyrinth"&&
+  spiral.model.mazeStyle==="concentric radial labyrinth"&&
   spiral.model.branches===5&&
+  spiral.model.goalSocketOpen&&
+  spiral.model.raisedWalls>=80&&
+  spiral.model.networkCells===64&&
   spiral.model.followerTrackDistance<.000001&&
   spiral.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5&&
   spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
@@ -1391,6 +1394,8 @@ try{
   "The pin did not retrace its blind groove to the working junction");
  for(let i=4;i<spiral.model.directions.length;i++)
   await activate(spiral.model.directions[i]===1?"gear-small":"gear-large");
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze.exitReached)),
+  "The captive ball never reached the central receiving socket");
  assert((await state()).gearMazeSolved&&
   (await state()).pendingPickups.includes("fork"),
   "Finishing the spiral did not retract the latch and expose the tuning fork");
