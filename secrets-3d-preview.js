@@ -375,8 +375,10 @@ const hatchRacks=tubeRetainers.map((keeper,i)=>{
  box(rack,.033,.205,.051,0,.125,-.018,metal,.006);
  box(rack,.20,.027,.049,offset/2,.213,-.018,darkMetal,.007);
  box(rack,.425,.032,.057,offset,railY,-.018,metal,.006);
- for(let k=0;k<11;k++)
-  box(rack,.026,.025,.050,offset+(k-5)*.036,
+ // Tooth pitch matches both wheel circumferences instead of drawing
+ // a decorative row of teeth too small to mesh with the gears.
+ for(let k=0;k<5;k++)
+  box(rack,.041,.028,.050,offset+(k-2)*.084,
    railY+.028,-.018,brass,.002);
  // Fixed guide is attached to the housing, not to the rotating wheel.
  box(chamber,.62,.016,.063,keeper.restX+offset+keeper.sign*.035,
@@ -442,11 +444,11 @@ function updateHatchBraces(){
  syncHatchMotion();
  // The lid rotates the meshed gear pair, driving two guided toothed racks.
  const release=Math.min(1,Math.abs(lidPivot.rotation.x)/1.08);
- const angle=release*1.40;
+ const angle=release*(.135/hatchDriveGears[0].r);
  // Left wheel clockwise drives its rack left; right wheel counterclockwise
  // drives its rack right. The two end clips open without flexible wires.
  hatchDriveGears[0].rotor.rotation.z=-angle;
- hatchDriveGears[1].rotor.rotation.z=angle*(.205/.175);
+ hatchDriveGears[1].rotor.rotation.z=angle*(hatchDriveGears[0].r/hatchDriveGears[1].r);
  for(const keeper of tubeRetainers)
   keeper.clip.position.x=keeper.restX+keeper.sign*.135*release;
  for(const {x,body,piston} of hingeBraces){
