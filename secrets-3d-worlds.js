@@ -518,7 +518,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // Real tripod and brass telescope barrel with contrasting black optic.
+ // The telescope is a permanently bolted object with TWO real and
+ // independently accessible optic seats. The elevator's silver lens and
+ // rear eye's glass iris can be installed in either order. Empty seats
+ // remain hollow-looking, and only a player's fitted parts become glass.
+ let telescopeLensGlass=null,telescopeIrisGlass=null;
  {
   const g=toy("telescope");
   for(const a of [0,2.09,4.18]){
@@ -528,7 +532,18 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   barrel.rotation.x=-.37;
   C(g,.078,.04,0,.55,.24,m.dark,"z");
   C(g,.11,.035,0,.39,-.23,m.gold,"z");
-  C(g,.07,.017,0,.555,.263,m.glass,"z");
+  // Objective lens cradle; a dark aperture sits behind the removable
+  // glass, while its metal rim remains attached to the barrel.
+  torus(g,.078,.012,0,.555,.263,m.gold,"z");
+  telescopeLensGlass=C(g,.070,.019,0,.555,.267,m.glass,"z");
+  telescopeLensGlass.visible=false;
+  // Second side-mounted optical iris has its own captive socket and
+  // support arm, instead of a second transparent disc fused into the lens.
+  B(g,.105,.036,.056,.118,.516,.035,m.brass,.010);
+  C(g,.050,.036,.137,.537,.085,m.dark,"z");
+  torus(g,.052,.010,.137,.537,.103,m.gold,"z");
+  telescopeIrisGlass=C(g,.041,.017,.137,.537,.109,m.glass,"z");
+  telescopeIrisGlass.visible=false;
  }
  // Working railroad carriage: continuous track, ties, locomotive wheels
  // and chimney are solids that catch lighting from every angle.
@@ -634,8 +649,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    bag:s.bag,door:s.door,dog:s.doorOpen,vase:s.doorOpen,
    squirrel:s.squirrel, pot:s.vase,musicbox:s.vase,
    cloud:s.cloud,cup:s.music,clock:s.watch,machine:s.mouse,
-   elevator:s.watch&&s.tag,moth:s.floorFour,
-   telescope:s.moon,train:s.train
+   // A discovered maker's stamp exposes the side lift independently of
+   // the dog/watch chain. The old path still reveals the same machine.
+   elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train,
+   moth:s.floorFour,
+   // The bolted telescope has always been on this face. Its missing
+   // optical parts are the puzzle, not a mysterious model spawning from
+   // a bird on the opposite side.
+   telescope:true,train:s.train
   };
   for(const [name,instance] of items){
    const visible=!!show[name];
@@ -656,8 +677,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      instance.fixture.position.z=.27;
      invalidate();
     };
-    if(firstRestore||reducedMotion){
-     // Restored discoveries must be immediately stable.
+    if(firstRestore||reducedMotion||name==="telescope"){
+     // Restored discoveries must be immediately stable. The telescope
+     // is permanent from the start and must not erupt from an empty mount.
      settle();
     }else{
      // A collectible physically emerges from its fastened display socket.
@@ -702,6 +724,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     instance.fixture.position.z=.27;
    }
   }
+  telescopeLensGlass.visible=!!s.telescopeLensMounted;
+  telescopeIrisGlass.visible=!!s.telescopeIrisMounted;
   sprout.visible=!!s.plant&&!s.tree;
   branches.visible=!!s.tree;
   if(sprout.visible&&!lastSeedPlanted&&!firstRestore&&!reducedMotion){
@@ -986,7 +1010,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    vendingTrayDepth:vendingTray?.position.z??null,
    vendingServiceSealVisible:vendingServiceSeal?.visible??false,
    seedSproutVisible:sprout.visible,
-   treeGrowthScale:branches.scale.y
+   treeGrowthScale:branches.scale.y,
+   telescopeOptics:{
+    lens:telescopeLensGlass?.visible??false,
+    iris:telescopeIrisGlass?.visible??false,
+    both:!!(telescopeLensGlass?.visible&&telescopeIrisGlass?.visible)
+   }
   }),
   setState,
   meshCount:()=>parts,
