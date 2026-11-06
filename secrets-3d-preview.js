@@ -385,19 +385,27 @@ const hatchRacks=tubeRetainers.map((keeper,i)=>{
   keeper.clip.position.y+railY-.032,-.465,darkMetal,.005);
  return rack;
 });
-// The roof lift is released by a real button INSIDE the hinged compartment.
-// It sits beside the wooden cradle, not in the gear/rack travel paths.
+// The roof release is centered beneath the wooden-tube cradle, between
+// the TWO moving lid support struts (whose feet are x=+/- .56, y=-.42).
+// The previous right-side placement intersected a brass piston and made
+// this button difficult to see or press. The entire button is recessed
+// inside the hatch opening with clearance from both chamber walls.
 const observatoryButtonBase=new THREE.Group();
-observatoryButtonBase.position.set(.608,-.482,-.366);
+observatoryButtonBase.position.set(.065,-.476,-.257);
 chamber.add(observatoryButtonBase);
-cylinder(observatoryButtonBase,.112,.025,0,0,-.016,darkMetal);
-cylinder(observatoryButtonBase,.092,.028,0,0,.005,brass);
+// The captive riser physically bridges the cavity floor (-.725) and
+// the button's backplate. A raised face without this would hover in air.
+cylinder(chamber,.078,.480,.065,-.476,-.505,darkMetal);
+cylinder(observatoryButtonBase,.104,.026,0,0,-.016,darkMetal);
+cylinder(observatoryButtonBase,.086,.027,0,0,.005,brass);
 const observatoryButtonCap=new THREE.Group();
-observatoryButtonCap.position.z=.023;observatoryButtonBase.add(observatoryButtonCap);
-cylinder(observatoryButtonCap,.072,.032,0,0,0,metal);
-cylinder(observatoryButtonCap,.052,.014,0,0,.023,ivory);
-const moonCrest=new THREE.Mesh(new THREE.TorusGeometry(.029,.006,6,20,Math.PI*1.45),brass);
-moonCrest.position.set(.008,0,.036);observatoryButtonCap.add(moonCrest);
+observatoryButtonCap.position.z=.034;
+observatoryButtonBase.add(observatoryButtonCap);
+// Slightly taller, brightly edged release cap to read as a usable part.
+cylinder(observatoryButtonCap,.069,.034,0,0,0,metal);
+cylinder(observatoryButtonCap,.055,.014,0,0,.026,ivory);
+const moonCrest=new THREE.Mesh(new THREE.TorusGeometry(.030,.006,6,20,Math.PI*1.45),brass);
+moonCrest.position.set(.008,0,.042);observatoryButtonCap.add(moonCrest);
 objectCount++;
 setHit(observatoryButtonCap,"observatory-release");
 const lidPivot=new THREE.Group();lidPivot.position.set(0,topHole.h/2,.15);topFace.add(lidPivot);
@@ -745,8 +753,8 @@ function clickAction(action){
    if(!currentGameState.top)return;
    if(!currentGameState.observatoryRaised){
     gsap.killTweensOf(observatoryButtonCap.position);
-    observatoryButtonCap.position.z=-.014;
-    gsap.to(observatoryButtonCap.position,{z:.023,duration:.35,
+    observatoryButtonCap.position.z=-.004;
+    gsap.to(observatoryButtonCap.position,{z:.034,duration:.35,
      ease:"back.out(2)",onUpdate:invalidate});
    }
    window.NothingHereAudio?.play?.("gear");
