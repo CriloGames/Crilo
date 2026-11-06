@@ -763,6 +763,23 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   },
   actions:[...targets.keys()],
   targets,
+  // The optional Three.js/BVH surface scanner must include the *working*
+  // mechanisms, not only drawers and miniatures. Returning an independent
+  // assembly per component lets it detect a real sculpture clipping the
+  // service cassette, front ratchet, removable hatch or moving lower port.
+  // Keep these out of the gameplay path: no meshes or hitboxes are added.
+  getSpatialMechanisms:()=>new Map([
+   ["front ratchet",redSwitch],
+   ["front cog service hatch",cogPort],
+   ["service shutter cassette",shutter],
+   ["service bolt socket",serviceSocket],
+   ["vent release grille",ventCover],
+   ["rear optical eye",eyeBody],
+   ["rear cipher cassette",cipherMount],
+   ["calibration dial",pressureKnob],
+   ["underside movable foot",foot],
+   ["underside bell hatch",bellPort]
+  ]),
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
   getMechanicalFeedback:()=>({
