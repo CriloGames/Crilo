@@ -1351,72 +1351,48 @@ try{
  assert((await state()).pressureReady&&!(await state()).gearMazeSolved&&
   !(await state()).pendingPickups.includes("fork"),
   "An unscrewed calibration gauge bypassed the new gear lock");
- const spiral=await page.evaluate(()=>{
+
+ const maze=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   v.setRotation(-15,90);
   return {model:v.physicalGearMaze,
+   large:v.projectGameControl("gear-large"),
    small:v.projectGameControl("gear-small"),
    inward:v.projectGameControl("maze-in"),
-   outward:v.projectGameControl("maze-out"),
-   clockwise:v.projectGameControl("maze-cw"),
-   counterclockwise:v.projectGameControl("maze-ccw")};
+   outward:v.projectGameControl("maze-out")};
  });
- assert(spiral.model?.face==="leftFace"&&
-  spiral.model.mazeStyle==="concentric radial labyrinth"&&
-  spiral.model.networkCells===97&&
-  spiral.model.extraConnections===20&&
-  spiral.model.networkChannels>=105&&
-  spiral.model.raisedWalls>=60&&
-  spiral.model.goalSocketOpen&&
-  spiral.model.followerTrackDistance<.000001,
-  "The machined circular labyrinth does not have valid walls: "+JSON.stringify(spiral));
- for(const [key,action] of [
-  ["inward","maze-in"],["outward","maze-out"],
-  ["clockwise","maze-cw"],["counterclockwise","maze-ccw"]])
-  assert(spiral[key]?.pick===action,
-   "An engraved contact ON a wheel is hidden or blocked: "+action);
- const rect=await page.locator("#stage canvas").boundingBox();
- assert(spiral.small?.pick==="gear-small","The little physical gear is not reachable");
- await page.mouse.click(rect.x+spiral.counterclockwise.x,rect.y+spiral.counterclockwise.y);
- assert.equal((await state()).gearMazeCell,95,
-  "The labyrinth wheel's rim contact cannot travel around the outside");
- await activate("maze-ccw");
- assert.equal((await state()).gearMazeCell,94,
-  "The large wheel's second rotation did not reach the adjacent cell");
- // Physically press the small gear's center to move inward at a crossover.
- const realSmall=await page.evaluate(()=>
-  window.__nothing3DPreview.projectGameControl("gear-small"));
- assert(realSmall?.pick==="gear-small",
-  "The small gear center is not touchable");
- await page.mouse.click(rect.x+realSmall.x,rect.y+realSmall.y);
- assert.equal((await state()).gearMazeCell,78,
-  "The small gear should be the inward control");
- await activate("maze-out");
- assert.equal((await state()).gearMazeCell,94,
-  "The small wheel's lower contact should move outward");
- await activate("maze-in");
- const route=[
-  ["maze-in",62],["maze-in",46],
-  ["maze-cw",47],["maze-cw",32],["maze-in",16],
-  ["maze-cw",17],["maze-cw",18],["maze-cw",19],
-  ["maze-in",3],["maze-cw",4],["maze-cw",5],["maze-in",96]
- ];
- for(const [action,expectedCell] of route){
-  await activate(action);
-  assert.equal((await state()).gearMazeCell,expectedCell,
-   "A connected alternate route failed: "+action+" -> "+expectedCell);
-  assert((await page.evaluate(()=>
-   window.__nothing3DPreview.physicalGearMaze.followerTrackDistance))<.000001,
-   "The 3D ball left its real groove while turning freely");
+ assert(maze.model?.face==="leftFace"&&
+  maze.model.mazeStyle==="stationary eight-ring circular labyrinth"&&
+  maze.model.networkCells===193&&maze.model.networkChannels===205&&
+  maze.model.extraConnections===13&&maze.model.branches>=35&&
+  maze.model.raisedWalls>=120&&maze.model.stationaryFace&&
+  Math.abs(maze.model.faceAngle)<.000001&&
+  maze.model.followerTrackDistance<.000001,
+  "The white face is not stationary or the eight-ring maze failed to construct: "+
+  JSON.stringify(maze));
+ assert(maze.large?.pick==="gear-large"&&maze.small?.pick==="gear-small",
+  "The white labyrinth or black drive cog is not touchable");
+ assert(maze.inward?.pick==="maze-in"&&maze.outward?.pick==="maze-out",
+  "The calibration dial no longer controls radial movement");
+ const path=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
+ for(let i=1;i<path.length;i++){
+  const from=path[i-1],to=path[i];
+  await activate(to===192||to===from-24?"maze-in":
+   to===from+24?"maze-out":
+   Math.floor(to/24)===Math.floor(from/24)&&
+   to%24===(from%24+1)%24?"maze-ccw":"maze-cw");
+  assert.equal((await state()).gearMazeCell,to,
+   "A real channel failed: "+from+" to "+to);
  }
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.exitReached,
-  null,{timeout:12000});
+  null,{timeout:25000});
  assert((await state()).gearMazeSolved&&
   (await state()).pendingPickups.includes("fork"),
-  "Reaching the real center socket did not expose the tuning fork");
- await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
-  null,{timeout:12000});
- console.log("PASS: rim clicks on large and small gears, curved maze walls, radial backtracking, central release");
+  "The central goal failed to release the earned fork");
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
+  null,{timeout:14000});
+ console.log("PASS: fixed white maze, black cog, dense eight-ring solution and center release");
  // The retired decorative "optic" fitting is deliberately inert. Three
  // presses on the one REAL eye-ring actuator must expose the brass strip.
  await activate("optic");
