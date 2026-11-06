@@ -141,70 +141,35 @@ const BAG_CODE=[2,0,3,1];
 // These are mirrored by the ACTUAL engraved codes on the six 3D faces.
 const VENT_CODE=[3,1,4,2,3];
 const FLUTE_CODE=[2,1,3,1,3,2];
-// The large gear contains a captive-screw labyrinth with six circular
-// lanes and five real blind forks. Gear direction changes at each main
-// crossover; the other wheel can lead the screw into a plugged dead end.
-// The screw must retrace a wrong turn and can never cross solid brass.
-// The final outlet physically operates the calibration dial's latch.
+// The 9x9 machined grid has 81 cells, 93 open passages and 13 loops.
+// The old 29-step turns remain only for migrating existing saved games.
 const GEAR_MAZE_DIRECTIONS=[
  1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
  1,1,1,1,1,-1,-1,-1,-1,-1
 ];
-// The five crossover junctions have real blind channels, not just
-// engraved decoration. The wrong wheel enters a two-step dead end.
-// A player must retrace those steps before continuing around the main arc.
-const GEAR_MAZE_JUNCTIONS=[4,9,14,19,24];
-// Full shared radial topology. Every real opening belongs to this
-// undirected cell graph; buttons move to a geometrically adjacent cell.
-// Preserve the old 29-move markers ONLY to restore previous saved games.
-const MAZE_ROUTE_CELLS=[
-   80,95,94,78,77,76,75,59,58,57,73,74,90,89,88,87,
-   71,55,54,38,22,23,39,40,41,42,26,27,43,44,28,29,
-   45,61,62,46,47,63,79,64,48,32,16,17,33,49,65,66,
-   67,83,84,68,52,36,35,34,18,19,3,4,20,21,5,96
-  ];
-const MAZE_STEP_MARKS=[
-   0,2,5,7,9,11,13,16,18,20,22,24,27,29,31,
-   33,35,38,40,42,44,46,49,51,53,55,58,60,62,63
-  ];
-const MAZE_BLIND_CELLS=[
-   [56,72],
-   [6,7,8,24,25,9,10],
-   [30,31,15,14,13,12,11],
-   [0,1,2],
-   [37,53,69,70,86,85]
-  ];
-const MAZE_EXTRA_EDGES=[
-   [62,78],[17,18],[32,47],[4,5],
-   [80,81],[81,82],[75,91],[91,92],[92,93],[93,94],
-   [49,50],[50,51],[51,52],[59,60],[60,61],
-   [61,77],[42,58],[20,36],[19,35],[67,68]
-  ];
-
-const MAZE_ORIGIN=80,MAZE_GOAL=96;
+const MAZE_ROUTE_CELLS=[0,9,18,19,28,37,36,45,54,63,64,73,74,75,66,57,48,39,30,21,22,31,40];
+const MAZE_PASSAGES="0-1 0-9 1-10 2-11 3-4 3-12 4-5 5-6 6-7 6-15 7-8 7-16 8-17 9-10 9-18 11-12 12-13 13-14 13-22 14-15 14-23 15-24 16-25 17-26 18-19 19-20 19-28 20-29 21-22 21-30 22-31 23-24 23-32 24-33 25-34 26-35 27-28 28-37 29-38 30-39 31-32 31-40 33-34 35-44 36-37 36-45 37-38 38-47 39-48 40-41 40-49 41-42 42-43 42-51 44-53 45-46 45-54 46-47 46-55 48-57 49-50 50-59 51-52 51-60 52-61 53-62 54-55 54-63 56-57 56-65 57-66 58-59 58-67 59-68 60-69 61-70 62-71 63-64 64-73 65-66 66-75 67-76 68-69 69-78 70-79 71-80 72-73 73-74 74-75 76-77 77-78 78-79 79-80".split(" ").map(x=>x.split("-").map(Number));
+const MAZE_ORIGIN=0,MAZE_GOAL=40,MAZE_LAYOUT_VERSION=2;
 const MAZE_GRAPH=new Map();
-const mazeAddEdge=(a,b)=>{
+for(const [a,b] of MAZE_PASSAGES){
+ if(a<0||b>80||!(b-a===9||
+   (Math.floor(a/9)===Math.floor(b/9)&&b-a===1)))
+  throw Error("Maze passage is not adjacent");
  if(!MAZE_GRAPH.has(a))MAZE_GRAPH.set(a,new Set());
  if(!MAZE_GRAPH.has(b))MAZE_GRAPH.set(b,new Set());
+ if(MAZE_GRAPH.get(a).has(b))throw Error("Duplicate maze channel");
  MAZE_GRAPH.get(a).add(b);MAZE_GRAPH.get(b).add(a);
-};
-const mazeAddPath=nodes=>{
- for(let i=1;i<nodes.length;i++)mazeAddEdge(nodes[i-1],nodes[i]);
-};
-mazeAddPath(MAZE_ROUTE_CELLS);
-MAZE_BLIND_CELLS.forEach((branch,i)=>
- mazeAddPath([MAZE_ROUTE_CELLS[MAZE_STEP_MARKS[GEAR_MAZE_JUNCTIONS[i]]],...branch]));
-MAZE_EXTRA_EDGES.forEach(([a,b])=>mazeAddEdge(a,b));
+}
+if(MAZE_GRAPH.size!==81||MAZE_PASSAGES.length!==93)
+ throw Error("Maze game does not match its physical geometry");
 function mazeDestination(cell,direction){
  if(!MAZE_GRAPH.has(cell))return null;
- if(cell===MAZE_GOAL)
-  return direction==="maze-out"&&MAZE_GRAPH.get(cell).has(5)?5:null;
- const ring=Math.floor(cell/16),sector=cell%16;
- const target=direction==="maze-cw"?ring*16+(sector+1)%16:
-  direction==="maze-ccw"?ring*16+(sector+15)%16:
-  direction==="maze-in"?(ring===0?MAZE_GOAL:cell-16):
-  direction==="maze-out"?(ring===5?null:cell+16):null;
- return target!==null&&MAZE_GRAPH.get(cell).has(target)?target:null;
+ const col=cell%9,row=Math.floor(cell/9);
+ const next=direction==="maze-up"?(row>0?cell-9:null):
+  direction==="maze-down"?(row<8?cell+9:null):
+  direction==="maze-left"?(col>0?cell-1:null):
+  direction==="maze-right"?(col<8?cell+1:null):null;
+ return next!==null&&MAZE_GRAPH.get(cell).has(next)?next:null;
 }
 
 let raw={};
@@ -276,8 +241,7 @@ s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 s.gearMazeIndex=clamp(Number(raw.gearMazeIndex)||0,0,GEAR_MAZE_DIRECTIONS.length);
-s.gearMazeBranch=GEAR_MAZE_JUNCTIONS.includes(s.gearMazeIndex)
- ?clamp(Number(raw.gearMazeBranch)||0,0,2):0;
+s.gearMazeBranch=0;
 s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-720,720);
 // Respect the tuning fork already earned in older versions WITHOUT
 // silently auto-solving the newly playable gears. The first release
@@ -303,27 +267,18 @@ if(s.gearMazeSolved){
  s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
  s.gearMazeBranch=0;
 }
-// Previous builds rotated the visible wheel even when the screw was blocked
-// by solid brass. On reload, recover the only mechanically possible angle
-// from the saved channel position. This keeps old progress while ensuring
-// the exit reaches its fixed release linkage upon completion.
-if(!Number.isInteger(raw.gearMazeCell)){
- s.gearMazeTurns=GEAR_MAZE_DIRECTIONS.slice(0,s.gearMazeIndex)
-  .reduce((sum,direction)=>sum+direction,0)+
-  (s.gearMazeBranch?
-   -GEAR_MAZE_DIRECTIONS[s.gearMazeIndex]*s.gearMazeBranch:0);
-}
-// Older runs saved a scripted step, not a location. Map them onto the
-// corresponding physically carved cell without resetting their progress.
-const savedMainCell=MAZE_ROUTE_CELLS[MAZE_STEP_MARKS[s.gearMazeIndex]];
-const savedBranch=MAZE_BLIND_CELLS[
- GEAR_MAZE_JUNCTIONS.indexOf(s.gearMazeIndex)];
-const legacyMazeCell=s.gearMazeBranch&&savedBranch?
- savedBranch[Math.max(0,Math.min(savedBranch.length-1,
-  Math.ceil(savedBranch.length*s.gearMazeBranch/2)-1))]:savedMainCell;
+// Previous polar coordinates cannot be read as positions on the new
+// square plate. Keep a nearby point on the original recorded route,
+// preserving completed work and all awarded inventory items.
+const legacyMazeCell=MAZE_ROUTE_CELLS[Math.round(
+ s.gearMazeIndex/GEAR_MAZE_DIRECTIONS.length*(MAZE_ROUTE_CELLS.length-1))];
 s.gearMazeCell=s.gearMazeSolved?MAZE_GOAL:
+ raw.gearMazeLayoutVersion===MAZE_LAYOUT_VERSION&&
  Number.isInteger(raw.gearMazeCell)&&MAZE_GRAPH.has(raw.gearMazeCell)?
  raw.gearMazeCell:legacyMazeCell;
+s.gearMazeLayoutVersion=MAZE_LAYOUT_VERSION;
+if(raw.gearMazeLayoutVersion!==MAZE_LAYOUT_VERSION&&!s.gearMazeSolved)
+ s.gearMazeTurns=0;
 // Repair orphaned physical rewards from saves made before independent
 // "found but not picked up" state was consistently persisted. Never
 // restore something that a downstream puzzle has already consumed.
@@ -1040,56 +995,38 @@ function inspectHardware(name){
   return true;
  }
  if(name==='gear-small'||name==='gear-large'||
-    ["maze-cw","maze-ccw","maze-in","maze-out"].includes(name)){
-  // Touching the large labyrinth wheel turns along the ring.
-  // Touching the small meshed gear shifts toward the center; the lower
-  // integrated thumb contact on that same gear moves outward instead.
-  const direction=name==="gear-small"?"maze-in":
-   name==="gear-large"?"maze-cw":name;
+    ["maze-up","maze-down","maze-left","maze-right"].includes(name)){
+  const direction=name==="gear-small"?"maze-down":
+   name==="gear-large"?"maze-right":name;
   if(s.gearMazeSolved){
-   tell('The captive ball has seated in the central receiving socket. The dial latch stays released.');
+   tell('The pin is seated in the center socket and the dial latch is released.');
    return true;
   }
   s.gearMazePlayed=true;
-  const previous=s.gearMazeCell;
-  const next=mazeDestination(previous,direction);
+  const next=mazeDestination(s.gearMazeCell,direction);
   if(next===null){
-   tell('The ball meets a solid brass wall. There is no open channel in that direction.');
-   sound(210);
-   return true;
+   tell('The captive pin meets a solid wall. There is no channel that way.');
+   sound(210);return true;
   }
   s.gearMazeCell=next;
-  // The large wheel's rim contacts turn the captive mechanism around
-  // a circular lane. The smaller gear's two touch points select an open
-  // inward/outward crossover, without a separate square controller.
-  if(direction==="maze-cw"||direction==="maze-ccw")
-   s.gearMazeTurns=clamp(s.gearMazeTurns+
-    (direction==="maze-cw"?-1:1),-720,720);
-  // Legacy progress is advisory only. Navigation may leave the main route,
-  // circle back, or discover a shorter path through an added crossover.
+  // Both wheels turn as a meshed pair, but the fixed grid stays upright.
+  s.gearMazeTurns=clamp(s.gearMazeTurns+
+   (direction==="maze-right"||direction==="maze-down"?1:-1),-720,720);
   const mainNode=MAZE_ROUTE_CELLS.indexOf(next);
-  if(mainNode>=0){
-   const marker=MAZE_STEP_MARKS.findIndex(n=>n>=mainNode);
-   s.gearMazeIndex=marker<0?29:marker;
-  }
+  if(mainNode>=0)s.gearMazeIndex=Math.round(
+   mainNode/(MAZE_ROUTE_CELLS.length-1)*GEAR_MAZE_DIRECTIONS.length);
   s.gearMazeBranch=0;
   if(next===MAZE_GOAL){
    s.gearMazeSolved=true;
    s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
    rememberChange('calibration-gear',
-    'The captive ball drops through the open central socket. The geared linkage withdraws the calibration dial latch.');
+    'The captive pin drops into the center socket and releases the calibration dial latch.');
    if(s.pressureReady&&!s.resonance){
     gain('fork');
-    tell('The ball reaches the center and frees the calibrated dial. A tuning fork rests in its bracket.');
-   }else
-    tell('The ball reaches the center. The dial retaining tongue retracts, but the needle still needs calibrating.');
-  }else{
-   const inward=direction==="maze-in",outward=direction==="maze-out";
-   tell(inward?'The small gear carries the captive ball into the next inner ring.':
-    outward?'The small gear retracts the ball into the next outer ring.':
-    'The labyrinth wheel carries the ball around its curved groove. Watch the open crossovers.');
-  }
-  sound(290+(s.gearMazeCell%16)*12);
+    tell('The pin seats in the center socket. The released dial now holds a tuning fork.');
+   }else tell('The center socket releases the latch. The needle still needs to be calibrated.');
+  }else tell('The geared pin travels into the next open passage.');
+  sound(290+(s.gearMazeCell%9)*12);
   return true;
  }
  if(name==='pressure'){
