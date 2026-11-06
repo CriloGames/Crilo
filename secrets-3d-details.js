@@ -303,17 +303,21 @@ export function buildIntricateCube({
   const wheelContacts=new Map();
   const touchMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,
     colorWrite:false,depthWrite:false,side:THREE.DoubleSide});
-  const half=(parent,name,inner,outer,start,z)=>{
+  const half=(parent,name,inner,outer,start,z,x,y)=>{
+    // The touch geometry remains on the gear while its target origin is
+    // centered on the ACTUAL clickable metal sector, not the empty hole.
+    const target=group(parent,x,y,0);
     const obj=new THREE.Mesh(new THREE.RingGeometry(
       inner,outer,32,1,start,Math.PI),touchMat);
-    obj.position.z=z;parent.add(obj);wheelContacts.set(name,obj);
+    obj.position.set(-x,-y,z);target.add(obj);
+    wheelContacts.set(name,target);
   };
-  half(mazePlate,"maze-left",.359,.439,Math.PI/2,.214);
-  half(mazePlate,"maze-right",.359,.439,-Math.PI/2,.214);
+  half(mazePlate,"maze-left",.359,.439,Math.PI/2,.214,-.395,0);
+  half(mazePlate,"maze-right",.359,.439,-Math.PI/2,.214,.395,0);
   const smallTouchFace=group(leftFace,wheelB.position.x,
     wheelB.position.y,wheelB.position.z);
-  half(smallTouchFace,"maze-up",.043,.199,0,.238);
-  half(smallTouchFace,"maze-down",.043,.199,Math.PI,.238);
+  half(smallTouchFace,"maze-up",.043,.199,0,.238,0,.131);
+  half(smallTouchFace,"maze-down",.043,.199,Math.PI,.238,0,-.131);
   // Very small etched chevrons on the existing rims, not raised controls.
   for(const sign of [-1,1]){
     const m=group(mazePlate,sign*.397,0,.173);
