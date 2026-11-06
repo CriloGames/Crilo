@@ -204,7 +204,7 @@ const pendingPickups=new Set((Array.isArray(raw.pendingPickups)?raw.pendingPicku
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
- cup:false,moon:false,mouse:false,tag:false,kite:false,
+ cup:false,moon:false,observatoryRaised:false,mouse:false,tag:false,kite:false,
  floorFour:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
@@ -221,6 +221,10 @@ if(typeof raw.telescopeLensMounted!=='boolean')
  s.telescopeLensMounted=!!s.observed;
 if(typeof raw.telescopeIrisMounted!=='boolean')
  s.telescopeIrisMounted=!!s.secondSky;
+// Old saves with installed optics must retain the already-deployed dome.
+if(typeof raw.observatoryRaised!=='boolean')
+ s.observatoryRaised=!!(s.observed||s.telescopeLensMounted||
+  s.telescopeIrisMounted||s.secondSky);
 // Older runs opened the service shutter before the key existed. Respect
 // their completed chain; never relock a wax cylinder or final mailed letter.
 if(s.serviceOpen||s.cylinderMounted||s.tapeInserted||s.letterMailed||s.doorReplied)
@@ -520,7 +524,9 @@ function ongoingMechanisms(){
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
  if(s.moon&&!(s.top&&s.pipeTaken))
-   add('Yellow roof','The moon-shaped counterweight moved, but the circular observatory hatch cannot rise until the hinged lid is open and its wooden tube is removed.');
+   add('Yellow roof','A counterweight released inside the box. The hinged upper compartment still has to be cleared.');
+  if(s.moon&&s.top&&s.pipeTaken&&!s.observatoryRaised)
+   add('Yellow roof','A round brass button is exposed inside the hinged compartment. The small roof dome is still closed.');
   if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
  if(seen.has('observatory')&&!s.observed)
@@ -826,7 +832,7 @@ function render(){
  bag:s.bag, vase:s.doorOpen, squirrel:s.squirrel&&(!s.barked||fleeing),
  pot:s.vase, musicbox:s.vase, cloud:s.cloud,
  cup:s.music,clock:s.watch,machine:s.mouse,
-  elevator:s.watch&&s.tag,moth:s.floorFour,telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||s.telescopeLensMounted||s.telescopeIrisMounted||s.secondSky),train:s.train
+  elevator:s.watch&&s.tag,moth:s.floorFour,telescope:!!s.observatoryRaised||!!s.observed||!!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  const inventory=$('ncInventory');
  const count=$('ncPocketCount');
@@ -1208,7 +1214,16 @@ function cubeHit(name){
  bloom('first');
  if(inspectHardware(name)){render();return}
  if(selected&&name==='eye'&&use(selected,'eye'))return;
- if(name==='latch'){
+ if(name==='observatory-release'){
+  if(!s.top)tell('The roof release is enclosed by the hinged panel.');
+  else if(!s.pipeTaken)tell('The button moves slightly, but the loaded cradle holds the lift in its housing.');
+  else if(!s.moon)tell('The button sinks against a firm internal catch. Something is still latched inside.');
+  else if(!s.observatoryRaised){
+   s.observatoryRaised=true;
+   bloom('observatory','The roof sleeve slowly lifts a closed ivory dome. At full height, its two curved halves hinge apart to reveal the telescope inside.');
+   tell('The little domed observatory rises from the center of the yellow roof. Its curved shutters open, revealing a miniature telescope.');
+  }else tell('The observatory is extended and both domed doors rest against their open stops.');
+ }else if(name==='latch'){
   if(!s.a){s.a=true;bloom('drawer','The front latch retracts. The drawer extends on its two metal runners, revealing a key-shaped piece.')}
   else tell(s.drawerTaken
    ?'That drawer’s empty now.'
@@ -1232,7 +1247,7 @@ function cubeHit(name){
     :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell(s.moon?'The wooden tube lifts out. With the moon catch released, two shutters part on the yellow roof and a domed observatory rises from its socket.':'The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends. A round hatch remains locked nearby.');}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell(s.moon?'The wooden tube lifts out. Its cradle is clear, exposing a small brass push button beside it.':'The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends. A round hatch remains locked nearby.');}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','The underside release opens a separate return pocket. A brass ring slides forward into view.');}
   if(!s.ringTaken){
@@ -1359,7 +1374,7 @@ function use(item,thing){
   spend('bird');s.moon=true;
    bloom('moon','The folded paper bird slips into the cube and tips a moon-shaped counterweight. A faint mechanism clicks under the yellow roof.');
    if(s.top&&s.pipeTaken)
-    tell('Two brass shutters part at the top center. A small domed observatory slowly rises on its captive lift.');
+    tell('A counterweight clicks inside the hinged compartment. Its round brass release button is now free to move.');
    else tell('A round mechanism has stirred beneath the top hatch. Its upper cradle still needs to be cleared.');
    incident('☾');
  }else if(item==='bell'&&thing==='dog'){
@@ -1655,7 +1670,7 @@ function thingPresent(name){
   squirrel:s.squirrel,pot:s.vase,musicbox:s.vase,cloud:s.cloud,
   cup:s.music,clock:s.watch,machine:s.mouse,
   elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train,
-  moth:s.floorFour,telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||s.telescopeLensMounted||s.telescopeIrisMounted||s.secondSky),train:s.train
+  moth:s.floorFour,telescope:!!s.observatoryRaised||!!s.observed||!!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,train:s.train
  })[name];
 }
 function inspectPhysicalSurface(name){
@@ -1731,7 +1746,7 @@ function clickThing(name,actuator=false){
   }else{cue(prop('moth'),'nc-moth-burst',1000);tell('The moth bows once. That is all.')}
  }
  else if(name==='telescope'){
-  bloom('observatory','The little brass observatory rises from its circular roof hatch and peers toward an impossible sky.');
+  bloom('observatory','The opened observatory roof reveals a telescope pointed toward an impossible sky.');
   if(!s.observed)tell('Two differently shaped optical sockets are empty. The barrel is still out of focus.');
   else{
    tell(s.secondSky?'Both optical fittings are seated; the telescope has two distinct views.':
