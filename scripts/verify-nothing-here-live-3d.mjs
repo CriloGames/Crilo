@@ -1354,54 +1354,66 @@ try{
  const spiral=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   v.setRotation(-15,90);
-  return {model:v.physicalGearMaze,small:v.projectGameControl("gear-small"),
-   large:v.projectGameControl("gear-large")};
+  return {model:v.physicalGearMaze,
+   small:v.projectGameControl("gear-small"),
+   inward:v.projectGameControl("maze-in"),
+   outward:v.projectGameControl("maze-out"),
+   clockwise:v.projectGameControl("maze-cw"),
+   counterclockwise:v.projectGameControl("maze-ccw")};
  });
  assert(spiral.model?.face==="leftFace"&&
-  spiral.model.directions.length>=29&&
-  spiral.model.grooveCount===spiral.model.directions.length+1&&
-  spiral.model.grooveSegments===spiral.model.directions.length&&
   spiral.model.mazeStyle==="concentric radial labyrinth"&&
-  spiral.model.branches===5&&
+  spiral.model.networkCells===97&&
+  spiral.model.extraConnections>=30&&
+  spiral.model.networkChannels>=120&&
+  spiral.model.raisedWalls>=45&&
   spiral.model.goalSocketOpen&&
-  spiral.model.raisedWalls>=80&&
-  spiral.model.networkCells===64&&
-  spiral.model.followerTrackDistance<.000001&&
-  spiral.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5&&
-  spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
-  "The carved switchback gears are not both readable and clickable: "+JSON.stringify(spiral));
- assert(Math.abs( Math.hypot(spiral.model.large.x-spiral.model.small.x,
-  spiral.model.large.y-spiral.model.small.y)- (.96*(spiral.model.large.pitchRadius+spiral.model.small.pitchRadius)))<.04,
-  "The two drive gears look disconnected rather than properly meshed");
+  spiral.model.followerTrackDistance<.000001,
+  "The multi-route 3D labyrinth is missing channels or walls: "+JSON.stringify(spiral));
+ for(const [key,action] of [
+  ["inward","maze-in"],["outward","maze-out"],
+  ["clockwise","maze-cw"],["counterclockwise","maze-ccw"]])
+  assert(spiral[key]?.pick===action,
+   "A working 3D directional control is hidden or blocked: "+action);
  const rect=await page.locator("#stage canvas").boundingBox();
+ assert(spiral.small?.pick==="gear-small","Drive gear not reachable");
  await page.mouse.click(rect.x+spiral.small.x,rect.y+spiral.small.y);
- assert.equal((await state()).gearMazeIndex,1,
-  "Clicking the smaller gear did not advance its actual captive screw");
- await activate("gear-small");
- await activate("gear-large");
- assert.equal((await state()).gearMazeIndex,1,
-  "Counter-rotating the larger gear did not retrace the physical groove");
- await activate("gear-small");
- await activate("gear-small");
- await activate("gear-small");
- assert.equal((await state()).gearMazeIndex,4,
-  "Four forward steps should reach the first switchback in the visible channel");
- await activate("gear-small");
- assert((await state()).gearMazeIndex===4&&(await state()).gearMazeBranch===1,
-  "The wrong gear at the first crossover must enter a real blind groove");
- await activate("gear-large");
- assert((await state()).gearMazeIndex===4&&(await state()).gearMazeBranch===0,
-  "The pin did not retrace its blind groove to the working junction");
- for(let i=4;i<spiral.model.directions.length;i++)
-  await activate(spiral.model.directions[i]===1?"gear-small":"gear-large");
- assert((await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze.exitReached)),
-  "The captive ball never reached the central receiving socket");
+ assert.equal((await state()).gearMazeCell,95,
+  "The first physical gear press did not move around the outer ring");
+ await activate("maze-ccw");
+ assert.equal((await state()).gearMazeCell,94,
+  "Circular maze movement stopped along the rim");
+ // The player must be able to turn both INWARD and OUTWARD, including
+ // doubling back from a dead end, not just follow a scripted spiral.
+ await page.mouse.click(rect.x+spiral.inward.x,rect.y+spiral.inward.y);
+ assert.equal((await state()).gearMazeCell,78,
+  "The physical inward selector is not really interactive");
+ await activate("maze-out");
+ assert.equal((await state()).gearMazeCell,94,
+  "The outward selector fails to retrace the radial corridor");
+ await activate("maze-in");
+ const route=[
+  ["maze-in",62],["maze-in",46],
+  ["maze-cw",47],["maze-cw",32],["maze-in",16],
+  ["maze-cw",17],["maze-cw",18],["maze-cw",19],
+  ["maze-in",3],["maze-cw",4],["maze-cw",5],["maze-in",96]
+ ];
+ for(const [action,expectedCell] of route){
+  await activate(action);
+  assert.equal((await state()).gearMazeCell,expectedCell,
+   "A connected alternate route failed: "+action+" -> "+expectedCell);
+  assert((await page.evaluate(()=>
+   window.__nothing3DPreview.physicalGearMaze.followerTrackDistance))<.000001,
+   "The 3D ball left its real groove while turning freely");
+ }
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.exitReached,
+  null,{timeout:12000});
  assert((await state()).gearMazeSolved&&
   (await state()).pendingPickups.includes("fork"),
-  "Finishing the spiral did not retract the latch and expose the tuning fork");
+  "Reaching the real center socket did not expose the tuning fork");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
   null,{timeout:12000});
- console.log("PASS: two real meshed gears, visible captive screw, counter-rotation, switchbacks, and fork-lock release");
+ console.log("PASS: actual four-way maze controls, alternate loops, inward/outward backtracking, central release");
  // The retired decorative "optic" fitting is deliberately inert. Three
  // presses on the one REAL eye-ring actuator must expose the brass strip.
  await activate("optic");
