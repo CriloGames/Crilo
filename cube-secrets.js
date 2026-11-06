@@ -141,34 +141,46 @@ const BAG_CODE=[2,0,3,1];
 // These are mirrored by the ACTUAL engraved codes on the six 3D faces.
 const VENT_CODE=[3,1,4,2,3];
 const FLUTE_CODE=[2,1,3,1,3,2];
-// The 9x9 machined grid has 81 cells, 93 open passages and 13 loops.
-// The old 29-step turns remain only for migrating existing saved games.
+// Five concentric rings, genuine carved paths and an open central socket.
+// Only the exposed large and small gears turn the roller around the rings;
+// the upper/lower edge of the existing dial moves it between rings.
 const GEAR_MAZE_DIRECTIONS=[
  1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
  1,1,1,1,1,-1,-1,-1,-1,-1
 ];
-const MAZE_ROUTE_CELLS=[0,9,18,19,28,37,36,45,54,63,64,73,74,75,66,57,48,39,30,21,22,31,40];
-const MAZE_PASSAGES="0-1 0-9 1-10 2-11 3-4 3-12 4-5 5-6 6-7 6-15 7-8 7-16 8-17 9-10 9-18 11-12 12-13 13-14 13-22 14-15 14-23 15-24 16-25 17-26 18-19 19-20 19-28 20-29 21-22 21-30 22-31 23-24 23-32 24-33 25-34 26-35 27-28 28-37 29-38 30-39 31-32 31-40 33-34 35-44 36-37 36-45 37-38 38-47 39-48 40-41 40-49 41-42 42-43 42-51 44-53 45-46 45-54 46-47 46-55 48-57 49-50 50-59 51-52 51-60 52-61 53-62 54-55 54-63 56-57 56-65 57-66 58-59 58-67 59-68 60-69 61-70 62-71 63-64 64-73 65-66 66-75 67-76 68-69 69-78 70-79 71-80 72-73 73-74 74-75 76-77 77-78 78-79 79-80".split(" ").map(x=>x.split("-").map(Number));
-const MAZE_ORIGIN=0,MAZE_GOAL=40,MAZE_LAYOUT_VERSION=2;
+const MAZE_ROUTE_CELLS=[48,49,50,51,39,38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
+const MAZE_PASSAGES="0-11 0-12 1-13 2-3 2-60 3-4 4-5 5-6 6-18 7-19 7-60 8-9 8-20 9-10 9-21 10-11 10-22 12-24 13-14 13-25 14-26 15-16 15-27 16-17 17-18 19-20 20-21 20-32 21-22 22-23 23-35 24-35 24-36 25-37 26-38 27-28 28-29 29-30 30-31 30-42 31-43 32-33 33-34 34-35 36-37 38-39 39-51 40-41 41-42 42-54 43-44 44-45 44-56 45-46 45-57 46-47 46-58 47-59 48-49 48-59 49-50 50-51 51-52 52-53 53-54 54-55 55-56 56-57 57-58 58-59".split(" ").map(x=>x.split("-").map(Number));
+const MAZE_ORIGIN=48,MAZE_GOAL=60,MAZE_LAYOUT_VERSION=3;
+const MAZE_SECTORS=12,MAZE_RINGS=5;
 const MAZE_GRAPH=new Map();
-for(const [a,b] of MAZE_PASSAGES){
- if(a<0||b>80||!(b-a===9||
-   (Math.floor(a/9)===Math.floor(b/9)&&b-a===1)))
-  throw Error("Maze passage is not adjacent");
+for(const [x,y] of MAZE_PASSAGES){
+ const a=Math.min(x,y),b=Math.max(x,y);
+ const sameRing=a!==MAZE_GOAL&&b!==MAZE_GOAL&&
+   Math.floor(a/MAZE_SECTORS)===Math.floor(b/MAZE_SECTORS);
+ const angular=sameRing&&
+  ((a%MAZE_SECTORS+1)%MAZE_SECTORS===b%MAZE_SECTORS||
+   (b%MAZE_SECTORS+1)%MAZE_SECTORS===a%MAZE_SECTORS);
+ const radial=b-a===MAZE_SECTORS||b===MAZE_GOAL&&a<MAZE_SECTORS;
+ if(!angular&&!radial)throw Error("Maze passage crosses a closed wall");
  if(!MAZE_GRAPH.has(a))MAZE_GRAPH.set(a,new Set());
  if(!MAZE_GRAPH.has(b))MAZE_GRAPH.set(b,new Set());
- if(MAZE_GRAPH.get(a).has(b))throw Error("Duplicate maze channel");
+ if(MAZE_GRAPH.get(a).has(b))throw Error("Duplicate carved corridor");
  MAZE_GRAPH.get(a).add(b);MAZE_GRAPH.get(b).add(a);
 }
-if(MAZE_GRAPH.size!==81||MAZE_PASSAGES.length!==93)
- throw Error("Maze game does not match its physical geometry");
+if(MAZE_GRAPH.size!==61||MAZE_PASSAGES.length!==70)
+ throw Error("Physical maze and game topology disagree");
 function mazeDestination(cell,direction){
  if(!MAZE_GRAPH.has(cell))return null;
- const col=cell%9,row=Math.floor(cell/9);
- const next=direction==="maze-up"?(row>0?cell-9:null):
-  direction==="maze-down"?(row<8?cell+9:null):
-  direction==="maze-left"?(col>0?cell-1:null):
-  direction==="maze-right"?(col<8?cell+1:null):null;
+ if(cell===MAZE_GOAL)
+  return direction==="maze-out"?
+   [...MAZE_GRAPH.get(cell)][0]:null;
+ const sector=cell%MAZE_SECTORS,ring=Math.floor(cell/MAZE_SECTORS);
+ const next=direction==="maze-ccw"?
+  ring*MAZE_SECTORS+(sector+1)%MAZE_SECTORS:
+  direction==="maze-cw"?
+  ring*MAZE_SECTORS+(sector+MAZE_SECTORS-1)%MAZE_SECTORS:
+  direction==="maze-in"?(ring===0?MAZE_GOAL:cell-MAZE_SECTORS):
+  direction==="maze-out"?(ring===MAZE_RINGS-1?null:cell+MAZE_SECTORS):null;
  return next!==null&&MAZE_GRAPH.get(cell).has(next)?next:null;
 }
 
@@ -267,9 +279,9 @@ if(s.gearMazeSolved){
  s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
  s.gearMazeBranch=0;
 }
-// Previous polar coordinates cannot be read as positions on the new
-// square plate. Keep a nearby point on the original recorded route,
-// preserving completed work and all awarded inventory items.
+// Version 2 used square coordinates. Do not interpret its cell number
+// as a circular coordinate: recover the nearest previously completed
+// milestone, preserving earned inventory, pressure and solved progress.
 const legacyMazeCell=MAZE_ROUTE_CELLS[Math.round(
  s.gearMazeIndex/GEAR_MAZE_DIRECTIONS.length*(MAZE_ROUTE_CELLS.length-1))];
 s.gearMazeCell=s.gearMazeSolved?MAZE_GOAL:
@@ -995,23 +1007,25 @@ function inspectHardware(name){
   return true;
  }
  if(name==='gear-small'||name==='gear-large'||
-    ["maze-up","maze-down","maze-left","maze-right"].includes(name)){
-  const direction=name==="gear-small"?"maze-down":
-   name==="gear-large"?"maze-right":name;
+   ["maze-cw","maze-ccw","maze-in","maze-out"].includes(name)){
+  const direction=name==="gear-large"?"maze-ccw":
+   name==="gear-small"?"maze-cw":name;
   if(s.gearMazeSolved){
-   tell('The pin is seated in the center socket and the dial latch is released.');
+   tell('The captive roller has entered the center socket. The dial latch is released.');
    return true;
   }
   s.gearMazePlayed=true;
   const next=mazeDestination(s.gearMazeCell,direction);
   if(next===null){
-   tell('The captive pin meets a solid wall. There is no channel that way.');
+   tell('The roller meets a solid wall. Try a different opening.');
    sound(210);return true;
   }
   s.gearMazeCell=next;
-  // Both wheels turn as a meshed pair, but the fixed grid stays upright.
-  s.gearMazeTurns=clamp(s.gearMazeTurns+
-   (direction==="maze-right"||direction==="maze-down"?1:-1),-720,720);
+  // The meshed gears turn in opposite directions. The radial dial does
+  // not spin either gear; it shifts the pin along a real open spoke.
+  if(direction==="maze-ccw"||direction==="maze-cw")
+   s.gearMazeTurns=clamp(s.gearMazeTurns+
+    (direction==="maze-cw"?1:-1),-720,720);
   const mainNode=MAZE_ROUTE_CELLS.indexOf(next);
   if(mainNode>=0)s.gearMazeIndex=Math.round(
    mainNode/(MAZE_ROUTE_CELLS.length-1)*GEAR_MAZE_DIRECTIONS.length);
@@ -1020,13 +1034,17 @@ function inspectHardware(name){
    s.gearMazeSolved=true;
    s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
    rememberChange('calibration-gear',
-    'The captive pin drops into the center socket and releases the calibration dial latch.');
+    'The roller passes through the center socket. The linkage withdraws the calibration latch.');
    if(s.pressureReady&&!s.resonance){
     gain('fork');
-    tell('The pin seats in the center socket. The released dial now holds a tuning fork.');
-   }else tell('The center socket releases the latch. The needle still needs to be calibrated.');
-  }else tell('The geared pin travels into the next open passage.');
-  sound(290+(s.gearMazeCell%9)*12);
+    tell('The roller seats in the socket and the calibrated dial releases a tuning fork into its bracket.');
+   }else tell('The center socket releases the latch, but the needle still needs calibrating.');
+  }else{
+   tell(direction==="maze-in"?'The dial guides the roller into an inner ring.':
+    direction==="maze-out"?'The dial guides the roller into an outer ring.':
+    'The meshed wheels carry the roller around the circular groove.');
+  }
+  sound(290+(s.gearMazeCell%MAZE_SECTORS)*12);
   return true;
  }
  if(name==='pressure'){
