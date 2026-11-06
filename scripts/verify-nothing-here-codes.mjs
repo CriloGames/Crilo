@@ -177,10 +177,15 @@ assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
  preview.includes('cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
  finish.includes('if(face===topFace&&s===-1){')&&
- finish.includes('const goldBypass=[')&&
- finish.includes('const inkBypass=[')&&
- finish.includes('path(face,goldBypass.map(([x,y])=>[x,y,.105]),.014,accent);')&&
- finish.includes('path(face,inkBypass.map(([x,y])=>[x,y,.13]),.005,deep);'),
+ finish.includes('const leads=[')&&
+ !finish.includes('const goldBypass=[')&&
+ !finish.includes('const inkBypass=[')&&
+ finish.includes('path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),')&&
+ finish.includes('C(face,.027,.012,x,y,.071,metal);')&&
+ finish.includes('C(face,.018,.010,x,y,.080,deep);')&&
+ finish.includes('torus(face,.024,.005,x,y,.087,accent);')&&
+ preview.includes('triangle:"Lid release button",')&&
+ logic.includes('The lid release button sinks in.'),
  "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
 assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  !worlds.includes('modelBases.push({name,method:"tripod"')&&
