@@ -359,25 +359,22 @@ export function buildIntricateCube({
     if(!openEdges.has(edgeKey(cell,nextSector))){
      // Angular door blocked: short radial wall halfway between sectors.
      const a=mazeEntranceAngle+(sector+.5)*sectorWidth;
-     const r0=radius-.015,r1=radius+.015;
+     const r0=radius-(ringIndex===0?.003:.015);
+     const r1=radius+.015;
      wallSegment(Math.cos(a)*r0,Math.sin(a)*r0,
       Math.cos(a)*r1,Math.sin(a)*r1);
     }
     if(ringIndex+1<mazeRingCount){
      const nextRing=cell+mazeSectorCount;
      if(!openEdges.has(edgeKey(cell,nextRing))){
-      // Radial door blocked: short curved brass wall across the ray.
-      // Split the circular span into three tiny sections. The gaps
-      // between neighboring separator walls prevent mesh intersections.
+      // Radial door blocked: one continuous, short brass wall at
+      // the midpoint of the two rings. Avoid three overlapping wall
+      // segments fighting one another at their shared endpoints.
       const r=radius+mazeRingPitch/2;
       const a0=mazeEntranceAngle+(sector-.31)*sectorWidth;
       const a1=mazeEntranceAngle+(sector+.31)*sectorWidth;
-      for(let k=0;k<3;k++){
-       const a=a0+(a1-a0)*k/3;
-       const b=a0+(a1-a0)*(k+1)/3;
-       wallSegment(Math.cos(a)*r,Math.sin(a)*r,
-        Math.cos(b)*r,Math.sin(b)*r);
-      }
+      wallSegment(Math.cos(a0)*r,Math.sin(a0)*r,
+       Math.cos(a1)*r,Math.sin(a1)*r);
      }
     }
    }
