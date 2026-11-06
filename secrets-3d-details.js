@@ -59,6 +59,21 @@ export function buildIntricateCube({
   const group=(face,x=0,y=0,z=0)=>{
     const g=new THREE.Group();g.position.set(x,y,z);face.add(g);return g;
   };
+  // Fixed fixtures need a continuous mechanical path to the enamel
+  // (outer face surface: z=.0725), not just a Three.js parent relationship.
+  // Only mount NON-MOVING axle bearings here. Moving gear faces stay free.
+  const axleMounts=[];
+  const axleBearing=(face,name,x,y,rearZ,r)=>{
+    const footZ=.066,tipZ=rearZ+.016;
+    const shaft=C(face,r,tipZ-footZ,x,y,(tipZ+footZ)/2,darkMetal);
+    const seat=C(face,r*1.38,.026,x,y,.085,steel);
+    const collar=C(face,r*1.12,.021,x,y,rearZ,brass);
+    for(const sign of [-1,1])
+      C(face,.012,.023,x+sign*r*.98,y,.091,steel);
+    shaft.userData.mechanicalMount=true;
+    axleMounts.push({name,footZ,tipZ,rearZ,r,shaft,seat,collar});
+    return shaft;
+  };
   // Nameplates are deliberately absent. Hover/keyboard focus identifies
   // hardware, while real cipher and numeric input plates remain elsewhere.
   const rivet=(face,x,y,z=.15)=>{
@@ -128,6 +143,14 @@ export function buildIntricateCube({
   ring(frontDisc,.50,.035,0,0,.138,brass);
   ring(frontDisc,.37,.040,0,0,.172,darkMetal);
   const optic=C(frontDisc,.29,.06,0,0,.20,glass);
+  // Hollow metal retaining sleeve bridges the exposed glass lens and
+  // the solid pearlescent optic bed. From side-on, no floating glass cap.
+  const lensSleeve=new THREE.Mesh(
+    new THREE.CylinderGeometry(.313,.313,.076,48,1,true),steel);
+  lensSleeve.rotation.x=Math.PI/2;
+  lensSleeve.position.z=.143;
+  lensSleeve.castShadow=false;frontDisc.add(lensSleeve);detailsCount++;
+  ring(frontDisc,.312,.014,0,0,.177,brass);
   const irisBlades=[];
   for(let i=0;i<8;i++){
     const a=i*Math.PI/4;
@@ -204,6 +227,10 @@ export function buildIntricateCube({
   // keys; the former full-width sign overlapped switch 1's number plate.
 
   // Large machined labyrinth with a physically meshed auxiliary drive.
+  // Rear bearings are anchored into the actual fixed left panel. The
+  // two wheels can still rotate freely around their retained shafts.
+  axleBearing(leftFace,"maze carrier",- .18,0,.165,.071);
+  axleBearing(leftFace,"black drive cog",.28,-.38,.165,.053);
   // The previous 0.31-radius wheel made thirty tiny scratches unreadable;
   // this is enlarged but stays inside the vent keys and dial's own space.
   const wheelA=gear(leftFace,-.18,0,.19,.405,gearMetal,15);
@@ -482,9 +509,11 @@ export function buildIntricateCube({
    setHit(latchTop,"hatch-latch");
   }
   registries.tooth=tooth;
-  for(const x of [-.24,.32]){
+  // The live game already has real bolted hatch-drive gears (in the
+  // chamber module). These two free-standing demonstration gears had
+  // no bearing or drive train: show them only in the standalone workbench.
+  if(!liveGame)for(const x of [-.24,.32])
     gear(topFace,x,.12,-.51,.14,gearMetal,9);
-  }
 
   // BOTTOM: actual shock-absorbing feet and circular lockwork.
   plates(bottomFace,satin);
@@ -759,6 +788,14 @@ export function buildIntricateCube({
        railEntry:{...gearRailEntry},
        dialTongueX:dialTongue.position.x
      }),
+     getStructuralMounts:()=>axleMounts.map(m=>({
+       name:m.name,face:m.shaft.parent===leftFace?"leftFace":"unexpected",
+       footZ:m.footZ,tipZ:m.tipZ,rearZ:m.rearZ,
+       shaftHeight:m.shaft.geometry.parameters.height,
+       actualBottom:m.shaft.position.z-m.shaft.geometry.parameters.height/2,
+       actualTop:m.shaft.position.z+m.shaft.geometry.parameters.height/2,
+       hasCollar:!!m.collar,hasSeat:!!m.seat
+     })),
      getGaugeAssembly:()=>({
       face:meter.parent===leftFace?"leftFace":"unexpected",
       x:meter.position.x,y:meter.position.y,
