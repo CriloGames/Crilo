@@ -201,7 +201,7 @@ for(const required of [
  'sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.1225]);',
  'C(g,.236,.012,0,0,.021,mat(0x66605b,.10,.70),"z");',
  'observatoryScope.position.set(0,.015,.030);',
- 'observatoryScope.scale.setScalar(.82);,
+ 'observatoryScope.scale.setScalar(.82);',
  'canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR)',
  'canopyCrownZ:OBSERVATORY_SEAM+',
  'frontSillTopZ:.065+.115/2,',
