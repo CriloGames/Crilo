@@ -353,7 +353,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   C(ventHatch,.012,.012,x,.114,.121,lamp);
   ventStepLights.push(lamp);
  }
- control(leftFace,"pressure",.88,.64,brass,.15);
+ // Smaller central actuator leaves the machined dial rim free to grab.
+  control(leftFace,"pressure",.88,.64,brass,.115);
 
  // The copper plunger's off-center depression identifies it physically.
  // A redundant DENT plaque made it look like a labelled mystery button,
