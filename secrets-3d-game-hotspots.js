@@ -72,6 +72,21 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   releasingFasteners.set(id,{tween,timer});
  }
  function pulse(action){
+  if(action==="shutter"){
+   // The lockable sliding plate is NOT a pushbutton. Before both catches
+   // release it rattles a few millimetres on its real guide rails; when
+   // unlocked its single leaf travels horizontally under setState().
+   // Never make the entire shutter sink into the cube on a click.
+   gsap.killTweensOf(shutterSlide.position);
+   const resting=previousState?.serviceOpen?.270:-.050;
+   shutterSlide.position.x=resting;
+   if(!reducedMotion){
+    gsap.timeline({onUpdate:invalidate})
+     .to(shutterSlide.position,{x:resting+.016,duration:.09,ease:"power2.out"})
+     .to(shutterSlide.position,{x:resting,duration:.22,ease:"back.out(2)"});
+   }else invalidate();
+   return true;
+  }
   if(action==="eye"){
    // The player sees the eyelid close and reopen at the touched model.
    gsap.killTweensOf(blinkLid.scale);
