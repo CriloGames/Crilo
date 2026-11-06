@@ -128,8 +128,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // Previous locations sat inside the live maker stamp, pressure instrument,
  // red switch, service lever and the four underside shock feet.
  // Keep the display sockets clear of those permanent puzzle mechanisms.
- // Top face: outer brackets must not intersect the real hinged lid's
- // -.85..+.85 sweep. The two miniatures sit entirely on its fixed rails.
+ // Top face: dome shifted toward the center, safely clear of the front
+ // gold rail and still separated from the hinged compartment's frame.
  // Right face: the dog is shifted off the teal sliding drawer's bezel,
  // including the opened state where its depth increases.
  const slots=[
@@ -142,7 +142,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
-  ["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.17],
+  ["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.045],
   ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
@@ -525,7 +525,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // wide arched front opening, terracotta interior, and a continuous ring.
  // The centered telescope never rises; a shutter rolls beneath the shell.
  const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;
- const OBSERVATORY_OPEN_HALF_ANGLE=1.42,OBSERVATORY_ARCH_RISE=.86;
+ // Expose more of the telescope through the front arch without lifting the dome.
+  const OBSERVATORY_OPEN_HALF_ANGLE=1.42,OBSERVATORY_ARCH_RISE=1.06;
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
