@@ -144,104 +144,97 @@ async function refundCoin(page,{realPointer=false}={}){
  assert((await state(page)).pressureReady&&
   !(await state(page)).pendingPickups.includes("fork"),
   "Pressure dial alone bypassed the still-secured gear-maze screw");
- // All four directions must be reached by touching the two real wheels.
- // The original circular maze has been replaced with 81 square cells and
- // multiple meaningful branches, not a controller panel.
+ // The visible large gear drives counterclockwise travel, the small gear
+ // drives clockwise travel, and the dial rim drives inward/outward motion.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const gears=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
-  return {small:v.projectGameControl("gear-small"),
-   up:v.projectGameControl("maze-up"),
-   down:v.projectGameControl("maze-down"),
-   left:v.projectGameControl("maze-left"),
-   right:v.projectGameControl("maze-right"),
+  return {large:v.projectGameControl("gear-large"),
+   small:v.projectGameControl("gear-small"),
+   inward:v.projectGameControl("maze-in"),
+   outward:v.projectGameControl("maze-out"),
    model:v.physicalGearMaze};
  });
  assert(gears.model?.face==="leftFace"&&
-  gears.model.mazeStyle==="machined square labyrinth"&&
-  gears.model.networkCells===81&&
-  gears.model.networkChannels===93&&
-  gears.model.extraConnections===13&&
-  gears.model.branches>=25&&gears.model.raisedWalls>=80&&
-  gears.model.goalSocketOpen&&gears.model.followerTrackDistance<.000001,
-  "The sculpted square labyrinth is missing or misaligned: "+JSON.stringify(gears));
- for(const [name,label] of [["up","maze-up"],["down","maze-down"],
-  ["left","maze-left"],["right","maze-right"]])
-  assert(gears[name]?.pick===label,
-   "A wheel surface cannot be reached through the real 3D raycast: "+label);
- assert(gears.small?.pick==="gear-small",
-  "The smaller wheel center cannot actually be pressed");
- assert.equal((await state(page)).gearMazeCell,0,
-  "The pin was not seated at the real entrance");
- // Move right using a REAL POINTER on the right half of the large wheel.
+  gears.model.mazeStyle==="five-ring carved circular labyrinth"&&
+  gears.model.networkCells===61&&gears.model.networkChannels===70&&
+  gears.model.extraConnections===10&&gears.model.branches>=15&&
+  gears.model.raisedWalls>=40&&gears.model.goalSocketOpen&&
+  gears.model.followerTrackDistance<.000001,
+  "The carved circular maze did not load: "+JSON.stringify(gears));
+ for(const [key,action] of [["large","gear-large"],["small","gear-small"],
+   ["inward","maze-in"],["outward","maze-out"]])
+  assert(gears[key]?.pick===action,
+   "The physical gear/dial part cannot be clicked: "+action);
+ assert.equal((await state(page)).gearMazeCell,48,
+  "The ball is not at the outermost starting groove");
+ // Test a genuine pointer click and a saved partially solved maze.
  await page.locator("#stage canvas").click({
-  position:{x:gears.right.x,y:gears.right.y},timeout:25000
+  position:{x:gears.large.x,y:gears.large.y},timeout:25000
  });
- assert.equal((await state(page)).gearMazeCell,1,
-  "The large gear's right half did not move the pin along the open groove");
+ assert.equal((await state(page)).gearMazeCell,49,
+  "Clicking the large gear did not move counterclockwise");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
- assert((await state(page)).gearMazeCell===1&&
-  !(await state(page)).gearMazeSolved,
-  "Reloading lost the pin position in the new square maze");
- await act(page,"maze-left");
- assert.equal((await state(page)).gearMazeCell,0,
-  "The large wheel cannot reverse a step");
+ assert.equal((await state(page)).gearMazeCell,49,
+  "Reloading lost the current circular channel position");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const small=await page.evaluate(()=>
   window.__nothing3DPreview.projectGameControl("gear-small"));
- assert(small?.pick==="gear-small",
-  "The small gear body cannot be clicked independently of its surface halves");
+ assert(small?.pick==="gear-small","The small gear center is blocked");
  await page.locator("#stage canvas").click({
   position:{x:small.x,y:small.y},timeout:25000
  });
- assert.equal((await state(page)).gearMazeCell,9,
-  "Clicking the small gear's center did not move the pin downward");
- await act(page,"maze-up");
- assert.equal((await state(page)).gearMazeCell,0,
-  "The upper half of the small gear cannot move up");
- await act(page,"maze-down");
- assert.equal((await state(page)).gearMazeCell,9,
-  "The lower half of the small gear cannot move down");
- await act(page,"maze-left");
- assert.equal((await state(page)).gearMazeCell,9,
-  "The pin escaped the solid left boundary of the maze");
- // Follow one winding, genuine path with upward/downward travel. The
- // path passes through many branching cells and a three-way center mouth.
- const route=[
-  18,19,28,37,36,45,54,63,64,73,74,75,
-  66,57,48,39,30,21,22,31,40
- ];
- let previous=9;
+ assert.equal((await state(page)).gearMazeCell,48,
+  "The small clockwise gear cannot reverse the large wheel");
+ await act(page,"maze-in");
+ assert.equal((await state(page)).gearMazeCell,48,
+  "The dial moved through a closed radial wall");
+ await act(page,"gear-small");
+ assert.equal((await state(page)).gearMazeCell,59,
+  "The small wheel cannot turn clockwise at the start");
+ await act(page,"gear-large");
+ assert.equal((await state(page)).gearMazeCell,48,
+  "The main wheel cannot return counterclockwise");
+ for(const cell of [49,50,51]){
+  await act(page,"gear-large");
+  assert.equal((await state(page)).gearMazeCell,cell,
+   "The main wheel cannot advance through an open circular lane");
+ }
+ await act(page,"maze-in");
+ assert.equal((await state(page)).gearMazeCell,39,
+  "The upper gauge rim cannot move inward");
+ await act(page,"maze-out");
+ assert.equal((await state(page)).gearMazeCell,51,
+  "The lower gauge rim cannot move outward");
+ await act(page,"maze-in");
+ assert.equal((await state(page)).gearMazeCell,39);
+ const route=[38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
+ let previous=39;
  for(const cell of route){
-  const move=cell===previous-9?"maze-up":
-   cell===previous+9?"maze-down":
-   cell===previous-1?"maze-left":"maze-right";
+  const move=cell===60||cell===previous-12?"maze-in":
+   cell===previous+12?"maze-out":
+   Math.floor(cell/12)===Math.floor(previous/12)&&
+   cell%12===(previous%12+1)%12?"gear-large":"gear-small";
   await act(page,move);
   assert.equal((await state(page)).gearMazeCell,cell,
-   "A playable carved corridor failed: "+previous+" to "+cell);
+   "The captive ball could not follow the carved groove: "+previous+" -> "+cell);
   assert((await page.evaluate(()=>
    window.__nothing3DPreview.physicalGearMaze.followerTrackDistance))<.000001,
-   "The captive pin did not stay on the carved grid");
+   "The ball crossed a wall or left its physical channel");
   previous=cell;
  }
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.exitReached,
   null,{timeout:12000});
  assert((await state(page)).gearMazeSolved&&
   (await state(page)).pendingPickups.includes("fork"),
-  "Reaching the central socket did not release the tuning fork");
+  "Reaching the center socket did not release the fork");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
   null,{timeout:11000});
- await page.waitForFunction(()=>{
-  const m=window.__nothing3DPreview.physicalGearMaze;
-  return m&&Math.hypot(m.exit.x-m.railEntry.x,
-   m.exit.y-m.railEntry.y)<.023&&
-   Math.abs(m.exit.z-m.railEntry.z)<.025;
- },null,{timeout:12000,polling:100});
- const gearExit=await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze);
- assert(Math.hypot(gearExit.exit.x-gearExit.railEntry.x,
-   gearExit.exit.y-gearExit.railEntry.y)<.023,
-  "The pin reached a fake exit disconnected from the dial rail");
+ const m=await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze);
+ assert(Math.hypot(m.exit.x-m.railEntry.x,m.exit.y-m.railEntry.y)<.023&&
+  Math.abs(m.exit.z-m.railEntry.z)<.025,
+  "The physical exit no longer reaches the dial release shaft");
  await collect(page,"fork");
  await useItem(page,"fork","cube");
  assert((await state(page)).resonance,
@@ -361,8 +354,9 @@ try{
   assert(legacy.legacyGearBypass&&!legacy.gearMazeSolved&&legacy.pocket.includes("fork"),
    "Old players lost their tuning fork or their new gear puzzle was solved automatically");
   await act(page,"gear-small");
-  assert((await state(page)).gearMazeIndex===1,
-   "Players with earlier calibration progress cannot turn the newly functional gears");
+  assert((await state(page)).gearMazeCell===59&&
+    (await state(page)).gearMazePlayed,
+   "Old fork owners cannot operate the restored clockwise wheel");
   await close();
   console.log("PASS: prior fork owners keep it and can still play new gear maze");
  }
@@ -388,12 +382,14 @@ try{
   const {page,close}=await scenario("gear-before-pressure",{
    seen:[],pocket:[],pendingPickups:[]
   });
-  const path=[0,9,18,19,28,37,36,45,54,63,64,73,74,75,
-   66,57,48,39,30,21,22,31,40];
+  const path=[48,49,50,51,39,38,26,14,13,25,37,36,24,35,
+   23,22,21,20,19,7,60];
   for(let i=1;i<path.length;i++){
    const from=path[i-1],to=path[i];
-   await act(page,to===from-9?"maze-up":to===from+9?"maze-down":
-    to===from-1?"maze-left":"maze-right");
+   await act(page,to===60||to===from-12?"maze-in":
+    to===from+12?"maze-out":
+    Math.floor(to/12)===Math.floor(from/12)&&
+    to%12===(from%12+1)%12?"gear-large":"gear-small");
   }
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
