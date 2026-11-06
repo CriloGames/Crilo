@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=35";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=36";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=11";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=50";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=49";
@@ -919,12 +919,10 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"Large brass gear · move pin right",
- "gear-small":"Small geared hub · move pin down",
- "maze-up":"Top half of small gear · move pin up",
- "maze-down":"Bottom half of small gear · move pin down",
- "maze-left":"Left half of large gear · move pin left",
- "maze-right":"Right half of large gear · move pin right",
+ "gear-large":"Large labyrinth wheel · rotate counterclockwise",
+ "gear-small":"Small drive wheel · rotate clockwise",
+ "maze-in":"Upper dial rim · move toward center",
+ "maze-out":"Lower dial rim · move toward outer edge",
  "cube-offer":"Circular brass receiver",
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
