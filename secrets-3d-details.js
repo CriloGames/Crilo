@@ -275,10 +275,10 @@ export function buildIntricateCube({
   }
   // The only perimeter notch is the start; the center is a real open
   // receiving socket. Neither location reveals the correct route.
-  const arrow=new THREE.Shape();
-  arrow.moveTo(-.009,0);arrow.lineTo(.009,0);
-  arrow.lineTo(0,-.014);arrow.closePath();
-  const startMark=new THREE.Mesh(new THREE.ShapeGeometry(arrow),goalMetal);
+  const mazeEntryArrow=new THREE.Shape();
+  mazeEntryArrow.moveTo(-.009,0);mazeEntryArrow.lineTo(.009,0);
+  mazeEntryArrow.lineTo(0,-.014);mazeEntryArrow.closePath();
+  const startMark=new THREE.Mesh(new THREE.ShapeGeometry(mazeEntryArrow),goalMetal);
   startMark.position.set(startPoint.x,boundary+.006,.178);
   mazePlate.add(startMark);detailsCount++;
   C(mazePlate,.018,.007,0,0,.154,ebony);
