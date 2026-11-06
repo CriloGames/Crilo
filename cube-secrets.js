@@ -519,10 +519,12 @@ function ongoingMechanisms(){
  if(s.floorFour&&!s.observed)
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
- if(s.mothTouched&&pendingPickups.has('stardust'))
+ if(s.moon&&!(s.top&&s.pipeTaken))
+   add('Yellow roof','The moon-shaped counterweight moved, but the circular observatory hatch cannot rise until the hinged lid is open and its wooden tube is removed.');
+  if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
  if(seen.has('observatory')&&!s.observed)
-  add('Telescope','The barrel has two distinct optical sockets. Neither contains a fitted piece.');
+  add('Observatory','The raised dome has two separate optical sockets. Neither contains a fitted piece.');
  if(s.observed){
   if(!s.secondSky&&s.telescopeLensMounted!==s.telescopeIrisMounted)
    add('Optical fittings','The star chart was produced, but one of the telescope’s two fitted sockets is still empty.');
@@ -824,7 +826,7 @@ function render(){
  bag:s.bag, vase:s.doorOpen, squirrel:s.squirrel&&(!s.barked||fleeing),
  pot:s.vase, musicbox:s.vase, cloud:s.cloud,
  cup:s.music,clock:s.watch,machine:s.mouse,
-  elevator:s.watch&&s.tag,moth:s.floorFour,telescope:s.moon,train:s.train
+  elevator:s.watch&&s.tag,moth:s.floorFour,telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||s.telescopeLensMounted||s.telescopeIrisMounted||s.secondSky),train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  const inventory=$('ncInventory');
  const count=$('ncPocketCount');
@@ -1226,7 +1228,7 @@ function cubeHit(name){
     :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
-  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell('The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends.')}
+  if(!s.pipeTaken){s.pipeTaken=true;collection('pipe');bloom('pipe');tell(s.moon?'The wooden tube lifts out. With the moon catch released, two shutters part on the yellow roof and a domed observatory rises from its socket.':'The wooden tube lifts out of the open cradle. The two metal clips stay retracted at its ends. A round hatch remains locked nearby.');}
  }else if(name==='hatch'){
   if(!s.bottom){s.bottom=true;bloom('ring','The underside release opens a separate return pocket. A brass ring slides forward into view.');}
   if(!s.ringTaken){
@@ -1279,13 +1281,13 @@ function accepts(item,thing){
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
  ||item==='bell'&&thing==='dog'&&s.doorOpen
- ||item==='lens'&&thing==='telescope'&&!s.telescopeLensMounted
+ ||item==='lens'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
  ||item==='postcard'&&thing==='cube'&&!s.portal
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
- ||item==='iris'&&thing==='telescope'&&!s.telescopeIrisMounted
+ ||item==='iris'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeIrisMounted
  ||item==='shim'&&thing==='machine'&&!s.shimUsed
  ||item==='washer'&&thing==='musicbox'&&s.music&&!s.clockHeart
  ||item==='fork'&&thing==='cube'&&s.pressureReady&&!s.resonance
@@ -1350,7 +1352,12 @@ function use(item,thing){
  }else if(item==='sugar'&&thing==='cup'){
   spend('sugar');s.watch=true;bloom('teacup','The teacup burps and produces an antique pocket watch.');
  }else if(item==='bird'&&thing==='cube'){
-  spend('bird');s.moon=true;bloom('moon','The paper bird flies into the cube. A tiny moon takes its place.');incident('☾');
+  spend('bird');s.moon=true;
+   bloom('moon','The folded paper bird slips into the cube and tips a moon-shaped counterweight. A faint mechanism clicks under the yellow roof.');
+   if(s.top&&s.pipeTaken)
+    tell('Two brass shutters part at the top center. A small domed observatory slowly rises on its captive lift.');
+   else tell('A round mechanism has stirred beneath the top hatch. Its upper cradle still needs to be cleared.');
+   incident('☾');
  }else if(item==='bell'&&thing==='dog'){
   // The bell is NOT a dead-end inventory item. Its audible cause has a
   // concrete effect on the dog, squirrel, and physically cracked vase.
@@ -1366,7 +1373,7 @@ function use(item,thing){
   spend(item);
   if(item==='lens')s.telescopeLensMounted=true;
   else s.telescopeIrisMounted=true;
-  bloom('observatory','A brass telescope waits on its fixed tripod.');
+  bloom('observatory','The silver observatory optic seats inside the raised dome.');
   if(!s.observed){
    s.observed=true;
    bloom('constellation','The fitted optical element focuses the miniature sky. A folded star chart slides out of the telescope.');
@@ -1644,7 +1651,7 @@ function thingPresent(name){
   squirrel:s.squirrel,pot:s.vase,musicbox:s.vase,cloud:s.cloud,
   cup:s.music,clock:s.watch,machine:s.mouse,
   elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train,
-  moth:s.floorFour,telescope:true,train:s.train
+  moth:s.floorFour,telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||s.telescopeLensMounted||s.telescopeIrisMounted||s.secondSky),train:s.train
  })[name];
 }
 function inspectPhysicalSurface(name){
@@ -1719,7 +1726,7 @@ function clickThing(name,actuator=false){
   }else{cue(prop('moth'),'nc-moth-burst',1000);tell('The moth bows once. That is all.')}
  }
  else if(name==='telescope'){
-  bloom('observatory','A delicate brass telescope peers at a sky that is not quite there.');
+  bloom('observatory','The little brass observatory rises from its circular roof hatch and peers toward an impossible sky.');
   if(!s.observed)tell('Two differently shaped optical sockets are empty. The barrel is still out of focus.');
   else{
    tell(s.secondSky?'Both optical fittings are seated; the telescope has two distinct views.':
