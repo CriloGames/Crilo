@@ -331,7 +331,7 @@ export function buildIntricateCube({
   radialDialTarget("maze-in",true);
   radialDialTarget("maze-out",false);
   const follower=new THREE.Group();mazePlate.add(follower);
-  follower.position.copy(startPoint);follower.position.z=.178;
+  follower.position.copy(startPoint);follower.position.z=.176;
   const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};
   // Queue consecutive real channels during quick wheel turns instead of
   // restarting the ball animation and teleporting between maze positions.
@@ -369,7 +369,7 @@ export function buildIntricateCube({
   }
   C(follower,.005,.044,0,0,-.011,steel);
   const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0084,20,16),gold);
-  captiveBall.position.z=.009;follower.add(captiveBall);detailsCount++;
+  captiveBall.position.z=0;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
   // floating black stick, with a random stud halfway along it, suspended
