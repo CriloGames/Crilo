@@ -1214,7 +1214,7 @@ function accepts(item,thing){
  ||item==='bell'&&thing==='dog'&&s.doorOpen
  ||item==='lens'&&thing==='telescope'&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
- ||item==='starmap'&&thing==='elevator'&&s.floorFour&&!s.train
+ ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
  ||item==='postcard'&&thing==='cube'&&!s.portal
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
