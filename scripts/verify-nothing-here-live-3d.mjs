@@ -539,7 +539,7 @@ try{
  const neutralLabels=await page.evaluate(()=>
   ["triangle","hatch","eye-ring","vent-1","thing:bag-dial-0","cube-offer","latch"].map(
    name=>window.__nothing3DPreview.describeAction(name)));
- assert.equal(neutralLabels[0],"Brass triangle",
+ assert.equal(neutralLabels[0],"Lid release button",
   "The triangle hover label should identify an object, not tell players how many presses solve it");
  assert(!/press|three times|tap|click to apply|try turning|loosen|use held item|rotate|visit floor/i.test(neutralLabels.join(" | ")),
   "Hover text is disclosing mechanical steps or compatible-item solutions: "+neutralLabels.join(" | "));
