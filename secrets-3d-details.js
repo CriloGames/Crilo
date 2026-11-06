@@ -560,14 +560,17 @@ export function buildIntricateCube({
     const branch=(mazeJunctions.includes(progress)&&!s.gearMazeSolved)
      ?Math.max(0,Math.min(2,Number(s.gearMazeBranch)||0)):0;
     if(branch>0)mazeBranchJunction=progress;
-    gsap.killTweensOf(mazeTravel);
     if(instant){
+     gsap.killTweensOf(mazeTravel);
      mazeTravel.index=progress;mazeTravel.branch=branch;
      seatFollower();
     }else if(Math.abs(mazeTravel.index-progress)>.00001||
              Math.abs(mazeTravel.branch-branch)>.00001){
-     // This one scalar tween walks along the same spline used to cut the
-     // dark groove. It physically cannot interpolate across a brass wall.
+     // This scalar tween walks along the exact same spline used to cut the
+     // dark groove. It cannot interpolate across a brass wall. Kill only
+     // when the TARGET actually changes: unrelated game-state redraws must
+     // never freeze the screw halfway through a channel.
+     gsap.killTweensOf(mazeTravel);
      gsap.to(mazeTravel,{index:progress,branch,duration:.48,
       ease:"power2.inOut",onUpdate:seatFollower,onComplete:seatFollower});
     }else seatFollower();
