@@ -166,10 +166,12 @@ assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  "Old off-center or tripodded telescope returned");
 for(const expected of [
  'const hatchRacks=tubeRetainers.map(',
+ 'const angle=release*(.135/hatchDriveGears[0].r);',
+ 'offset+(k-2)*.084,',
  'keeper.clip.add(rack);',
  'box(chamber,.62,.016,.063,',
  'hatchDriveGears[0].rotor.rotation.z=-angle;',
- 'hatchDriveGears[1].rotor.rotation.z=angle*(.205/.175);'
+ 'hatchDriveGears[1].rotor.rotation.z=angle*(hatchDriveGears[0].r/hatchDriveGears[1].r);'
 ]) assert(preview.includes(expected),
  "The wheel-to-guided-rack mechanism was broken: "+expected);
 assert(!preview.includes('hatchConnectingRods')&&
