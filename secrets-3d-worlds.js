@@ -199,13 +199,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   );
   hitVolume.position.set(0,.33,.11);
   toy.add(hitVolume);toy.userData.pickVolume=hitVolume;parts++;
-  const shutters=name==="telescope"?[-1,1].map(sign=>({
-   leaf:B(stand,.253,.365,.026,sign*.127,.12,.263,m.gold,.02),sign
-  })):null;
-  if(name==="telescope"){
-   C(stand,.270,.035,0,.12,.213,m.brass,"z");
-   C(stand,.231,.026,0,.12,.241,m.black,"z");
-  }
+  // The roof fitting has two curved doors; flat display shutters retired.
+  const shutters=null;
   items.set(name,{fixture,toy,stand,inlay,hitVolume,visible:false,shutters});
  }
  const toy=name=>items.get(name).toy;
@@ -525,39 +520,74 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // Domed observatory built into the centerline of the yellow top panel.
- // A captive column rises through a circular shutter; no loose tripod.
+ // The observatory is permanently inset in the yellow roof, not balanced
+ // on a miniature display stand. The closed dome exists before any clues.
  let telescopeLensGlass=null,telescopeIrisGlass=null;
+ let observatoryLift=null,observatoryScope=null;
+ const observatoryDoors=[];
  {
-  const g=toy("telescope");
-  C(g,.076,.78,0,.12,-.365,m.dark,"z");
-  C(g,.092,.61,0,.12,-.30,m.brass,"z");
-  C(g,.174,.045,0,.12,-.035,m.gold,"z");
-  C(g,.249,.059,0,.12,.067,m.dark,"z");
-  C(g,.256,.042,0,.12,.104,m.gold,"z");
-  const dome=new THREE.Mesh(new THREE.SphereGeometry(
-   .239,22,12,0,Math.PI*2,0,Math.PI/2),m.cream);
-  dome.position.set(0,.12,.133);dome.rotation.x=Math.PI/2;
-  dome.castShadow=true;g.add(dome);parts++;
-  B(g,.084,.037,.146,0,-.102,.248,m.black,.011);
-  for(const sign of [-1,1])
-   B(g,.018,.041,.152,sign*.059,-.104,.248,m.gold,.005);
-  const tube=new THREE.Group();tube.position.set(0,.12,.336);
-  tube.rotation.x=.27;g.add(tube);
-  C(tube,.080,.335,0,0,.014,m.brass,"z");
-  C(tube,.070,.095,0,0,-.105,m.copper,"z");
-  for(const z of [-.109,.052,.157])C(tube,.085,.019,0,0,z,m.gold,"z");
-  C(tube,.099,.043,0,0,.193,m.gold,"z");
-  C(tube,.087,.014,0,0,.222,m.black,"z");
-  torus(tube,.095,.009,0,0,.235,m.gold,"z");
-  telescopeLensGlass=C(tube,.078,.012,0,0,.238,m.glass,"z");
+  const item=items.get("telescope"),g=item.toy;
+  item.stand.visible=false;
+  item.fixture.position.z=.089;
+  g.position.set(0,0,0);g.scale.setScalar(1);
+  item.hitVolume.geometry.dispose();
+  item.hitVolume.geometry=new THREE.BoxGeometry(.63,.63,.94);
+  item.hitVolume.position.set(0,0,.38);
+  // A bolted circular roof socket with a stationary inner sleeve.
+  item.mountRing=C(g,.315,.032,0,0,.008,m.brass,"z");
+  C(g,.281,.019,0,0,.032,m.gold,"z");
+  C(g,.25,.016,0,0,.045,m.black,"z");
+  for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
+   C(g,.019,.017,Math.cos(angle)*.288,Math.sin(angle)*.288,.035,m.dark,"z");
+  C(g,.116,.420,0,0,.202,m.dark,"z");
+  C(g,.103,.385,0,0,.208,m.brass,"z");
+  for(const z of [.09,.31])torus(g,.113,.009,0,0,z,m.gold,"z");
+  observatoryLift=new THREE.Group();
+  observatoryLift.position.z=.115;g.add(observatoryLift);
+  // This moving piston overlaps the fixed bearing even when fully raised.
+  C(observatoryLift,.090,.47,0,0,-.175,m.gold,"z");
+  C(observatoryLift,.267,.050,0,0,.060,m.dark,"z");
+  C(observatoryLift,.265,.025,0,0,.089,m.gold,"z");
+  const roofShell=new THREE.Group();
+  roofShell.position.z=.093;observatoryLift.add(roofShell);
+  // Each hemisphere is a genuinely curved hinged shell, not a flat plate.
+  for(const sign of [-1,1]){
+   const pivot=new THREE.Group();roofShell.add(pivot);
+   const hemisphere=new THREE.Mesh(new THREE.SphereGeometry(
+    .255,26,14,sign<0?0:Math.PI,Math.PI,0,Math.PI/2),m.cream);
+   hemisphere.rotation.x=Math.PI/2;
+   hemisphere.castShadow=true;hemisphere.receiveShadow=true;
+   pivot.add(hemisphere);parts++;
+   const lip=new THREE.Mesh(new THREE.TorusGeometry(
+    .255,.009,6,28,Math.PI),m.gold);
+   lip.rotation.z=sign<0?Math.PI:0;
+   pivot.add(lip);parts++;
+   for(const x of [-.15,.15])C(pivot,.023,.034,x,0,.014,m.brass,"x");
+   observatoryDoors.push({pivot,sign});
+  }
+  // The optical barrel begins contained beneath the curved shell.
+  observatoryScope=new THREE.Group();
+  observatoryScope.position.z=.060;
+  observatoryScope.rotation.y=-.12;
+  observatoryLift.add(observatoryScope);
+  C(observatoryScope,.088,.025,0,0,-.050,m.gold,"z");
+  C(observatoryScope,.034,.125,0,0,-.005,m.dark,"z");
+  const tube=new THREE.Group();tube.position.z=.078;observatoryScope.add(tube);
+  C(tube,.067,.245,0,0,0,m.copper,"z");
+  C(tube,.075,.045,0,0,-.070,m.brass,"z");
+  for(const z of [-.085,.045,.098])torus(tube,.076,.009,0,0,z,m.gold,"z");
+  C(tube,.081,.025,0,0,.124,m.gold,"z");
+  C(tube,.069,.014,0,0,.140,m.black,"z");
+  telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");
   telescopeLensGlass.visible=false;
-  B(tube,.10,.11,.102,.089,0,-.007,m.brass,.011);
-  C(tube,.053,.020,.141,0,-.007,m.dark,"x");
-  C(tube,.047,.014,.154,0,-.007,m.black,"x");
-  torus(tube,.054,.009,.162,0,-.007,m.gold,"x");
-  telescopeIrisGlass=C(tube,.040,.012,.166,0,-.007,m.glass,"x");
+  B(tube,.077,.083,.087,.072,0,-.020,m.brass,.010);
+  C(tube,.040,.022,.121,0,-.020,m.dark,"x");
+  torus(tube,.040,.008,.138,0,-.020,m.gold,"x");
+  telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");
   telescopeIrisGlass.visible=false;
+  item.lift=observatoryLift;
+  item.doors=observatoryDoors;
+  item.instrument=observatoryScope;
  }
  // Working railroad carriage: continuous track, ties, locomotive wheels
  // and chimney are solids that catch lighting from every angle.
@@ -603,6 +633,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const modelBases=[];
  for(const [name,item] of items){
   const toy=item.toy;
+  if(name==="telescope"){
+   modelBases.push({name,method:"direct",toy,lowest:-.31});
+   continue;
+  }
   toy.updateWorldMatrix(true,true);
   const toToy=toy.matrixWorld.clone().invert();
   let lowest=Infinity;
@@ -651,7 +685,19 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const now=Date.now();
   if(instance.lastInspectionAt&&now-instance.lastInspectionAt<220)return true;
   instance.lastInspectionAt=now;
-  const object=instance.toy,rest=name==="telescope"?.36:.205;
+  // Optical inspection may tilt the telescope but NEVER detach its lift.
+  if(name==="telescope"){
+   const scope=instance.instrument;
+   gsap.killTweensOf(scope.rotation);
+   if(reducedMotion){scope.rotation.y=.14;invalidate();return true;}
+   gsap.to(scope.rotation,{y:.27,duration:.23,ease:"sine.out",
+    onUpdate:invalidate,onComplete:()=>{
+     gsap.to(scope.rotation,{y:.14,duration:.42,
+      ease:"sine.inOut",onUpdate:invalidate});
+    }});
+   return true;
+  }
+  const object=instance.toy,rest=.205;
   instance.inspectionMotion?.kill();
   if(instance.inspectionSettleTimer){
    clearTimeout(instance.inspectionSettleTimer);
@@ -715,40 +761,41 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train,
    moth:s.floorFour,
    // Open the top hatch, remove the tube, and activate the paper-bird moon.
-   telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||
-    s.telescopeLensMounted||s.telescopeIrisMounted||s.secondSky),
+   telescope:!!s.observatoryRaised||!!s.observed||
+    !!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,
    train:s.trainn
   };
   for(const [name,instance] of items){
    const visible=!!show[name];
    const newlyFound=visible&&!instance.visible;
-   instance.fixture.visible=name==="telescope"?!!s.top:visible;
+   instance.fixture.visible=name==="telescope"?true:visible;
    instance.visible=visible;
    if(name==="telescope"){
-    instance.toy.visible=visible;
+    // Keep its closed physical dome visible even before activation.
+    instance.toy.visible=true;
+    const settle=raised=>{
+     gsap.killTweensOf(instance.lift.position);
+     gsap.killTweensOf(instance.instrument.rotation);
+     for(const {pivot} of instance.doors)gsap.killTweensOf(pivot.rotation);
+     instance.lift.position.z=raised?.405:.115;
+     for(const {pivot,sign} of instance.doors)
+      pivot.rotation.x=raised?sign*1.10:0;
+     instance.instrument.rotation.y=raised?.14:-.12;
+     invalidate();
+    };
     if(newlyFound){
-     gsap.killTweensOf(instance.toy.position);
-     const finish=()=>{
-      instance.toy.position.set(0,.03,.36);
-      for(const {leaf,sign} of instance.shutters)leaf.position.x=sign*.404;
-      invalidate();
-     };
-     if(firstRestore||reducedMotion)finish();
+     if(firstRestore||reducedMotion)settle(true);
      else{
-      instance.toy.position.set(0,.03,-.53);
-      for(const {leaf,sign} of instance.shutters)leaf.position.x=sign*.127;
-      const tl=gsap.timeline({onUpdate:invalidate,onComplete:finish});
-      for(const {leaf,sign} of instance.shutters)
-       tl.to(leaf.position,{x:sign*.404,duration:.48,ease:"power2.inOut"},0);
-      tl.to(instance.toy.position,{z:.36,duration:1.1,ease:"power2.out"},.40);
+      settle(false);
+      const tl=gsap.timeline({onUpdate:invalidate,onComplete:()=>settle(true)});
+      tl.to(instance.lift.position,{z:.405,duration:2.15,ease:"power2.inOut"},0);
+      for(const {pivot,sign} of instance.doors)
+       tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,
+        ease:"power2.inOut"},2.08);
+      tl.to(instance.instrument.rotation,{y:.14,duration:.72,
+       ease:"sine.inOut"},2.38);
      }
-    }else if(!visible){
-     gsap.killTweensOf(instance.toy.position);
-     instance.toy.position.set(0,.03,-.53);
-     for(const {leaf,sign} of instance.shutters){
-      gsap.killTweensOf(leaf.position);leaf.position.x=sign*.127;
-     }
-    }
+    }else if(!visible)settle(false);
     continue;
    }
    if(visible&&newlyFound){
@@ -1099,6 +1146,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    vendingServiceSealVisible:vendingServiceSeal?.visible??false,
    seedSproutVisible:sprout.visible,
    treeGrowthScale:branches.scale.y,
+   observatory:{
+    installed:!!items.get("telescope")?.fixture.visible,
+    deployed:!!items.get("telescope")?.visible,
+    lift:observatoryLift?.position.z??null,
+    doorAngles:observatoryDoors.map(({pivot})=>pivot.rotation.x),
+    scopeTilt:observatoryScope?.rotation.y??null
+   },
    telescopeOptics:{
     lens:telescopeLensGlass?.visible??false,
     iris:telescopeIrisGlass?.visible??false,
@@ -1136,6 +1190,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     return [mesh.position.z-depth/2,mesh.position.z+depth/2];
    };
    return mountHardware.map(h=>{
+    if(h.name==="telescope"){
+     const base=items.get("telescope");
+     return {name:h.name,standoffs:1,
+      shellMounted:!!base?.mountRing&&base.mountRing.parent===base.toy&&
+       Math.abs(base.fixture.position.z-.089)<.002,
+      upperSeated:base?.lift?.parent===base?.toy,
+      lowerSeated:base?.instrument?.parent===base?.lift};
+    }
     const bar=extent(h.crossbar),shelf=extent(h.shelf);
     const shellMounted=h.mountStandoffs.every(stem=>
      h.fixture.position.z+extent(stem)[0]<=.073 &&
