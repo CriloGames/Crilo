@@ -81,7 +81,8 @@ async function deployObservatory(page){
  assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
   pose.shutterProgress>=.999&&pose.slatCount===16&&
   pose.visibleSlats===0&&pose.rearCapVisible&&
-  Math.abs(pose.domeSeamHeight-.075)<.001&&pose.scopeTilt>.35,
+  Math.abs(pose.domeSeamHeight-.075)<.001&&pose.scopeTilt>.35&&
+  pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25,
   "The garage-style dome failed to roll completely into its rear housing");
 }
 async function refundCoin(page,{realPointer=false}={}){
@@ -505,7 +506,8 @@ try{
   const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
   assert(pose.deployed&&pose.shutterProgress>=.999&&
    pose.slatCount===16&&pose.visibleSlats===0&&
-   pose.rearCapVisible&&Math.abs(pose.domeSeamHeight-.075)<.001,
+   pose.rearCapVisible&&Math.abs(pose.domeSeamHeight-.075)<.001&&
+   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25,
    "The garage dome unlocked but did not retract without rising");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
