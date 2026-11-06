@@ -527,7 +527,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const OBSERVATORY_SLAT_COUNT=16;
  const observatoryShutter={progress:0},observatoryPanels=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
- let observatoryScope=null,observatoryRearCap=null,observatoryRoller=null;
+ let observatoryScope=null,observatoryRearCap=null,observatoryRoller=null,observatoryBarrel=null;
  {
   const item=items.get("telescope"),g=item.toy;
   item.stand.visible=false;item.fixture.position.z=.060;
@@ -604,7 +604,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR)*Math.sin(phi)
    ]);
   }
-  wire(roofShell,canopyEdge,.010,m.gold);
+  wire(roofShell,canopyEdge,.016,m.cream);
+  // Gold bead inside the ivory structural arch.
+  wire(roofShell,canopyEdge.map(([x,y,z])=>[x*.955,y*.955,z*.955]),.004,m.gold);
   for(const theta of insideBraces){
    const rib=[];
    for(let j=0;j<=24;j++){
@@ -670,6 +672,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   tube.position.set(0,-.014,.150);
   tube.rotation.x=Math.PI/2-.16;
   observatoryScope.add(tube);
+  observatoryBarrel=tube;
   C(tube,.067,.245,0,0,0,m.copper,"z");
   C(tube,.075,.045,0,0,-.070,m.brass,"z");
   for(const z of [-.085,.045,.098])torus(tube,.076,.009,0,0,z,m.gold,"z");
@@ -1261,7 +1264,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      rearCapVisible:!!observatoryRearCap?.visible,
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
       OBSERVATORY_SEAM,
-     scopeTilt:observatoryScope?.rotation.y??null
+     scopeTilt:observatoryScope?.rotation.y??null,
+      // Face-local telescope axis, independent of cube camera rotation.
+      barrelForwardY:observatoryBarrel?-Math.sin(observatoryBarrel.rotation.x):null,
+      barrelUpZ:observatoryBarrel?Math.cos(observatoryBarrel.rotation.x):null
     },
     telescopeOptics:{
     lens:telescopeLensGlass?.visible??false,
