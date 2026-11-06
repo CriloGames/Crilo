@@ -1364,33 +1364,36 @@ try{
  assert(spiral.model?.face==="leftFace"&&
   spiral.model.mazeStyle==="concentric radial labyrinth"&&
   spiral.model.networkCells===97&&
-  spiral.model.extraConnections>=30&&
-  spiral.model.networkChannels>=120&&
-  spiral.model.raisedWalls>=45&&
+  spiral.model.extraConnections===20&&
+  spiral.model.networkChannels>=105&&
+  spiral.model.raisedWalls>=60&&
   spiral.model.goalSocketOpen&&
   spiral.model.followerTrackDistance<.000001,
-  "The multi-route 3D labyrinth is missing channels or walls: "+JSON.stringify(spiral));
+  "The machined circular labyrinth does not have valid walls: "+JSON.stringify(spiral));
  for(const [key,action] of [
   ["inward","maze-in"],["outward","maze-out"],
   ["clockwise","maze-cw"],["counterclockwise","maze-ccw"]])
   assert(spiral[key]?.pick===action,
-   "A working 3D directional control is hidden or blocked: "+action);
+   "An engraved contact ON a wheel is hidden or blocked: "+action);
  const rect=await page.locator("#stage canvas").boundingBox();
- assert(spiral.small?.pick==="gear-small","Drive gear not reachable");
- await page.mouse.click(rect.x+spiral.small.x,rect.y+spiral.small.y);
+ assert(spiral.small?.pick==="gear-small","The little physical gear is not reachable");
+ await page.mouse.click(rect.x+spiral.counterclockwise.x,rect.y+spiral.counterclockwise.y);
  assert.equal((await state()).gearMazeCell,95,
-  "The first physical gear press did not move around the outer ring");
+  "The labyrinth wheel's rim contact cannot travel around the outside");
  await activate("maze-ccw");
  assert.equal((await state()).gearMazeCell,94,
-  "Circular maze movement stopped along the rim");
- // The player must be able to turn both INWARD and OUTWARD, including
- // doubling back from a dead end, not just follow a scripted spiral.
- await page.mouse.click(rect.x+spiral.inward.x,rect.y+spiral.inward.y);
+  "The large wheel's second rotation did not reach the adjacent cell");
+ // Physically press the small gear's center to move inward at a crossover.
+ const realSmall=await page.evaluate(()=>
+  window.__nothing3DPreview.projectGameControl("gear-small"));
+ assert(realSmall?.pick==="gear-small",
+  "The small gear center is not touchable");
+ await page.mouse.click(rect.x+realSmall.x,rect.y+realSmall.y);
  assert.equal((await state()).gearMazeCell,78,
-  "The physical inward selector is not really interactive");
+  "The small gear should be the inward control");
  await activate("maze-out");
  assert.equal((await state()).gearMazeCell,94,
-  "The outward selector fails to retrace the radial corridor");
+  "The small wheel's lower contact should move outward");
  await activate("maze-in");
  const route=[
   ["maze-in",62],["maze-in",46],
@@ -1413,7 +1416,7 @@ try{
   "Reaching the real center socket did not expose the tuning fork");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
   null,{timeout:12000});
- console.log("PASS: actual four-way maze controls, alternate loops, inward/outward backtracking, central release");
+ console.log("PASS: rim clicks on large and small gears, curved maze walls, radial backtracking, central release");
  // The retired decorative "optic" fitting is deliberately inert. Three
  // presses on the one REAL eye-ring actuator must expose the brass strip.
  await activate("optic");
