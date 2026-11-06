@@ -275,6 +275,28 @@ export function buildIntricateCube({
     mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],cell)));
   const startPoint=gearMazePoints[0],finishPoint=gearMazePoints.at(-1);
 
+  // An understated continuous inlay traces EVERY traversable channel,
+  // including dead ends. Unlike disconnected ornament, these are sampled
+  // from mazeEdgeCurves itself, the very curves used to animate the pin.
+  // One LineSegments draw keeps the extra detail inexpensive.
+  const guideCoordinates=[];
+  for(const curve of mazeEdgeCurves.values()){
+    const count=Math.max(6,Math.ceil(curve.getLength()*220));
+    for(let i=1;i<count;i++){
+      const a=curve.getPoint((i-1)/(count-1));
+      const b=curve.getPoint(i/(count-1));
+      guideCoordinates.push(a.x,a.y,.173,b.x,b.y,.173);
+    }
+  }
+  const guideGeometry=new THREE.BufferGeometry();
+  guideGeometry.setAttribute("position",
+    new THREE.Float32BufferAttribute(guideCoordinates,3));
+  const channelGuides=new THREE.LineSegments(guideGeometry,
+    new THREE.LineBasicMaterial({
+      color:0xac9270,transparent:true,opacity:.72,depthWrite:false
+    }));
+  channelGuides.frustumCulled=false;
+  mazePlate.add(channelGuides);detailsCount++;
   // Clean ivory face with recessed ink-dark ENGRAVED BOUNDARIES.
   // No black filled-in route ribbons, repeating squares or loose wire ends.
   const mazeFace=mat(0xf5ead7,.43,.29);
@@ -852,6 +874,7 @@ export function buildIntricateCube({
        centerMouthWidth,
        goalCollarGap,
        ballRadius:.0084,
+       guidedSegments:guideCoordinates.length/6,
        exitApproaches:mazeGraph.get(mazeGoal)?.size||0,
        uniqueSolution:mazeEdgeCurves.size===mazeGraph.size-1,
        physicalChannelConnected:true,
