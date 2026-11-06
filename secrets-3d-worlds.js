@@ -711,11 +711,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    invalidate();
   };
   if(reducedMotion){settle();return true;}
-  // The miniatures recoil along their mounting axis, not by floating and
-  // tilting into adjacent dials and shutters.
+  // A restrained twist around the mounted center spindle replaces the old
+  // .047-forward bounce, which visually pulled the figure off its shelf.
+  // The post and foot now stay seated throughout inspection.
   instance.inspectionMotion=gsap.timeline({onUpdate:invalidate,onComplete:settle})
-   .to(object.position,{z:rest+.047,duration:.12,ease:"power2.out"})
-   .to(object.position,{z:rest,duration:.30,ease:"back.out(1.35)"});
+   .to(object.rotation,{y:.10,duration:.12,ease:"power2.out"})
+   .to(object.rotation,{y:0,duration:.30,ease:"back.out(1.35)"});
   // Software renderers sometimes stall requestAnimationFrame indefinitely.
   instance.inspectionSettleTimer=setTimeout(settle,900);
   return true;
