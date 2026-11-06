@@ -215,7 +215,7 @@ export function buildIntricateCube({
 
 
   const mazeRouteCells=[48,49,50,51,39,38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
-  const mazePassages="0-11 0-12 1-13 2-3 2-60 3-4 4-5 5-6 6-18 7-19 7-60 8-9 8-20 9-10 9-21 10-11 10-22 12-24 13-14 13-25 14-26 15-16 15-27 16-17 17-18 19-20 20-21 20-32 21-22 22-23 23-35 24-35 24-36 25-37 26-38 27-28 28-29 29-30 30-31 30-42 31-43 32-33 33-34 34-35 36-37 38-39 39-51 40-41 41-42 42-54 43-44 44-45 44-56 45-46 45-57 46-47 46-58 47-59 48-49 48-59 49-50 50-51 51-52 52-53 53-54 54-55 55-56 56-57 57-58 58-59".split(" ").map(e=>e.split("-").map(Number));
+  const mazePassages="0-11 0-12 1-2 1-13 2-3 2-60 3-4 4-5 5-6 6-18 7-8 7-19 7-60 8-9 8-20 9-10 9-21 10-11 10-22 12-24 13-14 13-25 14-26 15-16 15-27 16-17 17-18 19-20 20-21 20-32 21-22 22-23 23-35 24-35 24-36 25-37 26-38 27-28 28-29 29-30 30-31 30-42 31-43 32-33 32-44 33-34 34-35 36-37 38-39 39-51 40-41 41-42 42-54 43-44 44-45 44-56 45-46 45-57 46-47 46-58 47-59 48-49 48-59 49-50 50-51 52-53 53-54 54-55 56-57 58-59".split(" ").map(e=>e.split("-").map(Number));
   const mazeOrigin=48,mazeGoal=60,mazeSectors=12,mazeRings=5;
   const mazeStartAngle=Math.PI/2,mazeInnerRadius=.080,mazePitch=.052;
   const mazePlate=group(leftFace,-.18,0,.19);
@@ -315,17 +315,17 @@ export function buildIntricateCube({
     return mesh;
   }
   for(const curve of mazeEdgeCurves.values()){
-    carvedRibbon(curve,.034,.178,trenchBevel);
-    carvedRibbon(curve,.028,.180,channelDark);
+    carvedRibbon(curve,.020,.178,trenchBevel);
+    carvedRibbon(curve,.0155,.180,channelDark);
   }
   for(const cell of mazeGraph.keys()){
     const p=mazeCellPoint(cell);
-    const junction=new THREE.Mesh(new THREE.CircleGeometry(.017,22),
+    const junction=new THREE.Mesh(new THREE.CircleGeometry(.010,22),
       trenchBevel);
     junction.position.set(p.x,p.y,.178);
     junction.castShadow=false;mazePlate.add(junction);detailsCount++;
     const floor=new THREE.Mesh(new THREE.CircleGeometry(
-      cell===mazeGoal?.030:.0145,24),channelDark);
+      cell===mazeGoal?.029:.008,24),channelDark);
     floor.position.set(p.x,p.y,.181);
     floor.castShadow=false;mazePlate.add(floor);detailsCount++;
   }
