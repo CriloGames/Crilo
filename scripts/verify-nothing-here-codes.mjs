@@ -173,4 +173,25 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "The star chart still needs the elevator's floor-four reward before it can be used");
 
+// The telescope must look and function like a mounted optical instrument,
+// not the former three floating wooden sticks around a plain brass pipe.
+// Both removable optic meshes still respond to independently saved state.
+for(const expected of [
+ 'const footPositions=[[-.194,-.084,-.118],[.194,-.084,-.118],',
+ 'const joint=[0,.288,-.047];',
+ 'wire(g,[joint,[x*.44,.102,z*.48],[x,y,z]],.022,m.wood);',
+ 'const tube=new THREE.Group();',
+ 'C(tube,.095,.50,-.003,0,0,m.brass,"x");',
+ 'C(tube,.034,.011,-.435,0,0,m.black,"x");',
+ 'torus(tube,.120,.010,.332,0,0,m.gold,"x");',
+ 'telescopeLensGlass=C(tube,.103,.014,.339,0,0,m.glass,"x");',
+ 'B(tube,.100,.074,.116,.095,.010,.085,m.brass,.014);',
+ 'telescopeIrisGlass=C(tube,.047,.012,.095,.010,.187,m.glass,"z");',
+ 'telescopeLensGlass.visible=!!s.telescopeLensMounted;',
+ 'telescopeIrisGlass.visible=!!s.telescopeIrisMounted;'
+]) assert(worlds.includes(expected),
+ 'The telescope lost a structural mount or a working optical fitting: '+expected);
+assert(!worlds.includes('wire(g,[[0,.37,0],[Math.cos(a)*.22,.09'),
+ 'The obsolete floating-rod telescope model has returned');
+
 console.log('PASS: all three playable codes agree with their physical clues, alignable controls and retry indicators.');
