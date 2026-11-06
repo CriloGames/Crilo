@@ -184,7 +184,7 @@ assert(logic.includes('s.gearMazeBranch=1;')&&
  'Wrong turns no longer stop at physical barriers');
 const wheelMount=details.match(
  /const wheelA=gear\(leftFace,([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+),gearMetal,15\)/);
-assert(wheelMount,'The gear's physical mounting bearing is missing');
+assert(wheelMount,"The gear mounting bearing is missing");
 const railMatch=details.match(
  /const gearRailEntry=\{x:([-\d.]+),y:([-\d.]+),z:([-\d.]+)\}/);
 assert(railMatch,'The dial linkage has no receiving shaft');
