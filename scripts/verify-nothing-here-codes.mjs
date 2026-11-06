@@ -163,7 +163,7 @@ assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
 // The observatory is a fixed-height garage shutter: each real curved
 // strip winds back into a small stationary rear cap.
 for(const expected of [
- "[\"moth\",\"topFace\",-1.15,.21],[\"telescope\",\"topFace\",0,-1.14]",
+ "[\"moth\",\"topFace\",-1.15,.21],[\"telescope\",\"topFace\",0,-1.17]",
  "item.stand.visible=false;item.fixture.position.z=.060;",
  "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
  "const OBSERVATORY_RADIUS=.289,OBSERVATORY_SEAM=.012;",
