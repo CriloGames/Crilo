@@ -167,7 +167,8 @@ for(const expected of [
  "item.stand.visible=false;item.fixture.position.z=.060;",
  "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
  "const OBSERVATORY_RADIUS=.255,OBSERVATORY_SEAM=.015;",
- "const OBSERVATORY_REAR=.76,OBSERVATORY_TRAVEL=Math.PI-.16;",
+ "const OBSERVATORY_REAR=-.30;",
+ "const OBSERVATORY_TRAVEL=Math.PI/2+OBSERVATORY_REAR+.015;",
  "const OBSERVATORY_SLAT_COUNT=16;",
  "observatoryPanels.push({panel,thetaStart});",
  "observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);",
@@ -186,6 +187,23 @@ for(const expected of [
  "telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");"
 ]) assert(worlds.includes(expected),
  "The stationary garage-style dome lost a physical part: "+expected);
+// The approved render is a substantial shell with a red-lined interior,
+// a tall solid curved front wall, and a telescope set BACK inside the arch.
+// The previous design's tiny rear cap and buried wall looked like a flat hole.
+for(const required of [
+ 'const OBSERVATORY_REAR=-.30;',
+ 'const burgundy=mat(0x873e39,.10,.73);',
+ 'burgundy.side=THREE.DoubleSide;',
+ 'const canopyEdge=[],insideBraces=[-.19,.12,.42,.75,1.10];',
+ 'for(const theta of [-.02,.35,.73,1.12]){',
+ 'new THREE.CylinderGeometry(.287,.287,.105,48,1,true,',
+ 'frontSill.position.z=.114;',
+ 'sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.168]);',
+ 'C(g,.236,.012,0,0,.021,mat(0x66605b,.10,.70),"z");',
+ 'observatoryScope.position.set(0,.065,.030);',
+ 'observatoryScope.scale.setScalar(.82);'
+]) assert(worlds.includes(required),
+ "The visible architectural observatory reverted to a flat roof opening: "+required);
 // The approved outward-facing observatory needs a molded forward-facing
 // telescope and a genuine burgundy rear canopy, not just a bare roof hole.
 for(const part of [
