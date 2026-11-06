@@ -146,7 +146,7 @@ assert(worlds.includes('telescope:!!s.observatoryRaised||!!s.observed||')&&
  preview.includes('setHit(observatoryButtonCap,"observatory-release");')&&
  preview.includes('activatePhysical?.("observatory-release")'),
  "The permanent dome or physical roof-release button no longer works");
-assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||s.train'),
+assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train'),
  "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
