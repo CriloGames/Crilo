@@ -273,9 +273,8 @@ export function buildIntricateCube({
   const goalMetal=mat(0xf1c679,.38,.24);
   const goalLit=mat(0xffe5a1,.28,.20);
   goalLit.emissive.setHex(0xa76723);goalLit.emissiveIntensity=1.15;
-  // A fixed maze face floats on proper bearings above the rotating ring:
-  // the visible toothed gear moves, the passages never rotate out from
-  // underneath the roller while it is navigating.
+  // The circular face and the big toothed carrier turn together, held
+  // by four retained bearings. Only the upper radial gauge stays fixed.
   for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
     C(mazePlate,.016,.077,Math.cos(angle)*.327,
       Math.sin(angle)*.327,.076,steel);
@@ -392,6 +391,16 @@ export function buildIntricateCube({
   }
   const goalSocket=goalCollarParts[0];
   C(mazePlate,.029,.010,0,0,.172,mazeInset);
+  // These tiny engraved arrows belong to the original metal wheels:
+  // they indicate movement without recreating the removed selector pad.
+  const leftArrow=group(mazePlate,-.390,0,.170);
+  flatLine(leftArrow,.011,0,-.011,0,.003,.004,brass);
+  flatLine(leftArrow,-.011,0,-.001,.008,.003,.004,brass);
+  flatLine(leftArrow,-.011,0,-.001,-.008,.003,.004,brass);
+  const rightArrow=group(wheelB,.181,0,.167);
+  flatLine(rightArrow,-.011,0,.011,0,.003,.004,brass);
+  flatLine(rightArrow,.011,0,.001,.008,.003,.004,brass);
+  flatLine(rightArrow,.011,0,.001,-.008,.003,.004,brass);
   // Quiet hardware detailing, well outside the playable circular groove.
   for(let i=0;i<8;i++){
     const angle=(i+.5)*Math.PI/4;
@@ -700,6 +709,9 @@ export function buildIntricateCube({
     const turns=Math.max(-720,Math.min(720,Number(s.gearMazeTurns)||0));
     const gearRotation=-turns*Math.PI/12;
     pose(wheelA,"rotation","z",gearRotation);
+     // The labyrinth face itself rotates with its meshed carrier, not
+     // merely a hidden toothed ring; the ball stays captive inside it.
+     pose(mazePlate,"rotation","z",gearRotation);
     pose(wheelB,"rotation","z",-gearRotation*(.405/.235));
     const cell=Number.isInteger(s.gearMazeCell)&&
      mazeGraph.has(s.gearMazeCell)?s.gearMazeCell:legacyMazeCell(s);
