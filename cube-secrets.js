@@ -154,6 +154,62 @@ const GEAR_MAZE_DIRECTIONS=[
 // engraved decoration. The wrong wheel enters a two-step dead end.
 // A player must retrace those steps before continuing around the main arc.
 const GEAR_MAZE_JUNCTIONS=[4,9,14,19,24];
+// Full shared radial topology. Every real opening belongs to this
+// undirected cell graph; buttons move to a geometrically adjacent cell.
+// Preserve the old 29-move markers ONLY to restore previous saved games.
+const MAZE_ROUTE_CELLS=[
+   80,95,94,78,77,76,75,59,58,57,73,74,90,89,88,87,
+   71,55,54,38,22,23,39,40,41,42,26,27,43,44,28,29,
+   45,61,62,46,47,63,79,64,48,32,16,17,33,49,65,66,
+   67,83,84,68,52,36,35,34,18,19,3,4,20,21,5,96
+  ];
+const MAZE_STEP_MARKS=[
+   0,2,5,7,9,11,13,16,18,20,22,24,27,29,31,
+   33,35,38,40,42,44,46,49,51,53,55,58,60,62,63
+  ];
+const MAZE_BLIND_CELLS=[
+   [56,72],
+   [6,7,8,24,25,9,10],
+   [30,31,15,14,13,12,11],
+   [0,1,2],
+   [37,53,69,70,86,85]
+  ];
+const MAZE_EXTRA_EDGES=[
+   [62,78],[61,77],[43,59],[42,58],[41,57],[20,36],
+   [39,55],[58,74],[73,89],[19,35],[21,22],[78,79],
+   [17,18],[33,34],[64,65],[48,49],[27,28],[44,45],
+   [32,47],[62,63],[45,46],[67,68],[74,75],[38,39],
+   [42,43],[4,5],[19,20],[80,81],[81,82],
+   [75,91],[91,92],[92,93],[93,94],
+   [49,50],[50,51],[51,52],[59,60],[60,61]
+  ];
+
+const MAZE_ORIGIN=80,MAZE_GOAL=96;
+const MAZE_GRAPH=new Map();
+const mazeAddEdge=(a,b)=>{
+ if(!MAZE_GRAPH.has(a))MAZE_GRAPH.set(a,new Set());
+ if(!MAZE_GRAPH.has(b))MAZE_GRAPH.set(b,new Set());
+ MAZE_GRAPH.get(a).add(b);MAZE_GRAPH.get(b).add(a);
+};
+const mazeAddPath=nodes=>{
+ for(let i=1;i<nodes.length;i++)mazeAddEdge(nodes[i-1],nodes[i]);
+};
+mazeAddPath(MAZE_ROUTE_CELLS);
+MAZE_BLIND_CELLS.forEach((branch,i)=>
+ mazeAddPath([MAZE_ROUTE_CELLS[MAZE_STEP_MARKS[GEAR_MAZE_JUNCTIONS[i]]],...branch]));
+MAZE_EXTRA_EDGES.forEach(([a,b])=>mazeAddEdge(a,b));
+function mazeDestination(cell,direction){
+ if(!MAZE_GRAPH.has(cell))return null;
+ if(cell===MAZE_GOAL)
+  return direction==="maze-out"&&MAZE_GRAPH.get(cell).has(5)?5:null;
+ const ring=Math.floor(cell/16),sector=cell%16;
+ const target=direction==="maze-cw"?ring*16+(sector+1)%16:
+  direction==="maze-ccw"?ring*16+(sector+15)%16:
+  direction==="maze-in"?(ring===0?MAZE_GOAL:cell-16):
+  direction==="maze-out"?(ring===5?null:cell+16):null;
+ return target!==null&&MAZE_GRAPH.get(cell).has(target)?target:null;
+}
+
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
@@ -254,9 +310,23 @@ if(s.gearMazeSolved){
 // by solid brass. On reload, recover the only mechanically possible angle
 // from the saved channel position. This keeps old progress while ensuring
 // the exit reaches its fixed release linkage upon completion.
-s.gearMazeTurns=GEAR_MAZE_DIRECTIONS.slice(0,s.gearMazeIndex)
- .reduce((sum,direction)=>sum+direction,0)+
- (s.gearMazeBranch? -GEAR_MAZE_DIRECTIONS[s.gearMazeIndex]*s.gearMazeBranch:0);
+if(!Number.isInteger(raw.gearMazeCell)){
+ s.gearMazeTurns=GEAR_MAZE_DIRECTIONS.slice(0,s.gearMazeIndex)
+  .reduce((sum,direction)=>sum+direction,0)+
+  (s.gearMazeBranch?
+   -GEAR_MAZE_DIRECTIONS[s.gearMazeIndex]*s.gearMazeBranch:0);
+}
+// Older runs saved a scripted step, not a location. Map them onto the
+// corresponding physically carved cell without resetting their progress.
+const savedMainCell=MAZE_ROUTE_CELLS[MAZE_STEP_MARKS[s.gearMazeIndex]];
+const savedBranch=MAZE_BLIND_CELLS[
+ GEAR_MAZE_JUNCTIONS.indexOf(s.gearMazeIndex)];
+const legacyMazeCell=s.gearMazeBranch&&savedBranch?
+ savedBranch[Math.max(0,Math.min(savedBranch.length-1,
+  Math.ceil(savedBranch.length*s.gearMazeBranch/2)-1))]:savedMainCell;
+s.gearMazeCell=s.gearMazeSolved?MAZE_GOAL:
+ Number.isInteger(raw.gearMazeCell)&&MAZE_GRAPH.has(raw.gearMazeCell)?
+ raw.gearMazeCell:legacyMazeCell;
 // Repair orphaned physical rewards from saves made before independent
 // "found but not picked up" state was consistently persisted. Never
 // restore something that a downstream puzzle has already consumed.
@@ -433,7 +503,7 @@ function ongoingMechanisms(){
   add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
  if(!s.gearMazeSolved&&(s.gearMazeIndex>0||s.pressureTicks>0))
   add('Calibration gears','A captive screw moves through connected channels in the large wheel. The two gears turn in opposite directions.'+
-   (s.gearMazeBranch>0?' The pin is currently in a blind branch ending at a solid brass stop.':'')+
+   ' The four-way selector moves the pin around the rings or inward/outward through open crossovers.'+
    (s.legacyGearBypass?' Your previously earned calibration item is still yours.':
     s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
  if(s.gearMazeSolved&&!s.pressureReady)
@@ -972,62 +1042,53 @@ function inspectHardware(name){
   cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
   return true;
  }
- if(name==='gear-small'||name==='gear-large'){
-  const dir=name==='gear-small'?1:-1;
+ if(name==='gear-small'||name==='gear-large'||
+    ["maze-cw","maze-ccw","maze-in","maze-out"].includes(name)){
+  const direction=name==="gear-small"?"maze-ccw":
+   name==="gear-large"?"maze-cw":name;
   if(s.gearMazeSolved){
-   tell('The captive screw has reached its exit socket. The dial retainer stays withdrawn.');
+   tell('The captive ball has seated in the central receiving socket. The dial latch stays released.');
    return true;
   }
   s.gearMazePlayed=true;
-  const before=s.gearMazeIndex;
-  const beforeBranch=s.gearMazeBranch||0;
-  const forward=GEAR_MAZE_DIRECTIONS[before];
-  const backward=before>0?-GEAR_MAZE_DIRECTIONS[before-1]:0;
-  if(beforeBranch>0){
-   // An actual dead-end branch: turning the WRONG wheel can advance the
-   // pin only to the plugged end, never beyond the carved line. Turn the
-   // other wheel to retrace the blind channel back to the crossover.
-   if(dir===forward)s.gearMazeBranch--;
-   else if(dir===-forward&&beforeBranch<2)s.gearMazeBranch++;
-  }else if(GEAR_MAZE_JUNCTIONS.includes(before)&&dir===-forward){
-   // At a hairpin, the forward/backward main route needs the same gear.
-   // The otherwise unused gear therefore leads into the blind fork.
-   s.gearMazeBranch=1;
-  }else if(dir===forward)s.gearMazeIndex++;
-  else if(dir===backward)s.gearMazeIndex--;
-  const moved=s.gearMazeIndex!==before||s.gearMazeBranch!==beforeBranch;
-  // A blocked gear physically cannot rotate its captive screw through
-  // solid brass. Do not change the wheel's angle on a dead-end stop.
-  if(moved)s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-720,720);
-  if(s.gearMazeIndex>=GEAR_MAZE_DIRECTIONS.length){
+  const previous=s.gearMazeCell;
+  const next=mazeDestination(previous,direction);
+  if(next===null){
+   tell('The ball meets a solid brass wall. There is no open channel in that direction.');
+   sound(210);
+   return true;
+  }
+  s.gearMazeCell=next;
+  // The two meshed gears rotate only when moving around a circular lane;
+  // the adjacent radial selector slides the pin inward or outward.
+  if(direction==="maze-cw"||direction==="maze-ccw")
+   s.gearMazeTurns=clamp(s.gearMazeTurns+
+    (direction==="maze-cw"?-1:1),-720,720);
+  // Legacy progress is advisory only. Navigation may leave the main route,
+  // circle back, or discover a shorter path through an added crossover.
+  const mainNode=MAZE_ROUTE_CELLS.indexOf(next);
+  if(mainNode>=0){
+   const marker=MAZE_STEP_MARKS.findIndex(n=>n>=mainNode);
+   s.gearMazeIndex=marker<0?29:marker;
+  }
+  s.gearMazeBranch=0;
+  if(next===MAZE_GOAL){
    s.gearMazeSolved=true;
    s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
-   s.gearMazeBranch=0;
-   rememberChange('calibration-gear','The captive screw reached the real exit socket. The linked latch beside the calibration dial withdrew.');
+   rememberChange('calibration-gear',
+    'The captive ball drops through the open central socket. The geared linkage withdraws the calibration dial latch.');
    if(s.pressureReady&&!s.resonance){
     gain('fork');
-    tell('The screw reaches the end of the carved maze and releases the calibrated dial’s clamp. A tuning fork is exposed in its bracket.');
-   }else{
-    tell('The screw reaches the exit socket and withdraws the dial’s retaining tongue. The needle still needs calibration.');
-   }
-  }else if(s.gearMazeBranch>beforeBranch){
-   tell(s.gearMazeBranch>=2
-    ?'The screw meets a solid brass plug at the end of a blind channel. It can only go back.'
-    :'The screw turns into a narrow side channel. One direction continues to the end stop; the other retraces the fork.');
-  }else if(s.gearMazeBranch<beforeBranch){
-   tell(s.gearMazeBranch===0
-    ?'The screw backs out of the blind channel and returns to the fork in the main groove.'
-    :'The screw reverses inside the blind channel, without crossing the brass walls.');
-  }else if(s.gearMazeIndex>before){
-   tell(before===0
-    ?'The smaller drive wheel advances the captive screw along the first machined arc.'
-    :'The screw follows the groove into the next section. The two gears counter-rotate.');
-  }else if(s.gearMazeIndex<before){
-   tell('The screw retraces its groove toward the last turn. Both meshed gears reverse.');
+    tell('The ball reaches the center and frees the calibrated dial. A tuning fork rests in its bracket.');
+   }else
+    tell('The ball reaches the center. The dial retaining tongue retracts, but the needle still needs calibrating.');
   }else{
-   tell('The screw meets a solid end stop. This gear cannot move it outside the carved track.');
+   const inward=direction==="maze-in",outward=direction==="maze-out";
+   tell(inward?'The selector slides the ball into a smaller ring.':
+    outward?'The selector slides the ball out to a larger ring.':
+    'The drive gear moves the ball along the circular groove. Choose another opening at each junction.');
   }
-  sound(280+s.gearMazeIndex*18);
+  sound(290+(s.gearMazeCell%16)*12);
   return true;
  }
  if(name==='pressure'){
