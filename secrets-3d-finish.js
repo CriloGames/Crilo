@@ -113,26 +113,41 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // The front roof's pair of machined inlays bend continuously around
-      // the dome with matching, generous radii. Previously the straight
-      // black and brass strips stopped short and looked visibly cut off.
-      // Each is now ONE continuous curve, with horizontal tangents where
-      // it joins the unchanged rails at the left and right edges.
+      // Two exposed inlaid leads curve gently toward the observatory,
+      // then bend DOWN through captive round bushings into the cube shell.
+      // Their tips finish BELOW the enamel skin (z=.0725), not abruptly
+      // in midair or draped across the sealed hemisphere.
       if(face===topFace&&s===-1){
-        const goldBypass=[
-          [-1.29,-1.22],[-.96,-1.22],[-.78,-1.22],[-.67,-1.19],
-          [-.53,-1.03],[-.41,-.87],[-.25,-.82],[0,-.79],
-          [.25,-.82],[.41,-.87],[.53,-1.03],[.67,-1.19],
-          [.78,-1.22],[.96,-1.22],[1.29,-1.22]
+        const leads=[
+          {y:-1.22,z:.105,r:.014,paint:accent,
+           port:{x:.390,y:-1.185},
+           route:[
+            [1.29,-1.22,.105],[1.01,-1.22,.105],
+            [.77,-1.22,.105],[.62,-1.22,.105],
+            [.51,-1.208,.105],[.445,-1.19,.105],
+            [.416,-1.182,.100],[.401,-1.184,.082],
+            [.394,-1.185,.053],[.390,-1.185,.028]
+           ]},
+          {y:-1.125,z:.13,r:.005,paint:deep,
+           port:{x:.420,y:-1.060},
+           route:[
+            [1.20,-1.125,.13],[.96,-1.125,.13],
+            [.76,-1.125,.13],[.62,-1.118,.13],
+            [.535,-1.106,.13],[.477,-1.082,.13],
+            [.443,-1.067,.119],[.429,-1.062,.098],
+            [.423,-1.060,.065],[.420,-1.060,.028]
+           ]}
         ];
-        const inkBypass=[
-          [-1.20,-1.125],[-.94,-1.125],[-.75,-1.125],[-.64,-1.07],
-          [-.53,-.93],[-.41,-.83],[-.25,-.78],[0,-.755],
-          [.25,-.78],[.41,-.83],[.53,-.93],[.64,-1.07],
-          [.75,-1.125],[.94,-1.125],[1.20,-1.125]
-        ];
-        path(face,goldBypass.map(([x,y])=>[x,y,.105]),.014,accent);
-        path(face,inkBypass.map(([x,y])=>[x,y,.13]),.005,deep);
+        for(const lead of leads)for(const sign of [-1,1]){
+          path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),
+           lead.r,lead.paint);
+          // A drilled dark recess with an inset ferrule hides the point
+          // where the wire runs beneath the skin. No floating end caps.
+          const x=sign*lead.port.x,y=lead.port.y;
+          C(face,.027,.012,x,y,.071,metal);
+          C(face,.018,.010,x,y,.080,deep);
+          torus(face,.024,.005,x,y,.087,accent);
+        }
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
         B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
