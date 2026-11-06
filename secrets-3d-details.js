@@ -419,9 +419,9 @@ export function buildIntricateCube({
   C(wheelA,.030,.009,0,0,.162,mazeInset);
   const mouthAngle=mazeEntranceAngle+5*Math.PI*2/mazeSectorCount;
   const goalCollar=new THREE.Mesh(new THREE.TorusGeometry(
-   .035,.005,8,48,Math.PI*2-.95),goalMetal);
+   .035,.005,8,48,Math.PI*2-1.25),goalMetal);
   goalCollar.position.z=.177;
-  goalCollar.rotation.z=mouthAngle+.475;
+  goalCollar.rotation.z=mouthAngle+.625;
   wheelA.add(goalCollar);detailsCount++;
   // Leave the socket hollow: the screw physically occupies this space
   // on completion. A decorative solid stud would obstruct the exit.
