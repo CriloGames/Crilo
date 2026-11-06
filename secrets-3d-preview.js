@@ -385,17 +385,15 @@ const hatchRacks=tubeRetainers.map((keeper,i)=>{
   keeper.clip.position.y+railY-.032,-.465,darkMetal,.005);
  return rack;
 });
-// The roof release is centered beneath the wooden-tube cradle, between
-// the TWO moving lid support struts (whose feet are x=+/- .56, y=-.42).
-// The previous right-side placement intersected a brass piston and made
-// this button difficult to see or press. The entire button is recessed
-// inside the hatch opening with clearance from both chamber walls.
+// The release is horizontally centered on the open hatch's fixed floor,
+// midway between the left and right lift struts. Its own rooted stalk
+// remains clear of the tube cradle and all rotating gears.
 const observatoryButtonBase=new THREE.Group();
-observatoryButtonBase.position.set(.065,-.476,-.257);
+observatoryButtonBase.position.set(0,-.476,-.257);
 chamber.add(observatoryButtonBase);
 // The captive riser physically bridges the cavity floor (-.725) and
 // the button's backplate. A raised face without this would hover in air.
-cylinder(chamber,.078,.480,.065,-.476,-.505,darkMetal);
+cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);
 cylinder(observatoryButtonBase,.104,.026,0,0,-.016,darkMetal);
 cylinder(observatoryButtonBase,.086,.027,0,0,.005,brass);
 const observatoryButtonCap=new THREE.Group();
