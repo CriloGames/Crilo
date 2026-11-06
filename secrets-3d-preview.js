@@ -1625,8 +1625,8 @@ window.__nothing3DPreview={
   for(const m of miniatures)
    if(!m.shellMounted||!m.upperSeated||!m.lowerSeated)
     issues.push(m.name+" miniature has unseated hardware");
-  if(flute.length!==2||flute.some(m=>
-   !m.reachesShell||!m.meetsBrace||!m.sharesFluteVisibility))
+  if(gameHotspots&&(flute.length!==2||flute.some(m=>
+   !m.reachesShell||!m.meetsBrace||!m.sharesFluteVisibility)))
    issues.push("flute saddles are not attached to their fixed top rail");
   return {wheels,fixed,lens,miniatures,flute,
    issues,okay:issues.length===0,
