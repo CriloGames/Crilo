@@ -1514,6 +1514,24 @@ window.__nothing3DPreview={
  },
  get physicalStoryObjects(){return pocketWorlds?.names||[]},
  get physicalPickupIds(){return physicalPickups?.ids||[]},
+ // A real missing-key-bit profile is important for the ring+tooth craft:
+ // the original drawer piece accidentally already contained a full bow.
+ get unfinishedKeyProfile(){
+  const geometryTypes=[];
+  looseKey.traverse(part=>{
+   if(part.isMesh)geometryTypes.push(part.geometry.type);
+  });
+  return {parts:geometryTypes.length,
+   hasPreinstalledRing:geometryTypes.includes("TorusGeometry"),
+   attachedToDrawer:looseKey.parent===front.drawer,
+   pickupAction:looseKey.children.some(part=>part.userData.action==="pickup:tooth")||
+    !!looseKey.userData.action};
+ },
+ // The opt-in actual-mesh collision scanner must cover physical controls,
+ // not only model props and full-size drawers.
+ get collisionScanMechanisms(){
+  return [...(gameHotspots?.getSpatialMechanisms?.()||new Map()).keys()];
+ },
  get physicalPickupRevealCount(){return physicalPickups?.getRevealCount?.()||0},
  getPhysicalPickupRevealState(id){return physicalPickups?.getRevealState?.(id)||null},
  getPickupGlowState(id){
