@@ -105,6 +105,22 @@ assert.deepEqual([...decode(eyeLabel),...decode(footLabel)],fluteCode,
 assert(logic.includes("===FLUTE_CODE.join('')"),
  'The flute logic no longer plays the score stamped on the cube');
 
+// Startup regression: the lower service indicator was once parented to
+// `shutter` before its lexical declaration. This throws a ReferenceError
+// while importing the entire 3D game and appears to players as a generic
+// connection failure. Always parent it to the already-built cassette.
+const physicalCassettePos=hotspots.indexOf("const shutterCassette=node(rightFace,");
+const indicatorPos=hotspots.indexOf("const resonator=node(shutterCassette,");
+const shutterAliasPos=hotspots.indexOf('const shutter=targets.get("shutter");');
+assert(physicalCassettePos>=0&&indicatorPos>physicalCassettePos&&
+ shutterAliasPos>indicatorPos,
+ "Service sensor is constructed before its mechanical cassette exists");
+assert(!hotspots.includes("const resonator=node(shutter,"),
+ "The 3D scene will crash during initialization: premature shutter reference");
+assert(preview.includes('buildGameHotspots({')&&
+ preview.includes('buildPocketWorlds({'),
+ "3D startup no longer creates its physical controls and miniatures");
+
 assert(logic.includes('s.ventSequence=[];'),'A failed vent attempt cannot be retried from a clean start');
 assert(logic.includes('s.fluteNotes=[];'),'The physical flute lacks a clean six-note retry');
 assert(worlds.includes('bagCatchReady:'),'The aligned bag code has no visible spring-catch response');
