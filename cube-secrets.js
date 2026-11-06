@@ -164,7 +164,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
  cup:false,moon:false,mouse:false,tag:false,kite:false,
- floorFour:false,mothTouched:false,observed:false,dancer:false,train:false,parcelTaken:false,portal:false,
+ floorFour:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
  shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
@@ -172,6 +172,14 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
+// The telescope now has TWO real optical fittings, usable in either order.
+// Older runs always installed the silver lens before the glass iris. Honor
+// their already-completed constellation and second-sky secrets without
+// duplicating either pickup or relocking the telescope.
+if(typeof raw.telescopeLensMounted!=='boolean')
+ s.telescopeLensMounted=!!s.observed;
+if(typeof raw.telescopeIrisMounted!=='boolean')
+ s.telescopeIrisMounted=!!s.secondSky;
 // Older runs opened the service shutter before the key existed. Respect
 // their completed chain; never relock a wax cylinder or final mailed letter.
 if(s.serviceOpen||s.cylinderMounted||s.tapeInserted||s.letterMailed||s.doorReplied)
@@ -275,8 +283,8 @@ recoverReward('cylinder',s.serviceOpen&&!s.cylinderMounted);
 // Upgrade that earned discovery into an actual physical service key at
 // the machine, without granting it directly or duplicating spent keys.
 recoverReward('seal',s.refundRedeemed&&!s.serviceSealInserted&&!s.serviceOpen);
-recoverReward('iris',s.opticOpened&&!s.secondSky);
-recoverReward('lens',s.floorFour&&!s.observed);
+recoverReward('iris',s.opticOpened&&!s.telescopeIrisMounted);
+recoverReward('lens',s.floorFour&&!s.telescopeLensMounted);
 recoverReward('starmap',s.observed&&!s.train);
 recoverReward('stardust',s.mothTouched&&!s.dancer);
 recoverReward('parcel',s.parcelTaken&&!seen.has('postcard'));
@@ -447,16 +455,22 @@ function ongoingMechanisms(){
  if(s.tapeInserted&&!s.letterMailed)
   add('Clock reader','The clock has read the tape. A folded letter is available.'+
    (pendingPickups.has('letter')?' It is still at the clock.':''));
- if(s.watch&&s.tag&&!s.floorFour)
-  add('Miniature lift','The lift has four buttons. A small number is stamped on the collar tag.');
+ if((s.serialRead||s.watch&&s.tag)&&!s.floorFour)
+  add('Miniature lift','A small four-floor carriage is exposed, with separate numbered controls.');
  if(s.floorFour&&!s.observed)
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
  if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
- if(s.observed&&!s.train)
-  add('Telescope','The telescope has focused. A folded star chart was produced.'+
-   (pendingPickups.has('starmap')?' The chart is still in its holder.':''));
+ if(seen.has('observatory')&&!s.observed)
+  add('Telescope','The barrel has two distinct optical sockets. Neither contains a fitted piece.');
+ if(s.observed){
+  if(!s.secondSky&&s.telescopeLensMounted!==s.telescopeIrisMounted)
+   add('Optical fittings','The star chart was produced, but one of the telescope’s two fitted sockets is still empty.');
+  if(!s.train)
+   add('Star chart','The telescope produced a folded chart.'+
+    (pendingPickups.has('starmap')?' It is still in its holder.':''));
+ }
  if(s.letterMailed&&!s.doorReplied)
   add('Returned mail','The train has returned a sealed envelope.'+
    (pendingPickups.has('envelope')?' It is waiting at the station.':''));
@@ -933,9 +947,12 @@ function inspectHardware(name){
   return true;
  }
  if(name==='serial'){
+  const newlyOpened=!s.serialRead;
   s.serialRead=true;
   bloom('maker-stamp','Stamped beneath the maker\'s seal: PROPERTY OF NOBODY / 04 / CALIBRATE TO THREE.');
-  tell('Somebody signed the inspection tag with an X. The date is tomorrow.');
+  tell(newlyOpened
+   ?'The brass maker’s stamp sinks into its housing. A small lift emerges from a recessed carriage on the adjacent side. The maker’s plate is stamped 04.'
+   :'The stamped plate remains depressed. Its marking reads 04. The side carriage stays exposed.');
   cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
   return true;
  }
@@ -1195,13 +1212,13 @@ function accepts(item,thing){
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
  ||item==='bell'&&thing==='dog'&&s.doorOpen
- ||item==='lens'&&thing==='telescope'&&s.moon&&!s.observed
+ ||item==='lens'&&thing==='telescope'&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&s.floorFour&&!s.train
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
  ||item==='postcard'&&thing==='cube'&&!s.portal
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
- ||item==='iris'&&thing==='telescope'&&s.observed&&!s.secondSky
+ ||item==='iris'&&thing==='telescope'&&!s.telescopeIrisMounted
  ||item==='shim'&&thing==='machine'&&!s.shimUsed
  ||item==='washer'&&thing==='musicbox'&&s.music&&!s.clockHeart
  ||item==='fork'&&thing==='cube'&&s.pressureReady&&!s.resonance
@@ -1274,10 +1291,23 @@ function use(item,thing){
   sound(820);
   if(!s.barked)bark('bell');
   else tell('The bell rings again. The dog looks toward the empty ledge where the startled squirrel used to sit.');
- }else if(item==='lens'&&thing==='telescope'){
-  spend('lens');s.observed=true;
-  bloom('constellation','The lens focuses on a constellation that has never existed.');
-  gain('starmap','A tiny star chart unfolds from the telescope.');
+ }else if((item==='lens'||item==='iris')&&thing==='telescope'){
+  // Two independently obtainable optical components fit separate sockets:
+  // one from the elevator, the other from the opened rear-eye mechanism.
+  // Either one focuses the first star chart; the second produces the
+  // two-sky secret. Neither tool can be installed twice or lost on reload.
+  spend(item);
+  if(item==='lens')s.telescopeLensMounted=true;
+  else s.telescopeIrisMounted=true;
+  bloom('observatory','A brass telescope waits on its fixed tripod.');
+  if(!s.observed){
+   s.observed=true;
+   bloom('constellation','The fitted optical element focuses the miniature sky. A folded star chart slides out of the telescope.');
+   gain('starmap','A folded star chart is resting beside the telescope.');
+  }else if(s.telescopeLensMounted&&s.telescopeIrisMounted&&!s.secondSky){
+   s.secondSky=true;
+   bloom('second-sky','The second element seats in its own socket. The paired optics split the view into two different skies.');
+  }
  }else if(item==='stardust'&&thing==='musicbox'){
   spend('stardust');s.dancer=true;
   bloom('dancer','A tiny ballerina unfolds from the music box and begins to waltz.');
@@ -1293,9 +1323,6 @@ function use(item,thing){
  }else if(item==='cog'&&thing==='eye'){
   spend('cog');s.opticOpened=true;gain('iris');
   bloom('hidden-optic','The drive cog engages the optical mechanism. A glass iris slips into the eye’s small side retainer.');
- }else if(item==='iris'&&thing==='telescope'){
-  spend('iris');s.secondSky=true;
-  bloom('second-sky','For an instant, the telescope sees two different skies at once.');
  }else if(item==='shim'&&thing==='machine'){
   spend('shim');s.shimUsed=true;
   // A coin can only be returned if the original was spent. If it is
@@ -1344,7 +1371,10 @@ function use(item,thing){
  if(item==='sugar'&&thing==='cup')cue(prop('cup'),'nc-scene-blink',850);
  if(item==='bird'&&thing==='cube'){cue('ncAnimatedBird','nc-running',2100);scatter('#e5c6d3',12);}
  if(item==='kite'&&thing==='cloud')scatter('#d2add7',10,prop('cloud'));
- if(item==='lens'&&thing==='telescope'){cue(prop('telescope'),'nc-scope-zoom',1600);scatter('#c7d7ef',13,prop('telescope'))}
+ if((item==='lens'||item==='iris')&&thing==='telescope'){
+  cue(prop('telescope'),'nc-scope-zoom',1600);
+  scatter('#c7d7ef',13,prop('telescope'));
+ }
  if(item==='stardust'&&thing==='musicbox'){cue(prop('musicbox'),'nc-dance-begin',1800);scatter('#e4c9ef',16,prop('musicbox'))}
  if(item==='starmap'&&thing==='elevator'){cue(prop('elevator'),'nc-ticket-stamp',1400);scatter('#c2b6dd',13,prop('elevator'))}
  if(item==='parcel'&&thing==='dog')cue('ncDog','nc-petting',520);
@@ -1417,10 +1447,10 @@ function pressBagRelease(){
 function openElevator(){
  bloom('lift','A tiny four-stop lift is mounted to the cube. Its four separate buttons operate the carriage.');
  modal('AT THE EDGE OF THE ROOM',s.floorFour?'The fourth-floor lift':'The miniature elevator',
-  '<p>Four buttons. The elevator is smaller than the dog\'s collar tag.</p>'+
-  '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>04</span></div>'+
+  '<p>Four brass buttons, four floors. Somewhere on the cube is a stamped destination.</p>'+
+  '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>'+(s.floorFour?'04':'—')+'</span></div>'+
   '<div class="nc-lift-buttons">'+[1,2,3,4].map(n=>'<button type="button" data-floor="'+n+'" aria-label="Visit miniature floor '+n+'" class="nc-lift-call">'+String(n).padStart(2,'0')+'</button>').join('')+'</div></div>'+
-  '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':'Somewhere, a small brass tag might tell you where to stop.')+'</p>','elevator');
+  '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':'The lift needs a destination. Examine the markings on the cube.')+'</p>','elevator');
 }
 function callElevator(floor){
  const text=$('ncLiftMessage')||{textContent:''};
@@ -1545,8 +1575,9 @@ function thingPresent(name){
  return !!({
   bag:s.bag,door:s.door,dog:s.doorOpen,vase:s.doorOpen,
   squirrel:s.squirrel,pot:s.vase,musicbox:s.vase,cloud:s.cloud,
-  cup:s.music,clock:s.watch,machine:s.mouse,elevator:s.watch&&s.tag,
-  moth:s.floorFour,telescope:s.moon,train:s.train
+  cup:s.music,clock:s.watch,machine:s.mouse,
+  elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train,
+  moth:s.floorFour,telescope:true,train:s.train
  })[name];
 }
 function inspectPhysicalSurface(name){
@@ -1622,8 +1653,12 @@ function clickThing(name,actuator=false){
  }
  else if(name==='telescope'){
   bloom('observatory','A delicate brass telescope peers at a sky that is not quite there.');
-  if(!s.observed)tell('It is missing the little glass lens from the front.');
-  else{tell('Five lights trace the same secret constellation.');cue(prop('telescope'),'nc-scope-zoom',1550);}
+  if(!s.observed)tell('Two differently shaped optical sockets are empty. The barrel is still out of focus.');
+  else{
+   tell(s.secondSky?'Both optical fittings are seated; the telescope has two distinct views.':
+    'The star chart has been focused, but one optical socket remains empty.');
+   cue(prop('telescope'),'nc-scope-zoom',1550);
+  }
  }
  else if(name==='train'){
   if(!s.parcelTaken){
@@ -1983,7 +2018,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   return pressBagRelease();
  },
  activatePhysicalElevatorFloor(floor){
-  if(!Number.isInteger(floor)||floor<1||floor>4||!s.watch||!s.tag)return;
+  if(!Number.isInteger(floor)||floor<1||floor>4||!thingPresent('elevator'))return;
   bloom('lift');
   callElevator(floor);
  },
