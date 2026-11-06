@@ -185,11 +185,24 @@ assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
  preview.includes('gameHotspots.targets.set("gear-small"')&&
  preview.includes('for(const [action,part] of gears.directional||[])'),
  'Visible wheel and dial controls cannot be selected');
-assert(details.includes('pose(mazePlate,"rotation","z",gearRotation)')&&
+assert(details.includes('turnPose(mazePlate,gearRotation)')&&
  details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
  details.includes('const curve=mazeEdgeCurves.get(edgeKey(')&&
- details.includes('onUpdate:seatFollower,onComplete:seatFollower'),
- 'The captive ball no longer follows a real open groove');
+ details.includes('mazeQueue.push(cell);mazeVisualTarget=cell;')&&
+ details.includes('onUpdate:()=>{seatFollower();invalidate();}')&&
+ details.includes('animateNextMazeEdge();'),
+ 'Every dragged movement must visibly follow an open curved groove');
+assert(details.includes('meter.scale.setScalar(.90)')&&
+ details.includes('new THREE.RingGeometry(.203,.307,48,1,')&&
+ hotspots.includes('control(leftFace,"pressure",.88,.64,brass,.115)'),
+ 'The smaller dial and its usable outer drag rim are missing');
+assert(preview.includes('const gearDragActions=new Set(')&&
+ preview.includes('renderer.domElement.setPointerCapture(e.pointerId)')&&
+ preview.includes('controls.enabled=false;clickStart=null;')&&
+ preview.includes('clickAction(inward?"maze-in":"maze-out")')&&
+ preview.includes('const diff=Math.atan2(Math.sin(angle-drag.lastAngle)')&&
+ preview.includes('for(let i=0;i<3&&drag.remainder>=.245;i++'),
+ 'The wheels or radial dial no longer respond to held dragging');
 const wheelMount=details.match(
  /const wheelA=gear\(leftFace,([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+),gearMetal,15\)/);
 const railMatch=details.match(
