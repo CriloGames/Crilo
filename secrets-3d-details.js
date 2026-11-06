@@ -290,6 +290,10 @@ export function buildIntricateCube({
   // A softly darker border hints at a bevel without tracing the answer.
   const trenchBevel=mat(0x655444,.55,.36);
   const channelDark=mat(0x1d2227,.40,.43);
+  // The ribbon winding reverses when a ring crosses the 0/11 seam.
+  // Draw both sides to prevent disappearing channels from one camera angle.
+  trenchBevel.side=THREE.DoubleSide;
+  channelDark.side=THREE.DoubleSide;
   function carvedRibbon(curve,width,z,material){
     const points=curve.getPoints(18);
     const left=[],right=[];
