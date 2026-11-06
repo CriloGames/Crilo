@@ -210,6 +210,9 @@ assert(hotspots.includes('const fluteMountFeet=[];')&&
  hotspots.includes('getFluteMountAudit:()=>fluteMountFeet.map(')&&
  preview.includes('flute=gameHotspots?.getFluteMountAudit?.()||[]'),
  'Collectible flute saddles lost their real mounting feet');
+assert(worlds.includes('.to(object.rotation,{y:.10,duration:.12,ease:"power2.out"})')&&
+ !worlds.includes('.to(object.position,{z:rest+.047'),
+ 'Inspecting a miniature must not pull it off its own mounting shelf');
 assert(worlds.includes('const modelSupports=[];')&&
  worlds.includes('const modelBases=[];')&&
  worlds.includes('const toToy=toy.matrixWorld.clone().invert();')&&
