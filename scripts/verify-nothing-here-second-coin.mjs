@@ -168,12 +168,44 @@ async function refundCoin(page,{realPointer=false}={}){
    "The physical gear/dial part cannot be clicked: "+action);
  assert.equal((await state(page)).gearMazeCell,48,
   "The ball is not at the outermost starting groove");
- // Test a genuine pointer click and a saved partially solved maze.
+ // A plain click does NOT turn the wheel anymore. The pointer must stay
+ // down while the player rotates the wheel (or slides the gauge rim).
+ async function dragControl(name,radialMove=null){
+  const guide=await page.evaluate(name=>{
+   const v=window.__nothing3DPreview;
+   return {start:v.projectGameControl(name),center:v.getGearDragCenter(name)};
+  },name);
+  assert(guide.start?.pick===name&&guide.center,
+   "The carved "+name+" control cannot be grabbed");
+  const start=guide.start,center=guide.center;
+  const r=Math.hypot(start.x-center.x,start.y-center.y);
+  await page.mouse.move(start.x,start.y);
+  await page.mouse.down();
+  if(radialMove){
+   const direction=radialMove==="in"?-1:1;
+   for(let i=1;i<=8;i++)
+    await page.mouse.move(start.x,start.y+direction*34*i/8);
+  }else if(r>13){
+   const angle=Math.atan2(start.y-center.y,start.x-center.x);
+   const direction=name==="gear-large"?-1:1;
+   for(let i=1;i<=8;i++)
+    await page.mouse.move(center.x+r*Math.cos(angle+direction*.37*i/8),
+     center.y+r*Math.sin(angle+direction*.37*i/8));
+  }else{
+   const direction=name==="gear-large"?-1:1;
+   for(let i=1;i<=8;i++)
+    await page.mouse.move(start.x+direction*65*i/8,start.y);
+  }
+  await page.mouse.up();
+ }
  await page.locator("#stage canvas").click({
   position:{x:gears.large.x,y:gears.large.y},timeout:25000
  });
+ assert.equal((await state(page)).gearMazeCell,48,
+  "Clicking without dragging incorrectly advances the roller");
+ await dragControl("gear-large");
  assert.equal((await state(page)).gearMazeCell,49,
-  "Clicking the large gear did not move counterclockwise");
+  "Holding and rotating the large wheel did not advance counterclockwise");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
  assert.equal((await state(page)).gearMazeCell,49,
@@ -182,11 +214,9 @@ async function refundCoin(page,{realPointer=false}={}){
  const small=await page.evaluate(()=>
   window.__nothing3DPreview.projectGameControl("gear-small"));
  assert(small?.pick==="gear-small","The small gear center is blocked");
- await page.locator("#stage canvas").click({
-  position:{x:small.x,y:small.y},timeout:25000
- });
+ await dragControl("gear-small");
  assert.equal((await state(page)).gearMazeCell,48,
-  "The small clockwise gear cannot reverse the large wheel");
+  "Dragging the small gear clockwise cannot reverse the main wheel");
  await act(page,"maze-in");
  assert.equal((await state(page)).gearMazeCell,48,
   "The dial moved through a closed radial wall");
@@ -201,13 +231,13 @@ async function refundCoin(page,{realPointer=false}={}){
   assert.equal((await state(page)).gearMazeCell,cell,
    "The main wheel cannot advance through an open circular lane");
  }
- await act(page,"maze-in");
+ await dragControl("maze-in","in");
  assert.equal((await state(page)).gearMazeCell,39,
-  "The upper gauge rim cannot move inward");
- await act(page,"maze-out");
+  "Dragging UP on the gauge rim cannot move the roller inward");
+ await dragControl("maze-out","out");
  assert.equal((await state(page)).gearMazeCell,51,
-  "The lower gauge rim cannot move outward");
- await act(page,"maze-in");
+  "Dragging DOWN on the gauge rim cannot move the roller outward");
+ await dragControl("maze-in","in");
  assert.equal((await state(page)).gearMazeCell,39);
  const route=[38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
  let previous=39;
