@@ -113,9 +113,19 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
+      // The observatory has an actual circular roof aperture centered at
+      // x=0, y=-1.08. The old straight inlaid rails ran THROUGH its dome.
+      // Interrupt only those two front-rail strips around the socket.
+      if(face===topFace&&s===-1){
+        for(const side of [-1,1]){
+          B(face,.90,.030,.041,side*.84,-1.22,.105,accent,.012);
+          B(face,.81,.010,.024,side*.795,-1.125,.13,deep,.004);
+        }
+      }else{
+        B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
+        B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
+      }
       B(face,.030,2.52,.041,s*1.22,0,.105,accent,.012);
-      B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
       B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
     }
     // No second set of corner rivets: the precision panel already has
