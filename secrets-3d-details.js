@@ -217,209 +217,179 @@ export function buildIntricateCube({
   ];
 
 
-  const mazeRouteCells=[48,49,50,51,39,38,26,14,13,25,37,36,24,35,23,22,21,20,19,7,60];
-  const mazePassages="0-11 1-13 2-3 2-60 4-5 4-16 5-6 6-7 6-18 7-8 7-19 7-60 8-9 8-20 9-10 9-21 10-11 11-23 12-13 13-14 13-25 14-26 15-16 16-17 17-18 18-19 18-30 19-20 20-21 21-22 22-23 23-35 24-35 24-36 25-37 26-27 26-38 27-28 27-39 28-29 30-31 30-42 31-32 31-43 32-33 33-34 34-35 34-46 36-37 36-47 38-39 39-51 40-41 41-53 42-43 43-44 43-55 44-45 44-56 45-46 45-57 46-47 48-49 48-59 49-50 50-51 51-52 52-53 54-55 58-59".split(" ").map(e=>e.split("-").map(Number));
-  const mazeOrigin=48,mazeGoal=60,mazeSectors=12,mazeRings=5;
-  const mazeStartAngle=Math.PI/2,mazeInnerRadius=.080,mazePitch=.052;
+
+  // A proper hand-cut radial labyrinth, like an antique brass puzzle.
+  // The dark marks represent WALLS, not painted corridors or square
+  // positions. Every visible opening below comes from the exact same
+  // graph used by the saved game and its collision checks.
+  const mazeRouteCells=[90,107,106,105,104,86,87,69,68,67,66,48,47,46,64,82,83,101,100,99,98,97,96,78,79,80,62,63,45,44,26,25,7,6,5,4,22,40,39,38,37,19,1,2,108];
+  const mazePassages="0-1 0-17 1-2 1-19 2-20 2-108 3-21 4-5 4-22 5-6 6-7 7-25 8-9 9-10 9-27 11-12 11-29 11-108 12-13 12-30 13-14 14-15 16-17 16-34 18-35 18-36 19-37 20-21 22-40 23-24 24-42 25-26 26-44 27-28 28-29 30-31 31-32 31-49 32-50 33-34 33-51 35-53 36-53 37-38 38-39 39-40 40-58 41-42 41-59 42-43 43-61 44-45 45-63 46-47 46-64 47-48 48-66 50-51 51-52 52-53 54-55 54-71 55-56 56-57 56-74 57-75 58-59 59-77 60-61 62-63 62-80 63-81 64-82 65-83 66-67 67-68 68-69 69-87 70-71 70-88 71-89 72-73 72-89 73-74 73-91 74-75 75-76 76-94 77-95 78-79 78-96 79-80 82-83 83-101 84-85 84-102 85-86 86-87 86-104 88-89 89-107 90-91 90-107 91-92 92-93 93-94 96-97 97-98 98-99 99-100 100-101 102-103 103-104 104-105 105-106 106-107".split(" ").map(e=>e.split("-").map(Number));
+  const mazeOrigin=90,mazeGoal=108,mazeSectors=18,mazeRings=6;
+  const mazeStartAngle=-Math.PI/2,mazeInnerRadius=.075,mazePitch=.048;
   const mazePlate=group(leftFace,-.18,0,.19);
-  const edgeKey=(x,y)=>Math.min(x,y)+":"+Math.max(x,y);
-  const mazeGraph=new Map(),mazeEdgeCurves=new Map();
+  const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
+  const mazeGraph=new Map(),mazeEdgeCurves=new Map(),openEdges=new Set();
+  const sectorWidth=Math.PI*2/mazeSectors;
   const mazeCellPoint=cell=>{
     if(cell===mazeGoal)return new THREE.Vector3(0,0,.156);
     const radius=mazeInnerRadius+Math.floor(cell/mazeSectors)*mazePitch;
-    const angle=mazeStartAngle+(cell%mazeSectors)*Math.PI*2/mazeSectors;
-    return new THREE.Vector3(Math.cos(angle)*radius,
-      Math.sin(angle)*radius,.156);
+    const a=mazeStartAngle+(cell%mazeSectors)*sectorWidth;
+    return new THREE.Vector3(Math.cos(a)*radius,Math.sin(a)*radius,.156);
   };
-  function mazeEdgeCurve(a,b){
-    if(a===mazeGoal||b===mazeGoal)
-      return new THREE.LineCurve3(mazeCellPoint(a),mazeCellPoint(b));
-    if(Math.floor(a/mazeSectors)!==Math.floor(b/mazeSectors))
+  const mazeEdgeCurve=(a,b)=>{
+    if(a===mazeGoal||b===mazeGoal||
+      Math.floor(a/mazeSectors)!==Math.floor(b/mazeSectors))
       return new THREE.LineCurve3(mazeCellPoint(a),mazeCellPoint(b));
     let delta=((b%mazeSectors)-(a%mazeSectors)+mazeSectors)%mazeSectors;
     if(delta>mazeSectors/2)delta-=mazeSectors;
     const r=mazeInnerRadius+Math.floor(a/mazeSectors)*mazePitch;
-    const points=Array.from({length:9},(_,i)=>{
-      const ang=mazeStartAngle+(a%mazeSectors+
-        delta*i/8)*Math.PI*2/mazeSectors;
-      return new THREE.Vector3(r*Math.cos(ang),r*Math.sin(ang),.156);
+    const points=Array.from({length:12},(_,i)=>{
+      const angle=mazeStartAngle+(a%mazeSectors+
+        delta*i/11)*sectorWidth;
+      return new THREE.Vector3(r*Math.cos(angle),r*Math.sin(angle),.156);
     });
     return new THREE.CatmullRomCurve3(points,false,"centripetal",.18);
-  }
+  };
   for(const [x,y] of mazePassages){
     const a=Math.min(x,y),b=Math.max(x,y);
     const sameRing=a!==mazeGoal&&b!==mazeGoal&&
       Math.floor(a/mazeSectors)===Math.floor(b/mazeSectors);
     const angular=sameRing&&
       ((a%mazeSectors+1)%mazeSectors===b%mazeSectors||
-        (b%mazeSectors+1)%mazeSectors===a%mazeSectors);
+       (b%mazeSectors+1)%mazeSectors===a%mazeSectors);
     const radial=b-a===mazeSectors||b===mazeGoal&&a<mazeSectors;
     if(!angular&&!radial)
-      throw Error("Circular maze passage crosses a solid wall");
+      throw Error("Physical labyrinth contains a diagonal or sealed passage");
     const key=edgeKey(a,b);
-    if(mazeEdgeCurves.has(key))throw Error("Duplicate carved maze path");
+    if(openEdges.has(key))throw Error("Duplicate machined corridor");
+    openEdges.add(key);
     mazeEdgeCurves.set(key,mazeEdgeCurve(a,b));
     if(!mazeGraph.has(a))mazeGraph.set(a,new Set());
     if(!mazeGraph.has(b))mazeGraph.set(b,new Set());
     mazeGraph.get(a).add(b);mazeGraph.get(b).add(a);
   }
-  if(mazeGraph.size!==61||mazeEdgeCurves.size!==70)
-    throw Error("Circular gear maze channels are incomplete");
+  if(mazeGraph.size!==109||openEdges.size!==116)
+    throw Error("Circular labyrinth sculpture disagrees with game topology");
   const gearMazePoints=mazeRouteCells.map(mazeCellPoint);
-  const grooveSegments=mazeRouteCells.slice(1).map((c,i)=>
-    mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],c)));
+  const grooveSegments=mazeRouteCells.slice(1).map((cell,i)=>
+    mazeEdgeCurves.get(edgeKey(mazeRouteCells[i],cell)));
   const startPoint=gearMazePoints[0],finishPoint=gearMazePoints.at(-1);
-  const mazeFace=mat(0xe9dec9,.44,.29);
-  const mazeInset=mat(0x282d33,.40,.39);
-  const channelLip=mat(0xb69c74,.55,.34);
-  const mazeWall=mat(0xf4ead7,.43,.27);
-  const goalMetal=mat(0xf1c679,.38,.24);
-  const goalLit=mat(0xffe5a1,.28,.20);
-  goalLit.emissive.setHex(0xa76723);goalLit.emissiveIntensity=1.15;
-  // The circular face and the big toothed carrier turn together, held
-  // by four retained bearings. Only the upper radial gauge stays fixed.
-  for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
-    C(mazePlate,.016,.077,Math.cos(angle)*.327,
-      Math.sin(angle)*.327,.076,steel);
+
+  // Clean ivory face with recessed ink-dark ENGRAVED BOUNDARIES.
+  // No black filled-in route ribbons, repeating squares or loose wire ends.
+  const mazeFace=mat(0xf5ead7,.43,.29);
+  const mazeWall=mat(0x292521,.22,.68);
+  const wallBevel=mat(0xd6c3a0,.4,.36);
+  const goalMetal=mat(0xe1aa52,.35,.27);
+  const goalLit=mat(0xffda94,.32,.2);
+  goalLit.emissive.setHex(0xac752a);goalLit.emissiveIntensity=.9;
+  mazeWall.emissive=new THREE.Color(0x080707);
+  // The six-ring face and the large carrier rotate as one assembly.
+  for(const a of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
+    C(mazePlate,.016,.077,Math.cos(a)*.327,
+      Math.sin(a)*.327,.076,steel);
   C(mazePlate,.365,.034,0,0,.112,darkMetal);
-  C(mazePlate,.351,.024,0,0,.143,mazeFace);
-  C(mazePlate,.326,.010,0,0,.158,mazeFace);
-  ring(mazePlate,.357,.010,0,0,.161,brass);
-  ring(mazePlate,.373,.006,0,0,.132,steel);
-  ring(mazePlate,.388,.006,0,0,.123,brass);
-  // The reference artwork uses thick sculptural ivory walls over deep,
-  // nearly-black machined passages. Flat ribbons instead of thin tubes make
-  // the channel floor continuous; circular joints eliminate detached chips.
-  // A softly darker border hints at a bevel without tracing the answer.
-  const trenchBevel=mat(0x655444,.55,.36);
-  const channelDark=mat(0x1d2227,.40,.43);
-  // The ribbon winding reverses when a ring crosses the 0/11 seam.
-  // Draw both sides to prevent disappearing channels from one camera angle.
-  trenchBevel.side=THREE.DoubleSide;
-  channelDark.side=THREE.DoubleSide;
-  function carvedRibbon(curve,width,z,material){
-    const points=curve.getPoints(18);
-    const left=[],right=[];
-    for(let i=0;i<points.length;i++){
-      const p=points[i],prev=points[Math.max(0,i-1)],
-        next=points[Math.min(points.length-1,i+1)];
-      const dx=next.x-prev.x,dy=next.y-prev.y,
-        length=Math.hypot(dx,dy)||1;
-      const ox=-dy/length*width/2,oy=dx/length*width/2;
-      left.push([p.x+ox,p.y+oy]);
-      right.push([p.x-ox,p.y-oy]);
-    }
-    const shape=new THREE.Shape();
-    shape.moveTo(left[0][0],left[0][1]);
-    for(let i=1;i<left.length;i++)shape.lineTo(...left[i]);
-    for(let i=right.length-1;i>=0;i--)shape.lineTo(...right[i]);
-    shape.closePath();
-    const mesh=new THREE.Mesh(new THREE.ShapeGeometry(shape),material);
-    mesh.position.z=z;
-    mesh.castShadow=false;
-    mazePlate.add(mesh);detailsCount++;
-    return mesh;
-  }
-  for(const curve of mazeEdgeCurves.values()){
-    carvedRibbon(curve,.020,.178,trenchBevel);
-    carvedRibbon(curve,.0155,.180,channelDark);
-  }
-  for(const cell of mazeGraph.keys()){
-    const p=mazeCellPoint(cell);
-    const junction=new THREE.Mesh(new THREE.CircleGeometry(.010,22),
-      trenchBevel);
-    junction.position.set(p.x,p.y,.178);
-    junction.castShadow=false;mazePlate.add(junction);detailsCount++;
-    const floor=new THREE.Mesh(new THREE.CircleGeometry(
-      cell===mazeGoal?.029:.008,24),channelDark);
-    floor.position.set(p.x,p.y,.181);
-    floor.castShadow=false;mazePlate.add(floor);detailsCount++;
-  }
-  const openEdges=new Set(mazeEdgeCurves.keys());
+  C(mazePlate,.354,.024,0,0,.143,mazeFace);
+  C(mazePlate,.334,.012,0,0,.160,mazeFace);
+  ring(mazePlate,.358,.007,0,0,.161,brass);
+  ring(mazePlate,.375,.006,0,0,.132,steel);
+  ring(mazePlate,.389,.005,0,0,.124,brass);
+
   let mazeWallCount=0;
-  const sectorWidth=Math.PI*2/mazeSectors;
-  const radialWall=(a,r0,r1)=>{
-    // Rounded milling rather than box bars: no square-looking tiles
-    // or separate grid cells interrupt the concentric circular walls.
-    const curve=new THREE.LineCurve3(
-      new THREE.Vector3(r0*Math.cos(a),r0*Math.sin(a),.192),
-      new THREE.Vector3(r1*Math.cos(a),r1*Math.sin(a),.192));
-    const rib=new THREE.Mesh(new THREE.TubeGeometry(
-      curve,8,.009,8,false),mazeWall);
-    rib.castShadow=false;mazePlate.add(rib);detailsCount++;mazeWallCount++;
-  };
-  const curvedWall=(radius,a0,a1,material=mazeWall)=>{
-    const arc=new THREE.ArcCurve(0,0,radius,a0,a1,false);
-    const points=arc.getPoints(14).map(p=>new THREE.Vector3(p.x,p.y,.192));
-    const mesh=new THREE.Mesh(new THREE.TubeGeometry(
-      new THREE.CatmullRomCurve3(points,false,"centripetal",.16),
-      26,.010,8,false),material);
-    mesh.castShadow=false;mazePlate.add(mesh);detailsCount++;mazeWallCount++;
-  };
-  for(let r=0;r<mazeRings;r++)for(let k=0;k<mazeSectors;k++){
-    const cell=r*mazeSectors+k;
-    const next=r*mazeSectors+(k+1)%mazeSectors;
-    const radius=mazeInnerRadius+r*mazePitch;
-    const angle=mazeStartAngle+k*sectorWidth;
-    if(!openEdges.has(edgeKey(cell,next))){
-      const boundary=angle+sectorWidth/2;
-      radialWall(boundary,radius-mazePitch*.39,
-        radius+mazePitch*.39);
+  const strokeWall=curve=>{
+    // A shallow warmer bevel below the charcoal ridge gives the look of
+    // a properly milled groove, while the 2mm-dark line stays razor crisp.
+    for(const [radius,z,material] of [
+      [.0055,.183,wallBevel],[.0028,.189,mazeWall]
+    ]){
+      const mesh=new THREE.Mesh(new THREE.TubeGeometry(
+        curve,Math.max(12,Math.round(curve.getLength()*240)),
+        radius,8,false),material);
+      mesh.position.z=z-.156;
+      mesh.castShadow=false;mazePlate.add(mesh);detailsCount++;
     }
-    if(r<mazeRings-1&&!openEdges.has(edgeKey(cell,cell+mazeSectors)))
-      curvedWall(radius+mazePitch/2,
-        angle-sectorWidth*.41,angle+sectorWidth*.41);
-    if(r===0&&!openEdges.has(edgeKey(cell,mazeGoal)))
-      curvedWall(.047,angle-sectorWidth*.41,
-        angle+sectorWidth*.41,channelLip);
+    mazeWallCount++;
+  };
+  const radialWall=(angle,r0,r1)=>{
+    strokeWall(new THREE.LineCurve3(
+      new THREE.Vector3(r0*Math.cos(angle),r0*Math.sin(angle),.156),
+      new THREE.Vector3(r1*Math.cos(angle),r1*Math.sin(angle),.156)));
+  };
+  const curvedWall=(radius,a0,a1)=>{
+    const points=Array.from({length:Math.max(5,Math.ceil(
+      Math.abs(a1-a0)*radius*150))},(_,i,arr)=>{
+      const a=a0+(a1-a0)*i/(arr.length-1);
+      return new THREE.Vector3(radius*Math.cos(a),radius*Math.sin(a),.156);
+    });
+    strokeWall(new THREE.CatmullRomCurve3(points,false,"centripetal",.14));
+  };
+  // Merge consecutive CLOSED radial sectors into long, flowing arc
+  // strokes. Rendering one little square per cell was the old visual bug.
+  function closedArcRuns(radius,blocked){
+    const firstOpen=blocked.findIndex(v=>!v);
+    if(firstOpen<0){
+      curvedWall(radius,mazeStartAngle,mazeStartAngle+Math.PI*2);
+      return;
+    }
+    const order=Array.from({length:mazeSectors},(_,i)=>
+      (firstOpen+1+i)%mazeSectors);
+    let run=[];
+    const flush=()=>{
+      if(!run.length)return;
+      const a0=mazeStartAngle+(run[0]-.48)*sectorWidth;
+      const a1=a0+(run.length-.04)*sectorWidth;
+      curvedWall(radius,a0,a1);run=[];
+    };
+    for(const sector of order){
+      if(blocked[sector])run.push(sector);
+      else flush();
+    }
+    flush();
   }
-  // The outer bezel has a real open notch over the entrance at 12 o'clock.
-  // The captive ball can never pass outside the playable graph.
-  const outerWall=new THREE.Mesh(new THREE.TorusGeometry(
-    .319,.008,8,108,Math.PI*2-.22),mazeWall);
-  outerWall.position.z=.181;
-  outerWall.rotation.z=mazeStartAngle+.11;
-  mazePlate.add(outerWall);detailsCount++;
-  const entryTriangle=new THREE.Shape();
-  entryTriangle.moveTo(-.010,0);entryTriangle.lineTo(.010,0);
-  entryTriangle.lineTo(0,-.015);entryTriangle.closePath();
-  const entryMark=new THREE.Mesh(
-    new THREE.ShapeGeometry(entryTriangle),goalMetal);
-  entryMark.position.set(startPoint.x,.328,.187);
+  // Four dark circular boundaries wind through the outer tracks, with
+  // openings only where the pin can actually traverse radially.
+  for(let r=0;r<mazeRings-1;r++){
+    const blocked=Array.from({length:mazeSectors},(_,k)=>
+      !openEdges.has(edgeKey(r*mazeSectors+k,
+        (r+1)*mazeSectors+k)));
+    closedArcRuns(mazeInnerRadius+(r+.5)*mazePitch,blocked);
+  }
+  // Staggered radial cross-walls. Rounded continuous curves, not boxes.
+  for(let r=0;r<mazeRings;r++)for(let k=0;k<mazeSectors;k++){
+    const a=r*mazeSectors+k;
+    const b=r*mazeSectors+(k+1)%mazeSectors;
+    if(openEdges.has(edgeKey(a,b)))continue;
+    const angle=mazeStartAngle+(k+.5)*sectorWidth;
+    const radius=mazeInnerRadius+r*mazePitch;
+    radialWall(angle,radius-mazePitch*.47,
+      radius+mazePitch*.47);
+  }
+  // Inner socket wall has TWO real open mouths, matching the physical
+  // approach routes; never cover these mouths with a solid fake bolt.
+  closedArcRuns(.046,Array.from({length:mazeSectors},(_,k)=>
+    !openEdges.has(edgeKey(k,mazeGoal))));
+
+  // The outer circle is continuous except for the clear entry notch at
+  // six o'clock. The captive roller remains constrained inside this rim.
+  const outerRimRadius=.338;
+  curvedWall(outerRimRadius,mazeStartAngle+sectorWidth*.37,
+    mazeStartAngle+Math.PI*2-sectorWidth*.37);
+  const entryArrow=new THREE.Shape();
+  entryArrow.moveTo(-.009,0);entryArrow.lineTo(.009,0);
+  entryArrow.lineTo(0,.014);entryArrow.closePath();
+  const entryMark=new THREE.Mesh(new THREE.ShapeGeometry(entryArrow),
+    goalMetal);
+  entryMark.position.set(startPoint.x,-.354,.188);
   mazePlate.add(entryMark);detailsCount++;
-  // Two physical mouths lead into the bright central receiving socket.
-  // The mouth itself has no solid bolt blocking either entrance.
-  // Two genuine gaps in the socket collar, aligned to the two playable
-  // center-entry spokes. A closed decorative ring made the exit look sealed.
-  const goalMouthSectors=[2,7],goalCollarParts=[];
-  for(let i=0;i<goalMouthSectors.length;i++){
-    const from=mazeStartAngle+(goalMouthSectors[i]+.34)*sectorWidth;
-    const to=mazeStartAngle+(goalMouthSectors[(i+1)%2]+
-      (i===0?-.34:mazeSectors-.34))*sectorWidth;
-    const lip=new THREE.Mesh(new THREE.TorusGeometry(
-      .034,.004,8,48,to-from),goalMetal);
-    lip.position.z=.189;lip.rotation.z=from;lip.castShadow=false;
-    mazePlate.add(lip);goalCollarParts.push(lip);detailsCount++;
-  }
-  const goalSocket=goalCollarParts[0];
-  C(mazePlate,.029,.010,0,0,.172,mazeInset);
-  // These tiny engraved arrows belong to the original metal wheels:
-  // they indicate movement without recreating the removed selector pad.
-  const leftArrow=group(mazePlate,-.390,0,.170);
-  flatLine(leftArrow,.011,0,-.011,0,.003,.004,brass);
-  flatLine(leftArrow,-.011,0,-.001,.008,.003,.004,brass);
-  flatLine(leftArrow,-.011,0,-.001,-.008,.003,.004,brass);
-  const rightArrow=group(wheelB,.181,0,.167);
-  flatLine(rightArrow,-.011,0,.011,0,.003,.004,brass);
-  flatLine(rightArrow,.011,0,.001,.008,.003,.004,brass);
-  flatLine(rightArrow,.011,0,.001,-.008,.003,.004,brass);
-  // Quiet hardware detailing, well outside the playable circular groove.
-  for(let i=0;i<8;i++){
-    const angle=(i+.5)*Math.PI/4;
-    const x=.379*Math.cos(angle),y=.379*Math.sin(angle);
-    C(mazePlate,.011,.012,x,y,.153,steel);
-    const slot=B(mazePlate,.011,.003,.003,x,y,.165,ebony,.001);
-    slot.rotation.z=angle+.28;
+  const goalSocket=ring(mazePlate,.025,.003,0,0,.186,goalMetal);
+  C(mazePlate,.022,.007,0,0,.173,ebony);
+
+  // Four small flush rivets on the carrier, not distracting fasteners
+  // scattered across the maze itself.
+  for(let i=0;i<4;i++){
+    const a=(i+.5)*Math.PI/2;
+    const x=.378*Math.cos(a),y=.378*Math.sin(a);
+    C(mazePlate,.009,.009,x,y,.147,steel);
   }
   // Improve the small drive gear: a visible center spindle, four radial
   // machined spokes and a dark knurled grip. It remains one clickable gear.
@@ -843,7 +813,7 @@ export function buildIntricateCube({
        grooveCount:gearMazePoints.length,
        grooveSegments:grooveSegments.length,
        mazeCellSize:mazePitch,
-       mazeStyle:"five-ring carved circular labyrinth",
+       mazeStyle:"hand-cut six-ring circular labyrinth",
        networkCells:mazeGraph.size,
        networkChannels:mazeEdgeCurves.size,
        extraConnections:mazeEdgeCurves.size-mazeGraph.size+1,
