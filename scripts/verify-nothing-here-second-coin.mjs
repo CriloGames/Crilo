@@ -207,19 +207,32 @@ async function refundCoin(page,{realPointer=false}={}){
   position:{x:controls.large.x,y:controls.large.y},timeout:25000});
  assert.equal((await state(page)).gearMazeCell,80,
   "A click without rotation should not move the captive pin");
+ // White face is now passive: neither drag nor action may move the ball.
+ const beforeWhite=await state(page);
  await dragWheel("gear-large","ccw");
- assert.equal((await state(page)).gearMazeCell,81,
-  "Dragging the stationary white face left did not move the pin");
+ const afterWhite=await state(page);
+ assert.equal(afterWhite.gearMazeCell,beforeWhite.gearMazeCell,
+  "Dragging the white maze must not move the captive pin");
+ assert.equal(afterWhite.gearMazeTurns,beforeWhite.gearMazeTurns,
+  "Dragging the white maze must not turn the black carrier");
+ await act(page,"gear-large");
+ assert.equal((await state(page)).gearMazeCell,80,
+  "Direct white-face activation moved the captive pin");
+ // A passive drag can orbit the camera; recenter before cog testing.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const initial=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
  assert(Math.abs(initial.faceAngle)<.000001,
-  "The white face visibly rotates, despite being a stationary guide");
- await dragWheel("gear-large","cw");
- assert.equal((await state(page)).gearMazeCell,80,
-  "Dragging white face in reverse did not bring the pin back");
+  "The white maze visibly rotated, despite being stationary");
  await dragWheel("gear-small","ccw");
  assert.equal((await state(page)).gearMazeCell,81,
-  "Dragging black cog did not rotate the connected carrier");
+  "The black drive cog did not advance the captive pin");
+ await dragWheel("gear-small","cw");
+ assert.equal((await state(page)).gearMazeCell,80,
+  "Reversing the black drive cog failed to return the ball");
+ await dragWheel("gear-small","ccw");
+ assert.equal((await state(page)).gearMazeCell,81,
+  "The black cog could not resume movement");
  await page.waitForFunction(()=>{
   const g=window.__nothing3DPreview?.physicalGearMaze;
   return g&&Math.abs(g.faceAngle)<.000001&&
@@ -417,7 +430,7 @@ try{
    await act(page,to===96||to===from-16?"maze-in":
     to===from+16?"maze-out":
     Math.floor(to/16)===Math.floor(from/16)&&
-    to%16===(from%16+1)%24?"gear-large":"gear-small");
+    to%16===(from%16+1)%24?"maze-ccw":"gear-small");
   }
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
