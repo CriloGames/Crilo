@@ -244,10 +244,10 @@ async function refundCoin(page,{realPointer=false}={}){
  const fullPath=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
  for(let i=1;i<fullPath.length;i++){
   const from=fullPath[i-1],to=fullPath[i];
-  const action=to===192||to===from-24?"maze-in":
-   to===from+24?"maze-out":
-   Math.floor(to/24)===Math.floor(from/24)&&
-   to%24===(from%24+1)%24?"maze-ccw":"maze-cw";
+  const action=to===96||to===from-16?"maze-in":
+   to===from+16?"maze-out":
+   Math.floor(to/16)===Math.floor(from/16)&&
+   to%16===(from%16+1)%24?"maze-ccw":"maze-cw";
   await act(page,action);
   assert.equal((await state(page)).gearMazeCell,to,
    "A sculpted channel does not match its playable direction: "+from+" -> "+to);
@@ -414,10 +414,10 @@ try{
   const path=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
   for(let i=1;i<path.length;i++){
    const from=path[i-1],to=path[i];
-   await act(page,to===192||to===from-24?"maze-in":
-    to===from+24?"maze-out":
-    Math.floor(to/24)===Math.floor(from/24)&&
-    to%24===(from%24+1)%24?"gear-large":"gear-small");
+   await act(page,to===96||to===from-16?"maze-in":
+    to===from+16?"maze-out":
+    Math.floor(to/16)===Math.floor(from/16)&&
+    to%16===(from%16+1)%24?"gear-large":"gear-small");
   }
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
