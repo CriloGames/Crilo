@@ -187,13 +187,15 @@ assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
  preview.includes('cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
  finish.includes('if(face===topFace&&s===-1){')&&
- finish.includes('const leads=[')&&
+ finish.includes('const traces=[')&&
+ finish.includes('{y:-1.22,z:.105,width:.030,depth:.041,material:accent,')&&
+ finish.includes('{y:-1.125,z:.112,width:.010,depth:.016,material:deep,')&&
+ finish.includes('B(face,trace.end-begin,trace.width,trace.depth,')&&
+ finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
+ finish.includes('torus(face,.026,.005,x,y,.096,accent);')&&
+ !finish.includes('const leads=[')&&
  !finish.includes('const goldBypass=[')&&
  !finish.includes('const inkBypass=[')&&
- finish.includes('path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),')&&
- finish.includes('B(face,.093,.202,.024,sign*.405,-1.1225,.073,metal,.012);')&&
- finish.includes('B(face,.046,.014,.006,sign*.390,-1.185,.089,deep,.003);')&&
- finish.includes('B(face,.046,.014,.006,sign*.420,-1.060,.089,deep,.003);')&&
  preview.includes('triangle:"Lid release button",')&&
  logic.includes('The lid release button sinks in.'),
  "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
