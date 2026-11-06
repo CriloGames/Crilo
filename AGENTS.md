@@ -48,3 +48,23 @@ automatically on pull requests and pushes to `main`.
 
 Keep all puzzle items physically grounded: no rewards from nowhere, no
 unintended overlapping geometry or fake remotely activated controls.
+
+## Fixture attachment checklist
+
+A Three.js object parented to a face can still visibly FLOAT: confirm
+mechanical geometry actually bridges the face's enamel skin
+(local z approximately .0725) to the part's rear surface. Moving parts
+must rotate/slide independently of their FIXED bearings, sleeves or saddles.
+
+- The large maze carrier and black pinion have retained face-mounted axles.
+- The front optical hood has a hollow sleeve, flange and retained glass rim.
+- Stationary service cassettes, the rear eye and discovered objects need
+  real support hardware; miniature mounts already have four standoffs each.
+- Keep the red-button index arc and magical portal intentionally free.
+  Do not add decorative bearings across their interaction targets.
+- The top well's fixed studs must connect to its actual cavity wall.
+- Inspect side views AND unlocked/moving states before finalizing.
+- Browser QA exposes `window.__nothing3DPreview.physicalAttachmentAudit`.
+  It must report `okay: true`. The Chromium startup smoke test now checks
+  the built fixtures in both fresh and saved playthroughs.
+
