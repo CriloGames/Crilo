@@ -530,7 +530,7 @@ function ongoingMechanisms(){
   if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
  if(seen.has('observatory')&&!s.observed)
-  add('Observatory','The raised dome has two separate optical sockets. Neither contains a fitted piece.');
+  add('Observatory','The open observatory has two separate optical sockets. Neither contains a fitted piece.');
  if(s.observed){
   if(!s.secondSky&&s.telescopeLensMounted!==s.telescopeIrisMounted)
    add('Optical fittings','The star chart was produced, but one of the telescope’s two fitted sockets is still empty.');
@@ -1221,9 +1221,9 @@ function cubeHit(name){
   // work after clearing it, without a remote paper-bird or stamp action.
   else if(!s.observatoryRaised){
    s.observatoryRaised=true;
-   bloom('observatory','The roof sleeve slowly lifts a closed ivory dome. At full height, its two curved halves hinge apart to reveal the telescope inside.');
-   tell('The little domed observatory rises from the center of the yellow roof. Its curved shutters open, revealing a miniature telescope.');
-  }else tell('The observatory is extended and both domed doors rest against their open stops.');
+   bloom('observatory','A set of narrow ivory roof sections rolls backward along the dome and disappears beneath the small rear housing, exposing the fixed telescope inside.');
+   tell('The ivory observatory roof rolls backward like a garage door. Only its small rear section remains, exposing the mounted telescope without lifting anything.');
+  }else tell('The observatory shutter is rolled back into its small rear housing. The telescope is exposed.');
  }else if(name==='latch'){
   if(!s.a){s.a=true;bloom('drawer','The front latch retracts. The drawer extends on its two metal runners, revealing a key-shaped piece.')}
   else tell(s.drawerTaken
@@ -1393,7 +1393,7 @@ function use(item,thing){
   spend(item);
   if(item==='lens')s.telescopeLensMounted=true;
   else s.telescopeIrisMounted=true;
-  bloom('observatory','The silver observatory optic seats inside the raised dome.');
+  bloom('observatory','The silver observatory optic seats inside the opened dome.');
   if(!s.observed){
    s.observed=true;
    bloom('constellation','The fitted optical element focuses the miniature sky. A folded star chart slides out of the telescope.');
@@ -1757,7 +1757,7 @@ function clickThing(name,actuator=false){
   }else{cue(prop('moth'),'nc-moth-burst',1000);tell('The moth bows once. That is all.')}
  }
  else if(name==='telescope'){
-  bloom('observatory','The opened observatory roof reveals a telescope pointed toward an impossible sky.');
+  bloom('observatory','The rolled-back observatory roof reveals a telescope pointed toward an impossible sky.');
   if(!s.observed)tell('Two differently shaped optical sockets are empty. The barrel is still out of focus.');
   else{
    tell(s.secondSky?'Both optical fittings are seated; the telescope has two distinct views.':
