@@ -461,6 +461,24 @@ try{
   "One of the fifteen display sockets has floating screws, open air under its rivets, "+
   "or no real connection to the cube: "+JSON.stringify(hardwareMounts));
  console.log("PASS: all 15 miniature display mounts have 4 solid support shafts and seated brass fasteners");
+ const attachmentAudit=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalAttachmentAudit);
+ assert(attachmentAudit?.okay&&
+  attachmentAudit.wheels.length===2&&
+  attachmentAudit.fixed.length>=12&&
+  attachmentAudit.miniatures.length===15&&
+  attachmentAudit.lens?.barrelRetained&&
+  attachmentAudit.intentionalExceptions.includes("red button index arc"),
+  "Unattached 3D mechanism: "+JSON.stringify(attachmentAudit));
+ assert(attachmentAudit.wheels.every(w=>
+  w.face==="leftFace"&&w.actualBottom<=.0725&&
+  w.actualTop>=w.rearZ),
+  "The black drive cog or large carrier is mounted on a floating axle");
+ assert(attachmentAudit.fixed.every(m=>
+  m.baseSupported&&m.meetsFixture&&
+  m.actualBottom<=m.baseZ+.001&&!m.actionRegistered),
+  "A fixed service cassette has no solid support or steals pointer input");
+ console.log("PASS: clockwork axles, main optical hood, service retainers and miniatures all have physical mounts");
  assert(initial.mounts.every(p=>["frontFace","backFace","leftFace","rightFace","topFace","bottomFace"].includes(p.face)),
    "A miniature is still mounted outside the rotating cube");
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
