@@ -339,9 +339,14 @@ export function buildIntricateCube({
   let mazeWallCount=0;
   const sectorWidth=Math.PI*2/mazeSectors;
   const radialWall=(a,r0,r1)=>{
-    const o=flatLine(mazePlate,r0*Math.cos(a),r0*Math.sin(a),
-      r1*Math.cos(a),r1*Math.sin(a),.191,.019,mazeWall);
-    o.castShadow=false;mazeWallCount++;
+    // Rounded milling rather than box bars: no square-looking tiles
+    // or separate grid cells interrupt the concentric circular walls.
+    const curve=new THREE.LineCurve3(
+      new THREE.Vector3(r0*Math.cos(a),r0*Math.sin(a),.192),
+      new THREE.Vector3(r1*Math.cos(a),r1*Math.sin(a),.192));
+    const rib=new THREE.Mesh(new THREE.TubeGeometry(
+      curve,8,.009,8,false),mazeWall);
+    rib.castShadow=false;mazePlate.add(rib);detailsCount++;mazeWallCount++;
   };
   const curvedWall=(radius,a0,a1,material=mazeWall)=>{
     const arc=new THREE.ArcCurve(0,0,radius,a0,a1,false);
