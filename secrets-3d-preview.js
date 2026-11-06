@@ -1566,6 +1566,17 @@ window.__nothing3DPreview={
  get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
+ getGearDragCenter(name){
+  const root=name==="gear-large"?gearDragParts?.large:
+   name==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
+  if(!root)return null;
+  scene.updateMatrixWorld(true);
+  camera.updateMatrixWorld();
+  const p=root.getWorldPosition(new THREE.Vector3()).project(camera);
+  const bounds=renderer.domElement.getBoundingClientRect();
+  return {x:(p.x+1)*.5*bounds.width,
+   y:(1-p.y)*.5*bounds.height};
+ },
  get keyboardInspectionState(){return {
   count:keyboardTargets.length,
   selected:keyboardIndex>=0?keyboardTargets[keyboardIndex]?.action:null,
