@@ -525,7 +525,7 @@ function ongoingMechanisms(){
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
  if(s.moon&&!(s.top&&s.pipeTaken))
    add('Yellow roof','A counterweight released inside the box. The hinged upper compartment still has to be cleared.');
-  if(s.moon&&s.top&&s.pipeTaken&&!s.observatoryRaised)
+  if((s.moon||s.serialRead)&&s.top&&s.pipeTaken&&!s.observatoryRaised)
    add('Yellow roof','A round brass button is exposed inside the hinged compartment. The small roof dome is still closed.');
   if(s.mothTouched&&pendingPickups.has('stardust'))
   add('Clockwork moth','A little glowing dust remains in the moth’s holder.');
@@ -1217,7 +1217,7 @@ function cubeHit(name){
  if(name==='observatory-release'){
   if(!s.top)tell('The roof release is enclosed by the hinged panel.');
   else if(!s.pipeTaken)tell('The button moves slightly, but the loaded cradle holds the lift in its housing.');
-  else if(!s.moon)tell('The button sinks against a firm internal catch. Something is still latched inside.');
+  else if(!s.moon&&!s.serialRead)tell('The button sinks against a firm internal catch. Something is still latched inside.');
   else if(!s.observatoryRaised){
    s.observatoryRaised=true;
    bloom('observatory','The roof sleeve slowly lifts a closed ivory dome. At full height, its two curved halves hinge apart to reveal the telescope inside.');
@@ -1684,6 +1684,10 @@ function inspectPhysicalSurface(name){
 }
 function clickThing(name,actuator=false){
  if(!thingPresent(name)){
+  if(name==='telescope'){
+   tell('The small ivory observatory dome is closed. Its seam is still latched.');
+   return;
+  }
   tell('There is nothing to operate here yet.');
   return;
  }
