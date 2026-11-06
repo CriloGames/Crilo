@@ -513,25 +513,32 @@ export function buildIntricateCube({
   C(mazePad,.021,.012,0,0,.034,steel);
   const follower=new THREE.Group();wheelA.add(follower);
   follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
-  // 0..29 is the exact segment coordinate on the main groove. Branch
-  // offset 0..2 is the coordinate along a blind groove at a junction.
-  // Both animate as continuous scalars, never independently tween x/y.
-  const mazeTravel={index:0,branch:0};
-  let mazeBranchJunction=4;
-  function pointOnTrack(index,branch=0,junction=mazeBranchJunction){
-   if(branch>.00001&&deadEndCurves.has(junction))
-    return deadEndCurves.get(junction).getPoint(
-     Math.max(0,Math.min(1,branch/2)));
-   const pos=Math.max(0,Math.min(grooveSegments.length,index));
-   const segment=Math.min(grooveSegments.length-1,Math.floor(pos));
-   return grooveSegments[segment].getPoint(
-    Math.max(0,Math.min(1,pos-segment)));
-  }
+  // The ball has a CELL, not a scripted progress counter. Its tween
+  // travels along one real open edge at a time; at a junction the player
+  // chooses the next edge using the physical four-way selector.
+  const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};
+  let mazeLastProgress=0,mazeLastBranch=0;
+  const mazeTravelPoint=()=>{
+   if(mazeTravel.from===mazeTravel.to)return mazeCellPoint(mazeTravel.to);
+   const curve=mazeEdgeCurves.get(edgeKey(mazeTravel.from,mazeTravel.to));
+   if(!curve)throw new Error("Maze follower attempted a closed wall");
+   return curve.getPoint(
+    mazeTravel.from<mazeTravel.to?mazeTravel.t:1-mazeTravel.t);
+  };
   function seatFollower(){
-   const channelPoint=pointOnTrack(mazeTravel.index,
-    mazeTravel.branch,mazeBranchJunction);
-   follower.position.x=channelPoint.x;
-   follower.position.y=channelPoint.y;
+   const p=mazeTravelPoint();
+   follower.position.x=p.x;
+   follower.position.y=p.y;
+  }
+  function legacyMazeCell(state){
+   const index=Math.max(0,Math.min(gearMazeDirections.length,
+    Number(state.gearMazeIndex)||0));
+   if(state.gearMazeBranch>0&&mazeJunctions.includes(index)){
+    const branch=mazeBlindCells[mazeJunctions.indexOf(index)];
+    return branch[Math.max(0,Math.min(branch.length-1,
+     Math.ceil(branch.length*state.gearMazeBranch/2)-1))];
+   }
+   return mazeRouteCells[mazeStepMarks[index]];
   }
   // A captured brass roller, not a conspicuous decorative screwhead.
   // Its narrow axle actually reaches into the channel; the small sphere
@@ -776,24 +783,29 @@ export function buildIntricateCube({
     const gearRotation=-turns*Math.PI/12;
     pose(wheelA,"rotation","z",gearRotation);
     pose(wheelB,"rotation","z",-gearRotation*(.405/.235));
-    const progress=Math.max(0,Math.min(
-     gearMazeDirections.length,Number(s.gearMazeIndex)||0));
-    const branch=(mazeJunctions.includes(progress)&&!s.gearMazeSolved)
-     ?Math.max(0,Math.min(2,Number(s.gearMazeBranch)||0)):0;
-    if(branch>0)mazeBranchJunction=progress;
+    const cell=Number.isInteger(s.gearMazeCell)&&
+     mazeGraph.has(s.gearMazeCell)?s.gearMazeCell:legacyMazeCell(s);
+    mazeLastProgress=Math.max(0,Math.min(gearMazeDirections.length,
+     Number(s.gearMazeIndex)||0));
+    mazeLastBranch=Number(s.gearMazeBranch)||0;
     if(instant){
      gsap.killTweensOf(mazeTravel);
-     mazeTravel.index=progress;mazeTravel.branch=branch;
+     mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
      seatFollower();
-    }else if(Math.abs(mazeTravel.index-progress)>.00001||
-             Math.abs(mazeTravel.branch-branch)>.00001){
-     // This scalar tween walks along the exact same spline used to cut the
-     // dark groove. It cannot interpolate across a brass wall. Kill only
-     // when the TARGET actually changes: unrelated game-state redraws must
-     // never freeze the screw halfway through a channel.
+    }else if(cell!==mazeTravel.to){
      gsap.killTweensOf(mazeTravel);
-     gsap.to(mazeTravel,{index:progress,branch,duration:.48,
-      ease:"power2.inOut",onUpdate:seatFollower,onComplete:seatFollower});
+     const from=mazeTravel.to;
+     if(mazeGraph.get(from)?.has(cell)){
+      mazeTravel.from=from;mazeTravel.to=cell;mazeTravel.t=0;
+      seatFollower();
+      gsap.to(mazeTravel,{t:1,duration:.26,ease:"power2.inOut",
+       onUpdate:seatFollower,onComplete:seatFollower});
+     }else{
+      // Saved games from an older version may identify a different
+      // milestone. Restore directly; never animate through solid brass.
+      mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
+      seatFollower();
+     }
     }else seatFollower();
     // At the end the captive screw backs OUT of its channel. Simultaneously
     // the adjacent lock tongue withdraws from the calibration dial.
@@ -867,19 +879,33 @@ export function buildIntricateCube({
       grooveSegments:grooveSegments.length,
       mazeCellSize:mazeRingPitch,
       mazeStyle:"concentric radial labyrinth",
-      networkCells:mazeRouteCells.length,
-      networkChannels:mazeRouteCells.length-1+
-       mazeBlindCells.reduce((n,branch)=>n+branch.length,0),
+      networkCells:mazeGraph.size,
+      networkChannels:mazeEdgeCurves.size,
+      extraConnections:mazeExtraEdges.length,
       raisedWalls:mazeWallCount,
-      exitReached:Math.abs(mazeTravel.index-gearMazeDirections.length)<.00001,
+      exitReached:mazeTravel.to===mazeGoal&&mazeTravel.t>=.999,
       goalSocketOpen:true,
       branches:mazeJunctions.length,
       junctions:[...mazeJunctions],
-      branchDepth:mazeTravel.branch,
-      followerProgress:mazeTravel.index,
+      cell:mazeTravel.to,
+      followerFrom:mazeTravel.from,
+      followerPhase:mazeTravel.t,
+      availableDirections:(()=>{
+       const c=mazeTravel.to,opts=mazeGraph.get(c)||new Set();
+       return [...opts].map(n=>{
+        if(n===mazeGoal)return "maze-in";
+        if(c===mazeGoal)return "maze-out";
+        const r=Math.floor(c/16),nr=Math.floor(n/16);
+        if(nr<r)return "maze-in";
+        if(nr>r)return "maze-out";
+        return (n%16-c%16+16)%16===1?"maze-cw":"maze-ccw";
+       });
+      })(),
+      branchDepth:mazeLastBranch,
+      followerProgress:mazeLastProgress,
       followerTrackDistance:Math.hypot(
-       follower.position.x-pointOnTrack(mazeTravel.index,mazeTravel.branch).x,
-       follower.position.y-pointOnTrack(mazeTravel.index,mazeTravel.branch).y
+       follower.position.x-mazeTravelPoint().x,
+       follower.position.y-mazeTravelPoint().y
       ),
       follower:{x:follower.position.x,y:follower.position.y,z:follower.position.z},
       // World-on-face location (after the rotating wheel's angle): the last
