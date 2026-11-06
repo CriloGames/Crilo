@@ -520,59 +520,87 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // Centered on the FRONT roof rail. The closed lift is recessed so only
- // the curved shell and a hairline gasket appear above the yellow enamel.
- const OBSERVATORY_REST=-.078;
- const OBSERVATORY_EXTENDED=.405;
+ // Permanent observatory. The roof is a ROLL-BACK garage shutter, not
+ // a rising dome or two hinged leaves. Only its tiny rear cap remains.
+ const OBSERVATORY_RADIUS=.255,OBSERVATORY_SEAM=.015;
+ const OBSERVATORY_REAR=1.18,OBSERVATORY_TRAVEL=Math.PI-.16;
+ const OBSERVATORY_SLAT_COUNT=16;
+ const observatoryShutter={progress:0},observatoryPanels=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
- let observatoryLift=null,observatoryScope=null;
- const observatoryDoors=[];
+ let observatoryScope=null,observatoryRearCap=null,observatoryRoller=null;
  {
   const item=items.get("telescope"),g=item.toy;
-  item.stand.visible=false;
-  item.fixture.position.z=.060;
+  item.stand.visible=false;item.fixture.position.z=.060;
   g.position.set(0,0,0);g.scale.setScalar(1);
   item.hitVolume.geometry.dispose();
-  item.hitVolume.geometry=new THREE.BoxGeometry(.63,.63,.94);
-  item.hitVolume.position.set(0,0,.19);
-  // Inset the socket's thick bronze body into the roof. The thin metal
-  // edge sits flush with the enamel, without an exposed platform.
+  item.hitVolume.geometry=new THREE.BoxGeometry(.63,.63,.60);
+  item.hitVolume.position.set(0,0,.16);
+  // Permanent socket and turntable stay recessed in the enamel roof.
   item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");
   C(g,.281,.019,0,0,.013,m.gold,"z");
   C(g,.25,.016,0,0,.012,m.black,"z");
   for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
    C(g,.019,.017,Math.cos(angle)*.288,Math.sin(angle)*.288,.012,m.dark,"z");
-  // Fixed bearing and sliding sleeve remain inside the box and dome.
-  C(g,.116,.610,0,0,-.200,m.dark,"z");
-  C(g,.103,.540,0,0,-.205,m.brass,"z");
-  for(const z of [-.26,.015])torus(g,.113,.009,0,0,z,m.gold,"z");
-  observatoryLift=new THREE.Group();
-  observatoryLift.position.z=OBSERVATORY_REST;g.add(observatoryLift);
-  C(observatoryLift,.090,.47,0,0,-.175,m.gold,"z");
-  C(observatoryLift,.267,.050,0,0,.060,m.dark,"z");
-  C(observatoryLift,.265,.018,0,0,.066,m.gold,"z");
+  C(g,.256,.052,0,0,-.018,m.dark,"z");
+  C(g,.243,.016,0,0,.014,m.gold,"z");
+  C(g,.085,.094,0,0,-.073,m.brass,"z");
   const roofShell=new THREE.Group();
-  roofShell.position.z=.093;observatoryLift.add(roofShell);
-  // Each hemisphere is a genuinely curved hinged shell, not a flat plate.
-  for(const sign of [-1,1]){
-   const pivot=new THREE.Group();roofShell.add(pivot);
-   const hemisphere=new THREE.Mesh(new THREE.SphereGeometry(
-    .255,26,14,sign<0?0:Math.PI,Math.PI,0,Math.PI/2),m.cream);
-   hemisphere.rotation.x=Math.PI/2;
-   hemisphere.castShadow=true;hemisphere.receiveShadow=true;
-   pivot.add(hemisphere);parts++;
-   const lip=new THREE.Mesh(new THREE.TorusGeometry(
-    .255,.009,6,28,Math.PI),m.gold);
-   lip.rotation.z=sign<0?Math.PI:0;
-   pivot.add(lip);parts++;
-   for(const x of [-.15,.15])C(pivot,.023,.034,x,0,.014,m.brass,"x");
-   observatoryDoors.push({pivot,sign});
+  roofShell.position.z=OBSERVATORY_SEAM;g.add(roofShell);
+  // True spherical strips meet without gaps. All rotate around their shared
+  // spherical center, traveling toward the rear roller along the curvature.
+  const domeStrip=(thetaA,thetaB)=>{
+   const positions=[],normals=[],indices=[],rows=4,columns=30;
+   for(let i=0;i<=rows;i++){
+    const theta=thetaA+(thetaB-thetaA)*i/rows;
+    for(let j=0;j<=columns;j++){
+     const phi=Math.PI*j/columns;
+     const x=OBSERVATORY_RADIUS*Math.cos(theta)*Math.cos(phi);
+     const y=OBSERVATORY_RADIUS*Math.sin(theta);
+     const z=OBSERVATORY_RADIUS*Math.cos(theta)*Math.sin(phi);
+     positions.push(x,y,z);
+     normals.push(x/OBSERVATORY_RADIUS,y/OBSERVATORY_RADIUS,z/OBSERVATORY_RADIUS);
+    }
+   }
+   for(let i=0;i<rows;i++)for(let j=0;j<columns;j++){
+    const a=i*(columns+1)+j,b=a+columns+1;
+    indices.push(a,b,a+1,b,b+1,a+1);
+   }
+   const geo=new THREE.BufferGeometry();
+   geo.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));
+   geo.setAttribute("normal",new THREE.Float32BufferAttribute(normals,3));
+   geo.setIndex(indices);
+   return geo;
+  };
+  for(let i=0;i<OBSERVATORY_SLAT_COUNT;i++){
+   const thetaStart=-Math.PI/2+(OBSERVATORY_REAR+Math.PI/2)*i/OBSERVATORY_SLAT_COUNT;
+   const thetaEnd=-Math.PI/2+(OBSERVATORY_REAR+Math.PI/2)*(i+1)/OBSERVATORY_SLAT_COUNT;
+   const panel=new THREE.Mesh(domeStrip(thetaStart,thetaEnd),m.cream);
+   panel.castShadow=true;panel.receiveShadow=true;
+   roofShell.add(panel);parts++;
+   observatoryPanels.push({panel,thetaStart});
   }
-  // The optical barrel begins contained beneath the curved shell.
+  // Narrow stationary ivory pocket behind the rear-most moving slat.
+  observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);
+  observatoryRearCap.castShadow=true;observatoryRearCap.receiveShadow=true;
+  roofShell.add(observatoryRearCap);parts++;
+  const capEdge=[];
+  for(let i=0;i<=30;i++){
+   const phi=i*Math.PI/30;
+   capEdge.push([OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR)*Math.cos(phi),
+    OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR),
+    OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR)*Math.sin(phi)]);
+  }
+  wire(roofShell,capEdge,.006,m.gold);
+  observatoryRoller=new THREE.Group();
+  observatoryRoller.position.set(0,.224,.055);roofShell.add(observatoryRoller);
+  C(observatoryRoller,.032,.17,0,0,0,m.dark,"x");
+  for(const sign of [-1,1])
+   C(observatoryRoller,.038,.015,sign*.087,0,0,m.brass,"x");
+  B(observatoryRoller,.11,.010,.010,0,.024,.019,m.gold,.004);
+  // The telescope remains on the original stationary base at all times.
   observatoryScope=new THREE.Group();
-  observatoryScope.position.z=.060;
-  observatoryScope.rotation.y=-.12;
-  observatoryLift.add(observatoryScope);
+  observatoryScope.position.z=-.018;
+  observatoryScope.rotation.y=-.12;g.add(observatoryScope);
   C(observatoryScope,.088,.025,0,0,-.050,m.gold,"z");
   C(observatoryScope,.034,.125,0,0,-.005,m.dark,"z");
   const tube=new THREE.Group();tube.position.z=.078;observatoryScope.add(tube);
@@ -588,10 +616,20 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   torus(tube,.040,.008,.138,0,-.020,m.gold,"x");
   telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");
   telescopeIrisGlass.visible=false;
-  item.lift=observatoryLift;
-  item.doors=observatoryDoors;
+  item.shutterHub=roofShell;
+  item.rearCap=observatoryRearCap;
   item.instrument=observatoryScope;
  }
+ const applyObservatoryRoll=()=>{
+  const travel=observatoryShutter.progress*OBSERVATORY_TRAVEL;
+  for(const {panel,thetaStart} of observatoryPanels){
+   panel.rotation.x=-travel;
+   // Moving slats wind under the short rear cap and are hidden there.
+   panel.visible=thetaStart+travel<OBSERVATORY_REAR;
+  }
+  observatoryRoller.rotation.x=travel*2.6;
+  invalidate();
+ };
  // Working railroad carriage: continuous track, ties, locomotive wheels
  // and chimney are solids that catch lighting from every angle.
  {
@@ -688,7 +726,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const now=Date.now();
   if(instance.lastInspectionAt&&now-instance.lastInspectionAt<220)return true;
   instance.lastInspectionAt=now;
-  // Optical inspection may tilt the telescope but NEVER detach its lift.
+  // Optical inspection tilts the telescope on its permanent turntable.
   if(name==="telescope"){
    const scope=instance.instrument;
    gsap.killTweensOf(scope.rotation);
@@ -763,7 +801,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    // the dog/watch chain. The old path still reveals the same machine.
    elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train,
    moth:s.floorFour,
-   // Open the top hatch, remove the tube, and activate the paper-bird moon.
+   // The hinged panel and empty wooden tube cradle release the roll-back dome.
    telescope:!!s.observatoryRaised||!!s.observed||
     !!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,
    train:s.train
@@ -774,34 +812,33 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    instance.fixture.visible=name==="telescope"?true:visible;
    instance.visible=visible;
    if(name==="telescope"){
-    // Keep its closed physical dome visible even before activation.
-    instance.toy.visible=true;
-    const settle=raised=>{
-     gsap.killTweensOf(instance.lift.position);
-     gsap.killTweensOf(instance.instrument.rotation);
-     for(const {pivot} of instance.doors)gsap.killTweensOf(pivot.rotation);
-     instance.lift.position.z=raised?OBSERVATORY_EXTENDED:OBSERVATORY_REST;
-     for(const {pivot,sign} of instance.doors)
-      pivot.rotation.x=raised?sign*1.10:0;
-     instance.instrument.rotation.y=raised?.14:-.12;
-     invalidate();
-    };
-    if(newlyFound){
-     if(firstRestore||reducedMotion)settle(true);
-     else{
-      settle(false);
-      const tl=gsap.timeline({onUpdate:invalidate,onComplete:()=>settle(true)});
-      tl.to(instance.lift.position,{z:OBSERVATORY_EXTENDED,duration:2.15,ease:"power2.inOut"},0);
-      for(const {pivot,sign} of instance.doors)
-       tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,
-        ease:"power2.inOut"},2.08);
-      tl.to(instance.instrument.rotation,{y:.14,duration:.72,
-       ease:"sine.inOut"},2.38);
-     }
-    }else if(!visible)settle(false);
-    continue;
-   }
-   if(visible&&newlyFound){
+     // A garage-style shutter rolls away. Dome and scope never rise.
+     instance.toy.visible=true;
+     const settle=opened=>{
+      gsap.killTweensOf(observatoryShutter);
+      gsap.killTweensOf(instance.instrument.rotation);
+      observatoryShutter.progress=opened?1:0;
+      instance.instrument.rotation.y=opened?.42:-.12;
+      applyObservatoryRoll();
+     };
+     if(newlyFound){
+      if(firstRestore||reducedMotion)settle(true);
+      else{
+       settle(false);
+       gsap.to(observatoryShutter,{
+        progress:1,duration:3.15,ease:"power2.inOut",
+        onUpdate:applyObservatoryRoll,
+        onComplete:()=>{observatoryShutter.progress=1;applyObservatoryRoll();}
+       });
+       gsap.to(instance.instrument.rotation,{
+        y:.42,duration:1.15,delay:1.85,ease:"sine.inOut",
+        onUpdate:invalidate
+       });
+      }
+     }else if(!visible)settle(false);
+     continue;
+    }
+    if(visible&&newlyFound){
     gsap.killTweensOf(instance.fixture.scale);
     gsap.killTweensOf(instance.fixture.position);
     if(instance.finishTimer){clearTimeout(instance.finishTimer);instance.finishTimer=null}
@@ -1150,15 +1187,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    seedSproutVisible:sprout.visible,
    treeGrowthScale:branches.scale.y,
    observatory:{
-    installed:!!items.get("telescope")?.fixture.visible,
-    deployed:!!items.get("telescope")?.visible,
-    lift:observatoryLift?.position.z??null,
-    domeSeamHeight:observatoryLift?items.get("telescope").fixture.position.z+
-     observatoryLift.position.z+.093:null,
-    doorAngles:observatoryDoors.map(({pivot})=>pivot.rotation.x),
-    scopeTilt:observatoryScope?.rotation.y??null
-   },
-   telescopeOptics:{
+     installed:!!items.get("telescope")?.fixture.visible,
+     deployed:!!items.get("telescope")?.visible,
+     shutterProgress:observatoryShutter.progress,
+     slatCount:observatoryPanels.length,
+     visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,
+     rearCapVisible:!!observatoryRearCap?.visible,
+     domeSeamHeight:items.get("telescope")?.fixture.position.z+
+      OBSERVATORY_SEAM,
+     scopeTilt:observatoryScope?.rotation.y??null
+    },
+    telescopeOptics:{
     lens:telescopeLensGlass?.visible??false,
     iris:telescopeIrisGlass?.visible??false,
     both:!!(telescopeLensGlass?.visible&&telescopeIrisGlass?.visible)
@@ -1196,14 +1235,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    };
    return mountHardware.map(h=>{
     if(h.name==="telescope"){
-     const base=items.get("telescope");
-     return {name:h.name,standoffs:1,
-      shellMounted:!!base?.mountRing&&base.mountRing.parent===base.toy&&
-       Math.abs(base.fixture.position.z-.060)<.002,
-      upperSeated:base?.lift?.parent===base?.toy,
-      lowerSeated:base?.instrument?.parent===base?.lift};
-    }
-    const bar=extent(h.crossbar),shelf=extent(h.shelf);
+      const base=items.get("telescope");
+      return {name:h.name,standoffs:1,
+       shellMounted:!!base?.mountRing&&base.mountRing.parent===base.toy&&
+        Math.abs(base.fixture.position.z-.060)<.002,
+       upperSeated:base?.shutterHub?.parent===base?.toy,
+       lowerSeated:base?.instrument?.parent===base?.toy};
+     }
+     const bar=extent(h.crossbar),shelf=extent(h.shelf);
     const shellMounted=h.mountStandoffs.every(stem=>
      h.fixture.position.z+extent(stem)[0]<=.073 &&
      extent(stem)[1]>=bar[0]-.025);
