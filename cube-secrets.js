@@ -1017,10 +1017,16 @@ function inspectHardware(name){
   cue(document.querySelector('[data-hit="serial"]'),'nc-fastener-turning',550);
   return true;
  }
- if(name==='gear-small'||name==='gear-large'||
+ // The white engraved maze is a passive housing, never a control.
+ // Keyboard, pointer, or direct action dispatch must all leave the ball
+ // and both gear-turn counters unchanged when it is inspected.
+ if(name==='gear-large'){
+  tell('The white maze stays still. Turn the black drive cog to guide the ball around the ring.');
+  return true;
+ }
+ if(name==='gear-small'||
    ["maze-cw","maze-ccw","maze-in","maze-out"].includes(name)){
-  const direction=name==="gear-large"?"maze-ccw":
-   name==="gear-small"?"maze-cw":name;
+  const direction=name==="gear-small"?"maze-cw":name;
   if(s.gearMazeSolved){
    tell('The captive roller has entered the center socket. The dial latch is released.');
    return true;
@@ -1032,10 +1038,8 @@ function inspectHardware(name){
    sound(210);return true;
   }
   s.gearMazeCell=next;
-  // The black cog drives the exposed toothed carrier, while the white
-  // labyrinth face stays fixed. Drag either direction to move the pin
-  // clockwise/counterclockwise along an actual curved lane; the dial only
-  // controls radial passages.
+  // Only the black cog drives the toothed carrier and roller around
+  // the fixed white maze. The dial alone selects radial passages.
   if(direction==="maze-ccw"||direction==="maze-cw")
    s.gearMazeTurns=clamp(s.gearMazeTurns+
     (direction==="maze-cw"?1:-1),-720,720);
