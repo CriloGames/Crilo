@@ -82,7 +82,11 @@ async function deployObservatory(page){
   pose.shutterProgress>=.999&&pose.slatCount===16&&
   pose.visibleSlats===0&&pose.rearCapVisible&&
   Math.abs(pose.domeSeamHeight-.075)<.001&&pose.scopeTilt>.35&&
-  pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25,
+  pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
+  pose.canopyFrontY<-.07&&pose.canopyCrownZ>.25&&
+  pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
+  pose.objectiveFrontY<pose.canopyFrontY-.02&&
+  pose.objectiveCenterZ>pose.frontSillTopZ+.04,
   "The garage-style dome failed to roll completely into its rear housing");
 }
 async function refundCoin(page,{realPointer=false}={}){
@@ -507,7 +511,11 @@ try{
   assert(pose.deployed&&pose.shutterProgress>=.999&&
    pose.slatCount===16&&pose.visibleSlats===0&&
    pose.rearCapVisible&&Math.abs(pose.domeSeamHeight-.075)<.001&&
-   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25,
+   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
+  pose.canopyFrontY<-.07&&pose.canopyCrownZ>.25&&
+  pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
+  pose.objectiveFrontY<pose.canopyFrontY-.02&&
+  pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The garage dome unlocked but did not retract without rising");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
