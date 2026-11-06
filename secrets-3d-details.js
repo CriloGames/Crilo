@@ -346,7 +346,7 @@ export function buildIntricateCube({
   function wallSegment(x1,y1,x2,y2){
    // Center of the wall, 0.02 units above the dark channel. A flat
    // machined beam is fast to render and respects the actual graph.
-   const o=flatLine(wheelA,x1,y1,x2,y2,.181,.010,wallColor);
+   const o=flatLine(wheelA,x1,y1,x2,y2,.170,.010,wallColor);
    o.castShadow=false;
    mazeWallCount++;
   }
