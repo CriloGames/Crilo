@@ -16,6 +16,37 @@ assert(details.includes('const count=Math.max(5,Math.ceil(Math.abs(a1-a0)*radius
  details.includes('i/(count-1)')&&
  !details.includes('(_,i,arr)=>')&&!details.includes('arr.length'),
  'Curved maze wall sampling uses an undefined Array.from third argument');
+// Execute the wall-sampling helper with a tiny Three.js geometry stub.
+// This catches runtime problems such as undefined.length even when the full
+// module has valid JavaScript syntax and the static string checks pass.
+const arcStart=details.indexOf('const curvedWall=(radius,a0,a1)=>{');
+const arcEnd=details.indexOf('// Merge consecutive CLOSED',arcStart);
+assert(arcStart>=0&&arcEnd>arcStart,
+ 'The physical labyrinth lost its curved-wall generator');
+const curveResults=[];
+const checkArc=new Function('THREE','strokeWall',
+ details.slice(arcStart,arcEnd)+
+ '\ncurvedWall(.29,-Math.PI/2,Math.PI/2);'+
+ '\ncurvedWall(.046,0,Math.PI*2);');
+checkArc({
+ Vector3:class{
+  constructor(x,y,z){
+   assert([x,y,z].every(Number.isFinite),
+    'Non-finite carved-wall vertex during geometry construction');
+   this.x=x;this.y=y;this.z=z;
+  }
+ },
+ CatmullRomCurve3:class{
+  constructor(points){
+   assert(points.length>=5,
+    'Circular wall produced an incomplete curve');
+   curveResults.push(points);
+  }
+ }
+},curve=>assert(curve,'Wall sampler did not produce a curve'));
+assert.equal(curveResults.length,2,
+ 'Both outer and inner carved arcs must initialize successfully');
+
 // Both sliding drawers sit over genuine openings cut into the cube. A
 // smaller-than-opening faceplate used to show the inner compartment before
 // its latch was released, especially from above or at a shallow angle.
