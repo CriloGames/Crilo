@@ -626,6 +626,46 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(const x of [-.075,.075])ball(g,.042,x,.57,.057,m.pink);
   wire(g,[[.08,.27,-.11],[.22,.38,-.17],[.22,.58,-.20],[.10,.69,-.16]],.055,m.wood);
  }
+ // Captive mounts between the existing bolted shelves and the actual
+ // miniature objects. Previously the metal DISPLAY was attached to the box,
+ // but many figures hovered above their own shelf. Use each model's real
+ // visible geometry, excluding all invisible pointer-capture volumes.
+ const modelSupports=[];
+ for(const [name,item] of items){
+  if(name==="telescope")continue; // its three real feet already land
+  const toy=item.toy;
+  toy.updateWorldMatrix(true,true);
+  const toToy=toy.matrixWorld.clone().invert();
+  let lowest=Infinity;
+  toy.traverse(mesh=>{
+   if(!mesh.isMesh||mesh===item.hitVolume)return;
+   let visible=true;
+   for(let node=mesh;node&&node!==toy;node=node.parent)
+    if(!node.visible){visible=false;break;}
+   if(!visible)return;
+   const paints=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+   if(paints.every(p=>p?.opacity===0||p?.colorWrite===false))return;
+   if(!mesh.geometry.boundingBox)mesh.geometry.computeBoundingBox();
+   mesh.updateWorldMatrix(true,false);
+   const bounds=mesh.geometry.boundingBox.clone().applyMatrix4(
+    toToy.clone().multiply(mesh.matrixWorld));
+   lowest=Math.min(lowest,bounds.min.y);
+  });
+  if(!Number.isFinite(lowest))throw Error("No physical base: "+name);
+  // Cloud droplets and moth wings hang below their central bodies.
+  // Keep their supports reaching the sculpture, not a dangling detail.
+  const top=Math.max(lowest+.025,
+   name==="cloud"?.32:name==="moth"?.18:-Infinity);
+  const bottom=-.109;
+  if(top<=bottom+.03)continue;
+  const post=C(toy,.034,top-bottom,0,(top+bottom)/2,0,m.brass,"y");
+  post.userData.mechanicalMount=true;
+  const saddle=B(toy,.31,.030,.105,0,top-.013,0,m.dark,.009);
+  saddle.userData.mechanicalMount=true;
+  const foot=C(toy,.049,.024,0,bottom+.015,0,m.gold,"y");
+  foot.userData.mechanicalMount=true;
+  modelSupports.push({name,toy,post,saddle,foot,bottom,top,lowest});
+ }
  function inspect(name){
   const instance=items.get(name);
   if(!instance?.fixture.visible)return false;
@@ -1066,6 +1106,15 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
+  getMiniatureBodyMountAudit:()=>modelSupports.map(mount=>({
+   name:mount.name,lowestBodyY:mount.lowest,
+   lowerContact:mount.bottom,upperContact:mount.top,
+   reachesShelf:.03+.69*(mount.bottom-.012)<=-.0245,
+   touchesModel:mount.top>=mount.lowest+.01,
+   staysWithMiniature:mount.post.parent===mount.toy&&
+    mount.saddle.parent===mount.toy&&mount.foot.parent===mount.toy,
+   rearTouchesShelf:.205-.69*.034<=.115+.17/2
+  })),
   getHardwareAttachmentAudit:()=>{
    // All values below come from the actual Three.js geometric parameters,
    // not a second manually maintained map of where screws SHOULD be.
