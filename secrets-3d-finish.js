@@ -141,12 +141,15 @@ export function finishMechanicalArtifact({
         for(const lead of leads)for(const sign of [-1,1]){
           path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),
            lead.r,lead.paint);
-          // A drilled dark recess with an inset ferrule hides the point
-          // where the wire runs beneath the skin. No floating end caps.
-          const x=sign*lead.port.x,y=lead.port.y;
-          C(face,.027,.012,x,y,.071,metal);
-          C(face,.018,.010,x,y,.080,deep);
-          torus(face,.024,.005,x,y,.087,accent);
+        }
+        // A single low-profile, cast-in wire-entry plate per side replaces
+        // the four exposed circular eyelets. The pair of traces passes
+        // through two narrow slots in each plate and disappears below the
+        // enamel surface. The plate reaches into the physical roof skin.
+        for(const sign of [-1,1]){
+          B(face,.093,.202,.024,sign*.405,-1.1225,.073,metal,.012);
+          B(face,.046,.014,.006,sign*.390,-1.185,.089,deep,.003);
+          B(face,.046,.014,.006,sign*.420,-1.060,.089,deep,.003);
         }
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
