@@ -161,6 +161,80 @@ for(let k=0;k<modelJunctions.length;k++){
  }
 }
 assert(used.size>=85,'Too many circular maze corridors are missing');
+
+// Geometry clearance: use the exact polar coordinates and wall formulas
+// used by the 3D model to catch walls placed through traversable channels
+// or through one another. Rendered rail widths are 0.010 and channel
+// lip radius 0.010, so centerlines must be at least 0.015 apart.
+const polarPoint=cell=>{
+ if(cell===96)return [0,0];
+ const radius=.082+Math.floor(cell/16)*.044;
+ const angle=Math.PI/2+(cell%16)*Math.PI*2/16;
+ return [Math.cos(angle)*radius,Math.sin(angle)*radius];
+};
+const edgeKey=(a,b)=>Math.min(a,b)+':'+Math.max(a,b);
+const openEdges=new Set();
+const channelEdges=[];
+const addOpenRoute=route=>{
+ for(let i=1;i<route.length;i++){
+  openEdges.add(edgeKey(route[i-1],route[i]));
+  channelEdges.push([polarPoint(route[i-1]),polarPoint(route[i])]);
+ }
+};
+addOpenRoute(mainCells);
+blindPaths.forEach((branch,i)=>
+ addOpenRoute([mainCells[stepMarks[modelJunctions[i]]],...branch]));
+const wallEdges=[];
+for(let ring=0;ring<6;ring++)for(let sector=0;sector<16;sector++){
+ const radius=.082+ring*.044,cell=ring*16+sector;
+ const sectorEnd=ring*16+(sector+1)%16;
+ if(!openEdges.has(edgeKey(cell,sectorEnd))){
+  const a=Math.PI/2+(sector+.5)*Math.PI*2/16;
+  const lo=radius-(ring===0?.003:.015),hi=radius+.015;
+  wallEdges.push([[Math.cos(a)*lo,Math.sin(a)*lo],
+   [Math.cos(a)*hi,Math.sin(a)*hi]]);
+ }
+ if(ring<5&&!openEdges.has(edgeKey(cell,cell+16))){
+  const r=radius+.022,a=Math.PI/2+(sector-.31)*Math.PI*2/16;
+  const b=Math.PI/2+(sector+.31)*Math.PI*2/16;
+  wallEdges.push([[Math.cos(a)*r,Math.sin(a)*r],
+   [Math.cos(b)*r,Math.sin(b)*r]]);
+ }
+}
+assert(wallEdges.length>=80&&wallEdges.length<=105,
+ 'The radial maze walls were omitted or multiplied into overlapping scraps');
+const pointDistance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const projectPoint=(p,a,b)=>{
+ const dx=b[0]-a[0],dy=b[1]-a[1];
+ const t=Math.max(0,Math.min(1,
+  ((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1)));
+ return [a[0]+t*dx,a[1]+t*dy];
+};
+const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-
+ (b[1]-a[1])*(c[0]-a[0]);
+const segmentGap=([a,b],[c,d])=>{
+ const crossing=cross(a,b,c)*cross(a,b,d)<0&&
+  cross(c,d,a)*cross(c,d,b)<0;
+ if(crossing)return 0;
+ return Math.min(
+  pointDistance(a,projectPoint(a,c,d)),
+  pointDistance(b,projectPoint(b,c,d)),
+  pointDistance(c,projectPoint(c,a,b)),
+  pointDistance(d,projectPoint(d,a,b))
+ );
+};
+for(const wall of wallEdges){
+ for(const channel of channelEdges)
+  assert(segmentGap(wall,channel)>.01495,
+   'An ornamental maze wall intersects a playable ball channel');
+}
+for(let i=0;i<wallEdges.length;i++)
+ for(let j=i+1;j<wallEdges.length;j++)
+  assert(segmentGap(wallEdges[i],wallEdges[j])>.00995,
+   'Two independently authored maze wall meshes clip one another');
+assert(details.includes('flatLine(wheelA,x1,y1,x2,y2,.170,.010,wallColor);'),
+ 'Maze walls have become detached from the machined brass plate');
+
 assert(details.includes('const mazeSectorCount=16;')&&
  details.includes('const mazeRingCount=6;')&&
  details.includes('const mazeInnerRadius=.082;')&&
