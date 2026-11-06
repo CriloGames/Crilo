@@ -1361,11 +1361,15 @@ try{
   spiral.model.directions.length>=29&&
   spiral.model.grooveCount===spiral.model.directions.length+1&&
   spiral.model.grooveSegments===spiral.model.directions.length&&
+  spiral.model.mazeStyle==="angular labyrinth"&&
   spiral.model.branches===5&&
   spiral.model.followerTrackDistance<.000001&&
   spiral.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5&&
   spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
   "The carved switchback gears are not both readable and clickable: "+JSON.stringify(spiral));
+ assert(Math.abs( Math.hypot(spiral.model.large.x-spiral.model.small.x,
+  spiral.model.large.y-spiral.model.small.y)- (.96*(spiral.model.large.pitchRadius+spiral.model.small.pitchRadius)))<.04,
+  "The two drive gears look disconnected rather than properly meshed");
  const rect=await page.locator("#stage canvas").boundingBox();
  await page.mouse.click(rect.x+spiral.small.x,rect.y+spiral.small.y);
  assert.equal((await state()).gearMazeIndex,1,
