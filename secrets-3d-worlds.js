@@ -521,9 +521,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   C(g,.07,.02,0,.34,0,m.brass);
  }
  // Permanent observatory. The roof is a ROLL-BACK garage shutter, not
- // a rising dome or two hinged leaves. Only its tiny rear cap remains.
+ // a rising dome or two hinged leaves. Its rear half remains as a substantial ivory canopy.
  const OBSERVATORY_RADIUS=.255,OBSERVATORY_SEAM=.015;
- const OBSERVATORY_REAR=.76,OBSERVATORY_TRAVEL=Math.PI-.16;
+ // Keep a large sculpted canopy over the back half: this is an
+ // observatory building, not a black disk with a tiny red strip.
+ const OBSERVATORY_REAR=-.30;
+ const OBSERVATORY_TRAVEL=Math.PI/2+OBSERVATORY_REAR+.015;
  const OBSERVATORY_SLAT_COUNT=16;
  const observatoryShutter={progress:0},observatoryPanels=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
@@ -588,14 +591,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Deep burgundy painted interior, like the red-lined roll-back observatory
   // in the reference. The inner lining is only within the FIXED rear shell,
   // so it never blocks the telescope after the front shutter retracts.
-  const burgundy=mat(0x793939,.08,.72);
-  burgundy.side=THREE.BackSide;
+  const burgundy=mat(0x873e39,.10,.73);
+  burgundy.side=THREE.DoubleSide;
   const interior=new THREE.Mesh(
    domeStrip(OBSERVATORY_REAR+.015,Math.PI/2,.243),burgundy);
   roofShell.add(interior);parts++;
   // Rounded ivory entrance arch and a handful of curved inner braces,
   // all fastened to the stationary housing rather than floating in space.
-  const canopyEdge=[],insideBraces=[OBSERVATORY_REAR+.045,.99,1.22];
+  const canopyEdge=[],insideBraces=[-.19,.12,.42,.75,1.10];
   for(let i=0;i<=32;i++){
    const phi=Math.PI*i/32;
    canopyEdge.push([
@@ -617,7 +620,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    wire(roofShell,rib,.005,m.copper);
   }
   // Subtle broad shell seams echo the real observatory's sliding ribs.
-  for(const theta of [.98,1.22]){
+  for(const theta of [-.02,.35,.73,1.12]){
    const seam=[];
    for(let j=0;j<=24;j++){
     const phi=Math.PI*j/24,r=.257;
@@ -636,27 +639,34 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // half-cylinder, NOT a second lid, and it faces the front (-Y) of the
   // yellow roof panel. It rests on the circular bronze inset.
   const frontSill=new THREE.Mesh(
-   new THREE.CylinderGeometry(.287,.287,.082,48,1,true,
+   new THREE.CylinderGeometry(.287,.287,.105,48,1,true,
     -Math.PI/2,Math.PI),m.cream);
   frontSill.rotation.x=Math.PI/2;
-  frontSill.position.z=.018;
+  // Embed the bottom of the wall into the box; its upper half remains
+  // prominently above the yellow roof, like the reference's front guard.
+  frontSill.position.z=.114;
   frontSill.castShadow=true;
   frontSill.receiveShadow=true;
   g.add(frontSill);parts++;
   const sillTop=[],sillInner=[];
   for(let i=0;i<=36;i++){
    const angle=Math.PI+Math.PI*i/36;
-   sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.064]);
-   sillInner.push([.279*Math.cos(angle),.279*Math.sin(angle),.058]);
+   sillTop.push([.287*Math.cos(angle),.287*Math.sin(angle),.168]);
+   sillInner.push([.279*Math.cos(angle),.279*Math.sin(angle),.157]);
   }
   wire(g,sillTop,.005,m.gold);
   wire(g,sillInner,.003,m.dark);
   // A dark recessed floor, with the miniature telescope anchored to the
   // metal turntable. The barrel points toward -Y (out of the front mouth),
   // NOT along +Z (straight upward through the roof).
-  C(g,.246,.012,0,0,.021,m.dark,"z");
+  // A warmer, smaller recessed floor replaces the visually dominant
+  // charcoal disk. The shell and curving front guard now enclose it.
+  C(g,.236,.012,0,0,.021,mat(0x66605b,.10,.70),"z");
   observatoryScope=new THREE.Group();
-  observatoryScope.position.set(0,.011,.006);
+  // The telescope must sit INSIDE the mouth rather than protruding out
+  // of a hole. This also makes the ivory roof itself the primary form.
+  observatoryScope.position.set(0,.065,.030);
+  observatoryScope.scale.setScalar(.82);
   observatoryScope.rotation.y=-.12;
   g.add(observatoryScope);
   C(observatoryScope,.103,.026,0,0,.023,m.gold,"z");
