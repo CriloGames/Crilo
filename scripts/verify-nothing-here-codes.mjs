@@ -217,6 +217,21 @@ assert(details.includes('mazeSectors=24,mazeRings=8')&&
  details.includes('function closedArcRuns(radius,blocked)')&&
  details.includes('const outerRimRadius=.338'),
  'The sculpture is not the dense eight-ring design');
+// A graph can be solvable but physically impossible if the widest-looking
+// entrance is narrower than the captive ball. Verify the smallest radial
+// gate (between rings 0/1) after subtracting the visible raised wall ribs.
+const ballDiameter=.0084*2;
+const radialGateRadius=.082+.0325/2;
+const radialOpenWidth=radialGateRadius*(1.04+2*.13)*(Math.PI*2/24);
+const radialUsableWidth=radialOpenWidth-2*.0055;
+const collarUsableWidth=2*.025*Math.sin((4*Math.PI*2/24)/2)-.006;
+assert(radialUsableWidth>ballDiameter+.003&&
+ collarUsableWidth>ballDiameter+.002,
+ 'A physical radial gate or center mouth traps the enlarged maze ball');
+assert(details.includes('const wallTrim=.13')&&
+ details.includes('const centerMouthWidth=3.0*sectorWidth')&&
+ details.includes('const goalCollarGap=4*sectorWidth'),
+ 'One of the actual physical groove clearances was narrowed again');
 assert(details.includes('new THREE.SphereGeometry(.0084,20,16)')&&
  details.includes('C(follower,.005,.044,0,0,-.011,steel)')&&
  details.includes('const centerMouthWidth=3.0*sectorWidth')&&
