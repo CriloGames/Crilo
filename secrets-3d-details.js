@@ -359,7 +359,7 @@ export function buildIntricateCube({
     if(!openEdges.has(edgeKey(cell,nextSector))){
      // Angular door blocked: short radial wall halfway between sectors.
      const a=mazeEntranceAngle+(sector+.5)*sectorWidth;
-     const r0=radius-.017,r1=radius+.017;
+     const r0=radius-.015,r1=radius+.015;
      wallSegment(Math.cos(a)*r0,Math.sin(a)*r0,
       Math.cos(a)*r1,Math.sin(a)*r1);
     }
@@ -370,8 +370,8 @@ export function buildIntricateCube({
       // Split the circular span into three tiny sections. The gaps
       // between neighboring separator walls prevent mesh intersections.
       const r=radius+mazeRingPitch/2;
-      const a0=mazeEntranceAngle+(sector-.375)*sectorWidth;
-      const a1=mazeEntranceAngle+(sector+.375)*sectorWidth;
+      const a0=mazeEntranceAngle+(sector-.31)*sectorWidth;
+      const a1=mazeEntranceAngle+(sector+.31)*sectorWidth;
       for(let k=0;k<3;k++){
        const a=a0+(a1-a0)*k/3;
        const b=a0+(a1-a0)*(k+1)/3;
