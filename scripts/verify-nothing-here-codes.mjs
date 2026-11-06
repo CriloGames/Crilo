@@ -122,15 +122,13 @@ assert(worlds.includes('bagCatchReady:'),'The aligned bag code has no visible sp
 assert(hotspots.includes('ventStepsShown:')&&hotspots.includes('fluteStepsShown:'),
  'The vent/flute code input counters no longer update visible 3D indicators');
 
-// The side-lift, telescope, and clockwork story must be parallel routes.
-// The first telescope optic can come from EITHER the removable front
-// screws / rear eye, OR the fourth-floor carriage. Its second fitting
-// should remain useful regardless of which was discovered first.
+// The lift and optical fittings still have independent ways to be found.
+// Deploying the observatory is now a physical three-part trigger, but old
+// collected optics and completed discoveries are not deleted by the gate.
 for(const phrase of [
  "elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train",
- "moth:s.floorFour,telescope:true,train:s.train",
- "||item==='lens'&&thing==='telescope'&&!s.telescopeLensMounted",
- "||item==='iris'&&thing==='telescope'&&!s.telescopeIrisMounted",
+ "thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted",
+ "thing==='telescope'&&thingPresent('telescope')&&!s.telescopeIrisMounted",
  "||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train",
  "if(item==='lens')s.telescopeLensMounted=true;",
  "else s.telescopeIrisMounted=true;",
@@ -139,34 +137,44 @@ for(const phrase of [
  "if(typeof raw.telescopeLensMounted!=='boolean')",
  "if(typeof raw.telescopeIrisMounted!=='boolean')"
 ]) assert(logic.includes(phrase),
- "The parallel optical / side-lift progression lost: "+phrase);
-assert(worlds.includes('telescope:true,train:s.train')&&
- worlds.includes('telescopeLensGlass.visible=!!s.telescopeLensMounted')&&
- worlds.includes('telescopeIrisGlass.visible=!!s.telescopeIrisMounted'),
- "The physical scope is still gated behind the moon or has fake permanent optics");
+ "An optical puzzle route lost its saved state or action: "+phrase);
+assert(worlds.includes('telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||')&&
+ worlds.includes('telescopeLensGlass.visible=!!s.telescopeLensMounted;')&&
+ worlds.includes('telescopeIrisGlass.visible=!!s.telescopeIrisMounted;')&&
+ logic.includes("if(s.top&&s.pipeTaken)")&&
+ logic.includes("if(s.moon&&!(s.top&&s.pipeTaken))"),
+ "The triggered observatory or its saved optical fittings lost their behavior");
 assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train'),
- "The physical lift is still exclusively gated behind the dog and clock");
+ "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
- "The star chart still needs the elevator's floor-four reward before it can be used");
-
-// Confirm the small skyward observatory has a symmetrical rail placement,
-// a physical mount, and both independent puzzle optics.
+ "Star chart requires floor four again");
 for(const expected of [
- '["moth","topFace",-1.15,.21],["telescope","topFace",1.15,.21]',
- 'B(g,.35,.046,.20,0,-.088,-.116,m.dark,.017);',
- 'for(const x of [-.116,.116]){',
- 'tube.rotation.x=1.16;',
- 'C(tube,.080,.34,0,-.004,0,m.brass);',
- 'telescopeLensGlass=C(tube,.080,.012,0,.225,0,m.glass);',
- 'telescopeIrisGlass=C(tube,.039,.011,0,.026,.163,m.glass,"z");',
- 'telescopeLensGlass.visible=!!s.telescopeLensMounted;',
- 'telescopeIrisGlass.visible=!!s.telescopeIrisMounted;'
+ '["moth","topFace",-1.15,.21],["telescope","topFace",0,1.08]',
+ 'const shutters=name==="telescope"?[-1,1].map(sign=>({',
+ 'C(stand,.270,.035,0,.12,.213,m.brass,"z");',
+ 'const dome=new THREE.Mesh(new THREE.SphereGeometry(',
+ 'C(g,.076,.78,0,.12,-.365,m.dark,"z");',
+ 'telescopeLensGlass=C(tube,.078,.012,0,0,.238,m.glass,"z");',
+ 'telescopeIrisGlass=C(tube,.040,.012,.166,0,-.007,m.glass,"x");',
+ 'instance.toy.position.set(0,.03,-.53);',
+ 'tl.to(instance.toy.position,{z:.36,duration:1.1,'
 ]) assert(worlds.includes(expected),
- 'The compact observatory lost a supported part or live optic: '+expected);
-assert(!worlds.includes('const footPositions=[[-.194,-.084,-.118]')&&
- !worlds.includes('tube.rotation.z=.11;')&&
- !worlds.includes('modelBases.push({name,method:"tripod"'),
- 'The bulky horizontal telescope or stale structural exception returned');
+ "The rising centered observatory lost an essential physical part: "+expected);
+assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
+ !worlds.includes('modelBases.push({name,method:"tripod"')&&
+ !worlds.includes('tube.rotation.x=1.16;'),
+ "Old off-center or tripodded telescope returned");
+for(const expected of [
+ 'const hatchRacks=tubeRetainers.map(',
+ 'keeper.clip.add(rack);',
+ 'box(chamber,.62,.016,.063,',
+ 'hatchDriveGears[0].rotor.rotation.z=-angle;',
+ 'hatchDriveGears[1].rotor.rotation.z=angle*(.205/.175);'
+]) assert(preview.includes(expected),
+ "The wheel-to-guided-rack mechanism was broken: "+expected);
+assert(!preview.includes('hatchConnectingRods')&&
+ !preview.includes('const crankPin=cylinder(rotor'),
+ 'Loose wires or obsolete rotating crank rods returned');
 
 // Do not confuse transform parenting with PHYSICAL attachment: gears, optics,
 // service fixtures, miniature worlds and interior studs need metal between
