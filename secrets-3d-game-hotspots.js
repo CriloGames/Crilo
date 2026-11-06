@@ -410,7 +410,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // the player without floating over the compartment or obstructing its
  // triangle latch. The nameplate occupies the opposite half of the rail.
  const fluteMountFeet=[];
- const flute=node(topFace,-.66,-1.12,.17);
+ const flute=node(topFace,-.74,-1.12,.17);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
