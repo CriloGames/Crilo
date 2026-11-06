@@ -597,9 +597,9 @@ const gameHotspots=embeddedGame?buildGameHotspots({
  faces:{frontFace,backFace,rightFace,leftFace,topFace,bottomFace},
  lidPivot,box,cylinder,setHit,mat,animate,invalidate
 }):null;
-// The live precision model already sculpted both meshed gears. Give each
-// wheel a distinct physical action; the click genuinely turns that wheel,
-// while the other moves the opposite way through their shared teeth.
+// The white labyrinth face is stationary. The black pinion drives the
+// exposed toothed brass carrier, while dragging the white face guides
+// the captive pin left/right without rotating the engraved maze itself.
 if(gameHotspots){
  const gears=intricate.getGearMazeTargets?.();
  if(gears){
@@ -919,8 +919,8 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"Hold and turn the large wheel left",
- "gear-small":"Hold and turn the small wheel right",
+ "gear-large":"Hold and trace the white maze left or right · face stays still",
+ "gear-small":"Hold and turn the black drive cog · moves the brass carrier",
  "maze-in":"Hold the dial rim and drag up or down",
  "maze-out":"Hold the dial rim and drag up or down",
  "cube-offer":"Circular brass receiver",
@@ -1167,15 +1167,21 @@ renderer.domElement.addEventListener("pointermove",e=>{
   const angle=Math.atan2(e.clientY-drag.cy,e.clientX-drag.cx);
   const diff=Math.atan2(Math.sin(angle-drag.lastAngle),
    Math.cos(angle-drag.lastAngle));
-  // When grabbing the center rather than the outer rim, horizontal
-  // movement provides a stable alternative to angular motion.
+  // The WHITE labyrinth is a stationary guide: either drag direction
+  // moves its captive pin left/right around an open curved lane. The BLACK
+  // cog turns the toothed carrier underneath, in the opposite physical
+  // direction because the two gears mesh. Reversing a drag must reverse
+  // the pin immediately; never clamp the gesture to one direction.
+  const driveSign=drag.action==="gear-small"?-1:1;
   const delta=drag.rim?
-   (drag.action==="gear-large"?-diff:diff):
-   (e.clientX-drag.lastX)*(drag.action==="gear-large"?-1:1)/115;
+   diff*driveSign:(e.clientX-drag.lastX)*driveSign/115;
   drag.lastAngle=angle;drag.lastX=e.clientX;
-  drag.remainder=Math.max(0,Math.min(.68,drag.remainder+delta));
-  for(let i=0;i<3&&drag.remainder>=.245;i++){
-   clickAction(drag.action);drag.remainder-=.245;drag.steps++;
+  drag.remainder=Math.max(-.78,Math.min(.78,drag.remainder+delta));
+  for(let i=0;i<3&&Math.abs(drag.remainder)>=.245;i++){
+   const clockwise=drag.remainder>0;
+   clickAction(clockwise?"maze-cw":"maze-ccw");
+   drag.remainder+=clockwise?-.245:.245;
+   drag.steps++;
   }
  }
  invalidate();
