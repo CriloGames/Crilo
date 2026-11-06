@@ -159,12 +159,12 @@ async function refundCoin(page,{realPointer=false}={}){
    maze:v.physicalGearMaze};
  });
  assert(controls.maze?.face==="leftFace"&&
-  controls.maze.mazeStyle==="single-solution eight-ring circular labyrinth"&&
-  controls.maze.networkCells===193&&controls.maze.networkChannels===192&&
-  controls.maze.extraConnections===0&&controls.maze.branches>=35&&
-  controls.maze.raisedWalls>=120&&controls.maze.stationaryFace&&
+  controls.maze.mazeStyle==="continuous six-ring circular labyrinth"&&
+  controls.maze.networkCells===97&&controls.maze.networkChannels===96&&
+  controls.maze.extraConnections===0&&controls.maze.branches>=10&&
+  controls.maze.raisedWalls>=40&&controls.maze.stationaryFace&&
    controls.maze.uniqueSolution&&controls.maze.exitApproaches===1&&
-   controls.maze.ballRadius>=.0084&&controls.maze.guidedSegments>0&&
+   controls.maze.ballRadius>=.0084&&controls.maze.visibleBlockedEdges===96&&controls.maze.wallMeshes===2&&controls.maze.mouthSector===8&&
   Math.abs(controls.maze.faceAngle)<.000001&&
   controls.maze.followerTrackDistance<.000001,
   "The physical fixed maze did not load correctly: "+JSON.stringify(controls));
