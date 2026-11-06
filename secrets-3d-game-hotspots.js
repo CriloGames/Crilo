@@ -738,8 +738,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     foot.geometry.parameters.depth/2<=.0725,
    meetsBrace:flute.position.z+foot.position.z+
     foot.geometry.parameters.depth/2>=.0995,
-   hiddenWithFlute:foot.parent===flute&&foot.visible&&
-    !flute.visible
+   sharesFluteVisibility:foot.parent===flute&&foot.visible
   })),
   getFixedMountAudit:()=>fixedMounts.map(f=>({
    name:f.name,face:f.face,
