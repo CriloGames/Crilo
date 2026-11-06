@@ -61,15 +61,24 @@ assert.equal(result.wallLayers,2);
 assert(result.wallRuns>30&&meshes.length===2);
 assert.equal(result.entranceSector,0);
 assert.equal(result.exitSector,8);
-// Both mouth widths must exceed the actual sphere, including line thickness.
+// Verify the flared inner opening is genuinely wider than the original
+// sector-wide mouth while preserving one opening and connected side cheeks.
 const ballDiameter=.0084*2,sectorWidth=2*Math.PI/16;
-const innerOpening=.072*sectorWidth-.006;
-const collarOpening=2*.027*Math.sin((3.5*sectorWidth)/2)-.006;
-assert(innerOpening>ballDiameter+.002);
+const oldInnerOpening=.072*sectorWidth-.006;
+const innerOpening=.072*(1.24*sectorWidth)-.006;
+const collarOpening=2*.027*Math.sin((4.1*sectorWidth)/2)-.006;
+assert(innerOpening>oldInnerOpening*1.25);
+assert(innerOpening>ballDiameter+.010);
 assert(collarOpening>ballDiameter+.002);
-assert(scene.includes('new THREE.SphereGeometry(.0084,20,16)'));
+assert(Math.abs(result.centerFlareRadians-.24*sectorWidth)<1e-10);
+assert(walls.includes('const flare=.12*step;'));
+assert(walls.includes('const shoulder=innerRadius;')||
+ walls.includes('x:innerRadius*Math.cos(left)'));
+assert(scene.includes('new THREE.SphereGeometry(.0084,20,16),mat(0x121821,.23,.30)'));
 assert(scene.includes('mazePlate.rotation.z=0'));
 assert(body.includes('const goalSector=sectors/2'));
+assert(body.includes('const centerMouthWidth=1.24*sectorWidth'));
+assert(body.includes('const goalCollarGap=4.1*sectorWidth'));
 assert(body.includes('goalSocket.rotation.z=centerMouthAngle+goalCollarGap/2'));
 assert(game.includes("MAZE_LAYOUT_VERSION=6"));
 // Test every possible directional input against the graph itself.
@@ -90,4 +99,4 @@ for(let r=0;r<6;r++)for(let k=0;k<16;k++){
    "An invisible wall or phantom opening at "+cell+" "+direction);
  }
 }
-console.log("PASS: fully visible maze barriers, 97 connected cells, opposite goal, 52-move unique solution");
+console.log("PASS: darker ball and enlarged center mouth; visible connected barriers, 97 cells, opposite goal, unique solution");
