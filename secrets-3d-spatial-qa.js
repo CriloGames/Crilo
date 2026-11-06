@@ -74,7 +74,7 @@ function isAncestor(parent,child){
  */
 export function scanSpatialIntersections({
  models=new Map(),rewards=new Map(),mechanisms=new Map(),
- maxCandidates=180,maxMeshChecks=5000
+ maxCandidates=250,maxMeshChecks=6500
 }={}){
  // Confirm the external library actually performs triangle intersection
  // rather than silently falling back to broad bounding boxes. The near
@@ -94,14 +94,18 @@ export function scanSpatialIntersections({
   ...groupInfo("reward",rewards),
   ...groupInfo("mechanism",mechanisms)
  ];
- let broadPhasePairs=0,meshPairsTested=0,skippedMeshChecks=0;
+ let broadPhasePairs=0,meshPairsTested=0,skippedMeshChecks=0,mechanismPairsTested=0;
  const intersections=[],aabbOnly=[];
  const considered={models:0,rewards:0,mechanisms:0};
  for(const g of groups)considered[g.kind==="model"?"models":
    g.kind==="reward"?"rewards":"mechanisms"]++;
  for(let i=0;i<groups.length;i++)for(let j=i+1;j<groups.length;j++){
   const a=groups[i],b=groups[j];
-  if(a.kind==="mechanism"&&b.kind==="mechanism")continue;
+  // Independently bolted controls can intersect each other too:
+  // a moving shutter striking a drawer rail or two fitted mechanisms
+  // occupying the same hole is exactly the defect this inspection
+  // should catch. The old scanner discarded ALL mechanism pairs.
+  // Assemblies nested in the same parent are already filtered below.
   // Reward models deliberately touch their source's own bracket.
   // They are audited against other rewards and moving mechanisms.
   if((a.kind==="model"&&b.kind==="reward")||
@@ -110,6 +114,7 @@ export function scanSpatialIntersections({
   const shared=overlap(a,b);
   if(!shared)continue;
   broadPhasePairs++;
+  if(a.kind==="mechanism"&&b.kind==="mechanism")mechanismPairsTested++;
   if(broadPhasePairs>maxCandidates)continue;
   let hits=0;
   const examples=[];
@@ -137,7 +142,7 @@ export function scanSpatialIntersections({
  }
  return {
   library:"three-mesh-bvh",selfTest,groups:considered,totalAssemblies:groups.length,
-  broadPhasePairs,meshPairsTested,skippedMeshChecks,
+  broadPhasePairs,mechanismPairsTested,meshPairsTested,skippedMeshChecks,
   truncated:broadPhasePairs>maxCandidates||skippedMeshChecks>0,
   intersections:intersections.slice(0,40),totalIntersections:intersections.length,
   boundsOnlySamples:aabbOnly
