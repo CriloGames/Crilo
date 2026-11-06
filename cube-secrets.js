@@ -1243,7 +1243,7 @@ function cubeHit(name){
    s.topHits++;
    if(s.topHits>=3){s.top=true;bloom('pipe','The third catch releases the hatch. As the lid rises, two meshed gears draw back the retaining clips around a wooden tube in its cradle.')}
    else tell(s.topHits===1
-    ?'The triangular button sinks in. One internal catch moves, but the lid is still fastened.'
+    ?'The lid release button sinks in. One internal catch moves, but the lid is still fastened.'
     :'Another metal detent releases inside the lid. The catch has not let go completely.');
   }
  }else if(name==='top-reed'){
