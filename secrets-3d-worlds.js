@@ -142,7 +142,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
-  ["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.14],
+  ["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.17],
   ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
