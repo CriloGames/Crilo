@@ -142,7 +142,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   ["cloud","backFace",1.16,.73],["squirrel","bottomFace",-1.03,.28],
   ["cup","leftFace",.0,-1.20],["clock","frontFace",1.17,-.83],
   ["elevator","leftFace",-1.01,-.96],
-  ["moth","topFace",-1.15,.21],["telescope","topFace",.16,-1.08],
+  ["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.08],
   ["train","bottomFace",1.03,.28]
  ];
  for(const [name,faceName,x,y] of slots){
@@ -520,34 +520,37 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // The observatory is permanently inset in the yellow roof, not balanced
- // on a miniature display stand. The closed dome exists before any clues.
+ // Centered on the FRONT roof rail. The closed lift is recessed so only
+ // the curved shell and a hairline gasket appear above the yellow enamel.
+ const OBSERVATORY_REST=-.078;
+ const OBSERVATORY_EXTENDED=.405;
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  let observatoryLift=null,observatoryScope=null;
  const observatoryDoors=[];
  {
   const item=items.get("telescope"),g=item.toy;
   item.stand.visible=false;
-  item.fixture.position.z=.089;
+  item.fixture.position.z=.060;
   g.position.set(0,0,0);g.scale.setScalar(1);
   item.hitVolume.geometry.dispose();
   item.hitVolume.geometry=new THREE.BoxGeometry(.63,.63,.94);
-  item.hitVolume.position.set(0,0,.38);
-  // A bolted circular roof socket with a stationary inner sleeve.
-  item.mountRing=C(g,.315,.032,0,0,.008,m.brass,"z");
-  C(g,.281,.019,0,0,.032,m.gold,"z");
-  C(g,.25,.016,0,0,.045,m.black,"z");
+  item.hitVolume.position.set(0,0,.19);
+  // Inset the socket's thick bronze body into the roof. The thin metal
+  // edge sits flush with the enamel, without an exposed platform.
+  item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");
+  C(g,.281,.019,0,0,.013,m.gold,"z");
+  C(g,.25,.016,0,0,.012,m.black,"z");
   for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
-   C(g,.019,.017,Math.cos(angle)*.288,Math.sin(angle)*.288,.035,m.dark,"z");
-  C(g,.116,.420,0,0,.202,m.dark,"z");
-  C(g,.103,.385,0,0,.208,m.brass,"z");
-  for(const z of [.09,.31])torus(g,.113,.009,0,0,z,m.gold,"z");
+   C(g,.019,.017,Math.cos(angle)*.288,Math.sin(angle)*.288,.012,m.dark,"z");
+  // Fixed bearing and sliding sleeve remain inside the box and dome.
+  C(g,.116,.610,0,0,-.200,m.dark,"z");
+  C(g,.103,.540,0,0,-.205,m.brass,"z");
+  for(const z of [-.26,.015])torus(g,.113,.009,0,0,z,m.gold,"z");
   observatoryLift=new THREE.Group();
-  observatoryLift.position.z=.115;g.add(observatoryLift);
-  // This moving piston overlaps the fixed bearing even when fully raised.
+  observatoryLift.position.z=OBSERVATORY_REST;g.add(observatoryLift);
   C(observatoryLift,.090,.47,0,0,-.175,m.gold,"z");
   C(observatoryLift,.267,.050,0,0,.060,m.dark,"z");
-  C(observatoryLift,.265,.025,0,0,.089,m.gold,"z");
+  C(observatoryLift,.265,.018,0,0,.066,m.gold,"z");
   const roofShell=new THREE.Group();
   roofShell.position.z=.093;observatoryLift.add(roofShell);
   // Each hemisphere is a genuinely curved hinged shell, not a flat plate.
@@ -777,7 +780,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      gsap.killTweensOf(instance.lift.position);
      gsap.killTweensOf(instance.instrument.rotation);
      for(const {pivot} of instance.doors)gsap.killTweensOf(pivot.rotation);
-     instance.lift.position.z=raised?.405:.115;
+     instance.lift.position.z=raised?OBSERVATORY_EXTENDED:OBSERVATORY_REST;
      for(const {pivot,sign} of instance.doors)
       pivot.rotation.x=raised?sign*1.10:0;
      instance.instrument.rotation.y=raised?.14:-.12;
@@ -788,7 +791,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      else{
       settle(false);
       const tl=gsap.timeline({onUpdate:invalidate,onComplete:()=>settle(true)});
-      tl.to(instance.lift.position,{z:.405,duration:2.15,ease:"power2.inOut"},0);
+      tl.to(instance.lift.position,{z:OBSERVATORY_EXTENDED,duration:2.15,ease:"power2.inOut"},0);
       for(const {pivot,sign} of instance.doors)
        tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,
         ease:"power2.inOut"},2.08);
@@ -1150,6 +1153,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     installed:!!items.get("telescope")?.fixture.visible,
     deployed:!!items.get("telescope")?.visible,
     lift:observatoryLift?.position.z??null,
+    domeSeamHeight:observatoryLift?items.get("telescope").fixture.position.z+
+     observatoryLift.position.z+.093:null,
     doorAngles:observatoryDoors.map(({pivot})=>pivot.rotation.x),
     scopeTilt:observatoryScope?.rotation.y??null
    },
@@ -1194,7 +1199,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      const base=items.get("telescope");
      return {name:h.name,standoffs:1,
       shellMounted:!!base?.mountRing&&base.mountRing.parent===base.toy&&
-       Math.abs(base.fixture.position.z-.089)<.002,
+       Math.abs(base.fixture.position.z-.060)<.002,
       upperSeated:base?.lift?.parent===base?.toy,
       lowerSeated:base?.instrument?.parent===base?.lift};
     }
