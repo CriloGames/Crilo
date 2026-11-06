@@ -14,6 +14,12 @@ import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.j
 const embeddedGame=document.body.classList.contains("nc-page");
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
+// A scene builder can call invalidate() *during construction*, well before
+// the resize/interaction section below runs. Initialize its frame token
+// before constructing any renderer, geometry, controls or puzzle modules.
+// Otherwise invalidate() hits the temporal dead zone of a later 'let'
+// declaration and the entire 3D module fails to load.
+let pendingFrame=0;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
 camera.position.set(3.85,3.2,5.9);
@@ -1244,7 +1250,6 @@ renderer.domElement.addEventListener("keydown",event=>{
   clickAction("flute-note-"+event.key);
  }
 });
-let pendingFrame=0;
 let cameraMode=null;
 const onResize=()=>{
  // A resize changes the projected selection point; avoid stale markers.
