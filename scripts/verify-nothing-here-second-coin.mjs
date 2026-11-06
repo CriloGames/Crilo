@@ -81,11 +81,13 @@ async function deployObservatory(page){
  assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
   pose.shutterProgress>=.999&&pose.slatCount===16&&
   pose.visibleSlats===0&&pose.rearCapVisible&&
+   Math.abs(pose.retainedDomeFraction-.25)<.00001&&
   Math.abs(pose.domeSeamHeight-.072)<.001&&pose.scopeTilt>.35&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyCrownZ>.25&&
+  pose.canopyFrontY>.19&&pose.canopyFrontY<.22&&
+  pose.canopyCrownZ>.20&&pose.canopyCrownZ<.23&&
   pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
-  Math.abs(pose.objectiveFrontY-pose.canopyFrontY)<.055&&
+  pose.objectiveFrontY<pose.canopyFrontY-.20&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
   "The garage-style dome failed to roll completely into its rear housing");
 }
@@ -510,11 +512,13 @@ try{
   const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
   assert(pose.deployed&&pose.shutterProgress>=.999&&
    pose.slatCount===16&&pose.visibleSlats===0&&
-   pose.rearCapVisible&&Math.abs(pose.domeSeamHeight-.072)<.001&&
+   pose.rearCapVisible&&
+   Math.abs(pose.retainedDomeFraction-.25)<.00001&&Math.abs(pose.domeSeamHeight-.072)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyCrownZ>.25&&
+  pose.canopyFrontY>.19&&pose.canopyFrontY<.22&&
+  pose.canopyCrownZ>.20&&pose.canopyCrownZ<.23&&
   pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
-  Math.abs(pose.objectiveFrontY-pose.canopyFrontY)<.055&&
+  pose.objectiveFrontY<pose.canopyFrontY-.20&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The garage dome unlocked but did not retract without rising");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
@@ -542,7 +546,7 @@ try{
   assert(closedDome.installed&&!closedDome.deployed&&
    closedDome.visibleSlats===16&&closedDome.slatCount===16&&
    closedDome.shutterProgress===0&&
-   Math.abs(closedDome.domeSeamHeight-.075)<.001&&
+   Math.abs(closedDome.domeSeamHeight-.072)<.001&&
    !initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
    "The observatory must start with every shutter slat closed at fixed height");
   const emptyOptics=await page.evaluate(()=>
