@@ -100,88 +100,99 @@ assert(details.includes('const grooveCurve=new THREE.CurvePath();')&&
  details.includes('getGearMazeTargets:')&&details.includes('getGearMazeAssembly:'),
  'The meshed gears need a visible continuous groove, follower and touch targets');
 
-// The physical labyrinth must have actual right-angle passages and five
-// distinct false routes, rather than a mostly circular spiral texture.
-// Every allowed movement remains on a spline cut in the visible metal.
-const mainMatch=details.match(/const mazeGridPath=\[([\s\S]*?)\];/);
-const forksMatch=details.match(/const mazeBlindPaths=\[([\s\S]*?)\];/);
-assert(mainMatch&&forksMatch,
- 'A large angular maze with real branches is absent from the gear face');
-const cells=source=>[...source.matchAll(/\[(-?\d+),(-?\d+)\]/g)]
- .map(m=>[Number(m[1]),Number(m[2])]);
-const mainCells=cells(mainMatch[1]);
-const blindCells=cells(forksMatch[1]);
+// A radial maze is only legitimate when its visual corridors are connected,
+// its central goal can be reached, and every raised wall blocks a CLOSED
+// passage rather than being positioned through a valid player route.
+const mainCells=digits(match(details,
+ /const mazeRouteCells=\[([\s\S]*?)\];/,'concentric labyrinth cells'));
+const stepMarks=digits(match(details,
+ /const mazeStepMarks=\[([\s\S]*?)\];/,'gear click milestones'));
+const blindMatch=match(details,
+ /const mazeBlindCells=(\[[\s\S]*?\]);/,'working false branches');
+const blindPaths=JSON.parse(blindMatch);
 const modelJunctions=digits(match(details,
- /const mazeJunctions=\[([^\]]+)\]/,'physical junction indices'));
+ /const mazeJunctions=\[([^\]]+)\]/,'3D labyrinth junctions'));
 const gameJunctions=digits(match(logic,
- /const GEAR_MAZE_JUNCTIONS=\[([^\]]+)\]/,'working dead-end junctions'));
+ /const GEAR_MAZE_JUNCTIONS=\[([^\]]+)\]/,'playable dead-end junctions'));
 assert.deepEqual(modelJunctions,gameJunctions,
- 'The real physical labyrinth forks do not agree with the playable controls');
+ '3D labyrinth branches differ from gameplay states');
 assert.deepEqual(gameJunctions,[4,9,14,19,24],
- 'The five working branches are no longer at the expected safe junctions');
-assert.equal(mainCells.length,gearSteps.length+1,
- 'Every gear click must terminate at an actual distinct maze cell');
-assert.equal(blindCells.length,gameJunctions.length*2,
- 'Each maze fork must contain two reachable cells and an end plug');
-const address=cell=>cell.join(',');
-const distance=(a,b)=>Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]);
-assert.equal(new Set(mainCells.map(address)).size,mainCells.length,
- 'Main gear-maze path crosses itself in the same cell');
-const occupied=new Set(mainCells.map(address));
+ 'Five puzzle forks changed without updating saved games');
+assert.equal(stepMarks.length,gearSteps.length+1,
+ '29 gear turns must correspond to 30 real path positions');
+assert.equal(mainCells.length,64,'The concentric route is incomplete');
+assert.equal(mainCells.at(-1),96,
+ 'The screw must EXIT the inner ring into the open central socket');
+assert.equal(stepMarks[0],0,'The screw has no entrance position');
+assert.equal(stepMarks.at(-1),mainCells.length-1,
+ 'The final gear turn ends before the real central exit');
+assert(stepMarks.every((n,i)=>i===0||n>stepMarks[i-1]),
+ 'A gear press does not advance along a continuous carved corridor');
+const sectorCount=16,ringCount=6;
+const neighbors=(a,b)=>{
+ if(a===96||b===96)return (a===96&&Math.floor(b/16)===0)||
+  (b===96&&Math.floor(a/16)===0);
+ const ar=Math.floor(a/sectorCount),br=Math.floor(b/sectorCount);
+ const ac=a%sectorCount,bc=b%sectorCount;
+ return ar===br&&((ac+1)%sectorCount===bc||
+  (bc+1)%sectorCount===ac)||
+  ac===bc&&Math.abs(ar-br)===1;
+};
+assert.equal(new Set(mainCells).size,mainCells.length,
+ 'The carved winning route crosses itself');
 for(let i=1;i<mainCells.length;i++)
- assert.equal(distance(mainCells[i-1],mainCells[i]),1,
-  'A main-channel segment skips a cell or cuts diagonally through metal');
-for(let f=0;f<gameJunctions.length;f++){
- const origin=mainCells[gameJunctions[f]];
- const first=blindCells[f*2],second=blindCells[f*2+1];
- assert(distance(origin,first)===1&&distance(first,second)===1,
-  'A branch has a floating jump or goes across a solid brass wall');
- for(const cell of [first,second]){
-  const addr=address(cell);
-  assert(!occupied.has(addr),'A maze fork crosses an occupied groove: '+addr);
-  occupied.add(addr);
+ assert(neighbors(mainCells[i-1],mainCells[i]),
+  'The winning path teleports through solid brass between cells');
+assert.equal(blindPaths.length,modelJunctions.length,
+ 'The visible maze has a disconnected false channel');
+const used=new Set(mainCells);
+for(let k=0;k<modelJunctions.length;k++){
+ const origin=mainCells[stepMarks[modelJunctions[k]]];
+ const branch=blindPaths[k];
+ assert(branch.length>=2,'Each wrong turn must have a real dead end');
+ assert.equal([9,20,31,42,53][k],stepMarks[modelJunctions[k]],
+  'The wrong wheel enters a branch at a different physical opening');
+ for(let j=0;j<branch.length;j++){
+  const cell=branch[j],from=j===0?origin:branch[j-1];
+  assert(neighbors(from,cell),'A dead-end branch crosses a maze wall');
+  assert(cell>=0&&cell<ringCount*sectorCount&&!used.has(cell),
+   'An apparent dead end intersects an unrelated passage');
+  used.add(cell);
  }
 }
-const turnCount=mainCells.reduce((n,c,i,a)=>i>1&&
- (c[0]-a[i-1][0]!==a[i-1][0]-a[i-2][0]||
-  c[1]-a[i-1][1]!==a[i-1][1]-a[i-2][1])?n+1:n,0);
-assert(turnCount>=12,
- 'The maze must contain meaningful angular switchbacks, not a simple spiral');
-assert(details.includes('const grooveCurve=new THREE.CurvePath();')&&
- details.includes('const deadEndCurves=new Map();')&&
- details.includes('const mazeTravel={index:0,branch:0};')&&
+assert(used.size>=85,'Too many circular maze corridors are missing');
+assert(details.includes('const mazeSectorCount=16;')&&
+ details.includes('const mazeRingCount=6;')&&
+ details.includes('const mazeInnerRadius=.082;')&&
+ details.includes('const mazeRingPitch=.044;')&&
+ details.includes('new THREE.LineCurve3(')&&
+ details.includes('const openEdges=new Set();')&&
+ details.includes('if(!openEdges.has(edgeKey(cell,nextSector)))')&&
+ details.includes('if(!openEdges.has(edgeKey(cell,nextRing)))')&&
+ details.includes('goalCollar.rotation.z=mouthAngle+.475;')&&
+ details.includes('const goalSocket=goalCollar;'),
+ 'The real maze walls, connected groove or OPEN center exit is missing');
+assert(details.includes('const mazeTravel={index:0,branch:0};')&&
  details.includes('const channelPoint=pointOnTrack(mazeTravel.index,')&&
  details.includes('onUpdate:seatFollower,onComplete:seatFollower')&&
  !details.includes('pose(follower,"position","x"')&&
  !details.includes('pose(follower,"position","y"'),
- 'The captive screw is not bound to the same drawn spline as the maze');
+ 'The pin can leave the physically carved groove');
 assert(logic.includes('s.gearMazeBranch=1;')&&
  logic.includes('else if(dir===-forward&&beforeBranch<2)s.gearMazeBranch++;')&&
- logic.includes('if(moved)s.gearMazeTurns=clamp(')&&
- logic.includes('s.gearMazeBranch=0;'),
- 'A wrong gear must enter a blind channel and physically stop at its tip');
-
-// The final maze outlet must still meet the SAME fixed release linkage
-// after the wheel has rotated through its original 29-move solution.
-const cellSize=Number(match(details,
- /const mazeCellSize=([\d.]+);/,'machined cell pitch'));
+ logic.includes('if(moved)s.gearMazeTurns=clamp('),
+ 'Wrong turns no longer stop at physical barriers');
 const wheelMount=details.match(
  /const wheelA=gear\(leftFace,([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+),gearMetal,15\)/);
-assert(wheelMount,'The upgraded labyrinth gear is missing its real bearing');
-const [exitCellX,exitCellY]=mainCells.at(-1);
-const localX=exitCellX*cellSize,localY=exitCellY*cellSize;
-const finalWheelAngle=-gearSteps.reduce((sum,d)=>sum+d,0)*Math.PI/12;
-const exitX=Number(wheelMount[1])+
- localX*Math.cos(finalWheelAngle)-localY*Math.sin(finalWheelAngle);
-const exitY=Number(wheelMount[2])+
- localX*Math.sin(finalWheelAngle)+localY*Math.cos(finalWheelAngle);
-const exitZ=Number(wheelMount[3])+.156;
-const railMatch=details.match(/const gearRailEntry=\{x:([-\d.]+),y:([-\d.]+),z:([-\d.]+)\}/);
-assert(railMatch,'The fixed mechanical release rail is absent');
-const [,railX,railY,railZ]=railMatch.map(Number);
-assert(Math.hypot(exitX-railX,exitY-railY)<.015&&
- Math.abs(exitZ-railZ)<.015,
- 'The redesigned maze no longer connects to its calibration lock');
+assert(wheelMount,'The gear's physical mounting bearing is missing');
+const railMatch=details.match(
+ /const gearRailEntry=\{x:([-\d.]+),y:([-\d.]+),z:([-\d.]+)\}/);
+assert(railMatch,'The dial linkage has no receiving shaft');
+const [railX,railY,railZ]=railMatch.slice(1).map(Number);
+assert(Math.hypot(railX-Number(wheelMount[1]),railY-Number(wheelMount[2]))<.0001&&
+ Math.abs(railZ-(Number(wheelMount[3])+.156))<.0001,
+ 'The winning exit does not physically meet the dial release axle');
+
 assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
  preview.includes('gameHotspots.targets.set("gear-small"'),
  'The maze gears are not reachable by the 3D interaction raycaster');
