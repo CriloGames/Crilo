@@ -156,10 +156,14 @@ async function refundCoin(page,{realPointer=false}={}){
   gears.model.directions.length>=29&&
   gears.model.grooveCount===gears.model.directions.length+1&&
   gears.model.grooveSegments===gears.model.directions.length&&
+  gears.model.mazeStyle==="angular labyrinth"&&
   gears.model.branches===5&&
   gears.model.followerTrackDistance<.000001&&
   gears.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5,
   "Gear maze is not a carved 3D track on the left face: "+JSON.stringify(gears));
+ assert(Math.abs( Math.hypot(gears.model.large.x-gears.model.small.x,
+  gears.model.large.y-gears.model.small.y)- (.96*(gears.model.large.pitchRadius+gears.model.small.pitchRadius)))<.04,
+  "The two drive gears look disconnected rather than properly meshed");
  assert(gears.small?.pick==="gear-small"&&gears.large?.pick==="gear-large",
   "One of the working gears cannot be reached with the pointer: "+JSON.stringify(gears));
  await page.locator("#stage canvas").click({
