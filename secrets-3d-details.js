@@ -389,8 +389,8 @@ export function buildIntricateCube({
     if(openEdges.has(edgeKey(a,b)))continue;
     const angle=mazeStartAngle+(k+.5)*sectorWidth;
     const radius=mazeInnerRadius+r*mazePitch;
-    radialWall(angle,radius-mazePitch*.47,
-      radius+mazePitch*.47);
+    radialWall(angle,radius-mazePitch*.50,
+      radius+mazePitch*.50);
   }
   // The unique final approach must be wider than the captive ball.
   // Its previous one-sector gate was narrower than the ball diameter.
