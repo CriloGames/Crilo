@@ -400,7 +400,7 @@ export function buildIntricateCube({
   // Both stop short of the innermost lane to avoid blocking side travel.
   for(const side of [-1,1]){
     const angle=centerMouthAngle+side*sectorWidth*1.45;
-    radialWall(angle,.051,.069);
+    radialWall(angle,.051,.065);
   }
 
   // The outer circle is continuous except for the clear entry notch at
