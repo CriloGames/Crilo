@@ -199,117 +199,132 @@ export function buildIntricateCube({
   // A compact service inscription sits between the top bolt and numbered
   // keys; the former full-width sign overlapped switch 1's number plate.
 
-  // Smaller, deliberate gear cluster in the middle of the face: keep the
-  // left vent keys, pressure dial, and service catch free of ornamental teeth.
-  const wheelA=gear(leftFace,-.20,.04,.19,.31);
-  // Pitch circles nearly touch: these are a gear pair, not two isolated
-  // discs joined by a bar that passed through their centers.
-  const wheelB=gear(leftFace,.23,-.27,.19,.235,steel,9);
+  // Large machined labyrinth with a physically meshed auxiliary drive.
+  // The previous 0.31-radius wheel made thirty tiny scratches unreadable;
+  // this is enlarged but stays inside the vent keys and dial's own space.
+  const wheelA=gear(leftFace,-.18,0,.19,.405,gearMetal,15);
+  const wheelB=gear(leftFace,.28,-.38,.19,.235,steel,9);
   registries.wheelA=wheelA;registries.wheelB=wheelB;
-  // Six concentric lanes form a real forked labyrinth. The deliberate
-  // route switches radius at five tightly machined junctions; each junction
-  // also has a blind continuation along its own lane. This is no longer a
-  // simple uninterrupted spiral with decorative scratches beside it.
-  //
-  // Each segment is ONE authored curve shared by the rendered groove and
-  // by the captive pin's motion. The follower may never linearly shortcut
-  // across brass or slide beyond an end-stop while a gear is turning.
+  // A TRUE ORTHOGONAL LABYRINTH, not six circular grooves. Thirty
+  // positions form an irregular rectilinear route with actual turns,
+  // crossovers and five false corridors. These are hand-selected connected
+  // cells, not procedural clutter; the state machine still has 29 steps.
+  // The wheel rotates around the maze, while the captive pin is always
+  // evaluated on the centerline of an actual machined channel.
   const gearMazeDirections=[
    1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
    1,1,1,1,1,-1,-1,-1,-1,-1
   ];
-  const mazeStages=[
-   {r:.070,start:-142,end:138},
-   {r:.105,start:138,end:-133},
-   {r:.140,start:-133,end:135},
-   {r:.175,start:135,end:-130},
-   {r:.210,start:-130,end:130},
-   {r:.245,start:130,end:-115}
+  const mazeGridPath=[
+   [-2,-2],[-2,-3],[-3,-3],[-3,-2],[-3,-1],[-3,0],
+   [-3,1],[-2,1],[-2,2],[-1,2],[0,2],[0,1],
+   [0,0],[0,-1],[0,-2],[1,-2],[1,-3],[2,-3],
+   [3,-3],[3,-2],[2,-2],[2,-1],[2,0],[1,0],
+   [1,1],[2,1],[2,2],[3,2],[3,3],[2,3]
   ];
-  // Keep the last outward channel aligned with the existing fixed latch
-  // on completion, after the large wheel has made its final 15° turn.
-  const gearMazeOrientation=156;
-  const mazePoint=(radius,angle)=>new THREE.Vector3(
-   Math.cos((angle+gearMazeOrientation)*Math.PI/180)*radius,
-   Math.sin((angle+gearMazeOrientation)*Math.PI/180)*radius,.145
-  );
-  const gearMazePoints=[mazePoint(mazeStages[0].r,mazeStages[0].start)];
-  const grooveCurve=new THREE.CurvePath();
+  const mazeJunctions=[4,9,14,19,24];
+  // Each branch has two reachable cells and its own metal end-stop.
+  // They are genuine dead ends: clicking the wrong gear enters them;
+  // backtracking returns the screw to its exact original junction.
+  const mazeBlindPaths=[
+   [[-2,-1],[-1,-1]],
+   [[-1,3],[-2,3]],
+   [[0,-3],[-1,-3]],
+   [[3,-1],[3,0]],
+   [[1,2],[1,3]]
+  ];
+  const mazeCellSize=.074;
+  const mazeGridPoint=([x,y])=>new THREE.Vector3(
+   x*mazeCellSize,y*mazeCellSize,.156);
+  const gearMazePoints=mazeGridPath.map(mazeGridPoint);
   const grooveSegments=[];
-  const mazeJunctions=[];
+  const grooveCurve=new THREE.CurvePath();
   const deadEndCurves=new Map();
   const makeRoute=points=>new THREE.CatmullRomCurve3(
    points,false,"centripetal",.18);
-  function appendRoute(points){
-   const route=makeRoute(points);
-   grooveSegments.push(route);
-   grooveCurve.add(route);
-   gearMazePoints.push(points[points.length-1].clone());
+  // All the edges of the maze are the same physically engraved spline
+  // objects used to animate the pin; no separate invisible solved path.
+  for(let i=0;i<mazeGridPath.length-1;i++){
+   const a=gearMazePoints[i],b=gearMazePoints[i+1];
+   const mid=a.clone().lerp(b,.5);
+   const route=makeRoute([a.clone(),mid,b.clone()]);
+   grooveSegments.push(route);grooveCurve.add(route);
   }
-  mazeStages.forEach((stage,i)=>{
-   if(i){
-    // Each new ring begins with a narrow radial crossover that actually
-    // connects the previous ring's end to the next one's entry.
-    const oldRadius=mazeStages[i-1].r;
-    appendRoute(Array.from({length:9},(_,k)=>
-     mazePoint(oldRadius+(stage.r-oldRadius)*k/8,stage.start)));
-   }
-   for(let quarter=0;quarter<4;quarter++){
-    const angleAt=t=>stage.start+
-     (stage.end-stage.start)*(quarter+t)/4;
-    appendRoute(Array.from({length:13},(_,k)=>
-     mazePoint(stage.r,angleAt(k/12))));
-   }
-   if(i<mazeStages.length-1){
-    const junction=gearMazePoints.length-1;
-    mazeJunctions.push(junction);
-    // Continuing along the same ring rather than entering the crossover
-    // leads to a CLOSED blind tunnel, with a visible machined end-stop.
-    // Forty degrees fit entirely inside each lane's intentionally empty
-    // gap: these paths cannot intersect the preceding arc or other rings.
-    const bend=Math.sign(stage.end-stage.start);
-    const deadArc=[40,45,42,47,43][i];
-    const blind=Array.from({length:17},(_,k)=>
-     mazePoint(stage.r,stage.end+bend*deadArc*k/16));
-    deadEndCurves.set(junction,makeRoute(blind));
-   }
-  });
+  for(let i=0;i<mazeJunctions.length;i++){
+   const junction=mazeJunctions[i];
+   const blind=[mazeGridPath[junction],...mazeBlindPaths[i]]
+    .map(mazeGridPoint);
+   deadEndCurves.set(junction,makeRoute(blind));
+  }
   if(gearMazePoints.length!==gearMazeDirections.length+1||
      grooveSegments.length!==gearMazeDirections.length||
-     mazeJunctions.join(",")!=="4,9,14,19,24")
-   throw new Error("Forked gear maze track has mismatched stages or end stops");
-  const mazeFace=mat(0xd6bb8e,.39,.43);
-  C(wheelA,.278,.023,0,0,.117,mazeFace);
-  // Fix the raised face to the real center bearing with visible seated
-  // spokes underneath, rather than leaving an impossible floating disc.
-  for(const a of [0,Math.PI/2,Math.PI,Math.PI*1.5])
-   C(wheelA,.018,.093,Math.cos(a)*.205,Math.sin(a)*.205,.077,steel);
-  ring(wheelA,.274,.007,0,0,.136,brass);
-  // A dark recessed channel on a raised brass lip. The same CurvePath
-  // supplies the follower's coordinates on EVERY animation frame.
-  const routeSamples=Math.max(640,grooveSegments.length*26);
+     mazeJunctions.join(",")!=="4,9,14,19,24"||
+     mazeBlindPaths.length!==mazeJunctions.length)
+   throw new Error("Gear labyrinth has a broken track or mismatched forks");
+  // A convincing machined labyrinth: a dark steel outer collar, a
+  // contrasting warm-brass cartridge, and wide recessed-looking channels.
+  // Bigger corners and genuine T-junctions remain legible at default zoom.
+  const mazeFace=mat(0xc9ac7e,.42,.32);
+  const mazeInset=mat(0x463d37,.46,.33);
+  const cutRim=mat(0xe5c68e,.61,.24);
+  C(wheelA,.357,.037,0,0,.112,darkMetal);
+  C(wheelA,.346,.026,0,0,.134,mazeInset);
+  C(wheelA,.338,.013,0,0,.153,mazeFace);
+  ring(wheelA,.348,.014,0,0,.159,brass);
+  ring(wheelA,.368,.012,0,0,.101,steel);
+  // Structural cover bolts are on the outer retaining ring, outside the
+  // path's swept area; they rotate WITH the wheel.
+  for(let i=0;i<8;i++){
+   const angle=(i+.5)*Math.PI/4;
+   const px=Math.cos(angle)*.376,py=Math.sin(angle)*.376;
+   C(wheelA,.024,.021,px,py,.121,steel);
+   const slot=B(wheelA,.029,.005,.005,px,py,.140,ebony,.002);
+   slot.rotation.z=angle+.40;
+  }
+  // Each tube is a bevelled slot outline. The dark central trench sits
+  // inside a brighter thin rim, instead of a thin black spiral drawn on
+  // an otherwise flat disc.
+  const routeSamples=Math.max(840,grooveSegments.length*30);
   const lip=new THREE.Mesh(new THREE.TubeGeometry(
-   grooveCurve,routeSamples,.013,7,false),brass);
+   grooveCurve,routeSamples,.018,8,false),cutRim);
   lip.castShadow=false;wheelA.add(lip);detailsCount++;
   const channel=new THREE.Mesh(new THREE.TubeGeometry(
-   grooveCurve,routeSamples,.009,8,false),ebony);
-  channel.position.z=.007;channel.castShadow=false;
+   grooveCurve,routeSamples,.012,9,false),ebony);
+  channel.position.z=.006;channel.castShadow=false;
   wheelA.add(channel);detailsCount++;
   for(const [junction,blind] of deadEndCurves){
-   const border=new THREE.Mesh(new THREE.TubeGeometry(blind,50,.013,7,false),brass);
+   const border=new THREE.Mesh(new THREE.TubeGeometry(blind,70,.018,8,false),cutRim);
    border.castShadow=false;wheelA.add(border);detailsCount++;
-   const darkSlot=new THREE.Mesh(new THREE.TubeGeometry(blind,50,.009,8,false),ebony);
-   darkSlot.position.z=.007;darkSlot.castShadow=false;wheelA.add(darkSlot);detailsCount++;
-   // Distinct plugged blind ends communicate why the screw must reverse.
-   const blockedTip=blind.getPoint(1);
-   C(wheelA,.014,.013,blockedTip.x,blockedTip.y,.161,steel);
-   C(wheelA,.007,.015,blockedTip.x,blockedTip.y,.171,brass);
+   const darkSlot=new THREE.Mesh(new THREE.TubeGeometry(blind,70,.012,9,false),ebony);
+   darkSlot.position.z=.006;darkSlot.castShadow=false;
+   wheelA.add(darkSlot);detailsCount++;
+   // A real end plug at each blind terminus (and no route beyond it).
+   const stop=blind.getPoint(1);
+   C(wheelA,.017,.016,stop.x,stop.y,.173,steel);
+   C(wheelA,.009,.018,stop.x,stop.y,.186,brass);
   }
-  // The entry and the exit are different machined end-stops, not printed
-  // directions or arrow hints. The player must trace the real channel.
+  // Machined entry + exit sockets, neither a magical pointer nor a
+  // permanent neon trail that gives the puzzle solution away.
+  const startPoint=gearMazePoints[0];
   const finishPoint=gearMazePoints[gearMazePoints.length-1];
-  C(wheelA,.021,.012,finishPoint.x,finishPoint.y,.161,gold);
-  C(wheelA,.031,.016,0,0,.152,steel);
+  ring(wheelA,.027,.007,startPoint.x,startPoint.y,.172,steel);
+  C(wheelA,.020,.012,finishPoint.x,finishPoint.y,.178,cutRim);
+  ring(wheelA,.025,.007,finishPoint.x,finishPoint.y,.185,darkMetal);
+  // Improve the small drive gear: a visible center spindle, four radial
+  // machined spokes and a dark knurled grip. It remains one clickable gear.
+  C(wheelB,.163,.027,0,0,.107,darkMetal);
+  C(wheelB,.128,.021,0,0,.128,steel);
+  for(let i=0;i<4;i++){
+   const a=i*Math.PI/2;
+   const spoke=B(wheelB,.125,.024,.024,Math.cos(a)*.083,
+    Math.sin(a)*.083,.149,brass,.006);
+   spoke.rotation.z=a;
+  }
+  ring(wheelB,.150,.012,0,0,.155,brass);
+  C(wheelB,.061,.032,0,0,.166,darkMetal);
+  C(wheelB,.034,.021,0,0,.189,steel);
+  const centerSlot=B(wheelB,.041,.007,.006,0,0,.203,ebony,.003);
+  centerSlot.rotation.z=.43;
   const follower=new THREE.Group();wheelA.add(follower);
   follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
   // 0..29 is the exact segment coordinate on the main groove. Branch
@@ -343,7 +358,7 @@ export function buildIntricateCube({
   // brass transfer bearing it descends to the lower, stationary dial catch.
   // Keep both runs above the panel: the former rail was 0.22 units behind
   // the screw, making the linkage look like unrelated decoration.
-  const gearRailEntry={x:-.063,y:.243,z:.344};
+  const gearRailEntry={x:-.095,y:.253,z:.346};
   flatLine(leftFace,gearRailEntry.x,gearRailEntry.y,.22,.47,.344,.033,steel);
   flatLine(leftFace,.22,.47,.54,.66,.197,.033,steel);
   // A fixed guide at the channel mouth catches the screw ONLY when it
@@ -554,7 +569,7 @@ export function buildIntricateCube({
     const turns=Math.max(-720,Math.min(720,Number(s.gearMazeTurns)||0));
     const gearRotation=-turns*Math.PI/12;
     pose(wheelA,"rotation","z",gearRotation);
-    pose(wheelB,"rotation","z",-gearRotation*(.31/.235));
+    pose(wheelB,"rotation","z",-gearRotation*(.405/.235));
     const progress=Math.max(0,Math.min(
      gearMazeDirections.length,Number(s.gearMazeIndex)||0));
     const branch=(mazeJunctions.includes(progress)&&!s.gearMazeSolved)
@@ -637,6 +652,8 @@ export function buildIntricateCube({
       directions:[...gearMazeDirections],
       grooveCount:gearMazePoints.length,
       grooveSegments:grooveSegments.length,
+      mazeCellSize,
+      mazeStyle:"angular labyrinth",
       branches:mazeJunctions.length,
       junctions:[...mazeJunctions],
       branchDepth:mazeTravel.branch,
