@@ -494,6 +494,28 @@ try{
   await close();
   console.log("PASS: front screws -> cog -> iris -> chart/railway before floor four -> lens -> second sky");
  }
+ // Saved games from before the dual-optic model had no component flags.
+ // Preserve their already-installed lens/iris and completed discoveries,
+ // without duplicating the star chart or resurrecting consumed optics.
+ {
+  const {page,close}=await scenario("legacy-telescope-compatibility",{
+   seen:["first","observatory","constellation","hidden-optic","second-sky",
+    "railway","fourth"],
+   observed:true,secondSky:true,opticOpened:true,train:true,floorFour:true,
+   pendingPickups:[],pocket:[]
+  });
+  const legacy=await state(page);
+  const visual=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalScenePose.telescopeOptics);
+  assert(legacy.telescopeLensMounted&&legacy.telescopeIrisMounted&&
+   legacy.secondSky&&legacy.train&&visual.both&&
+   !legacy.pendingPickups.includes("lens")&&
+   !legacy.pendingPickups.includes("iris")&&
+   !legacy.pendingPickups.includes("starmap"),
+   "Existing players' installed telescope optics or earned chart were lost");
+  await close();
+  console.log("PASS: old one-order telescope saves preserve both optics and spent chart");
+ }
  // After the machine, the other late mechanisms are independent, but
  // all must still lead to a reachable physical reward and the final letter.
  {
