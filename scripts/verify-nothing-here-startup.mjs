@@ -89,6 +89,7 @@ try{
       okay:attachments.okay,issues:attachments.issues,
       wheels:attachments.wheels.length,fixed:attachments.fixed.length,
       miniatures:attachments.miniatures.length,
+      figures:attachments.figures?.length||0,
       frontLens:attachments.lens?.barrelRetained,
       exceptions:attachments.intentionalExceptions
      }:null,
@@ -101,7 +102,7 @@ try{
     "The real WebGL game did not initialize: "+JSON.stringify(result));
    assert(result.mounts?.okay&&result.mounts.wheels>=2&&
     result.mounts.fixed>=12&&result.mounts.miniatures>=15&&
-    result.mounts.frontLens===true,
+    result.mounts.figures===15&&result.mounts.frontLens===true,
     "Mechanical attachment QA failed: "+JSON.stringify(result.mounts));
    if(check.seed){
     assert.equal(result.progress?.cell,check.seed.gearMazeCell,
