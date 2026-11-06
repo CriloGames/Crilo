@@ -160,29 +160,42 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
  "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
+// The observatory is a fixed-height garage shutter: each real curved
+// strip winds back into a small stationary rear cap.
 for(const expected of [
- '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.14]',
- 'item.stand.visible=false;',
- 'item.fixture.position.z=.060;',
- 'item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");',
- 'const hemisphere=new THREE.Mesh(new THREE.SphereGeometry(',
- 'roofShell.position.z=.093;observatoryLift.add(roofShell);',
- 'observatoryLift.position.z=OBSERVATORY_REST;',
- 'instance.lift.position.z=raised?OBSERVATORY_EXTENDED:OBSERVATORY_REST;',
- 'tl.to(instance.lift.position,{z:OBSERVATORY_EXTENDED,duration:2.15,',
- 'tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,',
- 'telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");',
- 'telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");'
+ "[\"moth\",\"topFace\",-1.15,.21],[\"telescope\",\"topFace\",0,-1.14]",
+ "item.stand.visible=false;item.fixture.position.z=.060;",
+ "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
+ "const OBSERVATORY_RADIUS=.255,OBSERVATORY_SEAM=.015;",
+ "const OBSERVATORY_REAR=1.18,OBSERVATORY_TRAVEL=Math.PI-.16;",
+ "const OBSERVATORY_SLAT_COUNT=16;",
+ "observatoryPanels.push({panel,thetaStart});",
+ "observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);",
+ "const applyObservatoryRoll=()=>{",
+ "panel.rotation.x=-travel;",
+ "panel.visible=thetaStart+travel<OBSERVATORY_REAR;",
+ "observatoryRoller.rotation.x=travel*2.6;",
+ "gsap.to(observatoryShutter,{",
+ "progress:1,duration:3.15,ease:\"power2.inOut\",",
+ "shutterProgress:observatoryShutter.progress,",
+ "visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,",
+ "rearCapVisible:!!observatoryRearCap?.visible,",
+ "upperSeated:base?.shutterHub?.parent===base?.toy,",
+ "lowerSeated:base?.instrument?.parent===base?.toy",
+ "telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");",
+ "telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");"
 ]) assert(worlds.includes(expected),
- "The hinged observatory lost a physical component or animation: "+expected);
-// Centered, genuinely recessed installation: with the dome closed the
-// equator is 0.075 face-local units, barely above the 0.0725 enamel skin.
-// A set of intentional gaps in the front-rail inlays protects the dome.
-assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
- worlds.includes('const OBSERVATORY_EXTENDED=.405;')&&
- worlds.includes('domeSeamHeight:observatoryLift?')&&
- worlds.includes('C(g,.116,.610,0,0,-.200,m.dark,"z");')&&
- worlds.includes('C(observatoryLift,.265,.018,0,0,.066,m.gold,"z");')&&
+ "The stationary garage-style dome lost a physical part: "+expected);
+assert(!worlds.includes('observatoryLift')&&
+ !worlds.includes('observatoryDoors')&&
+ !worlds.includes('OBSERVATORY_EXTENDED')&&
+ !worlds.includes('instance.lift.position')&&
+ !worlds.includes('tl.to(pivot.rotation,'),
+ "The old rising dome or split doors returned");
+// The roof's equator, its metal socket and the telescope all stay fixed.
+assert(worlds.includes('domeSeamHeight:items.get("telescope")?.fixture.position.z+')&&
+ worlds.includes('roofShell.position.z=OBSERVATORY_SEAM;g.add(roofShell);')&&
+ worlds.includes('C(g,.256,.052,0,0,-.018,m.dark,"z");')&&
  preview.includes('observatoryButtonBase.position.set(0,-.476,-.218);')&&
  preview.includes('cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
