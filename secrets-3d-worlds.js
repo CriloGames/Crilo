@@ -681,6 +681,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  }
  // The garage shutter follows the dome's SPHERICAL rails. Rigid X-axis
  // rotation was slicing white panels through the telescope instead.
+ // A fixed-height garage door: each arched slat travels on parallel
+ // rails toward the rear cap. Its 3D shape never collapses or rises.
  const applyObservatoryRoll=()=>{
   const travel=observatoryShutter.progress*OBSERVATORY_TRAVEL;
   for(const {panel,thetaStart,thetaEnd} of observatoryPanels){
@@ -693,17 +695,15 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     const theta=begin+(end-begin)*row/OBSERVATORY_ROWS;
     for(let col=0;col<=OBSERVATORY_COLUMNS;col++){
      const phi=Math.PI*col/OBSERVATORY_COLUMNS;
-     const nx=Math.cos(theta)*Math.cos(phi);
-     const ny=Math.sin(theta);
-     const nz=Math.cos(theta)*Math.sin(phi);
+     const nx=Math.cos(phi),nz=Math.sin(phi);
      const id=row*(OBSERVATORY_COLUMNS+1)+col;
-     position.setXYZ(id,OBSERVATORY_RADIUS*nx,
-      OBSERVATORY_RADIUS*ny,OBSERVATORY_RADIUS*nz);
-     normal.setXYZ(id,nx,ny,nz);
+     position.setXYZ(id,(OBSERVATORY_RADIUS-.007)*nx,
+      OBSERVATORY_RADIUS*2*theta/Math.PI,
+      (OBSERVATORY_RADIUS-.007)*nz);
+     normal.setXYZ(id,nx,0,nz);
     }
    }
-   position.needsUpdate=true;
-   normal.needsUpdate=true;
+   position.needsUpdate=true;normal.needsUpdate=true;
    panel.geometry.computeBoundingSphere();
   }
   observatoryRoller.rotation.x=travel*2.6;
