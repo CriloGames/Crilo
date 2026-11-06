@@ -113,14 +113,27 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // The observatory has an actual circular roof aperture centered at
-      // x=0, y=-1.08. The old straight inlaid rails ran THROUGH its dome.
-      // Interrupt only those two front-rail strips around the socket.
+      // The two inset roof pinstripes follow the observatory's circular
+      // mounting gasket instead of ending abruptly beside its dome.
+      // Both rails are continuous, with parallel concentric curves that
+      // join the straight segments exactly at their mathematical tangent.
       if(face===topFace&&s===-1){
+        const domeY=-1.14;
+        const goldR=.357,inkR=.331;
+        const goldY=-1.22,inkY=-1.125;
+        const goldJoin=Math.sqrt(goldR**2-(goldY-domeY)**2);
+        const inkJoin=Math.sqrt(inkR**2-(inkY-domeY)**2);
         for(const side of [-1,1]){
-          B(face,.90,.030,.041,side*.84,-1.22,.105,accent,.012);
-          B(face,.81,.010,.024,side*.795,-1.125,.13,deep,.004);
+          B(face,1.29-goldJoin,.030,.041,
+           side*(1.29+goldJoin)/2,goldY,.105,accent,.012);
+          B(face,1.20-inkJoin,.010,.024,
+           side*(1.20+inkJoin)/2,inkY,.13,deep,.004);
         }
+        // A complete engineered pair of rings around the roof fitting:
+        // no bare cutoff ends, and the inner ring remains clear of the
+        // mechanical dome's .315-radius base.
+        torus(face,goldR,.014,0,domeY,.105,accent);
+        torus(face,inkR,.005,0,domeY,.13,deep);
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
         B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
