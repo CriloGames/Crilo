@@ -139,6 +139,16 @@ for(const phrase of [
  "s.observatoryRaised=true;"
 ]) assert(logic.includes(phrase),
  "An observatory state or optical puzzle route was removed: "+phrase);
+// The open hatch and its cleared wooden cradle are sufficient to deploy
+// the observatory. A remote maker's stamp or paper-bird moon must not
+// secretly disable the release, and the real button must be easy to hit.
+assert(logic.includes('if(s.top&&s.pipeTaken&&!s.observatoryRaised)')&&
+ !logic.includes('else if(!s.moon&&!s.serialRead)')&&
+ logic.includes("else if(!s.pipeTaken)tell(")&&
+ preview.includes('const observatoryHitPaint=new THREE.MeshBasicMaterial({')&&
+ preview.includes('observatorySwitchRim.emissiveIntensity=currentGameState.top&&')&&
+ preview.includes('"observatory-release":"Observatory release button"'),
+ 'The observatory release became hard to click or secretly gated again');
 assert(worlds.includes('telescope:!!s.observatoryRaised||!!s.observed||')&&
  worlds.includes('telescopeLensGlass.visible=!!s.telescopeLensMounted;')&&
  worlds.includes('telescopeIrisGlass.visible=!!s.telescopeIrisMounted;')&&
@@ -173,17 +183,17 @@ assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
  worlds.includes('domeSeamHeight:observatoryLift?')&&
  worlds.includes('C(g,.116,.610,0,0,-.200,m.dark,"z");')&&
  worlds.includes('C(observatoryLift,.265,.018,0,0,.066,m.gold,"z");')&&
- preview.includes('observatoryButtonBase.position.set(0,-.476,-.257);')&&
- preview.includes('cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);')&&
+ preview.includes('observatoryButtonBase.position.set(0,-.476,-.218);')&&
+ preview.includes('cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);')&&
  hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
  finish.includes('if(face===topFace&&s===-1){')&&
  finish.includes('const leads=[')&&
  !finish.includes('const goldBypass=[')&&
  !finish.includes('const inkBypass=[')&&
  finish.includes('path(face,lead.route.map(([x,y,z])=>[sign*x,y,z]),')&&
- finish.includes('C(face,.027,.012,x,y,.071,metal);')&&
- finish.includes('C(face,.018,.010,x,y,.080,deep);')&&
- finish.includes('torus(face,.024,.005,x,y,.087,accent);')&&
+ finish.includes('B(face,.093,.202,.024,sign*.405,-1.1225,.073,metal,.012);')&&
+ finish.includes('B(face,.046,.014,.006,sign*.390,-1.185,.089,deep,.003);')&&
+ finish.includes('B(face,.046,.014,.006,sign*.420,-1.060,.089,deep,.003);')&&
  preview.includes('triangle:"Lid release button",')&&
  logic.includes('The lid release button sinks in.'),
  "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
