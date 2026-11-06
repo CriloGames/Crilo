@@ -631,8 +631,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // but many figures hovered above their own shelf. Use each model's real
  // visible geometry, excluding all invisible pointer-capture volumes.
  const modelSupports=[];
+ const modelBases=[];
  for(const [name,item] of items){
-  if(name==="telescope")continue; // its three real feet already land
+  if(name==="telescope"){
+   // Its three independently modeled tripod feet physically touch the
+   // same shelf; adding a center pole would ruin the telescope silhouette.
+   modelBases.push({name,method:"tripod",toy:item.toy,lowest:-.105});
+   continue;
+  }
   const toy=item.toy;
   toy.updateWorldMatrix(true,true);
   const toToy=toy.matrixWorld.clone().invert();
@@ -657,14 +663,20 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const top=Math.max(lowest+.025,
    name==="cloud"?.32:name==="moth"?.18:-Infinity);
   const bottom=-.109;
-  if(top<=bottom+.03)continue;
+  if(top<=bottom+.03){
+   modelBases.push({name,method:"direct",toy,lowest});
+   continue;
+  }
   const post=C(toy,.034,top-bottom,0,(top+bottom)/2,0,m.brass,"y");
   post.userData.mechanicalMount=true;
   const saddle=B(toy,.31,.030,.105,0,top-.013,0,m.dark,.009);
   saddle.userData.mechanicalMount=true;
   const foot=C(toy,.049,.024,0,bottom+.015,0,m.gold,"y");
   foot.userData.mechanicalMount=true;
-  modelSupports.push({name,toy,post,saddle,foot,bottom,top,lowest});
+  const hardware={name,toy,post,saddle,foot,bottom,top,lowest,
+   method:"captive post"};
+  modelSupports.push(hardware);
+  modelBases.push(hardware);
  }
  function inspect(name){
   const instance=items.get(name);
@@ -1106,15 +1118,22 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   meshCount:()=>parts,
   visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
-  getMiniatureBodyMountAudit:()=>modelSupports.map(mount=>({
-   name:mount.name,lowestBodyY:mount.lowest,
-   lowerContact:mount.bottom,upperContact:mount.top,
-   reachesShelf:.03+.69*(mount.bottom-.012)<=-.0245,
-   touchesModel:mount.top>=mount.lowest+.01,
-   staysWithMiniature:mount.post.parent===mount.toy&&
-    mount.saddle.parent===mount.toy&&mount.foot.parent===mount.toy,
-   rearTouchesShelf:.205-.69*.034<=.115+.17/2
-  })),
+  getMiniatureBodyMountAudit:()=>modelBases.map(mount=>{
+   const supported=mount.method==="captive post";
+   const tripod=mount.method==="tripod";
+   return {
+    name:mount.name,method:mount.method,lowestBodyY:mount.lowest,
+    reachesShelf:supported?.03+.69*(mount.bottom-.012)<=-.0245:
+     .03+.69*mount.lowest<=-.0245+.012,
+    touchesModel:!supported||mount.top>=mount.lowest+.01,
+    staysWithMiniature:!supported||
+     (mount.post.parent===mount.toy&&mount.saddle.parent===mount.toy&&
+      mount.foot.parent===mount.toy),
+    rearTouchesShelf:tripod?
+     (.205+.69*(-.118))<=.115+.17/2:
+     .205-.69*.034<=.115+.17/2
+   };
+  }),
   getHardwareAttachmentAudit:()=>{
    // All values below come from the actual Three.js geometric parameters,
    // not a second manually maintained map of where screws SHOULD be.
