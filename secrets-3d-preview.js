@@ -1608,6 +1608,7 @@ window.__nothing3DPreview={
   const fixed=gameHotspots?.getFixedMountAudit?.()||[];
   const lens=finish.getLensMountAudit?.()||null;
   const miniatures=pocketWorlds?.getHardwareAttachmentAudit?.()||[];
+  const flute=gameHotspots?.getFluteMountAudit?.()||[];
   const issues=[];
   for(const m of wheels)
    if(m.face!=="leftFace"||m.actualBottom>.0725||
@@ -1624,7 +1625,10 @@ window.__nothing3DPreview={
   for(const m of miniatures)
    if(!m.shellMounted||!m.upperSeated||!m.lowerSeated)
     issues.push(m.name+" miniature has unseated hardware");
-  return {wheels,fixed,lens,miniatures,
+  if(flute.length!==2||flute.some(m=>
+   !m.reachesShell||!m.meetsBrace||!m.sharesFluteVisibility))
+   issues.push("flute saddles are not attached to their fixed top rail");
+  return {wheels,fixed,lens,miniatures,flute,
    issues,okay:issues.length===0,
    intentionalExceptions:["red button index arc","unlocked portal effect"]};
  },
