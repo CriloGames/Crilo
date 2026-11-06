@@ -950,7 +950,7 @@ const controlNames={
  front:"Lavender drawer",latch:"Front drawer latch",
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side drawer release button","drawer-b":"Red thread spool",
- hatch:"Hinged top panel",triangle:"Brass triangle",
+ hatch:"Hinged top panel",triangle:"Lid release button",
  "top-reed":"Hollow wooden tube","observatory-release":"Round brass release button",foot:"Rubber foot",
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
