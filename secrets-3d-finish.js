@@ -113,27 +113,26 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // The two inset roof pinstripes follow the observatory's circular
-      // mounting gasket instead of ending abruptly beside its dome.
-      // Both rails are continuous, with parallel concentric curves that
-      // join the straight segments exactly at their mathematical tangent.
+      // The front roof's pair of machined inlays bend continuously around
+      // the dome with matching, generous radii. Previously the straight
+      // black and brass strips stopped short and looked visibly cut off.
+      // Each is now ONE continuous curve, with horizontal tangents where
+      // it joins the unchanged rails at the left and right edges.
       if(face===topFace&&s===-1){
-        const domeY=-1.14;
-        const goldR=.357,inkR=.331;
-        const goldY=-1.22,inkY=-1.125;
-        const goldJoin=Math.sqrt(goldR**2-(goldY-domeY)**2);
-        const inkJoin=Math.sqrt(inkR**2-(inkY-domeY)**2);
-        for(const side of [-1,1]){
-          B(face,1.29-goldJoin,.030,.041,
-           side*(1.29+goldJoin)/2,goldY,.105,accent,.012);
-          B(face,1.20-inkJoin,.010,.024,
-           side*(1.20+inkJoin)/2,inkY,.13,deep,.004);
-        }
-        // A complete engineered pair of rings around the roof fitting:
-        // no bare cutoff ends, and the inner ring remains clear of the
-        // mechanical dome's .315-radius base.
-        torus(face,goldR,.014,0,domeY,.105,accent);
-        torus(face,inkR,.005,0,domeY,.13,deep);
+        const goldBypass=[
+          [-1.29,-1.22],[-.96,-1.22],[-.78,-1.22],[-.67,-1.19],
+          [-.53,-1.03],[-.41,-.87],[-.25,-.82],[0,-.79],
+          [.25,-.82],[.41,-.87],[.53,-1.03],[.67,-1.19],
+          [.78,-1.22],[.96,-1.22],[1.29,-1.22]
+        ];
+        const inkBypass=[
+          [-1.20,-1.125],[-.94,-1.125],[-.75,-1.125],[-.64,-1.07],
+          [-.53,-.93],[-.41,-.83],[-.25,-.78],[0,-.755],
+          [.25,-.78],[.41,-.83],[.53,-.93],[.64,-1.07],
+          [.75,-1.125],[.94,-1.125],[1.20,-1.125]
+        ];
+        path(face,goldBypass.map(([x,y])=>[x,y,.105]),.014,accent);
+        path(face,inkBypass.map(([x,y])=>[x,y,.13]),.005,deep);
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
         B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
