@@ -9,6 +9,13 @@ const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
+// The previous six-ring rewrite accidentally assumed Array.from supplies
+// the output array as a third mapper argument. It does not, and the whole
+// WebGL scene failed during construction with 'undefined.length'.
+assert(details.includes('const count=Math.max(5,Math.ceil(Math.abs(a1-a0)*radius*150))')&&
+ details.includes('i/(count-1)')&&
+ !/Array\\.from\\([\\s\\S]{0,130}\\(_,\\s*i,\\s*arr\\)\\s*=>/.test(details),
+ 'Curved maze wall sampling uses an undefined Array.from third argument');
 // Both sliding drawers sit over genuine openings cut into the cube. A
 // smaller-than-opening faceplate used to show the inner compartment before
 // its latch was released, especially from above or at a shallow angle.
