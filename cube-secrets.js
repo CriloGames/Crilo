@@ -151,6 +151,10 @@ const GEAR_MAZE_DIRECTIONS=[
  1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
  1,1,1,1,1,-1,-1,-1,-1,-1
 ];
+// The five crossover junctions have real blind channels, not just
+// engraved decoration. The wrong wheel enters a two-step dead end.
+// A player must retrace those steps before continuing around the main arc.
+const GEAR_MAZE_JUNCTIONS=[4,9,14,19,24];
 let raw={};
 try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch{}
 const seen=new Set((Array.isArray(raw.seen)?raw.seen:[]).filter(k=>title.has(k)));
@@ -220,6 +224,8 @@ s.eyeRingTicks=clamp(Number(raw.eyeRingTicks)||0,0,3);
 s.falseScrewTurns=clamp(Number(raw.falseScrewTurns)||0,0,20);
 s.pressureTicks=clamp(Number(raw.pressureTicks)||0,0,3);
 s.gearMazeIndex=clamp(Number(raw.gearMazeIndex)||0,0,GEAR_MAZE_DIRECTIONS.length);
+s.gearMazeBranch=GEAR_MAZE_JUNCTIONS.includes(s.gearMazeIndex)
+ ?clamp(Number(raw.gearMazeBranch)||0,0,2):0;
 s.gearMazeTurns=clamp(Number(raw.gearMazeTurns)||0,-720,720);
 // Respect the tuning fork already earned in older versions WITHOUT
 // silently auto-solving the newly playable gears. The first release
@@ -241,7 +247,17 @@ if(preMazeReward&&(typeof raw.gearMazeSolved!=='boolean'||autoSolvedOldMaze)){
  s.gearMazeIndex=0;
  s.gearMazeTurns=0;
 }
-if(s.gearMazeSolved)s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
+if(s.gearMazeSolved){
+ s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
+ s.gearMazeBranch=0;
+}
+// Previous builds rotated the visible wheel even when the screw was blocked
+// by solid brass. On reload, recover the only mechanically possible angle
+// from the saved channel position. This keeps old progress while ensuring
+// the exit reaches its fixed release linkage upon completion.
+s.gearMazeTurns=GEAR_MAZE_DIRECTIONS.slice(0,s.gearMazeIndex)
+ .reduce((sum,direction)=>sum+direction,0)+
+ (s.gearMazeBranch? -GEAR_MAZE_DIRECTIONS[s.gearMazeIndex]*s.gearMazeBranch:0);
 // Repair orphaned physical rewards from saves made before independent
 // "found but not picked up" state was consistently persisted. Never
 // restore something that a downstream puzzle has already consumed.
@@ -959,34 +975,57 @@ function inspectHardware(name){
  if(name==='gear-small'||name==='gear-large'){
   const dir=name==='gear-small'?1:-1;
   if(s.gearMazeSolved){
-   tell('The captive screw has cleared the last groove and the brass calibration tongue stays withdrawn.');
+   tell('The captive screw has reached its exit socket. The dial retainer stays withdrawn.');
    return true;
   }
   s.gearMazePlayed=true;
   const before=s.gearMazeIndex;
+  const beforeBranch=s.gearMazeBranch||0;
   const forward=GEAR_MAZE_DIRECTIONS[before];
   const backward=before>0?-GEAR_MAZE_DIRECTIONS[before-1]:0;
-  s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-720,720);
-  if(dir===forward)s.gearMazeIndex++;
+  if(beforeBranch>0){
+   // An actual dead-end branch: turning the WRONG wheel can advance the
+   // pin only to the plugged end, never beyond the carved line. Turn the
+   // other wheel to retrace the blind channel back to the crossover.
+   if(dir===forward)s.gearMazeBranch--;
+   else if(dir===-forward&&beforeBranch<2)s.gearMazeBranch++;
+  }else if(GEAR_MAZE_JUNCTIONS.includes(before)&&dir===-forward){
+   // At a hairpin, the forward/backward main route needs the same gear.
+   // The otherwise unused gear therefore leads into the blind fork.
+   s.gearMazeBranch=1;
+  }else if(dir===forward)s.gearMazeIndex++;
   else if(dir===backward)s.gearMazeIndex--;
+  const moved=s.gearMazeIndex!==before||s.gearMazeBranch!==beforeBranch;
+  // A blocked gear physically cannot rotate its captive screw through
+  // solid brass. Do not change the wheel's angle on a dead-end stop.
+  if(moved)s.gearMazeTurns=clamp(s.gearMazeTurns+dir,-720,720);
   if(s.gearMazeIndex>=GEAR_MAZE_DIRECTIONS.length){
    s.gearMazeSolved=true;
    s.gearMazeIndex=GEAR_MAZE_DIRECTIONS.length;
-   rememberChange('calibration-gear','The captive screw cleared the last switchback. A short brass latch withdrew beside the calibration dial.');
+   s.gearMazeBranch=0;
+   rememberChange('calibration-gear','The captive screw reached the real exit socket. The linked latch beside the calibration dial withdrew.');
    if(s.pressureReady&&!s.resonance){
     gain('fork');
-    tell('The screw comes out of the last bend. The latch beside the calibrated dial withdraws, and a tuning fork is uncovered in its holder.');
+    tell('The screw reaches the end of the carved maze and releases the calibrated dial’s clamp. A tuning fork is exposed in its bracket.');
    }else{
-    tell('The captive screw rises out of the last bend and pulls the brass latch clear of the dial. The needle can still be calibrated.');
+    tell('The screw reaches the exit socket and withdraws the dial’s retaining tongue. The needle still needs calibration.');
    }
+  }else if(s.gearMazeBranch>beforeBranch){
+   tell(s.gearMazeBranch>=2
+    ?'The screw meets a solid brass plug at the end of a blind channel. It can only go back.'
+    :'The screw turns into a narrow side channel. One direction continues to the end stop; the other retraces the fork.');
+  }else if(s.gearMazeBranch<beforeBranch){
+   tell(s.gearMazeBranch===0
+    ?'The screw backs out of the blind channel and returns to the fork in the main groove.'
+    :'The screw reverses inside the blind channel, without crossing the brass walls.');
   }else if(s.gearMazeIndex>before){
    tell(before===0
-    ?'Turning the smaller wheel drives the large grooved wheel the other way. The captive screw begins to travel along the cut.'
-    :'The screw follows the next section of the groove. The two wheels counter-rotate.');
+    ?'The smaller drive wheel advances the captive screw along the first machined arc.'
+    :'The screw follows the groove into the next section. The two gears counter-rotate.');
   }else if(s.gearMazeIndex<before){
-   tell('The screw retraces part of its track. Both wheels turn together through their meshed teeth.');
+   tell('The screw retraces its groove toward the last turn. Both meshed gears reverse.');
   }else{
-   tell('The screw stops against the wall of the channel. The other wheel can turn the pair the opposite way.');
+   tell('The screw meets a solid end stop. This gear cannot move it outside the carved track.');
   }
   sound(280+s.gearMazeIndex*18);
   return true;
