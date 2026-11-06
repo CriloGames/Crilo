@@ -122,9 +122,8 @@ assert(worlds.includes('bagCatchReady:'),'The aligned bag code has no visible sp
 assert(hotspots.includes('ventStepsShown:')&&hotspots.includes('fluteStepsShown:'),
  'The vent/flute code input counters no longer update visible 3D indicators');
 
-// The lift and optical fittings still have independent ways to be found.
-// Deploying the observatory is now a physical three-part trigger, but old
-// collected optics and completed discoveries are not deleted by the gate.
+// The telescope's closed observatory dome exists on the roof at all times.
+// Pressing a real control INSIDE the open hatch is the only way to extend it.
 for(const phrase of [
  "elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train",
  "thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted",
@@ -134,36 +133,42 @@ for(const phrase of [
  "else s.telescopeIrisMounted=true;",
  "s.secondSky=true;",
  "s.observed=true;",
- "if(typeof raw.telescopeLensMounted!=='boolean')",
- "if(typeof raw.telescopeIrisMounted!=='boolean')"
+ "observatoryRaised:false",
+ "if(typeof raw.observatoryRaised!=='boolean')",
+ "if(name==='observatory-release'){",
+ "s.observatoryRaised=true;"
 ]) assert(logic.includes(phrase),
- "An optical puzzle route lost its saved state or action: "+phrase);
-assert(worlds.includes('telescope:!!s.top&&!!s.pipeTaken&&!!(s.moon||s.observed||')&&
+ "An observatory state or optical puzzle route was removed: "+phrase);
+assert(worlds.includes('telescope:!!s.observatoryRaised||!!s.observed||')&&
  worlds.includes('telescopeLensGlass.visible=!!s.telescopeLensMounted;')&&
  worlds.includes('telescopeIrisGlass.visible=!!s.telescopeIrisMounted;')&&
- logic.includes("if(s.top&&s.pipeTaken)")&&
- logic.includes("if(s.moon&&!(s.top&&s.pipeTaken))"),
- "The triggered observatory or its saved optical fittings lost their behavior");
-assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train'),
+ worlds.includes('instance.fixture.visible=name==="telescope"?true:visible;')&&
+ preview.includes('setHit(observatoryButtonCap,"observatory-release");')&&
+ preview.includes('activatePhysical?.("observatory-release")'),
+ "The permanent dome or physical roof-release button no longer works");
+assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||s.train'),
  "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
 for(const expected of [
  '["moth","topFace",-1.15,.21],["telescope","topFace",0,1.08]',
- 'const shutters=name==="telescope"?[-1,1].map(sign=>({',
- 'C(stand,.270,.035,0,.12,.213,m.brass,"z");',
- 'const dome=new THREE.Mesh(new THREE.SphereGeometry(',
- 'C(g,.076,.78,0,.12,-.365,m.dark,"z");',
- 'telescopeLensGlass=C(tube,.078,.012,0,0,.238,m.glass,"z");',
- 'telescopeIrisGlass=C(tube,.040,.012,.166,0,-.007,m.glass,"x");',
- 'instance.toy.position.set(0,.03,-.53);',
- 'tl.to(instance.toy.position,{z:.36,duration:1.1,'
+ 'item.stand.visible=false;',
+ 'item.fixture.position.z=.089;',
+ 'item.mountRing=C(g,.315,.032,0,0,.008,m.brass,"z");',
+ 'const hemisphere=new THREE.Mesh(new THREE.SphereGeometry(',
+ 'roofShell.position.z=.093;observatoryLift.add(roofShell);',
+ 'observatoryLift.position.z=.115;',
+ 'instance.lift.position.z=raised?.405:.115;',
+ 'tl.to(instance.lift.position,{z:.405,duration:2.15,',
+ 'tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,',
+ 'telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");',
+ 'telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");'
 ]) assert(worlds.includes(expected),
- "The rising centered observatory lost an essential physical part: "+expected);
+ "The hinged observatory lost a physical component or animation: "+expected);
 assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  !worlds.includes('modelBases.push({name,method:"tripod"')&&
  !worlds.includes('tube.rotation.x=1.16;'),
- "Old off-center or tripodded telescope returned");
+ "The off-center or tripodded telescope returned");
 for(const expected of [
  'const hatchRacks=tubeRetainers.map(',
  'const angle=release*(.135/hatchDriveGears[0].r);',
