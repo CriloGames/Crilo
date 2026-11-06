@@ -210,6 +210,15 @@ assert(hotspots.includes('const fluteMountFeet=[];')&&
  hotspots.includes('getFluteMountAudit:()=>fluteMountFeet.map(')&&
  preview.includes('flute=gameHotspots?.getFluteMountAudit?.()||[]'),
  'Collectible flute saddles lost their real mounting feet');
+assert(worlds.includes('const modelSupports=[];')&&
+ worlds.includes('const modelBases=[];')&&
+ worlds.includes('const toToy=toy.matrixWorld.clone().invert();')&&
+ worlds.includes('post.userData.mechanicalMount=true;')&&
+ worlds.includes('modelBases.push(hardware);')&&
+ worlds.includes('getMiniatureBodyMountAudit:()=>modelBases.map(')&&
+ preview.includes('figures=pocketWorlds?.getMiniatureBodyMountAudit?.()||[]')&&
+ preview.includes('figures.length!==15||figures.some('),
+ "The actual miniature sculptures must not detach from their bolted shelves");
 assert(preview.includes('get physicalAttachmentAudit(){')&&
  preview.includes('miniatures=pocketWorlds?.getHardwareAttachmentAudit')&&
  preview.includes('intentionalExceptions:["red button index arc"'),
