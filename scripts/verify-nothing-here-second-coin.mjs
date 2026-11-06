@@ -168,7 +168,7 @@ async function refundCoin(page,{realPointer=false}={}){
   Math.abs(controls.maze.faceAngle)<.000001&&
   controls.maze.followerTrackDistance<.000001,
   "The physical fixed maze did not load correctly: "+JSON.stringify(controls));
- assert.equal((await state(page)).gearMazeCell,168,
+ assert.equal((await state(page)).gearMazeCell,80,
   "The captive pin must begin at the 6 o'clock outer entry");
  // The white face no longer rotates, and one direction of a drag must
  // always reverse the same groove the other direction entered.
@@ -205,20 +205,20 @@ async function refundCoin(page,{realPointer=false}={}){
  }
  await page.locator("#stage canvas").click({
   position:{x:controls.large.x,y:controls.large.y},timeout:25000});
- assert.equal((await state(page)).gearMazeCell,168,
+ assert.equal((await state(page)).gearMazeCell,80,
   "A click without rotation should not move the captive pin");
  await dragWheel("gear-large","ccw");
- assert.equal((await state(page)).gearMazeCell,169,
+ assert.equal((await state(page)).gearMazeCell,81,
   "Dragging the stationary white face left did not move the pin");
  const initial=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
  assert(Math.abs(initial.faceAngle)<.000001,
   "The white face visibly rotates, despite being a stationary guide");
  await dragWheel("gear-large","cw");
- assert.equal((await state(page)).gearMazeCell,168,
+ assert.equal((await state(page)).gearMazeCell,80,
   "Dragging white face in reverse did not bring the pin back");
  await dragWheel("gear-small","ccw");
- assert.equal((await state(page)).gearMazeCell,169,
+ assert.equal((await state(page)).gearMazeCell,81,
   "Dragging black cog did not rotate the connected carrier");
  await page.waitForFunction(()=>{
   const g=window.__nothing3DPreview?.physicalGearMaze;
@@ -232,16 +232,16 @@ async function refundCoin(page,{realPointer=false}={}){
   "The black cog turned but the white maze also rotated");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
- assert.equal((await state(page)).gearMazeCell,169,
+ assert.equal((await state(page)).gearMazeCell,81,
   "Reloading erased an unfinished maze position");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  // The calibrated dial retains separate radial control.
  await act(page,"maze-cw");
- assert.equal((await state(page)).gearMazeCell,168);
+ assert.equal((await state(page)).gearMazeCell,80);
  await act(page,"maze-in");
- assert.equal((await state(page)).gearMazeCell,168,
+ assert.equal((await state(page)).gearMazeCell,80,
   "The dial crossed the sealed outer radial wall at the start");
- const fullPath=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
+ const fullPath=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
  for(let i=1;i<fullPath.length;i++){
   const from=fullPath[i-1],to=fullPath[i];
   const action=to===192||to===from-24?"maze-in":
@@ -383,7 +383,7 @@ try{
   assert(legacy.legacyGearBypass&&!legacy.gearMazeSolved&&legacy.pocket.includes("fork"),
    "Old players lost their tuning fork or their new gear puzzle was solved automatically");
   await act(page,"gear-small");
-  assert((await state(page)).gearMazeCell===191&&
+  assert((await state(page)).gearMazeCell===95&&
     (await state(page)).gearMazePlayed,
    "Old fork owners cannot operate the restored clockwise wheel");
   await close();
@@ -411,7 +411,7 @@ try{
   const {page,close}=await scenario("gear-before-pressure",{
    seen:[],pocket:[],pendingPickups:[]
   });
-  const path=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
+  const path=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
   for(let i=1;i<path.length;i++){
    const from=path[i-1],to=path[i];
    await act(page,to===192||to===from-24?"maze-in":
