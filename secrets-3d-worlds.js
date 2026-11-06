@@ -1107,7 +1107,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }),
   setState,
   meshCount:()=>parts,
-  visibleNames:()=>[...items].filter(([,v])=>v.fixture.visible).map(([n])=>n),
+  visibleNames:()=>[...items].filter(([,v])=>v.visible).map(([n])=>n),
   getMountPositions:()=>mounts,
   getMiniatureBodyMountAudit:()=>modelBases.map(mount=>{
    const supported=mount.method==="captive post";
@@ -1275,7 +1275,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      invalidate();
    }
    const fixture=instance.fixture;
-   return {visible:fixture.visible,scale:fixture.scale.x,depth:fixture.position.z,
+   return {visible:instance.visible,scale:fixture.scale.x,depth:fixture.position.z,
     inlayColor:instance.inlay.material.color.getHexString()};
   }
  };
