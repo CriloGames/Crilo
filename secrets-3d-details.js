@@ -238,6 +238,20 @@ export function buildIntricateCube({
    [0,1,2],
    [37,53,69,70,86,85]
   ];
+  // These additional physically open joins turn the old tree into a true
+  // navigable maze. Players may circle, cross between rings, and approach
+  // the goal by different routes. Only the final center aperture is the win.
+  // All joins are adjacent polar cells, never diagonal shortcuts.
+  const mazeExtraEdges=[
+   [62,78],[61,77],[43,59],[42,58],[41,57],[20,36],
+   [39,55],[58,74],[73,89],[19,35],[21,22],[78,79],
+   [17,18],[33,34],[64,65],[48,49],[27,28],[44,45],
+   [32,47],[62,63],[45,46],[67,68],[74,75],[38,39],
+   [42,43],[4,5],[19,20],[80,81],[81,82],
+   [75,91],[91,92],[92,93],[93,94],
+   [49,50],[50,51],[51,52],[59,60],[60,61]
+  ];
+  const mazeOrigin=80,mazeGoal=96;
   const mazeSectorCount=16;
   const mazeRingCount=6;
   const mazeInnerRadius=.082;
@@ -278,6 +292,28 @@ export function buildIntricateCube({
     mazeRouteCells[index],...mazeBlindCells[i]
    ]));
   });
+  const extraCorridors=mazeExtraEdges.map(([from,to])=>
+   makeCorridor([from,to]));
+  // The graph, the drawable channels and the moving ball all use this
+  // single undirected edge registry. No invisible links or ghost walls.
+  const mazeGraph=new Map(),mazeEdgeCurves=new Map();
+  const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
+  const registerCorridor=cells=>{
+   for(let i=1;i<cells.length;i++){
+    const a=cells[i-1],b=cells[i],key=edgeKey(a,b);
+    if(mazeEdgeCurves.has(key))
+     throw new Error("Duplicate carved maze corridor "+key);
+    mazeEdgeCurves.set(key,new THREE.LineCurve3(
+     mazeCellPoint(Math.min(a,b)),mazeCellPoint(Math.max(a,b))));
+    if(!mazeGraph.has(a))mazeGraph.set(a,new Set());
+    if(!mazeGraph.has(b))mazeGraph.set(b,new Set());
+    mazeGraph.get(a).add(b);mazeGraph.get(b).add(a);
+   }
+  };
+  registerCorridor(mazeRouteCells);
+  mazeJunctions.forEach((step,i)=>registerCorridor([
+   mazeRouteCells[mazeStepMarks[step]],...mazeBlindCells[i]]));
+  mazeExtraEdges.forEach(edge=>registerCorridor(edge));
   if(mazeRouteCells.length!==64||mazeStepMarks.length!==30||
      grooveSegments.length!==gearMazeDirections.length||
      gearMazePoints.length!==gearMazeDirections.length+1||
@@ -343,15 +379,7 @@ export function buildIntricateCube({
   // where a physically traversable corridor connects adjacent cells.
   // Adjacent barriers stop short of each other; they never overlap and
   // they never intersect a playable groove.
-  const openEdges=new Set();
-  const edgeKey=(a,b)=>Math.min(a,b)+":"+Math.max(a,b);
-  function markRoute(cells){
-   for(let k=1;k<cells.length;k++)
-    openEdges.add(edgeKey(cells[k-1],cells[k]));
-  }
-  markRoute(mazeRouteCells);
-  mazeJunctions.forEach((step,i)=>
-   markRoute([mazeRouteCells[mazeStepMarks[step]],...mazeBlindCells[i]]));
+  const openEdges=new Set(mazeEdgeCurves.keys());
   const wallColor=mat(0xd2b483,.52,.27);
   let mazeWallCount=0;
   const sectorWidth=Math.PI*2/mazeSectorCount;
@@ -390,6 +418,17 @@ export function buildIntricateCube({
      }
     }
    }
+  }
+  // Extra carved links form actual loops and radial crossovers.
+  // Each adds the identical brass lip/dark trench as the main route.
+  for(const corridor of extraCorridors){
+   const rim=new THREE.Mesh(new THREE.TubeGeometry(
+    corridor,12,.010,7,false),cutRim);
+   rim.castShadow=false;wheelA.add(rim);detailsCount++;
+   const trench=new THREE.Mesh(new THREE.TubeGeometry(
+    corridor,12,.0067,8,false),ebony);
+   trench.position.z=.005;trench.castShadow=false;
+   wheelA.add(trench);detailsCount++;
   }
   for(const [junction,blind] of deadEndCurves){
    const branches=mazeBlindCells[mazeJunctions.indexOf(junction)];
