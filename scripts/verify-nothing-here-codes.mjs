@@ -151,20 +151,34 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
 for(const expected of [
- '["moth","topFace",-1.15,.21],["telescope","topFace",.16,-1.08]',
+ '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.08]',
  'item.stand.visible=false;',
- 'item.fixture.position.z=.089;',
- 'item.mountRing=C(g,.315,.032,0,0,.008,m.brass,"z");',
+ 'item.fixture.position.z=.060;',
+ 'item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");',
  'const hemisphere=new THREE.Mesh(new THREE.SphereGeometry(',
  'roofShell.position.z=.093;observatoryLift.add(roofShell);',
- 'observatoryLift.position.z=.115;',
- 'instance.lift.position.z=raised?.405:.115;',
- 'tl.to(instance.lift.position,{z:.405,duration:2.15,',
+ 'observatoryLift.position.z=OBSERVATORY_REST;',
+ 'instance.lift.position.z=raised?OBSERVATORY_EXTENDED:OBSERVATORY_REST;',
+ 'tl.to(instance.lift.position,{z:OBSERVATORY_EXTENDED,duration:2.15,',
  'tl.to(pivot.rotation,{x:sign*1.10,duration:1.04,',
  'telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");',
  'telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");'
 ]) assert(worlds.includes(expected),
  "The hinged observatory lost a physical component or animation: "+expected);
+// Centered, genuinely recessed installation: with the dome closed the
+// equator is 0.075 face-local units, barely above the 0.0725 enamel skin.
+// A set of intentional gaps in the front-rail inlays protects the dome.
+assert(worlds.includes('const OBSERVATORY_REST=-.078;')&&
+ worlds.includes('const OBSERVATORY_EXTENDED=.405;')&&
+ worlds.includes('domeSeamHeight:observatoryLift?')&&
+ worlds.includes('C(g,.116,.610,0,0,-.200,m.dark,"z");')&&
+ worlds.includes('C(observatoryLift,.265,.018,0,0,.066,m.gold,"z");')&&
+ preview.includes('observatoryButtonBase.position.set(0,-.476,-.257);')&&
+ preview.includes('cylinder(chamber,.078,.480,0,-.476,-.505,darkMetal);')&&
+ hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
+ finish.includes('if(face===topFace&&s===-1){')&&
+ finish.includes('B(face,.90,.030,.041,side*.84,-1.22,.105,accent,.012);'),
+ "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
 assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  !worlds.includes('modelBases.push({name,method:"tripod"')&&
  !worlds.includes('tube.rotation.x=1.16;'),
