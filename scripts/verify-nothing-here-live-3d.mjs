@@ -609,12 +609,35 @@ try{
   "The secret symbol order needs a physical rear-face inspection target");
  for(const action of ["flute-note-1","flute-note-2","flute-note-3"])
   assert(initial.controls.includes(action),"Missing playable instrument key: "+action);
+ // The front drawer yields only a toothed HALF of a key. A complete
+ // ring on its model would make the later ring+tooth recipe nonsensical.
+ const unfinishedKey=await page.evaluate(()=>
+  window.__nothing3DPreview.unfinishedKeyProfile);
+ assert(unfinishedKey.attachedToDrawer&&unfinishedKey.pickupAction&&
+  unfinishedKey.parts>=7&&!unfinishedKey.hasPreinstalledRing,
+  "The first key piece looks like an already-complete key or is detached: "+
+   JSON.stringify(unfinishedKey));
+ // A prior precise-collision tool silently omitted every tiny 3D control.
+ // Check the underlying assembled geometry groups, not just its toolbar.
+ const collisionParts=await page.evaluate(()=>
+  window.__nothing3DPreview.collisionScanMechanisms);
+ for(const name of ["service shutter cassette","front ratchet","rear optical eye",
+  "calibration dial","underside bell hatch"])
+  assert(collisionParts.includes(name),"3D collision inspector forgot: "+name);
+ assert(collisionParts.length>=10,
+  "The optional collision scan is not checking actual puzzle hardware");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),false,
   "A flute must not appear before its parts are found and combined");
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.revealedPhysicalCipher),false,
   "The secret combination must be hidden before the rear optic is calibrated");
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
+ // Locked shutter interaction stays on a horizontal track, not a
+ // generic pushbutton moving into the cube.
+ await activate("shutter");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalActuatorDepths.shutter),0,
+  "Locked service shutter moves inward instead of rattling along its rail");
  // A decorative surface is NOT the puzzle input. Try every tempting
  // shortcut before any latch, button, key or door is available.
  for(const action of [
