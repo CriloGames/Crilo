@@ -79,9 +79,10 @@ async function deployObservatory(page){
  const s=await state(page);
  const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
  assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
-  pose.lift>.39&&pose.doorAngles.length===2&&
-  pose.doorAngles.every(angle=>Math.abs(angle)>1),
-  "The physical roof button failed to raise and open the observatory");
+  pose.shutterProgress>=.999&&pose.slatCount===16&&
+  pose.visibleSlats===0&&pose.rearCapVisible&&
+  Math.abs(pose.domeSeamHeight-.075)<.001&&pose.scopeTilt>.35,
+  "The garage-style dome failed to roll completely into its rear housing");
 }
 async function refundCoin(page,{realPointer=false}={}){
  let s=await state(page);
@@ -502,9 +503,10 @@ try{
   assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
    "A cleared cradle must let the observatory open independently");
   const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
-  assert(pose.deployed&&pose.lift>.39&&
-   pose.doorAngles.every(a=>Math.abs(a)>1),
-   "The dome is unlocked but its actual two shell doors did not open");
+  assert(pose.deployed&&pose.shutterProgress>=.999&&
+   pose.slatCount===16&&pose.visibleSlats===0&&
+   pose.rearCapVisible&&Math.abs(pose.domeSeamHeight-.075)<.001,
+   "The garage dome unlocked but did not retract without rising");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   opened=await state(page);
@@ -528,8 +530,11 @@ try{
   const closedDome=await page.evaluate(()=>
    window.__nothing3DPreview.physicalScenePose.observatory);
   assert(closedDome.installed&&!closedDome.deployed&&
+   closedDome.visibleSlats===16&&closedDome.slatCount===16&&
+   closedDome.shutterProgress===0&&
+   Math.abs(closedDome.domeSeamHeight-.075)<.001&&
    !initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
-   "The roof observatory should start with its closed dome installed");
+   "The observatory must start with every shutter slat closed at fixed height");
   const emptyOptics=await page.evaluate(()=>
    window.__nothing3DPreview.physicalScenePose.telescopeOptics);
   assert(!emptyOptics.lens&&!emptyOptics.iris,
