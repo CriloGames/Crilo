@@ -184,6 +184,30 @@ assert([...graph.values()].filter(links=>links.size>=3).length>=35,
  'The labyrinth needs genuinely meaningful branching paths');
 assert(graph.get(168).has(169)&&graph.get(168).has(191),
  'Players must be able to turn either wheel at the entrance');
+// Execute the production neighbor-picker against the entire actual route,
+// including both directions of a stationary face and the inner radial exit.
+// A connected drawn edge is not enough if the controls select the wrong cell.
+const navStart=logic.indexOf('const MAZE_ROUTE_CELLS=');
+const navEnd=logic.indexOf('let raw={};',navStart);
+assert(navStart>=0&&navEnd>navStart,
+ 'The live maze navigation module is missing');
+const navigator=new Function(logic.slice(navStart,navEnd)+
+ '\nreturn {move:mazeDestination,route:MAZE_ROUTE_CELLS};')();
+assert.equal(navigator.move(168,"maze-ccw"),169,
+ 'Dragging the white face left must advance along its outer groove');
+assert.equal(navigator.move(168,"maze-cw"),191,
+ 'Dragging the white face right must reverse around the outer rim');
+assert.equal(navigator.move(168,"maze-in"),null,
+ 'The radial dial cannot pass through a closed wall at the entrance');
+for(let i=1;i<navigator.route.length;i++){
+ const previous=navigator.route[i-1],next=navigator.route[i];
+ const action=next===192||next===previous-24?"maze-in":
+  next===previous+24?"maze-out":
+  Math.floor(next/24)===Math.floor(previous/24)&&
+  next%24===(previous%24+1)%24?"maze-ccw":"maze-cw";
+ assert.equal(navigator.move(previous,action),next,
+  'A dragged maze command does not match the physical route '+previous+' to '+next);
+}
 assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[11],
  'The central socket must have two real entrance mouths');
 assert(details.includes('mazeSectors=24,mazeRings=8')&&
