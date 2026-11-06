@@ -351,24 +351,39 @@ export function buildIntricateCube({
   C(follower,.019,.020,0,0,.021,gold);
   const screwSlot=B(follower,.024,.007,.005,0,0,.036,ebony,.002);
   screwSlot.rotation.z=.56;
-  // A small captive tab holds the calibration bracket shut until the
-  // screw reaches the open end. This is the maze's physical consequence.
-  // The final screw socket now sits NEXT to the exit of the carved track.
-  // A raised rail carries the motion out of the rotating wheel. At the
-  // brass transfer bearing it descends to the lower, stationary dial catch.
-  // Keep both runs above the panel: the former rail was 0.22 units behind
-  // the screw, making the linkage look like unrelated decoration.
+  // A cam beneath the rotating labyrinth wheel drives an enclosed
+  // mechanical linkage to the pressure dial. Earlier this was one thin
+  // floating black stick, with a random stud halfway along it, suspended
+  // OVER the maze. Keep the long rail BELOW the wheel face; it emerges
+  // only outside the wheel rim. Structural bridge plates and axles secure
+  // both ends of the actual linkage to the cube.
   const gearRailEntry={x:-.095,y:.253,z:.346};
-  flatLine(leftFace,gearRailEntry.x,gearRailEntry.y,.22,.47,.344,.033,steel);
-  flatLine(leftFace,.22,.47,.54,.66,.197,.033,steel);
-  // A fixed guide at the channel mouth catches the screw ONLY when it
-  // reaches the last notch, not on each turn of the moving wheel.
-  C(leftFace,.043,.023,gearRailEntry.x,gearRailEntry.y,.341,darkMetal);
-  ring(leftFace,.040,.008,gearRailEntry.x,gearRailEntry.y,.359,brass);
-  // Vertical transfer shaft with collars connecting the two rail heights.
-  C(leftFace,.023,.176,.22,.47,.268,steel);
-  for(const z of [.187,.353])C(leftFace,.038,.018,.22,.47,z,brass);
-  C(leftFace,.029,.038,.52,.648,.186,steel);
+  const upperPivot={x:.22,y:.47};
+  const latchPivot={x:.54,y:.66};
+  // Fixed graphite guide behind the rotating disk; brass sliding rod
+  // runs in its center and is visually retained by the side rails.
+  flatLine(leftFace,gearRailEntry.x,gearRailEntry.y,
+   upperPivot.x,upperPivot.y,.169,.090,darkMetal);
+  flatLine(leftFace,gearRailEntry.x,gearRailEntry.y,
+   upperPivot.x,upperPivot.y,.189,.027,brass);
+  // A lower steel guide connects the transfer axle to the calibrated dial.
+  flatLine(leftFace,upperPivot.x,upperPivot.y,
+   latchPivot.x,latchPivot.y,.153,.092,darkMetal);
+  flatLine(leftFace,upperPivot.x,upperPivot.y,
+   latchPivot.x,latchPivot.y,.174,.030,steel);
+  // Separate steel mounting plates and two fasteners keep the coupler
+  // anchored. The axle joins both guide heights; no unmounted gold dots.
+  for(const [x,y] of [[upperPivot.x,upperPivot.y],[.46,.612]]){
+   B(leftFace,.127,.104,.040,x,y,.144,steel,.022);
+   for(const offset of [-.039,.039]){
+    C(leftFace,.014,.023,x+offset,y,.174,brass);
+    B(leftFace,.016,.004,.007,x+offset,y,.192,ebony,.002);
+   }
+  }
+  C(leftFace,.034,.109,upperPivot.x,upperPivot.y,.211,darkMetal);
+  C(leftFace,.028,.078,upperPivot.x,upperPivot.y,.249,steel);
+  C(leftFace,.047,.024,upperPivot.x,upperPivot.y,.303,brass);
+  C(leftFace,.025,.024,latchPivot.x,latchPivot.y,.180,steel);
   const dialCatch=group(leftFace,.54,.66,.164);
   B(dialCatch,.175,.078,.039,0,0,0,steel,.009);
   const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
