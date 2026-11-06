@@ -726,11 +726,12 @@ try{
   "The key is rendered twice in the same drawer, causing intersecting gold geometry");
  if(!latchMotion.reduced){
   assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
-  const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
+  await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
+   null,{timeout:15000});
+ const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
  assert(!openLavender.closed&&openLavender.joined,
   "The lavender seal must retract with its drawer, not remain over the hole");
- await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
-   null,{timeout:15000});
+
 
  }
  // Headless SwiftShader renders the highly detailed scene much more slowly
