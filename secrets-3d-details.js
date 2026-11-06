@@ -367,10 +367,19 @@ export function buildIntricateCube({
     radialWall(angle,radius-mazePitch*.47,
       radius+mazePitch*.47);
   }
-  // Inner socket wall has TWO real open mouths, matching the physical
-  // approach routes; never cover these mouths with a solid fake bolt.
-  closedArcRuns(.046,Array.from({length:mazeSectors},(_,k)=>
-    !openEdges.has(edgeKey(k,mazeGoal))));
+  // The unique final approach must be wider than the captive ball.
+  // Its previous one-sector gate was narrower than the ball diameter.
+  const centerApproach=11;
+  const centerMouthAngle=mazeStartAngle+centerApproach*sectorWidth;
+  const centerMouthWidth=3.0*sectorWidth;
+  curvedWall(.050,centerMouthAngle+centerMouthWidth/2,
+    centerMouthAngle+Math.PI*2-centerMouthWidth/2);
+  // Rounded guide cheeks give the last radial move a visible funnel.
+  // Both stop short of the innermost lane to avoid blocking side travel.
+  for(const side of [-1,1]){
+    const angle=centerMouthAngle+side*sectorWidth*1.45;
+    radialWall(angle,.051,.069);
+  }
 
   // The outer circle is continuous except for the clear entry notch at
   // six o'clock. The captive roller remains constrained inside this rim.
@@ -387,10 +396,11 @@ export function buildIntricateCube({
   // A real opening in the central brass collar lines up with the only
   // permitted inner-ring mouth (sector 11). Never make the roller appear to
   // pass through a solid ring at the goal.
-  const innerMouthAngle=mazeStartAngle+11*sectorWidth;
+  const innerMouthAngle=centerMouthAngle;
+  const goalCollarGap=4*sectorWidth;
   const goalSocket=new THREE.Mesh(new THREE.TorusGeometry(
-    .025,.003,8,60,Math.PI*2-sectorWidth),goalMetal);
-  goalSocket.rotation.z=innerMouthAngle+sectorWidth/2;
+    .025,.003,8,64,Math.PI*2-goalCollarGap),goalMetal);
+  goalSocket.rotation.z=innerMouthAngle+goalCollarGap/2;
   goalSocket.position.z=.186;
   mazePlate.add(goalSocket);detailsCount++;
   C(mazePlate,.022,.007,0,0,.173,ebony);
@@ -447,7 +457,7 @@ export function buildIntricateCube({
   radialDialTarget("maze-in",true);
   radialDialTarget("maze-out",false);
   const follower=new THREE.Group();mazePlate.add(follower);
-  follower.position.copy(startPoint);follower.position.z=.211;
+  follower.position.copy(startPoint);follower.position.z=.178;
   const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};
   // Queue consecutive real channels during quick wheel turns instead of
   // restarting the ball animation and teleporting between maze positions.
@@ -484,8 +494,8 @@ export function buildIntricateCube({
     return mazeRouteCells[Math.round(i/29*(mazeRouteCells.length-1))];
   }
   C(follower,.005,.044,0,0,-.011,steel);
-  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.007,18,14),gold);
-  captiveBall.position.z=.012;follower.add(captiveBall);detailsCount++;
+  const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0084,20,16),gold);
+  captiveBall.position.z=.009;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
   // floating black stick, with a random stud halfway along it, suspended
@@ -761,7 +771,7 @@ export function buildIntricateCube({
     // Seat the pin DOWN into the central receiving pocket when solved;
     // the previous animation lifted it off the wheel as though escaping
     // through an invisible roof.
-    pose(follower,"position","z",s.gearMazeSolved?.183:.211);
+    pose(follower,"position","z",s.gearMazeSolved?.172:.178);
     goalSocket.material=s.gearMazeSolved?goalLit:goalMetal;
     pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
@@ -839,6 +849,9 @@ export function buildIntricateCube({
        blackCogAngle:wheelB.rotation.z,
        stationaryFace:true,
        goalSocketOpen:true,
+       centerMouthWidth,
+       goalCollarGap,
+       ballRadius:.0084,
        exitApproaches:mazeGraph.get(mazeGoal)?.size||0,
        uniqueSolution:mazeEdgeCurves.size===mazeGraph.size-1,
        physicalChannelConnected:true,
