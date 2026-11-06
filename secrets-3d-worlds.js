@@ -522,7 +522,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  }
  // Permanent observatory. The roof is a ROLL-BACK garage shutter, not
  // a rising dome or two hinged leaves. Its rear half remains as a substantial ivory canopy.
- const OBSERVATORY_RADIUS=.289,OBSERVATORY_SEAM=.012;
+ const OBSERVATORY_RADIUS=.275,OBSERVATORY_SEAM=.012;
  // Keep a large sculpted canopy over the back half: this is an
  // observatory building, not a black disk with a tiny red strip.
  // Exactly one quarter of the original curved dome stays over the rear.
@@ -540,30 +540,30 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.hitVolume.geometry.dispose();
   item.hitVolume.geometry=new THREE.BoxGeometry(.65,.65,.64);
   item.hitVolume.position.set(0,0,.16);
-  // Permanent socket and turntable stay recessed in the enamel roof.
-  item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,"z");
-  C(g,.281,.019,0,0,.013,m.gold,"z");
-  C(g,.25,.016,0,0,.012,m.black,"z");
-  for(const angle of [Math.PI/4,3*Math.PI/4,5*Math.PI/4,7*Math.PI/4])
-   C(g,.019,.017,Math.cos(angle)*.288,Math.sin(angle)*.288,.012,m.dark,"z");
-  C(g,.256,.052,0,0,-.018,m.dark,"z");
-  C(g,.243,.016,0,0,.014,m.gold,"z");
-  C(g,.085,.094,0,0,-.073,m.brass,"z");
+  // Inlaid rectangular mounting bay, with low guides instead of a bowl.
+  item.mountRing=B(g,.59,.585,.023,0,0,-.012,m.brass,.047);
+  B(g,.572,.568,.022,0,0,.002,m.cream,.044);
+  for(const side of [-1,1]){
+   B(g,.028,.462,.041,side*.266,-.031,.030,m.cream,.009);
+   B(g,.011,.445,.006,side*.271,-.031,.055,m.gold,.003);
+  }
+  B(g,.534,.024,.020,0,-.269,.029,m.cream,.008);
+  B(g,.51,.008,.004,0,-.27,.042,m.gold,.003);
+  C(g,.108,.021,0,.107,.023,m.gold,"z");
+  C(g,.077,.078,0,.107,-.027,m.brass,"z");
   const roofShell=new THREE.Group();
   roofShell.position.z=OBSERVATORY_SEAM;g.add(roofShell);
-  // True spherical strips meet without gaps. All rotate around their shared
-  // spherical center, traveling toward the rear roller along the curvature.
+  // Semi-cylindrical garage roof: same height and width along its length.
+  // The fixed rear quarter remains a full arch, never a collapsed hoop.
   const domeStrip=(thetaA,thetaB,radius=OBSERVATORY_RADIUS)=>{
    const positions=[],normals=[],indices=[],rows=OBSERVATORY_ROWS,columns=OBSERVATORY_COLUMNS;
    for(let i=0;i<=rows;i++){
     const theta=thetaA+(thetaB-thetaA)*i/rows;
     for(let j=0;j<=columns;j++){
      const phi=Math.PI*j/columns;
-     const x=radius*Math.cos(theta)*Math.cos(phi);
-     const y=radius*Math.sin(theta);
-     const z=radius*Math.cos(theta)*Math.sin(phi);
-     positions.push(x,y,z);
-     normals.push(x/radius,y/radius,z/radius);
+     positions.push(radius*Math.cos(phi),
+      OBSERVATORY_RADIUS*2*theta/Math.PI,radius*Math.sin(phi));
+     normals.push(Math.cos(phi),0,Math.sin(phi));
     }
    }
    for(let i=0;i<rows;i++)for(let j=0;j<columns;j++){
@@ -579,7 +579,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(let i=0;i<OBSERVATORY_SLAT_COUNT;i++){
    const thetaStart=-Math.PI/2+(OBSERVATORY_REAR+Math.PI/2)*i/OBSERVATORY_SLAT_COUNT;
    const thetaEnd=-Math.PI/2+(OBSERVATORY_REAR+Math.PI/2)*(i+1)/OBSERVATORY_SLAT_COUNT;
-   const panel=new THREE.Mesh(domeStrip(thetaStart,thetaEnd),m.cream);
+   const panel=new THREE.Mesh(domeStrip(thetaStart,thetaEnd,OBSERVATORY_RADIUS-.007),m.cream);
    panel.castShadow=true;panel.receiveShadow=true;
    roofShell.add(panel);parts++;
    observatoryPanels.push({panel,thetaStart,thetaEnd});
@@ -593,105 +593,59 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Deep burgundy painted interior, like the red-lined roll-back observatory
   // in the reference. The inner lining is only within the FIXED rear shell,
   // so it never blocks the telescope after the front shutter retracts.
-  const burgundy=mat(0x74403f,.13,.74);
+  const burgundy=mat(0x79413e,.13,.74);
   burgundy.side=THREE.DoubleSide;
   const interior=new THREE.Mesh(
    domeStrip(OBSERVATORY_REAR+.014,Math.PI/2,OBSERVATORY_RADIUS-.018),burgundy);
   roofShell.add(interior);parts++;
-  // Rounded ivory entrance arch and a handful of curved inner braces,
-  // all fastened to the stationary housing rather than floating in space.
-  // Structural ribs must remain entirely within the small retained canopy.
-  const canopyEdge=[],insideBraces=[.86,1.10,1.34];
+  // An actual full-height arch over the opening, anchored at both rails.
+  const canopyEdge=[],insideBraces=[.91,1.15,1.39];
   for(let i=0;i<=32;i++){
    const phi=Math.PI*i/32;
-   canopyEdge.push([
-    OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR)*Math.cos(phi),
-    OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR),
-    OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR)*Math.sin(phi)
-   ]);
+   canopyEdge.push([OBSERVATORY_RADIUS*Math.cos(phi),
+    OBSERVATORY_RADIUS*2*OBSERVATORY_REAR/Math.PI,
+    OBSERVATORY_RADIUS*Math.sin(phi)]);
   }
-  wire(roofShell,canopyEdge,.011,m.cream);
-  // Gold bead inside the ivory structural arch.
-  wire(roofShell,canopyEdge.map(([x,y,z])=>[x*.955,y*.955,z*.955]),.004,m.gold);
+  wire(roofShell,canopyEdge,.012,m.cream);
+  wire(roofShell,canopyEdge.map(([x,y,z])=>[x*.965,y,z*.965]),.004,m.gold);
   for(const theta of insideBraces){
-   const rib=[];
+   const arch=[];
    for(let j=0;j<=24;j++){
-    const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS-.021;
-    rib.push([r*Math.cos(theta)*Math.cos(phi),
-     r*Math.sin(theta),r*Math.cos(theta)*Math.sin(phi)]);
+    const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS-.019;
+    arch.push([r*Math.cos(phi),OBSERVATORY_RADIUS*2*theta/Math.PI,r*Math.sin(phi)]);
    }
-   wire(roofShell,rib,.005,m.copper);
+   wire(roofShell,arch,.004,m.copper);
   }
-  // Subtle broad shell seams echo the real observatory's sliding ribs.
-  for(const theta of [.95,1.22,1.45]){
+  for(const theta of [.98,1.23,1.46]){
    const seam=[];
    for(let j=0;j<=24;j++){
-    const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS+.002;
-    seam.push([r*Math.cos(theta)*Math.cos(phi),
-     r*Math.sin(theta),r*Math.cos(theta)*Math.sin(phi)]);
+    const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS+.003;
+    seam.push([r*Math.cos(phi),OBSERVATORY_RADIUS*2*theta/Math.PI,r*Math.sin(phi)]);
    }
    wire(roofShell,seam,.0025,m.gold);
   }
-  // Long arched sheet-metal ribs run along the canopy from front to back.
-  for(const phi of [.31*Math.PI,.50*Math.PI,.69*Math.PI]){
+  for(const phi of [.32*Math.PI,.50*Math.PI,.68*Math.PI]){
    const rib=[];
    for(let i=0;i<=26;i++){
     const theta=OBSERVATORY_REAR+(Math.PI/2-OBSERVATORY_REAR)*i/26;
-    const r=OBSERVATORY_RADIUS+.003;
-    rib.push([r*Math.cos(theta)*Math.cos(phi),
-     r*Math.sin(theta),r*Math.cos(theta)*Math.sin(phi)]);
+    const r=OBSERVATORY_RADIUS+.004;
+    rib.push([r*Math.cos(phi),OBSERVATORY_RADIUS*2*theta/Math.PI,r*Math.sin(phi)]);
    }
-   wire(roofShell,rib,.0028,m.gold);
+   wire(roofShell,rib,.0027,m.gold);
   }
   observatoryRoller=new THREE.Group();
-  observatoryRoller.position.set(0,.257,.018);
+  observatoryRoller.position.set(0,.251,.010);
   roofShell.add(observatoryRoller);
   C(observatoryRoller,.019,.125,0,0,0,m.dark,"x");
   for(const sign of [-1,1])
    C(observatoryRoller,.025,.011,sign*.067,0,0,m.gold,"x");
-  // A closed-top solid crescent parapet. The old cylinder was an OPEN
-  // sheet and read as a floating dark ring with no architectural thickness.
-  const outer=.298,inner=.277,parapetBottom=.018,parapetHeight=.105;
-  const parapetOutline=new THREE.Shape();
-  for(let i=0;i<=48;i++){
-   const t=Math.PI+i*Math.PI/48;
-   const x=outer*Math.cos(t),y=outer*Math.sin(t);
-   if(i===0)parapetOutline.moveTo(x,y);
-   else parapetOutline.lineTo(x,y);
-  }
-  for(let i=48;i>=0;i--){
-   const t=Math.PI+i*Math.PI/48;
-   parapetOutline.lineTo(inner*Math.cos(t),inner*Math.sin(t));
-  }
-  parapetOutline.closePath();
-  const wallGeometry=new THREE.ExtrudeGeometry(parapetOutline,{
-   depth:parapetHeight,steps:1,bevelEnabled:true,
-   bevelThickness:.003,bevelSize:.002,bevelSegments:2,curveSegments:48
-  });
-  observatoryParapet=new THREE.Mesh(wallGeometry,m.cream);
-  observatoryParapet.position.z=parapetBottom;
-  observatoryParapet.castShadow=true;observatoryParapet.receiveShadow=true;
-  g.add(observatoryParapet);parts++;
-  const sillTop=[],sillInner=[];
-  for(let i=0;i<=48;i++){
-   const t=Math.PI+i*Math.PI/48;
-   sillTop.push([.297*Math.cos(t),.297*Math.sin(t),.126]);
-   sillInner.push([.277*Math.cos(t),.277*Math.sin(t),.123]);
-  }
-  wire(g,sillTop,.004,m.gold);
-  wire(g,sillInner,.0025,m.dark);
-  for(const sign of [-1,1]){
-   C(g,.022,.015,sign*.287,0,.105,m.gold,"x");
-   C(g,.011,.017,sign*.299,0,.105,m.brass,"x");
-  }
-  // Warm sand deck instead of the oversized charcoal disk.
-  C(g,.268,.014,0,0,.019,mat(0xb9aea1,.12,.70),"z");
-  torus(g,.267,.006,0,0,.025,m.brass,"z");
+  // An open-front observatory needs NO circular parapet or grey disk:
+  // the enamel bay, side guides and front sill are its actual structure.
   observatoryScope=new THREE.Group();
   // The telescope remains anchored inside the bay, with only its front
   // objective extending slightly through the arch for a clear overhead view.
-  observatoryScope.position.set(0,.028,.026);
-  observatoryScope.scale.setScalar(.85);
+  observatoryScope.position.set(0,.145,.021);
+  observatoryScope.scale.setScalar(.77);
   observatoryScope.rotation.y=-.12;
   g.add(observatoryScope);
   C(observatoryScope,.103,.026,0,0,.023,m.gold,"z");
@@ -1322,10 +1276,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
       OBSERVATORY_SEAM,
      // Model-space measurements for checking the architectural opening.
-     canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR),
+     canopyFrontY:OBSERVATORY_RADIUS*2*OBSERVATORY_REAR/Math.PI,
      canopyCrownZ:OBSERVATORY_SEAM+
-      OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR),
-     frontSillTopZ:.018+.105+.003,
+      OBSERVATORY_RADIUS,
+     frontSillTopZ:.029+.020/2,
      objectiveFrontY:observatoryScope.position.y+
       observatoryScope.scale.y*(observatoryBarrel.position.y-
        .151*Math.sin(observatoryBarrel.rotation.x)),
