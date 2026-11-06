@@ -175,13 +175,10 @@ const MAZE_BLIND_CELLS=[
    [37,53,69,70,86,85]
   ];
 const MAZE_EXTRA_EDGES=[
-   [62,78],[61,77],[43,59],[42,58],[41,57],[20,36],
-   [39,55],[58,74],[73,89],[19,35],[21,22],[78,79],
-   [17,18],[33,34],[64,65],[48,49],[27,28],[44,45],
-   [32,47],[62,63],[45,46],[67,68],[74,75],[38,39],
-   [42,43],[4,5],[19,20],[80,81],[81,82],
-   [75,91],[91,92],[92,93],[93,94],
-   [49,50],[50,51],[51,52],[59,60],[60,61]
+   [62,78],[17,18],[32,47],[4,5],
+   [80,81],[81,82],[75,91],[91,92],[92,93],[93,94],
+   [49,50],[50,51],[51,52],[59,60],[60,61],
+   [61,77],[42,58],[20,36],[19,35],[67,68]
   ];
 
 const MAZE_ORIGIN=80,MAZE_GOAL=96;
@@ -503,7 +500,7 @@ function ongoingMechanisms(){
   add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
  if(!s.gearMazeSolved&&(s.gearMazeIndex>0||s.pressureTicks>0))
   add('Calibration gears','A captive screw moves through connected channels in the large wheel. The two gears turn in opposite directions.'+
-   ' The four-way selector moves the pin around the rings or inward/outward through open crossovers.'+
+   ' The labyrinth wheel turns the pin around a ring; the smaller gear shifts it at open radial crossovers.'+
    (s.legacyGearBypass?' Your previously earned calibration item is still yours.':
     s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
  if(s.gearMazeSolved&&!s.pressureReady)
@@ -1044,7 +1041,10 @@ function inspectHardware(name){
  }
  if(name==='gear-small'||name==='gear-large'||
     ["maze-cw","maze-ccw","maze-in","maze-out"].includes(name)){
-  const direction=name==="gear-small"?"maze-ccw":
+  // Touching the large labyrinth wheel turns along the ring.
+  // Touching the small meshed gear shifts toward the center; the lower
+  // integrated thumb contact on that same gear moves outward instead.
+  const direction=name==="gear-small"?"maze-in":
    name==="gear-large"?"maze-cw":name;
   if(s.gearMazeSolved){
    tell('The captive ball has seated in the central receiving socket. The dial latch stays released.');
@@ -1059,8 +1059,9 @@ function inspectHardware(name){
    return true;
   }
   s.gearMazeCell=next;
-  // The two meshed gears rotate only when moving around a circular lane;
-  // the adjacent radial selector slides the pin inward or outward.
+  // The large wheel's rim contacts turn the captive mechanism around
+  // a circular lane. The smaller gear's two touch points select an open
+  // inward/outward crossover, without a separate square controller.
   if(direction==="maze-cw"||direction==="maze-ccw")
    s.gearMazeTurns=clamp(s.gearMazeTurns+
     (direction==="maze-cw"?-1:1),-720,720);
@@ -1084,9 +1085,9 @@ function inspectHardware(name){
     tell('The ball reaches the center. The dial retaining tongue retracts, but the needle still needs calibrating.');
   }else{
    const inward=direction==="maze-in",outward=direction==="maze-out";
-   tell(inward?'The selector slides the ball into a smaller ring.':
-    outward?'The selector slides the ball out to a larger ring.':
-    'The drive gear moves the ball along the circular groove. Choose another opening at each junction.');
+   tell(inward?'The small gear carries the captive ball into the next inner ring.':
+    outward?'The small gear retracts the ball into the next outer ring.':
+    'The labyrinth wheel carries the ball around its curved groove. Watch the open crossovers.');
   }
   sound(290+(s.gearMazeCell%16)*12);
   return true;
