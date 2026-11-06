@@ -9,6 +9,20 @@ const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
+// Both sliding drawers sit over genuine openings cut into the cube. A
+// smaller-than-opening faceplate used to show the inner compartment before
+// its latch was released, especially from above or at a shallow angle.
+assert(preview.includes('const tongueW=w-.025,tongueH=h-.025;')&&
+ preview.includes('box(drawer,tongueW,tongueH,.16,0,0,.037,palette,.022);')&&
+ preview.includes('const faceplateW=w+.12,faceplateH=h+.12;')&&
+ preview.includes('box(drawer,faceplateW,faceplateH,.14,0,0,.185,palette,.048);')&&
+ preview.includes('joined:tongueFront>=faceplateBack'),
+ 'A locked drawer is not sealed by a solid fitted tongue and overlapping faceplate');
+assert(preview.includes('get drawerSeals(){return {')&&
+ preview.includes('lavender:{...front.seal')&&
+ preview.includes('teal:{...side.seal'),
+ 'Both drawer compartments must expose closed-face geometry for regression tests');
+
 // Load-order regression: geometry builders and OrbitControls callbacks can
 // invalidate the view before the resize handler is installed. The render
 // scheduler MUST be initialized before scene construction begins, or it
