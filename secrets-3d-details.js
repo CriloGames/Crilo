@@ -384,7 +384,15 @@ export function buildIntricateCube({
     goalMetal);
   entryMark.position.set(startPoint.x,-.354,.188);
   mazePlate.add(entryMark);detailsCount++;
-  const goalSocket=ring(mazePlate,.025,.003,0,0,.186,goalMetal);
+  // A real opening in the central brass collar lines up with the only
+  // permitted inner-ring mouth (sector 11). Never make the roller appear to
+  // pass through a solid ring at the goal.
+  const innerMouthAngle=mazeStartAngle+11*sectorWidth;
+  const goalSocket=new THREE.Mesh(new THREE.TorusGeometry(
+    .025,.003,8,60,Math.PI*2-sectorWidth),goalMetal);
+  goalSocket.rotation.z=innerMouthAngle+sectorWidth/2;
+  goalSocket.position.z=.186;
+  mazePlate.add(goalSocket);detailsCount++;
   C(mazePlate,.022,.007,0,0,.173,ebony);
 
   // Four small flush rivets on the carrier, not distracting fasteners
