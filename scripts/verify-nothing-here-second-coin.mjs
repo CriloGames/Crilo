@@ -155,6 +155,9 @@ async function refundCoin(page,{realPointer=false}={}){
  assert(gears.model?.face==="leftFace"&&
   gears.model.directions.length>=29&&
   gears.model.grooveCount===gears.model.directions.length+1&&
+  gears.model.grooveSegments===gears.model.directions.length&&
+  gears.model.branches===5&&
+  gears.model.followerTrackDistance<.000001&&
   gears.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5,
   "Gear maze is not a carved 3D track on the left face: "+JSON.stringify(gears));
  assert(gears.small?.pick==="gear-small"&&gears.large?.pick==="gear-large",
@@ -179,8 +182,48 @@ async function refundCoin(page,{realPointer=false}={}){
  assert.equal((await state(page)).gearMazeIndex,1,
   "Turning the larger wheel backwards cannot reverse the screw through the track");
  const directionSteps=gears.model.directions;
- for(let i=1;i<directionSteps.length;i++)
+ for(let i=1;i<directionSteps.length;i++){
+  // Four solved arcs bring the captive screw to the first crossover.
+  // The wrong wheel must now offer a REAL, physically engraved blind
+  // route instead of moving the follower through solid brass.
+  if(i===4){
+   let maze=await state(page);
+   assert(maze.gearMazeIndex===4&&maze.gearMazeBranch===0,
+    "The first engraved fork is not aligned with the gameplay sequence");
+   await act(page,"gear-small");
+   maze=await state(page);
+   assert(maze.gearMazeIndex===4&&maze.gearMazeBranch===1,
+    "Wrong wheel cannot enter the forked groove");
+   await act(page,"gear-small");
+   maze=await state(page);
+   assert(maze.gearMazeIndex===4&&maze.gearMazeBranch===2,
+    "Blind channel doesn't extend to its physical end plug");
+   const blockedAngle=maze.gearMazeTurns;
+   await act(page,"gear-small");
+   maze=await state(page);
+   assert(maze.gearMazeBranch===2&&maze.gearMazeTurns===blockedAngle,
+    "Captive screw moved or wheel rotated past the closed end stop");
+   // Persist an unfinished wrong turn without collapsing it into a
+   // completed maze or teleporting the pin off its visible cut.
+   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+   maze=await state(page);
+   assert(maze.gearMazeIndex===4&&maze.gearMazeBranch===2&&
+    !(maze.gearMazeSolved),
+    "A saved blind route was lost on refresh");
+   await act(page,"gear-large");
+   await act(page,"gear-large");
+   maze=await state(page);
+   assert(maze.gearMazeIndex===4&&maze.gearMazeBranch===0,
+    "The pin cannot reverse out of its dead-end groove");
+  }
   await act(page,directionSteps[i]===1?"gear-small":"gear-large");
+  const physical=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalGearMaze);
+  assert(physical?.followerTrackDistance<.000001,
+   "The pin escaped its rendered groove during a gear movement: "+
+    JSON.stringify(physical));
+ }
  assert((await state(page)).gearMazeSolved&&
   (await state(page)).pendingPickups.includes("fork"),
   "Completing the carved gear maze did not withdraw the clamp and expose the fork");
