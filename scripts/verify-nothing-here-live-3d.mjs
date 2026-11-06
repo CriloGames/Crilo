@@ -1376,13 +1376,13 @@ try{
   "The white labyrinth or black drive cog is not touchable");
  assert(maze.inward?.pick==="maze-in"&&maze.outward?.pick==="maze-out",
   "The calibration dial no longer controls radial movement");
- const path=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
+ const path=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
  for(let i=1;i<path.length;i++){
   const from=path[i-1],to=path[i];
-  await activate(to===192||to===from-24?"maze-in":
-   to===from+24?"maze-out":
-   Math.floor(to/24)===Math.floor(from/24)&&
-   to%24===(from%24+1)%24?"maze-ccw":"maze-cw");
+  await activate(to===96||to===from-16?"maze-in":
+   to===from+16?"maze-out":
+   Math.floor(to/16)===Math.floor(from/16)&&
+   to%16===(from%16+1)%24?"maze-ccw":"maze-cw");
   assert.equal((await state()).gearMazeCell,to,
    "A real channel failed: "+from+" to "+to);
  }
