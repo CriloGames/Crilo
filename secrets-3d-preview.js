@@ -1158,10 +1158,11 @@ renderer.domElement.addEventListener("pointermove",e=>{
   drag.remainder=Math.max(-75,Math.min(75,
    drag.remainder+drag.lastY-e.clientY));
   drag.lastY=e.clientY;
-  for(let i=0;i<3&&Math.abs(drag.remainder)>=25;i++){
+  // About 12% less hand travel per notch, still with tactile resistance.
+  for(let i=0;i<3&&Math.abs(drag.remainder)>=22;i++){
    const inward=drag.remainder>0;
    clickAction(inward?"maze-in":"maze-out");
-   drag.remainder+=inward?-25:25;drag.steps++;
+   drag.remainder+=inward?-22:22;drag.steps++;
   }
  }else{
   const angle=Math.atan2(e.clientY-drag.cy,e.clientX-drag.cx);
@@ -1176,11 +1177,12 @@ renderer.domElement.addEventListener("pointermove",e=>{
   const delta=drag.rim?
    diff*driveSign:(e.clientX-drag.lastX)*driveSign/115;
   drag.lastAngle=angle;drag.lastX=e.clientX;
-  drag.remainder=Math.max(-.78,Math.min(.78,drag.remainder+delta));
-  for(let i=0;i<3&&Math.abs(drag.remainder)>=.245;i++){
+  drag.remainder=Math.max(-.72,Math.min(.72,drag.remainder+delta));
+  // Approximately 10% easier to turn; input remains bidirectional.
+  for(let i=0;i<3&&Math.abs(drag.remainder)>=.22;i++){
    const clockwise=drag.remainder>0;
    clickAction(clockwise?"maze-cw":"maze-ccw");
-   drag.remainder+=clockwise?-.245:.245;
+   drag.remainder+=clockwise?-.22:.22;
    drag.steps++;
   }
  }
