@@ -1,4 +1,4 @@
-import {buildMazeWalls} from "./secrets-3d-maze-walls.js?v=1";
+import {buildMazeWalls} from "./secrets-3d-maze-walls.js?v=2";
 
 // A stationary ivory disk and one fully connected raised-wall geometry.
 // Wheel animation and puzzle save data remain owned by the game.
@@ -22,9 +22,11 @@ export function sculptMaze({THREE,plate,C,ring,mat,materials,
  const relief=buildMazeWalls({THREE,plate,openEdges,key,sectors,rings,
   innerRadius,pitch,startAngle,bevel,ink});
  const goalSector=sectors/2;
- const centerMouthWidth=2*Math.PI/sectors;
- const centerMouthAngle=startAngle+goalSector*centerMouthWidth;
- const goalCollarGap=3.5*centerMouthWidth;
+ const sectorWidth=2*Math.PI/sectors;
+ // The connected wall cheeks create an opening 24% wider than one sector.
+ const centerMouthWidth=1.24*sectorWidth;
+ const centerMouthAngle=startAngle+goalSector*sectorWidth;
+ const goalCollarGap=4.1*sectorWidth;
  const goalSocket=new THREE.Mesh(new THREE.TorusGeometry(
   .027,.003,9,72,2*Math.PI-goalCollarGap),goalMetal);
  goalSocket.rotation.z=centerMouthAngle+goalCollarGap/2;
