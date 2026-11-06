@@ -478,6 +478,41 @@ try{
   await close();
   console.log("PASS: bell rings -> dog barks -> squirrel escapes -> vase breaks -> two real pickups");
  }
+ // An untouched account can open the dome using only the physical
+ // top-lid controls. No maker's stamp, moon or side-quest is required.
+ {
+  const {page,close}=await scenario("observatory-direct-release",{
+   seen:[],pocket:[],pendingPickups:[]
+  });
+  const initial=await state(page);
+  assert(!initial.top&&!initial.pipeTaken&&!initial.moon&&
+   !initial.serialRead&&!initial.observatoryRaised,
+   "The direct observatory test did not start fresh");
+  await act(page,"observatory-release");
+  assert(!(await state(page)).observatoryRaised,
+   "The closed top hatch must keep the telescope locked");
+  for(let n=0;n<3;n++)await act(page,"triangle");
+  assert((await state(page)).top,"The lid must open after its three catches");
+  await act(page,"observatory-release");
+  assert(!(await state(page)).observatoryRaised,
+   "The tube should obstruct the release until collected");
+  await act(page,"top-reed");
+  await act(page,"observatory-release");
+  let opened=await state(page);
+  assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
+   "A cleared cradle must let the observatory open independently");
+  const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
+  assert(pose.deployed&&pose.lift>.39&&
+   pose.doorAngles.every(a=>Math.abs(a)>1),
+   "The dome is unlocked but its actual two shell doors did not open");
+  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  opened=await state(page);
+  assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
+   "Reload erased the opened dome or falsely awarded another secret");
+  await close();
+  console.log("PASS: latch -> remove tube -> observatory release, independent of other puzzles");
+ }
  // A fresh player can now follow the maker's-stamp -> lift -> telescope
  // -> railway route BEFORE meeting the dog, growing a tree, or starting
  // the music box. All rewards still have real, collectible 3D origins.
