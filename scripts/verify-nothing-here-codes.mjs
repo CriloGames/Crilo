@@ -14,7 +14,7 @@ const preview=read('secrets-3d-preview.js');
 // WebGL scene failed during construction with 'undefined.length'.
 assert(details.includes('const count=Math.max(5,Math.ceil(Math.abs(a1-a0)*radius*150))')&&
  details.includes('i/(count-1)')&&
- !/Array\\.from\\([\\s\\S]{0,130}\\(_,\\s*i,\\s*arr\\)\\s*=>/.test(details),
+ !details.includes('(_,i,arr)=>')&&!details.includes('arr.length'),
  'Curved maze wall sampling uses an undefined Array.from third argument');
 // Both sliding drawers sit over genuine openings cut into the cube. A
 // smaller-than-opening faceplate used to show the inner compartment before
