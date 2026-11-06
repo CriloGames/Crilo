@@ -160,99 +160,50 @@ assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFo
  "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
  "Star chart requires floor four again");
-// The observatory is a fixed-height garage shutter: each real curved
-// strip winds back into a small stationary rear cap.
-for(const expected of [
- "[\"moth\",\"topFace\",-1.15,.21],[\"telescope\",\"topFace\",0,-1.17]",
- "item.stand.visible=false;item.fixture.position.z=.060;",
- "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
- "const OBSERVATORY_RADIUS=.289,OBSERVATORY_SEAM=.012;",
- "const OBSERVATORY_REAR=Math.PI/4;",
- "const OBSERVATORY_TRAVEL=Math.PI/2+OBSERVATORY_REAR+.025;",
- "const OBSERVATORY_SLAT_COUNT=16;",
- "observatoryPanels.push({panel,thetaStart,thetaEnd});",
- "observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);",
- "const applyObservatoryRoll=()=>{",
- "position.setXYZ(id,OBSERVATORY_RADIUS*nx,",
- "panel.visible=begin<OBSERVATORY_REAR-.002;",
- "observatoryRoller.rotation.x=travel*2.6;",
- "gsap.to(observatoryShutter,{",
- "progress:1,duration:3.15,ease:\"power2.inOut\",",
- "shutterProgress:observatoryShutter.progress,",
- "visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,",
- "rearCapVisible:!!observatoryRearCap?.visible,",
- "retainedDomeFraction:(Math.PI/2-OBSERVATORY_REAR)/Math.PI,",
- "upperSeated:base?.shutterHub?.parent===base?.toy,",
- "lowerSeated:base?.instrument?.parent===base?.toy",
- "telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");",
- "telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");"
-]) assert(worlds.includes(expected),
- "The stationary garage-style dome lost a physical part: "+expected);
-// The approved render is a substantial shell with a red-lined interior,
-// a tall solid curved front wall, and a telescope set BACK inside the arch.
-// The previous design's tiny rear cap and buried wall looked like a flat hole.
-for(const required of [
- 'const OBSERVATORY_REAR=Math.PI/4;',
- 'const burgundy=mat(0x74403f,.13,.74);',
- 'burgundy.side=THREE.DoubleSide;',
- 'const canopyEdge=[],insideBraces=[.86,1.10,1.34];',
- 'for(const theta of [.95,1.22,1.45]){',
- 'new THREE.ExtrudeGeometry(parapetOutline,{',
- 'observatoryParapet.position.z=parapetBottom;',
- 'sillTop.push([.297*Math.cos(t),.297*Math.sin(t),.126]);',
- 'C(g,.268,.014,0,0,.019,mat(0xb9aea1,.12,.70),"z");',
- 'observatoryScope.position.set(0,.028,.026);',
- 'observatoryScope.scale.setScalar(.85);',
- 'canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR)',
- 'canopyCrownZ:OBSERVATORY_SEAM+',
- 'frontSillTopZ:.018+.105+.003,',
- 'objectiveFrontY:observatoryScope.position.y+',
- 'objectiveCenterZ:observatoryScope.position.z+'
-]) assert(worlds.includes(required),
- "The visible architectural observatory reverted to a flat roof opening: "+required);
-// The physical front wall must be a CLOSED, curved architectural
-// solid, and the shutter must follow the dome's actual spherical tracks.
-// Regressions to open cylinders or rotating slats produced the cut bowl.
-for(const must of [
- 'const outer=.298,inner=.277,parapetBottom=.018,parapetHeight=.105;',
- 'const parapetOutline=new THREE.Shape();',
- 'const wallGeometry=new THREE.ExtrudeGeometry(parapetOutline,{',
- 'observatoryParapet=new THREE.Mesh(wallGeometry,m.cream);',
- 'C(g,.268,.014,0,0,.019,mat(0xb9aea1,.12,.70),"z");',
- 'const begin=thetaStart+travel,end=thetaEnd+travel;',
- 'position.setXYZ(id,OBSERVATORY_RADIUS*nx,',
- 'normal.setXYZ(id,nx,ny,nz);',
- 'panel.geometry.computeBoundingSphere();',
- 'C(tube,.055,.008,0,0,.147,mat(0x294354,.40,.22),"z");'
-]) assert(worlds.includes(must),
- 'Observatory lost its solid front wall or proper rolling panels: '+must);
-// The approved outward-facing observatory needs a molded forward-facing
-// telescope and a genuine burgundy rear canopy, not just a bare roof hole.
+// Keep the observatory's roof a real barrel-vault garage enclosure:
+// a constant-height arch sliding back to a fixed, full-height rear quarter.
 for(const part of [
+ '["moth","topFace",-1.15,.21],["telescope","topFace",0,-1.17]',
+ 'const OBSERVATORY_RADIUS=.275,OBSERVATORY_SEAM=.012;',
+ 'const OBSERVATORY_REAR=Math.PI/4;',
+ 'const OBSERVATORY_SLAT_COUNT=16;',
+ 'item.stand.visible=false;item.fixture.position.z=.060;',
+ 'item.mountRing=B(g,.59,.585,.023,0,0,-.012,m.brass,.047);',
+ 'B(g,.572,.568,.022,0,0,.002,m.cream,.044);',
+ 'B(g,.028,.462,.041,side*.266,-.031,.030,m.cream,.009);',
+ 'B(g,.534,.024,.020,0,-.269,.029,m.cream,.008);',
  'const domeStrip=(thetaA,thetaB,radius=OBSERVATORY_RADIUS)=>{',
+ 'positions.push(radius*Math.cos(phi),',
+ 'OBSERVATORY_RADIUS*2*theta/Math.PI,radius*Math.sin(phi));',
+ 'normals.push(Math.cos(phi),0,Math.sin(phi));',
+ 'domeStrip(thetaStart,thetaEnd,OBSERVATORY_RADIUS-.007)',
+ 'observatoryPanels.push({panel,thetaStart,thetaEnd});',
+ 'observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);',
  'domeStrip(OBSERVATORY_REAR+.014,Math.PI/2,OBSERVATORY_RADIUS-.018),burgundy',
- 'burgundy.side=THREE.DoubleSide;',
- 'wire(roofShell,canopyEdge,.011,m.cream);',
- 'observatoryParapet=new THREE.Mesh(wallGeometry,m.cream);',
- 'new THREE.ExtrudeGeometry(parapetOutline,{',
- 'observatoryParapet.position.z=parapetBottom;',
- 'wire(g,sillTop,.004,m.gold);',
- 'C(g,.268,.014,0,0,.019,mat(0xb9aea1,.12,.70),"z");',
- 'const tube=new THREE.Group();',
- 'tube.position.set(0,-.014,.150);',
- 'tube.rotation.x=Math.PI/2-.16;',
- 'const burgundy=mat(0x74403f,.13,.74);',
- 'wire(roofShell,canopyEdge.map(([x,y,z])=>[x*.955,y*.955,z*.955]),.004,m.gold);',
- 'barrelForwardY:observatoryBarrel?-Math.sin(observatoryBarrel.rotation.x):null,'
+ 'const burgundy=mat(0x79413e,.13,.74);',
+ 'const canopyEdge=[],insideBraces=[.91,1.15,1.39];',
+ 'wire(roofShell,canopyEdge,.012,m.cream);',
+ 'observatoryRoller.rotation.x=travel*2.6;',
+ 'const begin=thetaStart+travel,end=thetaEnd+travel;',
+ 'position.setXYZ(id,(OBSERVATORY_RADIUS-.007)*nx,',
+ 'normal.setXYZ(id,nx,0,nz);',
+ 'panel.geometry.computeBoundingSphere();',
+ 'observatoryScope.position.set(0,.145,.021);',
+ 'observatoryScope.scale.setScalar(.77);',
+ 'telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");',
+ 'telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");',
+ 'gsap.to(observatoryShutter,{',
+ 'progress:1,duration:3.15,ease:"power2.inOut",',
+ 'retainedDomeFraction:(Math.PI/2-OBSERVATORY_REAR)/Math.PI,'
 ]) assert(worlds.includes(part),
- "The approved open-front observatory lost a sculpted feature: "+part);
-
-assert(!worlds.includes('observatoryLift')&&
+ 'The barrel-vault observatory or its retracting roof is missing: '+part);
+assert(!worlds.includes('const parapetOutline=new THREE.Shape();')&&
+ !worlds.includes('const wallGeometry=new THREE.ExtrudeGeometry(parapetOutline,')&&
+ !worlds.includes('C(g,.268,.014,0,0,.019,mat(0xb9aea1')&&
+ !worlds.includes('observatoryLift')&&
  !worlds.includes('observatoryDoors')&&
- !worlds.includes('OBSERVATORY_EXTENDED')&&
- !worlds.includes('instance.lift.position')&&
- !worlds.includes('tl.to(pivot.rotation,'),
- "The old rising dome or split doors returned");
+ !worlds.includes('instance.lift.position'),
+ 'The old circular bowl or rising observatory mechanism returned');
 // The roof's equator, its metal socket and the telescope all stay fixed.
 assert(worlds.includes('domeSeamHeight:items.get("telescope")?.fixture.position.z+')&&
  worlds.includes('roofShell.position.z=OBSERVATORY_SEAM;g.add(roofShell);')&&
