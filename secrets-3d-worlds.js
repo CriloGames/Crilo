@@ -1274,6 +1274,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      rearCapVisible:!!observatoryRearCap?.visible,
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
       OBSERVATORY_SEAM,
+     // Model-space measurements for checking the architectural opening.
+     canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR),
+     canopyCrownZ:OBSERVATORY_SEAM+
+      OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR),
+     frontSillTopZ:.065+.115/2,
+     objectiveFrontY:observatoryScope.position.y+
+      observatoryScope.scale.y*(observatoryBarrel.position.y-
+       .151*Math.sin(observatoryBarrel.rotation.x)),
+     objectiveCenterZ:observatoryScope.position.z+
+      observatoryScope.scale.z*(observatoryBarrel.position.z+
+       .151*Math.cos(observatoryBarrel.rotation.x)),
      scopeTilt:observatoryScope?.rotation.y??null,
       // Face-local telescope axis, independent of cube camera rotation.
       barrelForwardY:observatoryBarrel?-Math.sin(observatoryBarrel.rotation.x):null,
