@@ -518,31 +518,76 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   C(g,.07,.02,0,.34,0,m.brass);
  }
- // The telescope is a permanently bolted object with TWO real and
- // independently accessible optic seats. The elevator's silver lens and
- // rear eye's glass iris can be installed in either order. Empty seats
- // remain hollow-looking, and only a player's fitted parts become glass.
+ // A recognizable miniature BRASS REFRACTING TELESCOPE, permanently
+ // mounted to the cube's open shelf. The previous model was a short pipe
+ // with a few unattached brown rods and discs; it did not read as an
+ // optical instrument or show where either missing part belonged.
+ //
+ // This one has a continuous tube from the eyepiece to a flared objective,
+ // a brass yoke, three legs *seated on the existing shelf*, a focus wheel,
+ // and two separately supported optical sockets. The silver lens fits the
+ // large front objective. The glass iris fits the smaller side port.
+ // Both empty sockets are visible without revealing the solution.
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  {
   const g=toy("telescope");
-  for(const a of [0,2.09,4.18]){
-   wire(g,[[0,.37,0],[Math.cos(a)*.22,.09,Math.sin(a)*.22]],.018,m.wood);
+  // Feet contact the miniature's narrow metal shelf. All three legs
+  // connect to the same central swivel, not a collection of loose sticks.
+  const footPositions=[[-.194,-.084,-.118],[.194,-.084,-.118],
+   [0,-.084,-.188]];
+  const joint=[0,.288,-.047];
+  for(const [x,y,z] of footPositions){
+   wire(g,[joint,[x*.44,.102,z*.48],[x,y,z]],.022,m.wood);
+   ball(g,.032,x,y,z,m.dark,[1.10,.66,1.15]);
+   C(g,.015,.036,x,y+.026,z,m.brass,"y");
   }
-  const barrel=C(g,.095,.52,0,.47,0,m.brass,"z");
-  barrel.rotation.x=-.37;
-  C(g,.078,.04,0,.55,.24,m.dark,"z");
-  C(g,.11,.035,0,.39,-.23,m.gold,"z");
-  // Objective lens cradle; a dark aperture sits behind the removable
-  // glass, while its metal rim remains attached to the barrel.
-  torus(g,.078,.012,0,.555,.263,m.gold,"z");
-  telescopeLensGlass=C(g,.070,.019,0,.555,.267,m.glass,"z");
+  // A captive brass gimbal and two side ears carry the weight of the
+  // telescope. The tube itself remains attached to this pivot.
+  C(g,.067,.028,0,.288,-.047,m.dark,"y");
+  C(g,.051,.037,0,.311,-.047,m.gold,"y");
+  B(g,.082,.143,.081,0,.371,-.047,m.brass,.015);
+  for(const x of [-.107,.107]){
+   B(g,.029,.097,.065,x,.421,-.047,m.gold,.008);
+   C(g,.022,.014,x,.460,-.047,m.dark,"x");
+  }
+  // The barrel reads as a telescope from ANY angle: long continuous
+  // tapered-looking stepped tube, narrow eyepiece, dark objective opening
+  // and raised machined end rings, instead of a cylinder pointing straight
+  // out of the panel. Its main optical axis is the local X axis.
+  const tube=new THREE.Group();
+  tube.position.set(0,.465,-.047);
+  tube.rotation.z=.11; // small deliberate elevation
+  g.add(tube);
+  C(tube,.095,.50,-.003,0,0,m.brass,"x");
+  C(tube,.087,.185,-.212,0,0,m.copper,"x");
+  for(const x of [-.245,.07,.222])
+   C(tube,.103,.023,x,0,0,m.gold,"x");
+  // Rear focusing drawtube and recognizable black eyepiece.
+  C(tube,.053,.133,-.305,0,0,m.dark,"x");
+  C(tube,.066,.038,-.362,0,0,m.gold,"x");
+  C(tube,.044,.056,-.401,0,0,m.dark,"x");
+  C(tube,.034,.011,-.435,0,0,m.black,"x");
+  // Objective bell and genuine *empty* lens seat.
+  C(tube,.119,.082,.267,0,0,m.gold,"x");
+  C(tube,.128,.026,.304,0,0,m.brass,"x");
+  C(tube,.105,.010,.321,0,0,m.black,"x");
+  torus(tube,.120,.010,.332,0,0,m.gold,"x");
+  telescopeLensGlass=C(tube,.103,.014,.339,0,0,m.glass,"x");
   telescopeLensGlass.visible=false;
-  // Second side-mounted optical iris has its own captive socket and
-  // support arm, instead of a second transparent disc fused into the lens.
-  B(g,.105,.036,.056,.118,.516,.035,m.brass,.010);
-  C(g,.050,.036,.137,.537,.085,m.dark,"z");
-  torus(g,.052,.010,.137,.537,.103,m.gold,"z");
-  telescopeIrisGlass=C(g,.041,.017,.137,.537,.109,m.glass,"z");
+  // Focus knob on top, with a physical stem right into the barrel.
+  B(tube,.046,.072,.051,-.090,.098,0,m.brass,.010);
+  C(tube,.058,.027,-.090,.148,0,m.dark,"y");
+  C(tube,.044,.031,-.090,.166,0,m.gold,"y");
+  for(const angle of [0,Math.PI/2,Math.PI,Math.PI*1.5])
+   ball(tube,.009,-.090+Math.cos(angle)*.034,.184,
+    Math.sin(angle)*.034,m.dark);
+  // Secondary iris is in an intentional SIDE SERVICE PORT, not a floating
+  // circular badge. Solid support reaches the tube at z≈+.09.
+  B(tube,.100,.074,.116,.095,.010,.085,m.brass,.014);
+  C(tube,.063,.034,.095,.010,.145,m.dark,"z");
+  C(tube,.056,.019,.095,.010,.168,m.black,"z");
+  torus(tube,.061,.009,.095,.010,.180,m.gold,"z");
+  telescopeIrisGlass=C(tube,.047,.012,.095,.010,.187,m.glass,"z");
   telescopeIrisGlass.visible=false;
  }
  // Working railroad carriage: continuous track, ties, locomotive wheels
