@@ -111,4 +111,31 @@ assert(worlds.includes('bagCatchReady:'),'The aligned bag code has no visible sp
 assert(hotspots.includes('ventStepsShown:')&&hotspots.includes('fluteStepsShown:'),
  'The vent/flute code input counters no longer update visible 3D indicators');
 
+// The side-lift, telescope, and clockwork story must be parallel routes.
+// The first telescope optic can come from EITHER the removable front
+// screws / rear eye, OR the fourth-floor carriage. Its second fitting
+// should remain useful regardless of which was discovered first.
+for(const phrase of [
+ "elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train",
+ "moth:s.floorFour,telescope:true,train:s.train",
+ "||item==='lens'&&thing==='telescope'&&!s.telescopeLensMounted",
+ "||item==='iris'&&thing==='telescope'&&!s.telescopeIrisMounted",
+ "||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train",
+ "if(item==='lens')s.telescopeLensMounted=true;",
+ "else s.telescopeIrisMounted=true;",
+ "s.secondSky=true;",
+ "s.observed=true;",
+ "if(typeof raw.telescopeLensMounted!=='boolean')",
+ "if(typeof raw.telescopeIrisMounted!=='boolean')"
+]) assert(logic.includes(phrase),
+ "The parallel optical / side-lift progression lost: "+phrase);
+assert(worlds.includes('telescope:true,train:s.train')&&
+ worlds.includes('telescopeLensGlass.visible=!!s.telescopeLensMounted')&&
+ worlds.includes('telescopeIrisGlass.visible=!!s.telescopeIrisMounted'),
+ "The physical scope is still gated behind the moon or has fake permanent optics");
+assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train'),
+ "The physical lift is still exclusively gated behind the dog and clock");
+assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
+ "The star chart still needs the elevator's floor-four reward before it can be used");
+
 console.log('PASS: all three playable codes agree with their physical clues, alignable controls and retry indicators.');
