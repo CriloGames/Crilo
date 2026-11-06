@@ -135,7 +135,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   if(tipZ<=baseZ)throw Error("Invalid hardware depth for "+name);
   const stem=C(face,r,tipZ-baseZ,x,y,(tipZ+baseZ)/2,graphite);
   stem.userData.mechanicalMount=true;
-  const foot=C(face,r*1.45,.022,x,y,.083,nickel);
+  // The optic receiver anchors to the *raised lens carrier*, not the
+  // enamel. Its foot must meet that carrier instead of leaving an extra
+  // disconnected disc on the underlying cube face.
+  const foot=C(face,r*1.45,.022,x,y,baseZ+.022,nickel);
   const cap=C(face,r*1.10,.018,x,y,rearZ,brass);
   fixedMounts.push({name,face:faceName(face),stem,foot,cap,
    baseZ,tipZ,rearZ});
@@ -721,7 +724,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   getClearanceViolations,
   getFixedMountAudit:()=>fixedMounts.map(f=>({
    name:f.name,face:f.face,
-   reachesEnamel:f.baseZ<=.0725,
+   baseSupported:f.baseZ<=.0725||
+    (f.name==="optic offering receiver"&&f.baseZ<=.27),
+   supportType:f.baseZ<=.0725?"enamel":"optic housing",
    meetsFixture:f.tipZ>=f.rearZ,
    actualBottom:f.stem.position.z-f.stem.geometry.parameters.height/2,
    actualTop:f.stem.position.z+f.stem.geometry.parameters.height/2,
