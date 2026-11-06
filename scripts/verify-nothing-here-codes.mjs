@@ -167,7 +167,7 @@ for(const expected of [
  "item.stand.visible=false;item.fixture.position.z=.060;",
  "item.mountRing=C(g,.315,.028,0,0,-.006,m.brass,\"z\");",
  "const OBSERVATORY_RADIUS=.255,OBSERVATORY_SEAM=.015;",
- "const OBSERVATORY_REAR=1.18,OBSERVATORY_TRAVEL=Math.PI-.16;",
+ "const OBSERVATORY_REAR=.76,OBSERVATORY_TRAVEL=Math.PI-.16;",
  "const OBSERVATORY_SLAT_COUNT=16;",
  "observatoryPanels.push({panel,thetaStart});",
  "observatoryRearCap=new THREE.Mesh(domeStrip(OBSERVATORY_REAR,Math.PI/2),m.cream);",
@@ -186,6 +186,25 @@ for(const expected of [
  "telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");"
 ]) assert(worlds.includes(expected),
  "The stationary garage-style dome lost a physical part: "+expected);
+// The approved outward-facing observatory needs a molded forward-facing
+// telescope and a genuine burgundy rear canopy, not just a bare roof hole.
+for(const part of [
+ 'const domeStrip=(thetaA,thetaB,radius=OBSERVATORY_RADIUS)=>{',
+ 'domeStrip(OBSERVATORY_REAR+.015,Math.PI/2,.243),burgundy',
+ 'burgundy.side=THREE.BackSide;',
+ 'wire(roofShell,canopyEdge,.010,m.gold);',
+ 'const frontSill=new THREE.Mesh(',
+ 'new THREE.CylinderGeometry(.287,.287,.082,48,1,true,',
+ 'frontSill.rotation.x=Math.PI/2;',
+ 'wire(g,sillTop,.005,m.gold);',
+ 'C(g,.246,.012,0,0,.021,m.dark,"z");',
+ 'const tube=new THREE.Group();',
+ 'tube.position.set(0,-.014,.150);',
+ 'tube.rotation.x=Math.PI/2-.16;',
+ 'const burgundy=mat(0x793939,.08,.72);'
+]) assert(worlds.includes(part),
+ "The approved open-front observatory lost a sculpted feature: "+part);
+
 assert(!worlds.includes('observatoryLift')&&
  !worlds.includes('observatoryDoors')&&
  !worlds.includes('OBSERVATORY_EXTENDED')&&
