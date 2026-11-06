@@ -763,7 +763,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    // Open the top hatch, remove the tube, and activate the paper-bird moon.
    telescope:!!s.observatoryRaised||!!s.observed||
     !!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,
-   train:s.trainn
+   train:s.train
   };
   for(const [name,instance] of items){
    const visible=!!show[name];
