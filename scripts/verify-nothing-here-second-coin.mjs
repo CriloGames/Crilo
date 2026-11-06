@@ -22,7 +22,7 @@ const mock=`window.supabase={createClient:()=>({
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
- const action=thing==="shutter"?"shutter":thing==="cube"?"cube-offer":"thing:"+thing;
+ const action=thing==="shutter"?"shutter":thing==="cube"?"cube-offer":thing==="eye"?"eye":"thing:"+thing;
  await page.locator('#ncInventory [data-item="'+item+'"]').click();
  assert.equal((await state(page)).selected,item,
   "Selecting "+item+" in inventory failed");
@@ -394,6 +394,105 @@ try{
    "The bell did something but the player was not told what changed");
   await close();
   console.log("PASS: bell rings -> dog barks -> squirrel escapes -> vase breaks -> two real pickups");
+ }
+ // A fresh player can now follow the maker's-stamp -> lift -> telescope
+ // -> railway route BEFORE meeting the dog, growing a tree, or starting
+ // the music box. All rewards still have real, collectible 3D origins.
+ {
+  const {page,close}=await scenario("optics-before-dog",{
+   seen:[],pocket:[],pendingPickups:[]
+  });
+  const fresh=await state(page);
+  assert(!fresh.door&&!fresh.watch&&!fresh.tag&&!fresh.moon&&!fresh.music,
+   "Independent optics test started with story-chain progress");
+  const initialWorlds=await page.evaluate(()=>
+   window.__nothing3DPreview.visiblePhysicalStoryObjects);
+  assert(initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
+   "The telescope must be physically present from the start, while the side lift is still covered");
+  const emptyOptics=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalScenePose.telescopeOptics);
+  assert(!emptyOptics.lens&&!emptyOptics.iris,
+   "The initial telescope has magically preinstalled its two puzzle parts");
+  await act(page,"serial");
+  assert((await state(page)).serialRead&&!((await state(page)).watch),
+   "Maker's stamp cannot expose the lift until the clock chain is solved");
+  assert((await page.evaluate(()=>
+   window.__nothing3DPreview.visiblePhysicalStoryObjects)).includes("elevator"),
+   "Maker's stamp did not reveal an actual side-mounted miniature lift");
+  // Either floor 04 or the optical cog may be solved first. Do the
+  // independent silver-lens path now, without the dog's collar.
+  await act(page,"thing:elevator-floor-4");
+  assert((await state(page)).floorFour&&!((await state(page)).tag),
+   "Fourth-floor cage incorrectly depends on obtaining the dog's tag");
+  await collect(page,"lens");
+  await useItem(page,"lens","telescope");
+  const focused=await state(page);
+  assert(focused.observed&&focused.telescopeLensMounted&&!focused.telescopeIrisMounted&&
+    !focused.secondSky&&focused.pendingPickups.includes("starmap"),
+   "First optical fitting did not produce exactly the constellation reward");
+  await collect(page,"starmap");
+  await useItem(page,"starmap","elevator");
+  const railway=await state(page);
+  assert(railway.train&&!railway.door&&!railway.music&&
+   railway.seen.includes("constellation"),
+   "Railway no longer has an independent early optical route");
+  // The rear-eye service hatch provides the second, distinct optic.
+  for(let n=0;n<3;n++)await act(page,"eye-ring");
+  for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
+  await collect(page,"cog");
+  await useItem(page,"cog","eye");
+  await collect(page,"iris");
+  await useItem(page,"iris","telescope");
+  let merged=await state(page);
+  assert(merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
+   merged.secondSky&&merged.seen.includes("second-sky")&&
+   (await page.evaluate(()=>
+    window.__nothing3DPreview.physicalScenePose.telescopeOptics.both)),
+   "Using two physically distinct optic holders did not reveal the second sky");
+  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  merged=await state(page);
+  assert(merged.observed&&merged.train&&merged.secondSky&&
+   merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
+   !merged.pendingPickups.includes("starmap")&&
+   !merged.pendingPickups.includes("lens")&&
+   !merged.pendingPickups.includes("iris"),
+   "Saving the early optical branch resurrected spent telescope parts or lost progress");
+  await close();
+  console.log("PASS: fresh stamp -> early lift/lens -> chart/railway -> eye iris -> second sky, saved");
+ }
+ // Reverse the two independently earned telescope optics. A first iris
+ // MUST work, and a later lens must NOT duplicate its one-time star chart.
+ {
+  const {page,close}=await scenario("iris-before-lens",{
+   seen:[],pocket:[],pendingPickups:[]
+  });
+  for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
+  await collect(page,"cog");
+  for(let n=0;n<3;n++)await act(page,"eye-ring");
+  await useItem(page,"cog","eye");
+  await collect(page,"iris");
+  await useItem(page,"iris","telescope");
+  let focused=await state(page);
+  assert(focused.observed&&focused.telescopeIrisMounted&&!focused.telescopeLensMounted&&
+   !focused.secondSky&&focused.pendingPickups.includes("starmap"),
+   "Glass iris cannot focus the chart as the first installed element");
+  await act(page,"serial");
+  await collect(page,"starmap");
+  await useItem(page,"starmap","elevator");
+  focused=await state(page);
+  assert(focused.train&&!focused.floorFour&&!focused.moon&&!focused.door,
+   "First iris route secretly required floor four or the dog and moon");
+  await act(page,"thing:elevator-floor-4");
+  await collect(page,"lens");
+  await useItem(page,"lens","telescope");
+  const finished=await state(page);
+  assert(finished.secondSky&&finished.telescopeIrisMounted&&
+   finished.telescopeLensMounted&&!finished.pendingPickups.includes("starmap")&&
+   !finished.pocket.includes("starmap"),
+   "Installing lens second duplicated chart or failed to reveal second sky");
+  await close();
+  console.log("PASS: front screws -> cog -> iris -> chart/railway before floor four -> lens -> second sky");
  }
  // After the machine, the other late mechanisms are independent, but
  // all must still lead to a reachable physical reward and the final letter.
