@@ -480,6 +480,37 @@ export function buildIntricateCube({
   C(wheelB,.034,.021,0,0,.189,steel);
   const centerSlot=B(wheelB,.041,.007,.006,0,0,.203,ebony,.003);
   centerSlot.rotation.z=.43;
+  // A captive four-way mechanical selector beside the gear pair.
+  // Left/right traverse a ring; up/down move INWARD/OUTWARD between
+  // rings. These are real raycast buttons (not a floating HTML popup).
+  // The small and large gears also remain usable for ring rotation.
+  const mazePad=group(leftFace,.84,-.43,.130);
+  B(mazePad,.360,.370,.035,0,0,0,darkMetal,.028);
+  B(mazePad,.328,.338,.010,0,0,.025,metal,.025);
+  const mazePadButtons=new Map();
+  const padLayout=[
+   ["maze-in",0,.107,Math.PI/2],
+   ["maze-out",0,-.107,-Math.PI/2],
+   ["maze-ccw",-.105,0,Math.PI],
+   ["maze-cw",.105,0,0]
+  ];
+  for(const [name,x,y,angle] of padLayout){
+   const button=group(mazePad,x,y,.057);
+   B(button,.085,.075,.035,0,0,0,brass,.010);
+   // An inset arrow, made of three connected machined strokes.
+   const shaft=B(button,.034,.006,.007,-.003,0,.024,ebony,.002);
+   shaft.rotation.z=angle;
+   for(const side of [-1,1]){
+    const head=B(button,.018,.005,.007,.022,
+     side*.010,.024,ebony,.001);
+    head.rotation.z=angle+side*.66;
+   }
+   if(liveGame)setHit(button,name);
+   mazePadButtons.set(name,button);
+  }
+  // A recessed fixed bearing behind the cross ties the four inputs into
+  // the same miniature mechanism. It cannot be clicked independently.
+  C(mazePad,.021,.012,0,0,.034,steel);
   const follower=new THREE.Group();wheelA.add(follower);
   follower.position.copy(gearMazePoints[0]);follower.position.z=.182;
   // 0..29 is the exact segment coordinate on the main groove. Branch
@@ -823,7 +854,10 @@ export function buildIntricateCube({
     getState:()=>({...live}),
     syncGameState,
     getNameplates:()=>nameplates.map(n=>({...n})),
-    getGearMazeTargets:()=>({large:wheelA,small:wheelB}),
+    getGearMazeTargets:()=>({
+      large:wheelA,small:wheelB,
+      directional:new Map(mazePadButtons)
+    }),
     getGearMazeAssembly:()=>({
       face:wheelA.parent===leftFace&&wheelB.parent===leftFace?"leftFace":"unexpected",
       large:{x:wheelA.position.x,y:wheelA.position.y,angle:wheelA.rotation.z,pitchRadius:.405},
