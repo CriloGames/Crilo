@@ -1,0 +1,74 @@
+name: Nothing Here — WebGL startup gate
+
+# Run this fast integration check on pull requests BEFORE merging. A
+# parse-only test cannot detect scene-construction exceptions. Push checks
+# are still useful for monitoring, but cannot block GitHub Pages if main is
+# updated directly. Require this check in main's GitHub branch rules.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-*.js'
+      - 'three-workbench/**'
+      - 'scripts/verify-nothing-here-startup.mjs'
+      - 'scripts/verify-nothing-here-codes.mjs'
+      - '.github/workflows/nothing-here-startup.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-*.js'
+      - 'three-workbench/**'
+      - 'scripts/verify-nothing-here-startup.mjs'
+      - 'scripts/verify-nothing-here-codes.mjs'
+      - '.github/workflows/nothing-here-startup.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nothing-here-startup-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  webgl-startup:
+    name: WebGL startup (fresh + saved progress)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check source and test syntax
+        run: |
+          node --check secrets-3d-preview.js
+          node --check secrets-3d-details.js
+          node --check cube-secrets.js
+          node --check scripts/verify-nothing-here-startup.mjs
+          node --check scripts/verify-nothing-here-codes.mjs
+      - name: Verify maze routes and puzzle structure
+        run: node scripts/verify-nothing-here-codes.mjs
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve the exact proposed site locally
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-here-startup-http.log 2>&1 < /dev/null &
+          sleep 2
+          curl --fail --silent http://127.0.0.1:4173/secrets.html > /dev/null
+      - name: Initialize real Three.js cube in Chromium
+        run: node scripts/verify-nothing-here-startup.mjs
+      - name: Save screenshots including any failure diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-startup-screenshots
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
