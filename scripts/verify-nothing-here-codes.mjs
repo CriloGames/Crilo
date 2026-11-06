@@ -10,6 +10,7 @@ const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
+const finish=read('secrets-3d-finish.js');
 // Both sliding drawers sit over genuine openings cut into the cube. A
 // smaller-than-opening faceplate used to show the inner compartment before
 // its latch was released, especially from above or at a shallow angle.
@@ -168,5 +169,45 @@ for(const expected of [
  'The telescope lost a structural mount or a working optical fitting: '+expected);
 assert(!worlds.includes('wire(g,[[0,.37,0],[Math.cos(a)*.22,.09'),
  'The obsolete floating-rod telescope model has returned');
+
+
+// Do not confuse transform parenting with PHYSICAL attachment: gears, optics,
+// service fixtures, miniature worlds and interior studs need metal between
+// their visible backs and the case. Keep the red-index arc intentionally free.
+assert(details.includes('axleBearing(leftFace,"maze carrier"')&&
+ details.includes('axleBearing(leftFace,"black drive cog"')&&
+ details.includes('shaft.userData.noBatch=true;')&&
+ details.includes('getStructuralMounts:()=>axleMounts.map('),
+ 'The geared wheel assembly has unsupported or uninspectable rear axles');
+assert(details.includes('const lensSleeve=new THREE.Mesh(')&&
+ details.includes('new THREE.CylinderGeometry(.313,.313,.076')&&
+ details.includes('if(!liveGame)for(const x of [-.24,.32])'),
+ 'The glass optic is unsupported or free-floating duplicate hatch gears returned');
+assert(finish.includes('const lensBarrel=new THREE.Mesh(')&&
+ finish.includes('new THREE.CylinderGeometry(')&&
+ finish.includes('lensBarrel.userData.noBatch=true;')&&
+ finish.includes('backFlangeTouchesSkin:')&&
+ finish.includes('getLensMountAudit:()=>({')&&
+ finish.includes('B(topFace,.19,.082,.079,sign*.772,.25,-.18,metal'),
+ 'The front glass hood or interior loose fittings lack solid mounts');
+for(const part of [
+ 'seatFixture(frontFace,"cog service cassette"',
+ 'seatFixture(frontFace,"optic offering receiver"',
+ 'seatFixture(rightFace,"service bolt socket"',
+ 'seatFixture(leftFace,"vent grille bracket "',
+ 'seatFixture(backFace,"rear eye bracket "',
+ 'seatFixture(backFace,"cipher retainer "',
+ 'seatFixture(bottomFace,"bell return cassette"'
+]) assert(hotspots.includes(part),
+ 'The cube is missing a structural fixture: '+part);
+assert(hotspots.includes('const moonStem=C(miniMoon,')&&
+ hotspots.includes('moonStem.userData.mechanicalMount=true;')&&
+ hotspots.includes('getFixedMountAudit:()=>fixedMounts.map(')&&
+ hotspots.includes('const redSwitch=control(frontFace,"dot"'),
+ 'Hidden discoveries must retain their mounts without changing the red button');
+assert(preview.includes('get physicalAttachmentAudit(){')&&
+ preview.includes('miniatures=pocketWorlds?.getHardwareAttachmentAudit')&&
+ preview.includes('intentionalExceptions:["red button index arc"'),
+ 'The live scene has lost the cross-module hardware attachment audit');
 
 console.log('PASS: all three playable codes agree with their physical clues, alignable controls and retry indicators.');
