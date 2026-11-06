@@ -1603,6 +1603,31 @@ window.__nothing3DPreview={
  get miniatureHardwareAttachmentAudit(){
   return pocketWorlds?.getHardwareAttachmentAudit?.()||[];
  },
+ get physicalAttachmentAudit(){
+  const wheels=intricate.getStructuralMounts?.()||[];
+  const fixed=gameHotspots?.getFixedMountAudit?.()||[];
+  const lens=finish.getLensMountAudit?.()||null;
+  const miniatures=pocketWorlds?.getHardwareAttachmentAudit?.()||[];
+  const issues=[];
+  for(const m of wheels)
+   if(m.face!=="leftFace"||m.actualBottom>.0725||
+    m.actualTop<m.rearZ||!m.hasSeat||!m.hasCollar)
+    issues.push(m.name+" lacks a retained axle");
+  for(const m of fixed)
+   if(!m.baseSupported||!m.meetsFixture||
+    m.actualBottom>m.baseZ+.001||
+    m.actualTop<m.rearZ||!m.seated||m.actionRegistered)
+    issues.push(m.name+" has an unsupported fitting");
+  if(!lens||lens.face!=="frontFace"||!lens.barrelRetained||
+   !lens.backFlangeTouchesSkin||!lens.connectedToFrontRim)
+   issues.push("front optical hood is detached");
+  for(const m of miniatures)
+   if(!m.shellMounted||!m.upperSeated||!m.lowerSeated)
+    issues.push(m.name+" miniature has unseated hardware");
+  return {wheels,fixed,lens,miniatures,
+   issues,okay:issues.length===0,
+   intentionalExceptions:["red button index arc","unlocked portal effect"]};
+ },
  get revealedPhysicalCipher(){return gameHotspots?.cipherVisible()||false},
  get eyeClueLayout(){return gameHotspots?.getEyeClueLayout?.()||null},
  get eyeClueReadability(){
