@@ -1730,11 +1730,10 @@ function clickThing(name,actuator=false){
 }
 function journal(){
  const found=[...seen].map(id=>'<span>✳ '+title.get(id)+'</span>').join('');
- modal('NOT A CHECKLIST','Strange little occurrences',
- '<p>Things that have happened. Not all things are meant to be catalogued.</p>'+
-
- '<div class="nc-journal">'+(found||'<span>Nothing has happened. So far.</span>')+'</div>'+
- '<p class="nc-modal-note">Your discoveries save on this device.</p>','journal');
+ modal('YOUR DISCOVERIES','Secrets uncovered',
+ '<p>The cube has plenty to hide. These are the secrets you\'ve managed to find.</p>'+
+ '<div class="nc-journal">'+(found||'<span>Nothing uncovered yet. Keep looking.</span>')+'</div>'+
+ '<p class="nc-modal-note">Your discoveries are saved on this device.</p>','journal');
 }
 function info(){
  modal('A SLIGHTLY UNHELPFUL EXPLANATION','Turn it.',
