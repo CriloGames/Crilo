@@ -122,7 +122,7 @@ assert(hotspots.includes('engraving(leftFace,String(i)')&&
  hotspots.includes('engraving(backFace,"A /')&&
  hotspots.includes('engraving(bottomFace,"B /'),
  'The numbered input legends and two real code plates must remain readable');
-// Verify 100% parity between the rendered SIX-RING maze and the game.
+// Verify 100% parity between the rendered EIGHT-RING maze and the game.
 // Walls, not broad dark filled corridors, define the actual open spaces.
 const gearSteps=digits(match(logic,
  /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'legacy directions'));
@@ -141,11 +141,11 @@ const passages=(source,name)=>match(source,
 const edges=passages(details,'mazePassages');
 assert.deepEqual(edges,passages(logic,'MAZE_PASSAGES'),
  'A visual opening is blocked in the playable map (or vice versa)');
-assert.equal(edges.length,116,'The six-ring labyrinth lost carved passages');
-assert.equal(route[0],90,'The entrance must be on the outside at six o’clock');
-assert.equal(route.at(-1),108,'The visible path must reach the central socket');
+assert.equal(edges.length,205,'The six-ring labyrinth lost carved passages');
+assert.equal(route[0],168,'The entrance must be on the outside at six o’clock');
+assert.equal(route.at(-1),192,'The visible path must reach the central socket');
 const edgeKey=(a,b)=>Math.min(a,b)+':'+Math.max(a,b);
-const graph=new Map(),open=new Set(),goal=108,sectorCount=18;
+const graph=new Map(),open=new Set(),goal=192,sectorCount=24;
 for(const [x,y] of edges){
  const a=Math.min(x,y),b=Math.max(x,y);
  assert(Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&b<=goal,
@@ -163,13 +163,13 @@ for(const [x,y] of edges){
  if(!graph.has(b))graph.set(b,new Set());
  graph.get(a).add(b);graph.get(b).add(a);
 }
-assert.equal(graph.size,109,'One of the six circular tracks is disconnected');
-assert.equal(edges.length-graph.size+1,8,
+assert.equal(graph.size,193,'One of the six circular tracks is disconnected');
+assert.equal(edges.length-graph.size+1,13,
  'The maze must have real alternative routes and some dead ends');
 for(let i=1;i<route.length;i++)
  assert(open.has(edgeKey(route[i-1],route[i])),
   'The saved route cannot be traversed through the carved walls');
-const dist=new Map([[90,0]]),q=[90];
+const dist=new Map([[168,0]]),q=[168];
 while(q.length){
  const cur=q.shift();
  for(const next of graph.get(cur)||[]){
@@ -177,22 +177,22 @@ while(q.length){
   dist.set(next,dist.get(cur)+1);q.push(next);
  }
 }
-assert.equal(dist.size,109,'A pocket of the maze is unreachable');
-assert.equal(dist.get(goal),44,'The exit is unexpectedly easy or impossible');
-assert.equal(route.length,45,'The migration route has gaps or a shortcut');
-assert([...graph.values()].filter(links=>links.size>=3).length>=20,
+assert.equal(dist.size,193,'A pocket of the maze is unreachable');
+assert.equal(dist.get(goal),63,'The exit is unexpectedly easy or impossible');
+assert.equal(route.length,64,'The migration route has gaps or a shortcut');
+assert([...graph.values()].filter(links=>links.size>=3).length>=35,
  'The labyrinth needs genuinely meaningful branching paths');
-assert(graph.get(90).has(91)&&graph.get(90).has(107),
+assert(graph.get(168).has(169)&&graph.get(168).has(191),
  'Players must be able to turn either wheel at the entrance');
-assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[2,11],
+assert.deepEqual([...graph.get(goal)].sort((a,b)=>a-b),[11],
  'The central socket must have two real entrance mouths');
-assert(details.includes('mazeSectors=18,mazeRings=6')&&
+assert(details.includes('mazeSectors=24,mazeRings=8')&&
  details.includes('mazeStartAngle=-Math.PI/2')&&
  details.includes('const mazeInnerRadius=.075')===false&&
- details.includes('mazeInnerRadius=.075,mazePitch=.048')&&
+ details.includes('mazeInnerRadius=.068,mazePitch=.0345')&&
  details.includes('function closedArcRuns(radius,blocked)')&&
  details.includes('const outerRimRadius=.338'),
- 'The sculpture is not the clean six-ring design');
+ 'The sculpture is not the dense eight-ring design');
 assert(details.includes('const mazeWall=mat(0x292521')&&
  details.includes('strokeWall(new THREE.LineCurve3(')&&
  details.includes('strokeWall(new THREE.CatmullRomCurve3(')&&
@@ -219,7 +219,7 @@ assert(logic.includes('name==="gear-large"?"maze-ccw"')&&
  logic.includes('direction==="maze-out"')&&
  logic.includes('s.gearMazeCell=next;'),
  'Drag operations are not following the curved reachable paths');
-assert(logic.includes('MAZE_LAYOUT_VERSION=4')&&
+assert(logic.includes('MAZE_LAYOUT_VERSION=5')&&
  logic.includes('const legacyMazeCell=')&&
  logic.includes('s.gearMazeLayoutVersion=MAZE_LAYOUT_VERSION'),
  'Existing saves are not migrated without wiping earned rewards');
@@ -227,12 +227,18 @@ assert(details.includes('meter.scale.setScalar(.90)')&&
  hotspots.includes('control(leftFace,"pressure",.88,.64,brass,.115)')&&
  details.includes('new THREE.RingGeometry(.203,.307,48,1,'),
  'The smaller gauge with the exposed outer rim has been lost');
+assert(preview.includes('const driveSign=drag.action==="gear-small"?-1:1;')&&
+ preview.includes('drag.remainder=Math.max(-.78,Math.min(.78,drag.remainder+delta))')&&
+ preview.includes('clickAction(clockwise?"maze-cw":"maze-ccw")'),
+ 'The fixed white face and black gear must support reversible drag movement');
 assert(preview.includes('renderer.domElement.setPointerCapture(e.pointerId)')&&
  preview.includes('controls.enabled=false;clickStart=null;')&&
  preview.includes('const diff=Math.atan2(Math.sin(angle-drag.lastAngle)')&&
  preview.includes('clickAction(inward?"maze-in":"maze-out")'),
  'The physical gears and radial dial no longer accept hold-and-drag input');
-assert(details.includes('turnPose(mazePlate,gearRotation)')&&
+assert(details.includes('mazePlate.rotation.z=0')&&
+ details.includes('turnPose(wheelA,gearRotation)')&&
+ details.includes('turnPose(wheelB,-gearRotation*(.405/.235))')&&
  details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
  details.includes('mazeQueue.push(cell);mazeVisualTarget=cell;')&&
  details.includes('onUpdate:()=>{seatFollower();invalidate();}'),
