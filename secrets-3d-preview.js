@@ -229,11 +229,30 @@ function makeCompartment(face,hole,palette,name){
  box(drawer,.075,H,.69,-W/2+.035,0,-.26,palette,.025);
  box(drawer,.075,H,.69,W/2-.035,0,-.26,palette,.025);
  box(drawer,W,H,.08,0,0,-.60,palette,.03);
- box(drawer,W,H,.135,0,0,.18,palette,.048);
+ // A closed drawer must actually SEAL its cutout. The old front was
+ // narrower and shorter than the through-hole (W=w-.13, H=h-.15), so the
+ // camera could see straight past its upper edge into both empty sockets
+ // while they were locked. A solid fitted tongue occupies the port and
+ // joins a larger external faceplate that overlaps the enamel on all sides.
+ // Both pieces belong to the drawer, so they withdraw together on release.
+ const tongueW=w-.025,tongueH=h-.025;
+ const tongueBack=.037-.16/2,tongueFront=.037+.16/2;
+ box(drawer,tongueW,tongueH,.16,0,0,.037,palette,.022);
+ const faceplateW=w+.12,faceplateH=h+.12;
+ const faceplateBack=.185-.14/2;
+ box(drawer,faceplateW,faceplateH,.14,0,0,.185,palette,.048);
  box(drawer,W-.13,.03,.11,0,-H/2+.16,.28,metal,.012);
  box(drawer,.30,.08,.045,0,-.13,.275,ivory,.032);
  // The real drawer handle identifies this part on hover; no nameplate.
- return {drawer,cavity,open:false};
+ return {drawer,cavity,open:false,seal:{
+  opening:{w,h},tongue:{w:tongueW,h:tongueH,back:tongueBack,front:tongueFront},
+  faceplate:{w:faceplateW,h:faceplateH,back:faceplateBack},
+  // These are built-in geometry dimensions for independent QA, not
+  // clues or new player-visible labels.
+  panelOverlapX:(faceplateW-w)/2,
+  panelOverlapY:(faceplateH-h)/2,
+  joined:tongueFront>=faceplateBack
+ }};
 }
 const front=makeCompartment(frontFace,frontHole,enamel.front,"01 · DRAWER");
 const side=makeCompartment(rightFace,sideHole,enamel.right,"02 · DRAWER");
@@ -1828,6 +1847,10 @@ window.__nothing3DPreview={
  get physicalMechanicalFeedback(){return gameHotspots?.getMechanicalFeedback?.()||null},
  get frontCogHatchPose(){return gameHotspots?.getCogHatchPose?.()||null},
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
+ get drawerSeals(){return {
+  lavender:{...front.seal,closed:front.drawer.position.z<.02},
+  teal:{...side.seal,closed:side.drawer.position.z<.02}
+ }},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
  // Check physical hardware, not only the saved puzzle state: no visible
  // fake screw should be able to turn or cover another real actuator.
