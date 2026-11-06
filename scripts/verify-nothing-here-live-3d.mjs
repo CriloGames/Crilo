@@ -467,6 +467,9 @@ try{
   attachmentAudit.wheels.length===2&&
   attachmentAudit.fixed.length>=12&&
   attachmentAudit.miniatures.length===15&&
+  attachmentAudit.figures?.length===15&&
+  attachmentAudit.figures.every(m=>m.reachesShelf&&m.touchesModel&&
+   m.staysWithMiniature&&m.rearTouchesShelf)&&
   attachmentAudit.lens?.barrelRetained&&
   attachmentAudit.intentionalExceptions.includes("red button index arc"),
   "Unattached 3D mechanism: "+JSON.stringify(attachmentAudit));
@@ -479,6 +482,7 @@ try{
   m.actualBottom<=m.baseZ+.001&&!m.actionRegistered),
   "A fixed service cassette has no solid support or steals pointer input");
  console.log("PASS: clockwork axles, main optical hood, service retainers and miniatures all have physical mounts");
+ console.log("PASS: all 15 miniature sculptures are physically seated on their own bolted shelves");
  assert(initial.mounts.every(p=>["frontFace","backFace","leftFace","rightFace","topFace","bottomFace"].includes(p.face)),
    "A miniature is still mounted outside the rotating cube");
  assert.equal(new Set(initial.mounts.map(p=>p.name)).size,15,
