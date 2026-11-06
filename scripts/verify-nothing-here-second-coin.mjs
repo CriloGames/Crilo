@@ -84,10 +84,10 @@ async function deployObservatory(page){
    Math.abs(pose.retainedDomeFraction-.25)<.00001&&
   Math.abs(pose.domeSeamHeight-.072)<.001&&pose.scopeTilt>.35&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY>.19&&pose.canopyFrontY<.22&&
-  pose.canopyCrownZ>.20&&pose.canopyCrownZ<.23&&
-  pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
-  pose.objectiveFrontY<pose.canopyFrontY-.20&&
+  pose.canopyFrontY>.13&&pose.canopyFrontY<.15&&
+  pose.canopyCrownZ>.27&&pose.canopyCrownZ<.30&&
+  pose.frontSillTopZ>.035&&pose.frontSillTopZ<.05&&
+  pose.objectiveFrontY<pose.canopyFrontY-.08&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
   "The garage-style dome failed to roll completely into its rear housing");
 }
@@ -515,10 +515,10 @@ try{
    pose.rearCapVisible&&
    Math.abs(pose.retainedDomeFraction-.25)<.00001&&Math.abs(pose.domeSeamHeight-.072)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY>.19&&pose.canopyFrontY<.22&&
-  pose.canopyCrownZ>.20&&pose.canopyCrownZ<.23&&
-  pose.frontSillTopZ>.11&&pose.frontSillTopZ<.13&&
-  pose.objectiveFrontY<pose.canopyFrontY-.20&&
+  pose.canopyFrontY>.13&&pose.canopyFrontY<.15&&
+  pose.canopyCrownZ>.27&&pose.canopyCrownZ<.30&&
+  pose.frontSillTopZ>.035&&pose.frontSillTopZ<.05&&
+  pose.objectiveFrontY<pose.canopyFrontY-.08&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The garage dome unlocked but did not retract without rising");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
