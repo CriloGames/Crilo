@@ -1360,6 +1360,9 @@ try{
  assert(spiral.model?.face==="leftFace"&&
   spiral.model.directions.length>=29&&
   spiral.model.grooveCount===spiral.model.directions.length+1&&
+  spiral.model.grooveSegments===spiral.model.directions.length&&
+  spiral.model.branches===5&&
+  spiral.model.followerTrackDistance<.000001&&
   spiral.model.directions.filter((d,i,a)=>i>0&&d!==a[i-1]).length>=5&&
   spiral.small?.pick==="gear-small"&&spiral.large?.pick==="gear-large",
   "The carved switchback gears are not both readable and clickable: "+JSON.stringify(spiral));
@@ -1377,8 +1380,11 @@ try{
  assert.equal((await state()).gearMazeIndex,4,
   "Four forward steps should reach the first switchback in the visible channel");
  await activate("gear-small");
- assert.equal((await state()).gearMazeIndex,4,
-  "Continuing to turn the wrong wheel at the switchback must reach a hard stop");
+ assert((await state()).gearMazeIndex===4&&(await state()).gearMazeBranch===1,
+  "The wrong gear at the first crossover must enter a real blind groove");
+ await activate("gear-large");
+ assert((await state()).gearMazeIndex===4&&(await state()).gearMazeBranch===0,
+  "The pin did not retrace its blind groove to the working junction");
  for(let i=4;i<spiral.model.directions.length;i++)
   await activate(spiral.model.directions[i]===1?"gear-small":"gear-large");
  assert((await state()).gearMazeSolved&&
