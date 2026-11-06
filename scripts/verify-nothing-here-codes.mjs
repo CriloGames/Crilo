@@ -159,7 +159,7 @@ assert(details.includes('mazeSectors=12,mazeRings=5')&&
  details.includes('const goalSocket=goalCollarParts[0]'),
  'The round sculpture does not match the circular graph');
 assert(details.includes('function carvedRibbon(curve,width,z,material)')&&
- details.includes('carvedRibbon(curve,.028,.180,channelDark)')&&
+ details.includes('carvedRibbon(curve,.0155,.180,channelDark)')&&
  details.includes('const mazeWall=mat(0xf4ead7')&&
  !details.includes('const boundary=9*mazePitch/2'),
  'The reference-inspired sculptural ivory walls or dark grooves are missing');
@@ -185,7 +185,8 @@ assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
  preview.includes('gameHotspots.targets.set("gear-small"')&&
  preview.includes('for(const [action,part] of gears.directional||[])'),
  'Visible wheel and dial controls cannot be selected');
-assert(details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
+assert(details.includes('pose(mazePlate,"rotation","z",gearRotation)')&&
+ details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
  details.includes('const curve=mazeEdgeCurves.get(edgeKey(')&&
  details.includes('onUpdate:seatFollower,onComplete:seatFollower'),
  'The captive ball no longer follows a real open groove');
