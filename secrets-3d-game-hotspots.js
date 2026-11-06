@@ -409,6 +409,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // any normal top view. The permanent rail keeps all three keys facing
  // the player without floating over the compartment or obstructing its
  // triangle latch. The nameplate occupies the opposite half of the rail.
+ const fluteMountFeet=[];
  const flute=node(topFace,-.66,-1.12,.17);
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
@@ -428,6 +429,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   // disappear together with the instrument before it is collected.
   const foot=B(flute,.105,.174,.095,x,-.045,-.074,nickel,.014);
   foot.userData.mechanicalMount=true;
+  fluteMountFeet.push(foot);
   const brace=B(flute,.07,.19,.075,x,-.045,-.033,graphite,.012);
   setHit(brace,"flute-body");
   C(flute,.029,.024,x,0,.063,brass);
@@ -727,6 +729,18 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  return {
   count:()=>count,
   getClearanceViolations,
+  getFluteMountAudit:()=>fluteMountFeet.map(foot=>({
+   bottom:flute.position.z+foot.position.z-
+    foot.geometry.parameters.depth/2,
+   top:flute.position.z+foot.position.z+
+    foot.geometry.parameters.depth/2,
+   reachesShell:flute.position.z+foot.position.z-
+    foot.geometry.parameters.depth/2<=.0725,
+   meetsBrace:flute.position.z+foot.position.z+
+    foot.geometry.parameters.depth/2>=.0995,
+   hiddenWithFlute:foot.parent===flute&&foot.visible&&
+    !flute.visible
+  })),
   getFixedMountAudit:()=>fixedMounts.map(f=>({
    name:f.name,face:f.face,
    baseSupported:f.baseZ<=.0725||
