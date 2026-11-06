@@ -598,7 +598,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // A small resonance indicator is captive in the fixed lower track,
  // immediately below (but clear of) the lock cylinder. Both stay behind
  // when the cover slides right; no bolt or sensor pierces the moving leaf.
- const resonator=node(shutter,-.300,-.113,.113);
+ const resonator=node(shutterCassette,-.300,-.113,.113);
  // The steel sleeve is seated in the cassette's lower guide rail.
  C(resonator,.025,.086,0,0,-.047,nickel);
  C(resonator,.030,.034,0,0,0,graphite);
