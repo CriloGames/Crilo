@@ -606,6 +606,13 @@ if(gameHotspots){
   gameHotspots.targets.set("gear-large",gears.large);
   gameHotspots.targets.set("gear-small",gears.small);
   gameHotspots.actions.push("gear-large","gear-small");
+  // Four real brass pushbuttons on the same face control radial and
+  // circular navigation. This is not a hidden HTML shortcut: both touch
+  // and mouse hit their actual attached 3D geometry.
+  for(const [action,part] of gears.directional||[]){
+   gameHotspots.targets.set(action,part);
+   gameHotspots.actions.push(action);
+  }
  }
 }
 // The miniature discoveries attach to actual cube faces, never an
@@ -912,7 +919,11 @@ const controlNames={
  underside:"Underside release button",dent:"Dimpled copper release",
  dot:"Small red button",pressure:"Calibration dial",
  "eye-ring":"Iris adjustment ring",eye:"Glass eye",
- "gear-large":"Grooved brass wheel","gear-small":"Small drive wheel",
+ "gear-large":"Grooved brass wheel · around the ring","gear-small":"Small drive wheel · around the ring",
+ "maze-in":"Maze selector · toward center",
+ "maze-out":"Maze selector · toward outer rim",
+ "maze-cw":"Maze selector · clockwise",
+ "maze-ccw":"Maze selector · counterclockwise",
  "cube-offer":"Circular brass receiver",
  optic:"Optical collar",serial:"Maker's stamp",
  shutter:"Service shutter","service-latch":"Service catch",
@@ -1224,6 +1235,21 @@ renderer.domElement.addEventListener("keydown",event=>{
  if(!embeddedGame)return;
  const directions={ArrowLeft:"left",ArrowRight:"right",
   ArrowUp:"up",ArrowDown:"down"};
+ // WASD controls the physical circular maze while the arrow keys retain
+ // their existing cube-rotation behavior. Shift+Arrow is an accessible
+ // second route for people who prefer the arrow layout.
+ const mazeKey={w:"maze-in",s:"maze-out",
+  a:"maze-ccw",d:"maze-cw"};
+ const shiftedArrow={ArrowUp:"maze-in",ArrowDown:"maze-out",
+  ArrowLeft:"maze-ccw",ArrowRight:"maze-cw"};
+ if(!event.metaKey&&!event.ctrlKey&&!event.altKey&&
+    (mazeKey[event.key.toLowerCase()]||
+     event.shiftKey&&shiftedArrow[event.key])){
+  event.preventDefault();clearKeyboardInspection();
+  clickAction(mazeKey[event.key.toLowerCase()]||
+   shiftedArrow[event.key]);
+  return;
+ }
  if(directions[event.key]){
   event.preventDefault();
   clearKeyboardInspection();
