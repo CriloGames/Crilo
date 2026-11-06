@@ -236,13 +236,27 @@ side.drawer.userData.action="side";
 setHit(front.drawer,"front");setHit(side.drawer,"side");
 
 function keyShape(parent) {
- const found=new THREE.Group();parent.add(found);
- const ring=new THREE.Mesh(new THREE.TorusGeometry(.13,.032,12,30),brass);
- ring.position.set(-.13,-.1,-.12);ring.rotation.x=Math.PI/2;
- found.add(ring);ring.castShadow=true;objectCount++;
- box(found,.44,.055,.066,.09,-.10,-.12,brass,.012);
- box(found,.065,.15,.066,.22,-.045,-.12,brass,.006);
- return found;
+ // This really is the BIT of a key, not a completed key with a ring already
+ // attached. Players later find its separate brass bow on the underside.
+ // The square coupling and its two visible jaws make the missing piece
+ // apparent without drawing an arrow, printing a hint, or spawning it.
+ const bit=new THREE.Group();
+ bit.position.set(0,-.10,-.12);
+ parent.add(bit);
+ const shank=box(bit,.47,.059,.070,.058,0,0,brass,.011);
+ box(bit,.117,.082,.075,-.212,0,0,metal,.014);
+ // Two short jaws leave a notch at the broken end for the ring's lug.
+ for(const sign of [-1,1])
+  box(bit,.083,.020,.071,-.286,sign*.033,0,brass,.006);
+ // Three genuinely different cuts in the tip; all join the shaft.
+ for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]])
+  box(bit,.042,height,.066,x,-height/2+.022,0,brass,.004);
+ // The darker relieved groove makes the partial lock-bit readable
+ // even when the sliding drawer is viewed at a low angle.
+ box(bit,.210,.009,.007,.184,.027,.040,darkMetal,.002);
+ // A small struck edge where the key's bow snapped off; no circular grip.
+ box(bit,.016,.052,.076,-.334,0,0,darkMetal,.003);
+ return bit;
 }
 const looseKey=keyShape(front.drawer);
 setHit(looseKey,"pickup:tooth");
