@@ -942,7 +942,7 @@ const miniatureNames={
  squirrel:"Clockwork squirrel",pot:"Plant pot",musicbox:"Music box",
  cloud:"Indoor cloud",cup:"Teacup",clock:"Pocket watch",
  machine:"Vending machine",elevator:"Miniature elevator",moth:"Clockwork moth",
- telescope:"Telescope",train:"Miniature train"
+ telescope:"Observatory",train:"Miniature train"
 };
 const partHint=document.createElement("output");
 partHint.id="ncPartHint";partHint.setAttribute("aria-live","off");partHint.hidden=true;
