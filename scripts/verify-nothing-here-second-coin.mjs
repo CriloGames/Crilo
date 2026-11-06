@@ -145,125 +145,119 @@ async function refundCoin(page,{realPointer=false}={}){
   !(await state(page)).pendingPickups.includes("fork"),
   "Pressure dial alone bypassed the still-secured gear-maze screw");
 
- // The actual sculpted circular labyrinth uses walls, not dark square tiles.
- // The larger wheel moves left, the smaller clockwise, and the upper gauge
- // rim permits genuine radial travel. No mouse click can auto-solve a step.
+
+ // The new eight-ring labyrinth has a fixed white face and a moving
+ // toothed black cog. Verify that LEFT and RIGHT drags work on the white
+ // face, and black-gear motion turns the carrier behind it.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
- const gears=await page.evaluate(()=>{
+ const controls=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
   return {large:v.projectGameControl("gear-large"),
    small:v.projectGameControl("gear-small"),
    inward:v.projectGameControl("maze-in"),
    outward:v.projectGameControl("maze-out"),
-   model:v.physicalGearMaze};
+   maze:v.physicalGearMaze};
  });
- assert(gears.model?.face==="leftFace"&&
-  gears.model.mazeStyle==="hand-cut six-ring circular labyrinth"&&
-  gears.model.networkCells===109&&gears.model.networkChannels===116&&
-  gears.model.extraConnections===8&&gears.model.branches>=20&&
-  gears.model.raisedWalls>=60&&gears.model.goalSocketOpen&&
-  gears.model.followerTrackDistance<.000001,
-  "The six-ring labyrinth did not load or the ball is out of its groove: "+
-  JSON.stringify(gears));
- for(const [key,action] of [["large","gear-large"],["small","gear-small"],
-   ["inward","maze-in"],["outward","maze-out"]])
-  assert(gears[key]?.pick===action,
-   "The physical wheel or dial rim cannot be grabbed: "+action);
- assert.equal((await state(page)).gearMazeCell,90,
-  "The new maze must begin at the six-o'clock outer entrance");
- async function dragControl(name,radialMove=null){
-  const guide=await page.evaluate(name=>{
-   const v=window.__nothing3DPreview;
-   return {start:v.projectGameControl(name),center:v.getGearDragCenter(name)};
+ assert(controls.maze?.face==="leftFace"&&
+  controls.maze.mazeStyle==="stationary eight-ring circular labyrinth"&&
+  controls.maze.networkCells===193&&controls.maze.networkChannels===205&&
+  controls.maze.extraConnections===13&&controls.maze.branches>=35&&
+  controls.maze.raisedWalls>=120&&controls.maze.stationaryFace&&
+  Math.abs(controls.maze.faceAngle)<.000001&&
+  controls.maze.followerTrackDistance<.000001,
+  "The physical fixed maze did not load correctly: "+JSON.stringify(controls));
+ assert.equal((await state(page)).gearMazeCell,168,
+  "The captive pin must begin at the 6 o'clock outer entry");
+ // The white face no longer rotates, and one direction of a drag must
+ // always reverse the same groove the other direction entered.
+ async function dragWheel(name,direction){
+  const data=await page.evaluate(name=>{
+   const p=window.__nothing3DPreview;
+   return {start:p.projectGameControl(name),center:p.getGearDragCenter(name)};
   },name);
-  assert(guide.start?.pick===name&&guide.center,
-   "The physical "+name+" cannot be grabbed");
-  const start=guide.start,center=guide.center;
-  const r=Math.hypot(start.x-center.x,start.y-center.y);
+  assert(data.start?.pick===name&&data.center,
+   "The actual "+name+" cannot be grabbed");
+  const center=data.center,start=data.start;
+  const radius=Math.hypot(start.x-center.x,start.y-center.y);
   await page.mouse.move(start.x,start.y);await page.mouse.down();
-  if(radialMove){
-   const dir=radialMove==="in"?-1:1;
-   for(let i=1;i<=8;i++)
-    await page.mouse.move(start.x,start.y+dir*34*i/8);
-  }else if(r>13){
-   const a=Math.atan2(start.y-center.y,start.x-center.x);
-   const d=name==="gear-large"?-1:1;
-   for(let i=1;i<=8;i++)
-    await page.mouse.move(center.x+r*Math.cos(a+d*.37*i/8),
-      center.y+r*Math.sin(a+d*.37*i/8));
+  if(direction==="in"||direction==="out"){
+   const sign=direction==="in"?-1:1;
+   for(let i=1;i<=10;i++)
+    await page.mouse.move(start.x,start.y+sign*28*i/10);
+  }else if(radius>13){
+   const angle=Math.atan2(start.y-center.y,start.x-center.x);
+   // White face: negative angular drag = counterclockwise.
+   // Black cog: opposite drag turns the large geared carrier.
+   const desired=direction==="ccw"?-1:1;
+   const sign=name==="gear-small"?-desired:desired;
+   for(let i=1;i<=10;i++)
+    await page.mouse.move(center.x+radius*Math.cos(angle+sign*.32*i/10),
+     center.y+radius*Math.sin(angle+sign*.32*i/10));
   }else{
-   const d=name==="gear-large"?-1:1;
-   for(let i=1;i<=8;i++)
-    await page.mouse.move(start.x+d*65*i/8,start.y);
+   const desired=direction==="ccw"?-1:1;
+   const sign=name==="gear-small"?-desired:desired;
+   for(let i=1;i<=10;i++)
+    await page.mouse.move(start.x+sign*40*i/10,start.y);
   }
   await page.mouse.up();
  }
  await page.locator("#stage canvas").click({
-  position:{x:gears.large.x,y:gears.large.y},timeout:25000});
- assert.equal((await state(page)).gearMazeCell,90,
-  "A bare click should never move the drag-only wheel");
- await dragControl("gear-large");
- assert.equal((await state(page)).gearMazeCell,91,
-  "Dragging the main wheel does not move into its open curved lane");
+  position:{x:controls.large.x,y:controls.large.y},timeout:25000});
+ assert.equal((await state(page)).gearMazeCell,168,
+  "A click without rotation should not move the captive pin");
+ await dragWheel("gear-large","ccw");
+ assert.equal((await state(page)).gearMazeCell,169,
+  "Dragging the stationary white face left did not move the pin");
+ const initial=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalGearMaze);
+ assert(Math.abs(initial.faceAngle)<.000001,
+  "The white face visibly rotates, despite being a stationary guide");
+ await dragWheel("gear-large","cw");
+ assert.equal((await state(page)).gearMazeCell,168,
+  "Dragging white face in reverse did not bring the pin back");
+ await dragWheel("gear-small","ccw");
+ assert.equal((await state(page)).gearMazeCell,169,
+  "Dragging black cog did not rotate the connected carrier");
+ const geared=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalGearMaze);
+ assert(Math.abs(geared.faceAngle)<.000001&&
+  Math.abs(geared.carrierAngle)>.0001&&
+  Math.abs(geared.blackCogAngle)>.0001,
+  "The black cog and carrier did not move independently of the white face");
  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
- assert.equal((await state(page)).gearMazeCell,91,
-  "Reloading lost the saved position in the redesigned maze");
+ assert.equal((await state(page)).gearMazeCell,169,
+  "Reloading erased an unfinished maze position");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
- await dragControl("gear-small");
- assert.equal((await state(page)).gearMazeCell,90,
-  "Clockwise gear rotation cannot reverse the main wheel");
+ // The calibrated dial retains separate radial control.
+ await act(page,"maze-cw");
+ assert.equal((await state(page)).gearMazeCell,168);
  await act(page,"maze-in");
- assert.equal((await state(page)).gearMazeCell,90,
-  "The calibration rim illegally moved through a solid wall");
- await act(page,"gear-small");
- assert.equal((await state(page)).gearMazeCell,107,
-  "The small wheel cannot rotate the outer track clockwise");
- await act(page,"gear-large");
- assert.equal((await state(page)).gearMazeCell,90,
-  "The main wheel cannot reverse clockwise outer-ring motion");
- const outer=[107,106,105,104];
- for(const next of outer){
-  await act(page,"gear-small");
-  assert.equal((await state(page)).gearMazeCell,next,
-   "The clockwise wheel cannot traverse an open outer arc");
+ assert.equal((await state(page)).gearMazeCell,168,
+  "The dial crossed the sealed outer radial wall at the start");
+ const fullPath=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
+ for(let i=1;i<fullPath.length;i++){
+  const from=fullPath[i-1],to=fullPath[i];
+  const action=to===192||to===from-24?"maze-in":
+   to===from+24?"maze-out":
+   Math.floor(to/24)===Math.floor(from/24)&&
+   to%24===(from%24+1)%24?"maze-ccw":"maze-cw";
+  await act(page,action);
+  assert.equal((await state(page)).gearMazeCell,to,
+   "A sculpted channel does not match its playable direction: "+from+" -> "+to);
  }
- await dragControl("maze-in","in");
- assert.equal((await state(page)).gearMazeCell,86,
-  "Sliding the exposed calibration rim inward does not reach the inner ring");
- await dragControl("maze-out","out");
- assert.equal((await state(page)).gearMazeCell,104,
-  "Sliding the calibration rim outward cannot reverse radial travel");
- await act(page,"maze-in");
- assert.equal((await state(page)).gearMazeCell,86);
- // Travel through every curved segment of the correct solution, including
- // alternate directions and the two genuine center-entry mouths.
- const route=[87,69,68,67,66,48,47,46,64,82,83,101,100,99,98,97,96,78,79,80,62,63,45,44,26,25,7,6,5,4,22,40,39,38,37,19,1,2,108];
- let previous=86;
- for(const cell of route){
-  const move=cell===108||cell===previous-18?"maze-in":
-   cell===previous+18?"maze-out":
-   Math.floor(cell/18)===Math.floor(previous/18)&&
-   cell%18===(previous%18+1)%18?"gear-large":"gear-small";
-  await act(page,move);
-  assert.equal((await state(page)).gearMazeCell,cell,
-   "The roller stopped at a closed channel: "+previous+" -> "+cell);
-  previous=cell;
- }
- await page.waitForFunction(()=>
-  window.__nothing3DPreview.physicalGearMaze.exitReached,
-  null,{timeout:20000});
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalGearMaze.exitReached,
+  null,{timeout:25000});
  assert((await state(page)).gearMazeSolved&&
   (await state(page)).pendingPickups.includes("fork"),
-  "Reaching the actual center socket did not release its tuning fork");
+  "Reaching the center failed to release the real tuning fork");
  await page.waitForFunction(()=>
   window.__nothing3DPreview.physicalGearMaze.dialTongueX<.02,
-  null,{timeout:11000});
- const m=await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze);
- assert(Math.hypot(m.exit.x-m.railEntry.x,
-  m.exit.y-m.railEntry.y)<.023&&
-  Math.abs(m.exit.z-m.railEntry.z)<.025,
-  "The carved center goal is not attached to the pressure-dial shaft");
+  null,{timeout:14000});
+ const exit=await page.evaluate(()=>window.__nothing3DPreview.physicalGearMaze);
+ assert(Math.hypot(exit.exit.x-exit.railEntry.x,
+  exit.exit.y-exit.railEntry.y)<.023,
+  "The central socket no longer engages the pressure dial linkage");
  await collect(page,"fork");
  await useItem(page,"fork","cube");
  assert((await state(page)).resonance,
@@ -383,7 +377,7 @@ try{
   assert(legacy.legacyGearBypass&&!legacy.gearMazeSolved&&legacy.pocket.includes("fork"),
    "Old players lost their tuning fork or their new gear puzzle was solved automatically");
   await act(page,"gear-small");
-  assert((await state(page)).gearMazeCell===107&&
+  assert((await state(page)).gearMazeCell===191&&
     (await state(page)).gearMazePlayed,
    "Old fork owners cannot operate the restored clockwise wheel");
   await close();
@@ -411,13 +405,13 @@ try{
   const {page,close}=await scenario("gear-before-pressure",{
    seen:[],pocket:[],pendingPickups:[]
   });
-  const path=[90,107,106,105,104,86,87,69,68,67,66,48,47,46,64,82,83,101,100,99,98,97,96,78,79,80,62,63,45,44,26,25,7,6,5,4,22,40,39,38,37,19,1,2,108];
+  const path=[168,169,170,146,122,98,74,50,49,48,24,47,46,22,21,20,19,43,42,41,17,16,40,64,63,39,15,14,13,37,36,60,84,108,132,133,134,135,159,183,182,181,180,179,178,177,176,175,151,150,126,127,128,104,80,81,57,58,59,35,34,10,11,192];
   for(let i=1;i<path.length;i++){
    const from=path[i-1],to=path[i];
-   await act(page,to===108||to===from-18?"maze-in":
-    to===from+18?"maze-out":
-    Math.floor(to/18)===Math.floor(from/18)&&
-    to%18===(from%18+1)%18?"gear-large":"gear-small");
+   await act(page,to===192||to===from-24?"maze-in":
+    to===from+24?"maze-out":
+    Math.floor(to/24)===Math.floor(from/24)&&
+    to%24===(from%24+1)%24?"gear-large":"gear-small");
   }
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
