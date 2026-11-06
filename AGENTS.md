@@ -23,7 +23,9 @@ For any 3D scene or puzzle change:
    `node scripts/verify-nothing-here-codes.mjs`.
 3. A maze-face change must preserve a fixed ivory plate, a rotating black
    drive cog and toothed carrier, and physical bidirectional pin navigation.
-   The current graph has eight rings and a separately-open central mouth.
+   The current maze has six joined rings, a bottom entrance and a TOP center
+   mouth. Every blocked edge must produce one physical wall, with no
+   invisible barriers, and the single solution must remain connected.
 4. Run a real **Chromium WebGL startup test**:
    `node scripts/verify-nothing-here-startup.mjs`.
    It must load both a fresh game and a saved game without a retry/error
