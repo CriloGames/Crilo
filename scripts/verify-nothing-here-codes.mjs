@@ -84,189 +84,140 @@ assert(hotspots.includes('engraving(leftFace,String(i)')&&
  hotspots.includes('engraving(backFace,"A /')&&
  hotspots.includes('engraving(bottomFace,"B /'),
  'The numbered input legends and two real code plates must remain readable');
-// The two gear wheels and four adjacent real buttons must now navigate a
-// connected POLAR GRAPH. The 29-step sequence only exists for old saves:
-// physical gameplay can travel around the rings and radially through
-// twelve genuine alternate loops. No off-graph movement is permitted.
+// Audit the actual 9x9 carved network against the gameplay graph.
+// Neither a scripted 29-step answer nor a fake selector controls the pin.
 const gearSteps=digits(match(logic,
- /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'legacy gear route'));
+ /const GEAR_MAZE_DIRECTIONS=\[([^\]]+)\]/,'legacy turns'));
 const physicalGearSteps=digits(match(details,
- /const gearMazeDirections=\[([^\]]+)\]/,'legacy physical route'));
+ /const gearMazeDirections=\[([^\]]+)\]/,'physical legacy turns'));
 assert.deepEqual(gearSteps,physicalGearSteps,
- 'Legacy saves must restore to the same old physical milestones');
-const modelArray=(name)=>JSON.parse(match(details,
- new RegExp('const '+name+'=(\\[[\\s\\S]*?\\]);'),name));
-const gameArray=(name)=>JSON.parse(match(logic,
- new RegExp('const '+name+'=(\\[[\\s\\S]*?\\]);'),name));
-const mainCells=modelArray('mazeRouteCells');
-const stepMarks=modelArray('mazeStepMarks');
-const blindPaths=modelArray('mazeBlindCells');
-const extraEdges=modelArray('mazeExtraEdges');
-const modelJunctions=modelArray('mazeJunctions');
-assert.deepEqual(gameArray('MAZE_ROUTE_CELLS'),mainCells,
- 'The saved puzzle graph is not the actual carved main groove');
-assert.deepEqual(gameArray('MAZE_STEP_MARKS'),stepMarks,
- 'The legacy progress markers no longer point at the visible route');
-assert.deepEqual(gameArray('MAZE_BLIND_CELLS'),blindPaths,
- 'The wrong-turn branches no longer match the carved grooves');
-assert.deepEqual(gameArray('MAZE_EXTRA_EDGES'),extraEdges,
- 'The added shortcuts are visually present but not playable');
-assert.deepEqual(gameArray('GEAR_MAZE_JUNCTIONS'),modelJunctions,
- 'The classic release mechanism and sculpted branches disagree');
-assert.equal(mainCells.length,64,'The legacy main route has been truncated');
-assert.equal(stepMarks.length,30,'A previous save can no longer be restored');
-assert.equal(mainCells.at(-1),96,'The maze still traps the ball before its central exit');
-assert(extraEdges.length>=18,'The labyrinth lost its alternate passages');
-const polarNeighbors=(a,b)=>{
- if(a===96||b===96)return (a===96&&b<16)||(b===96&&a<16);
- const ar=Math.floor(a/16),br=Math.floor(b/16);
- const ac=a%16,bc=b%16;
- return ar===br&&((ac+1)%16===bc||(bc+1)%16===ac)||
-  ac===bc&&Math.abs(ar-br)===1;
-};
-const graph=new Map(),openEdges=new Set(),channelEdges=[];
-const polarPoint=cell=>{
- if(cell===96)return [0,0];
- const radius=.082+Math.floor(cell/16)*.044;
- const angle=Math.PI/2+(cell%16)*Math.PI*2/16;
- return [Math.cos(angle)*radius,Math.sin(angle)*radius];
-};
+ 'A pre-upgrade saved step would be mapped to the wrong point');
+const readRoute=(source,name)=>JSON.parse(match(source,
+ new RegExp('const '+name+'=(\\[[^;]+\\]);'),name));
+const route=readRoute(details,'mazeRouteCells');
+assert.deepEqual(route,readRoute(logic,'MAZE_ROUTE_CELLS'),
+ 'The visible route and saved-position migration disagree');
+const readPassages=(source,name)=>match(source,
+ new RegExp('const '+name+'="([^"]+)"'),'passages '+name)
+  .split(' ').map(pair=>pair.split('-').map(Number));
+const passages=readPassages(details,'mazePassages');
+assert.deepEqual(passages,readPassages(logic,'MAZE_PASSAGES'),
+ 'Some visible openings cannot be navigated or vice versa');
+assert.equal(passages.length,93,'The maze should have 93 physical passages');
+assert.equal(route[0],0,'The engraved entrance is not a start cell');
+assert.equal(route.at(-1),40,'The central release hole must be the exit');
 const edgeKey=(a,b)=>Math.min(a,b)+':'+Math.max(a,b);
-const addRoute=cells=>{
- for(let i=1;i<cells.length;i++){
-  const a=cells[i-1],b=cells[i],key=edgeKey(a,b);
-  assert(polarNeighbors(a,b),'A maze corridor jumps through a brass wall');
-  assert(!openEdges.has(key),'Duplicate channel tubes occupy the same physical corridor');
-  openEdges.add(key);
-  if(!graph.has(a))graph.set(a,new Set());
-  if(!graph.has(b))graph.set(b,new Set());
-  graph.get(a).add(b);graph.get(b).add(a);
-  channelEdges.push([polarPoint(a),polarPoint(b)]);
- }
+const graph=new Map(),openEdges=new Set();
+const addEdge=(a,b)=>{
+ const key=edgeKey(a,b);
+ assert(Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&b<81,
+  'An opening is outside the metal grid');
+ assert(b-a===9||
+  (Math.floor(a/9)===Math.floor(b/9)&&b-a===1),
+  'An opening diagonally crosses a raised maze wall');
+ assert(!openEdges.has(key),'Two channels overlap the same passage');
+ openEdges.add(key);
+ if(!graph.has(a))graph.set(a,new Set());
+ if(!graph.has(b))graph.set(b,new Set());
+ graph.get(a).add(b);graph.get(b).add(a);
 };
-addRoute(mainCells);
-blindPaths.forEach((path,i)=>
- addRoute([mainCells[stepMarks[modelJunctions[i]]],...path]));
-extraEdges.forEach(path=>addRoute(path));
-assert.equal(graph.size,97,
- 'Every reachable ring cell and the center should be present');
-assert.equal(openEdges.size-graph.size+1,12,
- 'The maze must have a deliberately intricate twelve-loop layout');
-const reachable=new Set([80]),queue=[80];
+passages.forEach(([a,b])=>addEdge(a,b));
+assert.equal(graph.size,81,'An area of the square labyrinth is disconnected');
+assert.equal(openEdges.size-graph.size+1,13,
+ 'The labyrinth needs multiple loops, not a single obvious route');
+for(let i=1;i<route.length;i++)
+ assert(openEdges.has(edgeKey(route[i-1],route[i])),
+  'Legacy progress mapping passes through a closed wall');
+const seen=new Set([0]),queue=[0],dist=new Map([[0,0]]);
 while(queue.length){
  const cell=queue.shift();
  for(const next of graph.get(cell)||[]){
-  if(reachable.has(next))continue;
-  reachable.add(next);queue.push(next);
+  if(seen.has(next))continue;
+  seen.add(next);dist.set(next,dist.get(cell)+1);queue.push(next);
  }
 }
-assert.equal(reachable.size,graph.size,
- 'At least one carved maze corridor is disconnected from the entrance');
-assert(reachable.has(96),'The central release socket cannot be entered');
-const navigableChoices=[...graph.values()].filter(x=>x.size>=3).length;
-assert(navigableChoices>=24,
- 'The maze still offers too few meaningful navigation choices');
-let radial=0;
-for(const [cell,neighbors] of graph)
- for(const next of neighbors)
-  if(cell!==96&&next!==96&&Math.floor(cell/16)!==Math.floor(next/16))
-   radial++;
-assert(radial>=40,
- 'The up/down radial buttons have too few actual open crossovers');
-assert(details.includes('getGearMazeTargets:()=>({')&&
- details.includes('directional:new Map(wheelContacts)')&&
- details.includes('wheelContact(wheelA,"maze-ccw",-.374,0,.190')&&
- details.includes('wheelContact(wheelA,"maze-cw",.374,0,.190')&&
- details.includes('wheelContact(wheelB,"maze-in",0,.149,.223')&&
- details.includes('wheelContact(wheelB,"maze-out",0,-.149,.223')&&
- preview.includes('for(const [action,part] of gears.directional||[])')&&
- !details.includes('const mazePad=')&&
- !preview.includes('clickAction(mazeKey[event.key.toLowerCase()]'),
- 'Both wheels must carry their own four tactile contacts, never a D-pad');
-assert(details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
- details.includes('const curve=mazeEdgeCurves.get(edgeKey(')&&
- details.includes('onUpdate:seatFollower,onComplete:seatFollower')&&
- !details.includes('pose(follower,"position","x"'),
- 'The moving ball is not confined to a carved open edge');
-assert(logic.includes('function mazeDestination(cell,direction)')&&
- logic.includes('s.gearMazeCell=next;')&&
- logic.includes('if(next===MAZE_GOAL)')&&
- logic.includes('if(next===null){'),
- 'Maze navigation still follows the scripted win path or crosses solid brass');
-assert(logic.includes('Number.isInteger(raw.gearMazeCell)')&&
- logic.includes('const legacyMazeCell='),
- 'Existing saved maze positions would be lost after the graph update');
-
-// Collision audit: compute exactly the same 2D wall outlines as the
-// physical scene. Wall strips are 0.010 wide, channel lips are .010;
-// their centerlines must stay separated, as must independent walls.
-const wallEdges=[];
-for(let ring=0;ring<6;ring++)for(let sector=0;sector<16;sector++){
- const radius=.082+ring*.044,cell=ring*16+sector;
- const next=ring*16+(sector+1)%16;
- if(!openEdges.has(edgeKey(cell,next))){
-  const angle=Math.PI/2+(sector+.5)*Math.PI*2/16;
-  const r0=radius-(ring===0?.003:.013),r1=radius+.013;
-  wallEdges.push([[Math.cos(angle)*r0,Math.sin(angle)*r0],
-   [Math.cos(angle)*r1,Math.sin(angle)*r1]]);
- }
- if(ring<5&&!openEdges.has(edgeKey(cell,cell+16))){
-  const r=radius+.022,a=Math.PI/2+(sector-.35)*Math.PI*2/16;
-  const b=Math.PI/2+(sector+.35)*Math.PI*2/16;
-  wallEdges.push([[Math.cos(a)*r,Math.sin(a)*r],
-   [Math.cos(b)*r,Math.sin(b)*r]]);
- }
-}
-assert(wallEdges.length>=65&&wallEdges.length<=80,
- 'The radial maze has broken wall geometry or missing blockers');
-const pointDistance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
-const projectPoint=(p,a,b)=>{
+assert.equal(seen.size,81,'The pin cannot reach all of the carved passages');
+assert(dist.get(40)>=20&&dist.get(40)<=32,
+ 'The central socket is either trivial or impossibly far away');
+assert([...graph.values()].filter(links=>links.size>=3).length>=25,
+ 'There are not enough meaningful physical junctions');
+assert((graph.get(40)?.size||0)>=3,
+ 'The socket has only one obvious approach');
+const point=cell=>[(cell%9-4)*.056,(4-Math.floor(cell/9))*.056];
+const gap=(p,a,b)=>{
  const dx=b[0]-a[0],dy=b[1]-a[1];
  const t=Math.max(0,Math.min(1,
   ((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1)));
- return [a[0]+t*dx,a[1]+t*dy];
+ return Math.hypot(p[0]-(a[0]+t*dx),p[1]-(a[1]+t*dy));
 };
 const cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-
  (b[1]-a[1])*(c[0]-a[0]);
 const segmentGap=([a,b],[c,d])=>{
- if(cross(a,b,c)*cross(a,b,d)<0&&
-    cross(c,d,a)*cross(c,d,b)<0)return 0;
- return Math.min(
-  pointDistance(a,projectPoint(a,c,d)),
-  pointDistance(b,projectPoint(b,c,d)),
-  pointDistance(c,projectPoint(c,a,b)),
-  pointDistance(d,projectPoint(d,a,b))
- );
+ if(cross(a,b,c)*cross(a,b,d)<0&&cross(c,d,a)*cross(c,d,b)<0)
+  return 0;
+ return Math.min(gap(a,c,d),gap(b,c,d),gap(c,a,b),gap(d,a,b));
 };
-for(const wall of wallEdges)
- for(const channel of channelEdges)
-  assert(segmentGap(wall,channel)>.01490,
-   'The ball would collide with a wall across a playable corridor');
-for(let i=0;i<wallEdges.length;i++)
- for(let j=i+1;j<wallEdges.length;j++)
-  assert(segmentGap(wallEdges[i],wallEdges[j])>.00990,
-   'Two nearby raised maze walls overlap');
-assert(details.includes('flatLine(wheelA,x1,y1,x2,y2,.170,.007,wallColor);')&&
- details.includes('function circularWall(radius,first,last)')&&
- details.includes('circularWall(r,a0,a1);'),
- 'The raised maze walls are no longer seated against the brass plate');
+const walls=[];
+const segment=(x,y,w,h)=>walls.push(w>h?
+ [[x-w/2,y],[x+w/2,y]]:[[x,y-h/2],[x,y+h/2]]);
+const boundary=9*.056/2;
+for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+ const n=r*9+c,x=(c-4)*.056,y=(4-r)*.056;
+ if(c<8&&!openEdges.has(edgeKey(n,n+1)))
+  segment(x+.028,y,.009,.054);
+ if(r<8&&!openEdges.has(edgeKey(n,n+9)))
+  segment(x,y-.028,.054,.009);
+ if(r===0&&c!==0)segment(x,boundary,.054,.009);
+ if(r===8)segment(x,-boundary,.054,.009);
+ if(c===0)segment(-boundary,y,.009,.054);
+ if(c===8)segment(boundary,y,.009,.054);
+}
+assert(walls.length>=80&&walls.length<=100,
+ 'The grid is missing its real raised boundary or inner walls');
+for(const edge of passages){
+ const corridor=edge.map(point);
+ for(const wall of walls)
+  assert(segmentGap(corridor,wall)>.019,
+   'A playable passage touches a raised solid wall');
+}
+assert(details.includes('const mazePlate=group(leftFace,-.18,0,.19)')&&
+ details.includes('const boundary=9*mazePitch/2')&&
+ details.includes('const goalSocket=ring(mazePlate')&&
+ !details.includes('function circularWall(radius,first,last)'),
+ 'The visible wheel is still a circular diagram, not a machined square maze');
+for(const direction of ['maze-up','maze-down','maze-left','maze-right'])
+ assert(details.includes('"'+direction+'"')&&
+  logic.includes('"'+direction+'"')&&preview.includes('"'+direction+'"'),
+  'Physical wheel control is missing '+direction);
+assert(details.includes('wheelContacts.set(name,target)')&&
+ details.includes('setHit(mazePlate,"gear-large")')&&
+ !details.includes('wheelContact(wheelA,'),
+ 'The old visible four-button selector has returned');
+assert(details.includes('const mazeTravel={from:mazeOrigin,to:mazeOrigin,t:1};')&&
+ details.includes('const curve=mazeEdgeCurves.get(edgeKey(')&&
+ details.includes('onUpdate:seatFollower,onComplete:seatFollower'),
+ 'The captive pin does not animate along open passages');
+assert(logic.includes('function mazeDestination(cell,direction)')&&
+ logic.includes('s.gearMazeCell=next;')&&logic.includes('if(next===MAZE_GOAL)'),
+ 'The maze gameplay does not use the carved walls');
+assert(logic.includes('s.gearMazeLayoutVersion=MAZE_LAYOUT_VERSION')&&
+ logic.includes('const legacyMazeCell='),
+ 'Previously saved puzzle progress has been lost');
 const wheelMount=details.match(
  /const wheelA=gear\(leftFace,([-\d.]+),([-\d.]+),([-\d.]+),([-\d.]+),gearMetal,15\)/);
 const railMatch=details.match(
  /const gearRailEntry=\{x:([-\d.]+),y:([-\d.]+),z:([-\d.]+)\}/);
-assert(wheelMount&&railMatch,'The maze or its receiving axle is missing');
-const [railX,railY,railZ]=railMatch.slice(1).map(Number);
-assert(Math.hypot(railX-Number(wheelMount[1]),railY-Number(wheelMount[2]))<.0001&&
- Math.abs(railZ-(Number(wheelMount[3])+.156))<.0001,
- 'The center socket no longer meets its mechanical release shaft');
-assert(2*.035*Math.sin(1.25/2)>.032+.005,
- 'The opened center aperture is narrower than the captive ball');
+assert(wheelMount&&railMatch,'The real geared release hardware is missing');
+assert(Math.hypot(+railMatch[1]-(+wheelMount[1]),
+ +railMatch[2]-(+wheelMount[2]))<.0001&&
+ Math.abs(+railMatch[3]-(+wheelMount[3]+.156))<.0001,
+ 'The center socket does not connect to the calibrated dial shaft');
 assert(preview.includes('gameHotspots.targets.set("gear-large"')&&
  preview.includes('gameHotspots.targets.set("gear-small"'),
- 'The real gear wheels have lost their hit targets');
+ 'Players cannot directly press the exposed wheels');
 assert(logic.includes('s.pressureReady&&(s.gearMazeSolved||s.legacyGearBypass)'),
- 'The central maze reward no longer respects the pressure dial');
-
+ 'Maze solving bypasses the pressure dial');
+ 
 const roman={'Ⅰ':1,'Ⅱ':2,'Ⅲ':3};
 const decode=value=>[...value].filter(x=>roman[x]).map(x=>roman[x]);
 const fluteCode=digits(match(logic,/const FLUTE_CODE=\[([^\]]+)\]/,'flute melody'));
