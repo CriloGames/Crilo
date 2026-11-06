@@ -141,12 +141,11 @@ const BAG_CODE=[2,0,3,1];
 // These are mirrored by the ACTUAL engraved codes on the six 3D faces.
 const VENT_CODE=[3,1,4,2,3];
 const FLUTE_CODE=[2,1,3,1,3,2];
-// The winding channel is physically cut into the large gear. Turn one
-// wheel to move its captive screw forward; the other reverses the pair.
-// Hairpin bends in the groove are the only clue to the needed reversals.
-// Six concentric lanes with five physical hairpins. Neither wheel is a
-// "solve" button: the smaller turns forward, the larger turns backward.
-// The brass captive screw must actually follow the channel to its outlet.
+// The large gear contains a captive-screw labyrinth with six circular
+// lanes and five real blind forks. Gear direction changes at each main
+// crossover; the other wheel can lead the screw into a plugged dead end.
+// The screw must retrace a wrong turn and can never cross solid brass.
+// The final outlet physically operates the calibration dial's latch.
 const GEAR_MAZE_DIRECTIONS=[
  1,1,1,1,-1,-1,-1,-1,-1,1,1,1,1,1,-1,-1,-1,-1,-1,
  1,1,1,1,1,-1,-1,-1,-1,-1
@@ -433,7 +432,8 @@ function ongoingMechanisms(){
  if(s.ventOpen&&pendingPickups.has('shim'))
   add('Vent grille','The grille is open. The copper piece inside is still waiting to be collected.');
  if(!s.gearMazeSolved&&(s.gearMazeIndex>0||s.pressureTicks>0))
-  add('Calibration gears','A captive screw is following the groove on the larger wheel. Both meshed wheels turn, but in opposite directions.'+
+  add('Calibration gears','A captive screw moves through connected channels in the large wheel. The two gears turn in opposite directions.'+
+   (s.gearMazeBranch>0?' The pin is currently in a blind branch ending at a solid brass stop.':'')+
    (s.legacyGearBypass?' Your previously earned calibration item is still yours.':
     s.pressureReady?' The dial is at its stop; its small brass retaining tongue remains engaged.':''));
  if(s.gearMazeSolved&&!s.pressureReady)
