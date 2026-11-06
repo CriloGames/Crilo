@@ -209,7 +209,7 @@ for(const required of [
 for(const part of [
  'const domeStrip=(thetaA,thetaB,radius=OBSERVATORY_RADIUS)=>{',
  'domeStrip(OBSERVATORY_REAR+.015,Math.PI/2,.243),burgundy',
- 'burgundy.side=THREE.BackSide;',
+ 'burgundy.side=THREE.DoubleSide;',
  'wire(roofShell,canopyEdge,.016,m.cream);',
  'const frontSill=new THREE.Mesh(',
  'new THREE.CylinderGeometry(.287,.287,.082,48,1,true,',
@@ -219,7 +219,7 @@ for(const part of [
  'const tube=new THREE.Group();',
  'tube.position.set(0,-.014,.150);',
  'tube.rotation.x=Math.PI/2-.16;',
- 'const burgundy=mat(0x793939,.08,.72);',
+ 'const burgundy=mat(0x873e39,.10,.73);',
  'wire(roofShell,canopyEdge.map(([x,y,z])=>[x*.955,y*.955,z*.955]),.004,m.gold);',
  'barrelForwardY:observatoryBarrel?-Math.sin(observatoryBarrel.rotation.x):null,'
 ]) assert(worlds.includes(part),
