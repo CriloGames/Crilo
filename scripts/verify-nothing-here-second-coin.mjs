@@ -80,16 +80,17 @@ async function deployObservatory(page){
  const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
  assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
   pose.shutterProgress>=.999&&pose.slatCount===16&&
-  pose.visibleSlats===0&&pose.rearCapVisible&&
-   Math.abs(pose.retainedDomeFraction-.25)<.00001&&
-  Math.abs(pose.domeSeamHeight-.072)<.001&&pose.scopeTilt>.35&&
+  pose.visibleSlats===0&&pose.rearCapVisible&&pose.mouthWidth>.53&&
+   pose.openingRise>.20&&
+   pose.retainedDomeFraction>.68&&pose.retainedDomeFraction<.82&&
+  Math.abs(pose.domeSeamHeight-.118)<.001&&Math.abs(pose.scopeTilt)<.02&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY>.13&&pose.canopyFrontY<.15&&
-  pose.canopyCrownZ>.27&&pose.canopyCrownZ<.30&&
-  pose.frontSillTopZ>.035&&pose.frontSillTopZ<.05&&
-  pose.objectiveFrontY<pose.canopyFrontY-.08&&
+  pose.canopyFrontY<-.16&&pose.canopyFrontY>-.21&&
+  pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
+  pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
+  pose.objectiveFrontY>pose.canopyFrontY&&pose.objectiveFrontY<pose.canopyFrontY+.08&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
-  "The garage-style dome failed to roll completely into its rear housing");
+  "The ivory observatory did not open its arched front or keep the telescope centered");
 }
 async function refundCoin(page,{realPointer=false}={}){
  let s=await state(page);
@@ -512,15 +513,16 @@ try{
   const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.observatory);
   assert(pose.deployed&&pose.shutterProgress>=.999&&
    pose.slatCount===16&&pose.visibleSlats===0&&
-   pose.rearCapVisible&&
-   Math.abs(pose.retainedDomeFraction-.25)<.00001&&Math.abs(pose.domeSeamHeight-.072)<.001&&
+   pose.rearCapVisible&&pose.mouthWidth>.53&&
+   pose.openingRise>.20&&
+   pose.retainedDomeFraction>.68&&pose.retainedDomeFraction<.82&&Math.abs(pose.domeSeamHeight-.118)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY>.13&&pose.canopyFrontY<.15&&
-  pose.canopyCrownZ>.27&&pose.canopyCrownZ<.30&&
-  pose.frontSillTopZ>.035&&pose.frontSillTopZ<.05&&
-  pose.objectiveFrontY<pose.canopyFrontY-.08&&
+  pose.canopyFrontY<-.16&&pose.canopyFrontY>-.21&&
+  pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
+  pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
+  pose.objectiveFrontY>pose.canopyFrontY&&pose.objectiveFrontY<pose.canopyFrontY+.08&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
-   "The garage dome unlocked but did not retract without rising");
+   "The reference observatory was unlocked but its curved shutter did not retract");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   opened=await state(page);
@@ -546,7 +548,7 @@ try{
   assert(closedDome.installed&&!closedDome.deployed&&
    closedDome.visibleSlats===16&&closedDome.slatCount===16&&
    closedDome.shutterProgress===0&&
-   Math.abs(closedDome.domeSeamHeight-.072)<.001&&
+   Math.abs(closedDome.domeSeamHeight-.118)<.001&&
    !initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
    "The observatory must start with every shutter slat closed at fixed height");
   const emptyOptics=await page.evaluate(()=>
