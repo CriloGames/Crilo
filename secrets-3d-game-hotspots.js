@@ -704,6 +704,20 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   },
   actions:[...targets.keys()],
   targets,
+  // Read-only geometry audit. These are existing mounted groups; nothing
+  // is created or moved, keeping the previously working startup unchanged.
+  getSpatialMechanisms:()=>new Map([
+   ["front ratchet",redSwitch],
+   ["front cog service hatch",cogPort],
+   ["service shutter cassette",shutter],
+   ["service bolt socket",serviceSocket],
+   ["vent release grille",ventCover],
+   ["rear optical eye",eyeBody],
+   ["rear cipher cassette",cipherMount],
+   ["calibration dial",pressureKnob],
+   ["underside movable foot",foot],
+   ["underside bell hatch",bellPort]
+  ]),
   pulse,
   getActuatorDepth:name=>actuators.get(name)?.position.z??null,
   getMechanicalFeedback:()=>({
