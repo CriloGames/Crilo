@@ -525,7 +525,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const OBSERVATORY_RADIUS=.289,OBSERVATORY_SEAM=.012;
  // Keep a large sculpted canopy over the back half: this is an
  // observatory building, not a black disk with a tiny red strip.
- const OBSERVATORY_REAR=-.41;
+ // Exactly one quarter of the original curved dome stays over the rear.
+ const OBSERVATORY_REAR=Math.PI/4;
  const OBSERVATORY_TRAVEL=Math.PI/2+OBSERVATORY_REAR+.025;
  const OBSERVATORY_SLAT_COUNT=16;
  const OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=30;
@@ -599,7 +600,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   roofShell.add(interior);parts++;
   // Rounded ivory entrance arch and a handful of curved inner braces,
   // all fastened to the stationary housing rather than floating in space.
-  const canopyEdge=[],insideBraces=[-.28,.03,.32,.61,.90,1.19];
+  // Structural ribs must remain entirely within the small retained canopy.
+  const canopyEdge=[],insideBraces=[.86,1.10,1.34];
   for(let i=0;i<=32;i++){
    const phi=Math.PI*i/32;
    canopyEdge.push([
@@ -614,14 +616,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   for(const theta of insideBraces){
    const rib=[];
    for(let j=0;j<=24;j++){
-    const phi=Math.PI*j/24,r=.240;
+    const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS-.021;
     rib.push([r*Math.cos(theta)*Math.cos(phi),
      r*Math.sin(theta),r*Math.cos(theta)*Math.sin(phi)]);
    }
    wire(roofShell,rib,.005,m.copper);
   }
   // Subtle broad shell seams echo the real observatory's sliding ribs.
-  for(const theta of [-.07,.39,.84,1.23]){
+  for(const theta of [.95,1.22,1.45]){
    const seam=[];
    for(let j=0;j<=24;j++){
     const phi=Math.PI*j/24,r=OBSERVATORY_RADIUS+.002;
@@ -1316,13 +1318,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      slatCount:observatoryPanels.length,
      visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,
      rearCapVisible:!!observatoryRearCap?.visible,
+      retainedDomeFraction:(Math.PI/2-OBSERVATORY_REAR)/Math.PI,
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
       OBSERVATORY_SEAM,
      // Model-space measurements for checking the architectural opening.
      canopyFrontY:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_REAR),
      canopyCrownZ:OBSERVATORY_SEAM+
       OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_REAR),
-     frontSillTopZ:parapetBottom+parapetHeight+.003,
+     frontSillTopZ:.018+.105+.003,
      objectiveFrontY:observatoryScope.position.y+
       observatoryScope.scale.y*(observatoryBarrel.position.y-
        .151*Math.sin(observatoryBarrel.rotation.x)),
