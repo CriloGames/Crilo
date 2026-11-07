@@ -98,6 +98,14 @@ try{
      canvas:!!canvas&&canvas.width>0&&canvas.height>0,
      meshCount:view?.meshCount||0,
      mazeChannels:view?.physicalGearMaze?.networkChannels||0,
+     mazeBall:view?.physicalGearMaze?{
+      cell:view.physicalGearMaze.cell,
+      haloAttached:view.physicalGearMaze.blackHaloAttached,
+      haloDiameter:view.physicalGearMaze.blackHaloDiameter,
+      markerParts:view.physicalGearMaze.movingMarkerParts,
+      paleRemoved:view.physicalGearMaze.paleFollowerRemoved,
+      goalStrokes:view.physicalGearMaze.visibleBlockedEdges
+     }:null,
      ornaments:{
       routes:view?.engravedTrackAudit?.length||0,
       faces:[...new Set((view?.engravedTrackAudit||[]).map(x=>x.face))],
@@ -119,6 +127,11 @@ try{
    assert(result.ready&&result.physical&&!result.retry&&result.canvas&&
     result.meshCount>80&&result.mazeChannels>0,
     "The real WebGL game did not initialize: "+JSON.stringify(result));
+   assert(result.mazeBall?.haloAttached&&result.mazeBall?.paleRemoved&&
+    result.mazeBall.markerParts===2&&
+    Math.abs(result.mazeBall.haloDiameter-.036)<.0001,
+    "Maze marble must have one moving black halo and no leftover pale pin: "+
+     JSON.stringify(result.mazeBall));
    assert(result.mounts?.okay&&result.mounts.wheels>=2&&
     result.mounts.fixed>=12&&result.mounts.miniatures>=15&&
     result.mounts.figures===15&&result.mounts.frontLens===true,
