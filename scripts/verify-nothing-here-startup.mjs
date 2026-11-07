@@ -230,8 +230,11 @@ try{
     }
     // The return tray itself slides farther out when a service key appears.
     assert(Math.abs((await page.evaluate(()=>
-     window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))-.47)<.002,
+     window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))-.355)<.002,
      "The mounting tray failed to follow the reward-unlock movement");
+    assert(await page.evaluate(()=>
+     window.__nothing3DPreview.physicalScenePose.vendingServiceSealCabinetMounted),
+     "The small stamped ^ badge must be flush-mounted to the vending cabinet, not carried away by the tray");
    }
    if(check.label==="held-coin-guidance"){
     // Players must find the correct face themselves. Choosing a coin
