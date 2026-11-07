@@ -132,6 +132,20 @@ export function finishMechanicalArtifact({
     }
   };
   function machinedPanel(face,accent) {
+    if(face===frontFace){
+      // The lens and live controls dominate this face. All the former
+      // inner graphite bars were cut into floating sticks by the optic
+      // keepout. Use four complete, inset gold rails parallel to the
+      // structural frame instead: deliberately simple, symmetrical,
+      // and entirely OUTSIDE the real metal mechanism envelopes.
+      for(const sign of [-1,1]){
+        trimRail(face,"x",sign*1.425,-1.29,1.29,
+          .030,.041,.105,accent,.012);
+        trimRail(face,"y",sign*1.425,-1.26,1.26,
+          .030,.041,.105,accent,.012);
+      }
+      return;
+    }
     for(const s of [-1,1]){
       // The brass and dark inlays have nearly matching slender profiles:
       // the brass is only slightly wider, never a chunky raised bar.
