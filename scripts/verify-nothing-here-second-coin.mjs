@@ -169,9 +169,9 @@ async function refundCoin(page,{realPointer=false}={}){
   "Pressure dial alone bypassed the still-secured gear-maze screw");
 
 
- // The new eight-ring labyrinth has a fixed white face and a moving
- // toothed black cog. Verify that LEFT and RIGHT drags work on the white
- // face, and black-gear motion turns the carrier behind it.
+ // The six-ring labyrinth has a fixed white face and a moving
+ // toothed black cog. Verify that a drag on the white
+ // face does nothing, while black-gear motion turns the carrier behind it.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const controls=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
@@ -202,9 +202,21 @@ async function refundCoin(page,{realPointer=false}={}){
   },name);
   assert(data.start?.pick===name&&data.center,
    "The actual "+name+" cannot be grabbed");
-  const center=data.center,start=data.start;
+  // The projectGameControl and getGearDragCenter inspection APIs return
+  // coordinates LOCAL to the WebGL canvas. Playwright mouse.move uses
+  // viewport coordinates; missing this offset silently drags the page
+  // instead of grabbing the cog, leaving the maze pin stuck at cell 80.
+  const bounds=await page.locator("#stage canvas").boundingBox();
+  assert(bounds?.width>0&&bounds?.height>0,"The WebGL canvas is not visible");
+  const center={x:data.center.x+bounds.x,y:data.center.y+bounds.y};
+  const start={x:data.start.x+bounds.x,y:data.start.y+bounds.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
   await page.mouse.move(start.x,start.y);await page.mouse.down();
+  if(name==="gear-small"){
+   const capture=await page.evaluate(()=>window.__nothing3DPreview.gearDragState);
+   assert(capture.active&&capture.action==="gear-small",
+    "The visible black cog did not capture the physical pointer drag");
+  }
   if(direction==="in"||direction==="out"){
    const sign=direction==="in"?-1:1;
    for(let i=1;i<=10;i++)
