@@ -221,7 +221,19 @@ function makeCompartment(face,hole,palette,name){
  box(cavity,.065,h-.06,cavityDepth,-w/2+.037,0,-cavityDepth/2,cavityMaterial,.018);
  box(cavity,.065,h-.06,cavityDepth,w/2-.037,0,-cavityDepth/2,cavityMaterial,.018);
  box(cavity,w,h,.08,0,0,-cavityDepth,mat(0x71647a,.14,.7));
- for(const sy of [-1,1])box(cavity,w+.09,.045,.11,0,sy*h/2,.075,brass,.018);
+ for(const sy of [-1,1]){
+  if(face===frontFace&&sy===1){
+   // The front cavity has a solid enamel lintel behind its mouth. Its
+   // extra gold dress rail is split into two side-mounted returns so it
+   // never passes under the optical lens at the upper centre.
+   const reach=(w+.09)/2,clearCentre=.39;
+   for(const sign of [-1,1]){
+    const length=reach-clearCentre;
+    box(cavity,length,.045,.11,
+      sign*(reach+clearCentre)/2,sy*h/2,.075,brass,.018);
+   }
+  }else box(cavity,w+.09,.045,.11,0,sy*h/2,.075,brass,.018);
+ }
  for(const sx of [-1,1])box(cavity,.045,h+.11,.11,sx*w/2,0,.075,brass,.018);
  const drawer=new THREE.Group();drawer.position.set(x,y,0);face.add(drawer);
  const W=w-.13,H=h-.15;
