@@ -1095,10 +1095,10 @@ function inspectHardware(name){
   if(n===3){
    if(!s.falseScrewTurns){
     s.falseScrewTurns=1;
-    bloom('false-screw','The rounded fourth corner fitting is a captive spring plunger, not a screw. Three slotted screws actually secure the front access cover.');
-    tell('The rounded corner fitting presses into a spring stop. It is not removable. Three slotted screws secure the front access cover.');
+    bloom('false-screw','The smooth fourth corner is a spring-loaded pin, not another screw.');
+    tell('The rounded pin pushes inward and springs back. It does not unscrew or release the cover.');
     cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
-   }else tell('The captive spring fitting has already been tested. The other three corners hold removable screws.');
+   }else tell('The rounded pin pushes inward and springs back. It does not unscrew or release the cover.');
   }else if(!s.screws.includes(n)){
    s.screws.push(n);bloom('fastener','The front screw comes free, leaving an empty threaded socket in the service cover.');
    if(s.screws.length===3){
