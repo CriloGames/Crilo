@@ -94,7 +94,7 @@ export function createNothingHereFinale({
   joints.back.rotation.x=-Math.PI/2;
   // BackFace has a 180-degree Y rotation, so local +X is world -X.
   joints.top.rotation.x=Math.PI/2;
-  faceRoot.position.set(0,S*1.5,-half);
+  faceRoot.position.set(0,S*1.18,-half);
   cube.rotation.set(0,0,0);
   cube.scale.setScalar(fit());
   controls.target.set(0,0,0);
@@ -149,7 +149,7 @@ export function createNothingHereFinale({
    .to(controls.target,{x:0,y:0,z:0,duration:1.5,ease:"power2.inOut"},0)
    .to(cube.rotation,{x:0,y:0,z:0,duration:1.5,ease:"power2.inOut"},0)
    .to(cube.scale,{x:scale,y:scale,z:scale,duration:2.7,ease:"power2.inOut"},0)
-   .to(faceRoot.position,{x:0,y:1.5*S,z:-half,duration:3.8,ease:"power2.inOut"},.25)
+   .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:3.8,ease:"power2.inOut"},.25)
    .call(()=>setFrames(true),null,.60)
    .to(joints.left.rotation,{y:Math.PI/2,duration:1.1,ease:"power2.inOut"},.72)
    .to(joints.right.rotation,{y:-Math.PI/2,duration:1.1,ease:"power2.inOut"},.92)
