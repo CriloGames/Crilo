@@ -103,6 +103,12 @@ assert.deepEqual([...decode(eyeLabel),...decode(footLabel)],fluteCode,
  'The two engraved musical phrases do not open the physical door');
 assert(logic.includes("===FLUTE_CODE.join('')"),
  'The flute logic no longer plays the score stamped on the cube');
+assert(logic.includes("spend('flute');")&&
+ logic.includes("['flute',seen.has('flute')&&!s.door]")&&
+ logic.includes("if(s.door){\n pocket.delete('flute');"),
+ 'The successful flute melody must consume the item and migrate old saves');
+assert(hotspots.includes('flute.visible=!s.door&&Array.isArray(s.pocket)'),
+ 'The consumed flute must disappear from the actual 3D top face');
 
 // A formerly added service cassette crashed during import because a
 // sensor was created on a shutter const before the const was initialized.
