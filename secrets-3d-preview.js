@@ -1189,59 +1189,119 @@ function visibleKeyboardTargets(actionPredicate=null){
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
 
-// Inventory guidance persists for as long as a matching tool is held.
-// The previous implementation drew a single green ring for 980 ms and
-// discarded it, forcing players to hover over every side of the cube.
-// Use the real puzzle compatibility rules and raycaster, not a list of
-// guessed item/target pairs or an overlay that shines through closed doors.
+// Each held item highlights the ACTUAL 3D fitting, not a floating DOM
+// circle whose screen position gets re-sampled as the cube rotates.
+// The marker is a non-interactive THREE.Sprite parented to the hit mesh:
+// local coordinates never change during orbit, pan, zoom or cube rotation.
 let heldItemForFlash=null;
 let lastFitFlashActions=[];
 let fitRefreshTimer=null,fitDirectedFace=null;
 const selectedFitFlashes=new Map();
+let fitGlowTexture=null;
+function getFitGlowTexture(){
+ if(fitGlowTexture)return fitGlowTexture;
+ const canvas=document.createElement("canvas");
+ canvas.width=256;canvas.height=304;
+ const g=canvas.getContext("2d");
+ const halo=g.createRadialGradient(128,124,14,128,124,109);
+ halo.addColorStop(0,"rgba(169,255,205,.64)");
+ halo.addColorStop(.40,"rgba(75,236,139,.38)");
+ halo.addColorStop(.70,"rgba(42,226,115,.18)");
+ halo.addColorStop(1,"rgba(30,214,117,0)");
+ g.fillStyle=halo;g.fillRect(8,12,240,240);
+ g.beginPath();g.arc(128,124,59,0,Math.PI*2);
+ g.lineWidth=9;g.strokeStyle="#55f09b";g.shadowBlur=19;
+ g.shadowColor="#3ae68e";g.stroke();g.shadowBlur=0;
+ g.fillStyle="#dfffe8";g.font="800 26px system-ui,sans-serif";
+ g.textAlign="center";g.lineWidth=8;g.strokeStyle="#215b3c";
+ g.lineJoin="round";g.strokeText("FITS HERE",128,276);
+ g.fillText("FITS HERE",128,276);
+ fitGlowTexture=new THREE.CanvasTexture(canvas);
+ fitGlowTexture.colorSpace=THREE.SRGBColorSpace;
+ return fitGlowTexture;
+}
+function removeFitMarker(marker){
+ marker.tween?.kill();
+ marker.sprite.removeFromParent();
+ marker.sprite.material.dispose();
+}
 function clearSelectedFitFlashes(){
  if(fitRefreshTimer!==null){clearTimeout(fitRefreshTimer);fitRefreshTimer=null;}
- for(const mark of selectedFitFlashes.values())mark.remove();
+ for(const marker of selectedFitFlashes.values())removeFitMarker(marker);
  selectedFitFlashes.clear();
  lastFitFlashActions=[];
+ invalidate();
+}
+function physicalTargetHit(target){
+ const rect=renderer.domElement.getBoundingClientRect();
+ pointer.set((target.x-rect.left)/rect.width*2-1,
+  1-(target.y-rect.top)/rect.height*2);
+ raycaster.setFromCamera(pointer,camera);
+ return raycaster.intersectObjects(interactiveMeshes,false).find(hit=>
+  hit.object.userData.action===target.action&&
+  isMeshEffectivelyVisible(hit.object)&&
+  (!hit.object.userData.requiresObservatoryOpen||
+   currentGameState.observatoryRaised));
+}
+function addFitMarker(target){
+ const hit=physicalTargetHit(target);
+ if(!hit)return null;
+ const mesh=hit.object;
+ // Sit almost flush with the real surface. Do not use the world origin
+ // or a cube-face coordinate that makes the ring slide across the puzzle.
+ const n=hit.face?.normal
+  ?hit.face.normal.clone().transformDirection(mesh.matrixWorld)
+  :camera.position.clone().sub(hit.point).normalize();
+ if(n.dot(camera.position.clone().sub(hit.point))<0)n.negate();
+ const worldPoint=hit.point.clone().addScaledVector(n,.025);
+ const local=mesh.worldToLocal(worldPoint);
+ const material=new THREE.SpriteMaterial({
+  map:getFitGlowTexture(),color:0xffffff,transparent:true,
+  depthTest:true,depthWrite:false,toneMapped:false,
+  opacity:reducedMotion?1:.95});
+ const sprite=new THREE.Sprite(material);
+ sprite.name="Inventory fit guide — mounted to physical target";
+ sprite.position.copy(local);
+ sprite.scale.set(.54,.64,1);
+ sprite.renderOrder=2;
+ // The sprite is deliberately absent from interactiveMeshes and never
+ // claims a click; it only follows the material fitting below it.
+ mesh.add(sprite);
+ const tween=reducedMotion?null:gsap.to(material,{
+  opacity:.47,duration:.9,repeat:-1,yoyo:true,
+  ease:"sine.inOut",onUpdate:invalidate});
+ const marker={sprite,mesh,local:local.clone(),tween};
+ selectedFitFlashes.set(target.action,marker);
+ invalidate();
+ return marker;
 }
 function updateSelectedFitFlashes(){
  if(!heldItemForFlash||!embeddedGame){clearSelectedFitFlashes();return;}
  const canFit=window.CriloNothingHereCube?.canUseSelectedWithAction;
  if(typeof canFit!=="function")return;
- // visibleKeyboardTargets checks the genuine hit surface from the
- // CURRENT view. A hidden mechanism can never acquire a false marker.
- const visible=visibleKeyboardTargets(canFit).slice(0,7);
- const active=new Set(visible.map(v=>v.action));
- const rect=renderer.domElement.getBoundingClientRect();
- for(const target of visible){
-  let mark=selectedFitFlashes.get(target.action);
-  if(!mark){
-   mark=document.createElement("span");
-   mark.className="nc-selected-fit-flash";
-   mark.setAttribute("aria-hidden","true");
-   const label=document.createElement("span");
-   label.className="nc-selected-fit-label";
-   label.textContent="Fits here";
-   mark.appendChild(label);
-   stage.appendChild(mark);
-   selectedFitFlashes.set(target.action,mark);
+ // Keep an existing marker seated at its original local coordinates,
+ // even if rotation temporarily hides that side. Depth testing makes
+ // it disappear behind the cube without moving it to another mesh.
+ for(const [action,marker] of selectedFitFlashes){
+  if(!canFit(action)||!isMeshEffectivelyVisible(marker.mesh)){
+   removeFitMarker(marker);
+   selectedFitFlashes.delete(action);
   }
-  mark.style.left=(target.x-rect.left)+"px";
-  mark.style.top=(target.y-rect.top)+"px";
  }
- for(const [action,mark] of selectedFitFlashes){
-  if(!active.has(action)){mark.remove();selectedFitFlashes.delete(action);}
- }
- lastFitFlashActions=[...active];
+ // Discover new reachable sockets only. Once acquired, NEVER reproject
+ // the anchor on subsequent camera/rotation changes.
+ const targets=visibleKeyboardTargets(canFit).slice(0,7);
+ for(const target of targets)
+  if(!selectedFitFlashes.has(target.action))addFitMarker(target);
+ lastFitFlashActions=[...selectedFitFlashes.keys()];
+ invalidate();
 }
 function scheduleFitFlashRefresh(){
  if(!heldItemForFlash||fitRefreshTimer!==null)return;
- // Throttle costly precision raycasts while orbiting; CSS keeps the green
- // pulse running smoothly without drawing new WebGL frames.
  fitRefreshTimer=setTimeout(()=>{
   fitRefreshTimer=null;
   if(heldItemForFlash)updateSelectedFitFlashes();
- },90);
+ },130);
 }
 const usableFaces=[
  ["front",frontFace],["back",backFace],["right",rightFace],
@@ -1766,9 +1826,23 @@ window.__nothing3DPreview={
   targets:[...lastFitFlashActions],
   visible:selectedFitFlashes.size,
   guidedFace:fitDirectedFace,
-  persistent:[...selectedFitFlashes.values()].every(node=>
-   node.isConnected&&getComputedStyle(node).animationIterationCount==="infinite")
+  anchored:[...selectedFitFlashes.values()].every(marker=>
+   marker.sprite.parent===marker.mesh&&
+   marker.sprite.position.distanceToSquared(marker.local)<1e-12),
+  inScene:[...selectedFitFlashes.values()].every(marker=>
+   marker.sprite.parent?.isMesh===true),
+  persistent:[...selectedFitFlashes.values()].every(marker=>
+   marker.sprite.material.depthTest&&
+   (reducedMotion||marker.tween?.isActive()||!!marker.tween)),
+  domOverlays:stage.querySelectorAll(".nc-selected-fit-flash").length
  }},
+ get selectedFitAnchorPositions(){return [...selectedFitFlashes].map(([action,marker])=>{
+  scene.updateMatrixWorld(true);
+  const world=marker.sprite.getWorldPosition(new THREE.Vector3());
+  return {action,local:marker.sprite.position.toArray(),
+   world:world.toArray(),mesh:marker.mesh.uuid,
+   anchored:marker.sprite.parent===marker.mesh};
+ })},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
  getGearDragCenter(name){
