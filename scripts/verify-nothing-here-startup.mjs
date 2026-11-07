@@ -188,13 +188,19 @@ try{
       JSON.stringify(audit));
    }
    if(check.label==="observatory-open-desktop"){
-    await page.evaluate(()=>window.__nothing3DPreview.setRotation(90,0));
-    await page.waitForTimeout(300);
-    const view=await page.evaluate(()=>{
-     const scene=window.__nothing3DPreview;
-     return {audit:scene.observatoryClickAudit,
-      target:scene.projectObservatoryInstrument()};
-    });
+    // The dome aperture faces toward the FRONT of the top panel. At
+    // x=90° the camera sees the opaque REAR shell, not the telescope
+    // opening. Check real oblique player views that expose the instrument.
+    let view=null;
+    for(const [rx,ry] of [[40,0],[50,0],[58,0],[38,-18],[38,18]]){
+     view=await page.evaluate(([x,y])=>{
+      const scene=window.__nothing3DPreview;
+      scene.setRotation(x,y);
+      return {rx:x,ry:y,audit:scene.observatoryClickAudit,
+       target:scene.projectObservatoryInstrument()};
+     },[rx,ry]);
+     if(view.target?.scopeHit)break;
+    }
     assert(view.audit.open&&view.audit.registered>=8&&
      view.audit.domeMeshes>=1&&view.audit.noInvisibleBox,
      "Opened telescope barrel was not registered: "+JSON.stringify(view));
@@ -210,6 +216,8 @@ try{
     const clue=await page.locator("#status").textContent();
     assert(/optic|socket|telescope|sky|focus/i.test(clue||""),
      "Pressing the real telescope offered no useful visual text feedback: "+clue);
+    await page.screenshot({path:"test-results/nothing-here-observatory-click.png",
+     timeout:45000});
    }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
    // Check the design at each physical angle, not merely a Three.js
