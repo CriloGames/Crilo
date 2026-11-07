@@ -295,7 +295,9 @@ async function refundCoin(page,{realPointer=false}={}){
   const action=to===96||to===from-16?"maze-in":
    to===from+16?"maze-out":
    Math.floor(to/16)===Math.floor(from/16)&&
-   to%16===(from%16+1)%24?"maze-ccw":"maze-cw";
+   // The physical route has SIXTEEN sectors per ring. In particular,
+   // 47 -> 32 crosses sector 15 -> 0 and must turn counterclockwise.
+   to%16===(from%16+1)%16?"maze-ccw":"maze-cw";
   await act(page,action);
   assert.equal((await state(page)).gearMazeCell,to,
    "A sculpted channel does not match its playable direction: "+from+" -> "+to);
