@@ -131,8 +131,10 @@ try{
    route=>route.fulfill({status:200,contentType:"application/javascript",body:mock}));
   if(check.seed){
    await page.addInitScript(({key,data})=>{
-    // This context has isolated browser storage. No production saves change.
-    localStorage.setItem(key,JSON.stringify(data));
+    // Seed only an empty isolated test context. Subsequent page reloads
+    // must restore the player's *updated* progress, not the original seed.
+    if(localStorage.getItem(key)===null)
+     localStorage.setItem(key,JSON.stringify(data));
    },{key:savedKey,data:check.seed});
   }
   try{
