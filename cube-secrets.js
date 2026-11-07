@@ -1273,7 +1273,7 @@ function accepts(item,thing){
  ||item==='kite'&&thing==='cloud'&&s.cloud&&!s.kite
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
- ||item==='bell'&&thing==='dog'&&s.doorOpen&&!s.barked
+ ||item==='bell'&&thing==='dog'&&s.doorOpen&&!s.bellUsed
  ||item==='lens'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
@@ -1357,7 +1357,9 @@ function use(item,thing){
   // The bell stays attached to the collar afterward rather than acting
   // like an infinitely reusable green-highlighted unlock.
   spend('bell');s.bellUsed=true;
-  sound(820);bark('bell');
+  sound(820);
+  if(!s.barked)bark('bell');
+  else tell('You attach the tiny bell to the dog’s collar. It rings once, but the squirrel and broken vase are already gone.');
  }else if((item==='lens'||item==='iris')&&thing==='telescope'){
   // Two independently obtainable optical components fit separate sockets:
   // one from the elevator, the other from the opened rear-eye mechanism.
