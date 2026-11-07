@@ -395,6 +395,16 @@ try{
     }
     const headline=await page.locator("#ncFinaleBanner h2").innerText();
     assert.equal(headline,"You found all secrets!");
+    // The banner is never allowed to cover even the top edge of the
+    // horizontal T, including narrow mobile saved-game layouts.
+    const layoutBounds=await page.evaluate(()=>{
+     const title=document.getElementById("ncFinaleBanner").getBoundingClientRect();
+     const world=document.getElementById("ncWorld").getBoundingClientRect();
+     return {bannerBottom:title.bottom,worldTop:world.top,
+      bannerWidth:title.width,worldWidth:world.width};
+    });
+    assert(layoutBounds.bannerBottom<=layoutBounds.worldTop+2,
+     "Completion heading obscured the 3D T-shaped cube: "+JSON.stringify(layoutBounds));
     assert(await page.locator("#ncFinaleReplay").isVisible(),
      "A completed run has no replayable ending");
     await page.locator("#ncFinaleReplay").click();
