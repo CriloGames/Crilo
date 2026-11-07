@@ -1246,15 +1246,29 @@ function physicalTargetHit(target){
 function addFitMarker(target){
  const hit=physicalTargetHit(target);
  if(!hit)return null;
- const mesh=hit.object;
- // Sit almost flush with the real surface. Do not use the world origin
- // or a cube-face coordinate that makes the ring slide across the puzzle.
- const n=hit.face?.normal
-  ?hit.face.normal.clone().transformDirection(mesh.matrixWorld)
-  :camera.position.clone().sub(hit.point).normalize();
- if(n.dot(camera.position.clone().sub(hit.point))<0)n.negate();
- const worldPoint=hit.point.clone().addScaledVector(n,.025);
- const local=mesh.worldToLocal(worldPoint);
+ // Observatory raycasts often land on the curved roof or telescope saddle.
+ // The green item-placement marker must instead sit at the exact center of
+ // the actual front objective, regardless of which face the pointer hit.
+ // Keep the mesh local so it follows the telescope when the cube turns.
+ const objective=target.action==="thing:telescope"&&currentGameState.observatoryRaised
+  ?pocketWorlds?.telescopeObjective:null;
+ const mesh=objective&&isMeshEffectivelyVisible(objective)?objective:hit.object;
+ let local;
+ if(mesh===objective){
+  // The objective is a z-facing cylinder rotated 90 degrees about X:
+  // positive local Y is directly out of the optical glass. Its axis
+  // remains (0,0) even when the barrel, dome or camera rotates.
+  local=new THREE.Vector3(0,.015,0);
+ }else{
+  // For other inventory fittings, retain the existing surface-anchored
+  // highlight without moving it as the player orbits the cube.
+  const n=hit.face?.normal
+   ?hit.face.normal.clone().transformDirection(mesh.matrixWorld)
+   :camera.position.clone().sub(hit.point).normalize();
+  if(n.dot(camera.position.clone().sub(hit.point))<0)n.negate();
+  const worldPoint=hit.point.clone().addScaledVector(n,.025);
+  local=mesh.worldToLocal(worldPoint);
+ }
  const material=new THREE.SpriteMaterial({
   map:getFitGlowTexture(),color:0xffffff,transparent:true,
   depthTest:true,depthWrite:false,toneMapped:false,
@@ -1262,7 +1276,9 @@ function addFitMarker(target){
  const sprite=new THREE.Sprite(material);
  sprite.name="Inventory fit guide — mounted to physical target";
  sprite.position.copy(local);
- sprite.scale.set(.54,.64,1);
+ // The observatory lens is miniature: keep its green halo in the glass
+ // instead of drawing an oversized marker across the entire dome.
+ sprite.scale.set(mesh===objective?.22:.54,mesh===objective?.26:.64,1);
  sprite.renderOrder=2;
  // The sprite is deliberately absent from interactiveMeshes and never
  // claims a click; it only follows the material fitting below it.
@@ -1793,6 +1809,17 @@ window.__nothing3DPreview={
    world:world.toArray(),mesh:marker.mesh.uuid,
    anchored:marker.sprite.parent===marker.mesh};
  })},
+ get observatoryFitGuideAlignment(){
+  const objective=pocketWorlds?.telescopeObjective;
+  const marker=selectedFitFlashes.get("thing:telescope");
+  if(!objective)return null;
+  scene.updateMatrixWorld(true);
+  const lensCenter=objective.localToWorld(new THREE.Vector3(0,.015,0));
+  const actual=marker?.sprite.getWorldPosition(new THREE.Vector3())||null;
+  return {visible:!!marker,anchored:!!marker&&marker.mesh===objective,
+   error:actual?actual.distanceTo(lensCenter):null,
+   local:marker?.sprite.position.toArray()||null};
+ },
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
  getGearDragCenter(name){
