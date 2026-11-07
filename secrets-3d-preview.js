@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=46";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=12";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=61";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=62";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
