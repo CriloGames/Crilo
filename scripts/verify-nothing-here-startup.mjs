@@ -55,6 +55,20 @@ const cases=[
    doorOpen:false,fluteNotes:[2,1,3,1,3,2],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // An accessible maker-stamp elevator must not give away its fourth
+ // floor just by pressing buttons. A real collar tag activates its reader.
+ {label:"lift-requires-collar-tag",viewport:{width:1280,height:850},
+  seed:{seen:["first","serial","tag"],serialRead:true,tag:true,
+   pocket:["tag"],pendingPickups:[],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Do not retroactively lock an already-cleared fourth floor for players
+ // with an old save from when the lift had no tag keyway.
+ {label:"legacy-fourth-floor",viewport:{width:1280,height:850},
+  seed:{seen:["first","serial","fourth"],serialRead:true,
+   floorFour:true,pocket:[],pendingPickups:[],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
@@ -264,6 +278,57 @@ try{
       "crilo_nothing_here_cube_v3")));
     assert(disk.door&&disk.doorOpen&&disk.pocket.includes("flute"),
      "Door opening failed to persist with the previously earned flute");
+   }
+   if(check.label==="lift-requires-collar-tag"||
+      check.label==="legacy-fourth-floor"){
+    const before=await page.evaluate(()=>({
+     state:window.CriloNothingHereCube.getState(),
+     reader:window.__nothing3DPreview.physicalElevatorTagReaderState,
+     controls:window.__nothing3DPreview.physicalPuzzleActions
+    }));
+    assert(before.reader?.hasSocket&&before.reader.panelMounted&&
+     before.controls.includes("thing:elevator-keyway"),
+     "Lift lost its visible, physical collar-tag reader: "+JSON.stringify(before.reader));
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction(
+     "thing:elevator-floor-4"));
+    const pressed=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    if(check.label==="legacy-fourth-floor"){
+     assert(pressed.floorFour,
+      "Old saves must not relock a previously opened fourth floor");
+    }else{
+     assert(!pressed.floorFour&&!pressed.pendingPickups.includes("lens"),
+      "Random button presses bypassed the collar-tag access lock");
+     await page.locator('#ncInventory [data-item="tag"]').click();
+     const fits=await page.evaluate(()=>window.CriloNothingHereCube
+      .canUseSelectedWithAction("thing:elevator-keyway"));
+     assert(fits,"Holding the collar tag must recognize the reader as a fitting");
+     await page.evaluate(()=>window.__nothing3DPreview.setRotation(-19,95));
+     const socket=await page.evaluate(()=>window.__nothing3DPreview
+      .projectPhysicalPuzzleControl("thing:elevator-keyway"));
+     assert(socket?.pick==="thing:elevator-keyway",
+      "The collar-tag slot is physically obscured by the lift/buttons: "+
+       JSON.stringify(socket));
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction(
+      "thing:elevator-keyway"));
+     const placed=await page.evaluate(()=>({
+      state:window.CriloNothingHereCube.getState(),
+      reader:window.__nothing3DPreview.physicalElevatorTagReaderState
+     }));
+     assert(placed.state.elevatorTagInserted&&
+      !placed.state.pocket.includes("tag")&&placed.reader.tagVisible&&
+      placed.reader.lamp>.3,
+      "The dog tag did not seat and stay visible in the lift's reader: "+
+       JSON.stringify(placed));
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction(
+      "thing:elevator-floor-4"));
+     const opened=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+     assert(opened.floorFour&&opened.pendingPickups.includes("lens"),
+      "Fourth floor did not produce the real lens after inserting the tag");
+     const disk=await page.evaluate(()=>JSON.parse(localStorage.getItem(
+      "crilo_nothing_here_cube_v3")));
+     assert(disk.elevatorTagInserted&&disk.floorFour&&
+      !disk.pocket.includes("tag"),"The installed tag/fourth floor did not save");
+    }
    }
    if(check.label==="vending-two-rewards"){
     const result=await page.evaluate(()=>{
