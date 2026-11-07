@@ -420,9 +420,35 @@ export function buildIntricateCube({
     const i=Math.max(0,Math.min(29,Number(state.gearMazeIndex)||0));
     return mazeRouteCells[Math.round(i/29*(mazeRouteCells.length-1))];
   }
-  C(follower,.005,.044,0,0,-.011,steel);
+  // There must be only ONE moving marker. The old polished-steel
+  // follower shaft left a little pale/white bead behind the black ball
+  // as it crossed the maze, despite having no gameplay function.
+  // The ball and its dark halo now share this SAME moving follower.
+  // Build the glow as soft black pigment, rather than an emissive WHITE
+  // light that would make the marble look gray.
+  const ballGlowCanvas=document.createElement("canvas");
+  ballGlowCanvas.width=ballGlowCanvas.height=128;
+  const ballGlowBrush=ballGlowCanvas.getContext("2d");
+  const ballGlowGradient=ballGlowBrush.createRadialGradient(
+   64,64,8,64,64,64);
+  ballGlowGradient.addColorStop(0,"rgba(6,9,14,.45)");
+  ballGlowGradient.addColorStop(.35,"rgba(8,12,18,.28)");
+  ballGlowGradient.addColorStop(.68,"rgba(9,13,20,.10)");
+  ballGlowGradient.addColorStop(1,"rgba(9,13,20,0)");
+  ballGlowBrush.fillStyle=ballGlowGradient;
+  ballGlowBrush.fillRect(0,0,128,128);
+  const ballGlowTexture=new THREE.CanvasTexture(ballGlowCanvas);
+  ballGlowTexture.colorSpace=THREE.SRGBColorSpace;
+  const ballGlow=new THREE.Mesh(
+   new THREE.PlaneGeometry(.036,.036),
+   new THREE.MeshBasicMaterial({map:ballGlowTexture,transparent:true,
+    depthWrite:false,depthTest:true,side:THREE.DoubleSide}));
+  ballGlow.position.z=-.002;
+  ballGlow.userData.noBatch=true;
+  follower.add(ballGlow);detailsCount++;
   // Dark graphite ball stands clearly against the ivory face and brass goal.
- const captiveBall=new THREE.Mesh(new THREE.SphereGeometry(.0084,20,16),mat(0x121821,.23,.30));
+  const captiveBall=new THREE.Mesh(
+   new THREE.SphereGeometry(.0084,20,16),mat(0x121821,.23,.30));
   captiveBall.position.z=0;follower.add(captiveBall);detailsCount++;
   // A cam beneath the rotating labyrinth wheel drives an enclosed
   // mechanical linkage to the pressure dial. Earlier this was one thin
@@ -796,6 +822,11 @@ export function buildIntricateCube({
        centerMouthWidth,
        goalCollarGap,
        ballRadius:.0084,
+       blackHaloAttached:ballGlow.parent===follower,
+       blackHaloDiameter:ballGlow.geometry.parameters.width,
+       movingMarkerParts:follower.children.length,
+       paleFollowerRemoved:!follower.children.some(mesh=>
+         mesh.isMesh&&mesh.material===steel),
        guidedSegments:0,
        visibleBlockedEdges:mazeRelief.blockedEdges,
        wallMeshes:mazeRelief.wallLayers,
