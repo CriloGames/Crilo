@@ -47,6 +47,7 @@ jobs:
       - name: Check source and test syntax
         run: |
           node --check secrets-3d-preview.js
+          node --check secrets-3d-finale.js
           node --check secrets-3d-details.js
           node --check cube-secrets.js
           node --check scripts/verify-nothing-here-startup.mjs
