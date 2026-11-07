@@ -212,6 +212,14 @@ async function refundCoin(page,{realPointer=false}={}){
   assert(rect,"The physical 3D canvas is not visible for wheel drag");
   const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
   const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
+  // Regression guard: viewport mouse coordinates and canvas-local raycast
+  // coordinates are different. The visible black cog must be reachable
+  // without clicking outside the browser window.
+  const viewport=page.viewportSize();
+  assert(viewport&&start.x>=0&&start.x<=viewport.width&&
+   start.y>=0&&start.y<=viewport.height,
+   "The physical wheel is offscreen after scrolling: "+
+    JSON.stringify({start,rect,viewport,name}));
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
   // This audit endpoint expects canvas-local pixel coordinates; Playwright
   // requires viewport coordinates for the real mouse.
