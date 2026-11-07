@@ -1561,7 +1561,9 @@ function note(i){
   // keeps keyboard interaction and audio functional on completed saves.
   s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-FLUTE_CODE.length);
   window.NothingHereAudio?.playFluteNote?.(i);
-  tell('The little door is already open, but the flute can still be played.');
+  tell(s.doorOpen
+   ?'The little door is already open, but the flute can still be played.'
+   :'The six-note melody already released the little door. Press its front panel or brass knob to open it.');
   render();return;
  }
  if(s.fluteNotes.length>=FLUTE_CODE.length)s.fluteNotes=[];
@@ -1576,7 +1578,7 @@ function note(i){
   if(!s.door){
     s.door=true;
     bloom('door','The six-note melody unlatches a miniature door on the box.');
-    tell('The six notes match the two engraved phrases. A little door swings loose on the box.');
+    tell('The six notes match the two engraved phrases. The little door is unlocked. Press its front panel or brass knob to swing it open.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
    }
   else tell('The door recognizes that tune.');
@@ -1671,9 +1673,13 @@ function clickThing(name,actuator=false){
    }else openBag();
  }
  else if(name==='door'){
-  if(document.body.classList.contains('nc-physical-ready')&&!actuator&&!s.doorOpen){
-   tell('The little door is shut. Its knob is still in place.');
-  }else if(!s.doorOpen){
+  // The flute releases the latch; pressing the unlocked door panel must
+  // actually open it. Previously the full-size panel only displayed
+  // "the knob is still in place", while the tiny knob held the only
+  // working hit target. That stranded players who had played the melody.
+  // This never bypasses the flute, because thingPresent("door") is
+  // false until the six-note sequence has been completed.
+  if(!s.doorOpen){
     s.doorOpen=true;bloom('dog','Behind the door: a polite little dog and something balanced overhead.');
     cue('ncDoor','nc-opening',1190);
     scatter('#e8ceae',8,$('ncDoor'));
