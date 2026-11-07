@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=46";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=16";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=62";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=63";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -1924,7 +1924,13 @@ window.__nothing3DPreview={
   scene.updateWorldMatrix(true,true);
   // Find a truly clickable point ON the visible volume, not the group
   // origin or the AABB center: those could be hidden by the cube or floor.
-  const samples=[
+  const samples=name==="telescope"?[
+   // Sample points on the dome itself, not the retired invisible box.
+   [0,-.043,.275],[.09,-.052,.256],[-.09,-.052,.256],
+   [0,.11,.252],[.15,.11,.195],[-.15,.11,.195],
+   [.12,-.12,.225],[-.12,-.12,.225],
+   [0,.18,.205],[0,.20,.18]
+  ]:[
    [0,0,.18],[.14,0,.18],[-.14,0,.18],
    [0,.14,.18],[0,-.14,.18],
    [.14,.13,.18],[-.14,.13,.18],
