@@ -85,6 +85,20 @@ const cases=[
    portal:true,redHits:4,pocket:["bell"],pendingPickups:["tag"],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Repro: old recovery resurrects a bell already attached to the dog's collar.
+ // Both stale pocket ownership and pending pickups must be repaired on load.
+ {label:"spent-bell-in-pocket",viewport:{width:1280,height:850},
+  seed:{seen:["first","dot","bell","door","bark"],redHits:4,
+   door:true,doorOpen:true,barked:true,bellUsed:true,
+   pocket:["bell","coin"],pendingPickups:["tag"],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ {label:"spent-bell-in-tray",viewport:{width:1280,height:850},
+  seed:{seen:["first","dot","bell","door","bark"],redHits:4,
+   door:true,doorOpen:true,barked:true,bellUsed:true,
+   pocket:["coin"],pendingPickups:["bell","tag"],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  // Existing users may have taken another drop *after* growing the tree.
  // Loading this specific impossible spare must not resurrect it.
  {label:"legacy-extra-raindrop",viewport:{width:1280,height:850},
@@ -501,6 +515,50 @@ try{
     assert(disk.rainReleased&&disk.bellUsed&&disk.tree&&
      !disk.pocket.includes("raindrop")&&disk.seen.includes("portal"),
      "One-shot rain/bell and postcard portal were not saved");
+   }
+   if(check.label==="spent-bell-in-pocket"||
+      check.label==="spent-bell-in-tray"){
+    const initial=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     scene:window.__nothing3DPreview.getPhysicalPickupRevealState("bell"),
+     dog:window.__nothing3DPreview.physicalScenePose.dogBellOnCollar,
+     disk:JSON.parse(localStorage.getItem("crilo_nothing_here_cube_v3"))
+    }));
+    assert(initial.game.bellUsed&&initial.game.barked&&initial.dog,
+     "The previously used bell lost its saved attachment to the dog");
+    assert(!initial.game.pocket.includes("bell")&&
+     !initial.game.pendingPickups.includes("bell")&&
+     initial.game.pocket.includes("coin")&&
+     initial.game.pendingPickups.includes("tag"),
+     "Bell recovery discarded other items or revived the spent bell: "+
+      JSON.stringify(initial.game));
+    assert(!initial.scene?.visible&&!initial.scene?.onScene,
+     "The spent bell is physically visible again on the underside of the cube");
+    assert(!initial.disk.pocket.includes("bell")&&
+     !initial.disk.pendingPickups.includes("bell"),
+     "The saved bell was not corrected on disk");
+    const pickup=await page.evaluate(()=>
+     window.CriloNothingHereCube.activatePhysicalPickup("bell"));
+    assert.equal(pickup,false,
+     "Pressing the old bell socket allowed the spent bell to be reclaimed");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("dot"));
+    const afterDot=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(afterDot.bellUsed&&!afterDot.pocket.includes("bell")&&
+     !afterDot.pendingPickups.includes("bell"),
+     "The completed red ratchet regenerated the already-used bell");
+    await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+    await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+     document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+    const afterReload=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     scene:window.__nothing3DPreview.getPhysicalPickupRevealState("bell"),
+     dog:window.__nothing3DPreview.physicalScenePose.dogBellOnCollar
+    }));
+    assert(afterReload.game.bellUsed&&afterReload.dog&&
+     !afterReload.game.pocket.includes("bell")&&
+     !afterReload.game.pendingPickups.includes("bell")&&
+     !afterReload.scene?.visible,
+     "The duplicate bell reappeared on a second reload");
    }
    if(check.label==="legacy-extra-raindrop"){
     const clean=await page.evaluate(()=>({
