@@ -21,6 +21,14 @@ const mock=`window.supabase={createClient:()=>({
 })};`;
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
+// On a software-rendered WebGL page, DOMContentLoaded can lag even after
+// navigation commits. Wait for the new document, then independently require
+// the fully initialized live 3D scene. This never skips save-state checks.
+const reloadReady=async page=>{
+ await page.reload({waitUntil:"commit",timeout:90000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready,
+  null,{timeout:90000});
+};
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
  const action=thing==="shutter"?"shutter":thing==="cube"?"cube-offer":thing==="eye"?"eye":"thing:"+thing;
  await page.locator('#ncInventory [data-item="'+item+'"]').click();
@@ -278,8 +286,7 @@ async function refundCoin(page,{realPointer=false}={}){
   window.__nothing3DPreview.physicalGearMaze);
  assert(geared.stationaryFace&&Math.abs(geared.faceAngle)<.000001,
   "The black cog turned but the white maze also rotated");
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
- await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+ await reloadReady(page);
  assert.equal((await state(page)).gearMazeCell,81,
   "Reloading erased an unfinished maze position");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
@@ -342,8 +349,7 @@ try{
   assert(repaired.shimUsed,
    "Using the shim must repair the coin-return mechanism even without a progress panel");
   await refundCoin(page,{realPointer:true});
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   const saved=await state(page);
   assert(saved.refundRedeemed&&saved.seen.includes("service-bolt")&&
     saved.serviceSealInserted&&saved.serviceOpen&&
@@ -534,8 +540,7 @@ try{
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The reference observatory was unlocked but its curved shutter did not retract");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   opened=await state(page);
   assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
    "Reload erased the opened dome or falsely awarded another secret");
@@ -605,8 +610,7 @@ try{
    (await page.evaluate(()=>
     window.__nothing3DPreview.physicalScenePose.telescopeOptics.both)),
    "Using two physically distinct optic holders did not reveal the second sky");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   merged=await state(page);
   assert(merged.observed&&merged.train&&merged.secondSky&&
    merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
@@ -757,8 +761,7 @@ try{
   for(const item of ["fork","seal","cylinder","tape","letter","envelope"])
    assert(!final.pocket.includes(item)&&!final.pendingPickups.includes(item),
     "Downstream mechanism duplicated spent "+item);
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
    restored.cylinderMounted&&restored.serviceSealInserted&&restored.train&&
