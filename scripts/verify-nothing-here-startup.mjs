@@ -233,6 +233,29 @@ try{
     assert.equal(result.progress?.solved,false,
      "Loading a saved game incorrectly marked the maze complete");
    }
+   if(check.label==="fresh-desktop"){
+    // The fourth corner is a captive pin, not a removable screw. Repeated
+    // clicks must give physical feedback instead of a developer testing note,
+    // even once all three actual cover screws have been removed.
+    for(let i=0;i<2;i++){
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+     const narrator=await page.locator("#ncNarrator").innerText();
+     const state=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+     assert.match(narrator,/rounded pin pushes inward and springs back/i,
+      "The captive corner pin gave an unclear testing message");
+     assert.equal(state.falseScrewTurns,1);
+     assert.deepEqual(state.screws,[],"The captive pin was treated like a removable screw");
+    }
+    for(const n of [0,1,2])
+     await page.evaluate(n=>window.__nothing3DPreview.clickAction("front-screw-"+n),n);
+    const released=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(released.plateOpen&&released.screws.length===3,
+     "The three actual corner screws failed to release the front cover");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    assert.match(await page.locator("#ncNarrator").innerText(),
+     /rounded pin pushes inward and springs back/i,
+     "After removing the screws, the captive pin claims screws still remain");
+   }
    if(check.label==="lavender-open-desktop"){
     await page.evaluate(()=>window.__nothing3DPreview.setRotation(30,0));
     await page.waitForFunction(()=>
