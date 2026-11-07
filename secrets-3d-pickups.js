@@ -231,7 +231,26 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    const disc=C(.093,.032,0,0,.025);
    disc.rotation.x=Math.PI/2;
    ring(.073,.014,.052,id==="tag"?copper:metal);
-   if(id==="tag")B(.040,.030,.023,0,0,.065,ink);
+   if(id==="tag"){
+    // The tag is the literal key to floor 04, so show the engraving ON
+    // the collectible itself, not only in a narrator message that vanishes.
+    // A small brass inset mounts the glyph flush to the metal disc.
+    B(.101,.068,.011,0,0,.064,copper);
+    const stamp=document.createElement("canvas");
+    stamp.width=256;stamp.height=128;
+    const ctx=stamp.getContext("2d");
+    ctx.clearRect(0,0,256,128);
+    ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.font="900 105px system-ui,sans-serif";
+    ctx.fillStyle="#26343b";ctx.fillText("04",128,70,226);
+    const texture=new THREE.CanvasTexture(stamp);
+    texture.colorSpace=THREE.SRGBColorSpace;
+    const engraved=new THREE.Mesh(new THREE.PlaneGeometry(.090,.058),
+     new THREE.MeshBasicMaterial({map:texture,transparent:true,
+      depthWrite:false,side:THREE.DoubleSide}));
+    engraved.position.z=.074;
+    group.add(engraved);
+   }
   }else if(["washer"].includes(id)){
    ring(.090,.026,.045);
   }else if(id==="bell"){
