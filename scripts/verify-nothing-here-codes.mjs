@@ -163,7 +163,7 @@ assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
 // The selected reference requires a spherical ivory dome, a wide
 // arched opening, terracotta lining, a continuous lower band and a
 // telescope centered behind the opening, not the old boxy barrel.
-for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_OPEN_HALF_ANGLE=1.42,OBSERVATORY_ARCH_RISE=1.06;","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0x93584b,.12,.72);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
+for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0xc6b5a3,.10,.67);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
  'Reference observatory feature missing: '+part);
 // The hemisphere is moved toward the box center but away from the front
 // gold rail; the nearest part stays clear of the hinged panel's frame.
@@ -174,6 +174,27 @@ assert(worlds.includes('["telescope","topFace",0,-1.045]')&&
  hatchFrameFrontY-(domeCenterY+domeRadius)>.04&&
  .278*Math.sin(1.06)>.23,
  'The observatory position or enlarged dome opening regressed');
+// The in-game model (not an illustration) should carry realistic ivory
+// grain, embossed panel hardware, vented lower walls, a tiled deck and a
+// finder scope, with the aperture just over one-third open.
+for(const detail of [
+ 'const paintCanvas=document.createElement("canvas");',
+ 'const enamelGrain=new THREE.CanvasTexture(paintCanvas);',
+ 'ivory.map=enamelGrain;',
+ 'ivory.bumpMap=enamelGrain;',
+ 'ivory.bumpScale=.0009;',
+ 'geo.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));',
+ 'const deckMaterial=mat(0xcac0b4,.055,.68);',
+ 'C(g,.258,.009,0,0,.015,deckMaterial,"z");',
+ 'for(const a of [-1.12,-.57,0,.57,1.12]){',
+ 'const braceFinish=mat(0xdbcfbd,.13,.51);',
+ 'const warmLamp=mat(0xffe3a4,.04,.32);',
+ 'const rivetMesh=new THREE.InstancedMesh(',
+ 'const opticalCoating=mat(0x21394a,.31,.16);',
+ 'const finder=new THREE.Group();',
+ 'finder.position.set(0,.098,-.014);'
+]) assert(worlds.includes(detail),
+ 'Reference-style observatory texture or physical manufacturing detail missing: '+detail);
 assert(!worlds.includes('OBSERVATORY_REAR')&&
  !worlds.includes('const domeStrip=')&&
  !worlds.includes('const parapetOutline=new THREE.Shape();')&&
