@@ -78,6 +78,22 @@ export function buildIntricateCube({
        ?B(face,seg.length,width,depth,seg.center,fixed,z,paint,rounding)
        :B(face,width,seg.length,depth,fixed,seg.center,z,paint,rounding);
       mesh.userData.clearanceTrim=true;
+      // When a border MUST stop at a nearby mechanism, its end is not
+      // chopped off in empty air. Each cut end gets a tiny enamel-seated
+      // metal shoe INSIDE its own safe segment, like a real retained trim.
+      // Uninterrupted front rails need no extra metal or fake screws.
+      for(const [isCut,end] of [
+        [seg.from>from+.001,seg.from+.050],
+        [seg.to<to-.001,seg.to-.050]
+      ]){
+        if(!isCut||seg.length<.18)continue;
+        const bottom=.069,top=z+depth*.36;
+        const footDepth=top-bottom,footZ=(top+bottom)/2;
+        const foot=axis==="x"
+         ?B(face,.075,width*1.24,footDepth,end,fixed,footZ,steel,.008)
+         :B(face,width*1.24,.075,footDepth,fixed,end,footZ,steel,.008);
+        foot.userData.mechanicalMount=true;
+      }
     }
   };
   const axleBearing=(face,name,x,y,rearZ,r)=>{
