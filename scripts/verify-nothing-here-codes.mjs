@@ -6,6 +6,17 @@ import './verify-nothing-here-maze.mjs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const logic=read('cube-secrets.js');
+// The carved labyrinth has sixteen angular sectors. Both real-browser
+// playthroughs must route the seam from sector 15 back to 0, never % 24.
+for(const testPath of [
+ 'scripts/verify-nothing-here-second-coin.mjs',
+ 'scripts/verify-nothing-here-live-3d.mjs'
+]){
+ const source=read(testPath);
+ assert(source.includes('(from%16+1)%16')&&
+  !source.includes('(from%16+1)%24'),
+  testPath+' uses a stale 24-sector maze route and will stop at 47 -> 32');
+}
 const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
