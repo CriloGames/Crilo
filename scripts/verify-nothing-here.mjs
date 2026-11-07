@@ -126,7 +126,9 @@ try{
  assert(await page.locator("#ncCube").isHidden()&&
   await page.locator("#ncSideObjects").isHidden(),
   "3D import error exposed the deleted Classic view");
- assert.match(await page.locator("#status").innerText(),/3D cube couldn't load/);
+ assert.match(await page.locator("#status").innerText(),
+  /A required 3D script could not be downloaded|3D cube couldn't load/,
+  "The 3D failure message must explain the missing script without showing Classic");
  console.log("PASS: 3D load failure offers Retry without a Classic fallback");
 }finally{
  await browser.close();
