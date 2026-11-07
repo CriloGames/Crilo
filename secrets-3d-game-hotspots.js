@@ -274,8 +274,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   new THREE.TorusGeometry(.155,.012,7,36,Math.PI*.46),redCollarMaterial);
  redCollar.add(redIndex);count++;
 
- // The three removable front screws mechanically free a captive
- // service hatch. The reward gear is seated BEHIND this hatch, not in the
+ // The three removable front screws free this hatch, but the corner
+ // spring pin must still release the final latch. The gear is BEHIND it, not in the
  // main lens or in an unrelated cube offering button.
  // The slim left rail lies between SERIAL, LATCH and the optical bezel.
  reserve(frontFace,"cog service hatch",-1.15,.56,.34,.32);
