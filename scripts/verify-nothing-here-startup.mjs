@@ -126,7 +126,8 @@ try{
     const key=await page.evaluate(()=>{
      const scene=window.__nothing3DPreview;
      return {layout:scene.lavenderDrawerItemAudit,
-      target:scene.projectOriginalPickup("tooth")};
+      target:scene.projectOriginalPickup("tooth"),
+      rays:scene.debugLavenderPickupRays};
     });
     assert(key.layout?.drawerOpen&&key.layout.keyVisible&&
       key.layout.keyInDrawer&&key.layout.seatOnFloor&&
