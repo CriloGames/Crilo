@@ -1127,24 +1127,42 @@ try{
    JSON.stringify(coinUsability));
  // Confirm a genuine mouse hover triggers the green in-scene response
  // before the player clicks. Nothing elsewhere on the cube lights up.
- // The machine should flash green as soon as a compatible item is
- // held, even with the mouse nowhere near it. Only currently visible,
- // raycast-reachable fittings may pulse, so rotate to that face first.
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
+ // The new guidance must persist WITHOUT hover and steer the player
+ // toward the correct physical face, not merely flash once for 980ms.
+ // Begin on the opposite face to simulate why the original UI felt like
+ // trial and error. Selecting a coin should bring the machine into view.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
  await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>{
-  el.click(); // put the coin down
-  el.click(); // pick it back up on a face where it can be used
+  el.click(); // put it down
+  el.click(); // hold it again while looking at the wrong cube side
  });
  await page.waitForFunction(()=>
   window.__nothing3DPreview.selectedItemFlashAudit.targets.includes("thing:machine"),
-  null,{timeout:20000});
+  null,{timeout:22000});
  const selectionFlash=await page.evaluate(()=>
   window.__nothing3DPreview.selectedItemFlashAudit);
+ const oriented=await page.evaluate(()=>
+  window.__nothing3DPreview.cubeRotationDegrees);
  assert.equal(selectionFlash.selected,"coin",
-  "Picking up a held item did not produce compatibility feedback");
+  "Picking up an item did not produce green compatibility feedback");
+ assert.equal(selectionFlash.guidedFace,"front",
+  "Selecting an item should direct the player to its usable cube face");
+ assert(selectionFlash.persistent&&selectionFlash.visible>=1,
+  "Correct socket must keep pulsing rather than flashing once: "+
+   JSON.stringify(selectionFlash));
+ assert(Math.abs(oriented.ry-180)>35,
+  "A held item still requires guessing which face holds the fitting: "+
+   JSON.stringify(oriented));
  assert(!selectionFlash.targets.includes("latch")&&
   !selectionFlash.targets.includes("thing:dog"),
-  "The green selection flash leaked onto incompatible or locked objects");
+  "Green item guidance leaked onto incompatible or locked objects");
+ // Two complete pulse cycles later it still glows even with no hover.
+ await page.waitForTimeout(3400);
+ const steadyFlash=await page.evaluate(()=>
+  window.__nothing3DPreview.selectedItemFlashAudit);
+ assert(steadyFlash.targets.includes("thing:machine")&&
+  steadyFlash.visible>=1&&steadyFlash.persistent,
+  "Item guidance faded after the initial blink: "+JSON.stringify(steadyFlash));
  const vendingHover=await page.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalStoryObject("machine"));
  assert(vendingHover?.pick==="thing:machine",
@@ -1161,6 +1179,9 @@ try{
  await activate("thing:machine");
  assert.equal((await page.evaluate(()=>window.__nothing3DPreview.itemFitHint.active)),false,
   "The green compatibility ring remains after the item was spent");
+ assert.equal((await page.evaluate(()=>
+  window.__nothing3DPreview.selectedItemFlashAudit)).visible,0,
+  "The persistent fitting pulse must disappear after the item is used");
  let selectedState=await state();
  assert(selectedState.seen.includes("machine")&&selectedState.pendingPickups.includes("sugar")&&
   !selectedState.pocket.includes("sugar"),
