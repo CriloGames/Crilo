@@ -157,6 +157,14 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
  const locations={
   0:[-.16,-.04],1:[.16,-.04],2:[-.16,-.29],3:[.16,-.29]
  };
+ // The two vending-machine output sockets are IN the actual .35-wide
+ // return tray. They do not hover in front of the cube's face, and the
+ // separately tappable hit areas do not overlap.
+ const pickupSeat=(source,slot)=>{
+  if(source==="machine")return [slot===0?-.085:.085,.012,.05];
+  const [x,y]=locations[slot]||locations[0];
+  return [x,y,.10];
+ };
  const slotCount=new Map();
  for(const [source,slot] of Object.values(sources))
   slotCount.set(source,Math.max(slotCount.get(source)||0,slot+1));
@@ -164,6 +172,17 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   let tray=trays.get(source);
   if(tray)return tray;
   const group=new THREE.Group();
+  if(source==="machine"){
+   // The vending cabinet already contains a real mechanical sliding tray.
+   // Parent the rewards directly to that moving metal, without constructing
+   // another projecting shelf in empty space beside the machine.
+   group.position.set(0,0,.015);
+   host.add(group);
+   group.visible=false;
+   tray={group,source};
+   trays.set(source,tray);
+   return tray;
+  }
   group.position.z=.385;
   host.add(group);
   const rows=(slotCount.get(source)||1)>2?2:1;
@@ -351,12 +370,12 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
     // The red switch releases a bell from a hidden underside slot.
     ?{face:faces.bottomFace,x:0,y:-1.16,z:.20}:null;
   const root=new THREE.Group();
-  const [px,py]=locations[slot]||locations[0];
+  const [px,py,pz]=pickupSeat(source,slot);
   // The carrier is supported by its own face-mounted bracket. Item
   // models sit just forward of it, not separated from the cube by air.
   if(atMini){
    const tray=miniTray(host,source);
-   root.position.set(px,py,.10);
+   root.position.set(px,py,pz);
    root.scale.setScalar(.78);
    tray.group.add(root);
   }else{
@@ -455,6 +474,27 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    depth:group.position.z,
    visibleItems:group.children.filter(node=>node.userData.pickupModel&&node.visible).length
   })),
+  getVendingReturnMountAudit:()=>{
+   const holder=trays.get("machine")?.group||null;
+   const movingTray=worlds?.getPickupHost?.("machine")||null;
+   const entries=["sugar","coin","seal"].map(id=>{
+    const root=instances.get(id);
+    const fromMachine=mountedSources.get(id)==="machine";
+    return {id,source:mountedSources.get(id),visible:!!root?.visible,
+     onReturnTray:fromMachine&&!!holder&&root?.parent===holder,
+     offset:fromMachine?root.position.toArray():null,
+     supported:!fromMachine||Math.abs(root.position.x)+.175*.78/2<=.175&&
+      root.position.z>=.035&&root.position.z<=.07};
+   });
+   return {
+    seated:!!holder&&holder.parent===movingTray,
+    // Coins still in the bag are not vending outputs and must not be
+    // reported as detached vending-machine rewards.
+    noDetachedRewards:entries.every(e=>
+     !e.visible||e.source!=="machine"||e.onReturnTray&&e.supported),
+    items:entries
+   };
+  },
   // Examine the *actual transformed reward geometry* in the coordinate
   // frame of the face it is mounted to. This catches items colliding
   // after all 60 secrets are restored, not merely static socket centers.
@@ -542,8 +582,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
      coin.userData.pickupModel.position.z=0;
      coin.userData.pickupModel.scale.setScalar(1);
      holder.group.add(coin);
-     const [x,y]=locations[returned?1:0];
-     coin.position.set(x,y,.10);
+     const [x,y,z]=pickupSeat(coinSource,returned?1:0);
+     coin.position.set(x,y,z);
      mountedSources.set("coin",coinSource);
      invalidate();
     }
