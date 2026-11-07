@@ -7,12 +7,19 @@
 //   node scripts/verify-nothing-here-startup.mjs
 // Requires Playwright Chromium. Never connects to a live Crilo account.
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {mkdir} from "node:fs/promises";
 import {chromium} from "playwright";
 
 const base=process.env.NOTHING_HERE_TEST_URL||
  "http://127.0.0.1:4173/secrets.html";
 const savedKey="crilo_nothing_here_cube_v3";
+const catalogText=readFileSync("cube-secrets.js","utf8").split("const catalog=[")[1]
+ .split("const title=new Map(catalog)")[0];
+const peculiarities=[...catalogText.matchAll(/\\['([^']+)','/g)].map(match=>match[1]);
+assert.equal(peculiarities.length,60,"Completion gate expects exactly 60 discoveries");
+const allButDot=peculiarities.filter(id=>id!=="dot");
+assert.equal(allButDot.length,59);
 await mkdir("test-results",{recursive:true});
 
 const cases=[
@@ -107,6 +114,16 @@ const cases=[
    pocket:["raindrop","bell"],pendingPickups:[],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // A saved 60/60 game must unfold without replaying sounds or animations.
+ {label:"finale-saved-mobile",viewport:{width:390,height:844},
+  seed:{seen:peculiarities,plateOpen:true,door:true,doorOpen:true,
+   pocket:[],pendingPickups:[],gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // The sixtieth TRUE discovery must start the finale in the same session.
+ {label:"finale-last-discovery",viewport:{width:1280,height:850},
+  seed:{seen:allButDot,redHits:0,
+   pocket:["coin"],pendingPickups:[],gearMazePlayed:true,
+   gearMazeLayoutVersion:6,gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
@@ -319,6 +336,63 @@ try{
     const restored=await page.evaluate(()=>window.CriloNothingHereCube.getState());
     assert(restored.plateOpen&&restored.pendingPickups.includes("cog"),
      "Reloading relocked a successfully released spring hatch");
+   }
+   if(check.label==="finale-saved-mobile"||
+      check.label==="finale-last-discovery"){
+    const before=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     ending:window.__nothing3DPreview.completionFinale
+    }));
+    if(check.label==="finale-last-discovery"){
+     assert(before.game.seen.length===59&&before.ending.phase==="idle"&&
+      await page.locator("#ncFinaleBanner").isHidden(),
+      "The finale began before the 60th discovery");
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction("dot"));
+     const finished=await page.evaluate(()=>({
+      game:window.CriloNothingHereCube.getState(),
+      ending:window.__nothing3DPreview.completionFinale
+     }));
+     assert(finished.game.seen.length===60&&finished.game.seen.includes("dot"),
+      "The final genuine peculiarity failed to count");
+     assert(finished.ending.phase==="open",
+      "The sixtieth discovery did not unfold the cube (reduced-motion test)");
+     assert(finished.game.pocket.includes("coin"),
+      "Finale consumed a legitimate saved inventory item");
+    }else{
+     assert(before.game.seen.length===60&&before.ending.phase==="open",
+      "A completed mobile save did not restore the unfolded cube");
+    }
+    const layout=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+    assert(layout.banner&&layout.replay&&layout.outerFrameHidden&&
+     layout.centerFit&&layout.scale>=.18&&layout.scale<=.43,
+     "The final scene is not properly visible: "+JSON.stringify(layout));
+    const expected={front:[0,0],left:[-3.22,0],right:[3.22,0],
+     bottom:[0,-3.22],back:[0,-6.44],top:[0,-9.66]};
+    for(const [side,[x,y]] of Object.entries(expected)){
+     const center=layout.panels?.[side];
+     assert(center&&Math.abs(center.x-x)<.05&&
+      Math.abs(center.y-y)<.05&&center.normal>.98,
+      "The cube did not form a real flat T, panel "+side+": "+JSON.stringify(center));
+    }
+    const headline=await page.locator("#ncFinaleBanner h2").innerText();
+    assert.equal(headline,"You found all secrets!");
+    assert(await page.locator("#ncFinaleReplay").isVisible(),
+     "A completed run has no replayable ending");
+    await page.locator("#ncFinaleReplay").click();
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.completionFinale.phase),"open",
+     "Watch again failed to replay the ending in reduced-motion mode");
+    await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+    await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+     document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.completionFinale.phase),"open",
+     "Reload lost the completed T-shaped display");
+    assert.equal((await page.evaluate(()=>
+     window.CriloNothingHereCube.getState())).seen.length,60,
+     "Ending changed the saved discovery catalog");
+    await page.locator("#stage canvas").screenshot({
+     path:"test-results/nothing-here-finale-"+check.label+".png",timeout:60000});
    }
    if(check.label==="lavender-open-desktop"){
     await page.evaluate(()=>window.__nothing3DPreview.setRotation(30,0));
