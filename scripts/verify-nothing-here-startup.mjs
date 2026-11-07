@@ -319,7 +319,7 @@ try{
      null,{timeout:25000});
     const align=await page.evaluate(()=>
      window.__nothing3DPreview.observatoryFitGuideAlignment);
-    assert(align?.visible&&align.anchored&&align.error<1e-5&&
+    assert(align?.visible&&align.anchored&&align.centeredTexture&&align.error<1e-5&&
      Math.abs(align.local[0])<1e-8&&Math.abs(align.local[2])<1e-8,
      "Held lens indicator must be centered on the telescope glass: "+
       JSON.stringify(align));
@@ -330,7 +330,7 @@ try{
     await page.waitForTimeout(300);
     const turned=await page.evaluate(()=>
      window.__nothing3DPreview.observatoryFitGuideAlignment);
-    assert(turned?.visible&&turned.anchored&&turned.error<1e-5,
+    assert(turned?.visible&&turned.anchored&&turned.centeredTexture&&turned.error<1e-5,
      "Green target drifted off the objective when the cube turned: "+
       JSON.stringify(turned));
     await page.screenshot({path:"test-results/nothing-here-observatory-lens-fit.png",
