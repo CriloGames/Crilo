@@ -1094,6 +1094,9 @@ function inspectHardware(name){
   const n=Number(name.slice(-1));
   if(n===3){
    if(s.plateOpen){
+    // Legacy saves already opened this hatch after the third screw. Still
+    // allow their missing corner-pin discovery without re-locking anything.
+    bloom('false-screw','The fourth corner is a captive spring latch, not a removable screw.');
     tell('The spring latch is released. The service hatch is already open.');
     return true;
    }
