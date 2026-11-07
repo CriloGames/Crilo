@@ -147,16 +147,18 @@ export function finishMechanicalArtifact({
     }
   };
   function machinedPanel(face,accent) {
+    // A single fine, continuous frame complements the strong outer rim.
+    // No second black rectangle, split-off black sticks or free endcaps.
+    // The eye face already has a machined cassette and only needs the
+    // proper outer structural rail, not another overlapping border.
+    if(face===backFace)return;
+    const inset=face===rightFace?1.445:1.425;
+    const join=inset+.025;
     if(face===frontFace){
-      // The lens and live controls dominate this face. All the former
-      // inner graphite bars were cut into floating sticks by the optic
-      // keepout. Use four complete, inset gold rails parallel to the
-      // structural frame instead: deliberately simple, symmetrical,
-      // and entirely OUTSIDE the real metal mechanism envelopes.
       for(const sign of [-1,1]){
-        trimRail(face,"x",sign*1.425,-1.29,1.29,
+        trimRail(face,"x",sign*inset,-join,join,
           .030,.041,.105,accent,.012);
-        trimRail(face,"y",sign*1.425,-1.26,1.26,
+        trimRail(face,"y",sign*inset,-join,join,
           .030,.041,.105,accent,.012);
       }
       return;
@@ -240,11 +242,11 @@ export function finishMechanicalArtifact({
           torus(face,.026,.004,x,y,.084,accent);
         }
       }else{
-        trimRail(face,"x",s*1.22,-1.29,1.29,.030,.041,.105,accent,.012);
-        trimRail(face,"x",s*1.125,-1.20,1.20,.010,.024,.130,deep,.004);
+        trimRail(face,"x",s*inset,-join,join,
+          .030,.041,.105,accent,.012);
       }
-      trimRail(face,"y",s*1.22,-1.26,1.26,.030,.041,.105,accent,.012);
-      trimRail(face,"y",s*1.125,-1.20,1.20,.010,.024,.130,deep,.004);
+      trimRail(face,"y",s*inset,-join,join,
+        .030,.041,.105,accent,.012);
     }
     // No second set of corner rivets: the precision panel already has
     // fixed screwheads at (+/-1.31,+/-1.33). Even the reduced .036 caps at
@@ -325,9 +327,27 @@ export function finishMechanicalArtifact({
     const g=group(face,x,y,.088);
     const t=.058;
     for(const s of [-1,1]){
-      B(g,w+.24,t,.12,0,s*(h/2+.07),0,brass,.019);
+      if(face===frontFace&&s===1){
+        // The old straight header cut across the bottom arc of the
+        // huge optic, even though it sits behind the gold ring in depth.
+        // Retain a proper drawer bezel with TWO attached shoulder wings.
+        // The centre is clear of the round lens; both wings return into
+        // their existing side posts and have real, bolted end shoes.
+        const edge=(w+.24)/2,clearCentre=.51;
+        for(const sideSign of [-1,1]){
+          const length=edge-clearCentre;
+          const centre=sideSign*(edge+clearCentre)/2;
+          B(g,length,t,.12,centre,s*(h/2+.07),0,brass,.019);
+          // Small retained brass terminal, aligned within its wing.
+          C(g,.023,.018,sideSign*(clearCentre+.040),
+            s*(h/2+.07),.073,tinyGold);
+        }
+      }else{
+        B(g,w+.24,t,.12,0,s*(h/2+.07),0,brass,.019);
+      }
       B(g,t,h+.18,.12,s*(w/2+.07),0,0,brass,.019);
-      for(const X of [-w/2+.08,w/2-.08])stud(g,X,s*(h/2+.07),.085,.027);
+      for(const X of [-w/2+.08,w/2-.08])
+        stud(g,X,s*(h/2+.07),.085,.027);
     }
     return g;
   }
