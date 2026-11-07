@@ -2431,6 +2431,13 @@ window.__nothing3DPreview={
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
  get physicalMechanicalFeedback(){return gameHotspots?.getMechanicalFeedback?.()||null},
  get frontCogHatchPose(){return gameHotspots?.getCogHatchPose?.()||null},
+ get frontSpringLatchPose(){
+  const pin=screws.find(s=>s.id==="front-screw-3");
+  return {depth:pin?.assembly.position.z??null,
+   cue:pin?.latchIndicator?.material.emissiveIntensity??0,
+   pressed:!!currentGameState.plateOpen,
+   screwsRemoved:currentGameState.screws?.length||0};
+ },
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
  get drawerSeals(){return {
   lavender:{...front.seal,closed:front.drawer.position.z<.02},
