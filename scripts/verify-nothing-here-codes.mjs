@@ -11,6 +11,11 @@ const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
 const finish=read('secrets-3d-finish.js');
+const railSource=read('secrets-3d-rail-clearance.js');
+// Load the identical pure geometry splitter used by the BROWSER, rather
+// than duplicating the clipping algorithm in a brittle string-only test.
+const railTool=await import('data:text/javascript;base64,'+
+ Buffer.from(railSource).toString('base64'));
 // Both sliding drawers sit over genuine openings cut into the cube. A
 // smaller-than-opening faceplate used to show the inner compartment before
 // its latch was released, especially from above or at a shallow angle.
@@ -358,25 +363,68 @@ assert(!preview.includes('hatchConnectingRods')&&
  'Loose wires or obsolete rotating crank rods returned');
 
 // Keep the front optic and its surroundings mechanically separated.
-assert(details.includes('if(face===frontFace&&sy===1){')&&
- details.includes('const stop=.22,edge=1.425,length=edge-stop;')&&
- details.includes('const couplingAngle=Math.atan2(')&&
+assert(details.includes('const couplingAngle=Math.atan2(')&&
  details.includes('const offset=side*.092;')&&
  details.includes('B(saddle,.038,.030,.066,0,offset,.092,steel,.008);')&&
  details.includes('const blade=B(frontDisc,.10,.024,.018,Math.cos(a)*.235,')&&
  !details.includes('edgeTicks(frontFace,0,.56,.66,28);')&&
- finish.includes('}else if(face===frontFace&&s===1){')&&
- finish.includes('stop:.56,y:1.22')&&
- finish.includes('stop:.66,y:1.125')&&
  finish.includes('C(frontLens,.010,.008,Math.cos(a)*.76,')&&
  !finish.includes('B(frontLens,i%4===0?.11:.05'),
- 'Front lens border, spokes, iris or saddle intersections regressed');
-// Model clearance for every separated border strip: both its edge and
-// its thickness stay outside the front optic's raised .81 envelope.
-for(const [y,halfH,stop] of [[1.38,.0275,.22],[1.22,.015,.56],
- [1.125,.005,.66]]){
- const closest=Math.hypot(stop,y-halfH-.56);
- assert(closest>.81,'Front optical border enters the circular housing');
+ 'Front optic vanes, fasteners or saddle geometry regressed');
+// Both detail and finishing layers MUST use the same six-face keepouts;
+// restoring full-length straight graphite bars reintroduces intersections.
+assert(details.includes('clearRailSegments(name,axis,fixed,from,to,width);')&&
+ finish.includes('clearRailSegments(name,axis,fixed,from,to,width);')&&
+ details.includes('getTrimClearanceAudit:()=>({')&&
+ finish.includes('getTrimClearanceAudit:()=>({')&&
+ preview.includes('get trimClearanceAudit(){')&&
+ preview.includes('const railAudits=['),
+ 'The six-face decorative rail collision checks are not wired up');
+const railNames=["frontFace","rightFace","leftFace",
+ "topFace","bottomFace","backFace"];
+const railSpecs=[
+ {axis:"x",fixed:[-1.38,1.38],from:-1.425,to:1.425,w:.055},
+ {axis:"y",fixed:[-1.39,1.39],from:-1.315,to:1.315,w:.055},
+ {axis:"x",fixed:[-1.22,1.22],from:-1.29,to:1.29,w:.030},
+ {axis:"x",fixed:[-1.125,1.125],from:-1.20,to:1.20,w:.010},
+ {axis:"y",fixed:[-1.22,1.22],from:-1.26,to:1.26,w:.030},
+ {axis:"y",fixed:[-1.125,1.125],from:-1.20,to:1.20,w:.010}
+];
+let checkedRails=0,clippedRails=0,totalSegments=0;
+for(const face of railNames)for(const spec of railSpecs){
+ for(const fixed of spec.fixed){
+  // The top-left machined inlays bend into their own holes and are
+  // verified separately; both other faces' rail families must be clear.
+  if(face==="topFace"&&spec.axis==="x"&&fixed<0&&
+   Math.abs(fixed)<1.30)continue;
+  const segments=railTool.clearRailSegments(
+   face,spec.axis,fixed,spec.from,spec.to,spec.w);
+  const collisions=railTool.railClearanceFaults(
+   face,spec.axis,fixed,segments,spec.w);
+  assert.deepEqual(collisions,[],
+   face+" "+spec.axis+" decorative rail intersects a fixture");
+  assert(segments.every(seg=>seg.length>=.075&&
+   seg.from>=spec.from-1e-8&&seg.to<=spec.to+1e-8),
+   "Decorative border has an isolated, too-short piece");
+  clippedRails+=Number(segments.length!==1||
+   Math.abs(segments[0]?.length-(spec.to-spec.from))>.0001);
+  totalSegments+=segments.length;
+  checkedRails++;
+ }
+}
+assert(checkedRails>=68&&clippedRails>=15&&totalSegments>15,
+ 'Expected actual clipped rails on several faces, not a no-op checker');
+// Regression probes: a strip crossing the center of the observatory,
+// an upper lens, or the hinge-pin row must have its middle removed.
+for(const [face,axis,offset,from,to,width,protectedAt] of [
+ ["frontFace","x",1.22,-1.29,1.29,.030,0],
+ ["topFace","x",-1.22,-1.29,1.29,.030,0],
+ ["leftFace","y",-1.125,-1.20,1.20,.010,.725],
+ ["rightFace","y",1.22,-1.26,1.26,.030,1.20]
+]){
+ const segments=railTool.clearRailSegments(face,axis,offset,from,to,width);
+ assert(segments.every(seg=>!(seg.from<=protectedAt&&protectedAt<=seg.to)),
+  face+" rail still passes through the protected fixture");
 }
 // Optical rings must remain separate solids rather than co-occupying
 // concentric space: one gold outer lip, one inner dark gasket and two
