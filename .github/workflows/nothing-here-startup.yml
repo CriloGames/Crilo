@@ -38,7 +38,7 @@ jobs:
   webgl-startup:
     name: WebGL startup (fresh + saved progress)
     runs-on: ubuntu-24.04
-    timeout-minutes: 19
+    timeout-minutes: 17
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -64,12 +64,48 @@ jobs:
           sleep 2
           curl --fail --silent http://127.0.0.1:4173/secrets.html > /dev/null
       - name: Initialize real Three.js cube in Chromium
-        run: node scripts/verify-nothing-here-startup.mjs
+        run: NOTHING_HERE_SKIP_CASES=finale-saved-mobile,finale-last-discovery node scripts/verify-nothing-here-startup.mjs
       - name: Save screenshots including any failure diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nothing-here-startup-screenshots
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  finale-webgl:
+    name: WebGL finale (60/60 + replay)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify completion source and test syntax
+        run: |
+          node --check secrets-3d-preview.js
+          node --check secrets-3d-finale.js
+          node --check nothing-here-audio.js
+          node --check scripts/verify-nothing-here-startup.mjs
+          node scripts/verify-nothing-here-codes.mjs
+      - name: Install Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Serve the proposed 3D game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-here-finale-http.log 2>&1 < /dev/null &
+          sleep 2
+          curl --fail --silent http://127.0.0.1:4173/secrets.html > /dev/null
+      - name: Unfold after discovery 60, verify T layout and replay completed saves
+        run: NOTHING_HERE_ONLY_CASES=fresh-desktop,finale-saved-mobile,finale-last-discovery node scripts/verify-nothing-here-startup.mjs
+      - name: Save finale screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-finale-screenshots
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
