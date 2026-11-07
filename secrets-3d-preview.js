@@ -2574,7 +2574,11 @@ window.__nothing3DPreview={
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   if(physicalPickups)physicalPickups.setState(currentGameState);
-  intricate.syncGameState(currentGameState,restoring);
+  // The visual maze has up to 52 contiguous follower segments. Honor the
+  // player's reduced-motion preference for EACH step, not just initial load:
+  // otherwise a fast solve queues dozens of GSAP tweens and can leave the
+  // ball and latch visually unfinished long after the puzzle is solved.
+  intricate.syncGameState(currentGameState,restoring||reducedMotion);
   physicalStateInitialized=true;
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
