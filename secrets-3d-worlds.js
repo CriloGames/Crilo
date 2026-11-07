@@ -526,7 +526,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // The centered telescope never rises; a shutter rolls beneath the shell.
  const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;
  // Expose more of the telescope through the front arch without lifting the dome.
-  const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;
+  const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.30;
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
  const observatoryGuideRollers=[];
@@ -604,7 +604,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  };
  // Outer and inner shells have the SAME physical arched cutout.
  const domeSkin=r=>{
-  const pos=[],normal=[],uv=[],indices=[],A=96,E=28;
+  const pos=[],normal=[],uv=[],indices=[],A=144,E=36;
   for(let i=0;i<=A;i++){
    const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az);
    for(let j=0;j<=E;j++){
@@ -716,15 +716,63 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.hitVolume=observatoryRearCap;
   const lining=new THREE.Mesh(domeSkin(OBSERVATORY_RADIUS-.010),terracotta);
   roofShell.add(lining);parts++;
-  // Smooth thickened arch and a fine inset band along its cut edge.
-  const lip=[];
-  for(let i=0;i<=80;i++){
-   const az=-OBSERVATORY_OPEN_HALF_ANGLE+
-    2*OBSERVATORY_OPEN_HALF_ANGLE*i/80;
-   lip.push(domePoint(az,apertureHeight(az)));
+  // The shutter opening is a rigid machined edge, not a rubber-looking
+  // tube following a warped arc. Sweep one constant section along the
+  // exact spherical cut, joining the outer ivory skin to its lining.
+  // It stays fixed while the flexible captive shutter rolls beneath it.
+  const rimStations=160,rimProfile=[
+   [-.002,.007],[.019,.007],[.022,-.008],[-.002,-.008]
+  ];
+  const rimPositions=[],rimUV=[],rimTriangles=[];
+  for(let i=0;i<=rimStations;i++){
+   const az=OBSERVATORY_OPEN_HALF_ANGLE*(2*i/rimStations-1);
+   const base=apertureHeight(az);
+   for(const [delta,radial] of rimProfile){
+    rimPositions.push(...domePoint(az,base+delta,OBSERVATORY_RADIUS+radial));
+    rimUV.push(i/rimStations,delta/.024);
+   }
+  }
+  for(let i=0;i<rimStations;i++)for(let side=0;side<4;side++){
+   const a=i*4+side,b=i*4+(side+1)%4;
+   const c=(i+1)*4+side,d=(i+1)*4+(side+1)%4;
+   rimTriangles.push(a,c,b,b,c,d);
+  }
+  for(const end of [0,rimStations*4])
+   for(let j=1;j<3;j++)rimTriangles.push(end,end+j,end+j+1);
+  const rimGeometry=new THREE.BufferGeometry();
+  rimGeometry.setAttribute("position",
+   new THREE.Float32BufferAttribute(rimPositions,3));
+  rimGeometry.setAttribute("uv",new THREE.Float32BufferAttribute(rimUV,2));
+  rimGeometry.setIndex(rimTriangles);rimGeometry.computeVertexNormals();
+  const rimEnamel=ivory.clone();
+  rimEnamel.side=THREE.DoubleSide;
+  rimEnamel.roughness=.38;
+  const stiffRim=new THREE.Mesh(rimGeometry,rimEnamel);
+  stiffRim.castShadow=true;stiffRim.receiveShadow=true;
+  roofShell.add(stiffRim);parts++;
+  // Crisp parallel seams visually fasten the rim to the retained dome.
+  // The lower gold bead is tucked inside the ivory, never a heavy band.
+  const lip=[],innerLip=[],outerRim=[];
+  for(let i=0;i<=rimStations;i++){
+   const az=OBSERVATORY_OPEN_HALF_ANGLE*(2*i/rimStations-1);
+   const cut=apertureHeight(az);
+   lip.push(domePoint(az,cut-.001,OBSERVATORY_RADIUS+.007));
+   innerLip.push(domePoint(az,cut-.003,OBSERVATORY_RADIUS-.008));
+   outerRim.push(domePoint(az,cut+.021,OBSERVATORY_RADIUS+.0073));
   }
   wire(roofShell,lip,.006,m.cream);
-  wire(roofShell,lip.map(([x,y,z])=>[x*.964,y*.964,z*.964]),.0023,m.gold);
+  wire(roofShell,innerLip,.0018,m.gold);
+  wire(roofShell,outerRim,.0013,m.cream);
+  // Evenly spaced flush rivets follow the real opening, so the trim has
+  // the weight and precision of a manufactured observatory shutter.
+  for(let i=0;i<13;i++){
+   const az=OBSERVATORY_OPEN_HALF_ANGLE*(-.92+1.84*i/12);
+   const at=domePoint(az,apertureHeight(az)+.012,
+    OBSERVATORY_RADIUS+.009);
+   ball(roofShell,.0028,...at,m.cream);
+   ball(roofShell,.0010,...domePoint(az,apertureHeight(az)+.012,
+    OBSERVATORY_RADIUS+.0115),m.brass);
+  }
   // Physical twin guide channels follow the cutout's inner edges.
   // They continue toward the shutter's receiving pocket at the crown,
   // rather than hanging in mid-air like the previous decorative traces.
