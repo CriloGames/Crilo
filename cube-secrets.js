@@ -219,6 +219,14 @@ if(s.door){
  pocket.delete('flute');
  pendingPickups.delete('flute');
 }
+// The bell becomes part of the dog's collar when used. A prior recovery
+// bug could revive it after refreshing because the red switch stayed at 4.
+// Reconcile only SAVES where that actual attachment is recorded; a dog that
+// barked from petting may still have an unused bell to attach.
+if(s.bellUsed){
+ pocket.delete('bell');
+ pendingPickups.delete('bell');
+}
 // A raindrop is a one-time reward. Older players may already carry it,
  // have watered the tree, or have an outstanding 3D pickup from an older
  // build that released the drop without recording its own flag.
@@ -355,7 +363,7 @@ recoverReward('acorn',s.vase&&!s.plant);
 recoverReward('spring',s.vase&&!s.music);
 recoverReward('raindrop',s.rainReleased&&!s.tree);
 recoverReward('bird',s.tree&&!s.moon);
-recoverReward('bell',s.redHits>=4);
+recoverReward('bell',s.redHits>=4&&!s.bellUsed);
 recoverReward('fork',s.pressureReady&&(s.gearMazeSolved||s.legacyGearBypass)&&!s.resonance);
 recoverReward('shim',s.ventOpen&&!s.shimUsed);
 recoverReward('cog',s.plateOpen&&!s.opticOpened);
@@ -595,6 +603,9 @@ function bloom(id,comment){
  window.NothingHereAudio?.play?.('discovery');render();return true;
 }
 function gain(id,message,direct=false){
+ // Spent one-shot objects must never be recreated by later rewards or
+ // stale pickup actions. The earned bell discovery remains in the journal.
+ if(id==='bell'&&s.bellUsed)return;
  if(!Object.hasOwn(names,id)||pocket.has(id))return;
  if(!direct&&document.body.classList.contains('nc-physical-ready')){
   // Actual rewards remain where they were revealed. The player must
@@ -952,6 +963,7 @@ function render(){
 }
 function collection(id){gain(id,'You found '+names[id]+'.',true)}
 function collectPhysicalPickup(id){
+ if(id==='bell'&&s.bellUsed)return false;
  if(!Object.hasOwn(names,id))return false;
  // A visible key or spool is not a free shortcut into a sealed mechanism.
  // The canonical story state, not raycast visibility alone, authorizes it.

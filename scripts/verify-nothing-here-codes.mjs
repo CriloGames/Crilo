@@ -138,6 +138,12 @@ assert(fixedFaceSensor>=0||
 assert(!hotspots.includes('const resonator=node(shutter,'),
  'Do not build the resonance sensor on a shutter variable before initialization');
 
+assert(logic.includes("if(s.bellUsed){\n pocket.delete('bell');")&&
+ logic.includes("pendingPickups.delete('bell');")&&
+ logic.includes("recoverReward('bell',s.redHits>=4&&!s.bellUsed);")&&
+ logic.includes("if(id==='bell'&&s.bellUsed)return false;")&&
+ logic.includes("if(id==='bell'&&s.bellUsed)return;"),
+ 'A spent collar bell must not be restored, regenerated or collected again');
 assert(logic.includes('s.ventSequence=[];'),'A failed vent attempt cannot be retried from a clean start');
 assert(logic.includes('s.fluteNotes=[];'),'The physical flute lacks a clean six-note retry');
 assert(worlds.includes('bagCatchReady:'),'The aligned bag code has no visible spring-catch response');
