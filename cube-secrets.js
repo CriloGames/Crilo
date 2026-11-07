@@ -71,7 +71,7 @@ const title=new Map(catalog);
 const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollow pipe',reed:'tiny reed',
  flute:'flute',key:'little key',coin:'coin',treat:'dog biscuit',prism:'glass prism',
  acorn:'acorn',spring:'clock spring',raindrop:'a drop of rain',bird:'paper bird',
- kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag',
+ kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag (04)',
  lens:'silver telescope lens',stardust:'luminous moth dust',starmap:'folded star chart',
  parcel:'miniature parcel',postcard:'postcard from nowhere',
  cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer',
