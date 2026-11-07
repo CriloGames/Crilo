@@ -1127,11 +1127,26 @@ try{
    JSON.stringify(coinUsability));
  // Confirm a genuine mouse hover triggers the green in-scene response
  // before the player clicks. Nothing elsewhere on the cube lights up.
- const vendingHover=await page.evaluate(()=>{
-  const view=window.__nothing3DPreview;
-  view.setRotation(-13,0);
-  return view.projectPhysicalStoryObject("machine");
+ // The machine should flash green as soon as a compatible item is
+ // held, even with the mouse nowhere near it. Only currently visible,
+ // raycast-reachable fittings may pulse, so rotate to that face first.
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
+ await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>{
+  el.click(); // put the coin down
+  el.click(); // pick it back up on a face where it can be used
  });
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.selectedItemFlashAudit.targets.includes("thing:machine"),
+  null,{timeout:20000});
+ const selectionFlash=await page.evaluate(()=>
+  window.__nothing3DPreview.selectedItemFlashAudit);
+ assert.equal(selectionFlash.selected,"coin",
+  "Picking up a held item did not produce compatibility feedback");
+ assert(!selectionFlash.targets.includes("latch")&&
+  !selectionFlash.targets.includes("thing:dog"),
+  "The green selection flash leaked onto incompatible or locked objects");
+ const vendingHover=await page.evaluate(()=>
+  window.__nothing3DPreview.projectPhysicalStoryObject("machine"));
  assert(vendingHover?.pick==="thing:machine",
   "A known usable miniature cannot be identified with the real mouse raycaster: "+
    JSON.stringify(vendingHover));
