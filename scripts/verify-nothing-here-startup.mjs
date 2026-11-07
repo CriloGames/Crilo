@@ -245,7 +245,7 @@ try{
      // "door already open", although it was still shut.
      await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalFluteNote(2));
      const narration=await page.locator("#ncNarrator").innerText();
-     assert(/door.*released|door.*unlocked/i.test(narration),
+     assert(/melody already released|door.*unlocked/i.test(narration),
       "Saved unlocked-but-closed door misreports that it is already open: "+narration);
     }
     // The player's real click on the visible full-size door panel
