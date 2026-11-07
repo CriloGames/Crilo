@@ -22,6 +22,11 @@ const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
 const finish=read('secrets-3d-finish.js');
+// Reduced-motion settings must apply to each incoming wheel state, not
+// only to loading. Otherwise a 52-edge solve leaves the ball's GSAP queue
+// playing for much longer than the actual completed puzzle state.
+assert(preview.includes('intricate.syncGameState(currentGameState,restoring||reducedMotion);'),
+ 'Live maze updates ignore reduced-motion preference and can lag behind a solved run');
 const railSource=read('secrets-3d-rail-clearance.js');
 // Load the identical pure geometry splitter used by the BROWSER, rather
 // than duplicating the clipping algorithm in a brittle string-only test.
