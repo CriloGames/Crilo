@@ -61,8 +61,8 @@ assert.equal(result.wallLayers,2);
 assert(result.wallRuns>30&&meshes.length===2);
 assert.equal(result.entranceSector,0);
 assert.equal(result.exitSector,8);
-// Verify the flared inner opening is genuinely wider than the original
-// sector-wide mouth while preserving one opening and connected side cheeks.
+// The final opening stays wide, but NO disconnected short shoulders or
+// visually passable protrusions may remain beside the moving ball.
 const ballDiameter=.0084*2,sectorWidth=2*Math.PI/16;
 const oldInnerOpening=.072*sectorWidth-.006;
 const innerOpening=.072*(1.24*sectorWidth)-.006;
@@ -72,9 +72,19 @@ assert(innerOpening>ballDiameter+.010);
 assert(collarOpening>ballDiameter+.002);
 assert(Math.abs(result.centerFlareRadians-.24*sectorWidth)<1e-10);
 assert(walls.includes('const flare=.12*step;'));
-assert(walls.includes('const shoulder=innerRadius;')||
- walls.includes('x:innerRadius*Math.cos(left)'));
+assert(walls.includes('arc(innerLip,left+flare,right-flare);'));
+assert.equal(result.entranceProtrusions,0);
+assert(!walls.includes('x:innerRadius*Math.cos(left)')&&
+ !walls.includes('x:innerRadius*Math.cos(right)'),
+ 'Protruding fake shoulder lines must not return at the goal');
+assert(!scene.includes('C(follower,.005,.044,0,0,-.011,steel);'),
+ 'Old pale follower still leaves a white spot after the ball moves');
 assert(scene.includes('new THREE.SphereGeometry(.0084,20,16),mat(0x121821,.23,.30)'));
+assert(scene.includes('new THREE.PlaneGeometry(.036,.036)')&&
+ scene.includes('ballGlow.parent===follower')&&
+ scene.includes('movingMarkerParts:follower.children.length')&&
+ scene.includes('paleFollowerRemoved:!follower.children.some'),
+ 'Black ball halo must follow the ball without a trailing duplicate');
 assert(scene.includes('mazePlate.rotation.z=0'));
 assert(body.includes('const goalSector=sectors/2'));
 assert(body.includes('const centerMouthWidth=1.24*sectorWidth'));
@@ -99,4 +109,4 @@ for(let r=0;r<6;r++)for(let k=0;k<16;k++){
    "An invisible wall or phantom opening at "+cell+" "+direction);
  }
 }
-console.log("PASS: darker ball and enlarged center mouth; visible connected barriers, 97 cells, opposite goal, unique solution");
+console.log("PASS: single clean center entrance, no pale ball afterimage, subtle moving black halo, 97-cell maze graph intact");
