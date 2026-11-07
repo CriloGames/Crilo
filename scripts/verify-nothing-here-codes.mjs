@@ -218,31 +218,74 @@ for(const detail of [
  'finder.position.set(0,.098,-.014);'
 ]) assert(worlds.includes(detail),
  'Reference-style observatory texture or physical manufacturing detail missing: '+detail);
-// One continuous inlay per side and color: the last .070 curves into
-// the recessed dark well and avoids the small flush circular rim.
-assert(finish.includes('function roofInlay(trace,sign){')&&
+// All four connections share one seamless brushed-metal profile each.
+// They keep the original straight silhouette and dip down only within
+// .070 face-local units of the unchanged +/- .390 holes.
+assert(finish.includes('if(face===topFace&&s===-1){')&&
+ finish.includes('const traces=[')&&
+ finish.includes('{y:-1.22,z:.105,width:.030,depth:.041,material:accent,')&&
+ finish.includes('{y:-1.125,z:.112,width:.010,depth:.016,material:deep,')&&
+ finish.includes('function roofInlay(trace,sign){')&&
  finish.includes('for(const trace of traces)for(const sign of [-1,1]){')&&
  finish.includes('roofInlay(trace,sign);')&&
  finish.includes('const inner=trace.port,curveStart=inner+.070;')&&
  finish.includes('new THREE.Vector3(sign*inner,trace.y,.063)')&&
  finish.includes('const taper=1-.77*progress*progress*(3-2*progress);')&&
+ finish.includes('geometry.setAttribute("uv",')&&
+ finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
  finish.includes('C(face,.019,.010,x,y,.079,deep);')&&
  finish.includes('torus(face,.026,.004,x,y,.084,accent);')&&
  !finish.includes('bentInlay(')&&
- !finish.includes('function roofInlay(trace,sign){')&&
-  finish.includes('roofInlay(trace,sign);')&&
-  finish.includes('const inner=trace.port,curveStart=inner+.070;')&&
-  finish.includes('geometry.setAttribute("uv",')&&
-  finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
-  finish.includes('C(face,.019,.010,x,y,.079,deep);')&&
-  finish.includes('torus(face,.026,.004,x,y,.084,accent);')&&
-  !finish.includes('bentInlay(trace,sign,begin);')&&
-  !finish.includes('const leads=[')&&
+ !finish.includes('B(face,trace.end-begin,trace.width,trace.depth,')&&
+ !finish.includes('const leads=[')&&
  !finish.includes('const goldBypass=[')&&
  !finish.includes('const inkBypass=[')&&
  preview.includes('triangle:"Lid release button",')&&
  logic.includes('The lid release button sinks in.'),
- "The roof dome is no longer centered/recessed or its trim/button clearance regressed");
+ 'Roof connections lost their continuous shapes or the release regressed');
+// Geometric clearance: sample the exact swept strip's eight chamfered
+// corners on each side. None may intersect a connector's metal rim.
+const bezier=(t,a,b,c,d)=>{
+ const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d;
+};
+for(const trace of [
+ {name:'brass',z:.105,width:.030,depth:.041,end:1.29},
+ {name:'black',z:.112,width:.010,depth:.016,end:1.20}
+])for(const sign of [-1,1]){
+ const port=.390,start=port+.070,stations=[];
+ for(let i=0;i<=34;i++)
+  stations.push([sign*(trace.end+(start-trace.end)*i/34),trace.z]);
+ for(let i=1;i<=24;i++){
+  const t=i/24;
+  stations.push([
+   sign*bezier(t,start,port+.032,port+.002,port),
+   bezier(t,trace.z,trace.z,trace.z-.003,.063)
+  ]);
+ }
+ let clearance=Infinity;
+ for(let i=0;i<stations.length;i++){
+  const point=stations[i],a=stations[Math.max(0,i-1)];
+  const b=stations[Math.min(stations.length-1,i+1)];
+  const dx=b[0]-a[0],dz=b[1]-a[1],d=Math.hypot(dx,dz);
+  const nx=-dz/d,nz=dx/d;
+  const progress=Math.max(0,Math.min(1,
+   (start-Math.abs(point[0]))/.070));
+  const taper=1-.77*progress*progress*(3-2*progress);
+  for(const [u,v] of [
+   [-1,-.75],[-.75,-1],[.75,-1],[1,-.75],
+   [1,.75],[.75,1],[-.75,1],[-1,.75]
+  ]){
+   const x=point[0]+nx*v*trace.depth*taper*.5;
+   const y=u*trace.width*taper*.5;
+   const z=point[1]+nz*v*trace.depth*taper*.5;
+   const radial=Math.hypot(x-sign*port,y);
+   clearance=Math.min(clearance,
+    Math.hypot(radial-.026,z-.084)-.004);
+  }
+ }
+ assert(clearance>.002,
+  trace.name+' inlay clips its circular port on the '+sign+' side');
+}
 assert(!worlds.includes('["telescope","topFace",1.15,.21]')&&
  !worlds.includes('modelBases.push({name,method:"tripod"')&&
  !worlds.includes('tube.rotation.x=1.16;'),
