@@ -211,10 +211,37 @@ try{
     },null,{timeout:25000});
     const initial=await page.evaluate(()=>({
      guide:window.__nothing3DPreview.selectedItemFlashAudit,
-     rotation:window.__nothing3DPreview.cubeRotationDegrees
+     rotation:window.__nothing3DPreview.cubeRotationDegrees,
+     anchors:window.__nothing3DPreview.selectedFitAnchorPositions
     }));
+    assert(initial.guide.anchored&&initial.guide.inScene&&
+     initial.guide.domOverlays===0&&initial.anchors.length>0,
+     "The green ring is still a floating screen overlay: "+
+      JSON.stringify(initial));
     assert(Math.abs(initial.rotation.ry-180)>35,
      "Holding a coin left the working machine hidden: "+JSON.stringify(initial));
+    // Move the cube while the item is held: the ring's *local mesh*
+    // coordinates must not change, but its world position must move WITH
+    // the mechanism rather than floating somewhere on the screen.
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,24));
+    await page.waitForTimeout(260);
+    const turned=await page.evaluate(()=>({
+     guide:window.__nothing3DPreview.selectedItemFlashAudit,
+     anchors:window.__nothing3DPreview.selectedFitAnchorPositions
+    }));
+    for(const first of initial.anchors){
+     const later=turned.anchors.find(x=>x.action===first.action);
+     assert(later&&later.mesh===first.mesh&&later.anchored,
+      "The glow detached from its original 3D fitting: "+
+       JSON.stringify({first,later}));
+     assert(first.local.every((n,i)=>Math.abs(n-later.local[i])<1e-8),
+      "The green ring slipped on the physical fitting when the cube moved");
+     const travelled=Math.hypot(...first.world.map((n,i)=>n-later.world[i]));
+     assert(travelled>.025,
+      "The guide stayed in screen space instead of rotating with the cube");
+    }
+    assert(turned.guide.domOverlays===0&&turned.guide.anchored,
+     "Old drifting DOM indicators returned after rotation");
     await page.waitForTimeout(3350);
     const after=await page.evaluate(()=>
      window.__nothing3DPreview.selectedItemFlashAudit);
