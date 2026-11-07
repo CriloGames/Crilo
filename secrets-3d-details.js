@@ -120,29 +120,16 @@ export function buildIntricateCube({
     B(face,.047,.008,.01,x,y,z+.022,ebony,.003);
   };
   const plates=(face,m)=>{
-    // Inner panel is a real raised physical layer with corner detailing.
-    for(const sy of [-1,1]){
-      // The front lens nearly touches the old +1.38 border. Rather
-      // than sawing that rail in two, relocate the full front border
-      // toward the solid case frame so it clears the lens in one piece.
-      const border=face===frontFace?1.51:1.38;
-      trimRail(face,"x",sy*border,-1.425,1.425,.055,.07,.10,m,.016);
-      for(const sx of [-1,1]){
-        // The integrated iris service cassette occupies this corner.
-        // Avoid an orphaned shell rivet running through its backplate.
-        if(face===backFace&&sx>0&&sy<0)continue;
-        // Front corner screws are real removable hardware; a second
-        // decorative rivet in the same hole made both shapes collide.
-        if(face===frontFace)continue;
-        // The right-hand service bolt occupies this upper corner.
-        if(face===rightFace&&sx>0&&sy>0)continue;
-        rivet(face,sx*1.31,sy*1.33,.16);
-      }
-    }
-    for(const sx of [-1,1]){
-      const border=face===frontFace?1.51:1.39;
-      trimRail(face,"y",sx*border,-1.315,1.315,.055,.07,.10,m,.018);
-    }
+    // Every face now uses the SAME four solid, full-length structural
+    // rails. They seat directly inside the brass corner gussets at 1.475.
+    // The prior inner decorative rivets at +/-1.31, +/-1.33 were not
+    // touching this frame and looked like loose screws; the existing
+    // corner gussets already supply the real fastener/mounting detail.
+    const outer=1.51,corner=1.48;
+    for(const sy of [-1,1])
+      trimRail(face,"x",sy*outer,-corner,corner,.055,.07,.10,m,.016);
+    for(const sx of [-1,1])
+      trimRail(face,"y",sx*outer,-corner,corner,.055,.07,.10,m,.018);
   };
   const vent=(face,x,y,w=.65,n=5,m=ebony)=>{
     const frame=group(face,x,y,.16);
