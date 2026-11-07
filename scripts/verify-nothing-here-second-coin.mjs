@@ -202,15 +202,29 @@ async function refundCoin(page,{realPointer=false}={}){
   },name);
   assert(data.start?.pick===name&&data.center,
    "The actual "+name+" cannot be grabbed");
-  // Projection helpers deliberately return coordinates relative to the
-  // WebGL canvas. Playwright page.mouse requires VIEWPORT coordinates:
-  // without the canvas offset these mouse drags hit empty page space.
-  const rect=await page.locator("#stage canvas").boundingBox();
+  // Projection helpers return canvas-LOCAL coordinates. Hovering the
+  // actual physical target first ALSO scrolls it into view: after using a
+  // late-game inventory item the browser may be scrolled BELOW the canvas,
+  // and page.mouse on an offscreen point never touches the cog.
+  const canvas=page.locator("#stage canvas");
+  await canvas.hover({position:{x:data.start.x,y:data.start.y},timeout:30000});
+  const rect=await canvas.boundingBox();
   assert(rect,"The physical 3D canvas is not visible for wheel drag");
   const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
   const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
-  await page.mouse.move(start.x,start.y);await page.mouse.down();
+  if(name!=="gear-large"){
+   const hit=await page.evaluate(([x,y])=>
+    window.__nothing3DPreview.getPhysicalActionAt(x,y),[start.x,start.y]);
+   assert.equal(hit,name,"The real visible cog was not under the cursor");
+  }
+  await page.mouse.down();
+  if(name!=="gear-large"){
+   const engaged=await page.evaluate(()=>
+    window.__nothing3DPreview.gearDragState);
+   assert(engaged.active&&engaged.action===name,
+    "Pointerdown did not engage the physical cog: "+JSON.stringify(engaged));
+  }
   if(direction==="in"||direction==="out"){
    const sign=direction==="in"?-1:1;
    for(let i=1;i<=10;i++)
