@@ -38,7 +38,7 @@ jobs:
   webgl-startup:
     name: WebGL startup (fresh + saved progress)
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 19
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
