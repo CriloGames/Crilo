@@ -1181,6 +1181,39 @@ function visibleKeyboardTargets(){
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
 
+// A one-shot green compatibility flash whenever the player picks up an
+// inventory item to HOLD. Unlike the regular hover effect this requires no
+// cursor position: it uses the exact same compatibility check, but filters
+// through physical raycasting so only visible, reachable fittings glow.
+// Nothing hidden on another face or behind a closed drawer is revealed.
+let heldItemForFlash=null;
+let lastFitFlashActions=[];
+const selectedFitFlashes=new Set();
+function clearSelectedFitFlashes(){
+ for(const node of selectedFitFlashes)node.remove();
+ selectedFitFlashes.clear();
+}
+function flashSelectedItemFits(item){
+ clearSelectedFitFlashes();
+ lastFitFlashActions=[];
+ if(!item||!embeddedGame||reducedMotion&&document.hidden)return;
+ const canFit=window.CriloNothingHereCube?.canUseSelectedWithAction;
+ if(typeof canFit!=="function")return;
+ const targets=visibleKeyboardTargets().filter(target=>canFit(target.action));
+ const rect=stage.getBoundingClientRect();
+ for(const target of targets.slice(0,7)){
+  const mark=document.createElement("span");
+  mark.className="nc-selected-fit-flash";
+  mark.setAttribute("aria-hidden","true");
+  mark.style.left=(target.x-rect.left)+"px";
+  mark.style.top=(target.y-rect.top)+"px";
+  stage.appendChild(mark);
+  selectedFitFlashes.add(mark);
+  lastFitFlashActions.push(target.action);
+  setTimeout(()=>{mark.remove();selectedFitFlashes.delete(mark);},980);
+ }
+}
+
 // Turn the physical wheels with the mouse or finger instead of clicking
 // through fixed positions. Capture first so OrbitControls cannot rotate the
 // entire cube while the player is operating a visible wheel.
@@ -1640,6 +1673,11 @@ window.__nothing3DPreview={
  },
  get finishMeshCount(){return finish.meshCount()},
  get raycastTargets(){return {total:interactiveMeshes.length,unique:interactiveMeshSet.size}},
+ get selectedItemFlashAudit(){return {
+  selected:heldItemForFlash,
+  targets:[...lastFitFlashActions],
+  visible:selectedFitFlashes.size
+ }},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
  getGearDragCenter(name){
@@ -2426,7 +2464,18 @@ window.__nothing3DPreview={
 announce("A hand-built mechanical curiosity — inspect the dials, rails, lenses and hidden compartments.");
 if(embeddedGame){
  window.addEventListener("nc:statechange",event=>{
+  const held=event.detail?.selected||null;
+  const newlyHeld=held!==heldItemForFlash;
+  heldItemForFlash=held;
   window.__nothing3DPreview.syncState(event.detail);
+  // Flash ONLY on a newly held item. It must not repeatedly blink as the
+  // cube changes state or while the player merely moves the mouse.
+  if(newlyHeld){
+   clearSelectedFitFlashes();
+   if(held)requestAnimationFrame(()=>{
+    if(heldItemForFlash===held)flashSelectedItemFits(held);
+   });
+  }
   // Using or putting down an item must remove stale "fits here" feedback.
   if(!partHint.hidden&&displayedHintAction)
    setPartHint(displayedHintAction,displayedHintPoint);
