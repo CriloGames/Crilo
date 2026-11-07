@@ -1197,7 +1197,29 @@ let heldItemForFlash=null;
 let lastFitFlashActions=[];
 let fitRefreshTimer=null;
 const selectedFitFlashes=new Map();
-let fitGlowTexture=null;
+let fitGlowTexture=null,fitGlowLensTexture=null;
+function getOpticalFitGlowTexture(){
+ if(fitGlowLensTexture)return fitGlowLensTexture;
+ // Unlike the regular FITS HERE billboard, this miniature target has NO
+ // text beneath the reticle: its luminous dot must be geometrically centered.
+ const canvas=document.createElement("canvas");
+ canvas.width=canvas.height=256;
+ const g=canvas.getContext("2d");
+ const halo=g.createRadialGradient(128,128,4,128,128,106);
+ halo.addColorStop(0,"rgba(204,255,219,.86)");
+ halo.addColorStop(.34,"rgba(67,242,135,.58)");
+ halo.addColorStop(.66,"rgba(37,226,104,.24)");
+ halo.addColorStop(1,"rgba(30,214,117,0)");
+ g.fillStyle=halo;g.fillRect(0,0,256,256);
+ g.beginPath();g.arc(128,128,40,0,Math.PI*2);
+ g.lineWidth=9;g.strokeStyle="#55f09b";g.shadowBlur=18;
+ g.shadowColor="#3ae68e";g.stroke();g.shadowBlur=0;
+ g.beginPath();g.arc(128,128,13,0,Math.PI*2);
+ g.fillStyle="#dfffe8";g.fill();
+ fitGlowLensTexture=new THREE.CanvasTexture(canvas);
+ fitGlowLensTexture.colorSpace=THREE.SRGBColorSpace;
+ return fitGlowLensTexture;
+}
 function getFitGlowTexture(){
  if(fitGlowTexture)return fitGlowTexture;
  const canvas=document.createElement("canvas");
@@ -1270,7 +1292,8 @@ function addFitMarker(target){
   local=mesh.worldToLocal(worldPoint);
  }
  const material=new THREE.SpriteMaterial({
-  map:getFitGlowTexture(),color:0xffffff,transparent:true,
+  map:mesh===objective?getOpticalFitGlowTexture():getFitGlowTexture(),
+  color:0xffffff,transparent:true,
   depthTest:true,depthWrite:false,toneMapped:false,
   opacity:reducedMotion?1:.95});
  const sprite=new THREE.Sprite(material);
@@ -1817,6 +1840,7 @@ window.__nothing3DPreview={
   const lensCenter=objective.localToWorld(new THREE.Vector3(0,.015,0));
   const actual=marker?.sprite.getWorldPosition(new THREE.Vector3())||null;
   return {visible:!!marker,anchored:!!marker&&marker.mesh===objective,
+   centeredTexture:!!marker&&marker.sprite.material.map===getOpticalFitGlowTexture(),
    error:actual?actual.distanceTo(lensCenter):null,
    local:marker?.sprite.position.toArray()||null};
  },
