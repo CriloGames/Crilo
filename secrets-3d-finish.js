@@ -334,6 +334,59 @@ export function finishMechanicalArtifact({
   ornamentFace(bottomFace,satin);
   ornamentFace(topFace,brass,{roof:true});
 
+  // REAR OPTICAL PANEL — add purposeful detail around the glass eye.
+  // The eye itself, the hidden score-A strip, the bottom-left symbol
+  // cassette, the bottom-right iris actuator and the upper three
+  // miniature mounts are all reserved for working hardware.
+  // This uses shallow, permanently fixed non-clickable geometry ONLY.
+  const rearEyeRelief=[];
+  const rearFit=(name,w,h,d,x,y,z,paint,round=.006)=>{
+    const mesh=B(backFace,w,h,d,x,y,z,paint,round);
+    rearEyeRelief.push({name,x,y,w,h,z,d});
+    return mesh;
+  };
+  // A thin mechanical bus connects the original eye housing's upper
+  // rim to two captive contact points. It stays BELOW all three future
+  // miniature plinths (whose support footprints start near y=.59).
+  rearFit("optic header",1.36,.028,.035,0,.475,.088,teal);
+  for(const sign of [-1,1]){
+    rearFit("header support",.027,.178,.038,sign*.55,.390,.088,teal);
+    C(backFace,.019,.050,sign*.55,.475,.111,tinyGold);
+    // Little side service cassettes use the otherwise bare strips
+    // beside the eye. Their outer edge stops BEFORE the dark border
+    // at |x|=1.14; none sit on the eye or on its moving iris.
+    const x=sign*1.012;
+    rearFit("side carrier",.160,.440,.030,x,-.200,.087,metal,.015);
+    rearFit("side enamel",.128,.403,.012,x,-.200,.109,teal,.010);
+    // Captive link seats in the existing eye casting, not in the glass.
+    rearFit("optical transfer",.108,.022,.034,
+      sign*.909,-.180,.092,tinyGold,.006);
+    for(const offset of [-.105,-.035,.035,.105])
+      rearFit("service flute",.070,.007,.009,
+        x,-.200+offset,.119,smoked,.002);
+    for(const offset of [-.17,.17]){
+      C(backFace,.013,.045,x,-.200+offset,.115,tinyGold);
+    }
+  }
+  // The lower support is a physical return from the cassette to a slim
+  // inspection plate. It is placed ABOVE both clue carriers, and cannot
+  // cover the musical note strip when the eye is pressed.
+  for(const sign of [-1,1])
+    rearFit("lower optic stay",.025,.133,.039,
+      sign*.18,-.725,.087,teal,.006);
+  rearFit("lower service backing",.56,.190,.030,
+    0,-.875,.087,metal,.014);
+  rearFit("lower service inlay",.508,.144,.012,
+    0,-.875,.109,cream,.010);
+  for(const x of [-.175,-.087,0,.087,.175]){
+    rearFit("lower inspection etch",.047,.007,.008,
+      x,-.875,.120,smoked,.002);
+  }
+  for(const sign of [-1,1])
+    C(backFace,.013,.049,sign*.247,-.875,.114,tinyGold);
+  // No click targets or new puzzles are assigned to this relief.
+  // Lower clues, iris calibration and discoveries remain authoritative.
+
   // Substantial three-dimensional beveled corner gussets instead of
   // independent square caps. These are mounted to the fixed frame.
   for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){
@@ -494,6 +547,7 @@ export function finishMechanicalArtifact({
     getEngravedTrackAudit:()=>ornamentSummary.map(line=>({
       ...line,segments:line.segments.map(pair=>[...pair])
     })),
+    getRearEyeReliefAudit:()=>rearEyeRelief.map(item=>({...item})),
     getTrimClearanceAudit:()=>({railCount:borderRails.length,
       partCount:borderRails.reduce((n,r)=>n+r.segments.length,0),
       clipped:borderRails.filter(r=>r.segments.length!==1||
