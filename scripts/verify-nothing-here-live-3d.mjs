@@ -195,7 +195,7 @@ try{
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
   "Opened mechanisms must never conceal their physically revealed rewards");
  assert(unlocked.cogCover?.open&&unlocked.cogCover.angle < -1.15,
-  "Three front screws did not physically hinge the service cover open");
+  "The released spring latch did not physically hinge the service cover open");
  const origins=Object.fromEntries(unlocked.items.map(entry=>[entry.id,entry.source]));
  const expectedOrigins={
   cog:"front-cog-pocket",shim:"vent-pocket",cylinder:"service-pocket",
@@ -1495,7 +1495,12 @@ try{
  for(const n of [1,2])await activate("front-screw-"+n);
  let s=await state();
  assert(s.screws.length===3,"Three physical faceplate screws did not reach the original backend");
- assert(s.plateOpen,"The third real screw should release the faceplate on its own");
+ assert(!s.plateOpen,"Screws must free the cover, not bypass its spring latch");
+ assert(!s.pendingPickups.includes("cog"),"The cog was exposed through a still-latched cover");
+ await activate("front-screw-3");
+ s=await state();
+ assert(s.plateOpen&&s.pendingPickups.includes("cog"),
+  "Pressing the freed corner latch must hinge the cover open and reveal the cog");
  const beforeEmptyReceiver={seen:s.seen.length,pocket:s.pocket.length,pending:s.pendingPickups.length};
  await activate("cube-offer");
  s=await state();
