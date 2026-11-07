@@ -26,6 +26,12 @@ const cases=[
  {label:"lavender-open-desktop",viewport:{width:1280,height:850},
   seed:{seen:["first","drawer"],a:true,drawerTaken:false,
    gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ {label:"observatory-open-desktop",viewport:{width:1280,height:850},
+  seed:{seen:["first","observatory"],top:true,pipeTaken:true,
+   observatoryRaised:true,observed:false,
+   telescopeLensMounted:false,telescopeIrisMounted:false,
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
 const browser=await chromium.launch({headless:true,args:[
@@ -117,6 +123,29 @@ try{
     result.mounts.fixed>=12&&result.mounts.miniatures>=15&&
     result.mounts.figures===15&&result.mounts.frontLens===true,
     "Mechanical attachment QA failed: "+JSON.stringify(result.mounts));
+   const eye=await page.evaluate(()=>{
+    const view=window.__nothing3DPreview;
+    return {parts:view?.rearEyeReliefAudit||[],
+     mounts:view?.miniatureControlClearanceViolations||[]};
+   });
+   assert(eye.parts.length>=24,
+    "Green eye side lost its inset panels and physical connections");
+   // Verify actual rendered back-face cosmetic bounds against every puzzle
+   // and all three future miniature stands, not a blanket 'no overlaps'.
+   const protectedRear=[
+    {name:"live eye",x:0,y:-.18,w:1.48,h:.77},
+    {name:"iris adjustment",x:1.055,y:-1.095,w:.49,h:.725},
+    {name:"symbol cassette",x:-.93,y:-1.25,w:.86,h:.29},
+    {name:"revealed eye inscription",x:.075,y:-1.395,w:.755,h:.19},
+    ...[[-1.16,.73],[0,1.09],[1.16,.73]].map(([x,y])=>
+     ({name:"miniature holder",x,y:y+.10,w:.56,h:.48}))
+   ];
+   for(const part of eye.parts)for(const zone of protectedRear){
+    const dx=Math.abs(part.x-zone.x)-(part.w+zone.w)/2;
+    const dy=Math.abs(part.y-zone.y)-(part.h+zone.h)/2;
+    assert(dx>=.016||dy>=.016,
+     "Green eye detail "+part.name+" clips "+zone.name);
+   }
    assert.equal(result.ornaments.routes,46,
     "The ornate black/gold second-tier border was removed from a face");
    assert.equal(result.ornaments.faces.length,6,
@@ -150,6 +179,37 @@ try{
     assert.equal(key.target?.pick,"pickup:tooth",
      "Real mouse raycast cannot reach the key in the open drawer: "+
       JSON.stringify(key));
+   }
+   if(check.label==="fresh-desktop"){
+    const audit=await page.evaluate(()=>window.__nothing3DPreview.observatoryClickAudit);
+    assert(!audit.open&&audit.registered>=8&&audit.domeMeshes>=1&&
+     audit.noInvisibleBox,
+     "Closed observatory must only be clickable on its physical dome: "+
+      JSON.stringify(audit));
+   }
+   if(check.label==="observatory-open-desktop"){
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(90,0));
+    await page.waitForTimeout(300);
+    const view=await page.evaluate(()=>{
+     const scene=window.__nothing3DPreview;
+     return {audit:scene.observatoryClickAudit,
+      target:scene.projectObservatoryInstrument()};
+    });
+    assert(view.audit.open&&view.audit.registered>=8&&
+     view.audit.domeMeshes>=1&&view.audit.noInvisibleBox,
+     "Opened telescope barrel was not registered: "+JSON.stringify(view));
+    assert(view.target?.scopeHit&&
+     view.target.pick==="thing:telescope",
+     "Pressing the actual exposed telescope does not reach its action: "+
+      JSON.stringify(view));
+    const bounds=await page.locator("#stage canvas").boundingBox();
+    await page.mouse.click(bounds.x+view.target.x,bounds.y+view.target.y);
+    await page.waitForFunction(()=>
+     window.__nothing3DPreview.lastClickedAction==="thing:telescope",
+     null,{timeout:8000});
+    const clue=await page.locator("#status").textContent();
+    assert(/optic|socket|telescope|sky|focus/i.test(clue||""),
+     "Pressing the real telescope offered no useful visual text feedback: "+clue);
    }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
    // Check the design at each physical angle, not merely a Three.js
