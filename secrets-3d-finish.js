@@ -130,12 +130,13 @@ export function finishMechanicalArtifact({
             const x=trace.end+(curveStart-trace.end)*i/34;
             stations.push(new THREE.Vector3(sign*x,trace.y,trace.z));
           }
-          // The last .070 turns inward/down; its tangent is horizontal
-          // at the join and vertical inside the actual dark well.
+          // Bend the FULL-WIDTH strip into the well. Move almost all of the
+          // way in before descending, so its corners clear the slim metal
+          // socket rim; the final tangent points straight into the hole.
           const bend=new THREE.CubicBezierCurve3(
             new THREE.Vector3(sign*curveStart,trace.y,trace.z),
-            new THREE.Vector3(sign*(inner+.032),trace.y,trace.z),
-            new THREE.Vector3(sign*(inner+.002),trace.y,trace.z-.003),
+            new THREE.Vector3(sign*(inner+.007),trace.y,trace.z),
+            new THREE.Vector3(sign*inner,trace.y,trace.z),
             new THREE.Vector3(sign*inner,trace.y,.063)
           );
           for(let i=1;i<=24;i++)stations.push(bend.getPoint(i/24));
@@ -147,12 +148,9 @@ export function finishMechanicalArtifact({
             const next=stations[Math.min(stations.length-1,i+1)];
             const tangent=next.clone().sub(prev).normalize();
             const nx=-tangent.z,nz=tangent.x;
-            const remaining=Math.abs(p.x)-inner;
-            const progress=THREE.MathUtils.clamp(
-              (curveStart-remaining-inner)/.070,0,1);
-            const taper=1-.77*progress*progress*(3-2*progress);
-            const halfWidth=trace.width*taper*.5;
-            const halfDepth=trace.depth*taper*.5;
+            // Solid, constant-section inlay: no narrowing as it enters the socket.
+            const halfWidth=trace.width*.5;
+            const halfDepth=trace.depth*.5;
             for(const [u,v] of profile){
               positions.push(p.x+nx*v*halfDepth,
                p.y+u*halfWidth,p.z+nz*v*halfDepth);
