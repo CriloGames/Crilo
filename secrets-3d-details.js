@@ -2,6 +2,7 @@ import * as THREE from "three";
 import {gsap} from "gsap";
 import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
 import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=2";
+import {clearRailSegments,railClearanceFaults} from "./secrets-3d-rail-clearance.js?v=1";
 
 // All of these are genuine, individually lit 3D meshes, not CSS overlays.
 // All coordinates below are local to their own solid cube face.
@@ -29,6 +30,7 @@ export function buildIntricateCube({
   ].find(([,root])=>face===root)?.[0]||null;
   let detailsCount=0;
   const authoredMeshes=[];
+  const borderRails=[],borderRailFaults=[];
   // Small machined features receive normal PBR lighting but do not each
   // cast a 1024px shadow. Larger structural pieces retain genuine shadows.
   // This removes hundreds of redundant shadow draw calls on mobile hardware.
@@ -63,6 +65,21 @@ export function buildIntricateCube({
   // (outer face surface: z=.0725), not just a Three.js parent relationship.
   // Only mount NON-MOVING axle bearings here. Moving gear faces stay free.
   const axleMounts=[];
+  // All four slender face-border rails are split around actual machinery.
+  // They are DECORATIVE: the solid cube frame still carries the load.
+  // Black and silver trim use the exact same clearance envelopes.
+  const trimRail=(face,axis,fixed,from,to,width,depth,z,paint,rounding)=>{
+    const name=faceName(face);
+    const segments=clearRailSegments(name,axis,fixed,from,to,width);
+    borderRailFaults.push(...railClearanceFaults(name,axis,fixed,segments,width));
+    borderRails.push({face:name,axis,fixed,from,to,width,segments});
+    for(const seg of segments){
+      const mesh=axis==="x"
+       ?B(face,seg.length,width,depth,seg.center,fixed,z,paint,rounding)
+       :B(face,width,seg.length,depth,fixed,seg.center,z,paint,rounding);
+      mesh.userData.clearanceTrim=true;
+    }
+  };
   const axleBearing=(face,name,x,y,rearZ,r)=>{
     const footZ=.066,tipZ=rearZ+.016;
     const shaft=C(face,r,tipZ-footZ,x,y,(tipZ+footZ)/2,darkMetal);
@@ -89,14 +106,7 @@ export function buildIntricateCube({
   const plates=(face,m)=>{
     // Inner panel is a real raised physical layer with corner detailing.
     for(const sy of [-1,1]){
-      if(face===frontFace&&sy===1){
-        // The full-width upper rail used to pass through the top of the
-        // .758-radius optical sleeve. Butt its two ends up to the round
-        // housing with a real clearance instead of overlapping the metal.
-        const stop=.22,edge=1.425,length=edge-stop;
-        for(const sign of [-1,1])
-          B(face,length,.055,.07,sign*(stop+length/2),1.38,.10,m,.016);
-      }else B(face,2.85,.055,.07,0,sy*1.38,.10,m,.016);
+      trimRail(face,"x",sy*1.38,-1.425,1.425,.055,.07,.10,m,.016);
       for(const sx of [-1,1]){
         // The integrated iris service cassette occupies this corner.
         // Avoid an orphaned shell rivet running through its backplate.
@@ -109,7 +119,8 @@ export function buildIntricateCube({
         rivet(face,sx*1.31,sy*1.33,.16);
       }
     }
-    for(const sx of [-1,1])B(face,.055,2.63,.07,sx*1.39,0,.10,m,.018);
+    for(const sx of [-1,1])
+      trimRail(face,"y",sx*1.39,-1.315,1.315,.055,.07,.10,m,.018);
   };
   const vent=(face,x,y,w=.65,n=5,m=ebony)=>{
     const frame=group(face,x,y,.16);
@@ -738,6 +749,11 @@ export function buildIntricateCube({
   });
   return {
     meshCount:()=>detailsCount,
+    getTrimClearanceAudit:()=>({railCount:borderRails.length,
+      partCount:borderRails.reduce((n,r)=>n+r.segments.length,0),
+      clipped:borderRails.filter(r=>r.segments.length!==1||
+       Math.abs(r.segments[0]?.length-(r.to-r.from))>.0001).length,
+      faults:borderRailFaults.map(x=>({...x}))}),
     batching,
     actions:Object.keys(labels),
     getState:()=>({...live}),
