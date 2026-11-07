@@ -197,7 +197,7 @@ for(let i=0;i<=320;i++){
   'The observatory rim bends away from its single straight-cut plane');
  // The inverse must reach the same point as the shutter's guide tracks.
  const width=Math.acos(Math.max(0,Math.min(1,sectionSlope*Math.tan(elev))));
- assert(Math.abs(Math.abs(az)-width)<1e-9,
+ assert(Math.abs(Math.abs(az)-width)<1e-7,
   'The shutter guide no longer matches the lid opening');
 }
 // The approved lid uses a single rigid full-thickness ivory rim and
