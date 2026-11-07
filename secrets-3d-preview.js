@@ -1684,6 +1684,9 @@ window.__nothing3DPreview={
  get engravedTrackAudit(){
   return finish.getEngravedTrackAudit?.()||[];
  },
+ get rearEyeReliefAudit(){
+  return finish.getRearEyeReliefAudit?.()||[];
+ },
  get physicalAttachmentAudit(){
   const wheels=intricate.getStructuralMounts?.()||[];
   const fixed=gameHotspots?.getFixedMountAudit?.()||[];
