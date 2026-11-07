@@ -24,6 +24,16 @@ await mkdir("test-results",{recursive:true});
 
 const cases=[
  {label:"fresh-desktop",viewport:{width:1280,height:850},seed:null},
+ // A saved 60/60 game must unfold without replaying sounds or animations.
+ {label:"finale-saved-mobile",viewport:{width:390,height:844},
+  seed:{seen:peculiarities,plateOpen:true,door:true,doorOpen:true,
+   pocket:[],pendingPickups:[],gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // The sixtieth TRUE discovery must start the finale in the same session.
+ {label:"finale-last-discovery",viewport:{width:1280,height:850},
+  seed:{seen:allButDot,redHits:0,
+   pocket:["coin"],pendingPickups:[],gearMazePlayed:true,
+   gearMazeLayoutVersion:6,gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"saved-mobile",viewport:{width:390,height:844},
   seed:{seen:["first"],gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
@@ -114,16 +124,6 @@ const cases=[
    pocket:["raindrop","bell"],pendingPickups:[],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
- // A saved 60/60 game must unfold without replaying sounds or animations.
- {label:"finale-saved-mobile",viewport:{width:390,height:844},
-  seed:{seen:peculiarities,plateOpen:true,door:true,doorOpen:true,
-   pocket:[],pendingPickups:[],gearMazePlayed:true,gearMazeLayoutVersion:6,
-   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
- // The sixtieth TRUE discovery must start the finale in the same session.
- {label:"finale-last-discovery",viewport:{width:1280,height:850},
-  seed:{seen:allButDot,redHits:0,
-   pocket:["coin"],pendingPickups:[],gearMazePlayed:true,
-   gearMazeLayoutVersion:6,gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
