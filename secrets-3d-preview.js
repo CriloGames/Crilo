@@ -1119,6 +1119,8 @@ function pickVisibleAction(clientX,clientY){
  const limit=casing?casing.distance+.025:Infinity;
  return raycaster.intersectObjects(interactiveMeshes,false)
   .find(hit=>hit.distance<=limit && hit.object.userData.action &&
+    (!hit.object.userData.requiresObservatoryOpen||
+     !!currentGameState.observatoryRaised)&&
     isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
 }
 
@@ -1144,7 +1146,9 @@ function visibleKeyboardTargets(){
  scene.updateMatrixWorld(true);
  const options=new Map(),center=new THREE.Vector3(),projected=new THREE.Vector3();
  for(const mesh of interactiveMeshes){
-  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh))continue;
+  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh)||
+     mesh.userData.requiresObservatoryOpen&&
+     !currentGameState.observatoryRaised)continue;
   if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
   center.copy(mesh.geometry.boundingSphere.center).applyMatrix4(mesh.matrixWorld);
   projected.copy(center).project(camera);
@@ -2019,6 +2023,63 @@ window.__nothing3DPreview={
  getPhysicalActionAt(x,y){
   const r=renderer.domElement.getBoundingClientRect();
   return pickVisibleAction(r.left+x,r.top+y);
+ },
+ get observatoryClickAudit(){
+  const instrument=pocketWorlds?.telescopeInstrument;
+  const dome=pocketWorlds?.observatoryDome;
+  const meshes=root=>{
+   const list=[];root?.traverse(node=>{if(node.isMesh)list.push(node);});
+   return list;
+  };
+  const scope=meshes(instrument),roof=meshes(dome);
+  return {
+   open:!!currentGameState.observatoryRaised,
+   scopeMeshes:scope.length,
+   registered:scope.filter(mesh=>
+    interactiveMeshSet.has(mesh)&&
+    mesh.userData.action==="thing:telescope"&&
+    mesh.userData.requiresObservatoryOpen).length,
+   domeMeshes:roof.filter(mesh=>
+    interactiveMeshSet.has(mesh)&&
+    mesh.userData.action==="thing:telescope").length,
+   noInvisibleBox:!pocketWorlds?.pickVolumes.get("telescope")
+    ?.geometry?.type?.includes("Box")
+  };
+ },
+ projectObservatoryInstrument(){
+  const root=pocketWorlds?.telescopeInstrument;
+  if(!root||!isMeshEffectivelyVisible(root))return null;
+  scene.updateMatrixWorld(true);camera.updateMatrixWorld();
+  const rect=renderer.domElement.getBoundingClientRect();
+  let fallback=null;
+  const probes=[];
+  root.traverse(mesh=>{
+   if(!mesh.isMesh||!mesh.userData.requiresObservatoryOpen||
+    !isMeshEffectivelyVisible(mesh))return;
+   if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
+   const sphere=mesh.geometry.boundingSphere;
+   probes.push({mesh,center:sphere.center.clone()});
+  });
+  for(const {mesh,center} of probes){
+   for(const dx of [0,-.018,.018])for(const dy of [0,-.018,.018]){
+    const p=center.clone().add(new THREE.Vector3(dx,dy,0))
+     .applyMatrix4(mesh.matrixWorld).project(camera);
+    const x=(p.x+1)*rect.width/2,y=(1-p.y)*rect.height/2;
+    if(p.z< -1||p.z>1||x<0||x>rect.width||y<0||y>rect.height)continue;
+    if(!fallback)fallback={x,y,pick:null,scopeHit:false};
+    pointer.set((x/rect.width)*2-1,1-(y/rect.height)*2);
+    raycaster.setFromCamera(pointer,camera);
+    const first=raycaster.intersectObjects(interactiveMeshes,false)
+     .find(hit=>isMeshEffectivelyVisible(hit.object)&&
+      (!hit.object.userData.requiresObservatoryOpen||
+       currentGameState.observatoryRaised));
+    const action=pickVisibleAction(rect.left+x,rect.top+y);
+    if(action==="thing:telescope"&&
+     first?.object.userData.requiresObservatoryOpen)
+      return {x,y,pick:action,scopeHit:true};
+   }
+  }
+  return fallback;
  },
  projectPhysicalStoryObject(name){
   const obj=pocketWorlds?.targets.get(name);
