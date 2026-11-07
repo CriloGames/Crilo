@@ -35,6 +35,12 @@ const cases=[
    pocket:["lens"],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Both the sugar cube and the second-coin service key can await pickup.
+ // Their two output sockets must remain seated on the moving vending tray.
+ {label:"vending-two-rewards",viewport:{width:1280,height:850},
+  seed:{seen:["first","mouse","bag","machine"],mouse:true,bag:true,
+   machine:true,shimUsed:true,coinReturned:true,refundRedeemed:true,
+   pendingPickups:["sugar","seal"],pocket:[]}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
@@ -200,6 +206,30 @@ try{
     assert.equal(key.target?.pick,"pickup:tooth",
      "Real mouse raycast cannot reach the key in the open drawer: "+
       JSON.stringify(key));
+   }
+   if(check.label==="vending-two-rewards"){
+    const result=await page.evaluate(()=>{
+     const scene=window.__nothing3DPreview;
+     return {mount:scene.vendingReturnPickupAudit,
+      tray:scene.physicalPickupTrays.find(t=>t.source==="machine"),
+      sugar:scene.getPhysicalPickupRevealState("sugar"),
+      seal:scene.getPhysicalPickupRevealState("seal")};
+    });
+    assert(result.mount?.seated&&result.mount.noDetachedRewards&&
+     result.tray?.visible&&result.tray.visibleItems===2,
+     "Vending rewards are not sitting on the actual moving return tray: "+
+      JSON.stringify(result));
+    for(const id of ["sugar","seal"]){
+     const entry=result.mount.items.find(item=>item.id===id);
+     assert(entry?.visible&&entry.onReturnTray&&entry.supported&&
+      result[id]?.onScene,
+      "The "+id+" collectible is detached from the machine: "+
+       JSON.stringify(result));
+    }
+    // The return tray itself slides farther out when a service key appears.
+    assert(Math.abs((await page.evaluate(()=>
+     window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))-.47)<.002,
+     "The mounting tray failed to follow the reward-unlock movement");
    }
    if(check.label==="held-coin-guidance"){
     // Players must find the correct face themselves. Choosing a coin
