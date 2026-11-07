@@ -74,6 +74,28 @@ try{
   "The picked-up item needs an independent green flash: "+JSON.stringify(arrival));
  assert.equal(arrival.pulse.duration,"1.05s",
   "Collected-item confirmation should be quick, not an endless glow");
+ // A legacy translateY(-3px) on :hover caused the pointer to leave
+ // the bottom pixel of a button, creating a hover/unhover feedback loop.
+ // Exercise precisely that boundary in Chromium, not just computed CSS.
+ const bottomItem=page.locator('#ncInventory [data-item="lens"]');
+ await bottomItem.scrollIntoViewIfNeeded();
+ const beforeHover=await bottomItem.boundingBox();
+ await page.mouse.move(beforeHover.x+beforeHover.width/2,
+  beforeHover.y+beforeHover.height-1);
+ await page.waitForTimeout(320);
+ const edge=await bottomItem.evaluate(node=>({
+  hovered:node.matches(":hover"),
+  transform:getComputedStyle(node).transform,
+  hit:document.elementFromPoint(
+   node.getBoundingClientRect().left+node.offsetWidth/2,
+   node.getBoundingClientRect().bottom-1)?.closest(".nc-item")===node
+ }));
+ const afterHover=await bottomItem.boundingBox();
+ assert(edge.hovered&&edge.hit&&edge.transform==="none",
+  "Inventory flickers when hovering its bottom edge: "+JSON.stringify(edge));
+ assert(Math.abs(beforeHover.y-afterHover.y)<.25&&
+  Math.abs(beforeHover.height-afterHover.height)<.25,
+  "Inventory card changes position or height on hover");
  // Clicking a held item must not recreate the rest of the pocket's SVG
  // collection, so drag, focus and the arrival pulse remain continuous.
  await page.evaluate(()=>{
@@ -91,6 +113,15 @@ try{
   "key","Selecting an inventory icon no longer picks up the correct item");
  assert.equal(await page.locator('#ncInventory [data-item="key"]').getAttribute("aria-pressed"),
   "true","Selected pocket item no longer communicates state to assistive technology");
+ const selectedBorder=await page.locator('#ncInventory [data-item="key"]')
+  .evaluate(node=>({
+   width:getComputedStyle(node).borderTopWidth,
+   transform:getComputedStyle(node).transform
+  }));
+ assert.equal(selectedBorder.width,"1px",
+  "Selecting an item must not enlarge its border and shift the inventory");
+ assert.equal(selectedBorder.transform,"none",
+  "Selected inventory card cannot leave the mouse hit area");
  assert.equal(await page.locator("#ncPocketCount").innerText(),"33 carried",
   "Selecting an item must not remove it from the pocket");
  await page.evaluate(()=>{document.documentElement.dataset.theme="dark"});
