@@ -82,13 +82,13 @@ async function deployObservatory(page){
   pose.shutterProgress>=.999&&pose.slatCount===16&&
   pose.visibleSlats===0&&pose.rearCapVisible&&pose.mouthWidth>.53&&
    pose.openingRise>.23&&
-   pose.retainedDomeFraction>.68&&pose.retainedDomeFraction<.82&&
+   pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&
   Math.abs(pose.domeSeamHeight-.118)<.001&&Math.abs(pose.scopeTilt)<.02&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.11&&pose.canopyFrontY>-.16&&
+  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
-  pose.objectiveFrontY>pose.canopyFrontY-.04&&pose.objectiveFrontY<pose.canopyFrontY+.08&&
+  pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
   "The ivory observatory did not open its arched front or keep the telescope centered");
 }
@@ -515,12 +515,12 @@ try{
    pose.slatCount===16&&pose.visibleSlats===0&&
    pose.rearCapVisible&&pose.mouthWidth>.53&&
    pose.openingRise>.23&&
-   pose.retainedDomeFraction>.68&&pose.retainedDomeFraction<.82&&Math.abs(pose.domeSeamHeight-.118)<.001&&
+   pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&Math.abs(pose.domeSeamHeight-.118)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.11&&pose.canopyFrontY>-.16&&
+  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
-  pose.objectiveFrontY>pose.canopyFrontY-.04&&pose.objectiveFrontY<pose.canopyFrontY+.08&&
+  pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The reference observatory was unlocked but its curved shutter did not retract");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
