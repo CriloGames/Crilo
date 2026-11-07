@@ -214,8 +214,11 @@ async function refundCoin(page,{realPointer=false}={}){
   const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
   if(name!=="gear-large"){
+   // This audit endpoint expects canvas-local pixel coordinates, unlike
+   // page.mouse, which uses absolute viewport coordinates.
    const hit=await page.evaluate(([x,y])=>
-    window.__nothing3DPreview.getPhysicalActionAt(x,y),[start.x,start.y]);
+    window.__nothing3DPreview.getPhysicalActionAt(x,y),
+    [data.start.x,data.start.y]);
    assert.equal(hit,name,"The real visible cog was not under the cursor");
   }
   await page.mouse.down();
