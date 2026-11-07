@@ -525,31 +525,24 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // wide arched front opening, terracotta interior, and a continuous ring.
  // The centered telescope never rises; a shutter rolls beneath the shell.
  const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;
- // The visible lip follows a SINGLE straight chord across the dome.
- // The former varying-angle arch made a pointed V over the telescope.
- // Clip the spherical shell against a fixed front-to-back plane instead:
- // every point of the opening edge has exactly the same local Y.
- const OBSERVATORY_CUT_FRONT=.074;
- const OBSERVATORY_OPEN_HALF_ANGLE=Math.acos(
-  OBSERVATORY_CUT_FRONT/OBSERVATORY_RADIUS);
- const OBSERVATORY_ARCH_RISE=OBSERVATORY_OPEN_HALF_ANGLE;
+ // The shutter's rim is the intersection of the hemisphere with a
+ // SINGLE inclined plane, not two rising arcs joined at a central peak.
+ // Its plane is almost edge-on from the roof inspection view, so the
+ // lid reads as one uninterrupted straight edge across the telescope.
+ // This also leaves the opening a little farther back, as requested.
+ const OBSERVATORY_CUT_SLOPE=.55;
+ const OBSERVATORY_OPEN_HALF_ANGLE=Math.PI/2;
+ const OBSERVATORY_ARCH_RISE=Math.atan(1/OBSERVATORY_CUT_SLOPE);
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
  const observatoryGuideRollers=[];
  let observatoryRivetCount=0;
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  let observatoryScope=null,observatoryRearCap=null,observatoryBarrel=null;
- const apertureHeight=(az,r=OBSERVATORY_RADIUS)=>{
-  const facing=Math.cos(az);
-  if(facing<=0)return 0;
-  const cosine=OBSERVATORY_CUT_FRONT/(r*facing);
-  return cosine>=1?0:Math.acos(cosine);
- };
- const apertureHalfWidth=(elev,r=OBSERVATORY_RADIUS)=>{
-  const reach=r*Math.cos(elev);
-  return reach<=OBSERVATORY_CUT_FRONT?0:
-   Math.acos(THREE.MathUtils.clamp(OBSERVATORY_CUT_FRONT/reach,0,1));
- };
+ const apertureHeight=az=>Math.atan2(
+  Math.max(0,Math.cos(az)),OBSERVATORY_CUT_SLOPE);
+ const apertureHalfWidth=elev=>Math.acos(THREE.MathUtils.clamp(
+  OBSERVATORY_CUT_SLOPE*Math.tan(elev),0,1));
  const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[
   r*Math.cos(elev)*Math.sin(az),
   -r*Math.cos(elev)*Math.cos(az),
@@ -619,7 +612,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const domeSkin=r=>{
   const pos=[],normal=[],uv=[],indices=[],A=224,E=44;
   for(let i=0;i<=A;i++){
-   const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az,r);
+   const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az);
    for(let j=0;j<=E;j++){
     const el=cut+(Math.PI/2-cut)*j/E;
     pos.push(...domePoint(az,el,r));
@@ -729,8 +722,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.hitVolume=observatoryRearCap;
   const lining=new THREE.Mesh(domeSkin(OBSERVATORY_RADIUS-.010),terracotta);
   roofShell.add(lining);parts++;
-  // This lip projects as ONE straight line across the face from above.
-  // It has a fixed Y plane; no central peak or independent left/right bow.
+  // This lip lies in the SINGLE plane y + .55*z = 0.
+  // Unlike the old arch, its profile projects as a straight span from
+  // the player's angled roof view, without a central tent-shaped peak.
   // The shutter opening is a rigid machined edge, not a rubber-looking
   // tube following a warped arc. Sweep one constant section along the
   // exact spherical cut, joining the outer ivory skin to its lining.
@@ -1601,7 +1595,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
       Math.sin(OBSERVATORY_ARCH_RISE*.72))/Math.PI,
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
       OBSERVATORY_RING_TOP,
-     canopyFrontY:-OBSERVATORY_CUT_FRONT,
+     canopyFrontY:-OBSERVATORY_RADIUS*Math.cos(OBSERVATORY_ARCH_RISE),
      canopyCrownZ:OBSERVATORY_RING_TOP+OBSERVATORY_RADIUS,
      frontSillTopZ:OBSERVATORY_RING_TOP,
      mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),
