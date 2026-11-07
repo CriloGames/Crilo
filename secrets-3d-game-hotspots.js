@@ -566,8 +566,21 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  control(backFace,"eye-ring",1.055,-1.30,brass,.105);
  // Story changes have real volume, not state indicators drawn over a canvas.
  const portalGroup=node(frontFace,0,.59,.69);
- const halo=new THREE.Mesh(new THREE.TorusGeometry(.245,.024,10,48),mat(0xb3a6df,.52,.20));
- halo.castShadow=false;halo.receiveShadow=true;portalGroup.add(halo);count++;
+ // The postcard's portal is deliberate, but its former thick pastel
+ // lavender ring looked like a randomly spawned collar on the brass lens.
+ // A thin retained brass bezel plus a fine violet optical filament now
+ // makes it read as a finished part OF the receiver, not a loose hoop.
+ const portalRetainer=new THREE.Mesh(
+  new THREE.TorusGeometry(.255,.013,10,48),brass);
+ portalRetainer.position.z=-.005;
+ portalRetainer.castShadow=false;portalRetainer.receiveShadow=true;
+ portalGroup.add(portalRetainer);count++;
+ const opticalEdge=mat(0x8d829e,.45,.34);
+ opticalEdge.emissive.setHex(0x5d4e89);
+ opticalEdge.emissiveIntensity=.14;
+ const halo=new THREE.Mesh(new THREE.TorusGeometry(.233,.007,10,48),opticalEdge);
+ halo.position.z=.005;halo.castShadow=false;
+ halo.receiveShadow=true;portalGroup.add(halo);count++;
  const portalCore=C(portalGroup,.165,.046,0,0,-.013,mat(0x9bd9dd,.05,.19));
  portalCore.material.emissive=new THREE.Color(0x407c8c);
  portalCore.material.emissiveIntensity=.37;
