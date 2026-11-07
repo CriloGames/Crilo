@@ -576,6 +576,37 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-item-combine-match::afte
 @media(pointer:coarse){
  .nc-page.nc-physical-ready #stage #ncItemFitHalo{width:64px;height:64px}
 }
+/* On selecting an inventory tool, briefly flash only the visible
+   physically reachable fittings compatible with it. No hover required,
+   no permanent target hunt, and no click interception by the overlay. */
+.nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
+ position:absolute;z-index:8;
+ width:54px;height:54px;box-sizing:border-box;
+ pointer-events:none;border-radius:50%;
+ transform:translate(-50%,-50%);
+ border:2px solid #74dca5;
+ background:radial-gradient(circle,#b8f9d84a 0%,#76e1ac2b 54%,transparent 73%);
+ box-shadow:0 0 0 4px #87ebb04d,0 0 22px 5px #61d99885,
+  inset 0 0 12px #b4ffd088;
+ animation:ncSelectedFitFlash .95s ease-out both;
+}
+@keyframes ncSelectedFitFlash{
+ 0%{opacity:0;scale:.72}
+ 22%{opacity:1;scale:1.06}
+ 48%{opacity:.9;scale:1.03}
+ 100%{opacity:0;scale:1.22}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
+  animation:none;opacity:.85;
+ }
+}
+@media(pointer:coarse){
+ .nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
+  width:62px;height:62px;
+ }
+}
+
 .nc-page .nc-pocket .nc-empty{display:block;padding:4px 0 1px;letter-spacing:.015em;color:#879b99;}
 html[data-theme="dark"] .nc-page .nc-pocket{
  border-color:#4d6769;background:linear-gradient(155deg,#303d40,#263337 90%);
