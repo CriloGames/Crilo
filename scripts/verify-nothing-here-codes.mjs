@@ -445,16 +445,18 @@ assert(details.includes('const outer=1.51,corner=1.48;')&&
  details.includes('trimRail(face,"y",sx*outer,-corner,corner,.055,.07,.10,m,.018);')&&
  !details.includes('rivet(face,sx*1.31,sy*1.33,.16);')&&
  finish.includes('const inset=face===rightFace?1.445:1.425;')&&
- finish.includes('const join=inset+.025;')&&
+ finish.includes('const straight=inset-.015,span=inset+.015;')&&
  finish.includes('if(face===backFace)return;')&&
- finish.includes('trimRail(face,"x",sign*inset,-join,join,')&&
- finish.includes('trimRail(face,"y",sign*inset,-join,join,')&&
+ finish.includes('trimRail(face,"x",sign*inset,-straight,straight,')&&
+ finish.includes('trimRail(face,"y",sign*inset,-span,span,')&&
+ finish.includes('trimRail(face,"x",s*inset,-straight,straight,')&&
+ finish.includes('trimRail(face,"y",s*inset,-span,span,')&&
  !finish.includes('trimRail(face,"x",s*1.125,')&&
  !finish.includes('trimRail(face,"y",s*1.125,'),
  'The six-sided trim no longer forms clean connected borders');
 for(const [axis,fixed,start,end,width] of [
- ["x",1.425,-1.450,1.450,.030],["x",-1.425,-1.450,1.450,.030],
- ["y",1.425,-1.450,1.450,.030],["y",-1.425,-1.450,1.450,.030],
+ ["x",1.425,-1.410,1.410,.030],["x",-1.425,-1.410,1.410,.030],
+ ["y",1.425,-1.440,1.440,.030],["y",-1.425,-1.440,1.440,.030],
  ["x",1.51,-1.480,1.480,.055],["x",-1.51,-1.480,1.480,.055],
  ["y",1.51,-1.480,1.480,.055],["y",-1.51,-1.480,1.480,.055]
 ]){
@@ -465,6 +467,13 @@ for(const [axis,fixed,start,end,width] of [
   "frontFace",axis,fixed,spans,width),[],
   "Front frame crosses optical hardware");
 }
+// The inner border corners are butt joints, not crossing/embedded
+// separate metal strips. The roof's socket inlays stay inside that rim.
+assert(Math.abs((1.425-.015)-(1.425-.030/2))<1e-12,
+ 'Inner horizontal trim still runs through the vertical at a corner');
+assert(finish.includes('The roof inlays enter their real sockets')&&
+ finish.includes('trimRail(face,"x",s*inset,-straight,straight,'),
+ 'Observatory face is missing a complete, connected lower perimeter');
 // Every remaining shortened black, silver or gold strip has a flush
 // return shoe within the clearance window. Full-length front borders
 // are deliberately not covered in extra end caps or fake rivets.
