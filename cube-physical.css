@@ -286,17 +286,57 @@ html[data-theme="dark"] .nc-page.nc-physical-ready #stage #ncKeyboardFocus.nc-is
  .nc-page.nc-physical-ready #stage #ncPartHint{font-size:11px;max-width:185px}
 }
 
-/* Make a newly acquired object unambiguously enter the existing pocket. */
+/* Item-collected confirmation: a short bright GREEN flash on the
+   inventory card itself, independent of mouse hover. The existing hover
+   and compatible-target indicators remain unchanged. Only newly collected
+   items pulse; items restored from a save do not. */
 .nc-page .nc-pocket .nc-item.nc-item-new{
- animation:ncPocketArrival .95s cubic-bezier(.12,.72,.19,1) both;
+ --nc-arrival-bg:#fff;
+ --nc-arrival-border:#d4dfdc;
+ position:relative;z-index:1;
+ animation:ncPocketCollectedFlash 1.05s ease-out both;
 }
-@keyframes ncPocketArrival{
- 0%{box-shadow:0 0 0 0 #9ddac5;transform:scale(.88)}
- 38%{box-shadow:0 0 0 7px #9ddac579;transform:scale(1.09)}
- 100%{box-shadow:0 0 0 0 #9ddac500;transform:scale(1)}
+html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-item-new{
+ --nc-arrival-bg:#304047;
+ --nc-arrival-border:#53666b;
 }
-@media (prefers-reduced-motion:reduce){
- .nc-page .nc-pocket .nc-item.nc-item-new{animation:none}
+@keyframes ncPocketCollectedFlash{
+ 0%{
+  transform:scale(.98);
+  background:var(--nc-arrival-bg);
+  border-color:var(--nc-arrival-border);
+  box-shadow:0 0 0 0 #4dcf8b00;
+ }
+ 24%{
+  transform:scale(1.035);
+  background:#c9f6db;
+  border-color:#4bbf83;
+  box-shadow:0 0 0 5px #5adf9866,0 0 22px 3px #41bf7b75;
+ }
+ 58%{
+  transform:scale(1.01);
+  background:#e1f8e9;
+  border-color:#74cda0;
+  box-shadow:0 0 0 8px #65dba920,0 0 12px 1px #62c89144;
+ }
+ 100%{
+  transform:scale(1);
+  background:var(--nc-arrival-bg);
+  border-color:var(--nc-arrival-border);
+  box-shadow:0 2px 4px #23414409;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page .nc-pocket .nc-item.nc-item-new{
+  animation:none;
+  background:#dcf7e6;
+  border-color:#58bd88;
+  box-shadow:0 0 0 2px #56c58955;
+ }
+ html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-item-new{
+  background:#34684f;
+  border-color:#8bdbaf;
+ }
 }
 
 .nc-page.nc-physical-ready #stage #ncPartHint.nc-can-use{
@@ -636,10 +676,8 @@ body.nc-page.nc-physical-ready .nc-inventory-fly,
 body.nc-page.nc-physical-ready .nc-musical-note {
  display:none!important;
 }
-body.nc-page.nc-physical-ready .nc-pocket .nc-item.nc-item-new{
- animation:none;
- box-shadow:inset 0 0 0 1px #9dcabb,0 2px 6px #1f4b4117;
-}
+/* Physical WebGL mode uses the same green collection flash. It no longer
+   suppresses the arrival animation just because the 3D object vanished. */
 
 /* Clear pickup and crafting instructions belong with the persistent pocket,
    not in a floating label on top of the 3D mechanism. */
@@ -994,4 +1032,19 @@ html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls :is(.nc-rotat
  background-image:none!important;
  color:#506272!important;
  border-color:#c5d4d5!important;
+}
+
+/* Keep inventory immediately beneath the playable object after removing
+   the two redundant progress sections. Preserve the narrator's accessible
+   live feedback, but do not leave a large empty band above the pocket. */
+.nc-page.nc-physical-only .nc-narrator{
+ margin:2px auto 5px;
+ min-height:23px;
+}
+.nc-page.nc-physical-only .nc-pocket{
+ margin-top:7px;
+}
+@media(max-width:490px){
+ .nc-page.nc-physical-only .nc-narrator{margin:2px auto 4px;min-height:21px}
+ .nc-page.nc-physical-only .nc-pocket{margin-top:6px}
 }
