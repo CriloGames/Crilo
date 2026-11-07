@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=71";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=72";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=19";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -817,6 +817,11 @@ function clickAction(action){
    window.CriloNothingHereCube?.activatePhysicalBagRelease?.();
    return;
   }
+  if(action==="thing:elevator-keyway"){
+   window.NothingHereAudio?.play?.("gear");
+   window.CriloNothingHereCube?.activatePhysicalElevatorKeyway?.();
+   return;
+  }
   if(action.startsWith("thing:elevator-floor-")){
    window.NothingHereAudio?.play?.('drawer');
    pocketWorlds?.pulse?.(action);
@@ -979,6 +984,7 @@ const controlNames={
  "flute-body":"Playable flute",
  "flute-note-1":"Flute key I","flute-note-2":"Flute key II","flute-note-3":"Flute key III",
  "thing:door-handle":"Little door knob",
+ "thing:elevator-keyway":"Elevator tag reader",
  front:"Lavender drawer",latch:"Front drawer latch",
  "drawer-a":"Small metal teeth",side:"Teal drawer",
  seam:"Side drawer release button","drawer-b":"Red thread spool",
@@ -2180,6 +2186,7 @@ window.__nothing3DPreview={
   cog:gameHotspots?.targets.get("cube-offer")?.visible??null
  }},
  get physicalPuzzleActions(){return pocketWorlds?.puzzleActions||[]},
+ get physicalElevatorTagReaderState(){return pocketWorlds?.getElevatorTagReaderState?.()||null},
  get physicalScenePose(){return pocketWorlds?.getPose()||null},
  get unlockedGeometryAudit(){return pocketWorlds?.getUnlockedGeometryAudit?.()||null},
  get unlockedMechanismClashes(){
