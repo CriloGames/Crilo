@@ -912,9 +912,9 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    });
    pose(foot,"position","y",s.footChecked?1.42:1.02,
      previous.footChecked?1.42:1.02,restore,.46);
-   // A crafted flute exists on the outside of the lid even when an older
-   // save is missing its top-open flag. Pocket ownership is authoritative.
-   flute.visible=Array.isArray(s.pocket)&&s.pocket.includes("flute");
+   // The flute remains mounted until its six-note melody is solved, then
+   // disappears with its clamps. Never resurrect it from a legacy save.
+   flute.visible=!s.door&&Array.isArray(s.pocket)&&s.pocket.includes("flute");
    portalGroup.visible=!!s.portal;
    miniMoon.visible=!!s.moon;
    // Removing the third screw releases the cover on a real hinge,
@@ -946,7 +946,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    // Saved code buffers drive the small lamp inlays. An incorrect five-
    // or six-step attempt visibly resets its respective indicator row.
    const ventSteps=s.ventOpen?5:Math.min(5,s.ventSequence?.length||0);
-   const fluteSteps=s.door?6:Math.min(6,s.fluteNotes?.length||0);
+   const fluteSteps=s.door?0:Math.min(6,s.fluteNotes?.length||0);
    ventStepLights.forEach((lamp,i)=>lamp.emissiveIntensity=i<ventSteps?1.1:0);
    fluteStepLights.forEach((lamp,i)=>lamp.emissiveIntensity=i<fluteSteps?.85:0);
    previousState={
