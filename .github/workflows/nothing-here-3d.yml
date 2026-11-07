@@ -7,6 +7,7 @@ on:
       - 'three-workbench/**'
       - 'secrets-3d-preview.html'
       - 'secrets-3d-preview.js'
+      - 'secrets-3d-finale.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
@@ -52,6 +53,7 @@ jobs:
         run: |
           node --check cube-secrets.js
           node --check secrets-3d-preview.js
+          node --check secrets-3d-finale.js
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js
