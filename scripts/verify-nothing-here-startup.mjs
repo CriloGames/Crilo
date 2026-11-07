@@ -19,6 +19,13 @@ const cases=[
  {label:"fresh-desktop",viewport:{width:1280,height:850},seed:null},
  {label:"saved-mobile",viewport:{width:390,height:844},
   seed:{seen:["first"],gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // The former drawer aura was visible while the actual key was concealed
+ // behind the solid lavender faceplate. Verify its *raycast*, not just that
+ // the mesh exists or that a purple glow was drawn in the scene.
+ {label:"lavender-open-desktop",viewport:{width:1280,height:850},
+  seed:{seen:["first","drawer"],a:true,drawerTaken:false,
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
 const browser=await chromium.launch({headless:true,args:[
@@ -110,6 +117,26 @@ try{
     assert.equal(result.progress?.solved,false,
      "Loading a saved game incorrectly marked the maze complete");
    }
+   if(check.label==="lavender-open-desktop"){
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(30,0));
+    await page.waitForFunction(()=>
+     window.__nothing3DPreview.drawerPositions.front>.55,
+     null,{timeout:20000});
+    await page.waitForTimeout(280);
+    const key=await page.evaluate(()=>{
+     const scene=window.__nothing3DPreview;
+     return {layout:scene.lavenderDrawerItemAudit,
+      target:scene.projectOriginalPickup("tooth")};
+    });
+    assert(key.layout?.drawerOpen&&key.layout.keyVisible&&
+      key.layout.keyInDrawer&&key.layout.seatOnFloor&&
+      key.layout.pending&&key.layout.keyScale>=1.1&&
+      key.layout.glow?.active,
+      "Key must be seated in the opened lavender drawer: "+JSON.stringify(key));
+    assert.equal(key.target?.pick,"pickup:tooth",
+     "Real mouse raycast cannot reach the key in the open drawer: "+
+      JSON.stringify(key));
+   }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
    await page.screenshot({
     path:"test-results/nothing-here-startup-"+check.label+".png",
@@ -141,4 +168,4 @@ try{
  await browser.close();
 }
 if(failed)process.exitCode=1;
-else console.log("PASS: 3D startup regression gate, both browser states");
+else console.log("PASS: 3D startup regression gate, fresh/saved/lavender drawer");
