@@ -161,6 +161,17 @@ assert(worlds.includes('telescope:!!s.observatoryRaised||!!s.observed||')&&
  preview.includes('setHit(observatoryButtonCap,"observatory-release");')&&
  preview.includes('activatePhysical?.("observatory-release")'),
  "The permanent dome or physical roof-release button no longer works");
+// The scope has a separate physical click surface once the real shutter
+// opens. The dome never becomes a large invisible roof-sized hitbox.
+assert(worlds.includes('setHit(domeClickTarget,"thing:telescope");')&&
+ worlds.includes('setHit(instrument,"thing:telescope");')&&
+ worlds.includes('mesh.userData.requiresObservatoryOpen=true;')&&
+ worlds.includes('telescopeInstrument:items.get("telescope")?.instrument||null,')&&
+ preview.includes('!hit.object.userData.requiresObservatoryOpen||')&&
+ preview.includes('!!currentGameState.observatoryRaised)&&')&&
+ preview.includes('get observatoryClickAudit(){')&&
+ preview.includes('projectObservatoryInstrument(){'),
+ 'The telescope instrument must be physically clickable only after the dome opens');
 // Observatory picking must trace the visible curved shell, not a broad box.
 assert(worlds.includes('const boxHit=item.hitVolume;')&&
  worlds.includes('g.remove(boxHit);')&&
@@ -507,6 +518,43 @@ for(const face of railNames){
  }
  assert(visible>=4,'Restored inlay is missing on '+face);
 }
+// The green eye face needs real mounted detail, but not cosmetic bars
+// running through any eye, iris, clue, or future miniature display.
+assert(finish.includes('const rearEyeRelief=[];')&&
+ finish.includes('rearFit("optic header",1.36,.028,.035,0,.475,.088,teal);')&&
+ finish.includes('rearFit("side carrier",.160,.440,.030,x,-.200,.087,metal,.015);')&&
+ finish.includes('rearFit("lower service backing",.56,.190,.030,')&&
+ finish.includes('getRearEyeReliefAudit:()=>rearEyeRelief.map')&&
+ preview.includes('get rearEyeReliefAudit(){'),
+ 'The rear eye lost its mounted detailing or collision audit');
+const rearKeepouts=[
+ {name:"eye",x:0,y:-.18,w:1.48,h:.77},
+ {name:"iris",x:1.055,y:-1.095,w:.49,h:.725},
+ {name:"cipher",x:-.93,y:-1.25,w:.86,h:.29},
+ {name:"revealed eye clue",x:.075,y:-1.395,w:.755,h:.19},
+ {name:"pot",x:-1.16,y:.83,w:.56,h:.48},
+ {name:"musicbox",x:0,y:1.19,w:.56,h:.48},
+ {name:"cloud",x:1.16,y:.83,w:.56,h:.48}
+];
+const rearCosmetics=[
+ {name:"bus",x:0,y:.475,w:1.36,h:.028},
+ ...[-1,1].flatMap(sign=>[
+  {name:"header support",x:sign*.55,y:.39,w:.027,h:.178},
+  {name:"side cassette",x:sign*1.012,y:-.20,w:.16,h:.44},
+  {name:"optical transfer",x:sign*.909,y:-.18,w:.108,h:.022},
+  {name:"lower stay",x:sign*.18,y:-.725,w:.025,h:.133}
+ ]),
+ {name:"lower backing",x:0,y:-.875,w:.56,h:.19}
+];
+for(const part of rearCosmetics)for(const zone of rearKeepouts){
+ const dx=Math.abs(part.x-zone.x)-(part.w+zone.w)/2;
+ const dy=Math.abs(part.y-zone.y)-(part.h+zone.h)/2;
+ assert(dx>=.02||dy>=.02,
+  'Back-face '+part.name+' interferes with '+zone.name);
+}
+// The inset lines on the rear face remain outside the side cassettes.
+assert(1.14-.012/2-(1.012+.16/2)>.035,
+ 'New side optic cassettes interfere with the black frame');
 // Every remaining shortened black, silver or gold strip has a flush
 // return shoe within the clearance window. Full-length front borders
 // are deliberately not covered in extra end caps or fake rivets.
