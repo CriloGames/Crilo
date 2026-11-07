@@ -1532,8 +1532,19 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  }
  // Raycast targets must be registered AFTER sculpting the miniatures:
  // otherwise setHit traverses an empty group and none of them are clickable.
- for(const [name,{toy,domeClickTarget}] of items){
-  setHit(name==="telescope"?domeClickTarget:toy,"thing:"+name);
+ for(const [name,{toy,domeClickTarget,instrument}] of items){
+  if(name==="telescope"){
+   // The closed observatory is selectable ONLY on its physical dome.
+   // Once its mechanical shutter retracts, the real telescope barrel
+   // must ALSO respond to taps and inventory lenses. Previously only
+   // roofShell was registered, so pressing the exposed instrument did
+   // nothing even though it was visibly inside the opening.
+   setHit(domeClickTarget,"thing:telescope");
+   setHit(instrument,"thing:telescope");
+   instrument.traverse(mesh=>{
+    if(mesh.isMesh)mesh.userData.requiresObservatoryOpen=true;
+   });
+  }else setHit(toy,"thing:"+name);
  }
  // Register small control meshes AFTER their parent miniatures; otherwise
  // the generic "inspect the bag" action would overwrite all dial hit IDs.
