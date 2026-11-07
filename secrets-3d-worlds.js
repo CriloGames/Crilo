@@ -529,6 +529,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
+ const observatoryGuideRollers=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  let observatoryScope=null,observatoryRearCap=null,observatoryBarrel=null;
  const apertureHeight=az=>{
@@ -558,7 +559,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   paintPixels.data[p+3]=255;
  }
  paintCtx.putImageData(paintPixels,0,0);
- paintCtx.strokeStyle="rgba(149,132,105,.045)";
+ // Subtle color shifts across enamel panels, not grime or strong patches.
+ for(let col=0;col<24;col++)for(let row=0;row<8;row++){
+  const patch=(col*17+row*11+col*row*3)%7;
+  paintCtx.fillStyle=patch<3?"rgba(255,254,248,.048)":
+   patch>4?"rgba(169,153,131,.018)":"rgba(255,255,255,.012)";
+  paintCtx.fillRect(col*512/24+1,row*64+1,512/24-2,62);
+ }
+ paintCtx.strokeStyle="rgba(149,132,105,.033)";
  paintCtx.lineWidth=1;
  for(let i=0;i<52;i++){
   const y=i*10+.5;
@@ -582,7 +590,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const terracotta=mat(0xc6b5a3,.10,.67);
  terracotta.side=THREE.DoubleSide;
  const engrave=new THREE.LineBasicMaterial({
-  color:0xb8a998,transparent:true,opacity:.39,depthWrite:false
+  color:0xada396,transparent:true,opacity:.30,depthWrite:false
  });
  const interiorSeam=new THREE.LineBasicMaterial({
   color:0x847366,transparent:true,opacity:.39,depthWrite:false
@@ -633,6 +641,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   band.position.z=.0205;
   band.castShadow=true;band.receiveShadow=true;g.add(band);parts++;
   item.mountRing=band;
+  // A shallow sloped cast-in collar hides the joint between the upright
+  // ring and the box enamel. It remains beneath the existing vent details.
+  const collar=new THREE.Mesh(new THREE.CylinderGeometry(
+   OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.026,.025,
+   72,1,true),m.cream);
+  collar.rotation.x=Math.PI/2;collar.position.z=.0015;
+  collar.receiveShadow=true;g.add(collar);parts++;
+  torus(g,OBSERVATORY_RADIUS+.024,.0025,0,0,-.010,m.brass,"z");
   torus(g,OBSERVATORY_RADIUS+.004,.0038,0,0,OBSERVATORY_RING_TOP,m.cream,"z");
   torus(g,OBSERVATORY_RADIUS+.004,.0025,0,0,-.013,m.brass,"z");
   for(let i=0;i<28;i++){
@@ -699,6 +715,28 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   wire(roofShell,lip,.006,m.cream);
   wire(roofShell,lip.map(([x,y,z])=>[x*.964,y*.964,z*.964]),.0023,m.gold);
+  // Physical twin guide channels follow the cutout's inner edges.
+  // They continue toward the shutter's receiving pocket at the crown,
+  // rather than hanging in mid-air like the previous decorative traces.
+  const guideMetal=mat(0xa89c8e,.34,.50);
+  for(const side of [-1,1]){
+   const track=[],trackInset=[];
+   for(let i=0;i<=32;i++){
+    const elev=.025+(OBSERVATORY_ARCH_RISE-.05)*i/32;
+    const ratio=elev/OBSERVATORY_ARCH_RISE;
+    const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
+     Math.sqrt(Math.max(0,1-ratio*ratio));
+    track.push(domePoint(az,elev,OBSERVATORY_RADIUS-.007));
+    trackInset.push(domePoint(az,elev,OBSERVATORY_RADIUS-.016));
+   }
+   wire(roofShell,track,.003,guideMetal);
+   wire(roofShell,trackInset,.0015,m.brass);
+   const carriage=new THREE.Group();
+   roofShell.add(carriage);
+   C(carriage,.007,.010,0,0,0,m.brass,"x");
+   C(carriage,.004,.012,side*.006,0,0,m.dark,"x");
+   observatoryGuideRollers.push({carriage,side});
+  }
   // Two small captive door rollers support the edge at the actual
   // arch endpoints instead of hanging in empty space.
   for(const side of [-1,1]){
@@ -771,15 +809,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // Tiny rivets at the manufactured panel intersections. Instancing
   // keeps this detailing to one draw call instead of 100 extra meshes.
   const domeRivets=[];
-  for(let i=0;i<24;i++){
-   const az=-Math.PI+(i+.5)*2*Math.PI/24;
-   for(const elev of [.26,.49,.72,.96,1.18,1.38]){
-    if(elev<apertureHeight(az)+.055)continue;
-    domeRivets.push(domePoint(az,elev,OBSERVATORY_RADIUS+.0025));
+  for(let i=0;i<12;i++){
+   const az=-Math.PI+(i+.5)*2*Math.PI/12;
+   for(const elev of [.35,.69,1.02,1.32]){
+    if(elev<apertureHeight(az)+.070)continue;
+    domeRivets.push(domePoint(az,elev,OBSERVATORY_RADIUS+.0013));
    }
   }
+  // Low-contrast pale hardware reads as manufactured fasteners, not dots.
+  const quietRivet=mat(0xb5a797,.18,.48);
   const rivetMesh=new THREE.InstancedMesh(
-   new THREE.SphereGeometry(.0022,6,4),m.brass,domeRivets.length);
+   new THREE.SphereGeometry(.00135,6,4),quietRivet,domeRivets.length);
   const rivetPose=new THREE.Object3D();
   for(let i=0;i<domeRivets.length;i++){
    rivetPose.position.set(...domeRivets[i]);
@@ -872,10 +912,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   C(finder,.014,.007,0,0,.075,mat(0x244457,.35,.18),"z");
   telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");
   telescopeLensGlass.visible=false;
-  B(tube,.077,.083,.087,.072,0,-.020,m.brass,.010);
-  C(tube,.040,.022,.121,0,-.020,m.dark,"x");
-  torus(tube,.040,.008,.138,0,-.020,m.gold,"x");
-  telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,"x");
+  // A compact, captive side focuser replaces the oversized brass block.
+  B(tube,.049,.054,.061,.060,0,-.020,m.brass,.008);
+  C(tube,.027,.016,.092,0,-.020,m.dark,"x");
+  torus(tube,.028,.005,.102,0,-.020,m.gold,"x");
+  telescopeIrisGlass=C(tube,.023,.009,.108,0,-.020,m.glass,"x");
   telescopeIrisGlass.visible=false;
   
   item.shutterHub=roofShell;
@@ -907,6 +948,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    }
    pos.needsUpdate=true;normal.needsUpdate=true;texcoord.needsUpdate=true;
    panel.geometry.computeBoundingSphere();
+  }
+  // Small roller carriages move along the physically seated guide rails.
+  // After the shutter retracts, both roll out of view under the fixed dome.
+  for(const {carriage,side} of observatoryGuideRollers){
+   carriage.visible=observatoryShutter.progress<.98;
+   if(!carriage.visible)continue;
+   const elev=.025+observatoryShutter.progress*(OBSERVATORY_ARCH_RISE-.08);
+   const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
+    Math.sqrt(Math.max(0,1-(elev/OBSERVATORY_ARCH_RISE)**2));
+   carriage.position.set(...domePoint(az,elev,OBSERVATORY_RADIUS-.009));
+   carriage.rotation.z=-side*elev*.4;
   }
   invalidate();
  };
