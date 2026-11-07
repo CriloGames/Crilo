@@ -177,7 +177,9 @@ assert(worlds.includes('const boxHit=item.hitVolume;')&&
  worlds.includes('g.remove(boxHit);')&&
  worlds.includes('item.domeClickTarget=roofShell;')&&
  worlds.includes('item.hitVolume=observatoryRearCap;')&&
- worlds.includes('setHit(name==="telescope"?domeClickTarget:toy,"thing:"+name);')&&
+ worlds.includes('setHit(domeClickTarget,"thing:telescope");')&&
+ worlds.includes('setHit(instrument,"thing:telescope");')&&
+ worlds.includes('mesh.userData.requiresObservatoryOpen=true;')&&
  !worlds.includes('item.hitVolume.geometry=new THREE.BoxGeometry(.64,.64,.65);')&&
  preview.includes('const samples=name==="telescope"?['),
  'Observatory must only respond when its physical dome is selected');
