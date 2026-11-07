@@ -1263,7 +1263,7 @@ function accepts(item,thing){
  ||item==='lens'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
- ||item==='tag'&&thing==='elevator-keyway'&&thingPresent('elevator')&&!s.elevatorTagInserted&&!s.floorFour
+ ||item==='tag'&&thing==='elevator-keyway'&&thingPresent('elevator')&&!s.elevatorTagInserted
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
  ||item==='postcard'&&thing==='cube'&&!s.portal
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
@@ -1505,7 +1505,7 @@ function pressBagRelease(){
 function openElevator(){
  bloom('lift','A tiny four-stop lift is mounted to the cube. Its four separate buttons operate the carriage.');
  modal('AT THE EDGE OF THE ROOM',s.floorFour?'The fourth-floor lift':'The miniature elevator',
-  '<p>Four brass buttons, four floors. Somewhere on the cube is a stamped destination.</p>'+
+  '<p>Four brass buttons and a narrow access reader below them. The carriage remains locked until the reader accepts a key.</p>'+
   '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>'+(s.floorFour?'04':'—')+'</span></div>'+
   '<div class="nc-lift-buttons">'+[1,2,3,4].map(n=>'<button type="button" data-floor="'+n+'" aria-label="Visit miniature floor '+n+'" class="nc-lift-call">'+String(n).padStart(2,'0')+'</button>').join('')+'</div></div>'+
   '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':s.elevatorTagInserted?'The tag has released the lift. Choose a floor.':'The lift is locked. Examine its small brass reader and the objects you have collected.')+'</p>','elevator');
@@ -1672,6 +1672,10 @@ function clickThing(name,actuator=false){
  }
  if(selected){
   if(use(selected,name))return;
+  // The reader itself is the precise green guide. Also accept a tap on
+  // the lift's body when holding the tag so mobile players never have to
+  // hit a tiny slit exactly.
+  if(name==='elevator'&&selected==='tag'&&use(selected,'elevator-keyway'))return;
   tell('That '+names[selected]+' does not seem to fit there.');render();return;
  }
  bloom('first');
@@ -2098,8 +2102,8 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
  },
  activatePhysicalElevatorKeyway(){
   if(!thingPresent('elevator'))return;
-  if(s.elevatorTagInserted||s.floorFour){
-   tell('The brass tag reader is already engaged. The floor controls are ready.');return;
+  if(s.elevatorTagInserted){
+   tell('The brass tag is seated in the reader. The floor controls are ready.');return;
   }
   if(selected&&use(selected,'elevator-keyway'))return;
   tell('The tiny elevator has an empty brass reader under the floor buttons. It needs a small metal access tag.');
