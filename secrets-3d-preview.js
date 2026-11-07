@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
+import { createNothingHereFinale } from "./secrets-3d-finale.js?v=1";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
@@ -20,6 +21,8 @@ const status = document.getElementById("status");
 // Otherwise invalidate() hits the temporal dead zone of a later 'let'
 // declaration and the entire 3D module fails to load.
 let pendingFrame=0;
+// Assigned only after the 3D scene is assembled; resize happens before then.
+let completionFinale=null;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
 camera.position.set(3.85,3.2,5.9);
@@ -782,6 +785,7 @@ function inspectPassiveSurface(action){
  }[action]);
 }
 function clickAction(action){
+ if(completionFinale?.isActive())return;
  lastClickedAction=action;
  if(passiveSurfaces.has(action)){
   inspectPassiveSurface(action);
@@ -1574,7 +1578,7 @@ renderer.domElement.addEventListener("pointercancel",e=>{
  dismissTouchHint();clearHover();
 });
 renderer.domElement.addEventListener("keydown",event=>{
- if(!embeddedGame)return;
+ if(!embeddedGame||completionFinale?.isActive())return;
  const directions={ArrowLeft:"left",ArrowRight:"right",
   ArrowUp:"up",ArrowDown:"down"};
  // Maze operation belongs to the actual gear/wheel contacts, not
@@ -1643,6 +1647,7 @@ const onResize=()=>{
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
+ completionFinale?.onResize();
  scheduleFitFlashRefresh();
  invalidate();
 };
@@ -1814,8 +1819,21 @@ if(debugging3D){
  if(workspace?.parentElement)workspace.before(dock);
  else stage.before(dock);
 }
+completionFinale=embeddedGame?createNothingHereFinale({
+ cube,faceRoot,
+ faces:{frontFace,leftFace,rightFace,bottomFace,backFace,topFace},
+ camera,controls,stage,invalidate,reducedMotion,
+ dismissInspection:()=>{
+  clearKeyboardInspection();
+  clearSelectedFitFlashes();
+  setPartHint(null);
+ }
+}):null;
+
 window.__nothing3DPreview={
  ready:true,
+ get completionFinale(){return completionFinale?.getState()||{phase:"idle"}},
+ get physicalCompletionLayout(){return completionFinale?.getState().panels||{}},
  engine:"three.js",
  setGeometryInspector:mode=>updateGeometryInspection(mode),
  getDetailedCollisionReport:()=>scanRealSurfaceCollisions(),
@@ -2519,7 +2537,7 @@ window.__nothing3DPreview={
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
  setRotation(rx,ry){
-  if(!embeddedGame)return;
+  if(!embeddedGame||completionFinale?.isActive())return;
   // Player rotation must supersede any old Reset View tween. With a slow
   // WebGL renderer, stale animation frames can otherwise turn the cube
   // after the player has aimed at a miniature and before their tap lands.
@@ -2669,6 +2687,8 @@ if(embeddedGame){
   const newlyHeld=held!==heldItemForFlash;
   heldItemForFlash=held;
   window.__nothing3DPreview.syncState(event.detail);
+  if(event.detail?.seen?.length>=60&&!completionFinale?.isActive())
+   completionFinale?.begin({animate:true,audio:true});
   // Refresh guidance only when selection changes; never automatically
   // rotate the cube. Manual turning reveals compatible fittings.
   if(newlyHeld){
@@ -2702,5 +2722,8 @@ if(embeddedGame){
  onResize();
  controls.update();
  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(DEFAULT_ZOOM);
+ // Legacy 60/60 saves restore the opened net without autoplay.
+ if((window.CriloNothingHereCube?.getState?.()?.seen?.length||0)>=60)
+  completionFinale?.restoreComplete();
  invalidate();
 }

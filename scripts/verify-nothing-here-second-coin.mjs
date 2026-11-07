@@ -202,9 +202,29 @@ async function refundCoin(page,{realPointer=false}={}){
   },name);
   assert(data.start?.pick===name&&data.center,
    "The actual "+name+" cannot be grabbed");
-  const center=data.center,start=data.start;
+  // Projection helpers return canvas-LOCAL coordinates. Hovering the
+  // actual physical target first ALSO scrolls it into view: after using a
+  // late-game inventory item the browser may be scrolled BELOW the canvas,
+  // and page.mouse on an offscreen point never touches the cog.
+  const canvas=page.locator("#stage canvas");
+  await canvas.hover({position:{x:data.start.x,y:data.start.y},timeout:30000});
+  const rect=await canvas.boundingBox();
+  assert(rect,"The physical 3D canvas is not visible for wheel drag");
+  const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
+  const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
-  await page.mouse.move(start.x,start.y);await page.mouse.down();
+  if(name!=="gear-large"){
+   const hit=await page.evaluate(([x,y])=>
+    window.__nothing3DPreview.getPhysicalActionAt(x,y),[start.x,start.y]);
+   assert.equal(hit,name,"The real visible cog was not under the cursor");
+  }
+  await page.mouse.down();
+  if(name!=="gear-large"){
+   const engaged=await page.evaluate(()=>
+    window.__nothing3DPreview.gearDragState);
+   assert(engaged.active&&engaged.action===name,
+    "Pointerdown did not engage the physical cog: "+JSON.stringify(engaged));
+  }
   if(direction==="in"||direction==="out"){
    const sign=direction==="in"?-1:1;
    for(let i=1;i<=10;i++)
@@ -241,15 +261,34 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"gear-large");
  assert.equal((await state(page)).gearMazeCell,80,
   "Direct white-face activation moved the captive pin");
- // A passive drag can orbit the camera; recenter before cog testing.
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
+ // A passive drag ORBITS THE CAMERA, not just the white maze.
+ // Reset the OrbitControls camera/target/damped deltas as well as the
+ // cube angle; otherwise a previous white drag can leave an inertial
+ // orbit running and miss the first tiny black-cog pointerdown.
+ await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  view.resetCameraView();
+  view.setRotation(-15,90);
+ });
+ assert.equal((await state(page)).selected,null,
+  "The maze test left a held inventory item blocking physical wheel gestures");
  const initial=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
  assert(Math.abs(initial.faceAngle)<.000001,
   "The white maze visibly rotated, despite being stationary");
  await dragWheel("gear-small","ccw");
- assert.equal((await state(page)).gearMazeCell,81,
-  "The black drive cog did not advance the captive pin");
+ const firstCog=await page.evaluate(()=>({
+  state:window.CriloNothingHereCube.getState(),
+  control:window.__nothing3DPreview.projectGameControl("gear-small"),
+  camera:window.__nothing3DPreview.navigationState,
+  click:window.__nothing3DPreview.lastClickedAction,
+  maze:window.__nothing3DPreview.physicalGearMaze
+ }));
+ assert.equal(firstCog.state.gearMazeCell,81,
+  "The black drive cog did not advance the captive pin: "+
+   JSON.stringify({cell:firstCog.state.gearMazeCell,
+    selected:firstCog.state.selected,control:firstCog.control,
+    camera:firstCog.camera,click:firstCog.click,maze:firstCog.maze}));
  await dragWheel("gear-small","cw");
  assert.equal((await state(page)).gearMazeCell,80,
   "Reversing the black drive cog failed to return the ball");

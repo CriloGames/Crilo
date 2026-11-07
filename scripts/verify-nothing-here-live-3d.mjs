@@ -11,6 +11,10 @@ assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrup
 // every original reward needs an awarding action or a valid craft recipe,
 // and every physical pickup must have a readable glyph and inventory name.
 const catalogSet=new Set(sixtySecrets);
+// Keep legacy hardware checks interactive until they finish. The 60/60
+// finale locks further puzzle actions once the six faces fold outward.
+const preCompletionSecrets=sixtySecrets.filter(id=>id!=="return-letter");
+assert.equal(preCompletionSecrets.length,59);
 const namesText=source.split("const names={")[1]?.split("const glyphs=")[0]||"";
 const glyphText=source.split("const glyphs={")[1]?.split("const recipe=")[0]||"";
 const itemIds=new Set([...namesText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
@@ -1963,12 +1967,14 @@ try{
    train:true,dogHits:2,mothTouched:true
   });
   localStorage.setItem(key,JSON.stringify(original));
- },sixtySecrets);
+ },preCompletionSecrets);
  await page.reload({waitUntil:"domcontentloaded"});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&document.body.classList.contains("nc-physical-ready"),{timeout:60000});
  const migrated=await state();
- assert.deepEqual(new Set(migrated.seen),new Set(sixtySecrets),"3D migration lost completed secrets");
- assert.equal(await page.locator("#ncCount").innerText(),"60","Journal did not restore all sixty discoveries");
+ assert.deepEqual(new Set(migrated.seen),new Set(preCompletionSecrets),
+  "3D migration lost a saved in-progress discovery");
+ assert.equal(await page.locator("#ncCount").innerText(),"59",
+  "Journal must reflect the saved 59 pre-completion discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
  assert.equal(migrated.eyeRingTicks,3,
@@ -2061,8 +2067,28 @@ try{
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.liftLampLevel))>.5,
   "The physical arrival indicator should light up when the elevator unlocks");
  await activate("dot");
- assert.equal((await state()).seen.length,60,"Repeating completed puzzles must not duplicate awards");
+ assert.equal((await state()).seen.length,59,
+  "Repeating a previously completed puzzle must not award duplicates");
  await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
+ // Now migrate a completed 60/60 save. Its six ACTUAL faces should display
+ // the saved T-shaped ending, without autoplay or losing old state.
+ await page.evaluate(ids=>{
+  const key="crilo_nothing_here_cube_v3";
+  const saved=JSON.parse(localStorage.getItem(key));
+  saved.seen=ids;
+  localStorage.setItem(key,JSON.stringify(saved));
+ },sixtySecrets);
+ await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const complete=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+ assert(complete.phase==="open"&&complete.banner&&complete.replay&&
+  complete.outerFrameHidden&&Object.keys(complete.panels).length===6,
+  "The completed legacy 3D save did not unfold all six cube panels: "+
+   JSON.stringify(complete));
+ assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
+  "Completing the catalogue damaged existing discoveries");
+ await page.screenshot({path:"test-results/live-3d-finale-T.png",timeout:60000});
  // Old links must transparently normalize to the one supported 3D game.
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
   waitUntil:"domcontentloaded"});

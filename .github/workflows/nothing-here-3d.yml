@@ -1,12 +1,23 @@
 name: Nothing Here physical 3D setup
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-*.js'
+      - 'three-workbench/**'
+      - 'scripts/verify-nothing-here-live-3d.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
+      - '.github/workflows/nothing-here-3d.yml'
   push:
     branches: [main]
     paths:
       - 'three-workbench/**'
       - 'secrets-3d-preview.html'
       - 'secrets-3d-preview.js'
+      - 'secrets-3d-finale.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
@@ -52,6 +63,7 @@ jobs:
         run: |
           node --check cube-secrets.js
           node --check secrets-3d-preview.js
+          node --check secrets-3d-finale.js
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js

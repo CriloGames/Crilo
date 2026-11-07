@@ -1,0 +1,91 @@
+/* Nothing Here: 60/60 finale. Heading stays OUTSIDE the stage so
+   no piece of the unfolded T is obscured on desktop or mobile. */
+.nc-page .nc-finale-banner[hidden],
+.nc-page .nc-finale-banner #ncFinaleReplay[hidden]{display:none!important}
+.nc-page .nc-finale-banner{
+ position:relative;z-index:40;
+ width:min(calc(100% - 22px),600px);box-sizing:border-box;
+ margin:14px auto 8px;
+ text-align:center;pointer-events:auto;
+ padding:14px 18px 12px;border-radius:17px;
+ color:#253e47;background:linear-gradient(135deg,#fffcf2f2,#eaf4f0ec);
+ border:1px solid #d1cba7b5;
+ box-shadow:0 12px 34px #323c4629,0 0 0 1px #fff9 inset;
+ backdrop-filter:blur(13px);
+ animation:nc-finale-reveal .9s both;
+}
+.nc-page .nc-finale-banner .nc-finale-label{
+ display:block;font:800 10px/1.25 system-ui,sans-serif;
+ letter-spacing:.17em;text-transform:uppercase;color:#817450;
+ margin-bottom:4px;
+}
+.nc-page .nc-finale-banner h2{
+ margin:0;color:#263c45;
+ font:800 clamp(22px,3.6vw,35px)/1.12 system-ui,sans-serif;
+ letter-spacing:-.035em;
+ text-shadow:0 1px 1px #fff8;
+}
+.nc-page .nc-finale-banner p{
+ margin:5px 0 0;color:#536d72;
+ font:500 12px/1.4 system-ui,sans-serif;
+}
+.nc-page .nc-finale-banner #ncFinaleReplay{
+ display:inline-flex;align-items:center;justify-content:center;
+ pointer-events:auto;margin:10px auto 0;padding:7px 18px;
+ background:#273e48;color:#f7f6ea;border:1px solid #41616b;
+ border-radius:999px;font:750 11px/1.3 system-ui,sans-serif;
+ cursor:pointer;box-shadow:0 3px 9px #263c4529;
+}
+.nc-page .nc-finale-banner #ncFinaleReplay:hover{
+ background:#3b5f67;transform:translateY(-1px);
+}
+.nc-page .nc-finale-banner #ncFinaleReplay:focus-visible{
+ outline:3px solid #c98d55;outline-offset:3px;
+}
+.nc-page .nc-finale-banner[data-phase="opening"]{
+ box-shadow:0 14px 46px #b3a37462;
+}
+.nc-page.nc-finale-active #stage #status,
+.nc-page.nc-finale-active .nc-cube-hint,
+.nc-page.nc-finale-active .nc-inspection-controls,
+.nc-page.nc-finale-active #stage #ncPartHint,
+.nc-page.nc-finale-active #stage #ncKeyboardFocus,
+.nc-page.nc-finale-active #stage #ncItemFitHalo{
+ display:none!important;
+}
+.nc-page.nc-finale-active #stage canvas{cursor:grab}
+.nc-page.nc-finale-active #stage canvas:active{cursor:grabbing}
+html[data-theme="dark"] .nc-page .nc-finale-banner,
+body[data-theme="dark"].nc-page .nc-finale-banner{
+ background:linear-gradient(135deg,#25353bee,#243a3aef);
+ color:#f5eecf;border-color:#8579529c;
+ box-shadow:0 12px 35px #020c13af;
+}
+html[data-theme="dark"] .nc-page .nc-finale-banner h2,
+body[data-theme="dark"].nc-page .nc-finale-banner h2{
+ color:#f4eedf;text-shadow:none;
+}
+html[data-theme="dark"] .nc-page .nc-finale-banner .nc-finale-label{
+ color:#e2c997;
+}
+html[data-theme="dark"] .nc-page .nc-finale-banner p{
+ color:#c4d8d3;
+}
+@keyframes nc-finale-reveal{
+ from{opacity:0;transform:translateY(-10px) scale(.98)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@media(max-width:700px){
+ .nc-page .nc-finale-banner{
+  width:min(calc(100% - 20px),460px);border-radius:13px;
+  margin:9px auto 4px;padding:10px 10px 8px;
+ }
+ .nc-page .nc-finale-banner h2{font-size:clamp(20px,5vw,27px)}
+ .nc-page .nc-finale-banner .nc-finale-label{font-size:9px}
+ .nc-page .nc-finale-banner p{font-size:10px;margin-top:3px}
+ .nc-page .nc-finale-banner #ncFinaleReplay{margin-top:4px;padding:4px 13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page .nc-finale-banner{animation:none}
+ .nc-page .nc-finale-banner #ncFinaleReplay:hover{transform:none}
+}
