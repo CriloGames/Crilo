@@ -638,6 +638,46 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const y=(OBSERVATORY_RADIUS+.005)*Math.sin(angle);
    line(g,[[x,y,-.01],[x,y,.054]],engrave);
   }
+  // The reference's low circular wall is panelled and joined to the
+  // box, with recessed dark vent grilles rather than an empty plastic rim.
+  for(let i=0;i<12;i++){
+   const a=i*Math.PI/6;
+   const support=new THREE.Group();
+   support.position.set((OBSERVATORY_RADIUS+.004)*Math.sin(a),
+    -(OBSERVATORY_RADIUS+.004)*Math.cos(a),.020);
+   support.rotation.z=a;
+   g.add(support);
+   B(support,.011,.012,.068,0,0,0,m.cream,.003);
+   B(support,.014,.014,.006,0,0,.033,m.gold,.003);
+  }
+  for(const a of [-1.12,-.57,0,.57,1.12]){
+   const vent=new THREE.Group();
+   vent.position.set((OBSERVATORY_RADIUS+.006)*Math.sin(a),
+    -(OBSERVATORY_RADIUS+.006)*Math.cos(a),.023);
+   vent.rotation.z=a;g.add(vent);
+   B(vent,.057,.008,.022,0,-.003,0,m.dark,.004);
+   for(const z of [-.006,0,.006])
+    B(vent,.050,.004,.002,0,-.009,z,m.brass,.001);
+   for(const side of [-1,1])
+    ball(vent,.0025,side*.029,-.009,.012,m.gold);
+  }
+  // A quiet circular stone-enamel deck, engraved with floor segments.
+  // Its top is immediately above the yellow face but beneath the yoke.
+  const deckMaterial=mat(0xcac0b4,.055,.68);
+  C(g,.258,.009,0,0,.015,deckMaterial,"z");
+  torus(g,.204,.002,0,0,.022,m.brass,"z");
+  const floorJoint=new THREE.LineBasicMaterial({
+   color:0x938778,transparent:true,opacity:.42,depthWrite:false
+  });
+  for(let i=0;i<12;i++){
+   const a=i*Math.PI/6;
+   line(g,[[.205*Math.sin(a),-.205*Math.cos(a),.022],
+    [.247*Math.sin(a),-.247*Math.cos(a),.022]],floorJoint);
+  }
+  for(let i=0;i<10;i++){
+   const a=i*2*Math.PI/10;
+   ball(g,.0023,.239*Math.cos(a),.239*Math.sin(a),.023,m.brass);
+  }
   const roofShell=new THREE.Group();
   roofShell.position.z=OBSERVATORY_RING_TOP;
   g.add(roofShell);
