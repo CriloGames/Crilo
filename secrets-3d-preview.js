@@ -1195,7 +1195,7 @@ function visibleKeyboardTargets(actionPredicate=null){
 // local coordinates never change during orbit, pan, zoom or cube rotation.
 let heldItemForFlash=null;
 let lastFitFlashActions=[];
-let fitRefreshTimer=null,fitDirectedFace=null;
+let fitRefreshTimer=null;
 const selectedFitFlashes=new Map();
 let fitGlowTexture=null;
 function getFitGlowTexture(){
@@ -1303,59 +1303,10 @@ function scheduleFitFlashRefresh(){
   if(heldItemForFlash)updateSelectedFitFlashes();
  },130);
 }
-const usableFaces=[
- ["front",frontFace],["back",backFace],["right",rightFace],
- ["left",leftFace],["top",topFace],["bottom",bottomFace]
-];
-function actionableFace(mesh){
- for(let p=mesh;p;p=p.parent)
-  for(const [name,group] of usableFaces)if(p===group)return name;
- return null;
-}
-function chooseItemDestination(){
- const canFit=window.CriloNothingHereCube?.canUseSelectedWithAction;
- if(typeof canFit!=="function")return null;
- const destinations=new Map();
- for(const mesh of interactiveMeshes){
-  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh)||
-   mesh.userData.requiresObservatoryOpen&&!currentGameState.observatoryRaised||
-   !canFit(mesh.userData.action))continue;
-  const face=actionableFace(mesh);
-  if(face&&!destinations.has(mesh.userData.action))
-   destinations.set(mesh.userData.action,face);
- }
- if(!destinations.size)return null; // craft-only or not yet usable
- const visible=new Set(visibleKeyboardTargets(canFit).map(t=>t.action));
- for(const [action,face] of destinations)
-  if(visible.has(action))return {action,face,alreadyFacing:true};
- const [action,face]=destinations.entries().next().value;
- return {action,face,alreadyFacing:false};
-}
-function faceAnglesTowardCamera(face){
- // Match whichever direction the player has orbited the camera to,
- // including mobile framing, instead of hardcoded world-front angles.
- const sight=camera.position.clone().sub(controls.target).normalize();
- const yaw=THREE.MathUtils.radToDeg(Math.atan2(sight.x,sight.z));
- const pitch=THREE.MathUtils.radToDeg(
-  Math.atan2(sight.y,Math.hypot(sight.x,sight.z)));
- const angles={
-  front:[-pitch,yaw],back:[-pitch,yaw+180],
-  right:[-pitch,yaw-90],left:[-pitch,yaw+90],
-  top:[90-pitch,0],bottom:[-90-pitch,0]
- };
- return angles[face]||null;
-}
+// Selecting a held item does not move the cube or reveal which side is
+// correct. The player turns it by hand and discovers the continuously
+// pulsing green fitting as it enters their field of view.
 function showHeldItemDestination(){
- const target=chooseItemDestination();
- fitDirectedFace=target?.face||null;
- if(target&&!target.alreadyFacing){
-  const angles=faceAnglesTowardCamera(target.face);
-  if(angles){
-   // Point the correct face at the user ONCE on selection. Do not
-   // fight subsequent manual rotation or disclose still-locked puzzles.
-   window.CriloNothingHereCube?.rotate?.(...angles);
-  }
- }
  updateSelectedFitFlashes();
  scheduleFitFlashRefresh();
 }
@@ -1825,7 +1776,6 @@ window.__nothing3DPreview={
   selected:heldItemForFlash,
   targets:[...lastFitFlashActions],
   visible:selectedFitFlashes.size,
-  guidedFace:fitDirectedFace,
   anchored:[...selectedFitFlashes.values()].every(marker=>
    marker.sprite.parent===marker.mesh&&
    marker.sprite.position.distanceToSquared(marker.local)<1e-12),
@@ -2634,11 +2584,10 @@ if(embeddedGame){
   const newlyHeld=held!==heldItemForFlash;
   heldItemForFlash=held;
   window.__nothing3DPreview.syncState(event.detail);
-  // Flash ONLY on a newly held item. It must not repeatedly blink as the
-  // cube changes state or while the player merely moves the mouse.
+  // Refresh guidance only when selection changes; never automatically
+  // rotate the cube. Manual turning reveals compatible fittings.
   if(newlyHeld){
    clearSelectedFitFlashes();
-   fitDirectedFace=null;
    if(held)requestAnimationFrame(()=>{
     if(heldItemForFlash===held)showHeldItemDestination();
    });
