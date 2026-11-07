@@ -483,6 +483,12 @@ assert(preview.includes('bit.position.set(0,-.135,-.33);')&&
  preview.includes('size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate')&&
  preview.includes('get lavenderDrawerItemAudit(){'),
  'Lavender drawer key is no longer displayed in its actual physical tray');
+// Once exposed, the lavender key needs a REAL surface raycast target,
+ // not a point floating a tenth of a unit in front of its teeth.
+assert(preview.includes('const samples=id==="tooth"?[')&&
+ preview.includes('[0,0,0],[-.12,0,0],[.12,0,0],')&&
+ preview.includes('[-.25,0,0],[.25,.05,0],'),
+ 'Drawer key raycast sampling no longer tests the real key surface');
 // The maze guide is .092 wide and each separate saddle starts at
 // .092-.035/2: their channels cannot contain a crossing metal rod.
 assert(.092-.035/2>.092/2+.02,
