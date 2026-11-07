@@ -113,74 +113,84 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // Four functional-looking bent inlays: straight runs curve down
-      // into the recessed bores. All four are fixed to the roof face.
+      // Original uninterrupted inlays with just a short downward turn
+      // at each connector. One continuous swept strip per trace means no
+      // separate bulky gold end piece and no join line at the bend.
       if(face===topFace&&s===-1){
         const traces=[
           {y:-1.22,z:.105,width:.030,depth:.041,material:accent,
-           end:1.29,port:.390,round:.012},
+           end:1.29,port:.390},
           {y:-1.125,z:.112,width:.010,depth:.016,material:deep,
-           end:1.20,port:.390,round:.004}
+           end:1.20,port:.390}
         ];
-        function bentInlay(trace,sign,start){
-          const port=trace.port;
-          const spine=new THREE.CubicBezierCurve3(
-            new THREE.Vector3(sign*start,trace.y,trace.z),
-            new THREE.Vector3(sign*(port+.064),trace.y,trace.z),
-            new THREE.Vector3(sign*port,trace.y,trace.z-.007),
-            new THREE.Vector3(sign*port,trace.y,.063)
+        function roofInlay(trace,sign){
+          const inner=trace.port,curveStart=inner+.070;
+          const stations=[];
+          for(let i=0;i<=34;i++){
+            const x=trace.end+(curveStart-trace.end)*i/34;
+            stations.push(new THREE.Vector3(sign*x,trace.y,trace.z));
+          }
+          // The last .070 turns inward/down; its tangent is horizontal
+          // at the join and vertical inside the actual dark well.
+          const bend=new THREE.CubicBezierCurve3(
+            new THREE.Vector3(sign*curveStart,trace.y,trace.z),
+            new THREE.Vector3(sign*(inner+.032),trace.y,trace.z),
+            new THREE.Vector3(sign*(inner+.002),trace.y,trace.z-.003),
+            new THREE.Vector3(sign*inner,trace.y,.063)
           );
-          const pos=[],uv=[],indices=[],samples=18;
-          for(let i=0;i<=samples;i++){
-            const t=i/samples;
-            const center=spine.getPoint(t);
-            const tangent=spine.getTangent(t).normalize();
-            // Perpendicular within X/Z: square inlay bends downward.
+          for(let i=1;i<=24;i++)stations.push(bend.getPoint(i/24));
+          const profile=[[-1,-.75],[-.75,-1],[.75,-1],[1,-.75],
+           [1,.75],[.75,1],[-.75,1],[-1,.75]];
+          const positions=[],uv=[],indices=[],ring=profile.length;
+          for(let i=0;i<stations.length;i++){
+            const p=stations[i],prev=stations[Math.max(0,i-1)];
+            const next=stations[Math.min(stations.length-1,i+1)];
+            const tangent=next.clone().sub(prev).normalize();
             const nx=-tangent.z,nz=tangent.x;
-            // The narrow tip fits within the .019-radius recessed well.
-            const taper=t<.64?1:1-(t-.64)/.36*.70;
-            const width=trace.width*taper*.5;
-            const thickness=trace.depth*taper*.5;
-            for(const [u,v] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
-              pos.push(center.x+nx*v*thickness,
-                center.y+u*width,center.z+nz*v*thickness);
-              uv.push(t,u<0?0:1);
+            const remaining=Math.abs(p.x)-inner;
+            const progress=THREE.MathUtils.clamp(
+              (curveStart-remaining-inner)/.070,0,1);
+            const taper=1-.77*progress*progress*(3-2*progress);
+            const halfWidth=trace.width*taper*.5;
+            const halfDepth=trace.depth*taper*.5;
+            for(const [u,v] of profile){
+              positions.push(p.x+nx*v*halfDepth,
+               p.y+u*halfWidth,p.z+nz*v*halfDepth);
+              uv.push(i/(stations.length-1),u*.5+.5);
             }
           }
-          for(let i=0;i<samples;i++)for(let j=0;j<4;j++){
-            const a=i*4+j,b=i*4+(j+1)%4;
-            const c=(i+1)*4+j,d=(i+1)*4+(j+1)%4;
+          for(let i=0;i<stations.length-1;i++)for(let j=0;j<ring;j++){
+            const a=i*ring+j,b=i*ring+(j+1)%ring;
+            const c=(i+1)*ring+j,d=(i+1)*ring+(j+1)%ring;
             indices.push(a,b,c,b,d,c);
           }
-          indices.push(0,2,1,0,3,2);
-          const end=samples*4;
-          indices.push(end,end+1,end+2,end,end+2,end+3);
+          for(let j=1;j<ring-1;j++){
+            indices.push(0,j+1,j);
+            const tail=(stations.length-1)*ring;
+            indices.push(tail,tail+j,tail+j+1);
+          }
           const geometry=new THREE.BufferGeometry();
           geometry.setAttribute("position",
-            new THREE.Float32BufferAttribute(pos,3));
+            new THREE.Float32BufferAttribute(positions,3));
           geometry.setAttribute("uv",
             new THREE.Float32BufferAttribute(uv,2));
           geometry.setIndex(indices);
           geometry.computeVertexNormals();
-          const leadPaint=trace.material.clone();
-          leadPaint.side=THREE.DoubleSide;
-          const mesh=new THREE.Mesh(geometry,leadPaint);
-          mesh.castShadow=false;mesh.receiveShadow=true;
-          face.add(mesh);
-          finishedMeshes.push(mesh);partCount++;
+          const paint=trace.material.clone();
+          paint.side=THREE.DoubleSide;
+          const strip=new THREE.Mesh(geometry,paint);
+          strip.castShadow=false;strip.receiveShadow=true;
+          face.add(strip);finishedMeshes.push(strip);partCount++;
         }
         for(const trace of traces)for(const sign of [-1,1]){
-          const begin=trace.port+.145;
-          B(face,trace.end-begin,trace.width,trace.depth,
-           sign*(trace.end+begin)/2,trace.y,trace.z,
-           trace.material,trace.round);
-          bentInlay(trace,sign,begin);
+          roofInlay(trace,sign);
           const x=sign*trace.port,y=trace.y;
-          // The inset dark well hides the downward tail, with the
-          // actual wire passing under the lip instead of ending at it.
+          // Keep the original small circular hole, but lower its rim
+          // until it is almost flush with the enamel. The slim strip
+          // passes OVER the ring and disappears below its dark center.
           C(face,.027,.012,x,y,.076,metal);
-          C(face,.019,.010,x,y,.086,deep);
-          torus(face,.026,.005,x,y,.096,accent);
+          C(face,.019,.010,x,y,.079,deep);
+          torus(face,.026,.004,x,y,.084,accent);
         }
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
