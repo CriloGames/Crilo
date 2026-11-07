@@ -575,14 +575,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  ivory.roughness=.56;
  ivory.metalness=.065;
  ivory.clearcoat=.17;
+ ivory.bumpMap=enamelGrain;
+ ivory.bumpScale=.0009;
  ivory.needsUpdate=true;
- const terracotta=mat(0x93584b,.12,.72);
+ // A softly lit warm stone lining, like the chosen miniature concept.
+ const terracotta=mat(0xc6b5a3,.10,.67);
  terracotta.side=THREE.DoubleSide;
  const engrave=new THREE.LineBasicMaterial({
   color:0xb8a998,transparent:true,opacity:.39,depthWrite:false
  });
  const interiorSeam=new THREE.LineBasicMaterial({
-  color:0x694238,transparent:true,opacity:.32,depthWrite:false
+  color:0x847366,transparent:true,opacity:.39,depthWrite:false
  });
  const line=(parent,points,material)=>{
   const geo=new THREE.BufferGeometry().setFromPoints(
@@ -696,6 +699,22 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   wire(roofShell,lip,.006,m.cream);
   wire(roofShell,lip.map(([x,y,z])=>[x*.964,y*.964,z*.964]),.0023,m.gold);
+  // Two small captive door rollers support the edge at the actual
+  // arch endpoints instead of hanging in empty space.
+  for(const side of [-1,1]){
+   const p=domePoint(side*OBSERVATORY_OPEN_HALF_ANGLE,.012,
+    OBSERVATORY_RADIUS-.004);
+   C(roofShell,.011,.014,p[0],p[1],p[2]+.010,m.brass,"x");
+   C(roofShell,.006,.016,p[0]+side*.006,p[1],p[2]+.010,m.dark,"x");
+  }
+  // A top pole plate and flush gold edge are fixed to the ivory shell.
+  C(roofShell,.026,.004,0,0,OBSERVATORY_RADIUS+.001,m.cream,"z");
+  torus(roofShell,.027,.002,0,0,OBSERVATORY_RADIUS+.005,m.brass,"z");
+  for(let i=0;i<6;i++){
+   const a=i*Math.PI/3;
+   ball(roofShell,.0019,.019*Math.cos(a),.019*Math.sin(a),
+    OBSERVATORY_RADIUS+.006,m.brass);
+  }
   // Evenly spaced precision grid-lines on the exterior, clipped to the
   // actual opening so none run through the empty space.
   for(let i=0;i<24;i++){
@@ -727,6 +746,48 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    }
    line(roofShell,pts,interiorSeam);
   }
+  // Cream-colored physical ribs on the inside surface of the shell.
+  // Unlike the old floating pieces, every brace follows the hemisphere.
+  const braceFinish=mat(0xdbcfbd,.13,.51);
+  for(let i=0;i<12;i++){
+   const az=-Math.PI+(i+.5)*2*Math.PI/12;
+   const min=apertureHeight(az)+.035,points=[];
+   for(let j=0;j<=16;j++){
+    const elev=min+(1.46-min)*j/16;
+    points.push(domePoint(az,elev,OBSERVATORY_RADIUS-.014));
+   }
+   wire(roofShell,points,.0027,braceFinish);
+  }
+  // Recessed amber instrument lamps on the fixed inner rear wall.
+  // These are luminous meshes rather than costly shadow-casting lights.
+  const warmLamp=mat(0xffe3a4,.04,.32);
+  warmLamp.emissive=new THREE.Color(0xffbb66);
+  warmLamp.emissiveIntensity=.86;
+  for(const az of [-2.45,-1.8,1.8,2.45]){
+   const p=domePoint(az,.25,OBSERVATORY_RADIUS-.026);
+   B(roofShell,.025,.011,.036,p[0],p[1],p[2],m.brass,.004);
+   B(roofShell,.015,.012,.026,p[0],p[1]-.002,p[2],warmLamp,.003);
+  }
+  // Tiny rivets at the manufactured panel intersections. Instancing
+  // keeps this detailing to one draw call instead of 100 extra meshes.
+  const domeRivets=[];
+  for(let i=0;i<24;i++){
+   const az=-Math.PI+(i+.5)*2*Math.PI/24;
+   for(const elev of [.26,.49,.72,.96,1.18,1.38]){
+    if(elev<apertureHeight(az)+.055)continue;
+    domeRivets.push(domePoint(az,elev,OBSERVATORY_RADIUS+.0025));
+   }
+  }
+  const rivetMesh=new THREE.InstancedMesh(
+   new THREE.SphereGeometry(.0022,6,4),m.brass,domeRivets.length);
+  const rivetPose=new THREE.Object3D();
+  for(let i=0;i<domeRivets.length;i++){
+   rivetPose.position.set(...domeRivets[i]);
+   rivetPose.updateMatrix();
+   rivetMesh.setMatrixAt(i,rivetPose.matrix);
+  }
+  rivetMesh.instanceMatrix.needsUpdate=true;
+  roofShell.add(rivetMesh);parts++;
   // The garage shutter is sixteen spherical strips only INSIDE the
   // aperture. As they move up, the fixed shell hides them completely.
   const slatGeometry=(lo,hi)=>{
