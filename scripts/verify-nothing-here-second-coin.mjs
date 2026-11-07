@@ -152,9 +152,6 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"shutter");
  assert(!(await state(page)).serviceOpen,
   "Service shutter opened without the brass key or sound release");
- if(await page.locator("#ncMechanismsToggle").getAttribute("aria-expanded")==="true")
-  assert.match(await page.locator("#ncMechanismsList").innerText(),/Service key/,
-   "The earned brass key is not reflected in the live mechanism log");
  await collect(page,"seal");
  await useItem(page,"seal","shutter");
  assert((await state(page)).serviceSealInserted&&
@@ -324,18 +321,12 @@ try{
    mouse:true,bag:true,machine:true,ventOpen:true,
    pocket:["shim","sugar"],pendingPickups:[]
   });
-  assert(await page.locator("#ncMechanisms").isVisible(),
-   "Previously discovered mechanisms must have an optional readable status");
-  assert(await page.locator("#ncMechanismsList").isHidden(),
-   "Mechanism log should start collapsed to keep the cube uncluttered");
-  await page.locator("#ncMechanismsToggle").click();
-  assert.match(await page.locator("#ncMechanismsList").innerText(),/Vending machine.*coin-return slot is still jammed/s,
-   "Unresolved machine state is not explained in ordinary physical language");
-  assert.doesNotMatch(await page.locator("#ncMechanismsList").innerText(),/3\s*·\s*1\s*·\s*4/,
-   "An unopened code was leaked by the progress summary");
+  assert.equal(await page.locator("#ncMechanisms, #ncLastChanges").count(),0,
+   "Redundant progress dropdowns should not appear below the cube");
   await useItem(page,"shim","machine");
-  assert.match(await page.locator("#ncMechanismsList").innerText(),/Coin return.*working coin return/s,
-   "Fixing the jam did not update the visible mechanism state");
+  const repaired=await state(page);
+  assert(repaired.shimUsed,
+   "Using the shim must repair the coin-return mechanism even without a progress panel");
   await refundCoin(page,{realPointer:true});
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
@@ -477,8 +468,8 @@ try{
    seen:["first","door","dog","bell"],door:true,doorOpen:true,
    redHits:4,pocket:["bell"],pendingPickups:[]
   });
-  assert(await page.locator("#ncMechanisms").isHidden(),
-   "The progress panel revealed a future puzzle before it was encountered");
+  assert.equal(await page.locator("#ncMechanisms, #ncLastChanges").count(),0,
+   "The removed progress panels must not reveal future puzzle information");
   await useItem(page,"bell","dog");
   const sounded=await state(page);
   assert(sounded.barked&&sounded.squirrel&&sounded.vase&&
