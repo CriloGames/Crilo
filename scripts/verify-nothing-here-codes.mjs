@@ -459,6 +459,19 @@ for(const [axis,fixed,start,end,width] of [
   "frontFace",axis,fixed,spans,width),[],
   "Front frame crosses optical hardware");
 }
+// Every remaining shortened black, silver or gold strip has a flush
+// return shoe within the clearance window. Full-length front borders
+// are deliberately not covered in extra end caps or fake rivets.
+for(const source of [details,finish]){
+ assert(source.includes('[seg.from>from+.001,seg.from+.050]')&&
+  source.includes('[seg.to<to-.001,seg.to-.050]')&&
+  source.includes('if(!isCut||seg.length<.18)continue;')&&
+  source.includes('const bottom=.069,top=z+depth*.36;')&&
+  source.includes('foot.userData.mechanicalMount=true;'),
+  'Some clipped trim is still left dangling with no seated terminal');
+}
+assert(.050-.075/2>.010,
+ 'Shortened rail mounting shoes extend past their clear endpoints');
 // The lavender drawer key must sit on its own internal cradle, with
 // the glow behind the item rather than stranded in the open cavity.
 assert(preview.includes('bit.position.set(0,-.135,-.33);')&&
