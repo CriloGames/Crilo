@@ -1455,7 +1455,7 @@ try{
   await activate(to===96||to===from-16?"maze-in":
    to===from+16?"maze-out":
    Math.floor(to/16)===Math.floor(from/16)&&
-   to%16===(from%16+1)%24?"maze-ccw":"maze-cw");
+   to%16===(from%16+1)%16?"maze-ccw":"maze-cw");
   assert.equal((await state()).gearMazeCell,to,
    "A real channel failed: "+from+" to "+to);
  }
