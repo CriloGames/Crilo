@@ -153,12 +153,15 @@ export function finishMechanicalArtifact({
     // proper outer structural rail, not another overlapping border.
     if(face===backFace)return;
     const inset=face===rightFace?1.445:1.425;
-    const join=inset+.025;
+    // True butt-jointed frame: horizontal bars stop precisely at the
+    // vertical bars' inner edges. Four coplanar full-size bars USED to
+    // overlap at each corner and look like crossed sticks.
+    const straight=inset-.015,span=inset+.015;
     if(face===frontFace){
       for(const sign of [-1,1]){
-        trimRail(face,"x",sign*inset,-join,join,
+        trimRail(face,"x",sign*inset,-straight,straight,
           .030,.041,.105,accent,.012);
-        trimRail(face,"y",sign*inset,-join,join,
+        trimRail(face,"y",sign*inset,-span,span,
           .030,.041,.105,accent,.012);
       }
       return;
@@ -241,11 +244,12 @@ export function finishMechanicalArtifact({
           C(face,.019,.010,x,y,.079,deep);
           torus(face,.026,.004,x,y,.084,accent);
         }
-      }else{
-        trimRail(face,"x",s*inset,-join,join,
-          .030,.041,.105,accent,.012);
       }
-      trimRail(face,"y",s*inset,-join,join,
+      // The roof inlays enter their real sockets *inside* this complete
+      // perimeter. There is no floating bottom border endpoint.
+      trimRail(face,"x",s*inset,-straight,straight,
+        .030,.041,.105,accent,.012);
+      trimRail(face,"y",s*inset,-span,span,
         .030,.041,.105,accent,.012);
     }
     // No second set of corner rivets: the precision panel already has
