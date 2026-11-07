@@ -249,8 +249,10 @@ export function finishMechanicalArtifact({
   lensBarrel.userData.noBatch=true;
   frontLens.add(lensBarrel);partCount++;
   finishedMeshes.push(lensBarrel);
-  torus(frontLens,.758,.035,0,0,-.181,metal); // touches enamel
-  torus(frontLens,.758,.020,0,0,-.018,deep); // joins front rim
+  torus(frontLens,.758,.035,0,0,-.181,metal); // anchored to enamel
+  // The second .758-radius graphite torus physically occupied the SAME
+  // volume as the gold lip. Remove it; the existing .69-radius inset is
+  // the clean dark gasket, safely inside the single gold edge.
   torus(frontLens,.76,.031,0,0,0,tinyGold);
   torus(frontLens,.69,.014,0,0,.03,deep);
   // The old radial metal bars pierced both the gold and the black
@@ -272,7 +274,9 @@ export function finishMechanicalArtifact({
   frontLens.add(dome);partCount++;
   // A captured glass bezel makes the convex optic feel installed rather
   // than a translucent cone floating in front of the instrument.
-  torus(frontLens,.310,.024,0,0,.145,deep);
+  // Two independent coaxial bands with actual radial/depth clearance;
+  // the old thick graphite bezel cut through the thin gold bezel.
+  torus(frontLens,.330,.012,0,0,.142,deep);
   torus(frontLens,.314,.013,0,0,.169,tinyGold);
   C(frontLens,.045,.06,-.085,.09,.235,cream);
   // The previous copper tubing and black rectangular terminal blocks sat
