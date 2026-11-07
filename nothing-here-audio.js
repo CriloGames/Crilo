@@ -86,7 +86,7 @@
   }
  }
  function startMusic(){
-  if(!musicEnabled||!gestureReady||document.hidden)return false;
+  if(finalePlaying||!musicEnabled||!gestureReady||document.hidden)return false;
   const song=ensureMusic();if(!song)return false;
   if(song._fadeFrame)cancelAnimationFrame(song._fadeFrame);
   // Only start after a user gesture; modern browsers block page-load audio.
