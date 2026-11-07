@@ -534,9 +534,13 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  let observatoryScope=null,observatoryRearCap=null,observatoryBarrel=null;
  const apertureHeight=az=>{
-  const u=Math.abs(az)/OBSERVATORY_OPEN_HALF_ANGLE;
-  return u>=1?0:OBSERVATORY_ARCH_RISE*Math.sqrt(Math.max(0,1-u*u));
+  const u=Math.min(1,Math.abs(az)/OBSERVATORY_OPEN_HALF_ANGLE);
+  // A continuous circular-looking arch, with no pinched or bowed ends.
+  return OBSERVATORY_ARCH_RISE*Math.cos(u*Math.PI/2);
  };
+ const apertureHalfWidth=elev=>OBSERVATORY_OPEN_HALF_ANGLE*
+  (2/Math.PI)*Math.acos(THREE.MathUtils.clamp(
+   elev/OBSERVATORY_ARCH_RISE,0,1));
  const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[
   r*Math.cos(elev)*Math.sin(az),
   -r*Math.cos(elev)*Math.cos(az),
@@ -781,9 +785,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const track=[],trackInset=[];
    for(let i=0;i<=32;i++){
     const elev=.025+(OBSERVATORY_ARCH_RISE-.05)*i/32;
-    const ratio=elev/OBSERVATORY_ARCH_RISE;
-    const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
-     Math.sqrt(Math.max(0,1-ratio*ratio));
+    const az=side*apertureHalfWidth(elev);
     track.push(domePoint(az,elev,OBSERVATORY_RADIUS-.015));
     trackInset.push(domePoint(az,elev,OBSERVATORY_RADIUS-.023));
    }
@@ -893,8 +895,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const pos=[],normal=[],uv=[],indices=[];
    for(let row=0;row<=OBSERVATORY_ROWS;row++){
     const elev=lo+(hi-lo)*row/OBSERVATORY_ROWS;
-    const width=OBSERVATORY_OPEN_HALF_ANGLE*
-     Math.sqrt(Math.max(0,1-(elev/OBSERVATORY_ARCH_RISE)**2));
+    const width=apertureHalfWidth(elev);
     for(let col=0;col<=OBSERVATORY_COLUMNS;col++){
      const az=width*(2*col/OBSERVATORY_COLUMNS-1);
      pos.push(...domePoint(az,elev,OBSERVATORY_RADIUS-.004));
@@ -994,8 +995,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    for(let row=0;row<=OBSERVATORY_ROWS;row++){
     const source=lo+(hi-lo)*row/OBSERVATORY_ROWS;
     const elev=Math.min(Math.PI/2-.015,source+travel);
-    const width=OBSERVATORY_OPEN_HALF_ANGLE*
-     Math.sqrt(Math.max(0,1-(source/OBSERVATORY_ARCH_RISE)**2));
+    const width=apertureHalfWidth(source);
     for(let col=0;col<=OBSERVATORY_COLUMNS;col++){
      const az=width*(2*col/OBSERVATORY_COLUMNS-1);
      const n=row*(OBSERVATORY_COLUMNS+1)+col;
@@ -1014,8 +1014,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    carriage.visible=observatoryShutter.progress<.98;
    if(!carriage.visible)continue;
    const elev=.025+observatoryShutter.progress*(OBSERVATORY_ARCH_RISE-.08);
-   const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
-    Math.sqrt(Math.max(0,1-(elev/OBSERVATORY_ARCH_RISE)**2));
+   const az=side*apertureHalfWidth(elev);
    carriage.position.set(...domePoint(az,elev,OBSERVATORY_RADIUS-.018));
    carriage.rotation.z=-side*elev*.4;
   }
