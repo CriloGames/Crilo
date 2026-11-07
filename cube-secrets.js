@@ -367,7 +367,6 @@ for(const [id,owned] of [
  }
 }
 let selected=null,fluteTrayOpen=false,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
-let changesOpen=false,mechanismsOpen=false;
 const changeNotes={
  drawer:'Front latch released. The lavender drawer opened on its runners.',
  thread:'Side release moved. The teal drawer opened with a red spool inside.',
@@ -729,51 +728,9 @@ function incident(symbol){
 }
 function render(){
  $('ncCount').textContent=seen.size;
- const recent=$('ncLastChanges'),toggleChanges=$('ncChangesToggle');
- const listChanges=$('ncChangesList'),countChanges=$('ncChangesCount');
- if(recent&&toggleChanges&&listChanges&&countChanges){
-  recent.hidden=!recentChanges.length;
-  countChanges.textContent=recentChanges.length?'('+recentChanges.length+')':'';
-  toggleChanges.setAttribute('aria-expanded',String(changesOpen));
-  listChanges.hidden=!changesOpen;
-  if(changesOpen){
-   const shown=recentChanges.map(e=>e.id+':'+e.message).join('|');
-   if(listChanges.dataset.shown!==shown){
-    listChanges.replaceChildren();
-    for(const entry of recentChanges){
-     const li=document.createElement('li');
-     li.textContent=entry.message;
-     listChanges.append(li);
-    }
-    listChanges.dataset.shown=shown;
-   }
-  }
- }
- const mechanisms=$('ncMechanisms'),mechanismsToggle=$('ncMechanismsToggle');
- const mechanismsList=$('ncMechanismsList'),mechanismsCount=$('ncMechanismsCount');
- if(mechanisms&&mechanismsToggle&&mechanismsList&&mechanismsCount){
-  const active=ongoingMechanisms();
-  mechanisms.hidden=!active.length;
-  mechanismsCount.textContent=active.length?'('+active.length+')':'';
-  mechanismsToggle.setAttribute('aria-expanded',String(mechanismsOpen));
-  mechanismsList.hidden=!mechanismsOpen;
-  if(mechanismsOpen){
-   const snapshot=active.map(e=>e.name+':'+e.detail).join('|');
-   if(mechanismsList.dataset.shown!==snapshot){
-    mechanismsList.replaceChildren();
-    for(const entry of active){
-     const li=document.createElement('li');
-     const heading=document.createElement('strong');
-     heading.textContent=entry.name;
-     const detail=document.createElement('span');
-     detail.textContent=entry.detail;
-     li.append(heading,detail);
-     mechanismsList.append(li);
-    }
-    mechanismsList.dataset.shown=snapshot;
-   }
-  }
- }
+ // The 3D puzzle and pocket are the focus. Recent mechanical changes
+ // remain recorded in saved progress, but no longer occupy screen space
+ // in the two redundant status dropdowns.
  document.body.classList.toggle('nc-a-open',s.a);
  document.body.classList.toggle('nc-b-open',s.b);
  document.body.classList.toggle('nc-top-open',s.top);
@@ -1846,14 +1803,6 @@ $('ncSideObjects').addEventListener('click',eventThing);
 $('ncDoorScene').addEventListener('click',eventThing);
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
-$('ncChangesToggle')?.addEventListener('click',()=>{
- changesOpen=!changesOpen;
- render();
-});
-$('ncMechanismsToggle')?.addEventListener('click',()=>{
- mechanismsOpen=!mechanismsOpen;
- render();
-});
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
 $('gameInfoBtn')?.addEventListener('click',info);
 $('ncModalClose').addEventListener('click',closeModal);
