@@ -257,8 +257,18 @@ async function refundCoin(page,{realPointer=false}={}){
  assert(Math.abs(initial.faceAngle)<.000001,
   "The white maze visibly rotated, despite being stationary");
  await dragWheel("gear-small","ccw");
- assert.equal((await state(page)).gearMazeCell,81,
-  "The black drive cog did not advance the captive pin");
+ const firstCog=await page.evaluate(()=>({
+  state:window.CriloNothingHereCube.getState(),
+  control:window.__nothing3DPreview.projectGameControl("gear-small"),
+  camera:window.__nothing3DPreview.navigationState,
+  click:window.__nothing3DPreview.lastClickedAction,
+  maze:window.__nothing3DPreview.physicalGearMaze
+ }));
+ assert.equal(firstCog.state.gearMazeCell,81,
+  "The black drive cog did not advance the captive pin: "+
+   JSON.stringify({cell:firstCog.state.gearMazeCell,
+    selected:firstCog.state.selected,control:firstCog.control,
+    camera:firstCog.camera,click:firstCog.click,maze:firstCog.maze}));
  await dragWheel("gear-small","cw");
  assert.equal((await state(page)).gearMazeCell,80,
   "Reversing the black drive cog failed to return the ball");
