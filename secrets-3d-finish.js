@@ -113,10 +113,8 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // Straight parallel inlaid traces as on the original roof panel.
-      // They terminate cleanly inside four round, bolted entry bushings,
-      // instead of visibly curving or stopping abruptly near the dome.
-      // Both pairs stay outside the 0.315-radius dome socket at (0,-1.14).
+      // Four functional-looking bent inlays: straight runs curve down
+      // into the recessed bores. All four are fixed to the roof face.
       if(face===topFace&&s===-1){
         const traces=[
           {y:-1.22,z:.105,width:.030,depth:.041,material:accent,
@@ -124,14 +122,59 @@ export function finishMechanicalArtifact({
           {y:-1.125,z:.112,width:.010,depth:.016,material:deep,
            end:1.20,port:.390,round:.004}
         ];
+        function bentInlay(trace,sign,start){
+          const port=trace.port;
+          const spine=new THREE.CubicBezierCurve3(
+            new THREE.Vector3(sign*start,trace.y,trace.z),
+            new THREE.Vector3(sign*(port+.064),trace.y,trace.z),
+            new THREE.Vector3(sign*port,trace.y,trace.z-.007),
+            new THREE.Vector3(sign*port,trace.y,.063)
+          );
+          const pos=[],indices=[],samples=18;
+          for(let i=0;i<=samples;i++){
+            const t=i/samples;
+            const center=spine.getPoint(t);
+            const tangent=spine.getTangent(t).normalize();
+            // Perpendicular within X/Z: square inlay bends downward.
+            const nx=-tangent.z,nz=tangent.x;
+            // The narrow tip fits within the .019-radius recessed well.
+            const taper=t<.64?1:1-(t-.64)/.36*.70;
+            const width=trace.width*taper*.5;
+            const thickness=trace.depth*taper*.5;
+            for(const [u,v] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
+              pos.push(center.x+nx*v*thickness,
+                center.y+u*width,center.z+nz*v*thickness);
+            }
+          }
+          for(let i=0;i<samples;i++)for(let j=0;j<4;j++){
+            const a=i*4+j,b=i*4+(j+1)%4;
+            const c=(i+1)*4+j,d=(i+1)*4+(j+1)%4;
+            indices.push(a,b,c,b,d,c);
+          }
+          indices.push(0,2,1,0,3,2);
+          const end=samples*4;
+          indices.push(end,end+1,end+2,end,end+2,end+3);
+          const geometry=new THREE.BufferGeometry();
+          geometry.setAttribute("position",
+            new THREE.Float32BufferAttribute(pos,3));
+          geometry.setIndex(indices);
+          geometry.computeVertexNormals();
+          const leadPaint=trace.material.clone();
+          leadPaint.side=THREE.DoubleSide;
+          const mesh=new THREE.Mesh(geometry,leadPaint);
+          mesh.castShadow=false;mesh.receiveShadow=true;
+          face.add(mesh);
+          finishedMeshes.push(mesh);partCount++;
+        }
         for(const trace of traces)for(const sign of [-1,1]){
-          const begin=trace.port+.020;
+          const begin=trace.port+.145;
           B(face,trace.end-begin,trace.width,trace.depth,
            sign*(trace.end+begin)/2,trace.y,trace.z,
            trace.material,trace.round);
+          bentInlay(trace,sign,begin);
           const x=sign*trace.port,y=trace.y;
-          // The line enters a continuous, recessed round ferrule with
-          // its bore anchored in the fixed enamel, not in the dome.
+          // The inset dark well hides the downward tail, with the
+          // actual wire passing under the lip instead of ending at it.
           C(face,.027,.012,x,y,.076,metal);
           C(face,.019,.010,x,y,.086,deep);
           torus(face,.026,.005,x,y,.096,accent);
