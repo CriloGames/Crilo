@@ -163,8 +163,31 @@ assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
 // The selected reference requires a spherical ivory dome, a wide
 // arched opening, terracotta lining, a continuous lower band and a
 // telescope centered behind the opening, not the old boxy barrel.
-for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0xc6b5a3,.10,.67);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.032,.012,.145,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
+for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0xc6b5a3,.10,.67);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.023,.009,.108,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
  'Reference observatory feature missing: '+part);
+// Polishing must not bury the guide tracks, clutter the hemisphere
+// again, or bring back the bulky focuser. The garage-door release itself
+// and the retained dome geometry remain unchanged.
+for(const feature of [
+ 'const observatoryGuideRollers=[];',
+ 'track.push(domePoint(az,elev,OBSERVATORY_RADIUS-.015));',
+ 'trackInset.push(domePoint(az,elev,OBSERVATORY_RADIUS-.023));',
+ 'wire(roofShell,track,.003,guideMetal);',
+ 'carriage.position.set(...domePoint(az,elev,OBSERVATORY_RADIUS-.018));',
+ 'carriage.visible=observatoryShutter.progress<.98;',
+ 'const collar=new THREE.Mesh(new THREE.CylinderGeometry(',
+ 'const patch=(col*17+row*11+col*row*3)%7;',
+ 'const quietRivet=mat(0xb5a797,.18,.48);',
+ 'new THREE.SphereGeometry(.00135,6,4),quietRivet,domeRivets.length',
+ 'for(let i=0;i<12;i++){',
+ 'for(const elev of [.35,.69,1.02,1.32]){',
+ 'B(tube,.049,.054,.061,.060,0,-.020,m.brass,.008);',
+ 'telescopeIrisGlass=C(tube,.023,.009,.108,0,-.020,m.glass,"x");',
+ 'guideRailCount:observatoryGuideRollers.length,',
+ 'visibleRivetCount:observatoryRivetCount,',
+ 'enamelTextureApplied:ivory.map===enamelGrain,'
+]) assert(worlds.includes(feature),
+ 'Observatory detail or track refinement regressed: '+feature);
 // The hemisphere is moved toward the box center but away from the front
 // gold rail; the nearest part stays clear of the hinged panel's frame.
 const domeCenterY=-1.045,domeRadius=.282;
