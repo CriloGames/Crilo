@@ -275,11 +275,15 @@ export function finishMechanicalArtifact({
   const engrave=(face,inset,paint,width,depth,z,{openBottom=false}={})=>{
     const name=borderFaceName.get(face);
     const spanX=inset-width/2,spanY=inset+width/2;
+    // On the observatory roof the two vertical return tracks must end
+    // exactly at their existing gold/graphite inlay, rather than piercing
+    // those conductors or producing a third disconnected lower border.
+    const roofJoin=openBottom?(inset>1.2?-1.22:-1.125)+width/2:-spanY;
     const edges=[
       ["x",inset,-spanX,spanX],
       ["x",-inset,-spanX,spanX],
-      ["y",-inset,-spanY,spanY],
-      ["y",inset,-spanY,spanY]
+      ["y",-inset,roofJoin,spanY],
+      ["y",inset,roofJoin,spanY]
     ].filter(([axis,fixed])=>!(openBottom&&axis==="x"&&fixed<0));
     for(const [axis,fixed,from,to] of edges){
       const raw=clearRailSegments(name,axis,fixed,from,to,width);
