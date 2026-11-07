@@ -46,6 +46,13 @@ const cases=[
  // Repro: flute plays correctly before the door is opened. Both the new
  // unlock and a previously saved unlock must let the player click the
  // visible wooden panel instead of hunting for a subpixel door knob.
+ // Existing saves opened this hatch automatically on the third screw.
+ // Keep those players' unlocked hinge and collected rewards intact.
+ {label:"legacy-front-latch",viewport:{width:1280,height:850},
+  seed:{seen:["first","fastener","faceplate"],screws:[0,1,2],
+   plateOpen:true,pendingPickups:["cog"],pocket:[],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"flute-door-unlock",viewport:{width:1280,height:850},
   seed:{seen:["first","flute"],pocket:["flute"],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
@@ -233,28 +240,57 @@ try{
     assert.equal(result.progress?.solved,false,
      "Loading a saved game incorrectly marked the maze complete");
    }
+   if(check.label==="legacy-front-latch"){
+    const legacy=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(legacy.plateOpen&&legacy.screws.length===3&&
+     legacy.pendingPickups.includes("cog"),
+     "Older solved front hatches must stay open without re-pressing the pin");
+    assert((await page.evaluate(()=>window.__nothing3DPreview.frontCogHatchPose)).open,
+     "An earlier player's open front hatch was physically relocked");
+   }
    if(check.label==="fresh-desktop"){
-    // The fourth corner is a captive pin, not a removable screw. Repeated
-    // clicks must give physical feedback instead of a developer testing note,
-    // even once all three actual cover screws have been removed.
+    // Before the screws are removed, the captive pin depresses, but cannot
+    // open the cover. Its response is mechanical, not a testing instruction.
     for(let i=0;i<2;i++){
      await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
-     const narrator=await page.locator("#ncNarrator").innerText();
+     const narration=await page.locator("#ncNarrator").innerText();
      const state=await page.evaluate(()=>window.CriloNothingHereCube.getState());
-     assert.match(narrator,/rounded pin pushes inward and springs back/i,
-      "The captive corner pin gave an unclear testing message");
-     assert.equal(state.falseScrewTurns,1);
-     assert.deepEqual(state.screws,[],"The captive pin was treated like a removable screw");
+     assert.match(narration,/corner pin springs back/i);
+     assert.equal(state.falseScrewTurns,i+1,"Each physical press should animate");
+     assert.deepEqual(state.screws,[],"The pin was treated as a removable screw");
+     assert(!state.plateOpen,"The pin opened a still-bolted front cover");
     }
+    const discovered=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert.equal(discovered.seen.filter(x=>x==="false-screw").length,1,
+     "Repressing the pin must not duplicate its discovery");
     for(const n of [0,1,2])
      await page.evaluate(n=>window.__nothing3DPreview.clickAction("front-screw-"+n),n);
-    const released=await page.evaluate(()=>window.CriloNothingHereCube.getState());
-    assert(released.plateOpen&&released.screws.length===3,
-     "The three actual corner screws failed to release the front cover");
-    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const loose=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(loose.screws.length===3&&!loose.plateOpen&&
+     !loose.pendingPickups.includes("cog"),
+     "Three screws must free but not open the spring-latched service hatch");
     assert.match(await page.locator("#ncNarrator").innerText(),
-     /rounded pin pushes inward and springs back/i,
-     "After removing the screws, the captive pin claims screws still remain");
+     /rounded corner pin still holds/i,
+     "Player has no clue what holds the screw-free hatch");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const unlatched=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(unlatched.plateOpen&&unlatched.pendingPickups.includes("cog"),
+     "The real corner pin did not release the openable hatch and cog");
+    assert.match(await page.locator("#ncNarrator").innerText(),
+     /stays depressed.*hatch swings open/i,
+     "The final latch action has no clear physical feedback");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const afterRepeat=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert.equal(afterRepeat.falseScrewTurns,unlatched.falseScrewTurns,
+     "A released pin must not keep triggering useless animations");
+    assert(afterRepeat.plateOpen&&afterRepeat.pendingPickups.includes("cog"),
+     "Pressing the already released latch damaged progress");
+    await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+    await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+     document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+    const restored=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(restored.plateOpen&&restored.pendingPickups.includes("cog"),
+     "Reloading relocked a successfully released spring hatch");
    }
    if(check.label==="lavender-open-desktop"){
     await page.evaluate(()=>window.__nothing3DPreview.setRotation(30,0));
@@ -437,14 +473,15 @@ try{
      !afterRepeat.pendingPickups.includes("raindrop")&&
      !afterRepeat.pocket.includes("raindrop"),
      "The cloud generated a useless second drop after the tree grew");
-    // A one-time fake fastener can be inspected, but repeated presses
-    // must not add secrets, inventory, or further hidden states.
+    // The captive pin may be inspected before screw removal; its discovery
+    // is awarded once, while pressing remains physically responsive.
     await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
     const firstPress=await page.evaluate(()=>window.CriloNothingHereCube.getState());
     await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
     const nextPress=await page.evaluate(()=>window.CriloNothingHereCube.getState());
-    assert(firstPress.falseScrewTurns===1&&nextPress.falseScrewTurns===1,
-     "The unslotted corner plunger was not a single-use discovery");
+    assert(nextPress.falseScrewTurns===firstPress.falseScrewTurns+1&&
+      !nextPress.plateOpen,
+     "Pressing an early pin must rebound without releasing the screwed-down hatch");
     const disk=await page.evaluate(()=>JSON.parse(localStorage.getItem(
      "crilo_nothing_here_cube_v3")));
     assert(disk.rainReleased&&disk.bellUsed&&disk.tree&&
