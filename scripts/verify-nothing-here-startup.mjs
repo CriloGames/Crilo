@@ -130,6 +130,8 @@ const cases=[
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
+const onlyCases=new Set((process.env.NOTHING_HERE_ONLY_CASES||"").split(",").filter(Boolean));
+const skipCases=new Set((process.env.NOTHING_HERE_SKIP_CASES||"").split(",").filter(Boolean));
 const browser=await chromium.launch({headless:true,args:[
  "--no-sandbox","--enable-webgl","--use-gl=angle",
  "--use-angle=swiftshader","--enable-unsafe-swiftshader"
@@ -137,9 +139,11 @@ const browser=await chromium.launch({headless:true,args:[
 let failed=false;
 try{
  for(const check of cases){
+  if(onlyCases.size&&!onlyCases.has(check.label)||skipCases.has(check.label))continue;
   const context=await browser.newContext({
    viewport:check.viewport,
-   reducedMotion:check.label==="held-coin-guidance"?"no-preference":"reduce"
+   reducedMotion:["held-coin-guidance","finale-last-discovery"].includes(check.label)
+    ?"no-preference":"reduce"
   });
   const errors=[];
   const page=await context.newPage();
@@ -354,8 +358,11 @@ try{
      }));
      assert(finished.game.seen.length===60&&finished.game.seen.includes("dot"),
       "The final genuine peculiarity failed to count");
-     assert(finished.ending.phase==="open",
-      "The sixtieth discovery did not unfold the cube (reduced-motion test)");
+     await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+      null,{timeout:25000,polling:250});
+     assert((await page.evaluate(()=>
+      window.__nothing3DPreview.completionFinale)).phase==="open",
+      "The sixtieth discovery did not finish the real unfolding animation");
      assert(finished.game.pocket.includes("coin"),
       "Finale consumed a legitimate saved inventory item");
     }else{
@@ -379,9 +386,11 @@ try{
     assert(await page.locator("#ncFinaleReplay").isVisible(),
      "A completed run has no replayable ending");
     await page.locator("#ncFinaleReplay").click();
+    await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+     null,{timeout:25000,polling:250});
     assert.equal(await page.evaluate(()=>
      window.__nothing3DPreview.completionFinale.phase),"open",
-     "Watch again failed to replay the ending in reduced-motion mode");
+     "Watch again failed to replay the unfolding sequence");
     await page.reload({waitUntil:"domcontentloaded",timeout:90000});
     await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
      document.body.classList.contains("nc-physical-ready"),{timeout:60000});
