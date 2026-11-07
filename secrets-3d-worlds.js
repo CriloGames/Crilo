@@ -631,9 +631,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.stand.visible=false;
   item.fixture.position.z=.060;
   g.position.set(0,0,0);g.scale.setScalar(1);
-  item.hitVolume.geometry.dispose();
-  item.hitVolume.geometry=new THREE.BoxGeometry(.64,.64,.65);
-  item.hitVolume.position.set(0,0,.160);
+  // The observatory is only selectable on the ACTUAL curved dome.
+  // Remove the oversized invisible box that responds to roof/air clicks.
+  const boxHit=item.hitVolume;
+  g.remove(boxHit);
+  boxHit.geometry.dispose();
+  boxHit.material.dispose();
+  delete g.userData.pickVolume;
+  item.hitVolume=null;
   // The complete round wall intersects the yellow enamel. Neither a
   // black disk nor a rectangle is visible under the reference dome.
   const band=new THREE.Mesh(new THREE.CylinderGeometry(
@@ -705,6 +710,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   observatoryRearCap.castShadow=true;
   observatoryRearCap.receiveShadow=true;
   roofShell.add(observatoryRearCap);parts++;
+  // Select only the actual curved dome: shell, shutter and attached trim.
+  // Neither the roof, pedestal nor telescope is a dome click target.
+  item.domeClickTarget=roofShell;
+  item.hitVolume=observatoryRearCap;
   const lining=new THREE.Mesh(domeSkin(OBSERVATORY_RADIUS-.010),terracotta);
   roofShell.add(lining);parts++;
   // Smooth thickened arch and a fine inset band along its cut edge.
@@ -1471,7 +1480,9 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  }
  // Raycast targets must be registered AFTER sculpting the miniatures:
  // otherwise setHit traverses an empty group and none of them are clickable.
- for(const [name,{toy}] of items)setHit(toy,"thing:"+name);
+ for(const [name,{toy,domeClickTarget}] of items){
+  setHit(name==="telescope"?domeClickTarget:toy,"thing:"+name);
+ }
  // Register small control meshes AFTER their parent miniatures; otherwise
  // the generic "inspect the bag" action would overwrite all dial hit IDs.
  for(const [action,part] of puzzleControls)setHit(part,action);
