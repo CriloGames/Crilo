@@ -16,7 +16,7 @@ const base=process.env.NOTHING_HERE_TEST_URL||
 const savedKey="crilo_nothing_here_cube_v3";
 const catalogText=readFileSync("cube-secrets.js","utf8").split("const catalog=[")[1]
  .split("const title=new Map(catalog)")[0];
-const peculiarities=[...catalogText.matchAll(/\\['([^']+)','/g)].map(match=>match[1]);
+const peculiarities=[...catalogText.matchAll(/^\s*\['([^']+)',/gm)].map(match=>match[1]);
 assert.equal(peculiarities.length,60,"Completion gate expects exactly 60 discoveries");
 const allButDot=peculiarities.filter(id=>id!=="dot");
 assert.equal(allButDot.length,59);
