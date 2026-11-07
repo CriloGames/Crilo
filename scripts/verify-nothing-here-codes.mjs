@@ -103,6 +103,17 @@ assert.deepEqual([...decode(eyeLabel),...decode(footLabel)],fluteCode,
  'The two engraved musical phrases do not open the physical door');
 assert(logic.includes("===FLUTE_CODE.join('')"),
  'The flute logic no longer plays the score stamped on the cube');
+// The fourth corner is now the actual latch, not an inert fake screw.
+const cornerLatch=logic.slice(logic.indexOf("if(name.startsWith('front-screw-')){"),
+ logic.indexOf("if(name.startsWith('right-bolt-')){"));
+assert(cornerLatch.includes("if(s.screws.length===3){")&&
+ cornerLatch.includes("s.plateOpen=true;")&&
+ cornerLatch.includes("s.falseScrewTurns=s.falseScrewTurns%20+1;")&&
+ cornerLatch.indexOf("s.plateOpen=true;")<cornerLatch.indexOf("}else if(!s.screws.includes(n))"),
+ "The captive spring pin must release the hatch only after the screws");
+assert(preview.includes("state.screws?.length===3&&!state.plateOpen?1.05:0")&&
+ preview.includes("const finalDepth=state.plateOpen?.07:.13;"),
+ "The spring latch lost its armed indicator or retained pressed pose");
 assert(logic.includes("spend('flute');")&&
  logic.includes("['flute',seen.has('flute')&&!s.door]")&&
  logic.includes("if(s.door){\n pocket.delete('flute');"),
