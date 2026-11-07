@@ -129,6 +129,21 @@ export function finishMechanicalArtifact({
        ?B(face,seg.length,width,depth,seg.center,fixed,z,paint,rounding)
        :B(face,width,seg.length,depth,fixed,seg.center,z,paint,rounding);
       mesh.userData.clearanceTrim=true;
+      // Returned terminal shoes bolt each shortened inlay back to the
+      // underlying enamel. They stay INSIDE the safe rail path, rather
+      // than creating a second line that pierces the adjacent hardware.
+      for(const [isCut,end] of [
+        [seg.from>from+.001,seg.from+.050],
+        [seg.to<to-.001,seg.to-.050]
+      ]){
+        if(!isCut||seg.length<.18)continue;
+        const bottom=.069,top=z+depth*.36;
+        const footDepth=top-bottom,footZ=(top+bottom)/2;
+        const foot=axis==="x"
+         ?B(face,.075,width*1.24,footDepth,end,fixed,footZ,metal,.008)
+         :B(face,width*1.24,.075,footDepth,fixed,end,footZ,metal,.008);
+        foot.userData.mechanicalMount=true;
+      }
     }
   };
   function machinedPanel(face,accent) {
