@@ -3,8 +3,8 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=47";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=18";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=48";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=19";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=67";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
@@ -1644,6 +1644,14 @@ window.__nothing3DPreview={
  get miniatureHardwareAttachmentAudit(){
   return pocketWorlds?.getHardwareAttachmentAudit?.()||[];
  },
+ // Covers all six faces, across both black inlays and silver/gold rails.
+ // Counts refer to real generated strips, not decorative labels.
+ get trimClearanceAudit(){
+  const precision=intricate.getTrimClearanceAudit?.()||null;
+  const finishing=finish.getTrimClearanceAudit?.()||null;
+  const faults=[...(precision?.faults||[]),...(finishing?.faults||[])];
+  return {precision,finishing,failures:faults,okay:faults.length===0};
+ },
  get physicalAttachmentAudit(){
   const wheels=intricate.getStructuralMounts?.()||[];
   const fixed=gameHotspots?.getFixedMountAudit?.()||[];
@@ -1651,7 +1659,14 @@ window.__nothing3DPreview={
   const miniatures=pocketWorlds?.getHardwareAttachmentAudit?.()||[];
   const figures=pocketWorlds?.getMiniatureBodyMountAudit?.()||[];
   const flute=gameHotspots?.getFluteMountAudit?.()||[];
+  const railAudits=[
+   intricate.getTrimClearanceAudit?.(),
+   finish.getTrimClearanceAudit?.()
+  ].filter(Boolean);
   const issues=[];
+  for(const audit of railAudits)
+   for(const fault of audit.faults)
+    issues.push(fault.face+" "+fault.rail+" trim crosses "+fault.hardware);
   for(const m of wheels)
    if(m.face!=="leftFace"||m.actualBottom>.0725||
     m.actualTop<m.rearZ||!m.hasSeat||!m.hasCollar)
@@ -1674,7 +1689,7 @@ window.__nothing3DPreview={
   if(gameHotspots&&(flute.length!==2||flute.some(m=>
    !m.reachesShell||!m.meetsBrace||!m.sharesFluteVisibility)))
    issues.push("flute saddles are not attached to their fixed top rail");
-  return {wheels,fixed,lens,miniatures,figures,flute,
+  return {wheels,fixed,lens,miniatures,figures,flute,railAudits,
    issues,okay:issues.length===0,
    intentionalExceptions:["red button index arc","unlocked portal effect"]};
  },
