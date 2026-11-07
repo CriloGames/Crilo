@@ -43,6 +43,18 @@ const cases=[
    pendingPickups:["sugar","seal"],pocket:[],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Repro: flute plays correctly before the door is opened. Both the new
+ // unlock and a previously saved unlock must let the player click the
+ // visible wooden panel instead of hunting for a subpixel door knob.
+ {label:"flute-door-unlock",viewport:{width:1280,height:850},
+  seed:{seen:["first","flute"],pocket:["flute"],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ {label:"saved-flute-door",viewport:{width:1280,height:850},
+  seed:{seen:["first","flute","door"],pocket:["flute"],door:true,
+   doorOpen:false,fluteNotes:[2,1,3,1,3,2],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
@@ -208,6 +220,50 @@ try{
     assert.equal(key.target?.pick,"pickup:tooth",
      "Real mouse raycast cannot reach the key in the open drawer: "+
       JSON.stringify(key));
+   }
+   if(check.label==="flute-door-unlock"||
+      check.label==="saved-flute-door"){
+    const before=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(before.pocket.includes("flute")&&!before.doorOpen,
+     "Flute-door regression seed lost inventory or starts open");
+    if(check.label==="flute-door-unlock"){
+     // The door's physical mesh is absent until the six-note melody
+     // succeeds, even if some earlier gear puzzle has already been solved.
+     assert(!before.door,"New flute case started with an unlocked door");
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:door"));
+     assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).doorOpen,
+      false,"Touching a still-locked door bypassed its melody");
+     for(const key of [2,1,3,1,3,2])
+      await page.evaluate(key=>window.CriloNothingHereCube.activatePhysicalFluteNote(key),key);
+     const afterSong=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+     assert(afterSong.door&&!afterSong.doorOpen,
+      "A correctly played flute must unlock the door without opening it");
+    }else{
+     assert(before.door&&!before.doorOpen,
+      "Saved already-unlocked door did not survive load");
+     // Previously playing more notes after unlocking always narrated
+     // "door already open", although it was still shut.
+     await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalFluteNote(2));
+     const narration=await page.locator("#ncNarrator").innerText();
+     assert(/door.*released|door.*unlocked/i.test(narration),
+      "Saved unlocked-but-closed door misreports that it is already open: "+narration);
+    }
+    // The player's real click on the visible full-size door panel
+    // dispatches the same 'thing:door' action as the Three.js raycaster.
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:door"));
+    const opened=await page.evaluate(()=>({
+     state:window.CriloNothingHereCube.getState(),
+     scene:window.__nothing3DPreview.physicalScenePose
+    }));
+    assert(opened.state.doorOpen&&opened.scene.doorAngle<-.8,
+     "Clicking the unlocked door panel did not physically open it: "+
+      JSON.stringify({door:opened.state.door,open:opened.state.doorOpen,
+       angle:opened.scene.doorAngle}));
+    // Opening a door must be persisted without clearing the flute.
+    const disk=await page.evaluate(()=>JSON.parse(localStorage.getItem(
+      "crilo_nothing_here_cube_v3")));
+    assert(disk.door&&disk.doorOpen&&disk.pocket.includes("flute"),
+     "Door opening failed to persist with the previously earned flute");
    }
    if(check.label==="vending-two-rewards"){
     const result=await page.evaluate(()=>{
