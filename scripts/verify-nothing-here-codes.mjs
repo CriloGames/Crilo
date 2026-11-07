@@ -437,6 +437,39 @@ assert(finish.includes('torus(frontLens,.76,.031,0,0,0,tinyGold);')&&
  'Front optical gasket rings overlap their metal neighbors');
 assert(Math.hypot(.330-.314,.142-.169)>.012+.013+.004,
  'Nested objective retaining rings interpenetrate');
+// The front lens is now surrounded by a complete parallel outer
+// frame, not dozens of decorative black or silver stubs. Both layers
+// use the SAME safe centered borders, each beyond the lens keepout.
+assert(details.includes('const border=face===frontFace?1.51:1.38;')&&
+ details.includes('const border=face===frontFace?1.51:1.39;')&&
+ finish.includes('if(face===frontFace){')&&
+ finish.includes('trimRail(face,"x",sign*1.425,-1.29,1.29,')&&
+ finish.includes('trimRail(face,"y",sign*1.425,-1.26,1.26,'),
+ 'Front face no longer has one tidy uninterrupted trim border');
+for(const [axis,fixed,start,end,width] of [
+ ["x",1.425,-1.29,1.29,.030],["x",-1.425,-1.29,1.29,.030],
+ ["y",1.425,-1.26,1.26,.030],["y",-1.425,-1.26,1.26,.030],
+ ["x",1.51,-1.425,1.425,.055],["x",-1.51,-1.425,1.425,.055],
+ ["y",1.51,-1.315,1.315,.055],["y",-1.51,-1.315,1.315,.055]
+]){
+ const spans=railTool.clearRailSegments("frontFace",axis,fixed,start,end,width);
+ assert(spans.length===1&&Math.abs(spans[0].length-(end-start))<1e-7,
+  "Front frame got chopped into decorative stubs");
+ assert.deepEqual(railTool.railClearanceFaults(
+  "frontFace",axis,fixed,spans,width),[],
+  "Front frame crosses optical hardware");
+}
+// The lavender drawer key must sit on its own internal cradle, with
+// the glow behind the item rather than stranded in the open cavity.
+assert(preview.includes('bit.position.set(0,-.135,-.33);')&&
+ preview.includes('bit.rotation.x=-.22;')&&
+ preview.includes('bit.scale.setScalar(1.16);')&&
+ preview.includes('const keySeat=box(front.drawer,.82,.026,.31,0,-.283,-.33,metal,.009);')&&
+ preview.includes('keySeat.userData.mechanicalMount=true;')&&
+ preview.includes('root:looseKey,model:looseKey,color:0xf2c66d,')&&
+ preview.includes('size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate')&&
+ preview.includes('get lavenderDrawerItemAudit(){'),
+ 'Lavender drawer key is no longer displayed in its actual physical tray');
 // The maze guide is .092 wide and each separate saddle starts at
 // .092-.035/2: their channels cannot contain a crossing metal rod.
 assert(.092-.035/2>.092/2+.02,
