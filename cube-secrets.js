@@ -219,6 +219,14 @@ for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
  // Keep those earned states and never duplicate a spent drop on reload.
  s.rainReleased=!!(s.rainReleased||seen.has('rain')||
   pendingPickups.has('raindrop')||pocket.has('raindrop')||s.tree);
+ // Earlier versions let the cloud generate an obsolete second drop even
+ // after watering successfully grew the tree. This specific duplicate can
+ // no longer be used. Drop only that spent consumable, not any discoveries,
+ // valid inventory objects, or other physical reward origins.
+ if(s.tree){
+  pocket.delete('raindrop');
+  pendingPickups.delete('raindrop');
+ }
  // The telescope now has TWO real optical fittings, usable in either order.
 // Older runs always installed the silver lens before the glass iris. Honor
 // their already-completed constellation and second-sky secrets without
