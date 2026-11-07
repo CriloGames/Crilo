@@ -1181,37 +1181,115 @@ function visibleKeyboardTargets(){
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
 
-// A one-shot green compatibility flash whenever the player picks up an
-// inventory item to HOLD. Unlike the regular hover effect this requires no
-// cursor position: it uses the exact same compatibility check, but filters
-// through physical raycasting so only visible, reachable fittings glow.
-// Nothing hidden on another face or behind a closed drawer is revealed.
+// Inventory guidance persists for as long as a matching tool is held.
+// The previous implementation drew a single green ring for 980 ms and
+// discarded it, forcing players to hover over every side of the cube.
+// Use the real puzzle compatibility rules and raycaster, not a list of
+// guessed item/target pairs or an overlay that shines through closed doors.
 let heldItemForFlash=null;
 let lastFitFlashActions=[];
-const selectedFitFlashes=new Set();
+let fitRefreshTimer=null,fitDirectedFace=null;
+const selectedFitFlashes=new Map();
 function clearSelectedFitFlashes(){
- for(const node of selectedFitFlashes)node.remove();
+ if(fitRefreshTimer!==null){clearTimeout(fitRefreshTimer);fitRefreshTimer=null;}
+ for(const mark of selectedFitFlashes.values())mark.remove();
  selectedFitFlashes.clear();
-}
-function flashSelectedItemFits(item){
- clearSelectedFitFlashes();
  lastFitFlashActions=[];
- if(!item||!embeddedGame||reducedMotion&&document.hidden)return;
+}
+function updateSelectedFitFlashes(){
+ if(!heldItemForFlash||!embeddedGame){clearSelectedFitFlashes();return;}
  const canFit=window.CriloNothingHereCube?.canUseSelectedWithAction;
  if(typeof canFit!=="function")return;
- const targets=visibleKeyboardTargets().filter(target=>canFit(target.action));
- const rect=stage.getBoundingClientRect();
- for(const target of targets.slice(0,7)){
-  const mark=document.createElement("span");
-  mark.className="nc-selected-fit-flash";
-  mark.setAttribute("aria-hidden","true");
+ // visibleKeyboardTargets checks the genuine hit surface from the
+ // CURRENT view. A hidden mechanism can never acquire a false marker.
+ const visible=visibleKeyboardTargets().filter(v=>canFit(v.action)).slice(0,7);
+ const active=new Set(visible.map(v=>v.action));
+ const rect=renderer.domElement.getBoundingClientRect();
+ for(const target of visible){
+  let mark=selectedFitFlashes.get(target.action);
+  if(!mark){
+   mark=document.createElement("span");
+   mark.className="nc-selected-fit-flash";
+   mark.setAttribute("aria-hidden","true");
+   const label=document.createElement("span");
+   label.className="nc-selected-fit-label";
+   label.textContent="Fits here";
+   mark.appendChild(label);
+   stage.appendChild(mark);
+   selectedFitFlashes.set(target.action,mark);
+  }
   mark.style.left=(target.x-rect.left)+"px";
   mark.style.top=(target.y-rect.top)+"px";
-  stage.appendChild(mark);
-  selectedFitFlashes.add(mark);
-  lastFitFlashActions.push(target.action);
-  setTimeout(()=>{mark.remove();selectedFitFlashes.delete(mark);},980);
  }
+ for(const [action,mark] of selectedFitFlashes){
+  if(!active.has(action)){mark.remove();selectedFitFlashes.delete(action);}
+ }
+ lastFitFlashActions=[...active];
+}
+function scheduleFitFlashRefresh(){
+ if(!heldItemForFlash||fitRefreshTimer!==null)return;
+ // Throttle costly precision raycasts while orbiting; CSS keeps the green
+ // pulse running smoothly without drawing new WebGL frames.
+ fitRefreshTimer=setTimeout(()=>{
+  fitRefreshTimer=null;
+  if(heldItemForFlash)updateSelectedFitFlashes();
+ },90);
+}
+const usableFaces=[
+ ["front",frontFace],["back",backFace],["right",rightFace],
+ ["left",leftFace],["top",topFace],["bottom",bottomFace]
+];
+function actionableFace(mesh){
+ for(let p=mesh;p;p=p.parent)
+  for(const [name,group] of usableFaces)if(p===group)return name;
+ return null;
+}
+function chooseItemDestination(){
+ const canFit=window.CriloNothingHereCube?.canUseSelectedWithAction;
+ if(typeof canFit!=="function")return null;
+ const destinations=new Map();
+ for(const mesh of interactiveMeshes){
+  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh)||
+   mesh.userData.requiresObservatoryOpen&&!currentGameState.observatoryRaised||
+   !canFit(mesh.userData.action))continue;
+  const face=actionableFace(mesh);
+  if(face&&!destinations.has(mesh.userData.action))
+   destinations.set(mesh.userData.action,face);
+ }
+ if(!destinations.size)return null; // craft-only or not yet usable
+ const visible=new Set(visibleKeyboardTargets().map(t=>t.action));
+ for(const [action,face] of destinations)
+  if(visible.has(action))return {action,face,alreadyFacing:true};
+ const [action,face]=destinations.entries().next().value;
+ return {action,face,alreadyFacing:false};
+}
+function faceAnglesTowardCamera(face){
+ // Match whichever direction the player has orbited the camera to,
+ // including mobile framing, instead of hardcoded world-front angles.
+ const sight=camera.position.clone().sub(controls.target).normalize();
+ const yaw=THREE.MathUtils.radToDeg(Math.atan2(sight.x,sight.z));
+ const pitch=THREE.MathUtils.radToDeg(
+  Math.atan2(sight.y,Math.hypot(sight.x,sight.z)));
+ const angles={
+  front:[-pitch,yaw],back:[-pitch,yaw+180],
+  right:[-pitch,yaw-90],left:[-pitch,yaw+90],
+  top:[90-pitch,0],bottom:[-90-pitch,0]
+ };
+ return angles[face]||null;
+}
+function showHeldItemDestination(){
+ const target=chooseItemDestination();
+ fitDirectedFace=target?.face||null;
+ if(target&&!target.alreadyFacing){
+  const angles=faceAnglesTowardCamera(target.face);
+  if(angles){
+   // Point the correct face at the user ONCE on selection. Do not
+   // fight subsequent manual rotation or disclose still-locked puzzles.
+   window.CriloNothingHereCube?.rotate?.(...angles);
+  }
+ }
+ updateSelectedFitFlashes();
+ scheduleFitFlashRefresh();
 }
 
 // Turn the physical wheels with the mouse or finger instead of clicking
@@ -1488,6 +1566,7 @@ const onResize=()=>{
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
+ scheduleFitFlashRefresh();
  invalidate();
 };
 new ResizeObserver(onResize).observe(stage);
@@ -1509,6 +1588,7 @@ function drawFrame(){
 }
 controls.addEventListener("change",()=>{
  invalidate();
+ scheduleFitFlashRefresh();
  if(embeddedGame){
   window.CriloNothingHereCube?.updatePhysicalViewZoom?.(
    baseDistance()/camera.position.distanceTo(controls.target)
@@ -1676,7 +1756,10 @@ window.__nothing3DPreview={
  get selectedItemFlashAudit(){return {
   selected:heldItemForFlash,
   targets:[...lastFitFlashActions],
-  visible:selectedFitFlashes.size
+  visible:selectedFitFlashes.size,
+  guidedFace:fitDirectedFace,
+  persistent:[...selectedFitFlashes.values()].every(node=>
+   node.isConnected&&getComputedStyle(node).animationIterationCount==="infinite")
  }},
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
@@ -2332,6 +2415,7 @@ window.__nothing3DPreview={
   gsap.killTweensOf(cube.rotation);
   cube.rotation.x=THREE.MathUtils.degToRad(rx);
   cube.rotation.y=THREE.MathUtils.degToRad(ry);
+  scheduleFitFlashRefresh();
   invalidate();
  },
  get cubeRotationDegrees(){
@@ -2472,9 +2556,13 @@ if(embeddedGame){
   // cube changes state or while the player merely moves the mouse.
   if(newlyHeld){
    clearSelectedFitFlashes();
+   fitDirectedFace=null;
    if(held)requestAnimationFrame(()=>{
-    if(heldItemForFlash===held)flashSelectedItemFits(held);
+    if(heldItemForFlash===held)showHeldItemDestination();
    });
+  }else if(held){
+   // An unlocked drawer or other state change can expose a new fitting.
+   scheduleFitFlashRefresh();
   }
   // Using or putting down an item must remove stale "fits here" feedback.
   if(!partHint.hidden&&displayedHintAction)
