@@ -378,6 +378,17 @@ for(const [y,halfH,stop] of [[1.38,.0275,.22],[1.22,.015,.56],
  const closest=Math.hypot(stop,y-halfH-.56);
  assert(closest>.81,'Front optical border enters the circular housing');
 }
+// Optical rings must remain separate solids rather than co-occupying
+// concentric space: one gold outer lip, one inner dark gasket and two
+// genuinely offset objective-seat bands.
+assert(finish.includes('torus(frontLens,.76,.031,0,0,0,tinyGold);')&&
+ finish.includes('torus(frontLens,.69,.014,0,0,.03,deep);')&&
+ finish.includes('torus(frontLens,.330,.012,0,0,.142,deep);')&&
+ !finish.includes('torus(frontLens,.758,.020,0,0,-.018,deep);')&&
+ !finish.includes('torus(frontLens,.310,.024,0,0,.145,deep);'),
+ 'Front optical gasket rings overlap their metal neighbors');
+assert(Math.hypot(.330-.314,.142-.169)>.012+.013+.004,
+ 'Nested objective retaining rings interpenetrate');
 // The maze guide is .092 wide and each separate saddle starts at
 // .092-.035/2: their channels cannot contain a crossing metal rod.
 assert(.092-.035/2>.092/2+.02,
