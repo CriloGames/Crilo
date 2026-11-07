@@ -1559,6 +1559,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
   pickVolumes:new Map([...items].map(([n,v])=>[n,v.hitVolume])),
+  // Real optical assembly, separate from the always-clickable dome shell.
+  // The browser raycast QA uses this to confirm the instrument itself
+  // accepts a touch after the shutter has opened.
+  telescopeInstrument:items.get("telescope")?.instrument||null,
+  observatoryDome:items.get("telescope")?.domeClickTarget||null,
   puzzleActions:[...puzzleControls.keys()],
   pulse,
   inspect,
