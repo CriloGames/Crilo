@@ -81,8 +81,9 @@ const cases=[
  // Existing users may have taken another drop *after* growing the tree.
  // Loading this specific impossible spare must not resurrect it.
  {label:"legacy-extra-raindrop",viewport:{width:1280,height:850},
-  seed:{seen:["first","music","rain","tree"],music:true,cloud:true,
-   plant:true,tree:true,pocket:["raindrop"],pendingPickups:[],
+  seed:{seen:["first","music","rain","tree","door","bark"],music:true,cloud:true,
+   plant:true,tree:true,door:true,doorOpen:true,barked:true,
+   pocket:["raindrop","bell"],pendingPickups:[],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
@@ -423,6 +424,18 @@ try{
     assert(!(await page.evaluate(()=>window.CriloNothingHereCube.getState()))
      .pendingPickups.includes("raindrop"),
      "Legacy tree completion could generate the same obsolete spare again");
+    // Older players may have made the dog bark by petting first. Their
+    // unused bell should still attach ONCE, without replaying the squirrel.
+    await page.locator('#ncInventory [data-item="bell"]').click();
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:dog"));
+    const oldBell=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     bell:window.__nothing3DPreview.physicalScenePose.dogBellOnCollar
+    }));
+    assert(oldBell.game.bellUsed&&!oldBell.game.pocket.includes("bell")&&oldBell.bell,
+     "An unused legacy bell should attach once even after the dog barked");
+    assert(!oldBell.game.pendingPickups.includes("raindrop"),
+     "Using the bell in an old save resurrected the second raindrop");
    }
    if(check.label==="vending-two-rewards"){
     const result=await page.evaluate(()=>{
