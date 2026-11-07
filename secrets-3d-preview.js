@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=68";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=69";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
@@ -1197,7 +1197,29 @@ let heldItemForFlash=null;
 let lastFitFlashActions=[];
 let fitRefreshTimer=null;
 const selectedFitFlashes=new Map();
-let fitGlowTexture=null;
+let fitGlowTexture=null,fitGlowLensTexture=null;
+function getOpticalFitGlowTexture(){
+ if(fitGlowLensTexture)return fitGlowLensTexture;
+ // Unlike the regular FITS HERE billboard, this miniature target has NO
+ // text beneath the reticle: its luminous dot must be geometrically centered.
+ const canvas=document.createElement("canvas");
+ canvas.width=canvas.height=256;
+ const g=canvas.getContext("2d");
+ const halo=g.createRadialGradient(128,128,4,128,128,106);
+ halo.addColorStop(0,"rgba(204,255,219,.86)");
+ halo.addColorStop(.34,"rgba(67,242,135,.58)");
+ halo.addColorStop(.66,"rgba(37,226,104,.24)");
+ halo.addColorStop(1,"rgba(30,214,117,0)");
+ g.fillStyle=halo;g.fillRect(0,0,256,256);
+ g.beginPath();g.arc(128,128,40,0,Math.PI*2);
+ g.lineWidth=9;g.strokeStyle="#55f09b";g.shadowBlur=18;
+ g.shadowColor="#3ae68e";g.stroke();g.shadowBlur=0;
+ g.beginPath();g.arc(128,128,13,0,Math.PI*2);
+ g.fillStyle="#dfffe8";g.fill();
+ fitGlowLensTexture=new THREE.CanvasTexture(canvas);
+ fitGlowLensTexture.colorSpace=THREE.SRGBColorSpace;
+ return fitGlowLensTexture;
+}
 function getFitGlowTexture(){
  if(fitGlowTexture)return fitGlowTexture;
  const canvas=document.createElement("canvas");
@@ -1246,23 +1268,40 @@ function physicalTargetHit(target){
 function addFitMarker(target){
  const hit=physicalTargetHit(target);
  if(!hit)return null;
- const mesh=hit.object;
- // Sit almost flush with the real surface. Do not use the world origin
- // or a cube-face coordinate that makes the ring slide across the puzzle.
- const n=hit.face?.normal
-  ?hit.face.normal.clone().transformDirection(mesh.matrixWorld)
-  :camera.position.clone().sub(hit.point).normalize();
- if(n.dot(camera.position.clone().sub(hit.point))<0)n.negate();
- const worldPoint=hit.point.clone().addScaledVector(n,.025);
- const local=mesh.worldToLocal(worldPoint);
+ // Observatory raycasts often land on the curved roof or telescope saddle.
+ // The green item-placement marker must instead sit at the exact center of
+ // the actual front objective, regardless of which face the pointer hit.
+ // Keep the mesh local so it follows the telescope when the cube turns.
+ const objective=target.action==="thing:telescope"&&currentGameState.observatoryRaised
+  ?pocketWorlds?.telescopeObjective:null;
+ const mesh=objective&&isMeshEffectivelyVisible(objective)?objective:hit.object;
+ let local;
+ if(mesh===objective){
+  // The objective is a z-facing cylinder rotated 90 degrees about X:
+  // positive local Y is directly out of the optical glass. Its axis
+  // remains (0,0) even when the barrel, dome or camera rotates.
+  local=new THREE.Vector3(0,.015,0);
+ }else{
+  // For other inventory fittings, retain the existing surface-anchored
+  // highlight without moving it as the player orbits the cube.
+  const n=hit.face?.normal
+   ?hit.face.normal.clone().transformDirection(mesh.matrixWorld)
+   :camera.position.clone().sub(hit.point).normalize();
+  if(n.dot(camera.position.clone().sub(hit.point))<0)n.negate();
+  const worldPoint=hit.point.clone().addScaledVector(n,.025);
+  local=mesh.worldToLocal(worldPoint);
+ }
  const material=new THREE.SpriteMaterial({
-  map:getFitGlowTexture(),color:0xffffff,transparent:true,
+  map:mesh===objective?getOpticalFitGlowTexture():getFitGlowTexture(),
+  color:0xffffff,transparent:true,
   depthTest:true,depthWrite:false,toneMapped:false,
   opacity:reducedMotion?1:.95});
  const sprite=new THREE.Sprite(material);
  sprite.name="Inventory fit guide — mounted to physical target";
  sprite.position.copy(local);
- sprite.scale.set(.54,.64,1);
+ // The observatory lens is miniature: keep its green halo in the glass
+ // instead of drawing an oversized marker across the entire dome.
+ sprite.scale.set(mesh===objective?.22:.54,mesh===objective?.22:.64,1);
  sprite.renderOrder=2;
  // The sprite is deliberately absent from interactiveMeshes and never
  // claims a click; it only follows the material fitting below it.
@@ -1793,6 +1832,18 @@ window.__nothing3DPreview={
    world:world.toArray(),mesh:marker.mesh.uuid,
    anchored:marker.sprite.parent===marker.mesh};
  })},
+ get observatoryFitGuideAlignment(){
+  const objective=pocketWorlds?.telescopeObjective;
+  const marker=selectedFitFlashes.get("thing:telescope");
+  if(!objective)return null;
+  scene.updateMatrixWorld(true);
+  const lensCenter=objective.localToWorld(new THREE.Vector3(0,.015,0));
+  const actual=marker?.sprite.getWorldPosition(new THREE.Vector3())||null;
+  return {visible:!!marker,anchored:!!marker&&marker.mesh===objective,
+   centeredTexture:!!marker&&marker.sprite.material.map===getOpticalFitGlowTexture(),
+   error:actual?actual.distanceTo(lensCenter):null,
+   local:marker?.sprite.position.toArray()||null};
+ },
  get touchInteractionState(){return {active:touchPointers.size,gesture:multiTouchGesture,inspecting:!!clickStart?.inspected}},
  get gearDragState(){return gearDrag?{active:true,action:gearDrag.action,steps:gearDrag.steps}:{active:false,action:null,steps:0}},
  getGearDragCenter(name){

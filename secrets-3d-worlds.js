@@ -537,7 +537,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const observatoryShutter={progress:0},observatoryPanels=[];
  const observatoryGuideRollers=[];
  let observatoryRivetCount=0;
- let telescopeLensGlass=null,telescopeIrisGlass=null;
+ let telescopeLensGlass=null,telescopeIrisGlass=null,telescopeObjective=null;
  let observatoryScope=null,observatoryRearCap=null,observatoryBarrel=null;
  const apertureHeight=az=>Math.atan2(
   Math.max(0,Math.cos(az)),OBSERVATORY_CUT_SLOPE);
@@ -963,7 +963,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   C(tube,.055,.008,0,0,.147,mat(0x294354,.40,.22),"z");
   const opticalCoating=mat(0x21394a,.31,.16);
   opticalCoating.clearcoat=.86;
-  C(tube,.054,.004,0,0,.153,opticalCoating,"z");
+  // Save the real, stationary front optical surface as the single anchor
+  // for inventory guidance. A raycast can hit the dome or a support instead;
+  // neither is the correct position for the green placement indicator.
+  telescopeObjective=C(tube,.054,.004,0,0,.153,opticalCoating,"z");
   // A bolted finder-scope saddle grows FROM the main barrel.
   B(tube,.026,.045,.034,0,.065,-.013,m.brass,.006);
   B(tube,.039,.009,.056,0,.087,-.013,m.gold,.004);
@@ -987,6 +990,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   item.shutterHub=roofShell;
   item.rearCap=observatoryRearCap;
   item.instrument=observatoryScope;
+  item.objective=telescopeObjective;
  }
  const applyObservatoryRoll=()=>{
   const travel=observatoryShutter.progress*(OBSERVATORY_ARCH_RISE+.10);
@@ -1563,6 +1567,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // The browser raycast QA uses this to confirm the instrument itself
   // accepts a touch after the shutter has opened.
   telescopeInstrument:items.get("telescope")?.instrument||null,
+  telescopeObjective:items.get("telescope")?.objective||null,
   observatoryDome:items.get("telescope")?.domeClickTarget||null,
   puzzleActions:[...puzzleControls.keys()],
   pulse,
