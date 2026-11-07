@@ -1987,6 +1987,29 @@ try{
  const mechanism=await page.evaluate(()=>window.__nothing3DPreview.physicalMechanismState);
  assert(mechanism.needle&&mechanism.light&&mechanism.service,
    "Reloaded saved mechanics did not restore the real metal mechanism poses");
+ // The dog collar tag is now a *physical elevator key*. Previously the
+ // test could brute-force floor four while the earned tag did nothing.
+ await activate("thing:elevator-floor-4");
+ assert(!(await state()).floorFour,
+  "The lift opened before its tag reader was physically unlocked");
+ let tagBefore=await state();
+ if(tagBefore.pendingPickups.includes("tag"))await collect("tag");
+ tagBefore=await state();
+ assert(tagBefore.pocket.includes("tag"),
+  "A dog tag earned in an existing save must still be available for the reader");
+ await page.locator('#ncInventory [data-item="tag"]').click();
+ assert(await page.evaluate(()=>window.CriloNothingHereCube
+  .canUseSelectedWithAction("thing:elevator-keyway")),
+  "Holding a collar tag must activate the mini-elevator's real keyway");
+ await activate("thing:elevator-keyway");
+ const readerState=await page.evaluate(()=>({
+  game:window.CriloNothingHereCube.getState(),
+  reader:window.__nothing3DPreview.physicalElevatorTagReaderState
+ }));
+ assert(readerState.game.elevatorTagInserted&&
+  readerState.reader?.tagVisible&&readerState.reader.lamp>.3,
+  "A redeemed collar tag must appear visibly seated in the elevator reader: "+
+  JSON.stringify(readerState));
  // Face the miniature elevator and physically press floor four with a
  // real pointer, rather than advancing its puzzle state through an API.
  const liftMotion=await page.evaluate(()=>{

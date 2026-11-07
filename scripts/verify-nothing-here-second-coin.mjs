@@ -561,53 +561,47 @@ try{
   assert((await page.evaluate(()=>
    window.__nothing3DPreview.visiblePhysicalStoryObjects)).includes("elevator"),
    "Maker's stamp did not reveal an actual side-mounted miniature lift");
-  // The maker stamp unlocks this early path without the dog or the bird.
+  // The maker stamp reveals the lift early, but its carriage now has a
+  // real collar-tag lock. This must not become a brute-force shortcut.
   await deployObservatory(page);
   await act(page,"thing:elevator-floor-4");
-  assert((await state(page)).floorFour&&!((await state(page)).tag),
-   "Fourth-floor cage incorrectly depends on obtaining the dog's tag");
-  await collect(page,"lens");
-  await useItem(page,"lens","telescope");
-  const focused=await state(page);
-  assert(focused.observed&&focused.telescopeLensMounted&&!focused.telescopeIrisMounted&&
-    !focused.secondSky&&focused.pendingPickups.includes("starmap"),
-   "First optical fitting did not produce exactly the constellation reward");
-  await collect(page,"starmap");
-  await useItem(page,"starmap","elevator");
-  const railway=await state(page);
-  assert(railway.train&&!railway.door&&!railway.music&&
-   railway.seen.includes("constellation"),
-   "Railway no longer has an independent early optical route");
-  // The rear-eye service hatch provides the second, distinct optic.
+  assert(!(await state(page)).floorFour,
+   "Fourth floor opened without a tag or an earlier earned unlock");
+  // The independent front-screw/iris route can still focus the first sky
+  // and lead to the railway before the dog and elevator access.
   for(let n=0;n<3;n++)await act(page,"eye-ring");
   for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
   await collect(page,"cog");
   await useItem(page,"cog","eye");
   await collect(page,"iris");
   await useItem(page,"iris","telescope");
-  let merged=await state(page);
-  assert(merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
-   merged.secondSky&&merged.seen.includes("second-sky")&&
-   (await page.evaluate(()=>
-    window.__nothing3DPreview.physicalScenePose.telescopeOptics.both)),
-   "Using two physically distinct optic holders did not reveal the second sky");
+  let focused=await state(page);
+  assert(focused.observed&&focused.telescopeIrisMounted&&!focused.telescopeLensMounted&&
+   !focused.secondSky&&focused.pendingPickups.includes("starmap"),
+   "The early iris must still produce a chart without a dog tag");
+  await collect(page,"starmap");
+  await useItem(page,"starmap","elevator");
+  const railway=await state(page);
+  assert(railway.train&&!railway.floorFour&&!railway.door&&!railway.music&&
+   railway.seen.includes("constellation"),
+   "Independent iris/chart/railway route cannot bypass the tag-gated fourth floor");
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
-  merged=await state(page);
-  assert(merged.observed&&merged.train&&merged.secondSky&&
-   merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
-   !merged.pendingPickups.includes("starmap")&&
-   !merged.pendingPickups.includes("lens")&&
-   !merged.pendingPickups.includes("iris"),
-   "Saving the early optical branch resurrected spent telescope parts or lost progress");
+  focused=await state(page);
+  assert(focused.observed&&focused.train&&!focused.floorFour&&
+   focused.telescopeIrisMounted&&!focused.telescopeLensMounted&&
+   !focused.pendingPickups.includes("starmap")&&
+   !focused.pendingPickups.includes("iris"),
+   "Saving the early iris branch lost progress or unlocked the floor");
   await close();
-  console.log("PASS: fresh stamp -> early lift/lens -> chart/railway -> eye iris -> second sky, saved");
+  console.log("PASS: maker stamp reveals lift; 04 is locked; iris still focuses early star chart/railway");
  }
  // Reverse the two independently earned telescope optics. A first iris
  // MUST work, and a later lens must NOT duplicate its one-time star chart.
  {
   const {page,close}=await scenario("iris-before-lens",{
-   seen:[],pocket:[],pendingPickups:[]
+   // This branch has already earned the collar tag from the dog.
+   seen:["tag"],tag:true,pocket:["tag"],pendingPickups:[]
   });
   for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
   await collect(page,"cog");
@@ -627,6 +621,9 @@ try{
   focused=await state(page);
   assert(focused.train&&!focused.floorFour&&!focused.moon&&!focused.door,
    "First iris route secretly required floor four or the dog and moon");
+  await useItem(page,"tag","elevator-keyway");
+  assert((await state(page)).elevatorTagInserted,
+   "Fourth floor keyway failed to accept the earned collar tag");
   await act(page,"thing:elevator-floor-4");
   await collect(page,"lens");
   await useItem(page,"lens","telescope");
@@ -699,9 +696,12 @@ try{
   await useItem(page,"tape","clock");
   assert((await state(page)).tapeInserted,"Punched tape failed to operate clock");
   await collect(page,"letter");
-  // The watch and recovered collar tag make the fourth lift button
-  // meaningful. Its lens produces the telescope chart, which unlocks
-  // the railway needed to post the late-game letter.
+  // Earned dog tag physically engages the elevator access reader.
+  // Merely pressing fourth-floor buttons cannot bypass it.
+  await collect(page,"tag");
+  await useItem(page,"tag","elevator-keyway");
+  assert((await state(page)).elevatorTagInserted,
+   "The real dog tag did not unlock the miniature lift");
   await act(page,"thing:elevator-floor-4");
   assert((await state(page)).floorFour,
    "Fourth-floor lift did not reveal its lens and moth");
