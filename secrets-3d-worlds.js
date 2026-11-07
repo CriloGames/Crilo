@@ -56,7 +56,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let watchHourHand=null,watchMinuteHand=null,vendingTray=null,vendingServiceSeal=null,vendingCabinet=null;
- let dogTail=null;
+ let dogTail=null,dogCollarBell=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
  let lastVaseBroken=false,lastDancerVisible=false,lastSeedPlanted=false,lastTreeGrown=false;
@@ -310,6 +310,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    B(g,.085,.14,.13,x*1.65,.155,-.15,m.cream,.033);
   }
   torus(g,.13,.024,0,.47,.125,m.brass);
+  // The bell is a ONE-TIME offering. Once used, its physical model stays
+  // hanging from the dog's actual collar instead of remaining endlessly
+  // reusable in the inventory. Players who pet the dog do not magically
+  // acquire the bell on its neck.
+  dogCollarBell=new THREE.Group();
+  dogCollarBell.position.set(0,.402,.273);
+  g.add(dogCollarBell);
+  C(dogCollarBell,.019,.022,0,.022,0,m.brass,"z");
+  ball(dogCollarBell,.045,0,-.035,.015,m.gold,[.90,1.1,.82]);
+  C(dogCollarBell,.013,.009,0,-.078,.048,m.black,"z");
+  dogCollarBell.visible=false;
   // The tail's pivot stays attached to the body during touch feedback.
   dogTail=new THREE.Group();dogTail.position.set(.18,.37,-.16);g.add(dogTail);
   ball(dogTail,.09,.047,0,0,m.cream,[1.7,.48,.62]);
@@ -1537,6 +1548,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    }
   }
   lastDogHits=dogHits;
+  if(dogCollarBell)dogCollarBell.visible=!!s.bellUsed;
   const raining=!!(s.cloud&&s.music);
   if(raining!==lastRain){
    cloudDrops.forEach((drop,i)=>{
@@ -1629,6 +1641,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }),
   getPose:()=>({
    dogTailAngle:dogTail?.rotation.z??null,
+   dogBellOnCollar:dogCollarBell?.visible??false,
    cloudDropHeights:cloudDrops.map(drop=>drop.position.y),
    mothWingAngles:mothWings.map(({wing})=>wing.rotation.z),
    trainWheelAngles:trainWheels.map(wheel=>wheel.rotation.x),
