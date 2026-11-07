@@ -1127,32 +1127,36 @@ try{
    JSON.stringify(coinUsability));
  // Confirm a genuine mouse hover triggers the green in-scene response
  // before the player clicks. Nothing elsewhere on the cube lights up.
- // The new guidance must persist WITHOUT hover and steer the player
- // toward the correct physical face, not merely flash once for 980ms.
- // Begin on the opposite face to simulate why the original UI felt like
- // trial and error. Selecting a coin should bring the machine into view.
+ // Held items must never turn the cube automatically. Rotate to the
+ // opposite face before selecting, then manually find the usable fitting.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
  await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>{
   el.click(); // put it down
-  el.click(); // hold it again while looking at the wrong cube side
+  el.click(); // hold it again from the opposite cube side
  });
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.selectedItemFlashAudit.selected==="coin",
+  null,{timeout:22000});
+ await page.waitForTimeout(300);
+ const beforeManualTurn=await page.evaluate(()=>({
+  rotation:window.__nothing3DPreview.cubeRotationDegrees,
+  guide:window.__nothing3DPreview.selectedItemFlashAudit
+ }));
+ assert(Math.abs(beforeManualTurn.rotation.ry-180)<.01,
+  "Selecting a held item must not turn the cube automatically");
+ assert(!beforeManualTurn.guide.targets.includes("thing:machine"),
+  "The guide revealed a hidden fitting through the cube");
+ await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
  await page.waitForFunction(()=>
   window.__nothing3DPreview.selectedItemFlashAudit.targets.includes("thing:machine"),
   null,{timeout:22000});
  const selectionFlash=await page.evaluate(()=>
   window.__nothing3DPreview.selectedItemFlashAudit);
- const oriented=await page.evaluate(()=>
-  window.__nothing3DPreview.cubeRotationDegrees);
  assert.equal(selectionFlash.selected,"coin",
-  "Picking up an item did not produce green compatibility feedback");
- assert.equal(selectionFlash.guidedFace,"front",
-  "Selecting an item should direct the player to its usable cube face");
+  "Holding an item did not enable green fitting feedback");
  assert(selectionFlash.persistent&&selectionFlash.visible>=1,
-  "Correct socket must keep pulsing rather than flashing once: "+
+  "Correct socket should pulse continuously once the player finds it: "+
    JSON.stringify(selectionFlash));
- assert(Math.abs(oriented.ry-180)>35,
-  "A held item still requires guessing which face holds the fitting: "+
-   JSON.stringify(oriented));
  assert(!selectionFlash.targets.includes("latch")&&
   !selectionFlash.targets.includes("thing:dog"),
   "Green item guidance leaked onto incompatible or locked objects");
