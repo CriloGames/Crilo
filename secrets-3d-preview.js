@@ -1773,6 +1773,37 @@ window.__nothing3DPreview={
    glow:originalPickupGlow?.tooth.getState()||null
   };
  },
+ // QA: distinguish a key blocked by the casing from a misaligned
+ // projection. No developer controls or labels are added to gameplay.
+ get debugLavenderPickupRays(){
+  scene.updateMatrixWorld(true);
+  camera.updateMatrixWorld();
+  const bounds=renderer.domElement.getBoundingClientRect();
+  const samples=[];
+  for(const x of [-.25,-.12,0,.12,.25])for(const y of [-.05,0,.05]){
+   const world=looseKey.localToWorld(new THREE.Vector3(x,y,0));
+   const projected=world.project(camera);
+   const px=(projected.x+1)*bounds.width/2;
+   const py=(1-projected.y)*bounds.height/2;
+   pointer.set((px/bounds.width)*2-1,-(py/bounds.height)*2+1);
+   raycaster.setFromCamera(pointer,camera);
+   const blockers=raycaster.intersectObjects(occlusionMeshes,false)
+    .filter(hit=>isMeshEffectivelyVisible(hit.object));
+   const hits=raycaster.intersectObjects(interactiveMeshes,false)
+    .filter(hit=>isMeshEffectivelyVisible(hit.object));
+   samples.push({
+    x,y,screen:[Math.round(px),Math.round(py)],
+    casing:+(blockers[0]?.distance||0).toFixed(3),
+    first:hits.slice(0,4).map(hit=>({
+     action:hit.object.userData.action,
+     distance:+hit.distance.toFixed(3),
+     mesh:hit.object.geometry?.type
+    })),
+    pick:pickVisibleAction(bounds.left+px,bounds.top+py)
+   });
+  }
+  return samples;
+ },
  get unfinishedKeyProfile(){
   const geometryTypes=[];
   looseKey.traverse(part=>{
