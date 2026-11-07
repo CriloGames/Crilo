@@ -13,6 +13,7 @@ on:
       - 'secrets-3d-*.js'
       - 'three-workbench/**'
       - 'scripts/verify-nothing-here-startup.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-startup.yml'
   push:
@@ -23,6 +24,7 @@ on:
       - 'secrets-3d-*.js'
       - 'three-workbench/**'
       - 'scripts/verify-nothing-here-startup.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-startup.yml'
   workflow_dispatch:

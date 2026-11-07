@@ -21,6 +21,14 @@ const mock=`window.supabase={createClient:()=>({
 })};`;
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
+// On a software-rendered WebGL page, DOMContentLoaded can lag even after
+// navigation commits. Wait for the new document, then independently require
+// the fully initialized live 3D scene. This never skips save-state checks.
+const reloadReady=async page=>{
+ await page.reload({waitUntil:"commit",timeout:90000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready,
+  null,{timeout:90000});
+};
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
  const action=thing==="shutter"?"shutter":thing==="cube"?"cube-offer":thing==="eye"?"eye":"thing:"+thing;
  await page.locator('#ncInventory [data-item="'+item+'"]').click();
@@ -169,9 +177,9 @@ async function refundCoin(page,{realPointer=false}={}){
   "Pressure dial alone bypassed the still-secured gear-maze screw");
 
 
- // The new eight-ring labyrinth has a fixed white face and a moving
- // toothed black cog. Verify that LEFT and RIGHT drags work on the white
- // face, and black-gear motion turns the carrier behind it.
+ // The six-ring labyrinth has a fixed white face and a moving
+ // toothed black cog. Verify that a drag on the white
+ // face does nothing, while black-gear motion turns the carrier behind it.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
  const controls=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
@@ -202,9 +210,21 @@ async function refundCoin(page,{realPointer=false}={}){
   },name);
   assert(data.start?.pick===name&&data.center,
    "The actual "+name+" cannot be grabbed");
-  const center=data.center,start=data.start;
+  // The projectGameControl and getGearDragCenter inspection APIs return
+  // coordinates LOCAL to the WebGL canvas. Playwright mouse.move uses
+  // viewport coordinates; missing this offset silently drags the page
+  // instead of grabbing the cog, leaving the maze pin stuck at cell 80.
+  const bounds=await page.locator("#stage canvas").boundingBox();
+  assert(bounds?.width>0&&bounds?.height>0,"The WebGL canvas is not visible");
+  const center={x:data.center.x+bounds.x,y:data.center.y+bounds.y};
+  const start={x:data.start.x+bounds.x,y:data.start.y+bounds.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
   await page.mouse.move(start.x,start.y);await page.mouse.down();
+  if(name==="gear-small"){
+   const capture=await page.evaluate(()=>window.__nothing3DPreview.gearDragState);
+   assert(capture.active&&capture.action==="gear-small",
+    "The visible black cog did not capture the physical pointer drag");
+  }
   if(direction==="in"||direction==="out"){
    const sign=direction==="in"?-1:1;
    for(let i=1;i<=10;i++)
@@ -266,8 +286,7 @@ async function refundCoin(page,{realPointer=false}={}){
   window.__nothing3DPreview.physicalGearMaze);
  assert(geared.stationaryFace&&Math.abs(geared.faceAngle)<.000001,
   "The black cog turned but the white maze also rotated");
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
- await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+ await reloadReady(page);
  assert.equal((await state(page)).gearMazeCell,81,
   "Reloading erased an unfinished maze position");
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
@@ -283,7 +302,9 @@ async function refundCoin(page,{realPointer=false}={}){
   const action=to===96||to===from-16?"maze-in":
    to===from+16?"maze-out":
    Math.floor(to/16)===Math.floor(from/16)&&
-   to%16===(from%16+1)%24?"maze-ccw":"maze-cw";
+   // The physical route has SIXTEEN sectors per ring. In particular,
+   // 47 -> 32 crosses sector 15 -> 0 and must turn counterclockwise.
+   to%16===(from%16+1)%16?"maze-ccw":"maze-cw";
   await act(page,action);
   assert.equal((await state(page)).gearMazeCell,to,
    "A sculpted channel does not match its playable direction: "+from+" -> "+to);
@@ -328,8 +349,7 @@ try{
   assert(repaired.shimUsed,
    "Using the shim must repair the coin-return mechanism even without a progress panel");
   await refundCoin(page,{realPointer:true});
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   const saved=await state(page);
   assert(saved.refundRedeemed&&saved.seen.includes("service-bolt")&&
     saved.serviceSealInserted&&saved.serviceOpen&&
@@ -520,8 +540,7 @@ try{
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The reference observatory was unlocked but its curved shutter did not retract");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   opened=await state(page);
   assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
    "Reload erased the opened dome or falsely awarded another secret");
@@ -591,8 +610,7 @@ try{
    (await page.evaluate(()=>
     window.__nothing3DPreview.physicalScenePose.telescopeOptics.both)),
    "Using two physically distinct optic holders did not reveal the second sky");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   merged=await state(page);
   assert(merged.observed&&merged.train&&merged.secondSky&&
    merged.telescopeLensMounted&&merged.telescopeIrisMounted&&
@@ -743,8 +761,7 @@ try{
   for(const item of ["fork","seal","cylinder","tape","letter","envelope"])
    assert(!final.pocket.includes(item)&&!final.pendingPickups.includes(item),
     "Downstream mechanism duplicated spent "+item);
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
-  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
+  await reloadReady(page);
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
    restored.cylinderMounted&&restored.serviceSealInserted&&restored.train&&

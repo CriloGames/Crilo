@@ -22,6 +22,27 @@ on:
       - 'scripts/verify-secrets-3d-preview.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-3d.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'three-workbench/**'
+      - 'secrets-3d-preview.html'
+      - 'secrets-3d-preview.js'
+      - 'secrets-3d-details.js'
+      - 'secrets-3d-finish.js'
+      - 'secrets-3d-batching.js'
+      - 'secrets-3d-game-hotspots.js'
+      - 'secrets-3d-worlds.js'
+      - 'secrets-3d-pickups.js'
+      - 'secrets-3d-spatial-qa.js'
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'cube-physical.css'
+      - 'scripts/verify-nothing-here-live-3d.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
+      - 'scripts/verify-secrets-3d-preview.mjs'
+      - 'scripts/verify-nothing-here-codes.mjs'
+      - '.github/workflows/nothing-here-3d.yml'
   workflow_dispatch:
 
 permissions:
