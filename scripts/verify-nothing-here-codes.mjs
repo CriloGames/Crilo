@@ -230,7 +230,11 @@ assert(finish.includes('if(face===topFace&&s===-1){')&&
  finish.includes('roofInlay(trace,sign);')&&
  finish.includes('const inner=trace.port,curveStart=inner+.070;')&&
  finish.includes('new THREE.Vector3(sign*inner,trace.y,.063)')&&
- finish.includes('const taper=1-.77*progress*progress*(3-2*progress);')&&
+ finish.includes('const halfWidth=trace.width*.5;')&&
+ finish.includes('const halfDepth=trace.depth*.5;')&&
+ !finish.includes('const taper=1-.77*progress*progress*(3-2*progress);')&&
+ finish.includes('new THREE.Vector3(sign*(inner+.007),trace.y,trace.z)')&&
+ finish.includes('new THREE.Vector3(sign*inner,trace.y,trace.z)')&&
  finish.includes('geometry.setAttribute("uv",')&&
  finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
  finish.includes('C(face,.019,.010,x,y,.079,deep);')&&
@@ -266,8 +270,8 @@ for(const trace of [
  for(let i=1;i<=24;i++){
   const t=i/24;
   stations.push([
-   sign*bezier(t,start,port+.032,port+.002,port),
-   bezier(t,trace.z,trace.z,trace.z-.003,.063)
+   sign*bezier(t,start,port+.007,port,port),
+   bezier(t,trace.z,trace.z,trace.z,.063)
   ]);
  }
  let clearance=Infinity;
@@ -276,16 +280,13 @@ for(const trace of [
   const b=stations[Math.min(stations.length-1,i+1)];
   const dx=b[0]-a[0],dz=b[1]-a[1],d=Math.hypot(dx,dz);
   const nx=-dz/d,nz=dx/d;
-  const progress=Math.max(0,Math.min(1,
-   (start-Math.abs(point[0]))/.070));
-  const taper=1-.77*progress*progress*(3-2*progress);
   for(const [u,v] of [
    [-1,-.75],[-.75,-1],[.75,-1],[1,-.75],
    [1,.75],[.75,1],[-.75,1],[-1,.75]
   ]){
-   const x=point[0]+nx*v*trace.depth*taper*.5;
-   const y=u*trace.width*taper*.5;
-   const z=point[1]+nz*v*trace.depth*taper*.5;
+   const x=point[0]+nx*v*trace.depth*.5;
+   const y=u*trace.width*.5;
+   const z=point[1]+nz*v*trace.depth*.5;
    const radial=Math.hypot(x-sign*port,y);
    clearance=Math.min(clearance,
     Math.hypot(radial-.026,z-.084)-.004);
