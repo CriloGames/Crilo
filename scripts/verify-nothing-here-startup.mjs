@@ -213,9 +213,11 @@ try{
     await page.waitForFunction(()=>
      window.__nothing3DPreview.lastClickedAction==="thing:telescope",
      null,{timeout:8000});
-    const clue=await page.locator("#status").textContent();
+    // The game narrates puzzle feedback in #ncNarrator, not the generic
+    // 3D stage's persistent #status caption.
+    const clue=await page.locator("#ncNarrator").textContent();
     assert(/optic|socket|telescope|sky|focus/i.test(clue||""),
-     "Pressing the real telescope offered no useful visual text feedback: "+clue);
+     "Pressing the real telescope offered no useful text feedback: "+clue);
     await page.screenshot({path:"test-results/nothing-here-observatory-click.png",
      timeout:45000});
    }
