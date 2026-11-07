@@ -80,8 +80,8 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
  }
  .nc-page .nc-finale-banner h2{font-size:clamp(20px,5vw,27px)}
  .nc-page .nc-finale-banner .nc-finale-label{font-size:9px}
- .nc-page .nc-finale-banner p{font-size:10px;margin-top:2px}
- .nc-page .nc-finale-banner #ncFinaleReplay{margin-top:6px;padding:6px 14px}
+ .nc-page .nc-finale-banner p{display:none}
+ .nc-page .nc-finale-banner #ncFinaleReplay{margin-top:4px;padding:4px 13px}
 }
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-cube-zone .nc-finale-banner{animation:none}
