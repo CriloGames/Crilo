@@ -1749,6 +1749,16 @@ try{
   window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),0,
   "Failed melody must reset all six flute inlays");
  assert.match(await page.locator("#ncNarrator").innerText(),/flute resets/i);
+ // Keyboard access must work while the instrument is still present.
+ await page.locator("#stage canvas").focus();
+ await page.keyboard.press("1");
+ assert.deepEqual((await state()).fluteNotes,[1],
+  "Keyboard players cannot operate the physical flute's first key");
+ assert.match(await page.locator("#stage canvas").getAttribute("aria-label"),/keys 1, 2 and 3/i,
+  "The physical flute needs an accessible keyboard description");
+ for(let i=0;i<5;i++)await page.keyboard.press("1");
+ assert.deepEqual((await state()).fluteNotes,[],
+  "Keyboard flute retry did not reset after six incorrect notes");
  // The crafted flute lives on the top face, which may be edge-on or hidden
  // after inspecting the front bag. A player must turn toward the top before
  // trying its real fingertip keys; they should never click through the box.
@@ -1795,21 +1805,23 @@ try{
  assert(melody.door&&melody.seen.includes("door"),
   "Combining the two hidden score fragments did not reveal the door");
  assert.equal(await page.evaluate(()=>
-  window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),6,
-  "Successful six-note phrase must leave six lit inlays");
- assert(melody.pocket.includes("flute"),
-  "Playing the flute unexpectedly consumed or duplicated the instrument");
+  window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),0,
+  "Consumed flute must not leave glowing note indicators on the cube");
+ assert(!melody.pocket.includes("flute"),
+  "Playing the correct melody did not consume the instrument");
+ assert.equal(await page.evaluate(()=>
+  window.__nothing3DPreview.physicalFluteVisible),false,
+  "The flute model stayed on the top face after completing its purpose");
+ assert(await page.locator('#ncInventory [data-item="flute"]').count()===0&&
+  await page.locator("#ncFluteTray").isHidden(),
+  "Completed flute still occupies inventory or leaves its keyboard open");
  assert(await page.locator("#ncModal").isHidden(),
   "Playing the 3D flute opened an obstructive classic dialog");
- // The same instrument must work with the keyboard without revealing the
- // solution sequence or requiring any on-screen modal.
  await page.locator("#stage canvas").focus();
  await page.keyboard.press("1");
- assert.equal((await state()).fluteNotes.at(-1),1,
-  "Keyboard players cannot operate the physical flute's first key");
- assert.match(await page.locator("#stage canvas").getAttribute("aria-label"),/keys 1, 2 and 3/i,
-  "The keyboard controls need an accessible name once the instrument exists");
- console.log("PASS: tactile physical flute, saved door discovery and keyboard access");
+ assert.deepEqual((await state()).fluteNotes,[2,1,3,1,3,2],
+  "Keyboard input must not restart the spent flute");
+ console.log("PASS: tactile physical flute, consumed on completion, keyboard access before unlock");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").count(),0,
   "The Classic/3D mode switch must not appear in the 3D-only game");
@@ -1826,6 +1838,9 @@ try{
  const saved3D=await state();
  assert(saved3D.plateOpen&&saved3D.a&&saved3D.b&&saved3D.top,
   "The single 3D game did not preserve the original physical session");
+ assert(saved3D.door&&!saved3D.pocket.includes("flute")&&
+   !saved3D.pendingPickups.includes("flute"),
+  "Reloading the completed 3D puzzle restored its spent flute");
  assert(await page.locator("#stage canvas").isVisible()&&
    await page.locator("#ncCube").isHidden(),
   "An illustrated fallback appeared after a 3D save reload");
