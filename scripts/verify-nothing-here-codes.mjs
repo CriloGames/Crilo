@@ -357,6 +357,31 @@ assert(!preview.includes('hatchConnectingRods')&&
  !preview.includes('const crankPin=cylinder(rotor'),
  'Loose wires or obsolete rotating crank rods returned');
 
+// Keep the front optic and its surroundings mechanically separated.
+assert(details.includes('if(face===frontFace&&sy===1){')&&
+ details.includes('const stop=.22,edge=1.425,length=edge-stop;')&&
+ details.includes('const couplingAngle=Math.atan2(')&&
+ details.includes('const offset=side*.092;')&&
+ details.includes('B(saddle,.038,.030,.066,0,offset,.092,steel,.008);')&&
+ details.includes('const blade=B(frontDisc,.10,.024,.018,Math.cos(a)*.235,')&&
+ !details.includes('edgeTicks(frontFace,0,.56,.66,28);')&&
+ finish.includes('}else if(face===frontFace&&s===1){')&&
+ finish.includes('stop:.56,y:1.22')&&
+ finish.includes('stop:.66,y:1.125')&&
+ finish.includes('C(frontLens,.010,.008,Math.cos(a)*.76,')&&
+ !finish.includes('B(frontLens,i%4===0?.11:.05'),
+ 'Front lens border, spokes, iris or saddle intersections regressed');
+// Model clearance for every separated border strip: both its edge and
+// its thickness stay outside the front optic's raised .81 envelope.
+for(const [y,halfH,stop] of [[1.38,.0275,.22],[1.22,.015,.56],
+ [1.125,.005,.66]]){
+ const closest=Math.hypot(stop,y-halfH-.56);
+ assert(closest>.81,'Front optical border enters the circular housing');
+}
+// The maze guide is .092 wide and each separate saddle starts at
+// .092-.035/2: their channels cannot contain a crossing metal rod.
+assert(.092-.035/2>.092/2+.02,
+ 'The linkage guide pierces the side-mounted steel saddles');
 // The white maze is a passive inspection surface, not another
 // directional control. Only black-cog dragging moves around a ring; the
 // calibration dial separately handles radial moves.
