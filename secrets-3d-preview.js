@@ -3,8 +3,8 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=48";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=19";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=49";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=20";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=67";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=18";
@@ -266,7 +266,12 @@ function keyShape(parent) {
  // The square coupling and its two visible jaws make the missing piece
  // apparent without drawing an arrow, printing a hint, or spawning it.
  const bit=new THREE.Group();
- bit.position.set(0,-.10,-.12);
+ // Keep the tooth half of the key INSIDE the open lavender tray, but
+ // above its fitted floor instead of hidden behind the tall front plate.
+ // The tiny tilt faces the key toward the player looking into the drawer.
+ bit.position.set(0,-.135,-.33);
+ bit.rotation.x=-.22;
+ bit.scale.setScalar(1.16);
  parent.add(bit);
  const shank=box(bit,.47,.059,.070,.058,0,0,brass,.011);
  box(bit,.117,.082,.075,-.212,0,0,metal,.014);
@@ -283,6 +288,12 @@ function keyShape(parent) {
  box(bit,.016,.052,.076,-.334,0,0,darkMetal,.003);
  return bit;
 }
+// The bit is seated in a shallow metal-lined cradle, fixed to the actual
+// drawer floor (its top is at y≈-.297), not suspended in a glowing void.
+// The cradle remains after collection; only the physical key disappears.
+const keySeat=box(front.drawer,.82,.026,.31,0,-.283,-.33,metal,.009);
+keySeat.userData.mechanicalMount=true;
+box(front.drawer,.75,.007,.25,0,-.264,-.33,ivory,.006);
 const looseKey=keyShape(front.drawer);
 setHit(looseKey,"pickup:tooth");
 function spoolShape(parent) {
@@ -662,8 +673,8 @@ const physicalPickups=embeddedGame?buildPhysicalPickups({
 // after a deliberate click. Their own geometry remains the only hit target.
 const originalPickupGlow=embeddedGame?{
  tooth:attachCollectibleGlow({
-  root:looseKey,model:looseKey,size:.54,depth:-.175,
-  offsetX:0,offsetY:-.07,invalidate
+  root:looseKey,model:looseKey,color:0xf2c66d,
+  size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate
  }),
  thread:attachCollectibleGlow({
   root:looseSpool,model:looseSpool,size:.44,depth:-.25,invalidate
@@ -1743,6 +1754,25 @@ window.__nothing3DPreview={
  get physicalPickupIds(){return physicalPickups?.ids||[]},
  // A real missing-key-bit profile is important for the ring+tooth craft:
  // the original drawer piece accidentally already contained a full bow.
+ get lavenderDrawerItemAudit(){
+  const keyVisible=looseKey.visible;
+  const position=looseKey.position;
+  const seatTop=keySeat.position.y+
+   keySeat.geometry.parameters.height/2;
+  return {
+   drawerOpen:front.open,
+   drawerTravel:front.drawer.position.z,
+   keyVisible,
+   pending:!!currentGameState.a&&!currentGameState.drawerTaken,
+   keyInDrawer:looseKey.parent===front.drawer,
+   seatOnFloor:Math.abs((keySeat.position.y-
+    keySeat.geometry.parameters.height/2)-(-.2975))<.003,
+   keyPosition:[position.x,position.y,position.z],
+   keyScale:looseKey.scale.x,
+   seatTop,
+   glow:originalPickupGlow?.tooth.getState()||null
+  };
+ },
  get unfinishedKeyProfile(){
   const geometryTypes=[];
   looseKey.traverse(part=>{
