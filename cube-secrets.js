@@ -413,7 +413,7 @@ const changeNotes={
  dancer:'The music-box dancer emerged after its mechanism was fed.',
  railway:'A tiny railway and train appeared on the cube.',
  portal:'The postcard passed through the enamel. A little landscape appeared.',
- faceplate:'The front fasteners released a small service hatch beside the lens.',
+ faceplate:'After the three screws came free, the corner spring latch released the service hatch beside the lens.',
  'vent-sequence':'The five vent presses released a sliding grille with a copper shim inside.',
  'eye-dial':'The rear optical ring reached its stop. A small brass strip is exposed.',
  'hidden-optic':'The drive cog engaged the eye mechanism. A loose glass iris was exposed.',
@@ -1093,19 +1093,36 @@ function inspectHardware(name){
  if(name.startsWith('front-screw-')){
   const n=Number(name.slice(-1));
   if(n===3){
-   if(!s.falseScrewTurns){
-    s.falseScrewTurns=1;
-    bloom('false-screw','The rounded fourth corner fitting is a captive spring plunger, not a screw. Three slotted screws actually secure the front access cover.');
-    tell('The rounded corner fitting presses into a spring stop. It is not removable. Three slotted screws secure the front access cover.');
-    cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
-   }else tell('The captive spring fitting has already been tested. The other three corners hold removable screws.');
-  }else if(!s.screws.includes(n)){
-   s.screws.push(n);bloom('fastener','The front screw comes free, leaving an empty threaded socket in the service cover.');
+   if(s.plateOpen){
+    // Legacy saves already opened this hatch after the third screw. Still
+    // allow their missing corner-pin discovery without re-locking anything.
+    bloom('false-screw','The fourth corner is a captive spring latch, not a removable screw.');
+    tell('The spring latch is released. The service hatch is already open.');
+    return true;
+   }
+   // The corner pin is the ACTUAL final catch. Before the screws are out it
+   // moves against the locked panel; afterward it releases the hinged cover.
+   // A second press must animate too, but the discovery remains one-time.
+   s.falseScrewTurns=s.falseScrewTurns%20+1;
+   bloom('false-screw','The fourth corner is a captive spring latch, not a removable screw.');
    if(s.screws.length===3){
-    s.plateOpen=true;gain('cog');
-    bloom('faceplate','The third screw releases a small service hatch beside the front lens. Inside its captive brass socket is a drive cog you can pick up.');
+    s.plateOpen=true;
+    gain('cog');
+    bloom('faceplate','The freed screws let the corner spring latch release the service hatch. A drive cog rests inside its socket.');
+    tell('The corner pin clicks in and stays depressed. The service hatch swings open, exposing a drive cog in its holder.');
     cue('ncCube','nc-scene-blink',800);
-   }else tell('The screw has been removed from the front cover. The remaining fasteners still hold it closed.');
+   }else{
+    const remaining=3-s.screws.length;
+    tell('The corner pin springs back. '+remaining+
+     (remaining===1?' screw still holds':' screws still hold')+' the service cover shut.');
+   }
+   cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
+  }else if(!s.screws.includes(n)){
+   s.screws.push(n);
+   bloom('fastener','The front screw comes free, leaving an empty threaded socket in the service cover.');
+   tell(s.screws.length===3
+    ?'All three screws are out. The rounded corner pin still holds the service hatch closed.'
+    :'The screw comes free. The remaining fasteners still hold the service hatch closed.');
    scatter('#c7b8a5',5,document.querySelector('[data-hit="'+name+'"]'));
    sound(620);
   }else tell('Nothing to unscrew here. The empty hole is threaded.');

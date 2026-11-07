@@ -571,6 +571,9 @@ try{
   // and lead to the railway before the dog and elevator access.
   for(let n=0;n<3;n++)await act(page,"eye-ring");
   for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
+  assert(!(await state(page)).plateOpen,
+   "The three screws must not bypass the corner latch");
+  await act(page,"front-screw-3");
   await collect(page,"cog");
   await useItem(page,"cog","eye");
   await collect(page,"iris");
@@ -604,6 +607,9 @@ try{
    seen:["tag"],tag:true,pocket:["tag"],pendingPickups:[]
   });
   for(let n=0;n<3;n++)await act(page,"front-screw-"+n);
+  assert(!(await state(page)).plateOpen,
+   "The three screws must not bypass the corner latch");
+  await act(page,"front-screw-3");
   await collect(page,"cog");
   for(let n=0;n<3;n++)await act(page,"eye-ring");
   await useItem(page,"cog","eye");

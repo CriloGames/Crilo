@@ -530,7 +530,16 @@ function screwsFor(face,tag,spots) {
   assembly.position.set(x,y,.13);
   face.add(assembly);
   const captiveButton=tag==="front"&&i===3;
+  let latchIndicator=null;
   if(captiveButton){
+   // Once the three screws are removed the real spring catch gives a soft
+   // mechanical cue. The indicator is seated in the corner pin's own collar.
+   const latchMaterial=brass.clone();
+   latchMaterial.emissive=new THREE.Color(0x59c6a0);
+   latchMaterial.emissiveIntensity=0;
+   latchIndicator=new THREE.Mesh(new THREE.TorusGeometry(.103,.009,8,28),latchMaterial);
+   latchIndicator.position.z=.024;
+   socket.add(latchIndicator);
    // Unlike the three actual removable screws, this is a spring plunger.
    // The rounded, unslotted top stays captive and depresses when touched.
    cylinder(assembly,.041,.112,0,0,-.028,darkMetal);
@@ -543,7 +552,7 @@ function screwsFor(face,tag,spots) {
   }
   const key=tag+"-screw-"+i;
   setHit(assembly,key);
-  screws.push({id:key,assembly,removed:false,captiveButton});
+  screws.push({id:key,assembly,removed:false,captiveButton,latchIndicator});
  }
 }
 screwsFor(frontFace,"front", [[-1.33,1.33],[1.33,1.33],[-1.33,-1.33],[1.33,-1.33]]);
@@ -1066,8 +1075,9 @@ function describeAction(action){
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
- if(action==="front-screw-3")return currentGameState.falseScrewTurns
-  ?"Tested captive spring stop":"Unslotted corner fitting";
+ if(action==="front-screw-3")return currentGameState.plateOpen
+  ?"Released spring latch":currentGameState.screws?.length===3
+   ?"Spring latch":"Spring-loaded corner pin";
  if(action.startsWith("front-screw-"))return "Removable faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
  if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
@@ -2421,6 +2431,13 @@ window.__nothing3DPreview={
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
  get physicalMechanicalFeedback(){return gameHotspots?.getMechanicalFeedback?.()||null},
  get frontCogHatchPose(){return gameHotspots?.getCogHatchPose?.()||null},
+ get frontSpringLatchPose(){
+  const pin=screws.find(s=>s.id==="front-screw-3");
+  return {depth:pin?.assembly.position.z??null,
+   cue:pin?.latchIndicator?.material.emissiveIntensity??0,
+   pressed:!!currentGameState.plateOpen,
+   screwsRemoved:currentGameState.screws?.length||0};
+ },
  get drawerPositions(){return {front:front.drawer.position.z,side:side.drawer.position.z}},
  get drawerSeals(){return {
   lavender:{...front.seal,closed:front.drawer.position.z<.02},
@@ -2585,18 +2602,24 @@ window.__nothing3DPreview={
    const removed=screw.id.startsWith("front-screw-")&&!!state.screws?.includes(num)
     ||screw.id.startsWith("top-screw-")&&num<3&&!!state.hingePins?.includes(num)
     ||screw.id==="side-screw-1"&&!!state.rightBoltLoose;
-   // The fourth fastener is not a screw: its spring button depresses
-   // and rebounds, rather than appearing to be unscrewed.
+   // This captive corner pin operates the hatch's final spring latch.
+   // Before the screws are out it rebounds; after release it stays seated.
    if(screw.id==="front-screw-3"){
-    const turned=(state.falseScrewTurns||0);
-    if(screw.lastTurns!==turned){
+    const turned=state.falseScrewTurns||0;
+    const finalDepth=state.plateOpen?.07:.13;
+    if(screw.latchIndicator)
+     screw.latchIndicator.material.emissiveIntensity=
+      state.screws?.length===3&&!state.plateOpen?1.05:0;
+    if(screw.lastTurns!==turned||screw.lastPlateOpen!==!!state.plateOpen){
      screw.lastTurns=turned;
+     screw.lastPlateOpen=!!state.plateOpen;
+     screw.motion?.kill();
      gsap.killTweensOf(screw.assembly.position);
-     if(restoring||reducedMotion){screw.assembly.position.z=.13;}
+     if(restoring||reducedMotion){screw.assembly.position.z=finalDepth;}
      else{
       screw.motion=gsap.timeline({onUpdate:invalidate})
-       .to(screw.assembly.position,{z:.067,duration:.11,ease:"power2.out"})
-       .to(screw.assembly.position,{z:.13,duration:.28,ease:"back.out(2)"});
+       .to(screw.assembly.position,{z:.065,duration:.11,ease:"power2.out"})
+       .to(screw.assembly.position,{z:finalDepth,duration:.28,ease:"power2.out"});
      }
     }
     continue;
