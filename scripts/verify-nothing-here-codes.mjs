@@ -114,6 +114,20 @@ assert(cornerLatch.includes("if(s.screws.length===3){")&&
 assert(preview.includes("state.screws?.length===3&&!state.plateOpen?1.05:0")&&
  preview.includes("const finalDepth=state.plateOpen?.07:.13;"),
  "The spring latch lost its armed indicator or retained pressed pose");
+const finale=readFileSync(new URL("../secrets-3d-finale.js",import.meta.url),"utf8");
+const markup=readFileSync(new URL("../secrets.html",import.meta.url),"utf8");
+const audio=readFileSync(new URL("../nothing-here-audio.js",import.meta.url),"utf8");
+assert(preview.includes('createNothingHereFinale')&&
+ preview.includes('event.detail?.seen?.length>=60')&&
+ preview.includes('completionFinale?.restoreComplete();')&&
+ finale.includes('pivot.attach(child)')&&
+ finale.includes('joints.back.rotation.x=-Math.PI/2;')&&
+ finale.includes('joints.top.rotation.x=Math.PI/2;')&&
+ markup.includes('You found all secrets!')&&
+ markup.includes('ncFinaleReplay')&&
+ audio.includes('function playFinale()')&&
+ audio.includes('if(!sfxEnabled||document.hidden)return false;'),
+ 'The original 60-secret hinged finale or accessible completion control is missing');
 assert(logic.includes("spend('flute');")&&
  logic.includes("['flute',seen.has('flute')&&!s.door]")&&
  logic.includes("if(s.door){\n pocket.delete('flute');"),
