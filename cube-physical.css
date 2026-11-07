@@ -576,56 +576,9 @@ html[data-theme="dark"] .nc-page .nc-pocket .nc-item.nc-item-combine-match::afte
 @media(pointer:coarse){
  .nc-page.nc-physical-ready #stage #ncItemFitHalo{width:64px;height:64px}
 }
-/* The correct physical socket PULSES continuously while an item is
-   being held — no hover, timeout, or trial-and-error around six faces.
-   Only actually raycast-reachable fittings receive the overlay. */
-.nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
- position:absolute;z-index:8;
- display:grid;place-items:center;
- width:66px;height:66px;box-sizing:border-box;
- pointer-events:none;border-radius:50%;
- transform:translate(-50%,-50%);
- border:3px solid #4ee292;
- background:radial-gradient(circle,#b7ffda4b 0%,#70ecae33 56%,transparent 75%);
- box-shadow:0 0 0 5px #4bdb8766,0 0 27px 8px #46d98cb0,
-  inset 0 0 13px #d0ffe9ba;
- animation:ncSelectedFitPulse 1.5s ease-in-out infinite;
-}
-.nc-page.nc-physical-ready #stage .nc-selected-fit-label{
- position:absolute;left:50%;top:calc(100% + 7px);
- transform:translateX(-50%);
- display:inline-block;white-space:nowrap;
- padding:4px 9px;border-radius:999px;
- background:#e3ffecf5;border:1px solid #51c98d;
- color:#245b42;box-shadow:0 2px 10px #195d3955;
- font:800 11px/1.15 system-ui,sans-serif;
- letter-spacing:.01em;
-}
-@keyframes ncSelectedFitPulse{
- 0%,100%{
-  opacity:.7;scale:.92;
-  box-shadow:0 0 0 3px #4bdb8759,0 0 16px 5px #46d98c80;
- }
- 50%{
-  opacity:1;scale:1.12;
-  box-shadow:0 0 0 10px #4bdb8738,0 0 32px 11px #46d98cd0;
- }
-}
-html[data-theme="dark"] .nc-page #stage .nc-selected-fit-label{
- background:#24513df5;color:#dbffe8;border-color:#69e5a1;
-}
-@media(prefers-reduced-motion:reduce){
- .nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
-  animation:none;opacity:1;scale:1;
-  box-shadow:0 0 0 5px #50cf8e83,0 0 24px 7px #40cb83ad;
- }
-}
-@media(pointer:coarse){
- .nc-page.nc-physical-ready #stage .nc-selected-fit-flash{
-  width:70px;height:70px;
- }
-}
-
+/* Held-item green guidance now lives on a real THREE.Sprite parented
+   to the physical fitting. No screen-space DOM ring is used: the marker
+   cannot drift, jump between different mesh centers, or lag on rotation. */
 .nc-page .nc-pocket .nc-empty{display:block;padding:4px 0 1px;letter-spacing:.015em;color:#879b99;}
 html[data-theme="dark"] .nc-page .nc-pocket{
  border-color:#4d6769;background:linear-gradient(155deg,#303d40,#263337 90%);
@@ -1097,4 +1050,17 @@ html:not([data-theme="dark"]) body.nc-page .nc-inspection-controls :is(.nc-rotat
 @media(max-width:490px){
  .nc-page.nc-physical-only .nc-narrator{margin:2px auto 4px;min-height:21px}
  .nc-page.nc-physical-only .nc-pocket{margin-top:6px}
+}
+
+/* The original cube-motion.css shifted each inventory card UP 3px on
+   hover. At the bottom 1–3 pixels of the card, the pointer fell out of
+   the moved button, causing an endless hover/unhover flicker. Keep the
+   button's hitbox physically stationary and use color/shadow feedback. */
+.nc-page .nc-pocket .nc-item,
+.nc-page .nc-pocket .nc-item:hover,
+.nc-page .nc-pocket .nc-item:focus-visible{
+ transform:none;
+}
+.nc-page .nc-pocket .nc-item.nc-selected{
+ border-width:1px; /* No height/width jump when clicking a card either. */
 }
