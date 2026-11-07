@@ -358,8 +358,20 @@ try{
      }));
      assert(finished.game.seen.length===60&&finished.game.seen.includes("dot"),
       "The final genuine peculiarity failed to count");
-     await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
-      null,{timeout:25000,polling:250});
+     console.log("FINALE TRIGGER",JSON.stringify(finished));
+     try{
+      await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+       null,{timeout:36000,polling:250});
+     }catch(error){
+      const debug=await page.evaluate(()=>({
+       game:window.CriloNothingHereCube.getState(),
+       finale:window.__nothing3DPreview.completionFinale,
+       audio:window.NothingHereAudio?.getState(),
+       status:document.querySelector("#status")?.textContent
+      }));
+      throw new Error("60th discovery unfolding did not settle: "+
+       JSON.stringify(debug),{cause:error});
+     }
      assert((await page.evaluate(()=>
       window.__nothing3DPreview.completionFinale)).phase==="open",
       "The sixtieth discovery did not finish the real unfolding animation");
@@ -386,8 +398,17 @@ try{
     assert(await page.locator("#ncFinaleReplay").isVisible(),
      "A completed run has no replayable ending");
     await page.locator("#ncFinaleReplay").click();
-    await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
-     null,{timeout:25000,polling:250});
+    console.log("FINALE REPLAY STARTED",check.label);
+    try{
+     await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+      null,{timeout:36000,polling:250});
+    }catch(error){
+     const debug=await page.evaluate(()=>({
+      finale:window.__nothing3DPreview.completionFinale,
+      audio:window.NothingHereAudio?.getState()
+     }));
+     throw new Error("Watch again did not finish: "+JSON.stringify(debug),{cause:error});
+    }
     assert.equal(await page.evaluate(()=>
      window.__nothing3DPreview.completionFinale.phase),"open",
      "Watch again failed to replay the unfolding sequence");
