@@ -92,6 +92,12 @@ try{
      canvas:!!canvas&&canvas.width>0&&canvas.height>0,
      meshCount:view?.meshCount||0,
      mazeChannels:view?.physicalGearMaze?.networkChannels||0,
+     ornaments:{
+      routes:view?.engravedTrackAudit?.length||0,
+      faces:[...new Set((view?.engravedTrackAudit||[]).map(x=>x.face))],
+      visible:(view?.engravedTrackAudit||[]).reduce((n,x)=>n+x.count,0),
+      clearance:view?.trimClearanceAudit?.okay
+     },
      mounts:attachments?{
       okay:attachments.okay,issues:attachments.issues,
       wheels:attachments.wheels.length,fixed:attachments.fixed.length,
@@ -111,6 +117,13 @@ try{
     result.mounts.fixed>=12&&result.mounts.miniatures>=15&&
     result.mounts.figures===15&&result.mounts.frontLens===true,
     "Mechanical attachment QA failed: "+JSON.stringify(result.mounts));
+   assert.equal(result.ornaments.routes,46,
+    "The ornate black/gold second-tier border was removed from a face");
+   assert.equal(result.ornaments.faces.length,6,
+    "Every cube side needs its individual restored inlay system");
+   assert(result.ornaments.visible>=45&&result.ornaments.clearance,
+    "Restored tracks are either absent or cross real hardware: "+
+     JSON.stringify(result.ornaments));
    if(check.seed){
     assert.equal(result.progress?.cell,check.seed.gearMazeCell,
      "Loading the 3D scene corrupted the saved maze position");
@@ -139,14 +152,20 @@ try{
       JSON.stringify(key));
    }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
-   // Keep a straight-on visual record of the actual repaired lens/
-   // lavender-drawer header and the now-connected front perimeter.
+   // Check the design at each physical angle, not merely a Three.js
+   // geometry count. These six images expose stray stubs/ugly intersections.
    if(check.label==="fresh-desktop"){
-    await page.evaluate(()=>window.__nothing3DPreview.setRotation(0,0));
-    await page.screenshot({
-      path:"test-results/nothing-here-front-frame-lens-clearance.png",
-      timeout:45000
-    });
+    for(const [face,rx,ry] of [
+      ["front",0,0],["right",0,-90],["back",0,180],
+      ["left",0,90],["top",90,0],["bottom",-90,0]
+    ]){
+      await page.evaluate(([x,y])=>
+        window.__nothing3DPreview.setRotation(x,y),[rx,ry]);
+      await page.screenshot({
+        path:"test-results/nothing-here-inlay-"+face+".png",
+        timeout:45000
+      });
+    }
    }
    await page.screenshot({
     path:"test-results/nothing-here-startup-"+check.label+".png",
