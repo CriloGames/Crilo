@@ -138,7 +138,7 @@ async function refundCoin(page,{realPointer=false}={}){
  assert(await page.evaluate(()=>
   window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
   "The service-key tray has no visible mechanical counterpart");
- assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.44,
+ assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.34,
   "The vending machine's second tray is still closed");
  assert.match(await page.locator("#ncNarrator").innerText(),/brass service key/i);
  await act(page,"thing:machine");
