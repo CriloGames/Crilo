@@ -1067,7 +1067,7 @@ function describeAction(action){
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
  if(action==="front-screw-3")return currentGameState.falseScrewTurns
-  ?"Tested captive spring stop":"Unslotted corner fitting";
+  ?"Spring-loaded corner pin":"Unslotted corner fitting";
  if(action.startsWith("front-screw-"))return "Removable faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
  if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
