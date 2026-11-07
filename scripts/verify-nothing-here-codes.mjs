@@ -474,6 +474,39 @@ assert(Math.abs((1.425-.015)-(1.425-.030/2))<1e-12,
 assert(finish.includes('The roof inlays enter their real sockets')&&
  finish.includes('trimRail(face,"x",s*inset,-straight,straight,'),
  'Observatory face is missing a complete, connected lower perimeter');
+// Restore the ornate secondary tracks WITHOUT bringing back the old
+// full-length crossovers or dumping arbitrary rods on top of real hardware.
+assert(finish.includes('const ornamentFace=(face,accent,{roof=false}={})=>{')&&
+ finish.includes('engrave(face,1.255,accent,.023,.026,.126,{openBottom:roof});')&&
+ finish.includes('engrave(face,1.140,deep,.012,.017,.119,{openBottom:roof});')&&
+ finish.includes('getEngravedTrackAudit:()=>ornamentSummary.map')&&
+ preview.includes('get engravedTrackAudit(){')&&
+ finish.includes('const roofJoin=openBottom?'),
+ 'One or more faces lost their second level of ornamental routed lines');
+for(const face of railNames){
+ let visible=0;
+ for(const [inset,w] of [[1.255,.023],[1.140,.012]]){
+  for(const axis of ["x","y"])for(const sign of [-1,1]){
+   if(face==="topFace"&&axis==="x"&&sign<0)continue;
+   const from=face==="topFace"&&axis==="y"
+    ?(inset>1.2?-1.22:-1.125)+w/2
+    :-(inset+(axis==="y"?w/2:-w/2));
+   const to=inset+(axis==="y"?w/2:-w/2);
+   const lines=railTool.clearRailSegments(
+    face,axis,sign*inset,from,to,w);
+   for(const s of lines){
+    const cutA=s.from>from+.001,cutB=s.to<to-.001;
+    const start=s.from+(cutA?.028:0),end=s.to-(cutB?.028:0);
+    if(end-start<.25)continue;
+    assert.deepEqual(railTool.railClearanceFaults(
+     face,axis,sign*inset,[{from:start,to:end}],w),[],
+     'Restored inlay crosses hardware on '+face);
+    visible++;
+   }
+  }
+ }
+ assert(visible>=4,'Restored inlay is missing on '+face);
+}
 // Every remaining shortened black, silver or gold strip has a flush
 // return shoe within the clearance window. Full-length front borders
 // are deliberately not covered in extra end caps or fake rivets.
