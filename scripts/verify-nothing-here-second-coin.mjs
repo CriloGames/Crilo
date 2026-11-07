@@ -81,6 +81,9 @@ async function deployObservatory(page){
  assert(s.observatoryRaised&&pose.installed&&pose.deployed&&
   pose.shutterProgress>=.999&&pose.slatCount===16&&
   pose.visibleSlats===0&&pose.rearCapVisible&&pose.mouthWidth>.53&&
+   pose.guideRailCount===2&&pose.visibleGuideRollers===0&&
+   pose.visibleRivetCount>=20&&pose.visibleRivetCount<=48&&
+   pose.enamelTextureApplied&&
    pose.openingRise>.23&&
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&
   Math.abs(pose.domeSeamHeight-.118)<.001&&Math.abs(pose.scopeTilt)<.02&&
@@ -514,6 +517,9 @@ try{
   assert(pose.deployed&&pose.shutterProgress>=.999&&
    pose.slatCount===16&&pose.visibleSlats===0&&
    pose.rearCapVisible&&pose.mouthWidth>.53&&
+   pose.guideRailCount===2&&pose.visibleGuideRollers===0&&
+   pose.visibleRivetCount>=20&&pose.visibleRivetCount<=48&&
+   pose.enamelTextureApplied&&
    pose.openingRise>.23&&
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&Math.abs(pose.domeSeamHeight-.118)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
@@ -548,6 +554,9 @@ try{
   assert(closedDome.installed&&!closedDome.deployed&&
    closedDome.visibleSlats===16&&closedDome.slatCount===16&&
    closedDome.shutterProgress===0&&
+    closedDome.guideRailCount===2&&closedDome.visibleGuideRollers===2&&
+    closedDome.visibleRivetCount>=20&&closedDome.visibleRivetCount<=48&&
+    closedDome.enamelTextureApplied&&
    Math.abs(closedDome.domeSeamHeight-.118)<.001&&
    !initialWorlds.includes("telescope")&&!initialWorlds.includes("elevator"),
    "The observatory must start with every shutter slat closed at fixed height");
