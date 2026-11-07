@@ -213,6 +213,12 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
+// The completed melody consumes the instrument. Legacy saves may still
+// carry it; clear only the obsolete flute, preserving all other progress.
+if(s.door){
+ pocket.delete('flute');
+ pendingPickups.delete('flute');
+}
 // A raindrop is a one-time reward. Older players may already carry it,
  // have watered the tree, or have an outstanding 3D pickup from an older
  // build that released the drop without recording its own flag.
@@ -373,7 +379,7 @@ recoverReward('envelope',s.letterMailed&&!s.doorReplied);
 // Reusing an already consumed key or kite must never unlock a second puzzle.
 for(const [id,owned] of [
  ['key',seen.has('key')&&!s.bagOpen],
- ['flute',seen.has('flute')],
+ ['flute',seen.has('flute')&&!s.door],
  ['kite',seen.has('kite')&&!s.kite]
 ]){
  if(owned&&!pocket.has(id)){
@@ -915,7 +921,7 @@ function render(){
   fluteTray.hidden=!show;
   if(show){
    const progress=fluteTray.querySelectorAll('#ncFluteNoteSteps i');
-   const entered=s.door?Math.min(6,s.fluteNotes.length):s.fluteNotes.length;
+   const entered=s.fluteNotes.length;
    progress.forEach((lamp,i)=>lamp.classList.toggle('is-lit',i<entered));
    const scoreState=$('ncFluteScores');
    if(scoreState){
@@ -923,9 +929,7 @@ function render(){
      ' · B '+(s.footChecked?'found':'not found')+'.';
    }
    const status=$('ncFluteStatus');
-   if(status)status.textContent=s.door?
-    'The tiny door is already open. You can still play the flute.':
-    entered?'Notes played: '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join(' · ')+
+   if(status)status.textContent=entered?'Notes played: '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join(' · ')+
      ' ('+entered+' of 6).':
      'Ready. Play six notes. A wrong phrase resets so you can try again.';
   }
@@ -1583,17 +1587,7 @@ function resetFlutePhrase(){
  tell('The flute returns to its starting note. Try a fresh six-note phrase.');
 }
 function note(i){
- if(!Number.isInteger(i)||i<1||i>3||!pocket.has('flute'))return;
- if(s.door){
-  // The instrument remains playable after unlocking the door; this also
-  // keeps keyboard interaction and audio functional on completed saves.
-  s.fluteNotes.push(i);s.fluteNotes=s.fluteNotes.slice(-FLUTE_CODE.length);
-  window.NothingHereAudio?.playFluteNote?.(i);
-  tell(s.doorOpen
-   ?'The little door is already open, but the flute can still be played.'
-   :'The six-note melody already released the little door. Press its front panel or brass knob to open it.');
-  render();return;
- }
+ if(!Number.isInteger(i)||i<1||i>3||!pocket.has('flute')||s.door)return;
  if(s.fluteNotes.length>=FLUTE_CODE.length)s.fluteNotes=[];
  s.fluteNotes.push(i);
  window.NothingHereAudio?.playFluteNote?.(i);
@@ -1605,8 +1599,11 @@ function note(i){
  if(s.fluteNotes.join('')===FLUTE_CODE.join('')){
   if(!s.door){
     s.door=true;
-    bloom('door','The six-note melody unlatches a miniature door on the box.');
-    tell('The six notes match the two engraved phrases. The little door is unlocked. Press its front panel or brass knob to swing it open.');
+    spend('flute');
+    pendingPickups.delete('flute');
+    fluteTrayOpen=false;
+    bloom('door','The six-note melody unlatches a miniature door on the box. The flute disappears after playing its part.');
+    tell('The melody matches both engraved phrases. The flute disappears, and a little door unlocks. Press its front panel or brass knob to swing it open.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
    }
   else tell('The door recognizes that tune.');
@@ -2106,9 +2103,8 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   $('ncFluteTray')?.scrollIntoView({behavior:'smooth',block:'nearest'});
  },
  activatePhysicalFluteNote(index){
-  // Inventory ownership is the condition for playing. An old save with
-  // the completed flute must never get stuck behind a missing lid flag.
-  if(!Number.isInteger(index)||index<1||index>3||!pocket.has('flute'))return;
+  // The flute is only playable before its melody unlocks the door.
+  if(!Number.isInteger(index)||index<1||index>3||!pocket.has('flute')||s.door)return;
   note(index);
  },
  activatePhysicalBagDial(index){
