@@ -113,14 +113,14 @@ export function finishMechanicalArtifact({
   const decorativeCornerCaps=[];
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
-      // Original uninterrupted inlays with just a short downward turn
-      // at each connector. One continuous swept strip per trace means no
-      // separate bulky gold end piece and no join line at the bend.
+      // The brass and dark inlays have nearly matching slender profiles:
+      // the brass is only slightly wider, never a chunky raised bar.
+      // Each remains one piece with a short downward turn at its port.
       if(face===topFace&&s===-1){
         const traces=[
-          {y:-1.22,z:.105,width:.030,depth:.041,material:accent,
+          {y:-1.22,z:.105,width:.022,depth:.023,material:accent,
            end:1.29,port:.390},
-          {y:-1.125,z:.112,width:.010,depth:.016,material:deep,
+          {y:-1.125,z:.112,width:.019,depth:.020,material:deep,
            end:1.20,port:.390}
         ];
         function roofInlay(trace,sign){
