@@ -223,8 +223,8 @@ for(const detail of [
 // .070 face-local units of the unchanged +/- .390 holes.
 assert(finish.includes('if(face===topFace&&s===-1){')&&
  finish.includes('const traces=[')&&
- finish.includes('{y:-1.22,z:.105,width:.030,depth:.041,material:accent,')&&
- finish.includes('{y:-1.125,z:.112,width:.010,depth:.016,material:deep,')&&
+ finish.includes('{y:-1.22,z:.105,width:.022,depth:.023,material:accent,')&&
+ finish.includes('{y:-1.125,z:.112,width:.019,depth:.020,material:deep,')&&
  finish.includes('function roofInlay(trace,sign){')&&
  finish.includes('for(const trace of traces)for(const sign of [-1,1]){')&&
  finish.includes('roofInlay(trace,sign);')&&
@@ -243,14 +243,22 @@ assert(finish.includes('if(face===topFace&&s===-1){')&&
  preview.includes('triangle:"Lid release button",')&&
  logic.includes('The lid release button sinks in.'),
  'Roof connections lost their continuous shapes or the release regressed');
+// Keep both lines similar in size. Brass should not become a big
+// raised bar, while the dark line must remain readable from above.
+const brassCrossSection={width:.022,depth:.023};
+const darkCrossSection={width:.019,depth:.020};
+assert(brassCrossSection.width/darkCrossSection.width<1.2&&
+ brassCrossSection.depth/darkCrossSection.depth<1.2&&
+ darkCrossSection.width>=.018,
+ 'Roof inlay sizes became unbalanced again');
 // Geometric clearance: sample the exact swept strip's eight chamfered
 // corners on each side. None may intersect a connector's metal rim.
 const bezier=(t,a,b,c,d)=>{
  const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d;
 };
 for(const trace of [
- {name:'brass',z:.105,width:.030,depth:.041,end:1.29},
- {name:'black',z:.112,width:.010,depth:.016,end:1.20}
+ {name:'brass',z:.105,width:.022,depth:.023,end:1.29},
+ {name:'black',z:.112,width:.019,depth:.020,end:1.20}
 ])for(const sign of [-1,1]){
  const port=.390,start=port+.070,stations=[];
  for(let i=0;i<=34;i++)
