@@ -1140,13 +1140,15 @@ function clearKeyboardInspection(){
  placeKeyboardFocus(null);
  keyboardTargets=[];keyboardIndex=-1;
 }
-function visibleKeyboardTargets(){
+function visibleKeyboardTargets(actionPredicate=null){
  const rect=renderer.domElement.getBoundingClientRect();
  if(!rect.width||!rect.height)return [];
  scene.updateMatrixWorld(true);
  const options=new Map(),center=new THREE.Vector3(),projected=new THREE.Vector3();
  for(const mesh of interactiveMeshes){
-  if(!mesh.userData.action||!isMeshEffectivelyVisible(mesh)||
+  if(!mesh.userData.action||
+     actionPredicate&&!actionPredicate(mesh.userData.action)||
+     !isMeshEffectivelyVisible(mesh)||
      mesh.userData.requiresObservatoryOpen&&
      !currentGameState.observatoryRaised)continue;
   if(!mesh.geometry.boundingSphere)mesh.geometry.computeBoundingSphere();
@@ -1170,13 +1172,19 @@ function visibleKeyboardTargets(){
    if(pickVisibleAction(p.x,p.y)===action){visible.set(action,p);break;}
   }
  }
- // Small precision actuators can fall between mesh-center samples.
- // A sparse, screen-space pass helps discover those without scanning the
- // whole scene on every key press. Only actual raycast hits are considered.
- for(const v of [.22,.39,.5,.61,.78])for(const u of [.2,.38,.5,.62,.8]){
+ // Tiny actuator centers sometimes fall between projected mesh samples.
+ // For keyboard inspection retain the full 25-point scan; held-item
+ // guidance only needs a cheap 3x3 fallback when its exact compatible
+ // geometry has NO reachable center. Do not scan every mechanism ~10x/s.
+ const points=actionPredicate
+  ?(visible.size?[]:[.24,.50,.76])
+  :[.22,.39,.5,.61,.78];
+ const xs=actionPredicate?[.24,.50,.76]:[.2,.38,.5,.62,.8];
+ for(const v of points)for(const u of xs){
   const x=rect.left+rect.width*u,y=rect.top+rect.height*v;
   const action=pickVisibleAction(x,y);
-  if(action&&!visible.has(action))visible.set(action,{action,x,y});
+  if(action&&(!actionPredicate||actionPredicate(action))&&
+   !visible.has(action))visible.set(action,{action,x,y});
  }
  return [...visible.values()].sort((a,b)=>a.y-b.y||a.x-b.x);
 }
@@ -1202,7 +1210,7 @@ function updateSelectedFitFlashes(){
  if(typeof canFit!=="function")return;
  // visibleKeyboardTargets checks the genuine hit surface from the
  // CURRENT view. A hidden mechanism can never acquire a false marker.
- const visible=visibleKeyboardTargets().filter(v=>canFit(v.action)).slice(0,7);
+ const visible=visibleKeyboardTargets(canFit).slice(0,7);
  const active=new Set(visible.map(v=>v.action));
  const rect=renderer.domElement.getBoundingClientRect();
  for(const target of visible){
@@ -1257,7 +1265,7 @@ function chooseItemDestination(){
    destinations.set(mesh.userData.action,face);
  }
  if(!destinations.size)return null; // craft-only or not yet usable
- const visible=new Set(visibleKeyboardTargets().map(t=>t.action));
+ const visible=new Set(visibleKeyboardTargets(canFit).map(t=>t.action));
  for(const [action,face] of destinations)
   if(visible.has(action))return {action,face,alreadyFacing:true};
  const [action,face]=destinations.entries().next().value;
