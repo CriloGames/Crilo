@@ -444,11 +444,14 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // A real coin-return mouth with a captive sliding sugar tray. The tray
   // extends when money is accepted and a little farther after the jam is
   // cleared; rewards still go straight to inventory with no pop-out sprite.
-  B(g,.29,.10,.09,0,.17,.19,m.dark,.016);
+  // The real coin-return mouth accommodates two shallow pickup sockets.
+  // Its width is still narrower than the vending cabinet and the moving
+  // return tray fits completely inside it when shut.
+  B(g,.36,.10,.09,0,.17,.19,m.dark,.016);
   vendingTray=new THREE.Group();
   vendingTray.position.set(0,.17,.225);g.add(vendingTray);
-  B(vendingTray,.245,.072,.068,0,0,0,m.brass,.013);
-  B(vendingTray,.169,.022,.011,0,.013,.040,m.cream,.005);
+  B(vendingTray,.35,.072,.068,0,0,0,m.brass,.013);
+  B(vendingTray,.265,.022,.011,0,.013,.040,m.cream,.005);
   // The refunded SECOND coin drives its own shallow brass inspection
   // seal, NOT another sugar cube. The seal sits in the real sliding tray
   // and persists on reload instead of popping out as a 2D overlay.
@@ -1559,7 +1562,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   names:[...items.keys()],
   // Collectibles bolt to the same moving cube face as the object that
   // dispenses them. No duplicate flat or floating reward panel.
-  getPickupHost:name=>items.get(name)?.fixture||null,
+  // Vending rewards belong on the ACTUAL movable return tray. The old
+  // separate shelf was bolted to the stationary miniature fixture, leaving
+  // the reward visibly floating off to its right when the tray opened.
+  getPickupHost:name=>name==="machine"?vendingTray:
+   items.get(name)?.fixture||null,
   targets:new Map([...items].map(([n,v])=>[n,v.toy])),
   puzzleTargets:puzzleControls,
   pickVolumes:new Map([...items].map(([n,v])=>[n,v.hitVolume])),
