@@ -190,6 +190,20 @@ export function finishMechanicalArtifact({
           C(face,.019,.010,x,y,.079,deep);
           torus(face,.026,.004,x,y,.084,accent);
         }
+      }else if(face===frontFace&&s===1){
+        // End the gold and graphite border strips beside the raised
+        // circular lens instead of continuing straight through its rim.
+        // The round sleeve takes the place of the missing middle span.
+        const rails=[
+          {half:1.29,stop:.56,y:1.22,z:.105,h:.030,d:.041,paint:accent,r:.012},
+          {half:1.20,stop:.66,y:1.125,z:.130,h:.010,d:.024,paint:deep,r:.004}
+        ];
+        for(const rail of rails)for(const sign of [-1,1]){
+          const length=rail.half-rail.stop;
+          B(face,length,rail.h,rail.d,
+            sign*(rail.stop+length/2),rail.y,rail.z,
+            rail.paint,rail.r);
+        }
       }else{
         B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
         B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
@@ -239,10 +253,13 @@ export function finishMechanicalArtifact({
   torus(frontLens,.758,.020,0,0,-.018,deep); // joins front rim
   torus(frontLens,.76,.031,0,0,0,tinyGold);
   torus(frontLens,.69,.014,0,0,.03,deep);
-  for(let i=0;i<16;i++){
-    const a=i*Math.PI/8;
-    const s=B(frontLens,i%4===0?.11:.05,.012,.015,Math.cos(a)*.73,Math.sin(a)*.73,.05,deep,.003);
-    s.rotation.z=a;
+  // The old radial metal bars pierced both the gold and the black
+  // retaining rings. Use tiny face-on rivets that sit IN the gold band.
+  // Their shallow shanks seat into the ring; nothing sticks past its edges.
+  for(let i=0;i<12;i++){
+    const a=i*Math.PI/6;
+    C(frontLens,.010,.008,Math.cos(a)*.76,
+      Math.sin(a)*.76,.033,cream);
   }
   const dome=new THREE.Mesh(new THREE.SphereGeometry(.31,32,18,0,Math.PI*2,0,Math.PI*.47),
     new THREE.MeshPhysicalMaterial({
