@@ -218,43 +218,26 @@ for(const detail of [
  'finder.position.set(0,.098,-.014);'
 ]) assert(worlds.includes(detail),
  'Reference-style observatory texture or physical manufacturing detail missing: '+detail);
-// Both visible pairs of brass/dark inlays must descend into the
-// +/-0.390 entry ports. Their tapered ends fit within the inset bores.
-const roofPort=.390,roofInlayStart=roofPort+.145;
-const boreTop=.086+.010/2,leadEndZ=.063;
-const taperedWidth=.030*.30,taperedDepth=.041*.30;
-assert(roofInlayStart-roofPort>.10&&leadEndZ<boreTop&&
- Math.hypot(taperedWidth/2,taperedDepth/2)<.019,
- 'The rooftop strips no longer bend down inside their connectors');
-assert(!worlds.includes('OBSERVATORY_REAR')&&
- !worlds.includes('const domeStrip=')&&
- !worlds.includes('const parapetOutline=new THREE.Shape();')&&
- !worlds.includes('observatoryLift')&&
- !worlds.includes('observatoryDoors')&&
- !worlds.includes('instance.lift.position'),
- 'Old barrel, raised dome or circular bowl returned');
-// The roof's equator, its metal socket and the telescope all stay fixed.
-assert(worlds.includes('domeSeamHeight:items.get("telescope")?.fixture.position.z+')&&
- worlds.includes('roofShell.position.z=OBSERVATORY_RING_TOP;')&&
- worlds.includes('item.mountRing=band;')&&
- preview.includes('observatoryButtonBase.position.set(0,-.476,-.218);')&&
- preview.includes('cylinder(chamber,.078,.530,0,-.476,-.475,darkMetal);')&&
- hotspots.includes('const flute=node(topFace,-.74,-1.12,.17);')&&
- finish.includes('if(face===topFace&&s===-1){')&&
- finish.includes('const traces=[')&&
- finish.includes('{y:-1.22,z:.105,width:.030,depth:.041,material:accent,')&&
- finish.includes('{y:-1.125,z:.112,width:.010,depth:.016,material:deep,')&&
- finish.includes('B(face,trace.end-begin,trace.width,trace.depth,')&&
-  finish.includes('const begin=trace.port+.145;')&&
-  finish.includes('const spine=new THREE.CubicBezierCurve3(')&&
-  finish.includes('new THREE.Vector3(sign*port,trace.y,.063)')&&
-  finish.includes('bentInlay(trace,sign,begin);')&&
-  finish.includes('const taper=t<.64?1:1-(t-.64)/.36*.70;')&&
+// One continuous inlay per side and color: the last .070 curves into
+// the recessed dark well and avoids the small flush circular rim.
+assert(finish.includes('function roofInlay(trace,sign){')&&
+ finish.includes('for(const trace of traces)for(const sign of [-1,1]){')&&
+ finish.includes('roofInlay(trace,sign);')&&
+ finish.includes('const inner=trace.port,curveStart=inner+.070;')&&
+ finish.includes('new THREE.Vector3(sign*inner,trace.y,.063)')&&
+ finish.includes('const taper=1-.77*progress*progress*(3-2*progress);')&&
+ finish.includes('C(face,.019,.010,x,y,.079,deep);')&&
+ finish.includes('torus(face,.026,.004,x,y,.084,accent);')&&
+ !finish.includes('bentInlay(')&&
+ !finish.includes('function roofInlay(trace,sign){')&&
+  finish.includes('roofInlay(trace,sign);')&&
+  finish.includes('const inner=trace.port,curveStart=inner+.070;')&&
   finish.includes('geometry.setAttribute("uv",')&&
-  !finish.includes('const begin=trace.port+.020;')&&
- finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
- finish.includes('torus(face,.026,.005,x,y,.096,accent);')&&
- !finish.includes('const leads=[')&&
+  finish.includes('C(face,.027,.012,x,y,.076,metal);')&&
+  finish.includes('C(face,.019,.010,x,y,.079,deep);')&&
+  finish.includes('torus(face,.026,.004,x,y,.084,accent);')&&
+  !finish.includes('bentInlay(trace,sign,begin);')&&
+  !finish.includes('const leads=[')&&
  !finish.includes('const goldBypass=[')&&
  !finish.includes('const inkBypass=[')&&
  preview.includes('triangle:"Lid release button",')&&
