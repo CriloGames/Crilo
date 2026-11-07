@@ -156,6 +156,15 @@ assert(worlds.includes('telescope:!!s.observatoryRaised||!!s.observed||')&&
  preview.includes('setHit(observatoryButtonCap,"observatory-release");')&&
  preview.includes('activatePhysical?.("observatory-release")'),
  "The permanent dome or physical roof-release button no longer works");
+// Observatory picking must trace the visible curved shell, not a broad box.
+assert(worlds.includes('const boxHit=item.hitVolume;')&&
+ worlds.includes('g.remove(boxHit);')&&
+ worlds.includes('item.domeClickTarget=roofShell;')&&
+ worlds.includes('item.hitVolume=observatoryRearCap;')&&
+ worlds.includes('setHit(name==="telescope"?domeClickTarget:toy,"thing:"+name);')&&
+ !worlds.includes('item.hitVolume.geometry=new THREE.BoxGeometry(.64,.64,.65);')&&
+ preview.includes('const samples=name==="telescope"?['),
+ 'Observatory must only respond when its physical dome is selected');
 assert(worlds.includes('elevator:!!s.serialRead||!!(s.watch&&s.tag)||!!s.floorFour||!!s.train'),
  "The side lift regressed to an unnecessary story dependency");
 assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
