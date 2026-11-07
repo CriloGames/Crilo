@@ -833,6 +833,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   g.add(observatoryScope);
   C(observatoryScope,.100,.026,0,0,.002,m.brass,"z");
   C(observatoryScope,.082,.025,0,0,.026,m.gold,"z");
+  for(let i=0;i<8;i++){
+   const a=i*Math.PI/4;
+   ball(observatoryScope,.0032,.089*Math.cos(a),
+    .089*Math.sin(a),.018,m.cream);
+  }
   B(observatoryScope,.240,.064,.043,0,0,.066,m.cream,.014);
   for(const side of [-1,1]){
    B(observatoryScope,.041,.064,.106,side*.106,0,.114,m.cream,.013);
@@ -843,12 +848,28 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   tube.rotation.x=Math.PI/2-.16;
   observatoryScope.add(tube);
   observatoryBarrel=tube;
-  C(tube,.067,.245,0,0,0,m.copper,"z");
+  // The telescope itself gets a painted optical tube, not a solid
+  // copper cylinder. Its brass focus rings remain functional-looking.
+  C(tube,.067,.245,0,0,0,ivory,"z");
   C(tube,.075,.045,0,0,-.070,m.brass,"z");
   for(const z of [-.085,.045,.098])torus(tube,.076,.009,0,0,z,m.gold,"z");
   C(tube,.081,.025,0,0,.124,m.gold,"z");
   C(tube,.069,.014,0,0,.140,m.black,"z");
   C(tube,.055,.008,0,0,.147,mat(0x294354,.40,.22),"z");
+  const opticalCoating=mat(0x21394a,.31,.16);
+  opticalCoating.clearcoat=.86;
+  C(tube,.054,.004,0,0,.153,opticalCoating,"z");
+  // A bolted finder-scope saddle grows FROM the main barrel.
+  B(tube,.026,.045,.034,0,.065,-.013,m.brass,.006);
+  B(tube,.039,.009,.056,0,.087,-.013,m.gold,.004);
+  const finder=new THREE.Group();
+  finder.position.set(0,.098,-.014);
+  tube.add(finder);
+  C(finder,.018,.125,0,0,0,m.dark,"z");
+  for(const z of [-.046,.042])
+   C(finder,.021,.011,0,0,z,m.brass,"z");
+  C(finder,.020,.012,0,0,.067,m.gold,"z");
+  C(finder,.014,.007,0,0,.075,mat(0x244457,.35,.18),"z");
   telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,"z");
   telescopeLensGlass.visible=false;
   B(tube,.077,.083,.087,.072,0,-.020,m.brass,.010);
