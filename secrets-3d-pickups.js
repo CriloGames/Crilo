@@ -488,7 +488,10 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    });
    return {
     seated:!!holder&&holder.parent===movingTray,
-    noDetachedRewards:entries.every(e=>!e.visible||e.onReturnTray&&e.supported),
+    // Coins still in the bag are not vending outputs and must not be
+    // reported as detached vending-machine rewards.
+    noDetachedRewards:entries.every(e=>
+     !e.visible||e.source!=="machine"||e.onReturnTray&&e.supported),
     items:entries
    };
   },
