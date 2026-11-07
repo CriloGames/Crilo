@@ -247,6 +247,14 @@ try{
      "Older solved front hatches must stay open without re-pressing the pin");
     assert((await page.evaluate(()=>window.__nothing3DPreview.frontCogHatchPose)).open,
      "An earlier player's open front hatch was physically relocked");
+    const pose=await page.evaluate(()=>window.__nothing3DPreview.frontSpringLatchPose);
+    assert(pose.pressed&&pose.depth<.085&&pose.cue===0,
+     "Old saved hatches must restore the depressed latch without relocking: "+JSON.stringify(pose));
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const remembered=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(remembered.plateOpen&&remembered.pendingPickups.includes("cog")&&
+     remembered.seen.includes("false-screw"),
+     "Old hatches must retain their gear and allow the previously missed pin discovery");
    }
    if(check.label==="fresh-desktop"){
     // Before the screws are removed, the captive pin depresses, but cannot
@@ -272,6 +280,9 @@ try{
     assert.match(await page.locator("#ncNarrator").innerText(),
      /rounded corner pin still holds/i,
      "Player has no clue what holds the screw-free hatch");
+    const armed=await page.evaluate(()=>window.__nothing3DPreview.frontSpringLatchPose);
+    assert(armed.cue>.5&&!armed.pressed&&armed.depth>.12,
+     "With screws removed, the real spring latch does not show it is ready: "+JSON.stringify(armed));
     await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
     const unlatched=await page.evaluate(()=>window.CriloNothingHereCube.getState());
     assert(unlatched.plateOpen&&unlatched.pendingPickups.includes("cog"),
@@ -279,6 +290,9 @@ try{
     assert.match(await page.locator("#ncNarrator").innerText(),
      /stays depressed.*hatch swings open/i,
      "The final latch action has no clear physical feedback");
+    const released=await page.evaluate(()=>window.__nothing3DPreview.frontSpringLatchPose);
+    assert(released.pressed&&released.depth<.085&&released.cue===0,
+     "Hatch release did not leave the physical pin depressed: "+JSON.stringify(released));
     await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
     const afterRepeat=await page.evaluate(()=>window.CriloNothingHereCube.getState());
     assert.equal(afterRepeat.falseScrewTurns,unlatched.falseScrewTurns,
