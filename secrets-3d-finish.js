@@ -130,7 +130,7 @@ export function finishMechanicalArtifact({
             new THREE.Vector3(sign*port,trace.y,trace.z-.007),
             new THREE.Vector3(sign*port,trace.y,.063)
           );
-          const pos=[],indices=[],samples=18;
+          const pos=[],uv=[],indices=[],samples=18;
           for(let i=0;i<=samples;i++){
             const t=i/samples;
             const center=spine.getPoint(t);
@@ -144,6 +144,7 @@ export function finishMechanicalArtifact({
             for(const [u,v] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
               pos.push(center.x+nx*v*thickness,
                 center.y+u*width,center.z+nz*v*thickness);
+              uv.push(t,u<0?0:1);
             }
           }
           for(let i=0;i<samples;i++)for(let j=0;j<4;j++){
@@ -157,6 +158,8 @@ export function finishMechanicalArtifact({
           const geometry=new THREE.BufferGeometry();
           geometry.setAttribute("position",
             new THREE.Float32BufferAttribute(pos,3));
+          geometry.setAttribute("uv",
+            new THREE.Float32BufferAttribute(uv,2));
           geometry.setIndex(indices);
           geometry.computeVertexNormals();
           const leadPaint=trace.material.clone();
