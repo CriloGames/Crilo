@@ -32,6 +32,11 @@ const cases=[
    observatoryRaised:true,observed:false,
    telescopeLensMounted:false,telescopeIrisMounted:false,
    gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ {label:"held-coin-guidance",viewport:{width:1280,height:850},
+  seed:{seen:["first","mouse","bag","machine"],mouse:true,
+   bag:true,machine:true,pocket:["coin"],pendingPickups:[],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
 const browser=await chromium.launch({headless:true,args:[
@@ -42,7 +47,8 @@ let failed=false;
 try{
  for(const check of cases){
   const context=await browser.newContext({
-   viewport:check.viewport,reducedMotion:"reduce"
+   viewport:check.viewport,
+   reducedMotion:check.label==="held-coin-guidance"?"no-preference":"reduce"
   });
   const errors=[];
   const page=await context.newPage();
@@ -192,6 +198,37 @@ try{
     assert.equal(key.target?.pick,"pickup:tooth",
      "Real mouse raycast cannot reach the key in the open drawer: "+
       JSON.stringify(key));
+   }
+   if(check.label==="held-coin-guidance"){
+    // Selecting the coin from the opposite face should turn directly to
+    // its usable socket. The pulse must remain after multiple cycles.
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
+    await page.locator('#ncInventory [data-item="coin"]').click();
+    await page.waitForFunction(()=>{
+     const v=window.__nothing3DPreview?.selectedItemFlashAudit;
+     return v?.selected==="coin"&&v?.guidedFace==="front"&&
+      v?.persistent&&v?.targets?.includes("thing:machine");
+    },null,{timeout:25000});
+    const initial=await page.evaluate(()=>({
+     guide:window.__nothing3DPreview.selectedItemFlashAudit,
+     rotation:window.__nothing3DPreview.cubeRotationDegrees
+    }));
+    assert(Math.abs(initial.rotation.ry-180)>35,
+     "Holding a coin left the working machine hidden: "+JSON.stringify(initial));
+    await page.waitForTimeout(3350);
+    const after=await page.evaluate(()=>
+     window.__nothing3DPreview.selectedItemFlashAudit);
+    assert(after.persistent&&after.visible>0&&
+     after.targets.includes("thing:machine"),
+     "Green compatible fitting must keep pulsing while held: "+JSON.stringify(after));
+    await page.screenshot({
+     path:"test-results/nothing-here-persistent-green-fitting.png",
+     timeout:45000
+    });
+    await page.locator("#ncUnselect").click();
+    assert.equal((await page.evaluate(()=>
+     window.__nothing3DPreview.selectedItemFlashAudit)).visible,0,
+     "Green fitting pulse stayed behind after clearing selection");
    }
    if(check.label==="fresh-desktop"){
     const audit=await page.evaluate(()=>window.__nothing3DPreview.observatoryClickAudit);
