@@ -249,6 +249,8 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
      new THREE.MeshBasicMaterial({map:texture,transparent:true,
       depthWrite:false,side:THREE.DoubleSide}));
     engraved.position.z=.074;
+    engraved.name="Collar tag 04 engraving";
+    engraved.userData.engravedText="04";
     group.add(engraved);
    }
   }else if(["washer"].includes(id)){
@@ -579,6 +581,9 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
    return {visible:root.visible,onScene,depth:root.userData.pickupModel.position.z,
     scale:root.userData.pickupModel.scale.x,
     socketGlow:root.userData.pickupSocketMaterial.emissiveIntensity,
+    stamp:id==="tag"
+     ?root.userData.pickupModel.getObjectByName("Collar tag 04 engraving")
+       ?.userData.engravedText||null:null,
     glow:root.userData.pickupGlow?.getState?.()||null};
   },
   setState(state){
