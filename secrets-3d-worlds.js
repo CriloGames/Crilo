@@ -526,7 +526,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // The centered telescope never rises; a shutter rolls beneath the shell.
  const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;
  // Expose more of the telescope through the front arch without lifting the dome.
-  const OBSERVATORY_OPEN_HALF_ANGLE=1.42,OBSERVATORY_ARCH_RISE=1.06;
+  const OBSERVATORY_OPEN_HALF_ANGLE=1.50,OBSERVATORY_ARCH_RISE=1.22;
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
  let telescopeLensGlass=null,telescopeIrisGlass=null;
@@ -540,8 +540,42 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   -r*Math.cos(elev)*Math.cos(az),
   r*Math.sin(elev)
  ];
+ // Fine satin enamel, softly brushed rather than the flat white plastic of
+ // the old roof. A deterministic procedural canvas supplies actual UV-based
+ // grain, so the finish works offline and doesn't depend on image servers.
+ const paintCanvas=document.createElement("canvas");
+ paintCanvas.width=paintCanvas.height=512;
+ const paintCtx=paintCanvas.getContext("2d");
+ const paintPixels=paintCtx.createImageData(512,512);
+ let grainSeed=13791;
+ for(let p=0;p<paintPixels.data.length;p+=4){
+  grainSeed=(Math.imul(grainSeed,1664525)+1013904223)>>>0;
+  const n=((grainSeed>>>16)&31)-15;
+  const tone=Math.max(230,Math.min(255,248+n*.32));
+  paintPixels.data[p]=tone;
+  paintPixels.data[p+1]=Math.max(0,tone-2);
+  paintPixels.data[p+2]=Math.max(0,tone-5);
+  paintPixels.data[p+3]=255;
+ }
+ paintCtx.putImageData(paintPixels,0,0);
+ paintCtx.strokeStyle="rgba(149,132,105,.045)";
+ paintCtx.lineWidth=1;
+ for(let i=0;i<52;i++){
+  const y=i*10+.5;
+  paintCtx.beginPath();paintCtx.moveTo(0,y);
+  paintCtx.lineTo(512,y+2);paintCtx.stroke();
+ }
+ const enamelGrain=new THREE.CanvasTexture(paintCanvas);
+ enamelGrain.colorSpace=THREE.SRGBColorSpace;
+ enamelGrain.wrapS=THREE.RepeatWrapping;
+ enamelGrain.anisotropy=4;
  const ivory=m.cream.clone();
  ivory.side=THREE.DoubleSide;
+ ivory.map=enamelGrain;
+ ivory.roughness=.56;
+ ivory.metalness=.065;
+ ivory.clearcoat=.17;
+ ivory.needsUpdate=true;
  const terracotta=mat(0x93584b,.12,.72);
  terracotta.side=THREE.DoubleSide;
  const engrave=new THREE.LineBasicMaterial({
@@ -558,7 +592,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  };
  // Outer and inner shells have the SAME physical arched cutout.
  const domeSkin=r=>{
-  const pos=[],normal=[],indices=[],A=96,E=28;
+  const pos=[],normal=[],uv=[],indices=[],A=96,E=28;
   for(let i=0;i<=A;i++){
    const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az);
    for(let j=0;j<=E;j++){
@@ -566,6 +600,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     pos.push(...domePoint(az,el,r));
     normal.push(Math.cos(el)*Math.sin(az),
      -Math.cos(el)*Math.cos(az),Math.sin(el));
+    uv.push((az+Math.PI)/(2*Math.PI),el/(Math.PI/2));
    }
   }
   for(let i=0;i<A;i++)for(let j=0;j<E;j++){
@@ -575,6 +610,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const geo=new THREE.BufferGeometry();
   geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
   geo.setAttribute("normal",new THREE.Float32BufferAttribute(normal,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));
   geo.setIndex(indices);
   return geo;
  };
@@ -654,7 +690,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   // The garage shutter is sixteen spherical strips only INSIDE the
   // aperture. As they move up, the fixed shell hides them completely.
   const slatGeometry=(lo,hi)=>{
-   const pos=[],normal=[],indices=[];
+   const pos=[],normal=[],uv=[],indices=[];
    for(let row=0;row<=OBSERVATORY_ROWS;row++){
     const elev=lo+(hi-lo)*row/OBSERVATORY_ROWS;
     const width=OBSERVATORY_OPEN_HALF_ANGLE*
@@ -664,6 +700,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      pos.push(...domePoint(az,elev,OBSERVATORY_RADIUS-.004));
      normal.push(Math.cos(elev)*Math.sin(az),
       -Math.cos(elev)*Math.cos(az),Math.sin(elev));
+     uv.push((az+Math.PI)/(2*Math.PI),elev/(Math.PI/2));
     }
    }
    for(let row=0;row<OBSERVATORY_ROWS;row++)
@@ -675,6 +712,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const geo=new THREE.BufferGeometry();
    geo.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
    geo.setAttribute("normal",new THREE.Float32BufferAttribute(normal,3));
+   geo.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));
    geo.setIndex(indices);
    return geo;
   };
@@ -730,6 +768,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    if(!panel.visible)continue;
    const pos=panel.geometry.getAttribute("position");
    const normal=panel.geometry.getAttribute("normal");
+   const texcoord=panel.geometry.getAttribute("uv");
    for(let row=0;row<=OBSERVATORY_ROWS;row++){
     const source=lo+(hi-lo)*row/OBSERVATORY_ROWS;
     const elev=Math.min(Math.PI/2-.015,source+travel);
@@ -741,9 +780,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));
      normal.setXYZ(n,Math.cos(elev)*Math.sin(az),
       -Math.cos(elev)*Math.cos(az),Math.sin(elev));
+     texcoord.setXY(n,(az+Math.PI)/(2*Math.PI),elev/(Math.PI/2));
     }
    }
-   pos.needsUpdate=true;normal.needsUpdate=true;
+   pos.needsUpdate=true;normal.needsUpdate=true;texcoord.needsUpdate=true;
    panel.geometry.computeBoundingSphere();
   }
   invalidate();
