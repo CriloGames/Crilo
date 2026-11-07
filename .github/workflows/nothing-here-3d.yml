@@ -1,6 +1,16 @@
 name: Nothing Here physical 3D setup
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-*.js'
+      - 'three-workbench/**'
+      - 'scripts/verify-nothing-here-live-3d.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
+      - '.github/workflows/nothing-here-3d.yml'
   push:
     branches: [main]
     paths:
