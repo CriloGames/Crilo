@@ -200,14 +200,28 @@ try{
       JSON.stringify(key));
    }
    if(check.label==="held-coin-guidance"){
-    // Selecting the coin from the opposite face should turn directly to
-    // its usable socket. The pulse must remain after multiple cycles.
+    // Players must find the correct face themselves. Choosing a coin
+    // from the opposite side must NOT rotate the cube or give away the
+    // answer. After manually turning it, the green fitting persists.
     await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
     await page.locator('#ncInventory [data-item="coin"]').click();
+    await page.waitForFunction(()=>
+     window.__nothing3DPreview?.selectedItemFlashAudit?.selected==="coin",
+     null,{timeout:25000});
+    await page.waitForTimeout(300);
+    const beforeTurn=await page.evaluate(()=>({
+     guide:window.__nothing3DPreview.selectedItemFlashAudit,
+     rotation:window.__nothing3DPreview.cubeRotationDegrees
+    }));
+    assert(Math.abs(beforeTurn.rotation.ry-180)<.01,
+     "Selecting an item rotated the cube without player input: "+
+      JSON.stringify(beforeTurn));
+    assert(!beforeTurn.guide.targets.includes("thing:machine"),
+     "The wrong-side view exposed a hidden fitting");
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,0));
     await page.waitForFunction(()=>{
      const v=window.__nothing3DPreview?.selectedItemFlashAudit;
-     return v?.selected==="coin"&&v?.guidedFace==="front"&&
-      v?.persistent&&v?.targets?.includes("thing:machine");
+     return v?.targets?.includes("thing:machine")&&v?.persistent;
     },null,{timeout:25000});
     const initial=await page.evaluate(()=>({
      guide:window.__nothing3DPreview.selectedItemFlashAudit,
@@ -216,10 +230,8 @@ try{
     }));
     assert(initial.guide.anchored&&initial.guide.inScene&&
      initial.guide.domOverlays===0&&initial.anchors.length>0,
-     "The green ring is still a floating screen overlay: "+
+     "Green ring must be attached to a real 3D fitting: "+
       JSON.stringify(initial));
-    assert(Math.abs(initial.rotation.ry-180)>35,
-     "Holding a coin left the working machine hidden: "+JSON.stringify(initial));
     // Move the cube while the item is held: the ring's *local mesh*
     // coordinates must not change, but its world position must move WITH
     // the mechanism rather than floating somewhere on the screen.
