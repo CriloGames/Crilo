@@ -54,7 +54,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  });
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
- let watchHourHand=null,watchMinuteHand=null,vendingTray=null,vendingServiceSeal=null;
+ let watchHourHand=null,watchMinuteHand=null,vendingTray=null,vendingServiceSeal=null,vendingCabinet=null;
  let dogTail=null;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
@@ -438,6 +438,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  // Vending machine has a physical glass panel and dispensed sugar tray.
  {
   const g=toy("machine");
+  vendingCabinet=g;
   B(g,.44,.70,.34,0,.39,0,m.blue,.027);
   B(g,.29,.29,.024,-.032,.51,.184,m.dark,.015);
   for(let i=0;i<4;i++)B(g,.22,.013,.016,-.032,.4+i*.056,.204,m.brass,.006);
@@ -452,13 +453,17 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   vendingTray.position.set(0,.17,.225);g.add(vendingTray);
   B(vendingTray,.35,.072,.068,0,0,0,m.brass,.013);
   B(vendingTray,.265,.022,.011,0,.013,.040,m.cream,.005);
-  // The refunded SECOND coin drives its own shallow brass inspection
-  // seal, NOT another sugar cube. The seal sits in the real sliding tray
-  // and persists on reload instead of popping out as a 2D overlay.
+  // The small ivory check-mark plate is a FIXED machine-status plaque.
+  // It was parented to the sliding return tray, carrying its stamped ^
+  // far out in front of the miniature as the coin was redeemed. Seat it
+  // flush on the cabinet between the switch and return mouth instead.
+  // Only the real loose service key stays inside the moving pickup tray.
   vendingServiceSeal=new THREE.Group();
-  vendingServiceSeal.position.set(0,0,.064);
-  vendingTray.add(vendingServiceSeal);
+  vendingServiceSeal.position.set(.071,.283,.178);
+  g.add(vendingServiceSeal);
   B(vendingServiceSeal,.172,.080,.019,0,0,0,m.gold,.008);
+  for(const sx of [-.068,.068])
+   C(vendingServiceSeal,.010,.010,sx,0,.016,m.brass,"z");
   const firstCheck=B(vendingServiceSeal,.009,.033,.006,-.031,-.004,.014,m.dark,.002);
   firstCheck.rotation.z=-.65;
   const secondCheck=B(vendingServiceSeal,.009,.059,.006,.004,.008,.015,m.dark,.002);
@@ -1386,8 +1391,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    });
   }
   lastTapeRead=tapeRead;
-  const vendValue=s.refundRedeemed ? .47 : s.shimUsed ? .39 :
-   (Array.isArray(s.seen)&&s.seen.includes("machine") ? .32 : .225);
+  // Keep the real return tray close to its mouth. Its old .47 extension
+  // made a disconnected-looking brass arm against the front optical ring.
+  const vendValue=s.refundRedeemed ? .355 : s.shimUsed ? .315 :
+   (Array.isArray(s.seen)&&s.seen.includes("machine") ? .285 : .225);
   if(vendingServiceSeal)vendingServiceSeal.visible=!!s.refundRedeemed;
   setPose(vendingTray,"position","z",vendValue,.62,firstRestore);
   if(Math.abs(vendValue-lastVendingDepth)>.001&&!firstRestore&&!reducedMotion){
@@ -1606,6 +1613,11 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    watchMinuteAngle:watchMinuteHand?.rotation.z??null,
    vendingTrayDepth:vendingTray?.position.z??null,
    vendingServiceSealVisible:vendingServiceSeal?.visible??false,
+   vendingServiceSealCabinetMounted:!!vendingServiceSeal&&
+    vendingServiceSeal.parent===vendingCabinet&&
+    Math.abs(vendingServiceSeal.position.x-.071)<1e-6&&
+    Math.abs(vendingServiceSeal.position.y-.283)<1e-6&&
+    Math.abs(vendingServiceSeal.position.z-.178)<1e-6,
    seedSproutVisible:sprout.visible,
    treeGrowthScale:branches.scale.y,
    observatory:{

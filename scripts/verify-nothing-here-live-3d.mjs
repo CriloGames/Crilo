@@ -1192,7 +1192,7 @@ try{
   "Coin must dispense a physical sugar cube rather than pocketing it automatically");
  await collect("sugar");
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
- await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.30,
+ await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.275,
   null,{timeout:16000,polling:250});
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.30,
   "A collected sugar reward must visibly extend the real vending-machine tray");
@@ -1228,7 +1228,7 @@ try{
  assert(await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingServiceSealVisible),
   "The second coin did not reveal a physical stamped brass certificate in the machine");
  await page.waitForFunction(()=>
-  window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.44,
+  window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.34,
   null,{timeout:16000,polling:250});
  console.log("PASS: refunded second coin exposes a real service key required for later service shutter");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
@@ -1963,7 +1963,7 @@ try{
   "Saved miniature shards and dancer must settle physically without replaying old actions: "+
    JSON.stringify(vignette));
  assert(vignette.watchHourAngle< -2&&vignette.watchMinuteAngle< -1.7&&
-  vignette.vendingTrayDepth>.37,
+  vignette.vendingTrayDepth>.34,
   "The tape-driven clock hands and coin-return tray must preserve their final physical poses: "+
    JSON.stringify(vignette));
  assert(vignette.treeGrowthScale>.99&&!vignette.seedSproutVisible,
