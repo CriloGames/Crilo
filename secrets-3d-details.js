@@ -89,7 +89,14 @@ export function buildIntricateCube({
   const plates=(face,m)=>{
     // Inner panel is a real raised physical layer with corner detailing.
     for(const sy of [-1,1]){
-      B(face,2.85,.055,.07,0,sy*1.38,.10,m,.016);
+      if(face===frontFace&&sy===1){
+        // The full-width upper rail used to pass through the top of the
+        // .758-radius optical sleeve. Butt its two ends up to the round
+        // housing with a real clearance instead of overlapping the metal.
+        const stop=.22,edge=1.425,length=edge-stop;
+        for(const sign of [-1,1])
+          B(face,length,.055,.07,sign*(stop+length/2),1.38,.10,m,.016);
+      }else B(face,2.85,.055,.07,0,sy*1.38,.10,m,.016);
       for(const sx of [-1,1]){
         // The integrated iris service cassette occupies this corner.
         // Avoid an orphaned shell rivet running through its backplate.
@@ -129,15 +136,6 @@ export function buildIntricateCube({
     const slot=B(g,.055,.010,.015,x,y,z+.026,ebony,.003);
     slot.rotation.z=.38;
   };
-  const edgeTicks=(face,cx,cy,r,count=20)=>{
-    for(let i=0;i<count;i++){
-      const a=2*Math.PI*i/count;
-      const w=(i%5===0)?.105:.055;
-      const tick=B(face,w,.014,.018,cx+Math.cos(a)*r,cy+Math.sin(a)*r,.20,metal,.003);
-      tick.rotation.z=a;
-    }
-  };
-
   // FRONT: nested cast bezel, lens, stamped numbers, iris blades, detents.
   plates(frontFace,metal);
   const frontDisc=group(frontFace,0,.56,.13);
@@ -157,11 +155,16 @@ export function buildIntricateCube({
   const irisBlades=[];
   for(let i=0;i<8;i++){
     const a=i*Math.PI/4;
-    const blade=B(frontDisc,.15,.032,.023,Math.cos(a)*.20,Math.sin(a)*.20,.253,satin,.008);
+    // Eight independent vanes with gaps around the center bearing.
+    // The previous long blades and off-center dark shaft cut into each
+    // other when the iris animated.
+    const blade=B(frontDisc,.10,.024,.018,Math.cos(a)*.235,
+      Math.sin(a)*.235,.250,satin,.006);
     blade.rotation.z=a+.47;blade.userData.noBatch=true;irisBlades.push(blade);
   }
-  C(frontDisc,.07,.045,.062,-.03,.276,ebony);
-  edgeTicks(frontFace,0,.56,.66,28);
+  C(frontDisc,.048,.025,0,0,.260,ebony);
+  // Removed the 28 decorative radial bars: they ran through the lens
+  // housing and its darker retaining ring instead of sitting on a dial.
   // The actual serial control is the only nameplate; a second stamped
   // label above the large lens intersected the lens rim and its touch zone.
   // The physical front already has a working LATCH at (-1.05,.11)
@@ -421,13 +424,21 @@ export function buildIntricateCube({
    latchPivot.x,latchPivot.y,.153,.092,darkMetal);
   flatLine(leftFace,upperPivot.x,upperPivot.y,
    latchPivot.x,latchPivot.y,.174,.030,steel);
-  // Separate steel mounting plates and two fasteners keep the coupler
-  // anchored. The axle joins both guide heights; no unmounted gold dots.
+  // The fixed graphite rail must run BETWEEN two saddles, not through
+  // the middle of a solid silver block. Both feet are bolted to the
+  // enamel and leave an open U-shaped channel for the steel guide.
+  const couplingAngle=Math.atan2(latchPivot.y-upperPivot.y,
+    latchPivot.x-upperPivot.x);
   for(const [x,y] of [[upperPivot.x,upperPivot.y],[.46,.612]]){
-   B(leftFace,.127,.104,.040,x,y,.144,steel,.022);
-   for(const offset of [-.039,.039]){
-    C(leftFace,.014,.023,x+offset,y,.174,brass);
-    B(leftFace,.016,.004,.007,x+offset,y,.192,ebony,.002);
+   const saddle=group(leftFace,x,y,0);
+   saddle.rotation.z=couplingAngle;
+   for(const side of [-1,1]){
+    const offset=side*.092;
+    B(saddle,.145,.035,.040,0,offset,.144,steel,.009);
+    // A real supporting foot spans from the enamel to the saddle.
+    B(saddle,.038,.030,.066,0,offset,.092,steel,.008);
+    C(saddle,.014,.023,0,offset,.174,brass);
+    B(saddle,.016,.004,.007,0,offset,.192,ebony,.002);
    }
   }
   C(leftFace,.034,.109,upperPivot.x,upperPivot.y,.211,darkMetal);
