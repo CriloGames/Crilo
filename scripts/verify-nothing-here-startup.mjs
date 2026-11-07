@@ -255,12 +255,12 @@ try{
    if(check.label==="flute-door-unlock"||
       check.label==="saved-flute-door"){
     const before=await page.evaluate(()=>window.CriloNothingHereCube.getState());
-    assert(before.pocket.includes("flute")&&!before.doorOpen,
-     "Flute-door regression seed lost inventory or starts open");
+    assert(!before.doorOpen,"Flute-door test unexpectedly started with the door open");
     if(check.label==="flute-door-unlock"){
-     // The door's physical mesh is absent until the six-note melody
-     // succeeds, even if some earlier gear puzzle has already been solved.
-     assert(!before.door,"New flute case started with an unlocked door");
+     // The physical flute remains playable until the full six-note score
+     // unlocks a real door; the door itself must still be pressed to open.
+     assert(before.pocket.includes("flute")&&!before.door,
+      "New flute scenario lost the unsolved instrument");
      await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:door"));
      assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).doorOpen,
       false,"Touching a still-locked door bypassed its melody");
@@ -268,19 +268,26 @@ try{
       await page.evaluate(key=>window.CriloNothingHereCube.activatePhysicalFluteNote(key),key);
      const afterSong=await page.evaluate(()=>window.CriloNothingHereCube.getState());
      assert(afterSong.door&&!afterSong.doorOpen,
-      "A correctly played flute must unlock the door without opening it");
+      "The correct melody must unlock, but not open, the physical door");
+     assert(!afterSong.pocket.includes("flute")&&
+       !afterSong.pendingPickups.includes("flute"),
+      "Completed flute must be consumed instead of staying in inventory");
     }else{
-     assert(before.door&&!before.doorOpen,
-      "Saved already-unlocked door did not survive load");
-     // Previously playing more notes after unlocking always narrated
-     // "door already open", although it was still shut.
-     await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalFluteNote(2));
-     const narration=await page.locator("#ncNarrator").innerText();
-     assert(/melody already released|door.*unlocked/i.test(narration),
-      "Saved unlocked-but-closed door misreports that it is already open: "+narration);
+     assert(before.door&&!before.pocket.includes("flute")&&
+       !before.pendingPickups.includes("flute"),
+      "Legacy completed saves must discard their already-used flute");
     }
-    // The player's real click on the visible full-size door panel
-    // dispatches the same 'thing:door' action as the Three.js raycaster.
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.physicalFluteVisible),false,
+     "The physical flute should disappear after the correct code");
+    assert(await page.locator('#ncInventory [data-item="flute"]').count()===0&&
+      await page.locator("#ncFluteTray").isHidden(),
+     "Completed flute or its controls remained on screen");
+    await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalFluteNote(2));
+    assert.deepEqual((await page.evaluate(()=>
+      window.CriloNothingHereCube.getState())).fluteNotes,[2,1,3,1,3,2],
+     "Playing a spent flute changed the saved melody");
+    // The visible door panel uses the same raycast action as a real click.
     await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:door"));
     const opened=await page.evaluate(()=>({
      state:window.CriloNothingHereCube.getState(),
@@ -290,11 +297,19 @@ try{
      "Clicking the unlocked door panel did not physically open it: "+
       JSON.stringify({door:opened.state.door,open:opened.state.doorOpen,
        angle:opened.scene.doorAngle}));
-    // Opening a door must be persisted without clearing the flute.
     const disk=await page.evaluate(()=>JSON.parse(localStorage.getItem(
       "crilo_nothing_here_cube_v3")));
-    assert(disk.door&&disk.doorOpen&&disk.pocket.includes("flute"),
-     "Door opening failed to persist with the previously earned flute");
+    assert(disk.door&&disk.doorOpen&&!disk.pocket.includes("flute"),
+     "Saving the open door incorrectly brought the consumed flute back");
+    await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+    await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+     document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+    const restored=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(restored.door&&restored.doorOpen&&!restored.pocket.includes("flute"),
+     "Reloading resurrected a consumed flute or relocked the door");
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.physicalFluteVisible),false,
+     "Reloading restored the flute model on the 3D cube");
    }
    if(check.label==="lift-requires-collar-tag"||
       check.label==="legacy-fourth-floor"){
