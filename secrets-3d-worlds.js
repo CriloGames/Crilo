@@ -530,6 +530,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  const OBSERVATORY_SLAT_COUNT=16,OBSERVATORY_ROWS=4,OBSERVATORY_COLUMNS=32;
  const observatoryShutter={progress:0},observatoryPanels=[];
  const observatoryGuideRollers=[];
+ let observatoryRivetCount=0;
  let telescopeLensGlass=null,telescopeIrisGlass=null;
  let observatoryScope=null,observatoryRearCap=null,observatoryBarrel=null;
  const apertureHeight=az=>{
@@ -726,8 +727,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     const ratio=elev/OBSERVATORY_ARCH_RISE;
     const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
      Math.sqrt(Math.max(0,1-ratio*ratio));
-    track.push(domePoint(az,elev,OBSERVATORY_RADIUS-.007));
-    trackInset.push(domePoint(az,elev,OBSERVATORY_RADIUS-.016));
+    track.push(domePoint(az,elev,OBSERVATORY_RADIUS-.015));
+    trackInset.push(domePoint(az,elev,OBSERVATORY_RADIUS-.023));
    }
    wire(roofShell,track,.003,guideMetal);
    wire(roofShell,trackInset,.0015,m.brass);
@@ -816,6 +817,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     domeRivets.push(domePoint(az,elev,OBSERVATORY_RADIUS+.0013));
    }
   }
+  observatoryRivetCount=domeRivets.length;
   // Low-contrast pale hardware reads as manufactured fasteners, not dots.
   const quietRivet=mat(0xb5a797,.18,.48);
   const rivetMesh=new THREE.InstancedMesh(
@@ -957,7 +959,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    const elev=.025+observatoryShutter.progress*(OBSERVATORY_ARCH_RISE-.08);
    const az=side*OBSERVATORY_OPEN_HALF_ANGLE*
     Math.sqrt(Math.max(0,1-(elev/OBSERVATORY_ARCH_RISE)**2));
-   carriage.position.set(...domePoint(az,elev,OBSERVATORY_RADIUS-.009));
+   carriage.position.set(...domePoint(az,elev,OBSERVATORY_RADIUS-.018));
    carriage.rotation.z=-side*elev*.4;
   }
   invalidate();
@@ -1522,6 +1524,10 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
      slatCount:observatoryPanels.length,
      visibleSlats:observatoryPanels.filter(({panel})=>panel.visible).length,
      rearCapVisible:!!observatoryRearCap?.visible,
+     guideRailCount:observatoryGuideRollers.length,
+     visibleGuideRollers:observatoryGuideRollers.filter(({carriage})=>carriage.visible).length,
+     visibleRivetCount:observatoryRivetCount,
+     enamelTextureApplied:ivory.map===enamelGrain,
      retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*
       Math.sin(OBSERVATORY_ARCH_RISE*.72))/Math.PI,
      domeSeamHeight:items.get("telescope")?.fixture.position.z+
