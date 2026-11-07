@@ -196,31 +196,33 @@ async function refundCoin(page,{realPointer=false}={}){
  // The white face no longer rotates, and one direction of a drag must
  // always reverse the same groove the other direction entered.
  async function dragWheel(name,direction){
+  const canvas=page.locator("#stage canvas");
+  // Scrolling changes the browser's canvas position, and the game can
+  // still be settling a camera reset. Always obtain a FRESH raycast point
+  // after scrolling, not the old projection from before the viewport moved.
+  await canvas.scrollIntoViewIfNeeded({timeout:30000});
   const data=await page.evaluate(name=>{
    const p=window.__nothing3DPreview;
-   return {start:p.projectGameControl(name),center:p.getGearDragCenter(name)};
+   return {start:p.projectGameControl(name),center:p.getGearDragCenter(name),
+    camera:p.navigationState};
   },name);
   assert(data.start?.pick===name&&data.center,
-   "The actual "+name+" cannot be grabbed");
-  // Projection helpers return canvas-LOCAL coordinates. Hovering the
-  // actual physical target first ALSO scrolls it into view: after using a
-  // late-game inventory item the browser may be scrolled BELOW the canvas,
-  // and page.mouse on an offscreen point never touches the cog.
-  const canvas=page.locator("#stage canvas");
-  await canvas.hover({position:{x:data.start.x,y:data.start.y},timeout:30000});
+   "The actual "+name+" cannot be grabbed after scrolling: "+JSON.stringify(data));
   const rect=await canvas.boundingBox();
   assert(rect,"The physical 3D canvas is not visible for wheel drag");
   const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
   const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
+  // This audit endpoint expects canvas-local pixel coordinates; Playwright
+  // requires viewport coordinates for the real mouse.
   if(name!=="gear-large"){
-   // This audit endpoint expects canvas-local pixel coordinates, unlike
-   // page.mouse, which uses absolute viewport coordinates.
    const hit=await page.evaluate(([x,y])=>
     window.__nothing3DPreview.getPhysicalActionAt(x,y),
     [data.start.x,data.start.y]);
-   assert.equal(hit,name,"The real visible cog was not under the cursor");
+   assert.equal(hit,name,"The real visible cog was not under the cursor: "+
+    JSON.stringify({hit,data,rect}));
   }
+  await page.mouse.move(start.x,start.y);
   await page.mouse.down();
   if(name!=="gear-large"){
    const engaged=await page.evaluate(()=>
