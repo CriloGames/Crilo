@@ -56,6 +56,24 @@ try{
   )));
  assert.equal(new Set(observed.map(item=>item.geometry)).size,33,
   "Separate collectibles share indistinguishable placeholder artwork");
+ // The newly picked-up item's green flash must work without hovering it.
+ // Previously physical WebGL mode disabled the arrival animation entirely.
+ const arrival=await page.evaluate(()=>{
+  const item=document.querySelector('#ncInventory [data-item="lens"]');
+  const resting=getComputedStyle(item).animationName;
+  item.classList.add("nc-item-new");
+  const styles=getComputedStyle(item);
+  const pulse={name:styles.animationName,duration:styles.animationDuration,
+   hoverMatches:item.matches(":hover")};
+  item.classList.remove("nc-item-new");
+  return {resting,pulse};
+ });
+ assert.equal(arrival.resting,"none",
+  "Items restored from saves must not flash as though just collected");
+ assert.equal(arrival.pulse.name,"ncPocketCollectedFlash",
+  "The picked-up item needs an independent green flash: "+JSON.stringify(arrival));
+ assert.equal(arrival.pulse.duration,"1.05s",
+  "Collected-item confirmation should be quick, not an endless glow");
  // Clicking a held item must not recreate the rest of the pocket's SVG
  // collection, so drag, focus and the arrival pulse remain continuous.
  await page.evaluate(()=>{
