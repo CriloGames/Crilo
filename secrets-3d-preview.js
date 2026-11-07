@@ -1675,6 +1675,11 @@ window.__nothing3DPreview={
   const faults=[...(precision?.faults||[]),...(finishing?.faults||[])];
   return {precision,finishing,failures:faults,okay:faults.length===0};
  },
+ // Expose the actual generated two-level routing on all six faces to the
+ // browser QA. Each segment is the physically modeled visible inlay.
+ get engravedTrackAudit(){
+  return finish.getEngravedTrackAudit?.()||[];
+ },
  get physicalAttachmentAudit(){
   const wheels=intricate.getStructuralMounts?.()||[];
   const fixed=gameHotspots?.getFixedMountAudit?.()||[];
