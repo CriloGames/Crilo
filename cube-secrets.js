@@ -71,7 +71,7 @@ const title=new Map(catalog);
 const names={tooth:'key teeth',ring:'brass ring',thread:'red thread',pipe:'hollow pipe',reed:'tiny reed',
  flute:'flute',key:'little key',coin:'coin',treat:'dog biscuit',prism:'glass prism',
  acorn:'acorn',spring:'clock spring',raindrop:'a drop of rain',bird:'paper bird',
- kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag',
+ kite:'a kite',sugar:'sugar cube',bell:'tiny bell',tag:'collar tag (04)',
  lens:'silver telescope lens',stardust:'luminous moth dust',starmap:'folded star chart',
  parcel:'miniature parcel',postcard:'postcard from nowhere',
  cog:'brass drive cog',iris:'glass eye',shim:'thin copper shim',washer:'hinge washer',
@@ -202,8 +202,8 @@ const pocket=new Set((Array.isArray(raw.pocket)?raw.pocket:[]).filter(k=>Object.
 const pendingPickups=new Set((Array.isArray(raw.pendingPickups)?raw.pendingPickups:[])
  .filter(k=>Object.hasOwn(names,k)&&!pocket.has(k)));
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
- bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
- vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
+ bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,bellUsed:false,squirrel:false,
+ vase:false,plant:false,tree:false,cloud:false,rainReleased:false,music:false,watch:false,machine:false,
  cup:false,moon:false,observatoryRaised:false,mouse:false,tag:false,kite:false,
  floorFour:false,elevatorTagInserted:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
@@ -213,7 +213,21 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  cylinderMounted:false,tapeInserted:false,letterMailed:false,doorReplied:false};
 const s={...defaults};
 for(const k of Object.keys(defaults))if(typeof raw[k]==='boolean')s[k]=raw[k];
-// The telescope now has TWO real optical fittings, usable in either order.
+// A raindrop is a one-time reward. Older players may already carry it,
+ // have watered the tree, or have an outstanding 3D pickup from an older
+ // build that released the drop without recording its own flag.
+ // Keep those earned states and never duplicate a spent drop on reload.
+ s.rainReleased=!!(s.rainReleased||seen.has('rain')||
+  pendingPickups.has('raindrop')||pocket.has('raindrop')||s.tree);
+ // Earlier versions let the cloud generate an obsolete second drop even
+ // after watering successfully grew the tree. This specific duplicate can
+ // no longer be used. Drop only that spent consumable, not any discoveries,
+ // valid inventory objects, or other physical reward origins.
+ if(s.tree){
+  pocket.delete('raindrop');
+  pendingPickups.delete('raindrop');
+ }
+ // The telescope now has TWO real optical fittings, usable in either order.
 // Older runs always installed the silver lens before the glass iris. Honor
 // their already-completed constellation and second-sky secrets without
 // duplicating either pickup or relocking the telescope.
@@ -333,7 +347,7 @@ recoverReward('tag',s.tag&&s.doorOpen&&!s.elevatorTagInserted);
 recoverReward('sugar',seen.has('machine')&&!s.watch);
 recoverReward('acorn',s.vase&&!s.plant);
 recoverReward('spring',s.vase&&!s.music);
-recoverReward('raindrop',s.music&&!s.tree);
+recoverReward('raindrop',s.rainReleased&&!s.tree);
 recoverReward('bird',s.tree&&!s.moon);
 recoverReward('bell',s.redHits>=4);
 recoverReward('fork',s.pressureReady&&(s.gearMazeSolved||s.legacyGearBypass)&&!s.resonance);
@@ -428,7 +442,7 @@ const itemInspections={
  bird:'A folded paper bird, delicate but surprisingly sturdy.',
  kite:'A tiny kite. Its thread is taut.',
  sugar:'A little cube of sugar.',
- bell:'Its clapper is loose. It rings when moved.',
+ bell:'A small brass bell. Its clapper could startle something nearby, once.',
  tag:'A heavy metal collar tag stamped 04. One edge is cut like a miniature access key.',
  lens:'A glass lens with a fitted metal rim.',
  stardust:'Fine glitter from the clockwork moth.',
@@ -1077,10 +1091,10 @@ function inspectHardware(name){
   if(n===3){
    if(!s.falseScrewTurns){
     s.falseScrewTurns=1;
-    bloom('false-screw','The captive fastener depresses once. It is a spring button, not a screw.');
-    tell('This unusual fastener has a captive spring. It settles firmly against its end stop.');
+    bloom('false-screw','The rounded fourth corner fitting is a captive spring plunger, not a screw. Three slotted screws actually secure the front access cover.');
+    tell('The rounded corner fitting presses into a spring stop. It is not removable. Three slotted screws secure the front access cover.');
     cue(document.querySelector('[data-hit="'+name+'"]'),'nc-fastener-turning',550);
-   }else tell('That button won’t go any farther.');
+   }else tell('The captive spring fitting has already been tested. The other three corners hold removable screws.');
   }else if(!s.screws.includes(n)){
    s.screws.push(n);bloom('fastener','The front screw comes free, leaving an empty threaded socket in the service cover.');
    if(s.screws.length===3){
@@ -1259,7 +1273,7 @@ function accepts(item,thing){
  ||item==='kite'&&thing==='cloud'&&s.cloud&&!s.kite
  ||item==='sugar'&&thing==='cup'&&s.cup
  ||item==='bird'&&thing==='cube'&&s.tree&&!s.moon
- ||item==='bell'&&thing==='dog'&&s.doorOpen
+ ||item==='bell'&&thing==='dog'&&s.doorOpen&&!s.bellUsed
  ||item==='lens'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
@@ -1339,12 +1353,13 @@ function use(item,thing){
    else tell('A round mechanism has stirred beneath the top hatch. Its upper cradle still needs to be cleared.');
    incident('☾');
  }else if(item==='bell'&&thing==='dog'){
-  // The bell is NOT a dead-end inventory item. Its audible cause has a
-  // concrete effect on the dog, squirrel, and physically cracked vase.
-  // Petting three times remains a second, fully valid way to start this.
+  // A single, deliberate inventory use is enough to startle the dog.
+  // The bell stays attached to the collar afterward rather than acting
+  // like an infinitely reusable green-highlighted unlock.
+  spend('bell');s.bellUsed=true;
   sound(820);
   if(!s.barked)bark('bell');
-  else tell('The bell rings again. The dog looks toward the empty ledge where the startled squirrel used to sit.');
+  else tell('You attach the tiny bell to the dog’s collar. It rings once, but the squirrel and broken vase are already gone.');
  }else if((item==='lens'||item==='iris')&&thing==='telescope'){
   // Two independently obtainable optical components fit separate sockets:
   // one from the elevator, the other from the opened rear-eye mechanism.
@@ -1708,8 +1723,16 @@ function clickThing(name,actuator=false){
  else if(name==='pot')tell(s.tree?'An impossible tiny tree, growing indoors.':s.plant?'The acorn is thirsty.':'It is a pot with some dry soil.');
  else if(name==='musicbox')tell(s.music?'The music box smells faintly of rain.':'There is a spring-shaped hole in its clockwork.');
  else if(name==='cloud'){
-  if(s.music){gain('raindrop','A raindrop settles in the cloud’s attached collecting tray.');bloom('rain');incident('💧')}
-  else tell('A cloud the size of a sandwich.');
+  if(!s.music)tell('A cloud the size of a sandwich.');
+  else if(!s.rainReleased){
+   s.rainReleased=true;
+   gain('raindrop','A single raindrop settles in the cloud’s attached collecting tray.');
+   bloom('rain');incident('💧');
+  }else if(pendingPickups.has('raindrop'))
+   tell('The cloud has already released its drop. It is still waiting in the little collecting tray.');
+  else if(pocket.has('raindrop'))
+   tell('The cloud has released its one drop. You are carrying it already.');
+  else tell('The cloud is dry. Its one raindrop has already been used.');
  }else if(name==='cup')tell(s.watch?'The bottom of the cup is a tiny hole in time.':'It could use some sugar.');
  else if(name==='clock'){
   bloom('clock','It is 4:17. It has been 4:17 for a very long time.');
@@ -2059,7 +2082,12 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   if(name==='cube-offer'){
    // This is an offering port, not an all-purpose secret-unlock button.
    // The service faceplate is freed by removing its screws only.
-   if(!selected){tell('The receiver is empty. Its metal rim is smooth.');return;}
+   if(!selected){
+   tell(s.portal
+    ?'The postcard opened a tiny landscape inside the receiver. The thin violet ring is its optical portal, not a second empty socket.'
+    :'The receiver is empty. Its metal rim is smooth.');
+   return;
+  }
    if(!use(selected,'cube')){
     tell('That offering does not fit the receiver.');
     render();

@@ -69,6 +69,23 @@ const cases=[
    floorFour:true,pocket:[],pendingPickups:[],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Reproduce four real gameplay observations without a production
+ // account: duplicate rain, a bell that rings forever, an invisible 04
+ // stamp, and the apparently random purple portal rim.
+ {label:"rain-bell-tag-portal",viewport:{width:1280,height:850},
+  seed:{seen:["first","door","music","cloud","tag","portal","bell"],
+   music:true,cloud:true,plant:true,tag:true,door:true,doorOpen:true,
+   portal:true,redHits:4,pocket:["bell"],pendingPickups:["tag"],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // Existing users may have taken another drop *after* growing the tree.
+ // Loading this specific impossible spare must not resurrect it.
+ {label:"legacy-extra-raindrop",viewport:{width:1280,height:850},
+  seed:{seen:["first","music","rain","tree","door","bark"],music:true,cloud:true,
+   plant:true,tree:true,door:true,doorOpen:true,barked:true,
+   pocket:["raindrop","bell"],pendingPickups:[],
+   gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
   seed:{seen:["first","mouse","bag","machine"],mouse:true,
    bag:true,machine:true,pocket:["coin"],pendingPickups:[],
@@ -329,6 +346,96 @@ try{
      assert(disk.elevatorTagInserted&&disk.floorFour&&
       !disk.pocket.includes("tag"),"The installed tag/fourth floor did not save");
     }
+   }
+   if(check.label==="rain-bell-tag-portal"){
+    const tag=await page.evaluate(()=>window.__nothing3DPreview
+     .getPhysicalPickupRevealState("tag"));
+    assert(tag?.onScene&&tag.stamp==="04",
+     "The visible dog collar tag lacks a real 04 engraving: "+
+      JSON.stringify(tag));
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("pickup:tag"));
+    assert((await page.locator('#ncInventory [data-item="tag"]').innerText())
+     .includes("04"),"Collected tag never identifies the engraved floor 04");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("cube-offer"));
+    assert(/postcard|landscape|portal/i.test(
+     await page.locator("#ncNarrator").innerText()),
+     "The postcard portal still falsely describes an empty brass receiver");
+    await page.locator('#ncInventory [data-item="bell"]').click();
+    assert(await page.evaluate(()=>window.CriloNothingHereCube
+     .canUseSelectedWithAction("thing:dog")),
+     "An unused bell must fit the dog before it barks");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:dog"));
+    const barked=await page.evaluate(()=>({
+     state:window.CriloNothingHereCube.getState(),
+     pose:window.__nothing3DPreview.physicalScenePose
+    }));
+    assert(barked.state.barked&&barked.state.bellUsed&&
+     !barked.state.pocket.includes("bell")&&barked.pose.dogBellOnCollar,
+     "The bell must be consumed once and physically hang on the dog: "+
+      JSON.stringify({pocket:barked.state.pocket,
+       bellUsed:barked.state.bellUsed,visible:barked.pose.dogBellOnCollar}));
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:cloud"));
+    const first=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(first.rainReleased&&first.pendingPickups.includes("raindrop"),
+     "The cloud failed to release its first physical drop");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:cloud"));
+    const second=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert.equal(second.pendingPickups.filter(id=>id==="raindrop").length,1,
+     "Repeat cloud clicks duplicated the pending drop");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("pickup:raindrop"));
+    assert((await page.evaluate(()=>window.CriloNothingHereCube.getState()))
+      .pocket.includes("raindrop"),
+     "The cloud's first drop was not collectible");
+    await page.locator('#ncInventory [data-item="raindrop"]').click();
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:pot"));
+    const grown=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(grown.tree&&!grown.pocket.includes("raindrop"),
+     "Using the only drop did not grow the tree");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:cloud"));
+    const afterRepeat=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(afterRepeat.tree&&afterRepeat.rainReleased&&
+     !afterRepeat.pendingPickups.includes("raindrop")&&
+     !afterRepeat.pocket.includes("raindrop"),
+     "The cloud generated a useless second drop after the tree grew");
+    // A one-time fake fastener can be inspected, but repeated presses
+    // must not add secrets, inventory, or further hidden states.
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const firstPress=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("front-screw-3"));
+    const nextPress=await page.evaluate(()=>window.CriloNothingHereCube.getState());
+    assert(firstPress.falseScrewTurns===1&&nextPress.falseScrewTurns===1,
+     "The unslotted corner plunger was not a single-use discovery");
+    const disk=await page.evaluate(()=>JSON.parse(localStorage.getItem(
+     "crilo_nothing_here_cube_v3")));
+    assert(disk.rainReleased&&disk.bellUsed&&disk.tree&&
+     !disk.pocket.includes("raindrop")&&disk.seen.includes("portal"),
+     "One-shot rain/bell and postcard portal were not saved");
+   }
+   if(check.label==="legacy-extra-raindrop"){
+    const clean=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     disk:JSON.parse(localStorage.getItem("crilo_nothing_here_cube_v3"))
+    }));
+    assert(clean.game.tree&&clean.game.rainReleased&&
+     !clean.game.pocket.includes("raindrop")&&
+     !clean.game.pendingPickups.includes("raindrop"),
+     "A previously spent extra raindrop still remains after save migration");
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:cloud"));
+    assert(!(await page.evaluate(()=>window.CriloNothingHereCube.getState()))
+     .pendingPickups.includes("raindrop"),
+     "Legacy tree completion could generate the same obsolete spare again");
+    // Older players may have made the dog bark by petting first. Their
+    // unused bell should still attach ONCE, without replaying the squirrel.
+    await page.locator('#ncInventory [data-item="bell"]').click();
+    await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:dog"));
+    const oldBell=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     bell:window.__nothing3DPreview.physicalScenePose.dogBellOnCollar
+    }));
+    assert(oldBell.game.bellUsed&&!oldBell.game.pocket.includes("bell")&&oldBell.bell,
+     "An unused legacy bell should attach once even after the dog barked");
+    assert(!oldBell.game.pendingPickups.includes("raindrop"),
+     "Using the bell in an old save resurrected the second raindrop");
    }
    if(check.label==="vending-two-rewards"){
     const result=await page.evaluate(()=>{
