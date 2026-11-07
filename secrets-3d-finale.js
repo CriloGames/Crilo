@@ -24,6 +24,11 @@ export function createNothingHereFinale({
   ["bottom",bottomFace],["back",backFace],["top",topFace]
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
+ let completionWatchdog=null;
+ function clearWatchdog(){
+  if(completionWatchdog!==null)clearTimeout(completionWatchdog);
+  completionWatchdog=null;
+ }
  const END=THREE.MathUtils;
  const cue=()=>{window.NothingHereAudio?.playFinale?.()};
  function showBanner(next){
@@ -105,6 +110,7 @@ export function createNothingHereFinale({
   invalidate();
  }
  function resetForReplay(){
+  clearWatchdog();
   timeline?.kill();
   timeline=null;
   ensureJoints();
@@ -119,6 +125,8 @@ export function createNothingHereFinale({
   invalidate();
  }
  function finish(){
+  clearWatchdog();
+  if(timeline){timeline.kill();timeline=null;}
   placeNet();
   phase="open";
   showBanner("open");
@@ -156,6 +164,11 @@ export function createNothingHereFinale({
    .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.2,ease:"power2.inOut"},1.25)
    .to(joints.back.rotation,{x:-Math.PI/2,duration:1.1,ease:"power2.inOut"},2.10)
    .to(joints.top.rotation,{x:Math.PI/2,duration:1.15,ease:"power2.inOut"},2.88);
+  // Software WebGL can starve GSAP's frame ticker. Never trap a player
+  // in a half-unfolded cube if Chromium stalls or goes into background.
+  completionWatchdog=setTimeout(()=>{
+   if(phase==="opening")finish();
+  },9500);
   return true;
  }
  function restoreComplete(){
