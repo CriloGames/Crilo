@@ -202,7 +202,13 @@ async function refundCoin(page,{realPointer=false}={}){
   },name);
   assert(data.start?.pick===name&&data.center,
    "The actual "+name+" cannot be grabbed");
-  const center=data.center,start=data.start;
+  // Projection helpers deliberately return coordinates relative to the
+  // WebGL canvas. Playwright page.mouse requires VIEWPORT coordinates:
+  // without the canvas offset these mouse drags hit empty page space.
+  const rect=await page.locator("#stage canvas").boundingBox();
+  assert(rect,"The physical 3D canvas is not visible for wheel drag");
+  const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
+  const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
   await page.mouse.move(start.x,start.y);await page.mouse.down();
   if(direction==="in"||direction==="out"){
