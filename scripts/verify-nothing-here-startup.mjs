@@ -31,6 +31,8 @@ const cases=[
   seed:{seen:["first","observatory"],top:true,pipeTaken:true,
    observatoryRaised:true,observed:false,
    telescopeLensMounted:false,telescopeIrisMounted:false,
+   // Holding this optical piece should mark the front lens, not the dome.
+   pocket:["lens"],
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"held-coin-guidance",viewport:{width:1280,height:850},
@@ -309,6 +311,34 @@ try{
      "Pressing the real telescope offered no useful text feedback: "+clue);
     await page.screenshot({path:"test-results/nothing-here-observatory-click.png",
      timeout:45000});
+    // Holding the silver lens should pulse exactly at the objective's
+    // optical axis, not at a random roof-panel raycast intersection.
+    await page.locator('#ncInventory [data-item="lens"]').click();
+    await page.waitForFunction(()=>window.__nothing3DPreview
+     ?.selectedItemFlashAudit?.targets.includes("thing:telescope"),
+     null,{timeout:25000});
+    const align=await page.evaluate(()=>
+     window.__nothing3DPreview.observatoryFitGuideAlignment);
+    assert(align?.visible&&align.anchored&&align.error<1e-5&&
+     Math.abs(align.local[0])<1e-8&&Math.abs(align.local[2])<1e-8,
+     "Held lens indicator must be centered on the telescope glass: "+
+      JSON.stringify(align));
+    // Turning the cube changes the world location but not the optical
+    // center in the telescope's own permanent local frame.
+    await page.evaluate(([rx,ry])=>window.__nothing3DPreview
+     .setRotation(rx,ry),[view.rx+4,view.ry+8]);
+    await page.waitForTimeout(300);
+    const turned=await page.evaluate(()=>
+     window.__nothing3DPreview.observatoryFitGuideAlignment);
+    assert(turned?.visible&&turned.anchored&&turned.error<1e-5,
+     "Green target drifted off the objective when the cube turned: "+
+      JSON.stringify(turned));
+    await page.screenshot({path:"test-results/nothing-here-observatory-lens-fit.png",
+     timeout:45000});
+    await page.locator("#ncUnselect").click();
+    assert.equal((await page.evaluate(()=>
+     window.__nothing3DPreview.selectedItemFlashAudit)).visible,0,
+     "Green observatory guide remained after putting the lens down");
    }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
    // Check the design at each physical angle, not merely a Three.js
