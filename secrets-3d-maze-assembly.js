@@ -1,4 +1,4 @@
-import {buildMazeWalls} from "./secrets-3d-maze-walls.js?v=2";
+import {buildMazeWalls} from "./secrets-3d-maze-walls.js?v=3";
 
 // A stationary ivory disk and one fully connected raised-wall geometry.
 // Wheel animation and puzzle save data remain owned by the game.
