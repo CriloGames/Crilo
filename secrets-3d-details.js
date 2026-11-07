@@ -106,7 +106,11 @@ export function buildIntricateCube({
   const plates=(face,m)=>{
     // Inner panel is a real raised physical layer with corner detailing.
     for(const sy of [-1,1]){
-      trimRail(face,"x",sy*1.38,-1.425,1.425,.055,.07,.10,m,.016);
+      // The front lens nearly touches the old +1.38 border. Rather
+      // than sawing that rail in two, relocate the full front border
+      // toward the solid case frame so it clears the lens in one piece.
+      const border=face===frontFace?1.51:1.38;
+      trimRail(face,"x",sy*border,-1.425,1.425,.055,.07,.10,m,.016);
       for(const sx of [-1,1]){
         // The integrated iris service cassette occupies this corner.
         // Avoid an orphaned shell rivet running through its backplate.
@@ -119,8 +123,10 @@ export function buildIntricateCube({
         rivet(face,sx*1.31,sy*1.33,.16);
       }
     }
-    for(const sx of [-1,1])
-      trimRail(face,"y",sx*1.39,-1.315,1.315,.055,.07,.10,m,.018);
+    for(const sx of [-1,1]){
+      const border=face===frontFace?1.51:1.39;
+      trimRail(face,"y",sx*border,-1.315,1.315,.055,.07,.10,m,.018);
+    }
   };
   const vent=(face,x,y,w=.65,n=5,m=ebony)=>{
     const frame=group(face,x,y,.16);
