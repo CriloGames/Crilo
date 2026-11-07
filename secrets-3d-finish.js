@@ -265,6 +265,71 @@ export function finishMechanicalArtifact({
   machinedPanel(bottomFace,satin);
   machinedPanel(backFace,teal);
 
+  // SECONDARY ENGRAVED TRACKWORK — the original layered machinery aesthetic.
+  // The previous pass removed this entire tier and made all six faces look
+  // empty. These are physical, low-profile inlays, not wall stickers.
+  // They follow two nested, butt-joined rectangular routes. Interference
+  // at actual controls is handled here by ending in a small *mounted*
+  // contact, rather than chopping a full-width bar into floating sticks.
+  const ornamentSummary=[];
+  const engrave=(face,inset,paint,width,depth,z,{openBottom=false}={})=>{
+    const name=borderFaceName.get(face);
+    const spanX=inset-width/2,spanY=inset+width/2;
+    const edges=[
+      ["x",inset,-spanX,spanX],
+      ["x",-inset,-spanX,spanX],
+      ["y",-inset,-spanY,spanY],
+      ["y",inset,-spanY,spanY]
+    ].filter(([axis,fixed])=>!(openBottom&&axis==="x"&&fixed<0));
+    for(const [axis,fixed,from,to] of edges){
+      const raw=clearRailSegments(name,axis,fixed,from,to,width);
+      const spans=raw.map(seg=>{
+        // Withdraw the metal a little farther from each fitting to make
+        // room for the terminal socket's own radius and chamfer.
+        const cutStart=seg.from>from+.001,cutEnd=seg.to<to-.001;
+        const start=seg.from+(cutStart?.028:0);
+        const end=seg.to-(cutEnd?.028:0);
+        return {from:start,to:end,length:end-start,
+          center:(start+end)/2,cutStart,cutEnd};
+      }).filter(s=>s.length>=.25);
+      borderRails.push({face:name,axis,fixed,from,to,width,segments:spans});
+      borderRailFaults.push(...railClearanceFaults(name,axis,fixed,spans,width));
+      for(const seg of spans){
+        const trace=axis==="x"
+          ?B(face,seg.length,width,depth,seg.center,fixed,z,paint,.005)
+          :B(face,width,seg.length,depth,fixed,seg.center,z,paint,.005);
+        trace.userData.clearanceTrim=true;
+        trace.userData.engravedRail=true;
+        // Low-profile socket heads replace the unconnected blunt ends.
+        // Each has a real shaft back into the enamel; no oversized gold
+        // end pieces, no fake crosspieces and no rail pierced by a control.
+        for(const [cut,at] of [
+          [seg.cutStart,seg.from],[seg.cutEnd,seg.to]
+        ]){
+          if(!cut)continue;
+          const x=axis==="x"?at:fixed,y=axis==="x"?fixed:at;
+          C(face,.014,.049,x,y,.093,metal);
+          C(face,.008,.014,x,y,.124,tinyGold);
+        }
+      }
+      ornamentSummary.push({face:name,axis,fixed,width,
+        count:spans.length,segments:spans.map(s=>[s.from,s.to])});
+    }
+  };
+  const ornamentFace=(face,accent,{roof=false}={})=>{
+    // Gold/colored pilot trace + graphite return trace, with generous
+    // spacing between them. Together they recover the dense hand-built
+    // appearance without returning to the old overlapping black lattice.
+    engrave(face,1.255,accent,.023,.026,.126,{openBottom:roof});
+    engrave(face,1.140,deep,.012,.017,.119,{openBottom:roof});
+  };
+  ornamentFace(frontFace,tinyGold);
+  ornamentFace(rightFace,teal);
+  ornamentFace(backFace,teal);
+  ornamentFace(leftFace,copper);
+  ornamentFace(bottomFace,satin);
+  ornamentFace(topFace,brass,{roof:true});
+
   // Substantial three-dimensional beveled corner gussets instead of
   // independent square caps. These are mounted to the fixed frame.
   for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){
@@ -422,6 +487,9 @@ export function finishMechanicalArtifact({
   });
   return {
     meshCount:()=>partCount,
+    getEngravedTrackAudit:()=>ornamentSummary.map(line=>({
+      ...line,segments:line.segments.map(pair=>[...pair])
+    })),
     getTrimClearanceAudit:()=>({railCount:borderRails.length,
       partCount:borderRails.reduce((n,r)=>n+r.segments.length,0),
       clipped:borderRails.filter(r=>r.segments.length!==1||
