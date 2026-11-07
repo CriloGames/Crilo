@@ -1301,7 +1301,7 @@ function addFitMarker(target){
  sprite.position.copy(local);
  // The observatory lens is miniature: keep its green halo in the glass
  // instead of drawing an oversized marker across the entire dome.
- sprite.scale.set(mesh===objective?.22:.54,mesh===objective?.26:.64,1);
+ sprite.scale.set(mesh===objective?.22:.54,mesh===objective?.22:.64,1);
  sprite.renderOrder=2;
  // The sprite is deliberately absent from interactiveMeshes and never
  // claims a click; it only follows the material fitting below it.
