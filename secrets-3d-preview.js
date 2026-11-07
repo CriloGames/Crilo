@@ -5,9 +5,9 @@ import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=53";
-import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=72";
-import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=19";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
+import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=20";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -1060,11 +1060,14 @@ function describeAction(action){
   // the mark currently visible under the pointer; never suggest the code.
   return "Bag wheel "+(n+1)+(symbol?" · "+symbol:"");
  }
+ if(action==="cube-offer"&&currentGameState.portal)
+  return "Tiny landscape inside the portal receiver";
  if(action==="thing:bag-release")return "Bag spring catch";
  if(action.startsWith("thing:elevator-floor-"))return "Elevator button "+action.slice(-1);
  if(action==="thing:door-handle")return controlNames[action];
  if(action.startsWith("thing:"))return miniatureNames[action.slice(6)]||"Miniature object";
- if(action==="front-screw-3")return "Unslotted corner fitting";
+ if(action==="front-screw-3")return currentGameState.falseScrewTurns
+  ?"Tested captive spring stop":"Unslotted corner fitting";
  if(action.startsWith("front-screw-"))return "Removable faceplate screw";
  if(action.startsWith("right-bolt-")||action.startsWith("side-screw-"))return "Service fastener";
  if(action.startsWith("hinge-")||action.startsWith("top-screw-"))return "Hinge pin";
