@@ -172,30 +172,33 @@ assert(!logic.includes("item==='starmap'&&thing==='elevator'&&s.floorFour"),
 // The selected reference requires a spherical ivory dome, a wide
 // arched opening, terracotta lining, a continuous lower band and a
 // telescope centered behind the opening, not the old boxy barrel.
-for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_CUT_FRONT=.074;","const OBSERVATORY_OPEN_HALF_ANGLE=Math.acos(","const OBSERVATORY_ARCH_RISE=OBSERVATORY_OPEN_HALF_ANGLE;","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0xc6b5a3,.10,.67);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.023,.009,.108,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
+for(const part of ["const OBSERVATORY_RADIUS=.278,OBSERVATORY_RING_TOP=.058;","const OBSERVATORY_CUT_SLOPE=.55;","const OBSERVATORY_OPEN_HALF_ANGLE=Math.PI/2;","const OBSERVATORY_ARCH_RISE=Math.atan(1/OBSERVATORY_CUT_SLOPE);","const apertureHeight=az=>{","const domePoint=(az,elev,r=OBSERVATORY_RADIUS)=>[","const domeSkin=r=>{","new THREE.CylinderGeometry(","OBSERVATORY_RADIUS+.004,OBSERVATORY_RADIUS+.004,.073,72,1,true),ivory","item.mountRing=band;","domeSkin(OBSERVATORY_RADIUS),ivory","domeSkin(OBSERVATORY_RADIUS-.010),terracotta","const terracotta=mat(0xc6b5a3,.10,.67);","wire(roofShell,lip,.006,m.cream);","const slatGeometry=(lo,hi)=>{","observatoryPanels.push({panel,lo,hi});","panel.visible=begin<OBSERVATORY_ARCH_RISE+.035;","pos.setXYZ(n,...domePoint(az,elev,OBSERVATORY_RADIUS-.004));","const applyObservatoryRoll=()=>{","observatoryScope.position.set(0,-.015,.038);","observatoryScope.scale.setScalar(.80);","observatoryScope.rotation.y=0;","retainedDomeFraction:1-(OBSERVATORY_OPEN_HALF_ANGLE*","mouthWidth:2*OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_OPEN_HALF_ANGLE),","openingRise:OBSERVATORY_RADIUS*Math.sin(OBSERVATORY_ARCH_RISE),","telescopeLensGlass=C(tube,.063,.011,0,0,.151,m.glass,\"z\");","telescopeIrisGlass=C(tube,.023,.009,.108,0,-.020,m.glass,\"x\");","gsap.to(observatoryShutter,{"]) assert(worlds.includes(part),
  'Reference observatory feature missing: '+part);
-// The front rim is the intersection of a sphere and a single planar
-// chord, not two independently bowed arch halves meeting at a V.
-assert(worlds.includes('const apertureHeight=(az,r=OBSERVATORY_RADIUS)=>{')&&
- worlds.includes('const facing=Math.cos(az);')&&
- worlds.includes('const cosine=OBSERVATORY_CUT_FRONT/(r*facing);')&&
- worlds.includes('return cosine>=1?0:Math.acos(cosine);')&&
- worlds.includes('const apertureHalfWidth=(elev,r=OBSERVATORY_RADIUS)=>{')&&
- worlds.includes('const reach=r*Math.cos(elev);')&&
+// The front rim is an inclined planar section: from the roof view its
+// entire span projects straight rather than making a point over the scope.
+assert(worlds.includes('const apertureHeight=az=>Math.atan2(')&&
+ worlds.includes('Math.max(0,Math.cos(az)),OBSERVATORY_CUT_SLOPE);')&&
+ worlds.includes('const apertureHalfWidth=elev=>Math.acos(')&&
+ worlds.includes('OBSERVATORY_CUT_SLOPE*Math.tan(elev),0,1));')&&
  worlds.includes('const az=side*apertureHalfWidth(elev);')&&
  worlds.includes('const width=apertureHalfWidth(elev);')&&
  worlds.includes('const width=apertureHalfWidth(source);')&&
- worlds.includes('const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az,r);'),
- 'The dome no longer has one straight planar opening and matching tracks');
-// Geometry invariant: ALL points on the rim must share the same Y plane.
-// This guards the actual point-by-point shape, not just source keywords.
-const chordR=.278,chordDepth=.074,span=Math.acos(chordDepth/chordR);
-for(let i=0;i<=160;i++){
- const az=span*(2*i/160-1),ratio=chordDepth/(chordR*Math.cos(az));
- const elev=ratio>=1?0:Math.acos(ratio);
- const rimY=-chordR*Math.cos(elev)*Math.cos(az);
- assert(Math.abs(rimY+chordDepth)<1e-9,
-  'The observatory rim bows away from its straight chord plane');
+ worlds.includes('const az=-Math.PI+2*Math.PI*i/A,cut=apertureHeight(az);'),
+ 'The shutter edge and guide rails no longer share one straight-cut plane');
+// Geometry test samples every part of the rim. For any viewing angle,
+// all points must lie on one plane: y + .55*z = 0 (no central V).
+const sectionR=.278,sectionSlope=.55,sectionAngle=Math.PI/2;
+for(let i=0;i<=320;i++){
+ const az=sectionAngle*(2*i/320-1);
+ const elev=Math.atan2(Math.max(0,Math.cos(az)),sectionSlope);
+ const y=-sectionR*Math.cos(elev)*Math.cos(az);
+ const z=sectionR*Math.sin(elev);
+ assert(Math.abs(y+sectionSlope*z)<1e-10,
+  'The observatory rim bends away from its single straight-cut plane');
+ // The inverse must reach the same point as the shutter's guide tracks.
+ const width=Math.acos(Math.max(0,Math.min(1,sectionSlope*Math.tan(elev))));
+ assert(Math.abs(Math.abs(az)-width)<1e-9,
+  'The shutter guide no longer matches the lid opening');
 }
 // The approved lid uses a single rigid full-thickness ivory rim and
 // eleven-plus flush fasteners, not an unsupported rubber-looking arc.
@@ -203,8 +206,8 @@ assert(worlds.includes('const rimStations=160,rimProfile=[')&&
  worlds.includes('const stiffRim=new THREE.Mesh(rimGeometry,rimEnamel);')&&
  worlds.includes('rimGeometry.computeVertexNormals();')&&
  worlds.includes('for(let i=0;i<13;i++){')&&
- worlds.includes('OBSERVATORY_CUT_FRONT=.074;')&&
- !worlds.includes('OBSERVATORY_ARCH_RISE*Math.cos(u*Math.PI/2)'),
+ worlds.includes('OBSERVATORY_CUT_SLOPE=.55;')&&
+ !worlds.includes('OBSERVATORY_CUT_FRONT=.074;'),
  'The rigid more-open observatory lid geometry regressed');
 // Polishing must not bury the guide tracks, clutter the hemisphere
 // again, or bring back the bulky focuser. The garage-door release itself
