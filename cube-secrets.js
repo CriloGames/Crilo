@@ -205,7 +205,7 @@ const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag
  bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,music:false,watch:false,machine:false,
  cup:false,moon:false,observatoryRaised:false,mouse:false,tag:false,kite:false,
- floorFour:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
+ floorFour:false,elevatorTagInserted:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
  drawerTaken:false,sideTaken:false,pipeTaken:false,ringTaken:false,
  plateOpen:false,ventOpen:false,opticOpened:false,secondSky:false,
  shimUsed:false,coinReturned:false,refundRedeemed:false,serviceSealInserted:false,clockHeart:false,footChecked:false,rightBoltLoose:false,
@@ -329,7 +329,7 @@ if(s.shimUsed&&seen.has('machine')){
 recoverReward('reed',s.bagSolved&&!seen.has('flute')&&!pocket.has('flute'));
 recoverReward('treat',s.bagSolved&&!s.tag);
 recoverReward('prism',s.bagSolved&&!seen.has('kite')&&!pocket.has('kite'));
-recoverReward('tag',s.tag&&s.doorOpen);
+recoverReward('tag',s.tag&&s.doorOpen&&!s.elevatorTagInserted);
 recoverReward('sugar',seen.has('machine')&&!s.watch);
 recoverReward('acorn',s.vase&&!s.plant);
 recoverReward('spring',s.vase&&!s.music);
@@ -429,7 +429,7 @@ const itemInspections={
  kite:'A tiny kite. Its thread is taut.',
  sugar:'A little cube of sugar.',
  bell:'Its clapper is loose. It rings when moved.',
- tag:'A metal collar tag with a number stamped on it.',
+ tag:'A heavy metal collar tag stamped 04. One edge is cut like a miniature access key.',
  lens:'A glass lens with a fitted metal rim.',
  stardust:'Fine glitter from the clockwork moth.',
  starmap:'A star chart folded into a small square.',
@@ -518,7 +518,9 @@ function ongoingMechanisms(){
   add('Clock reader','The clock has read the tape. A folded letter is available.'+
    (pendingPickups.has('letter')?' It is still at the clock.':''));
  if((s.serialRead||s.watch&&s.tag)&&!s.floorFour)
-  add('Miniature lift','A small four-floor carriage is exposed, with separate numbered controls.');
+  add('Miniature lift',s.elevatorTagInserted
+   ?'The dog’s brass tag is seated in the lower access reader. The floor controls are now enabled.'
+   :'The four-floor carriage has a narrow, empty brass access reader beneath its buttons.');
  if(s.floorFour&&!s.observed)
   add('Fourth-floor lift','The lift opened onto a lens and a clockwork moth.'+
    (pendingPickups.has('lens')?' The lens is still in the lift.':''));
@@ -1261,6 +1263,7 @@ function accepts(item,thing){
  ||item==='lens'&&thing==='telescope'&&thingPresent('telescope')&&!s.telescopeLensMounted
  ||item==='stardust'&&thing==='musicbox'&&s.music&&!s.dancer
  ||item==='starmap'&&thing==='elevator'&&thingPresent('elevator')&&!s.train
+ ||item==='tag'&&thing==='elevator-keyway'&&thingPresent('elevator')&&!s.elevatorTagInserted&&!s.floorFour
  ||item==='parcel'&&thing==='dog'&&s.doorOpen
  ||item==='postcard'&&thing==='cube'&&!s.portal
  ||item==='cog'&&thing==='eye'&&s.eyeRingTicks>=3&&!s.opticOpened
@@ -1362,6 +1365,10 @@ function use(item,thing){
  }else if(item==='stardust'&&thing==='musicbox'){
   spend('stardust');s.dancer=true;
   bloom('dancer','A tiny ballerina unfolds from the music box and begins to waltz.');
+ }else if(item==='tag'&&thing==='elevator-keyway'){
+  spend('tag');s.elevatorTagInserted=true;
+  bloom('lift','The collar tag slides into the tiny brass reader beneath the elevator buttons. Its latch withdraws and the floor controls wake up.');
+  tell('The 04 tag clicks into the reader. The lift is ready to accept a floor.');
  }else if(item==='starmap'&&thing==='elevator'){
   spend('starmap');s.train=true;
   bloom('railway','The elevator prints a railway from a constellation. A train appears.');
@@ -1501,10 +1508,16 @@ function openElevator(){
   '<p>Four brass buttons, four floors. Somewhere on the cube is a stamped destination.</p>'+
   '<div class="nc-lift-puzzle"><div class="nc-lift-miniature"><i class="nc-lift-glass"></i><i class="nc-lift-innerdoors"></i><span>'+(s.floorFour?'04':'—')+'</span></div>'+
   '<div class="nc-lift-buttons">'+[1,2,3,4].map(n=>'<button type="button" data-floor="'+n+'" aria-label="Visit miniature floor '+n+'" class="nc-lift-call">'+String(n).padStart(2,'0')+'</button>').join('')+'</div></div>'+
-  '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':'The lift needs a destination. Examine the markings on the cube.')+'</p>','elevator');
+  '<p class="nc-modal-note" id="ncLiftMessage">'+(s.floorFour?'The fourth floor is open. Look for the tiny moth outside.':s.elevatorTagInserted?'The tag has released the lift. Choose a floor.':'The lift is locked. Examine its small brass reader and the objects you have collected.')+'</p>','elevator');
 }
 function callElevator(floor){
  const text=$('ncLiftMessage')||{textContent:''};
+ if(!Number.isInteger(floor)||floor<1||floor>4)return;
+ if(!s.floorFour&&!s.elevatorTagInserted){
+  const clue='The lift buttons click but the carriage stays locked. A narrow brass reader sits beneath them, waiting for a matching metal tag.';
+  text.textContent=clue;
+  tell(clue);sound(190);return;
+ }
  sound(240+floor*110);
  document.querySelectorAll('[data-floor]').forEach(b=>b.classList.toggle('nc-floor-active',Number(b.dataset.floor)===floor));
  if(floor!==4){
@@ -1709,7 +1722,9 @@ function clickThing(name,actuator=false){
  else if(name==='elevator'){
   if(document.body.classList.contains('nc-physical-ready')){
    bloom('lift','The lift has four brass buttons. Its moving doors look strangely real.');
-   tell('Press one of the numbered buttons directly on the 3D elevator.');
+   tell(s.elevatorTagInserted||s.floorFour
+    ?'The access tag has released the lift. Press a floor button.'
+    :'There is a narrow brass tag reader below the lift’s floor buttons. The carriage is locked.');
   }else openElevator();
  }
  else if(name==='moth'){
@@ -2080,6 +2095,14 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   if(!Number.isInteger(floor)||floor<1||floor>4||!thingPresent('elevator'))return;
   bloom('lift');
   callElevator(floor);
+ },
+ activatePhysicalElevatorKeyway(){
+  if(!thingPresent('elevator'))return;
+  if(s.elevatorTagInserted||s.floorFour){
+   tell('The brass tag reader is already engaged. The floor controls are ready.');return;
+  }
+  if(selected&&use(selected,'elevator-keyway'))return;
+  tell('The tiny elevator has an empty brass reader under the floor buttons. It needs a small metal access tag.');
  },
  activatePhysicalThing(name){
   const supported=new Set(['bag','door','dog','vase','squirrel','pot','musicbox',
