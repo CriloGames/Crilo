@@ -241,8 +241,17 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"gear-large");
  assert.equal((await state(page)).gearMazeCell,80,
   "Direct white-face activation moved the captive pin");
- // A passive drag can orbit the camera; recenter before cog testing.
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
+ // A passive drag ORBITS THE CAMERA, not just the white maze.
+ // Reset the OrbitControls camera/target/damped deltas as well as the
+ // cube angle; otherwise a previous white drag can leave an inertial
+ // orbit running and miss the first tiny black-cog pointerdown.
+ await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  view.resetCameraView();
+  view.setRotation(-15,90);
+ });
+ assert.equal((await state(page)).selected,null,
+  "The maze test left a held inventory item blocking physical wheel gestures");
  const initial=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
  assert(Math.abs(initial.faceAngle)<.000001,
