@@ -139,6 +139,15 @@ try{
       JSON.stringify(key));
    }
    assert.deepEqual(errors,[],"Browser reported errors during 3D startup");
+   // Keep a straight-on visual record of the actual repaired lens/
+   // lavender-drawer header and the now-connected front perimeter.
+   if(check.label==="fresh-desktop"){
+    await page.evaluate(()=>window.__nothing3DPreview.setRotation(0,0));
+    await page.screenshot({
+      path:"test-results/nothing-here-front-frame-lens-clearance.png",
+      timeout:45000
+    });
+   }
    await page.screenshot({
     path:"test-results/nothing-here-startup-"+check.label+".png",
     timeout:45000
