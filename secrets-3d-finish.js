@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
+import {clearRailSegments,railClearanceFaults} from "./secrets-3d-rail-clearance.js?v=1";
 
 /**
  * Physical finishing pass. Every ornamental element is a real 3D mesh,
@@ -14,6 +15,7 @@ export function finishMechanicalArtifact({
   const {metal,brass,darkMetal,ivory,rubber,enamel,cavityMaterial}=materials;
   let partCount=0;
   const finishedMeshes=[];
+  const borderRails=[],borderRailFaults=[];
   const deep=mat(0x2e3c47,.46,.48);
   const satin=mat(0x8b7c73,.54,.35);
   const smoked=mat(0x476e78,.28,.18);
@@ -111,6 +113,24 @@ export function finishMechanicalArtifact({
   // Track decorative caps separately from REAL puzzle fasteners; duplicating
   // both at the same corner previously produced stacks of overlapping screws.
   const decorativeCornerCaps=[];
+  const borderFaceName=new Map([
+    [frontFace,"frontFace"],[backFace,"backFace"],[rightFace,"rightFace"],
+    [leftFace,"leftFace"],[topFace,"topFace"],[bottomFace,"bottomFace"]
+  ]);
+  // No continuous black/silver inlay may run through another fixture.
+  // This is the SAME clearance calculation as the larger detail-frame rails.
+  const trimRail=(face,axis,fixed,from,to,width,depth,z,paint,rounding)=>{
+    const name=borderFaceName.get(face);
+    const segments=clearRailSegments(name,axis,fixed,from,to,width);
+    borderRailFaults.push(...railClearanceFaults(name,axis,fixed,segments,width));
+    borderRails.push({face:name,axis,fixed,from,to,width,segments});
+    for(const seg of segments){
+      const mesh=axis==="x"
+       ?B(face,seg.length,width,depth,seg.center,fixed,z,paint,rounding)
+       :B(face,width,seg.length,depth,fixed,seg.center,z,paint,rounding);
+      mesh.userData.clearanceTrim=true;
+    }
+  };
   function machinedPanel(face,accent) {
     for(const s of [-1,1]){
       // The brass and dark inlays have nearly matching slender profiles:
@@ -190,26 +210,12 @@ export function finishMechanicalArtifact({
           C(face,.019,.010,x,y,.079,deep);
           torus(face,.026,.004,x,y,.084,accent);
         }
-      }else if(face===frontFace&&s===1){
-        // End the gold and graphite border strips beside the raised
-        // circular lens instead of continuing straight through its rim.
-        // The round sleeve takes the place of the missing middle span.
-        const rails=[
-          {half:1.29,stop:.56,y:1.22,z:.105,h:.030,d:.041,paint:accent,r:.012},
-          {half:1.20,stop:.66,y:1.125,z:.130,h:.010,d:.024,paint:deep,r:.004}
-        ];
-        for(const rail of rails)for(const sign of [-1,1]){
-          const length=rail.half-rail.stop;
-          B(face,length,rail.h,rail.d,
-            sign*(rail.stop+length/2),rail.y,rail.z,
-            rail.paint,rail.r);
-        }
       }else{
-        B(face,2.58,.030,.041,0,s*1.22,.105,accent,.012);
-        B(face,2.40,.010,.024,0,s*1.125,.13,deep,.004);
+        trimRail(face,"x",s*1.22,-1.29,1.29,.030,.041,.105,accent,.012);
+        trimRail(face,"x",s*1.125,-1.20,1.20,.010,.024,.130,deep,.004);
       }
-      B(face,.030,2.52,.041,s*1.22,0,.105,accent,.012);
-      B(face,.010,2.40,.024,s*1.125,0,.13,deep,.004);
+      trimRail(face,"y",s*1.22,-1.26,1.26,.030,.041,.105,accent,.012);
+      trimRail(face,"y",s*1.125,-1.20,1.20,.010,.024,.130,deep,.004);
     }
     // No second set of corner rivets: the precision panel already has
     // fixed screwheads at (+/-1.31,+/-1.33). Even the reduced .036 caps at
@@ -363,6 +369,11 @@ export function finishMechanicalArtifact({
   });
   return {
     meshCount:()=>partCount,
+    getTrimClearanceAudit:()=>({railCount:borderRails.length,
+      partCount:borderRails.reduce((n,r)=>n+r.segments.length,0),
+      clipped:borderRails.filter(r=>r.segments.length!==1||
+       Math.abs(r.segments[0]?.length-(r.to-r.from))>.0001).length,
+      faults:borderRailFaults.map(x=>({...x}))}),
     getDecorativeCornerCaps:()=>decorativeCornerCaps.map(cap=>({...cap})),
     batching,
     getLensMountAudit:()=>({
