@@ -26,6 +26,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let parts=0;
  const items=new Map(),locations=new Map();
  const puzzleControls=new Map(),bagDials=[],bagDialGlyphs=[],liftDoors=[];
+ let elevatorKeyTag=null,elevatorReaderLamp=null;
  let bagReleaseCap=null;
  // Only the actual brass catch uses this material: a correctly aligned
  // combination gets a gentle glint, rather than lighting every brass part.
@@ -503,6 +504,30 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
    button.add(floorTouch);parts++;
    puzzleControls.set("thing:elevator-floor-"+floor,button);
   }
+  // The collar tag is a real mechanical access key, not a four-digit hint
+  // that can be bypassed by pressing each button. Its keyway sits BELOW
+  // the four buttons on the same fixed control panel, avoiding their hit
+  // targets. The housing overlaps its backing plate rather than hovering.
+  const keyway=new THREE.Group();
+  keyway.position.set(.32,.119,.165);g.add(keyway);
+  B(keyway,.153,.088,.048,0,0,0,m.brass,.011);
+  B(keyway,.116,.022,.008,0,-.004,.028,m.black,.002);
+  for(const sx of [-.059,.059])
+   C(keyway,.008,.008,sx,-.031,.029,m.dark,"z");
+  elevatorKeyTag=new THREE.Group();
+  elevatorKeyTag.position.set(0,0,.036);keyway.add(elevatorKeyTag);
+  // The installed tag is visible at the slot, with its stamped 04,
+  // and remains seated permanently as the player explores the cube.
+  C(elevatorKeyTag,.031,.010,0,0,0,m.gold,"z");
+  const tag04=new THREE.Mesh(new THREE.PlaneGeometry(.050,.050),numerals[3]);
+  tag04.position.z=.008;elevatorKeyTag.add(tag04);parts++;
+  elevatorKeyTag.visible=false;
+  const readerLightMat=mat(0x4b5c58,.2,.27);
+  readerLightMat.emissive.set(0x35c68c);
+  readerLightMat.emissiveIntensity=0;
+  elevatorReaderLamp=readerLightMat;
+  C(keyway,.012,.010,0,.028,.029,readerLightMat,"z");
+  puzzleControls.set("thing:elevator-keyway",keyway);
   // A single arrival light above the floor controls only switches on
   // AFTER a successful call; it is not an advance hint about floor four.
   liftStatusGlass=mat(0x89cbb4,.1,.29);
@@ -1492,6 +1517,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
     setPose(panel,"position","x",target,.83);
   });
   lastFloorFour=!!s.floorFour;
+  if(elevatorKeyTag)elevatorKeyTag.visible=!!s.elevatorTagInserted;
+  if(elevatorReaderLamp)elevatorReaderLamp.emissiveIntensity=s.elevatorTagInserted?.75:0;
   if(liftStatusGlass)liftStatusGlass.emissiveIntensity=s.floorFour?.9:.04;
   // Mechanisms react to completed actions, without looping or handing out
   // extra rewards. Restored saves show their settled physical state.
@@ -1594,6 +1621,12 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   getDialAngles:()=>bagDials.map(d=>d.rotation.z),
   getLiftDoorPositions:()=>liftDoors.map(d=>d.position.x),
   getElevatorButtonDepth:n=>puzzleControls.get("thing:elevator-floor-"+n)?.position.z??null,
+  getElevatorTagReaderState:()=>({
+   hasSocket:puzzleControls.has("thing:elevator-keyway"),
+   tagVisible:!!elevatorKeyTag?.visible,
+   panelMounted:!!puzzleControls.get("thing:elevator-keyway")?.parent,
+   lamp:elevatorReaderLamp?.emissiveIntensity??null
+  }),
   getPose:()=>({
    dogTailAngle:dogTail?.rotation.z??null,
    cloudDropHeights:cloudDrops.map(drop=>drop.position.y),
