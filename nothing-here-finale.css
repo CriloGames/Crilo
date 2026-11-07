@@ -1,10 +1,12 @@
-/* Nothing Here: 60/60 finale, displayed ON the existing WebGL stage. */
+/* Nothing Here: 60/60 finale. Heading stays OUTSIDE the stage so
+   no piece of the unfolded T is obscured on desktop or mobile. */
 .nc-page .nc-finale-banner[hidden],
 .nc-page .nc-finale-banner #ncFinaleReplay[hidden]{display:none!important}
-.nc-page .nc-cube-zone .nc-finale-banner{
- position:absolute;z-index:40;top:12px;left:50%;transform:translateX(-50%);
- width:min(94%,510px);box-sizing:border-box;
- text-align:center;pointer-events:none;
+.nc-page .nc-finale-banner{
+ position:relative;z-index:40;
+ width:min(calc(100% - 22px),600px);box-sizing:border-box;
+ margin:14px auto 8px;
+ text-align:center;pointer-events:auto;
  padding:14px 18px 12px;border-radius:17px;
  color:#253e47;background:linear-gradient(135deg,#fffcf2f2,#eaf4f0ec);
  border:1px solid #d1cba7b5;
@@ -70,20 +72,20 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
  color:#c4d8d3;
 }
 @keyframes nc-finale-reveal{
- from{opacity:0;transform:translate(-50%,-12px) scale(.97)}
- to{opacity:1;transform:translate(-50%,0) scale(1)}
+ from{opacity:0;transform:translateY(-10px) scale(.98)}
+ to{opacity:1;transform:translateY(0) scale(1)}
 }
 @media(max-width:700px){
- .nc-page .nc-cube-zone .nc-finale-banner{
-  top:7px;width:min(96%,460px);border-radius:13px;
-  padding:10px 10px 8px;
+ .nc-page .nc-finale-banner{
+  width:min(calc(100% - 20px),460px);border-radius:13px;
+  margin:9px auto 4px;padding:10px 10px 8px;
  }
  .nc-page .nc-finale-banner h2{font-size:clamp(20px,5vw,27px)}
  .nc-page .nc-finale-banner .nc-finale-label{font-size:9px}
- .nc-page .nc-finale-banner p{display:none}
+ .nc-page .nc-finale-banner p{font-size:10px;margin-top:3px}
  .nc-page .nc-finale-banner #ncFinaleReplay{margin-top:4px;padding:4px 13px}
 }
 @media(prefers-reduced-motion:reduce){
- .nc-page .nc-cube-zone .nc-finale-banner{animation:none}
+ .nc-page .nc-finale-banner{animation:none}
  .nc-page .nc-finale-banner #ncFinaleReplay:hover{transform:none}
 }
