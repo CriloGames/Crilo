@@ -1855,12 +1855,22 @@ window.__nothing3DPreview={
   scene.updateWorldMatrix(true,true);
   const bounds=renderer.domElement.getBoundingClientRect();
   let fallback=null;
-  for(const [x,y,z] of [
+  // The key teeth are a shallow, wide object lying on the drawer's
+  // presentation seat. Probing .10-.18 ahead of its actual surface
+  // makes a false negative even when the REAL click rays hit the key.
+  // Probe real surface positions (z=0) for this one item, leaving all
+  // other collectible raycasting unchanged.
+  const samples=id==="tooth"?[
+   [0,0,0],[-.12,0,0],[.12,0,0],
+   [-.25,0,0],[.25,.05,0],
+   [0,-.05,0],[0,.05,0]
+  ]:[
    [0,0,.13],[0,0,.10],[0,0,.065],
    [-.08,0,.12],[.08,0,.12],
    [0,.08,.12],[0,-.08,.12],
    [-.13,-.08,.08],[.13,-.08,.08]
-  ]){
+  ];
+  for(const [x,y,z] of samples){
    const projected=root.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
    const point={x:(projected.x+1)*bounds.width/2,
     y:(1-projected.y)*bounds.height/2,depth:projected.z};
