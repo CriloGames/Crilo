@@ -1,136 +1,184 @@
-/* Nothing Here — Ethel-style reference motion and music-driven stage.
- * The supplied 134.699s video is the timing reference; no original frames
- * or footage are embedded. The 150 BPM soundtrack is the master clock.
+/* Nothing Here: full-134.699s reference-directed 3D choreography.
+ * Derived from the owner-uploaded 1080p MP4 (30fps), not approximate
+ * repeating motion. Front-vs-loaf cut points for the first 27 seconds
+ * were measured at 10fps from foreground silhouette width/height; all
+ * later pose, color and scene changes were audited from the full video.
  *
- * Crucial distinction from v1: the reference DOES NOT rotate a standing
- * cat continuously. It holds still, flips into a sideways spin, returns to
- * the same front-facing pose, then accelerates to beat-by-beat tumbling.
+ * 4fps exposure trace encodes only scene brightness, not any video pixels
+ * or commercial frames. Licensed audio.currentTime remains authoritative.
  */
 export const CAT_REFERENCE_DURATION=134.699;
 export const CAT_MUSIC_BPM=150;
 export const CAT_BEAT_SECONDS=60/CAT_MUSIC_BPM;
 export const CAT_SPIN_BEATS=8;
+// [start, label, shader scene ID, animation intensity]
 export const CAT_SCENES=[
  [0.00,"green",0,.48],
- [27.36,"nebula",1,.70],
- [33.29,"tunnel",2,1.00],
- [42.0,"kaleidoscope",7,1.0],
- [47.35,"laser",2,1.00],
- [59.13,"white",3,.18],
- [62.28,"redstars",1,.80],
- [75.47,"bluerays",4,.86],
- [79.50,"black",5,.12],
- [81.20,"green",0,.50],
- [87.52,"ice",6,.56],
- [93.85,"white",3,.18],
- [101.8,"redstars",1,.57],
- [107.25,"tunnel",2,1.0],
- [119.35,"kaleidoscope",7,1.0],
- [131.55,"white",3,.16],
- [134.699,"white",3,0]
+ [26.87,"nebula",1,.72],
+ [33.0,"tunnel",2,1],
+ [39.85,"kaleidoscope",7,1],
+ [45.82,"laser",9,1],
+ [50.90,"digital",10,1],
+ [58.99,"white",3,.16],
+ [62.01,"redstars",8,.82],
+ [74.81,"bluerays",4,.88],
+ [77.87,"gray",12,.15],
+ [78.88,"black",5,.09],
+ [81.70,"green",0,.46],
+ [87.48,"ice",11,.71],
+ [89.71,"white",3,.18],
+ [90.60,"ice",11,.76],
+ [91.63,"white",3,.16],
+ [92.64,"ice",11,.78],
+ [93.80,"white",3,.15],
+ [94.68,"ice",11,.77],
+ [95.57,"white",3,.15],
+ [96.64,"ice",11,.78],
+ [97.61,"white",3,.15],
+ [98.68,"ice",11,.78],
+ [99.75,"white",3,.15],
+ [101.18,"redstars",8,.73],
+ [106.88,"tunnel",2,1],
+ [114.02,"kaleidoscope",7,1],
+ [119.81,"laser",9,1],
+ [124.97,"digital",10,1],
+ [130.79,"white",3,.22],
+ [132.03,"green",0,.40],
+ [134.52,"black",5,0]
 ];
+// "loaf" means the separate, crouched real-3D tabby shape is active.
+// All other instants show the full forward-facing textured standing cat.
+// These are EDIT transitions, not rotation periods for a standing model.
+export const CAT_POSE_CUTS=[
+ [0,"front"],
+ [1.5,"loaf"],[2.9,"front"],
+ [4.5,"loaf"],[6.1,"front"],
+ [7.9,"loaf"],[9.2,"front"],
+ [11.1,"loaf"],[12.4,"front"],
+ [14.3,"loaf"],[15.6,"front"],
+ [17.5,"loaf"],[18.8,"front"],
+ [20.7,"loaf"],[26.8,"front"],
+ [29.55,"loaf"],[35.93,"front"],
+ [36.45,"loaf"],[58.95,"front"],
+ [62.07,"loaf"],[63.84,"front"],
+ [64.64,"loaf"],[66.77,"front"],
+ [67.65,"loaf"],[69.56,"front"],
+ [71.63,"loaf"],[72.90,"front"],
+ [74.85,"loaf"],[77.82,"front"],
+ [81.74,"loaf"],[84.75,"front"],
+ [87.58,"loaf"],[100.12,"front"],
+ [103.87,"loaf"],[115.78,"front"],
+ [116.89,"loaf"],[118.78,"front"],
+ [119.28,"loaf"],[130.82,"front"],
+ [132.39,"loaf"],[134.699,"loaf"]
+];
+// Every 250ms: quantized average frame luminance in the provided video,
+// measured OUTSIDE the cat's central bounding region. This allows exact
+// white-outs, pauses, dark cuts and changes in exposure in the 3D stage.
+const VIDEO_LUMA_4HZ=
+"bbbbbbfedccbbbbbbbdeedcbbbbbbbbceedcbaaaaaaabbbbbbbbbbbbbfeddcbbbccccbbbbddddbbb"+
+"beeeebbbbffbfbbfbffbfbbffffb5555555555555555555685555f5798d55b676444d89b484798d4"+
+"9d9b98a8dcbd6775574684650411121113113111132212242336daba6769a8d769898965d9abffff"+
+"ffffffffeedca86421112222222222222222222222222222221112222222b811111111111d200000"+
+"000200ebbbbbbbbbbbbdbbbbbbbbbbbe41151771911bbcc1111eeef1111ffff1111ffff1111ff1f1"+
+"1fafeeedcb986432122222322c2ef3c88a745876c54b776546b88b448aa9d98daaa7775756685367"+
+"123121111121121114222222336a9ca876d88a5679aefffffeeedddc940";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 const smooth=(a,b,t)=>{
- const x=clip((t-a)/(b-a),0,1);return x*x*(3-2*x);
+ const x=clip((t-a)/(b-a),0,1);
+ return x*x*(3-2*x);
 };
 const fract=x=>x-Math.floor(x);
-// Precisely observed slow half-turn segments in the supplied video.
-const INTRO_SPINS=[[1.37,2.81],[4.53,5.96],[7.80,9.22],
- [14.19,15.61]];
-function slowSpin(t,offset=0){
- const segment=INTRO_SPINS.find(([a,b])=>t>=a&&t<b);
- if(!segment)return null;
- const [a,b]=segment,p=(t-a)/(b-a);
- // An accelerating, tilted barrel/tumble rather than an endless pirouette.
- const turn=smooth(0,1,p)*2;
- const lift=smooth(0,.14,p)*(1-smooth(.85,1,p));
- return {spinRadians:TAU*turn,sideways:.98*lift,
-  spinActive:true,spinProgress:p,spinMode:"slow",spinPhaseOffset:offset};
+function entryAt(list,t){
+ let i=list.length-1;
+ while(i>0&&t<list[i][0])i--;
+ return i;
 }
-function fastSpin(t,origin,rate=1){
- const localBeat=(t-origin)/CAT_BEAT_SECONDS;
- const step=Math.floor(localBeat);
- const phase=fract(localBeat);
- // A marked rotation on EVERY beat. Sudden stops and quick turns are
- // deliberate: the source uses edited front holds and loaf spins.
- const ease=smooth(.05,.82,phase);
- const turn=(step+ease)*rate/3;
- // Every fourth beat comes briefly upright, then drops into the spin.
- const upright=step%4===0?smooth(.0,.16,phase)*(1-smooth(.38,.9,phase)):0;
- const sideways=.91*(1-upright);
- return {spinRadians:TAU*turn,sideways,
-  spinActive:true,spinProgress:phase,spinMode:"beat"};
-}
-function repeatingSpin(t,origin,hold=1.45,cycle=3.2){
- const local=(t-origin)%cycle;
- if(local<hold)return {spinRadians:0,sideways:0,
-  spinActive:false,spinProgress:0,spinMode:"front"};
- const p=(local-hold)/(cycle-hold),lift=smooth(0,.15,p)*(1-smooth(.85,1,p));
- return {spinRadians:TAU*(2*smooth(0,1,p)),
-  sideways:.95*lift,spinActive:true,spinProgress:p,spinMode:"slow"};
+export function referenceLumaAt(seconds){
+ const idx=clip(seconds,0,CAT_REFERENCE_DURATION)*4;
+ const a=Math.floor(idx),b=Math.min(a+1,VIDEO_LUMA_4HZ.length-1);
+ const value=i=>parseInt(VIDEO_LUMA_4HZ[i]||"0",16)/15;
+ return value(Math.min(a,VIDEO_LUMA_4HZ.length-1))*(1-fract(idx))+
+  value(b)*fract(idx);
 }
 export function sceneAt(seconds){
- const t=clip(seconds,0,CAT_REFERENCE_DURATION);
- let i=CAT_SCENES.length-1;
- while(i>0&&t<CAT_SCENES[i][0])i--;
+ const t=clip(seconds,0,CAT_REFERENCE_DURATION),i=entryAt(CAT_SCENES,t);
  return {name:CAT_SCENES[i][1],scene:CAT_SCENES[i][2],
   pulse:CAT_SCENES[i][3],start:CAT_SCENES[i][0],
   end:CAT_SCENES[Math.min(i+1,CAT_SCENES.length-1)][0],
   index:i};
 }
+function spinRate(t){
+ if(t<20.7)return 1.1; // quick intro spins interleaved with facing front
+ if(t<26.87)return 1.65; // rapid build at 150 BPM
+ if(t<33)return .78; // slower nebula entrance
+ if(t<59)return 1.20; // very fast blue/pink tunnels
+ if(t<75)return .85; // alternates red-stars pose with still upright
+ if(t<88)return .9;
+ if(t<101)return .80; // slow electrified blue portal with white-outs
+ if(t<107)return .75;
+ return 1.25; // closing tunnel/caleidoscope
+}
 export function motionAt(seconds){
  const t=clip(seconds,0,CAT_REFERENCE_DURATION);
- const scene=sceneAt(t),beat=(t-.04)/CAT_BEAT_SECONDS;
+ const scene=sceneAt(t),pIndex=entryAt(CAT_POSE_CUTS,t);
+ const mode=CAT_POSE_CUTS[pIndex][1],start=CAT_POSE_CUTS[pIndex][0];
+ const next=CAT_POSE_CUTS[Math.min(pIndex+1,CAT_POSE_CUTS.length-1)][0];
+ const duration=Math.max(.01,next-start),local=Math.max(0,t-start);
+ const loaf=mode==="loaf";
+ const beat=(t-.04)/CAT_BEAT_SECONDS;
  const beatPhase=fract(beat),beatIndex=Math.max(0,Math.floor(beat));
- let pose;
- if(t<15.61)pose=slowSpin(t)||
-   {spinRadians:0,sideways:0,spinActive:false,spinProgress:0,spinMode:"front"};
- else if(t<27.35)pose=fastSpin(t,15.61,1.3);
- else if(t<33.29)pose=repeatingSpin(t,27.36,1.18,2.9);
- else if(t<59.13)pose=fastSpin(t,33.29,1);
- else if(t<62.28)pose={spinRadians:0,sideways:0,
-   spinActive:false,spinProgress:0,spinMode:"front"};
- else if(t<79.5)pose=repeatingSpin(t,62.28,.92,2.7);
- else if(t<81.2)pose={spinRadians:0,sideways:0,
-   spinActive:false,spinProgress:0,spinMode:"hidden"};
- else if(t<87.52)pose=repeatingSpin(t,81.2,1.25,3.14);
- else if(t<101.8)pose=repeatingSpin(t,87.52,1.26,3.1);
- else if(t<107.25)pose=repeatingSpin(t,101.8,1.1,2.8);
- else if(t<131.55)pose=fastSpin(t,107.25,1);
- else pose={spinRadians:0,sideways:0,
-   spinActive:false,spinProgress:0,spinMode:"front"};
- const kickPulse=Math.pow(1-beatPhase,5);
- const hiHat=Math.pow(1-fract(beat*2),9);
- const impact=scene.pulse*(.10+.9*kickPulse);
- const drop=scene.name==="tunnel"||scene.name==="laser"||
-   scene.name==="kaleidoscope";
- const bright=scene.name==="green"||scene.name==="white"||scene.name==="ice";
- // Reference white-out flashes arrive on strong bar boundaries and at the
- // vertical tunnel cuts, not just as a dim color change at 2 Hz.
- const bar=Math.floor((t+.04)/1.6);
- const downbeat=fract((t+.04)/1.6);
- const barFlash=drop&&bar%2===0?
-   Math.pow(Math.max(0,1-downbeat*12),3)*.91:0;
- const downbeatFlash=drop&&beatIndex%2===0?
-   Math.pow(Math.max(0,1-beatPhase*12),3)*.34:0;
- const editFlash=CAT_SCENES.slice(1,-1).reduce((v,[start,name])=>
-   Math.max(v,drop&&Math.abs(t-start)<.14?
-     1-smooth(0,.14,Math.abs(t-start)):0),0);
- const flash=clip(Math.max(barFlash,downbeatFlash,editFlash),0,1);
- const paleFlash=scene.name==="green"&&pose.spinActive?.57:0;
+ // The source swaps a full-size standing tabby for a compact, sideways
+ // dark loaf. The loaf tumbles in SCREEN SPACE about the camera axis,
+ // NOT around the standing cat's vertical (Y) axis.
+ const rate=spinRate(t);
+ const turn=local*rate;
+ const accents=.085*smooth(0,.9,beatPhase);
+ const spinRadians=loaf?TAU*(turn+accents):0;
+ const radialTilt=loaf?.24*Math.sin(local*6.3):0;
+ const dip=loaf?Math.sin(local*5.6)*.08:0;
+ const kickPulse=Math.pow(Math.max(0,1-beatPhase),6);
+ const halfPulse=Math.pow(Math.max(0,1-fract(beat*2)),10);
+ const referenceLuma=referenceLumaAt(t);
+ const luma0=referenceLumaAt(Math.max(0,t-.25));
+ const luma1=referenceLumaAt(Math.min(CAT_REFERENCE_DURATION,t+.25));
+ const sceneCut=CAT_SCENES.slice(1,-1).reduce((acc,[at])=>
+  Math.max(acc,Math.max(0,1-Math.abs(t-at)/.16)),0);
+ // White flashes are explicit edits in the original video. Brightness
+ // trace supplements them so muted or buffering audio never loses sync.
+ const diff=Math.max(0,referenceLuma-Math.min(luma0,luma1));
+ const drop=[2,7,9,10,11].includes(scene.scene);
+ const beatFlash=drop&&beatIndex%2===0?
+  Math.pow(Math.max(0,1-beatPhase*11),3)*.54:0;
+ const brightCut=drop?sceneCut*.93:0;
+ const rawFlash=Math.max(beatFlash,brightCut,
+  drop?Math.max(0,diff-.13)*1.6:0);
+ const flash=clip(rawFlash,0,1);
+ const stageLuma=clip(referenceLuma,0,1);
+ const lumaBoost=clip(.74+1.1*stageLuma,.60,1.60);
  return {
-  ...pose,scene:scene.scene,sceneName:scene.name,sceneIndex:scene.index,
-  sceneStart:scene.start,sceneEnd:scene.end,beatIndex,beatPhase,
-  bpm:CAT_MUSIC_BPM,beatPulse:kickPulse,hiHatPulse:hiHat,
-  pulse:impact,flash,backdropFlash:Math.max(flash,paleFlash),
-  beatBounce:kickPulse*scene.pulse*.095,
-  rollRadians:pose.sideways*Math.PI*.46,
-  tiltRadians:pose.sideways*.14*Math.sin(t*4.8)+
-   (drop?.07*Math.sin(t*5.5):0),
-  bob:pose.spinActive?(.085*Math.sin(t*13)+.03):0,
-  scale:pose.spinActive?(.78+.10*pose.sideways):1,
-  brightness:bright?.65:1,
-  spinning:pose.spinActive
+  scene:scene.scene,sceneName:scene.name,sceneIndex:scene.index,
+  sceneStart:scene.start,sceneEnd:scene.end,
+  poseMode:mode,poseStart:start,poseEnd:next,
+  spinMode:loaf?(rate>1.05?"beat":"slow"):"front",
+  spinActive:loaf,spinning:loaf,spinRadians,
+  spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
+  rollRadians:loaf?Math.PI/2:0,
+  tiltRadians:radialTilt,
+  threeDRoll:dip,
+  bob:loaf?.08*Math.sin(t*11):.025*kickPulse,
+  scale:loaf?.80:1,
+  beatIndex,beatPhase,bpm:CAT_MUSIC_BPM,
+  beatPulse:kickPulse,hiHatPulse:halfPulse,
+  pulse:scene.pulse*(.15+.85*kickPulse),
+  flash,backdropFlash:flash,
+  referenceLuma:stageLuma,lumaBoost,
+  // Strong mint green on spinning poses, true key green when standing.
+  greenPale:scene.scene===0&&loaf?clip(.38+.35*stageLuma,0,1):0,
+  brightness:[0,3,6,12].includes(scene.scene)?.82:1,
+  // Reference changes the cat size, especially under the neon drops.
+  photoScale:t>=33&&t<59?.75:t>=62&&t<78?.78:
+   t>=88&&t<100?.81:t>=107&&t<131?.83:1
  };
 }
