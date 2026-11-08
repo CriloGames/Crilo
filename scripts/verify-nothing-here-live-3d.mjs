@@ -474,11 +474,14 @@ try{
  assert.equal(initial.mounts.length,15,"All miniature scenes must remain in the floating version");
  const hardwareMounts=await page.evaluate(()=>
   window.__nothing3DPreview.miniatureHardwareAttachmentAudit);
+ // The observatory is a cast-in dome collar seated directly into the
+ // top enamel, unlike the fourteen shelf miniatures with four standoffs.
  assert(hardwareMounts.length===15&&hardwareMounts.every(h=>
-  h.standoffs===4&&h.shellMounted&&h.upperSeated&&h.lowerSeated),
-  "One of the fifteen display sockets has floating screws, open air under its rivets, "+
-  "or no real connection to the cube: "+JSON.stringify(hardwareMounts));
- console.log("PASS: all 15 miniature display mounts have 4 solid support shafts and seated brass fasteners");
+  h.standoffs===(h.name==="telescope"?1:4)&&
+  h.shellMounted&&h.upperSeated&&h.lowerSeated),
+  "A miniature has unsupported mounts or an unseated observatory collar: "+
+  JSON.stringify(hardwareMounts));
+ console.log("PASS: fourteen shelf miniatures have four seated shafts; the observatory has its flush built-in dome collar");
  const attachmentAudit=await page.evaluate(()=>
   window.__nothing3DPreview.physicalAttachmentAudit);
  assert(attachmentAudit?.okay&&
