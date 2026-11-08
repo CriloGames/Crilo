@@ -515,6 +515,15 @@ export function buildIntricateCube({
   const dialCatch=group(leftFace,.54,.66,.164);
   B(dialCatch,.175,.078,.039,0,0,0,steel,.009);
   const dialTongue=B(dialCatch,.101,.042,.040,.093,0,.025,brass,.006);
+  // Guarantee the fitted release tongue reaches its real end stop even if
+  // software WebGL throttles the brief GSAP animation after solving.
+  let dialTongueSettle=null;
+  const clearDialTongueSettle=()=>{
+    if(dialTongueSettle!==null){
+      clearTimeout(dialTongueSettle);
+      dialTongueSettle=null;
+    }
+  };
   for(const x of [-.054,.054])C(dialCatch,.013,.016,x,0,.030,gold);
   if(liveGame){
     setHit(mazePlate,"gear-large");
@@ -778,7 +787,22 @@ export function buildIntricateCube({
     // through an invisible roof.
     pose(follower,"position","z",s.gearMazeSolved?.173:.176);
     goalSocket.material=s.gearMazeSolved?goalLit:goalMetal;
-    pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
+    if(instant||!s.gearMazeSolved){
+      clearDialTongueSettle();
+      if(instant)gsap.killTweensOf(dialTongue.position);
+      pose(dialTongue,"position","x",s.gearMazeSolved?-.015:.093);
+    }else{
+      pose(dialTongue,"position","x",-.015);
+      if(dialTongue.position.x>.02&&dialTongueSettle===null)
+        dialTongueSettle=setTimeout(()=>{
+          dialTongueSettle=null;
+          // A closed or unsolved mechanism never releases its pin.
+          if(mazeVisualTarget!==mazeGoal)return;
+          gsap.killTweensOf(dialTongue.position);
+          dialTongue.position.x=-.015;
+          invalidate();
+        },900);
+    }
     if(arm)pose(arm,"rotation","x",s.mouse?-.46:0);
     if(latchHandle)pose(latchHandle,"position","y",s.serviceOpen?-.12:.10);
     pose(backKnob,"rotation","z",s.back?Math.PI/2:0);

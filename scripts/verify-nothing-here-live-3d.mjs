@@ -77,6 +77,12 @@ await page.addInitScript(()=>{
   sessionStorage.setItem("nc_live_3d_seeded","1");
  }
 });
+// Pixel-comparison QA is an independent required job. Skipping redundant
+// screenshots in this gameplay suite saves slow SwiftShader readbacks;
+// every functional, collision and geometry assertion still runs unchanged.
+const diagnosticScreenshot=(target,options)=>
+ process.env.NH_SKIP_DIAGNOSTIC_SCREENSHOTS==="1"
+  ?Promise.resolve(null):target.screenshot(options);
 try{
  // Force every miniature, open hinged component, and waiting reward into
  // the SAME fully unlocked 3D scene. Existing clearance audits only checked
@@ -292,7 +298,7 @@ try{
  assert(inspector.mode==="all"&&inspector.count>=40,
   "Structural inspector failed to draw miniature, reward and mechanism bounds: "+
    JSON.stringify(inspector));
- await auditPage.screenshot({path:"test-results/live-3d-unlocked-wireframe.png",
+ await diagnosticScreenshot(auditPage,{path:"test-results/live-3d-unlocked-wireframe.png",
   timeout:60000});
  await auditPage.evaluate(()=>window.__nothing3DPreview.setGeometryInspector("off"));
  // Review ALL SIX faces in unlocked condition. A single pretty front
@@ -304,7 +310,7 @@ try{
  for(const [name,rx,ry] of views){
   await auditPage.evaluate(([a,b])=>
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
-  await auditPage.screenshot({
+  await diagnosticScreenshot(auditPage,{
    path:"test-results/live-3d-unlocked-"+name+".png",timeout:60000
   });
  }
@@ -317,7 +323,7 @@ try{
  ]){
   await auditPage.evaluate(([a,b])=>
    window.__nothing3DPreview.setRotation(a,b),[rx,ry]);
-  await auditPage.screenshot({
+  await diagnosticScreenshot(auditPage,{
    path:"test-results/live-3d-close-"+name+".png",timeout:60000
   });
  }
@@ -328,7 +334,7 @@ try{
  // Capture a true WebGL reference BEFORE interactions. Even if a later
  // puzzle regression fails, visual QA can inspect the precise rendered box.
  try{
-  await page.screenshot({
+  await diagnosticScreenshot(page,{
    path:"test-results/live-3d-first-load.png",timeout:60000
   });
  }catch(e){console.warn("Initial WebGL screenshot unavailable",String(e).slice(0,220))}
@@ -735,8 +741,11 @@ try{
    "Expected a tangible collectible to be waiting on the cube: "+id);
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
+  // The old sliding-drawer tooth has a warm gold cue; all other
+  // collectibles use the standard violet. Both remain subdued and inert.
+  const expectedGlowColor=id==="tooth"?0xf2c66d:0xb45cff;
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
-    glowBefore.color===0xb45cff&&
+    glowBefore.color===expectedGlowColor&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
    glowBefore.surfaceEmission>=.53&&glowBefore.surfaceEmission<=.84&&
    glowBefore.haloScale>=1&&glowBefore.haloScale<=1.10&&
@@ -1256,7 +1265,7 @@ try{
   null,{timeout:16000,polling:250});
  console.log("PASS: refunded second coin exposes a real service key required for later service shutter");
  console.log("PASS 3D miniature world: fifteen modeled actors, visible state, inventory recipe and machine discovery");
- await page.screenshot({path:"test-results/live-3d-miniature-world.png",timeout:60000});
+ await diagnosticScreenshot(page,{path:"test-results/live-3d-miniature-world.png",timeout:60000});
  const triangleMotion=await page.evaluate(()=>{
   const view=window.__nothing3DPreview;
   view.clickAction("triangle");
@@ -1368,8 +1377,28 @@ try{
    });
   },{once:true});
  });
+ // Headless SwiftShader can delay a 560 ms hold callback well beyond
+ // 680 ms. Wait for the real game's "inspecting" state rather than using
+ // a fixed CPU-timing guess. If touch detection is broken, the test still
+ // fails with explicit pointer/caption diagnostics.
  await sendTouch("touchStart",[touch(91)]);
- await page.waitForTimeout(680);
+ try{
+  await page.waitForFunction(()=>{
+   const view=window.__nothing3DPreview;
+   const hint=document.querySelector("#ncPartHint");
+   return view?.touchInteractionState.inspecting&&
+    hint&&!hint.hidden&&/red button/i.test(hint.textContent);
+  },null,{timeout:8500,polling:100});
+ }catch(error){
+  const details=await page.evaluate(()=>({
+   touch:window.__nothing3DPreview?.touchInteractionState,
+   hint:document.querySelector("#ncPartHint")?.textContent,
+   hintHidden:document.querySelector("#ncPartHint")?.hidden,
+   projected:window.__nothing3DPreview?.projectGameControl("dot")
+  }));
+  throw new Error("Long-press failed to identify the real 3D red button: "+
+   JSON.stringify(details),{cause:error});
+ }
  const holdHint=await page.evaluate(()=>{
   const el=document.querySelector("#ncPartHint");
   return !el.hidden&&/red button/i.test(el.textContent);
@@ -2094,7 +2123,7 @@ try{
  await activate("dot");
  assert.equal((await state()).seen.length,59,
   "Repeating a previously completed puzzle must not award duplicates");
- await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
+ await diagnosticScreenshot(page,{path:"test-results/live-3d-mobile-restored.png",timeout:60000});
  // Now migrate a completed 60/60 save. Its six ACTUAL faces should display
  // the saved T-shaped ending, without autoplay or losing old state.
  await page.evaluate(ids=>{
@@ -2113,7 +2142,7 @@ try{
    JSON.stringify(complete));
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
   "Completing the catalogue damaged existing discoveries");
- await page.screenshot({path:"test-results/live-3d-finale-T.png",timeout:60000});
+ await diagnosticScreenshot(page,{path:"test-results/live-3d-finale-T.png",timeout:60000});
  // Old links must transparently normalize to the one supported 3D game.
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
   waitUntil:"domcontentloaded"});
@@ -2171,8 +2200,14 @@ try{
   assert(recovery.recovered.includes(id)&&recovery.saved.pendingPickups.includes(id),
    "A previously unlocked physical reward was lost permanently: "+id);
  }
- for(const id of ["flute","kite"])assert(recovery.saved.pocket.includes(id),
-  "A previously crafted but unspent tool disappeared on migration: "+id);
+ // The legacy save already opened the door with its six-note melody:
+ // the flute was consumed and must NOT come back. The kite was crafted
+ // but never flown and must remain in the player's inventory.
+ assert(recovery.saved.pocket.includes("kite"),
+  "The previously crafted, unspent kite disappeared on migration");
+ assert(!recovery.saved.pocket.includes("flute")&&
+  !recovery.recovered.includes("flute"),
+  "The already-played flute was incorrectly restored after opening the door");
  for(const id of ["key","reed","prism","coin"])
   assert(!recovery.recovered.includes(id),
    "Save repair duplicated an item consumed by a later puzzle: "+id);

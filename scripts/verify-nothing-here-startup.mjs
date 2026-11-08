@@ -396,6 +396,16 @@ try{
       "A completed mobile save did not restore the unfolded cube");
     }
     const layout=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+    // The unfolded panels must keep their brushed enamel reverse finishes,
+    // and the celebration must contain a genuine 3D cat, not a sprite/video.
+    assert(layout.reverseTexturedPanels===6&&
+     layout.cat?.visible&&layout.cat.real3D&&layout.cat.meshCount>0&&
+     Math.abs(layout.cat.durationSeconds-134.699)<.001,
+     "Unfolding lost the six engraved panel textures or 134.7-second 3D cat: "+
+      JSON.stringify(layout.cat));
+    if(check.label==="finale-last-discovery")
+     assert(layout.cat.dancing,
+      "The cat did not begin its timed spin after the last panel unfolded");
     assert(layout.banner&&layout.replay&&layout.outerFrameHidden&&
      layout.centerFit&&layout.scale>=.18&&layout.scale<=.43,
      "The final scene is not properly visible: "+JSON.stringify(layout));
