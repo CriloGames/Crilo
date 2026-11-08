@@ -26,7 +26,8 @@ assert.equal(sceneAt(90).name,"ice");
 assert.equal(sceneAt(112).name,"tunnel");
 assert.equal(sceneAt(122).name,"kaleidoscope");
 assert.equal(sceneAt(134).name,"white");
-for(const t of [0,1.2,16,35,71.4,117]){
+// First downbeat is at ~0.38 seconds; t=0 is the musical pickup.
+for(const t of [.4,1.2,16,35,71.4,117]){
  const a=motionAt(t),b=motionAt(t+CAT_BEAT_SECONDS);
  assert(b.beatIndex===a.beatIndex+1,
   "Spinning-cat beat index drifts from the soundtrack at "+t);
