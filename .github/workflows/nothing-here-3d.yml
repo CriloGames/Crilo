@@ -10,6 +10,7 @@ on:
       - 'three-workbench/**'
       - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-nothing-here-second-coin.mjs'
+      - 'scripts/verify-nothing-here-cat.mjs'
       - '.github/workflows/nothing-here-3d.yml'
   push:
     branches: [main]
@@ -30,6 +31,7 @@ on:
       - 'cube-physical.css'
       - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-nothing-here-second-coin.mjs'
+      - 'scripts/verify-nothing-here-cat.mjs'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-3d.yml'
