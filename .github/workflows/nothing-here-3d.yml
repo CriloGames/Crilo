@@ -49,7 +49,9 @@ concurrency:
 jobs:
   setup-and-preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 23
+    # End-to-end coin, live WebGL and visual checks exceed 23 minutes on
+    # software-rendered Chromium; don't cancel a passing suite mid-run.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
