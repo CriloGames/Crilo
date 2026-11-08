@@ -389,7 +389,13 @@ export function buildIntricateCube({
   // Queue consecutive real channels during quick wheel turns instead of
   // restarting the ball animation and teleporting between maze positions.
   const mazeQueue=[];
-  let mazeVisualTarget=mazeOrigin,mazeTween=null;
+  let mazeVisualTarget=mazeOrigin,mazeTween=null,mazeEdgeDeadline=null;
+  const clearMazeEdgeDeadline=()=>{
+    if(mazeEdgeDeadline!==null){
+      clearTimeout(mazeEdgeDeadline);
+      mazeEdgeDeadline=null;
+    }
+  };
   function animateNextMazeEdge(){
     if(mazeTween||!mazeQueue.length)return;
     const next=mazeQueue.shift(),from=mazeTravel.to;
@@ -397,13 +403,23 @@ export function buildIntricateCube({
       throw Error("The wheel queued a closed corridor");
     mazeTravel.from=from;mazeTravel.to=next;mazeTravel.t=0;
     seatFollower();invalidate();
+    // Software WebGL can starve animation frames during rapid wheel turns.
+    // Settle each real channel on a wall-clock deadline, preserving the
+    // contiguous route rather than leaving the ball frozen mid-corridor.
+    const finishEdge=()=>{
+      clearMazeEdgeDeadline();
+      const tween=mazeTween;
+      mazeTween=null;
+      tween?.kill();
+      mazeTravel.t=1;
+      seatFollower();invalidate();
+      animateNextMazeEdge();
+    };
     mazeTween=gsap.to(mazeTravel,{t:1,duration:.16,ease:"none",
       onUpdate:()=>{seatFollower();invalidate();},
-      onComplete:()=>{
-        mazeTween=null;seatFollower();invalidate();
-        animateNextMazeEdge();
-      }
+      onComplete:finishEdge
     });
+    mazeEdgeDeadline=setTimeout(finishEdge,280);
   }
   let mazeLastProgress=0;
   const mazeTravelPoint=()=>{
@@ -712,6 +728,7 @@ export function buildIntricateCube({
     mazeLastProgress=Math.max(0,Math.min(gearMazeDirections.length,
      Number(s.gearMazeIndex)||0));
     if(instant){
+     clearMazeEdgeDeadline();
      gsap.killTweensOf(mazeTravel);
      mazeTween=null;mazeQueue.length=0;
      mazeVisualTarget=cell;
@@ -724,7 +741,8 @@ export function buildIntricateCube({
      }else{
       // Old saves can jump between layouts. Only restore those directly;
       // live wheel inputs ALWAYS travel along the contiguous physical edge.
-      gsap.killTweensOf(mazeTravel);
+      clearMazeEdgeDeadline();
+     gsap.killTweensOf(mazeTravel);
       mazeTween=null;mazeQueue.length=0;mazeVisualTarget=cell;
       mazeTravel.from=cell;mazeTravel.to=cell;mazeTravel.t=1;
       seatFollower();invalidate();
