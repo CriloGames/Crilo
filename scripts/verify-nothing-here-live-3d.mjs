@@ -195,11 +195,16 @@ try{
   unlocked.pressureGauge.radius<.33,
   "A compact pressure dial must surround the actual left-face actuator: "+
    JSON.stringify(unlocked.pressureGauge));
- assert(unlocked.trays.length>=12&&
-  unlocked.trays.filter(tray=>tray.visible).length>=12&&
+ // The cloud's raindrop was consumed when the completed tree grew.
+ // Its bolted empty tray remains, but it must not count as a visible pickup.
+ const cloudTray=unlocked.trays.find(tray=>tray.source==="cloud");
+ assert(unlocked.trays.length===12&&cloudTray&&
+  !cloudTray.visible&&cloudTray.visibleItems===0&&
+  unlocked.trays.filter(tray=>tray.visible).length===11&&
+  unlocked.trays.filter(tray=>tray.source!=="cloud").every(tray=>tray.visible)&&
   unlocked.items.filter(item=>item.source==="bag").every(item=>
    item.mounted&&item.faceDepth<.65),
-  "Unlocked collectibles are still floating outside their attached trays");
+  "Unlocked collectibles or their attached trays have inconsistent visibility");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
   "Opened mechanisms must never conceal their physically revealed rewards");
  assert(unlocked.cogCover?.open&&unlocked.cogCover.angle < -1.15,
