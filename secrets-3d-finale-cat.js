@@ -170,10 +170,12 @@ function backdropMaterial(){
  });
 }
 function phaseAt(t){return sceneAt(t).scene;}
-export function createFinaleCatShow({scene,stage,invalidate}){
+export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}){
+ const reduceEffects=!!reducedMotion||
+  window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
  let initialized=false,playing=false,modelLoaded=false,raf=0;
  let startTime=0,lastPaint=0,elapsed=0,source="procedural";
- let group,spinner,modelContainer,background,shader,key,rim;
+ let group,spinner,modelContainer,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
  const loadCat=()=>{
   if(modelLoaded)return;
@@ -182,12 +184,27 @@ export function createFinaleCatShow({scene,stage,invalidate}){
    const cat=gltf.scene,box=new THREE.Box3().setFromObject(cat);
    if(box.isEmpty())return;
    const size=box.getSize(new THREE.Vector3());
-   cat.scale.setScalar(2.10/Math.max(.01,size.y));
+   const scale=2.10/Math.max(.01,size.y);
+   // Face the tabby directly at the camera, not in washed-out profile.
+   cat.rotation.y=-Math.PI/2;
+   cat.scale.set(scale*1.15,scale*.88,scale*1.14);
    const scaled=new THREE.Box3().setFromObject(cat);
    const center=scaled.getCenter(new THREE.Vector3());
    cat.position.set(-center.x,-scaled.min.y,-center.z);
    cat.traverse(child=>{
-    if(child.isMesh){child.castShadow=true;child.receiveShadow=true;}
+    if(!child.isMesh)return;
+    child.castShadow=true;child.receiveShadow=true;
+    const refine=material=>{
+     if(!material)return material;
+     const copy=material.clone();
+     if(copy.color)copy.color.multiplyScalar(.67);
+     if("roughness" in copy)copy.roughness=.93;
+     if("metalness" in copy)copy.metalness=0;
+     if("envMapIntensity" in copy)copy.envMapIntensity=.3;
+     return copy;
+    };
+    child.material=Array.isArray(child.material)?
+     child.material.map(refine):refine(child.material);
    });
    spinner.add(cat);loadedModel=cat;
    if(fallback)fallback.visible=false;
@@ -214,9 +231,11 @@ export function createFinaleCatShow({scene,stage,invalidate}){
   group=new THREE.Group();group.visible=false;scene.add(group);
   spinner=new THREE.Group();group.add(spinner);
   fallback=fallbackCat();spinner.add(fallback);
-  key=new THREE.PointLight(0xfff1dd,5.0,9);key.position.set(-2,3,4);
-  rim=new THREE.PointLight(0x80bcff,5.5,10);rim.position.set(2,1,-2);
-  group.add(key,rim);
+  key=new THREE.PointLight(0xfff1dd,1.8,10);key.position.set(-2,4,4);
+  rim=new THREE.PointLight(0x80bcff,1.15,10);rim.position.set(2,2,-2);
+  flashLight=new THREE.PointLight(0xffffff,0,13);
+  flashLight.position.set(0,3,4);
+  group.add(key,rim,flashLight);
   loadCat();
  }
  function paint(t){
@@ -233,20 +252,22 @@ export function createFinaleCatShow({scene,stage,invalidate}){
   // eight-beat, 150 BPM cycle. Motion comes from the SAME audio clock as
   // the displayed soundtrack rather than an unrelated 2.6s oscillator.
   spinner.rotation.order="YXZ";
-  spinner.rotation.y=motion.spinRadians;
-  spinner.rotation.x=motion.rollRadians;
-  spinner.rotation.z=motion.tiltRadians;
-  spinner.scale.setScalar(motion.scale);
+  spinner.rotation.y=reduceEffects?0:motion.spinRadians;
+  spinner.rotation.x=reduceEffects?0:motion.rollRadians;
+  spinner.rotation.z=reduceEffects?0:motion.tiltRadians;
+  spinner.scale.setScalar(reduceEffects?1:motion.scale);
   // The real hinged T lies on the world XZ plane at approximately y=0
   // after its cube pivot is pitched -90 degrees. Keep the cat's paws just
   // ABOVE that surface and its raised puzzle hardware (rather than through
   // the platform or behind it), with each beat providing a subtle bounce.
-  group.position.set(0,.22+motion.bob,-.3);
+  group.position.set(0,.23+(reduceEffects?0:motion.bob),-.3);
   const white=p===0||p===3||p===6;
-  key.color.setHex(p===1?0xff728f:p===2||p===7?0xffb0ec:p===4?0x9ccfff:0xfff5e9);
-  rim.color.setHex(p===1?0xff243c:p===2||p===7?0x2acaff:p===4?0x426bff:0xbed5ff);
-  key.intensity=white?4.1:4.5+motion.pulse*1.5;
-  rim.intensity=white?3.8:5.0+motion.pulse*1.8;
+  key.color.setHex(p===1?0xffb692:p===2||p===7?0xffc0ec:p===4?0xaddbff:0xfff2e6);
+  rim.color.setHex(p===1?0xff4966:p===2||p===7?0x20bfff:p===4?0x4d75ff:0xb6d5ff);
+  // Restore fur markings that the previous 4–7x lights bleached away.
+  key.intensity=white?1.45:1.65+motion.pulse*.8;
+  rim.intensity=white?.85:1.15+motion.pulse*.75;
+  flashLight.intensity=reduceEffects?0:motion.flash*5.4;
   invalidate();
  }
  function tick(now){
@@ -292,6 +313,10 @@ export function createFinaleCatShow({scene,stage,invalidate}){
    bpm:CAT_MUSIC_BPM,
    motion:motionAt(elapsed),
    platformUnderCat:true,
+   referencePose:motionAt(elapsed).spinMode,
+   flash:motionAt(elapsed).flash,
+   reducedEffects:reduceEffects,
+   frontFacingTabby:true,
    elapsedSeconds:+elapsed.toFixed(2),
    catSource:source,
    meshCount:spinner?(()=>{let n=0;spinner.traverse(o=>{if(o.isMesh&&o.visible)n++});return n})():0,
