@@ -5,10 +5,10 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=3";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=4";
 import {makeSpinningLoaf} from "./secrets-3d-finale-loaf.js?v=1";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=3";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=4";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
 const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
