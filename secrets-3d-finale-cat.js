@@ -1,13 +1,13 @@
 /* Nothing Here completion spectacle: a REAL 3D grey tabby, animated lights
  * and scene transitions timed to the user's 134.699-second reference.
  * No frames, audio or copyrighted music are copied from that recording.
- * Grey-tabby GLB: 3DAssets.dev CC0-1.0, asset 20537/v1 (3,840 triangles).
+ * HD tabby GLB: 3DAssets.dev CC0-1.0, asset 28146/v1 (15,282 triangles).
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 
 export const CAT_REFERENCE_DURATION=134.699;
-const CAT_MODEL_URL="https://cdn.3dassets.dev/assets/20537/v1/model.glb";
+const CAT_MODEL_URL="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 
@@ -134,7 +134,7 @@ export function createFinaleCatShow({scene,stage,invalidate}){
    });
    spinner.add(cat);loadedModel=cat;
    if(fallback)fallback.visible=false;
-   source="cc0-grey-tabby-glb";
+   source="cc0-hd-tabby-glb";
    invalidate();
   },undefined,()=>{
    source="procedural-fallback";
