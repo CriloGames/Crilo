@@ -258,6 +258,7 @@ export function createNothingHereFinale({
  });
  return {
   begin,restoreComplete,
+  seekForVisualTest:t=>phase==="open"?catShow.seekForVisualTest(t):null,
   onResize(){if(phase==="open"){cube.scale.setScalar(fit());catShow.onResize();invalidate();}},
   isActive:()=>phase!=="idle",
   getState(){
