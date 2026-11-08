@@ -1568,9 +1568,18 @@ try{
   "An empty offering receiver must not grant a discovery or a reward");
  assert(s.seen.includes("faceplate")&&s.seen.includes("pipe")&&s.seen.includes("drawer"),
   "Physical actions failed to award the existing discovery catalog");
- await page.waitForTimeout(1400);
- assert.equal(await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews),1,
-  "Extracted 3D screws remained visibly attached to the faceplate");
+ // Software WebGL can throttle both GSAP animation ticks and timer callbacks.
+ // Wait for the actual rendered fasteners to retract; NEVER substitute the
+ // saved puzzle count for the visible Three.js mesh state.
+ const retracted=await page.waitForFunction(()=>
+  window.__nothing3DPreview.visibleFrontScrews===1,
+  null,{timeout:18000,polling:250}).then(()=>true,()=>false);
+ const frontScrewAudit=await page.evaluate(()=>
+  window.__nothing3DPreview.frontScrewVisualAudit);
+ assert(retracted&&frontScrewAudit.meshes.filter(v=>v.visible).length===1&&
+  frontScrewAudit.meshes.find(v=>v.visible)?.id==="front-screw-3",
+  "Extracted 3D screws remained visibly attached to the faceplate: "+
+  JSON.stringify(frontScrewAudit));
  // Opening either case exposes a selectable piece. Tapping its solid
  // casing again must not magically pocket the item without pressing it.
  await page.evaluate(()=>{
