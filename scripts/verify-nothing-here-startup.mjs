@@ -400,8 +400,10 @@ try{
     // and the celebration must contain a genuine 3D cat, not a sprite/video.
     assert(layout.reverseTexturedPanels===6&&
      layout.cat?.visible&&layout.cat.real3D&&layout.cat.meshCount>0&&
-     Math.abs(layout.cat.durationSeconds-134.699)<.001,
-     "Unfolding lost the six engraved panel textures or 134.7-second 3D cat: "+
+     Math.abs(layout.cat.durationSeconds-134.699)<.001&&
+     layout.cat.bpm===150&&layout.platformHorizontal&&
+     layout.platformUnderCat&&layout.cameraAbovePlatform,
+     "Cat/base does not match the textured horizontal T, 150 BPM and 134.7s reference: "+
       JSON.stringify(layout.cat));
     if(check.label==="finale-last-discovery")
      assert(layout.cat.dancing,
