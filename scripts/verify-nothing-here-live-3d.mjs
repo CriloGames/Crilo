@@ -1603,12 +1603,16 @@ try{
  await activate("serial");
  assert.equal(await page.evaluate(()=>document.activeElement?.dataset.item),"tooth",
   "An unrelated mechanical event stole keyboard focus from the pocket");
- await page.locator('#ncInventory [data-item="tooth"]').click();
+ // The inventory button already retained keyboard focus. Activate it with
+ // Enter rather than waiting for Playwright's pointer hit-test on a loaded
+ // software-WebGL canvas. This explicitly verifies keyboard accessibility.
+ await page.keyboard.press("Enter");
  assert.match(await page.locator("#ncPocketSelection").innerText(),/holding.*key teeth/i,
   "Selecting a pocket tool should identify what is being held");
  assert.equal((await state()).selected,"tooth",
   "Pocket selection failed to persist in canonical state");
- await page.locator("#ncUnselect").click();
+ await page.locator("#ncUnselect").focus();
+ await page.keyboard.press("Enter");
  assert.equal((await state()).selected,null,
   "Putting an item down failed to clear held-item selection");
  assert(await page.locator("#ncPocketSelection").isHidden(),
