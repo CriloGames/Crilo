@@ -2154,6 +2154,14 @@ try{
    JSON.stringify(complete));
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
   "Completing the catalogue damaged existing discoveries");
+ // A 60/60 save starts an asynchronous textured GLB load. Navigating away
+ // while GLTFLoader decodes its embedded WebP blob can abort that image
+ // request and log a loader exception in software Chromium.
+ // Require the FULL textured cat to load before leaving this page.
+ await page.waitForFunction(()=>{
+  const cat=window.__nothing3DPreview?.completionFinale?.cat;
+  return cat?.loadedModel===true&&cat?.catSource==="cc0-hd-tabby-local";
+ },null,{timeout:45000,polling:250});
  await diagnosticScreenshot(page,{path:"test-results/live-3d-finale-T.png",timeout:60000});
  // Old links must transparently normalize to the one supported 3D game.
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
@@ -2167,6 +2175,12 @@ try{
   "The retired illustrated mode is still reachable from a legacy URL");
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
   "Opening a former Classic URL changed physical 3D progress");
+ // The owner reset navigates again: finish the second GLB texture decode
+ // rather than leaving a half-loaded model and a revoked blob URL.
+ await page.waitForFunction(()=>{
+  const cat=window.__nothing3DPreview?.completionFinale?.cat;
+  return cat?.loadedModel===true&&cat?.catSource==="cc0-hd-tabby-local";
+ },null,{timeout:45000,polling:250});
  // Only a server-verified owner profile may consume the one-time local
  // reset. A normal player must never lose their 60-secret save.
  await page.evaluate(()=>{
