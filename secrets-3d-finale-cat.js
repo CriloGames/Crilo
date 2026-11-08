@@ -5,9 +5,10 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=2";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=3";
+import {makeSpinningLoaf} from "./secrets-3d-finale-loaf.js?v=1";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=2";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=3";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
 const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
@@ -175,7 +176,7 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
  let initialized=false,playing=false,modelLoaded=false,raf=0;
  let startTime=0,lastPaint=0,elapsed=0,source="procedural";
- let group,spinner,modelContainer,background,shader,key,rim,flashLight;
+ let group,spinner,standingRoot,loafRoot,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
  const loadCat=()=>{
   if(modelLoaded)return;
@@ -206,7 +207,7 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
     child.material=Array.isArray(child.material)?
      child.material.map(refine):refine(child.material);
    });
-   spinner.add(cat);loadedModel=cat;
+   standingRoot.add(cat);loadedModel=cat;
    if(fallback)fallback.visible=false;
    source=kind;invalidate();
   };
@@ -230,7 +231,14 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   background.visible=false;scene.add(background);
   group=new THREE.Group();group.visible=false;scene.add(group);
   spinner=new THREE.Group();group.add(spinner);
-  fallback=fallbackCat();spinner.add(fallback);
+  standingRoot=new THREE.Group();
+  standingRoot.name="Standing 3D tabby — foreground, not spinning";
+  spinner.add(standingRoot);
+  fallback=fallbackCat();standingRoot.add(fallback);
+  loafRoot=makeSpinningLoaf();
+  loafRoot.position.y=.59;
+  spinner.add(loafRoot);
+  loafRoot.visible=false;
   key=new THREE.PointLight(0xfff1dd,1.8,10);key.position.set(-2,4,4);
   rim=new THREE.PointLight(0x80bcff,1.15,10);rim.position.set(2,2,-2);
   flashLight=new THREE.PointLight(0xffffff,0,13);
@@ -248,14 +256,21 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   shader.uniforms.uBeat.value=motion.beatPulse;
   shader.uniforms.uFlash.value=reduceEffects?0:motion.flash;
   shader.uniforms.uSideways.value=motion.sideways;
-  // Ethel's upright/front pose and sideways loaf shape alternate on an
-  // eight-beat, 150 BPM cycle. Motion comes from the SAME audio clock as
-  // the displayed soundtrack rather than an unrelated 2.6s oscillator.
-  spinner.rotation.order="YXZ";
-  spinner.rotation.y=reduceEffects?0:motion.spinRadians;
-  spinner.rotation.x=reduceEffects?0:motion.rollRadians;
-  spinner.rotation.z=reduceEffects?0:motion.tiltRadians;
-  spinner.scale.setScalar(reduceEffects?1:motion.scale);
+  shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
+  shader.uniforms.uGreenPale.value=motion.greenPale;
+  // The reference has TWO physically different silhouettes: a full tabby
+  // standing still and a compact cat loaf spinning like a wheel in the
+  // SCREEN plane. Rotating the standing cat around Y was the main defect.
+  const loaf=motion.poseMode==="loaf"&&!reduceEffects;
+  standingRoot.visible=!loaf;
+  loafRoot.visible=loaf;
+  spinner.rotation.order="ZYX";
+  spinner.rotation.z=loaf?motion.spinRadians:0;
+  spinner.rotation.y=loaf?motion.threeDRoll:0;
+  spinner.rotation.x=loaf?motion.tiltRadians:0;
+  spinner.scale.setScalar((loaf?.90:1)*motion.photoScale);
+  // A meaningful head-and-body flip: when it stops, the actual standing
+  // model returns in the SAME forward-facing pose as the source edit.
   // The real hinged T lies on the world XZ plane at approximately y=0
   // after its cube pivot is pitched -90 degrees. Keep the cat's paws just
   // ABOVE that surface and its raised puzzle hardware (rather than through
@@ -317,6 +332,10 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    flash:motionAt(elapsed).flash,
    reducedEffects:reduceEffects,
    frontFacingTabby:true,
+   volumetricLoaf:!!loafRoot,
+   active3DPose:reduceEffects?"front":motionAt(elapsed).poseMode,
+   referenceFrameLuma:motionAt(elapsed).referenceLuma,
+   totalReferencePoseCuts:41,
    elapsedSeconds:+elapsed.toFixed(2),
    catSource:source,
    meshCount:spinner?(()=>{let n=0;spinner.traverse(o=>{if(o.isMesh&&o.visible)n++});return n})():0,
