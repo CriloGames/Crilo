@@ -1,12 +1,24 @@
 name: Nothing Here physical 3D setup
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-*.js'
+      - 'three-workbench/**'
+      - 'scripts/verify-nothing-here-live-3d.mjs'
+      - 'scripts/verify-nothing-here-second-coin.mjs'
+      - 'scripts/verify-nothing-here-cat.mjs'
+      - '.github/workflows/nothing-here-3d.yml'
   push:
     branches: [main]
     paths:
       - 'three-workbench/**'
       - 'secrets-3d-preview.html'
       - 'secrets-3d-preview.js'
+      - 'secrets-3d-finale.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
@@ -19,6 +31,7 @@ on:
       - 'cube-physical.css'
       - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-nothing-here-second-coin.mjs'
+      - 'scripts/verify-nothing-here-cat.mjs'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
       - '.github/workflows/nothing-here-3d.yml'
@@ -36,7 +49,9 @@ concurrency:
 jobs:
   setup-and-preview:
     runs-on: ubuntu-24.04
-    timeout-minutes: 23
+    # End-to-end coin, live WebGL and visual checks exceed 23 minutes on
+    # software-rendered Chromium; don't cancel a passing suite mid-run.
+    timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -52,6 +67,7 @@ jobs:
         run: |
           node --check cube-secrets.js
           node --check secrets-3d-preview.js
+          node --check secrets-3d-finale.js
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js
@@ -62,6 +78,7 @@ jobs:
           node --check three-workbench/scripts/verify-visual-regression.mjs
           node --check scripts/verify-nothing-here-live-3d.mjs
           node --check scripts/verify-nothing-here-second-coin.mjs
+          node --check scripts/verify-nothing-here-cat.mjs
           node --check scripts/verify-secrets-3d-preview.mjs
           node --check scripts/verify-nothing-here-codes.mjs
       - name: Verify that every engraved puzzle code actually operates its mechanism
@@ -77,25 +94,110 @@ jobs:
       # The vending-machine second-coin and all later deliveries have their
       # own shorter browser walkthrough. Report a dead end before rendering
       # the whole six-face visual museum for the full integration suite.
-      - name: Verify refunded coin, save recovery and downstream puzzle chain
-        run: node scripts/verify-nothing-here-second-coin.mjs
+      - name: Verify cat is actually touchable and produces one saved bark
+        run: node scripts/verify-nothing-here-cat.mjs
+      - name: Verify observatory shutter with isolated real 3D controls
+        run: NH_OBSERVATORY_ONLY=1 node scripts/verify-nothing-here-second-coin.mjs
       # Run real playable-game interaction checks first. A failure should not
       # require a three-minute software-rendered museum screenshot beforehand.
       - name: Verify live 60-secret Three.js integration
         run: |
           mkdir -p test-results
           node scripts/verify-nothing-here-live-3d.mjs
-      - name: Compare all six faces across locked and unlocked states
-        if: ${{ !cancelled() }}
-        run: node three-workbench/scripts/verify-visual-regression.mjs
-      - name: Test real 3D drawer and hatch behavior
-        if: ${{ !cancelled() }}
-        run: node scripts/verify-secrets-3d-preview.mjs
       - name: Save 3D preview screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nothing-here-real-3d-previews
           path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  # The complete coin/save-recovery walkthrough needs ~22 minutes in
+  # software WebGL. Test it on its own runner so failure cannot keep the
+  # unlocked 3D geometry tests blocked behind an unrelated long walkthrough.
+  coin-recovery-and-story-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install physical 3D dependencies
+        working-directory: three-workbench
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Serve local game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Verify refunded coin, save recovery and downstream puzzle chain
+        run: node scripts/verify-nothing-here-second-coin.mjs
+
+  # Independent jobs expose geometry, pixel-rendering and prototype failures
+  # in the same run instead of skipping two checks after the first assertion.
+  visual-six-face-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies for pixel comparisons
+        working-directory: three-workbench
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Serve local game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Compare all six faces in locked and unlocked states
+        run: node three-workbench/scripts/verify-visual-regression.mjs
+      - name: Upload pixel comparison snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-six-face-visual-regression
+          path: test-results/nothing-here-visual/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  prototype-drawer-and-hatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install physical 3D dependencies
+        working-directory: three-workbench
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Serve local game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Verify standalone 3D drawer and hatch controls
+        run: |
+          mkdir -p test-results
+          node scripts/verify-secrets-3d-preview.mjs
+      - name: Upload prototype snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-prototype-drawer-preview
+          path: test-results/3d-*.png
           if-no-files-found: ignore
           retention-days: 7

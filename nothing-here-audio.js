@@ -86,7 +86,7 @@
   }
  }
  function startMusic(){
-  if(!musicEnabled||!gestureReady||document.hidden)return false;
+  if(finalePlaying||!musicEnabled||!gestureReady||document.hidden)return false;
   const song=ensureMusic();if(!song)return false;
   if(song._fadeFrame)cancelAnimationFrame(song._fadeFrame);
   // Only start after a user gesture; modern browsers block page-load audio.
@@ -121,6 +121,7 @@
    active.clear();
    // The handcrafted flute uses Web Audio rather than a sampled element.
    // Suspending it makes the effects toggle truly mute both sound engines.
+   stopFinale();
    if(fluteContext?.state==="running")fluteContext.suspend().catch(()=>{});
   }
   syncUi();
@@ -149,6 +150,78 @@
   }catch{return false}
  }
  let fluteContext=null;
+ let finaleMaster=null,finaleTimeout=null,finalePlaying=false;
+ function stopFinale(){
+  if(finaleTimeout!==null){clearTimeout(finaleTimeout);finaleTimeout=null;}
+  if(finaleMaster&&fluteContext){
+   const now=fluteContext.currentTime;
+   finaleMaster.gain.cancelScheduledValues(now);
+   finaleMaster.gain.setTargetAtTime(.0001,now,.04);
+  }
+  finaleMaster=null;finalePlaying=false;
+ }
+ // A new, original electronic completion cue (not YouTube audio or an
+ // imitation of any recording). Synthesis uses no external music assets.
+ // It uses the existing sound-effects preference so default players hear
+ // the ending, but a user who muted Sounds never hears surprise playback.
+ function playFinale(){
+  if(!sfxEnabled||document.hidden)return false;
+  const Engine=window.AudioContext||window.webkitAudioContext;
+  if(!Engine)return false;
+  try{
+   if(!fluteContext||fluteContext.state==='closed')fluteContext=new Engine();
+   if(fluteContext.state==='suspended')fluteContext.resume()?.catch?.(()=>{});
+   stopFinale();
+   // Do not layer the lobby loop under the ending.
+   if(music&&!music.paused){music.pause();music.volume=0;}
+   const ctx=fluteContext,now=ctx.currentTime+.018;
+   const master=ctx.createGain();
+   master.gain.setValueAtTime(.0001,now);
+   master.gain.exponentialRampToValueAtTime(.42,now+.16);
+   master.connect(ctx.destination);
+   finaleMaster=master;finalePlaying=true;latestEffect='finale';
+   const beat=.46,half=beat/2;
+   const note=(frequency,at,length,level,wave,fade=.035)=>{
+    const oscillator=ctx.createOscillator(),envelope=ctx.createGain();
+    oscillator.type=wave;
+    oscillator.frequency.setValueAtTime(frequency,at);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency*.992,at+length);
+    envelope.gain.setValueAtTime(.0001,at);
+    envelope.gain.exponentialRampToValueAtTime(Math.max(.0002,level),at+.012);
+    envelope.gain.setTargetAtTime(.0001,at+length*.65,fade);
+    oscillator.connect(envelope).connect(master);
+    oscillator.start(at);oscillator.stop(at+length+.07);
+   };
+   // Sixteen syncopated beats: a little victory dance for the unfolding cube.
+   // Distinct original pitches/chord movement, no sampled melody.
+   const melody=[659.25,783.99,1046.5,987.77,783.99,659.25,587.33,783.99,
+    698.46,880,1046.5,880,783.99,698.46,659.25,523.25,
+    783.99,987.77,1174.66,1046.5,987.77,783.99,698.46,783.99,
+    880,1046.5,1318.51,1174.66,1046.5,880,783.99,1046.5];
+   const bass=[164.81,130.81,146.83,174.61,164.81,196,174.61,130.81];
+   for(let i=0;i<melody.length;i++){
+    const t=now+i*half;
+    note(melody[i],t,half*.85,.075,i%4===0?'triangle':'sine');
+    if(i%4===0)note(melody[i]/2,t,half*1.5,.022,'triangle');
+    if(i%4===2)note(310,t,.06,.018,'triangle');
+   }
+   for(let i=0;i<16;i++){
+    const t=now+i*beat;
+    note(bass[Math.floor(i/2)%bass.length],t,beat*.72,.068,'sawtooth',.06);
+    note(72,t,.095,.072,'sine',.025); // soft rhythmic low drum
+    note(740,t+half,.045,.009,'triangle',.008);
+   }
+   const end=now+16*beat;
+   master.gain.setValueAtTime(.42,end-.55);
+   master.gain.exponentialRampToValueAtTime(.0001,end+.25);
+   finaleTimeout=setTimeout(()=>{
+    finaleTimeout=null;finaleMaster=null;finalePlaying=false;
+    try{master.disconnect()}catch{}
+    if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
+   },Math.ceil((end+.3-ctx.currentTime)*1000));
+   return true;
+  }catch{stopFinale();return false;}
+ }
  function playFluteNote(number){
   if(!sfxEnabled||document.hidden)return false;
   const notes=[523.25,659.26,783.99];
@@ -214,13 +287,13 @@
   if(document.hidden){if(music)music.pause()}
   else if(musicEnabled&&gestureReady)startMusic();
  });
- window.addEventListener('pagehide',()=>{if(music)music.pause()});
+ window.addEventListener('pagehide',()=>{stopFinale();if(music)music.pause()});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,playFluteNote,action,setSfx,setMusic,
+  play,toneFor,playFluteNote,playFinale,stopFinale,action,setSfx,setMusic,
   getState:()=>({
-   sfxEnabled,musicEnabled,latestEffect,musicCreated:!!music,
+   sfxEnabled,musicEnabled,latestEffect,finalePlaying,musicCreated:!!music,
    musicPlaying:!!music&&!music.paused,
    musicLoop:music?.loop??true,soundFileCount:Object.keys(files).length,
    oggSupported:oggOk

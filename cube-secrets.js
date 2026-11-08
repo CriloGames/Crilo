@@ -202,7 +202,7 @@ const pocket=new Set((Array.isArray(raw.pocket)?raw.pocket:[]).filter(k=>Object.
 const pendingPickups=new Set((Array.isArray(raw.pendingPickups)?raw.pendingPickups:[])
  .filter(k=>Object.hasOwn(names,k)&&!pocket.has(k)));
 const defaults={a:false,b:false,top:false,bottom:false,left:false,back:false,bag:false,
- bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,bellUsed:false,squirrel:false,
+ bagOpen:false,bagSolved:false,door:false,doorOpen:false,barked:false,bellUsed:false,catNudged:false,squirrel:false,
  vase:false,plant:false,tree:false,cloud:false,rainReleased:false,music:false,watch:false,machine:false,
  cup:false,moon:false,observatoryRaised:false,mouse:false,tag:false,kite:false,
  floorFour:false,elevatorTagInserted:false,mothTouched:false,observed:false,telescopeLensMounted:false,telescopeIrisMounted:false,dancer:false,train:false,parcelTaken:false,portal:false,
@@ -1652,15 +1652,17 @@ function note(i){
  render();
 }
 function bark(trigger='pet'){
- if(trigger==='bell'&&!s.barked)s.dogHits=Math.max(2,s.dogHits);
+ if((trigger==='bell'||trigger==='cat')&&!s.barked)s.dogHits=Math.max(2,s.dogHits);
  s.dogHits++;
  cue('ncDog','nc-petting',520);
  if(s.dogHits===1)bloom('dog','The dog tilts its head, wondering whether you are real.');
  if(s.dogHits>=3&&!s.barked){
   s.barked=true;s.squirrel=true;s.vase=true;
-  bloom('bark',trigger==='bell'
-   ?'The small bell rings. The surprised dog lets out a loud bark, startling the squirrel perched on the ledge above the door.'
-   :'After three pats, the dog lets out a loud bark that startles the squirrel above its door.');
+  bloom('bark',trigger==='cat'
+   ?'The cat taps the dog on the ear. The startled bark sends the squirrel running from its lower shelf.'
+   :trigger==='bell'
+    ?'The small bell rings. The surprised dog lets out a loud bark, startling the squirrel on the lower shelf.'
+    :'After three pats, the dog barks, startling the squirrel on its lower shelf.');
   bloom('squirrel','A squirrel bolts. It was balanced on top of the door.');
   bloom('vase','The squirrel knocks the underside’s ceramic vase off balance. Its cracked base reveals an acorn and a clockwork spring.');
   gain('acorn');gain('spring');bloom('spring');fleeing=true;
@@ -1680,7 +1682,7 @@ function bark(trigger='pet'){
 // event nodes and exported 3D control API must not bypass discoveries.
 function thingPresent(name){
  return !!({
-  bag:s.bag,door:s.door,dog:s.doorOpen,vase:s.doorOpen,
+  bag:s.bag,door:s.door,dog:s.doorOpen,cat:s.doorOpen,vase:s.doorOpen,
   squirrel:s.squirrel,pot:s.vase,musicbox:s.vase,cloud:s.cloud,
   cup:s.music,clock:s.watch,machine:s.mouse,
   elevator:s.serialRead||(s.watch&&s.tag)||s.floorFour||s.train,
@@ -1744,6 +1746,15 @@ function clickThing(name,actuator=false){
    }
   else tell('There is no place on the other side of this door. Just a dog.');
  }else if(name==='dog')bark();
+ else if(name==='cat'){
+  // One alternate physical route to the original dog/squirrel/vase chain.
+  // The cat's nudge is saved and cannot mint duplicate rewards.
+  if(!s.catNudged){
+   s.catNudged=true;
+   if(!s.barked)bark('cat');
+   else tell('The cat taps the dog on the ear. The squirrel has already fled, so nothing else falls.');
+  }else tell('The cat curls back onto its shelf. It has done enough for one day.');
+ }
  else if(name==='vase')tell(s.vase?'The vase is in at least seventeen pieces.':'How is this vase so perfectly balanced?');
  else if(name==='squirrel')tell('The squirrel is about to have a very bad afternoon.');
  else if(name==='pot')tell(s.tree?'An impossible tiny tree, growing indoors.':s.plant?'The acorn is thirsty.':'It is a pot with some dry soil.');
@@ -2162,7 +2173,7 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
   tell('The tiny elevator has an empty brass reader under the floor buttons. It needs a small metal access tag.');
  },
  activatePhysicalThing(name){
-  const supported=new Set(['bag','door','dog','vase','squirrel','pot','musicbox',
+  const supported=new Set(['bag','door','dog','cat','vase','squirrel','pot','musicbox',
    'cloud','cup','clock','machine','elevator','moth','telescope','train']);
   if(supported.has(name))clickThing(name);
  },

@@ -19,6 +19,9 @@ const mock=`window.supabase={createClient:()=>({
  in:async()=>({data:[],error:null}),
  maybeSingle:async()=>({data:null,error:null})})
 })};`;
+// WebGL-heavy software rendering can delay the DOMContentLoaded navigation
+// event long after the response commits. Reload only to the network commit,
+// then independently wait for the actual 3D module to report ready.
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
@@ -88,7 +91,7 @@ async function deployObservatory(page){
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&
   Math.abs(pose.domeSeamHeight-.118)<.001&&Math.abs(pose.scopeTilt)<.02&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
+  pose.canopyFrontY<-.12&&pose.canopyFrontY>-.16&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
@@ -196,15 +199,48 @@ async function refundCoin(page,{realPointer=false}={}){
  // The white face no longer rotates, and one direction of a drag must
  // always reverse the same groove the other direction entered.
  async function dragWheel(name,direction){
+  const canvas=page.locator("#stage canvas");
+  // Scrolling changes the browser's canvas position, and the game can
+  // still be settling a camera reset. Always obtain a FRESH raycast point
+  // after scrolling, not the old projection from before the viewport moved.
+  await canvas.scrollIntoViewIfNeeded({timeout:30000});
   const data=await page.evaluate(name=>{
    const p=window.__nothing3DPreview;
-   return {start:p.projectGameControl(name),center:p.getGearDragCenter(name)};
+   return {start:p.projectGameControl(name),center:p.getGearDragCenter(name),
+    camera:p.navigationState};
   },name);
   assert(data.start?.pick===name&&data.center,
-   "The actual "+name+" cannot be grabbed");
-  const center=data.center,start=data.start;
+   "The actual "+name+" cannot be grabbed after scrolling: "+JSON.stringify(data));
+  const rect=await canvas.boundingBox();
+  assert(rect,"The physical 3D canvas is not visible for wheel drag");
+  const start={x:data.start.x+rect.x,y:data.start.y+rect.y};
+  const center={x:data.center.x+rect.x,y:data.center.y+rect.y};
+  // Regression guard: viewport mouse coordinates and canvas-local raycast
+  // coordinates are different. The visible black cog must be reachable
+  // without clicking outside the browser window.
+  const viewport=page.viewportSize();
+  assert(viewport&&start.x>=0&&start.x<=viewport.width&&
+   start.y>=0&&start.y<=viewport.height,
+   "The physical wheel is offscreen after scrolling: "+
+    JSON.stringify({start,rect,viewport,name}));
   const radius=Math.hypot(start.x-center.x,start.y-center.y);
-  await page.mouse.move(start.x,start.y);await page.mouse.down();
+  // This audit endpoint expects canvas-local pixel coordinates; Playwright
+  // requires viewport coordinates for the real mouse.
+  if(name!=="gear-large"){
+   const hit=await page.evaluate(([x,y])=>
+    window.__nothing3DPreview.getPhysicalActionAt(x,y),
+    [data.start.x,data.start.y]);
+   assert.equal(hit,name,"The real visible cog was not under the cursor: "+
+    JSON.stringify({hit,data,rect}));
+  }
+  await page.mouse.move(start.x,start.y);
+  await page.mouse.down();
+  if(name!=="gear-large"){
+   const engaged=await page.evaluate(()=>
+    window.__nothing3DPreview.gearDragState);
+   assert(engaged.active&&engaged.action===name,
+    "Pointerdown did not engage the physical cog: "+JSON.stringify(engaged));
+  }
   if(direction==="in"||direction==="out"){
    const sign=direction==="in"?-1:1;
    for(let i=1;i<=10;i++)
@@ -241,15 +277,34 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"gear-large");
  assert.equal((await state(page)).gearMazeCell,80,
   "Direct white-face activation moved the captive pin");
- // A passive drag can orbit the camera; recenter before cog testing.
- await page.evaluate(()=>window.__nothing3DPreview.setRotation(-15,90));
+ // A passive drag ORBITS THE CAMERA, not just the white maze.
+ // Reset the OrbitControls camera/target/damped deltas as well as the
+ // cube angle; otherwise a previous white drag can leave an inertial
+ // orbit running and miss the first tiny black-cog pointerdown.
+ await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  view.resetCameraView();
+  view.setRotation(-15,90);
+ });
+ assert.equal((await state(page)).selected,null,
+  "The maze test left a held inventory item blocking physical wheel gestures");
  const initial=await page.evaluate(()=>
   window.__nothing3DPreview.physicalGearMaze);
  assert(Math.abs(initial.faceAngle)<.000001,
   "The white maze visibly rotated, despite being stationary");
  await dragWheel("gear-small","ccw");
- assert.equal((await state(page)).gearMazeCell,81,
-  "The black drive cog did not advance the captive pin");
+ const firstCog=await page.evaluate(()=>({
+  state:window.CriloNothingHereCube.getState(),
+  control:window.__nothing3DPreview.projectGameControl("gear-small"),
+  camera:window.__nothing3DPreview.navigationState,
+  click:window.__nothing3DPreview.lastClickedAction,
+  maze:window.__nothing3DPreview.physicalGearMaze
+ }));
+ assert.equal(firstCog.state.gearMazeCell,81,
+  "The black drive cog did not advance the captive pin: "+
+   JSON.stringify({cell:firstCog.state.gearMazeCell,
+    selected:firstCog.state.selected,control:firstCog.control,
+    camera:firstCog.camera,click:firstCog.click,maze:firstCog.maze}));
  await dragWheel("gear-small","cw");
  assert.equal((await state(page)).gearMazeCell,80,
   "Reversing the black drive cog failed to return the ball");
@@ -266,7 +321,7 @@ async function refundCoin(page,{realPointer=false}={}){
   window.__nothing3DPreview.physicalGearMaze);
  assert(geared.stationaryFace&&Math.abs(geared.faceAngle)<.000001,
   "The black cog turned but the white maze also rotated");
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ await page.reload({waitUntil:"commit",timeout:90000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
  assert.equal((await state(page)).gearMazeCell,81,
   "Reloading erased an unfinished maze position");
@@ -277,13 +332,16 @@ async function refundCoin(page,{realPointer=false}={}){
  await act(page,"maze-in");
  assert.equal((await state(page)).gearMazeCell,80,
   "The dial crossed the sealed outer radial wall at the start");
+ // The physical labyrinth has 16 sectors per ring, including the
+ // wraparound corridor 47 -> 32. A stale 24-sector check made that
+ // real carved passage falsely look blocked in browser QA.
  const fullPath=[80,81,82,83,84,85,69,70,54,55,56,57,58,42,41,40,39,38,22,21,5,4,20,19,35,34,50,49,65,64,79,78,62,63,47,32,33,17,16,0,15,31,30,29,45,44,43,27,26,10,9,8,96];
  for(let i=1;i<fullPath.length;i++){
   const from=fullPath[i-1],to=fullPath[i];
   const action=to===96||to===from-16?"maze-in":
    to===from+16?"maze-out":
    Math.floor(to/16)===Math.floor(from/16)&&
-   to%16===(from%16+1)%24?"maze-ccw":"maze-cw";
+   to%16===(from%16+1)%16?"maze-ccw":"maze-cw";
   await act(page,action);
   assert.equal((await state(page)).gearMazeCell,to,
    "A sculpted channel does not match its playable direction: "+from+" -> "+to);
@@ -313,7 +371,9 @@ async function refundCoin(page,{realPointer=false}={}){
   "The service key should remain seated after the shutter opens");
 }
 
+const observatoryOnly=process.env.NH_OBSERVATORY_ONLY==="1";
 try{
+ if(!observatoryOnly){
  // Order A: spend -> repair -> collect refund -> redeem -> reload.
  {
   const {page,close}=await scenario("spend-then-repair",{
@@ -328,7 +388,7 @@ try{
   assert(repaired.shimUsed,
    "Using the shim must repair the coin-return mechanism even without a progress panel");
   await refundCoin(page,{realPointer:true});
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const saved=await state(page);
   assert(saved.refundRedeemed&&saved.seen.includes("service-bolt")&&
@@ -447,7 +507,7 @@ try{
    await act(page,to===96||to===from-16?"maze-in":
     to===from+16?"maze-out":
     Math.floor(to/16)===Math.floor(from/16)&&
-    to%16===(from%16+1)%24?"maze-ccw":"gear-small");
+    to%16===(from%16+1)%16?"maze-ccw":"gear-small");
   }
   const opened=await state(page);
   assert(opened.gearMazeSolved&&!opened.pressureReady&&
@@ -459,6 +519,32 @@ try{
   await collect(page,"fork");
   await close();
   console.log("PASS: gear-first and pressure-first orders unlock the same genuine calibration reward");
+ }
+ // The cat is a real miniature on an attached shelf, not an overlay.
+ // One tap must produce the same observable dog -> vase progression.
+ {
+  const {page,close}=await scenario("cat-startles-dog-once",{
+   seen:["first","door","dog"],door:true,doorOpen:true,
+   pocket:[],pendingPickups:[]
+  });
+  const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose);
+  assert(pose.catMounted&&Number.isFinite(pose.catPawAngle),
+   "The cat lacks a mounted physical model with a working paw");
+  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions))
+   .includes("thing:cat"),"The cat has no clickable 3D target");
+  await act(page,"thing:cat");
+  const after=await state(page);
+  assert(after.catNudged&&after.barked&&after.squirrel&&after.vase&&
+   after.pendingPickups.includes("acorn")&&after.pendingPickups.includes("spring"),
+   "Cat failed to startle dog and release both vase rewards");
+  await act(page,"thing:cat");
+  const again=await state(page);
+  assert.equal(again.dogHits,after.dogHits,
+   "Repeated cat taps replayed the one-time bark");
+  assert.deepEqual(again.pendingPickups,after.pendingPickups,
+   "Repeated cat taps created duplicate collectibles");
+  await close();
+  console.log("PASS: interactive cat -> bark -> squirrel -> two vase pickups");
  }
  // The red-switch bell used to have an apparently valid "use on dog"
  // target that did NOTHING. Ringing it must now cause the same observable
@@ -480,6 +566,7 @@ try{
    "The bell did something but the player was not told what changed");
   await close();
   console.log("PASS: bell rings -> dog barks -> squirrel escapes -> vase breaks -> two real pickups");
+ }
  }
  // An untouched account can open the dome using only the physical
  // top-lid controls. No maker's stamp, moon or side-quest is required.
@@ -514,13 +601,14 @@ try{
    pose.openingRise>.23&&
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&Math.abs(pose.domeSeamHeight-.118)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
+  pose.canopyFrontY<-.12&&pose.canopyFrontY>-.16&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
-   "The reference observatory was unlocked but its curved shutter did not retract");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+   "The reference observatory was unlocked but its curved shutter did not retract: "+
+    JSON.stringify(pose));
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   opened=await state(page);
   assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
@@ -528,6 +616,7 @@ try{
   await close();
   console.log("PASS: latch -> remove tube -> observatory release, independent of other puzzles");
  }
+ if(!observatoryOnly){
  // A fresh player can now follow the maker's-stamp -> lift -> telescope
  // -> railway route BEFORE meeting the dog, growing a tree, or starting
  // the music box. All rewards still have real, collectible 3D origins.
@@ -588,7 +677,7 @@ try{
   assert(railway.train&&!railway.floorFour&&!railway.door&&!railway.music&&
    railway.seen.includes("constellation"),
    "Independent iris/chart/railway route cannot bypass the tag-gated fourth floor");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   focused=await state(page);
   assert(focused.observed&&focused.train&&!focused.floorFour&&
@@ -749,7 +838,7 @@ try{
   for(const item of ["fork","seal","cylinder","tape","letter","envelope"])
    assert(!final.pocket.includes(item)&&!final.pendingPickups.includes(item),
     "Downstream mechanism duplicated spent "+item);
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
@@ -760,7 +849,10 @@ try{
   await close();
   console.log("PASS: fork/shutter/wax/tape/clock, lift/lens/stars/railway, moth/dancer, parcel/postcard/portal, and envelope/door");
  }
- console.log("PASS: all second-coin orders, actual 3D clicks, legacy save repair, and downstream mechanisms");
+ }
+ console.log(observatoryOnly
+  ?"PASS: isolated observatory roof and shutter physical sequence"
+  :"PASS: all second-coin orders, actual 3D clicks, legacy save repair, and downstream mechanisms");
 }finally{
  await browser.close();
 }

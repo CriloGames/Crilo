@@ -57,6 +57,8 @@ const scenarios=[
    squirrel:true,vase:true,plant:true,tree:true,music:true,
    cloud:true,cup:true,watch:true,machine:true,tag:true,
    floorFour:true,mothTouched:true,moon:true,dancer:true,
+   observatoryRaised:true,observed:true,telescopeLensMounted:true,
+   telescopeIrisMounted:true,secondSky:true,
    train:true,portal:true,ventOpen:true,plateOpen:true,
    pressureReady:true,pressureTicks:3,eyeRingTicks:3,
    serviceOpen:true,tapeInserted:true,shimUsed:true,coinReturned:true,

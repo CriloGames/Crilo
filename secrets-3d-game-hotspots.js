@@ -101,9 +101,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   const head=actuators.get(action);
   if(!head)return false;
   gsap.killTweensOf(head.position);
+  // A locked shutter rides on a horizontal rail rather than depressing
+  // into the face like one of the cube's spring push-buttons.
+  if(action==="shutter"){
+   head.position.z=0;
+   if(reducedMotion){head.position.x=0;invalidate();return true;}
+   head.position.x=-.052;
+   invalidate();
+   gsap.to(head.position,{x:0,delay:.085,duration:.34,
+    ease:"back.out(1.8)",onUpdate:invalidate});
+   return true;
+  }
   if(reducedMotion){head.position.z=0;invalidate();return true;}
-  // Immediately sink the actuator in its socket, then let its return spring
-  // rebound. A click must feel responsive even on slow mobile/WebGL GPUs.
+  // Immediately sink genuine push actuators, then let their springs rebound.
   head.position.z=-.064;
   invalidate();
   gsap.to(head.position,{z:0,delay:.085,duration:.34,ease:"back.out(2.1)",
@@ -754,7 +764,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    sharesFluteVisibility:foot.parent===flute&&foot.visible
   })),
   getFixedMountAudit:()=>fixedMounts.map(f=>({
-   name:f.name,face:f.face,
+   name:f.name,face:f.face,baseZ:f.baseZ,rearZ:f.rearZ,
    baseSupported:f.baseZ<=.0725||
     (f.name==="optic offering receiver"&&f.baseZ<=.27),
    supportType:f.baseZ<=.0725?"enamel":"optic housing",

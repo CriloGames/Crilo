@@ -3,6 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
+import { createNothingHereFinale } from "./secrets-3d-finale.js?v=1";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
@@ -20,6 +21,8 @@ const status = document.getElementById("status");
 // Otherwise invalidate() hits the temporal dead zone of a later 'let'
 // declaration and the entire 3D module fails to load.
 let pendingFrame=0;
+// Assigned only after the 3D scene is assembled; resize happens before then.
+let completionFinale=null;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(37, 1, .1, 100);
 camera.position.set(3.85,3.2,5.9);
@@ -782,6 +785,7 @@ function inspectPassiveSurface(action){
  }[action]);
 }
 function clickAction(action){
+ if(completionFinale?.isActive())return;
  lastClickedAction=action;
  if(passiveSurfaces.has(action)){
   inspectPassiveSurface(action);
@@ -1017,7 +1021,7 @@ const controlNames={
  "front-screw-3":"Unusual fastener"
 };
 const miniatureNames={
- bag:"Locked leather bag",dog:"Little dog",door:"Little door",vase:"Ceramic vase",
+ bag:"Locked leather bag",dog:"Little dog",cat:"Perched cat",door:"Little door",vase:"Ceramic vase",
  squirrel:"Clockwork squirrel",pot:"Plant pot",musicbox:"Music box",
  cloud:"Indoor cloud",cup:"Teacup",clock:"Pocket watch",
  machine:"Vending machine",elevator:"Miniature elevator",moth:"Clockwork moth",
@@ -1574,7 +1578,7 @@ renderer.domElement.addEventListener("pointercancel",e=>{
  dismissTouchHint();clearHover();
 });
 renderer.domElement.addEventListener("keydown",event=>{
- if(!embeddedGame)return;
+ if(!embeddedGame||completionFinale?.isActive())return;
  const directions={ArrowLeft:"left",ArrowRight:"right",
   ArrowUp:"up",ArrowDown:"down"};
  // Maze operation belongs to the actual gear/wheel contacts, not
@@ -1643,6 +1647,7 @@ const onResize=()=>{
  camera.aspect=Math.max(.3,r.width/r.height);
  camera.updateProjectionMatrix();
  renderer.setSize(r.width,r.height,false);
+ completionFinale?.onResize();
  scheduleFitFlashRefresh();
  invalidate();
 };
@@ -1814,8 +1819,21 @@ if(debugging3D){
  if(workspace?.parentElement)workspace.before(dock);
  else stage.before(dock);
 }
+completionFinale=embeddedGame?createNothingHereFinale({
+ cube,faceRoot,
+ faces:{frontFace,leftFace,rightFace,bottomFace,backFace,topFace},
+ camera,controls,stage,invalidate,reducedMotion,
+ dismissInspection:()=>{
+  clearKeyboardInspection();
+  clearSelectedFitFlashes();
+  setPartHint(null);
+ }
+}):null;
+
 window.__nothing3DPreview={
  ready:true,
+ get completionFinale(){return completionFinale?.getState()||{phase:"idle"}},
+ get physicalCompletionLayout(){return completionFinale?.getState().panels||{}},
  engine:"three.js",
  setGeometryInspector:mode=>updateGeometryInspection(mode),
  getDetailedCollisionReport:()=>scanRealSurfaceCollisions(),
@@ -2350,11 +2368,15 @@ window.__nothing3DPreview={
   let fallback=null;
   // The reported point must actually select THIS tiny control rather than
   // the parent model, its invisible selection box, or a neighbouring dial.
-  for(const [x,y,z] of [
-   [0,0,.095],[0,0,.065],[0,0,.035],
-   [-.025,0,.078],[.025,0,.078],
-   [0,-.025,.078],[0,.025,.078],[0,0,0]
-  ]){
+  const samples=name==="thing:cat"
+   // The cat's body sits ABOVE its braced perch. Testing the control root
+   // at y=0 would miss the visible animal and hit the adjacent dog instead.
+   ?[[0,.16,.12],[.05,.17,.11],[-.03,.14,.12],
+     [0,.22,.09],[.05,.20,.07],[-.05,.13,.10]]
+   :[[0,0,.095],[0,0,.065],[0,0,.035],
+     [-.025,0,.078],[.025,0,.078],
+     [0,-.025,.078],[0,.025,.078],[0,0,0]];
+  for(const [x,y,z] of samples){
    const pos=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
    const point={x:(pos.x+1)*.5*rect.width,
     y:(1-pos.y)*.5*rect.height,depth:pos.z};
@@ -2519,7 +2541,7 @@ window.__nothing3DPreview={
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
  setRotation(rx,ry){
-  if(!embeddedGame)return;
+  if(!embeddedGame||completionFinale?.isActive())return;
   // Player rotation must supersede any old Reset View tween. With a slow
   // WebGL renderer, stale animation frames can otherwise turn the cube
   // after the player has aimed at a miniature and before their tap lands.
@@ -2556,7 +2578,11 @@ window.__nothing3DPreview={
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   if(physicalPickups)physicalPickups.setState(currentGameState);
-  intricate.syncGameState(currentGameState,restoring);
+  // The visual maze has up to 52 contiguous follower segments. Honor the
+  // player's reduced-motion preference for EACH step, not just initial load:
+  // otherwise a fast solve queues dozens of GSAP tweens and can leave the
+  // ball and latch visually unfinished long after the puzzle is solved.
+  intricate.syncGameState(currentGameState,restoring||reducedMotion);
   physicalStateInitialized=true;
   for(const [obj,open] of [[front,!!state.a],[side,!!state.b]]){
    if(obj.open!==open){
@@ -2669,6 +2695,8 @@ if(embeddedGame){
   const newlyHeld=held!==heldItemForFlash;
   heldItemForFlash=held;
   window.__nothing3DPreview.syncState(event.detail);
+  if(event.detail?.seen?.length>=60&&!completionFinale?.isActive())
+   completionFinale?.begin({animate:true,audio:true});
   // Refresh guidance only when selection changes; never automatically
   // rotate the cube. Manual turning reveals compatible fittings.
   if(newlyHeld){
@@ -2702,5 +2730,8 @@ if(embeddedGame){
  onResize();
  controls.update();
  window.CriloNothingHereCube?.updatePhysicalViewZoom?.(DEFAULT_ZOOM);
+ // Legacy 60/60 saves restore the opened net without autoplay.
+ if((window.CriloNothingHereCube?.getState?.()?.seen?.length||0)>=60)
+  completionFinale?.restoreComplete();
  invalidate();
 }

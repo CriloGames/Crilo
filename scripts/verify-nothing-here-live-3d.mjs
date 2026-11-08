@@ -11,6 +11,10 @@ assert.equal(new Set(sixtySecrets).size,60,"Duplicate discovery ids would corrup
 // every original reward needs an awarding action or a valid craft recipe,
 // and every physical pickup must have a readable glyph and inventory name.
 const catalogSet=new Set(sixtySecrets);
+// Keep legacy hardware checks interactive until they finish. The 60/60
+// finale locks further puzzle actions once the six faces fold outward.
+const preCompletionSecrets=sixtySecrets.filter(id=>id!=="return-letter");
+assert.equal(preCompletionSecrets.length,59);
 const namesText=source.split("const names={")[1]?.split("const glyphs=")[0]||"";
 const glyphText=source.split("const glyphs={")[1]?.split("const recipe=")[0]||"";
 const itemIds=new Set([...namesText.matchAll(/\b([a-z][a-z0-9_]*):'/g)].map(m=>m[1]));
@@ -90,7 +94,7 @@ try{
     // A redeemed coin and the service key occupy the SAME machine slot
     // at different moments. Only one may exist in a valid physical scene.
     "reed","treat","prism","sugar","tag","postcard",
-    "acorn","spring","raindrop","bird","lens","stardust",
+    "acorn","spring","raindrop","bird","lens","stardust", // Intentional legacy duplicate; the grown tree consumes rain
     "starmap","parcel","envelope","tape","letter","bell",
     "fork","shim","cog","washer","cylinder","iris","seal"
    ],
@@ -99,6 +103,10 @@ try{
    squirrel:true,vase:true,plant:true,tree:true,music:true,
    cloud:true,cup:true,watch:true,machine:true,tag:true,
    floorFour:true,mothTouched:true,moon:true,dancer:true,
+   // The unlocked observatory is an actual opened mechanism, not just
+   // a journal discovery. Include its persistent state in this saved scene.
+   observatoryRaised:true,observed:true,
+   telescopeLensMounted:true,telescopeIrisMounted:true,secondSky:true,
    train:true,portal:true,ventOpen:true,plateOpen:true,
    pressureReady:true,pressureTicks:3,eyeRingTicks:3,
    serviceOpen:true,serviceSealInserted:true,tapeInserted:true,shimUsed:true,
@@ -144,7 +152,7 @@ try{
   window.__nothing3DPreview.getDetailedCollisionReport());
  assert(surfaces.library==="three-mesh-bvh"&&
   surfaces.selfTest?.intersecting&&surfaces.selfTest?.separated&&
-  surfaces.groups.models===15&&surfaces.groups.rewards===25&&
+  surfaces.groups.models===15&&surfaces.groups.rewards===24&&
   !surfaces.truncated,
   "High-precision mesh audit unavailable or incomplete: "+JSON.stringify(surfaces));
  const unintended=surfaces.intersections.filter(hit=>
@@ -187,11 +195,16 @@ try{
   unlocked.pressureGauge.radius<.33,
   "A compact pressure dial must surround the actual left-face actuator: "+
    JSON.stringify(unlocked.pressureGauge));
- assert(unlocked.trays.length>=12&&
-  unlocked.trays.filter(tray=>tray.visible).length>=12&&
+ // The cloud's raindrop was consumed when the completed tree grew.
+ // Its bolted empty tray remains, but it must not count as a visible pickup.
+ const cloudTray=unlocked.trays.find(tray=>tray.source==="cloud");
+ assert(unlocked.trays.length===12&&cloudTray&&
+  !cloudTray.visible&&cloudTray.visibleItems===0&&
+  unlocked.trays.filter(tray=>tray.visible).length===11&&
+  unlocked.trays.filter(tray=>tray.source!=="cloud").every(tray=>tray.visible)&&
   unlocked.items.filter(item=>item.source==="bag").every(item=>
    item.mounted&&item.faceDepth<.65),
-  "Unlocked collectibles are still floating outside their attached trays");
+  "Unlocked collectibles or their attached trays have inconsistent visibility");
  assert(unlocked.washer?.onScene&&unlocked.iris?.onScene&&unlocked.fork?.onScene,
   "Opened mechanisms must never conceal their physically revealed rewards");
  assert(unlocked.cogCover?.open&&unlocked.cogCover.angle < -1.15,
@@ -207,10 +220,15 @@ try{
  for(const [item,source] of Object.entries(expectedOrigins))
   assert.equal(origins[item],source,
    "Reward "+item+" is physically mounted to an unrelated source");
- assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
+ // A completed tree has already consumed the one allowed raindrop. The
+ // saved-state migration must discard its obsolete pending duplicate.
+ assert(!unlocked.pendingVisible.includes("raindrop")&&
+  !unlocked.physicallyVisible.includes("raindrop"),
+  "A spent raindrop was regenerated after the tree grew");
+ assert(unlocked.pendingVisible.length===24&&unlocked.physicallyVisible.length===24,
   "Not every reward remains visible when all mechanisms open: "+
   JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
- assert(unlocked.rewards?.measured.length===25,
+ assert(unlocked.rewards?.measured.length===24,
   "Some pending rewards have no real rendered item geometry");
  assert.deepEqual(unlocked.rewards.overhangs,[],
   "At least one unlocked reward is hanging past its box face or detached");
@@ -456,11 +474,14 @@ try{
  assert.equal(initial.mounts.length,15,"All miniature scenes must remain in the floating version");
  const hardwareMounts=await page.evaluate(()=>
   window.__nothing3DPreview.miniatureHardwareAttachmentAudit);
+ // The observatory is a cast-in dome collar seated directly into the
+ // top enamel, unlike the fourteen shelf miniatures with four standoffs.
  assert(hardwareMounts.length===15&&hardwareMounts.every(h=>
-  h.standoffs===4&&h.shellMounted&&h.upperSeated&&h.lowerSeated),
-  "One of the fifteen display sockets has floating screws, open air under its rivets, "+
-  "or no real connection to the cube: "+JSON.stringify(hardwareMounts));
- console.log("PASS: all 15 miniature display mounts have 4 solid support shafts and seated brass fasteners");
+  h.standoffs===(h.name==="telescope"?1:4)&&
+  h.shellMounted&&h.upperSeated&&h.lowerSeated),
+  "A miniature has unsupported mounts or an unseated observatory collar: "+
+  JSON.stringify(hardwareMounts));
+ console.log("PASS: fourteen shelf miniatures have four seated shafts; the observatory has its flush built-in dome collar");
  const attachmentAudit=await page.evaluate(()=>
   window.__nothing3DPreview.physicalAttachmentAudit);
  assert(attachmentAudit?.okay&&
@@ -746,16 +767,10 @@ try{
  const keyLayers=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
  assert(keyLayers.tooth&&!keyLayers.extraKey,
   "The key is rendered twice in the same drawer, causing intersecting gold geometry");
- if(!latchMotion.reduced){
+ if(!latchMotion.reduced)
   assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
-  await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
-   null,{timeout:15000});
- const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
- assert(!openLavender.closed&&openLavender.joined,
-  "The lavender seal must retract with its drawer, not remain over the hole");
-
-
- }
+ // Software WebGL may stall intermediate frames. Wait once for the actual
+ // settled end-stop, then verify the opening and its fitted tongue together.
  // Headless SwiftShader renders the highly detailed scene much more slowly
  // than desktop GPUs. Test the completed mechanical position, not whether
  // an arbitrary wall-clock sleep was long enough for requestAnimationFrame.
@@ -765,11 +780,15 @@ try{
  }catch(error){
   const diagnostics=await page.evaluate(()=>({
    position:window.__nothing3DPreview.drawerPositions,
+   frontOpen:window.__nothing3DPreview.frontOpen,
    state:window.CriloNothingHereCube.getState().a,
    reducedMotion:window.__nothing3DPreview.reducedMotion
   }));
   throw new Error("Front drawer failed to reach mechanical stop: "+JSON.stringify(diagnostics),{cause:error});
  }
+ const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
+ assert(!openLavender.closed&&openLavender.joined,
+  "The lavender seal must retract with its drawer, not remain over the hole");
  assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
  // The progress dropdowns are deliberately removed to bring the pocket
  // closer to the cube. The game still announces actions in the narrator
@@ -1194,8 +1213,13 @@ try{
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.275,
   null,{timeout:16000,polling:250});
- assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.30,
-  "A collected sugar reward must visibly extend the real vending-machine tray");
+ // The first sugar purchase extends the captive tray to 0.285; the
+ // larger 0.315/0.355 end stops belong to later service-key progress.
+ const initialVendingDepth=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalScenePose.vendingTrayDepth);
+ assert(initialVendingDepth>.28&&initialVendingDepth<.30,
+  "The first sugar reward should extend the tray to its initial 0.285 stop: "+
+   initialVendingDepth);
  // The earlier refund awarded an EXTRA sugar cube with nowhere to go after
  // the teacup was solved. The repaired machine must return ONE coin and
  // redeem it for a DIFFERENT physical service result, not redundant sugar.
@@ -1242,16 +1266,21 @@ try{
   assert(triangleMotion.depth<-.007,"Triangle should depress into its brass spring housing: "+JSON.stringify(triangleMotion));
  for(let i=0;i<2;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical triangle presses did not open the hatch");
- // The hatch's wheels must now do an actual job: rotate together on
- // seated spindles and retract both clips from the collectible tube.
- await page.waitForFunction(()=>
-  window.__nothing3DPreview.topRetainerAssembly.released,
-  null,{timeout:12000,polling:100});
+ // The hatch's two gears rotate in OPPOSITE directions, with pitch
+ // radii .205 and .175. At the actual 1.08-radian open stop their angles
+ // are about -.659 and +.771 respectively, and the rack clips retract .135.
+ // A partial release (> .10) occurs sooner, so wait for full gear travel.
+ await page.waitForFunction(()=>{
+  const a=window.__nothing3DPreview.topRetainerAssembly;
+  return a.released&&a.gears.length===2&&
+   a.gears[0].angle<-.62&&a.gears[1].angle>.73&&
+   a.clipOffsets[0]<-.125&&a.clipOffsets[1]>.125;
+ },null,{timeout:20000,polling:150});
  const tubeDrive=await page.evaluate(()=>window.__nothing3DPreview.topRetainerAssembly);
- assert(tubeDrive.gears.length===2&&tubeDrive.gears[0].angle>.8&&
-  tubeDrive.gears[1].angle<-.8&&
-  tubeDrive.clipOffsets[0]<-.10&&tubeDrive.clipOffsets[1]>.10,
-  "The hatch opened without rotating its connected gear train and freeing the tube: "+
+ assert(tubeDrive.released&&tubeDrive.gears[0].angle<-.62&&
+  tubeDrive.gears[1].angle>.73&&
+  tubeDrive.clipOffsets[0]<-.125&&tubeDrive.clipOffsets[1]>.125,
+  "The hatch's meshed gears did not reach their opposite end stops: "+
   JSON.stringify(tubeDrive));
  const topBeforeClick=await page.evaluate(()=>window.__nothing3DPreview.topOpen);
  await activate("hatch");
@@ -1451,7 +1480,7 @@ try{
   await activate(to===96||to===from-16?"maze-in":
    to===from+16?"maze-out":
    Math.floor(to/16)===Math.floor(from/16)&&
-   to%16===(from%16+1)%24?"maze-ccw":"maze-cw");
+   to%16===(from%16+1)%16?"maze-ccw":"maze-cw");
   assert.equal((await state()).gearMazeCell,to,
    "A real channel failed: "+from+" to "+to);
  }
@@ -1963,12 +1992,14 @@ try{
    train:true,dogHits:2,mothTouched:true
   });
   localStorage.setItem(key,JSON.stringify(original));
- },sixtySecrets);
+ },preCompletionSecrets);
  await page.reload({waitUntil:"domcontentloaded"});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&document.body.classList.contains("nc-physical-ready"),{timeout:60000});
  const migrated=await state();
- assert.deepEqual(new Set(migrated.seen),new Set(sixtySecrets),"3D migration lost completed secrets");
- assert.equal(await page.locator("#ncCount").innerText(),"60","Journal did not restore all sixty discoveries");
+ assert.deepEqual(new Set(migrated.seen),new Set(preCompletionSecrets),
+  "3D migration lost a saved in-progress discovery");
+ assert.equal(await page.locator("#ncCount").innerText(),"59",
+  "Journal must reflect the saved 59 pre-completion discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
  assert.equal(migrated.eyeRingTicks,3,
@@ -2061,8 +2092,28 @@ try{
  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.liftLampLevel))>.5,
   "The physical arrival indicator should light up when the elevator unlocks");
  await activate("dot");
- assert.equal((await state()).seen.length,60,"Repeating completed puzzles must not duplicate awards");
+ assert.equal((await state()).seen.length,59,
+  "Repeating a previously completed puzzle must not award duplicates");
  await page.screenshot({path:"test-results/live-3d-mobile-restored.png",timeout:60000});
+ // Now migrate a completed 60/60 save. Its six ACTUAL faces should display
+ // the saved T-shaped ending, without autoplay or losing old state.
+ await page.evaluate(ids=>{
+  const key="crilo_nothing_here_cube_v3";
+  const saved=JSON.parse(localStorage.getItem(key));
+  saved.seen=ids;
+  localStorage.setItem(key,JSON.stringify(saved));
+ },sixtySecrets);
+ await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+ await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+  document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+ const complete=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+ assert(complete.phase==="open"&&complete.banner&&complete.replay&&
+  complete.outerFrameHidden&&Object.keys(complete.panels).length===6,
+  "The completed legacy 3D save did not unfold all six cube panels: "+
+   JSON.stringify(complete));
+ assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
+  "Completing the catalogue damaged existing discoveries");
+ await page.screenshot({path:"test-results/live-3d-finale-T.png",timeout:60000});
  // Old links must transparently normalize to the one supported 3D game.
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
   waitUntil:"domcontentloaded"});

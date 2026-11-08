@@ -7,16 +7,47 @@
 //   node scripts/verify-nothing-here-startup.mjs
 // Requires Playwright Chromium. Never connects to a live Crilo account.
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {mkdir} from "node:fs/promises";
 import {chromium} from "playwright";
 
 const base=process.env.NOTHING_HERE_TEST_URL||
  "http://127.0.0.1:4173/secrets.html";
 const savedKey="crilo_nothing_here_cube_v3";
+const catalogText=readFileSync("cube-secrets.js","utf8").split("const catalog=[")[1]
+ .split("const title=new Map(catalog)")[0];
+const peculiarities=[...catalogText.matchAll(/^\s*\['([^']+)',/gm)].map(match=>match[1]);
+assert.equal(peculiarities.length,60,"Completion gate expects exactly 60 discoveries");
+const allButDot=peculiarities.filter(id=>id!=="dot");
+assert.equal(allButDot.length,59);
 await mkdir("test-results",{recursive:true});
+
+// A headless SwiftShader readback can hang even when the underlying scene
+// is fully rendered and its real pointer/state assertions pass. Capture
+// diagnostic PNGs when possible, but let the separate pixel-regression job
+// own mandatory screenshot checks. Do not mistake image capture for gameplay.
+async function captureSnapshot(target,options){
+ try{
+  return await target.screenshot({...options,timeout:Math.min(options.timeout||12000,12000)});
+ }catch(error){
+  console.warn("Optional WebGL screenshot unavailable ("+options.path+"): "+
+   String(error).slice(0,220));
+  return null;
+ }
+}
 
 const cases=[
  {label:"fresh-desktop",viewport:{width:1280,height:850},seed:null},
+ // A saved 60/60 game must unfold without replaying sounds or animations.
+ {label:"finale-saved-mobile",viewport:{width:390,height:844},
+  seed:{seen:peculiarities,plateOpen:true,door:true,doorOpen:true,
+   pocket:[],pendingPickups:[],gearMazePlayed:true,gearMazeLayoutVersion:6,
+   gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
+ // The sixtieth TRUE discovery must start the finale in the same session.
+ {label:"finale-last-discovery",viewport:{width:1280,height:850},
+  seed:{seen:allButDot,redHits:0,
+   pocket:["coin"],pendingPickups:[],gearMazePlayed:true,
+   gearMazeLayoutVersion:6,gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
  {label:"saved-mobile",viewport:{width:390,height:844},
   seed:{seen:["first"],gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}},
@@ -113,6 +144,8 @@ const cases=[
    gearMazePlayed:true,gearMazeLayoutVersion:6,
    gearMazeCell:81,gearMazeSolved:false,gearMazeTurns:1}}
 ];
+const onlyCases=new Set((process.env.NOTHING_HERE_ONLY_CASES||"").split(",").filter(Boolean));
+const skipCases=new Set((process.env.NOTHING_HERE_SKIP_CASES||"").split(",").filter(Boolean));
 const browser=await chromium.launch({headless:true,args:[
  "--no-sandbox","--enable-webgl","--use-gl=angle",
  "--use-angle=swiftshader","--enable-unsafe-swiftshader"
@@ -120,9 +153,11 @@ const browser=await chromium.launch({headless:true,args:[
 let failed=false;
 try{
  for(const check of cases){
+  if(onlyCases.size&&!onlyCases.has(check.label)||skipCases.has(check.label))continue;
   const context=await browser.newContext({
    viewport:check.viewport,
-   reducedMotion:check.label==="held-coin-guidance"?"no-preference":"reduce"
+   reducedMotion:["held-coin-guidance","finale-last-discovery"].includes(check.label)
+    ?"no-preference":"reduce"
   });
   const errors=[];
   const page=await context.newPage();
@@ -319,6 +354,99 @@ try{
     const restored=await page.evaluate(()=>window.CriloNothingHereCube.getState());
     assert(restored.plateOpen&&restored.pendingPickups.includes("cog"),
      "Reloading relocked a successfully released spring hatch");
+   }
+   if(check.label==="finale-saved-mobile"||
+      check.label==="finale-last-discovery"){
+    const before=await page.evaluate(()=>({
+     game:window.CriloNothingHereCube.getState(),
+     ending:window.__nothing3DPreview.completionFinale
+    }));
+    if(check.label==="finale-last-discovery"){
+     assert(before.game.seen.length===59&&before.ending.phase==="idle"&&
+      await page.locator("#ncFinaleBanner").isHidden(),
+      "The finale began before the 60th discovery");
+     await page.evaluate(()=>window.__nothing3DPreview.clickAction("dot"));
+     const finished=await page.evaluate(()=>({
+      game:window.CriloNothingHereCube.getState(),
+      ending:window.__nothing3DPreview.completionFinale
+     }));
+     assert(finished.game.seen.length===60&&finished.game.seen.includes("dot"),
+      "The final genuine peculiarity failed to count");
+     console.log("FINALE TRIGGER",JSON.stringify(finished));
+     try{
+      await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+       null,{timeout:36000,polling:250});
+     }catch(error){
+      const debug=await page.evaluate(()=>({
+       game:window.CriloNothingHereCube.getState(),
+       finale:window.__nothing3DPreview.completionFinale,
+       audio:window.NothingHereAudio?.getState(),
+       status:document.querySelector("#status")?.textContent
+      }));
+      throw new Error("60th discovery unfolding did not settle: "+
+       JSON.stringify(debug),{cause:error});
+     }
+     assert((await page.evaluate(()=>
+      window.__nothing3DPreview.completionFinale)).phase==="open",
+      "The sixtieth discovery did not finish the real unfolding animation");
+     assert(finished.game.pocket.includes("coin"),
+      "Finale consumed a legitimate saved inventory item");
+    }else{
+     assert(before.game.seen.length===60&&before.ending.phase==="open",
+      "A completed mobile save did not restore the unfolded cube");
+    }
+    const layout=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+    assert(layout.banner&&layout.replay&&layout.outerFrameHidden&&
+     layout.centerFit&&layout.scale>=.18&&layout.scale<=.43,
+     "The final scene is not properly visible: "+JSON.stringify(layout));
+    const expected={front:[0,0],left:[-3.22,0],right:[3.22,0],
+     bottom:[0,-3.22],back:[0,-6.44],top:[0,-9.66]};
+    for(const [side,[x,y]] of Object.entries(expected)){
+     const center=layout.panels?.[side];
+     assert(center&&Math.abs(center.x-x)<.05&&
+      Math.abs(center.y-y)<.05&&center.normal>.98,
+      "The cube did not form a real flat T, panel "+side+": "+JSON.stringify(center));
+    }
+    const headline=await page.locator("#ncFinaleBanner h2").innerText();
+    assert.equal(headline,"You found all secrets!");
+    // The banner is never allowed to cover even the top edge of the
+    // horizontal T, including narrow mobile saved-game layouts.
+    const layoutBounds=await page.evaluate(()=>{
+     const title=document.getElementById("ncFinaleBanner").getBoundingClientRect();
+     const world=document.getElementById("ncWorld").getBoundingClientRect();
+     return {bannerBottom:title.bottom,worldTop:world.top,
+      bannerWidth:title.width,worldWidth:world.width};
+    });
+    assert(layoutBounds.bannerBottom<=layoutBounds.worldTop+2,
+     "Completion heading obscured the 3D T-shaped cube: "+JSON.stringify(layoutBounds));
+    assert(await page.locator("#ncFinaleReplay").isVisible(),
+     "A completed run has no replayable ending");
+    await page.locator("#ncFinaleReplay").click();
+    console.log("FINALE REPLAY STARTED",check.label);
+    try{
+     await page.waitForFunction(()=>window.__nothing3DPreview.completionFinale.phase==="open",
+      null,{timeout:36000,polling:250});
+    }catch(error){
+     const debug=await page.evaluate(()=>({
+      finale:window.__nothing3DPreview.completionFinale,
+      audio:window.NothingHereAudio?.getState()
+     }));
+     throw new Error("Watch again did not finish: "+JSON.stringify(debug),{cause:error});
+    }
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.completionFinale.phase),"open",
+     "Watch again failed to replay the unfolding sequence");
+    await page.reload({waitUntil:"domcontentloaded",timeout:90000});
+    await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+     document.body.classList.contains("nc-physical-ready"),{timeout:60000});
+    assert.equal(await page.evaluate(()=>
+     window.__nothing3DPreview.completionFinale.phase),"open",
+     "Reload lost the completed T-shaped display");
+    assert.equal((await page.evaluate(()=>
+     window.CriloNothingHereCube.getState())).seen.length,60,
+     "Ending changed the saved discovery catalog");
+    await captureSnapshot(page.locator("#stage canvas"),{
+     path:"test-results/nothing-here-finale-"+check.label+".png",timeout:60000});
    }
    if(check.label==="lavender-open-desktop"){
     await page.evaluate(()=>window.__nothing3DPreview.setRotation(30,0));
@@ -674,10 +802,18 @@ try{
     assert(after.persistent&&after.visible>0&&
      after.targets.includes("thing:machine"),
      "Green compatible fitting must keep pulsing while held: "+JSON.stringify(after));
-    await page.screenshot({
-     path:"test-results/nothing-here-persistent-green-fitting.png",
-     timeout:45000
-    });
+    // The behavior was asserted above from live Three.js meshes. A
+    // software-only WebGL renderer can hang during pixel readback, so a
+    // supplemental screenshot must not fail the actual gameplay gate.
+    try{
+     await captureSnapshot(page,{
+      path:"test-results/nothing-here-persistent-green-fitting.png",
+      timeout:12000
+     });
+    }catch(error){
+     console.warn("Optional green-fitting screenshot unavailable:",
+      String(error).slice(0,200));
+    }
     await page.locator("#ncUnselect").click();
     assert.equal((await page.evaluate(()=>
      window.__nothing3DPreview.selectedItemFlashAudit)).visible,0,
@@ -721,7 +857,7 @@ try{
     const clue=await page.locator("#ncNarrator").textContent();
     assert(/optic|socket|telescope|sky|focus/i.test(clue||""),
      "Pressing the real telescope offered no useful text feedback: "+clue);
-    await page.screenshot({path:"test-results/nothing-here-observatory-click.png",
+    await captureSnapshot(page,{path:"test-results/nothing-here-observatory-click.png",
      timeout:45000});
     // Holding the silver lens should pulse exactly at the objective's
     // optical axis, not at a random roof-panel raycast intersection.
@@ -745,7 +881,7 @@ try{
     assert(turned?.visible&&turned.anchored&&turned.centeredTexture&&turned.error<1e-5,
      "Green target drifted off the objective when the cube turned: "+
       JSON.stringify(turned));
-    await page.screenshot({path:"test-results/nothing-here-observatory-lens-fit.png",
+    await captureSnapshot(page,{path:"test-results/nothing-here-observatory-lens-fit.png",
      timeout:45000});
     await page.locator("#ncUnselect").click();
     assert.equal((await page.evaluate(()=>
@@ -762,13 +898,13 @@ try{
     ]){
       await page.evaluate(([x,y])=>
         window.__nothing3DPreview.setRotation(x,y),[rx,ry]);
-      await page.screenshot({
+      await captureSnapshot(page,{
         path:"test-results/nothing-here-inlay-"+face+".png",
         timeout:45000
       });
     }
    }
-   await page.screenshot({
+   await captureSnapshot(page,{
     path:"test-results/nothing-here-startup-"+check.label+".png",
     timeout:45000
    });
@@ -785,7 +921,7 @@ try{
      await page.locator("#nc3DLoadDiagnostic code").textContent({timeout:1000}));
    }catch{}
    try{
-    await page.screenshot({
+    await captureSnapshot(page,{
      path:"test-results/nothing-here-startup-FAILED-"+check.label+".png",
      timeout:20000
     });

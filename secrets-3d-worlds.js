@@ -56,7 +56,7 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
  let bagDialPanel=null,bagCover=null,bagCoverSettleTimer=null,liftStatusGlass=null;
  let doorLeaf=null,musicLid=null,vaseWhole=null,vaseFragments=null;
  let watchHourHand=null,watchMinuteHand=null,vendingTray=null,vendingServiceSeal=null,vendingCabinet=null;
- let dogTail=null,dogCollarBell=null;
+ let dogTail=null,dogCollarBell=null,catPaw=null,lastCatNudged=false;
  const cloudDrops=[],mothWings=[],trainWheels=[];
  let lastDogHits=0,lastRain=false,lastMothTouched=false,lastTrain=false;
  let lastVaseBroken=false,lastDancerVisible=false,lastSeedPlanted=false,lastTreeGrown=false;
@@ -325,6 +325,36 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   dogTail=new THREE.Group();dogTail.position.set(.18,.37,-.16);g.add(dogTail);
   ball(dogTail,.09,.047,0,0,m.cream,[1.7,.48,.62]);
   wire(dogTail,[[.02,.01,0],[.12,.085,0],[.14,.17,0]],.024,m.cream);
+  // The small cat is bolted onto the DOG vignette's real backplate.
+  // A supporting upright joins the perch to the scene's metal brackets.
+  B(g,.31,.026,.18,-.285,.665,.055,m.brass,.008);
+  B(g,.025,.39,.038,-.407,.475,.018,m.brass,.006);
+  B(g,.17,.018,.038,-.353,.553,.03,m.gold,.005);
+  const cat=new THREE.Group();
+  cat.position.set(-.285,.691,.105);g.add(cat);
+  ball(cat,.085,-.025,.079,-.015,m.dark,[1.22,.95,.93]);
+  ball(cat,.064,.048,.168,.025,m.dark,[1.03,1.07,.94]);
+  for(const x of [-.008,.100]){
+   const ear=new THREE.Mesh(new THREE.ConeGeometry(.038,.085,4),m.dark);
+   ear.position.set(x,.250,.015);ear.rotation.y=Math.PI/4;
+   cat.add(ear);parts++;
+   ball(cat,.010,x,.179,.081,m.gold);
+  }
+  ball(cat,.016,.053,.135,.092,m.pink);
+  for(const sign of [-1,1])wire(cat,[
+   [.052,.135,.09],[.052+sign*.085,.145,.108],
+   [.052+sign*.14,.137,.06]],.004,m.cream);
+  wire(cat,[[-.095,.07,-.03],[-.16,.14,-.025],
+   [-.19,.22,-.025],[-.16,.26,-.02]],.015,m.dark);
+  catPaw=new THREE.Group();catPaw.position.set(.096,.069,.075);cat.add(catPaw);
+  B(catPaw,.115,.035,.060,.055,0,0,m.dark,.017);
+  // A slightly generous finger target makes the tiny sculpted cat usable
+  // with touch without claiming the larger dog's click area.
+  const catTouch=new THREE.Mesh(new THREE.BoxGeometry(.26,.30,.22),
+   new THREE.MeshBasicMaterial({transparent:true,opacity:0,
+    colorWrite:false,depthWrite:false,side:THREE.DoubleSide}));
+  catTouch.position.set(0,.16,.048);cat.add(catTouch);parts++;
+  puzzleControls.set("thing:cat",cat);
  }
  // Fragile ceramic vase with narrow neck and dark opening.
  {
@@ -1549,6 +1579,16 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   }
   lastDogHits=dogHits;
   if(dogCollarBell)dogCollarBell.visible=!!s.bellUsed;
+  // A one-time swat animates on fresh interaction, not save restoration.
+  if(catPaw&&!!s.catNudged!==lastCatNudged){
+   gsap.killTweensOf(catPaw.rotation);
+   catPaw.rotation.z=0;
+   if(s.catNudged&&!firstRestore&&!reducedMotion)
+    gsap.timeline({onUpdate:invalidate})
+     .to(catPaw.rotation,{z:-.72,duration:.18,ease:"power2.out"})
+     .to(catPaw.rotation,{z:0,duration:.36,ease:"sine.inOut"});
+  }
+  lastCatNudged=!!s.catNudged;
   const raining=!!(s.cloud&&s.music);
   if(raining!==lastRain){
    cloudDrops.forEach((drop,i)=>{
@@ -1642,6 +1682,8 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   getPose:()=>({
    dogTailAngle:dogTail?.rotation.z??null,
    dogBellOnCollar:dogCollarBell?.visible??false,
+   catMounted:!!puzzleControls.get("thing:cat")?.parent,
+   catPawAngle:catPaw?.rotation.z??null,
    cloudDropHeights:cloudDrops.map(drop=>drop.position.y),
    mothWingAngles:mothWings.map(({wing})=>wing.rotation.z),
    trainWheelAngles:trainWheels.map(wheel=>wheel.rotation.x),

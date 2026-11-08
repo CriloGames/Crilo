@@ -6,11 +6,27 @@ import './verify-nothing-here-maze.mjs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const logic=read('cube-secrets.js');
+// The carved labyrinth has sixteen angular sectors. Both real-browser
+// playthroughs must route the seam from sector 15 back to 0, never % 24.
+for(const testPath of [
+ 'scripts/verify-nothing-here-second-coin.mjs',
+ 'scripts/verify-nothing-here-live-3d.mjs'
+]){
+ const source=read(testPath);
+ assert(source.includes('(from%16+1)%16')&&
+  !source.includes('(from%16+1)%24'),
+  testPath+' uses a stale 24-sector maze route and will stop at 47 -> 32');
+}
 const hotspots=read('secrets-3d-game-hotspots.js');
 const worlds=read('secrets-3d-worlds.js');
 const details=read('secrets-3d-details.js');
 const preview=read('secrets-3d-preview.js');
 const finish=read('secrets-3d-finish.js');
+// Reduced-motion settings must apply to each incoming wheel state, not
+// only to loading. Otherwise a 52-edge solve leaves the ball's GSAP queue
+// playing for much longer than the actual completed puzzle state.
+assert(preview.includes('intricate.syncGameState(currentGameState,restoring||reducedMotion);'),
+ 'Live maze updates ignore reduced-motion preference and can lag behind a solved run');
 const railSource=read('secrets-3d-rail-clearance.js');
 // Load the identical pure geometry splitter used by the BROWSER, rather
 // than duplicating the clipping algorithm in a brittle string-only test.
@@ -114,6 +130,20 @@ assert(cornerLatch.includes("if(s.screws.length===3){")&&
 assert(preview.includes("state.screws?.length===3&&!state.plateOpen?1.05:0")&&
  preview.includes("const finalDepth=state.plateOpen?.07:.13;"),
  "The spring latch lost its armed indicator or retained pressed pose");
+const finale=readFileSync(new URL("../secrets-3d-finale.js",import.meta.url),"utf8");
+const markup=readFileSync(new URL("../secrets.html",import.meta.url),"utf8");
+const audio=readFileSync(new URL("../nothing-here-audio.js",import.meta.url),"utf8");
+assert(preview.includes('createNothingHereFinale')&&
+ preview.includes('event.detail?.seen?.length>=60')&&
+ preview.includes('completionFinale?.restoreComplete();')&&
+ finale.includes('pivot.attach(child)')&&
+ finale.includes('joints.back.rotation.x=-Math.PI/2;')&&
+ finale.includes('joints.top.rotation.x=Math.PI/2;')&&
+ markup.includes('You found all secrets!')&&
+ markup.includes('ncFinaleReplay')&&
+ audio.includes('function playFinale()')&&
+ audio.includes('if(!sfxEnabled||document.hidden)return false;'),
+ 'The original 60-secret hinged finale or accessible completion control is missing');
 assert(logic.includes("spend('flute');")&&
  logic.includes("['flute',seen.has('flute')&&!s.door]")&&
  logic.includes("if(s.door){\n pocket.delete('flute');"),
