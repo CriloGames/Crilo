@@ -150,9 +150,10 @@
   }catch{return false}
  }
  let fluteContext=null;
- let finaleMaster=null,finaleTimeout=null,finalePlaying=false;
+ let finaleMaster=null,finaleTimeout=null,finaleTimer=null,finalePlaying=false;
  function stopFinale(){
   if(finaleTimeout!==null){clearTimeout(finaleTimeout);finaleTimeout=null;}
+  if(finaleTimer!==null){clearInterval(finaleTimer);finaleTimer=null;}
   if(finaleMaster&&fluteContext){
    const now=fluteContext.currentTime;
    finaleMaster.gain.cancelScheduledValues(now);
@@ -164,7 +165,10 @@
  // imitation of any recording). Synthesis uses no external music assets.
  // It uses the existing sound-effects preference so default players hear
  // the ending, but a user who muted Sounds never hears surprise playback.
- function playFinale(){
+ // An original electronic celebration timed to the complete 134.699s
+ // cat show. The commercial W&W "OIIA OIIA" song is NOT bundled; a licensed
+ // synchronized music file can be substituted by the game's owner later.
+ function playFinale(durationSeconds=134.699){
   if(!sfxEnabled||document.hidden)return false;
   const Engine=window.AudioContext||window.webkitAudioContext;
   if(!Engine)return false;
@@ -172,55 +176,72 @@
    if(!fluteContext||fluteContext.state==='closed')fluteContext=new Engine();
    if(fluteContext.state==='suspended')fluteContext.resume()?.catch?.(()=>{});
    stopFinale();
-   // Do not layer the lobby loop under the ending.
    if(music&&!music.paused){music.pause();music.volume=0;}
-   const ctx=fluteContext,now=ctx.currentTime+.018;
+   const ctx=fluteContext,now=ctx.currentTime+.055;
+   const duration=Math.min(180,Math.max(1,Number(durationSeconds)||134.699));
    const master=ctx.createGain();
    master.gain.setValueAtTime(.0001,now);
-   master.gain.exponentialRampToValueAtTime(.42,now+.16);
+   master.gain.exponentialRampToValueAtTime(.35,now+.15);
    master.connect(ctx.destination);
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
-   const beat=.46,half=beat/2;
-   const note=(frequency,at,length,level,wave,fade=.035)=>{
-    const oscillator=ctx.createOscillator(),envelope=ctx.createGain();
-    oscillator.type=wave;
-    oscillator.frequency.setValueAtTime(frequency,at);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency*.992,at+length);
-    envelope.gain.setValueAtTime(.0001,at);
-    envelope.gain.exponentialRampToValueAtTime(Math.max(.0002,level),at+.012);
-    envelope.gain.setTargetAtTime(.0001,at+length*.65,fade);
-    oscillator.connect(envelope).connect(master);
-    oscillator.start(at);oscillator.stop(at+length+.07);
-   };
-   // Sixteen syncopated beats: a little victory dance for the unfolding cube.
-   // Distinct original pitches/chord movement, no sampled melody.
-   const melody=[659.25,783.99,1046.5,987.77,783.99,659.25,587.33,783.99,
-    698.46,880,1046.5,880,783.99,698.46,659.25,523.25,
-    783.99,987.77,1174.66,1046.5,987.77,783.99,698.46,783.99,
-    880,1046.5,1318.51,1174.66,1046.5,880,783.99,1046.5];
-   const bass=[164.81,130.81,146.83,174.61,164.81,196,174.61,130.81];
-   for(let i=0;i<melody.length;i++){
-    const t=now+i*half;
-    note(melody[i],t,half*.85,.075,i%4===0?'triangle':'sine');
-    if(i%4===0)note(melody[i]/2,t,half*1.5,.022,'triangle');
-    if(i%4===2)note(310,t,.06,.018,'triangle');
+   const beat=60/136,half=beat/2;
+   const riff=[0,3,7,10,12,7,3,5,7,10,14,12,10,7,5,3,
+               0,5,7,12,10,7,5,3,7,12,15,14,12,10,7,5];
+   const roots=[82.407,65.406,73.416,61.735,82.407,69.296,73.416,61.735];
+   function note(freq,t,len,vol,wave='triangle',slide=0){
+    const osc=ctx.createOscillator(),env=ctx.createGain();
+    osc.type=wave;
+    osc.frequency.setValueAtTime(freq*(1+slide),t);
+    if(slide)osc.frequency.exponentialRampToValueAtTime(freq,t+Math.min(.1,len*.4));
+    env.gain.setValueAtTime(.0001,t);
+    env.gain.exponentialRampToValueAtTime(vol,t+.008);
+    env.gain.setTargetAtTime(.0001,t+len*.53,Math.max(.015,len*.15));
+    osc.connect(env).connect(master);
+    osc.start(t);osc.stop(t+len+.1);
    }
-   for(let i=0;i<16;i++){
-    const t=now+i*beat;
-    note(bass[Math.floor(i/2)%bass.length],t,beat*.72,.068,'sawtooth',.06);
-    note(72,t,.095,.072,'sine',.025); // soft rhythmic low drum
-    note(740,t+half,.045,.009,'triangle',.008);
+   let next=0;
+   function schedule(){
+    if(!finalePlaying||finaleMaster!==master)return;
+    const horizon=ctx.currentTime+.85;
+    while(now+next*half<horizon&&next*half<duration){
+     const t=next*half,at=now+t,bar=Math.floor(next/8),step=next%8;
+     const root=roots[bar%roots.length];
+     const intro=t<26,quiet=t>=60&&t<80||t>=88&&t<102;
+     const drop=t>=26&&t<60||t>=108&&t<132;
+     const level=intro?.57:quiet?.46:drop?1:.76;
+     if(step%2===0){
+      note(71,at,.22,.088*level,'sine',1);
+      note(root/2,at,.32,.060*level,'sawtooth');
+     }else note(970,at,.036,.010*level,'triangle');
+     if(step===2||step===6){
+      note(196,at,.085,.027*level,'triangle',.2);
+      note(360,at+.012,.064,.007*level,'triangle');
+     }
+     if(!intro||t>12){
+      const f=root*4*Math.pow(2,riff[next%riff.length]/12);
+      note(f,at,.172,.026*level,step%4===0?'triangle':'sine',.018);
+      if(step===0||step===4)
+       note(root*2*Math.pow(2,[0,5,7,3][bar%4]/12),at,.53,
+        .019*level,'triangle');
+     }
+     if(drop&&step===7)note(root*8,at,.095,.013,'sawtooth');
+     next++;
+    }
    }
-   const end=now+16*beat;
-   master.gain.setValueAtTime(.42,end-.55);
-   master.gain.exponentialRampToValueAtTime(.0001,end+.25);
+   schedule();finaleTimer=setInterval(schedule,130);
    finaleTimeout=setTimeout(()=>{
-    finaleTimeout=null;finaleMaster=null;finalePlaying=false;
-    try{master.disconnect()}catch{}
+    if(finaleMaster!==master)return;
+    master.gain.setTargetAtTime(.0001,ctx.currentTime,.07);
+    if(finaleTimer!==null){clearInterval(finaleTimer);finaleTimer=null;}
+    finaleMaster=null;finalePlaying=false;finaleTimeout=null;
+    setTimeout(()=>{try{master.disconnect()}catch{}},450);
     if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
-   },Math.ceil((end+.3-ctx.currentTime)*1000));
+   },Math.ceil(duration*1000));
    return true;
-  }catch{stopFinale();return false;}
+  }catch(error){
+   console.warn('Cat finale audio unavailable:',error?.message||error);
+   stopFinale();return false;
+  }
  }
  function playFluteNote(number){
   if(!sfxEnabled||document.hidden)return false;
