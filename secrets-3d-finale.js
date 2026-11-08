@@ -26,7 +26,7 @@ export function createNothingHereFinale({
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
  let audioAtFinish=false;
- const catShow=createFinaleCatShow({scene,stage,invalidate});
+ const catShow=createFinaleCatShow({scene,stage,invalidate,reducedMotion});
  let completionWatchdog=null;
  function clearWatchdog(){
   if(completionWatchdog!==null)clearTimeout(completionWatchdog);
