@@ -156,9 +156,10 @@ try{
    "A real 3D pose or measured exposure was lost at "+seconds+"s");
   if(seconds===2||seconds===34){
    assert(Math.abs(actual.actualRotations.x)>1&&
-    Math.abs(actual.actualRotations.z)<.1,
-    "The loaf must BARREL ROLL around its long axis at "+seconds+
-     "s, not spin upright like a wheel: "+JSON.stringify(actual));
+    (seconds===34?Math.abs(actual.actualRotations.z-1.46)<.05:
+     Math.abs(actual.actualRotations.z)<.1),
+    "The loaf must BARREL ROLL and match reference camera orientation at "+
+     seconds+"s: "+JSON.stringify(actual));
   }
   if(pose==="front")
    assert(Math.abs(actual.actualRotations.x)<.001,
