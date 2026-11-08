@@ -8,7 +8,8 @@ import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=1";
 
 export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=1";
-const CAT_MODEL_URL="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
+const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
+const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 
@@ -135,7 +136,7 @@ export function createFinaleCatShow({scene,stage,invalidate}){
  const loadCat=()=>{
   if(modelLoaded)return;
   modelLoaded=true;
-  new GLTFLoader().load(CAT_MODEL_URL,gltf=>{
+  const install=(gltf,kind)=>{
    const cat=gltf.scene,box=new THREE.Box3().setFromObject(cat);
    if(box.isEmpty())return;
    const size=box.getSize(new THREE.Vector3());
@@ -148,12 +149,18 @@ export function createFinaleCatShow({scene,stage,invalidate}){
    });
    spinner.add(cat);loadedModel=cat;
    if(fallback)fallback.visible=false;
-   source="cc0-hd-tabby-glb";
-   invalidate();
-  },undefined,()=>{
-   source="procedural-fallback";
-   invalidate();
-  });
+   source=kind;invalidate();
+  };
+  const remoteBackup=()=>{
+   new GLTFLoader().load(CAT_MODEL_BACKUP,
+    gltf=>install(gltf,"cc0-hd-tabby-cdn"),undefined,()=>{
+     source="procedural-fallback";invalidate();
+    });
+  };
+  // Load the actual textured 15k-face feline shipped in the repo first,
+  // retaining a public-domain remote backup for stale Pages caches.
+  new GLTFLoader().load(CAT_MODEL_URL,
+   gltf=>install(gltf,"cc0-hd-tabby-local"),undefined,remoteBackup);
  };
  function ensure(){
   if(initialized)return;
