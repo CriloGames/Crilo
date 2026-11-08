@@ -368,7 +368,9 @@ async function refundCoin(page,{realPointer=false}={}){
   "The service key should remain seated after the shutter opens");
 }
 
+const observatoryOnly=process.env.NH_OBSERVATORY_ONLY==="1";
 try{
+ if(!observatoryOnly){
  // Order A: spend -> repair -> collect refund -> redeem -> reload.
  {
   const {page,close}=await scenario("spend-then-repair",{
@@ -536,6 +538,7 @@ try{
   await close();
   console.log("PASS: bell rings -> dog barks -> squirrel escapes -> vase breaks -> two real pickups");
  }
+ }
  // An untouched account can open the dome using only the physical
  // top-lid controls. No maker's stamp, moon or side-quest is required.
  {
@@ -574,7 +577,8 @@ try{
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
-   "The reference observatory was unlocked but its curved shutter did not retract");
+   "The reference observatory was unlocked but its curved shutter did not retract: "+
+    JSON.stringify(pose));
   await page.reload({waitUntil:"domcontentloaded",timeout:45000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   opened=await state(page);
@@ -583,6 +587,7 @@ try{
   await close();
   console.log("PASS: latch -> remove tube -> observatory release, independent of other puzzles");
  }
+ if(!observatoryOnly){
  // A fresh player can now follow the maker's-stamp -> lift -> telescope
  // -> railway route BEFORE meeting the dog, growing a tree, or starting
  // the music box. All rewards still have real, collectible 3D origins.
@@ -815,7 +820,10 @@ try{
   await close();
   console.log("PASS: fork/shutter/wax/tape/clock, lift/lens/stars/railway, moth/dancer, parcel/postcard/portal, and envelope/door");
  }
- console.log("PASS: all second-coin orders, actual 3D clicks, legacy save repair, and downstream mechanisms");
+ }
+ console.log(observatoryOnly
+  ?"PASS: isolated observatory roof and shutter physical sequence"
+  :"PASS: all second-coin orders, actual 3D clicks, legacy save repair, and downstream mechanisms");
 }finally{
  await browser.close();
 }
