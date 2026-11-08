@@ -287,13 +287,16 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   background.renderOrder=-1000;background.frustumCulled=false;
   background.visible=false;scene.add(background);
   group=new THREE.Group();group.visible=false;scene.add(group);
-  spinner=new THREE.Group();group.add(spinner);
+  spinner=new THREE.Group();
+  spinner.position.y=.75; // pivot at the middle of the feline, NOT its feet
+  group.add(spinner);
   standingRoot=new THREE.Group();
   standingRoot.name="Standing 3D tabby — foreground, not spinning";
+  standingRoot.position.y=-.75; // keep standing feet on the puzzle platform
   spinner.add(standingRoot);
   fallback=fallbackCat();standingRoot.add(fallback);
   loafRoot=makeSpinningLoaf();
-  loafRoot.position.y=.59;
+  loafRoot.position.y=-.25; // centre loaf on the actual spin pivot
   spinner.add(loafRoot);
   loafRoot.visible=false;
   key=new THREE.PointLight(0xfff1dd,1.8,10);key.position.set(-2,4,4);
