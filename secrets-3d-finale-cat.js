@@ -303,7 +303,9 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    // faces the game camera! The previous -90deg yaw showed only its side.
    // Bigger torso / shorter legs bring it closer to Ethel's stocky build.
    cat.rotation.y=0;
-   cat.scale.set(scale*1.38,scale*.82,scale*1.20);
+   // The video cat is stocky and seated: avoid the source mesh's very tall
+   // front legs and oversized upright silhouette after normalizing.
+   cat.scale.set(scale*1.68,scale*.59,scale*1.22);
    const scaled=new THREE.Box3().setFromObject(cat);
    const center=scaled.getCenter(new THREE.Vector3());
    cat.position.set(-center.x,-scaled.min.y,-center.z);
@@ -357,7 +359,7 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   // The compact spinning cat must be a main subject, not a tiny distant
   // pebble above the huge T. Enlarge relative to the puzzle and rotate
   // about the loaf's physical centre.
-  loafRoot.scale.setScalar(1.75);
+  loafRoot.scale.setScalar(1.18);
   loafRoot.position.y=-.525;
   spinner.add(loafRoot);
   loafRoot.visible=false;
@@ -398,7 +400,9 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   spinner.rotation.order="YXZ";
   spinner.rotation.x=loaf?motion.spinRadians:0;
   spinner.rotation.y=loaf?yaw:0;
-  spinner.rotation.z=loaf?.055*Math.sin(elapsed*2.4):0;
+  // During the first electric tunnel the reference loaf reads almost
+  // upright end-on, unlike the horizontal loaf against the green screen.
+  spinner.rotation.z=loaf?(motion.scene===2?1.46:.055*Math.sin(elapsed*2.4)):0;
   spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
   // A meaningful head-and-body flip: when it stops, the actual standing
   // model returns in the SAME forward-facing pose as the source edit.
@@ -406,7 +410,9 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   // after its cube pivot is pitched -90 degrees. Keep the cat's paws just
   // ABOVE that surface and its raised puzzle hardware (rather than through
   // the platform or behind it), with each beat providing a subtle bounce.
-  group.position.set(0,.23+(reduceEffects?0:motion.bob),-.3);
+  // Keep the standing cat's ears INSIDE the viewport, with its feet on
+  // the top rim of the T. Spinning loaf uses its own higher stage height.
+  group.position.set(0,(loaf?.23:-.05)+(reduceEffects?0:motion.bob),-.3);
   const white=p===0||p===3||p===6;
   key.color.setHex(p===1?0xffb692:p===2||p===7?0xffc0ec:p===4?0xaddbff:0xfff2e6);
   rim.color.setHex(p===1?0xff4966:p===2||p===7?0x20bfff:p===4?0x4d75ff:0xb6d5ff);
