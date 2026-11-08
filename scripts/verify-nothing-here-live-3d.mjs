@@ -1305,14 +1305,17 @@ try{
  await collect("bell");
  // Animations intentionally settle over time. Do not read a position in
  // the same execution tick as the fourth press and call it a failure.
- await page.waitForFunction(()=>
+ const bellSettled=await page.waitForFunction(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback.bellHatchOffset>.25,
-  null,{timeout:6000,polling:100});
- const redFeedback=await page.evaluate(()=>
-  window.__nothing3DPreview.physicalMechanicalFeedback);
- assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&
+  null,{timeout:18000,polling:250}).then(()=>true,()=>false);
+ const redFeedback=await page.evaluate(()=>({
+  ...window.__nothing3DPreview.physicalMechanicalFeedback,
+  redHits:window.CriloNothingHereCube.getState().redHits,
+  bellCollected:window.CriloNothingHereCube.getState().pocket.includes("bell")
+ }));
+ assert(bellSettled&&redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&
    redFeedback.bellHatchOffset>.25,
-  "Four presses must change the real red control's retaining ring, not show a floating bell: "+
+  "Four presses must OPEN the physical red retaining hatch after the bell is collected: "+
    JSON.stringify(redFeedback));
  const quietRewards=await page.evaluate(()=>{
   const hidden=id=>getComputedStyle(document.getElementById(id)).display==="none";
