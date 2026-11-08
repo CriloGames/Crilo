@@ -132,7 +132,14 @@ function backdropMaterial(){
        vec3(1.,.055,.81)*(laser*.85+rail*.16);
      light+=vec3(.8,.48,1.)*tunnel*.38;
      light+=vec3(.87,.91,1.)*exp(-r*6.5)*(.45+.55*uBeat);
-     color=base+light;
+     // The uploaded 1080p reference's 33–40s drop has a brilliant WHITE
+     // circular portal behind the spinning loaf, not just purple scribbles.
+     float portal=exp(-pow((r-.33-.027*sin(t*2.5))*17.,2.));
+     float aura=exp(-pow((r-.42)*8.,2.));
+     vec3 halo=vec3(.90,.92,1.)*portal*1.48+
+      vec3(1.,.14,.90)*aura*.70;
+     color=base+light+halo;
+     color+=vec3(.46,.70,1.)*exp(-r*3.6)*(.25+.45*uBeat);
     }else if(uScene<3.5){
      color=vec3(.982,.986,1.);
     }else if(uScene<4.5){
