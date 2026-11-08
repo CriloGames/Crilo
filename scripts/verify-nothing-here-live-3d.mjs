@@ -1213,8 +1213,13 @@ try{
  assert(!selectedState.pocket.includes("coin"),"The 3D machine duplicated a spent coin");
  await page.waitForFunction(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth>.275,
   null,{timeout:16000,polling:250});
- assert((await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose.vendingTrayDepth))>.30,
-  "A collected sugar reward must visibly extend the real vending-machine tray");
+ // The first sugar purchase extends the captive tray to 0.285; the
+ // larger 0.315/0.355 end stops belong to later service-key progress.
+ const initialVendingDepth=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalScenePose.vendingTrayDepth);
+ assert(initialVendingDepth>.28&&initialVendingDepth<.30,
+  "The first sugar reward should extend the tray to its initial 0.285 stop: "+
+   initialVendingDepth);
  // The earlier refund awarded an EXTRA sugar cube with nowhere to go after
  // the teacup was solved. The repaired machine must return ONE coin and
  // redeem it for a DIFFERENT physical service result, not redundant sugar.
