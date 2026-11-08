@@ -2368,11 +2368,15 @@ window.__nothing3DPreview={
   let fallback=null;
   // The reported point must actually select THIS tiny control rather than
   // the parent model, its invisible selection box, or a neighbouring dial.
-  for(const [x,y,z] of [
-   [0,0,.095],[0,0,.065],[0,0,.035],
-   [-.025,0,.078],[.025,0,.078],
-   [0,-.025,.078],[0,.025,.078],[0,0,0]
-  ]){
+  const samples=name==="thing:cat"
+   // The cat's body sits ABOVE its braced perch. Testing the control root
+   // at y=0 would miss the visible animal and hit the adjacent dog instead.
+   ?[[0,.16,.12],[.05,.17,.11],[-.03,.14,.12],
+     [0,.22,.09],[.05,.20,.07],[-.05,.13,.10]]
+   :[[0,0,.095],[0,0,.065],[0,0,.035],
+     [-.025,0,.078],[.025,0,.078],
+     [0,-.025,.078],[0,.025,.078],[0,0,0]];
+  for(const [x,y,z] of samples){
    const pos=obj.localToWorld(new THREE.Vector3(x,y,z)).project(camera);
    const point={x:(pos.x+1)*.5*rect.width,
     y:(1-pos.y)*.5*rect.height,depth:pos.z};
