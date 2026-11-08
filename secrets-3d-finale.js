@@ -1,12 +1,12 @@
-/* Nothing Here — original six-panel completion finale.
- * A real hinged cube net: front at the T's shoulder, two folding wings,
- * then the underside, rear and roof forming its three-section stem.
- * No video, images or third-party copyrighted song are used. */
+/* Nothing Here — textured six-panel net and timed 3D cat celebration.
+ * The original modeled cube remains the real opened sculpture; the cat
+ * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
+import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=1";
 
 export function createNothingHereFinale({
- cube,faceRoot,faces,camera,controls,stage,invalidate,reducedMotion,
+ cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
  dismissInspection
 }){
  const {frontFace,leftFace,rightFace,bottomFace,backFace,topFace}=faces;
@@ -24,13 +24,57 @@ export function createNothingHereFinale({
   ["bottom",bottomFace],["back",backFace],["top",topFace]
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
+ let audioAtFinish=false;
+ const catShow=createFinaleCatShow({scene,stage,invalidate});
  let completionWatchdog=null;
  function clearWatchdog(){
   if(completionWatchdog!==null)clearTimeout(completionWatchdog);
   completionWatchdog=null;
  }
  const END=THREE.MathUtils;
- const cue=()=>{window.NothingHereAudio?.playFinale?.()};
+ const cue=()=>{window.NothingHereAudio?.playFinale?.(CAT_REFERENCE_DURATION)};
+ // The face-root contains all the ORIGINAL puzzle detail. A unfolded panel's
+ // reverse was a featureless back when the cubic frame disappeared; add an
+ // enamel reverse with brushing, hairline engraving and bolted edgework.
+ const enamels={front:"#d8c8e6",left:"#f0caba",right:"#a8d4d6",
+  bottom:"#beb7de",back:"#cbe0c1",top:"#f0dfb2"};
+ function reverseTexture(name){
+  const canvas=document.createElement("canvas");canvas.width=canvas.height=512;
+  const ctx=canvas.getContext("2d"),color=enamels[name];
+  ctx.fillStyle=color;ctx.fillRect(0,0,512,512);
+  const gloss=ctx.createLinearGradient(0,0,512,512);
+  gloss.addColorStop(0,"#ffffff71");gloss.addColorStop(.45,"#ffffff00");
+  gloss.addColorStop(1,"#43383a25");
+  ctx.fillStyle=gloss;ctx.fillRect(0,0,512,512);
+  for(let i=0;i<110;i++){
+   const y=9+i*4.55;
+   ctx.strokeStyle=i%3===0?"#ffffff23":"#443f4d13";
+   ctx.lineWidth=i%11===0?1.4:.48;
+   ctx.beginPath();ctx.moveTo(5,y);ctx.lineTo(507,y);ctx.stroke();
+  }
+  ctx.strokeStyle="#63534466";ctx.lineWidth=2.6;
+  ctx.strokeRect(23,23,466,466);
+  ctx.strokeStyle="#faf4d399";ctx.lineWidth=1.7;
+  ctx.strokeRect(31,31,450,450);
+  for(const u of [61,451])for(const v of [61,451]){
+   ctx.strokeStyle="#987956";ctx.lineWidth=4;
+   ctx.beginPath();ctx.arc(u,v,10,0,Math.PI*2);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(u-5,v+5);ctx.lineTo(u+5,v-5);ctx.stroke();
+  }
+  // Distinct etched compass-like inlay without overriding puzzle lettering.
+  ctx.strokeStyle="#7e685344";ctx.lineWidth=1.5;
+  for(const r of [85,106,131]){
+   ctx.beginPath();ctx.arc(256,256,r,Math.PI*.16,Math.PI*1.84);ctx.stroke();
+  }
+  for(let i=0;i<16;i++){
+   const a=i*Math.PI/8;
+   ctx.beginPath();ctx.moveTo(256+Math.cos(a)*124,256+Math.sin(a)*124);
+   ctx.lineTo(256+Math.cos(a)*135,256+Math.sin(a)*135);ctx.stroke();
+  }
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  return texture;
+ }
  function showBanner(next){
   if(!banner)return;
   banner.hidden=false;
@@ -63,10 +107,21 @@ export function createNothingHereFinale({
   const dark=new THREE.MeshPhysicalMaterial({
    color:0x4c4b57,metalness:.35,roughness:.48
   });
-  for(const [,panel] of panels){
+  for(const [name,panel] of panels){
    const rim=new THREE.Group();
    rim.visible=false;
    panel.add(rim);
+   const backing=new THREE.Mesh(new THREE.PlaneGeometry(S-.07,S-.07),
+    new THREE.MeshPhysicalMaterial({map:reverseTexture(name),side:THREE.DoubleSide,
+     metalness:.23,roughness:.43,clearcoat:.52,clearcoatRoughness:.24}));
+   // The reverse-only lamination sits BEHIND the existing 3D machinery.
+   // No old puzzle mesh is hidden, cloned or flattened.
+   backing.position.z=-.12;backing.receiveShadow=true;
+   rim.add(backing);
+   for(const x of [-half+.12,half-.12])for(const y of [-half+.12,half-.12]){
+    const nut=new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,.013,12),gold);
+    nut.rotation.x=Math.PI/2;nut.position.set(x,y,-.145);rim.add(nut);
+   }
    for(const edge of [-1,1]){
     const y=edge*(half-.034);
     const top=new THREE.Mesh(new THREE.BoxGeometry(S-.055,.07,.065),gold);
@@ -110,6 +165,8 @@ export function createNothingHereFinale({
   invalidate();
  }
  function resetForReplay(){
+  catShow.stop();
+  window.NothingHereAudio?.stopFinale?.();
   clearWatchdog();
   timeline?.kill();
   timeline=null;
@@ -130,6 +187,9 @@ export function createNothingHereFinale({
   placeNet();
   phase="open";
   showBanner("open");
+  catShow.start();
+  if(audioAtFinish)cue();
+  audioAtFinish=false;
   controls.enabled=true; // Orbit the unfolded object; never reactivate puzzles.
   controls.enableRotate=true;
   if(stage.querySelector("canvas"))
@@ -147,7 +207,10 @@ export function createNothingHereFinale({
   document.body.classList.add("nc-finale-active");
   dismissInspection?.();
   controls.enabled=false;
-  if(audio)cue(); // A real click supplies the browser gesture for Web Audio.
+  // Start the cat soundtrack only AFTER the final panel lands. The replay
+  // click unlocks Web Audio; normal completion uses the last puzzle click.
+  audioAtFinish=audio;
+  catShow.stop();
   if(!animate||reducedMotion){finish();return true;}
   setFrames(false);
   const scale=fit();
@@ -178,7 +241,9 @@ export function createNothingHereFinale({
   hasPlayed=true;
   document.body.classList.add("nc-finale-active");
   showBanner("open");
+  audioAtFinish=false;
   finish();
+  catShow.restore();
   return true;
  }
  replayButton?.addEventListener("click",()=>{
@@ -186,7 +251,7 @@ export function createNothingHereFinale({
  });
  return {
   begin,restoreComplete,
-  onResize(){if(phase==="open"){cube.scale.setScalar(fit());invalidate();}},
+  onResize(){if(phase==="open"){cube.scale.setScalar(fit());catShow.onResize();invalidate();}},
   isActive:()=>phase!=="idle",
   getState(){
    const positions={};
@@ -200,7 +265,7 @@ export function createNothingHereFinale({
       z:+center.z.toFixed(3),normal:+normal.z.toFixed(3)};
     }
    }
-   return {phase,hasPlayed,panels:positions,
+   return {phase,hasPlayed,panels:positions,cat:catShow.getState(),
     banner:!!banner&&!banner.hidden,
     replay:!!replayButton&&!replayButton.hidden,
     normalControls:controls.enabled,
