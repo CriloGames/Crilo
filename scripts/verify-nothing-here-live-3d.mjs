@@ -2174,8 +2174,14 @@ try{
   assert(recovery.recovered.includes(id)&&recovery.saved.pendingPickups.includes(id),
    "A previously unlocked physical reward was lost permanently: "+id);
  }
- for(const id of ["flute","kite"])assert(recovery.saved.pocket.includes(id),
-  "A previously crafted but unspent tool disappeared on migration: "+id);
+ // The legacy save already opened the door with its six-note melody:
+ // the flute was consumed and must NOT come back. The kite was crafted
+ // but never flown and must remain in the player's inventory.
+ assert(recovery.saved.pocket.includes("kite"),
+  "The previously crafted, unspent kite disappeared on migration");
+ assert(!recovery.saved.pocket.includes("flute")&&
+  !recovery.recovered.includes("flute"),
+  "The already-played flute was incorrectly restored after opening the door");
  for(const id of ["key","reed","prism","coin"])
   assert(!recovery.recovered.includes(id),
    "Save repair duplicated an item consumed by a later puzzle: "+id);
