@@ -88,7 +88,7 @@ async function deployObservatory(page){
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&
   Math.abs(pose.domeSeamHeight-.118)<.001&&Math.abs(pose.scopeTilt)<.02&&
   pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
+  pose.canopyFrontY<-.12&&pose.canopyFrontY>-.16&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
@@ -572,7 +572,7 @@ try{
    pose.openingRise>.23&&
    pose.retainedDomeFraction>.59&&pose.retainedDomeFraction<.70&&Math.abs(pose.domeSeamHeight-.118)<.001&&
    pose.barrelForwardY<-.98&&pose.barrelUpZ>.10&&pose.barrelUpZ<.25&&
-  pose.canopyFrontY<-.07&&pose.canopyFrontY>-.12&&
+  pose.canopyFrontY<-.12&&pose.canopyFrontY>-.16&&
   pose.canopyCrownZ>.325&&pose.canopyCrownZ<.35&&
   pose.frontSillTopZ>.052&&pose.frontSillTopZ<.065&&
   pose.objectiveFrontY>pose.canopyFrontY-.07&&pose.objectiveFrontY<pose.canopyFrontY+.03&&
