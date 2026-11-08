@@ -100,10 +100,10 @@ jobs:
           mkdir -p test-results
           node scripts/verify-nothing-here-live-3d.mjs
       - name: Compare all six faces across locked and unlocked states
-        if: ${{ !cancelled() }}
+        if: ${{ success() }}
         run: node three-workbench/scripts/verify-visual-regression.mjs
       - name: Test real 3D drawer and hatch behavior
-        if: ${{ !cancelled() }}
+        if: ${{ success() }}
         run: node scripts/verify-secrets-3d-preview.mjs
       - name: Save 3D preview screenshots
         if: always()
