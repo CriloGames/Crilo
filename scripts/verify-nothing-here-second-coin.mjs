@@ -19,6 +19,9 @@ const mock=`window.supabase={createClient:()=>({
  in:async()=>({data:[],error:null}),
  maybeSingle:async()=>({data:null,error:null})})
 })};`;
+// WebGL-heavy software rendering can delay the DOMContentLoaded navigation
+// event long after the response commits. Reload only to the network commit,
+// then independently wait for the actual 3D module to report ready.
 const state=page=>page.evaluate(()=>window.CriloNothingHereCube.getState());
 const act=(page,action)=>page.evaluate(a=>window.__nothing3DPreview.clickAction(a),action);
 const useItem=async(page,item,thing,{realPointer=false}={})=>{
@@ -318,7 +321,7 @@ async function refundCoin(page,{realPointer=false}={}){
   window.__nothing3DPreview.physicalGearMaze);
  assert(geared.stationaryFace&&Math.abs(geared.faceAngle)<.000001,
   "The black cog turned but the white maze also rotated");
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ await page.reload({waitUntil:"commit",timeout:90000});
  await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
  assert.equal((await state(page)).gearMazeCell,81,
   "Reloading erased an unfinished maze position");
@@ -385,7 +388,7 @@ try{
   assert(repaired.shimUsed,
    "Using the shim must repair the coin-return mechanism even without a progress panel");
   await refundCoin(page,{realPointer:true});
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const saved=await state(page);
   assert(saved.refundRedeemed&&saved.seen.includes("service-bolt")&&
@@ -579,7 +582,7 @@ try{
   pose.objectiveCenterZ>pose.frontSillTopZ+.04,
    "The reference observatory was unlocked but its curved shutter did not retract: "+
     JSON.stringify(pose));
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   opened=await state(page);
   assert(opened.observatoryRaised&&!opened.moon&&!opened.serialRead,
@@ -648,7 +651,7 @@ try{
   assert(railway.train&&!railway.floorFour&&!railway.door&&!railway.music&&
    railway.seen.includes("constellation"),
    "Independent iris/chart/railway route cannot bypass the tag-gated fourth floor");
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   focused=await state(page);
   assert(focused.observed&&focused.train&&!focused.floorFour&&
@@ -809,7 +812,7 @@ try{
   for(const item of ["fork","seal","cylinder","tape","letter","envelope"])
    assert(!final.pocket.includes(item)&&!final.pendingPickups.includes(item),
     "Downstream mechanism duplicated spent "+item);
-  await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+  await page.reload({waitUntil:"commit",timeout:90000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready,null,{timeout:90000});
   const restored=await state(page);
   assert(restored.doorReplied&&restored.letterMailed&&restored.tapeInserted&&
