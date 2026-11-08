@@ -98,8 +98,6 @@ jobs:
         run: node scripts/verify-nothing-here-cat.mjs
       - name: Verify observatory shutter with isolated real 3D controls
         run: NH_OBSERVATORY_ONLY=1 node scripts/verify-nothing-here-second-coin.mjs
-      - name: Verify refunded coin, save recovery and downstream puzzle chain
-        run: node scripts/verify-nothing-here-second-coin.mjs
       # Run real playable-game interaction checks first. A failure should not
       # require a three-minute software-rendered museum screenshot beforehand.
       - name: Verify live 60-secret Three.js integration
@@ -120,3 +118,28 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  # The complete coin/save-recovery walkthrough needs ~22 minutes in
+  # software WebGL. Test it on its own runner so failure cannot keep the
+  # unlocked 3D geometry tests blocked behind an unrelated long walkthrough.
+  coin-recovery-and-story-chain:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install physical 3D dependencies
+        working-directory: three-workbench
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Serve local game
+        run: |
+          nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-3d-http.log 2>&1 < /dev/null &
+          sleep 2
+      - name: Verify refunded coin, save recovery and downstream puzzle chain
+        run: node scripts/verify-nothing-here-second-coin.mjs
