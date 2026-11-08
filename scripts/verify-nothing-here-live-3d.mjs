@@ -735,8 +735,11 @@ try{
    "Expected a tangible collectible to be waiting on the cube: "+id);
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
+  // The old sliding-drawer tooth has a warm gold cue; all other
+  // collectibles use the standard violet. Both remain subdued and inert.
+  const expectedGlowColor=id==="tooth"?0xf2c66d:0xb45cff;
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
-    glowBefore.color===0xb45cff&&
+    glowBefore.color===expectedGlowColor&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
    glowBefore.surfaceEmission>=.53&&glowBefore.surfaceEmission<=.84&&
    glowBefore.haloScale>=1&&glowBefore.haloScale<=1.10&&
