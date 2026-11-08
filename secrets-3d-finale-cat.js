@@ -242,10 +242,12 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    const cat=gltf.scene,box=new THREE.Box3().setFromObject(cat);
    if(box.isEmpty())return;
    const size=box.getSize(new THREE.Vector3());
-   const scale=2.10/Math.max(.01,size.y);
-   // Face the tabby directly at the camera, not in washed-out profile.
-   cat.rotation.y=-Math.PI/2;
-   cat.scale.set(scale*1.15,scale*.88,scale*1.14);
+   const scale=2.10*1.75/Math.max(.01,size.y);
+   // GLB nose/eyes have +Z coordinates. Its unrotated orientation ALREADY
+   // faces the game camera! The previous -90deg yaw showed only its side.
+   // Bigger torso / shorter legs bring it closer to Ethel's stocky build.
+   cat.rotation.y=0;
+   cat.scale.set(scale*1.38,scale*.82,scale*1.20);
    const scaled=new THREE.Box3().setFromObject(cat);
    const center=scaled.getCenter(new THREE.Vector3());
    cat.position.set(-center.x,-scaled.min.y,-center.z);
@@ -296,7 +298,11 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   spinner.add(standingRoot);
   fallback=fallbackCat();standingRoot.add(fallback);
   loafRoot=makeSpinningLoaf();
-  loafRoot.position.y=-.25; // centre loaf on the actual spin pivot
+  // The compact spinning cat must be a main subject, not a tiny distant
+  // pebble above the huge T. Enlarge relative to the puzzle and rotate
+  // about the loaf's physical centre.
+  loafRoot.scale.setScalar(1.75);
+  loafRoot.position.y=-.525;
   spinner.add(loafRoot);
   loafRoot.visible=false;
   key=new THREE.PointLight(0xfff1dd,1.8,10);key.position.set(-2,4,4);
@@ -328,7 +334,7 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   spinner.rotation.z=loaf?motion.spinRadians:0;
   spinner.rotation.y=loaf?motion.threeDRoll:0;
   spinner.rotation.x=loaf?motion.tiltRadians:0;
-  spinner.scale.setScalar((loaf?.90:1)*motion.photoScale);
+  spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
   // A meaningful head-and-body flip: when it stops, the actual standing
   // model returns in the SAME forward-facing pose as the source edit.
   // The real hinged T lies on the world XZ plane at approximately y=0
@@ -402,6 +408,8 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    flash:motionAt(elapsed).flash,
    reducedEffects:reduceEffects,
    frontFacingTabby:true,
+   realisticCatFacingAxis:"+Z",
+   standingAndLoafScaleCorrected:true,
    volumetricLoaf:!!loafRoot,
    active3DPose:reduceEffects?"front":motionAt(elapsed).poseMode,
    rendered3DPose:loafRoot?.visible?"loaf":standingRoot?.visible?"front":"none",
