@@ -60,7 +60,8 @@ function backdropMaterial(){
  // supplied video. Bright, high-contrast lights (not low-key purple fog).
  return new THREE.ShaderMaterial({
   uniforms:{uTime:{value:0},uScene:{value:0},uAspect:{value:1},
-   uBeat:{value:0},uFlash:{value:0},uSideways:{value:0}},
+   uBeat:{value:0},uFlash:{value:0},uSideways:{value:0},
+   uReferenceLuma:{value:.5},uGreenPale:{value:0}},
   depthTest:false,depthWrite:false,toneMapped:false,
   vertexShader:`
    varying vec2 vUv;
@@ -68,6 +69,7 @@ function backdropMaterial(){
   `,
   fragmentShader:`
    uniform float uTime,uScene,uAspect,uBeat,uFlash,uSideways;
+   uniform float uReferenceLuma,uGreenPale;
    varying vec2 vUv;
    const float PI=3.14159265359;
    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -102,7 +104,7 @@ function backdropMaterial(){
      // mint when the cat flips into its sideways rapid rotation.
      vec3 green=vec3(.008,.97,.014);
      vec3 pale=vec3(.91,.995,.91);
-     color=mix(green,pale,clamp(uSideways*.92,0.,1.));
+     color=mix(green,pale,clamp(uGreenPale,0.,1.));
      color+=vec3(.07,.13,.0)*exp(-r*3.5)*pow(uBeat,3.);
     }else if(uScene<1.5){
      // Gold/red/pink nebula rather than the old flat maroon noise.
@@ -148,7 +150,7 @@ function backdropMaterial(){
      float ring=exp(-pow((r-.42-.05*sin(t*1.1))*13.,2.));
      color=vec3(.91,.95,1.)+vec3(.04,.19,.34)*ring*.45;
      color+=vec3(.07,.13,.26)*(.5+.5*sin(a*13.+t))*ring*.3;
-    }else{
+    }else if(uScene<7.5){
      // The source video's later sections have intense multi-coloured
      // kaleidoscopic stars: make them visible even on mobile displays.
      float arms=pow(.5+.5*cos(a*12.+sin(t*.6)*1.9),13.);
@@ -160,7 +162,62 @@ function backdropMaterial(){
        vec3(1.,.15,.82)*sparkle*.68+
        vec3(.8,.94,1.)*exp(-r*4.)*(.35+.45*uBeat);
      color+=stars(uv*vec2(100.,68.),4.)*vec3(1.,.72,.98);
+    }else if(uScene<8.5){
+     // Deep crimson supernova starfield, from 62s through 75s.
+     vec2 q=p*3.;
+     float cloud=fbm(q*1.4+vec2(.13*t,-.04*t));
+     float web=fbm(q*3.7-vec2(.14*t,.1*t));
+     color=vec3(.012,.001,.019)+
+      vec3(.83,.009,.16)*pow(cloud,1.6)*1.20+
+      vec3(.47,.006,.052)*pow(web,1.4)*.43;
+     color+=stars(uv*vec2(92.,50.),2.6)*vec3(1.,.84,.93)*1.50;
+     color+=vec3(.34,.007,.09)*exp(-r*3.)*(.7+.3*uBeat);
+    }else if(uScene<9.5){
+     // Hot pink electronic octagonal portal, yellow gates and cyan core.
+     float oct=max(abs(p.x),abs(p.y));
+     float r1=abs(oct-.59-.04*sin(t*1.7));
+     float r2=abs(oct-.35+.014*sin(t*3.));
+     float rose=exp(-r1*33.)+exp(-r2*25.);
+     float bars=pow(.5+.5*cos(a*4.),16.);
+     float petals=pow(.5+.5*cos(a*8.+t*1.1),12.);
+     color=vec3(.012,.004,.045)+
+      vec3(.92,.02,.50)*rose*.85+
+      vec3(.41,.12,.92)*petals*.31+
+      vec3(1.,.94,.14)*bars*exp(-abs(r-.44)*11.)+
+      vec3(.02,.48,.99)*exp(-r*7.5)*(.7+.4*uBeat);
+     color+=stars(uv*vec2(56.,43.),5.)*vec3(.72,.05,.53);
+    }else if(uScene<10.5){
+     // Blue/pink luminous digital-star walls and light rays, 51–59s.
+     vec2 grid=uv*vec2(145.,79.);
+     float n=noise(grid*.4+vec2(t*.30,-t*.34));
+     float dots=pow(.5+.5*cos(uv.x*450.+.6*sin(t+uv.y*12.)),22.);
+     dots*=pow(.5+.5*cos(uv.y*200.-t*5.),26.);
+     float pixels=step(.90,n)*(.6+.4*sin(t*6.+uv.x*27.));
+     float rays=pow(.5+.5*cos(a*12.-t*.8),18.);
+     color=vec3(.014,.012,.084)+
+      vec3(.06,.42,.94)*(pixels*.57+fbm(uv*17.)*.45)+
+      vec3(.92,.04,.62)*(dots*.96+fbm(uv*31.+t*.08)*.27)+
+      vec3(.88,.83,1.)*rays*exp(-r*1.8)*(.45+.4*uBeat);
+     color+=stars(uv*vec2(160.,98.),3.5)*vec3(.55,.84,1.);
+    }else if(uScene<11.5){
+     // Cyan electrified portal alternating with pure-white frames.
+     float warped=a+.4*sin(r*8.-t*1.5);
+     float ring=exp(-pow((r-.35-.043*sin(warped*8.-t*3.))*12.,2.));
+     float coils=pow(.5+.5*cos(warped*13.+20.*r-t*6.),14.);
+     float jag=fbm(p*14.+vec2(t*2.,-t));
+     color=vec3(.012,.026,.048)+
+      vec3(.014,.38,.70)*ring*(.3+.7*coils)+
+      vec3(.10,.94,1.)*ring*pow(jag,2.)*.95+
+      vec3(.19,.28,.56)*exp(-r*5.)*.30;
+     color+=vec3(.66,.96,1.)*stars(uv*vec2(94.,57.),4.)*.3;
+    }else{
+     // Gray video cut just before total-black interstitial.
+     color=vec3(.68,.70,.72);
     }
+    // The 1080p upload's measured background exposure follows the MP3.
+    // This matters especially during one-second whiteouts / black flashes.
+    if(uScene>.5&&uScene<11.8&&abs(uScene-3.)>.49)
+     color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
     // Every big drop has a white-screen flash, like the reference edit.
     // The cat is lit separately so these are actual light events, not
     // barely perceptible shader hue changes.
