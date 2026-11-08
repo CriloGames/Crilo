@@ -82,9 +82,21 @@ try{
   window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]);
  await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:elevator-floor-4"));
  assert((await state()).floorFour,"Fourth-floor button failed to unlock after the tag");
- await page.waitForFunction(before=>
-  window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]<before-.006,
-  before,{timeout:11000,polling:250});
+ try{
+  await page.waitForFunction(before=>
+   window.__nothing3DPreview.miniatureMechanismPose.liftDoors[0]<before-.006,
+   before,{timeout:8000,polling:250});
+ }catch(error){
+  const diag=await page.evaluate(()=>({
+   game:window.CriloNothingHereCube.getState(),
+   doors:window.__nothing3DPreview.miniatureMechanismPose.liftDoors,
+   scene:window.__nothing3DPreview.physicalScenePose,
+   reader:window.__nothing3DPreview.physicalElevatorTagReaderState,
+   errors:document.querySelector("#status")?.textContent
+  }));
+  throw new Error("Final-mile elevator physical movement diagnostics "+
+   JSON.stringify({before,diag}),{cause:error});
+ }
  const end=await page.evaluate(()=>window.__nothing3DPreview.miniatureMechanismPose.liftDoors);
  assert(end.length===2&&end[0]<-.111&&end[1]>.111,
   "Real elevator doors didn't travel apart: "+JSON.stringify(end));
