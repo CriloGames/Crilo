@@ -192,9 +192,11 @@ export function createFinaleCatShow({scene,stage,invalidate}){
   spinner.rotation.x=motion.rollRadians;
   spinner.rotation.z=motion.tiltRadians;
   spinner.scale.setScalar(motion.scale);
-  // The unfolded T is a horizontal platform at y≈-1.61. The cat's feet
-  // remain immediately above it, so the two are composed as one scene.
-  group.position.set(0,-1.44+motion.bob,.45);
+  // The real hinged T lies on the world XZ plane at approximately y=0
+  // after its cube pivot is pitched -90 degrees. Keep the cat's paws just
+  // ABOVE that surface and its raised puzzle hardware (rather than through
+  // the platform or behind it), with each beat providing a subtle bounce.
+  group.position.set(0,.22+motion.bob,-.3);
   const white=p===0||p===3||p===6;
   key.color.setHex(p===1?0xff728f:p===2||p===7?0xffb0ec:p===4?0x9ccfff:0xfff5e9);
   rim.color.setHex(p===1?0xff243c:p===2||p===7?0x2acaff:p===4?0x426bff:0xbed5ff);
