@@ -520,6 +520,32 @@ try{
   await close();
   console.log("PASS: gear-first and pressure-first orders unlock the same genuine calibration reward");
  }
+ // The cat is a real miniature on an attached shelf, not an overlay.
+ // One tap must produce the same observable dog -> vase progression.
+ {
+  const {page,close}=await scenario("cat-startles-dog-once",{
+   seen:["first","door","dog"],door:true,doorOpen:true,
+   pocket:[],pendingPickups:[]
+  });
+  const pose=await page.evaluate(()=>window.__nothing3DPreview.physicalScenePose);
+  assert(pose.catMounted&&Number.isFinite(pose.catPawAngle),
+   "The cat lacks a mounted physical model with a working paw");
+  assert((await page.evaluate(()=>window.__nothing3DPreview.physicalPuzzleActions))
+   .includes("thing:cat"),"The cat has no clickable 3D target");
+  await act(page,"thing:cat");
+  const after=await state(page);
+  assert(after.catNudged&&after.barked&&after.squirrel&&after.vase&&
+   after.pendingPickups.includes("acorn")&&after.pendingPickups.includes("spring"),
+   "Cat failed to startle dog and release both vase rewards");
+  await act(page,"thing:cat");
+  const again=await state(page);
+  assert.equal(again.dogHits,after.dogHits,
+   "Repeated cat taps replayed the one-time bark");
+  assert.deepEqual(again.pendingPickups,after.pendingPickups,
+   "Repeated cat taps created duplicate collectibles");
+  await close();
+  console.log("PASS: interactive cat -> bark -> squirrel -> two vase pickups");
+ }
  // The red-switch bell used to have an apparently valid "use on dog"
  // target that did NOTHING. Ringing it must now cause the same observable
  // dog -> squirrel -> broken-vase chain as petting the dog three times.
