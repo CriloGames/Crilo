@@ -161,7 +161,7 @@ export function motionAt(seconds){
   scene:scene.scene,sceneName:scene.name,sceneIndex:scene.index,
   sceneStart:scene.start,sceneEnd:scene.end,
   poseMode:mode,poseStart:start,poseEnd:next,
-  spinMode:loaf?(rate>1.05?"beat":"slow"):"front",
+  spinMode:loaf?(t<20.7||rate<=1.05?"slow":"beat"):"front",
   spinActive:loaf,spinning:loaf,spinRadians,
   spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
   rollRadians:loaf?Math.PI/2:0,
