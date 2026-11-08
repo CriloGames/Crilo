@@ -151,6 +151,33 @@
  }
  let fluteContext=null;
  let finaleMaster=null,finaleTimeout=null,finaleTimer=null,finalePlaying=false;
+ let licensedFinale=null,licensedUnavailable=false,finaleClockStart=null;
+ const licensedFinaleSrc='audio/nothing-here/finale-licensed.mp3?v=1';
+ function ensureLicensedFinale(){
+  if(!audioSupported||licensedUnavailable)return null;
+  if(licensedFinale)return licensedFinale;
+  const track=new Audio(licensedFinaleSrc);
+  track.preload='auto';track.loop=false;track.volume=.75;
+  track.addEventListener('error',()=>{
+   licensedUnavailable=true;
+   if(finalePlaying&&licensedFinale===track){
+    licensedFinale=null;
+    playFinale(134.699); // fall back to the original score, never silence
+   }
+  });
+  licensedFinale=track;return track;
+ }
+ function activeFinaleAudio(){
+  return personalFinale||(!licensedUnavailable?licensedFinale:null);
+ }
+ function getFinaleClock(){
+  if(!finalePlaying)return null;
+  const track=activeFinaleAudio();
+  if(track&&!track.paused&&track.readyState>=2)
+   return Number(track.currentTime)||0;
+  return Number.isFinite(finaleClockStart)
+   ?Math.max(0,(performance.now()-finaleClockStart)/1000):null;
+ }
  // A personal soundtrack is a browser-local Blob URL. The uploaded file
  // never becomes a public asset, and is only decoded in this visitor's tab.
  let personalFinale=null,personalFinaleUrl=null,personalFinaleName='';
@@ -172,6 +199,13 @@
  }
 
  function stopFinale(){
+  if(licensedFinale){
+   licensedFinale.pause();
+   licensedFinale.onended=null;
+   licensedFinale.muted=false;
+   try{licensedFinale.currentTime=0}catch{}
+  }
+  finaleClockStart=null;
   if(personalFinale){
    personalFinale.pause();
    personalFinale.onended=null;
@@ -198,13 +232,14 @@
   if(!sfxEnabled)return false;
   // Prime browser-local media during the genuine finishing/replay click,
   // allowing sound to begin only when the unfolding animation completes.
-  if(personalFinale){
+  const song=personalFinale||ensureLicensedFinale();
+  if(song){
    try{
-    personalFinale.pause();
-    personalFinale.currentTime=0;
-    personalFinale.muted=true;
-    personalFinale.play()?.catch?.(()=>{});
-   }catch(error){console.warn('Personal finale preload:',error?.message||error);}
+    song.pause();
+    song.currentTime=0;
+    song.muted=true;
+    song.play()?.catch?.(()=>{});
+   }catch(error){console.warn('Finale preload:',error?.message||error);}
    return true;
   }
   const Engine=window.AudioContext||window.webkitAudioContext;
@@ -220,27 +255,31 @@
  // synchronized music file can be substituted by the game's owner later.
  function playFinale(durationSeconds=134.699){
   if(!sfxEnabled||document.hidden)return false;
-  if(personalFinale){
-   // Play the exact locally selected recording, in real time, with no
-   // pitch change, re-encoding, uploads or synthetic accompaniment.
-   // A primed (muted) element remains playing through the T unfold;
-   // rewinding it here aligns the first audible beat with the first spin.
-   const clip=personalFinale;
+  const selected=personalFinale||ensureLicensedFinale();
+  if(selected){
+   // The licensed MP3 is the DEFAULT finale soundtrack for every player;
+   // visitors may still override it with a private personal selection.
+   // Its audio currentTime is authoritative for the 150 BPM 3D animation.
+   const clip=selected;
    if(music&&!music.paused){music.pause();music.volume=0;}
    try{
     clip.currentTime=0;
     clip.volume=.72;
     clip.muted=false;
+    finaleClockStart=performance.now();
     finalePlaying=true;latestEffect='finale';
     clip.onended=()=>{
-     if(clip!==personalFinale)return;
+     if(clip!==activeFinaleAudio())return;
      finalePlaying=false;
      if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
     };
     if(clip.paused)clip.play()?.catch?.(error=>{
-     if(clip!==personalFinale)return;
-     console.warn('Personal finale playback:',error?.message||error);
-     finalePlaying=false;
+     if(clip!==activeFinaleAudio())return;
+     console.warn('Finale MP3 playback:',error?.message||error);
+     if(clip===licensedFinale){
+      licensedUnavailable=true;licensedFinale=null;
+      finalePlaying=false;playFinale(durationSeconds); // original synth backup
+     }else finalePlaying=false;
     });
     return true;
    }catch(error){
@@ -262,6 +301,7 @@
    master.gain.setValueAtTime(.0001,now);
    master.gain.exponentialRampToValueAtTime(.35,now+.15);
    master.connect(ctx.destination);
+   finaleClockStart=performance.now();
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
    const beat=60/136,half=beat/2;
    const riff=[0,3,7,10,12,7,3,5,7,10,14,12,10,7,5,3,
@@ -391,10 +431,13 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,action,setSfx,setMusic,setPersonalFinaleFile,
+  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,getFinaleClock,action,setSfx,setMusic,setPersonalFinaleFile,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,musicCreated:!!music,
    personalFinaleReady:!!personalFinale,personalFinaleName,
+   licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
+   licensedFinalePlaying:!!licensedFinale&&!licensedFinale.paused&&!licensedFinale.muted,
+   finaleSeconds:getFinaleClock(),
    personalFinalePlaying:!!personalFinale&&!personalFinale.paused&&!personalFinale.muted,
    musicPlaying:!!music&&!music.paused,
    musicLoop:music?.loop??true,soundFileCount:Object.keys(files).length,
