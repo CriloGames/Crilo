@@ -210,6 +210,7 @@ export function createNothingHereFinale({
   // Start the cat soundtrack only AFTER the final panel lands. The replay
   // click unlocks Web Audio; normal completion uses the last puzzle click.
   audioAtFinish=audio;
+  if(audio)window.NothingHereAudio?.prepareFinale?.();
   catShow.stop();
   if(!animate||reducedMotion){finish();return true;}
   setFrames(false);
