@@ -79,7 +79,7 @@ function backdropMaterial(){
      float r=length(p);
      float cloud=sin(p.x*6.0+t*.22)*sin(p.y*5.8-t*.27);
      cloud+=.6*sin(p.x*17.0+p.y*10.0-t*.17);
-     color=mix(vec3(.035,.018,.09),vec3(.68,.045,.16),clip((cloud+.8)*.40,0.0,1.0));
+     color=mix(vec3(.035,.018,.09),vec3(.68,.045,.16),clamp((cloud+.8)*.40,0.0,1.0));
      color+=vec3(.40,.13,.06)*exp(-r*3.2);
      color+=vec3(1.,.77,.80)*stars(vUv*vec2(70.,46.));
     }else if(uScene<2.5){
