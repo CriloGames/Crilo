@@ -36,8 +36,8 @@ assert(referenceLumaAt(59.5)>.85&&referenceLumaAt(80)<.15,
  "Video-derived white-out and near-black exposure are lost");
 // Verify the REAL video rhythm: FRONT HOLDS before a brisk sideways spin,
 // later high-speed tumbling on every beat. Never a perpetual 3.2s pirouette.
-const front=[.2,1.2,3.15,4.0,6.4,60.5,61.2];
-const tumbling=[1.9,2.4,4.9,5.3,8.5,14.9,18.5,34.2,37.7,114.2];
+const front=[.2,1.2,3.15,4.0,6.4,60.5,61.2,65,67,68,70.5,73];
+const tumbling=[1.9,2.4,4.9,5.3,8.5,14.9,18.5,34.2,37.7,65.5,68.5,69,71.5,114.2];
 for(const t of front)assert(!motionAt(t).spinning,
  "The cat should be facing forward (NOT spinning) at "+t);
 for(const t of tumbling)assert(motionAt(t).spinning,
