@@ -2467,6 +2467,14 @@ window.__nothing3DPreview={
   teal:{...side.seal,closed:side.drawer.position.z<.02}
  }},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
+ get frontScrewVisualAudit(){return {
+  canonicalScrews:[...(currentGameState.screws||[])],
+  meshes:screws.filter(v=>v.id.startsWith("front-screw-")).map(v=>({
+   id:v.id,removed:v.removed,visible:v.assembly.visible,
+   depth:+v.assembly.position.z.toFixed(3),
+   rotating:!!v.motion?.isActive?.(),timerPending:!!v.removalTimer
+  }))
+ }},
  // Check physical hardware, not only the saved puzzle state: no visible
  // fake screw should be able to turn or cover another real actuator.
  get liveFastenerAudit(){
