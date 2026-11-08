@@ -126,6 +126,43 @@ try{
   "Completed finale lost textured panels or genuine 134.7s 3D cat");
  assert.deepEqual(new Set((await state()).seen),new Set(sixty),
   "Finale save migration lost earned secrets");
+ // Inspect the ENTIRE 134.7s visual choreography, not just the start and
+ // end. The actual rendered Three.js meshes and shader uniforms must change
+ // at the same timestamp as the uploaded 1080p reference video.
+ const visualSamples=[
+  [0,"front",0],[2,"loaf",0],[4,"front",0],[8.5,"loaf",0],
+  [29,"front",1],[30.5,"loaf",1],[34,"loaf",2],
+  [40.5,"loaf",7],[48,"loaf",9],[55,"loaf",10],
+  [60,"front",3],[68,"loaf",8],[70.5,"front",8],
+  [76,"loaf",4],[79.3,"front",5],[84,"loaf",0],
+  [90,"loaf",3],[91,"loaf",11],[97,"loaf",11],
+  [102,"front",8],[104.5,"loaf",8],[108,"loaf",2],
+  [116,"front",7],[123,"loaf",9],[129,"loaf",10],
+  [131,"front",3],[133,"loaf",0]
+ ];
+ const renderResults=[];
+ for(const [seconds,pose,backdrop] of visualSamples){
+  const actual=await page.evaluate(time=>
+   window.__nothing3DPreview.seekFinaleFrame(time),seconds);
+  assert(actual&&actual.stageScene===backdrop,
+   "Stage backdrop diverged from 1080p frame at "+seconds+"s: "+
+    JSON.stringify(actual));
+  assert(actual.active3DPose===pose&&actual.rendered3DPose===pose,
+   "Real 3D cat model did not switch to "+pose+" at "+seconds+"s: "+
+    JSON.stringify(actual));
+  assert(actual.volumetricLoaf&&actual.meshCount>0&&
+   Math.abs(actual.stageFrameLuma-actual.referenceFrameLuma)<.002,
+   "A real 3D pose or measured exposure was lost at "+seconds+"s");
+  renderResults.push([seconds,pose,backdrop]);
+  if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
+   [0,2,34,68,91,123].includes(seconds)){
+   await page.locator("#stage canvas").screenshot({
+    path:"test-results/video-reference-"+String(seconds).padStart(3,"0")+".png",
+    timeout:45000
+   });
+  }
+ }
+ console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
  console.log("PASS: restored 60/60 finale has all six textures and a real 3D cat");
 }finally{
