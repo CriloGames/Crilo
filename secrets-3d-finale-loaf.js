@@ -25,7 +25,7 @@ function furTexture(seed=1,bright=false){
   const mottles=Math.sin(u*69+v*43)*Math.sin(u*21-v*17);
   const dark= .43*stripes+.06*mottles;
   const light=.91+grain*.18+Math.sin(y*.35+x*.13)*.04;
-  const color=bright?[124,112,101]:[87,80,74];
+  const color=bright?[113,95,78]:[78,65,55];
   const i=(y*512+x)*4;
   data[i]=Math.max(0,Math.min(255,color[0]*light-dark*102));
   data[i+1]=Math.max(0,Math.min(255,color[1]*light-dark*95));
@@ -69,7 +69,7 @@ export function makeSpinningLoaf(){
  const body=fur(back),top=fur(shoulder),shadow=new THREE.MeshStandardMaterial({
   color:0x322e2a,roughness:.98
  }),muzzle=new THREE.MeshStandardMaterial({
-  color:0x948879,roughness:.97
+  color:0x806e5b,roughness:.97
  }),nose=new THREE.MeshStandardMaterial({
   color:0x725453,roughness:.88
  });
