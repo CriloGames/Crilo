@@ -1377,8 +1377,28 @@ try{
    });
   },{once:true});
  });
+ // Headless SwiftShader can delay a 560 ms hold callback well beyond
+ // 680 ms. Wait for the real game's "inspecting" state rather than using
+ // a fixed CPU-timing guess. If touch detection is broken, the test still
+ // fails with explicit pointer/caption diagnostics.
  await sendTouch("touchStart",[touch(91)]);
- await page.waitForTimeout(680);
+ try{
+  await page.waitForFunction(()=>{
+   const view=window.__nothing3DPreview;
+   const hint=document.querySelector("#ncPartHint");
+   return view?.touchInteractionState.inspecting&&
+    hint&&!hint.hidden&&/red button/i.test(hint.textContent);
+  },null,{timeout:8500,polling:100});
+ }catch(error){
+  const details=await page.evaluate(()=>({
+   touch:window.__nothing3DPreview?.touchInteractionState,
+   hint:document.querySelector("#ncPartHint")?.textContent,
+   hintHidden:document.querySelector("#ncPartHint")?.hidden,
+   projected:window.__nothing3DPreview?.projectGameControl("dot")
+  }));
+  throw new Error("Long-press failed to identify the real 3D red button: "+
+   JSON.stringify(details),{cause:error});
+ }
  const holdHint=await page.evaluate(()=>{
   const el=document.querySelector("#ncPartHint");
   return !el.hidden&&/red button/i.test(el.textContent);
