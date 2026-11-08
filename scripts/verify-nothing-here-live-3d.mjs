@@ -1266,16 +1266,21 @@ try{
   assert(triangleMotion.depth<-.007,"Triangle should depress into its brass spring housing: "+JSON.stringify(triangleMotion));
  for(let i=0;i<2;i++)await activate("triangle");
  assert.equal((await state()).top,true,"Three physical triangle presses did not open the hatch");
- // The hatch's wheels must now do an actual job: rotate together on
- // seated spindles and retract both clips from the collectible tube.
- await page.waitForFunction(()=>
-  window.__nothing3DPreview.topRetainerAssembly.released,
-  null,{timeout:12000,polling:100});
+ // The hatch's two gears rotate in OPPOSITE directions, with pitch
+ // radii .205 and .175. At the actual 1.08-radian open stop their angles
+ // are about -.659 and +.771 respectively, and the rack clips retract .135.
+ // A partial release (> .10) occurs sooner, so wait for full gear travel.
+ await page.waitForFunction(()=>{
+  const a=window.__nothing3DPreview.topRetainerAssembly;
+  return a.released&&a.gears.length===2&&
+   a.gears[0].angle<-.62&&a.gears[1].angle>.73&&
+   a.clipOffsets[0]<-.125&&a.clipOffsets[1]>.125;
+ },null,{timeout:20000,polling:150});
  const tubeDrive=await page.evaluate(()=>window.__nothing3DPreview.topRetainerAssembly);
- assert(tubeDrive.gears.length===2&&tubeDrive.gears[0].angle>.8&&
-  tubeDrive.gears[1].angle<-.8&&
-  tubeDrive.clipOffsets[0]<-.10&&tubeDrive.clipOffsets[1]>.10,
-  "The hatch opened without rotating its connected gear train and freeing the tube: "+
+ assert(tubeDrive.released&&tubeDrive.gears[0].angle<-.62&&
+  tubeDrive.gears[1].angle>.73&&
+  tubeDrive.clipOffsets[0]<-.125&&tubeDrive.clipOffsets[1]>.125,
+  "The hatch's meshed gears did not reach their opposite end stops: "+
   JSON.stringify(tubeDrive));
  const topBeforeClick=await page.evaluate(()=>window.__nothing3DPreview.topOpen);
  await activate("hatch");
