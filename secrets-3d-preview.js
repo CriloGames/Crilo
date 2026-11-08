@@ -1833,6 +1833,7 @@ completionFinale=embeddedGame?createNothingHereFinale({
 window.__nothing3DPreview={
  ready:true,
  get completionFinale(){return completionFinale?.getState()||{phase:"idle"}},
+ seekFinaleFrame:t=>completionFinale?.seekForVisualTest(t)||null,
  get physicalCompletionLayout(){return completionFinale?.getState().panels||{}},
  engine:"three.js",
  setGeometryInspector:mode=>updateGeometryInspection(mode),
