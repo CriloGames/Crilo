@@ -767,16 +767,10 @@ try{
  const keyLayers=await page.evaluate(()=>window.__nothing3DPreview.physicalCollectiblesVisible);
  assert(keyLayers.tooth&&!keyLayers.extraKey,
   "The key is rendered twice in the same drawer, causing intersecting gold geometry");
- if(!latchMotion.reduced){
+ if(!latchMotion.reduced)
   assert(latchMotion.actuator<-.007,"Brass latch did not physically depress: "+JSON.stringify(latchMotion));
-  await page.waitForFunction(()=>window.__nothing3DPreview.drawerPositions.front>.02,
-   null,{timeout:15000});
- const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
- assert(!openLavender.closed&&openLavender.joined,
-  "The lavender seal must retract with its drawer, not remain over the hole");
-
-
- }
+ // Software WebGL may stall intermediate frames. Wait once for the actual
+ // settled end-stop, then verify the opening and its fitted tongue together.
  // Headless SwiftShader renders the highly detailed scene much more slowly
  // than desktop GPUs. Test the completed mechanical position, not whether
  // an arbitrary wall-clock sleep was long enough for requestAnimationFrame.
@@ -786,11 +780,15 @@ try{
  }catch(error){
   const diagnostics=await page.evaluate(()=>({
    position:window.__nothing3DPreview.drawerPositions,
+   frontOpen:window.__nothing3DPreview.frontOpen,
    state:window.CriloNothingHereCube.getState().a,
    reducedMotion:window.__nothing3DPreview.reducedMotion
   }));
   throw new Error("Front drawer failed to reach mechanical stop: "+JSON.stringify(diagnostics),{cause:error});
  }
+ const openLavender=await page.evaluate(()=>window.__nothing3DPreview.drawerSeals.lavender);
+ assert(!openLavender.closed&&openLavender.joined,
+  "The lavender seal must retract with its drawer, not remain over the hole");
  assert.equal((await state()).a,true,"Drawer animation altered canonical progress");
  // The progress dropdowns are deliberately removed to bring the pocket
  // closer to the cube. The game still announces actions in the narrator
