@@ -165,6 +165,19 @@
  // imitation of any recording). Synthesis uses no external music assets.
  // It uses the existing sound-effects preference so default players hear
  // the ending, but a user who muted Sounds never hears surprise playback.
+ // Unlock the synthesis context during the LAST actual puzzle click.
+ // Starting the 134.7s score after a 4s unfolding delay otherwise loses
+ // the user-gesture permission on browsers that suspend new audio contexts.
+ function prepareFinale(){
+  if(!sfxEnabled)return false;
+  const Engine=window.AudioContext||window.webkitAudioContext;
+  if(!Engine)return false;
+  try{
+   if(!fluteContext||fluteContext.state==='closed')fluteContext=new Engine();
+   if(fluteContext.state==='suspended')fluteContext.resume()?.catch?.(()=>{});
+   return true;
+  }catch{return false}
+ }
  // An original electronic celebration timed to the complete 134.699s
  // cat show. The commercial W&W "OIIA OIIA" song is NOT bundled; a licensed
  // synchronized music file can be substituted by the game's owner later.
@@ -312,7 +325,7 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,playFluteNote,playFinale,stopFinale,action,setSfx,setMusic,
+  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,action,setSfx,setMusic,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,musicCreated:!!music,
    musicPlaying:!!music&&!music.paused,
