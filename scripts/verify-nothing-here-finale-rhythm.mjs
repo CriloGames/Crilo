@@ -26,14 +26,29 @@ assert.equal(sceneAt(90).name,"ice");
 assert.equal(sceneAt(112).name,"tunnel");
 assert.equal(sceneAt(122).name,"kaleidoscope");
 assert.equal(sceneAt(134).name,"white");
-// First downbeat is at ~0.38 seconds; t=0 is the musical pickup.
-for(const t of [.4,1.2,16,35,71.4,117]){
+// Verify the REAL video rhythm: FRONT HOLDS before a brisk sideways spin,
+// later high-speed tumbling on every beat. Never a perpetual 3.2s pirouette.
+const front=[.2,1.2,3.15,4.0,6.4,60.5,61.2];
+const tumbling=[1.9,2.4,4.9,5.3,8.5,14.9,18.5,34.2,37.7,114.2];
+for(const t of front)assert(!motionAt(t).spinning,
+ "The cat should be facing forward (NOT spinning) at "+t);
+for(const t of tumbling)assert(motionAt(t).spinning,
+ "The cat should be spinning at "+t);
+assert(motionAt(2.0).sideways>.8&&motionAt(2.0).spinMode==="slow",
+ "The first sideways barrel roll from the source video is missing");
+assert(motionAt(34.2).spinMode==="beat",
+ "The first neon drop is not synchronised to the 150 BPM beat");
+for(const t of [.4,1.2,16.4,35.2,71.4,117.2]){
  const a=motionAt(t),b=motionAt(t+CAT_BEAT_SECONDS);
  assert(b.beatIndex===a.beatIndex+1,
   "Spinning-cat beat index drifts from the soundtrack at "+t);
- assert(Math.abs(motionAt(t+3.2).spinRadians-a.spinRadians-2*Math.PI)<1e-6,
-  "Cat does not complete one turn per eight beats");
 }
-assert(motionAt(1.9).sideways>.8,
- "Cat never dips toward the reference's sideways loaf silhouette");
-console.log("PASS: shipped authorized MP3, 150 BPM spin/roll and all timed scene cuts");
+assert(motionAt(33.29).flash>.9,
+ "The transition into the first neon tunnel has no hard white flash");
+assert(motionAt(108.84).spinning&&motionAt(119.4).spinning,
+ "The closing high-energy section must keep tumbling");
+const flashes=Array.from({length:210},(_,i)=>motionAt(33.29+i*.04).flash);
+assert(flashes.filter(x=>x>.5).length>=4,
+ "The neon section should visibly strobe on multiple musical downbeats");
+console.log("PASS: authorized MP3, front-hold/sideways-roll choreography, "+
+ "150 BPM drops and recurring hard-white flashes");
