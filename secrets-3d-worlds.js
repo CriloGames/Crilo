@@ -1551,13 +1551,30 @@ export function buildPocketWorlds({cube,faces,box,cylinder,mat,setHit,invalidate
   const matching=s.bagOpen&&Array.isArray(s.bagDials)&&
    s.bagDials.length===4&&s.bagDials.every((value,i)=>value===[2,0,3,1][i]);
   bagCatchMetal.emissiveIntensity=matching&&!s.bagSolved?.78:0;
+  // Floor four opens a pair of captive sliding doors. Software WebGL may
+  // starve GSAP's frame updates, so reach the actual rail end stops after
+  // the visible opening motion rather than leaving a door half-closed.
+  const floorChanged=lastFloorFour!==!!s.floorFour;
   liftDoors.forEach((panel,i)=>{
    const target=(i===0?-1:1)*(s.floorFour?.18:.105);
-   if(firstRestore||reducedMotion)panel.position.x=target;
-   else if(lastFloorFour!==!!s.floorFour)
+   if(firstRestore||reducedMotion){
+    gsap.killTweensOf(panel.position);
+    panel.position.x=target;
+   }else if(floorChanged){
     setPose(panel,"position","x",target,.83);
+   }
   });
   lastFloorFour=!!s.floorFour;
+  if(floorChanged&&!firstRestore&&!reducedMotion){
+   const targetOpen=!!s.floorFour;
+   settleMicro("elevator-doors",1320,()=>{
+    if(lastFloorFour!==targetOpen)return;
+    liftDoors.forEach((panel,i)=>{
+     gsap.killTweensOf(panel.position);
+     panel.position.x=(i===0?-1:1)*(targetOpen?.18:.105);
+    });
+   });
+  }
   if(elevatorKeyTag)elevatorKeyTag.visible=!!s.elevatorTagInserted;
   if(elevatorReaderLamp)elevatorReaderLamp.emissiveIntensity=s.elevatorTagInserted?.75:0;
   if(liftStatusGlass)liftStatusGlass.emissiveIntensity=s.floorFour?.9:.04;
