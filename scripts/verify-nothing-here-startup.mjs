@@ -788,10 +788,18 @@ try{
     assert(after.persistent&&after.visible>0&&
      after.targets.includes("thing:machine"),
      "Green compatible fitting must keep pulsing while held: "+JSON.stringify(after));
-    await page.screenshot({
-     path:"test-results/nothing-here-persistent-green-fitting.png",
-     timeout:45000
-    });
+    // The behavior was asserted above from live Three.js meshes. A
+    // software-only WebGL renderer can hang during pixel readback, so a
+    // supplemental screenshot must not fail the actual gameplay gate.
+    try{
+     await page.screenshot({
+      path:"test-results/nothing-here-persistent-green-fitting.png",
+      timeout:12000
+     });
+    }catch(error){
+     console.warn("Optional green-fitting screenshot unavailable:",
+      String(error).slice(0,200));
+    }
     await page.locator("#ncUnselect").click();
     assert.equal((await page.evaluate(()=>
      window.__nothing3DPreview.selectedItemFlashAudit)).visible,0,
