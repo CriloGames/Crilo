@@ -754,7 +754,7 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    sharesFluteVisibility:foot.parent===flute&&foot.visible
   })),
   getFixedMountAudit:()=>fixedMounts.map(f=>({
-   name:f.name,face:f.face,
+   name:f.name,face:f.face,baseZ:f.baseZ,rearZ:f.rearZ,
    baseSupported:f.baseZ<=.0725||
     (f.name==="optic offering receiver"&&f.baseZ<=.27),
    supportType:f.baseZ<=.0725?"enamel":"optic housing",
