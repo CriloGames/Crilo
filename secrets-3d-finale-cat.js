@@ -246,7 +246,33 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   if(modelLoaded)return;
   modelLoaded=true;
   const install=(gltf,kind)=>{
-   const cat=gltf.scene,box=new THREE.Box3().setFromObject(cat);
+   const cat=gltf.scene;
+   // The CC0 GLB has a rigid, vertical tail extending far above its ears.
+   // That extra height made the actual reference cat tiny, and cropped the
+   // tail at the top edge. In the source the tail is tucked behind the body.
+   // Deform ONLY rear, high vertices of the grey coat BEFORE normalizing
+   // the standing cat; ears, eyes, paws and original UV texture stay intact.
+   cat.traverse(child=>{
+    if(!child.isMesh||child.name!=="domestic-shorthair_1")return;
+    const geometry=child.geometry.clone();
+    const positions=geometry.attributes.position;
+    if(!positions||!child.scale.y||!child.scale.z)return;
+    let tucked=0;
+    for(let i=0;i<positions.count;i++){
+     const y=positions.getY(i)*child.scale.y+child.position.y;
+     const z=positions.getZ(i)*child.scale.z+child.position.z;
+     if(y<=.345||z>=-.025)continue;
+     const lowered=.345+(y-.345)*.055;
+     positions.setY(i,(lowered-child.position.y)/child.scale.y);
+     tucked++;
+    }
+    if(tucked){positions.needsUpdate=true;
+     geometry.computeVertexNormals();
+     geometry.computeBoundingBox();
+     geometry.computeBoundingSphere();
+     child.geometry=geometry;}
+   });
+   const box=new THREE.Box3().setFromObject(cat);
    if(box.isEmpty())return;
    const size=box.getSize(new THREE.Vector3());
    const scale=2.10*1.75/Math.max(.01,size.y);
@@ -264,7 +290,7 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
     const refine=material=>{
      if(!material)return material;
      const copy=material.clone();
-     if(copy.color)copy.color.multiplyScalar(.67);
+     if(copy.color)copy.color.multiply(new THREE.Color(0xead6c8)).multiplyScalar(.79);
      if("roughness" in copy)copy.roughness=.93;
      if("metalness" in copy)copy.metalness=0;
      if("envMapIntensity" in copy)copy.envMapIntensity=.3;
