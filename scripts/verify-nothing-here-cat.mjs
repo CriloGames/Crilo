@@ -23,10 +23,13 @@ try{
  await page.route("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2*",
   route=>route.fulfill({status:200,body:stub,contentType:"application/javascript"}));
  await page.addInitScript(()=>{
+  // Preserve the state created by the first physical click across reload.
+  if(sessionStorage.getItem("nc-cat-seeded"))return;
   localStorage.setItem("crilo_nothing_here_cube_v3",JSON.stringify({
    seen:["first","door","dog"],door:true,doorOpen:true,
    pocket:[],pendingPickups:[]
   }));
+  sessionStorage.setItem("nc-cat-seeded","yes");
  });
  await page.goto("http://127.0.0.1:4173/secrets.html",{
   waitUntil:"domcontentloaded",timeout:45000
