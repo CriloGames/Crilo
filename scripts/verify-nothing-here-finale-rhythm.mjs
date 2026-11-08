@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {statSync,readFileSync} from "node:fs";
 import {CAT_REFERENCE_DURATION,CAT_MUSIC_BPM,CAT_BEAT_SECONDS,
- CAT_SPIN_BEATS,CAT_SCENES,sceneAt,motionAt
+ CAT_SPIN_BEATS,CAT_SCENES,CAT_POSE_CUTS,sceneAt,motionAt,referenceLumaAt
 } from "../secrets-3d-finale-timeline.js";
 assert.equal(CAT_REFERENCE_DURATION,134.699);
 assert.equal(CAT_MUSIC_BPM,150);
@@ -22,10 +22,18 @@ assert.equal(sceneAt(61).name,"white");
 assert.equal(sceneAt(68).name,"redstars");
 assert.equal(sceneAt(76).name,"bluerays");
 assert.equal(sceneAt(83).name,"green");
-assert.equal(sceneAt(90).name,"ice");
+assert.equal(sceneAt(90).name,"white");
+assert.equal(sceneAt(91).name,"ice");
 assert.equal(sceneAt(112).name,"tunnel");
-assert.equal(sceneAt(122).name,"kaleidoscope");
-assert.equal(sceneAt(134).name,"white");
+assert.equal(sceneAt(122).name,"laser");
+assert.equal(sceneAt(121).scene,9);
+assert.equal(sceneAt(126).name,"digital");
+assert.equal(sceneAt(134).name,"green");
+assert(CAT_POSE_CUTS.length>=40,"Video-wide standing/loaf pose cuts missing");
+assert.equal(sceneAt(102).name,"redstars");
+assert.equal(sceneAt(88).name,"ice");
+assert(referenceLumaAt(59.5)>.85&&referenceLumaAt(80)<.15,
+ "Video-derived white-out and near-black exposure are lost");
 // Verify the REAL video rhythm: FRONT HOLDS before a brisk sideways spin,
 // later high-speed tumbling on every beat. Never a perpetual 3.2s pirouette.
 const front=[.2,1.2,3.15,4.0,6.4,60.5,61.2];
@@ -43,11 +51,11 @@ for(const t of [.4,1.2,16.4,35.2,71.4,117.2]){
  assert(b.beatIndex===a.beatIndex+1,
   "Spinning-cat beat index drifts from the soundtrack at "+t);
 }
-assert(motionAt(33.29).flash>.9,
+assert(motionAt(33.0).flash>.9,
  "The transition into the first neon tunnel has no hard white flash");
 assert(motionAt(108.84).spinning&&motionAt(119.4).spinning,
  "The closing high-energy section must keep tumbling");
-const flashes=Array.from({length:210},(_,i)=>motionAt(33.29+i*.04).flash);
+const flashes=Array.from({length:210},(_,i)=>motionAt(33+i*.04).flash);
 assert(flashes.filter(x=>x>.5).length>=4,
  "The neon section should visibly strobe on multiple musical downbeats");
 console.log("PASS: authorized MP3, front-hold/sideways-roll choreography, "+
