@@ -395,13 +395,19 @@ try{
      assert(before.game.seen.length===60&&before.ending.phase==="open",
       "A completed mobile save did not restore the unfolded cube");
     }
+    await page.waitForFunction(()=>
+     window.__nothing3DPreview?.completionFinale?.cat?.loadedModel===true,
+     null,{timeout:18000,polling:250});
     const layout=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
     // The unfolded panels must keep their brushed enamel reverse finishes,
     // and the celebration must contain a genuine 3D cat, not a sprite/video.
     assert(layout.reverseTexturedPanels===6&&
      layout.cat?.visible&&layout.cat.real3D&&layout.cat.meshCount>0&&
-     Math.abs(layout.cat.durationSeconds-134.699)<.001,
-     "Unfolding lost the six engraved panel textures or 134.7-second 3D cat: "+
+     layout.cat.loadedModel&&layout.cat.catSource==="cc0-hd-tabby-local"&&
+     Math.abs(layout.cat.durationSeconds-134.699)<.001&&
+     layout.cat.bpm===150&&layout.platformHorizontal&&
+     layout.platformUnderCat&&layout.cameraAbovePlatform,
+     "Cat/base does not match the textured horizontal T, 150 BPM and 134.7s reference: "+
       JSON.stringify(layout.cat));
     if(check.label==="finale-last-discovery")
      assert(layout.cat.dancing,

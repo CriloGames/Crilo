@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=1";
+import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=3";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -16,6 +16,7 @@ export function createNothingHereFinale({
  const originalCamera=camera.position.clone();
  const originalTarget=controls.target.clone();
  const originalRotation=cube.rotation.clone();
+ const originalPosition=cube.position.clone();
  const originalScale=cube.scale.clone();
  const framePieces=cube.children.filter(node=>node!==faceRoot)
   .map(node=>({node,visible:node.visible}));
@@ -155,10 +156,13 @@ export function createNothingHereFinale({
   // BackFace has a 180-degree Y rotation, so local +X is world -X.
   joints.top.rotation.x=Math.PI/2;
   faceRoot.position.set(0,S*1.18,-half);
-  cube.rotation.set(0,0,0);
+  // Rotate the actual hinge-linked six-face T onto its back so every
+  // textured surface becomes a HORIZONTAL floor beneath the 3D cat.
+  cube.rotation.set(-Math.PI/2,0,0);
+  cube.position.set(0,0,3.5);
   cube.scale.setScalar(fit());
-  controls.target.set(0,0,0);
-  camera.position.set(0,0,10.5);
+  controls.target.set(0,-.55,0);
+  camera.position.set(0,5.5,12.5);
   camera.lookAt(controls.target);
   controls.update();
   setFrames(true);
@@ -174,6 +178,7 @@ export function createNothingHereFinale({
   for(const joint of Object.values(joints))joint.rotation.set(0,0,0);
   faceRoot.position.set(0,0,0);
   cube.rotation.copy(originalRotation);
+  cube.position.copy(originalPosition);
   cube.scale.copy(originalScale);
   camera.position.copy(originalCamera);
   controls.target.copy(originalTarget);
@@ -194,7 +199,7 @@ export function createNothingHereFinale({
   controls.enableRotate=true;
   if(stage.querySelector("canvas"))
    stage.querySelector("canvas").setAttribute("aria-label",
-    "Finished Nothing Here puzzle: six real cube faces unfolded into a T shape. Drag to orbit the finished sculpture.");
+    "Finished Nothing Here: all six textured panels form a horizontal T-shaped platform beneath the spinning three-dimensional cat. Drag to orbit.");
   invalidate();
  }
  function begin({animate=true,audio=true}={}){
@@ -217,9 +222,10 @@ export function createNothingHereFinale({
   const scale=fit();
   timeline=gsap.timeline({onUpdate:invalidate,onComplete:finish});
   // Pull back first, before the real hinged panels begin to fall.
-  timeline.to(camera.position,{x:0,y:0,z:10.5,duration:1.5,ease:"power2.inOut"},0)
-   .to(controls.target,{x:0,y:0,z:0,duration:1.5,ease:"power2.inOut"},0)
-   .to(cube.rotation,{x:0,y:0,z:0,duration:1.5,ease:"power2.inOut"},0)
+  timeline.to(camera.position,{x:0,y:5.5,z:12.5,duration:3.6,ease:"power2.inOut"},0)
+   .to(controls.target,{x:0,y:-.55,z:0,duration:3.5,ease:"power2.inOut"},0)
+   .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.2,ease:"power2.inOut"},1.95)
+   .to(cube.position,{x:0,y:0,z:3.5,duration:3.5,ease:"power2.inOut"},.32)
    .to(cube.scale,{x:scale,y:scale,z:scale,duration:2.7,ease:"power2.inOut"},0)
    .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:3.8,ease:"power2.inOut"},.25)
    .call(()=>setFrames(true),null,.60)
@@ -263,7 +269,7 @@ export function createNothingHereFinale({
      const normal=new THREE.Vector3(0,0,1).applyQuaternion(
       panel.getWorldQuaternion(new THREE.Quaternion()));
      positions[name]={x:+center.x.toFixed(3),y:+center.y.toFixed(3),
-      z:+center.z.toFixed(3),normal:+normal.z.toFixed(3)};
+      z:+center.z.toFixed(3),normal:+normal.y.toFixed(3)};
     }
    }
    return {phase,hasPlayed,panels:positions,cat:catShow.getState(),
@@ -274,7 +280,10 @@ export function createNothingHereFinale({
     normalControls:controls.enabled,
     scale:+cube.scale.x.toFixed(3),
     outerFrameHidden:framePieces.every(({node})=>!node.visible),
-    centerFit:Math.abs(controls.target.y)<.01};
+    centerFit:Math.abs(controls.target.y+.55)<.1,
+    platformHorizontal:Math.abs(cube.rotation.x+Math.PI/2)<.01,
+    platformUnderCat:catShow.getState().platformUnderCat,
+    cameraAbovePlatform:camera.position.y>2};
   }
  };
 }

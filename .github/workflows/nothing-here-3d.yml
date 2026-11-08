@@ -11,6 +11,7 @@ on:
       - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-nothing-here-second-coin.mjs'
       - 'scripts/verify-nothing-here-cat.mjs'
+      - 'scripts/verify-nothing-here-finale-rhythm.mjs'
       - 'scripts/verify-nothing-here-final-mile.mjs'
       - '.github/workflows/nothing-here-3d.yml'
   push:
@@ -33,6 +34,7 @@ on:
       - 'scripts/verify-nothing-here-live-3d.mjs'
       - 'scripts/verify-nothing-here-second-coin.mjs'
       - 'scripts/verify-nothing-here-cat.mjs'
+      - 'scripts/verify-nothing-here-finale-rhythm.mjs'
       - 'scripts/verify-nothing-here-final-mile.mjs'
       - 'scripts/verify-secrets-3d-preview.mjs'
       - 'scripts/verify-nothing-here-codes.mjs'
@@ -77,6 +79,9 @@ jobs:
           node --check cube-secrets.js
           node --check secrets-3d-preview.js
           node --check secrets-3d-finale.js
+          node --check secrets-3d-finale-cat.js
+          node --check secrets-3d-finale-timeline.js
+          node --check scripts/verify-nothing-here-finale-rhythm.mjs
           node --check secrets-3d-details.js
           node --check secrets-3d-finish.js
           node --check secrets-3d-batching.js
@@ -93,6 +98,8 @@ jobs:
           node --check scripts/verify-nothing-here-codes.mjs
       - name: Verify that every engraved puzzle code actually operates its mechanism
         run: node scripts/verify-nothing-here-codes.mjs
+      - name: Verify original track and rhythmic cat finale
+        run: node scripts/verify-nothing-here-finale-rhythm.mjs
       - name: Install browser for physical preview
         run: |
           npm install --no-save playwright@1.56.1
