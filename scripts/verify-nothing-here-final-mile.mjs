@@ -153,6 +153,15 @@ try{
   assert(actual.volumetricLoaf&&actual.meshCount>0&&
    Math.abs(actual.stageFrameLuma-actual.referenceFrameLuma)<.002,
    "A real 3D pose or measured exposure was lost at "+seconds+"s");
+  if(seconds===2||seconds===34){
+   assert(Math.abs(actual.actualRotations.x)>1&&
+    Math.abs(actual.actualRotations.z)<.1,
+    "The loaf must BARREL ROLL around its long axis at "+seconds+
+     "s, not spin upright like a wheel: "+JSON.stringify(actual));
+  }
+  if(pose==="front")
+   assert(Math.abs(actual.actualRotations.x)<.001,
+    "The forward-facing tabby should not be tumbling at "+seconds);
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
