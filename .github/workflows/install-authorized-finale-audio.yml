@@ -1,0 +1,45 @@
+name: Install authorized Nothing Here finale audio
+# One-time asset import for the audio recording the game owner confirms
+# they have publication rights to use. PR review verifies the downloaded
+# recording before it becomes part of the public Pages build.
+on:
+  push:
+    branches: [feature/nothing-here-reference-synced-final-finale]
+    paths:
+      - '.github/workflows/install-authorized-finale-audio.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  install:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install audio extraction
+        run: |
+          python3 -m pip install --quiet --break-system-packages yt-dlp
+          ffmpeg -version | head -1
+      - name: Import authorized soundtrack from its video reference
+        run: |
+          mkdir -p audio/nothing-here
+          yt-dlp --no-playlist --no-warnings --extract-audio \
+            --audio-format mp3 --audio-quality 192K \
+            -o 'audio/nothing-here/finale-licensed.%(ext)s' \
+            'https://www.youtube.com/watch?v=IxX_QHay02M'
+          test -s audio/nothing-here/finale-licensed.mp3
+          duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 \
+            audio/nothing-here/finale-licensed.mp3)
+          python3 -c "d=float('$duration');assert 133.0<d<136.0, d"
+      - name: Commit authorized track to the PR branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add audio/nothing-here/finale-licensed.mp3
+          git diff --cached --quiet && exit 0
+          git commit -m 'Bundle licensed full-length Nothing Here finale recording'
+          git push origin HEAD:feature/nothing-here-reference-synced-final-finale
