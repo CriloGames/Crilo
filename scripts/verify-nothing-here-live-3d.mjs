@@ -94,7 +94,7 @@ try{
     // A redeemed coin and the service key occupy the SAME machine slot
     // at different moments. Only one may exist in a valid physical scene.
     "reed","treat","prism","sugar","tag","postcard",
-    "acorn","spring","raindrop","bird","lens","stardust",
+    "acorn","spring","raindrop","bird","lens","stardust", // Intentional legacy duplicate; the grown tree consumes rain
     "starmap","parcel","envelope","tape","letter","bell",
     "fork","shim","cog","washer","cylinder","iris","seal"
    ],
@@ -152,7 +152,7 @@ try{
   window.__nothing3DPreview.getDetailedCollisionReport());
  assert(surfaces.library==="three-mesh-bvh"&&
   surfaces.selfTest?.intersecting&&surfaces.selfTest?.separated&&
-  surfaces.groups.models===15&&surfaces.groups.rewards===25&&
+  surfaces.groups.models===15&&surfaces.groups.rewards===24&&
   !surfaces.truncated,
   "High-precision mesh audit unavailable or incomplete: "+JSON.stringify(surfaces));
  const unintended=surfaces.intersections.filter(hit=>
@@ -215,10 +215,15 @@ try{
  for(const [item,source] of Object.entries(expectedOrigins))
   assert.equal(origins[item],source,
    "Reward "+item+" is physically mounted to an unrelated source");
- assert(unlocked.pendingVisible.length===25&&unlocked.physicallyVisible.length===25,
+ // A completed tree has already consumed the one allowed raindrop. The
+ // saved-state migration must discard its obsolete pending duplicate.
+ assert(!unlocked.pendingVisible.includes("raindrop")&&
+  !unlocked.physicallyVisible.includes("raindrop"),
+  "A spent raindrop was regenerated after the tree grew");
+ assert(unlocked.pendingVisible.length===24&&unlocked.physicallyVisible.length===24,
   "Not every reward remains visible when all mechanisms open: "+
   JSON.stringify({pending:unlocked.pendingVisible,onScene:unlocked.physicallyVisible}));
- assert(unlocked.rewards?.measured.length===25,
+ assert(unlocked.rewards?.measured.length===24,
   "Some pending rewards have no real rendered item geometry");
  assert.deepEqual(unlocked.rewards.overhangs,[],
   "At least one unlocked reward is hanging past its box face or detached");
