@@ -89,6 +89,8 @@ jobs:
       # The vending-machine second-coin and all later deliveries have their
       # own shorter browser walkthrough. Report a dead end before rendering
       # the whole six-face visual museum for the full integration suite.
+      - name: Verify observatory shutter with isolated real 3D controls
+        run: NH_OBSERVATORY_ONLY=1 node scripts/verify-nothing-here-second-coin.mjs
       - name: Verify refunded coin, save recovery and downstream puzzle chain
         run: node scripts/verify-nothing-here-second-coin.mjs
       # Run real playable-game interaction checks first. A failure should not
