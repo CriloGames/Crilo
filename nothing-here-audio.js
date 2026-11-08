@@ -151,7 +151,33 @@
  }
  let fluteContext=null;
  let finaleMaster=null,finaleTimeout=null,finaleTimer=null,finalePlaying=false;
+ // A personal soundtrack is a browser-local Blob URL. The uploaded file
+ // never becomes a public asset, and is only decoded in this visitor's tab.
+ let personalFinale=null,personalFinaleUrl=null,personalFinaleName='';
+ function setPersonalFinaleFile(blob,name='Personal finale track'){
+  if(blob!==null&&(!audioSupported||!URL.createObjectURL||!(blob instanceof Blob)))
+   return false;
+  stopFinale();
+  if(personalFinaleUrl){URL.revokeObjectURL(personalFinaleUrl);personalFinaleUrl=null;}
+  personalFinale=null;personalFinaleName='';
+  if(blob){
+   personalFinaleUrl=URL.createObjectURL(blob);
+   personalFinale=new Audio(personalFinaleUrl);
+   personalFinale.preload='auto';
+   personalFinale.loop=false;
+   personalFinale.volume=.72;
+   personalFinaleName=String(name||'Personal finale track');
+  }
+  return true;
+ }
+
  function stopFinale(){
+  if(personalFinale){
+   personalFinale.pause();
+   personalFinale.onended=null;
+   personalFinale.muted=false;
+   try{personalFinale.currentTime=0}catch{}
+  }
   if(finaleTimeout!==null){clearTimeout(finaleTimeout);finaleTimeout=null;}
   if(finaleTimer!==null){clearInterval(finaleTimer);finaleTimer=null;}
   if(finaleMaster&&fluteContext){
@@ -170,6 +196,17 @@
  // the user-gesture permission on browsers that suspend new audio contexts.
  function prepareFinale(){
   if(!sfxEnabled)return false;
+  // Prime browser-local media during the genuine finishing/replay click,
+  // allowing sound to begin only when the unfolding animation completes.
+  if(personalFinale){
+   try{
+    personalFinale.pause();
+    personalFinale.currentTime=0;
+    personalFinale.muted=true;
+    personalFinale.play()?.catch?.(()=>{});
+   }catch(error){console.warn('Personal finale preload:',error?.message||error);}
+   return true;
+  }
   const Engine=window.AudioContext||window.webkitAudioContext;
   if(!Engine)return false;
   try{
@@ -183,6 +220,35 @@
  // synchronized music file can be substituted by the game's owner later.
  function playFinale(durationSeconds=134.699){
   if(!sfxEnabled||document.hidden)return false;
+  if(personalFinale){
+   // Play the exact locally selected recording, in real time, with no
+   // pitch change, re-encoding, uploads or synthetic accompaniment.
+   // A primed (muted) element remains playing through the T unfold;
+   // rewinding it here aligns the first audible beat with the first spin.
+   const clip=personalFinale;
+   if(music&&!music.paused){music.pause();music.volume=0;}
+   try{
+    clip.currentTime=0;
+    clip.volume=.72;
+    clip.muted=false;
+    finalePlaying=true;latestEffect='finale';
+    clip.onended=()=>{
+     if(clip!==personalFinale)return;
+     finalePlaying=false;
+     if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
+    };
+    if(clip.paused)clip.play()?.catch?.(error=>{
+     if(clip!==personalFinale)return;
+     console.warn('Personal finale playback:',error?.message||error);
+     finalePlaying=false;
+    });
+    return true;
+   }catch(error){
+    console.warn('Unable to start personal finale:',error?.message||error);
+    finalePlaying=false;
+    return false;
+   }
+  }
   const Engine=window.AudioContext||window.webkitAudioContext;
   if(!Engine)return false;
   try{
@@ -325,9 +391,11 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,action,setSfx,setMusic,
+  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,action,setSfx,setMusic,setPersonalFinaleFile,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,musicCreated:!!music,
+   personalFinaleReady:!!personalFinale,personalFinaleName,
+   personalFinalePlaying:!!personalFinale&&!personalFinale.paused&&!personalFinale.muted,
    musicPlaying:!!music&&!music.paused,
    musicLoop:music?.loop??true,soundFileCount:Object.keys(files).length,
    oggSupported:oggOk

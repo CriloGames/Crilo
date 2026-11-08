@@ -89,3 +89,14 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
  .nc-page .nc-finale-banner{animation:none}
  .nc-page .nc-finale-banner #ncFinaleReplay:hover{transform:none}
 }
+
+/* Optional private-device finale audio never adds the recording to the
+   public site. Keep the picker keyboard-accessible and responsive. */
+.nc-page .nc-overline #ncPersonalFinaleInput[hidden],
+.nc-page .nc-overline #ncPersonalFinaleClear[hidden]{display:none!important}
+.nc-page .nc-overline #ncPersonalFinaleClear{
+ min-width:34px;padding:7px 9px;flex:0 0 auto;font-size:16px;
+}
+.nc-page .nc-overline #ncPersonalFinaleChoose .nc-audio-state{
+ max-width:95px;overflow:hidden;text-overflow:ellipsis;
+}
