@@ -5,8 +5,9 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=1";
 
-export const CAT_REFERENCE_DURATION=134.699;
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=1";
 const CAT_MODEL_URL="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -94,25 +95,38 @@ function backdropMaterial(){
     }else if(uScene<3.5){
      float fog=.10*sin(p.x*12.+t*.55)*sin(p.y*13.-t*.6);
      color=vec3(.91,.94,.98)+fog;
-    }else{
+    }else if(uScene<4.5){
      float r=length(p);
      float rays=pow(.5+.5*cos(atan(p.y,p.x)*18.+t*.18),14.);
      color=vec3(.014,.025,.15)+vec3(.07,.22,.64)*(1.-smoothstep(0.,.9,r));
      color+=vec3(.30,.43,.96)*rays*(1.-smoothstep(.0,1.0,r));
      color+=vec3(.75,.76,.99)*stars(vUv*vec2(85.,55.));
+    }else if(uScene<5.5){
+     // One-beat black strobe before the green-screen return.
+     color=vec3(.0007,.0008,.001);
+    }else if(uScene<6.5){
+     // Cold translucent portal on chalk-white background.
+     float radius=length(p);
+     float ring=exp(-pow((radius-.39-.025*sin(t*1.3))*15.,2.));
+     color=vec3(.90,.93,.98)+.07*sin(p.x*12.+t)*sin(p.y*11.-t);
+     color+=vec3(.03,.4,.7)*ring*.22;
+    }else{
+     // Fast rainbow tunnel and kaleidoscopic panels for the last drops.
+     float a=atan(p.y,p.x),r=length(p)+.009;
+     float rings=pow(.5+.5*cos(11.*log(r)+t*8.),7.);
+     float spokes=pow(.5+.5*cos(a*12.-t*1.4),16.);
+     float pulses=.5+.5*sin(t*15.);
+     color=vec3(.03,.01,.08)+
+      vec3(.96,.07,.55)*(rings*.48+spokes*.62)+
+      vec3(.1,.69,.98)*(rings*.45+spokes*.2)*pulses;
+     color+=vec3(.95,.85,.15)*pow(.5+.5*cos(a*6.+t),15.)*.45;
     }
     gl_FragColor=vec4(clamp(color,0.,1.),1.);
    }
   `
  });
 }
-function phaseAt(t){
- if(t<26||t>=82&&t<88)return 0;
- if(t<34||t>=64&&t<76||t>=102&&t<108)return 1;
- if(t<60||t>=108&&t<132)return 2;
- if(t<64||t>=88&&t<102||t>=132)return 3;
- return 4;
-}
+function phaseAt(t){return sceneAt(t).scene;}
 export function createFinaleCatShow({scene,stage,invalidate}){
  let initialized=false,playing=false,modelLoaded=false,raf=0;
  let startTime=0,lastPaint=0,elapsed=0,source="procedural";
@@ -162,24 +176,35 @@ export function createFinaleCatShow({scene,stage,invalidate}){
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
-  spinner.rotation.y=elapsed*TAU/2.6;
-  spinner.rotation.z=p===2?Math.sin(elapsed*.44)*.80:p===4?Math.sin(elapsed*.38)*.2:0;
-  spinner.rotation.x=p===2?Math.cos(elapsed*.52)*.17:0;
-  group.position.set(0,-.91+Math.sin(elapsed*7.3)*.08,2.0);
-  const white=p===0||p===3;
-  key.color.setHex(p===1?0xff728f:p===2?0xffb0ec:0xfff5e9);
-  rim.color.setHex(p===1?0xff243c:p===2?0x2acaff:p===4?0x426bff:0xbed5ff);
-  key.intensity=white?4.1:5.2+Math.sin(elapsed*9.)*.75;
-  rim.intensity=white?3.8:6.5+Math.sin(elapsed*8.)*.9;
+  const motion=motionAt(elapsed);
+  // Ethel's upright/front pose and sideways loaf shape alternate on an
+  // eight-beat, 150 BPM cycle. Motion comes from the SAME audio clock as
+  // the displayed soundtrack rather than an unrelated 2.6s oscillator.
+  spinner.rotation.order="YXZ";
+  spinner.rotation.y=motion.spinRadians;
+  spinner.rotation.x=motion.rollRadians;
+  spinner.rotation.z=motion.tiltRadians;
+  spinner.scale.setScalar(motion.scale);
+  // The unfolded T is a horizontal platform at y≈-1.61. The cat's feet
+  // remain immediately above it, so the two are composed as one scene.
+  group.position.set(0,-1.44+motion.bob,.45);
+  const white=p===0||p===3||p===6;
+  key.color.setHex(p===1?0xff728f:p===2||p===7?0xffb0ec:p===4?0x9ccfff:0xfff5e9);
+  rim.color.setHex(p===1?0xff243c:p===2||p===7?0x2acaff:p===4?0x426bff:0xbed5ff);
+  key.intensity=white?4.1:4.5+motion.pulse*1.5;
+  rim.intensity=white?3.8:5.0+motion.pulse*1.8;
   invalidate();
  }
  function tick(now){
   if(!playing)return;
   if(now-lastPaint>=1000/30){
    lastPaint=now;
-   paint((now-startTime)/1000);
+   // Read HTMLAudioElement.currentTime when the licensed recording plays.
+   // Falling back to performance.now keeps the original soundtrack working.
+   const audioT=window.NothingHereAudio?.getFinaleClock?.();
+   paint(Number.isFinite(audioT)?audioT:(now-startTime)/1000);
   }
-  if(now-startTime>=CAT_REFERENCE_DURATION*1000){
+  if(elapsed>=CAT_REFERENCE_DURATION-.05||now-startTime>=CAT_REFERENCE_DURATION*1000+500){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
@@ -210,6 +235,9 @@ export function createFinaleCatShow({scene,stage,invalidate}){
   getState(){return {
    visible:!!group?.visible,dancing:playing,
    durationSeconds:CAT_REFERENCE_DURATION,
+   bpm:CAT_MUSIC_BPM,
+   motion:motionAt(elapsed),
+   platformUnderCat:true,
    elapsedSeconds:+elapsed.toFixed(2),
    catSource:source,
    meshCount:spinner?(()=>{let n=0;spinner.traverse(o=>{if(o.isMesh&&o.visible)n++});return n})():0,
