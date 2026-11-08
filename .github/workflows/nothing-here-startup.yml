@@ -44,6 +44,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore npm and Chromium caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-nothinghere-pw1561-${{ hashFiles('three-workbench/package.json') }}
       - name: Check source and test syntax
         run: |
           node --check secrets-3d-preview.js
@@ -83,6 +90,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Restore npm and Chromium caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-nothinghere-pw1561-${{ hashFiles('three-workbench/package.json') }}
       - name: Verify completion source and test syntax
         run: |
           node --check secrets-3d-preview.js
