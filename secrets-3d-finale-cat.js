@@ -284,8 +284,10 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
     for(let i=0;i<positions.count;i++){
      const y=positions.getY(i)*child.scale.y+child.position.y;
      const z=positions.getZ(i)*child.scale.z+child.position.z;
-     if(y<=.345||z>=-.025)continue;
-     const lowered=.345+(y-.345)*.055;
+     // The supplied cat silhouette has no upright tail shaft. Fold the
+     // GLB's rear tail behind the skull instead of leaving a visible peg.
+     if(y<=.315||z>=-.025)continue;
+     const lowered=.272+(y-.315)*.020;
      positions.setY(i,(lowered-child.position.y)/child.scale.y);
      tucked++;
     }
