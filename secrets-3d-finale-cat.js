@@ -330,10 +330,19 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   const loaf=motion.poseMode==="loaf"&&!reduceEffects;
   standingRoot.visible=!loaf;
   loafRoot.visible=loaf;
-  spinner.rotation.order="ZYX";
-  spinner.rotation.z=loaf?motion.spinRadians:0;
-  spinner.rotation.y=loaf?motion.threeDRoll:0;
-  spinner.rotation.x=loaf?motion.tiltRadians:0;
+  // Frame-by-frame reference: the compact silhouette remains horizontal
+  // while its BACK, SIDES and underside rotate around the cat's long X
+  // axis. This is a BARREL ROLL, not an image-plane Z-axis pinwheel.
+  // Neon sections occasionally turn end-on, as in the 34s/41s tunnel.
+  const intense=[2,7,9,10].includes(motion.scene);
+  const origin=elapsed>=106?108:34;
+  const yaw=intense?
+   1.03*Math.cos((elapsed-origin)*1.70):
+   .11*Math.sin(elapsed*2.2);
+  spinner.rotation.order="YXZ";
+  spinner.rotation.x=loaf?motion.spinRadians:0;
+  spinner.rotation.y=loaf?yaw:0;
+  spinner.rotation.z=loaf?.055*Math.sin(elapsed*2.4):0;
   spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
   // A meaningful head-and-body flip: when it stops, the actual standing
   // model returns in the SAME forward-facing pose as the source edit.
@@ -413,6 +422,11 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    volumetricLoaf:!!loafRoot,
    active3DPose:reduceEffects?"front":motionAt(elapsed).poseMode,
    rendered3DPose:loafRoot?.visible?"loaf":standingRoot?.visible?"front":"none",
+   actualRotations:spinner?{
+    x:+spinner.rotation.x.toFixed(4),
+    y:+spinner.rotation.y.toFixed(4),
+    z:+spinner.rotation.z.toFixed(4)
+   }:null,
    stageScene:shader?.uniforms.uScene.value??null,
    stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
    referenceFrameLuma:motionAt(elapsed).referenceLuma,
