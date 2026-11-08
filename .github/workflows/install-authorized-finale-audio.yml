@@ -23,6 +23,8 @@ jobs:
       - name: Install audio extraction
         run: |
           python3 -m pip install --quiet --break-system-packages yt-dlp
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
           ffmpeg -version | head -1
       - name: Import authorized soundtrack from its video reference
         run: |
@@ -30,7 +32,7 @@ jobs:
           yt-dlp --no-playlist --no-warnings --extract-audio \
             --audio-format mp3 --audio-quality 192K \
             -o 'audio/nothing-here/finale-licensed.%(ext)s' \
-            'https://www.youtube.com/watch?v=IxX_QHay02M'
+            'https://www.dailymotion.com/video/x9j73g0'
           test -s audio/nothing-here/finale-licensed.mp3
           duration=$(ffprobe -v error -show_entries format=duration -of csv=p=0 \
             audio/nothing-here/finale-licensed.mp3)
