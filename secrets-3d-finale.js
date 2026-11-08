@@ -266,6 +266,8 @@ export function createNothingHereFinale({
     }
    }
    return {phase,hasPlayed,panels:positions,cat:catShow.getState(),
+    reverseTexturedPanels:frameRims.filter(rim=>
+     rim.children.some(node=>node.isMesh&&node.material?.map)).length,
     banner:!!banner&&!banner.hidden,
     replay:!!replayButton&&!replayButton.hidden,
     normalControls:controls.enabled,
