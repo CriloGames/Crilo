@@ -1021,7 +1021,7 @@ const controlNames={
  "front-screw-3":"Unusual fastener"
 };
 const miniatureNames={
- bag:"Locked leather bag",dog:"Little dog",door:"Little door",vase:"Ceramic vase",
+ bag:"Locked leather bag",dog:"Little dog",cat:"Perched cat",door:"Little door",vase:"Ceramic vase",
  squirrel:"Clockwork squirrel",pot:"Plant pot",musicbox:"Music box",
  cloud:"Indoor cloud",cup:"Teacup",clock:"Pocket watch",
  machine:"Vending machine",elevator:"Miniature elevator",moth:"Clockwork moth",
