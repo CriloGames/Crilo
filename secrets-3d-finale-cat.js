@@ -380,6 +380,16 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
  }
  return {
   start,stop,
+  // Available only on local CI servers, never as an endgame skip for players.
+  seekForVisualTest(t){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   playing=false;
+   if(raf)cancelAnimationFrame(raf);
+   raf=0;
+   show(clip(Number(t)||0,0,CAT_REFERENCE_DURATION));
+   return this.getState();
+  },
   restore(){stop();show(CAT_REFERENCE_DURATION);},
   onResize(){if(initialized&&group.visible)paint(elapsed)},
   getState(){return {
