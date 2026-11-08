@@ -132,13 +132,18 @@ function backdropMaterial(){
        vec3(1.,.055,.81)*(laser*.85+rail*.16);
      light+=vec3(.8,.48,1.)*tunnel*.38;
      light+=vec3(.87,.91,1.)*exp(-r*6.5)*(.45+.55*uBeat);
-     // The uploaded 1080p reference's 33–40s drop has a brilliant WHITE
-     // circular portal behind the spinning loaf, not just purple scribbles.
-     float portal=exp(-pow((r-.33-.027*sin(t*2.5))*17.,2.));
-     float aura=exp(-pow((r-.42)*8.,2.));
-     vec3 halo=vec3(.90,.92,1.)*portal*1.48+
-      vec3(1.,.14,.90)*aura*.70;
-     color=base+light+halo;
+     // Source frame 34s: a deep perspective corridor with two enormous
+     // angular WHITE side gates, not a circular white vortex.
+     float square=max(abs(p.x)*.82,abs(p.y)*1.36);
+     float boxRails=pow(.5+.5*cos(log(max(.025,square))*15.5+t*8.0),20.);
+     float gate=exp(-pow((abs(p.x)-.48)*27.,2.))*
+      (1.-smoothstep(.29,.52,abs(p.y)));
+     float gateAura=exp(-pow((abs(p.x)-.48)*10.,2.))*
+      (1.-smoothstep(.25,.63,abs(p.y)));
+     vec3 burst=vec3(.80,.91,1.)*gate*2.10+
+      vec3(.95,.17,.98)*gateAura*.65+
+      vec3(.21,.78,1.)*boxRails*.70;
+     color=base+light*.75+burst;
      color+=vec3(.46,.70,1.)*exp(-r*3.6)*(.25+.45*uBeat);
     }else if(uScene<3.5){
      color=vec3(.982,.986,1.);
@@ -170,29 +175,44 @@ function backdropMaterial(){
        vec3(.8,.94,1.)*exp(-r*4.)*(.35+.45*uBeat);
      color+=stars(uv*vec2(100.,68.),4.)*vec3(1.,.72,.98);
     }else if(uScene<8.5){
-     // Deep crimson supernova starfield, from 62s through 75s.
+     // Frames 63–74: thousands of pinpoint stars in a vivid pink/red
+     // Milky Way with a bright asymmetric red nebula behind the tabby.
+     // The old low-frequency red fog and 90x50 sparse dots were too flat.
      vec2 q=p*3.;
-     float cloud=fbm(q*1.4+vec2(.13*t,-.04*t));
-     float web=fbm(q*3.7-vec2(.14*t,.1*t));
-     color=vec3(.012,.001,.019)+
-      vec3(.83,.009,.16)*pow(cloud,1.6)*1.20+
-      vec3(.47,.006,.052)*pow(web,1.4)*.43;
-     color+=stars(uv*vec2(92.,50.),2.6)*vec3(1.,.84,.93)*1.50;
-     color+=vec3(.34,.007,.09)*exp(-r*3.)*(.7+.3*uBeat);
+     float cloud=fbm(q*1.6+vec2(.13*t,-.04*t));
+     float web=fbm(q*4.3-vec2(.05*t,.08*t));
+     float wisps=fbm(q*10.0+vec2(-.04*t,.07*t));
+     float plume=exp(-length((p-vec2(.15,.09))*vec2(1.05,1.35))*2.1);
+     float mottled=smoothstep(.29,.73,cloud*.85+web*.4);
+     color=vec3(.014,.001,.018)+
+      vec3(.94,.012,.15)*mottled*1.28+
+      vec3(.88,.10,.29)*plume*(.25+.9*wisps)+
+      vec3(.33,.018,.15)*pow(web,1.6);
+     float starA=stars(uv*vec2(190.,112.),1.75);
+     float starB=stars(uv*vec2(300.,175.),2.1);
+     float starC=stars(uv*vec2(74.,47.),1.5);
+     color+=vec3(1.,.86,.95)*(starA*2.30+starB*.93)+
+      vec3(1.,.72,.84)*starC*2.15;
     }else if(uScene<9.5){
-     // Hot pink electronic octagonal portal, yellow gates and cyan core.
+     // Frames 48s and 123s: a DARK circular psychedelic mandala.
+     // Violet, fuchsia and lime tessellated rings surround a black core;
+     // the previous pink rectangle was the wrong silhouette entirely.
+     float angle=a+.10*sin(t*.55+r*17.);
      float oct=max(abs(p.x),abs(p.y));
-     float r1=abs(oct-.59-.04*sin(t*1.7));
-     float r2=abs(oct-.35+.014*sin(t*3.));
-     float rose=exp(-r1*33.)+exp(-r2*25.);
-     float bars=pow(.5+.5*cos(a*4.),16.);
-     float petals=pow(.5+.5*cos(a*8.+t*1.1),12.);
-     color=vec3(.012,.004,.045)+
-      vec3(.92,.02,.50)*rose*.85+
-      vec3(.41,.12,.92)*petals*.31+
-      vec3(1.,.94,.14)*bars*exp(-abs(r-.44)*11.)+
-      vec3(.02,.48,.99)*exp(-r*7.5)*(.7+.4*uBeat);
-     color+=stars(uv*vec2(56.,43.),5.)*vec3(.72,.05,.53);
+     float inner=exp(-pow((r-.29-.018*sin(angle*12.+t*.8))*30.,2.));
+     float outer=exp(-pow((r-.46-.03*sin(angle*16.-t*.6))*16.,2.));
+     float petal=pow(.5+.5*cos(angle*12.+t*.36),9.);
+     float teeth=pow(.5+.5*cos(angle*26.-r*22.+t*.8),13.);
+     float weave=pow(.5+.5*cos(log(max(r,.02))*21.+angle*7.+t*2.),8.);
+     float arch=exp(-pow((r-.63)*11.,2.));
+     float filigree=pow(.5+.5*cos(angle*18.+sin(r*32.)*1.6),12.);
+     color=vec3(.003,.002,.013)+
+      vec3(.58,.006,.40)*inner*(.75+.4*teeth)+
+      vec3(.24,.04,.68)*outer*(.65+.55*weave)+
+      vec3(.08,.64,.09)*outer*(petal*.90+teeth*.30)+
+      vec3(.21,.008,.23)*arch*(.5+filigree*.6)+
+      vec3(.13,.03,.38)*exp(-r*4.)*.22;
+     color+=vec3(.45,.04,.23)*stars(uv*vec2(125.,82.),3.)*.38;
     }else if(uScene<10.5){
      // Blue/pink luminous digital-star walls and light rays, 51–59s.
      vec2 grid=uv*vec2(145.,79.);
@@ -216,7 +236,10 @@ function backdropMaterial(){
       vec3(.014,.38,.70)*ring*(.3+.7*coils)+
       vec3(.10,.94,1.)*ring*pow(jag,2.)*.95+
       vec3(.19,.28,.56)*exp(-r*5.)*.30;
-     color+=vec3(.66,.96,1.)*stars(uv*vec2(94.,57.),4.)*.3;
+     float shimmers=pow(.5+.5*cos(a*92.+r*18.-t*1.8),22.);
+     float spokes=pow(.5+.5*cos(a*180.-t*.4),25.);
+     color+=vec3(.22,.95,1.)*(ring*shimmers*.90+ring*spokes*.45);
+     color+=vec3(.66,.96,1.)*stars(uv*vec2(170.,108.),3.)*.7;
     }else{
      // Gray video cut just before total-black interstitial.
      color=vec3(.68,.70,.72);
