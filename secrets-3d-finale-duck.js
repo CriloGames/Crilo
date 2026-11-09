@@ -167,6 +167,31 @@ export function buildCriloClassicDuck(){
  tipEdge.position.copy(tip.position);
  tipEdge.name="Subtle dark tail-tip silhouette";
  root.add(tipEdge);
+ // Viewed from behind, the yellow fin itself can hide its BackSide shell
+ // where it intersects the bulb. Trace BOTH exposed upper slopes of the
+ // pointed feather on its real conical surface (not a floating 2D decal).
+ // The lower ends sink into the rounded tail, leaving one continuous crest.
+ const tailTopRidges=[];
+ for(const sign of [-1,1]){
+  const ridgePoints=[0,.18,.40,.63,.82].map(t=>{
+   const radius=.21*t;
+   return new THREE.Vector3(
+    sign*(radius*.96+.002),
+    .215-.43*t,
+    -radius*.28-.006
+   );
+  });
+  const ridge=new THREE.Mesh(
+   new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ridgePoints),
+    24,.009,6,false),
+   line
+  );
+  ridge.name=sign<0?"Left black upper tail-feather edge":
+   "Right black upper tail-feather edge";
+  ridge.castShadow=false;
+  tip.add(ridge);
+  tailTopRidges.push(ridge);
+ }
  // Wide, flattened orange top bill and thinner lower bill, facing +Z.
  const upper=oval(root,billOrange,[0,1.18,.75],[.285,.078,.22],.018);
  upper.rotation.x=-.07;
@@ -221,6 +246,8 @@ export function buildCriloClassicDuck(){
  root.userData.toeOutline=true;
  root.userData.tailOutline=true;
  root.userData.tailContours=tailContours;
+ root.userData.tailTopRidges=tailTopRidges;
+ root.userData.tailTopRidgeCount=tailTopRidges.length;
  root.userData.completeTailContourCount=tailContours.length;
  root.userData.legOutline=true;
  root.userData.walkLegs=walkLegs;
