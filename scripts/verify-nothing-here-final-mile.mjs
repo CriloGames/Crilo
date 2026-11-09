@@ -246,6 +246,7 @@ try{
   assert(actual.neckGeometry==="continuous-short-sculpt"&&
    actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined&&
    actual.duckTailOutlined&&actual.duckLegsOutlined&&
+   actual.duckTailTopRidgeCount===2&&
    actual.duckFullTailContourCount===1&&
    actual.duckFullTailContoursAttached,
    "Duck must have ONE real continuous rounded-tail contour mesh visible "+
@@ -273,6 +274,27 @@ try{
     JSON.stringify(duck));
  }
  console.log("PASS: duck stops facing forward after each spinning section");
+ const finalHold=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleFrame(134.60));
+ assert(finalHold.active3DPose==="still"&&finalHold.duckStopsFrontOnHold&&
+  Math.abs(finalHold.duckFacingYaw)<.001,
+  "Final duck must stop rotating before audio finishes, never dance in silence");
+ const stageCases=[
+  [34.25,2,true],[40.5,7,true],[47.2,9,true],[55.2,10,true],
+  [59.7,3,false],[70.2,8,false],[79.5,5,false],
+  [94.2,3,false],[130.98,3,false],[134.61,5,false]
+ ];
+ for(const [at,stage,hasLeds] of stageCases){
+  const shot=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),at);
+  assert(shot.stageScene===stage&&shot.stageHasLedSquares===hasLeds,
+   "Wrong stage/side LED design at "+at+"s: "+JSON.stringify(shot));
+  if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
+   [34.25,59.7,79.5,130.98,134.61].includes(at))
+   await page.locator("#stage canvas").screenshot({
+    path:"test-results/backdrop-"+at.toFixed(2)+".png",timeout:45000
+   });
+ }
+ console.log("PASS: selected LED square scenes, colored former white/black cues and final still hold");
  // Post-music-only end card: the real single duck must first lay one
  // modeled egg, waddle off, and leave an actual accessible click target.
  const eggAtCrouch=await page.evaluate(()=>
@@ -283,6 +305,8 @@ try{
  const eggAtLay=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(1.2));
  assert(eggAtLay.postlude?.eggVisible&&!eggAtLay.postlude.eggClickable&&
+  eggAtLay.postlude.eggScale>=.22&&eggAtLay.postlude.eggScale<.34&&
+  eggAtLay.postlude.eggGrowProgress===0&&
   eggAtLay.postlude.sameDuck&&!eggAtLay.postlude.duckGone&&
   eggAtLay.postlude.duckCrouching&&
   eggAtLay.postlude.eggDropProgress>.15&&
@@ -305,7 +329,8 @@ try{
   laid.postlude.eggDropProgress===1&&
   laid.postlude.eggAndDuckSameLane&&
   laid.postlude.eggUnderDuckTail&&
-  laid.postlude.duckSideFacingToLay,
+  laid.postlude.duckSideFacingToLay&&
+  laid.postlude.eggScale<.35,
   "The egg must land clearly beneath the sideways duck's tail before walking");
  if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
   await page.locator("#stage canvas").screenshot({
@@ -314,6 +339,8 @@ try{
  const eggWalking=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(2.5));
  assert(eggWalking.postlude?.duckWalkingAway&&
+  eggWalking.postlude.eggScale>laid.postlude.eggScale&&
+  eggWalking.postlude.eggScale<.6&&
   !eggWalking.postlude.eggClickable&&
   eggWalking.postlude.walkLegAngles.length===2&&
   Math.abs(eggWalking.postlude.walkLegAngles[0])>.08&&
@@ -322,6 +349,8 @@ try{
  const eggWaiting=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(5.0));
  assert(eggWaiting.postlude?.postludePhase==="egg"&&
+  eggWaiting.postlude.eggScale>=.99&&
+  eggWaiting.postlude.eggGrowProgress===1&&
   eggWaiting.postlude.eggVisible&&eggWaiting.postlude.eggShaking&&
   eggWaiting.postlude.eggClickable&&eggWaiting.postlude.duckGone&&
   eggWaiting.postlude.eggHairlineCrackVisible,
