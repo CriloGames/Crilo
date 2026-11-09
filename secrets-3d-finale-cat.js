@@ -92,6 +92,36 @@ function backdropMaterial(){
    vec3 palette(float x){
     return .5+.5*cos(6.28318*(vec3(0.,.36,.72)+x));
    }
+   // Project an infinite square-tube tunnel into screen space. Each dot
+   // and each luminous door belongs to a deeper wall segment; the
+   // logarithmic perspective makes the viewer fly through the wormhole.
+   vec3 ledWormhole(vec2 p,float t,float phase){
+    vec2 q=p+vec2(.065*sin(t*.76),.047*cos(t*.81))*
+      exp(-length(p)*1.7);
+    q+=.032*vec2(sin(q.y*8.+t*1.8),cos(q.x*8.-t*1.6));
+    float wall=max(abs(q.x)*.77,abs(q.y)*1.12);
+    float depth=-log(max(.009,wall));
+    float horizontal=step(abs(q.y)*1.12,abs(q.x)*.77);
+    float lane=mix(q.x/max(.018,abs(q.y)*1.12),
+      q.y/max(.018,abs(q.x)*.77),horizontal);
+    float dotX=pow(max(0.,.5+.5*cos(lane*55.+
+      sin(depth*3.+t*.9)*1.1)),23.);
+    float dotY=pow(max(0.,.5+.5*cos(depth*37.-t*23.)),22.);
+    float dots=dotX*dotY;
+    float door=pow(max(0.,.5+.5*cos(depth*12.-t*10.)),24.);
+    float wire=pow(max(0.,.5+.5*cos(lane*9.+
+      .35*sin(depth*4.-t*1.2))),19.);
+    float farGlow=exp(-wall*9.);
+    float flood=exp(-wall*2.);
+    vec3 tint=palette(phase+lane*.13+depth*.062+t*.03);
+    vec3 col=vec3(.005,.002,.034)+
+      tint*(dots*2.45+door*(.4+.45*uBeat)+wire*.14)+
+      vec3(.44,.72,1.)*farGlow*(.22+.36*uBeat)+
+      vec3(.035,.025,.17)*flood;
+    float forward=pow(max(0.,1.-wall*1.2),5.);
+    col+=vec3(.79,.90,1.)*forward*(.12+.17*uBeat);
+    return col;
+   }
    void main(){
     float t=uTime;
     vec2 p=(vUv-.5)*vec2(uAspect,1.);
@@ -117,33 +147,31 @@ function backdropMaterial(){
      warm+=vec3(.83,.27,.64)*halo*.35;
      color=warm+stars(uv*vec2(96.,62.),3.)*vec3(1.,.91,.82);
     }else if(uScene<2.5){
-     // Psytrance tunnel: blue/cyan shafts, magenta lightbars and a bright
-     // spinning centre that rushes towards camera on every musical beat.
-     float twist=a+.25*sin(r*13.-t*2.3);
-     float v=log(max(r,.025));
-     float tunnel=pow(.5+.5*cos(v*15.+t*11.),5.);
-     float spokes=pow(.5+.5*cos(twist*10.+t*1.1),23.);
-     float laser=pow(.5+.5*cos(twist*18.-t*.9),45.);
-     float rail=pow(.5+.5*cos(p.x*17.+p.y*8.+t*3.),18.);
-     vec3 base=mix(vec3(.018,.033,.19),vec3(.07,.26,.85),
-       clamp(.6+.4*sin(t*.8+r*4.),0.,1.));
-     vec3 light=vec3(.08,.75,1.)*(spokes*.8+tunnel*.28)+
-       vec3(1.,.055,.81)*(laser*.85+rail*.16);
-     light+=vec3(.8,.48,1.)*tunnel*.38;
-     light+=vec3(.87,.91,1.)*exp(-r*6.5)*(.45+.55*uBeat);
-     // Source frame 34s: a deep perspective corridor with two enormous
-     // angular WHITE side gates, not a circular white vortex.
-     float square=max(abs(p.x)*.82,abs(p.y)*1.36);
-     float boxRails=pow(.5+.5*cos(log(max(.025,square))*15.5+t*8.0),20.);
-     float gate=exp(-pow((abs(p.x)-.48)*27.,2.))*
-      (1.-smoothstep(.29,.52,abs(p.y)));
-     float gateAura=exp(-pow((abs(p.x)-.48)*10.,2.))*
-      (1.-smoothstep(.25,.63,abs(p.y)));
-     vec3 burst=vec3(.80,.91,1.)*gate*2.10+
-      vec3(.95,.17,.98)*gateAura*.65+
-      vec3(.21,.78,1.)*boxRails*.70;
-     color=base+light*.75+burst;
-     color+=vec3(.46,.70,1.)*exp(-r*3.6)*(.25+.45*uBeat);
+     // Reference 33–40s: rushing BLUE / MAGENTA wormhole with huge
+     // blinding white portals, twisting depth and light streaks.
+     vec2 warped=p+vec2(.058*sin(t*.92+p.y*3.),
+       .042*cos(t*.75+p.x*4.));
+     float w=max(abs(warped.x)*.84,abs(warped.y)*1.18);
+     float d=-log(max(w,.015));
+     float angle=atan(warped.y,warped.x);
+     float speed=d*14.-t*15.;
+     float rush=pow(max(0.,.5+.5*cos(speed)),16.);
+     float shafts=pow(max(0.,.5+.5*cos(angle*18.+
+       2.5*sin(d*3.-t*2.2))),22.);
+     float blueNoise=fbm(warped*9.-vec2(t*1.2,-t*.6));
+     vec3 tunnel=ledWormhole(p,t,.04);
+     vec3 blue=vec3(.018,.13,.94)*(.65+.35*blueNoise);
+     vec3 pink=vec3(1.,.075,.87);
+     color=vec3(.008,.015,.10)+tunnel*.85+
+      blue*(.5+shafts*1.35)+
+      pink*(rush*.68+pow(max(0.,.5+.5*cos(angle*8.-t*.7)),35.)*.42);
+     float gate=exp(-pow((abs(warped.x)-.49)*25.,2.))*
+       (1.-smoothstep(.35,.63,abs(warped.y)));
+     float aura=exp(-pow((abs(warped.x)-.49)*11.,2.))*
+       (1.-smoothstep(.23,.68,abs(warped.y)));
+     color+=vec3(1.,.98,1.)*gate*(1.5+.65*uBeat)+
+       pink*aura*.58+vec3(.28,.78,1.)*shafts*.60;
+     color+=vec3(.83,.91,1.)*exp(-w*6.)*(.25+.6*uBeat);
     }else if(uScene<3.5){
      color=vec3(.982,.986,1.);
     }else if(uScene<4.5){
@@ -162,17 +190,21 @@ function backdropMaterial(){
      color=vec3(.91,.95,1.)+vec3(.04,.19,.34)*ring*.45;
      color+=vec3(.07,.13,.26)*(.5+.5*sin(a*13.+t))*ring*.3;
     }else if(uScene<7.5){
-     // The source video's later sections have intense multi-coloured
-     // kaleidoscopic stars: make them visible even on mobile displays.
-     float arms=pow(.5+.5*cos(a*12.+sin(t*.6)*1.9),13.);
-     float bands=pow(.5+.5*cos(log(max(r,.025))*17.+t*13.),7.);
-     float sparkle=pow(.5+.5*cos(a*33.-t*2.9),21.);
-     vec3 neon=palette(a/6.28318*3.+t*.12);
-     color=vec3(.008,.006,.04)+
-       neon*(arms*.9+bands*.85)+
-       vec3(1.,.15,.82)*sparkle*.68+
-       vec3(.8,.94,1.)*exp(-r*4.)*(.35+.45*uBeat);
-     color+=stars(uv*vec2(100.,68.),4.)*vec3(1.,.72,.98);
+     // Reference 40–46s and 114–120s: fast-moving square tunnel made of
+     // hundreds of blue, cyan and magenta LED tiles. The earlier scene
+     // rendered an almost stationary flower instead of traveling.
+     vec3 led=ledWormhole(p,t,.27);
+     float square=max(abs(p.x)*.77,abs(p.y)*1.12);
+     float depth=-log(max(.006,square));
+     float frames=pow(max(0.,.5+.5*cos(depth*16.-t*12.)),28.);
+     float arcs=pow(max(0.,.5+.5*cos(atan(p.y,p.x)*24.+
+       .9*sin(depth*3.-t*1.1))),19.);
+     color=led*1.22+
+       vec3(.87,.13,.96)*frames*(.5+.5*uBeat)+
+       vec3(.14,.77,1.)*arcs*.37+
+       vec3(.20,.13,.56)*exp(-square*3.)*.23;
+     // Hard electric-white tile glints on the downbeats.
+     color+=vec3(.8,.92,1.)*frames*pow(uBeat,2.)*.80;
     }else if(uScene<8.5){
      // Frames 63–74: thousands of pinpoint stars in a vivid pink/red
      // Milky Way with a bright asymmetric red nebula behind the tabby.
@@ -193,38 +225,36 @@ function backdropMaterial(){
      color+=vec3(1.,.86,.95)*(starA*2.30+starB*.93)+
       vec3(1.,.72,.84)*starC*2.15;
     }else if(uScene<9.5){
-     // Frames 48s and 123s: a DARK circular psychedelic mandala.
-     // Violet, fuchsia and lime tessellated rings surround a black core;
-     // the previous pink rectangle was the wrong silhouette entirely.
-     float angle=a+.10*sin(t*.55+r*17.);
-     float oct=max(abs(p.x),abs(p.y));
-     float inner=exp(-pow((r-.29-.018*sin(angle*12.+t*.8))*30.,2.));
-     float outer=exp(-pow((r-.46-.03*sin(angle*16.-t*.6))*16.,2.));
-     float petal=pow(.5+.5*cos(angle*12.+t*.36),9.);
-     float teeth=pow(.5+.5*cos(angle*26.-r*22.+t*.8),13.);
-     float weave=pow(.5+.5*cos(log(max(r,.02))*21.+angle*7.+t*2.),8.);
-     float arch=exp(-pow((r-.63)*11.,2.));
-     float filigree=pow(.5+.5*cos(angle*18.+sin(r*32.)*1.6),12.);
-     color=vec3(.003,.002,.013)+
-      vec3(.58,.006,.40)*inner*(.75+.4*teeth)+
-      vec3(.24,.04,.68)*outer*(.65+.55*weave)+
-      vec3(.08,.64,.09)*outer*(petal*.90+teeth*.30)+
-      vec3(.21,.008,.23)*arch*(.5+filigree*.6)+
-      vec3(.13,.03,.38)*exp(-r*4.)*.22;
-     color+=vec3(.45,.04,.23)*stars(uv*vec2(125.,82.),3.)*.38;
+     // Dark psychedelic RING / ornate wormhole, as in reference 48s
+     // and 123s. A distinct circular black central eye must survive.
+     float angle=a+.07*sin(t*.45+r*11.);
+     float ringA=exp(-pow((r-.31-.013*sin(angle*12.+t*2.))*27.,2.));
+     float ringB=exp(-pow((r-.48-.028*sin(angle*12.-t*1.))*19.,2.));
+     float ringC=exp(-pow((r-.64-.034*sin(angle*18.+t*.8))*12.,2.));
+     float petals=pow(max(0.,.5+.5*cos(angle*12.-t*.2)),8.);
+     float teeth=pow(max(0.,.5+.5*cos(angle*32.+r*29.-t*.8)),13.);
+     float tess=pow(max(0.,.5+.5*cos(angle*24.-r*19.+t*1.7)),14.);
+     float core=1.-smoothstep(.20,.32,r);
+     color=vec3(.002,.001,.009)+
+      vec3(.77,.015,.59)*ringA*(.56+.75*teeth)+
+      vec3(.06,.93,.09)*ringB*(.48+petals*.87)+
+      vec3(.23,.044,.66)*ringC*(.60+.7*tess)+
+      vec3(.32,.017,.39)*petals*ringB*.31+
+      vec3(.06,.18,.75)*exp(-pow((r-.36)*17.,2.))*.35;
+     color=mix(color,vec3(.001,.001,.004),core*.92);
     }else if(uScene<10.5){
-     // Blue/pink luminous digital-star walls and light rays, 51–59s.
-     vec2 grid=uv*vec2(145.,79.);
-     float n=noise(grid*.4+vec2(t*.30,-t*.34));
-     float dots=pow(.5+.5*cos(uv.x*450.+.6*sin(t+uv.y*12.)),22.);
-     dots*=pow(.5+.5*cos(uv.y*200.-t*5.),26.);
-     float pixels=step(.90,n)*(.6+.4*sin(t*6.+uv.x*27.));
-     float rays=pow(.5+.5*cos(a*12.-t*.8),18.);
-     color=vec3(.014,.012,.084)+
-      vec3(.06,.42,.94)*(pixels*.57+fbm(uv*17.)*.45)+
-      vec3(.92,.04,.62)*(dots*.96+fbm(uv*31.+t*.08)*.27)+
-      vec3(.88,.83,1.)*rays*exp(-r*1.8)*(.45+.4*uBeat);
-     color+=stars(uv*vec2(160.,98.),3.5)*vec3(.55,.84,1.);
+     // Digital hyperdrive: a deep square tunnel overlaid with neon
+     // circuitry and pixel glitter, moving through the screen.
+     vec3 rush=ledWormhole(p,t,.53);
+     vec2 grid=uv*vec2(135.,81.);
+     float pixel=step(.87,noise(floor(grid*.43)+vec2(t*.51,-t*.3)));
+     float scan=pow(max(0.,.5+.5*cos(p.y*225.-t*16.)),28.);
+     float rays=pow(max(0.,.5+.5*cos(a*21.-t*.75)),24.);
+     color=rush*.94+vec3(.06,.09,.31)+
+       vec3(.1,.59,1.)*pixel*.63+
+       vec3(.94,.045,.87)*scan*.37+
+       vec3(.80,.88,1.)*rays*exp(-r*2.)*(.28+.34*uBeat);
+     color+=stars(uv*vec2(188.,105.),2.2)*vec3(.55,.84,1.);
     }else if(uScene<11.5){
      // Cyan electrified portal alternating with pure-white frames.
      float warped=a+.4*sin(r*8.-t*1.5);
@@ -247,10 +277,10 @@ function backdropMaterial(){
     // This matters especially during one-second whiteouts / black flashes.
     if(uScene>.5&&uScene<11.8&&abs(uScene-3.)>.49)
      color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
-    // Every big drop has a white-screen flash, like the reference edit.
-    // The cat is lit separately so these are actual light events, not
-    // barely perceptible shader hue changes.
-    color=mix(color,vec3(1.),clamp(uFlash,0.,1.));
+    // Drive genuinely high-contrast camera-white strobes from the track.
+    // Reduced-motion users receive zero flash from the caller.
+    float flash=clamp(uFlash,0.,1.);
+    color=mix(color,vec3(1.),flash);
     gl_FragColor=vec4(clamp(color,0.,1.),1.);
    }
   `
