@@ -1,9 +1,9 @@
 /* Nothing Here — textured six-panel net and timed 3D cat celebration.
- * The original modeled cube remains the real opened sculpture; the cat
+ * The original modeled cube remains the real opened sculpture; the duck
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=14";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=17";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -36,7 +36,7 @@ export function createNothingHereFinale({
  // The middle panel is the open box itself. Track its world position so the
  // cat remains exactly above the opening regardless of cube scale/orientation.
  const anchor=new THREE.Vector3();
- const catShow=createFinaleCatShow({
+ const duckShow=createFinaleDuckShow({
   scene,stage,invalidate,reducedMotion,
   getCatAnchor:()=>frontFace.getWorldPosition(anchor),
   onTimelineFrame:seconds=>setNetFade(seconds)
@@ -99,7 +99,7 @@ export function createNothingHereFinale({
   completionWatchdog=null;
  }
  const END=THREE.MathUtils;
- const cue=()=>{window.NothingHereAudio?.playFinale?.(CAT_REFERENCE_DURATION)};
+ const cue=()=>!!window.NothingHereAudio?.playFinale?.(CAT_REFERENCE_DURATION);
  // The face-root contains all the ORIGINAL puzzle detail. A unfolded panel's
  // reverse was a featureless back when the cubic frame disappeared; add an
  // enamel reverse with brushing, hairline engraving and bolted edgework.
@@ -223,11 +223,11 @@ export function createNothingHereFinale({
   joints.top.rotation.x=Math.PI/2;
   faceRoot.position.set(0,S*1.18,-half);
   // Rotate the actual hinge-linked six-face T onto its back so every
-  // textured surface becomes a HORIZONTAL floor beneath the 3D cat.
+  // textured surface becomes a HORIZONTAL floor beneath the 3D duck.
   cube.rotation.set(-Math.PI/2,0,0);
   cube.position.set(0,0,3.5);
   cube.scale.setScalar(fit());
-  // Look at the cat nearly at eye level once the box opens. The earlier
+  // Look at the duck nearly at eye level once the box opens. The earlier
   // high 6.5 viewpoint hid its muzzle and exaggerated the ears.
   controls.target.set(0,.55,0);
   camera.position.set(0,5.7,18.4);
@@ -237,7 +237,7 @@ export function createNothingHereFinale({
   invalidate();
  }
  function resetForReplay(){
-  catShow.stop();
+  duckShow.stop();
   rise.progress=0;
   resetNetFade();
   window.NothingHereAudio?.stopFinale?.();
@@ -263,14 +263,17 @@ export function createNothingHereFinale({
   phase="open";
   resetNetFade();
   showBanner("open");
-  catShow.start();
-  if(audioAtFinish)cue();
+  // Start the music FIRST, then authorize the duck's beat clock. If the
+  // MP3 buffers for a second, it must remain still rather than sprinting
+  // ahead using performance.now() while the speakers are silent.
+  const audioAccepted=audioAtFinish?cue():false;
+  duckShow.start({syncToAudio:audioAccepted});
   audioAtFinish=false;
   controls.enabled=true; // Orbit the unfolded object; never reactivate puzzles.
   controls.enableRotate=true;
   if(stage.querySelector("canvas"))
    stage.querySelector("canvas").setAttribute("aria-label",
-    "Finished Nothing Here: all six textured panels form a horizontal T-shaped platform beneath the spinning three-dimensional cat. Drag to orbit.");
+    "Finished Nothing Here: the three-dimensional Crilo Classic duck emerges from the box, then its six panels form a horizontal T and fade into a light show.");
   invalidate();
  }
  function begin({animate=true,audio=true}={}){
@@ -283,11 +286,11 @@ export function createNothingHereFinale({
   document.body.classList.add("nc-finale-active");
   dismissInspection?.();
   controls.enabled=false;
-  // Start the cat soundtrack only AFTER the final panel lands. The replay
+  // Start the duck soundtrack only AFTER the final panel lands. The replay
   // click unlocks Web Audio; normal completion uses the last puzzle click.
   audioAtFinish=audio;
   if(audio)window.NothingHereAudio?.prepareFinale?.();
-  catShow.stop();
+  duckShow.stop();
   rise.progress=0;
   if(!animate||reducedMotion){finish();return true;}
   setFrames(false);
@@ -301,7 +304,7 @@ export function createNothingHereFinale({
      cube.updateWorldMatrix(true,true);
      frontFace.updateWorldMatrix(true,false);
      // Source is the TOP opening, not the cube pivot or its front dial.
-     // Keep the cat set back into the hollow interior as it rises.
+     // Keep the duck set back into the hollow interior as it rises.
      boxPoint.set(0,half*.92,-half*.27);
      cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
@@ -310,7 +313,7 @@ export function createNothingHereFinale({
      // soundtrack scale seamlessly as the final panel lands at 6 seconds.
      const cameraFraction=END.clamp((timeline.time()-2.6)/3.4,0,1);
      const scaleCap=.46+.54*Math.pow(cameraFraction,3);
-     catShow.previewEmergence(rise.progress,boxPoint,landingPoint,scaleCap);
+     duckShow.previewEmergence(rise.progress,boxPoint,landingPoint,scaleCap);
     }
     invalidate();
    },
@@ -350,7 +353,7 @@ export function createNothingHereFinale({
   showBanner("open");
   audioAtFinish=false;
   finish();
-  catShow.restore();
+  duckShow.restore();
   return true;
  }
  replayButton?.addEventListener("click",()=>{
@@ -358,7 +361,9 @@ export function createNothingHereFinale({
  });
  return {
   begin,restoreComplete,
-  seekForVisualTest:t=>phase==="open"?catShow.seekForVisualTest(t):null,
+  seekForVisualTest:t=>phase==="open"?duckShow.seekForVisualTest(t):null,
+  testPendingAudioForVisualTest:()=>phase==="open"?
+   duckShow.simulatePendingAudioForTest():null,
   // Deterministic WebGL regression for the pre-music physical reveal.
   seekOpeningForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
@@ -371,7 +376,7 @@ export function createNothingHereFinale({
    clearWatchdog();
    return this.getState();
   },
-  onResize(){if(phase==="open"){cube.scale.setScalar(fit());catShow.onResize();invalidate();}},
+  onResize(){if(phase==="open"){cube.scale.setScalar(fit());duckShow.onResize();invalidate();}},
   isActive:()=>phase!=="idle",
   getState(){
    const positions={};
@@ -385,17 +390,23 @@ export function createNothingHereFinale({
       z:+center.z.toFixed(3),normal:+normal.y.toFixed(3)};
     }
    }
-   const cat=catShow.getState();
+   const duck=duckShow.getState();
+   const cat=duck; // compatibility for older saved-game and smoke-test clients
    const center=frontFace.getWorldPosition(new THREE.Vector3());
-   return {phase,hasPlayed,panels:positions,cat,
+   return {phase,hasPlayed,panels:positions,cat,duck,
     entranceProgress:cat.emergenceProgress,
     openingLidAngle:+(joints?.top?.rotation.x??0).toFixed(3),
     openingSideAngle:+(joints?.left?.rotation.y??0).toFixed(3),
-    catRisingFromBox:phase==="opening"&&cat.emerging&&cat.visible,
-    catRevealedBeforeT:phase==="opening"&&cat.emergenceProgress>.25&&
+    catRisingFromBox:phase==="opening"&&duck.emerging&&duck.visible,
+    duckRisingFromBox:phase==="opening"&&duck.emerging&&duck.visible,
+    catRevealedBeforeT:phase==="opening"&&duck.emergenceProgress>.25&&
      joints?.left?.rotation.y<1.20,
     netOpacity:+netOpacity.toFixed(3),
     netFadeComplete:phase==="open"&&netOpacity<=.001&&!faceRoot.visible,
+    duckCenteredOverBox:!!duck.catWorldPosition&&
+     Math.abs(duck.catWorldPosition.x-center.x)<.02&&
+     Math.abs(duck.catWorldPosition.z-center.z)<.02&&
+     duck.catWorldPosition.y>center.y+.5,
     catCenteredOverBox:!!cat.catWorldPosition&&
      Math.abs(cat.catWorldPosition.x-center.x)<.02&&
      Math.abs(cat.catWorldPosition.z-center.z)<.02&&
@@ -409,7 +420,7 @@ export function createNothingHereFinale({
     outerFrameHidden:framePieces.every(({node})=>!node.visible),
     centerFit:Math.abs(controls.target.y-.55)<.1,
     platformHorizontal:Math.abs(cube.rotation.x+Math.PI/2)<.01,
-    platformUnderCat:catShow.getState().platformUnderCat,
+    platformUnderCat:duckShow.getState().platformUnderCat,
     cameraAbovePlatform:camera.position.y>2};
   }
  };

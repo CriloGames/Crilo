@@ -1,59 +1,15 @@
-/* Nothing Here completion spectacle: a REAL 3D grey tabby, animated lights
- * and scene transitions timed to the user's 134.699-second reference.
- * No frames, audio or copyrighted music are copied from that recording.
- * HD tabby GLB: 3DAssets.dev CC0-1.0, asset 28146/v1 (15,282 triangles).
+/* Nothing Here: a single original 3D Crilo Classic duck mascot.
+ * The Classic duck wears the same yellow/orange/brown palette as duck-classic.svg;
+ * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=7";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=2";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=8";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=7";
-const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
-const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=8";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 
-function fallbackCat(){
- // Always keep a tangible 3D cat even if an external CC0 CDN is unavailable.
- const root=new THREE.Group(),fur=new THREE.MeshStandardMaterial({
-  color:0x706c6c,roughness:.92,metalness:0
- }),dark=new THREE.MeshStandardMaterial({color:0x393b3b,roughness:.92}),
- pale=new THREE.MeshStandardMaterial({color:0xc1b8ac,roughness:.91}),
- eye=new THREE.MeshStandardMaterial({color:0xd8c28e,roughness:.2}),
- pupil=new THREE.MeshStandardMaterial({color:0x131713,roughness:.25});
- function ell(parent,x,y,z,a,b,c,mat){
-  const o=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),mat);
-  o.position.set(x,y,z);o.scale.set(a,b,c);parent.add(o);return o;
- }
- ell(root,0,.8,-.13,.53,.68,.74,fur);
- ell(root,0,1.48,.46,.47,.43,.43,fur);
- ell(root,0,1.28,.77,.31,.20,.17,pale);
- for(const x of [-.35,.35]){
-  ell(root,x,.34,.32,.18,.35,.22,fur);
-  ell(root,x,.16,.52,.21,.13,.23,pale);
-  ell(root,x,.35,-.59,.22,.36,.21,fur);
-  ell(root,x,.13,-.46,.21,.13,.23,pale);
-  ell(root,x*.56,1.57,.817,.105,.10,.067,eye);
-  ell(root,x*.56,1.57,.878,.036,.086,.018,pupil);
-  const ear=new THREE.Mesh(new THREE.ConeGeometry(.21,.37,3),fur);
-  ear.position.set(x*.92,1.91,.40);ear.rotation.z=-x*.30;
-  root.add(ear);
- }
- ell(root,0,1.42,.92,.09,.055,.03,new THREE.MeshStandardMaterial({color:0xbd858b}));
- // Rounded, striped floating tabby. The horizontal rings wrap its body.
- for(let i=0;i<9;i++){
-  const angle=i*2.40, x=Math.sin(angle)*.50, z=Math.cos(angle)*.65-.13;
-  const stripe=ell(root,x,.42+i*.103,z,.08,.044,.13,dark);
-  stripe.rotation.z=Math.sin(angle)*.4;
- }
- const tail=new THREE.Group();tail.position.set(.35,.63,-.73);root.add(tail);
- for(let i=0;i<7;i++){
-  const piece=ell(tail,Math.sin(i*.34)*.23,i*.13,-i*.04,.14,.18,.14,
-   i%2?fur:dark);
-  piece.rotation.z=i*.14;
- }
- return root;
-}
 function backdropMaterial(){
  // Full-viewport original procedural stage, keyed to exact scene cuts in the
  // supplied video. Bright, high-contrast lights (not low-key purple fog).
@@ -165,9 +121,9 @@ function backdropMaterial(){
     vec3 color=vec3(.012);
     if(uScene<.5){
      // Actual first 27s use vivid chroma green, switching to near-white
-     // mint when the cat flips into its sideways rapid rotation.
+     // mint when the duck flips into its sideways rapid rotation.
      vec3 green=vec3(.008,.97,.014);
-     vec3 pale=vec3(.91,.995,.91);
+     vec3 pale=vec3(.13,.99,.72); // vivid turquoise, never gray
      color=mix(green,pale,clamp(uGreenPale,0.,1.));
      color+=vec3(.07,.13,.0)*exp(-r*3.5)*pow(uBeat,3.);
     }else if(uScene<1.5){
@@ -286,10 +242,27 @@ function backdropMaterial(){
      color+=vec3(.22,.95,1.)*(ring*shimmers*.90+ring*spokes*.45);
      color+=vec3(.66,.96,1.)*stars(uv*vec2(170.,108.),3.)*.7;
     }else{
-     // Gray video cut just before total-black interstitial.
-     color=vec3(.68,.70,.72);
+     // Former flat gray interlude: a vivid electric-laser tunnel instead.
+     float spokes=pow(max(0.,.5+.5*cos(a*19.-t*2.9)),18.);
+     float ribs=pow(max(0.,.5+.5*cos(r*46.-t*19.)),14.);
+     vec3 cobalt=vec3(.012,.11,.74),pink=vec3(.94,.04,.71);
+     color=cobalt+mix(pink,vec3(.06,.94,.98),
+      .5+.5*sin(a*5.+t*3.))*spokes*1.8+
+      vec3(.78,.12,1.)*ribs*(.34+.54*uBeat);
+     color+=vec3(.30,.79,1.)*exp(-r*5.)*.7;
     }
-    // The 1080p upload's measured background exposure follows the MP3.
+    // Sweeping chromatic beams light up musical transitions. Keep them
+    // saturated instead of washing entire sections gray.
+    if(uScene>0.5&&uScene<12.9&&abs(uScene-3.)>.46&&
+      abs(uScene-5.)>.46){
+     float ray=pow(max(0.,.5+.5*cos(a*17.-t*2.4)),28.);
+     float blade=pow(max(0.,.5+.5*cos(p.y*27.-t*8.2)),33.);
+     float gate=pow(max(0.,.5+.5*cos(r*24.-t*8.)),22.);
+     color+=vec3(.13,.82,1.)*ray*(.13+.5*uBeat)+
+       vec3(1.,.10,.75)*blade*(.055+.32*uBeat)+
+       vec3(.97,.67,1.)*gate*(.035+.21*uBeat);
+    }
+    // The reference's measured backdrop exposure follows the music.
     // This matters especially during one-second whiteouts / black flashes.
     if(uScene>.5&&uScene<11.8&&abs(uScene-3.)>.49)
      color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
@@ -303,204 +276,25 @@ function backdropMaterial(){
  });
 }
 function phaseAt(t){return sceneAt(t).scene;}
-export function createFinaleCatShow({
+export function createFinaleDuckShow({
  scene,stage,invalidate,reducedMotion=false,getCatAnchor,onTimelineFrame
 }){
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
- let initialized=false,playing=false,modelRequested=false,raf=0;
+ let initialized=false,playing=false,raf=0;
  let emerging=false,emergenceProgress=0,emergenceScale=0;
- let startTime=0,lastPaint=0,elapsed=0,source="procedural-fallback";
+ let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
- let fallback=null,loadedModel=null;
- const identity="single-textured-grey-tabby";
- // The published CC0 GLB contains a separate, unrigged upright-tail
- // connected component (643 vertices) and four overly long leg components.
- // Remove ONLY the isolated tail triangles and shorten ONLY the separate
- // leg + paw components, leaving the face, whiskers, UVs and body intact.
- // This is a real mesh topology edit, not the previous destructive vertex
- // crush that distorted the animal's entire head/back silhouette.
- let anatomyRetouched=false;
- function refineCatAnatomy(cat){
-  let retouched=false;
-  cat.traverse(mesh=>{
-   if(!mesh.isMesh||mesh.name!=="domestic-shorthair_1")return;
-   const geo=mesh.geometry.clone();
-   const pos=geo.getAttribute("position"),index=geo.getIndex();
-   if(!pos||!index)return;
-   const roots=new Int32Array(pos.count);
-   for(let i=0;i<roots.length;i++)roots[i]=i;
-   const find=i=>{
-    while(roots[i]!==i){
-     roots[i]=roots[roots[i]];
-     i=roots[i];
-    }
-    return i;
-   };
-   const unite=(a,b)=>{
-    const ra=find(a),rb=find(b);
-    if(ra!==rb)roots[rb]=ra;
-   };
-   for(let i=0;i<index.count;i+=3){
-    const a=index.getX(i),b=index.getX(i+1),c=index.getX(i+2);
-    unite(a,b);unite(a,c);
-   }
-   const components=new Map();
-   for(let i=0;i<pos.count;i++){
-    const root=find(i);
-    let c=components.get(root);
-    if(!c){c={count:0,minY:Infinity,maxY:-Infinity,
-     minZ:Infinity,maxZ:-Infinity};components.set(root,c);}
-    const y=pos.getY(i),z=pos.getZ(i);
-    c.count++;
-    c.minY=Math.min(c.minY,y);c.maxY=Math.max(c.maxY,y);
-    c.minZ=Math.min(c.minZ,z);c.maxZ=Math.max(c.maxZ,z);
-   }
-   const tailRoots=new Set(),legRoots=new Set(),earRoots=new Set();
-   for(const [root,c] of components){
-    if(c.count>150&&c.maxY>.82&&c.minZ<-.45&&
-       c.maxZ<-.35&&c.minY>-.25)tailRoots.add(root);
-    if(c.count>120&&c.maxY<-.10&&c.minY<-.80)
-     legRoots.add(root);
-    // Exact GLB topology: the real ears are separate 32-vertex
-    // triangular/rounded islands (plus 17-vertex backing islands), at
-    // z=0.56–0.65, y=0.06–0.39. The earlier 400–600 vertex predicate
-    // selected the CAT'S HEAD instead and crushed its muzzle.
-    if(c.count>=16&&c.count<=35&&c.minY>.04&&c.maxY>.34&&
-       c.minZ>.52&&c.maxZ<.70)earRoots.add(root);
-   }
-   // Some GLBs split vertices at UV seams, so triangle adjacency may
-   // report more than one tail island. Do not abort all corrections in
-   // that case: tame the back/high tail by POSITION and keep the front
-   // head/eyes untouched. This also fixes the large vertical gray rod
-   // seen in earlier in-game captures.
-   if(tailRoots.size!==1||legRoots.size<4){
-    let fixed=0;
-    for(let i=0;i<pos.count;i++){
-     const y=pos.getY(i),z=pos.getZ(i);
-     if(y>.36&&z<-.35){
-      pos.setY(i,.29+Math.min(y-.36,.25)*.10);
-      fixed++;
-     }
-     // The round upper lobes read as cartoon mouse ears in the 1080p
-     // captures. Reduce their width/height ONLY behind the real eye
-     // line; never squeeze the muzzle or facial expression again.
-     if(y>.18&&z>.25){
-      const x=pos.getX(i);
-      pos.setX(i,x*.55);
-      pos.setY(i,.16+(y-.16)*.59);
-      fixed++;
-     }
-    }
-    if(!fixed)return;
-    pos.needsUpdate=true;
-    geo.deleteAttribute("normal");
-    geo.computeVertexNormals();
-    geo.computeBoundingBox();geo.computeBoundingSphere();
-    mesh.geometry=geo;
-    retouched=true;
-    return;
-   }
-   // Discard the vertical tail as a complete separate connected island.
-   // Collapsing its UNUSED vertices keeps the bounding box tight.
-   const keep=[];
-   for(let i=0;i<index.count;i+=3){
-    if(tailRoots.has(find(index.getX(i))))continue;
-    keep.push(index.getX(i),index.getX(i+1),index.getX(i+2));
-   }
-   for(let i=0;i<pos.count;i++){
-    const root=find(i);
-    if(tailRoots.has(root))pos.setXYZ(i,0,-.11,-.62);
-    else if(legRoots.has(root)){
-     const y=pos.getY(i);
-     pos.setY(i,-.15+(y+.15)*.42);
-    }else if(earRoots.has(root)){
-     // The owner's source cat has SMALL pointed ears, not two round
-     // mouse circles. Sculpt just the separated ear shells into tapering
-     // triangular ears with a 40% lower tip; don't touch the head/eyes.
-     const y=pos.getY(i),x=pos.getX(i);
-     const t=THREE.MathUtils.clamp((y-.063)/.329,0,1);
-     const side=x<0?-1:1;
-     const earCenter=side*.105;
-     const narrow=THREE.MathUtils.lerp(.82,.14,t*t);
-     pos.setX(i,earCenter+(x-earCenter)*narrow);
-     pos.setY(i,.063+(y-.063)*.66);
-    }
-   }
-   pos.needsUpdate=true;
-   geo.setIndex(keep);
-   geo.deleteAttribute("normal");
-   geo.computeVertexNormals();
-   geo.computeBoundingBox();geo.computeBoundingSphere();
-   mesh.geometry=geo;
-   retouched=true;
-  });
-  return retouched;
+ let loadedModel=null;
+ let waitingForSoundtrack=false,soundtrackStarted=false;
+ const identity="single-crilo-classic-duck";
+ // The actual Crilo Classic duck is the one and only visible animal,
+ // whether it is rising from the cube, holding still, or spinning.
+ function installDuck(){
+  loadedModel=buildCriloClassicDuck();
+  catRig.add(loadedModel);
+  invalidate();
  }
- const loadCat=()=>{
-  if(modelRequested)return;
-  modelRequested=true;
-  const install=(gltf,kind)=>{
-   // ONE identity throughout the whole show: no loaf copy, hidden
-   // standing cat, split models, or scene-timed GLB replacement.
-   const cat=gltf.scene;
-   anatomyRetouched=refineCatAnatomy(cat);
-   const bounds=new THREE.Box3().setFromObject(cat);
-   if(bounds.isEmpty())return;
-   const size=bounds.getSize(new THREE.Vector3());
-   const scale=2.18/Math.max(.01,size.y);
-   cat.rotation.y=0; // The GLB's actual face is +Z.
-   cat.scale.setScalar(scale);
-   const scaled=new THREE.Box3().setFromObject(cat);
-   const center=scaled.getCenter(new THREE.Vector3());
-   cat.position.set(-center.x,-scaled.min.y,-center.z);
-   // Preserve the real tabby texture, proportions, nose, ears and paws.
-   // Removing the previous blanket recolor and tail-vertex flattening
-   // prevents a muddy face and a broken back/tail silhouette.
-   cat.traverse(child=>{
-    if(!child.isMesh)return;
-    // The source reference is a DARK tabby with a subtle chest. The
-    // low-detail GLB has a giant faceted cream diamond on its front that
-    // resembles a metal bib. Reveal the continuous gray body instead.
-    if(child.name==="domestic-shorthair_2"){
-     child.visible=false;
-     return;
-    }
-    child.castShadow=true;
-    child.receiveShadow=true;
-    const fix=mat=>{
-     if(!mat)return mat;
-     const copy=mat.clone();
-     if("roughness" in copy)copy.roughness=Math.max(.86,copy.roughness||0);
-     // The reference is a charcoal tabby with dark outlined eyes,
-     // not luminous pastel-green eyeballs and a ceramic gray chest.
-     if(copy.color&&child.name==="domestic-shorthair_1")
-      copy.color.multiply(new THREE.Color(0x9b8d7e)).multiplyScalar(.62);
-     if(copy.color){
-      const c=copy.color;
-      if(c.g>c.r*1.18&&c.g>c.b*1.12&&c.g>.30)
-       c.setHex(0x34372b);
-     }
-     if("metalness" in copy)copy.metalness=0;
-     if("envMapIntensity" in copy)copy.envMapIntensity=.18;
-     return copy;
-    };
-    child.material=Array.isArray(child.material)?
-     child.material.map(fix):fix(child.material);
-   });
-   catRig.add(cat);
-   if(fallback)fallback.visible=false;
-   loadedModel=cat;
-   source=kind;
-   invalidate();
-  };
-  const remoteBackup=()=>new GLTFLoader().load(CAT_MODEL_BACKUP,
-   gltf=>install(gltf,"cc0-hd-tabby-cdn"),undefined,()=>{
-    source="procedural-fallback";invalidate();
-   });
-  new GLTFLoader().load(CAT_MODEL_URL,
-   gltf=>install(gltf,"cc0-hd-tabby-local"),undefined,remoteBackup);
- };
  function ensure(){
   if(initialized)return;
   initialized=true;
@@ -514,14 +308,13 @@ export function createFinaleCatShow({
   group.visible=false;
   scene.add(group);
   spinner=new THREE.Group();
-  spinner.name="One 3D cat, stationary or rotating around its own Y axis";
+  spinner.name="One 3D Crilo Classic duck, still or yaw spinning";
   spinner.position.y=.93;
   group.add(spinner);
   catRig=new THREE.Group();
   catRig.position.y=-.93;
   spinner.add(catRig);
-  fallback=fallbackCat();
-  catRig.add(fallback);
+  installDuck();
   key=new THREE.PointLight(0xfff0dc,1.55,14);
   key.position.set(-2.5,4.0,4.5);
   rim=new THREE.PointLight(0x9ecfff,.83,13);
@@ -529,7 +322,6 @@ export function createFinaleCatShow({
   flashLight=new THREE.PointLight(0xffffff,0,16);
   flashLight.position.set(0,4,4);
   group.add(key,rim,flashLight);
-  loadCat();
  }
  function paint(t){
   elapsed=clip(t,0,CAT_REFERENCE_DURATION);
@@ -539,7 +331,7 @@ export function createFinaleCatShow({
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
-  shader.uniforms.uBeat.value=motion.beatPulse;
+  shader.uniforms.uBeat.value=reduceEffects?0:motion.beatPulse;
   shader.uniforms.uFlash.value=reduceEffects?0:motion.flash;
   shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
@@ -547,7 +339,7 @@ export function createFinaleCatShow({
   const wormhole=[2,7].includes(p);
   const tunnelLocal=Math.max(0,elapsed-motion.sceneStart);
   shader.uniforms.uVortexTravel.value=wormhole?tunnelLocal:0;
-  // Same cat, same actual meshes, same stripes: only its animation changes.
+  // Same duck, same meshes and palette: only its animation changes.
   spinner.rotation.order="YXZ";
   spinner.rotation.set(0,spinning?motion.spinRadians:0,0);
   // The fast spin in the supplied video is a compact, low silhouette.
@@ -556,10 +348,10 @@ export function createFinaleCatShow({
   const photo=motion.photoScale;
   // One animal with ONE anatomical shape through front holds and spins;
   // the former .78x vertical squeeze produced a melted spinning silhouette.
-  catRig.scale.setScalar(photo*1.08);
+  catRig.scale.setScalar(photo*1.04);
   const tunnelZoom=wormhole&&!reduceEffects?
    1+.17*Math.sin(tunnelLocal*1.7)+.08*Math.sin(tunnelLocal*4.8):1;
-  spinner.scale.setScalar((spinning?1.06:1.09)*tunnelZoom);
+  spinner.scale.setScalar((spinning?.99:1.0)*tunnelZoom);
   const anchor=getCatAnchor?.();
   group.position.set(
    Number.isFinite(anchor?.x)?anchor.x:0,
@@ -573,8 +365,18 @@ export function createFinaleCatShow({
    p===8?0xffa2c2:0xfff2e6);
   rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
    p===4?0x7ba5ff:0xb6d5ff);
-  key.intensity=white?1.18:1.20+motion.pulse*.74;
-  rim.intensity=white?.52:.88+motion.pulse*.90;
+  key.intensity=white?1.18:1.34+motion.pulse*.95;
+  rim.intensity=white?.52:1.18+motion.pulse*1.25;
+  if(!white&&!wormhole&&!reduceEffects){
+   // Additional cyan and magenta lighting across the nebula, starfield,
+   // ice, and electric transitions. Two strong rhythmic color washes
+   // surround each short white shutter flash.
+   const sweep=.5+.5*Math.sin(elapsed*5.2);
+   key.color.lerp(new THREE.Color(0xff64cd),.12+.65*sweep);
+   rim.color.lerp(new THREE.Color(0x33faff),.28+.63*(1-sweep));
+   key.intensity+=motion.beatPulse*1.15;
+   rim.intensity+=motion.beatPulse*1.30;
+  }
   // Match the *cat's* actual colored light to the tunnel and flash.
   // Previously only the background changed while the fur stayed gray.
   if(wormhole&&!reduceEffects){
@@ -585,9 +387,9 @@ export function createFinaleCatShow({
    rim.intensity=2.1+motion.beatPulse*1.8;
   }
   const flash=reduceEffects?0:motion.flash;
-  flashLight.intensity=flash*13.;
-  key.intensity+=flash*1.7;
-  rim.intensity+=flash*1.5;
+  flashLight.intensity=flash*14.5;
+  key.intensity+=flash*2.05;
+  rim.intensity+=flash*2.05;
   // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
   invalidate();
@@ -597,16 +399,31 @@ export function createFinaleCatShow({
   if(now-lastPaint>=1000/30){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
-   paint(Number.isFinite(audioT)?audioT:(now-startTime)/1000);
+   if(waitingForSoundtrack&&!soundtrackStarted){
+    // A video play() promise may stall while Chrome buffers. Keep the duck
+    // facing forwards at t=0 rather than spinning on performance.now before
+    // the first actual audio sample / media playhead arrives.
+    if(Number.isFinite(audioT)&&audioT>.018)
+     soundtrackStarted=true;
+    else paint(0);
+   }
+   if(!waitingForSoundtrack||soundtrackStarted){
+    // In synchronized mode there is NO wall-clock fallback: a buffering,
+    // paused or interrupted soundtrack must pause the corresponding spin.
+    const t=Number.isFinite(audioT)?audioT:
+     (waitingForSoundtrack?elapsed:(now-startTime)/1000);
+    paint(t);
+   }
   }
-  if(elapsed>=CAT_REFERENCE_DURATION-.05||
-     now-startTime>=CAT_REFERENCE_DURATION*1000+500){
+  if((soundtrackStarted||!waitingForSoundtrack)&&
+    (elapsed>=CAT_REFERENCE_DURATION-.05||
+    now-startTime>=CAT_REFERENCE_DURATION*1000+1250)){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
  // Before the soundtrack, reveal the SAME 3D cat from inside the opening
  // physical cube. Its entrance is independent of the music-clock choreography:
- // the box becomes a horizontal T only AFTER the cat has started rising.
+ // the box becomes a horizontal T only AFTER the duck has started rising.
  function previewEmergence(progress,boxCenter,landingCenter,scaleCap=1){
   ensure();
   const t=clip(Number(progress)||0,0,1);
@@ -619,7 +436,7 @@ export function createFinaleCatShow({
   group.visible=true;
   // Keep the growing animal inside the camera during the unfolding.
   // At the midpoint the view still looks down onto the six cube faces,
-  // so full music-scene scale would crop the cat's head above the canvas.
+  // so full music-scene scale would crop the duck's head above the canvas.
   emergenceScale=Math.min(.14+.86*e,clip(scaleCap,.14,1));
   group.scale.setScalar(emergenceScale);
   catRig.scale.setScalar(1.08);
@@ -645,13 +462,17 @@ export function createFinaleCatShow({
   background.visible=true;
   paint(t);
  }
- function start(){
+ function start({syncToAudio=false}={}){
   stop();show(0);playing=true;
+  waitingForSoundtrack=!!syncToAudio;
+  soundtrackStarted=!syncToAudio;
   startTime=performance.now();lastPaint=0;
   raf=requestAnimationFrame(tick);
  }
  function stop(){
   playing=false;
+  waitingForSoundtrack=false;
+  soundtrackStarted=false;
   emerging=false;
   emergenceProgress=0;
   emergenceScale=0;
@@ -663,6 +484,14 @@ export function createFinaleCatShow({
  }
  return {
   start,stop,previewEmergence,
+  simulatePendingAudioForTest(){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   // Intentionally no soundtrack begins here. The 3D duck must hold still
+   // despite RAF advancing before the browser can play a buffered MP3.
+   start({syncToAudio:true});
+   return this.getState();
+  },
   seekForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
@@ -679,6 +508,9 @@ export function createFinaleCatShow({
    const spinning=motion.spinning&&!reduceEffects;
    return {
     visible:!!group?.visible,dancing:playing,
+    soundtrackStarted,waitingForSoundtrack,
+    spinBeforeMusic:!emerging&&waitingForSoundtrack&&!soundtrackStarted&&
+     !!spinner&&Math.abs(spinner.rotation.y)>.001,
     emerging,emergenceProgress:+emergenceProgress.toFixed(3),
     emergenceScale:+emergenceScale.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
@@ -687,7 +519,7 @@ export function createFinaleCatShow({
     motion,platformUnderCat:true,hoveringOverBox:true,
     spinAxis:"y",revolutionsPerSecond:motion.revolutionsPerSecond,
     catIdentity:identity,distinctCatModels:1,identitySwaps:0,
-    anatomicalTailTrimmed:anatomyRetouched,
+    mascotGeometry:"crilo-classic-duck-v1",duck:true,
     singleModelBothPoses:true,
     catWorldPosition:group?{
      x:+group.position.x.toFixed(3),
@@ -696,11 +528,12 @@ export function createFinaleCatShow({
     }:null,
     referencePose:motion.spinMode,flash:motion.flash,
     reducedEffects:reduceEffects,
-    frontFacingTabby:true,realisticCatFacingAxis:"+Z",
-    standingAndLoafScaleCorrected:true,
-    volumetricLoaf:!!catRig, // compatibility: the spinning form is real 3D
-    active3DPose:spinning?"loaf":"front",
-    rendered3DPose:spinning?"loaf":"front",
+    frontFacingDuck:true,duckFacingAxis:"+Z",
+    stableMascotScale:true,
+    volumetricLoaf:!!catRig, // compatibility with prior physical QA
+    real3DDuck:!!loadedModel,
+    active3DPose:spinning?"spin":"still",
+    rendered3DPose:spinning?"spin":"still",
     actualRotations:spinner?{
      x:+spinner.rotation.x.toFixed(4),
      y:+spinner.rotation.y.toFixed(4),
@@ -709,12 +542,12 @@ export function createFinaleCatShow({
     stageScene:shader?.uniforms.uScene.value??null,
     wormholeActive:[2,7].includes(motion.scene),
     wormholeForwardTravel:shader?.uniforms.uVortexTravel.value??null,
-    unifiedCatScale:+(catRig?.scale.y??0).toFixed(4),
+    unifiedDuckScale:+(catRig?.scale.y??0).toFixed(4),
     sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
     totalReferencePoseCuts:41,elapsedSeconds:+elapsed.toFixed(2),
-    catSource:source,
+    catSource:source,duckSource:source,
     meshCount:catRig?(()=>{
      let n=0;
      catRig.traverse(o=>{if(o.isMesh&&o.visible&&o.parent?.visible!==false)n++;});
@@ -726,3 +559,5 @@ export function createFinaleCatShow({
   }
  };
 }
+// Keep the original API name for older integrations during module cache updates.
+export const createFinaleCatShow=createFinaleDuckShow;

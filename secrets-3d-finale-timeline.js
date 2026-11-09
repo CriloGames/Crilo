@@ -22,7 +22,7 @@ export const CAT_SCENES=[
  [58.99,"white",3,.16],
  [62.01,"redstars",8,.82],
  [74.81,"bluerays",4,.88],
- [77.87,"gray",12,.15],
+ [77.87,"electric",12,.90],
  [78.88,"black",5,.09],
  [81.70,"green",0,.46],
  [87.48,"ice",11,.71],
@@ -162,7 +162,10 @@ export function motionAt(seconds){
  // White flashes are explicit edits in the original video. Brightness
  // trace supplements them so muted or buffering audio never loses sync.
  const diff=Math.max(0,referenceLuma-Math.min(luma0,luma1));
- const drop=[2,7,9,10,11].includes(scene.scene);
+ // Illuminate many more scenes, including the former gray interlude.
+ // Large white shutters still follow the 150 BPM beat (2.5 Hz), while
+ // softer colored laser pulses fill the space between them.
+ const drop=[1,2,4,7,8,9,10,11,12].includes(scene.scene);
  // The reference's neon drops are near-white CAMERA CUTS, not slow
  // pastel brightness oscillations. Short, high-contrast attacks every
  // 150-BPM downbeat; never more than 2.5 pulses/second. The caller
@@ -171,7 +174,8 @@ export function motionAt(seconds){
  // frames), not the old 150–200ms soft white pulse. Leave dark time
  // between downbeats so flashes have actual contrast.
  const beatFlash=drop?
-  Math.pow(Math.max(0,1-beatPhase*8.0),3.6)*.985:0;
+  Math.pow(Math.max(0,1-beatPhase*8.0),3.6)*.995:
+  scene.scene===0?Math.pow(Math.max(0,1-beatPhase*10),4)*.25:0;
  const brightCut=drop?sceneCut*.995:0;
  const rawFlash=Math.max(beatFlash,brightCut,
   drop?Math.max(0,diff-.095)*1.85:0);
