@@ -367,7 +367,29 @@ export function createFinaleCatShow({
     if(c.count>400&&c.count<600&&c.minZ>.28&&
        c.maxZ>.70&&c.maxY>.22)headRoots.add(root);
    }
-   if(tailRoots.size!==1||legRoots.size<4)return;
+   // Some GLBs split vertices at UV seams, so triangle adjacency may
+   // report more than one tail island. Do not abort all corrections in
+   // that case: tame the back/high tail by POSITION and keep the front
+   // head/eyes untouched. This also fixes the large vertical gray rod
+   // seen in earlier in-game captures.
+   if(tailRoots.size!==1||legRoots.size<4){
+    let fixed=0;
+    for(let i=0;i<pos.count;i++){
+     const y=pos.getY(i),z=pos.getZ(i);
+     if(y>.36&&z<-.35){
+      pos.setY(i,.29+Math.min(y-.36,.25)*.10);
+      fixed++;
+     }
+    }
+    if(!fixed)return;
+    pos.needsUpdate=true;
+    geo.deleteAttribute("normal");
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();geo.computeBoundingSphere();
+    mesh.geometry=geo;
+    retouched=true;
+    return;
+   }
    // Discard the vertical tail as a complete separate connected island.
    // Collapsing its UNUSED vertices keeps the bounding box tight.
    const keep=[];
