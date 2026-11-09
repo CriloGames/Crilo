@@ -17,6 +17,12 @@ for(let i=1;i<CAT_SCENES.length;i++)
  assert(CAT_SCENES[i][0]>CAT_SCENES[i-1][0],"Scene cuts not chronological");
 assert.equal(sceneAt(3).name,"green");
 assert.equal(sceneAt(30).name,"nebula");
+assert(!motionAt(29.20).spinning&&motionAt(29.24).spinning&&
+ motionAt(29.40).spinning&&sceneAt(29.24).name==="nebula",
+ "The duck must begin its first red-nebula spin on the 29.24s music beat");
+assert(Math.min(motionAt(29.24).beatPhase,
+ 1-motionAt(29.24).beatPhase)<.01,
+ "Red-nebula spin cue must hit a 150 BPM beat, not the middle of a beat");
 assert.equal(sceneAt(38).name,"tunnel");
 assert.equal(sceneAt(61).name,"white");
 assert.equal(sceneAt(68).name,"redstars");
