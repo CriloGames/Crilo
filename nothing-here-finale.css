@@ -135,11 +135,19 @@ body.nc-page.nc-finale-active.nc-moon .nc-world::after{
  font:900 13px/1.2 ui-rounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
  box-shadow:0 3px 0 #453b35,0 6px 16px #29303728;
 }
+/* The 3D egg already has a dark shell silhouette. The former orange
+   :hover/:focus-visible outline drew a smaller ellipse INSIDE the shell
+   because the hit target sits in front of the WebGL canvas. Highlight the
+   label instead, leaving the actual egg an uninterrupted cream surface. */
 .nc-page #stage .nc-finale-egg-hit:is(:hover,:focus-visible){
- outline:3px solid #edb769;outline-offset:4px;
+ outline:none!important;box-shadow:none!important;
 }
 .nc-page #stage .nc-finale-egg-hit:hover span{
  transform:translate(-50%,-3px);background:#ffe9af;
+}
+.nc-page #stage .nc-finale-egg-hit:focus-visible span{
+ outline:3px solid #3d7164;outline-offset:4px;
+ background:#ffe9af;
 }
 .nc-page #stage .nc-finale-end-card{
  box-sizing:border-box;position:absolute;z-index:26;

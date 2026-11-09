@@ -275,12 +275,33 @@ try{
  console.log("PASS: duck stops facing forward after each spinning section");
  // Post-music-only end card: the real single duck must first lay one
  // modeled egg, waddle off, and leave an actual accessible click target.
+ const eggAtCrouch=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(.70));
+ assert(eggAtCrouch.postlude?.duckCrouching&&
+  !eggAtCrouch.postlude.eggVisible,
+  "The original duck must crouch IN PLACE before its egg appears");
  const eggAtLay=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(1.2));
  assert(eggAtLay.postlude?.eggVisible&&!eggAtLay.postlude.eggClickable&&
-  eggAtLay.postlude.sameDuck&&!eggAtLay.postlude.duckGone,
-  "The duck did not lay its 3D egg before walking away: "+
-   JSON.stringify(eggAtLay.postlude));
+  eggAtLay.postlude.sameDuck&&!eggAtLay.postlude.duckGone&&
+  eggAtLay.postlude.duckCrouching&&
+  eggAtLay.postlude.eggDropProgress>.15&&
+  eggAtLay.postlude.eggDropProgress<1&&
+  eggAtLay.postlude.eggAndDuckSameLane&&
+  Math.abs(eggAtLay.postlude.eggHorizontalCenterOffset)<.02&&
+  Math.abs(eggAtLay.postlude.duckHorizontalCenterOffset)<.02,
+  "The duck must VISIBLY crouch and lay an egg in the CENTER, not "+
+   "spawn it beside itself: "+JSON.stringify(eggAtLay.postlude));
+ if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
+  await page.locator("#stage canvas").screenshot({
+   path:"test-results/egg-laying-center.png",timeout:45000
+  });
+ const laid=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(1.55));
+ assert(laid.postlude?.eggGrounded&&
+  laid.postlude.eggDropProgress===1&&
+  laid.postlude.eggAndDuckSameLane,
+  "The egg must land directly underneath the duck before it walks off");
  const eggWalking=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(2.5));
  assert(eggWalking.postlude?.duckWalkingAway&&
@@ -303,7 +324,30 @@ try{
   "The egg must physically wobble, not only report eggShaking=true");
  assert(await page.locator("#ncFinaleEgg").isVisible(),
   "Shaking egg has no accessible touch/keyboard hit target");
- await page.locator("#ncFinaleEgg").click({timeout:10000});
+ const eggButton=page.locator("#ncFinaleEgg");
+ await eggButton.hover();
+ const eggUi=await page.evaluate(()=>{
+  const b=document.getElementById("ncFinaleEgg");
+  return {orangeRing:getComputedStyle(b).outlineStyle,
+   centerX:parseFloat(b.style.left),
+   labelText:b.textContent.trim()};
+ });
+ assert(eggUi.orangeRing==="none"&&
+  Math.abs(eggUi.centerX-50)<5&&eggUi.labelText==="Tap the egg",
+  "The old orange hover ring must be GONE and the final egg centered: "+
+   JSON.stringify(eggUi));
+ // Real keyboard modality makes :focus-visible apply; mouse hover
+ // alone intentionally never draws another ring over the 3D egg.
+ await page.keyboard.press("Tab");
+ await eggButton.focus();
+ assert(await eggButton.evaluate(b=>
+  getComputedStyle(b.querySelector("span")).outlineStyle!=="none"),
+  "Keyboard focus must remain visible on the egg's label");
+ if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
+  await page.locator("#stage canvas").screenshot({
+   path:"test-results/egg-centered-final.png",timeout:45000
+  });
+ await eggButton.click({timeout:10000});
  await page.waitForFunction(()=>
   window.__nothing3DPreview.completionFinale.duck.postlude?.endMessageVisible,
   null,{timeout:5000,polling:100});
