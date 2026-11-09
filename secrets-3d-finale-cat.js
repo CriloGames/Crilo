@@ -3,7 +3,7 @@
  * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=5";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=6";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=9";
 
 export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=9";
@@ -447,7 +447,7 @@ export function createFinaleDuckShow({
   // 60fps during high-speed spins prevents the 5–6 turns/sec duck from
   // skipping through visibly coarse angles; save work during held poses.
   const refresh=motionAt(elapsed).spinning&&!reduceEffects?1000/60:1000/30;
-  if(now-lastPaint>=refresh){
+  if(now-lastPaint>=refresh-1){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
    if(waitingForSoundtrack&&!soundtrackStarted){
