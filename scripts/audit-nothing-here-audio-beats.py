@@ -74,3 +74,22 @@ for cue in [1.60,4.40,4.80,8.00,11.20,14.40,17.60,20.80,
  lo=max(0,k-14);hi=min(len(signal),k+15)
  peaks=sorted(((signal[j],j/100) for j in range(lo,hi)),reverse=True)[:1]
  print("CUE audio transient",cue,[(round(a,4),round(t,3),round(t-cue,3)) for a,t in peaks])
+
+# Validate the seven early spin cues against the actual decoded MP3.
+# Tests read the game's live source rather than trusting duplicated cue values.
+import re
+source=(TRACK.parent.parent.parent/"secrets-3d-finale-timeline.js").read_text()
+opening=source.split("export const CAT_POSE_CUTS=[",1)[1].split("];",1)[0]
+starts=[float(t) for t in re.findall(r'\\[([0-9.]+),\\s*"loaf"\\]',opening)[:7]]
+assert len(starts)==7, f"Missing seven opening spin starts: {starts}"
+for cue in starts:
+ k=round(cue*100)
+ picks=[(signal[j],j/100) for j in range(max(0,k-1),
+      min(len(signal),k+10))]
+ amplitude,attack=max(picks)
+ delta=attack-cue
+ assert amplitude>.026 and -.015<=delta<=.082, (
+  f"Early duck spin at {cue:.3f}s misses an audible attack: "
+  f"peak at {attack:.3f}, strength={amplitude:.3f}")
+ print("PASS: intro spin start",cue,"MP3 attack",round(attack,3),
+       "delta",round(delta,3),"amplitude",round(amplitude,4))
