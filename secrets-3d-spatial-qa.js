@@ -47,9 +47,8 @@ function overlap(a,b){
 function intersects(meshA,meshB){
  const a=meshA.geometry,b=meshB.geometry;
  if(!a||!b)return false;
- temp.copy(a.boundingBox||a.computeBoundingBox()||a.boundingBox).applyMatrix4(meshA.matrixWorld);
- bounds.copy(b.boundingBox||b.computeBoundingBox()||b.boundingBox).applyMatrix4(meshB.matrixWorld);
- if(!temp.intersectsBox(bounds))return false;
+ // AABB rejection is performed ONCE in the scan loop using cached world
+ // bounds. Only genuinely overlapping triangle meshes reach this BVH test.
  let bvh=cache.get(a);
  if(!bvh){
   // Work with a clone: MeshBVH generates an index for non-indexed meshes.
@@ -94,8 +93,24 @@ export function scanSpatialIntersections({
   ...groupInfo("reward",rewards),
   ...groupInfo("mechanism",mechanisms)
  ];
- let broadPhasePairs=0,meshPairsTested=0,skippedMeshChecks=0,mechanismPairsTested=0;
+ let broadPhasePairs=0,meshPairsTested=0,meshPairsRejected=0;
+ let skippedMeshChecks=0,mechanismPairsTested=0;
  const intersections=[],aabbOnly=[];
+ // The group-level AABB can include THOUSANDS of internal meshes (e.g.
+ // telescope + hinged lid). Only mesh pairs whose own WORLD-SPACE boxes
+ // overlap can intersect triangles. Cache each box within one scan and
+ // discard it on the next scan after any mechanism animates.
+ const worldMeshBoxes=new WeakMap();
+ function meshWorldBox(mesh){
+  let box=worldMeshBoxes.get(mesh);
+  if(!box){
+   const geometry=mesh.geometry;
+   if(!geometry.boundingBox)geometry.computeBoundingBox();
+   box=geometry.boundingBox.clone().applyMatrix4(mesh.matrixWorld);
+   worldMeshBoxes.set(mesh,box);
+  }
+  return box;
+ }
  const considered={models:0,rewards:0,mechanisms:0};
  for(const g of groups)considered[g.kind==="model"?"models":
    g.kind==="reward"?"rewards":"mechanisms"]++;
@@ -119,6 +134,9 @@ export function scanSpatialIntersections({
   let hits=0;
   const examples=[];
   outer:for(const ma of a.meshes)for(const mb of b.meshes){
+   if(!meshWorldBox(ma).intersectsBox(meshWorldBox(mb))){
+    meshPairsRejected++;continue;
+   }
    if(meshPairsTested>=maxMeshChecks){skippedMeshChecks++;break outer;}
    meshPairsTested++;
    try{
@@ -142,7 +160,8 @@ export function scanSpatialIntersections({
  }
  return {
   library:"three-mesh-bvh",selfTest,groups:considered,totalAssemblies:groups.length,
-  broadPhasePairs,mechanismPairsTested,meshPairsTested,skippedMeshChecks,
+  broadPhasePairs,mechanismPairsTested,meshPairsTested,meshPairsRejected,
+  skippedMeshChecks,
   truncated:broadPhasePairs>maxCandidates||skippedMeshChecks>0,
   intersections:intersections.slice(0,40),totalIntersections:intersections.length,
   boundsOnlySamples:aabbOnly
