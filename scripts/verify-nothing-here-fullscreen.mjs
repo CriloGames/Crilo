@@ -109,11 +109,21 @@ try{
   // Simulate iPhone Safari and embedded browsers lacking the fullscreen API.
   await page.evaluate(()=>{
    Object.defineProperty(document,"fullscreenEnabled",{value:false,configurable:true});
+   // Simulate a truly unsupported device, not merely a browser refusing
+   // a native request while still exposing its method.
+   Object.defineProperty(document.body,"requestFullscreen",
+    {value:undefined,configurable:true});
+   Object.defineProperty(document.body,"webkitRequestFullscreen",
+    {value:undefined,configurable:true});
   });
   await button.click();
-  await page.waitForFunction(()=>
-   document.body.classList.contains("nc-pseudo-fullscreen"),
-   null,{timeout:5000});
+  const fallback=await page.evaluate(()=>({
+   active:document.body.classList.contains("nc-pseudo-fullscreen"),
+   enabled:document.fullscreenEnabled,
+   native:!!document.fullscreenElement,
+   pressed:document.getElementById("ncFullscreenToggle")?.getAttribute("aria-pressed")
+  }));
+  assert(fallback.active,"iOS fallback did not activate: "+JSON.stringify(fallback));
   await page.keyboard.press("Escape");
   await page.waitForFunction(()=>
    !document.body.classList.contains("nc-pseudo-fullscreen"),
