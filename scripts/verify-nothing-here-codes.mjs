@@ -142,7 +142,8 @@ assert(preview.includes('createNothingHereFinale')&&
  markup.includes('You found all secrets!')&&
  markup.includes('ncFinaleReplay')&&
  audio.includes('function playFinale(durationSeconds=134.699)')&&
- audio.includes('setInterval(schedule,130)')&&
+ audio.includes('finaleTimer=setInterval(advance,85)')&&
+ audio.includes('finaleSynthClockStart=now')&&
  audio.includes('if(!sfxEnabled||document.hidden)return false;'),
  'The original 60-secret hinged finale or accessible completion control is missing');
 assert(logic.includes("spend('flute');")&&
