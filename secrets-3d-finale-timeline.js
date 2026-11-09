@@ -46,9 +46,9 @@ export const CAT_SCENES=[
  [132.03,"green",0,.40],
  [134.52,"black",5,0]
 ];
-// "loaf" means the separate, crouched real-3D tabby shape is active.
-// All other instants show the full forward-facing textured standing cat.
-// These are EDIT transitions, not rotation periods for a standing model.
+// The original video alternates still holds ("front") and high-speed spin
+// passages ("loaf"). These labels are animation cues on ONE textured cat,
+// never instructions to display different models.
 export const CAT_POSE_CUTS=[
  [0,"front"],
  [1.5,"loaf"],[2.9,"front"],
@@ -163,11 +163,15 @@ export function motionAt(seconds){
  // trace supplements them so muted or buffering audio never loses sync.
  const diff=Math.max(0,referenceLuma-Math.min(luma0,luma1));
  const drop=[2,7,9,10,11].includes(scene.scene);
- const beatFlash=drop&&beatIndex%2===0?
-  Math.pow(Math.max(0,1-beatPhase*11),3)*.54:0;
- const brightCut=drop?sceneCut*.93:0;
+ // The reference's neon drops are near-white CAMERA CUTS, not slow
+ // pastel brightness oscillations. Short, high-contrast attacks every
+ // 150-BPM downbeat; never more than 2.5 pulses/second. The caller
+ // disables these for reduced-motion visitors.
+ const beatFlash=drop?
+  Math.pow(Math.max(0,1-beatPhase*5.8),5)*.91:0;
+ const brightCut=drop?sceneCut*.995:0;
  const rawFlash=Math.max(beatFlash,brightCut,
-  drop?Math.max(0,diff-.13)*1.6:0);
+  drop?Math.max(0,diff-.095)*1.85:0);
  const flash=clip(rawFlash,0,1);
  const stageLuma=clip(referenceLuma,0,1);
  const lumaBoost=clip(.74+1.1*stageLuma,.60,1.60);
@@ -179,9 +183,7 @@ export function motionAt(seconds){
   spinAxis:"y",revolutionsPerSecond:loaf?rate:0,
   spinActive:loaf,spinning:loaf,spinRadians,
   spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
-  rollRadians:loaf?Math.PI/2:0,
-  tiltRadians:radialTilt,
-  threeDRoll:dip,
+  rollRadians:0,tiltRadians:0,threeDRoll:0,
   bob:loaf?.08*Math.sin(t*11):.025*kickPulse,
   scale:loaf?.80:1,
   beatIndex,beatPhase,bpm:CAT_MUSIC_BPM,
