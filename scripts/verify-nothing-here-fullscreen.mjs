@@ -97,24 +97,49 @@ try{
    !document.body.classList.contains("nc-pseudo-fullscreen"),
    null,{timeout:7000});
   assert.equal(await button.getAttribute("aria-pressed"),"false");
-  // Simulate iPhone Safari and embedded browsers lacking the fullscreen API.
-  await page.evaluate(()=>{
-   Object.defineProperty(document,"fullscreenEnabled",{value:false,configurable:true});
-  });
-  await button.click();
-  await page.waitForFunction(()=>
-   document.body.classList.contains("nc-pseudo-fullscreen"),
-   null,{timeout:5000});
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(()=>
-   !document.body.classList.contains("nc-pseudo-fullscreen"),
-   null,{timeout:5000});
-  assert.equal(await button.getAttribute("aria-pressed"),"false");
+  const restored=await page.evaluate(()=>({
+   width:document.getElementById("stage").getBoundingClientRect().width,
+   canvas:document.querySelector("#stage canvas").getBoundingClientRect().width,
+   label:document.getElementById("ncFullscreenToggle").getAttribute("aria-label")
+  }));
+  assert(restored.width>150&&
+   Math.abs(restored.width-restored.canvas)<2&&
+   /Play Nothing Here/.test(restored.label),
+   "Exiting fullscreen didn't restore the playable canvas and toggle");
   assert(!errors.some(e=>/fullscreen|requestFullscreen|ResizeObserver/.test(e)),
    "Fullscreen created a page exception: "+errors.join(" | "));
-  console.log("PASS: "+test.name+" native fullscreen/exit, responsive Three.js, inventory, reset dialog, iOS fallback");
+  console.log("PASS: "+test.name+" fullscreen/exit, responsive Three.js, inventory and reset dialog");
   await page.close();
  }
+ // A fresh page is required for the iPhone/Safari simulation. Overriding
+ // native fullscreen APIs immediately after Chrome exits the top layer can
+ // inherit transient browser state and create a false-negative regression.
+ const fallbackPage=await browser.newPage({viewport:{width:390,height:844}});
+ await fallbackPage.goto(url,{waitUntil:"domcontentloaded",timeout:75000});
+ await fallbackPage.locator("#ncFullscreenToggle").waitFor();
+ await fallbackPage.evaluate(()=>{
+  Object.defineProperty(document,"fullscreenEnabled",{value:false,configurable:true});
+  Object.defineProperty(document.body,"requestFullscreen",
+   {value:undefined,configurable:true});
+  Object.defineProperty(document.body,"webkitRequestFullscreen",
+   {value:undefined,configurable:true});
+ });
+ await fallbackPage.locator("#ncFullscreenToggle").click();
+ const fallback=await fallbackPage.evaluate(()=>({
+  active:document.body.classList.contains("nc-pseudo-fullscreen"),
+  enabled:document.fullscreenEnabled,
+  native:!!document.fullscreenElement,
+  pressed:document.getElementById("ncFullscreenToggle")?.getAttribute("aria-pressed")
+ }));
+ assert(fallback.active,"iOS fallback did not activate: "+JSON.stringify(fallback));
+ assert.equal(fallback.pressed,"true");
+ await fallbackPage.keyboard.press("Escape");
+ await fallbackPage.waitForFunction(()=>
+  !document.body.classList.contains("nc-pseudo-fullscreen"),
+  null,{timeout:5000});
+ assert.equal(await fallbackPage.locator("#ncFullscreenToggle").getAttribute("aria-pressed"),"false");
+ console.log("PASS: browser without fullscreen API uses a reversible full-viewport layout");
+ await fallbackPage.close();
 }finally{
  await browser.close();
 }
