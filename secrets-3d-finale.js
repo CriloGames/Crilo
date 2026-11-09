@@ -362,6 +362,8 @@ export function createNothingHereFinale({
  return {
   begin,restoreComplete,
   seekForVisualTest:t=>phase==="open"?duckShow.seekForVisualTest(t):null,
+  testPendingAudioForVisualTest:()=>phase==="open"?
+   duckShow.simulatePendingAudioForTest():null,
   // Deterministic WebGL regression for the pre-music physical reveal.
   seekOpeningForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
