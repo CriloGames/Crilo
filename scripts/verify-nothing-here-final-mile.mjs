@@ -126,6 +126,27 @@ try{
   "Completed finale lost textured panels or genuine 134.7s 3D cat");
  assert.deepEqual(new Set((await state()).seen),new Set(sixty),
   "Finale save migration lost earned secrets");
+ // The unfolded real T is present for the first note, dissolves over 1.8s,
+ // then vanishes. The 3D cat remains anchored over its center and hovering.
+ const fadeStages=[];
+ for(const seconds of [0,.9,2.2]){
+  const frame=await page.evaluate(t=>{
+   const cat=window.__nothing3DPreview.seekFinaleFrame(t);
+   const ending=window.__nothing3DPreview.completionFinale;
+   return {cat,opacity:ending.netOpacity,done:ending.netFadeComplete,
+    aligned:ending.catCenteredOverBox};
+  },seconds);
+  assert(frame?.aligned&&frame.cat?.hoveringOverBox,
+   "Cat must stay centered and hovering over the open box at "+seconds+"s: "+
+    JSON.stringify(frame));
+  fadeStages.push(frame);
+ }
+ assert(fadeStages[0].opacity===1&&!fadeStages[0].done&&
+  fadeStages[1].opacity>.05&&fadeStages[1].opacity<.95&&
+  fadeStages[2].opacity===0&&fadeStages[2].done,
+  "The T-shaped box must smoothly fade away when the music begins: "+
+   JSON.stringify(fadeStages));
+ console.log("PASS: unfolded box fades during first musical notes; cat stays centered");
  // Inspect the ENTIRE 134.7s visual choreography, not just the start and
  // end. The actual rendered Three.js meshes and shader uniforms must change
  // at the same timestamp as the uploaded 1080p reference video.
