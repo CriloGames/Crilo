@@ -5,10 +5,10 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=4";
-import {makeSpinningLoaf} from "./secrets-3d-finale-loaf.js?v=1";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=5";
+import {makeSpinningLoaf} from "./secrets-3d-finale-loaf.js?v=2";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=4";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=5";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
 const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
@@ -302,14 +302,14 @@ export function createFinaleCatShow({
    const box=new THREE.Box3().setFromObject(cat);
    if(box.isEmpty())return;
    const size=box.getSize(new THREE.Vector3());
-   const scale=2.10*1.75/Math.max(.01,size.y);
+   const scale=2.28/Math.max(.01,size.y);
    // GLB nose/eyes have +Z coordinates. Its unrotated orientation ALREADY
    // faces the game camera! The previous -90deg yaw showed only its side.
-   // Bigger torso / shorter legs bring it closer to Ethel's stocky build.
+   // Keep the actual tabby's head, muzzle and paws in their original
+   // anatomical proportions. The old 1.68x horizontal / .59x vertical
+   // deformation created the melted, oversized muzzle reported by players.
    cat.rotation.y=0;
-   // The video cat is stocky and seated: avoid the source mesh's very tall
-   // front legs and oversized upright silhouette after normalizing.
-   cat.scale.set(scale*1.68,scale*.59,scale*1.22);
+   cat.scale.setScalar(scale);
    const scaled=new THREE.Box3().setFromObject(cat);
    const center=scaled.getCenter(new THREE.Vector3());
    cat.position.set(-center.x,-scaled.min.y,-center.z);
@@ -392,21 +392,13 @@ export function createFinaleCatShow({
   const loaf=motion.poseMode==="loaf"&&!reduceEffects;
   standingRoot.visible=!loaf;
   loafRoot.visible=loaf;
-  // Frame-by-frame reference: the compact silhouette remains horizontal
-  // while its BACK, SIDES and underside rotate around the cat's long X
-  // axis. This is a BARREL ROLL, not an image-plane Z-axis pinwheel.
-  // Neon sections occasionally turn end-on, as in the 34s/41s tunnel.
-  const intense=[2,7,9,10].includes(motion.scene);
-  const origin=elapsed>=106?108:34;
-  const yaw=intense?
-   1.03*Math.cos((elapsed-origin)*1.70):
-   .11*Math.sin(elapsed*2.2);
+  // Frame-accurate source: the compact cat spins HORIZONTALLY. At 1.5s
+  // its nose is on the right, then back -> left -> face, repeating about
+  // every five 30fps frames (~6 full yaw turns/second). A barrel rotation
+  // about X or a front-on Z-axis pinwheel is NOT the source movement.
+  // The standing cat never spins during its hold frames.
   spinner.rotation.order="YXZ";
-  spinner.rotation.x=loaf?motion.spinRadians:0;
-  spinner.rotation.y=loaf?yaw:0;
-  // During the first electric tunnel the reference loaf reads almost
-  // upright end-on, unlike the horizontal loaf against the green screen.
-  spinner.rotation.z=loaf?(motion.scene===2?1.46:.055*Math.sin(elapsed*2.4)):0;
+  spinner.rotation.set(0,loaf?motion.spinRadians:0,0);
   spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
   // A meaningful head-and-body flip: when it stops, the actual standing
   // model returns in the SAME forward-facing pose as the source edit.
@@ -487,6 +479,8 @@ export function createFinaleCatShow({
    motion:motionAt(elapsed),
    platformUnderCat:true,
    hoveringOverBox:true,
+   spinAxis:"y",
+   revolutionsPerSecond:motionAt(elapsed).revolutionsPerSecond,
    catWorldPosition:group?{
     x:+group.position.x.toFixed(3),
     y:+group.position.y.toFixed(3),
