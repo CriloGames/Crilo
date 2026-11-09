@@ -309,6 +309,7 @@ export function createFinaleCatShow({
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
  let initialized=false,playing=false,modelRequested=false,raf=0;
+ let emerging=false,emergenceProgress=0;
  let startTime=0,lastPaint=0,elapsed=0,source="procedural-fallback";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
@@ -603,8 +604,36 @@ export function createFinaleCatShow({
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
+ // Before the soundtrack, reveal the SAME 3D cat from inside the opening
+ // physical cube. Its entrance is independent of the music-clock choreography:
+ // the box becomes a horizontal T only AFTER the cat has started rising.
+ function previewEmergence(progress,boxCenter,landingCenter){
+  ensure();
+  const t=clip(Number(progress)||0,0,1);
+  // Smooth the physical movement; the timeline supplies the overall pacing.
+  const e=t*t*(3-2*t);
+  emerging=true;
+  emergenceProgress=t;
+  playing=false;
+  background.visible=false;
+  group.visible=true;
+  group.scale.setScalar(.14+.86*e);
+  catRig.scale.setScalar(1.08);
+  spinner.scale.setScalar(1.09);
+  spinner.rotation.set(0,0,0);
+  const from=boxCenter.clone().add(new THREE.Vector3(0,-.65,0));
+  const to=landingCenter.clone().add(new THREE.Vector3(0,.70,0));
+  group.position.lerpVectors(from,to,e);
+  key.color.setHex(0xffe8c6);
+  rim.color.setHex(0xb1e5ff);
+  key.intensity=1.8;rim.intensity=1.2;flashLight.intensity=0;
+  invalidate();
+ }
  function show(t=0){
   ensure();
+  emerging=false;
+  emergenceProgress=1;
+  group.scale.setScalar(1);
   group.visible=true;
   background.visible=true;
   paint(t);
@@ -616,14 +645,16 @@ export function createFinaleCatShow({
  }
  function stop(){
   playing=false;
+  emerging=false;
+  emergenceProgress=0;
   if(raf)cancelAnimationFrame(raf);
   raf=0;
-  if(group)group.visible=false;
+  if(group){group.visible=false;group.scale.setScalar(1);}
   if(background)background.visible=false;
   invalidate();
  }
  return {
-  start,stop,
+  start,stop,previewEmergence,
   seekForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
@@ -640,6 +671,9 @@ export function createFinaleCatShow({
    const spinning=motion.spinning&&!reduceEffects;
    return {
     visible:!!group?.visible,dancing:playing,
+    emerging,emergenceProgress:+emergenceProgress.toFixed(3),
+    emergenceBackgroundHidden:emerging&&!background.visible,
+    emergenceSameRig:emerging&&!!catRig,
     durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
     motion,platformUnderCat:true,hoveringOverBox:true,
     spinAxis:"y",revolutionsPerSecond:motion.revolutionsPerSecond,
