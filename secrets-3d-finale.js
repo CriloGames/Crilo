@@ -225,8 +225,10 @@ export function createNothingHereFinale({
   cube.rotation.set(-Math.PI/2,0,0);
   cube.position.set(0,0,3.5);
   cube.scale.setScalar(fit());
+  // Look at the cat nearly at eye level once the box opens. The earlier
+  // high 6.5 viewpoint hid its muzzle and exaggerated the ears.
   controls.target.set(0,.55,0);
-  camera.position.set(0,6.5,16.5);
+  camera.position.set(0,4.2,16.5);
   camera.lookAt(controls.target);
   controls.update();
   setFrames(true);
@@ -288,7 +290,7 @@ export function createNothingHereFinale({
   const scale=fit();
   timeline=gsap.timeline({onUpdate:invalidate,onComplete:finish});
   // Pull back first, before the real hinged panels begin to fall.
-  timeline.to(camera.position,{x:0,y:6.5,z:16.5,duration:3.6,ease:"power2.inOut"},0)
+  timeline.to(camera.position,{x:0,y:4.2,z:16.5,duration:3.6,ease:"power2.inOut"},0)
    .to(controls.target,{x:0,y:.55,z:0,duration:3.5,ease:"power2.inOut"},0)
    .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.2,ease:"power2.inOut"},1.95)
    .to(cube.position,{x:0,y:0,z:3.5,duration:3.5,ease:"power2.inOut"},.32)
