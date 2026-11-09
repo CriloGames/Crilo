@@ -25,6 +25,8 @@ export function createNothingHereFinale({
   ["bottom",bottomFace],["back",backFace],["top",topFace]
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
+ const rise={progress:0};
+ const boxPoint=new THREE.Vector3(),landingPoint=new THREE.Vector3();
  let audioAtFinish=false;
  // The inspector must see every real mesh for its triangle-level collision
  // audit, even when a saved 60/60 run has already finished.
@@ -236,6 +238,7 @@ export function createNothingHereFinale({
  }
  function resetForReplay(){
   catShow.stop();
+  rise.progress=0;
   resetNetFade();
   window.NothingHereAudio?.stopFinale?.();
   clearWatchdog();
@@ -285,28 +288,46 @@ export function createNothingHereFinale({
   audioAtFinish=audio;
   if(audio)window.NothingHereAudio?.prepareFinale?.();
   catShow.stop();
+  rise.progress=0;
   if(!animate||reducedMotion){finish();return true;}
   setFrames(false);
   const scale=fit();
-  timeline=gsap.timeline({onUpdate:invalidate,onComplete:finish});
-  // Pull back first, before the real hinged panels begin to fall.
-  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:3.6,ease:"power2.inOut"},0)
-   .to(controls.target,{x:0,y:.55,z:0,duration:3.5,ease:"power2.inOut"},0)
-   .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.2,ease:"power2.inOut"},1.95)
-   .to(cube.position,{x:0,y:0,z:3.5,duration:3.5,ease:"power2.inOut"},.32)
-   .to(cube.scale,{x:scale,y:scale,z:scale,duration:2.7,ease:"power2.inOut"},0)
-   .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:3.8,ease:"power2.inOut"},.25)
-   .call(()=>setFrames(true),null,.60)
-   .to(joints.left.rotation,{y:Math.PI/2,duration:1.1,ease:"power2.inOut"},.72)
-   .to(joints.right.rotation,{y:-Math.PI/2,duration:1.1,ease:"power2.inOut"},.92)
-   .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.2,ease:"power2.inOut"},1.25)
-   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.1,ease:"power2.inOut"},2.10)
-   .to(joints.top.rotation,{x:Math.PI/2,duration:1.15,ease:"power2.inOut"},2.88);
+  // Opening order: lid moves first; the very same cat floats up from
+  // INSIDE the physical box; only then do its sides spread out into the
+  // horizontal T. The music and T fade remain unchanged after this.
+  timeline=gsap.timeline({
+   onUpdate:()=>{
+    if(phase==="opening"&&timeline.time()>=1.55){
+     cube.updateWorldMatrix(true,true);
+     frontFace.updateWorldMatrix(true,false);
+     cube.getWorldPosition(boxPoint);
+     frontFace.getWorldPosition(landingPoint);
+     catShow.previewEmergence(rise.progress,boxPoint,landingPoint);
+    }
+    invalidate();
+   },
+   onComplete:finish
+  });
+  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:5.1,ease:"power2.inOut"},0)
+   .to(controls.target,{x:0,y:.55,z:0,duration:5.0,ease:"power2.inOut"},0)
+   // Crack open the far lid while the side walls still form a recognizable box.
+   .to(joints.top.rotation,{x:Math.PI/2,duration:1.1,ease:"power2.inOut"},.35)
+   .call(()=>setFrames(true),null,1.40)
+   // The cat physically emerges before the cube falls into its T.
+   .to(rise,{progress:1,duration:3.2,ease:"power2.out"},1.55)
+   .to(cube.scale,{x:scale,y:scale,z:scale,duration:4.3,ease:"power2.inOut"},1.15)
+   .to(cube.position,{x:0,y:0,z:3.5,duration:4.8,ease:"power2.inOut"},1.25)
+   .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:4.7,ease:"power2.inOut"},1.30)
+   .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.4,ease:"power2.inOut"},3.10)
+   .to(joints.left.rotation,{y:Math.PI/2,duration:1.25,ease:"power2.inOut"},3.30)
+   .to(joints.right.rotation,{y:-Math.PI/2,duration:1.25,ease:"power2.inOut"},3.55)
+   .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.25,ease:"power2.inOut"},4.00)
+   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.15,ease:"power2.inOut"},4.85);
   // Software WebGL can starve GSAP's frame ticker. Never trap a player
   // in a half-unfolded cube if Chromium stalls or goes into background.
   completionWatchdog=setTimeout(()=>{
    if(phase==="opening")finish();
-  },9500);
+  },12500);
   return true;
  }
  function restoreComplete(){
@@ -327,6 +348,14 @@ export function createNothingHereFinale({
  return {
   begin,restoreComplete,
   seekForVisualTest:t=>phase==="open"?catShow.seekForVisualTest(t):null,
+  // Deterministic WebGL regression for the pre-music physical reveal.
+  seekOpeningForVisualTest(t){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   if(phase!=="opening")begin({animate:true,audio:false});
+   timeline.pause().seek(END.clamp(Number(t)||0,0,5.8),false);
+   return this.getState();
+  },
   onResize(){if(phase==="open"){cube.scale.setScalar(fit());catShow.onResize();invalidate();}},
   isActive:()=>phase!=="idle",
   getState(){
@@ -344,6 +373,10 @@ export function createNothingHereFinale({
    const cat=catShow.getState();
    const center=frontFace.getWorldPosition(new THREE.Vector3());
    return {phase,hasPlayed,panels:positions,cat,
+    entranceProgress:cat.emergenceProgress,
+    catRisingFromBox:phase==="opening"&&cat.emerging&&cat.visible,
+    catRevealedBeforeT:phase==="opening"&&cat.emergenceProgress>.25&&
+     joints?.left?.rotation.y<1.20,
     netOpacity:+netOpacity.toFixed(3),
     netFadeComplete:phase==="open"&&netOpacity<=.001&&!faceRoot.visible,
     catCenteredOverBox:!!cat.catWorldPosition&&
