@@ -504,6 +504,9 @@ export function createFinaleCatShow({
   shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
   shader.uniforms.uGreenPale.value=motion.greenPale;
+  const wormhole=[2,7].includes(p);
+  const tunnelLocal=Math.max(0,elapsed-motion.sceneStart);
+  shader.uniforms.uVortexTravel.value=wormhole?tunnelLocal:0;
   // Same cat, same actual meshes, same stripes: only its animation changes.
   spinner.rotation.order="YXZ";
   spinner.rotation.set(0,spinning?motion.spinRadians:0,0);
@@ -511,24 +514,40 @@ export function createFinaleCatShow({
   // Compress the whole single rig gently, without melting its head or
   // swapping to a second fake cylinder/loaf geometry.
   const photo=motion.photoScale;
-  catRig.scale.set(photo*(spinning?1.11:1.05),
-   photo*(spinning?.78:1.05),photo*(spinning?1.20:1.05));
-  spinner.scale.setScalar(spinning?1.13:1.05);
+  // One animal with ONE anatomical shape through front holds and spins;
+  // the former .78x vertical squeeze produced a melted spinning silhouette.
+  catRig.scale.setScalar(photo*1.08);
+  const tunnelZoom=wormhole&&!reduceEffects?
+   1+.17*Math.sin(tunnelLocal*1.7)+.08*Math.sin(tunnelLocal*4.8):1;
+  spinner.scale.setScalar((spinning?1.06:1.09)*tunnelZoom);
   const anchor=getCatAnchor?.();
   group.position.set(
    Number.isFinite(anchor?.x)?anchor.x:0,
    (Number.isFinite(anchor?.y)?anchor.y:0)+
     (spinning?.82:.70)+(reduceEffects?0:motion.bob),
-   Number.isFinite(anchor?.z)?anchor.z:-.3
+   (Number.isFinite(anchor?.z)?anchor.z:-.3)-
+    (wormhole&&!reduceEffects?.45*Math.sin(tunnelLocal*1.9):0)
   );
   const white=p===0||p===3||p===6;
   key.color.setHex(p===2||p===7?0xd1dbff:p===1?0xffd8cb:
    p===8?0xffa2c2:0xfff2e6);
   rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
    p===4?0x7ba5ff:0xb6d5ff);
-  key.intensity=white?1.18:1.35+motion.pulse*.75;
-  rim.intensity=white?.52:.88+motion.pulse*.8;
-  flashLight.intensity=reduceEffects?0:motion.flash*9.5;
+  key.intensity=white?1.18:1.20+motion.pulse*.74;
+  rim.intensity=white?.52:.88+motion.pulse*.90;
+  // Match the *cat's* actual colored light to the tunnel and flash.
+  // Previously only the background changed while the fur stayed gray.
+  if(wormhole&&!reduceEffects){
+   const hue=.5+.5*Math.sin(elapsed*4.8);
+   key.color.setRGB(1.,.10+.36*hue,.65+.30*hue);
+   rim.color.setRGB(.13+.10*hue,.69+.23*(1-hue),1.);
+   key.intensity=2.1+motion.beatPulse*1.4;
+   rim.intensity=2.1+motion.beatPulse*1.8;
+  }
+  const flash=reduceEffects?0:motion.flash;
+  flashLight.intensity=flash*13.;
+  key.intensity+=flash*1.7;
+  rim.intensity+=flash*1.5;
   // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
   invalidate();
@@ -607,6 +626,8 @@ export function createFinaleCatShow({
     }:null,
     stageScene:shader?.uniforms.uScene.value??null,
     wormholeActive:[2,7].includes(motion.scene),
+    wormholeForwardTravel:shader?.uniforms.uVortexTravel.value??null,
+    unifiedCatScale:+(catRig?.scale.y??0).toFixed(4),
     sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
