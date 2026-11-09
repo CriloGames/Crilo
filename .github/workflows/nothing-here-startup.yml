@@ -9,6 +9,9 @@ on:
     branches: [main]
     paths:
       - 'secrets.html'
+      - 'nothing-here-fullscreen.js'
+      - 'nothing-here-fullscreen.css'
+      - 'scripts/verify-nothing-here-fullscreen.mjs'
       - 'cube-secrets.js'
       - 'secrets-3d-*.js'
       - 'three-workbench/**'
@@ -19,6 +22,9 @@ on:
     branches: [main]
     paths:
       - 'secrets.html'
+      - 'nothing-here-fullscreen.js'
+      - 'nothing-here-fullscreen.css'
+      - 'scripts/verify-nothing-here-fullscreen.mjs'
       - 'cube-secrets.js'
       - 'secrets-3d-*.js'
       - 'three-workbench/**'
@@ -60,6 +66,8 @@ jobs:
           node --check secrets-3d-finale-duck.js
           node --check secrets-3d-finale-timeline.js
           node --check nothing-here-audio.js
+          node --check nothing-here-fullscreen.js
+          node --check scripts/verify-nothing-here-fullscreen.mjs
           node --check secrets-3d-details.js
           node --check cube-secrets.js
           node --check scripts/verify-nothing-here-startup.mjs
@@ -75,6 +83,8 @@ jobs:
           nohup python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/nothing-here-startup-http.log 2>&1 < /dev/null &
           sleep 2
           curl --fail --silent http://127.0.0.1:4173/secrets.html > /dev/null
+      - name: Verify optional fullscreen, 3D resizing and puzzle controls
+        run: node scripts/verify-nothing-here-fullscreen.mjs
       - name: Initialize real Three.js cube in Chromium
         run: NOTHING_HERE_SKIP_CASES=finale-saved-mobile,finale-last-discovery node scripts/verify-nothing-here-startup.mjs
       - name: Save screenshots including any failure diagnostics
