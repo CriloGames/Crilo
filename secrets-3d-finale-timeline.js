@@ -51,17 +51,20 @@ export const CAT_SCENES=[
 // never instructions to display different models.
 export const CAT_POSE_CUTS=[
  [0,"front"],
- [1.5,"loaf"],[2.9,"front"],
- [4.5,"loaf"],[6.1,"front"],
- [7.9,"loaf"],[9.2,"front"],
- [11.1,"loaf"],[12.4,"front"],
- [14.3,"loaf"],[15.6,"front"],
- [17.5,"loaf"],[18.8,"front"],
- [20.7,"loaf"],[26.8,"front"],
- // Catch the red nebula burst on the 150 BPM downbeat at 29.24s,
- // instead of waiting until the old, noticeably late 29.55s cut.
- [29.24,"loaf"],[35.93,"front"],
- [36.45,"loaf"],[58.95,"front"],
+ // Opening poses snap to exact musical beat boundaries (.04 + n * .4).
+ // The old frame-rounded 1.5/7.9/11.1/etc. cues landed between beats,
+ // making the duck look late even with the correct audio playhead.
+ [1.64,"loaf"],[2.84,"front"],
+ [4.44,"loaf"],[6.04,"front"],
+ [8.04,"loaf"],[9.24,"front"],
+ [11.24,"loaf"],[12.44,"front"],
+ [14.44,"loaf"],[15.64,"front"],
+ [17.64,"loaf"],[18.84,"front"],
+ [20.84,"loaf"],[26.84,"front"],
+ // First nebula spin starts exactly on beat 73, with a clean 6-beat hold
+ // before it and a one-beat front pause after the 17-beat spin section.
+ [29.24,"loaf"],[36.04,"front"],
+ [36.44,"loaf"],[58.95,"front"],
  [62.22,"loaf"],[63.84,"front"],
  [65.25,"loaf"],[66.33,"front"],
  [68.28,"loaf"],[69.78,"front"],
@@ -119,7 +122,7 @@ export function sceneAt(seconds){
 // recompute localTime*newRate at a scene cut (which caused sudden jumps).
 export const CAT_YAW_TURN_RATES=[
  [0,6.0],[4.5,5.6],[7.9,5.0],[20.7,5.4],
- [26.87,5.5],[33,6.0],[59,5.6],[75,5.3],
+ [26.87,5.5],[29.24,5.0],[33,6.0],[59,5.6],[75,5.3],
  [88,5.7],[101,5.8],[107,6.0],[131,5.6]
 ];
 function spinRate(t){
@@ -200,8 +203,8 @@ export function motionAt(seconds){
   pulse:scene.pulse*(.15+.85*kickPulse),
   flash,backdropFlash:flash,
   referenceLuma:stageLuma,lumaBoost,
-  // Strong mint green on spinning poses, true key green when standing.
-  greenPale:scene.scene===0&&loaf?clip(.38+.35*stageLuma,0,1):0,
+  // The green backdrop remains constant during both spins and holds.
+  greenPale:0,
   brightness:[0,3,6,12].includes(scene.scene)?.82:1,
   // Reference changes the cat size, especially under the neon drops.
   photoScale:t>=33&&t<59?.75:t>=62&&t<78?.78:
