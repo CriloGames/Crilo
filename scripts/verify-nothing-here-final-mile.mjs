@@ -186,7 +186,7 @@ try{
  // at the same timestamp as the uploaded 1080p reference video.
  const visualSamples=[
   [0,"front",0],[2,"loaf",0],[4,"front",0],[8.5,"loaf",0],
-  [29,"front",1],[30.5,"loaf",1],[34,"loaf",2],
+  [29,"front",1],[29.45,"loaf",1],[30.5,"loaf",1],[34,"loaf",2],
   [40.5,"loaf",7],[48,"loaf",9],[55,"loaf",10],
   [60,"front",3],[65,"front",8],[65.5,"loaf",8],
   [68,"front",8],[68.5,"loaf",8],[70.5,"front",8],
@@ -242,8 +242,14 @@ try{
     "The duck must STOP and actually FACE THE PLAYER during every still hold at "+
      seconds+"s: "+JSON.stringify(actual));
   assert(actual.neckGeometry==="continuous-short-sculpt"&&
-   actual.neckSeams===0,
-   "Duck still uses overlapping lumpy head/neck shells at "+seconds);
+   actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined,
+   "Duck lost its smooth neck or fine black head/toe outlines at "+seconds);
+  if(seconds===29.45)
+   assert(actual.spinGlowStrength>.25&&actual.spinGlowVisible,
+    "The early red-nebula rapid spin must visibly glow");
+  if(seconds===29)
+   assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
+    "The duck must not glow during the 29-second front-facing pause");
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -339,6 +345,10 @@ try{
   opening[1].cat.actualRotations.y===0,
   "One real cat must climb out of the open lid BEFORE any side unfolds: "+
    JSON.stringify(opening[1]));
+ assert([opening[1],opening[2],opening[3]].every(sample=>
+   sample.cat.emergenceLipClearance>=.21),
+  "Duck feet or belly clip the open lid during the entrance: "+
+   JSON.stringify(opening.map(o=>o.cat.emergenceLipClearance)));
  assert(opening[2].entranceProgress>.80&&
   opening[2].openingSideAngle>.3&&
   opening[2].cat.emergenceScale<.57&&
