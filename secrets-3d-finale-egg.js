@@ -106,10 +106,10 @@ export function createFinaleEggEnding({
   endCard.setAttribute("aria-live","polite");
   endCard.hidden=true;
   endCard.innerHTML=
-   '<div class="nc-finale-end-title" tabindex="-1">THE END.</div>'+
-   '<div class="nc-finale-end-question">NOTHING HERE?</div>'+
-   '<div class="nc-finale-end-answer">WELL, <em>THAT WAS A LIE.</em></div>'+
-   '<div class="nc-finale-end-congrats">60 secrets later… you found everything.</div>';
+   '<div class="nc-finale-end-title" tabindex="-1">YOU FOUND'+
+   '<span>SOMETHING.</span></div>'+
+   '<div class="nc-finale-end-answer">woah...</div>'+
+   '<div class="nc-finale-end-congrats">THE END.</div>';
   stage.appendChild(endCard);
   controls?.addEventListener("change",()=>{
    if(phase!=="idle")placeEggButton();
