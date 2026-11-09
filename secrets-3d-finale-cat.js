@@ -488,6 +488,8 @@ export function createFinaleCatShow({
      z:+spinner.rotation.z.toFixed(4)
     }:null,
     stageScene:shader?.uniforms.uScene.value??null,
+    wormholeActive:[2,7].includes(motion.scene),
+    sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
     totalReferencePoseCuts:41,elapsedSeconds:+elapsed.toFixed(2),
