@@ -286,6 +286,7 @@ export function createFinaleDuckShow({
  let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let spinHalo,spinGlowLight,spinGlowStrength=0,emergenceLipClearance=null;
+ let emergenceHorizontalProgress=null;
  let loadedModel=null,glowMaterials=[];
  let waitingForSoundtrack=false,soundtrackStarted=false;
  const identity="single-crilo-classic-duck";
@@ -295,6 +296,7 @@ export function createFinaleDuckShow({
   loadedModel=buildCriloClassicDuck();
   catRig.add(loadedModel);
   glowMaterials=loadedModel.userData.glowMaterials||[];
+  for(const material of glowMaterials)material.emissive.setHex(0xffcf72);
   invalidate();
  }
  // A soft additive halo is behind the silhouette, leaving the dark eyes,
@@ -343,7 +345,9 @@ export function createFinaleDuckShow({
   spinHalo=createSpinHalo();
   catRig.add(spinHalo);
   spinGlowLight=new THREE.PointLight(0xffe5a0,0,3.2);
-  spinGlowLight.position.set(0,.38,.85);
+  // Spinner pivots around y=.93; center the light on the chest, not
+  // high above the eyes at y=1.31.
+  spinGlowLight.position.set(0,-.17,.40);
   spinner.add(spinGlowLight);
   key=new THREE.PointLight(0xfff0dc,1.55,14);
   key.position.set(-2.5,4.0,4.5);
@@ -358,19 +362,20 @@ export function createFinaleDuckShow({
   const motion=motionAt(elapsed);
   const p=phaseAt(elapsed);
   const spinning=motion.spinning&&!reduceEffects;
-  // Only rapid spins light up. Ramp in/out over a few frames so the glow
-  // never pops on a static face or persists after a stop.
-  const fastSpin=spinning&&motion.revolutionsPerSecond>=5.45;
-  const glowRamp=fastSpin?Math.min(1,
-   Math.max(0,(elapsed-motion.poseStart)/.14),
-   Math.max(0,(motion.poseEnd-elapsed)/.14)):0;
-  spinGlowStrength=fastSpin?glowRamp*(.75+.25*motion.beatPulse):0;
+  // Glow grows with the actual music-timed spin rate. Continuous speed
+  // weighting avoids a sudden snap when a scene changes from 5.4 to 5.5
+  // turns/second; front-facing pauses and reduced-motion always stay dark.
+  const spinSpeed=spinning?motion.revolutionsPerSecond:0;
+  const speedGlow=clip((spinSpeed-5.05)/.70,0,1);
+  const glowRamp=spinning?Math.min(1,
+   Math.max(0,(elapsed-motion.poseStart)/.16),
+   Math.max(0,(motion.poseEnd-elapsed)/.16)):0;
+  spinGlowStrength=reduceEffects?0:
+   speedGlow*glowRamp*(.76+.24*motion.beatPulse);
   spinHalo.material.opacity=spinGlowStrength*.72;
   spinGlowLight.intensity=spinGlowStrength*1.8;
-  for(const material of glowMaterials){
-   material.emissive.setHex(0xffcf72);
+  for(const material of glowMaterials)
    material.emissiveIntensity=spinGlowStrength*.55;
-  }
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
@@ -439,7 +444,10 @@ export function createFinaleDuckShow({
  }
  function tick(now){
   if(!playing)return;
-  if(now-lastPaint>=1000/30){
+  // 60fps during high-speed spins prevents the 5–6 turns/sec duck from
+  // skipping through visibly coarse angles; save work during held poses.
+  const refresh=motionAt(elapsed).spinning&&!reduceEffects?1000/60:1000/30;
+  if(now-lastPaint>=refresh){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
    if(waitingForSoundtrack&&!soundtrackStarted){
@@ -458,9 +466,13 @@ export function createFinaleDuckShow({
     paint(t);
    }
   }
+  // A buffered or paused MP3 can take longer than 134.7s of wall time.
+  // Never end an audio-synchronized finale until its actual playhead ends.
+  const reachedEnd=elapsed>=CAT_REFERENCE_DURATION-.05;
+  const unsyncedTimeout=!waitingForSoundtrack&&
+   now-startTime>=CAT_REFERENCE_DURATION*1000+1250;
   if((soundtrackStarted||!waitingForSoundtrack)&&
-    (elapsed>=CAT_REFERENCE_DURATION-.05||
-    now-startTime>=CAT_REFERENCE_DURATION*1000+1250)){
+    (reachedEnd||unsyncedTimeout)){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
@@ -489,14 +501,21 @@ export function createFinaleDuckShow({
   spinHalo.material.opacity=0;
   spinGlowLight.intensity=0;
   for(const material of glowMaterials)material.emissiveIntensity=0;
-  // The original below-roof start put the duck's belly through the front
-  // wall as it scaled up. Keep its FEET above the current world-space lip,
-  // even while the actual cube rotates and unfolds into a horizontal T.
+  // Keep the duck behind the front wall until it clears the opening.
+  // Vertical emergence progresses normally, but horizontal movement
+  // toward the dial/front wall waits until the sides begin unfolding.
+  // A smooth curve avoids the old body/bill clipping through the box face.
+  const horizontal=THREE.MathUtils.smoothstep(e,.68,.98);
   const from=boxCenter.clone().add(new THREE.Vector3(0,.26,0));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
-  group.position.lerpVectors(from,to,e);
+  group.position.set(
+   THREE.MathUtils.lerp(from.x,to.x,horizontal),
+   THREE.MathUtils.lerp(from.y,to.y,e),
+   THREE.MathUtils.lerp(from.z,to.z,horizontal)
+  );
   group.position.y=Math.max(group.position.y,
    boxCenter.y+.22+.18*emergenceScale);
+  emergenceHorizontalProgress=horizontal;
   emergenceLipClearance=group.position.y-boxCenter.y;
   key.color.setHex(0xffe8c6);
   rim.color.setHex(0xb1e5ff);
@@ -509,6 +528,7 @@ export function createFinaleDuckShow({
   emergenceProgress=1;
   emergenceScale=1;
   emergenceLipClearance=null;
+  emergenceHorizontalProgress=null;
   group.scale.setScalar(1);
   group.visible=true;
   background.visible=true;
@@ -529,6 +549,7 @@ export function createFinaleDuckShow({
   emergenceProgress=0;
   emergenceScale=0;
   emergenceLipClearance=null;
+  emergenceHorizontalProgress=null;
   spinGlowStrength=0;
   if(spinHalo)spinHalo.material.opacity=0;
   if(spinGlowLight)spinGlowLight.intensity=0;
@@ -572,6 +593,8 @@ export function createFinaleDuckShow({
     emergenceScale:+emergenceScale.toFixed(3),
     emergenceLipClearance:emergenceLipClearance===null?null:
      +emergenceLipClearance.toFixed(3),
+    emergenceHorizontalProgress:emergenceHorizontalProgress===null?null:
+     +emergenceHorizontalProgress.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
     emergenceSameRig:emerging&&!!catRig,
     durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
