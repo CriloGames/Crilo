@@ -141,6 +141,8 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
+      - name: Verify audio-clock fallback does not drift
+        run: node scripts/verify-nothing-here-audio-clock.mjs
       - name: Install FFmpeg for waveform inspection
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Read tempo phase from licensed soundtrack
