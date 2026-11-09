@@ -236,8 +236,14 @@ try{
   if(pose==="front")
    assert(Math.abs(actual.actualRotations.x)<.001&&
     Math.abs(actual.actualRotations.y)<.001&&
-    Math.abs(actual.actualRotations.z)<.001,
-    "The forward-facing duck should not be spinning at "+seconds);
+    Math.abs(actual.actualRotations.z)<.001&&
+    actual.duckStopsFrontOnHold&&actual.frontFacingDuck&&
+    Math.abs(actual.duckFacingYaw)<.001,
+    "The duck must STOP and actually FACE THE PLAYER during every still hold at "+
+     seconds+"s: "+JSON.stringify(actual));
+  assert(actual.neckGeometry==="continuous-short-sculpt"&&
+   actual.neckSeams===0,
+   "Duck still uses overlapping lumpy head/neck shells at "+seconds);
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -247,6 +253,18 @@ try{
    });
   }
  }
+ // Stop exactly on the music cut, NOT in a permanent 1.12 radian
+ // side profile. These still holds occur immediately AFTER distinct spins.
+ for(const t of [2.9,6.1,9.2,12.4,15.6,18.8,26.8,35.93,58.95,
+   63.84,66.33,69.78,72.78,77.82,84.75,100.12,115.78,130.82]){
+  const duck=await page.evaluate(time=>
+   window.__nothing3DPreview.seekFinaleFrame(time),t);
+  assert(duck.duckStopsFrontOnHold&&duck.frontFacingDuck&&
+   duck.active3DPose==="still"&&Math.abs(duck.duckFacingYaw)<.001,
+   "A completed spin did not settle face-forward at "+t+"s: "+
+    JSON.stringify(duck));
+ }
+ console.log("PASS: duck stops facing forward after each spinning section");
  // At 30fps the opening spin makes one full left-right revolution
  // every FIVE frames, with no change to the barrel/forward pitch.
  const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6);
