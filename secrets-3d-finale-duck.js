@@ -100,6 +100,25 @@ export function buildCriloClassicDuck(){
  smoothHead.castShadow=true;smoothHead.receiveShadow=true;
  smoothHead.name="Continuous smooth Crilo duck neck and head";
  root.add(smoothHead);
+ // Fine silhouette around the head, tapering out through the neck.
+ // Scaling the whole lathe creates a dark neckline, so only inflate the
+ // upper profile and keep the shoulder/body intersection untouched.
+ const headEdgeGeometry=headGeometry.clone();
+ const headEdgePosition=headEdgeGeometry.getAttribute("position");
+ for(let i=0;i<headEdgePosition.count;i++){
+  const y=headEdgePosition.getY(i);
+  const taper=THREE.MathUtils.smoothstep(y,.96,1.24);
+  const cz=centerZ(y);
+  headEdgePosition.setXYZ(i,
+   headEdgePosition.getX(i)*(1+.065*taper),
+   y+.013*taper,
+   cz+(headEdgePosition.getZ(i)-cz)*(1+.055*taper));
+ }
+ headEdgePosition.needsUpdate=true;
+ headEdgeGeometry.computeVertexNormals();
+ const headOutline=new THREE.Mesh(headEdgeGeometry,outline);
+ headOutline.name="Fine black silhouette around duck head";
+ root.add(headOutline);
  // The familiar Classic mascot has one upturned pointed feather tail.
  const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.018);
  tail.rotation.x=-.32;
@@ -135,7 +154,7 @@ export function buildCriloClassicDuck(){
   const foot=oval(root,footBrown,[sign*.22,.095,.19],[.155,.06,.205],.012);
   foot.rotation.y=sign*.08;
   for(const dx of [-.075,0,.075])
-   oval(root,footBrown,[sign*.22+dx,.07,.325],[.045,.04,.072],0);
+   oval(root,footBrown,[sign*.22+dx,.07,.325],[.045,.04,.072],.008);
  }
  // Quieter chest scallop hints at the original hand-drawn outline without
  // inventing a hat, crown, logo or changing the mascot's palette.
@@ -146,6 +165,9 @@ export function buildCriloClassicDuck(){
  // When the music says spin, the same unmodified model rotates about Y.
  root.rotation.y=0;
  root.scale.setScalar(.85); // deliberately smaller than the former tabby
+ root.userData.glowMaterials=[yellow,wingYellow,billOrange,footBrown];
+ root.userData.headOutline=true;
+ root.userData.toeOutline=true;
  root.userData.materialPalette={
   body:"#ffe076",beak:"#f7ab67",outline:"#453b35",feet:"#c88a58"
  };
