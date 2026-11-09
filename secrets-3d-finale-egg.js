@@ -182,6 +182,9 @@ export function createFinaleEggEnding({
     (i===0?1:-1)*.29*gait:0;
   catRig.visible=t<4.65;
   group.visible=t<4.65;
+  // The walking duck uses the same model as the finale; keep the tail's
+  // single continuous black rim camera-facing while it walks away.
+  duck.userData.updateTailContour?.(camera);
  }
  function render(t){
   if(phase==="idle"||phase==="message")return;
