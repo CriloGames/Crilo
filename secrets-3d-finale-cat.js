@@ -3,7 +3,7 @@
  * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=11";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=12";
 import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=9";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=12";
 
