@@ -70,6 +70,14 @@ const faces=[
  ["front",-15,0],["left",-15,90],["back",-15,180],
  ["right",-15,270],["top",-75,0],["bottom",75,0]
 ];
+// A perspective/three-quarter view can hide panel interpenetration.
+// These six EXACT axis-on views reveal mismatched trim, exposed backs
+// of sockets, asymmetrical rails, and miniature brackets slipping off
+// their base plate.
+const orthogonalFaces=[
+ ["front-flat",0,0],["left-flat",0,90],["back-flat",0,180],
+ ["right-flat",0,270],["top-flat",-90,0],["bottom-flat",90,0]
+];
 const images=new Map();
 const compare=(name,first,second,{max=1,min=0}={})=>{
  const left=PNG.sync.read(first),right=PNG.sync.read(second);
@@ -97,6 +105,29 @@ try{
   await page.reload({waitUntil:"domcontentloaded",timeout:30000});
   await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
    document.body.classList.contains("nc-physical-ready"),null,{timeout:60000});
+  // Verify structural attachments in each actual puzzle state, not
+  // only after all 60 secrets are unlocked. This detects detached mounts,
+  // extra rails and newly intersecting mechanisms as drawers and roof
+  // plates move through different states.
+  const attachments=await page.evaluate(()=>
+   window.__nothing3DPreview.physicalAttachmentAudit);
+  assert(attachments?.okay&&attachments.issues.length===0,
+   scenario+" has dangling brackets or trim crossings: "+
+   JSON.stringify(attachments?.issues));
+  const collisions=await page.evaluate(()=>
+   window.__nothing3DPreview.getDetailedCollisionReport());
+  assert(collisions?.selfTest?.intersecting&&
+   collisions.selfTest.separated&&
+   !collisions.truncated&&collisions.totalIntersections===0,
+   scenario+" has real triangle intersections between distinct "+
+   "assemblies: "+JSON.stringify(collisions));
+  console.log("PASS VISUAL HARDWARE",scenario,JSON.stringify({
+   attached:attachments.okay,
+   groups:collisions.totalAssemblies,
+   candidatePairs:collisions.broadPhasePairs,
+   triangles:collisions.meshPairsTested,
+   collisions:collisions.totalIntersections
+  }));
   // Every screenshot is taken in the same browser, resolution, lighting
   // and reduced-motion mode to avoid platform-specific baseline drift.
   for(const [face,rx,ry] of faces){
@@ -108,6 +139,19 @@ try{
    const filename=scenario+"-"+face+".png";
    images.set(filename,screenshot);
    writeFileSync(output+"/"+filename,screenshot);
+  }
+  // Verify LEVEL, straight-on geometry as well as the previous angled
+  // screenshots; save actual PNGs for manual front/rear/edge inspection.
+  // Extra coverage is only needed while mechanisms are open.
+  if(scenario!=="locked"){
+   for(const [face,rx,ry] of orthogonalFaces){
+    await page.evaluate(([x,y])=>
+     window.__nothing3DPreview.setRotation(x,y),[rx,ry]);
+    const screenshot=await page.locator("#stage canvas").screenshot({
+     animations:"disabled",timeout:60000
+    });
+    writeFileSync(output+"/"+scenario+"-"+face+".png",screenshot);
+   }
   }
  }
  // Test that unlocking has a visible effect, not merely a changed save.
@@ -132,6 +176,7 @@ try{
    current,{max:.025});
  }
  assert.deepEqual(errors,[],"The visual walkthrough emitted browser exceptions");
- console.log("PASS: 18 six-face 3D snapshots, saved-game visual parity "+
-  "and pixel-level unlock differences (desktop Chromium)");
+ console.log("PASS: 18 oblique + 12 axis-on 3D face screenshots, "+
+  "three-state triangle-intersection and mount-clearance checks, "+
+  "saved-game parity and unlock pixel differences");
 }finally{await browser.close()}
