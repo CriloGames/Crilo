@@ -33,6 +33,12 @@ export function buildCriloClassicDuck(){
  const wingLine=new THREE.MeshStandardMaterial({
   color:0xaa9a74,roughness:1,metalness:0
  });
+ // Top of the tail must remain visibly charcoal under saturated neon
+ // lights. A physically lit dark StandardMaterial can wash toward yellow
+ // beside the bright body, so the contour uses matte, unlit dark ink.
+ const tailInk=new THREE.MeshBasicMaterial({
+  color:0x342c2b,depthTest:true,depthWrite:true
+ });
  const shine=new THREE.MeshBasicMaterial({color:0xfffcdf});
  const sphere=new THREE.SphereGeometry(1,32,20);
 
@@ -137,7 +143,7 @@ export function buildCriloClassicDuck(){
  tailEdgeRig.scale.set(.29,.235,.28);
  tail.add(tailEdgeRig);
  const fullTailContour=new THREE.Mesh(
-  new THREE.TorusGeometry(1.005,.056,10,96),line
+  new THREE.TorusGeometry(1.005,.056,10,96),tailInk
  );
  fullTailContour.name="One complete outline around rounded duck tail";
  fullTailContour.castShadow=false;
@@ -183,8 +189,8 @@ export function buildCriloClassicDuck(){
   });
   const ridge=new THREE.Mesh(
    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(ridgePoints),
-    24,.009,6,false),
-   line
+    24,.011,6,false),
+   tailInk
   );
   ridge.name=sign<0?"Left black upper tail-feather edge":
    "Right black upper tail-feather edge";
