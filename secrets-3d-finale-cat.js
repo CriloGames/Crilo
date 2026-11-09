@@ -331,7 +331,7 @@ export function createFinaleDuckShow({
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
-  shader.uniforms.uBeat.value=motion.beatPulse;
+  shader.uniforms.uBeat.value=reduceEffects?0:motion.beatPulse;
   shader.uniforms.uFlash.value=reduceEffects?0:motion.flash;
   shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
@@ -365,8 +365,18 @@ export function createFinaleDuckShow({
    p===8?0xffa2c2:0xfff2e6);
   rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
    p===4?0x7ba5ff:0xb6d5ff);
-  key.intensity=white?1.18:1.20+motion.pulse*.74;
-  rim.intensity=white?.52:.88+motion.pulse*.90;
+  key.intensity=white?1.18:1.34+motion.pulse*.95;
+  rim.intensity=white?.52:1.18+motion.pulse*1.25;
+  if(!white&&!wormhole&&!reduceEffects){
+   // Additional cyan and magenta lighting across the nebula, starfield,
+   // ice, and electric transitions. Two strong rhythmic color washes
+   // surround each short white shutter flash.
+   const sweep=.5+.5*Math.sin(elapsed*5.2);
+   key.color.lerp(new THREE.Color(0xff64cd),.12+.65*sweep);
+   rim.color.lerp(new THREE.Color(0x33faff),.28+.63*(1-sweep));
+   key.intensity+=motion.beatPulse*1.15;
+   rim.intensity+=motion.beatPulse*1.30;
+  }
   // Match the *cat's* actual colored light to the tunnel and flash.
   // Previously only the background changed while the fur stayed gray.
   if(wormhole&&!reduceEffects){
@@ -377,9 +387,9 @@ export function createFinaleDuckShow({
    rim.intensity=2.1+motion.beatPulse*1.8;
   }
   const flash=reduceEffects?0:motion.flash;
-  flashLight.intensity=flash*13.;
-  key.intensity+=flash*1.7;
-  rim.intensity+=flash*1.5;
+  flashLight.intensity=flash*14.5;
+  key.intensity+=flash*2.05;
+  rim.intensity+=flash*2.05;
   // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
   invalidate();
