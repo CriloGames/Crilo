@@ -450,6 +450,14 @@ export function createFinaleDuckShow({
   if(now-lastPaint>=refresh-1){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
+   // When the MP3 ends between animation frames, its clock becomes null.
+   // Finish cleanly rather than leaving an endless RAF at 134.63 seconds.
+   // A buffering/paused track still reports finalePlaying=true.
+   if(waitingForSoundtrack&&soundtrackStarted&&
+      !Number.isFinite(audioT)&&
+      window.NothingHereAudio?.getState?.()?.finalePlaying===false){
+    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);return;
+   }
    if(waitingForSoundtrack&&!soundtrackStarted){
     // A video play() promise may stall while Chrome buffers. Keep the duck
     // facing forwards at t=0 rather than spinning on performance.now before
