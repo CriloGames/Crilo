@@ -307,7 +307,8 @@ try{
  const endingText=await page.locator("#ncFinaleEndCard").innerText();
  assert.match(endingText,/THE END[.]/);
  assert.match(endingText,/NOTHING HERE[?]/);
- assert.match(endingText,/SOMETHING/);
+ assert.match(endingText,/WELL, THAT WAS A LIE[.]/);
+ assert.match(endingText,/60 secrets later/);
  assert(await page.locator("#ncFinaleEgg").isHidden(),
   "The egg stayed clickable after being cracked");
  console.log("PASS: duck lays egg, walks away, shaking egg clicks into final message");
