@@ -150,7 +150,14 @@ function backdropMaterial(){
      color+=vec3(.32,.42,1.)*
       exp(-pow((abs(warped.x)-.51)*5.7,2.))*.30;
     }else if(uScene<3.5){
-     color=vec3(.982,.986,1.);
+     // The source sometimes flashes white, but a whole white stage
+     // for seconds looks like a broken renderer. Hold a luminous,
+     // moving lavender/ice field between brief beat-locked flashes.
+     float haze=fbm(p*3.1+vec2(t*.08,-t*.16));
+     float aurora=pow(.5+.5*sin(p.x*11.+p.y*5.-t*1.6),3.);
+     color=mix(vec3(.21,.26,.52),vec3(.64,.46,.79),haze);
+     color+=vec3(.22,.31,.64)*aurora*(.13+.22*uBeat);
+     color+=stars(uv*vec2(105.,62.),2.)*vec3(.35,.58,.94);
     }else if(uScene<4.5){
      // Sapphire/ultraviolet radial laser forest.
      float beams=pow(.5+.5*cos(a*20.-t*.35),24.);
@@ -161,7 +168,16 @@ function backdropMaterial(){
      color+=vec3(.94,.09,.91)*sweep*.68;
      color+=stars(uv*vec2(85.,55.),4.)*vec3(.79,.86,1.);
     }else if(uScene<5.5){
-     color=vec3(.001,.001,.002);
+     // Never hold a completely black screen: the dark edit becomes a
+     // shifting midnight-indigo cosmos with small cyan/pink highlights.
+     float haze=fbm(p*2.4+vec2(t*.14,-t*.11));
+     float halo=exp(-r*3.2);
+     color=vec3(.042,.024,.115)+
+      vec3(.16,.085,.29)*haze*.48+
+      vec3(.042,.14,.29)*halo*(.4+.3*uBeat);
+     float threads=pow(.5+.5*cos(a*14.-t*.75+r*9.),21.);
+     color+=vec3(.26,.12,.38)*threads*(.10+.18*uBeat);
+     color+=stars(uv*vec2(128.,74.),2.3)*vec3(.61,.49,.91)*.62;
     }else if(uScene<6.5){
      float ring=exp(-pow((r-.42-.05*sin(t*1.1))*13.,2.));
      color=vec3(.91,.95,1.)+vec3(.04,.19,.34)*ring*.45;
@@ -254,6 +270,27 @@ function backdropMaterial(){
       vec3(.78,.12,1.)*ribs*(.34+.54*uBeat);
      color+=vec3(.30,.79,1.)*exp(-r*5.)*.7;
     }
+    // Selected neon sections have stacked, blinking LED side towers,
+    // with individual square light cells as in the owner's reference.
+    // Do NOT display these on the original green, calm interludes,
+    // red-star field or the egg stage.
+    if(abs(uScene-2.)<.3||abs(uScene-7.)<.3||
+       abs(uScene-9.)<.3||abs(uScene-10.)<.3){
+     float side=min(uv.x,1.-uv.x);
+     float rail=exp(-pow((side-.068)*73.,2.));
+     vec2 grid=vec2(side*51.,uv.y*17.5+t*.85);
+     vec2 cell=fract(grid);
+     vec2 block=abs(cell-.5);
+     float square=1.-smoothstep(.23,.43,max(block.x,block.y));
+     float randomCell=step(.64,hash(floor(grid)+vec2(5.,8.)));
+     float lane=1.-smoothstep(.032,.10,abs(side-.075));
+     float blink=.28+.72*pow(.5+.5*sin(t*6.8+floor(grid.y)*.72),2.);
+     vec3 cyan=vec3(.12,.69,1.),magenta=vec3(1.,.11,.77);
+     vec3 tint=mix(cyan,magenta,
+      step(.5,hash(floor(grid)+vec2(11.,3.))));
+     color+=vec3(.20,.37,.89)*rail*(.15+.27*uBeat);
+     color+=tint*square*randomCell*lane*blink*(.70+.22*uBeat);
+    }
     // Sweeping chromatic beams light up musical transitions. Keep them
     // saturated instead of washing entire sections gray.
     if(uScene>0.5&&uScene<12.9&&abs(uScene-3.)>.46&&
@@ -269,6 +306,11 @@ function backdropMaterial(){
     // This matters especially during one-second whiteouts / black flashes.
     if(uScene>.5&&uScene<11.8&&abs(uScene-3.)>.49)
      color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
+    // Saturated scenery stays visibly colored and never rests at either
+    // white (#fff) or black (#000); short music-synced white flashes are
+    // composited AFTER this clamp, so the flashes themselves still work.
+    if(uScene>.5&&uScene<12.9)
+     color=clamp(color,vec3(.023,.018,.049),vec3(.87,.83,.95));
     // Drive genuinely high-contrast camera-white strobes from the track.
     // Reduced-motion users receive zero flash from the caller.
     float flash=uScene<.5?0.:clamp(uFlash,0.,1.);
