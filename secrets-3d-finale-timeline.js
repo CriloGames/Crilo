@@ -58,9 +58,9 @@ export const CAT_POSE_CUTS=[
  [14.3,"loaf"],[15.6,"front"],
  [17.5,"loaf"],[18.8,"front"],
  [20.7,"loaf"],[26.8,"front"],
- // The first red nebula burst starts on the musical pickup, not half a
- // second late. Keep the 26.8s front-facing pause until the ~29.1s cue.
- [29.10,"loaf"],[35.93,"front"],
+ // Catch the red nebula burst on the 150 BPM downbeat at 29.24s,
+ // instead of waiting until the old, noticeably late 29.55s cut.
+ [29.24,"loaf"],[35.93,"front"],
  [36.45,"loaf"],[58.95,"front"],
  [62.22,"loaf"],[63.84,"front"],
  [65.25,"loaf"],[66.33,"front"],
