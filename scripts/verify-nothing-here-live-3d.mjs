@@ -1214,6 +1214,11 @@ try{
  assert(steadyFlash.targets.includes("thing:machine")&&
   steadyFlash.visible>=1&&steadyFlash.persistent,
   "Item guidance faded after the initial blink: "+JSON.stringify(steadyFlash));
+ // The inventory is below the cube. Its click may scroll the page so
+ // the stage is OFFSCREEN. A raw page.mouse.move to that negative global
+ // coordinate hits the sticky SITE HEADER, never our canvas. Real players
+ // scroll back to the cube before hovering over the vending machine.
+ await page.locator("#stage canvas").scrollIntoViewIfNeeded({timeout:20000});
  const vendingHover=await page.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalStoryObject("machine"));
  assert(vendingHover?.pick==="thing:machine",
@@ -1222,6 +1227,11 @@ try{
  const canvasRect=await page.locator("#stage canvas").boundingBox();
  const hoverX=canvasRect.x+vendingHover.x;
  const hoverY=canvasRect.y+vendingHover.y;
+ const viewport=page.viewportSize();
+ assert(hoverX>=0&&hoverX<viewport.width&&
+  hoverY>=0&&hoverY<viewport.height,
+  "Vending hover point is outside the browser viewport; "+
+   JSON.stringify({hoverX,hoverY,viewport,canvasRect,vendingHover}));
  await page.evaluate(()=>{
   window.__coinPointerSamples=[];
   document.querySelector("#stage canvas").addEventListener("pointermove",
