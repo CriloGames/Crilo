@@ -270,6 +270,12 @@ try{
    "The cat reveal must occur BEFORE the soundtrack starts: "+
     JSON.stringify({time,sample}));
   opening.push(sample);
+  if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
+    [2.3,4.3].includes(time)){
+   await page.locator("#stage canvas").screenshot({
+    path:"test-results/cat-emerges-"+time+".png",timeout:45000
+   });
+  }
  }
  assert(!opening[0].catRisingFromBox&&
   opening[0].openingLidAngle>.8&&opening[0].openingSideAngle<.05,
