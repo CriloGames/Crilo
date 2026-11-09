@@ -2552,6 +2552,35 @@ window.__nothing3DPreview={
   controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
  },
+ // Local-only screenshot QA: rotate the CAMERA to the cube's normal,
+ // rather than approximating a straight-on face with its default 3/4 view.
+ // Never expose a player-facing action or modify normal game controls.
+ setVisualAuditCamera(face){
+  if(!/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)||
+     !embeddedGame||completionFinale?.isActive())return false;
+  const axis={
+   front:[0,0],right:[0,-90],back:[0,180],left:[0,90],
+   top:[90,0],bottom:[-90,0]
+  };
+  if(face!=="home"&&!Object.hasOwn(axis,face))return false;
+  cancelCameraReturn();
+  gsap.killTweensOf(cube.rotation);
+  controls.enableDamping=false;
+  controls.target.set(0,0,0);
+  if(face==="home"){
+   camera.position.set(...zoomedHome());
+  }else{
+   camera.position.set(0,0,baseDistance()/DEFAULT_ZOOM);
+   cube.rotation.set(
+    THREE.MathUtils.degToRad(axis[face][0]),
+    THREE.MathUtils.degToRad(axis[face][1]),0
+   );
+  }
+  controls.update();
+  controls.enableDamping=true;
+  invalidate();
+  return true;
+ },
  setRotation(rx,ry){
   if(!embeddedGame||completionFinale?.isActive())return;
   // Player rotation must supersede any old Reset View tween. With a slow
