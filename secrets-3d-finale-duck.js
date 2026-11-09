@@ -123,7 +123,7 @@ export function buildCriloClassicDuck(){
  // A back-face shell alone is not enough: the body intersects the tail,
  // so its dark rim disappears during side and rear turns. Keep the shell
  // AND put fine strokes right on the actual visible curved 3D surface.
- const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.024);
+ const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.012);
  tail.rotation.x=-.32;
  tail.name="Rounded body of Classic duck tail";
  // A single physical curve follows the rounded bulb's silhouette as
