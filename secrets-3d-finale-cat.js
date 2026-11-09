@@ -16,7 +16,7 @@ function backdropMaterial(){
  return new THREE.ShaderMaterial({
   uniforms:{uTime:{value:0},uScene:{value:0},uAspect:{value:1},
    uBeat:{value:0},uFlash:{value:0},uSideways:{value:0},
-   uReferenceLuma:{value:.5},uGreenPale:{value:0},uVortexTravel:{value:0}},
+   uReferenceLuma:{value:.5},uVortexTravel:{value:0}},
   depthTest:false,depthWrite:false,toneMapped:false,
   vertexShader:`
    varying vec2 vUv;
@@ -24,7 +24,7 @@ function backdropMaterial(){
   `,
   fragmentShader:`
    uniform float uTime,uScene,uAspect,uBeat,uFlash,uSideways;
-   uniform float uReferenceLuma,uGreenPale,uVortexTravel;
+   uniform float uReferenceLuma,uVortexTravel;
    varying vec2 vUv;
    const float PI=3.14159265359;
    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -120,12 +120,9 @@ function backdropMaterial(){
     float r=length(p),a=atan(p.y,p.x);
     vec3 color=vec3(.012);
     if(uScene<.5){
-     // Actual first 27s use vivid chroma green, switching to near-white
-     // mint when the duck flips into its sideways rapid rotation.
-     vec3 green=vec3(.008,.97,.014);
-     vec3 pale=vec3(.13,.99,.72); // vivid turquoise, never gray
-     color=mix(green,pale,clamp(uGreenPale,0.,1.));
-     color+=vec3(.07,.13,.0)*exp(-r*3.5)*pow(uBeat,3.);
+     // The original green stage is a solid chroma backdrop. It must
+     // never change toward mint or pulse when the duck starts spinning.
+     color=vec3(.008,.97,.014);
     }else if(uScene<1.5){
      // Gold/red/pink nebula rather than the old flat maroon noise.
      vec2 q=p*2.2;
@@ -268,7 +265,7 @@ function backdropMaterial(){
      color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
     // Drive genuinely high-contrast camera-white strobes from the track.
     // Reduced-motion users receive zero flash from the caller.
-    float flash=clamp(uFlash,0.,1.);
+    float flash=uScene<.5?0.:clamp(uFlash,0.,1.);
     color=mix(color,vec3(1.),flash);
     gl_FragColor=vec4(clamp(color,0.,1.),1.);
    }
@@ -285,9 +282,8 @@ export function createFinaleDuckShow({
  let emerging=false,emergenceProgress=0,emergenceScale=0;
  let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
- let spinHalo,spinGlowLight,spinGlowStrength=0,emergenceLipClearance=null;
- let emergenceHorizontalProgress=null;
- let loadedModel=null,glowMaterials=[];
+ let emergenceLipClearance=null,emergenceHorizontalProgress=null;
+ let loadedModel=null;
  let waitingForSoundtrack=false,soundtrackStarted=false;
  const identity="single-crilo-classic-duck";
  // The actual Crilo Classic duck is the one and only visible animal,
@@ -295,32 +291,7 @@ export function createFinaleDuckShow({
  function installDuck(){
   loadedModel=buildCriloClassicDuck();
   catRig.add(loadedModel);
-  glowMaterials=loadedModel.userData.glowMaterials||[];
-  for(const material of glowMaterials)material.emissive.setHex(0xffcf72);
   invalidate();
- }
- // A soft additive halo is behind the silhouette, leaving the dark eyes,
- // fine head stroke and outlined toes sharp even at peak spin speed.
- function createSpinHalo(){
-  const canvas=document.createElement("canvas");
-  canvas.width=canvas.height=128;
-  const ctx=canvas.getContext("2d");
-  const gradient=ctx.createRadialGradient(64,64,14,64,64,64);
-  gradient.addColorStop(0,"rgba(255,248,195,.35)");
-  gradient.addColorStop(.47,"rgba(255,225,122,.32)");
-  gradient.addColorStop(.78,"rgba(255,207,99,.16)");
-  gradient.addColorStop(1,"rgba(255,196,80,0)");
-  ctx.fillStyle=gradient;
-  ctx.fillRect(0,0,128,128);
-  const halo=new THREE.Sprite(new THREE.SpriteMaterial({
-   map:new THREE.CanvasTexture(canvas),
-   transparent:true,opacity:0,depthTest:true,depthWrite:false,
-   blending:THREE.AdditiveBlending,toneMapped:false
-  }));
-  halo.name="Duck fast-spin golden halo";
-  halo.position.set(0,.83,-.40);
-  halo.scale.set(2.25,2.65,1);
-  return halo;
  }
  function ensure(){
   if(initialized)return;
@@ -342,13 +313,6 @@ export function createFinaleDuckShow({
   catRig.position.y=-.93;
   spinner.add(catRig);
   installDuck();
-  spinHalo=createSpinHalo();
-  catRig.add(spinHalo);
-  spinGlowLight=new THREE.PointLight(0xffe5a0,0,3.2);
-  // Spinner pivots around y=.93; center the light on the chest, not
-  // high above the eyes at y=1.31.
-  spinGlowLight.position.set(0,-.17,.40);
-  spinner.add(spinGlowLight);
   key=new THREE.PointLight(0xfff0dc,1.55,14);
   key.position.set(-2.5,4.0,4.5);
   rim=new THREE.PointLight(0x9ecfff,.83,13);
@@ -362,28 +326,15 @@ export function createFinaleDuckShow({
   const motion=motionAt(elapsed);
   const p=phaseAt(elapsed);
   const spinning=motion.spinning&&!reduceEffects;
-  // Glow grows with the actual music-timed spin rate. Continuous speed
-  // weighting avoids a sudden snap when a scene changes from 5.4 to 5.5
-  // turns/second; front-facing pauses and reduced-motion always stay dark.
-  const spinSpeed=spinning?motion.revolutionsPerSecond:0;
-  const speedGlow=clip((spinSpeed-5.05)/.70,0,1);
-  const glowRamp=spinning?Math.min(1,
-   Math.max(0,(elapsed-motion.poseStart)/.16),
-   Math.max(0,(motion.poseEnd-elapsed)/.16)):0;
-  spinGlowStrength=reduceEffects?0:
-   speedGlow*glowRamp*(.76+.24*motion.beatPulse);
-  spinHalo.material.opacity=spinGlowStrength*.72;
-  spinGlowLight.intensity=spinGlowStrength*1.8;
-  for(const material of glowMaterials)
-   material.emissiveIntensity=spinGlowStrength*.55;
+  // No sprite, emissive material, or extra light is applied to the duck.
+  // Only the regular stage lighting remains while it turns.
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
   shader.uniforms.uBeat.value=reduceEffects?0:motion.beatPulse;
-  shader.uniforms.uFlash.value=reduceEffects?0:motion.flash;
+  shader.uniforms.uFlash.value=reduceEffects||p===0?0:motion.flash;
   shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
-  shader.uniforms.uGreenPale.value=motion.greenPale;
   const wormhole=[2,7].includes(p);
   const tunnelLocal=Math.max(0,elapsed-motion.sceneStart);
   shader.uniforms.uVortexTravel.value=wormhole?tunnelLocal:0;
@@ -505,10 +456,6 @@ export function createFinaleDuckShow({
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
-  spinGlowStrength=0;
-  spinHalo.material.opacity=0;
-  spinGlowLight.intensity=0;
-  for(const material of glowMaterials)material.emissiveIntensity=0;
   // Keep the duck behind the front wall until it clears the opening.
   // Vertical emergence progresses normally, but horizontal movement
   // toward the dial/front wall waits until the sides begin unfolding.
@@ -558,10 +505,6 @@ export function createFinaleDuckShow({
   emergenceScale=0;
   emergenceLipClearance=null;
   emergenceHorizontalProgress=null;
-  spinGlowStrength=0;
-  if(spinHalo)spinHalo.material.opacity=0;
-  if(spinGlowLight)spinGlowLight.intensity=0;
-  for(const material of glowMaterials)material.emissiveIntensity=0;
   if(raf)cancelAnimationFrame(raf);
   raf=0;
   if(group){group.visible=false;group.scale.setScalar(1);}
@@ -631,8 +574,9 @@ export function createFinaleDuckShow({
     neckSeams:loadedModel?.userData.neckSeams??null,
     duckHeadOutlined:loadedModel?.userData.headOutline===true,
     duckToesOutlined:loadedModel?.userData.toeOutline===true,
-    spinGlowStrength:+spinGlowStrength.toFixed(3),
-    spinGlowVisible:!!spinHalo&&spinHalo.material.opacity>.01,
+    duckTailOutlined:loadedModel?.userData.tailOutline===true,
+    duckLegsOutlined:loadedModel?.userData.legOutline===true,
+    spinGlowStrength:0,spinGlowVisible:false,
     stableMascotScale:true,
     volumetricLoaf:!!catRig, // compatibility with prior physical QA
     real3DDuck:!!loadedModel,
