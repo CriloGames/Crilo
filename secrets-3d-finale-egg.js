@@ -108,8 +108,8 @@ export function createFinaleEggEnding({
   endCard.innerHTML=
    '<div class="nc-finale-end-title" tabindex="-1">THE END.</div>'+
    '<div class="nc-finale-end-question">NOTHING HERE?</div>'+
-   '<div class="nc-finale-end-answer">Turns out there was <em>SOMETHING</em> after all.</div>'+
-   '<div class="nc-finale-end-congrats">Congrats. You found it! 🥚</div>';
+   '<div class="nc-finale-end-answer">WELL, <em>THAT WAS A LIE.</em></div>'+
+   '<div class="nc-finale-end-congrats">60 secrets later… you found everything.</div>';
   stage.appendChild(endCard);
   controls?.addEventListener("change",()=>{
    if(phase!=="idle")placeEggButton();
