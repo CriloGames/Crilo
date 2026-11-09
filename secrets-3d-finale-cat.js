@@ -569,7 +569,7 @@ export function createFinaleDuckShow({
    startEggEnding({restore:true});
   },
   onResize(){
-   if(eggEnding?.getState().postludePhase!=="idle"){
+   if(eggEnding&&eggEnding.getState().postludePhase!=="idle"){
     eggEnding.onResize();return;
    }
    if(initialized&&group.visible)paint(elapsed);
