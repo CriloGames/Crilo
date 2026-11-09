@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {statSync,readFileSync} from "node:fs";
 import {CAT_REFERENCE_DURATION,CAT_MUSIC_BPM,CAT_BEAT_SECONDS,
- CAT_SPIN_BEATS,CAT_SCENES,CAT_POSE_CUTS,sceneAt,motionAt,referenceLumaAt
+ CAT_SPIN_BEATS,CAT_SCENES,CAT_POSE_CUTS,CAT_YAW_TURN_RATES,sceneAt,motionAt,referenceLumaAt
 } from "../secrets-3d-finale-timeline.js";
 assert.equal(CAT_REFERENCE_DURATION,134.699);
 assert.equal(CAT_MUSIC_BPM,150);
@@ -34,18 +34,34 @@ assert.equal(sceneAt(102).name,"redstars");
 assert.equal(sceneAt(88).name,"ice");
 assert(referenceLumaAt(59.5)>.85&&referenceLumaAt(80)<.15,
  "Video-derived white-out and near-black exposure are lost");
-// Verify the REAL video rhythm: FRONT HOLDS before a brisk sideways spin,
-// later high-speed tumbling on every beat. Never a perpetual 3.2s pirouette.
+// Verify the real 30fps source: standing holds alternate with swift
+// left-to-right Y-axis spins, never an X-axis barrel roll.
 const front=[.2,1.2,3.15,4.0,6.4,60.5,61.2,65,67,68,70.5,73];
 const tumbling=[1.9,2.4,4.9,5.3,8.5,14.9,18.5,34.2,37.7,65.5,68.5,69,71.5,114.2];
 for(const t of front)assert(!motionAt(t).spinning,
  "The cat should be facing forward (NOT spinning) at "+t);
 for(const t of tumbling)assert(motionAt(t).spinning,
  "The cat should be spinning at "+t);
-assert(motionAt(2.0).sideways>.8&&motionAt(2.0).spinMode==="slow",
- "The first sideways barrel roll from the source video is missing");
-assert(motionAt(34.2).spinMode==="beat",
- "The first neon drop is not synchronised to the 150 BPM beat");
+assert(motionAt(2.0).sideways>.8&&motionAt(2.0).spinAxis==="y"&&
+ motionAt(2.0).spinMode==="rapid",
+ "The first fast horizontal yaw spin from the reference is missing");
+assert(motionAt(34.2).spinAxis==="y"&&
+ motionAt(34.2).revolutionsPerSecond>=5.8,
+ "The neon tunnel should retain the fast horizontal spin");
+assert.equal(CAT_YAW_TURN_RATES[0][1],6);
+assert(Math.abs(motionAt(2.0).revolutionsPerSecond-6)<.01&&
+ Math.abs(motionAt(8.2).revolutionsPerSecond-5)<.01,
+ "Frame-measured intro (6rps) and middle (5rps) speeds missing");
+// The first video pose repeats every five source frames at 30fps.
+const d0=motionAt(1.6).spinRadians;
+const d1=motionAt(1.6+5/30).spinRadians;
+assert(Math.abs((d1-d0)-2*Math.PI)<.0001,
+ "The first spin must turn 360 degrees in five 30fps frames");
+// Smooth acceleration changes at 33s must never teleport the cat.
+const before=motionAt(32.999).spinRadians;
+const after=motionAt(33.001).spinRadians;
+assert(Math.abs(after-before)<.15&&after>before,
+ "Changing from nebula to tunnel abruptly jumps the cat orientation");
 for(const t of [.4,1.2,16.4,35.2,71.4,117.2]){
  const a=motionAt(t),b=motionAt(t+CAT_BEAT_SECONDS);
  assert(b.beatIndex===a.beatIndex+1,
@@ -58,5 +74,5 @@ assert(motionAt(108.84).spinning&&motionAt(119.4).spinning,
 const flashes=Array.from({length:210},(_,i)=>motionAt(33+i*.04).flash);
 assert(flashes.filter(x=>x>.5).length>=4,
  "The neon section should visibly strobe on multiple musical downbeats");
-console.log("PASS: authorized MP3, front-hold/sideways-roll choreography, "+
- "150 BPM drops and recurring hard-white flashes");
+console.log("PASS: authorized MP3, source-sampled 5-6rps horizontal yaw, "+
+ "front holds, soundtrack-timed scene cuts and hard-white flashes");
