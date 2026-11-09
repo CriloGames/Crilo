@@ -288,8 +288,11 @@ try{
   eggAtLay.postlude.eggDropProgress>.15&&
   eggAtLay.postlude.eggDropProgress<1&&
   eggAtLay.postlude.eggAndDuckSameLane&&
+  eggAtLay.postlude.eggUnderDuckTail&&
+  eggAtLay.postlude.duckSideFacingToLay&&
   Math.abs(eggAtLay.postlude.eggHorizontalCenterOffset)<.02&&
-  Math.abs(eggAtLay.postlude.duckHorizontalCenterOffset)<.02,
+  eggAtLay.postlude.duckHorizontalCenterOffset>.38&&
+  eggAtLay.postlude.duckHorizontalCenterOffset<.8,
   "The duck must VISIBLY crouch and lay an egg in the CENTER, not "+
    "spawn it beside itself: "+JSON.stringify(eggAtLay.postlude));
  if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
@@ -300,8 +303,14 @@ try{
   window.__nothing3DPreview.seekFinaleEgg(1.55));
  assert(laid.postlude?.eggGrounded&&
   laid.postlude.eggDropProgress===1&&
-  laid.postlude.eggAndDuckSameLane,
-  "The egg must land directly underneath the duck before it walks off");
+  laid.postlude.eggAndDuckSameLane&&
+  laid.postlude.eggUnderDuckTail&&
+  laid.postlude.duckSideFacingToLay,
+  "The egg must land clearly beneath the sideways duck's tail before walking");
+ if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
+  await page.locator("#stage canvas").screenshot({
+   path:"test-results/egg-laid-on-ground.png",timeout:45000
+  });
  const eggWalking=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(2.5));
  assert(eggWalking.postlude?.duckWalkingAway&&
