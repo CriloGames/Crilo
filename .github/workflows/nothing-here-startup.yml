@@ -141,5 +141,7 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
+      - name: Install FFmpeg for waveform inspection
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
       - name: Read tempo phase from licensed soundtrack
         run: python3 scripts/audit-nothing-here-audio-beats.py
