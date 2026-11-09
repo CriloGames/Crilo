@@ -281,14 +281,23 @@ try{
  const eggWalking=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(2.5));
  assert(eggWalking.postlude?.duckWalkingAway&&
-  !eggWalking.postlude.eggClickable,
-  "The original duck must visibly waddle away before the egg is clickable");
+  !eggWalking.postlude.eggClickable&&
+  eggWalking.postlude.walkLegAngles.length===2&&
+  Math.abs(eggWalking.postlude.walkLegAngles[0])>.08&&
+  eggWalking.postlude.walkLegAngles[0]*eggWalking.postlude.walkLegAngles[1]<0,
+  "The original duck must swing its attached feet while waddling away");
  const eggWaiting=await page.evaluate(()=>
   window.__nothing3DPreview.seekFinaleEgg(5.0));
  assert(eggWaiting.postlude?.postludePhase==="egg"&&
   eggWaiting.postlude.eggVisible&&eggWaiting.postlude.eggShaking&&
-  eggWaiting.postlude.eggClickable&&eggWaiting.postlude.duckGone,
+  eggWaiting.postlude.eggClickable&&eggWaiting.postlude.duckGone&&
+  eggWaiting.postlude.eggHairlineCrackVisible,
   "The shaking 3D egg must wait for a deliberate player click");
+ const eggWobbleLater=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(5.19));
+ assert(Math.abs(eggWobbleLater.postlude.eggWobble-
+  eggWaiting.postlude.eggWobble)>.005,
+  "The egg must physically wobble, not only report eggShaking=true");
  assert(await page.locator("#ncFinaleEgg").isVisible(),
   "Shaking egg has no accessible touch/keyboard hit target");
  await page.locator("#ncFinaleEgg").click({timeout:10000});
