@@ -80,7 +80,7 @@ for cue in [1.60,4.40,4.80,8.00,11.20,14.40,17.60,20.80,
 import re
 source=(TRACK.parent.parent.parent/"secrets-3d-finale-timeline.js").read_text()
 opening=source.split("export const CAT_POSE_CUTS=[",1)[1].split("];",1)[0]
-starts=[float(t) for t in re.findall(r'\\[([0-9.]+),\\s*"loaf"\\]',opening)[:7]]
+starts=[float(t) for t in re.findall(r'\[([0-9.]+),\s*"loaf"\]',opening)[:7]]
 assert len(starts)==7, f"Missing seven opening spin starts: {starts}"
 for cue in starts:
  k=round(cue*100)
