@@ -178,7 +178,7 @@
   // than run ahead from performance.now and then snap back at the first beat.
   // The media playhead is always the authoritative clock while the licensed
   // recording exists (including its brief initial 0-second preload).
-  if(track)return Number(track.currentTime)||0;
+  if(track)return track.ended?null:Number(track.currentTime)||0;
   // The fallback must follow actual Web Audio time, not wall-clock time.
   // AudioContext.currentTime freezes while suspended or interrupted.
   if(Number.isFinite(finaleSynthClockStart)&&fluteContext)
@@ -280,6 +280,9 @@
     clip.onended=()=>{
      if(clip!==activeFinaleAudio())return;
      finalePlaying=false;
+     // Notify the same frame the last audible sample finishes, not when
+     // Three.js happens to paint another frame several ticks later.
+     window.dispatchEvent(new Event('nothing-here-finale-ended'));
      if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
     };
     if(clip.paused)clip.play()?.catch?.(error=>{
@@ -369,6 +372,7 @@
     if(finaleTimer!==null){clearInterval(finaleTimer);finaleTimer=null;}
     finaleMaster=null;finalePlaying=false;finaleTimeout=null;
     finaleSynthClockStart=null;
+    window.dispatchEvent(new Event('nothing-here-finale-ended'));
     setTimeout(()=>{try{master.disconnect()}catch{}},450);
     if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
    };
@@ -455,6 +459,7 @@
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
    licensedFinalePlaying:!!licensedFinale&&!licensedFinale.paused&&!licensedFinale.muted,
    finaleSeconds:getFinaleClock(),
+   finaleEnded:!!activeFinaleAudio()?.ended,
    personalFinalePlaying:!!personalFinale&&!personalFinale.paused&&!personalFinale.muted,
    musicPlaying:!!music&&!music.paused,
    musicLoop:music?.loop??true,soundFileCount:Object.keys(files).length,

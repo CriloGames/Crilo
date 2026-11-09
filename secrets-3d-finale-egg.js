@@ -157,7 +157,12 @@ export function createFinaleEggEnding({
   // egg. Its body dips, the egg visibly descends from underneath it, then
   // it straightens, turns right, and walks out leaving the egg behind.
   const squat=ease((t-.38)/.46)*(1-ease((t-1.14)/.52));
-  const drop=ease((t-.88)/.58);
+  // The egg is genuinely tiny when laid. It lands at about one quarter
+  // size, stays small until the duck starts waddling, then grows while
+  // the duck exits. The shell's bottom stays on the ground as it grows.
+  const drop=ease((t-.90)/.63);
+  const grow=ease((t-1.82)/2.84);
+  const eggSize=.23+.77*grow;
   const walking=t>=1.78&&t<4.70;
   const sideTurn=ease((t-.24)/.43);
   const departure=ease((t-1.78)/2.92);
@@ -185,15 +190,14 @@ export function createFinaleEggEnding({
   duckShadow.position.set(group.position.x,baseY-.025,baseZ+.18);
   duckShadow.visible=t<4.70;
 
-  // The egg comes from the tail side of the crouching duck and drops
-  // directly to the center of the frame. It remains fixed there as the
-  // original duck walks away; its slightly forward depth keeps the pale
-  // shell legible instead of being completely swallowed by the body.
-  eggRoot.visible=t>=.88;
+  // The small shell drops from under the raised tail, then grows
+  // gradually from the floor while the duck walks away. Never pop the
+  // entire full-sized egg through the body at its first visible frame.
+  eggRoot.visible=t>=.90;
+  eggRoot.scale.setScalar(eggSize);
   eggRoot.position.set(origin.x,
-   baseY+eggFloorHeight+.17*(1-drop),
+   baseY+eggFloorHeight*eggSize+.27*(1-drop),
    baseZ+.28);
-  eggRoot.scale.setScalar(.46+.54*drop);
   const shaking=ease((t-4.40)/.40);
   eggRoot.rotation.z=reducedMotion?0:
    shaking*(.055+.024*Math.sin(t*2.6))*Math.sin(t*16.5);
@@ -326,11 +330,13 @@ export function createFinaleEggEnding({
    eggShaking:phase==="egg"&&!reducedMotion,
    eggWobble:+(eggRoot?.rotation.z??0).toFixed(4),
    eggHairlineCrackVisible:!!eggCrack?.visible,
-   eggDropProgress:+ease((elapsed-.88)/.58).toFixed(3),
+   eggDropProgress:+ease((elapsed-.90)/.63).toFixed(3),
+   eggGrowProgress:+ease((elapsed-1.82)/2.84).toFixed(3),
+   eggScale:+(eggRoot?.scale.x??0).toFixed(3),
    duckCrouching:phase==="laying"&&elapsed>=.48&&elapsed<1.53,
    duckSideFacingToLay:phase==="laying"&&
     elapsed>=.70&&elapsed<1.78&&spinner.rotation.y>1.2,
-   eggGrounded:elapsed>=1.46&&!!eggRoot?.visible,
+   eggGrounded:elapsed>=1.53&&!!eggRoot?.visible,
    eggHorizontalCenterOffset:eggRoot&&origin?
     +eggRoot.position.clone().sub(origin).dot(screenRight).toFixed(4):null,
    duckHorizontalCenterOffset:group&&origin?
@@ -339,7 +345,7 @@ export function createFinaleEggEnding({
     Math.abs(eggRoot.position.x-group.position.x)<.85&&
     elapsed<1.78,
    eggUnderDuckTail:(()=>{
-    if(!eggRoot||!duck||elapsed<.88||elapsed>=1.78)return false;
+    if(!eggRoot||!duck||elapsed<.90||elapsed>=1.78)return false;
     const tail=duck.getObjectByName("Rounded body of Classic duck tail");
     if(!tail)return false;
     const pos=tail.getWorldPosition(new THREE.Vector3());

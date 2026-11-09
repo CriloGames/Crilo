@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=33";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=34";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -305,7 +305,7 @@ export function createNothingHereFinale({
      frontFace.updateWorldMatrix(true,false);
      // Source is the TOP opening, not the cube pivot or its front dial.
      // Keep the duck set back into the hollow interior as it rises.
-     boxPoint.set(0,half*.92,-half*.27);
+     boxPoint.set(0,half*.92,-half*.40);
      cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
      // The camera pulls back throughout the T unfold. Limit cat growth

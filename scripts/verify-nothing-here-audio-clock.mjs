@@ -28,8 +28,12 @@ class AudioContext{
  createOscillator(){return new Osc()}
  resume(){this.state="running";return Promise.resolve()}
 }
-const timers=new Map();let next=0;
-const window={AudioContext,addEventListener(){}};
+const timers=new Map();let next=0;let finaleEndedEvents=0;
+const window={AudioContext,addEventListener(){},
+ dispatchEvent(event){
+  if(event.type==="nothing-here-finale-ended")finaleEndedEvents++;
+  return true;
+ }};
 const document={hidden:false,readyState:"complete",
  addEventListener(){},getElementById(){return null}};
 const create=new Function("window","document","localStorage","performance",
@@ -65,4 +69,6 @@ audioContext.state="running";audioContext.currentTime=5.1;
 for(const cb of [...timers.values()])cb();
 assert.equal(audio.getState().finalePlaying,false);
 assert.equal(audio.getFinaleClock(),null);
+assert.equal(finaleEndedEvents,1,
+ "The visual duck must be notified exactly when backup audio ends");
 console.log("PASS: fallback 150 BPM, audio clock remains still while buffered/suspended, correct ending");
