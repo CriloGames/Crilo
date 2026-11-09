@@ -258,7 +258,9 @@ function backdropMaterial(){
  });
 }
 function phaseAt(t){return sceneAt(t).scene;}
-export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}){
+export function createFinaleCatShow({
+ scene,stage,invalidate,reducedMotion=false,getCatAnchor,onTimelineFrame
+}){
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
  let initialized=false,playing=false,modelLoaded=false,raf=0;
@@ -408,13 +410,17 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
   // A meaningful head-and-body flip: when it stops, the actual standing
   // model returns in the SAME forward-facing pose as the source edit.
-  // The real hinged T lies on the world XZ plane at approximately y=0
-  // after its cube pivot is pitched -90 degrees. Keep the cat's paws just
-  // ABOVE that surface and its raised puzzle hardware (rather than through
-  // the platform or behind it), with each beat providing a subtle bounce.
-  // Keep the standing cat's ears INSIDE the viewport, with its feet on
-  // the top rim of the T. Spinning loaf uses its own higher stage height.
-  group.position.set(0,(loaf?.23:-.05)+(reduceEffects?0:motion.bob),-.3);
+  // Follow the actual center panel of the unfolded box, rather than using
+  // a hard-coded world offset that drifts when its transform is changed.
+  // Leave a deliberate air gap under both poses: the cat HOVERS above
+  // the box instead of resting on the machinery or drifting to one side.
+  const anchor=getCatAnchor?.();
+  group.position.set(
+   Number.isFinite(anchor?.x)?anchor.x:0,
+   (Number.isFinite(anchor?.y)?anchor.y:0)+(loaf?.86:.72)+
+    (reduceEffects?0:motion.bob),
+   Number.isFinite(anchor?.z)?anchor.z:-.3
+  );
   const white=p===0||p===3||p===6;
   key.color.setHex(p===1?0xffb692:p===2||p===7?0xffc0ec:p===4?0xaddbff:0xfff2e6);
   rim.color.setHex(p===1?0xff4966:p===2||p===7?0x20bfff:p===4?0x4d75ff:0xb6d5ff);
@@ -422,6 +428,9 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
   key.intensity=white?1.45:1.65+motion.pulse*.8;
   rim.intensity=white?.85:1.15+motion.pulse*.75;
   flashLight.intensity=reduceEffects?0:motion.flash*5.4;
+  // Also called from test seeking, so the puzzle sculpture fades to the
+  // exact same soundtrack time whether playback is live or restored.
+  onTimelineFrame?.(elapsed);
   invalidate();
  }
  function tick(now){
@@ -477,6 +486,12 @@ export function createFinaleCatShow({scene,stage,invalidate,reducedMotion=false}
    bpm:CAT_MUSIC_BPM,
    motion:motionAt(elapsed),
    platformUnderCat:true,
+   hoveringOverBox:true,
+   catWorldPosition:group?{
+    x:+group.position.x.toFixed(3),
+    y:+group.position.y.toFixed(3),
+    z:+group.position.z.toFixed(3)
+   }:null,
    referencePose:motionAt(elapsed).spinMode,
    flash:motionAt(elapsed).flash,
    reducedEffects:reduceEffects,
