@@ -123,7 +123,7 @@ function backdropMaterial(){
      // Actual first 27s use vivid chroma green, switching to near-white
      // mint when the duck flips into its sideways rapid rotation.
      vec3 green=vec3(.008,.97,.014);
-     vec3 pale=vec3(.91,.995,.91);
+     vec3 pale=vec3(.13,.99,.72); // vivid turquoise, never gray
      color=mix(green,pale,clamp(uGreenPale,0.,1.));
      color+=vec3(.07,.13,.0)*exp(-r*3.5)*pow(uBeat,3.);
     }else if(uScene<1.5){
@@ -242,10 +242,27 @@ function backdropMaterial(){
      color+=vec3(.22,.95,1.)*(ring*shimmers*.90+ring*spokes*.45);
      color+=vec3(.66,.96,1.)*stars(uv*vec2(170.,108.),3.)*.7;
     }else{
-     // Gray video cut just before total-black interstitial.
-     color=vec3(.68,.70,.72);
+     // Former flat gray interlude: a vivid electric-laser tunnel instead.
+     float spokes=pow(max(0.,.5+.5*cos(a*19.-t*2.9)),18.);
+     float ribs=pow(max(0.,.5+.5*cos(r*46.-t*19.)),14.);
+     vec3 cobalt=vec3(.012,.11,.74),pink=vec3(.94,.04,.71);
+     color=cobalt+mix(pink,vec3(.06,.94,.98),
+      .5+.5*sin(a*5.+t*3.))*spokes*1.8+
+      vec3(.78,.12,1.)*ribs*(.34+.54*uBeat);
+     color+=vec3(.30,.79,1.)*exp(-r*5.)*.7;
     }
-    // The 1080p upload's measured background exposure follows the MP3.
+    // Sweeping chromatic beams light up musical transitions. Keep them
+    // saturated instead of washing entire sections gray.
+    if(uScene>0.5&&uScene<12.9&&abs(uScene-3.)>.46&&
+      abs(uScene-5.)>.46){
+     float ray=pow(max(0.,.5+.5*cos(a*17.-t*2.4)),28.);
+     float blade=pow(max(0.,.5+.5*cos(p.y*27.-t*8.2)),33.);
+     float gate=pow(max(0.,.5+.5*cos(r*24.-t*8.)),22.);
+     color+=vec3(.13,.82,1.)*ray*(.13+.5*uBeat)+
+       vec3(1.,.10,.75)*blade*(.055+.32*uBeat)+
+       vec3(.97,.67,1.)*gate*(.035+.21*uBeat);
+    }
+    // The reference's measured backdrop exposure follows the music.
     // This matters especially during one-second whiteouts / black flashes.
     if(uScene>.5&&uScene<11.8&&abs(uScene-3.)>.49)
      color*=mix(.55,1.38,clamp(uReferenceLuma,0.,1.));
