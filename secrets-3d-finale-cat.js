@@ -5,9 +5,9 @@
 import * as THREE from "three";
 import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=8";
 import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=5";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=10";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=11";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=10";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=11";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 
@@ -418,9 +418,13 @@ export function createFinaleDuckShow({
  }
  function tick(now){
   if(!playing)return;
-  // 60fps during high-speed spins prevents the 5–6 turns/sec duck from
-  // skipping through visibly coarse angles; save work during held poses.
-  const refresh=motionAt(elapsed).spinning&&!reduceEffects?1000/60:1000/30;
+  // Paint the entire 0–33s opening at 60fps, including still-to-spin
+  // boundaries. The previous 30fps still hold delayed the first rotating
+  // frame by up to 33ms, even after the audio playhead crossed its cue.
+  // Later fast rotations keep the 60fps priority.
+  const smoothStart=!reduceEffects&&
+   (elapsed<33||motionAt(elapsed).spinning);
+  const refresh=smoothStart?1000/60:1000/30;
   if(now-lastPaint>=refresh-1){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();

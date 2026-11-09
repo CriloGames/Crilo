@@ -17,11 +17,27 @@ for(let i=1;i<CAT_SCENES.length;i++)
  assert(CAT_SCENES[i][0]>CAT_SCENES[i-1][0],"Scene cuts not chronological");
 assert.equal(sceneAt(3).name,"green");
 assert.equal(sceneAt(30).name,"nebula");
-// Every opening pose change must land on the soundtrack's 150 BPM beat
-// rather than the old 0.06–0.14-second late/early visual approximation.
-for(const [time] of CAT_POSE_CUTS.slice(1,17))
- assert(motionAt(time).beatPhase<.001,
-  "Opening duck pose is off the music beat at "+time);
+// Audio-driven timing is measured from the actual installed MP3's 45–170Hz
+// transient peaks (by scripts/audit-nothing-here-audio-beats.py), not a
+// mathematically perfect beat grid. The initial visual cue should be ahead
+// of a real attack by just enough to render on the next 60Hz frame.
+const introAttacks=[1.64,4.38,8.04,11.26,14.43,17.62,20.81];
+const introStarts=CAT_POSE_CUTS.filter(([,mode])=>mode==="loaf").slice(0,7)
+ .map(([time])=>time);
+assert.equal(introStarts.length,introAttacks.length);
+for(let i=0;i<introStarts.length;i++){
+ const lead=introAttacks[i]-introStarts[i];
+ assert(lead>=-.015&&lead<=.081,
+  "Opening duck spin misses actual MP3 attack "+introAttacks[i]+
+  "s by "+lead.toFixed(3)+"s");
+}
+for(const [time,mode] of CAT_POSE_CUTS.slice(1,16)){
+ if(mode==="front")
+  assert(motionAt(time).beatPhase<.001,
+   "Duck front-facing rest should settle on 150-BPM beat "+time);
+}
+assert(motionAt(14.44).bob>.045&&motionAt(14.64).bob<.01,
+ "Duck bobbing must bounce on the same beat as music, not at an unrelated rate");
 assert.equal(motionAt(29.24).revolutionsPerSecond,5,
  "Red-section duck should spin exactly twice per 150 BPM beat");
 assert(Math.abs((motionAt(29.64).spinRadians-
