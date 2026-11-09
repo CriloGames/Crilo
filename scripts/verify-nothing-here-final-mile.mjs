@@ -306,6 +306,32 @@ try{
   stillWaiting.elapsedSeconds===0,
   "Duck advanced its first spin while audio was buffering: "+
    JSON.stringify(stillWaiting));
+ // A real MP3 may end between two render frames: the media playhead
+ // returns null, but the show must still finish instead of running forever.
+ await page.evaluate(()=>{
+  const audio=window.NothingHereAudio;
+  window.__finaleClockBeforeTest=audio.getFinaleClock;
+  window.__finaleStateBeforeTest=audio.getState;
+  audio.getFinaleClock=()=>2;
+ });
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.completionFinale.duck.soundtrackStarted,
+  null,{timeout:3500,polling:80});
+ await page.evaluate(()=>{
+  window.NothingHereAudio.getFinaleClock=()=>null;
+  window.NothingHereAudio.getState=()=>({finalePlaying:false});
+ });
+ await page.waitForFunction(()=>{
+  const show=window.__nothing3DPreview.completionFinale.duck;
+  return !show.dancing&&show.elapsedSeconds>=134.64;
+ },null,{timeout:3500,polling:80});
+ await page.evaluate(()=>{
+  window.NothingHereAudio.getFinaleClock=window.__finaleClockBeforeTest;
+  window.NothingHereAudio.getState=window.__finaleStateBeforeTest;
+  delete window.__finaleClockBeforeTest;
+  delete window.__finaleStateBeforeTest;
+ });
+ console.log("PASS: audio ending between frames does not hang the duck finale");
  const electric=await page.evaluate(t=>
   window.__nothing3DPreview.seekFinaleFrame(t),78.04);
  assert(electric.stageScene===12&&electric.sourceTimedHardStrobe>.85,
