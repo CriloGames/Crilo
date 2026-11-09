@@ -499,10 +499,18 @@ try{
   opening[1].cat.actualRotations.y===0,
   "One real cat must climb out of the open lid BEFORE any side unfolds: "+
    JSON.stringify(opening[1]));
- assert([opening[1],opening[2],opening[3]].every(sample=>
-   sample.cat.emergenceLipClearance>=.21),
-  "Duck feet or belly clip the open lid during the entrance: "+
-   JSON.stringify(opening.map(o=>o.cat.emergenceLipClearance)));
+ // At 2.3 seconds the duck is still rising from INSIDE the box,
+ // so its feet must not already sit high above the lid's back edge.
+ // Only after the frontward transition can it clear the exposed lip.
+ assert(opening[1].cat.emergenceLipClearance<.31&&
+   [opening[2],opening[3]].every(sample=>
+    sample.cat.emergenceLipClearance>=.20),
+  "Duck must rise from inside, then clear the front face before it "+
+   "moves forward: "+JSON.stringify(opening.map(o=>({
+    progress:o.entranceProgress,
+    lip:o.cat.emergenceLipClearance,
+    forward:o.cat.emergenceHorizontalProgress
+   }))));
  assert(opening[1].cat.emergenceHorizontalProgress<.10&&
   opening[2].cat.emergenceHorizontalProgress>.90&&
   opening[3].cat.emergenceHorizontalProgress>.99,
