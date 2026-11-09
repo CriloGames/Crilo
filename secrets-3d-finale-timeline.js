@@ -109,16 +109,31 @@ export function sceneAt(seconds){
   end:CAT_SCENES[Math.min(i+1,CAT_SCENES.length-1)][0],
   index:i};
 }
+// Revolutions per SECOND sampled from the owner's 30fps reference MP4.
+// In the opening (1.5–2.9s) a side-on cat repeats roughly every five
+// frames: 30/5 ~= 6 complete horizontal Y-axis revolutions per second.
+// At 8s it repeats about every six frames (~5 rps), accelerating again
+// during the 34s neon tunnel. Keep the changes phase-continuous, never
+// recompute localTime*newRate at a scene cut (which caused sudden jumps).
+export const CAT_YAW_TURN_RATES=[
+ [0,6.0],[4.5,5.6],[7.9,5.0],[20.7,5.4],
+ [26.87,5.5],[33,6.0],[59,5.6],[75,5.3],
+ [88,5.7],[101,5.8],[107,6.0],[131,5.6]
+];
 function spinRate(t){
- if(t<20.7)return 1.1; // quick intro spins interleaved with facing front
- if(t<26.87)return 1.65; // rapid build at 150 BPM
- if(t<33)return .78; // slower nebula entrance
- if(t<59)return 1.20; // very fast blue/pink tunnels
- if(t<75)return .85; // alternates red-stars pose with still upright
- if(t<88)return .9;
- if(t<101)return .80; // slow electrified blue portal with white-outs
- if(t<107)return .75;
- return 1.25; // closing tunnel/caleidoscope
+ let index=CAT_YAW_TURN_RATES.length-1;
+ while(index>0&&t<CAT_YAW_TURN_RATES[index][0])index--;
+ return CAT_YAW_TURN_RATES[index][1];
+}
+function turnsBetween(start,end){
+ let turns=0,current=start;
+ for(let i=1;i<CAT_YAW_TURN_RATES.length;i++){
+  const change=CAT_YAW_TURN_RATES[i][0];
+  if(change<=current||change>=end)continue;
+  turns+=(change-current)*spinRate(current);
+  current=change;
+ }
+ return turns+(end-current)*spinRate(current);
 }
 export function motionAt(seconds){
  const t=clip(seconds,0,CAT_REFERENCE_DURATION);
@@ -129,13 +144,12 @@ export function motionAt(seconds){
  const loaf=mode==="loaf";
  const beat=(t-.04)/CAT_BEAT_SECONDS;
  const beatPhase=fract(beat),beatIndex=Math.max(0,Math.floor(beat));
- // The source swaps a full-size standing tabby for a compact, sideways
- // dark loaf. The loaf tumbles in SCREEN SPACE about the camera axis,
- // NOT around the standing cat's vertical (Y) axis.
+ // Reference footage: the loaf turns LEFT / RIGHT around a vertical
+ // axis, showing right side -> back -> left side -> face. It does NOT
+ // tumble as a barrel roll. Six rotations/second in the opening section.
  const rate=spinRate(t);
- const turn=local*rate;
- const accents=.085*smooth(0,.9,beatPhase);
- const spinRadians=loaf?TAU*(turn+accents):0;
+ const turn=turnsBetween(start,t);
+ const spinRadians=loaf?TAU*turn:0;
  const radialTilt=loaf?.24*Math.sin(local*6.3):0;
  const dip=loaf?Math.sin(local*5.6)*.08:0;
  const kickPulse=Math.pow(Math.max(0,1-beatPhase),6);
@@ -161,7 +175,8 @@ export function motionAt(seconds){
   scene:scene.scene,sceneName:scene.name,sceneIndex:scene.index,
   sceneStart:scene.start,sceneEnd:scene.end,
   poseMode:mode,poseStart:start,poseEnd:next,
-  spinMode:loaf?(t<20.7||rate<=1.05?"slow":"beat"):"front",
+  spinMode:loaf?(rate>=5.75?"rapid":"yaw"):"front",
+  spinAxis:"y",revolutionsPerSecond:loaf?rate:0,
   spinActive:loaf,spinning:loaf,spinRadians,
   spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
   rollRadians:loaf?Math.PI/2:0,
