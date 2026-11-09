@@ -258,6 +258,39 @@ try{
   "Beat-synced strobe should make short hard white cuts, not slow glow: "+
    JSON.stringify({strobePeak:strobePeak.sourceTimedHardStrobe,
     strobeRest:strobeRest.sourceTimedHardStrobe}));
+ // Replay the 60/60 completion with the NEW physical entrance sequence.
+ // The lid must open BEFORE the cat rises, and side hinges must not form
+ // the T until the same cat has visibly emerged from the box.
+ const openingTimes=[1.2,2.3,4.3,5.65];
+ const opening=[];
+ for(const time of openingTimes){
+  const sample=await page.evaluate(t=>
+   window.__nothing3DPreview.seekFinaleOpening(t),time);
+  assert(sample?.phase==="opening",
+   "The cat reveal must occur BEFORE the soundtrack starts: "+
+    JSON.stringify({time,sample}));
+  opening.push(sample);
+ }
+ assert(!opening[0].catRisingFromBox&&
+  opening[0].openingLidAngle>.8&&opening[0].openingSideAngle<.05,
+  "The box lid must open while the cat is still inside");
+ assert(opening[1].catRisingFromBox&&opening[1].catRevealedBeforeT&&
+  opening[1].openingLidAngle>1.4&&
+  opening[1].openingSideAngle<.05&&
+  opening[1].cat.emergenceBackgroundHidden&&
+  opening[1].cat.emergenceSameRig&&
+  opening[1].cat.distinctCatModels===1,
+  "One real cat must climb out of the open lid BEFORE any side unfolds: "+
+   JSON.stringify(opening[1]));
+ assert(opening[2].entranceProgress>.80&&
+  opening[2].openingSideAngle>.3,
+  "The T shape must begin AFTER the cat has substantially emerged: "+
+   JSON.stringify(opening[2]));
+ assert(opening[3].entranceProgress>=.999&&
+  opening[3].openingSideAngle>1.50,
+  "Cat should hover over a nearly-complete T before the music: "+
+   JSON.stringify(opening[3]));
+ console.log("PASS: open lid -> same cat rises -> T folds flat -> music fade");
  console.log("PASS: one shared cat, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
