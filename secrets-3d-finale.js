@@ -305,7 +305,12 @@ export function createNothingHereFinale({
      boxPoint.set(0,half*.92,-half*.27);
      cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
-     catShow.previewEmergence(rise.progress,boxPoint,landingPoint);
+     // The camera pulls back throughout the T unfold. Limit cat growth
+     // until the camera can actually fit its entire body, then reach full
+     // soundtrack scale seamlessly as the final panel lands at 6 seconds.
+     const cameraFraction=END.clamp((timeline.time()-2.6)/3.4,0,1);
+     const scaleCap=.46+.54*Math.pow(cameraFraction,3);
+     catShow.previewEmergence(rise.progress,boxPoint,landingPoint,scaleCap);
     }
     invalidate();
    },
