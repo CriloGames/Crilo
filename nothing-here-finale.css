@@ -2,8 +2,11 @@
    no piece of the unfolded T is obscured on desktop or mobile. */
 .nc-page .nc-finale-banner[hidden],
 .nc-page .nc-finale-banner #ncFinaleReplay[hidden]{display:none!important}
+/* The site header is sticky at z-index:30. Keep the completion panel in
+   ordinary page content instead of letting it paint over header tabs when
+   the user scrolls or uses a high browser zoom level. */
 .nc-page .nc-finale-banner{
- position:relative;z-index:40;
+ position:relative;z-index:1;
  width:min(calc(100% - 22px),600px);box-sizing:border-box;
  margin:14px auto 8px;
  text-align:center;pointer-events:auto;

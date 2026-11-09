@@ -126,6 +126,28 @@ try{
   "Completed finale lost textured panels or genuine 134.7s 3D cat");
  assert.deepEqual(new Set((await state()).seen),new Set(sixty),
   "Finale save migration lost earned secrets");
+ // A completed save places the banner above the game. When the user scrolls
+ // (including at large browser zoom), it must NEVER cover the sticky tabs.
+ const headerHit=await page.evaluate(()=>{
+  const header=document.querySelector(".crilo-game-topbar");
+  const banner=document.querySelector("#ncFinaleBanner");
+  const nav=header?.querySelector("nav a");
+  if(!header||!banner||!nav)return {missing:true};
+  const headerZ=Number(getComputedStyle(header).zIndex);
+  const bannerZ=Number(getComputedStyle(banner).zIndex);
+  window.scrollTo(0,banner.getBoundingClientRect().top+window.scrollY+15);
+  const navBox=nav.getBoundingClientRect();
+  const target=document.elementFromPoint(navBox.left+navBox.width/2,
+   navBox.top+navBox.height/2);
+  const clickable=!!target?.closest(".crilo-game-topbar");
+  window.scrollTo(0,0);
+  return {headerZ,bannerZ,clickable};
+ });
+ assert(!headerHit.missing&&headerHit.headerZ>headerHit.bannerZ&&
+  headerHit.clickable,
+  "Completion banner is painted above the sticky navigation: "+
+   JSON.stringify(headerHit));
+ console.log("PASS: completion banner cannot block sticky top navigation");
  // The unfolded real T is present for the first note, dissolves over 1.8s,
  // then vanishes. The 3D cat remains anchored over its center and hovering.
  const fadeStages=[];
