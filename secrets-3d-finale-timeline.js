@@ -51,16 +51,18 @@ export const CAT_SCENES=[
 // never instructions to display different models.
 export const CAT_POSE_CUTS=[
  [0,"front"],
- // Opening poses snap to exact musical beat boundaries (.04 + n * .4).
- // The old frame-rounded 1.5/7.9/11.1/etc. cues landed between beats,
- // making the duck look late even with the correct audio playhead.
- [1.64,"loaf"],[2.84,"front"],
- [4.44,"loaf"],[6.04,"front"],
- [8.04,"loaf"],[9.24,"front"],
- [11.24,"loaf"],[12.44,"front"],
- [14.44,"loaf"],[15.64,"front"],
- [17.64,"loaf"],[18.84,"front"],
- [20.84,"loaf"],[26.84,"front"],
+ // The opening is keyed to transients measured from the INSTALLED MP3
+ // (ffmpeg high-pass 45Hz / low-pass 170Hz), not a guessed .04s downbeat.
+ // Begin drawing the next spinning frame just ahead of the decoded attack
+ // to compensate for the requestAnimationFrame/Three.js paint delay.
+ // Reference attack peaks: 1.64, 4.38, 8.04, 11.26, 14.43, 17.62, 20.81.
+ [1.60,"loaf"],[2.84,"front"],
+ [4.36,"loaf"],[6.04,"front"],
+ [8.00,"loaf"],[9.24,"front"],
+ [11.22,"loaf"],[12.44,"front"],
+ [14.40,"loaf"],[15.64,"front"],
+ [17.60,"loaf"],[18.84,"front"],
+ [20.78,"loaf"],[26.84,"front"],
  // First nebula spin starts exactly on beat 73, with a clean 6-beat hold
  // before it and a one-beat front pause after the 17-beat spin section.
  [29.24,"loaf"],[36.04,"front"],
@@ -199,7 +201,10 @@ export function motionAt(seconds){
   spinActive:loaf,spinning:loaf,spinRadians,
   spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
   rollRadians:0,tiltRadians:0,threeDRoll:0,
-  bob:loaf?.08*Math.sin(t*11):.025*kickPulse,
+  // The old 11-radians/sec idle wobble was independent of the music
+  // (~1.75Hz against a 2.5Hz beat), making spins LOOK off-tempo even
+  // when media.currentTime was correct. Bounce only on actual beat pulses.
+  bob:loaf?.062*kickPulse:.025*kickPulse,
   scale:loaf?.80:1,
   beatIndex,beatPhase,bpm:CAT_MUSIC_BPM,
   beatPulse:kickPulse,hiHatPulse:halfPulse,
