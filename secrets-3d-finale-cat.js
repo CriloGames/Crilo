@@ -621,7 +621,9 @@ export function createFinaleCatShow({
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
-  const from=boxCenter.clone().add(new THREE.Vector3(0,-.65,0));
+  // Start just UNDER the open roof, never through the front dial face.
+  // The cube controller supplies the top opening's true transformed point.
+  const from=boxCenter.clone().add(new THREE.Vector3(0,-.30,0));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.70,0));
   group.position.lerpVectors(from,to,e);
   key.color.setHex(0xffe8c6);
