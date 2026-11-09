@@ -149,6 +149,15 @@ try{
     const success=await page.evaluate(name=>
      window.__nothing3DPreview.setVisualAuditCamera(name),label);
     assert(success,"Failed to place the camera directly above "+label);
+    if(scenario==="fully-unlocked"&&label==="top"){
+     // The last hinge pin yields a washer. The bracket must BOTH clear
+     // the moving hatch in 3D and remain reachable by the user's raycast.
+     const washer=await page.evaluate(()=>
+      window.__nothing3DPreview.projectPhysicalPickup("washer"));
+     assert(washer?.pick==="pickup:washer",
+      "Collectible hinge washer is buried, clipped or hidden by the open "+
+       "top hatch from its face-on view: "+JSON.stringify(washer));
+    }
     const screenshot=await page.locator("#stage canvas").screenshot({
      animations:"disabled",timeout:60000
     });
