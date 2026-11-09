@@ -173,8 +173,11 @@
  function getFinaleClock(){
   if(!finalePlaying)return null;
   const track=activeFinaleAudio();
-  if(track&&!track.paused&&track.readyState>=2)
-   return Number(track.currentTime)||0;
+  // When audio takes a moment to buffer/unlock, the cat must WAIT rather
+  // than run ahead from performance.now and then snap back at the first beat.
+  // The media playhead is always the authoritative clock while the licensed
+  // recording exists (including its brief initial 0-second preload).
+  if(track)return Number(track.currentTime)||0;
   return Number.isFinite(finaleClockStart)
    ?Math.max(0,(performance.now()-finaleClockStart)/1000):null;
  }

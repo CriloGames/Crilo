@@ -21,6 +21,9 @@ on:
       - 'secrets-3d-preview.html'
       - 'secrets-3d-preview.js'
       - 'secrets-3d-finale.js'
+      - 'secrets-3d-finale-loaf.js'
+      - 'secrets-3d-finale-cat.js'
+      - 'secrets-3d-finale-timeline.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
       - 'secrets-3d-batching.js'
@@ -80,6 +83,7 @@ jobs:
           node --check secrets-3d-preview.js
           node --check secrets-3d-finale.js
           node --check secrets-3d-finale-cat.js
+          node --check secrets-3d-finale-loaf.js
           node --check secrets-3d-finale-timeline.js
           node --check scripts/verify-nothing-here-finale-rhythm.mjs
           node --check secrets-3d-details.js
@@ -268,5 +272,15 @@ jobs:
         run: |
           nohup python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/nh-final-mile-http.log 2>&1 < /dev/null &
           sleep 2
-      - name: Verify late-game lift, restored 60/60 save and actual spinning 3D cat
-        run: node scripts/verify-nothing-here-final-mile.mjs
+      - name: Verify complete 134.7s reference frame sweep with real WebGL
+        run: |
+          mkdir -p test-results
+          NH_CAPTURE_FINALE_SWEEP=1 node scripts/verify-nothing-here-final-mile.mjs
+      - name: Preserve reference-frame screenshots for comparison
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-video-reference-3d
+          path: test-results/video-reference-*.png
+          if-no-files-found: ignore
+          retention-days: 7

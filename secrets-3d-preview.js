@@ -3,7 +3,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
-import { createNothingHereFinale } from "./secrets-3d-finale.js?v=4";
+import { createNothingHereFinale } from "./secrets-3d-finale.js?v=6";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
@@ -1833,6 +1833,7 @@ completionFinale=embeddedGame?createNothingHereFinale({
 window.__nothing3DPreview={
  ready:true,
  get completionFinale(){return completionFinale?.getState()||{phase:"idle"}},
+ seekFinaleFrame:t=>completionFinale?.seekForVisualTest(t)||null,
  get physicalCompletionLayout(){return completionFinale?.getState().panels||{}},
  engine:"three.js",
  setGeometryInspector:mode=>updateGeometryInspection(mode),
@@ -2466,6 +2467,14 @@ window.__nothing3DPreview={
   teal:{...side.seal,closed:side.drawer.position.z<.02}
  }},
  get visibleFrontScrews(){return screws.filter(v=>v.id.startsWith("front-screw-")&&v.assembly.visible).length},
+ get frontScrewVisualAudit(){return {
+  canonicalScrews:[...(currentGameState.screws||[])],
+  meshes:screws.filter(v=>v.id.startsWith("front-screw-")).map(v=>({
+   id:v.id,removed:v.removed,visible:v.assembly.visible,
+   depth:+v.assembly.position.z.toFixed(3),
+   rotating:!!v.motion?.isActive?.(),timerPending:!!v.removalTimer
+  }))
+ }},
  // Check physical hardware, not only the saved puzzle state: no visible
  // fake screw should be able to turn or cover another real actuator.
  get liveFastenerAudit(){

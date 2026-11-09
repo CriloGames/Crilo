@@ -1305,14 +1305,17 @@ try{
  await collect("bell");
  // Animations intentionally settle over time. Do not read a position in
  // the same execution tick as the fourth press and call it a failure.
- await page.waitForFunction(()=>
+ const bellSettled=await page.waitForFunction(()=>
   window.__nothing3DPreview.physicalMechanicalFeedback.bellHatchOffset>.25,
-  null,{timeout:6000,polling:100});
- const redFeedback=await page.evaluate(()=>
-  window.__nothing3DPreview.physicalMechanicalFeedback);
- assert(redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&
+  null,{timeout:18000,polling:250}).then(()=>true,()=>false);
+ const redFeedback=await page.evaluate(()=>({
+  ...window.__nothing3DPreview.physicalMechanicalFeedback,
+  redHits:window.CriloNothingHereCube.getState().redHits,
+  bellCollected:window.CriloNothingHereCube.getState().pocket.includes("bell")
+ }));
+ assert(bellSettled&&redFeedback.redRewardGlow>.65&&redFeedback.redCollarAngle>=0&&
    redFeedback.bellHatchOffset>.25,
-  "Four presses must change the real red control's retaining ring, not show a floating bell: "+
+  "Four presses must OPEN the physical red retaining hatch after the bell is collected: "+
    JSON.stringify(redFeedback));
  const quietRewards=await page.evaluate(()=>{
   const hidden=id=>getComputedStyle(document.getElementById(id)).display==="none";
@@ -1568,9 +1571,18 @@ try{
   "An empty offering receiver must not grant a discovery or a reward");
  assert(s.seen.includes("faceplate")&&s.seen.includes("pipe")&&s.seen.includes("drawer"),
   "Physical actions failed to award the existing discovery catalog");
- await page.waitForTimeout(1400);
- assert.equal(await page.evaluate(()=>window.__nothing3DPreview.visibleFrontScrews),1,
-  "Extracted 3D screws remained visibly attached to the faceplate");
+ // Software WebGL can throttle both GSAP animation ticks and timer callbacks.
+ // Wait for the actual rendered fasteners to retract; NEVER substitute the
+ // saved puzzle count for the visible Three.js mesh state.
+ const retracted=await page.waitForFunction(()=>
+  window.__nothing3DPreview.visibleFrontScrews===1,
+  null,{timeout:18000,polling:250}).then(()=>true,()=>false);
+ const frontScrewAudit=await page.evaluate(()=>
+  window.__nothing3DPreview.frontScrewVisualAudit);
+ assert(retracted&&frontScrewAudit.meshes.filter(v=>v.visible).length===1&&
+  frontScrewAudit.meshes.find(v=>v.visible)?.id==="front-screw-3",
+  "Extracted 3D screws remained visibly attached to the faceplate: "+
+  JSON.stringify(frontScrewAudit));
  // Opening either case exposes a selectable piece. Tapping its solid
  // casing again must not magically pocket the item without pressing it.
  await page.evaluate(()=>{
@@ -1591,12 +1603,16 @@ try{
  await activate("serial");
  assert.equal(await page.evaluate(()=>document.activeElement?.dataset.item),"tooth",
   "An unrelated mechanical event stole keyboard focus from the pocket");
- await page.locator('#ncInventory [data-item="tooth"]').click();
+ // The inventory button already retained keyboard focus. Activate it with
+ // Enter rather than waiting for Playwright's pointer hit-test on a loaded
+ // software-WebGL canvas. This explicitly verifies keyboard accessibility.
+ await page.keyboard.press("Enter");
  assert.match(await page.locator("#ncPocketSelection").innerText(),/holding.*key teeth/i,
   "Selecting a pocket tool should identify what is being held");
  assert.equal((await state()).selected,"tooth",
   "Pocket selection failed to persist in canonical state");
- await page.locator("#ncUnselect").click();
+ await page.locator("#ncUnselect").focus();
+ await page.keyboard.press("Enter");
  assert.equal((await state()).selected,null,
   "Putting an item down failed to clear held-item selection");
  assert(await page.locator("#ncPocketSelection").isHidden(),
@@ -2142,6 +2158,14 @@ try{
    JSON.stringify(complete));
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
   "Completing the catalogue damaged existing discoveries");
+ // A 60/60 save starts an asynchronous textured GLB load. Navigating away
+ // while GLTFLoader decodes its embedded WebP blob can abort that image
+ // request and log a loader exception in software Chromium.
+ // Require the FULL textured cat to load before leaving this page.
+ await page.waitForFunction(()=>{
+  const cat=window.__nothing3DPreview?.completionFinale?.cat;
+  return cat?.loadedModel===true&&cat?.catSource==="cc0-hd-tabby-local";
+ },null,{timeout:45000,polling:250});
  await diagnosticScreenshot(page,{path:"test-results/live-3d-finale-T.png",timeout:60000});
  // Old links must transparently normalize to the one supported 3D game.
  await page.goto("http://127.0.0.1:4173/secrets.html?classic=1",{
@@ -2155,6 +2179,12 @@ try{
   "The retired illustrated mode is still reachable from a legacy URL");
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
   "Opening a former Classic URL changed physical 3D progress");
+ // The owner reset navigates again: finish the second GLB texture decode
+ // rather than leaving a half-loaded model and a revoked blob URL.
+ await page.waitForFunction(()=>{
+  const cat=window.__nothing3DPreview?.completionFinale?.cat;
+  return cat?.loadedModel===true&&cat?.catSource==="cc0-hd-tabby-local";
+ },null,{timeout:45000,polling:250});
  // Only a server-verified owner profile may consume the one-time local
  // reset. A normal player must never lose their 60-secret save.
  await page.evaluate(()=>{
