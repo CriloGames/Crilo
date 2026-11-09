@@ -154,31 +154,24 @@ body.nc-page.nc-finale-active.nc-moon .nc-world::after{
  font-family:ui-rounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
 }
 .nc-page #stage .nc-finale-end-title{
- margin:0 0 10px;color:#f7b34d;
- font-size:clamp(48px,10vw,88px);line-height:.98;
- font-weight:1000;letter-spacing:-.065em;
- -webkit-text-stroke:clamp(1.5px,.35vw,3px) #342b41;
+ margin:0;color:#f7b34d;
+ font-size:clamp(31px,6.5vw,65px);line-height:1.05;
+ font-weight:1000;letter-spacing:-.055em;
+ -webkit-text-stroke:clamp(1.2px,.29vw,2.7px) #342b41;
  paint-order:stroke fill;
- text-shadow:3px 5px 0 #342b41;
+ text-shadow:2px 4px 0 #342b41;
 }
-.nc-page #stage .nc-finale-end-question{
- margin:0;color:#805ba3;
- font-size:clamp(21px,4.6vw,33px);
- font-weight:1000;letter-spacing:-.04em;
+.nc-page #stage .nc-finale-end-title span{
+ display:block;color:#f59b85;margin-top:5px;
 }
 .nc-page #stage .nc-finale-end-answer{
- margin:10px auto 0;max-width:450px;
- font-size:clamp(20px,4vw,31px);font-weight:950;
- line-height:1.23;letter-spacing:-.045em;
-}
-.nc-page #stage .nc-finale-end-answer em{
- color:#e06c67;font-style:normal;
- text-decoration:underline;text-decoration-thickness:3px;
- text-underline-offset:4px;
+ margin:16px auto 0;color:#805ba3;
+ font-size:clamp(26px,5vw,40px);font-weight:950;
+ line-height:1.2;letter-spacing:-.04em;
 }
 .nc-page #stage .nc-finale-end-congrats{
- margin-top:20px;font-size:clamp(15px,2.8vw,21px);
- font-weight:800;color:#54465d;
+ margin-top:23px;font-size:clamp(13px,2.3vw,17px);
+ letter-spacing:.14em;font-weight:900;color:#54465d;
 }
 @keyframes nc-finale-egg-card-pop{
  from{opacity:0;transform:translate(-50%,-43%) scale(.77)}
