@@ -484,6 +484,14 @@ export function createFinaleDuckShow({
  }
  return {
   start,stop,previewEmergence,
+  simulatePendingAudioForTest(){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   // Intentionally no soundtrack begins here. The 3D duck must hold still
+   // despite RAF advancing before the browser can play a buffered MP3.
+   start({syncToAudio:true});
+   return this.getState();
+  },
   seekForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
