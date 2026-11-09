@@ -259,7 +259,7 @@ function backdropMaterial(){
  });
 }
 function phaseAt(t){return sceneAt(t).scene;}
-export function createFinaleCatShow({
+export function createFinaleDuckShow({
  scene,stage,invalidate,reducedMotion=false,getCatAnchor,onTimelineFrame
 }){
  const reduceEffects=!!reducedMotion||
@@ -524,3 +524,5 @@ export function createFinaleCatShow({
   }
  };
 }
+// Keep the original API name for older integrations during module cache updates.
+export const createFinaleCatShow=createFinaleDuckShow;
