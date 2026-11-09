@@ -570,6 +570,10 @@ export function createFinaleDuckShow({
    group.position.y,emergingHeight,safeForwardHeight
   );
   catRig.rotation.x=-.07*(1-e);
+  // During the opening there is no music-frame paint() yet. Refresh
+  // the camera-facing rim here too, otherwise the back/top of the tail
+  // loses its outline from the elevated cube reveal camera.
+  loadedModel?.userData.updateTailContour?.(camera);
   emergenceHorizontalProgress=horizontal;
   emergenceLipClearance=group.position.y-boxCenter.y;
   key.color.setHex(0xffe8c6);
