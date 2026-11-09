@@ -148,7 +148,10 @@ export function motionAt(seconds){
  const duration=Math.max(.01,next-start),local=Math.max(0,t-start);
  const loaf=mode==="loaf";
  const beat=(t-.04)/CAT_BEAT_SECONDS;
- const beatPhase=fract(beat),beatIndex=Math.max(0,Math.floor(beat));
+ // Floating-point drift can turn an exact beat (1.64s, 8.04s, etc.)
+ // into phase .9999999999, suppressing the pulse at the spin cut.
+ const beatSafe=beat+1e-9;
+ const beatPhase=fract(beatSafe),beatIndex=Math.max(0,Math.floor(beatSafe));
  // Reference footage: the loaf turns LEFT / RIGHT around a vertical
  // axis, showing right side -> back -> left side -> face. It does NOT
  // tumble as a barrel roll. Six rotations/second in the opening section.
