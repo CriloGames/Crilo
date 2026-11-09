@@ -1220,9 +1220,38 @@ try{
   "A known usable miniature cannot be identified with the real mouse raycaster: "+
    JSON.stringify(vendingHover));
  const canvasRect=await page.locator("#stage canvas").boundingBox();
- await page.mouse.move(canvasRect.x+vendingHover.x,canvasRect.y+vendingHover.y);
- await page.waitForFunction(()=>window.__nothing3DPreview.itemFitHint.active,
-  null,{timeout:12000});
+ const hoverX=canvasRect.x+vendingHover.x;
+ const hoverY=canvasRect.y+vendingHover.y;
+ await page.evaluate(()=>{
+  window.__coinPointerSamples=[];
+  document.querySelector("#stage canvas").addEventListener("pointermove",
+   e=>window.__coinPointerSamples.push({
+    x:Math.round(e.clientX),y:Math.round(e.clientY),
+    type:e.pointerType,target:e.target?.tagName
+   }),{passive:true});
+ });
+ // Always cross the canvas boundary before inspecting the machine:
+ // moving to the already-current mouse coordinates needn't generate
+ // another PointerEvent in Chromium and leaves an old hover label hidden.
+ await page.mouse.move(4,4);
+ await page.mouse.move(hoverX,hoverY,{steps:5});
+ try{
+  await page.waitForFunction(()=>
+   window.__nothing3DPreview.itemFitHint.active,
+   null,{timeout:12000});
+ }catch(error){
+  const hoverDiag=await page.evaluate(({x,y})=>({
+   selected:window.CriloNothingHereCube?.getState?.().selected,
+   fit:window.__nothing3DPreview?.itemFitHint,
+   flashes:window.__nothing3DPreview?.selectedItemFlashAudit,
+   pointerEvents:window.__coinPointerSamples?.slice(-12),
+   elementAtMouse:document.elementFromPoint(x,y)?.outerHTML.slice(0,300),
+   canvas:document.querySelector("#stage canvas")?.getBoundingClientRect().toJSON(),
+   rect:document.querySelector("#stage")?.getBoundingClientRect().toJSON()
+  }),{x:hoverX,y:hoverY});
+  throw new Error("Hovering over the coin-compatible vending machine did "+
+   "not show Fits here: "+JSON.stringify(hoverDiag)+"; "+String(error));
+ }
  const fitHint=await page.evaluate(()=>window.__nothing3DPreview.itemFitHint);
  assert.equal(fitHint.action,"thing:machine",
   "Hover compatibility feedback was not attached to the correct physical model");
