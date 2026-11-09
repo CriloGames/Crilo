@@ -548,22 +548,27 @@ export function createFinaleDuckShow({
   // Vertical emergence progresses normally, but horizontal movement
   // toward the dial/front wall waits until the sides begin unfolding.
   // A smooth curve avoids the old body/bill clipping through the box face.
-  // Don't push the beak/body toward the FRONT wall until the duck has
-  // risen over the lip and the opening panels have begun to unfold.
-  // The former .68 threshold moved the bill forward while feet were
-  // still level with the engraved dial.
-  const horizontal=THREE.MathUtils.smoothstep(e,.73,.97);
-  const from=boxCenter.clone().add(new THREE.Vector3(0,.26,-.11));
+  // Start BELOW the lid, not perched on its rear rim. Rise vertically
+  // through the open top and only travel forward after the belly and legs
+  // have cleared the front panel. The initial model is physically hidden
+  // inside the box until its head appears above the rim.
+  const horizontal=THREE.MathUtils.smoothstep(e,.79,.97);
+  const from=boxCenter.clone().add(new THREE.Vector3(0,-.20,-.18));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
   group.position.set(
    THREE.MathUtils.lerp(from.x,to.x,horizontal),
-   THREE.MathUtils.lerp(from.y,to.y,e)+.19*Math.sin(Math.PI*e),
+   THREE.MathUtils.lerp(from.y,to.y,e)+.09*Math.sin(Math.PI*e),
    THREE.MathUtils.lerp(from.z,to.z,horizontal)
   );
-  // Keep the bottom of the actual scaled duck above the front lip as
-  // it crosses. A slightly higher lift avoids legs/front panel overlap.
-  group.position.y=Math.max(group.position.y,
-   boxCenter.y+.29+.20*emergenceScale);
+  // Keep its feet inside the box early, then enforce proper clearance
+  // as the duck comes forward. This is an actual 3D depth transition,
+  // not a sudden visibility toggle over the back lid.
+  const emergingHeight=boxCenter.y-.20+.60*e;
+  const safeForwardHeight=boxCenter.y+
+   (.24+.14*emergenceScale)*horizontal;
+  group.position.y=Math.max(
+   group.position.y,emergingHeight,safeForwardHeight
+  );
   catRig.rotation.x=-.07*(1-e);
   emergenceHorizontalProgress=horizontal;
   emergenceLipClearance=group.position.y-boxCenter.y;
