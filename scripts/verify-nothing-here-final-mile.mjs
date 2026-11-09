@@ -124,9 +124,9 @@ try{
   Object.keys(finish.panels).length===6&&finish.outerFrameHidden,
   "Completed save didn't reveal its actual unfolded T");
  assert(finish.reverseTexturedPanels===6&&
-  finish.cat?.real3D&&finish.cat.meshCount>0&&finish.cat.visible&&
+  finish.duck?.real3DDuck&&finish.duck.meshCount>0&&finish.duck.visible&&
   Math.abs(finish.cat.durationSeconds-134.699)<.001,
-  "Completed finale lost textured panels or genuine 134.7s 3D cat");
+  "Completed finale lost textured panels or genuine 134.7s Crilo Classic duck");
  assert.deepEqual(new Set((await state()).seen),new Set(sixty),
   "Finale save migration lost earned secrets");
  // A completed save places the banner above the game. When the user scrolls
@@ -162,11 +162,11 @@ try{
    const cat=window.__nothing3DPreview.seekFinaleFrame(t);
    const ending=window.__nothing3DPreview.completionFinale;
    return {cat,opacity:ending.netOpacity,done:ending.netFadeComplete,
-    aligned:ending.catCenteredOverBox,
+    aligned:ending.duckCenteredOverBox,
     moon:+getComputedStyle(document.querySelector(".nc-world"),"::after").opacity,
     moonClock:+document.body.style.getPropertyValue("--nh-finale-moon-opacity")};
   },seconds);
-  assert(frame?.aligned&&frame.cat?.hoveringOverBox,
+  assert(frame?.aligned&&frame.cat?.hoveringOverBox&&frame.cat.duck,
    "Cat must stay centered and hovering over the open box at "+seconds+"s: "+
     JSON.stringify(frame));
   fadeStages.push(frame);
@@ -180,7 +180,7 @@ try{
   Math.abs(f.moonClock-f.opacity)<.025),
   "Moon and T-shaped box do not fade together: "+JSON.stringify(fadeStages));
  await page.evaluate(()=>document.body.classList.remove("nc-moon"));
- console.log("PASS: unfolded box fades during first musical notes; cat stays centered");
+ console.log("PASS: unfolded box fades during first musical notes; duck stays centered");
  // Inspect the ENTIRE 134.7s visual choreography, not just the start and
  // end. The actual rendered Three.js meshes and shader uniforms must change
  // at the same timestamp as the uploaded 1080p reference video.
@@ -190,7 +190,7 @@ try{
   [40.5,"loaf",7],[48,"loaf",9],[55,"loaf",10],
   [60,"front",3],[65,"front",8],[65.5,"loaf",8],
   [68,"front",8],[68.5,"loaf",8],[70.5,"front",8],
-  [76,"loaf",4],[79.3,"front",5],[84,"loaf",0],
+  [76,"loaf",4],[78.15,"front",12],[79.3,"front",5],[84,"loaf",0],
   [90,"loaf",3],[91,"loaf",11],[97,"loaf",11],
   [102,"front",8],[104.5,"loaf",8],[108,"loaf",2],
   [116,"front",7],[123,"loaf",9],[129,"loaf",10],
@@ -203,22 +203,26 @@ try{
   assert(actual&&actual.stageScene===backdrop,
    "Stage backdrop diverged from 1080p frame at "+seconds+"s: "+
     JSON.stringify(actual));
-  assert(actual.active3DPose===pose&&actual.rendered3DPose===pose,
-   "Real 3D cat model did not switch to "+pose+" at "+seconds+"s: "+
-    JSON.stringify(actual));
+  const expected=pose==="loaf"?"spin":"still";
+  assert(actual.active3DPose===expected&&actual.rendered3DPose===expected,
+   "The same 3D duck did not follow the expected still/spin cue at "+
+    seconds+"s: "+JSON.stringify(actual));
   assert(actual.volumetricLoaf&&actual.meshCount>0&&
    Math.abs(actual.stageFrameLuma-actual.referenceFrameLuma)<.002,
    "A real 3D pose or measured exposure was lost at "+seconds+"s");
   assert(actual.singleModelBothPoses&&actual.distinctCatModels===1&&
-   actual.identitySwaps===0&&actual.catIdentity==="single-textured-grey-tabby",
-   "The finale must have exactly one cat model, not two exchanged poses: "+
-    JSON.stringify({seconds,actual}));
+   actual.identitySwaps===0&&actual.duck&&actual.real3DDuck&&
+   actual.mascotGeometry==="crilo-classic-duck-v1"&&
+   actual.duckSource==="crilo-classic-original-3d"&&
+   actual.catIdentity==="single-crilo-classic-duck",
+   "The finale must have one original Crilo Classic duck, not cats or "+
+    "swapping models: "+JSON.stringify({seconds,actual}));
   if(seconds===34||seconds===40.5||seconds===114.2){
    assert(actual.wormholeActive&&actual.wormholeForwardTravel>0,
     "The vortex must travel FORWARD in depth, not show a flat grid at "+
      seconds+"s: "+JSON.stringify(actual));
-   assert(actual.unifiedCatScale>.2,
-    "The cat's single rig was collapsed or distorted in the wormhole");
+   assert(actual.unifiedDuckScale>.2,
+    "The duck's single rig was collapsed or distorted in the wormhole");
   }
   if(pose==="loaf"){
    assert(Math.abs(actual.actualRotations.x)<.001&&
@@ -233,7 +237,7 @@ try{
    assert(Math.abs(actual.actualRotations.x)<.001&&
     Math.abs(actual.actualRotations.y)<.001&&
     Math.abs(actual.actualRotations.z)<.001,
-    "The forward-facing tabby should not be spinning at "+seconds);
+    "The forward-facing duck should not be spinning at "+seconds);
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -250,7 +254,7 @@ try{
  const t5=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6+5/30);
  assert(Math.abs(t1.actualRotations.y-t0.actualRotations.y-2*Math.PI/5)<.035&&
   Math.abs(t5.actualRotations.y-t0.actualRotations.y-2*Math.PI)<.035,
-  "Cat yaw does not reproduce the five-frame video spin cycle: "+
+  "Duck yaw does not match the five-frame music spin cue: "+
    JSON.stringify({t0,t1,t5}));
  const strobePeak=await page.evaluate(t=>
   window.__nothing3DPreview.seekFinaleFrame(t),34.04);
@@ -262,15 +266,15 @@ try{
    JSON.stringify({strobePeak:strobePeak.sourceTimedHardStrobe,
     strobeRest:strobeRest.sourceTimedHardStrobe}));
  // Replay the 60/60 completion with the NEW physical entrance sequence.
- // The lid must open BEFORE the cat rises, and side hinges must not form
- // the T until the same cat has visibly emerged from the box.
+ // The lid must open BEFORE the duck rises, and side hinges must not form
+ // the T until the same duck has visibly emerged from the box.
  const openingTimes=[1.2,2.3,4.3,5.65];
  const opening=[];
  for(const time of openingTimes){
   const sample=await page.evaluate(t=>
    window.__nothing3DPreview.seekFinaleOpening(t),time);
   assert(sample?.phase==="opening",
-   "The cat reveal must occur BEFORE the soundtrack starts: "+
+   "The duck reveal must occur BEFORE the soundtrack starts: "+
     JSON.stringify({time,sample}));
   opening.push(sample);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
@@ -284,27 +288,30 @@ try{
  }
  assert(!opening[0].catRisingFromBox&&
   opening[0].openingLidAngle>.8&&opening[0].openingSideAngle<.05,
-  "The box lid must open while the cat is still inside");
+  "The box lid must open while the duck is still inside");
  assert(opening[1].catRisingFromBox&&opening[1].catRevealedBeforeT&&
   opening[1].openingLidAngle>1.4&&
   opening[1].openingSideAngle<.05&&
   opening[1].cat.emergenceBackgroundHidden&&
   opening[1].cat.emergenceSameRig&&
-  opening[1].cat.distinctCatModels===1,
+  opening[1].cat.distinctCatModels===1&&
+  opening[1].cat.actualRotations.y===0,
   "One real cat must climb out of the open lid BEFORE any side unfolds: "+
    JSON.stringify(opening[1]));
  assert(opening[2].entranceProgress>.80&&
   opening[2].openingSideAngle>.3&&
-  opening[2].cat.emergenceScale<.57,
-  "The T shape must begin AFTER the cat has substantially emerged: "+
+  opening[2].cat.emergenceScale<.57&&
+  opening[2].cat.actualRotations.y===0,
+  "The T shape must begin AFTER the duck has substantially emerged: "+
    JSON.stringify(opening[2]));
  assert(opening[3].entranceProgress>=.999&&
   opening[3].openingSideAngle>1.50&&
-  opening[3].cat.emergenceScale>.78,
+  opening[3].cat.emergenceScale>.78&&
+  opening[3].cat.actualRotations.y===0,
   "Cat should hover over a nearly-complete T before the music: "+
    JSON.stringify(opening[3]));
- console.log("PASS: open lid -> same cat rises -> T folds flat -> music fade");
- console.log("PASS: one shared cat, synchronized moon fade and wormhole strobes");
+ console.log("PASS: open lid -> same duck rises -> T folds flat -> music fade");
+ console.log("PASS: one shared duck, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
  console.log("PASS: restored 60/60 finale has all six textures and a real 3D cat");
