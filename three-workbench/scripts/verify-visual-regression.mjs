@@ -144,14 +144,19 @@ try{
   // screenshots; save actual PNGs for manual front/rear/edge inspection.
   // Extra coverage is only needed while mechanisms are open.
   if(scenario!=="locked"){
-   for(const [face,rx,ry] of orthogonalFaces){
-    await page.evaluate(([x,y])=>
-     window.__nothing3DPreview.setRotation(x,y),[rx,ry]);
+   for(const [face] of orthogonalFaces){
+    const label=face.replace("-flat","");
+    const success=await page.evaluate(name=>
+     window.__nothing3DPreview.setVisualAuditCamera(name),label);
+    assert(success,"Failed to place the camera directly above "+label);
     const screenshot=await page.locator("#stage canvas").screenshot({
      animations:"disabled",timeout:60000
     });
     writeFileSync(output+"/"+scenario+"-"+face+".png",screenshot);
    }
+   assert(await page.evaluate(()=>
+    window.__nothing3DPreview.setVisualAuditCamera("home")),
+    "Failed to restore normal camera after flat-face inspection");
   }
  }
  // Test that unlocking has a visible effect, not merely a changed save.
