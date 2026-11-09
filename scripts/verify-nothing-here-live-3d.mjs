@@ -1158,13 +1158,32 @@ try{
  // Held items must never turn the cube automatically. Rotate to the
  // opposite face before selecting, then manually find the usable fitting.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
- await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>{
-  el.click(); // put it down
-  el.click(); // hold it again from the opposite cube side
- });
+ // A realistic player puts the coin down using Clear selection, then
+ // picks it up again after turning the cube. Dispatching two click()
+ // calls in one evaluate could leave the first render/selection event
+ // racing the second and produce a false 22-second timeout.
+ await page.locator("#ncUnselect").click({timeout:15000});
  await page.waitForFunction(()=>
-  window.__nothing3DPreview.selectedItemFlashAudit.selected==="coin",
-  null,{timeout:22000});
+  window.CriloNothingHereCube?.getState?.().selected===null&&
+  window.__nothing3DPreview?.selectedItemFlashAudit?.selected===null,
+  null,{timeout:15000});
+ await page.locator('#ncInventory [data-item="coin"]').click({timeout:15000});
+ try{
+  await page.waitForFunction(()=>
+   window.__nothing3DPreview?.selectedItemFlashAudit?.selected==="coin"&&
+   window.CriloNothingHereCube?.getState?.().selected==="coin",
+   null,{timeout:22000});
+ }catch(error){
+  const debug=await page.evaluate(()=>({
+   gameSelected:window.CriloNothingHereCube?.getState?.().selected,
+   rendererSelected:window.__nothing3DPreview?.selectedItemFlashAudit,
+   rotation:window.__nothing3DPreview?.cubeRotationDegrees,
+   button:document.querySelector('#ncInventory [data-item="coin"]')?.outerHTML,
+   narrator:document.getElementById("ncNarrator")?.textContent
+  }));
+  throw new Error("Held coin did not synchronize with 3D fitting: "+
+   JSON.stringify(debug)+"; "+String(error));
+ }
  await page.waitForTimeout(300);
  const beforeManualTurn=await page.evaluate(()=>({
   rotation:window.__nothing3DPreview.cubeRotationDegrees,
@@ -1195,15 +1214,54 @@ try{
  assert(steadyFlash.targets.includes("thing:machine")&&
   steadyFlash.visible>=1&&steadyFlash.persistent,
   "Item guidance faded after the initial blink: "+JSON.stringify(steadyFlash));
+ // The inventory is below the cube. Its click may scroll the page so
+ // the stage is OFFSCREEN. A raw page.mouse.move to that negative global
+ // coordinate hits the sticky SITE HEADER, never our canvas. Real players
+ // scroll back to the cube before hovering over the vending machine.
+ await page.locator("#stage canvas").scrollIntoViewIfNeeded({timeout:20000});
  const vendingHover=await page.evaluate(()=>
   window.__nothing3DPreview.projectPhysicalStoryObject("machine"));
  assert(vendingHover?.pick==="thing:machine",
   "A known usable miniature cannot be identified with the real mouse raycaster: "+
    JSON.stringify(vendingHover));
  const canvasRect=await page.locator("#stage canvas").boundingBox();
- await page.mouse.move(canvasRect.x+vendingHover.x,canvasRect.y+vendingHover.y);
- await page.waitForFunction(()=>window.__nothing3DPreview.itemFitHint.active,
-  null,{timeout:12000});
+ const hoverX=canvasRect.x+vendingHover.x;
+ const hoverY=canvasRect.y+vendingHover.y;
+ const viewport=page.viewportSize();
+ assert(hoverX>=0&&hoverX<viewport.width&&
+  hoverY>=0&&hoverY<viewport.height,
+  "Vending hover point is outside the browser viewport; "+
+   JSON.stringify({hoverX,hoverY,viewport,canvasRect,vendingHover}));
+ await page.evaluate(()=>{
+  window.__coinPointerSamples=[];
+  document.querySelector("#stage canvas").addEventListener("pointermove",
+   e=>window.__coinPointerSamples.push({
+    x:Math.round(e.clientX),y:Math.round(e.clientY),
+    type:e.pointerType,target:e.target?.tagName
+   }),{passive:true});
+ });
+ // Always cross the canvas boundary before inspecting the machine:
+ // moving to the already-current mouse coordinates needn't generate
+ // another PointerEvent in Chromium and leaves an old hover label hidden.
+ await page.mouse.move(4,4);
+ await page.mouse.move(hoverX,hoverY,{steps:5});
+ try{
+  await page.waitForFunction(()=>
+   window.__nothing3DPreview.itemFitHint.active,
+   null,{timeout:12000});
+ }catch(error){
+  const hoverDiag=await page.evaluate(({x,y})=>({
+   selected:window.CriloNothingHereCube?.getState?.().selected,
+   fit:window.__nothing3DPreview?.itemFitHint,
+   flashes:window.__nothing3DPreview?.selectedItemFlashAudit,
+   pointerEvents:window.__coinPointerSamples?.slice(-12),
+   elementAtMouse:document.elementFromPoint(x,y)?.outerHTML.slice(0,300),
+   canvas:document.querySelector("#stage canvas")?.getBoundingClientRect().toJSON(),
+   rect:document.querySelector("#stage")?.getBoundingClientRect().toJSON()
+  }),{x:hoverX,y:hoverY});
+  throw new Error("Hovering over the coin-compatible vending machine did "+
+   "not show Fits here: "+JSON.stringify(hoverDiag)+"; "+String(error));
+ }
  const fitHint=await page.evaluate(()=>window.__nothing3DPreview.itemFitHint);
  assert.equal(fitHint.action,"thing:machine",
   "Hover compatibility feedback was not attached to the correct physical model");
