@@ -77,7 +77,7 @@ export const CAT_POSE_CUTS=[
  [103.87,"loaf"],[115.78,"front"],
  [116.89,"loaf"],[118.78,"front"],
  [119.28,"loaf"],[130.82,"front"],
- [132.39,"loaf"],[134.699,"loaf"]
+ [132.39,"loaf"],[134.28,"front"],[134.699,"front"]
 ];
 // Every 250ms: quantized average frame luminance in the provided video,
 // measured OUTSIDE the cat's central bounding region. This allows exact
