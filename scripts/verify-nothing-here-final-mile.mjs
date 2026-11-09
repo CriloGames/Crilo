@@ -246,10 +246,10 @@ try{
   assert(actual.neckGeometry==="continuous-short-sculpt"&&
    actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined&&
    actual.duckTailOutlined&&actual.duckLegsOutlined&&
-   actual.duckFullTailContourCount===3&&
+   actual.duckFullTailContourCount===1&&
    actual.duckFullTailContoursAttached,
-   "Duck must have three real, connected tail contour meshes visible "+
-    "from both sides and behind—not only the point—at "+seconds);
+   "Duck must have ONE real continuous rounded-tail contour mesh visible "+
+    "from any spin angle, plus the pointed feather—at "+seconds);
   assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
    "The duck must have no glow during spins OR front-facing pauses");
   renderResults.push([seconds,pose,backdrop]);

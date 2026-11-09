@@ -123,44 +123,41 @@ export function buildCriloClassicDuck(){
  // A back-face shell alone is not enough: the body intersects the tail,
  // so its dark rim disappears during side and rear turns. Keep the shell
  // AND put fine strokes right on the actual visible curved 3D surface.
- const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.024);
+ const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.012);
  tail.rotation.x=-.32;
  tail.name="Rounded body of Classic duck tail";
- const tailContours=[];
- function tailContour(name,points,radius=.015){
-  const curve=new THREE.CatmullRomCurve3(
-   points.map(([x,y,z])=>new THREE.Vector3(x,y,z)),true,"centripetal"
-  );
-  const stroke=new THREE.Mesh(
-   new THREE.TubeGeometry(curve,72,radius,8,true),line
-  );
-  stroke.name=name;
-  stroke.castShadow=false;
-  tail.add(stroke);
-  tailContours.push(stroke);
-  return stroke;
- }
- // A contour on EACH side follows the entire rounded bulb, not just the
- // cone tip. The near side is visible; the far side is depth-occluded.
- // Everything rotates with the tail and remains a real 3D surface detail.
- for(const side of [-1,1]){
-  const points=Array.from({length:64},(_,i)=>{
-   const a=i*Math.PI*2/64;
-   return [side*.052,.235*.99*Math.sin(a),.28*.99*Math.cos(a)];
-  });
-  tailContour(side<0?"Left full rounded tail contour":
-   "Right full rounded tail contour",points,.014);
- }
- // From directly behind, a matching contour is seated into the shell's
- // rear curve so the tail base doesn't disappear behind the pointed tip.
- const rearFraction=.92;
- const rearZ=-.28*Math.sqrt(1-rearFraction*rearFraction)-.006;
- tailContour("Rear full rounded tail contour",
-  Array.from({length:64},(_,i)=>{
-   const a=i*Math.PI*2/64;
-   return [.29*rearFraction*Math.cos(a),
-    .235*rearFraction*Math.sin(a),rearZ];
-  }),.013);
+ // A single physical curve follows the rounded bulb's silhouette as
+ // viewed from any direction. Previously three fixed rings crossed each
+ // other during rear spins, leaving ugly parallel stripes on the tail.
+ // The ring sits on a unit sphere, which a parent group scales to match
+ // the rounded ellipsoid. Rotating it in that normalized space keeps one
+ // continuous fine black line without changing the duck's actual shape.
+ const tailEdgeRig=new THREE.Group();
+ tailEdgeRig.name="Single smoothly view-aligned tail contour";
+ tailEdgeRig.scale.set(.29,.235,.28);
+ tail.add(tailEdgeRig);
+ const fullTailContour=new THREE.Mesh(
+  new THREE.TorusGeometry(1.005,.056,10,96),line
+ );
+ fullTailContour.name="One complete outline around rounded duck tail";
+ fullTailContour.castShadow=false;
+ tailEdgeRig.add(fullTailContour);
+ const tailContours=[fullTailContour];
+ const tailEye=new THREE.Vector3();
+ const tailNormal=new THREE.Vector3();
+ const localForward=new THREE.Vector3(0,0,1);
+ root.userData.updateTailContour=(camera)=>{
+  if(!camera)return;
+  tail.updateWorldMatrix(true,false);
+  camera.getWorldPosition(tailEye);
+  tail.worldToLocal(tailEye);
+  tailNormal.set(
+   tailEye.x/.29,tailEye.y/.235,tailEye.z/.28
+  ).normalize();
+  // The mesh keeps its own 3D depth test, so the body naturally hides
+  // the embedded portion of the tail instead of drawing through it.
+  fullTailContour.quaternion.setFromUnitVectors(localForward,tailNormal);
+ };
  const tip=new THREE.Mesh(new THREE.ConeGeometry(.21,.43,8),yellow);
  tip.rotation.x=-.48;tip.position.set(0,1.15,-.97);
  tip.castShadow=true;root.add(tip);
