@@ -245,8 +245,11 @@ try{
      seconds+"s: "+JSON.stringify(actual));
   assert(actual.neckGeometry==="continuous-short-sculpt"&&
    actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined&&
-   actual.duckTailOutlined&&actual.duckLegsOutlined,
-   "Duck lost fine outlines on its head, toes, tail or legs at "+seconds);
+   actual.duckTailOutlined&&actual.duckLegsOutlined&&
+   actual.duckFullTailContourCount===3&&
+   actual.duckFullTailContoursAttached,
+   "Duck must have three real, connected tail contour meshes visible "+
+    "from both sides and behind—not only the point—at "+seconds);
   assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
    "The duck must have no glow during spins OR front-facing pauses");
   renderResults.push([seconds,pose,backdrop]);

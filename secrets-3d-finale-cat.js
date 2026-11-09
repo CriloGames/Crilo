@@ -3,7 +3,7 @@
  * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=8";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=9";
 import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=5";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=11";
 
@@ -621,6 +621,11 @@ export function createFinaleDuckShow({
     duckHeadOutlined:loadedModel?.userData.headOutline===true,
     duckToesOutlined:loadedModel?.userData.toeOutline===true,
     duckTailOutlined:loadedModel?.userData.tailOutline===true,
+    duckFullTailContourCount:loadedModel?.userData.completeTailContourCount??0,
+    duckFullTailContoursAttached:loadedModel?.userData.tailContours?.every(
+     stroke=>stroke.parent?.name==="Rounded body of Classic duck tail"&&
+      stroke.geometry?.type==="TubeGeometry"
+    )??false,
     duckLegsOutlined:loadedModel?.userData.legOutline===true,
     spinGlowStrength:0,spinGlowVisible:false,
     postlude:eggEnding?.getState()||{postludePhase:"idle"},

@@ -119,14 +119,52 @@ export function buildCriloClassicDuck(){
  const headOutline=new THREE.Mesh(headEdgeGeometry,outline);
  headOutline.name="Fine black silhouette around duck head";
  root.add(headOutline);
- // The familiar Classic mascot has one upturned pointed feather tail.
- const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.018);
+ // The Classic duck has one rounded rear tail with a pointed feather.
+ // A back-face shell alone is not enough: the body intersects the tail,
+ // so its dark rim disappears during side and rear turns. Keep the shell
+ // AND put fine strokes right on the actual visible curved 3D surface.
+ const tail=oval(root,yellow,[0,.92,-.83],[.29,.235,.28],.024);
  tail.rotation.x=-.32;
+ tail.name="Rounded body of Classic duck tail";
+ const tailContours=[];
+ function tailContour(name,points,radius=.015){
+  const curve=new THREE.CatmullRomCurve3(
+   points.map(([x,y,z])=>new THREE.Vector3(x,y,z)),true,"centripetal"
+  );
+  const stroke=new THREE.Mesh(
+   new THREE.TubeGeometry(curve,72,radius,8,true),line
+  );
+  stroke.name=name;
+  stroke.castShadow=false;
+  tail.add(stroke);
+  tailContours.push(stroke);
+  return stroke;
+ }
+ // A contour on EACH side follows the entire rounded bulb, not just the
+ // cone tip. The near side is visible; the far side is depth-occluded.
+ // Everything rotates with the tail and remains a real 3D surface detail.
+ for(const side of [-1,1]){
+  const points=Array.from({length:64},(_,i)=>{
+   const a=i*Math.PI*2/64;
+   return [side*.052,.235*.99*Math.sin(a),.28*.99*Math.cos(a)];
+  });
+  tailContour(side<0?"Left full rounded tail contour":
+   "Right full rounded tail contour",points,.014);
+ }
+ // From directly behind, a matching contour is seated into the shell's
+ // rear curve so the tail base doesn't disappear behind the pointed tip.
+ const rearFraction=.92;
+ const rearZ=-.28*Math.sqrt(1-rearFraction*rearFraction)-.006;
+ tailContour("Rear full rounded tail contour",
+  Array.from({length:64},(_,i)=>{
+   const a=i*Math.PI*2/64;
+   return [.29*rearFraction*Math.cos(a),
+    .235*rearFraction*Math.sin(a),rearZ];
+  }),.013);
  const tip=new THREE.Mesh(new THREE.ConeGeometry(.21,.43,8),yellow);
  tip.rotation.x=-.48;tip.position.set(0,1.15,-.97);
  tip.castShadow=true;root.add(tip);
- // The raised pointed feather is a separate cone; outline its silhouette
- // too, otherwise the tail loses its dark edge whenever the duck turns.
+ // Continue the same subtle outline around the pointed feather tip.
  const tipEdge=new THREE.Mesh(new THREE.ConeGeometry(.222,.449,8),outline);
  tipEdge.rotation.copy(tip.rotation);
  tipEdge.position.copy(tip.position);
@@ -185,6 +223,8 @@ export function buildCriloClassicDuck(){
  root.userData.headOutline=true;
  root.userData.toeOutline=true;
  root.userData.tailOutline=true;
+ root.userData.tailContours=tailContours;
+ root.userData.completeTailContourCount=tailContours.length;
  root.userData.legOutline=true;
  root.userData.walkLegs=walkLegs;
  root.userData.materialPalette={
