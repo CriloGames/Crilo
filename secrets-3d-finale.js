@@ -37,7 +37,7 @@ export function createNothingHereFinale({
  // cat remains exactly above the opening regardless of cube scale/orientation.
  const anchor=new THREE.Vector3();
  const duckShow=createFinaleDuckShow({
-  scene,stage,invalidate,reducedMotion,
+  scene,stage,camera,controls,invalidate,reducedMotion,
   getCatAnchor:()=>frontFace.getWorldPosition(anchor),
   onTimelineFrame:seconds=>setNetFade(seconds)
  });
@@ -362,6 +362,8 @@ export function createNothingHereFinale({
  return {
   begin,restoreComplete,
   seekForVisualTest:t=>phase==="open"?duckShow.seekForVisualTest(t):null,
+  seekEggEndingForVisualTest:t=>phase==="open"?
+   duckShow.seekEggEndingForVisualTest(t):null,
   testPendingAudioForVisualTest:()=>phase==="open"?
    duckShow.simulatePendingAudioForTest():null,
   // Deterministic WebGL regression for the pre-music physical reveal.
