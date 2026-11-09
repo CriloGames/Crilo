@@ -3,7 +3,7 @@
  * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=9";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=10";
 import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=5";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=11";
 
@@ -380,6 +380,9 @@ export function createFinaleDuckShow({
    (Number.isFinite(anchor?.z)?anchor.z:-.3)-
     (wormhole&&!reduceEffects?.45*Math.sin(tunnelLocal*1.9):0)
   );
+  // Align the ONE rounded-tail silhouette with the actual rendered camera
+  // after the duck's latest spin orientation has been applied.
+  loadedModel?.userData.updateTailContour?.(camera);
   const white=p===0||p===3||p===6;
   key.color.setHex(p===2||p===7?0xd1dbff:p===1?0xffd8cb:
    p===8?0xffa2c2:0xfff2e6);
@@ -623,8 +626,8 @@ export function createFinaleDuckShow({
     duckTailOutlined:loadedModel?.userData.tailOutline===true,
     duckFullTailContourCount:loadedModel?.userData.completeTailContourCount??0,
     duckFullTailContoursAttached:loadedModel?.userData.tailContours?.every(
-     stroke=>stroke.parent?.name==="Rounded body of Classic duck tail"&&
-      stroke.geometry?.type==="TubeGeometry"
+     stroke=>stroke.parent?.name==="Single smoothly view-aligned tail contour"&&
+      stroke.geometry?.type==="TorusGeometry"
     )??false,
     duckLegsOutlined:loadedModel?.userData.legOutline===true,
     spinGlowStrength:0,spinGlowVisible:false,
