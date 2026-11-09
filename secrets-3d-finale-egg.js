@@ -12,7 +12,7 @@ export function createFinaleEggEnding({
  getAnchor,group,spinner,catRig,duck,shader,background
 }){
  let phase="idle",startTime=0,crackTime=0,elapsed=0,frameId=0;
- let eggRoot=null,eggWhole=null,eggOutline=null,topHalf=null,bottomHalf=null;
+ let eggRoot=null,eggWhole=null,eggOutline=null,topHalf=null,bottomHalf=null,eggCrack=null;
  let eggButton=null,endCard=null,origin=null,baseY=0,baseZ=0;
  const legs=duck.userData.walkLegs||[];
  const up=new THREE.Vector3(),projected=new THREE.Vector3();
@@ -57,6 +57,18 @@ export function createFinaleEggEnding({
   shadow.rotation.x=-Math.PI/2;
   shadow.position.set(0,-.49,-.015);
   eggRoot.add(shadow);
+  // A short hairline zigzag hints at movement INSIDE the shell.
+  // It only becomes visible once the duck has walked off.
+  const crackPoints=[
+   [-.11,.14,.304],[-.042,.082,.331],[.013,.114,.334],
+   [.047,.026,.338],[.113,-.018,.31]
+  ].map(p=>new THREE.Vector3(...p));
+  eggCrack=new THREE.Mesh(
+   new THREE.TubeGeometry(new THREE.CatmullRomCurve3(crackPoints),24,.007,6,false),
+   new THREE.MeshBasicMaterial({color:0x655145})
+  );
+  eggCrack.visible=false;
+  eggRoot.add(eggCrack);
   const fill=new THREE.PointLight(0xffffff,.95,4.5);
   fill.position.set(-.7,1.1,1.2);
   eggRoot.add(fill);
@@ -170,6 +182,7 @@ export function createFinaleEggEnding({
    eggRoot.scale.setScalar(1);
    const crack=ease((performance.now()-crackTime)/670);
    eggWhole.visible=false;eggOutline.visible=false;
+   eggCrack.visible=false;
    topHalf.visible=true;bottomHalf.visible=true;
    eggRoot.rotation.z=0;
    eggRoot.position.y=baseY+.48;
@@ -183,6 +196,7 @@ export function createFinaleEggEnding({
    }
   }else{
    eggWhole.visible=true;eggOutline.visible=true;
+   eggCrack.visible=phase==="egg"||t>=4.65;
    topHalf.visible=false;bottomHalf.visible=false;
    topHalf.position.set(0,0,0);topHalf.rotation.set(0,0,0);
    if(phase==="egg")renderWalking(Math.max(t,5.0));
@@ -244,6 +258,7 @@ export function createFinaleEggEnding({
   if(frameId)cancelAnimationFrame(frameId);
   frameId=0;phase="idle";elapsed=0;
   if(eggRoot)eggRoot.visible=false;
+  if(eggCrack)eggCrack.visible=false;
   if(eggButton)eggButton.hidden=true;
   if(endCard)endCard.hidden=true;
   if(catRig)resetBody();
