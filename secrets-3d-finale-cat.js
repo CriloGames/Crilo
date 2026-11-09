@@ -309,7 +309,7 @@ export function createFinaleCatShow({
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
  let initialized=false,playing=false,modelRequested=false,raf=0;
- let emerging=false,emergenceProgress=0;
+ let emerging=false,emergenceProgress=0,emergenceScale=0;
  let startTime=0,lastPaint=0,elapsed=0,source="procedural-fallback";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
@@ -607,7 +607,7 @@ export function createFinaleCatShow({
  // Before the soundtrack, reveal the SAME 3D cat from inside the opening
  // physical cube. Its entrance is independent of the music-clock choreography:
  // the box becomes a horizontal T only AFTER the cat has started rising.
- function previewEmergence(progress,boxCenter,landingCenter){
+ function previewEmergence(progress,boxCenter,landingCenter,scaleCap=1){
   ensure();
   const t=clip(Number(progress)||0,0,1);
   // Smooth the physical movement; the timeline supplies the overall pacing.
@@ -617,7 +617,11 @@ export function createFinaleCatShow({
   playing=false;
   background.visible=false;
   group.visible=true;
-  group.scale.setScalar(.14+.86*e);
+  // Keep the growing animal inside the camera during the unfolding.
+  // At the midpoint the view still looks down onto the six cube faces,
+  // so full music-scene scale would crop the cat's head above the canvas.
+  emergenceScale=Math.min(.14+.86*e,clip(scaleCap,.14,1));
+  group.scale.setScalar(emergenceScale);
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
@@ -635,6 +639,7 @@ export function createFinaleCatShow({
   ensure();
   emerging=false;
   emergenceProgress=1;
+  emergenceScale=1;
   group.scale.setScalar(1);
   group.visible=true;
   background.visible=true;
@@ -649,6 +654,7 @@ export function createFinaleCatShow({
   playing=false;
   emerging=false;
   emergenceProgress=0;
+  emergenceScale=0;
   if(raf)cancelAnimationFrame(raf);
   raf=0;
   if(group){group.visible=false;group.scale.setScalar(1);}
@@ -674,6 +680,7 @@ export function createFinaleCatShow({
    return {
     visible:!!group?.visible,dancing:playing,
     emerging,emergenceProgress:+emergenceProgress.toFixed(3),
+    emergenceScale:+emergenceScale.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
     emergenceSameRig:emerging&&!!catRig,
     durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
