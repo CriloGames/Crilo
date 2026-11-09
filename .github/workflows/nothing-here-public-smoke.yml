@@ -1,0 +1,39 @@
+name: Nothing Here — public site deployment smoke
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/verify-nothing-here-public-smoke.mjs'
+      - '.github/workflows/nothing-here-public-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-public-webgl:
+    name: Public crilo.fun load, assets, soundtrack and fullscreen
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify public smoke syntax
+        run: node --check scripts/verify-nothing-here-public-smoke.mjs
+      - name: Install real Chromium
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verify actual deployed Nothing Here and latest static assets
+        run: node scripts/verify-nothing-here-public-smoke.mjs
+      - name: Save rendered public game snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nothing-here-public-deployment-screenshot
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
