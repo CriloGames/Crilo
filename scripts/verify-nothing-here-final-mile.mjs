@@ -197,16 +197,20 @@ try{
   assert(actual.volumetricLoaf&&actual.meshCount>0&&
    Math.abs(actual.stageFrameLuma-actual.referenceFrameLuma)<.002,
    "A real 3D pose or measured exposure was lost at "+seconds+"s");
-  if(seconds===2||seconds===34){
-   assert(Math.abs(actual.actualRotations.x)>1&&
-    (seconds===34?Math.abs(actual.actualRotations.z-1.46)<.05:
-     Math.abs(actual.actualRotations.z)<.1),
-    "The loaf must BARREL ROLL and match reference camera orientation at "+
-     seconds+"s: "+JSON.stringify(actual));
+  if(pose==="loaf"){
+   assert(Math.abs(actual.actualRotations.x)<.001&&
+    Math.abs(actual.actualRotations.z)<.001&&
+    actual.revolutionsPerSecond>=5&&
+    actual.spinAxis==="y",
+    "The loaf must spin left-right around Y at the video speed, never "+
+     "barrel-roll around X or pinwheel around Z at "+seconds+"s: "+
+     JSON.stringify(actual));
   }
   if(pose==="front")
-   assert(Math.abs(actual.actualRotations.x)<.001,
-    "The forward-facing tabby should not be tumbling at "+seconds);
+   assert(Math.abs(actual.actualRotations.x)<.001&&
+    Math.abs(actual.actualRotations.y)<.001&&
+    Math.abs(actual.actualRotations.z)<.001,
+    "The forward-facing tabby should not be spinning at "+seconds);
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -216,6 +220,15 @@ try{
    });
   }
  }
+ // At 30fps the opening spin makes one full left-right revolution
+ // every FIVE frames, with no change to the barrel/forward pitch.
+ const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6);
+ const t1=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6+1/30);
+ const t5=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6+5/30);
+ assert(Math.abs(t1.actualRotations.y-t0.actualRotations.y-2*Math.PI/5)<.035&&
+  Math.abs(t5.actualRotations.y-t0.actualRotations.y-2*Math.PI)<.035,
+  "Cat yaw does not reproduce the five-frame video spin cycle: "+
+   JSON.stringify({t0,t1,t5}));
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
  console.log("PASS: restored 60/60 finale has all six textures and a real 3D cat");

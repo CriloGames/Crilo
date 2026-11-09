@@ -20,12 +20,14 @@ function furTexture(seed=1,bright=false){
   const u=x/512,v=y/256;
   const n=Math.sin((x+seed*37)*12.9898+(y+seed*29)*78.233)*43758.5453;
   const grain=(n-Math.floor(n))-.5;
-  const coarse=Math.sin(u*27+2.3*Math.sin(v*14+seed)+.55*Math.sin(u*13));
-  const stripes=Math.pow(Math.max(0,coarse),6);
+  // Fine tabby bars with gentle waviness rather than huge cloth-like
+  // spiral swirls across the entire body.
+  const bands=Math.sin(u*34+1.0*Math.sin(v*7+seed)+.6*Math.sin(u*8+v*4));
+  const stripes=Math.pow(Math.max(0,bands),9);
   const mottles=Math.sin(u*69+v*43)*Math.sin(u*21-v*17);
-  const dark= .43*stripes+.06*mottles;
-  const light=.91+grain*.18+Math.sin(y*.35+x*.13)*.04;
-  const color=bright?[113,95,78]:[78,65,55];
+  const dark=.50*stripes+.04*mottles;
+  const light=.91+grain*.13+Math.sin(y*.35+x*.13)*.025;
+  const color=bright?[132,124,113]:[109,103,98];
   const i=(y*512+x)*4;
   data[i]=Math.max(0,Math.min(255,color[0]*light-dark*102));
   data[i+1]=Math.max(0,Math.min(255,color[1]*light-dark*95));
@@ -64,54 +66,64 @@ function ellipsoid(parent,mat,size,pos,rotate){
 }
 export function makeSpinningLoaf(){
  const root=new THREE.Group();
- root.name="Reference video: compact 3D spinning tabby silhouette";
- const back=furTexture(3),shoulder=furTexture(7,true);
- const body=fur(back),top=fur(shoulder),shadow=new THREE.MeshStandardMaterial({
-  color:0x322e2a,roughness:.98
+ root.name="Compact 3D gray tabby rotating horizontally, head at +X";
+ const back=furTexture(3),headFur=furTexture(7,true);
+ const body=fur(back),headMat=fur(headFur);
+ const shadow=new THREE.MeshStandardMaterial({
+  color:0x423f3d,roughness:.98
  }),muzzle=new THREE.MeshStandardMaterial({
-  color:0x806e5b,roughness:.97
+  color:0xc1b5a9,roughness:.99
  }),nose=new THREE.MeshStandardMaterial({
-  color:0x725453,roughness:.88
+  color:0xba8587,roughness:.94
+ }),eye=new THREE.MeshStandardMaterial({
+  color:0xa49c73,roughness:.72
+ }),pupil=new THREE.MeshStandardMaterial({
+  color:0x252622,roughness:.62
+ }),innerEar=new THREE.MeshStandardMaterial({
+  color:0xa07879,roughness:.98
  });
- // Cat loaf: widest at shoulders, low and round, horizontal in the video.
- // x is the cat's longitudinal direction; z adds real visible 3D depth.
- ellipsoid(root,body,[.72,.34,.44],[-.03,.30,0]);
- ellipsoid(root,top,[.46,.345,.43],[.21,.34,.01]);
- ellipsoid(root,body,[.29,.255,.31],[-.60,.29,.01]);
- // Shoulder, head bump and a small muzzle are visible as the loaf rolls.
- ellipsoid(root,top,[.285,.27,.315],[.58,.35,.08]);
- ellipsoid(root,muzzle,[.125,.15,.205],[.80,.26,.105]);
- ellipsoid(root,nose,[.042,.031,.045],[.908,.23,.205]);
- // Crouched paws appear as a narrow dark underside, not long legs.
- ellipsoid(root,shadow,[.61,.11,.33],[-.06,.072,.02]);
- for(const x of [-.45,.40]){
-  ellipsoid(root,body,[.16,.09,.18],[x,.10,.17]);
+ // ONE unbroken compact torso, not four intersecting cushions that
+ // resemble a rolled blanket. Head and shoulders remain distinct.
+ ellipsoid(root,body,[.72,.31,.38],[-.09,.32,0]);
+ ellipsoid(root,headMat,[.32,.27,.305],[.57,.37,0]);
+ // Natural chin and left/right muzzle lobes (head faces +X).
+ ellipsoid(root,muzzle,[.11,.115,.145],[.83,.23,-.078]);
+ ellipsoid(root,muzzle,[.11,.115,.145],[.83,.23,.078]);
+ ellipsoid(root,nose,[.045,.033,.055],[.941,.31,0]);
+ // Two forward-facing real feline eyes. Their pupils are mounted on the
+ // front of the head, not one big circular dog nose.
+ for(const z of [-.155,.155]){
+  ellipsoid(root,eye,[.04,.044,.055],[.851,.43,z]);
+  ellipsoid(root,pupil,[.021,.033,.032],[.883,.43,z]);
+  const ear=new THREE.Mesh(new THREE.ConeGeometry(.102,.21,3),headMat);
+  ear.rotation.x=Math.PI/2;
+  ear.rotation.z=-.10;
+  ear.position.set(.615,.675,z*1.25);
+  root.add(ear);
+  const pink=new THREE.Mesh(new THREE.ConeGeometry(.064,.13,3),innerEar);
+  pink.rotation.x=Math.PI/2;
+  pink.position.set(.668,.671,z*1.25);
+  root.add(pink);
  }
- // Short folded tail, tucked against the hips. A raised upright tail was
- // the most visible mismatch with the original spinning-cat clip.
- ellipsoid(root,body,[.20,.17,.19],[-.70,.27,-.21]);
- ellipsoid(root,shadow,[.13,.12,.14],[-.73,.21,-.31]);
- // Subtle ear outlines just above the right-hand head bump.
- for(const z of [-.11,.20]){
-  const ear=new THREE.Mesh(new THREE.ConeGeometry(.096,.18,6),top);
-  ear.position.set(.68,.57,z);ear.rotation.z=-.22;
-  ear.castShadow=true;root.add(ear);
+ // Tucked forepaws and hind paws: compact side view while spinning.
+ for(const x of [-.45,.36])for(const z of [-.22,.22]){
+  ellipsoid(root,body,[.16,.082,.115],[x,.085,z]);
  }
- // Half-shadows/striping on the outer shell preserve a realistic tabby
- // impression as the model rotates through light, including the rear view.
- const bandMaterial=new THREE.MeshStandardMaterial({
-  color:0x312d2a,transparent:true,opacity:.24,roughness:.99
- });
- for(let i=0;i<9;i++){
-  const x=-.53+i*.14;
-  const a= -.2+i*.54;
-  const stripe=ellipsoid(root,bandMaterial,
-   [.035,.018,.17],[x,.60-Math.abs(x)*.075,.23*Math.sin(a)]);
-  stripe.rotation.z=.28*Math.sin(i*2.1);
+ // A short tail folds onto the rump; no upright shaft can break the spin
+ // silhouette as it flips from side -> front -> opposite side.
+ ellipsoid(root,body,[.16,.145,.17],[-.73,.28,-.17]);
+ // Tiny whiskers visibly establish the identity as a cat at slow frames.
+ const whisker=new THREE.LineBasicMaterial({color:0x746d67,transparent:true,
+  opacity:.65,depthWrite:false});
+ for(const side of [-1,1])for(const y of [.225,.27,.315]){
+  const g=new THREE.BufferGeometry().setFromPoints([
+   new THREE.Vector3(.90,y,side*.10),
+   new THREE.Vector3(.90,y+.01,side*.31),
+   new THREE.Vector3(.84,y+.02,side*.43)
+  ]);
+  root.add(new THREE.Line(g,whisker));
  }
- // Center geometry about a true 3D rotation axis. The pose controller
- // moves this whole cat, not a 2D photograph.
- root.position.set(0,0,0);
- root.userData.kind="volumetric-tabby-loaf";
+ // Meshes and fur are original 3D geometry, not sampled video frames.
+ root.userData.kind="3d-gray-tabby-yaw";
  return root;
 }
