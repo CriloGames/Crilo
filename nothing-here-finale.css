@@ -113,3 +113,82 @@ body.nc-page.nc-finale-active.nc-moon .nc-world::after{
  transition:none!important;
  pointer-events:none;
 }
+
+
+/* Post-credits mystery egg: an accessible transparent hit region follows
+   the real Three.js egg, not an unrelated flat illustration. */
+.nc-page #stage .nc-finale-egg-hit[hidden],
+.nc-page #stage .nc-finale-end-card[hidden]{display:none!important}
+.nc-page #stage .nc-finale-egg-hit{
+ position:absolute;z-index:24;display:block;
+ width:clamp(88px,14vw,124px);height:clamp(108px,18vw,154px);
+ transform:translate(-50%,-50%);padding:0;margin:0;
+ cursor:pointer;border:2px solid transparent;border-radius:50%;
+ background:transparent;touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent;
+}
+.nc-page #stage .nc-finale-egg-hit span{
+ position:absolute;top:94%;left:50%;transform:translateX(-50%);
+ display:block;width:max-content;max-width:180px;
+ padding:7px 14px;border:2px solid #453b35;border-radius:999px;
+ background:#fff5d9;color:#342c38;
+ font:900 13px/1.2 ui-rounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+ box-shadow:0 3px 0 #453b35,0 6px 16px #29303728;
+}
+.nc-page #stage .nc-finale-egg-hit:is(:hover,:focus-visible){
+ outline:3px solid #edb769;outline-offset:4px;
+}
+.nc-page #stage .nc-finale-egg-hit:hover span{
+ transform:translate(-50%,-3px);background:#ffe9af;
+}
+.nc-page #stage .nc-finale-end-card{
+ box-sizing:border-box;position:absolute;z-index:26;
+ left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(92%,570px);padding:clamp(18px,4vw,36px);
+ text-align:center;pointer-events:none;
+ border:4px solid #342b41;border-radius:clamp(23px,5vw,38px);
+ color:#302b40;background:linear-gradient(145deg,#fffce7 0%,#ffeec9 55%,#fbdbe5 100%);
+ box-shadow:0 9px 0 #342b41,0 20px 42px #21223250,
+  inset 0 0 0 3px #ffffffdd;
+ animation:nc-finale-egg-card-pop .55s cubic-bezier(.2,1.5,.45,1) both;
+ font-family:ui-rounded,"Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+}
+.nc-page #stage .nc-finale-end-title{
+ margin:0 0 10px;color:#f7b34d;
+ font-size:clamp(48px,10vw,88px);line-height:.98;
+ font-weight:1000;letter-spacing:-.065em;
+ -webkit-text-stroke:clamp(1.5px,.35vw,3px) #342b41;
+ paint-order:stroke fill;
+ text-shadow:3px 5px 0 #342b41;
+}
+.nc-page #stage .nc-finale-end-question{
+ margin:0;color:#805ba3;
+ font-size:clamp(21px,4.6vw,33px);
+ font-weight:1000;letter-spacing:-.04em;
+}
+.nc-page #stage .nc-finale-end-answer{
+ margin:10px auto 0;max-width:450px;
+ font-size:clamp(20px,4vw,31px);font-weight:950;
+ line-height:1.23;letter-spacing:-.045em;
+}
+.nc-page #stage .nc-finale-end-answer em{
+ color:#e06c67;font-style:normal;
+ text-decoration:underline;text-decoration-thickness:3px;
+ text-underline-offset:4px;
+}
+.nc-page #stage .nc-finale-end-congrats{
+ margin-top:20px;font-size:clamp(15px,2.8vw,21px);
+ font-weight:800;color:#54465d;
+}
+@keyframes nc-finale-egg-card-pop{
+ from{opacity:0;transform:translate(-50%,-43%) scale(.77)}
+ to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@media(max-width:600px){
+ .nc-page #stage .nc-finale-egg-hit span{font-size:12px;padding:6px 11px}
+ .nc-page #stage .nc-finale-end-card{border-width:3px;box-shadow:0 6px 0 #342b41,0 15px 30px #21223250}
+}
+@media(prefers-reduced-motion:reduce){
+ .nc-page #stage .nc-finale-end-card{animation:none}
+ .nc-page #stage .nc-finale-egg-hit:hover span{transform:translateX(-50%)}
+}
