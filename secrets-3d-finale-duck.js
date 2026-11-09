@@ -9,6 +9,9 @@ export function buildCriloClassicDuck(){
  const root=new THREE.Group();
  root.name="Crilo Classic duck mascot — one complete 3D rig";
  root.userData.criloMascot="classic";
+ root.userData.neckGeometry="continuous-short-sculpt";
+ root.userData.neckSeams=0;
+ root.userData.stillFacingAxis="+Z";
  const yellow=new THREE.MeshStandardMaterial({
   color:0xffe076,roughness:.83,metalness:0
  });
