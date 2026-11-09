@@ -125,6 +125,13 @@ export function buildCriloClassicDuck(){
  const tip=new THREE.Mesh(new THREE.ConeGeometry(.21,.43,8),yellow);
  tip.rotation.x=-.48;tip.position.set(0,1.15,-.97);
  tip.castShadow=true;root.add(tip);
+ // The raised pointed feather is a separate cone; outline its silhouette
+ // too, otherwise the tail loses its dark edge whenever the duck turns.
+ const tipEdge=new THREE.Mesh(new THREE.ConeGeometry(.222,.449,8),outline);
+ tipEdge.rotation.copy(tip.rotation);
+ tipEdge.position.copy(tip.position);
+ tipEdge.name="Subtle dark tail-tip silhouette";
+ root.add(tipEdge);
  // Wide, flattened orange top bill and thinner lower bill, facing +Z.
  const upper=oval(root,billOrange,[0,1.18,.75],[.285,.078,.22],.018);
  upper.rotation.x=-.07;
@@ -152,6 +159,13 @@ export function buildCriloClassicDuck(){
   const leg=new THREE.Mesh(new THREE.CylinderGeometry(.026,.034,.36,12),footBrown);
   leg.position.set(sign*.22,.25,.085);
   leg.castShadow=true;root.add(leg);
+  // A very thin back-face shell outlines the leg from front AND side.
+  // Its bottom remains buried inside the webbed paddle foot.
+  const legEdge=new THREE.Mesh(
+   new THREE.CylinderGeometry(.035,.043,.365,12),outline);
+  legEdge.position.copy(leg.position);
+  legEdge.name="Fine dark duck-leg silhouette";
+  root.add(legEdge);
   const foot=oval(root,footBrown,[sign*.22,.095,.19],[.155,.06,.205],.012);
   foot.rotation.y=sign*.08;
   for(const dx of [-.075,0,.075])
@@ -166,9 +180,10 @@ export function buildCriloClassicDuck(){
  // When the music says spin, the same unmodified model rotates about Y.
  root.rotation.y=0;
  root.scale.setScalar(.85); // deliberately smaller than the former tabby
- root.userData.glowMaterials=[yellow,wingYellow,billOrange,footBrown];
  root.userData.headOutline=true;
  root.userData.toeOutline=true;
+ root.userData.tailOutline=true;
+ root.userData.legOutline=true;
  root.userData.materialPalette={
   body:"#ffe076",beak:"#f7ab67",outline:"#453b35",feet:"#c88a58"
  };
