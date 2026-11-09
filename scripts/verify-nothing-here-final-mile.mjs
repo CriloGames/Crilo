@@ -294,11 +294,13 @@ try{
   "One real cat must climb out of the open lid BEFORE any side unfolds: "+
    JSON.stringify(opening[1]));
  assert(opening[2].entranceProgress>.80&&
-  opening[2].openingSideAngle>.3,
+  opening[2].openingSideAngle>.3&&
+  opening[2].cat.emergenceScale<.57,
   "The T shape must begin AFTER the cat has substantially emerged: "+
    JSON.stringify(opening[2]));
  assert(opening[3].entranceProgress>=.999&&
-  opening[3].openingSideAngle>1.50,
+  opening[3].openingSideAngle>1.50&&
+  opening[3].cat.emergenceScale>.78,
   "Cat should hover over a nearly-complete T before the music: "+
    JSON.stringify(opening[3]));
  console.log("PASS: open lid -> same cat rises -> T folds flat -> music fade");
