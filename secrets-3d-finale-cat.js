@@ -60,7 +60,7 @@ function backdropMaterial(){
  return new THREE.ShaderMaterial({
   uniforms:{uTime:{value:0},uScene:{value:0},uAspect:{value:1},
    uBeat:{value:0},uFlash:{value:0},uSideways:{value:0},
-   uReferenceLuma:{value:.5},uGreenPale:{value:0}},
+   uReferenceLuma:{value:.5},uGreenPale:{value:0},uVortexTravel:{value:0}},
   depthTest:false,depthWrite:false,toneMapped:false,
   vertexShader:`
    varying vec2 vUv;
@@ -68,7 +68,7 @@ function backdropMaterial(){
   `,
   fragmentShader:`
    uniform float uTime,uScene,uAspect,uBeat,uFlash,uSideways;
-   uniform float uReferenceLuma,uGreenPale;
+   uniform float uReferenceLuma,uGreenPale,uVortexTravel;
    varying vec2 vUv;
    const float PI=3.14159265359;
    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -122,6 +122,41 @@ function backdropMaterial(){
     col+=vec3(.79,.90,1.)*forward*(.12+.17*uBeat);
     return col;
    }
+   // Continuous volumetric vortex: radial depth, folded light shafts
+   // and advancing luminous portal rings rather than a flat LED grid.
+   vec3 cinematicWormhole(vec2 p,float t,float alternate){
+    vec2 q=p-vec2(.028*sin(t*.6),.025*cos(t*.43));
+    float r=max(.012,length(q)),a=atan(q.y,q.x);
+    float depth=1./(.16+r*2.45);
+    float bend=.30*sin(a*3.+t*.3)+.14*sin(a*7.-t*.52);
+    float theta=a+bend/(1.+r*3.);
+    float flow=depth*9.5-t*3.8-uVortexTravel*4.2;
+    float filament=pow(max(0.,.5+.5*cos(theta*18.+
+      1.8*sin(flow*.63+theta*5.))),15.);
+    float streak=pow(max(0.,.5+.5*cos(theta*9.+
+      .6*sin(flow*.49))),10.);
+    float ring=pow(max(0.,.5+.5*cos(flow*5.6)),9.);
+    float second=pow(max(0.,.5+.5*cos(flow*3.8+1.4)),12.);
+    float clouds=fbm(vec2(theta*2.9,flow*.16)+vec2(t*.20,-t*.18));
+    float shift=.5+.5*sin(theta*4.+flow*.23+t*.3);
+    vec3 blue=vec3(.026,.30,1.),pink=vec3(1.,.05,.81);
+    vec3 col=mix(blue,pink,shift);
+    col=mix(col,vec3(.55,.08,1.),clouds*.4);
+    col*=.20+filament*1.8+streak*.56;
+    col+=pink*ring*(.52+.4*uBeat)+blue*second*.58;
+    col+=mix(blue,pink,.5+.5*sin(t*1.2))*
+      exp(-r*7.5)*(.68+.24*uBeat);
+    col=mix(col,vec3(.015,.02,.27),exp(-r*27.)*.46);
+    col+=pink*smoothstep(.26,.82,r)*
+      (.10+.26*pow(max(0.,sin(theta*6.-t*.7)),4.));
+    col+=vec3(.45,.65,1.)*filament*
+      (1.-smoothstep(.03,.95,r))*.42;
+    if(alternate>.5){
+     float tracer=pow(max(0.,.5+.5*cos(theta*14.-flow*.12)),10.);
+     col+=vec3(.17,1.,.95)*tracer*(.25+.68*ring);
+    }
+    return col;
+   }
    void main(){
     float t=uTime;
     vec2 p=(vUv-.5)*vec2(uAspect,1.);
@@ -147,31 +182,14 @@ function backdropMaterial(){
      warm+=vec3(.83,.27,.64)*halo*.35;
      color=warm+stars(uv*vec2(96.,62.),3.)*vec3(1.,.91,.82);
     }else if(uScene<2.5){
-     // Reference 33–40s: rushing BLUE / MAGENTA wormhole with huge
-     // blinding white portals, twisting depth and light streaks.
-     vec2 warped=p+vec2(.058*sin(t*.92+p.y*3.),
-       .042*cos(t*.75+p.x*4.));
-     float w=max(abs(warped.x)*.84,abs(warped.y)*1.18);
-     float d=-log(max(w,.015));
-     float angle=atan(warped.y,warped.x);
-     float speed=d*14.-t*15.;
-     float rush=pow(max(0.,.5+.5*cos(speed)),16.);
-     float shafts=pow(max(0.,.5+.5*cos(angle*18.+
-       2.5*sin(d*3.-t*2.2))),22.);
-     float blueNoise=fbm(warped*9.-vec2(t*1.2,-t*.6));
-     vec3 tunnel=ledWormhole(p,t,.04);
-     vec3 blue=vec3(.018,.13,.94)*(.65+.35*blueNoise);
-     vec3 pink=vec3(1.,.075,.87);
-     color=vec3(.008,.015,.10)+tunnel*.85+
-      blue*(.5+shafts*1.35)+
-      pink*(rush*.68+pow(max(0.,.5+.5*cos(angle*8.-t*.7)),35.)*.42);
-     float gate=exp(-pow((abs(warped.x)-.49)*25.,2.))*
-       (1.-smoothstep(.35,.63,abs(warped.y)));
-     float aura=exp(-pow((abs(warped.x)-.49)*11.,2.))*
-       (1.-smoothstep(.23,.68,abs(warped.y)));
-     color+=vec3(1.,.98,1.)*gate*(1.5+.65*uBeat)+
-       pink*aura*.58+vec3(.28,.78,1.)*shafts*.60;
-     color+=vec3(.83,.91,1.)*exp(-w*6.)*(.25+.6*uBeat);
+     // 33–40s / 107–114s: fly THROUGH a deep blue-pink vortex.
+     vec2 warped=p+vec2(.03*sin(t*.9),.04*cos(t*.7));
+     color=cinematicWormhole(warped,t,0.);
+     float blade=exp(-pow((abs(warped.x)-.51)*17.,2.))*
+      (1.-smoothstep(.32,.70,abs(warped.y)));
+     color+=vec3(1.,.96,1.)*blade*(1.45+.55*uBeat);
+     color+=vec3(.32,.42,1.)*
+      exp(-pow((abs(warped.x)-.51)*5.7,2.))*.30;
     }else if(uScene<3.5){
      color=vec3(.982,.986,1.);
     }else if(uScene<4.5){
@@ -190,21 +208,19 @@ function backdropMaterial(){
      color=vec3(.91,.95,1.)+vec3(.04,.19,.34)*ring*.45;
      color+=vec3(.07,.13,.26)*(.5+.5*sin(a*13.+t))*ring*.3;
     }else if(uScene<7.5){
-     // Reference 40–46s and 114–120s: fast-moving square tunnel made of
-     // hundreds of blue, cyan and magenta LED tiles. The earlier scene
-     // rendered an almost stationary flower instead of traveling.
-     vec3 led=ledWormhole(p,t,.27);
-     float square=max(abs(p.x)*.77,abs(p.y)*1.12);
-     float depth=-log(max(.006,square));
-     float frames=pow(max(0.,.5+.5*cos(depth*16.-t*12.)),28.);
-     float arcs=pow(max(0.,.5+.5*cos(atan(p.y,p.x)*24.+
-       .9*sin(depth*3.-t*1.1))),19.);
-     color=led*1.22+
-       vec3(.87,.13,.96)*frames*(.5+.5*uBeat)+
-       vec3(.14,.77,1.)*arcs*.37+
-       vec3(.20,.13,.56)*exp(-square*3.)*.23;
-     // Hard electric-white tile glints on the downbeats.
-     color+=vec3(.8,.92,1.)*frames*pow(uBeat,2.)*.80;
+     // Rotating kaleidoscopic tunnel; geometric ribs rush toward camera.
+     float theta=atan(p.y,p.x),rr=length(p);
+     float bent=theta+.14*sin(rr*12.-t*1.1);
+     vec2 folded=vec2(cos(bent)*rr,sin(bent)*rr);
+     vec3 rushing=cinematicWormhole(folded,t,1.);
+     float ribs=pow(max(0.,.5+.5*cos(
+      7.4/(.13+rr)-t*17.+sin(bent*9.))),15.);
+     float shafts=pow(max(0.,.5+.5*cos(bent*12.-
+      t*.37+2.*sin(rr*7.-t))),15.);
+     color=rushing*1.28+
+      vec3(1.,.09,.85)*abs(sin(bent*6.+t*.19))*ribs*.83+
+      vec3(.1,.81,1.)*shafts*(.22+.8*uBeat);
+     color+=vec3(.84,.79,1.)*pow(ribs,2.)*pow(uBeat,2.)*.55;
     }else if(uScene<8.5){
      // Frames 63–74: thousands of pinpoint stars in a vivid pink/red
      // Milky Way with a bright asymmetric red nebula behind the tabby.
