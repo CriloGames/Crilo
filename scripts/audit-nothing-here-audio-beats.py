@@ -66,3 +66,11 @@ for left,right in [(0,26.5),(27,32.9),(33,59),(0,59)]:
     kept.append((round(amp,4),round(tt,3)))
    if len(kept)>=18:break
   print("Top attacks in first 13s",sorted(kept,key=lambda p:p[1]))
+
+# Report physical low-frequency attack nearest each proposed visual start.
+for cue in [1.60,4.40,4.80,8.00,11.20,14.40,17.60,20.80,
+            26.80,29.20,29.60,32.80,33.20,36.00,36.40]:
+ k=round(cue*100)
+ lo=max(0,k-14);hi=min(len(signal),k+15)
+ peaks=sorted(((signal[j],j/100) for j in range(lo,hi)),reverse=True)[:1]
+ print("CUE audio transient",cue,[(round(a,4),round(t,3),round(t-cue,3)) for a,t in peaks])
