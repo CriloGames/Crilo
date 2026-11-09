@@ -372,10 +372,25 @@ export function createFinaleCatShow({
   if(now-lastPaint>=1000/30){
    lastPaint=now;
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
-   paint(Number.isFinite(audioT)?audioT:(now-startTime)/1000);
+   if(waitingForSoundtrack&&!soundtrackStarted){
+    // A video play() promise may stall while Chrome buffers. Keep the duck
+    // facing forwards at t=0 rather than spinning on performance.now before
+    // the first actual audio sample / media playhead arrives.
+    if(Number.isFinite(audioT)&&audioT>.018)
+     soundtrackStarted=true;
+    else paint(0);
+   }
+   if(!waitingForSoundtrack||soundtrackStarted){
+    // In synchronized mode there is NO wall-clock fallback: a buffering,
+    // paused or interrupted soundtrack must pause the corresponding spin.
+    const t=Number.isFinite(audioT)?audioT:
+     (waitingForSoundtrack?elapsed:(now-startTime)/1000);
+    paint(t);
+   }
   }
-  if(elapsed>=CAT_REFERENCE_DURATION-.05||
-     now-startTime>=CAT_REFERENCE_DURATION*1000+500){
+  if((soundtrackStarted||!waitingForSoundtrack)&&
+    (elapsed>=CAT_REFERENCE_DURATION-.05||
+    now-startTime>=CAT_REFERENCE_DURATION*1000+1250)){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
@@ -420,13 +435,17 @@ export function createFinaleCatShow({
   background.visible=true;
   paint(t);
  }
- function start(){
+ function start({syncToAudio=false}={}){
   stop();show(0);playing=true;
+  waitingForSoundtrack=!!syncToAudio;
+  soundtrackStarted=!syncToAudio;
   startTime=performance.now();lastPaint=0;
   raf=requestAnimationFrame(tick);
  }
  function stop(){
   playing=false;
+  waitingForSoundtrack=false;
+  soundtrackStarted=false;
   emerging=false;
   emergenceProgress=0;
   emergenceScale=0;
@@ -454,6 +473,9 @@ export function createFinaleCatShow({
    const spinning=motion.spinning&&!reduceEffects;
    return {
     visible:!!group?.visible,dancing:playing,
+    soundtrackStarted,waitingForSoundtrack,
+    spinBeforeMusic:!emerging&&waitingForSoundtrack&&!soundtrackStarted&&
+     !!spinner&&Math.abs(spinner.rotation.y)>.001,
     emerging,emergenceProgress:+emergenceProgress.toFixed(3),
     emergenceScale:+emergenceScale.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
@@ -475,8 +497,8 @@ export function createFinaleCatShow({
     stableMascotScale:true,
     volumetricLoaf:!!catRig, // compatibility with prior physical QA
     real3DDuck:!!loadedModel,
-    active3DPose:spinning?"loaf":"front",
-    rendered3DPose:spinning?"loaf":"front",
+    active3DPose:spinning?"spin":"still",
+    rendered3DPose:spinning?"spin":"still",
     actualRotations:spinner?{
      x:+spinner.rotation.x.toFixed(4),
      y:+spinner.rotation.y.toFixed(4),
@@ -485,7 +507,7 @@ export function createFinaleCatShow({
     stageScene:shader?.uniforms.uScene.value??null,
     wormholeActive:[2,7].includes(motion.scene),
     wormholeForwardTravel:shader?.uniforms.uVortexTravel.value??null,
-    unifiedCatScale:+(catRig?.scale.y??0).toFixed(4),
+    unifiedDuckScale:+(catRig?.scale.y??0).toFixed(4),
     sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
