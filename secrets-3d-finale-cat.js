@@ -418,11 +418,11 @@ export function createFinaleCatShow({
    invalidate();
   };
   const remoteBackup=()=>new GLTFLoader().load(CAT_MODEL_BACKUP,
-   gltf=>install(gltf,"cc0-tabby-cdn"),undefined,()=>{
+   gltf=>install(gltf,"cc0-hd-tabby-cdn"),undefined,()=>{
     source="procedural-fallback";invalidate();
    });
   new GLTFLoader().load(CAT_MODEL_URL,
-   gltf=>install(gltf,"cc0-tabby-local"),undefined,remoteBackup);
+   gltf=>install(gltf,"cc0-hd-tabby-local"),undefined,remoteBackup);
  };
  function ensure(){
   if(initialized)return;
