@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=16";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=17";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
