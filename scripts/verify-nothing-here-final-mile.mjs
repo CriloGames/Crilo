@@ -56,7 +56,10 @@ try{
    dancer:true,train:true
   }));
  },pre);
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ // Under concurrent software WebGL, waiting for DOMContentLoaded can block
+ // on GPU work long after navigation already committed. The explicit ready()
+ // gate below still verifies the real 3D page mounted successfully.
+ await page.reload({waitUntil:"commit",timeout:90000});
  await ready();
  assert.equal((await state()).seen.length,59,"Saved 59/60 state was not restored");
  const initial=await page.evaluate(()=>({
