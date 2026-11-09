@@ -287,5 +287,6 @@ jobs:
           path: |
             test-results/video-reference-*.png
             test-results/egg-*.png
+            test-results/backdrop-*.png
           if-no-files-found: ignore
           retention-days: 7
