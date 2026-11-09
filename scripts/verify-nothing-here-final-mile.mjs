@@ -273,7 +273,7 @@ try{
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
     [2.3,4.3].includes(time)){
    await page.locator("#stage canvas").screenshot({
-    path:"test-results/cat-emerges-"+time+".png",timeout:45000
+    path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
    });
   }
  }
