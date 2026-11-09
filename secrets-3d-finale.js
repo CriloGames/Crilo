@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=5";
+import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=6";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -26,8 +26,66 @@ export function createNothingHereFinale({
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
  let audioAtFinish=false;
- const catShow=createFinaleCatShow({scene,stage,invalidate,reducedMotion});
+ // The inspector must see every real mesh for its triangle-level collision
+ // audit, even when a saved 60/60 run has already finished.
+ const keepNetForInspection=new URLSearchParams(window.location.search)
+  .get("inspect3d")==="1";
+ let netOpacity=1,trackedNetMaterials=null;
+ // The middle panel is the open box itself. Track its world position so the
+ // cat remains exactly above the opening regardless of cube scale/orientation.
+ const anchor=new THREE.Vector3();
+ const catShow=createFinaleCatShow({
+  scene,stage,invalidate,reducedMotion,
+  getCatAnchor:()=>frontFace.getWorldPosition(anchor),
+  onTimelineFrame:seconds=>setNetFade(seconds)
+ });
  let completionWatchdog=null;
+ function collectNetMaterials(){
+  if(trackedNetMaterials)return;
+  const unique=new Map();
+  faceRoot.traverse(node=>{
+   if(!node.material)return;
+   for(const material of Array.isArray(node.material)?node.material:[node.material]){
+    if(material&&!unique.has(material))unique.set(material,{
+     opacity:material.opacity,transparent:material.transparent,
+     depthWrite:material.depthWrite
+    });
+   }
+  });
+  trackedNetMaterials=[...unique.entries()];
+ }
+ function resetNetFade(){
+  faceRoot.visible=true;
+  if(trackedNetMaterials)for(const [material,original] of trackedNetMaterials){
+   const changing=material.transparent!==original.transparent;
+   material.opacity=original.opacity;
+   material.transparent=original.transparent;
+   material.depthWrite=original.depthWrite;
+   if(changing)material.needsUpdate=true;
+  }
+  netOpacity=1;
+ }
+ function setNetFade(seconds){
+  if(phase!=="open")return;
+  if(keepNetForInspection){resetNetFade();return;}
+  // The net is visible as the melody starts, then dissolves away over the
+  // first 1.8 seconds, leaving ONLY the floating cat and neon stage.
+  const u=END.clamp(seconds/1.8,0,1);
+  const amount=1-u*u*(3-2*u);
+  netOpacity=amount;
+  if(amount<=.001){
+   faceRoot.visible=false; // skip expensive hidden machinery draw calls
+   return;
+  }
+  faceRoot.visible=true;
+  if(amount>=.999){resetNetFade();return;}
+  collectNetMaterials();
+  for(const [material,original] of trackedNetMaterials){
+   material.opacity=original.opacity*amount;
+   if(!material.transparent){material.transparent=true;material.needsUpdate=true;}
+   material.depthWrite=false;
+  }
+ }
  function clearWatchdog(){
   if(completionWatchdog!==null)clearTimeout(completionWatchdog);
   completionWatchdog=null;
@@ -170,6 +228,7 @@ export function createNothingHereFinale({
  }
  function resetForReplay(){
   catShow.stop();
+  resetNetFade();
   window.NothingHereAudio?.stopFinale?.();
   clearWatchdog();
   timeline?.kill();
@@ -191,6 +250,7 @@ export function createNothingHereFinale({
   if(timeline){timeline.kill();timeline=null;}
   placeNet();
   phase="open";
+  resetNetFade();
   showBanner("open");
   catShow.start();
   if(audioAtFinish)cue();
@@ -273,7 +333,15 @@ export function createNothingHereFinale({
       z:+center.z.toFixed(3),normal:+normal.y.toFixed(3)};
     }
    }
-   return {phase,hasPlayed,panels:positions,cat:catShow.getState(),
+   const cat=catShow.getState();
+   const center=frontFace.getWorldPosition(new THREE.Vector3());
+   return {phase,hasPlayed,panels:positions,cat,
+    netOpacity:+netOpacity.toFixed(3),
+    netFadeComplete:phase==="open"&&netOpacity<=.001&&!faceRoot.visible,
+    catCenteredOverBox:!!cat.catWorldPosition&&
+     Math.abs(cat.catWorldPosition.x-center.x)<.02&&
+     Math.abs(cat.catWorldPosition.z-center.z)<.02&&
+     cat.catWorldPosition.y>center.y+.5,
     reverseTexturedPanels:frameRims.filter(rim=>
      rim.children.some(node=>node.isMesh&&node.material?.map)).length,
     banner:!!banner&&!banner.hidden,
