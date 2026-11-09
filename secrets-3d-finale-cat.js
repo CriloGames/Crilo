@@ -552,7 +552,11 @@ export function createFinaleDuckShow({
   // through the open top and only travel forward after the belly and legs
   // have cleared the front panel. The initial model is physically hidden
   // inside the box until its head appears above the rim.
-  const horizontal=THREE.MathUtils.smoothstep(e,.79,.97);
+  // The bill and feet cannot move through the box's front wall. Hold the
+  // duck over the opening until the WHOLE body has cleared the upper rim,
+  // not merely until its head is visible. The box is already unfolding by
+  // the time the duck begins its short forward landing movement.
+  const horizontal=THREE.MathUtils.smoothstep(e,.88,.985);
   const from=boxCenter.clone().add(new THREE.Vector3(0,-.20,-.18));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
   group.position.set(
@@ -563,15 +567,18 @@ export function createFinaleDuckShow({
   // Keep its feet inside the box early, then enforce proper clearance
   // as the duck comes forward. This is an actual 3D depth transition,
   // not a sudden visibility toggle over the back lid.
+  // Before the side walls rotate, lift the duck's feet above the opening.
+  // This gradual clearance is independent of forward travel, so there is
+  // no last-frame pop or bill/body intersection with a rotating panel.
+  // The model's lowest toes sit just below its origin at this scale.
+  const clearanceProgress=THREE.MathUtils.smoothstep(e,.42,.76);
+  const lipHeight=boxCenter.y+.16+.12*emergenceScale;
   const emergingHeight=boxCenter.y-.20+.60*e;
-  // Interpolate the height constraint from INSIDE (-.20) to above
-  // the front panel (+.24). Clamping directly to boxCenter.y even at
-  // horizontal=0 kept the duck visibly perched on the back lid edge.
-  const safeForwardHeight=boxCenter.y-.20+
-   (.44+.14*emergenceScale)*horizontal;
-  group.position.y=Math.max(
-   group.position.y,emergingHeight,safeForwardHeight
-  );
+  const safeLift=THREE.MathUtils.lerp(boxCenter.y-.20,
+   lipHeight,clearanceProgress);
+  const safeForwardHeight=lipHeight+.08*horizontal;
+  group.position.y=Math.max(group.position.y,emergingHeight,
+   safeLift, horizontal>0?safeForwardHeight:boxCenter.y-.20);
   catRig.rotation.x=-.07*(1-e);
   // During the opening there is no music-frame paint() yet. Refresh
   // the camera-facing rim here too, otherwise the back/top of the tail
