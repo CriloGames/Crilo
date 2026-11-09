@@ -3,7 +3,8 @@
  * it rises from the cube then holds still or rotates during the soundtrack.
  */
 import * as THREE from "three";
-import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=7";
+import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=8";
+import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=1";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=10";
 
 export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=10";
@@ -119,7 +120,12 @@ function backdropMaterial(){
     vec2 uv=vUv;
     float r=length(p),a=atan(p.y,p.x);
     vec3 color=vec3(.012);
-    if(uScene<.5){
+    if(uScene>12.5){
+     // Quiet, warm post-credit stage: intentionally different from the
+     // music's saturated scenes, with no flash or palette cycling.
+     color=mix(vec3(.97,.94,.85),vec3(.82,.86,.94),
+      clamp(length(p)*.70,0.,1.));
+    }else if(uScene<.5){
      // The original green stage is a solid chroma backdrop. It must
      // never change toward mint or pulse when the duck starts spinning.
      color=vec3(.008,.97,.014);
@@ -274,7 +280,8 @@ function backdropMaterial(){
 }
 function phaseAt(t){return sceneAt(t).scene;}
 export function createFinaleDuckShow({
- scene,stage,invalidate,reducedMotion=false,getCatAnchor,onTimelineFrame
+ scene,stage,camera,controls,invalidate,reducedMotion=false,
+ getCatAnchor,onTimelineFrame
 }){
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
@@ -283,7 +290,7 @@ export function createFinaleDuckShow({
  let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let emergenceLipClearance=null,emergenceHorizontalProgress=null;
- let loadedModel=null;
+ let loadedModel=null,eggEnding=null;
  let waitingForSoundtrack=false,soundtrackStarted=false;
  const identity="single-crilo-classic-duck";
  // The actual Crilo Classic duck is the one and only visible animal,
@@ -320,6 +327,20 @@ export function createFinaleDuckShow({
   flashLight=new THREE.PointLight(0xffffff,0,16);
   flashLight.position.set(0,4,4);
   group.add(key,rim,flashLight);
+  eggEnding=createFinaleEggEnding({
+   scene,stage,camera,controls,invalidate,reducedMotion:reduceEffects,
+   getAnchor:getCatAnchor,group,spinner,catRig,duck:loadedModel,
+   shader,background
+  });
+ }
+ function startEggEnding({restore=false}={}){
+  ensure();
+  playing=false;
+  waitingForSoundtrack=false;
+  soundtrackStarted=false;
+  if(raf)cancelAnimationFrame(raf);
+  raf=0;
+  eggEnding.start({restore});
  }
  function paint(t){
   elapsed=clip(t,0,CAT_REFERENCE_DURATION);
@@ -409,7 +430,8 @@ export function createFinaleDuckShow({
    if(waitingForSoundtrack&&soundtrackStarted&&
       !Number.isFinite(audioT)&&
       window.NothingHereAudio?.getState?.()?.finalePlaying===false){
-    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);return;
+    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
+    startEggEnding();return;
    }
    if(waitingForSoundtrack&&!soundtrackStarted){
     // A video play() promise may stall while Chrome buffers. Keep the duck
@@ -435,6 +457,7 @@ export function createFinaleDuckShow({
   if((soundtrackStarted||!waitingForSoundtrack)&&
     (reachedEnd||unsyncedTimeout)){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
+   startEggEnding();
   }else raf=requestAnimationFrame(tick);
  }
  // Before the soundtrack, reveal the SAME 3D cat from inside the opening
@@ -481,6 +504,7 @@ export function createFinaleDuckShow({
  }
  function show(t=0){
   ensure();
+  eggEnding?.stop();
   emerging=false;
   emergenceProgress=1;
   emergenceScale=1;
@@ -499,6 +523,7 @@ export function createFinaleDuckShow({
   raf=requestAnimationFrame(tick);
  }
  function stop(){
+  eggEnding?.stop();
   playing=false;
   waitingForSoundtrack=false;
   soundtrackStarted=false;
@@ -532,8 +557,23 @@ export function createFinaleDuckShow({
    show(clip(Number(t)||0,0,CAT_REFERENCE_DURATION));
    return this.getState();
   },
-  restore(){stop();show(CAT_REFERENCE_DURATION);},
-  onResize(){if(initialized&&group.visible)paint(elapsed);},
+  seekEggEndingForVisualTest(t){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   stop();show(CAT_REFERENCE_DURATION);
+   eggEnding.seekForVisualTest(t);
+   return this.getState();
+  },
+  restore(){
+   stop();show(CAT_REFERENCE_DURATION);
+   startEggEnding({restore:true});
+  },
+  onResize(){
+   if(eggEnding?.getState().postludePhase!=="idle"){
+    eggEnding.onResize();return;
+   }
+   if(initialized&&group.visible)paint(elapsed);
+  },
   getState(){
    const motion=motionAt(elapsed);
    const spinning=motion.spinning&&!reduceEffects;
@@ -579,6 +619,7 @@ export function createFinaleDuckShow({
     duckTailOutlined:loadedModel?.userData.tailOutline===true,
     duckLegsOutlined:loadedModel?.userData.legOutline===true,
     spinGlowStrength:0,spinGlowVisible:false,
+    postlude:eggEnding?.getState()||{postludePhase:"idle"},
     stableMascotScale:true,
     volumetricLoaf:!!catRig, // compatibility with prior physical QA
     real3DDuck:!!loadedModel,
