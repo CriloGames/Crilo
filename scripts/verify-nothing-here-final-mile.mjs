@@ -336,6 +336,9 @@ try{
   Math.abs(eggUi.centerX-50)<5&&eggUi.labelText==="Tap the egg",
   "The old orange hover ring must be GONE and the final egg centered: "+
    JSON.stringify(eggUi));
+ // Real keyboard modality makes :focus-visible apply; mouse hover
+ // alone intentionally never draws another ring over the 3D egg.
+ await page.keyboard.press("Tab");
  await eggButton.focus();
  assert(await eggButton.evaluate(b=>
   getComputedStyle(b.querySelector("span")).outlineStyle!=="none"),
