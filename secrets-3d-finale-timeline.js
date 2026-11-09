@@ -167,8 +167,11 @@ export function motionAt(seconds){
  // pastel brightness oscillations. Short, high-contrast attacks every
  // 150-BPM downbeat; never more than 2.5 pulses/second. The caller
  // disables these for reduced-motion visitors.
+ // The source uses near-instant camera shutters (one to two 30fps
+ // frames), not the old 150–200ms soft white pulse. Leave dark time
+ // between downbeats so flashes have actual contrast.
  const beatFlash=drop?
-  Math.pow(Math.max(0,1-beatPhase*5.8),5)*.91:0;
+  Math.pow(Math.max(0,1-beatPhase*8.0),3.6)*.985:0;
  const brightCut=drop?sceneCut*.995:0;
  const rawFlash=Math.max(beatFlash,brightCut,
   drop?Math.max(0,diff-.095)*1.85:0);
