@@ -275,6 +275,8 @@ try{
   opening.push(sample);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
     [2.3,4.3].includes(time)){
+   // Render at least one fresh on-demand WebGL frame after a paused seek.
+   await page.waitForTimeout(350);
    await page.locator("#stage canvas").screenshot({
     path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
    });
