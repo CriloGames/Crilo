@@ -385,7 +385,9 @@ export function createFinaleDuckShow({
    key.intensity=2.1+motion.beatPulse*1.4;
    rim.intensity=2.1+motion.beatPulse*1.8;
   }
-  const flash=reduceEffects?0:motion.flash;
+  // The plain green opening should never wash the duck with a white
+  // strobe. Later neon sections keep their original synchronized lighting.
+  const flash=reduceEffects||p===0?0:motion.flash;
   flashLight.intensity=flash*14.5;
   key.intensity+=flash*2.05;
   rim.intensity+=flash*2.05;
