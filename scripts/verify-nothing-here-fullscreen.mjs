@@ -97,6 +97,15 @@ try{
    !document.body.classList.contains("nc-pseudo-fullscreen"),
    null,{timeout:7000});
   assert.equal(await button.getAttribute("aria-pressed"),"false");
+  const restored=await page.evaluate(()=>({
+   width:document.getElementById("stage").getBoundingClientRect().width,
+   canvas:document.querySelector("#stage canvas").getBoundingClientRect().width,
+   label:document.getElementById("ncFullscreenToggle").getAttribute("aria-label")
+  }));
+  assert(restored.width>150&&
+   Math.abs(restored.width-restored.canvas)<2&&
+   /Play Nothing Here/.test(restored.label),
+   "Exiting fullscreen didn't restore the playable canvas and toggle");
   // Simulate iPhone Safari and embedded browsers lacking the fullscreen API.
   await page.evaluate(()=>{
    Object.defineProperty(document,"fullscreenEnabled",{value:false,configurable:true});
