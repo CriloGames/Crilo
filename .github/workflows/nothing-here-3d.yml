@@ -23,6 +23,7 @@ on:
       - 'secrets-3d-finale.js'
       - 'secrets-3d-finale-loaf.js'
       - 'secrets-3d-finale-cat.js'
+      - 'secrets-3d-finale-egg.js'
       - 'secrets-3d-finale-timeline.js'
       - 'secrets-3d-details.js'
       - 'secrets-3d-finish.js'
@@ -83,6 +84,8 @@ jobs:
           node --check secrets-3d-preview.js
           node --check secrets-3d-finale.js
           node --check secrets-3d-finale-cat.js
+          node --check secrets-3d-finale-egg.js
+          node --check secrets-3d-finale-duck.js
           node --check secrets-3d-finale-loaf.js
           node --check secrets-3d-finale-timeline.js
           node --check scripts/verify-nothing-here-finale-rhythm.mjs
