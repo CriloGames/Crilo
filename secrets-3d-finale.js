@@ -374,6 +374,8 @@ export function createNothingHereFinale({
    const center=frontFace.getWorldPosition(new THREE.Vector3());
    return {phase,hasPlayed,panels:positions,cat,
     entranceProgress:cat.emergenceProgress,
+    openingLidAngle:+(joints?.top?.rotation.x??0).toFixed(3),
+    openingSideAngle:+(joints?.left?.rotation.y??0).toFixed(3),
     catRisingFromBox:phase==="opening"&&cat.emerging&&cat.visible,
     catRevealedBeforeT:phase==="opening"&&cat.emergenceProgress>.25&&
      joints?.left?.rotation.y<1.20,
