@@ -305,7 +305,7 @@ export function createNothingHereFinale({
      frontFace.updateWorldMatrix(true,false);
      // Source is the TOP opening, not the cube pivot or its front dial.
      // Keep the duck set back into the hollow interior as it rises.
-     boxPoint.set(0,half*.92,-half*.27);
+     boxPoint.set(0,half*.92,-half*.62);
      cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
      // The camera pulls back throughout the T unfold. Limit cat growth
