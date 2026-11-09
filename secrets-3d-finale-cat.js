@@ -4,9 +4,9 @@
  */
 import * as THREE from "three";
 import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=4";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=8";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=9";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=8";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=9";
 const TAU=Math.PI*2;
 const clip=(x,a,b)=>Math.max(a,Math.min(b,x));
 
@@ -285,7 +285,8 @@ export function createFinaleDuckShow({
  let emerging=false,emergenceProgress=0,emergenceScale=0;
  let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
- let loadedModel=null;
+ let spinHalo,spinGlowLight,spinGlowStrength=0,emergenceLipClearance=null;
+ let loadedModel=null,glowMaterials=[];
  let waitingForSoundtrack=false,soundtrackStarted=false;
  const identity="single-crilo-classic-duck";
  // The actual Crilo Classic duck is the one and only visible animal,
@@ -293,7 +294,31 @@ export function createFinaleDuckShow({
  function installDuck(){
   loadedModel=buildCriloClassicDuck();
   catRig.add(loadedModel);
+  glowMaterials=loadedModel.userData.glowMaterials||[];
   invalidate();
+ }
+ // A soft additive halo is behind the silhouette, leaving the dark eyes,
+ // fine head stroke and outlined toes sharp even at peak spin speed.
+ function createSpinHalo(){
+  const canvas=document.createElement("canvas");
+  canvas.width=canvas.height=128;
+  const ctx=canvas.getContext("2d");
+  const gradient=ctx.createRadialGradient(64,64,14,64,64,64);
+  gradient.addColorStop(0,"rgba(255,248,195,.35)");
+  gradient.addColorStop(.47,"rgba(255,225,122,.32)");
+  gradient.addColorStop(.78,"rgba(255,207,99,.16)");
+  gradient.addColorStop(1,"rgba(255,196,80,0)");
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,128,128);
+  const halo=new THREE.Sprite(new THREE.SpriteMaterial({
+   map:new THREE.CanvasTexture(canvas),
+   transparent:true,opacity:0,depthTest:true,depthWrite:false,
+   blending:THREE.AdditiveBlending,toneMapped:false
+  }));
+  halo.name="Duck fast-spin golden halo";
+  halo.position.set(0,.83,-.40);
+  halo.scale.set(2.25,2.65,1);
+  return halo;
  }
  function ensure(){
   if(initialized)return;
@@ -315,6 +340,11 @@ export function createFinaleDuckShow({
   catRig.position.y=-.93;
   spinner.add(catRig);
   installDuck();
+  spinHalo=createSpinHalo();
+  catRig.add(spinHalo);
+  spinGlowLight=new THREE.PointLight(0xffe5a0,0,3.2);
+  spinGlowLight.position.set(0,.38,.85);
+  spinner.add(spinGlowLight);
   key=new THREE.PointLight(0xfff0dc,1.55,14);
   key.position.set(-2.5,4.0,4.5);
   rim=new THREE.PointLight(0x9ecfff,.83,13);
@@ -328,6 +358,19 @@ export function createFinaleDuckShow({
   const motion=motionAt(elapsed);
   const p=phaseAt(elapsed);
   const spinning=motion.spinning&&!reduceEffects;
+  // Only rapid spins light up. Ramp in/out over a few frames so the glow
+  // never pops on a static face or persists after a stop.
+  const fastSpin=spinning&&motion.revolutionsPerSecond>=5.45;
+  const glowRamp=fastSpin?Math.min(1,
+   Math.max(0,(elapsed-motion.poseStart)/.14),
+   Math.max(0,(motion.poseEnd-elapsed)/.14)):0;
+  spinGlowStrength=fastSpin?glowRamp*(.75+.25*motion.beatPulse):0;
+  spinHalo.material.opacity=spinGlowStrength*.72;
+  spinGlowLight.intensity=spinGlowStrength*1.8;
+  for(const material of glowMaterials){
+   material.emissive.setHex(0xffcf72);
+   material.emissiveIntensity=spinGlowStrength*.55;
+  }
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
@@ -356,7 +399,7 @@ export function createFinaleDuckShow({
   group.position.set(
    Number.isFinite(anchor?.x)?anchor.x:0,
    (Number.isFinite(anchor?.y)?anchor.y:0)+
-    (spinning?.82:.70)+(reduceEffects?0:motion.bob),
+    (spinning?1.05:.98)+(reduceEffects?0:motion.bob),
    (Number.isFinite(anchor?.z)?anchor.z:-.3)-
     (wormhole&&!reduceEffects?.45*Math.sin(tunnelLocal*1.9):0)
   );
@@ -442,11 +485,19 @@ export function createFinaleDuckShow({
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
-  // Start just UNDER the open roof, never through the front dial face.
-  // The cube controller supplies the top opening's true transformed point.
-  const from=boxCenter.clone().add(new THREE.Vector3(0,-.30,0));
-  const to=landingCenter.clone().add(new THREE.Vector3(0,.70,0));
+  spinGlowStrength=0;
+  spinHalo.material.opacity=0;
+  spinGlowLight.intensity=0;
+  for(const material of glowMaterials)material.emissiveIntensity=0;
+  // The original below-roof start put the duck's belly through the front
+  // wall as it scaled up. Keep its FEET above the current world-space lip,
+  // even while the actual cube rotates and unfolds into a horizontal T.
+  const from=boxCenter.clone().add(new THREE.Vector3(0,.26,0));
+  const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
   group.position.lerpVectors(from,to,e);
+  group.position.y=Math.max(group.position.y,
+   boxCenter.y+.22+.18*emergenceScale);
+  emergenceLipClearance=group.position.y-boxCenter.y;
   key.color.setHex(0xffe8c6);
   rim.color.setHex(0xb1e5ff);
   key.intensity=1.8;rim.intensity=1.2;flashLight.intensity=0;
@@ -457,6 +508,7 @@ export function createFinaleDuckShow({
   emerging=false;
   emergenceProgress=1;
   emergenceScale=1;
+  emergenceLipClearance=null;
   group.scale.setScalar(1);
   group.visible=true;
   background.visible=true;
@@ -476,6 +528,11 @@ export function createFinaleDuckShow({
   emerging=false;
   emergenceProgress=0;
   emergenceScale=0;
+  emergenceLipClearance=null;
+  spinGlowStrength=0;
+  if(spinHalo)spinHalo.material.opacity=0;
+  if(spinGlowLight)spinGlowLight.intensity=0;
+  for(const material of glowMaterials)material.emissiveIntensity=0;
   if(raf)cancelAnimationFrame(raf);
   raf=0;
   if(group){group.visible=false;group.scale.setScalar(1);}
@@ -513,6 +570,8 @@ export function createFinaleDuckShow({
      !!spinner&&Math.abs(spinner.rotation.y)>.001,
     emerging,emergenceProgress:+emergenceProgress.toFixed(3),
     emergenceScale:+emergenceScale.toFixed(3),
+    emergenceLipClearance:emergenceLipClearance===null?null:
+     +emergenceLipClearance.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
     emergenceSameRig:emerging&&!!catRig,
     durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
@@ -539,6 +598,10 @@ export function createFinaleDuckShow({
      Math.abs(spinner?.rotation.y??0)<.001,
     neckGeometry:loadedModel?.userData.neckGeometry??null,
     neckSeams:loadedModel?.userData.neckSeams??null,
+    duckHeadOutlined:loadedModel?.userData.headOutline===true,
+    duckToesOutlined:loadedModel?.userData.toeOutline===true,
+    spinGlowStrength:+spinGlowStrength.toFixed(3),
+    spinGlowVisible:!!spinHalo&&spinHalo.material.opacity>.01,
     stableMascotScale:true,
     volumetricLoaf:!!catRig, // compatibility with prior physical QA
     real3DDuck:!!loadedModel,
