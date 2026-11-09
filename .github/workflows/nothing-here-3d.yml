@@ -284,6 +284,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nothing-here-video-reference-3d
-          path: test-results/video-reference-*.png
+          path: |
+            test-results/video-reference-*.png
+            test-results/egg-*.png
           if-no-files-found: ignore
           retention-days: 7
