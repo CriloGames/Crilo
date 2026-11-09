@@ -150,13 +150,18 @@ try{
  console.log("PASS: completion banner cannot block sticky top navigation");
  // The unfolded real T is present for the first note, dissolves over 1.8s,
  // then vanishes. The 3D cat remains anchored over its center and hovering.
+ // The top-left moon is a ::after decoration. The same real music-clock
+ // fade must reach both the box and the moon, not hide just the 3D mesh.
+ await page.evaluate(()=>document.body.classList.add("nc-moon"));
  const fadeStages=[];
  for(const seconds of [0,.9,2.2]){
   const frame=await page.evaluate(t=>{
    const cat=window.__nothing3DPreview.seekFinaleFrame(t);
    const ending=window.__nothing3DPreview.completionFinale;
    return {cat,opacity:ending.netOpacity,done:ending.netFadeComplete,
-    aligned:ending.catCenteredOverBox};
+    aligned:ending.catCenteredOverBox,
+    moon:+getComputedStyle(document.querySelector(".nc-world"),"::after").opacity,
+    moonClock:+document.body.style.getPropertyValue("--nh-finale-moon-opacity")};
   },seconds);
   assert(frame?.aligned&&frame.cat?.hoveringOverBox,
    "Cat must stay centered and hovering over the open box at "+seconds+"s: "+
@@ -168,6 +173,10 @@ try{
   fadeStages[2].opacity===0&&fadeStages[2].done,
   "The T-shaped box must smoothly fade away when the music begins: "+
    JSON.stringify(fadeStages));
+ assert(fadeStages.every(f=>Math.abs(f.moon-f.opacity)<.025&&
+  Math.abs(f.moonClock-f.opacity)<.025),
+  "Moon and T-shaped box do not fade together: "+JSON.stringify(fadeStages));
+ await page.evaluate(()=>document.body.classList.remove("nc-moon"));
  console.log("PASS: unfolded box fades during first musical notes; cat stays centered");
  // Inspect the ENTIRE 134.7s visual choreography, not just the start and
  // end. The actual rendered Three.js meshes and shader uniforms must change
@@ -197,6 +206,13 @@ try{
   assert(actual.volumetricLoaf&&actual.meshCount>0&&
    Math.abs(actual.stageFrameLuma-actual.referenceFrameLuma)<.002,
    "A real 3D pose or measured exposure was lost at "+seconds+"s");
+  assert(actual.singleModelBothPoses&&actual.distinctCatModels===1&&
+   actual.identitySwaps===0&&actual.catIdentity==="single-textured-grey-tabby",
+   "The finale must have exactly one cat model, not two exchanged poses: "+
+    JSON.stringify({seconds,actual}));
+  if(seconds===34||seconds===40.5||seconds===114.2)
+   assert(actual.wormholeActive,
+    "The source-timed neon wormhole needs to be active at "+seconds+"s");
   if(pose==="loaf"){
    assert(Math.abs(actual.actualRotations.x)<.001&&
     Math.abs(actual.actualRotations.z)<.001&&
@@ -229,6 +245,16 @@ try{
   Math.abs(t5.actualRotations.y-t0.actualRotations.y-2*Math.PI)<.035,
   "Cat yaw does not reproduce the five-frame video spin cycle: "+
    JSON.stringify({t0,t1,t5}));
+ const strobePeak=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleFrame(t),34.04);
+ const strobeRest=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleFrame(t),34.19);
+ assert(strobePeak.sourceTimedHardStrobe>.85&&
+  strobeRest.sourceTimedHardStrobe<.40,
+  "Beat-synced strobe should make short hard white cuts, not slow glow: "+
+   JSON.stringify({strobePeak:strobePeak.sourceTimedHardStrobe,
+    strobeRest:strobeRest.sourceTimedHardStrobe}));
+ console.log("PASS: one shared cat, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
  console.log("PASS: restored 60/60 finale has all six textures and a real 3D cat");

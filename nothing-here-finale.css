@@ -103,3 +103,13 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
 .nc-page .nc-overline #ncPersonalFinaleChoose .nc-audio-state{
  max-width:95px;overflow:hidden;text-overflow:ellipsis;
 }
+
+/* The moon is an intro prop painted by .nc-world::after. Fade it with
+   the unfolded T, then leave only the moving cat and light show.
+   CSS custom property is updated from the same audio-clock frame. */
+body.nc-page.nc-finale-active.nc-moon .nc-world::after{
+ animation:none!important;
+ opacity:var(--nh-finale-moon-opacity,0)!important;
+ transition:none!important;
+ pointer-events:none;
+}

@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=7";
+import {createFinaleCatShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=8";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -56,6 +56,8 @@ export function createNothingHereFinale({
  }
  function resetNetFade(){
   faceRoot.visible=true;
+  // Intro-only moon is part of the box silhouette, not the laser show.
+  document.body.style.setProperty("--nh-finale-moon-opacity","1");
   if(trackedNetMaterials)for(const [material,original] of trackedNetMaterials){
    const changing=material.transparent!==original.transparent;
    material.opacity=original.opacity;
@@ -73,6 +75,10 @@ export function createNothingHereFinale({
   const u=END.clamp(seconds/1.8,0,1);
   const amount=1-u*u*(3-2*u);
   netOpacity=amount;
+  // Keep the top-left moon on the EXACT same 1.8s curve as the real T.
+  // Set a CSS variable rather than toggling its pseudo-element abruptly.
+  document.body.style.setProperty("--nh-finale-moon-opacity",
+   String(amount));
   if(amount<=.001){
    faceRoot.visible=false; // skip expensive hidden machinery draw calls
    return;
@@ -219,8 +225,10 @@ export function createNothingHereFinale({
   cube.rotation.set(-Math.PI/2,0,0);
   cube.position.set(0,0,3.5);
   cube.scale.setScalar(fit());
+  // Look at the cat nearly at eye level once the box opens. The earlier
+  // high 6.5 viewpoint hid its muzzle and exaggerated the ears.
   controls.target.set(0,.55,0);
-  camera.position.set(0,6.5,16.5);
+  camera.position.set(0,5.7,18.4);
   camera.lookAt(controls.target);
   controls.update();
   setFrames(true);
@@ -282,7 +290,7 @@ export function createNothingHereFinale({
   const scale=fit();
   timeline=gsap.timeline({onUpdate:invalidate,onComplete:finish});
   // Pull back first, before the real hinged panels begin to fall.
-  timeline.to(camera.position,{x:0,y:6.5,z:16.5,duration:3.6,ease:"power2.inOut"},0)
+  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:3.6,ease:"power2.inOut"},0)
    .to(controls.target,{x:0,y:.55,z:0,duration:3.5,ease:"power2.inOut"},0)
    .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.2,ease:"power2.inOut"},1.95)
    .to(cube.position,{x:0,y:0,z:3.5,duration:3.5,ease:"power2.inOut"},.32)
