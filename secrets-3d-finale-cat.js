@@ -380,6 +380,15 @@ export function createFinaleCatShow({
       pos.setY(i,.29+Math.min(y-.36,.25)*.10);
       fixed++;
      }
+     // The round upper lobes read as cartoon mouse ears in the 1080p
+     // captures. Reduce their width/height ONLY behind the real eye
+     // line; never squeeze the muzzle or facial expression again.
+     if(y>.18&&z>.25){
+      const x=pos.getX(i);
+      pos.setX(i,x*.55);
+      pos.setY(i,.16+(y-.16)*.59);
+      fixed++;
+     }
     }
     if(!fixed)return;
     pos.needsUpdate=true;
@@ -459,10 +468,15 @@ export function createFinaleCatShow({
      if(!mat)return mat;
      const copy=mat.clone();
      if("roughness" in copy)copy.roughness=Math.max(.86,copy.roughness||0);
-     // The source footage shows a DARK charcoal/brown mackerel tabby,
-     // not the overexposed white ceramic look in earlier builds.
+     // The reference is a charcoal tabby with dark outlined eyes,
+     // not luminous pastel-green eyeballs and a ceramic gray chest.
      if(copy.color&&child.name==="domestic-shorthair_1")
-      copy.color.multiplyScalar(.60);
+      copy.color.multiply(new THREE.Color(0x9b8d7e)).multiplyScalar(.62);
+     if(copy.color){
+      const c=copy.color;
+      if(c.g>c.r*1.18&&c.g>c.b*1.12&&c.g>.30)
+       c.setHex(0x34372b);
+     }
      if("metalness" in copy)copy.metalness=0;
      if("envMapIntensity" in copy)copy.envMapIntensity=.18;
      return copy;
