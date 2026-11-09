@@ -265,6 +265,29 @@ try{
   "Beat-synced strobe should make short hard white cuts, not slow glow: "+
    JSON.stringify({strobePeak:strobePeak.sourceTimedHardStrobe,
     strobeRest:strobeRest.sourceTimedHardStrobe}));
+ // The old code used wall time when the MP3 buffered, letting the mascot
+ // spin in silence. Simulate that condition with no finale audio running.
+ const pending=await page.evaluate(()=>
+  window.__nothing3DPreview.testFinalePendingAudio());
+ assert(pending?.duck&&pending.waitingForSoundtrack&&
+  !pending.soundtrackStarted&&
+  !pending.spinBeforeMusic&&pending.actualRotations.y===0,
+  "Duck spun before the music clock was allowed to start: "+
+   JSON.stringify(pending));
+ await page.waitForTimeout(320);
+ const stillWaiting=await page.evaluate(()=>
+  window.__nothing3DPreview.completionFinale.duck);
+ assert(stillWaiting.waitingForSoundtrack&&!stillWaiting.soundtrackStarted&&
+  !stillWaiting.spinBeforeMusic&&stillWaiting.actualRotations.y===0&&
+  stillWaiting.elapsedSeconds===0,
+  "Duck advanced its first spin while audio was buffering: "+
+   JSON.stringify(stillWaiting));
+ const electric=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleFrame(t),78.04);
+ assert(electric.stageScene===12&&electric.sourceTimedHardStrobe>.85,
+  "The former gray interlude needs an electric laser strobe: "+
+   JSON.stringify(electric));
+ console.log("PASS: Classic duck holds still before music and gray cut is gone");
  // Replay the 60/60 completion with the NEW physical entrance sequence.
  // The lid must open BEFORE the duck rises, and side hinges must not form
  // the T until the same duck has visibly emerged from the box.
