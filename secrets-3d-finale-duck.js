@@ -127,9 +127,10 @@ export function buildCriloClassicDuck(){
   // the neck. When stationary, BOTH eyes and the bill face the player.
   oval(root,line,[sign*.205,1.375,.711],[.053,.054,.045],0);
   oval(root,shine,[sign*.195,1.391,.750],[.014,.014,.009],0);
-  // Fine two-stick legs and little wide paddle feet.
-  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.026,.034,.26,12),footBrown);
-  leg.position.set(sign*.22,.28,.015);
+  // Seat each leg well inside its paddle foot rather than ending at
+  // the back edge of the foot and leaving a visible floating gap.
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(.026,.034,.36,12),footBrown);
+  leg.position.set(sign*.22,.25,.015);
   leg.castShadow=true;root.add(leg);
   const foot=oval(root,footBrown,[sign*.22,.095,.19],[.155,.06,.205],.012);
   foot.rotation.y=sign*.08;
