@@ -56,6 +56,8 @@ export function createNothingHereFinale({
  }
  function resetNetFade(){
   faceRoot.visible=true;
+  // Intro-only moon is part of the box silhouette, not the laser show.
+  document.body.style.setProperty("--nh-finale-moon-opacity","1");
   if(trackedNetMaterials)for(const [material,original] of trackedNetMaterials){
    const changing=material.transparent!==original.transparent;
    material.opacity=original.opacity;
@@ -73,6 +75,10 @@ export function createNothingHereFinale({
   const u=END.clamp(seconds/1.8,0,1);
   const amount=1-u*u*(3-2*u);
   netOpacity=amount;
+  // Keep the top-left moon on the EXACT same 1.8s curve as the real T.
+  // Set a CSS variable rather than toggling its pseudo-element abruptly.
+  document.body.style.setProperty("--nh-finale-moon-opacity",
+   String(amount));
   if(amount<=.001){
    faceRoot.visible=false; // skip expensive hidden machinery draw calls
    return;
