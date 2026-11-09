@@ -297,6 +297,81 @@ export function createFinaleCatShow({
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
  const identity="single-textured-grey-tabby";
+ // The published CC0 GLB contains a separate, unrigged upright-tail
+ // connected component (643 vertices) and four overly long leg components.
+ // Remove ONLY the isolated tail triangles and shorten ONLY the separate
+ // leg + paw components, leaving the face, whiskers, UVs and body intact.
+ // This is a real mesh topology edit, not the previous destructive vertex
+ // crush that distorted the animal's entire head/back silhouette.
+ let anatomyRetouched=false;
+ function refineCatAnatomy(cat){
+  let retouched=false;
+  cat.traverse(mesh=>{
+   if(!mesh.isMesh||mesh.name!=="domestic-shorthair_1")return;
+   const geo=mesh.geometry.clone();
+   const pos=geo.getAttribute("position"),index=geo.getIndex();
+   if(!pos||!index)return;
+   const roots=new Int32Array(pos.count);
+   for(let i=0;i<roots.length;i++)roots[i]=i;
+   const find=i=>{
+    while(roots[i]!==i){
+     roots[i]=roots[roots[i]];
+     i=roots[i];
+    }
+    return i;
+   };
+   const unite=(a,b)=>{
+    const ra=find(a),rb=find(b);
+    if(ra!==rb)roots[rb]=ra;
+   };
+   for(let i=0;i<index.count;i+=3){
+    const a=index.getX(i),b=index.getX(i+1),c=index.getX(i+2);
+    unite(a,b);unite(a,c);
+   }
+   const components=new Map();
+   for(let i=0;i<pos.count;i++){
+    const root=find(i);
+    let c=components.get(root);
+    if(!c){c={count:0,minY:Infinity,maxY:-Infinity,
+     minZ:Infinity,maxZ:-Infinity};components.set(root,c);}
+    const y=pos.getY(i),z=pos.getZ(i);
+    c.count++;
+    c.minY=Math.min(c.minY,y);c.maxY=Math.max(c.maxY,y);
+    c.minZ=Math.min(c.minZ,z);c.maxZ=Math.max(c.maxZ,z);
+   }
+   const tailRoots=new Set(),legRoots=new Set();
+   for(const [root,c] of components){
+    if(c.count>150&&c.maxY>.82&&c.minZ<-.45&&
+       c.maxZ<-.35&&c.minY>-.25)tailRoots.add(root);
+    if(c.count>120&&c.maxY<-.10&&c.minY<-.80)
+     legRoots.add(root);
+   }
+   if(tailRoots.size!==1||legRoots.size<4)return;
+   // Discard the vertical tail as a complete separate connected island.
+   // Collapsing its UNUSED vertices keeps the bounding box tight.
+   const keep=[];
+   for(let i=0;i<index.count;i+=3){
+    if(tailRoots.has(find(index.getX(i))))continue;
+    keep.push(index.getX(i),index.getX(i+1),index.getX(i+2));
+   }
+   for(let i=0;i<pos.count;i++){
+    const root=find(i);
+    if(tailRoots.has(root))pos.setXYZ(i,0,-.11,-.62);
+    else if(legRoots.has(root)){
+     const y=pos.getY(i);
+     pos.setY(i,-.15+(y+.15)*.63);
+    }
+   }
+   pos.needsUpdate=true;
+   geo.setIndex(keep);
+   geo.deleteAttribute("normal");
+   geo.computeVertexNormals();
+   geo.computeBoundingBox();geo.computeBoundingSphere();
+   mesh.geometry=geo;
+   retouched=true;
+  });
+  return retouched;
+ }
  const loadCat=()=>{
   if(modelRequested)return;
   modelRequested=true;
@@ -304,10 +379,11 @@ export function createFinaleCatShow({
    // ONE identity throughout the whole show: no loaf copy, hidden
    // standing cat, split models, or scene-timed GLB replacement.
    const cat=gltf.scene;
+   anatomyRetouched=refineCatAnatomy(cat);
    const bounds=new THREE.Box3().setFromObject(cat);
    if(bounds.isEmpty())return;
    const size=bounds.getSize(new THREE.Vector3());
-   const scale=2.48/Math.max(.01,size.y);
+   const scale=2.18/Math.max(.01,size.y);
    cat.rotation.y=0; // The GLB's actual face is +Z.
    cat.scale.setScalar(scale);
    const scaled=new THREE.Box3().setFromObject(cat);
@@ -323,7 +399,11 @@ export function createFinaleCatShow({
     const fix=mat=>{
      if(!mat)return mat;
      const copy=mat.clone();
-     if("roughness" in copy)copy.roughness=Math.max(.83,copy.roughness||0);
+     if("roughness" in copy)copy.roughness=Math.max(.86,copy.roughness||0);
+     // The source footage shows a DARK charcoal/brown mackerel tabby,
+     // not the overexposed white ceramic look in earlier builds.
+     if(copy.color&&child.name==="domestic-shorthair_1")
+      copy.color.multiplyScalar(.70);
      if("metalness" in copy)copy.metalness=0;
      if("envMapIntensity" in copy)copy.envMapIntensity=.18;
      return copy;
@@ -365,7 +445,7 @@ export function createFinaleCatShow({
   spinner.add(catRig);
   fallback=fallbackCat();
   catRig.add(fallback);
-  key=new THREE.PointLight(0xfff0dc,2.25,14);
+  key=new THREE.PointLight(0xfff0dc,1.55,14);
   key.position.set(-2.5,4.0,4.5);
   rim=new THREE.PointLight(0x9ecfff,.83,13);
   rim.position.set(2.5,2.5,-2.7);
@@ -409,8 +489,8 @@ export function createFinaleCatShow({
    p===8?0xffa2c2:0xfff2e6);
   rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
    p===4?0x7ba5ff:0xb6d5ff);
-  key.intensity=white?1.95:1.65+motion.pulse*.75;
-  rim.intensity=white?.6:1.05+motion.pulse*.8;
+  key.intensity=white?1.18:1.35+motion.pulse*.75;
+  rim.intensity=white?.52:.88+motion.pulse*.8;
   flashLight.intensity=reduceEffects?0:motion.flash*9.5;
   // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
@@ -469,6 +549,7 @@ export function createFinaleCatShow({
     motion,platformUnderCat:true,hoveringOverBox:true,
     spinAxis:"y",revolutionsPerSecond:motion.revolutionsPerSecond,
     catIdentity:identity,distinctCatModels:1,identitySwaps:0,
+    anatomicalTailTrimmed:anatomyRetouched,
     singleModelBothPoses:true,
     catWorldPosition:group?{
      x:+group.position.x.toFixed(3),
