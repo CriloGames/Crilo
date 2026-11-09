@@ -461,6 +461,21 @@ export function createFinaleDuckShow({
   onTimelineFrame?.(elapsed);
   invalidate();
  }
+ function finishOnAudioEnd(){
+  // The audio's natural ended event is the exact authority. Do not let
+  // the duck keep turning while waiting for a later RAF or wall timeout.
+  if(!playing)return;
+  playing=false;
+  if(raf)cancelAnimationFrame(raf);
+  raf=0;
+  paint(CAT_REFERENCE_DURATION); // final cue is a front-facing STILL
+  startEggEnding();
+ }
+ // One listener for this show; the audio module only dispatches it after
+ // natural completion, not when replay/stopFinale interrupts playback.
+ window.addEventListener("nothing-here-finale-ended",()=>{
+  if(playing&&waitingForSoundtrack)finishOnAudioEnd();
+ });
  function tick(now){
   if(!playing)return;
   // Paint the entire 0–33s opening at 60fps, including still-to-spin
@@ -476,11 +491,11 @@ export function createFinaleDuckShow({
    // When the MP3 ends between animation frames, its clock becomes null.
    // Finish cleanly rather than leaving an endless RAF at 134.63 seconds.
    // A buffering/paused track still reports finalePlaying=true.
-   if(waitingForSoundtrack&&soundtrackStarted&&
-      !Number.isFinite(audioT)&&
-      window.NothingHereAudio?.getState?.()?.finalePlaying===false){
-    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
-    startEggEnding();return;
+   if(waitingForSoundtrack&&soundtrackStarted&&!Number.isFinite(audioT)){
+    const sound=window.NothingHereAudio?.getState?.();
+    if(sound?.finalePlaying===false||sound?.finaleEnded===true){
+     finishOnAudioEnd();return;
+    }
    }
    if(waitingForSoundtrack&&!soundtrackStarted){
     // A video play() promise may stall while Chrome buffers. Keep the duck
@@ -500,13 +515,12 @@ export function createFinaleDuckShow({
   }
   // A buffered or paused MP3 can take longer than 134.7s of wall time.
   // Never end an audio-synchronized finale until its actual playhead ends.
-  const reachedEnd=elapsed>=CAT_REFERENCE_DURATION-.05;
+  const reachedEnd=elapsed>=CAT_REFERENCE_DURATION-.015;
   const unsyncedTimeout=!waitingForSoundtrack&&
-   now-startTime>=CAT_REFERENCE_DURATION*1000+1250;
+   now-startTime>=CAT_REFERENCE_DURATION*1000;
   if((soundtrackStarted||!waitingForSoundtrack)&&
     (reachedEnd||unsyncedTimeout)){
-   playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
-   startEggEnding();
+   finishOnAudioEnd();
   }else raf=requestAnimationFrame(tick);
  }
  // Before the soundtrack, reveal the SAME 3D cat from inside the opening
@@ -534,16 +548,23 @@ export function createFinaleDuckShow({
   // Vertical emergence progresses normally, but horizontal movement
   // toward the dial/front wall waits until the sides begin unfolding.
   // A smooth curve avoids the old body/bill clipping through the box face.
-  const horizontal=THREE.MathUtils.smoothstep(e,.68,.98);
-  const from=boxCenter.clone().add(new THREE.Vector3(0,.26,0));
+  // Don't push the beak/body toward the FRONT wall until the duck has
+  // risen over the lip and the opening panels have begun to unfold.
+  // The former .68 threshold moved the bill forward while feet were
+  // still level with the engraved dial.
+  const horizontal=THREE.MathUtils.smoothstep(e,.73,.97);
+  const from=boxCenter.clone().add(new THREE.Vector3(0,.26,-.11));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
   group.position.set(
    THREE.MathUtils.lerp(from.x,to.x,horizontal),
-   THREE.MathUtils.lerp(from.y,to.y,e),
+   THREE.MathUtils.lerp(from.y,to.y,e)+.19*Math.sin(Math.PI*e),
    THREE.MathUtils.lerp(from.z,to.z,horizontal)
   );
+  // Keep the bottom of the actual scaled duck above the front lip as
+  // it crosses. A slightly higher lift avoids legs/front panel overlap.
   group.position.y=Math.max(group.position.y,
-   boxCenter.y+.22+.18*emergenceScale);
+   boxCenter.y+.29+.20*emergenceScale);
+  catRig.rotation.x=-.07*(1-e);
   emergenceHorizontalProgress=horizontal;
   emergenceLipClearance=group.position.y-boxCenter.y;
   key.color.setHex(0xffe8c6);
@@ -562,6 +583,7 @@ export function createFinaleDuckShow({
   group.scale.setScalar(1);
   group.visible=true;
   background.visible=true;
+  catRig.rotation.set(0,0,0);
   paint(t);
  }
  function start({syncToAudio=false}={}){
@@ -666,6 +688,7 @@ export function createFinaleDuckShow({
     duckHeadOutlined:loadedModel?.userData.headOutline===true,
     duckToesOutlined:loadedModel?.userData.toeOutline===true,
     duckTailOutlined:loadedModel?.userData.tailOutline===true,
+    duckTailTopRidgeCount:loadedModel?.userData.tailTopRidgeCount??0,
     duckFullTailContourCount:loadedModel?.userData.completeTailContourCount??0,
     duckFullTailContoursAttached:loadedModel?.userData.tailContours?.every(
      stroke=>stroke.parent?.name==="Single smoothly view-aligned tail contour"&&
@@ -685,13 +708,14 @@ export function createFinaleDuckShow({
      z:+spinner.rotation.z.toFixed(4)
     }:null,
     stageScene:shader?.uniforms.uScene.value??null,
+    stageHasLedSquares:[2,7,9,10].includes(shader?.uniforms.uScene.value),
     wormholeActive:[2,7].includes(motion.scene),
     wormholeForwardTravel:shader?.uniforms.uVortexTravel.value??null,
     unifiedDuckScale:+(catRig?.scale.y??0).toFixed(4),
     sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
-    totalReferencePoseCuts:41,elapsedSeconds:+elapsed.toFixed(2),
+    totalReferencePoseCuts:42,elapsedSeconds:+elapsed.toFixed(2),
     catSource:source,duckSource:source,
     meshCount:catRig?(()=>{
      let n=0;
