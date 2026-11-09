@@ -159,6 +159,7 @@ export function createFinaleEggEnding({
   const squat=ease((t-.38)/.46)*(1-ease((t-1.14)/.52));
   const drop=ease((t-.88)/.58);
   const walking=t>=1.78&&t<4.70;
+  const sideTurn=ease((t-.24)/.43);
   const departure=ease((t-1.78)/2.92);
   const gait=walking&&!reducedMotion?Math.sin((t-1.78)*15):0;
   const distance=camera.position.distanceTo(origin);
@@ -166,13 +167,16 @@ export function createFinaleEggEnding({
    camera.aspect;
   const exitDistance=Math.max(4.8,halfWidth+2.8);
 
-  group.position.set(origin.x+exitDistance*departure,
+  // Rotate to a side view BEFORE laying, so players can actually see
+  // the egg leave the rear of the duck. The small 0.64-unit shift keeps
+  // the tail directly over screen-center, where the egg will remain.
+  group.position.set(origin.x+.64*sideTurn+exitDistance*departure,
    baseY-.095*squat+Math.abs(gait)*.045,
    baseZ+.18);
   catRig.scale.set(1.04,1.04*(1-.09*squat),1.04);
   catRig.rotation.x=.11*squat;
   catRig.rotation.z=walking&&!reducedMotion?.043*gait:0;
-  spinner.rotation.y=walking?Math.PI*.5*ease((t-1.60)/.38):0;
+  spinner.rotation.y=Math.PI*.5*sideTurn;
   for(let i=0;i<legs.length;i++)
    legs[i].rotation.x=walking&&!reducedMotion?
     (i===0?1:-1)*.29*gait:(i===0?1:-1)*.075*squat;
@@ -181,13 +185,14 @@ export function createFinaleEggEnding({
   duckShadow.position.set(group.position.x,baseY-.025,baseZ+.18);
   duckShadow.visible=t<4.70;
 
-  // The egg begins tucked behind the duck's lower body, then settles
-  // directly under it. Unlike the old .82-unit side jump, neither the
-  // duck nor the egg ever teleports horizontally during the laying beat.
+  // The egg comes from the tail side of the crouching duck and drops
+  // directly to the center of the frame. It remains fixed there as the
+  // original duck walks away; its slightly forward depth keeps the pale
+  // shell legible instead of being completely swallowed by the body.
   eggRoot.visible=t>=.88;
   eggRoot.position.set(origin.x,
-   baseY+eggFloorHeight+.27*(1-drop),
-   baseZ-.24);
+   baseY+eggFloorHeight+.17*(1-drop),
+   baseZ+.28);
   eggRoot.scale.setScalar(.46+.54*drop);
   const shaking=ease((t-4.40)/.40);
   eggRoot.rotation.z=reducedMotion?0:
@@ -278,7 +283,7 @@ export function createFinaleEggEnding({
   const offset=origin.clone().sub(camera.position).dot(screenRight);
   origin.addScaledVector(screenRight,-offset);
   baseY=origin.y+1.00;baseZ=origin.z;
-  eggRoot.position.set(origin.x,baseY+eggFloorHeight,baseZ-.24);
+  eggRoot.position.set(origin.x,baseY+eggFloorHeight,baseZ+.28);
   eggRoot.rotation.set(0,0,0);
   eggRoot.scale.setScalar(1);
   startTime=performance.now()-(restore?5000:0);
@@ -323,14 +328,24 @@ export function createFinaleEggEnding({
    eggHairlineCrackVisible:!!eggCrack?.visible,
    eggDropProgress:+ease((elapsed-.88)/.58).toFixed(3),
    duckCrouching:phase==="laying"&&elapsed>=.48&&elapsed<1.53,
+   duckSideFacingToLay:phase==="laying"&&
+    elapsed>=.70&&elapsed<1.78&&spinner.rotation.y>1.2,
    eggGrounded:elapsed>=1.46&&!!eggRoot?.visible,
    eggHorizontalCenterOffset:eggRoot&&origin?
     +eggRoot.position.clone().sub(origin).dot(screenRight).toFixed(4):null,
    duckHorizontalCenterOffset:group&&origin?
     +group.position.clone().sub(origin).dot(screenRight).toFixed(4):null,
    eggAndDuckSameLane:!!eggRoot&&!!group&&
-    Math.abs(eggRoot.position.x-group.position.x)<.02&&
+    Math.abs(eggRoot.position.x-group.position.x)<.85&&
     elapsed<1.78,
+   eggUnderDuckTail:(()=>{
+    if(!eggRoot||!duck||elapsed<.88||elapsed>=1.78)return false;
+    const tail=duck.getObjectByName("Rounded body of Classic duck tail");
+    if(!tail)return false;
+    const pos=tail.getWorldPosition(new THREE.Vector3());
+    return Math.abs(pos.x-eggRoot.position.x)<.34&&
+     pos.y>eggRoot.position.y;
+   })(),
    walkLegAngles:legs.map(leg=>+leg.rotation.x.toFixed(3)),
    eggClickable:phase==="egg"&&!!eggButton&&!eggButton.hidden,
    duckWalkingAway:phase==="laying"&&elapsed>=1.78&&elapsed<4.70,
