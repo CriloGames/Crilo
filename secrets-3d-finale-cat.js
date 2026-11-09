@@ -564,8 +564,11 @@ export function createFinaleDuckShow({
   // as the duck comes forward. This is an actual 3D depth transition,
   // not a sudden visibility toggle over the back lid.
   const emergingHeight=boxCenter.y-.20+.60*e;
-  const safeForwardHeight=boxCenter.y+
-   (.24+.14*emergenceScale)*horizontal;
+  // Interpolate the height constraint from INSIDE (-.20) to above
+  // the front panel (+.24). Clamping directly to boxCenter.y even at
+  // horizontal=0 kept the duck visibly perched on the back lid edge.
+  const safeForwardHeight=boxCenter.y-.20+
+   (.44+.14*emergenceScale)*horizontal;
   group.position.y=Math.max(
    group.position.y,emergingHeight,safeForwardHeight
   );
