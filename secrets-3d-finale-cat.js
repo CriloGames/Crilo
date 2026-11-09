@@ -369,10 +369,10 @@ export function createFinaleCatShow({
      const y=pos.getY(i);
      if(y>.12){
       // An average 30% ear-height reduction, feathered into the crown.
-      pos.setY(i,.12+(y-.12)*.60);
+      pos.setY(i,.09+(y-.09)*.34);
       const x=pos.getX(i);
       if(Math.abs(x)>.075)
-       pos.setX(i,Math.sign(x)*(.075+(Math.abs(x)-.075)*.82));
+       pos.setX(i,Math.sign(x)*(.075+(Math.abs(x)-.075)*.64));
      }
     }
    }
