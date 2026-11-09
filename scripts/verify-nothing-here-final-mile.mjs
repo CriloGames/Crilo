@@ -210,9 +210,13 @@ try{
    actual.identitySwaps===0&&actual.catIdentity==="single-textured-grey-tabby",
    "The finale must have exactly one cat model, not two exchanged poses: "+
     JSON.stringify({seconds,actual}));
-  if(seconds===34||seconds===40.5||seconds===114.2)
-   assert(actual.wormholeActive,
-    "The source-timed neon wormhole needs to be active at "+seconds+"s");
+  if(seconds===34||seconds===40.5||seconds===114.2){
+   assert(actual.wormholeActive&&actual.wormholeForwardTravel>0,
+    "The vortex must travel FORWARD in depth, not show a flat grid at "+
+     seconds+"s: "+JSON.stringify(actual));
+   assert(actual.unifiedCatScale>.2,
+    "The cat's single rig was collapsed or distorted in the wormhole");
+  }
   if(pose==="loaf"){
    assert(Math.abs(actual.actualRotations.x)<.001&&
     Math.abs(actual.actualRotations.z)<.001&&

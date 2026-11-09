@@ -5,9 +5,9 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=6";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=7";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=6";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=7";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
 const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
@@ -60,7 +60,7 @@ function backdropMaterial(){
  return new THREE.ShaderMaterial({
   uniforms:{uTime:{value:0},uScene:{value:0},uAspect:{value:1},
    uBeat:{value:0},uFlash:{value:0},uSideways:{value:0},
-   uReferenceLuma:{value:.5},uGreenPale:{value:0}},
+   uReferenceLuma:{value:.5},uGreenPale:{value:0},uVortexTravel:{value:0}},
   depthTest:false,depthWrite:false,toneMapped:false,
   vertexShader:`
    varying vec2 vUv;
@@ -68,7 +68,7 @@ function backdropMaterial(){
   `,
   fragmentShader:`
    uniform float uTime,uScene,uAspect,uBeat,uFlash,uSideways;
-   uniform float uReferenceLuma,uGreenPale;
+   uniform float uReferenceLuma,uGreenPale,uVortexTravel;
    varying vec2 vUv;
    const float PI=3.14159265359;
    float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -122,6 +122,41 @@ function backdropMaterial(){
     col+=vec3(.79,.90,1.)*forward*(.12+.17*uBeat);
     return col;
    }
+   // Continuous volumetric vortex: radial depth, folded light shafts
+   // and advancing luminous portal rings rather than a flat LED grid.
+   vec3 cinematicWormhole(vec2 p,float t,float alternate){
+    vec2 q=p-vec2(.028*sin(t*.6),.025*cos(t*.43));
+    float r=max(.012,length(q)),a=atan(q.y,q.x);
+    float depth=1./(.16+r*2.45);
+    float bend=.30*sin(a*3.+t*.3)+.14*sin(a*7.-t*.52);
+    float theta=a+bend/(1.+r*3.);
+    float flow=depth*9.5-t*3.8-uVortexTravel*4.2;
+    float filament=pow(max(0.,.5+.5*cos(theta*18.+
+      1.8*sin(flow*.63+theta*5.))),15.);
+    float streak=pow(max(0.,.5+.5*cos(theta*9.+
+      .6*sin(flow*.49))),10.);
+    float ring=pow(max(0.,.5+.5*cos(flow*5.6)),9.);
+    float second=pow(max(0.,.5+.5*cos(flow*3.8+1.4)),12.);
+    float clouds=fbm(vec2(theta*2.9,flow*.16)+vec2(t*.20,-t*.18));
+    float shift=.5+.5*sin(theta*4.+flow*.23+t*.3);
+    vec3 blue=vec3(.026,.30,1.),pink=vec3(1.,.05,.81);
+    vec3 col=mix(blue,pink,shift);
+    col=mix(col,vec3(.55,.08,1.),clouds*.4);
+    col*=.20+filament*1.8+streak*.56;
+    col+=pink*ring*(.52+.4*uBeat)+blue*second*.58;
+    col+=mix(blue,pink,.5+.5*sin(t*1.2))*
+      exp(-r*7.5)*(.68+.24*uBeat);
+    col=mix(col,vec3(.015,.02,.27),exp(-r*27.)*.46);
+    col+=pink*smoothstep(.26,.82,r)*
+      (.10+.26*pow(max(0.,sin(theta*6.-t*.7)),4.));
+    col+=vec3(.45,.65,1.)*filament*
+      (1.-smoothstep(.03,.95,r))*.42;
+    if(alternate>.5){
+     float tracer=pow(max(0.,.5+.5*cos(theta*14.-flow*.12)),10.);
+     col+=vec3(.17,1.,.95)*tracer*(.25+.68*ring);
+    }
+    return col;
+   }
    void main(){
     float t=uTime;
     vec2 p=(vUv-.5)*vec2(uAspect,1.);
@@ -147,31 +182,14 @@ function backdropMaterial(){
      warm+=vec3(.83,.27,.64)*halo*.35;
      color=warm+stars(uv*vec2(96.,62.),3.)*vec3(1.,.91,.82);
     }else if(uScene<2.5){
-     // Reference 33–40s: rushing BLUE / MAGENTA wormhole with huge
-     // blinding white portals, twisting depth and light streaks.
-     vec2 warped=p+vec2(.058*sin(t*.92+p.y*3.),
-       .042*cos(t*.75+p.x*4.));
-     float w=max(abs(warped.x)*.84,abs(warped.y)*1.18);
-     float d=-log(max(w,.015));
-     float angle=atan(warped.y,warped.x);
-     float speed=d*14.-t*15.;
-     float rush=pow(max(0.,.5+.5*cos(speed)),16.);
-     float shafts=pow(max(0.,.5+.5*cos(angle*18.+
-       2.5*sin(d*3.-t*2.2))),22.);
-     float blueNoise=fbm(warped*9.-vec2(t*1.2,-t*.6));
-     vec3 tunnel=ledWormhole(p,t,.04);
-     vec3 blue=vec3(.018,.13,.94)*(.65+.35*blueNoise);
-     vec3 pink=vec3(1.,.075,.87);
-     color=vec3(.008,.015,.10)+tunnel*.85+
-      blue*(.5+shafts*1.35)+
-      pink*(rush*.68+pow(max(0.,.5+.5*cos(angle*8.-t*.7)),35.)*.42);
-     float gate=exp(-pow((abs(warped.x)-.49)*25.,2.))*
-       (1.-smoothstep(.35,.63,abs(warped.y)));
-     float aura=exp(-pow((abs(warped.x)-.49)*11.,2.))*
-       (1.-smoothstep(.23,.68,abs(warped.y)));
-     color+=vec3(1.,.98,1.)*gate*(1.5+.65*uBeat)+
-       pink*aura*.58+vec3(.28,.78,1.)*shafts*.60;
-     color+=vec3(.83,.91,1.)*exp(-w*6.)*(.25+.6*uBeat);
+     // 33–40s / 107–114s: fly THROUGH a deep blue-pink vortex.
+     vec2 warped=p+vec2(.03*sin(t*.9),.04*cos(t*.7));
+     color=cinematicWormhole(warped,t,0.);
+     float blade=exp(-pow((abs(warped.x)-.51)*17.,2.))*
+      (1.-smoothstep(.32,.70,abs(warped.y)));
+     color+=vec3(1.,.96,1.)*blade*(1.45+.55*uBeat);
+     color+=vec3(.32,.42,1.)*
+      exp(-pow((abs(warped.x)-.51)*5.7,2.))*.30;
     }else if(uScene<3.5){
      color=vec3(.982,.986,1.);
     }else if(uScene<4.5){
@@ -190,21 +208,19 @@ function backdropMaterial(){
      color=vec3(.91,.95,1.)+vec3(.04,.19,.34)*ring*.45;
      color+=vec3(.07,.13,.26)*(.5+.5*sin(a*13.+t))*ring*.3;
     }else if(uScene<7.5){
-     // Reference 40–46s and 114–120s: fast-moving square tunnel made of
-     // hundreds of blue, cyan and magenta LED tiles. The earlier scene
-     // rendered an almost stationary flower instead of traveling.
-     vec3 led=ledWormhole(p,t,.27);
-     float square=max(abs(p.x)*.77,abs(p.y)*1.12);
-     float depth=-log(max(.006,square));
-     float frames=pow(max(0.,.5+.5*cos(depth*16.-t*12.)),28.);
-     float arcs=pow(max(0.,.5+.5*cos(atan(p.y,p.x)*24.+
-       .9*sin(depth*3.-t*1.1))),19.);
-     color=led*1.22+
-       vec3(.87,.13,.96)*frames*(.5+.5*uBeat)+
-       vec3(.14,.77,1.)*arcs*.37+
-       vec3(.20,.13,.56)*exp(-square*3.)*.23;
-     // Hard electric-white tile glints on the downbeats.
-     color+=vec3(.8,.92,1.)*frames*pow(uBeat,2.)*.80;
+     // Rotating kaleidoscopic tunnel; geometric ribs rush toward camera.
+     float theta=atan(p.y,p.x),rr=length(p);
+     float bent=theta+.14*sin(rr*12.-t*1.1);
+     vec2 folded=vec2(cos(bent)*rr,sin(bent)*rr);
+     vec3 rushing=cinematicWormhole(folded,t,1.);
+     float ribs=pow(max(0.,.5+.5*cos(
+      7.4/(.13+rr)-t*17.+sin(bent*9.))),15.);
+     float shafts=pow(max(0.,.5+.5*cos(bent*12.-
+      t*.37+2.*sin(rr*7.-t))),15.);
+     color=rushing*1.28+
+      vec3(1.,.09,.85)*abs(sin(bent*6.+t*.19))*ribs*.83+
+      vec3(.1,.81,1.)*shafts*(.22+.8*uBeat);
+     color+=vec3(.84,.79,1.)*pow(ribs,2.)*pow(uBeat,2.)*.55;
     }else if(uScene<8.5){
      // Frames 63–74: thousands of pinpoint stars in a vivid pink/red
      // Milky Way with a bright asymmetric red nebula behind the tabby.
@@ -339,19 +355,51 @@ export function createFinaleCatShow({
     c.minY=Math.min(c.minY,y);c.maxY=Math.max(c.maxY,y);
     c.minZ=Math.min(c.minZ,z);c.maxZ=Math.max(c.maxZ,z);
    }
-   const tailRoots=new Set(),legRoots=new Set(),headRoots=new Set();
+   const tailRoots=new Set(),legRoots=new Set(),earRoots=new Set();
    for(const [root,c] of components){
     if(c.count>150&&c.maxY>.82&&c.minZ<-.45&&
        c.maxZ<-.35&&c.minY>-.25)tailRoots.add(root);
     if(c.count>120&&c.maxY<-.10&&c.minY<-.80)
      legRoots.add(root);
-    // The mesh includes two giant, round mouse-like ear lobes around
-    // the top of the head. Lower the oversized upper vertex silhouettes
-    // while keeping the eyes, muzzle and cheeks untouched.
-    if(c.count>400&&c.count<600&&c.minZ>.28&&
-       c.maxZ>.70&&c.maxY>.22)headRoots.add(root);
+    // Exact GLB topology: the real ears are separate 32-vertex
+    // triangular/rounded islands (plus 17-vertex backing islands), at
+    // z=0.56–0.65, y=0.06–0.39. The earlier 400–600 vertex predicate
+    // selected the CAT'S HEAD instead and crushed its muzzle.
+    if(c.count>=16&&c.count<=35&&c.minY>.04&&c.maxY>.34&&
+       c.minZ>.52&&c.maxZ<.70)earRoots.add(root);
    }
-   if(tailRoots.size!==1||legRoots.size<4)return;
+   // Some GLBs split vertices at UV seams, so triangle adjacency may
+   // report more than one tail island. Do not abort all corrections in
+   // that case: tame the back/high tail by POSITION and keep the front
+   // head/eyes untouched. This also fixes the large vertical gray rod
+   // seen in earlier in-game captures.
+   if(tailRoots.size!==1||legRoots.size<4){
+    let fixed=0;
+    for(let i=0;i<pos.count;i++){
+     const y=pos.getY(i),z=pos.getZ(i);
+     if(y>.36&&z<-.35){
+      pos.setY(i,.29+Math.min(y-.36,.25)*.10);
+      fixed++;
+     }
+     // The round upper lobes read as cartoon mouse ears in the 1080p
+     // captures. Reduce their width/height ONLY behind the real eye
+     // line; never squeeze the muzzle or facial expression again.
+     if(y>.18&&z>.25){
+      const x=pos.getX(i);
+      pos.setX(i,x*.55);
+      pos.setY(i,.16+(y-.16)*.59);
+      fixed++;
+     }
+    }
+    if(!fixed)return;
+    pos.needsUpdate=true;
+    geo.deleteAttribute("normal");
+    geo.computeVertexNormals();
+    geo.computeBoundingBox();geo.computeBoundingSphere();
+    mesh.geometry=geo;
+    retouched=true;
+    return;
+   }
    // Discard the vertical tail as a complete separate connected island.
    // Collapsing its UNUSED vertices keeps the bounding box tight.
    const keep=[];
@@ -365,15 +413,17 @@ export function createFinaleCatShow({
     else if(legRoots.has(root)){
      const y=pos.getY(i);
      pos.setY(i,-.15+(y+.15)*.42);
-    }else if(headRoots.has(root)){
-     const y=pos.getY(i);
-     if(y>.12){
-      // An average 30% ear-height reduction, feathered into the crown.
-      pos.setY(i,.09+(y-.09)*.34);
-      const x=pos.getX(i);
-      if(Math.abs(x)>.075)
-       pos.setX(i,Math.sign(x)*(.075+(Math.abs(x)-.075)*.64));
-     }
+    }else if(earRoots.has(root)){
+     // The owner's source cat has SMALL pointed ears, not two round
+     // mouse circles. Sculpt just the separated ear shells into tapering
+     // triangular ears with a 40% lower tip; don't touch the head/eyes.
+     const y=pos.getY(i),x=pos.getX(i);
+     const t=THREE.MathUtils.clamp((y-.063)/.329,0,1);
+     const side=x<0?-1:1;
+     const earCenter=side*.105;
+     const narrow=THREE.MathUtils.lerp(.82,.14,t*t);
+     pos.setX(i,earCenter+(x-earCenter)*narrow);
+     pos.setY(i,.063+(y-.063)*.66);
     }
    }
    pos.needsUpdate=true;
@@ -421,10 +471,15 @@ export function createFinaleCatShow({
      if(!mat)return mat;
      const copy=mat.clone();
      if("roughness" in copy)copy.roughness=Math.max(.86,copy.roughness||0);
-     // The source footage shows a DARK charcoal/brown mackerel tabby,
-     // not the overexposed white ceramic look in earlier builds.
+     // The reference is a charcoal tabby with dark outlined eyes,
+     // not luminous pastel-green eyeballs and a ceramic gray chest.
      if(copy.color&&child.name==="domestic-shorthair_1")
-      copy.color.multiplyScalar(.60);
+      copy.color.multiply(new THREE.Color(0x9b8d7e)).multiplyScalar(.62);
+     if(copy.color){
+      const c=copy.color;
+      if(c.g>c.r*1.18&&c.g>c.b*1.12&&c.g>.30)
+       c.setHex(0x34372b);
+     }
      if("metalness" in copy)copy.metalness=0;
      if("envMapIntensity" in copy)copy.envMapIntensity=.18;
      return copy;
@@ -488,6 +543,9 @@ export function createFinaleCatShow({
   shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
   shader.uniforms.uGreenPale.value=motion.greenPale;
+  const wormhole=[2,7].includes(p);
+  const tunnelLocal=Math.max(0,elapsed-motion.sceneStart);
+  shader.uniforms.uVortexTravel.value=wormhole?tunnelLocal:0;
   // Same cat, same actual meshes, same stripes: only its animation changes.
   spinner.rotation.order="YXZ";
   spinner.rotation.set(0,spinning?motion.spinRadians:0,0);
@@ -495,24 +553,40 @@ export function createFinaleCatShow({
   // Compress the whole single rig gently, without melting its head or
   // swapping to a second fake cylinder/loaf geometry.
   const photo=motion.photoScale;
-  catRig.scale.set(photo*(spinning?1.11:1.05),
-   photo*(spinning?.78:1.05),photo*(spinning?1.20:1.05));
-  spinner.scale.setScalar(spinning?1.13:1.05);
+  // One animal with ONE anatomical shape through front holds and spins;
+  // the former .78x vertical squeeze produced a melted spinning silhouette.
+  catRig.scale.setScalar(photo*1.08);
+  const tunnelZoom=wormhole&&!reduceEffects?
+   1+.17*Math.sin(tunnelLocal*1.7)+.08*Math.sin(tunnelLocal*4.8):1;
+  spinner.scale.setScalar((spinning?1.06:1.09)*tunnelZoom);
   const anchor=getCatAnchor?.();
   group.position.set(
    Number.isFinite(anchor?.x)?anchor.x:0,
    (Number.isFinite(anchor?.y)?anchor.y:0)+
     (spinning?.82:.70)+(reduceEffects?0:motion.bob),
-   Number.isFinite(anchor?.z)?anchor.z:-.3
+   (Number.isFinite(anchor?.z)?anchor.z:-.3)-
+    (wormhole&&!reduceEffects?.45*Math.sin(tunnelLocal*1.9):0)
   );
   const white=p===0||p===3||p===6;
   key.color.setHex(p===2||p===7?0xd1dbff:p===1?0xffd8cb:
    p===8?0xffa2c2:0xfff2e6);
   rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
    p===4?0x7ba5ff:0xb6d5ff);
-  key.intensity=white?1.18:1.35+motion.pulse*.75;
-  rim.intensity=white?.52:.88+motion.pulse*.8;
-  flashLight.intensity=reduceEffects?0:motion.flash*9.5;
+  key.intensity=white?1.18:1.20+motion.pulse*.74;
+  rim.intensity=white?.52:.88+motion.pulse*.90;
+  // Match the *cat's* actual colored light to the tunnel and flash.
+  // Previously only the background changed while the fur stayed gray.
+  if(wormhole&&!reduceEffects){
+   const hue=.5+.5*Math.sin(elapsed*4.8);
+   key.color.setRGB(1.,.10+.36*hue,.65+.30*hue);
+   rim.color.setRGB(.13+.10*hue,.69+.23*(1-hue),1.);
+   key.intensity=2.1+motion.beatPulse*1.4;
+   rim.intensity=2.1+motion.beatPulse*1.8;
+  }
+  const flash=reduceEffects?0:motion.flash;
+  flashLight.intensity=flash*13.;
+  key.intensity+=flash*1.7;
+  rim.intensity+=flash*1.5;
   // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
   invalidate();
@@ -591,6 +665,8 @@ export function createFinaleCatShow({
     }:null,
     stageScene:shader?.uniforms.uScene.value??null,
     wormholeActive:[2,7].includes(motion.scene),
+    wormholeForwardTravel:shader?.uniforms.uVortexTravel.value??null,
+    unifiedCatScale:+(catRig?.scale.y??0).toFixed(4),
     sourceTimedHardStrobe:motion.flash,
     stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
     referenceFrameLuma:motion.referenceLuma,
