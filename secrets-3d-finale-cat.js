@@ -528,7 +528,17 @@ export function createFinaleDuckShow({
     }:null,
     referencePose:motion.spinMode,flash:motion.flash,
     reducedEffects:reduceEffects,
-    frontFacingDuck:true,duckFacingAxis:"+Z",
+    frontFacingDuck:!!loadedModel&&
+     Math.abs(loadedModel.rotation.y)<.001&&
+     (spinning||Math.abs(spinner?.rotation.y??0)<.001),
+    duckFacingAxis:"+Z",
+    duckFacingYaw:loadedModel?
+     +((loadedModel.rotation.y||0)+(spinner?.rotation.y||0)).toFixed(4):null,
+    duckStopsFrontOnHold:!spinning&&!!loadedModel&&
+     Math.abs(loadedModel.rotation.y)<.001&&
+     Math.abs(spinner?.rotation.y??0)<.001,
+    neckGeometry:loadedModel?.userData.neckGeometry??null,
+    neckSeams:loadedModel?.userData.neckSeams??null,
     stableMascotScale:true,
     volumetricLoaf:!!catRig, // compatibility with prior physical QA
     real3DDuck:!!loadedModel,
