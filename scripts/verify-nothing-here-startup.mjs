@@ -401,8 +401,13 @@ try{
     const layout=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
     // The unfolded panels must keep their brushed enamel reverse finishes,
     // and the celebration must contain a genuine 3D cat, not a sprite/video.
+    const savedEgg=check.label==="finale-saved-mobile";
+    const displayOkay=savedEgg?
+     layout.cat?.postlude?.postludePhase==="egg"&&
+     layout.cat.postlude.eggVisible&&layout.cat.postlude.eggClickable:
+     layout.cat?.visible&&layout.cat.meshCount>0&&layout.cat.dancing;
     assert(layout.reverseTexturedPanels===6&&
-     layout.cat?.visible&&layout.cat.real3D&&layout.cat.meshCount>0&&
+     displayOkay&&layout.cat.real3D&&
      layout.duck?.real3DDuck&&layout.duck.mascotGeometry==="crilo-classic-duck-v1"&&
      layout.duck.loadedModel&&layout.duck.duckSource==="crilo-classic-original-3d"&&
      Math.abs(layout.cat.durationSeconds-134.699)<.001&&
