@@ -117,7 +117,11 @@ try{
   s.seen=ids;
   localStorage.setItem(key,JSON.stringify(s));
  },sixty);
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ // SwiftShader may starve the DOMContentLoaded notification while the
+ // large Three.js cube reconstructs. Wait for navigation COMMIT and then
+ // gate explicitly on the fully initialized real 3D scene. A 45-second
+ // DOMContentLoaded wait was failing despite the page being navigable.
+ await page.reload({waitUntil:"commit",timeout:90000});
  await ready();
  const finish=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
  assert(finish.phase==="open"&&finish.replay&&
