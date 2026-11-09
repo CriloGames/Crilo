@@ -17,6 +17,16 @@ for(let i=1;i<CAT_SCENES.length;i++)
  assert(CAT_SCENES[i][0]>CAT_SCENES[i-1][0],"Scene cuts not chronological");
 assert.equal(sceneAt(3).name,"green");
 assert.equal(sceneAt(30).name,"nebula");
+// Every opening pose change must land on the soundtrack's 150 BPM beat
+// rather than the old 0.06–0.14-second late/early visual approximation.
+for(const [time] of CAT_POSE_CUTS.slice(1,17))
+ assert(motionAt(time).beatPhase<.001,
+  "Opening duck pose is off the music beat at "+time);
+assert.equal(motionAt(29.24).revolutionsPerSecond,5,
+ "Red-section duck should spin exactly twice per 150 BPM beat");
+assert(Math.abs((motionAt(29.64).spinRadians-
+ motionAt(29.24).spinRadians)-4*Math.PI)<.0001,
+ "Red-section spin angle drifts between musical downbeats");
 assert(!motionAt(29.20).spinning&&motionAt(29.24).spinning&&
  motionAt(29.40).spinning&&sceneAt(29.24).name==="nebula",
  "The duck must begin its first red-nebula spin on the 29.24s music beat");
@@ -59,8 +69,8 @@ assert(Math.abs(motionAt(2.0).revolutionsPerSecond-6)<.01&&
  Math.abs(motionAt(8.2).revolutionsPerSecond-5)<.01,
  "Frame-measured intro (6rps) and middle (5rps) speeds missing");
 // The first video pose repeats every five source frames at 30fps.
-const d0=motionAt(1.6).spinRadians;
-const d1=motionAt(1.6+5/30).spinRadians;
+const d0=motionAt(1.70).spinRadians;
+const d1=motionAt(1.70+5/30).spinRadians;
 assert(Math.abs((d1-d0)-2*Math.PI)<.0001,
  "The first spin must turn 360 degrees in five 30fps frames");
 // Smooth acceleration changes at 33s must never teleport the cat.
