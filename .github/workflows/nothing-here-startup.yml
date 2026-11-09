@@ -56,6 +56,8 @@ jobs:
           node --check secrets-3d-preview.js
           node --check secrets-3d-finale.js
           node --check secrets-3d-finale-cat.js
+          node --check secrets-3d-finale-egg.js
+          node --check secrets-3d-finale-duck.js
           node --check secrets-3d-finale-timeline.js
           node --check nothing-here-audio.js
           node --check secrets-3d-details.js
@@ -105,6 +107,8 @@ jobs:
           node --check secrets-3d-preview.js
           node --check secrets-3d-finale.js
           node --check secrets-3d-finale-cat.js
+          node --check secrets-3d-finale-egg.js
+          node --check secrets-3d-finale-duck.js
           node --check secrets-3d-finale-timeline.js
           node --check nothing-here-audio.js
           node --check nothing-here-audio.js
