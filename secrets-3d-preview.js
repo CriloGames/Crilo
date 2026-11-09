@@ -2556,7 +2556,7 @@ window.__nothing3DPreview={
  // rather than approximating a straight-on face with its default 3/4 view.
  // Never expose a player-facing action or modify normal game controls.
  setVisualAuditCamera(face){
-  if(!/^(localhost|127\\.0\\.0\\.1)$/.test(location.hostname)||
+  if(!["localhost","127.0.0.1"].includes(location.hostname)||
      !embeddedGame||completionFinale?.isActive())return false;
   const axis={
    front:[0,0],right:[0,-90],back:[0,180],left:[0,90],
