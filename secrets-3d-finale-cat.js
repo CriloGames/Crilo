@@ -6,7 +6,6 @@
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=5";
-import {makeSpinningLoaf} from "./secrets-3d-finale-loaf.js?v=2";
 
 export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=5";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
@@ -263,165 +262,127 @@ export function createFinaleCatShow({
 }){
  const reduceEffects=!!reducedMotion||
   window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches===true;
- let initialized=false,playing=false,modelLoaded=false,raf=0;
- let startTime=0,lastPaint=0,elapsed=0,source="procedural";
- let group,spinner,standingRoot,loafRoot,background,shader,key,rim,flashLight;
+ let initialized=false,playing=false,modelRequested=false,raf=0;
+ let startTime=0,lastPaint=0,elapsed=0,source="procedural-fallback";
+ let group,spinner,catRig,background,shader,key,rim,flashLight;
  let fallback=null,loadedModel=null;
+ const identity="single-textured-grey-tabby";
  const loadCat=()=>{
-  if(modelLoaded)return;
-  modelLoaded=true;
+  if(modelRequested)return;
+  modelRequested=true;
   const install=(gltf,kind)=>{
+   // ONE identity throughout the whole show: no loaf copy, hidden
+   // standing cat, split models, or scene-timed GLB replacement.
    const cat=gltf.scene;
-   // The CC0 GLB has a rigid, vertical tail extending far above its ears.
-   // That extra height made the actual reference cat tiny, and cropped the
-   // tail at the top edge. In the source the tail is tucked behind the body.
-   // Deform ONLY rear, high vertices of the grey coat BEFORE normalizing
-   // the standing cat; ears, eyes, paws and original UV texture stay intact.
-   cat.traverse(child=>{
-    if(!child.isMesh||child.name!=="domestic-shorthair_1")return;
-    const geometry=child.geometry.clone();
-    const positions=geometry.attributes.position;
-    if(!positions||!child.scale.y||!child.scale.z)return;
-    let tucked=0;
-    for(let i=0;i<positions.count;i++){
-     const y=positions.getY(i)*child.scale.y+child.position.y;
-     const z=positions.getZ(i)*child.scale.z+child.position.z;
-     // The supplied cat silhouette has no upright tail shaft. Fold the
-     // GLB's rear tail behind the skull instead of leaving a visible peg.
-     if(y<=.315||z>=-.025)continue;
-     const lowered=.272+(y-.315)*.020;
-     positions.setY(i,(lowered-child.position.y)/child.scale.y);
-     tucked++;
-    }
-    if(tucked){positions.needsUpdate=true;
-     geometry.computeVertexNormals();
-     geometry.computeBoundingBox();
-     geometry.computeBoundingSphere();
-     child.geometry=geometry;}
-   });
-   const box=new THREE.Box3().setFromObject(cat);
-   if(box.isEmpty())return;
-   const size=box.getSize(new THREE.Vector3());
-   const scale=2.28/Math.max(.01,size.y);
-   // GLB nose/eyes have +Z coordinates. Its unrotated orientation ALREADY
-   // faces the game camera! The previous -90deg yaw showed only its side.
-   // Keep the actual tabby's head, muzzle and paws in their original
-   // anatomical proportions. The old 1.68x horizontal / .59x vertical
-   // deformation created the melted, oversized muzzle reported by players.
-   cat.rotation.y=0;
+   const bounds=new THREE.Box3().setFromObject(cat);
+   if(bounds.isEmpty())return;
+   const size=bounds.getSize(new THREE.Vector3());
+   const scale=2.48/Math.max(.01,size.y);
+   cat.rotation.y=0; // The GLB's actual face is +Z.
    cat.scale.setScalar(scale);
    const scaled=new THREE.Box3().setFromObject(cat);
    const center=scaled.getCenter(new THREE.Vector3());
    cat.position.set(-center.x,-scaled.min.y,-center.z);
+   // Preserve the real tabby texture, proportions, nose, ears and paws.
+   // Removing the previous blanket recolor and tail-vertex flattening
+   // prevents a muddy face and a broken back/tail silhouette.
    cat.traverse(child=>{
     if(!child.isMesh)return;
-    child.castShadow=true;child.receiveShadow=true;
-    const refine=material=>{
-     if(!material)return material;
-     const copy=material.clone();
-     if(copy.color)copy.color.multiply(new THREE.Color(0xead6c8)).multiplyScalar(.79);
-     if("roughness" in copy)copy.roughness=.93;
+    child.castShadow=true;
+    child.receiveShadow=true;
+    const fix=mat=>{
+     if(!mat)return mat;
+     const copy=mat.clone();
+     if("roughness" in copy)copy.roughness=Math.max(.83,copy.roughness||0);
      if("metalness" in copy)copy.metalness=0;
-     if("envMapIntensity" in copy)copy.envMapIntensity=.3;
+     if("envMapIntensity" in copy)copy.envMapIntensity=.18;
      return copy;
     };
     child.material=Array.isArray(child.material)?
-     child.material.map(refine):refine(child.material);
+     child.material.map(fix):fix(child.material);
    });
-   standingRoot.add(cat);loadedModel=cat;
+   catRig.add(cat);
    if(fallback)fallback.visible=false;
-   source=kind;invalidate();
+   loadedModel=cat;
+   source=kind;
+   invalidate();
   };
-  const remoteBackup=()=>{
-   new GLTFLoader().load(CAT_MODEL_BACKUP,
-    gltf=>install(gltf,"cc0-hd-tabby-cdn"),undefined,()=>{
-     source="procedural-fallback";invalidate();
-    });
-  };
-  // Load the actual textured 15k-face feline shipped in the repo first,
-  // retaining a public-domain remote backup for stale Pages caches.
+  const remoteBackup=()=>new GLTFLoader().load(CAT_MODEL_BACKUP,
+   gltf=>install(gltf,"cc0-tabby-cdn"),undefined,()=>{
+    source="procedural-fallback";invalidate();
+   });
   new GLTFLoader().load(CAT_MODEL_URL,
-   gltf=>install(gltf,"cc0-hd-tabby-local"),undefined,remoteBackup);
+   gltf=>install(gltf,"cc0-tabby-local"),undefined,remoteBackup);
  };
  function ensure(){
   if(initialized)return;
   initialized=true;
   shader=backdropMaterial();
   background=new THREE.Mesh(new THREE.PlaneGeometry(2,2),shader);
-  background.renderOrder=-1000;background.frustumCulled=false;
-  background.visible=false;scene.add(background);
-  group=new THREE.Group();group.visible=false;scene.add(group);
+  background.renderOrder=-1000;
+  background.frustumCulled=false;
+  background.visible=false;
+  scene.add(background);
+  group=new THREE.Group();
+  group.visible=false;
+  scene.add(group);
   spinner=new THREE.Group();
-  spinner.position.y=.75; // pivot at the middle of the feline, NOT its feet
+  spinner.name="One 3D cat, stationary or rotating around its own Y axis";
+  spinner.position.y=.93;
   group.add(spinner);
-  standingRoot=new THREE.Group();
-  standingRoot.name="Standing 3D tabby — foreground, not spinning";
-  standingRoot.position.y=-.75; // keep standing feet on the puzzle platform
-  spinner.add(standingRoot);
-  fallback=fallbackCat();standingRoot.add(fallback);
-  loafRoot=makeSpinningLoaf();
-  // The compact spinning cat must be a main subject, not a tiny distant
-  // pebble above the huge T. Enlarge relative to the puzzle and rotate
-  // about the loaf's physical centre.
-  loafRoot.scale.setScalar(1.18);
-  loafRoot.position.y=-.525;
-  spinner.add(loafRoot);
-  loafRoot.visible=false;
-  key=new THREE.PointLight(0xfff1dd,1.8,10);key.position.set(-2,4,4);
-  rim=new THREE.PointLight(0x80bcff,1.15,10);rim.position.set(2,2,-2);
-  flashLight=new THREE.PointLight(0xffffff,0,13);
-  flashLight.position.set(0,3,4);
+  catRig=new THREE.Group();
+  catRig.position.y=-.93;
+  spinner.add(catRig);
+  fallback=fallbackCat();
+  catRig.add(fallback);
+  key=new THREE.PointLight(0xfff0dc,2.25,14);
+  key.position.set(-2.5,4.0,4.5);
+  rim=new THREE.PointLight(0x9ecfff,.83,13);
+  rim.position.set(2.5,2.5,-2.7);
+  flashLight=new THREE.PointLight(0xffffff,0,16);
+  flashLight.position.set(0,4,4);
   group.add(key,rim,flashLight);
   loadCat();
  }
  function paint(t){
   elapsed=clip(t,0,CAT_REFERENCE_DURATION);
-  const p=phaseAt(elapsed);
   const motion=motionAt(elapsed);
+  const p=phaseAt(elapsed);
+  const spinning=motion.spinning&&!reduceEffects;
   shader.uniforms.uTime.value=elapsed;
   shader.uniforms.uScene.value=p;
   shader.uniforms.uAspect.value=Math.max(.5,stage.clientWidth/Math.max(1,stage.clientHeight));
   shader.uniforms.uBeat.value=motion.beatPulse;
   shader.uniforms.uFlash.value=reduceEffects?0:motion.flash;
-  shader.uniforms.uSideways.value=motion.sideways;
+  shader.uniforms.uSideways.value=spinning?1:0;
   shader.uniforms.uReferenceLuma.value=motion.referenceLuma;
   shader.uniforms.uGreenPale.value=motion.greenPale;
-  // The reference has TWO physically different silhouettes: a full tabby
-  // standing still and a compact cat loaf spinning like a wheel in the
-  // SCREEN plane. Rotating the standing cat around Y was the main defect.
-  const loaf=motion.poseMode==="loaf"&&!reduceEffects;
-  standingRoot.visible=!loaf;
-  loafRoot.visible=loaf;
-  // Frame-accurate source: the compact cat spins HORIZONTALLY. At 1.5s
-  // its nose is on the right, then back -> left -> face, repeating about
-  // every five 30fps frames (~6 full yaw turns/second). A barrel rotation
-  // about X or a front-on Z-axis pinwheel is NOT the source movement.
-  // The standing cat never spins during its hold frames.
+  // Same cat, same actual meshes, same stripes: only its animation changes.
   spinner.rotation.order="YXZ";
-  spinner.rotation.set(0,loaf?motion.spinRadians:0,0);
-  spinner.scale.setScalar((loaf?1.13:1)*motion.photoScale);
-  // A meaningful head-and-body flip: when it stops, the actual standing
-  // model returns in the SAME forward-facing pose as the source edit.
-  // Follow the actual center panel of the unfolded box, rather than using
-  // a hard-coded world offset that drifts when its transform is changed.
-  // Leave a deliberate air gap under both poses: the cat HOVERS above
-  // the box instead of resting on the machinery or drifting to one side.
+  spinner.rotation.set(0,spinning?motion.spinRadians:0,0);
+  // The fast spin in the supplied video is a compact, low silhouette.
+  // Compress the whole single rig gently, without melting its head or
+  // swapping to a second fake cylinder/loaf geometry.
+  const photo=motion.photoScale;
+  catRig.scale.set(photo*(spinning?1.11:1.05),
+   photo*(spinning?.78:1.05),photo*(spinning?1.20:1.05));
+  spinner.scale.setScalar(spinning?1.13:1.05);
   const anchor=getCatAnchor?.();
   group.position.set(
    Number.isFinite(anchor?.x)?anchor.x:0,
-   (Number.isFinite(anchor?.y)?anchor.y:0)+(loaf?.86:.72)+
-    (reduceEffects?0:motion.bob),
+   (Number.isFinite(anchor?.y)?anchor.y:0)+
+    (spinning?.82:.70)+(reduceEffects?0:motion.bob),
    Number.isFinite(anchor?.z)?anchor.z:-.3
   );
   const white=p===0||p===3||p===6;
-  key.color.setHex(p===1?0xffb692:p===2||p===7?0xffc0ec:p===4?0xaddbff:0xfff2e6);
-  rim.color.setHex(p===1?0xff4966:p===2||p===7?0x20bfff:p===4?0x4d75ff:0xb6d5ff);
-  // Restore fur markings that the previous 4–7x lights bleached away.
-  key.intensity=white?1.45:1.65+motion.pulse*.8;
-  rim.intensity=white?.85:1.15+motion.pulse*.75;
-  flashLight.intensity=reduceEffects?0:motion.flash*5.4;
-  // Also called from test seeking, so the puzzle sculpture fades to the
-  // exact same soundtrack time whether playback is live or restored.
+  key.color.setHex(p===2||p===7?0xd1dbff:p===1?0xffd8cb:
+   p===8?0xffa2c2:0xfff2e6);
+  rim.color.setHex(p===2||p===7?0x56caff:p===8?0xff1a80:
+   p===4?0x7ba5ff:0xb6d5ff);
+  key.intensity=white?1.95:1.65+motion.pulse*.75;
+  rim.intensity=white?.6:1.05+motion.pulse*.8;
+  flashLight.intensity=reduceEffects?0:motion.flash*9.5;
+  // The 3D cat briefly catches the hard white strobe as in the footage.
   onTimelineFrame?.(elapsed);
   invalidate();
  }
@@ -429,24 +390,22 @@ export function createFinaleCatShow({
   if(!playing)return;
   if(now-lastPaint>=1000/30){
    lastPaint=now;
-   // Read HTMLAudioElement.currentTime when the licensed recording plays.
-   // Falling back to performance.now keeps the original soundtrack working.
    const audioT=window.NothingHereAudio?.getFinaleClock?.();
    paint(Number.isFinite(audioT)?audioT:(now-startTime)/1000);
   }
-  if(elapsed>=CAT_REFERENCE_DURATION-.05||now-startTime>=CAT_REFERENCE_DURATION*1000+500){
+  if(elapsed>=CAT_REFERENCE_DURATION-.05||
+     now-startTime>=CAT_REFERENCE_DURATION*1000+500){
    playing=false;raf=0;paint(CAT_REFERENCE_DURATION);
   }else raf=requestAnimationFrame(tick);
  }
  function show(t=0){
   ensure();
-  group.visible=true;background.visible=true;
+  group.visible=true;
+  background.visible=true;
   paint(t);
  }
  function start(){
-  stop();
-  show(0);
-  playing=true;
+  stop();show(0);playing=true;
   startTime=performance.now();lastPaint=0;
   raf=requestAnimationFrame(tick);
  }
@@ -460,7 +419,6 @@ export function createFinaleCatShow({
  }
  return {
   start,stop,
-  // Available only on local CI servers, never as an endgame skip for players.
   seekForVisualTest(t){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
@@ -471,45 +429,47 @@ export function createFinaleCatShow({
    return this.getState();
   },
   restore(){stop();show(CAT_REFERENCE_DURATION);},
-  onResize(){if(initialized&&group.visible)paint(elapsed)},
-  getState(){return {
-   visible:!!group?.visible,dancing:playing,
-   durationSeconds:CAT_REFERENCE_DURATION,
-   bpm:CAT_MUSIC_BPM,
-   motion:motionAt(elapsed),
-   platformUnderCat:true,
-   hoveringOverBox:true,
-   spinAxis:"y",
-   revolutionsPerSecond:motionAt(elapsed).revolutionsPerSecond,
-   catWorldPosition:group?{
-    x:+group.position.x.toFixed(3),
-    y:+group.position.y.toFixed(3),
-    z:+group.position.z.toFixed(3)
-   }:null,
-   referencePose:motionAt(elapsed).spinMode,
-   flash:motionAt(elapsed).flash,
-   reducedEffects:reduceEffects,
-   frontFacingTabby:true,
-   realisticCatFacingAxis:"+Z",
-   standingAndLoafScaleCorrected:true,
-   volumetricLoaf:!!loafRoot,
-   active3DPose:reduceEffects?"front":motionAt(elapsed).poseMode,
-   rendered3DPose:loafRoot?.visible?"loaf":standingRoot?.visible?"front":"none",
-   actualRotations:spinner?{
-    x:+spinner.rotation.x.toFixed(4),
-    y:+spinner.rotation.y.toFixed(4),
-    z:+spinner.rotation.z.toFixed(4)
-   }:null,
-   stageScene:shader?.uniforms.uScene.value??null,
-   stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
-   referenceFrameLuma:motionAt(elapsed).referenceLuma,
-   totalReferencePoseCuts:41,
-   elapsedSeconds:+elapsed.toFixed(2),
-   catSource:source,
-   meshCount:spinner?(()=>{let n=0;spinner.traverse(o=>{if(o.isMesh&&o.visible)n++});return n})():0,
-   backdrop:initialized?phaseAt(elapsed):null,
-   real3D:!!spinner,
-   loadedModel:!!loadedModel
-  }}
+  onResize(){if(initialized&&group.visible)paint(elapsed);},
+  getState(){
+   const motion=motionAt(elapsed);
+   const spinning=motion.spinning&&!reduceEffects;
+   return {
+    visible:!!group?.visible,dancing:playing,
+    durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
+    motion,platformUnderCat:true,hoveringOverBox:true,
+    spinAxis:"y",revolutionsPerSecond:motion.revolutionsPerSecond,
+    catIdentity:identity,distinctCatModels:1,identitySwaps:0,
+    singleModelBothPoses:true,
+    catWorldPosition:group?{
+     x:+group.position.x.toFixed(3),
+     y:+group.position.y.toFixed(3),
+     z:+group.position.z.toFixed(3)
+    }:null,
+    referencePose:motion.spinMode,flash:motion.flash,
+    reducedEffects:reduceEffects,
+    frontFacingTabby:true,realisticCatFacingAxis:"+Z",
+    standingAndLoafScaleCorrected:true,
+    volumetricLoaf:!!catRig, // compatibility: the spinning form is real 3D
+    active3DPose:spinning?"loaf":"front",
+    rendered3DPose:spinning?"loaf":"front",
+    actualRotations:spinner?{
+     x:+spinner.rotation.x.toFixed(4),
+     y:+spinner.rotation.y.toFixed(4),
+     z:+spinner.rotation.z.toFixed(4)
+    }:null,
+    stageScene:shader?.uniforms.uScene.value??null,
+    stageFrameLuma:shader?.uniforms.uReferenceLuma.value??null,
+    referenceFrameLuma:motion.referenceLuma,
+    totalReferencePoseCuts:41,elapsedSeconds:+elapsed.toFixed(2),
+    catSource:source,
+    meshCount:catRig?(()=>{
+     let n=0;
+     catRig.traverse(o=>{if(o.isMesh&&o.visible&&o.parent?.visible!==false)n++;});
+     return n;
+    })():0,
+    backdrop:initialized?phaseAt(elapsed):null,
+    real3D:!!spinner,loadedModel:!!loadedModel
+   };
+  }
  };
 }
