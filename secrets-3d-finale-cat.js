@@ -5,9 +5,9 @@
  */
 import * as THREE from "three";
 import {GLTFLoader} from "three/addons/loaders/GLTFLoader.js";
-import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=5";
+import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=6";
 
-export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=5";
+export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=6";
 const CAT_MODEL_URL="assets/nothing-here/cat-tabby.glb?v=1";
 const CAT_MODEL_BACKUP="https://cdn.3dassets.dev/assets/28146/v1/model.glb";
 const TAU=Math.PI*2;
