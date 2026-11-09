@@ -306,7 +306,7 @@ export function createFinaleEggEnding({
  function seekForVisualTest(t){
   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
    return null;
-  start({restore:t>=4.65});
+  start({restore:t>=4.70});
   if(frameId)cancelAnimationFrame(frameId);
   frameId=0;
   phase=t>=4.70?"egg":"laying";
@@ -333,7 +333,7 @@ export function createFinaleEggEnding({
     elapsed<1.78,
    walkLegAngles:legs.map(leg=>+leg.rotation.x.toFixed(3)),
    eggClickable:phase==="egg"&&!!eggButton&&!eggButton.hidden,
-   duckWalkingAway:phase==="laying"&&elapsed>=1.55&&elapsed<4.65,
+   duckWalkingAway:phase==="laying"&&elapsed>=1.78&&elapsed<4.70,
    duckGone:phase==="egg"||phase==="cracking"||phase==="message",
    eggCracked:phase==="cracking"||phase==="message",
    endMessageVisible:phase==="message"&&!!endCard&&!endCard.hidden,
