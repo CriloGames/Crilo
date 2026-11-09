@@ -339,12 +339,17 @@ export function createFinaleCatShow({
     c.minY=Math.min(c.minY,y);c.maxY=Math.max(c.maxY,y);
     c.minZ=Math.min(c.minZ,z);c.maxZ=Math.max(c.maxZ,z);
    }
-   const tailRoots=new Set(),legRoots=new Set();
+   const tailRoots=new Set(),legRoots=new Set(),headRoots=new Set();
    for(const [root,c] of components){
     if(c.count>150&&c.maxY>.82&&c.minZ<-.45&&
        c.maxZ<-.35&&c.minY>-.25)tailRoots.add(root);
     if(c.count>120&&c.maxY<-.10&&c.minY<-.80)
      legRoots.add(root);
+    // The mesh includes two giant, round mouse-like ear lobes around
+    // the top of the head. Lower the oversized upper vertex silhouettes
+    // while keeping the eyes, muzzle and cheeks untouched.
+    if(c.count>400&&c.count<600&&c.minZ>.28&&
+       c.maxZ>.70&&c.maxY>.22)headRoots.add(root);
    }
    if(tailRoots.size!==1||legRoots.size<4)return;
    // Discard the vertical tail as a complete separate connected island.
@@ -359,7 +364,16 @@ export function createFinaleCatShow({
     if(tailRoots.has(root))pos.setXYZ(i,0,-.11,-.62);
     else if(legRoots.has(root)){
      const y=pos.getY(i);
-     pos.setY(i,-.15+(y+.15)*.63);
+     pos.setY(i,-.15+(y+.15)*.42);
+    }else if(headRoots.has(root)){
+     const y=pos.getY(i);
+     if(y>.12){
+      // An average 30% ear-height reduction, feathered into the crown.
+      pos.setY(i,.12+(y-.12)*.60);
+      const x=pos.getX(i);
+      if(Math.abs(x)>.075)
+       pos.setX(i,Math.sign(x)*(.075+(Math.abs(x)-.075)*.82));
+     }
     }
    }
    pos.needsUpdate=true;
@@ -394,6 +408,13 @@ export function createFinaleCatShow({
    // prevents a muddy face and a broken back/tail silhouette.
    cat.traverse(child=>{
     if(!child.isMesh)return;
+    // The source reference is a DARK tabby with a subtle chest. The
+    // low-detail GLB has a giant faceted cream diamond on its front that
+    // resembles a metal bib. Reveal the continuous gray body instead.
+    if(child.name==="domestic-shorthair_2"){
+     child.visible=false;
+     return;
+    }
     child.castShadow=true;
     child.receiveShadow=true;
     const fix=mat=>{
@@ -403,7 +424,7 @@ export function createFinaleCatShow({
      // The source footage shows a DARK charcoal/brown mackerel tabby,
      // not the overexposed white ceramic look in earlier builds.
      if(copy.color&&child.name==="domestic-shorthair_1")
-      copy.color.multiplyScalar(.70);
+      copy.color.multiplyScalar(.60);
      if("metalness" in copy)copy.metalness=0;
      if("envMapIntensity" in copy)copy.envMapIntensity=.18;
      return copy;
