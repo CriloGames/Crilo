@@ -300,7 +300,10 @@ export function createNothingHereFinale({
     if(phase==="opening"&&timeline.time()>=1.55){
      cube.updateWorldMatrix(true,true);
      frontFace.updateWorldMatrix(true,false);
-     cube.getWorldPosition(boxPoint);
+     // Source is the TOP opening, not the cube pivot or its front dial.
+     // Keep the cat set back into the hollow interior as it rises.
+     boxPoint.set(0,half*.92,-half*.27);
+     cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
      catShow.previewEmergence(rise.progress,boxPoint,landingPoint);
     }
@@ -310,6 +313,9 @@ export function createNothingHereFinale({
   });
   timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:5.1,ease:"power2.inOut"},0)
    .to(controls.target,{x:0,y:.55,z:0,duration:5.0,ease:"power2.inOut"},0)
+   // Square the object upright before the reveal even when the player
+   // finishes the last puzzle with the cube rotated upside down.
+   .to(cube.rotation,{x:0,y:0,z:0,duration:.85,ease:"power2.inOut"},0)
    // Crack open the far lid while the side walls still form a recognizable box.
    .to(joints.top.rotation,{x:Math.PI/2,duration:1.1,ease:"power2.inOut"},.35)
    .call(()=>setFrames(true),null,1.40)
@@ -354,6 +360,10 @@ export function createNothingHereFinale({
     return null;
    if(phase!=="opening")begin({animate:true,audio:false});
    timeline.pause().seek(END.clamp(Number(t)||0,0,5.8),false);
+   // A deliberately paused WebGL seek may take longer than the real
+   // 12.5s watchdog when taking software-rendered screenshots; don't let
+   // that timer start the soundtrack in the middle of a test capture.
+   clearWatchdog();
    return this.getState();
   },
   onResize(){if(phase==="open"){cube.scale.setScalar(fit());catShow.onResize();invalidate();}},
