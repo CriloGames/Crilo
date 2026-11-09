@@ -242,14 +242,11 @@ try{
     "The duck must STOP and actually FACE THE PLAYER during every still hold at "+
      seconds+"s: "+JSON.stringify(actual));
   assert(actual.neckGeometry==="continuous-short-sculpt"&&
-   actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined,
-   "Duck lost its smooth neck or fine black head/toe outlines at "+seconds);
-  if(seconds===29.45)
-   assert(actual.spinGlowStrength>.25&&actual.spinGlowVisible,
-    "The early red-nebula rapid spin must visibly glow");
-  if(seconds===29||seconds===60)
-   assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
-    "The duck must not glow during a front-facing pause");
+   actual.neckSeams===0&&actual.duckHeadOutlined&&actual.duckToesOutlined&&
+   actual.duckTailOutlined&&actual.duckLegsOutlined,
+   "Duck lost fine outlines on its head, toes, tail or legs at "+seconds);
+  assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
+   "The duck must have no glow during spins OR front-facing pauses");
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -261,7 +258,7 @@ try{
  }
  // Stop exactly on the music cut, NOT in a permanent 1.12 radian
  // side profile. These still holds occur immediately AFTER distinct spins.
- for(const t of [2.9,6.1,9.2,12.4,15.6,18.8,26.8,35.93,58.95,
+ for(const t of [2.84,6.04,9.24,12.44,15.64,18.84,26.84,36.04,58.95,
    63.84,66.33,69.78,72.78,77.82,84.75,100.12,115.78,130.82]){
   const duck=await page.evaluate(time=>
    window.__nothing3DPreview.seekFinaleFrame(time),t);
@@ -273,9 +270,9 @@ try{
  console.log("PASS: duck stops facing forward after each spinning section");
  // At 30fps the opening spin makes one full left-right revolution
  // every FIVE frames, with no change to the barrel/forward pitch.
- const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6);
- const t1=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6+1/30);
- const t5=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.6+5/30);
+ const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70);
+ const t1=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70+1/30);
+ const t5=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70+5/30);
  assert(Math.abs(t1.actualRotations.y-t0.actualRotations.y-2*Math.PI/5)<.035&&
   Math.abs(t5.actualRotations.y-t0.actualRotations.y-2*Math.PI)<.035,
   "Duck yaw does not match the five-frame music spin cue: "+
