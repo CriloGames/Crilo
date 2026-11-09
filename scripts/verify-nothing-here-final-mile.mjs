@@ -124,9 +124,11 @@ try{
   Object.keys(finish.panels).length===6&&finish.outerFrameHidden,
   "Completed save didn't reveal its actual unfolded T");
  assert(finish.reverseTexturedPanels===6&&
-  finish.duck?.real3DDuck&&finish.duck.meshCount>0&&finish.duck.visible&&
+  finish.duck?.real3DDuck&&finish.duck.loadedModel&&
+  finish.duck.postlude?.postludePhase==="egg"&&
+  finish.duck.postlude.eggVisible&&finish.duck.postlude.eggClickable&&
   Math.abs(finish.cat.durationSeconds-134.699)<.001,
-  "Completed finale lost textured panels or genuine 134.7s Crilo Classic duck");
+  "Completed finale lost its textured panels, 3D duck, or interactive egg");
  assert.deepEqual(new Set((await state()).seen),new Set(sixty),
   "Finale save migration lost earned secrets");
  // A completed save places the banner above the game. When the user scrolls
@@ -268,6 +270,40 @@ try{
     JSON.stringify(duck));
  }
  console.log("PASS: duck stops facing forward after each spinning section");
+ // Post-music-only end card: the real single duck must first lay one
+ // modeled egg, waddle off, and leave an actual accessible click target.
+ const eggAtLay=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(1.2));
+ assert(eggAtLay.postlude?.eggVisible&&!eggAtLay.postlude.eggClickable&&
+  eggAtLay.postlude.sameDuck&&!eggAtLay.postlude.duckGone,
+  "The duck did not lay its 3D egg before walking away: "+
+   JSON.stringify(eggAtLay.postlude));
+ const eggWalking=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(2.5));
+ assert(eggWalking.postlude?.duckWalkingAway&&
+  !eggWalking.postlude.eggClickable,
+  "The original duck must visibly waddle away before the egg is clickable");
+ const eggWaiting=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleEgg(5.0));
+ assert(eggWaiting.postlude?.postludePhase==="egg"&&
+  eggWaiting.postlude.eggVisible&&eggWaiting.postlude.eggShaking&&
+  eggWaiting.postlude.eggClickable&&eggWaiting.postlude.duckGone,
+  "The shaking 3D egg must wait for a deliberate player click");
+ assert(await page.locator("#ncFinaleEgg").isVisible(),
+  "Shaking egg has no accessible touch/keyboard hit target");
+ await page.locator("#ncFinaleEgg").click({timeout:10000});
+ await page.waitForFunction(()=>
+  window.__nothing3DPreview.completionFinale.duck.postlude?.endMessageVisible,
+  null,{timeout:5000,polling:100});
+ const endingText=await page.locator("#ncFinaleEndCard").innerText();
+ assert.match(endingText,/THE END[.]/);
+ assert.match(endingText,/NOTHING HERE[?]/);
+ assert.match(endingText,/SOMETHING/);
+ assert(await page.locator("#ncFinaleEgg").isHidden(),
+  "The egg stayed clickable after being cracked");
+ console.log("PASS: duck lays egg, walks away, shaking egg clicks into final message");
+ // Re-enter the music sweep before existing audio regression tests.
+ await page.evaluate(()=>window.__nothing3DPreview.seekFinaleFrame(2));
  // At 30fps the opening spin makes one full left-right revolution
  // every FIVE frames, with no change to the barrel/forward pitch.
  const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70);
