@@ -247,9 +247,9 @@ try{
   if(seconds===29.45)
    assert(actual.spinGlowStrength>.25&&actual.spinGlowVisible,
     "The early red-nebula rapid spin must visibly glow");
-  if(seconds===29)
+  if(seconds===29||seconds===60)
    assert(actual.spinGlowStrength===0&&!actual.spinGlowVisible,
-    "The duck must not glow during the 29-second front-facing pause");
+    "The duck must not glow during a front-facing pause");
   renderResults.push([seconds,pose,backdrop]);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
    [0,2,34,68,91,123].includes(seconds)){
@@ -349,6 +349,13 @@ try{
    sample.cat.emergenceLipClearance>=.21),
   "Duck feet or belly clip the open lid during the entrance: "+
    JSON.stringify(opening.map(o=>o.cat.emergenceLipClearance)));
+ assert(opening[1].cat.emergenceHorizontalProgress<.10&&
+  opening[2].cat.emergenceHorizontalProgress>.90&&
+  opening[3].cat.emergenceHorizontalProgress>.99,
+  "Duck must stay behind the front dial while rising, then move above "+
+   "the unfolded T: "+JSON.stringify(opening.map(o=>({
+    t:o.entranceProgress,shift:o.cat.emergenceHorizontalProgress
+   }))));
  assert(opening[2].entranceProgress>.80&&
   opening[2].openingSideAngle>.3&&
   opening[2].cat.emergenceScale<.57&&
