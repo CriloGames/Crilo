@@ -11,8 +11,8 @@ export function createFinaleEggEnding({
  scene,stage,camera,controls,invalidate,reducedMotion,
  getAnchor,group,spinner,catRig,duck,shader,background
 }){
- let phase="idle",startTime=0,crackTime=0,elapsed=0,frameId=0;
- let eggRoot=null,eggWhole=null,eggOutline=null,topHalf=null,bottomHalf=null,eggCrack=null;
+ let phase="idle",startTime=0,crackTime=0,elapsed=0,frameId=0,lastFrame=0;
+ let eggRoot=null,eggWhole=null,eggOutline=null,topHalf=null,bottomHalf=null,eggCrack=null,duckShadow=null;
  let eggButton=null,endCard=null,origin=null,baseY=0,baseZ=0;
  const legs=duck.userData.walkLegs||[];
  const up=new THREE.Vector3(),projected=new THREE.Vector3();
@@ -73,6 +73,16 @@ export function createFinaleEggEnding({
   fill.position.set(-.7,1.1,1.2);
   eggRoot.add(fill);
   eggRoot.visible=false;
+  // The duck leaves a grounding shadow behind while it waddles away;
+  // the egg retains its own tiny oval contact shadow.
+  duckShadow=new THREE.Mesh(new THREE.CircleGeometry(.60,36),
+   new THREE.MeshBasicMaterial({
+    color:0x62576a,transparent:true,opacity:.11,
+    side:THREE.DoubleSide,depthWrite:false
+   }));
+  duckShadow.rotation.x=-Math.PI/2;
+  duckShadow.scale.set(1.25,.73,1);
+  duckShadow.visible=false;scene.add(duckShadow);
  }
  function createControls(){
   eggButton=document.createElement("button");
@@ -163,6 +173,8 @@ export function createFinaleEggEnding({
   group.position.set(origin.x+.35+exitDistance*departure,
    baseY-crouch+Math.abs(gait)*.045,
    baseZ+.20);
+  duckShadow.position.set(group.position.x,baseY-.025,baseZ+.20);
+  duckShadow.visible=t<4.65;
   spinner.rotation.y=walking?Math.PI*.5*ease((t-1.35)/.36):0;
   catRig.rotation.z=walking&&!reducedMotion?.043*gait:0;
   for(let i=0;i<legs.length;i++)
@@ -178,6 +190,7 @@ export function createFinaleEggEnding({
   if(phase==="cracking"){
    eggRoot.visible=true;
    group.visible=false;
+   duckShadow.visible=false;
    catRig.visible=false;
    eggRoot.scale.setScalar(1);
    const crack=ease((performance.now()-crackTime)/670);
@@ -219,6 +232,11 @@ export function createFinaleEggEnding({
  function tick(now){
   frameId=0;
   if(phase==="idle"||phase==="message")return;
+  // A waiting egg only needs 30 scene updates per second, not 60.
+  if(phase==="egg"&&now-lastFrame<1000/30){
+   frameId=requestAnimationFrame(tick);return;
+  }
+  lastFrame=now;
   if(phase==="cracking")render(5);
   else render(phase==="egg"?
    5+(now-startTime)/1000:Math.max(0,(now-startTime)/1000));
@@ -256,8 +274,9 @@ export function createFinaleEggEnding({
  }
  function stop(){
   if(frameId)cancelAnimationFrame(frameId);
-  frameId=0;phase="idle";elapsed=0;
+  frameId=0;phase="idle";elapsed=0;lastFrame=0;
   if(eggRoot)eggRoot.visible=false;
+  if(duckShadow)duckShadow.visible=false;
   if(eggCrack)eggCrack.visible=false;
   if(eggButton)eggButton.hidden=true;
   if(endCard)endCard.hidden=true;
