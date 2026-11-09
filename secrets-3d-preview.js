@@ -8,7 +8,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
-import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=20";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -1692,7 +1692,7 @@ async function scanRealSurfaceCollisions(){
  // Load the larger BVH package ONLY for the opt-in structural inspector.
  // Normal visitors and the standalone preview have no additional load.
  scene.updateMatrixWorld(true);
- const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=3");
+ const {scanSpatialIntersections}=await import("./secrets-3d-spatial-qa.js?v=4");
  const rewards=new Map();
  for(const [id,root] of physicalPickups?.targets||[])
   rewards.set(id,root.userData.pickupModel||root);
@@ -2551,6 +2551,35 @@ window.__nothing3DPreview={
   controls.mouseButtons.LEFT=enabled?THREE.MOUSE.PAN:THREE.MOUSE.ROTATE;
   controls.mouseButtons.RIGHT=THREE.MOUSE.PAN;
   controls.touches.ONE=enabled?THREE.TOUCH.PAN:THREE.TOUCH.ROTATE;
+ },
+ // Local-only screenshot QA: rotate the CAMERA to the cube's normal,
+ // rather than approximating a straight-on face with its default 3/4 view.
+ // Never expose a player-facing action or modify normal game controls.
+ setVisualAuditCamera(face){
+  if(!["localhost","127.0.0.1"].includes(location.hostname)||
+     !embeddedGame||completionFinale?.isActive())return false;
+  const axis={
+   front:[0,0],right:[0,-90],back:[0,180],left:[0,90],
+   top:[90,0],bottom:[-90,0]
+  };
+  if(face!=="home"&&!Object.hasOwn(axis,face))return false;
+  cancelCameraReturn();
+  gsap.killTweensOf(cube.rotation);
+  controls.enableDamping=false;
+  controls.target.set(0,0,0);
+  if(face==="home"){
+   camera.position.set(...zoomedHome());
+  }else{
+   camera.position.set(0,0,baseDistance()/DEFAULT_ZOOM);
+   cube.rotation.set(
+    THREE.MathUtils.degToRad(axis[face][0]),
+    THREE.MathUtils.degToRad(axis[face][1]),0
+   );
+  }
+  controls.update();
+  controls.enableDamping=true;
+  invalidate();
+  return true;
  },
  setRotation(rx,ry){
   if(!embeddedGame||completionFinale?.isActive())return;

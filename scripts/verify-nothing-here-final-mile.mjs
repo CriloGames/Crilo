@@ -117,7 +117,10 @@ try{
   s.seen=ids;
   localStorage.setItem(key,JSON.stringify(s));
  },sixty);
- await page.reload({waitUntil:"domcontentloaded",timeout:45000});
+ // A software-rendered WebGL page can delay DOMContentLoaded even though
+ // the new document is committed. Test the completed game using its real
+ // scene-ready gate, not a browser event unrelated to puzzle readiness.
+ await page.reload({waitUntil:"commit",timeout:90000});
  await ready();
  const finish=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
  assert(finish.phase==="open"&&finish.replay&&
