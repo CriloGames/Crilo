@@ -26,6 +26,10 @@ export function createNothingHereFinale({
  ];
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
  let audioAtFinish=false;
+ // The inspector must see every real mesh for its triangle-level collision
+ // audit, even when a saved 60/60 run has already finished.
+ const keepNetForInspection=new URLSearchParams(window.location.search)
+  .get("inspect3d")==="1";
  let netOpacity=1,trackedNetMaterials=null;
  // The middle panel is the open box itself. Track its world position so the
  // cat remains exactly above the opening regardless of cube scale/orientation.
@@ -63,6 +67,7 @@ export function createNothingHereFinale({
  }
  function setNetFade(seconds){
   if(phase!=="open")return;
+  if(keepNetForInspection){resetNetFade();return;}
   // The net is visible as the melody starts, then dissolves away over the
   // first 1.8 seconds, leaving ONLY the floating cat and neon stage.
   const u=END.clamp(seconds/1.8,0,1);
