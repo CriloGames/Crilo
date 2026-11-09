@@ -152,6 +152,7 @@
  let fluteContext=null;
  let finaleMaster=null,finaleTimeout=null,finaleTimer=null,finalePlaying=false;
  let licensedFinale=null,licensedUnavailable=false,finaleClockStart=null;
+ let finaleSynthClockStart=null;
  const licensedFinaleSrc='audio/nothing-here/finale-licensed.mp3?v=1';
  function ensureLicensedFinale(){
   if(!audioSupported||licensedUnavailable)return null;
@@ -178,6 +179,10 @@
   // The media playhead is always the authoritative clock while the licensed
   // recording exists (including its brief initial 0-second preload).
   if(track)return Number(track.currentTime)||0;
+  // The fallback must follow actual Web Audio time, not wall-clock time.
+  // AudioContext.currentTime freezes while suspended or interrupted.
+  if(Number.isFinite(finaleSynthClockStart)&&fluteContext)
+   return Math.max(0,fluteContext.currentTime-finaleSynthClockStart);
   return Number.isFinite(finaleClockStart)
    ?Math.max(0,(performance.now()-finaleClockStart)/1000):null;
  }
@@ -208,7 +213,7 @@
    licensedFinale.muted=false;
    try{licensedFinale.currentTime=0}catch{}
   }
-  finaleClockStart=null;
+  finaleClockStart=null;finaleSynthClockStart=null;
   if(personalFinale){
    personalFinale.pause();
    personalFinale.onended=null;
@@ -270,6 +275,7 @@
     clip.volume=.72;
     clip.muted=false;
     finaleClockStart=performance.now();
+    finaleSynthClockStart=null;
     finalePlaying=true;latestEffect='finale';
     clip.onended=()=>{
      if(clip!==activeFinaleAudio())return;
@@ -305,8 +311,11 @@
    master.gain.exponentialRampToValueAtTime(.35,now+.15);
    master.connect(ctx.destination);
    finaleClockStart=performance.now();
+   finaleSynthClockStart=now;
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
-   const beat=60/136,half=beat/2;
+   // Match the 150-BPM animation and licensed track. The previous 136-BPM
+   // backup could never stay on beat with the duck's 150-BPM choreography.
+   const beat=60/150,half=beat/2;
    const riff=[0,3,7,10,12,7,3,5,7,10,14,12,10,7,5,3,
                0,5,7,12,10,7,5,3,7,12,15,14,12,10,7,5];
    const roots=[82.407,65.406,73.416,61.735,82.407,69.296,73.416,61.735];
@@ -350,15 +359,20 @@
      next++;
     }
    }
-   schedule();finaleTimer=setInterval(schedule,130);
-   finaleTimeout=setTimeout(()=>{
+   // Finish after the AUDIO duration, not after 134.699 wall-clock seconds.
+   // A suspended context otherwise ends the score early after tab switching.
+   const advance=()=>{
     if(finaleMaster!==master)return;
+    schedule();
+    if(ctx.currentTime<now+duration)return;
     master.gain.setTargetAtTime(.0001,ctx.currentTime,.07);
     if(finaleTimer!==null){clearInterval(finaleTimer);finaleTimer=null;}
     finaleMaster=null;finalePlaying=false;finaleTimeout=null;
+    finaleSynthClockStart=null;
     setTimeout(()=>{try{master.disconnect()}catch{}},450);
     if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
-   },Math.ceil(duration*1000));
+   };
+   advance();finaleTimer=setInterval(advance,85);
    return true;
   }catch(error){
    console.warn('Cat finale audio unavailable:',error?.message||error);
