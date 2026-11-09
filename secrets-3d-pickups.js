@@ -378,9 +378,12 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // essential washer permanently invisible. Anchor it to the empty seat.
   // Likewise, do not hide the mechanical eye behind its loose glass iris.
   const surface=id==="washer"
-   // The last pin is physically withdrawn, so keep the washer in the
-   // permanently attached top hinge seat, not in a vanished pin.
-   ?{face:faces.topFace,x:-.54,y:.86,z:.20}
+   // The last pin is physically withdrawn, so seat the washer in a
+   // fixed retaining cradle just BEHIND the hinge axis. The old y=.86
+   // put its torus through the moving hatch panel when the lid opened.
+   // At y=1.08 the bolted bracket remains on the top enamel, while the
+   // washer clears the full sweep of the physical lid.
+   ?{face:faces.topFace,x:-.54,y:1.08,z:.20}
    :id==="iris"
     // Small output recess joined to the right shoulder of the glass eye.
     ?{face:faces.backFace,x:.91,y:.25,z:.20}
