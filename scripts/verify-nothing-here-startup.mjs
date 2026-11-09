@@ -403,15 +403,16 @@ try{
     // and the celebration must contain a genuine 3D cat, not a sprite/video.
     assert(layout.reverseTexturedPanels===6&&
      layout.cat?.visible&&layout.cat.real3D&&layout.cat.meshCount>0&&
-     layout.cat.loadedModel&&layout.cat.catSource==="cc0-hd-tabby-local"&&
+     layout.duck?.real3DDuck&&layout.duck.mascotGeometry==="crilo-classic-duck-v1"&&
+     layout.duck.loadedModel&&layout.duck.duckSource==="crilo-classic-original-3d"&&
      Math.abs(layout.cat.durationSeconds-134.699)<.001&&
      layout.cat.bpm===150&&layout.platformHorizontal&&
      layout.platformUnderCat&&layout.cameraAbovePlatform,
-     "Cat/base does not match the textured horizontal T, 150 BPM and 134.7s reference: "+
+     "Duck/base does not match the textured horizontal T, 150 BPM and 134.7s reference: "+
       JSON.stringify(layout.cat));
     if(check.label==="finale-last-discovery")
      assert(layout.cat.dancing,
-      "The cat did not begin its timed spin after the last panel unfolded");
+      "The duck did not begin its timed spin after the last panel unfolded");
     assert(layout.banner&&layout.replay&&layout.outerFrameHidden&&
      layout.centerFit&&layout.scale>=.18&&layout.scale<=.43,
      "The final scene is not properly visible: "+JSON.stringify(layout));
