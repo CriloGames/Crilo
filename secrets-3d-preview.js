@@ -1834,6 +1834,7 @@ window.__nothing3DPreview={
  ready:true,
  get completionFinale(){return completionFinale?.getState()||{phase:"idle"}},
  seekFinaleFrame:t=>completionFinale?.seekForVisualTest(t)||null,
+ testFinalePendingAudio:()=>completionFinale?.testPendingAudioForVisualTest?.()||null,
  seekFinaleOpening:t=>completionFinale?.seekOpeningForVisualTest(t)||null,
  get physicalCompletionLayout(){return completionFinale?.getState().panels||{}},
  engine:"three.js",
