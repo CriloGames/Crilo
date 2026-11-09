@@ -1158,13 +1158,32 @@ try{
  // Held items must never turn the cube automatically. Rotate to the
  // opposite face before selecting, then manually find the usable fitting.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(-13,180));
- await page.locator('#ncInventory [data-item="coin"]').evaluate(el=>{
-  el.click(); // put it down
-  el.click(); // hold it again from the opposite cube side
- });
+ // A realistic player puts the coin down using Clear selection, then
+ // picks it up again after turning the cube. Dispatching two click()
+ // calls in one evaluate could leave the first render/selection event
+ // racing the second and produce a false 22-second timeout.
+ await page.locator("#ncUnselect").click({timeout:15000});
  await page.waitForFunction(()=>
-  window.__nothing3DPreview.selectedItemFlashAudit.selected==="coin",
-  null,{timeout:22000});
+  window.CriloNothingHereCube?.getState?.().selected===null&&
+  window.__nothing3DPreview?.selectedItemFlashAudit?.selected===null,
+  null,{timeout:15000});
+ await page.locator('#ncInventory [data-item="coin"]').click({timeout:15000});
+ try{
+  await page.waitForFunction(()=>
+   window.__nothing3DPreview?.selectedItemFlashAudit?.selected==="coin"&&
+   window.CriloNothingHereCube?.getState?.().selected==="coin",
+   null,{timeout:22000});
+ }catch(error){
+  const debug=await page.evaluate(()=>({
+   gameSelected:window.CriloNothingHereCube?.getState?.().selected,
+   rendererSelected:window.__nothing3DPreview?.selectedItemFlashAudit,
+   rotation:window.__nothing3DPreview?.cubeRotationDegrees,
+   button:document.querySelector('#ncInventory [data-item="coin"]')?.outerHTML,
+   narrator:document.getElementById("ncNarrator")?.textContent
+  }));
+  throw new Error("Held coin did not synchronize with 3D fitting: "+
+   JSON.stringify(debug)+"; "+String(error));
+ }
  await page.waitForTimeout(300);
  const beforeManualTurn=await page.evaluate(()=>({
   rotation:window.__nothing3DPreview.cubeRotationDegrees,
