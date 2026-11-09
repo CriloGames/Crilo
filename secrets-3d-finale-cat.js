@@ -355,17 +355,18 @@ export function createFinaleCatShow({
     c.minY=Math.min(c.minY,y);c.maxY=Math.max(c.maxY,y);
     c.minZ=Math.min(c.minZ,z);c.maxZ=Math.max(c.maxZ,z);
    }
-   const tailRoots=new Set(),legRoots=new Set(),headRoots=new Set();
+   const tailRoots=new Set(),legRoots=new Set(),earRoots=new Set();
    for(const [root,c] of components){
     if(c.count>150&&c.maxY>.82&&c.minZ<-.45&&
        c.maxZ<-.35&&c.minY>-.25)tailRoots.add(root);
     if(c.count>120&&c.maxY<-.10&&c.minY<-.80)
      legRoots.add(root);
-    // The mesh includes two giant, round mouse-like ear lobes around
-    // the top of the head. Lower the oversized upper vertex silhouettes
-    // while keeping the eyes, muzzle and cheeks untouched.
-    if(c.count>400&&c.count<600&&c.minZ>.28&&
-       c.maxZ>.70&&c.maxY>.22)headRoots.add(root);
+    // Exact GLB topology: the real ears are separate 32-vertex
+    // triangular/rounded islands (plus 17-vertex backing islands), at
+    // z=0.56–0.65, y=0.06–0.39. The earlier 400–600 vertex predicate
+    // selected the CAT'S HEAD instead and crushed its muzzle.
+    if(c.count>=16&&c.count<=35&&c.minY>.04&&c.maxY>.34&&
+       c.minZ>.52&&c.maxZ<.70)earRoots.add(root);
    }
    // Some GLBs split vertices at UV seams, so triangle adjacency may
    // report more than one tail island. Do not abort all corrections in
@@ -412,15 +413,17 @@ export function createFinaleCatShow({
     else if(legRoots.has(root)){
      const y=pos.getY(i);
      pos.setY(i,-.15+(y+.15)*.42);
-    }else if(headRoots.has(root)){
-     const y=pos.getY(i);
-     if(y>.12){
-      // An average 30% ear-height reduction, feathered into the crown.
-      pos.setY(i,.09+(y-.09)*.34);
-      const x=pos.getX(i);
-      if(Math.abs(x)>.075)
-       pos.setX(i,Math.sign(x)*(.075+(Math.abs(x)-.075)*.64));
-     }
+    }else if(earRoots.has(root)){
+     // The owner's source cat has SMALL pointed ears, not two round
+     // mouse circles. Sculpt just the separated ear shells into tapering
+     // triangular ears with a 40% lower tip; don't touch the head/eyes.
+     const y=pos.getY(i),x=pos.getX(i);
+     const t=THREE.MathUtils.clamp((y-.063)/.329,0,1);
+     const side=x<0?-1:1;
+     const earCenter=side*.105;
+     const narrow=THREE.MathUtils.lerp(.82,.14,t*t);
+     pos.setX(i,earCenter+(x-earCenter)*narrow);
+     pos.setY(i,.063+(y-.063)*.66);
     }
    }
    pos.needsUpdate=true;
