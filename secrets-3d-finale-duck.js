@@ -139,6 +139,7 @@ export function buildCriloClassicDuck(){
  lineTube([[-.225,1.114,.84],[0,1.105,.94],[.225,1.114,.84]],line,.011);
  // Two small dark dot eyes (same black-brown as Classic SVG), with tiny
  // reflections. They remain readable when spinning or stationary.
+ const walkLegs=[];
  for(const sign of [-1,1]){
   const wing=oval(root,wingYellow,
    [sign*.455,.77,-.14],[.12,.235,.385],.025);
@@ -153,23 +154,24 @@ export function buildCriloClassicDuck(){
   // the neck. When stationary, BOTH eyes and the bill face the player.
   oval(root,line,[sign*.205,1.375,.711],[.053,.054,.045],0);
   oval(root,shine,[sign*.195,1.391,.750],[.014,.014,.009],0);
-  // Bury the ankle farther into the paddle (including in side view).
-  // At z=.015 it only grazed the rear ellipsoid, so the black rim could
-  // still make the foot seem disconnected while the duck was spinning.
+  // Keep the leg, dark outline, paddle and toes attached to one hip.
+  // The pivot is still during the main finale, then swings naturally
+  // when this SAME duck waddles away after laying the egg.
+  const hip=new THREE.Group();
+  hip.position.set(sign*.22,.41,.085);
+  root.add(hip);walkLegs.push(hip);
   const leg=new THREE.Mesh(new THREE.CylinderGeometry(.026,.034,.36,12),footBrown);
-  leg.position.set(sign*.22,.25,.085);
-  leg.castShadow=true;root.add(leg);
-  // A very thin back-face shell outlines the leg from front AND side.
-  // Its bottom remains buried inside the webbed paddle foot.
+  leg.position.set(0,-.16,0);
+  leg.castShadow=true;hip.add(leg);
   const legEdge=new THREE.Mesh(
    new THREE.CylinderGeometry(.035,.043,.365,12),outline);
   legEdge.position.copy(leg.position);
   legEdge.name="Fine dark duck-leg silhouette";
-  root.add(legEdge);
-  const foot=oval(root,footBrown,[sign*.22,.095,.19],[.155,.06,.205],.012);
+  hip.add(legEdge);
+  const foot=oval(hip,footBrown,[0,-.315,.105],[.155,.06,.205],.012);
   foot.rotation.y=sign*.08;
   for(const dx of [-.075,0,.075])
-   oval(root,footBrown,[sign*.22+dx,.07,.325],[.045,.04,.072],.008);
+   oval(hip,footBrown,[dx,-.34,.24],[.045,.04,.072],.008);
  }
  // Quieter chest scallop hints at the original hand-drawn outline without
  // inventing a hat, crown, logo or changing the mascot's palette.
@@ -184,6 +186,7 @@ export function buildCriloClassicDuck(){
  root.userData.toeOutline=true;
  root.userData.tailOutline=true;
  root.userData.legOutline=true;
+ root.userData.walkLegs=walkLegs;
  root.userData.materialPalette={
   body:"#ffe076",beak:"#f7ab67",outline:"#453b35",feet:"#c88a58"
  };
