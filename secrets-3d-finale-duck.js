@@ -98,6 +98,10 @@ export function buildCriloClassicDuck(){
  // Quieter chest scallop hints at the original hand-drawn outline without
  // inventing a hat, crown, logo or changing the mascot's palette.
  lineTube([[-.17,.72,.488],[0,.67,.54],[.17,.72,.488]],wingLine,.014);
+ // Present Crilo's actual SIDE-FACING Classic duck silhouette during still
+ // moments: tail/body left, head/beak right, one visible eye and wing.
+ // Rotating the SAME root in the music keeps every spin physically coherent.
+ root.rotation.y=1.12;
  root.scale.setScalar(.85); // deliberately smaller than the former tabby
  root.userData.materialPalette={
   body:"#ffe076",beak:"#f7ab67",outline:"#453b35",feet:"#c88a58"
