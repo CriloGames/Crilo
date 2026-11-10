@@ -332,6 +332,7 @@ export function createFinaleDuckShow({
  let startTime=0,lastPaint=0,elapsed=0,source="crilo-classic-original-3d";
  let group,spinner,catRig,background,shader,key,rim,flashLight;
  let emergenceLipClearance=null,emergenceHorizontalProgress=null;
+ let emergenceHeadScreenY=null;
  let loadedModel=null,eggEnding=null;
  let waitingForSoundtrack=false,soundtrackStarted=false;
  const identity="single-crilo-classic-duck";
@@ -545,7 +546,9 @@ export function createFinaleDuckShow({
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
   const fromY=boxCenter.y-.53;
-  const clearY=boxCenter.y+.90;
+  // Feet only need a modest lift above the lip, not a full extra body
+  // length. The previous +.90 rise pushed the head beyond short canvases.
+  const clearY=boxCenter.y+.58;
   const verticalY=THREE.MathUtils.lerp(fromY,clearY,e);
   // Only AFTER the duck is entirely above the lip does the box begin
   // unfolding. Keep the duck's entire underside clear of the physical
@@ -566,6 +569,24 @@ export function createFinaleDuckShow({
   loadedModel?.userData.updateTailContour?.(camera);
   emergenceHorizontalProgress=forward;
   emergenceLipClearance=group.position.y-boxCenter.y;
+  // Prevent head clipping at every viewport size (including short game
+  // canvases and browser zoom). Reframe the CAMERA, never push the duck
+  // down through the solid front wall to make it fit on-screen.
+  camera.lookAt(controls.target);
+  camera.updateMatrixWorld(true);
+  const headTop=new THREE.Vector3(group.position.x,
+   group.position.y+1.70*.85*1.08*emergenceScale,group.position.z);
+  emergenceHeadScreenY=headTop.project(camera).y;
+  if(emergenceHeadScreenY>.80){
+   const distance=camera.position.distanceTo(controls.target);
+   const extra=(emergenceHeadScreenY-.80)*distance*
+    Math.tan(THREE.MathUtils.degToRad(camera.fov)*.5)*1.10;
+   camera.position.y+=extra;
+   controls.target.y+=extra;
+   camera.lookAt(controls.target);
+   camera.updateMatrixWorld(true);
+   emergenceHeadScreenY=headTop.project(camera).y;
+  }
   key.color.setHex(0xffe8c6);
   rim.color.setHex(0xb1e5ff);
   key.intensity=1.8;rim.intensity=1.2;flashLight.intensity=0;
@@ -619,6 +640,7 @@ export function createFinaleDuckShow({
   emergenceScale=0;
   emergenceLipClearance=null;
   emergenceHorizontalProgress=null;
+  emergenceHeadScreenY=null;
   if(raf)cancelAnimationFrame(raf);
   raf=0;
   if(group){group.visible=false;group.scale.setScalar(1);}
@@ -675,6 +697,8 @@ export function createFinaleDuckShow({
      +emergenceLipClearance.toFixed(3),
     emergenceHorizontalProgress:emergenceHorizontalProgress===null?null:
      +emergenceHorizontalProgress.toFixed(3),
+    emergenceHeadScreenY:emergenceHeadScreenY===null?null:
+     +emergenceHeadScreenY.toFixed(3),
     emergenceBackgroundHidden:emerging&&!background.visible,
     emergenceSameRig:emerging&&!!catRig,
     durationSeconds:CAT_REFERENCE_DURATION,bpm:CAT_MUSIC_BPM,
