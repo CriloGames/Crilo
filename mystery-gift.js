@@ -22,6 +22,9 @@
  };
  const names=Object.keys(prizes),presentedThisPage=new Set(),collectionAction=$('criloMysteryOpenCollection');
  let state=null,token=0,busy=false,animation=0,rotation=0,runMode='official',returnFocus=null,collectionFromGift=false;
+ // Auto-open is explicitly authorized by the FINAL official Daily save,
+ // not by an intermediate server spin or a stale status response.
+ let finalOfficialDailySaved=false;
  const reduced=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const won=i=>i%2===0;
  const openDialog=dialog=>{
@@ -50,6 +53,7 @@
  }
  function setMode(mode){
   runMode=mode==='test'||mode==='bonus'?mode:'official';
+  finalOfficialDailySaved=false;
   if(runMode!=='official'){shortcut.classList.add('hidden');dismiss(false)}
   else render();
  }
@@ -58,7 +62,8 @@
   return u&&p?'crilo-mystery-auto-presented:'+u+':'+p:null;
  }
  function popIfSurprise(){
-  if(runMode!=='official'||!state?.eligible||!state.available||state.spun||busy)return;
+  if(!finalOfficialDailySaved||runMode!=='official'||
+   !state?.eligible||!state.available||state.spun||busy)return;
   const key=presentationKey();
   if(!key||presentedThisPage.has(key))return;
   try{if(localStorage.getItem(key)==='1')return}catch(_){}
@@ -160,7 +165,7 @@
   if(myToken!==token)return;
   if(error){console.warn('Mystery Gift status:',error.message);return}
   state=data||null;render();
-  if(autoOpen)popIfSurprise();
+  if(autoOpen&&finalOfficialDailySaved)popIfSurprise();
  }
  function showGift(automatic=false){
   if(runMode!=='official'||!state?.eligible||!state?.available||busy)return;
@@ -260,8 +265,14 @@
   // Another Mystery discovery may have completed the collection.
   if(!busy)void refresh();
  });
- window.addEventListener('crilo-official-wheel-stopped',()=>refresh({autoOpen:true}));
- window.addEventListener('crilo-official-daily-saved',()=>refresh({autoOpen:true}));
+ // Never present a surprise on spin 1/2/3/etc. Free spins can extend
+ // the session: only a server-confirmed completed Daily may show it.
+ window.addEventListener('crilo-official-daily-saved',event=>{
+  const detail=event.detail||{};
+  if(runMode!=='official'||detail.finished!==true||
+   detail.verified!==true||detail.remainingSpins!==0)return;
+  finalOfficialDailySaved=true;
+ });
  window.CriloMysteryGift={refresh,setMode};
  if(window.Crilo?.authResolved)refresh();
 })();
