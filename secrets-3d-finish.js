@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
+import {batchStaticGeometry} from "./secrets-3d-batching.js?v=3";
 import {clearRailSegments,railClearanceFaults} from "./secrets-3d-rail-clearance.js?v=1";
 
 /**
@@ -539,6 +539,10 @@ export function finishMechanicalArtifact({
   // The player-facing box is now fully suspended. Do not construct an
   // unrelated showroom podium or low circular trim under the cube.
   const batching=batchStaticGeometry(cube,finishedMeshes,{
+    // Merge only within a single hinged face. Batching in cube coordinates
+    // made the decorative geometry appear to float when panels rotated.
+    panelRoots:[frontFace,backFace,leftFace,rightFace,topFace,bottomFace],
+    faceRoot:frontFace.parent, // all six faces share this root before folding
     dynamicRoots:[front.drawer,side.drawer,lidPivot],
     label:"artisan"
   });
