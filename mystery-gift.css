@@ -23,6 +23,15 @@
 .crilo-mystery-modal::before{
  content:"";position:absolute;inset:0;z-index:-1;border-radius:50%;
  background:rgba(16,18,26,.77);box-shadow:0 0 18px 5px rgba(17,18,23,.13)}
+/* The actual Daily wheel pointer belongs to .wheel-stage (a sibling of
+   #wheelWrap), so its z-index used to draw a huge black ▼ across the
+   mystery heading even though the gift dialog had its own high z-index. */
+.wheel-stage:has(.crilo-mystery-modal:not(.hidden)) > .pointer{
+ visibility:hidden!important;pointer-events:none!important
+}
+.wheel-stage:has(.crilo-mystery-modal:not(.hidden)) > .wheel-wrap{
+ z-index:6
+}
 .crilo-mystery-dialog{
  position:relative;box-sizing:border-box;min-width:0;flex:0 0 auto;
  width:min(87vw,385px);max-width:calc(100vw - 24px);
