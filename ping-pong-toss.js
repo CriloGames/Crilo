@@ -29,17 +29,17 @@ let GRAVITY=10.65,BALL_R=.095;
 const MAX_AIM_YAW=1.02;
 function launchOffset(){return clamp(aimYaw*.37,-.38,.38);}
 const CHAPTERS=[
- {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x24d8da,short:'First Week'},
- {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xff9f38,short:'Desk Shift'},
- {name:'CROSS DRAFT',desc:'Varying fan gusts, blind shots, moving openings and combination trick shots.',from:21,to:30,color:0x13bcd1,short:'Cross Draft'},
- {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xffc23e,short:'Late Shift'},
- {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xff7747,short:'Final Shift'}
+ {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x56bfb8,short:'First Week'},
+ {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xdea16d,short:'Desk Shift'},
+ {name:'CROSS DRAFT',desc:'Varying fan gusts, blind shots, moving openings and combination trick shots.',from:21,to:30,color:0x6aaec2,short:'Cross Draft'},
+ {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xd7b66f,short:'Late Shift'},
+ {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xd88371,short:'Final Shift'}
 ];
 // Five sequential 50-level campaigns, each saved independently.
 const PROJECTILES=[
- {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xffbe35},
- {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Banks, curves, glides and stalls like a flying disc',radius:.125,gravity:9.8,speed:1.07,drag:.044,air:1.25,bounce:.66,pad:1.03,lift:1.65,color:0x8ae1cd},
- {id:'basketball',name:'Mini Basketball',short:'Basketball',hint:'Bouncier and larger',radius:.115,gravity:10.9,speed:1.04,drag:.014,air:.78,bounce:1.13,pad:1.05,lift:0,color:0xed914f},
+ {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xf2c35e},
+ {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Banks, curves, glides and stalls like a flying disc',radius:.125,gravity:9.8,speed:1.07,drag:.044,air:1.25,bounce:.66,pad:1.03,lift:1.65,color:0x88ccbd},
+ {id:'basketball',name:'Mini Basketball',short:'Basketball',hint:'Bouncier and larger',radius:.115,gravity:10.9,speed:1.04,drag:.014,air:.78,bounce:1.13,pad:1.05,lift:0,color:0xe09365},
  {id:'heavy',name:'Heavy Ball',short:'Heavy Ball',hint:'Falls faster; resists wind',radius:.107,gravity:12,speed:1.08,drag:.005,air:.40,bounce:.60,pad:1.20,lift:0,color:0x9cadc1},
  {id:'light',name:'Featherlight Ball',short:'Light Ball',hint:'Floats and drifts in wind',radius:.086,gravity:9.45,speed:1.02,drag:.081,air:1.85,bounce:1.10,pad:.94,lift:.38,color:0xd1e6e2}
 ];
@@ -794,7 +794,7 @@ function roomTexture(kind,seed,rx=1,ry=1){
   }
  }else if(kind==='carpet'){
   // Fine loop pile replaces chunky random noise.
-  ctx.fillStyle='#d4dad4';ctx.fillRect(0,0,256,256);
+  ctx.fillStyle='#d1d9d5';ctx.fillRect(0,0,256,256);
   for(let y=0;y<256;y+=4)for(let x=0;x<256;x+=4){
    ctx.fillStyle=(x+y)%12<5?'rgba(47,72,67,.11)':'rgba(255,255,255,.18)';
    ctx.fillRect(x+(y%8===0?0:2),y,1.3,2.4);
@@ -803,7 +803,7 @@ function roomTexture(kind,seed,rx=1,ry=1){
   stroke(255.5,0,255.5,256,'rgba(48,75,69,.12)',1);
  }else{
   // Restrained painted-plaster grain, with no distracting grid.
-  ctx.fillStyle='#f4f0e9';ctx.fillRect(0,0,256,256);
+  ctx.fillStyle='#f0f2ed';ctx.fillRect(0,0,256,256);
  }
  const flecks=kind==='carpet'?2600:kind==='wall'?4200:550;
  for(let n=0;n<flecks;n++){
@@ -2138,28 +2138,27 @@ function buildWorld(){
  worldClean();
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];physicsMovingOwners=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
- // Crilo-inspired office materials: softly desaturated stone, sage,
- // muted slate-teal, charcoal hardware and natural oak. Lighting retains
- // the established day/night distinction without turning the room neon
- // or almost black (particularly the Archive Springs level).
+ // Balanced Crilo office palette: natural oak and pale stone above deeper
+ // sage/slate floors. Keep the chapter accent on interactable shot elements,
+ // not across entire walls. This is visual only: no collider/physics changes.
  const sets=[
-  {walls:0x9cb7b6,carpet:0x5b7474,desk:0xb99a81,trim:0x587583,name:'THE CUBICLE'},
-  {walls:0xb4bfba,carpet:0x5e757c,desk:0xbf9e85,trim:0x607889,name:'MEETING ROOM'},
-  {walls:0x91afb5,carpet:0x546e79,desk:0xb89a83,trim:0x547181,name:'MAILROOM'},
-  {walls:0xb2bbae,carpet:0x637b76,desk:0xc3a58c,trim:0x657d75,name:'BREAK ROOM'},
-  {walls:0x6b858b,carpet:0x3f525b,desk:0xa88e78,trim:0x3e6775,name:'NIGHT SHIFT'},
-  {walls:0x869e99,carpet:0x516a67,desk:0xb18e76,trim:0x5d7b76,name:'ARCHIVE'},
-  {walls:0xa6bdb4,carpet:0x5b7f74,desk:0xc5a489,trim:0x597e76,name:'RECEPTION'},
-  {walls:0x9e9ca9,carpet:0x5e6274,desk:0xb59b85,trim:0x6c7183,name:'AWARDS OFFICE'},
-  {walls:0x94adb0,carpet:0x566e73,desk:0xb4977f,trim:0x5d7980,name:'SHIPPING DOCK'},
-  {walls:0x617a87,carpet:0x384f60,desk:0x9f8a79,trim:0x456777,name:'SERVER ROOM'}
+  {walls:0xa6b9b6,carpet:0x566f70,desk:0xc5a184,trim:0x557783,name:'THE CUBICLE'},
+  {walls:0xbdc4ba,carpet:0x617477,desk:0xc9a78e,trim:0x677d80,name:'MEETING ROOM'},
+  {walls:0xa2b6b9,carpet:0x526b72,desk:0xc3a18a,trim:0x5b7982,name:'MAILROOM'},
+  {walls:0xb7c3b2,carpet:0x64796e,desk:0xc8a98b,trim:0x718675,name:'BREAK ROOM'},
+  {walls:0x798e95,carpet:0x425661,desk:0xb39983,trim:0x53727c,name:'NIGHT SHIFT'},
+  {walls:0x96a9a1,carpet:0x556c65,desk:0xbe9b80,trim:0x637b70,name:'ARCHIVE'},
+  {walls:0xb4c8bd,carpet:0x607b70,desk:0xcbaa8b,trim:0x638274,name:'RECEPTION'},
+  {walls:0xaaa8b4,carpet:0x5c6378,desk:0xbca18d,trim:0x747789,name:'AWARDS OFFICE'},
+  {walls:0xa1b4b8,carpet:0x586e73,desk:0xc19d82,trim:0x647d84,name:'SHIPPING DOCK'},
+  {walls:0x728993,carpet:0x3f5662,desk:0xa9917f,trim:0x4b7384,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
  const artPlan=stageArtPlan(settings);
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
  // and the challenge layout changes its foreground props per individual level.
  const lightingMode=(level-1)%10>=5;
- const sceneTone=[0x718b90,0x809294,0x708996,0x85928d,0x546a78,0x607c7a,0x7f9890,0x777785,0x70888e,0x425e70][settings.sceneId];
+ const sceneTone=[0x718e91,0x849995,0x718995,0x819b8f,0x536e7a,0x69827c,0x819b91,0x7e7c8d,0x779398,0x4b6578][settings.sceneId];
  const nearDeskTone=settings.roomVariant?
  new THREE.Color(theme.desk).lerp(new THREE.Color(0x8b6d60),.25).getHex():theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
@@ -2175,8 +2174,8 @@ function buildWorld(){
  metal.bumpMap=surfaceRelief('wall',level+73,2,2);metal.bumpScale=.004;
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
- const blue=createMat(0x6d919c,.6),light=createMat(0xe7d5b4,.7);
- const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
+ const blue=createMat(0x72969c,.6),light=createMat(0xe9dec8,.7);
+ const lampGlow=new THREE.MeshBasicMaterial({color:0xffe8c8});
  // Each chapter keeps a single identifiable accent, with cool metal
  // hardware and warm desks. Game pieces remain brighter than set dressing.
  const roomAccent=finishMat(settings.color,'enamel');
@@ -2362,14 +2361,14 @@ function buildWorld(){
   const z=roomEnd+2.0+i*roomLength/3.5;
   meshBox(group,2.63,.14,1.0,-2.6,7.35,z,fixture);
   meshBox(group,2.17,.035,.70,-2.6,7.20,z,
-   new THREE.MeshBasicMaterial({color:nightRoom?0xc5deee:0xffe6b6}));
+   new THREE.MeshBasicMaterial({color:nightRoom?0xc7dce5:0xffe9cc}));
   if(i===1){
-   const overhead=new THREE.PointLight(nightRoom?0xc6d7ee:0xffd6ab,
-    nightRoom?5.6:7.2,12,2);
+   const overhead=new THREE.PointLight(nightRoom?0xc7dbe5:0xffe2be,
+    nightRoom?5.2:6.5,12,2);
    overhead.position.set(-2.6,6.90,z);group.add(overhead);
   }
  }
- const focusLight=new THREE.PointLight(nightRoom?0xaacadd:0xffdbac,3.9,5,2);
+ const focusLight=new THREE.PointLight(nightRoom?0xb9d9d9:0xffe0c2,3.6,5,2);
  focusLight.position.set(settings.x+1.65,settings.topPad+3.3,settings.targetZ+.75);
  group.add(focusLight);
  // Deliberate side dressing: always frame the cup rather than filling the
@@ -3584,7 +3583,8 @@ const FRISBEE_PAD_GRIP_BY_LEVEL={47:[.50],48:[.55,.56]};
  readabilityAspect=camera.aspect;
  separateBlockersOnScreen();
  validateLevelReadability();
- scene.background.setHex(lightingMode?0x394e59:sceneTone);
+ scene.background.setHex(lightingMode?
+  new THREE.Color(sceneTone).lerp(new THREE.Color(0x293b48),.46).getHex():sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
  buildPhysicsBodies();
@@ -4753,8 +4753,8 @@ async function init(){
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;
-  scene.add(new THREE.HemisphereLight(0xffebd8,0x526b7b,1.05));
-  const sun=new THREE.DirectionalLight(0xffddac,2.32);
+  scene.add(new THREE.HemisphereLight(0xf3f1e8,0x536e78,1.08));
+  const sun=new THREE.DirectionalLight(0xffe8d6,2.12);
   sun.position.set(-5,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(window.innerWidth>900?2048:1024,
    window.innerWidth>900?2048:1024);
@@ -4762,8 +4762,8 @@ async function init(){
   sun.shadow.camera.left=-16;sun.shadow.camera.right=16;
   sun.shadow.camera.top=16;sun.shadow.camera.bottom=-16;sun.shadow.camera.far=75;
   scene.add(sun);
-  const fill=new THREE.PointLight(0xa8d0e5,2.7,22,2);fill.position.set(4,5,1);scene.add(fill);
-  const bounce=new THREE.DirectionalLight(0xa8dfe0,.58);
+  const fill=new THREE.PointLight(0xc4dde0,2.3,22,2);fill.position.set(4,5,1);scene.add(fill);
+  const bounce=new THREE.DirectionalLight(0xb8dddb,.65);
   bounce.position.set(4,6,-10);scene.add(bounce);
   hasRenderer=true;buildWorld();resize();
   if('ResizeObserver' in window)new ResizeObserver(resize).observe(el.viewport);
