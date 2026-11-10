@@ -137,9 +137,17 @@ function spinRate(t){
 // change its facing angle on every kick. Instead each 400ms beat completes
 // exactly two turns. An audio-phase-locked speed accent accelerates near
 // each kick and eases between kicks, giving 3.8–6.2 rps without drifting.
+const INTRO_AUDIO_ATTACKS=new Map([
+ [1.60,1.64],[4.36,4.38],[8.00,8.04],[11.22,11.26],
+ [14.40,14.43],[17.60,17.62],[20.78,20.81]
+]);
 function soundtrackTurns(t,start,end,sourceRate){
  const beat=CAT_BEAT_SECONDS;
- const phaseAt=time=>TAU*(time-.04)/beat;
+ // Those seven peak timestamps were measured from the installed MP3,
+ // not estimated from a global metronome. Phase-lock each opening spin
+ // to its own actual bass attack, eliminating 20–60ms cue mismatch.
+ const attack=INTRO_AUDIO_ATTACKS.get(start);
+ const phaseAt=time=>TAU*(time-(attack??.04))/beat;
  const accent=sourceRate>=5.75?.48:sourceRate>=5.45?.34:.24;
  const first=phaseAt(start),now=phaseAt(t),last=phaseAt(end);
  const accentTurns=x=>accent/TAU*(Math.sin(x)-Math.sin(first));
