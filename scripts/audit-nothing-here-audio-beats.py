@@ -112,3 +112,25 @@ for cue in late_starts:
        "offset",round(peak[1]-cue,3),
        "strength",round(peak[0],4))
 
+
+# Bass disappears in a few sections, but that alone does not mean the
+# song is silent. Audit the full audible spectrum before changing pose
+# transitions in quiet / high-frequency sections.
+full_sample_rate=8000
+full=subprocess.run([
+ "ffmpeg","-nostdin","-v","error","-i",str(TRACK),"-t","135",
+ "-ar",str(full_sample_rate),"-ac","1","-f","f32le","pipe:1"
+],capture_output=True,check=True)
+full_samples=array.array("f")
+full_samples.frombytes(full.stdout)
+if os.sys.byteorder=="big":full_samples.byteswap()
+def volume_at(t,length=.2):
+ low=int(t*full_sample_rate)
+ high=min(len(full_samples),int((t+length)*full_sample_rate))
+ if high<=low:return 0.
+ part=full_samples[low:high]
+ return math.sqrt(sum(x*x for x in part)/len(part))
+for left,right in [(0,2.5),(26.5,33.5),(61.5,66.5),(86.5,89.5),(102.8,104.5)]:
+ values=[(round(t/10,2),round(volume_at(t/10),5))
+  for t in range(round(left*10),round(right*10),2)]
+ print("FULL-BAND VOLUME",left,right,values)
