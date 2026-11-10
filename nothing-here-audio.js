@@ -85,8 +85,22 @@
    m.classList.toggle('nc-audio-disabled',!musicEnabled);
   }
  }
+ // The opening/unfolded finale is not the lobby: never play the box loop
+ // over the duck soundtrack or while the duck is waiting for sound.
+ function finaleSceneActive(){
+  return document.body.classList.contains('nc-finale-active');
+ }
+ function pauseLobbyMusic(){
+  if(!music)return;
+  if(music._fadeFrame)cancelAnimationFrame(music._fadeFrame);
+  music.pause();music.volume=0;
+ }
+ function requestFinaleAudio(){
+  window.dispatchEvent(new Event('nothing-here-finale-audio-request'));
+ }
  function startMusic(){
-  if(finalePlaying||!musicEnabled||!gestureReady||document.hidden)return false;
+  if(finaleSceneActive()||finalePlaying||!musicEnabled||
+   !gestureReady||document.hidden)return false;
   const song=ensureMusic();if(!song)return false;
   if(song._fadeFrame)cancelAnimationFrame(song._fadeFrame);
   // Only start after a user gesture; modern browsers block page-load audio.
@@ -96,7 +110,9 @@
    promise?.then?.(()=>{
     // A fast On→Off click can beat the browser's asynchronous play()
     // permission/decoding promise. Never restart muted music afterward.
-    if(!musicEnabled||document.hidden){song.pause();song.volume=0;return;}
+    if(!musicEnabled||document.hidden||finaleSceneActive()||finalePlaying){
+     song.pause();song.volume=0;return;
+    }
     fadeMusic(.20,650);
    }).catch?.(()=>{
     // Keep the control enabled: another gesture can unlock it.
@@ -107,11 +123,20 @@
  }
  function setMusic(on){
   musicEnabled=!!on;save(keyMusic,musicEnabled);syncUi();
-  if(musicEnabled){gestureReady=true;startMusic()}
-  else if(music){
-   // Off means silent immediately, including while a fade is underway.
-   if(music._fadeFrame)cancelAnimationFrame(music._fadeFrame);
-   music.pause();music.volume=0;
+  if(musicEnabled){
+   gestureReady=true;
+   if(finaleSceneActive()){
+    pauseLobbyMusic();
+    requestFinaleAudio();
+   }else startMusic();
+  }else{
+   pauseLobbyMusic();
+   // Keep playing if Sounds is still on; otherwise switch the duck
+   // back to its silent clock until one of the toggles is enabled.
+   if(finaleSceneActive()&&!sfxEnabled&&finalePlaying){
+    stopFinale();
+    window.dispatchEvent(new Event('nothing-here-finale-audio-muted'));
+   }
   }
  }
  function setSfx(on){
@@ -119,13 +144,20 @@
   if(!sfxEnabled){
    for(const a of active){a.pause();a.currentTime=0}
    active.clear();
-   // The handcrafted flute uses Web Audio rather than a sampled element.
-   // Suspending it makes the effects toggle truly mute both sound engines.
-   stopFinale();
-   if(fluteContext?.state==="running")fluteContext.suspend().catch(()=>{});
+   // Music has its own toggle. Muting Sounds must not kill the score
+   // when Music remains enabled.
+   if(!musicEnabled&&finalePlaying){
+    stopFinale();
+    window.dispatchEvent(new Event('nothing-here-finale-audio-muted'));
+   }
+   if(!musicEnabled&&fluteContext?.state==="running")
+    fluteContext.suspend().catch(()=>{});
   }
   syncUi();
-  if(sfxEnabled)play('select');
+  if(sfxEnabled){
+   if(finaleSceneActive())requestFinaleAudio();
+   else play('select');
+  }
  }
  function play(kind='click'){
   if(!sfxEnabled||document.hidden||!files[kind]||!audioSupported)return false;
@@ -237,7 +269,7 @@
  // Starting the 134.7s score after a 4s unfolding delay otherwise loses
  // the user-gesture permission on browsers that suspend new audio contexts.
  function prepareFinale(){
-  if(!sfxEnabled)return false;
+  if(!sfxEnabled&&!musicEnabled)return false;
   // Prime browser-local media during the genuine finishing/replay click,
   // allowing sound to begin only when the unfolding animation completes.
   const song=personalFinale||ensureLicensedFinale();
@@ -261,8 +293,10 @@
  // An original electronic celebration timed to the complete 134.699s
  // cat show. The commercial W&W "OIIA OIIA" song is NOT bundled; a licensed
  // synchronized music file can be substituted by the game's owner later.
- function playFinale(durationSeconds=134.699){
-  if(!sfxEnabled||document.hidden)return false;
+ function playFinale(durationSeconds=134.699,startAtSeconds=0){
+  if((!sfxEnabled&&!musicEnabled)||document.hidden)return false;
+  const offset=Math.max(0,Math.min(134.599,
+   Number(startAtSeconds)||0));
   const selected=personalFinale||ensureLicensedFinale();
   if(selected){
    // The licensed MP3 is the DEFAULT finale soundtrack for every player;
@@ -271,7 +305,9 @@
    const clip=selected;
    if(music&&!music.paused){music.pause();music.volume=0;}
    try{
-    clip.currentTime=0;
+    // Enabling sound mid-performance should JOIN the duck at its current
+    // beat, not start an unrelated song from the beginning.
+    clip.currentTime=offset;
     clip.volume=.72;
     clip.muted=false;
     finaleClockStart=performance.now();
@@ -307,11 +343,12 @@
    if(fluteContext.state==='suspended')fluteContext.resume()?.catch?.(()=>{});
    stopFinale();
    if(music&&!music.paused){music.pause();music.volume=0;}
-   const ctx=fluteContext,now=ctx.currentTime+.055;
+   const ctx=fluteContext,anchor=ctx.currentTime+.055;
    const duration=Math.min(180,Math.max(1,Number(durationSeconds)||134.699));
+   const now=anchor-Math.min(offset,duration-.10);
    const master=ctx.createGain();
-   master.gain.setValueAtTime(.0001,now);
-   master.gain.exponentialRampToValueAtTime(.35,now+.15);
+   master.gain.setValueAtTime(.0001,anchor);
+   master.gain.exponentialRampToValueAtTime(.35,anchor+.15);
    master.connect(ctx.destination);
    finaleClockStart=performance.now();
    finaleSynthClockStart=now;
@@ -333,7 +370,9 @@
     osc.connect(env).connect(master);
     osc.start(t);osc.stop(t+len+.1);
    }
-   let next=0;
+   // Seek the synthesized fallback to the same musical beat when a
+   // listener turns audio on after the duck has already begun dancing.
+   let next=Math.max(0,Math.ceil((anchor-now)/half));
    function schedule(){
     if(!finalePlaying||finaleMaster!==master)return;
     const horizon=ctx.currentTime+.85;
@@ -452,9 +491,10 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
-  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,getFinaleClock,action,setSfx,setMusic,setPersonalFinaleFile,
+  play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,getFinaleClock,action,setSfx,setMusic,setPersonalFinaleFile,pauseLobbyMusic,
   getState:()=>({
-   sfxEnabled,musicEnabled,latestEffect,finalePlaying,musicCreated:!!music,
+   sfxEnabled,musicEnabled,latestEffect,finalePlaying,
+   finaleSceneActive:finaleSceneActive(),musicCreated:!!music,
    personalFinaleReady:!!personalFinale,personalFinaleName,
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
    licensedFinalePlaying:!!licensedFinale&&!licensedFinale.paused&&!licensedFinale.muted,
