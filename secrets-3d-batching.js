@@ -52,6 +52,12 @@ export function batchStaticGeometry(cube,candidates,{
     if(Array.isArray(mesh.material)||mesh.material.transparent||mesh.material.opacity<1)continue;
     if(!mesh.geometry?.attributes?.position||!mesh.geometry.attributes.normal)continue;
     const owner=batchParent(mesh);
+    // A batched mesh anchored to cube (rather than a hinged face) can
+    // contain pieces from several different walls and cannot be safely
+    // reparented when those walls unfold. Keep such meshes separate for
+    // the finale frame-retention pass to assign individually. Future
+    // additions to the scene should never silently recreate root batches.
+    if(owner===cube)continue;
     const shadow=mesh.castShadow?1:0;
     // Material UUID alone is not enough: panels have separate transforms.
     const key=owner.uuid+":"+mesh.material.uuid+":"+shadow;
