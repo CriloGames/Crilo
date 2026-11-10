@@ -13,6 +13,75 @@ export function createFinaleEggEnding({
 }){
  let phase="idle",startTime=0,crackTime=0,elapsed=0,frameId=0,lastFrame=0;
  let eggRoot=null,eggWhole=null,eggOutline=null,topHalf=null,bottomHalf=null,eggCrack=null,duckShadow=null;
+ let eggFracture=null,shellFlakes=[],crackProgress=0,openingProgress=0;
+ const shellRadius=new THREE.Vector3(.37,.48,.34);
+ const shellSegments=80,shellRows=20,teethCount=40;
+ const toothAngles=Array.from({length:teethCount},(_,i)=>
+  Math.PI*.49+.054*Math.sin(i*2.31)+.034*Math.sin(i*5.13));
+ function seamTheta(phi){
+  const t=((phi/(2*Math.PI))%1+1)%1*teethCount;
+  const j=Math.floor(t);
+  return THREE.MathUtils.lerp(toothAngles[j],
+   toothAngles[(j+1)%teethCount],t-j);
+ }
+ function shellPoint(phi,theta,radius=1){
+  return new THREE.Vector3(
+   shellRadius.x*Math.sin(theta)*Math.cos(phi)*radius,
+   shellRadius.y*Math.cos(theta)*radius,
+   shellRadius.z*Math.sin(theta)*Math.sin(phi)*radius);
+ }
+ // One continuous jagged cut around the ACTUAL ellipsoidal shell:
+ // exterior, slightly recessed interior and an ivory-colored cut lip.
+ // No flat caps, clean circular cuts or hollow floating spherical slices.
+ function crackedShellGeometry(isTop){
+  const verts=[],uvs=[],indices=[],groups=[];
+  function surface(radius,isInner){
+   const first=indices.length,offset=verts.length/3;
+   for(let i=0;i<=shellSegments;i++){
+    const phi=2*Math.PI*i/shellSegments,seam=seamTheta(phi);
+    for(let j=0;j<=shellRows;j++){
+     const u=j/shellRows;
+     const theta=isTop?seam*u:seam+(Math.PI-seam)*u;
+     const p=shellPoint(phi,theta,radius);
+     verts.push(p.x,p.y,p.z);uvs.push(i/shellSegments,u);
+    }
+   }
+   const row=shellRows+1;
+   for(let i=0;i<shellSegments;i++)for(let j=0;j<shellRows;j++){
+    const a=offset+i*row+j,b=a+row,c=a+1,d=b+1;
+    if(isInner)indices.push(a,c,b,b,c,d);
+    else indices.push(a,b,c,b,d,c);
+   }
+   groups.push({start:first,count:indices.length-first,
+    materialIndex:isInner?1:0});
+  }
+  surface(1,false);
+  surface(.958,true);
+  // Bridge the two skins with a physical thin shell lip, instead of
+  // leaving the edge as zero-thickness spherical geometry.
+  const edgeStart=indices.length,offset=verts.length/3;
+  for(let i=0;i<=shellSegments;i++){
+   const phi=i*2*Math.PI/shellSegments,theta=seamTheta(phi);
+   for(const radius of [1,.958]){
+    const p=shellPoint(phi,theta,radius);
+    verts.push(p.x,p.y,p.z);uvs.push(i/shellSegments,radius);
+   }
+  }
+  for(let i=0;i<shellSegments;i++){
+   const k=offset+i*2;
+   indices.push(k,k+1,k+2,k+1,k+3,k+2);
+  }
+  groups.push({start:edgeStart,count:indices.length-edgeStart,
+   materialIndex:2});
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.Float32BufferAttribute(verts,3));
+  geo.setAttribute("uv",new THREE.Float32BufferAttribute(uvs,2));
+  geo.setIndex(indices);
+  for(const g of groups)geo.addGroup(g.start,g.count,g.materialIndex);
+  geo.computeVertexNormals();
+  geo.computeBoundingSphere();
+  return geo;
+ }
  let eggButton=null,endCard=null,origin=null,baseY=0,baseZ=0;
  const legs=duck.userData.walkLegs||[];
  const up=new THREE.Vector3(),projected=new THREE.Vector3();
@@ -37,20 +106,72 @@ export function createFinaleEggEnding({
   eggOutline.scale.set(.389,.499,.359);
   eggRoot.add(eggOutline);
 
-  const makeHalf=(start,length)=>{
+  const inside=new THREE.MeshStandardMaterial({
+   color:0xe8dac6,roughness:.89,metalness:0,side:THREE.DoubleSide
+  });
+  const cutEdge=new THREE.MeshStandardMaterial({
+   color:0xe0cdb3,roughness:.94,metalness:0,side:THREE.DoubleSide
+  });
+  function makeHalf(isTop){
    const part=new THREE.Group();
-   const geometry=new THREE.SphereGeometry(1,36,28,0,Math.PI*2,start,length);
-   const core=new THREE.Mesh(geometry,shell);
-   core.scale.set(.37,.48,.34);
-   part.add(core);
-   const border=new THREE.Mesh(geometry,outline);
-   border.scale.set(.389,.499,.359);
-   part.add(border);
-   part.visible=false;eggRoot.add(part);
+   part.name=isTop?"Jagged top eggshell cap":"Jagged bottom eggshell cup";
+   // Pivot at the BACK lip, so the cap peels backward rather than
+   // hovering straight upward as a detached circular hemisphere.
+   const hinge=new THREE.Vector3(0,.026,-.27);
+   if(isTop)part.position.copy(hinge);
+   const body=new THREE.Group();
+   if(isTop)body.position.copy(hinge).negate();
+   part.add(body);
+   const mesh=new THREE.Mesh(crackedShellGeometry(isTop),
+    [shell,inside,cutEdge]);
+   mesh.name=isTop?"Ivory egg cap with cut lip":
+    "Ivory lower egg cup with cut lip";
+   mesh.castShadow=true;mesh.receiveShadow=true;
+   body.add(mesh);
+   const seamPoints=[];
+   for(let i=0;i<=shellSegments;i++){
+    const phi=2*Math.PI*i/shellSegments;
+    seamPoints.push(shellPoint(phi,seamTheta(phi),1.003));
+   }
+   const seam=new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(seamPoints),
+    new THREE.LineBasicMaterial({color:0x8a7966})
+   );
+   seam.name="Uneven visible eggshell cut edge";
+   body.add(seam);
+   part.visible=false;
+   eggRoot.add(part);
    return part;
-  };
-  topHalf=makeHalf(0,1.38);
-  bottomHalf=makeHalf(1.38,Math.PI-1.38);
+  }
+  topHalf=makeHalf(true);
+  bottomHalf=makeHalf(false);
+  // Full fracture grows from the initial central hairline, around the
+  // entire egg's equator. Each little segment follows the SAME crack
+  // profile as both solid shell edges; nothing jumps to a smooth circle.
+  const fracturePoints=[];
+  for(let i=0;i<=shellSegments;i++){
+   const phi=Math.PI/2+i*2*Math.PI/shellSegments;
+   fracturePoints.push(shellPoint(phi,seamTheta(phi),1.014));
+  }
+  eggFracture=new THREE.Line(
+   new THREE.BufferGeometry().setFromPoints(fracturePoints),
+   new THREE.LineBasicMaterial({color:0x67584d})
+  );
+  eggFracture.name="Growing jagged eggshell fracture";
+  eggFracture.visible=false;
+  eggFracture.geometry.setDrawRange(0,0);
+  eggRoot.add(eggFracture);
+  // Two restrained flakes tumble down and settle ON the ground. They
+  // never stay suspended next to the cracked egg.
+  shellFlakes=[-1,1].map(sign=>{
+   const flake=new THREE.Mesh(
+    new THREE.TetrahedronGeometry(.042,0),shell);
+   flake.name="Loose tiny eggshell flake";
+   flake.userData.sign=sign;
+   flake.scale.set(1,.55,.62);
+   flake.visible=false;eggRoot.add(flake);
+   return flake;
+  });
   const shadow=new THREE.Mesh(new THREE.CircleGeometry(.43,40),
    new THREE.MeshBasicMaterial({
     color:0x4d5965,transparent:true,opacity:.12,
@@ -59,18 +180,18 @@ export function createFinaleEggEnding({
   shadow.rotation.x=-Math.PI/2;
   shadow.position.set(0,-.49,-.015);
   eggRoot.add(shadow);
-  // A short hairline zigzag hints at movement INSIDE the shell.
-  // It only becomes visible once the duck has walked off.
-  const crackPoints=[
-   [-.11,.14,.304],[-.042,.082,.331],[.013,.114,.334],
-   [.047,.026,.338],[.113,-.018,.31]
-  ].map(p=>new THREE.Vector3(...p));
-  eggCrack=new THREE.Mesh(
-   new THREE.TubeGeometry(new THREE.CatmullRomCurve3(crackPoints),24,.007,6,false),
-   new THREE.MeshBasicMaterial({color:0x655145})
+  // The waiting egg shows a tiny real surface crack; a tap extends this
+  // SAME jagged line into the full fracture before the cap opens.
+  const initialHairline=[];
+  for(let i=-4;i<=4;i++){
+   const phi=Math.PI/2+i*2*Math.PI/shellSegments;
+   initialHairline.push(shellPoint(phi,seamTheta(phi),1.014));
+  }
+  eggCrack=new THREE.Line(
+   new THREE.BufferGeometry().setFromPoints(initialHairline),
+   new THREE.LineBasicMaterial({color:0x67584d})
   );
-  eggCrack.visible=false;
-  eggRoot.add(eggCrack);
+  eggCrack.visible=false;eggRoot.add(eggCrack);
   const fill=new THREE.PointLight(0xffffff,.95,4.5);
   fill.position.set(-.7,1.1,1.2);
   eggRoot.add(fill);
@@ -215,16 +336,38 @@ export function createFinaleEggEnding({
    duckShadow.visible=false;
    catRig.visible=false;
    eggRoot.scale.setScalar(1);
-   const crack=ease((performance.now()-crackTime)/670);
-   eggWhole.visible=false;eggOutline.visible=false;
-   eggCrack.visible=false;
-   topHalf.visible=true;bottomHalf.visible=true;
-   eggRoot.rotation.z=0;
+   const seconds=Math.max(0,(performance.now()-crackTime)/1000);
+   crackProgress=ease((seconds-.035)/.34);
+   openingProgress=ease((seconds-.39)/.68);
+   const settle=ease((seconds-1.09)/.52);
+   const split=seconds>=.39;
+   eggWhole.visible=!split;eggOutline.visible=!split;
+   eggCrack.visible=!split;
+   eggFracture.visible=!split;
+   eggFracture.geometry.setDrawRange(0,
+    Math.min(shellSegments+1,Math.floor((shellSegments+1)*crackProgress)));
+   topHalf.visible=split;bottomHalf.visible=split;
    eggRoot.position.y=baseY+eggFloorHeight;
-   topHalf.position.set(crack*.19,crack*.30,0);
-   topHalf.rotation.z=crack*.25;
+   // One small physical shiver when the fracture spreads, then the
+   // stationary lower cup stays planted exactly where the egg was.
+   eggRoot.rotation.z=seconds<.39&&!reducedMotion?
+    .019*Math.sin(seconds*33)*(1-crackProgress):0;
    bottomHalf.position.set(0,0,0);
-   if(crack>=1){
+   bottomHalf.rotation.set(0,0,0);
+   topHalf.position.set(.43*settle,
+    .026+.050*openingProgress-.34*settle,
+    -.27-.12*settle);
+   topHalf.rotation.set(-1.12*openingProgress,
+    .12*openingProgress,-.14*openingProgress-.46*settle);
+   for(const flake of shellFlakes){
+    const sign=flake.userData.sign;
+    const fall=ease((seconds-.51)/.66);
+    flake.visible=split&&openingProgress>.05;
+    flake.position.set(sign*(.14+.19*fall),
+     THREE.MathUtils.lerp(.01,-.446,fall),.312+.06*fall);
+    flake.rotation.set(fall*1.8,sign*fall*.8,sign*fall*2.1);
+   }
+   if(seconds>=1.9){
     phase="message";
     endCard.hidden=false;
     endCard.querySelector(".nc-finale-end-title")?.focus({preventScroll:true});
@@ -232,8 +375,12 @@ export function createFinaleEggEnding({
   }else{
    eggWhole.visible=true;eggOutline.visible=true;
    eggCrack.visible=phase==="egg"||t>=4.65;
+   eggFracture.visible=false;
+   eggFracture.geometry.setDrawRange(0,0);
+   for(const flake of shellFlakes)flake.visible=false;
    topHalf.visible=false;bottomHalf.visible=false;
-   topHalf.position.set(0,0,0);topHalf.rotation.set(0,0,0);
+   topHalf.position.set(0,.026,-.27);topHalf.rotation.set(0,0,0);
+   bottomHalf.position.set(0,0,0);bottomHalf.rotation.set(0,0,0);
    if(phase==="egg")renderWalking(Math.max(t,5.0));
    else renderWalking(t);
    if(t>=4.70){
@@ -270,6 +417,7 @@ export function createFinaleEggEnding({
  function clickEgg(){
   if(phase!=="egg")return false;
   phase="cracking";
+  crackProgress=0;openingProgress=0;
   eggButton.hidden=true;
   crackTime=performance.now();
   if(frameId)cancelAnimationFrame(frameId);
@@ -295,6 +443,9 @@ export function createFinaleEggEnding({
   stageForEgg();
   eggWhole.visible=true;eggOutline.visible=true;
   topHalf.visible=false;bottomHalf.visible=false;
+  if(eggFracture)eggFracture.visible=false;
+  for(const flake of shellFlakes)flake.visible=false;
+  crackProgress=0;openingProgress=0;
   endCard.hidden=true;eggButton.hidden=!restore;
   render(restore?5:0);
   if(!reducedMotion)frameId=requestAnimationFrame(tick);
@@ -307,6 +458,9 @@ export function createFinaleEggEnding({
   if(eggRoot)eggRoot.visible=false;
   if(duckShadow)duckShadow.visible=false;
   if(eggCrack)eggCrack.visible=false;
+  if(eggFracture)eggFracture.visible=false;
+  for(const flake of shellFlakes)flake.visible=false;
+  crackProgress=0;openingProgress=0;
   if(eggButton)eggButton.hidden=true;
   if(endCard)endCard.hidden=true;
   if(catRig)resetBody();
@@ -330,6 +484,19 @@ export function createFinaleEggEnding({
    eggShaking:phase==="egg"&&!reducedMotion,
    eggWobble:+(eggRoot?.rotation.z??0).toFixed(4),
    eggHairlineCrackVisible:!!eggCrack?.visible,
+   eggCrackProgress:+crackProgress.toFixed(3),
+   eggOpeningProgress:+openingProgress.toFixed(3),
+   eggJaggedSeamTeeth:toothAngles.length,
+   eggShellThickness:.042,
+   eggLowerShellStationary:!!bottomHalf&&
+    bottomHalf.position.lengthSq()<.000001&&
+    bottomHalf.rotation.x===0&&bottomHalf.rotation.z===0,
+   eggTopCapTilt:+(topHalf?.rotation.x||0).toFixed(3),
+   eggTopCapVisible:!!topHalf?.visible,
+   eggLowerCupVisible:!!bottomHalf?.visible,
+   eggFragmentCount:shellFlakes.length,
+   eggFragmentsRested:shellFlakes.length===2&&
+    shellFlakes.every(f=>!f.visible||f.position.y<-.43),
    eggDropProgress:+ease((elapsed-.90)/.63).toFixed(3),
    eggGrowProgress:+ease((elapsed-1.82)/2.84).toFixed(3),
    eggScale:+(eggRoot?.scale.x??0).toFixed(3),
