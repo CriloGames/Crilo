@@ -124,7 +124,9 @@ try{
  await ready();
  const finish=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
  assert(finish.phase==="open"&&finish.replay&&
-  Object.keys(finish.panels).length===6&&finish.outerFrameHidden,
+  Object.keys(finish.panels).length===6&&finish.originalFramePreserved&&
+  finish.originalFramePieceCount>=20&&
+  finish.originalFrameVisibleCount===finish.originalFramePieceCount,
   "Completed save didn't reveal its actual unfolded T");
  assert(finish.reverseTexturedPanels===6&&
   finish.duck?.real3DDuck&&finish.duck.loadedModel&&
@@ -488,6 +490,16 @@ try{
     path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
    });
   }
+ }
+ // Every original brass rail/corner remains attached and visible during
+ // the FULLY folded entrance, including after the old 1.40-second cut.
+ for(const [i,sample] of opening.entries()){
+  assert(sample.originalFramePreserved&&
+   sample.originalFramePieceCount>=20&&
+   sample.originalFrameAttachedCount===sample.originalFramePieceCount&&
+   sample.originalFrameVisibleCount===sample.originalFramePieceCount,
+   "The original frame disappeared/replaced at "+
+   openingTimes[i]+"s: "+JSON.stringify(sample));
  }
  assert(!opening[0].catRisingFromBox&&
   opening[0].openingLidAngle>.8&&opening[0].openingSideAngle<.05,
