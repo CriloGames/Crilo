@@ -183,7 +183,11 @@ export function motionAt(seconds){
  const next=CAT_POSE_CUTS[Math.min(pIndex+1,CAT_POSE_CUTS.length-1)][0];
  const duration=Math.max(.01,next-start),local=Math.max(0,t-start);
  const loaf=mode==="loaf";
- const beat=beatPulseClock(t);
+ // The source's short front-facing holds are cut on the original
+ // main 150 BPM grid (.04s phase); only the active intro spins need their
+ // per-attack resynchronization. This prevents a phase jump from making
+ // the duck bounce AFTER it has already settled forward.
+ const beat=loaf?beatPulseClock(t):(t-.04)/CAT_BEAT_SECONDS;
  // Preserve a monotonically increasing global beat index for section
  // sequencing, but align every visible pulse to the measured local kick.
  // Otherwise e.g. the 4.38s spin occurs 60ms before its bounce/lighting.
