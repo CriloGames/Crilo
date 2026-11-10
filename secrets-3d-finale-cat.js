@@ -4,7 +4,7 @@
  */
 import * as THREE from "three";
 import {buildCriloClassicDuck} from "./secrets-3d-finale-duck.js?v=12";
-import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=9";
+import {createFinaleEggEnding} from "./secrets-3d-finale-egg.js?v=10";
 import {CAT_REFERENCE_DURATION,sceneAt,motionAt,CAT_MUSIC_BPM} from "./secrets-3d-finale-timeline.js?v=14";
 
 export {CAT_REFERENCE_DURATION} from "./secrets-3d-finale-timeline.js?v=14";
@@ -671,6 +671,13 @@ export function createFinaleDuckShow({
     return null;
    stop();show(CAT_REFERENCE_DURATION);
    eggEnding.seekForVisualTest(t);
+   return this.getState();
+  },
+  seekEggCrackForVisualTest(t){
+   if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+    return null;
+   stop();show(CAT_REFERENCE_DURATION);
+   eggEnding.seekCrackForVisualTest(t);
    return this.getState();
   },
   restore(){
