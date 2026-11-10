@@ -475,15 +475,19 @@ try{
  console.log("PASS: duck lays egg, walks away, shaking egg clicks into final message");
  // Re-enter the music sweep before existing audio regression tests.
  await page.evaluate(()=>window.__nothing3DPreview.seekFinaleFrame(2));
- // At 30fps the opening spin makes one full left-right revolution
- // every FIVE frames, with no change to the barrel/forward pitch.
- const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70);
- const t1=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70+1/30);
- const t5=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.70+5/30);
- assert(Math.abs(t1.actualRotations.y-t0.actualRotations.y-2*Math.PI/5)<.035&&
-  Math.abs(t5.actualRotations.y-t0.actualRotations.y-2*Math.PI)<.035,
-  "Duck yaw does not match the five-frame music spin cue: "+
-   JSON.stringify({t0,t1,t5}));
+ // Verify the actual audible 150 BPM beat grid, not a fixed
+ // 5-video-frame rotation rate. Every .400s musical kick-to-kick interval
+ // completes exactly TWO yaw turns, with a faster musical downbeat accent.
+ const t0=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.64);
+ const kick=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.68);
+ const off=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.84);
+ const offEnd=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),1.88);
+ const tBeat=await page.evaluate(t=>window.__nothing3DPreview.seekFinaleFrame(t),2.04);
+ assert(Math.abs(tBeat.actualRotations.y-t0.actualRotations.y-4*Math.PI)<.04&&
+  kick.actualRotations.y-t0.actualRotations.y>
+   (offEnd.actualRotations.y-off.actualRotations.y)*1.25,
+  "Duck must complete full revolutions ON the soundtrack beat: "+
+   JSON.stringify({t0,kick,off,offEnd,tBeat}));
  const strobePeak=await page.evaluate(t=>
   window.__nothing3DPreview.seekFinaleFrame(t),34.04);
  const strobeRest=await page.evaluate(t=>
