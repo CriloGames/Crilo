@@ -469,10 +469,10 @@ try{
   "The former gray interlude needs an electric laser strobe: "+
    JSON.stringify(electric));
  console.log("PASS: Classic duck holds still before music and gray cut is gone");
- // Replay the 60/60 completion with the NEW physical entrance sequence.
- // The lid must open BEFORE the duck rises, and side hinges must not form
- // the T until the same duck has visibly emerged from the box.
- const openingTimes=[1.2,2.3,4.3,5.65];
+ // The duck must COMPLETELY leave the upright box before any wall
+ // rotation or opening-frame translation begins. Earlier versions moved
+ // the cube at 3.1s although the duck was still rising until 5.05s.
+ const openingTimes=[1.2,2.3,4.55,6.8,8.75];
  const opening=[];
  for(const time of openingTimes){
   const sample=await page.evaluate(t=>
@@ -482,8 +482,7 @@ try{
     JSON.stringify({time,sample}));
   opening.push(sample);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
-    [2.3,4.3].includes(time)){
-   // Render at least one fresh on-demand WebGL frame after a paused seek.
+    [2.3,4.55,6.8].includes(time)){
    await page.waitForTimeout(350);
    await page.locator("#stage canvas").screenshot({
     path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
@@ -492,7 +491,7 @@ try{
  }
  assert(!opening[0].catRisingFromBox&&
   opening[0].openingLidAngle>.8&&opening[0].openingSideAngle<.05,
-  "The box lid must open while the duck is still inside");
+  "Lid must open before the duck appears");
  assert(opening[1].catRisingFromBox&&opening[1].catRevealedBeforeT&&
   opening[1].openingLidAngle>1.4&&
   opening[1].openingSideAngle<.05&&
@@ -500,40 +499,36 @@ try{
   opening[1].cat.emergenceSameRig&&
   opening[1].cat.distinctCatModels===1&&
   opening[1].cat.actualRotations.y===0,
-  "One real cat must climb out of the open lid BEFORE any side unfolds: "+
+  "Single 3D duck must rise out of the stationary box: "+
    JSON.stringify(opening[1]));
- // At 2.3 seconds the duck is still rising from INSIDE the box,
- // so its feet must not already sit high above the lid's back edge.
- // Only after the frontward transition can it clear the exposed lip.
  assert(opening[1].cat.emergenceLipClearance<.31&&
-   [opening[2],opening[3]].every(sample=>
-    sample.cat.emergenceLipClearance>=.20),
-  "Duck must rise from inside, then clear the front face before it "+
-   "moves forward: "+JSON.stringify(opening.map(o=>({
-    progress:o.entranceProgress,
-    lip:o.cat.emergenceLipClearance,
-    forward:o.cat.emergenceHorizontalProgress
-   }))));
- assert(opening[1].cat.emergenceHorizontalProgress<.10&&
-  opening[2].cat.emergenceHorizontalProgress>.90&&
-  opening[3].cat.emergenceHorizontalProgress>.99,
-  "Duck must stay behind the front dial while rising, then move above "+
-   "the unfolded T: "+JSON.stringify(opening.map(o=>({
-    t:o.entranceProgress,shift:o.cat.emergenceHorizontalProgress
-   }))));
- assert(opening[2].entranceProgress>.80&&
-  opening[2].openingSideAngle>.3&&
-  opening[2].cat.emergenceScale<.57&&
-  opening[2].cat.actualRotations.y===0,
-  "The T shape must begin AFTER the duck has substantially emerged: "+
+  opening[1].cat.emergenceHorizontalProgress===0,
+  "Early emergence should remain inside the box opening");
+ assert(opening[2].entranceProgress>=.999&&
+  opening[2].openingSideAngle<.01&&
+  Math.abs(opening[2].openingCubeTilt)<.01&&
+  opening[2].cat.emergenceHorizontalProgress===0&&
+  opening[2].cat.emergenceLipClearance>.80&&
+  opening[2].duckRootClearanceOverFrontRim>.5,
+  "Duck must fully clear the physical FRONT wall while the cube is "+
+   "upright and BEFORE unfolding starts: "+
    JSON.stringify(opening[2]));
- assert(opening[3].entranceProgress>=.999&&
-  opening[3].openingSideAngle>1.50&&
-  opening[3].cat.emergenceScale>.78&&
-  opening[3].cat.actualRotations.y===0,
-  "Cat should hover over a nearly-complete T before the music: "+
-   JSON.stringify(opening[3]));
- console.log("PASS: open lid -> same duck rises -> T folds flat -> music fade");
+ assert(opening[3].openingSideAngle>.3&&
+  opening[3].openingCubeTilt<-.25&&
+  opening[3].cat.emergenceHorizontalProgress>.10&&
+  opening[3].duckRootClearanceOverFrontRim>.15&&
+  opening[3].cat.emergenceScale<.72,
+  "Cube should unfold only after duck is outside, and never intersect "+
+   "the real front lip: "+JSON.stringify(opening[3]));
+ assert(opening[4].entranceProgress>=.999&&
+  opening[4].openingSideAngle>1.50&&
+  opening[4].cat.emergenceHorizontalProgress>.99&&
+  opening[4].duckRootClearanceOverFrontRim>.15&&
+  opening[4].cat.emergenceScale>.78&&
+  opening[4].cat.actualRotations.y===0,
+  "Duck must finish outside the unfolded T without clipping: "+
+   JSON.stringify(opening[4]));
+ console.log("PASS: lid opens, duck fully rises vertically, THEN cube unfolds");
  console.log("PASS: one shared duck, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
