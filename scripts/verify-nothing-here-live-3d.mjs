@@ -2213,6 +2213,7 @@ try{
  assert(complete.phase==="open"&&complete.banner&&complete.replay&&
   complete.originalFramePreserved&&complete.originalFramePieceCount>=20&&
    complete.originalFrameVisibleCount===complete.originalFramePieceCount&&
+   complete.rigidCubeOrphanCount===0&&
    Object.keys(complete.panels).length===6,
   "The completed legacy 3D save did not unfold all six cube panels: "+
    JSON.stringify(complete));
