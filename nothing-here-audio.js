@@ -157,7 +157,14 @@
      if(finaleMaster&&fluteContext?.state==="suspended")
       fluteContext.resume()?.catch?.(()=>{});
      if(clip?.paused&&!clip.ended)
-      clip.play()?.catch?.(()=>{});
+      clip.play()?.catch?.(error=>{
+       console.warn("Finale audio resume:",error?.message||error);
+       if(clip===licensedFinale){
+        const at=clip.currentTime||0;
+        licensedUnavailable=true;licensedFinale=null;
+        finalePlaying=false;playFinale(134.699,at);
+       }
+      });
     }else{
      if(clip&&!clip.paused)clip.pause();
      finaleMediaStarted=false;
@@ -327,7 +334,8 @@
   // The media playhead is always the authoritative clock while the licensed
   // recording exists (including its brief initial 0-second preload).
   if(track)return track.ended||track.paused||track.muted||
-   track.seeking||track.readyState<3||!finaleMediaStarted?null:
+   track.volume<=0||track.seeking||track.readyState<3||
+   !finaleMediaStarted?null:
    Number(track.currentTime)||0;
   // The fallback must follow actual Web Audio time, not wall-clock time.
   // AudioContext.currentTime freezes while suspended or interrupted.
@@ -656,6 +664,7 @@
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,
    windUpActive,windUpSeconds,windUpNext,windUpNoteCount:windUpBeats.length,
+   windUpLastBeatSpacing:+(windUpBeats.at(-1)-windUpBeats.at(-2)).toFixed(3),
    finaleMusicAudible:finalePlaying&&musicEnabled&&!document.hidden&&
     Number.isFinite(getFinaleClock()),
    finaleSceneActive:finaleSceneActive(),musicCreated:!!music,
