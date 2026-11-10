@@ -31,6 +31,44 @@ for(let i=0;i<introStarts.length;i++){
   "Opening duck must not anticipate the MP3 attack at "+introAttacks[i]+
   "s by "+lead.toFixed(3)+"s");
 }
+// The character, its tiny bob and the first lighting accents MUST use
+// the same decoded audio attack, not three slightly different clocks.
+// The 4.38s kick in particular is ~60ms early relative to the global grid.
+for(const attack of introAttacks){
+ const before=motionAt(attack-.012),at=motionAt(attack),
+  after=motionAt(attack+.055);
+ assert(!before.spinning&&before.spinRadians===0,
+  "Premature opening spin before the MP3 attack at "+attack);
+ assert(at.spinning&&at.poseStart===attack&&at.spinRadians===0,
+  "Opening yaw must begin at (never ahead of) the MP3 attack "+attack);
+ assert(at.beatPulse>.99&&at.beatPhase<.001&&after.spinRadians>.20,
+  "Duck yaw, bounce and lighting are not locked to the same audible kick "+
+   attack+": "+JSON.stringify({at,after}));
+}
+// Sweep every 60Hz frame over the ENTIRE finale, catching reversed yaw,
+// discontinuities, premature cut changes and unreasonably fast turns.
+// Angle may reset to zero only at an authored front-facing pose cut.
+let maxObservedRps=0,minObservedRps=Infinity,comparedFrames=0;
+for(let t=0;t<CAT_REFERENCE_DURATION-1/60;t+=1/60){
+ const a=motionAt(t),b=motionAt(t+1/60);
+ if(!a.spinning){
+  assert(a.spinRadians===0,
+   "Cat rotated during the front-facing hold at "+t);
+ }
+ if(a.spinning&&b.spinning){
+  const rps=(b.spinRadians-a.spinRadians)/(2*Math.PI/60);
+  assert(rps>0&&rps<8,
+   "The spin reversed or whipped unnaturally between two video frames: "+
+    JSON.stringify({time:t,rps}));
+  maxObservedRps=Math.max(maxObservedRps,rps);
+  minObservedRps=Math.min(minObservedRps,rps);
+  comparedFrames++;
+ }
+}
+assert(comparedFrames>5700&&maxObservedRps<8&&minObservedRps>0,
+ "Full soundtrack spin sweep was not sampled correctly");
+console.log("PASS: all 7 early cues align yaw/bounce/lights and full "+
+ comparedFrames+"-frame music sweep keeps forward-only yaw");
 for(const [time,mode] of CAT_POSE_CUTS.slice(1,16)){
  if(mode==="front")
   assert(motionAt(time).beatPhase<.001,
