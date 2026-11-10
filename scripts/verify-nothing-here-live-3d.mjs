@@ -2211,7 +2211,9 @@ try{
   document.body.classList.contains("nc-physical-ready"),{timeout:60000});
  const complete=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
  assert(complete.phase==="open"&&complete.banner&&complete.replay&&
-  complete.outerFrameHidden&&Object.keys(complete.panels).length===6,
+  complete.originalFramePreserved&&complete.originalFramePieceCount>=20&&
+   complete.originalFrameVisibleCount===complete.originalFramePieceCount&&
+   Object.keys(complete.panels).length===6,
   "The completed legacy 3D save did not unfold all six cube panels: "+
    JSON.stringify(complete));
  assert.deepEqual(new Set((await state()).seen),new Set(sixtySecrets),
