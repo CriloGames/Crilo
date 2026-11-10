@@ -13,6 +13,7 @@ export function createNothingHereFinale({
  const S=3.22,half=S/2;
  const banner=document.getElementById("ncFinaleBanner");
  const replayButton=document.getElementById("ncFinaleReplay");
+ const skipButton=document.getElementById("ncFinaleSkip");
  const originalCamera=camera.position.clone();
  const originalTarget=controls.target.clone();
  const originalRotation=cube.rotation.clone();
@@ -207,11 +208,27 @@ export function createNothingHereFinale({
   texture.colorSpace=THREE.SRGBColorSpace;
   return texture;
  }
+ function syncSkipButton(){
+  if(!skipButton)return;
+  const musicOn=window.NothingHereAudio?.getState?.().musicEnabled!==false;
+  skipButton.hidden=phase!=="open"||musicOn||
+   !duckShow.getState().dancing;
+ }
+ window.addEventListener("nothing-here-finale-music-state",syncSkipButton);
+ window.addEventListener("nothing-here-finale-ended",()=>{
+  requestAnimationFrame(syncSkipButton);
+ });
+ skipButton?.addEventListener("click",()=>{
+  if(phase!=="open"||!duckShow.skipSilentVideo())return;
+  window.NothingHereAudio?.stopFinale?.();
+  syncSkipButton();
+ });
  function showBanner(next){
   if(!banner)return;
   banner.hidden=false;
   banner.dataset.phase=next;
   if(replayButton)replayButton.hidden=next!=="open";
+  syncSkipButton();
  }
  function ensureJoints(){
   if(joints)return;
@@ -334,6 +351,7 @@ export function createNothingHereFinale({
  }
  function resetForReplay(){
   duckShow.stop();
+  if(skipButton)skipButton.hidden=true;
   rise.progress=0;
   resetNetFade();
   window.NothingHereAudio?.stopFinale?.();
@@ -367,6 +385,7 @@ export function createNothingHereFinale({
   const audioAccepted=audioAtFinish?cue():false;
   // No soundtrack means no wall-clock-driven duck dance.
   duckShow.start({syncToAudio:true});
+  syncSkipButton();
   audioAtFinish=false;
   controls.enabled=true; // Orbit the unfolded object; never reactivate puzzles.
   controls.enableRotate=true;
