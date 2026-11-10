@@ -31,6 +31,7 @@ class AudioContext{
  createAnalyser(){
   activityAnalyser={
    fftSize:1024,
+   connect(){return this},
    getByteTimeDomainData(data){data.fill(trackAudibleSignal?136:128)}
   };
   return activityAnalyser;
