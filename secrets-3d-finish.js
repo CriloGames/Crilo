@@ -387,6 +387,7 @@ export function finishMechanicalArtifact({
   // No click targets or new puzzles are assigned to this relief.
   // Lower clues, iris calibration and discoveries remain authoritative.
 
+  const cornerGussets=[];
   // Substantial three-dimensional beveled corner gussets.
   // Each fitting MUST belong to a hinged face, not the rigid cube root:
   // root-mounted gussets were left floating behind the box as the panels
@@ -397,6 +398,7 @@ export function finishMechanicalArtifact({
     const crown=group(cube,x*1.615,y*1.615,z*1.615);
     (y>0?topFace:bottomFace).attach(crown);
     crown.userData.finalePanelName=y>0?"topFace":"bottomFace";
+    cornerGussets.push({node:crown,owner:y>0?topFace:bottomFace});
     B(crown,.28,.28,.28,0,0,0,metal,.085);
     B(crown,.19,.19,.06,0,0,z*.126,tinyGold,.052);
     C(crown,.047,.036,0,0,z*.175,darkMetal);
@@ -564,6 +566,12 @@ export function finishMechanicalArtifact({
        Math.abs(r.segments[0]?.length-(r.to-r.from))>.0001).length,
       faults:borderRailFaults.map(x=>({...x}))}),
     getDecorativeCornerCaps:()=>decorativeCornerCaps.map(cap=>({...cap})),
+    getFinaleGussetAudit:()=>({
+      count:cornerGussets.length,
+      attached:cornerGussets.filter(({node,owner})=>node.parent===owner).length,
+      allFollowWall:cornerGussets.length===8&&
+       cornerGussets.every(({node,owner})=>node.parent===owner)
+    }),
     batching,
     getLensMountAudit:()=>({
       face:frontLens.parent===frontFace?"frontFace":"unexpected",
