@@ -62,6 +62,18 @@ try{
  await page.reload({waitUntil:"commit",timeout:90000});
  await ready();
  assert.equal((await state()).seen.length,59,"Saved 59/60 state was not restored");
+ // At the very first frame, all optimized 3D ornaments belong to actual
+ // hinged face roots, not to the cube's rigid world-space geometry.
+ const batchBefore=await page.evaluate(()=>({
+  attachment:window.__nothing3DPreview.finaleBatchAttachmentAudit,
+  batching:window.__nothing3DPreview.batching
+ }));
+ assert(batchBefore.attachment.allFollowPanels&&
+  batchBefore.attachment.total>0&&
+  batchBefore.batching.artisan.coordinateSpace==="hinged-panel"&&
+  batchBefore.batching.precision.coordinateSpace==="hinged-panel",
+  "Original decorative geometry is not parented to its moving panel: "+
+   JSON.stringify(batchBefore));
  const initial=await page.evaluate(()=>({
   ending:window.__nothing3DPreview.completionFinale,
   doors:window.__nothing3DPreview.miniatureMechanismPose.liftDoors,
@@ -123,6 +135,12 @@ try{
  await page.reload({waitUntil:"commit",timeout:90000});
  await ready();
  const finish=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
+ const batchAfter=await page.evaluate(()=>window.__nothing3DPreview.finaleBatchAttachmentAudit);
+ assert(batchAfter.allFollowPanels&&
+  batchAfter.total===batchBefore.attachment.total&&
+  batchAfter.cubeAttached===0&&batchAfter.unassigned===0,
+  "A baked ornament was left behind when the panel unfolded: "+
+   JSON.stringify({batchBefore,batchAfter}));
  assert(finish.phase==="open"&&finish.replay&&
   Object.keys(finish.panels).length===6&&finish.originalFramePreserved&&
   finish.originalFramePieceCount>=20&&
@@ -494,6 +512,12 @@ try{
  // Every original brass rail/corner remains attached and visible during
  // the FULLY folded entrance, including after the old 1.40-second cut.
  for(const [i,sample] of opening.entries()){
+  const attachment=await page.evaluate(()=>
+   window.__nothing3DPreview.finaleBatchAttachmentAudit);
+  assert(attachment.allFollowPanels&&
+   attachment.total===batchBefore.attachment.total,
+   "Some combined detail detached from its panel at "+
+    openingTimes[i]+"s: "+JSON.stringify(attachment));
   assert(sample.originalFramePreserved&&
    sample.originalFramePieceCount>=20&&
    sample.originalFrameAttachedCount===sample.originalFramePieceCount&&
