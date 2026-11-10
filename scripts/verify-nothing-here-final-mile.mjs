@@ -479,6 +479,31 @@ try{
  console.log("PASS: duck lays egg, walks away, shaking egg clicks into final message");
  // Re-enter the music sweep before existing audio regression tests.
  await page.evaluate(()=>window.__nothing3DPreview.seekFinaleFrame(2));
+ // Regression: never anticipate a recorded musical drop. The game's
+ // choreography is already sampled from the decoded audio playhead, so a
+ // 20–40ms visual "pre-roll" was visibly starting before the actual bass.
+ // Check ALL opening attacks, including the very first one.
+ const actualOpeningAttacks=[1.64,4.38,8.04,11.26,14.43,17.62,20.81];
+ for(const attack of actualOpeningAttacks){
+  const before=await page.evaluate(t=>
+   window.__nothing3DPreview.seekFinaleFrame(t),attack-.012);
+  const on=await page.evaluate(t=>
+   window.__nothing3DPreview.seekFinaleFrame(t),attack);
+  const after=await page.evaluate(t=>
+   window.__nothing3DPreview.seekFinaleFrame(t),attack+.055);
+  assert(before?.active3DPose==="still"&&
+   before?.actualRotations.y===0&&
+   before?.duckStopsFrontOnHold===true,
+   "Opening mascot rotated BEFORE the actual audio downbeat at "+
+    attack+"s: "+JSON.stringify(before));
+  assert(on?.active3DPose==="spin"&&
+   on?.motion?.poseStart===attack&&
+   after?.active3DPose==="spin"&&
+   Math.abs(after.actualRotations.y)>.2,
+   "Opening mascot must START ON the recorded downbeat at "+
+    attack+"s: "+JSON.stringify({on,after}));
+ }
+ console.log("PASS: all seven opening spins wait for their audible bass attacks");
  // Verify the actual audible 150 BPM beat grid, not a fixed
  // 5-video-frame rotation rate. Every .400s musical kick-to-kick interval
  // completes exactly TWO yaw turns, with a faster musical downbeat accent.
