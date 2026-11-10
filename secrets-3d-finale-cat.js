@@ -498,20 +498,29 @@ export function createFinaleDuckShow({
      finishOnAudioEnd();return;
     }
    }
-   if(waitingForSoundtrack&&!soundtrackStarted){
-    // A video play() promise may stall while Chrome buffers. Keep the duck
-    // facing forwards at t=0 rather than spinning on performance.now before
-    // the first actual audio sample / media playhead arrives.
-    if(Number.isFinite(audioT)&&audioT>.018)
+   if(waitingForSoundtrack){
+    // Playback MUST be audible, decoding, and actually advancing before
+    // any part of the music video can spin. Pauses, tab suspension and
+    // Music Off all result in a frozen front-facing duck.
+    if(Number.isFinite(audioT)&&audioT>.018){
      soundtrackStarted=true;
-    else paint(0);
-   }
-   if(!waitingForSoundtrack||soundtrackStarted){
-    // In synchronized mode there is NO wall-clock fallback: a buffering,
-    // paused or interrupted soundtrack must pause the corresponding spin.
-    const t=Number.isFinite(audioT)?audioT:
-     (waitingForSoundtrack?elapsed:(now-startTime)/1000);
-    paint(t);
+     paint(audioT);
+    }else{
+     soundtrackStarted=false;
+     // Preserve the current music position but remove the spinning
+     // pose and flashes while the track is stalled or muted. Returning
+     // to music resumes directly from audio.currentTime, never wall time.
+     paint(elapsed);
+     spinner.rotation.y=0;
+     shader.uniforms.uBeat.value=0;
+     shader.uniforms.uFlash.value=0;
+     flashLight.intensity=0;
+     invalidate();
+    }
+   }else{
+    // Only explicitly non-audio visual testing may use wall time.
+    // Normal completion always starts in audio-locked mode.
+    paint((now-startTime)/1000);
    }
   }
   // A buffered or paused MP3 can take longer than 134.7s of wall time.
@@ -618,9 +627,10 @@ export function createFinaleDuckShow({
  function syncToAudio(){
   if(!playing)return false;
   waitingForSoundtrack=true;
-  // Joining the music late must HOLD the current duck pose while the MP3
-  // buffers, rather than briefly rewinding to the opening pose at t=0.
-  soundtrackStarted=true;
+  // Never assert that audio has started before the real playback clock
+  // exists. The next tick will wait for the decoded audible MP3.
+  soundtrackStarted=false;
+  spinner.rotation.y=0;
   return true;
  }
  function continueSilently(){
