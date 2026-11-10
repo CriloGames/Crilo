@@ -197,6 +197,8 @@ try{
    const cat=window.__nothing3DPreview.seekFinaleFrame(t);
    const ending=window.__nothing3DPreview.completionFinale;
    return {cat,opacity:ending.netOpacity,done:ending.netFadeComplete,
+    technique:ending.netFadeTechnique,
+    alteredTransparency:ending.netAlteredTransparencyCount,
     aligned:ending.duckCenteredOverBox,
     moon:+getComputedStyle(document.querySelector(".nc-world"),"::after").opacity,
     moonClock:+document.body.style.getPropertyValue("--nh-finale-moon-opacity")};
@@ -206,8 +208,9 @@ try{
     JSON.stringify(frame));
   fadeStages.push(frame);
  }
- assert(fadeStages.every(f=>f.opacity===0&&f.done),
-  "The cube must finish dissolving BEFORE the neon music video begins: "+
+ assert(fadeStages.every(f=>f.opacity===0&&f.done&&
+  f.technique==="opaque-solid-wipe"&&f.alteredTransparency===0),
+  "The cube must be gone BEFORE neon, without leaving translucent parts: "+
    JSON.stringify(fadeStages));
  assert(fadeStages.every(f=>Math.abs(f.moon-f.opacity)<.025&&
   Math.abs(f.moonClock-f.opacity)<.025),
@@ -510,7 +513,7 @@ try{
     JSON.stringify({time,sample}));
   opening.push(sample);
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
-    [2.3,4.55,6.8].includes(time)){
+    [2.3,4.55,6.8,9.32].includes(time)){
    await page.waitForTimeout(350);
    await page.locator("#stage canvas").screenshot({
     path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
@@ -576,7 +579,11 @@ try{
   "Duck must finish outside the unfolded T without clipping: "+
    JSON.stringify(opening[4]));
  assert(opening[5].netOpacity>.05&&opening[5].netOpacity<.95&&
-  opening[6].netOpacity<.005,
+  opening[5].netFadeTechnique==="opaque-solid-wipe"&&
+  opening[5].netClipActive&&opening[5].netClippedMaterialCount>10&&
+  opening[5].netAlteredTransparencyCount===0&&
+  opening[6].netOpacity<.005&&
+  opening[6].netAlteredTransparencyCount===0,
   "Complete six-panel sculpture should dissolve only AFTER unfolding, "+
   "and be gone before green backdrop appears: "+
   JSON.stringify({atTransition:opening[5],beforeMusic:opening[6]}));
