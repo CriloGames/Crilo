@@ -427,6 +427,7 @@ try{
     assert(layout.banner&&layout.replay&&layout.originalFramePreserved&&
       layout.originalFramePieceCount>=20&&
       layout.originalFrameVisibleCount===layout.originalFramePieceCount&&
+      layout.rigidCubeOrphanCount===0&&
      layout.centerFit&&layout.scale>=.18&&layout.scale<=.43,
      "The final scene is not properly visible: "+JSON.stringify(layout));
     const expected={front:[0,0],left:[-3.22,0],right:[3.22,0],
