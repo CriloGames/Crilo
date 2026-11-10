@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {batchStaticGeometry} from "./secrets-3d-batching.js?v=3";
+import {batchStaticGeometry} from "./secrets-3d-batching.js?v=4";
 import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=3";
 import {clearRailSegments,railClearanceFaults} from "./secrets-3d-rail-clearance.js?v=1";
 
