@@ -521,6 +521,37 @@ try{
  await page.waitForFunction(()=>
   window.__nothing3DPreview.completionFinale.duck.soundtrackStarted,
   null,{timeout:3500,polling:80});
+ // The audio stopped BEFORE the song finished (Music Off, tab hidden,
+ // or buffering). A mid-spin duck must immediately face front and hold
+ // its timestamp, not keep turning while the speakers are silent.
+ await page.evaluate(()=>{
+  window.NothingHereAudio.getFinaleClock=()=>null;
+  window.NothingHereAudio.getState=()=>
+   ({finalePlaying:true,finaleEnded:false});
+ });
+ await page.waitForFunction(()=>{
+  const duck=window.__nothing3DPreview.completionFinale.duck;
+  return !duck.soundtrackStarted&&
+   duck.elapsedSeconds>=1.99&&duck.elapsedSeconds<=2.01&&
+   duck.actualRotations.y===0;
+ },null,{timeout:3500,polling:80});
+ const pausedDuck=await page.evaluate(()=>
+  window.__nothing3DPreview.completionFinale.duck);
+ await page.waitForTimeout(180);
+ const stillPaused=await page.evaluate(()=>
+  window.__nothing3DPreview.completionFinale.duck);
+ assert(stillPaused.elapsedSeconds===pausedDuck.elapsedSeconds&&
+  stillPaused.actualRotations.y===0,
+  "Duck continued to spin while the audio transport was silent");
+ // Once the real score resumes, jump to its current beat, not wall time.
+ await page.evaluate(()=>{
+  window.NothingHereAudio.getFinaleClock=()=>2.40;
+ });
+ await page.waitForFunction(()=>{
+  const duck=window.__nothing3DPreview.completionFinale.duck;
+  return duck.soundtrackStarted&&duck.elapsedSeconds>=2.399&&
+   Math.abs(duck.actualRotations.y)>.01;
+ },null,{timeout:3500,polling:80});
  await page.evaluate(()=>{
   window.NothingHereAudio.getFinaleClock=()=>null;
   window.NothingHereAudio.getState=()=>({finalePlaying:false});
