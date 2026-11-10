@@ -580,7 +580,20 @@ try{
   "Complete six-panel sculpture should dissolve only AFTER unfolding, "+
   "and be gone before green backdrop appears: "+
   JSON.stringify({atTransition:opening[5],beforeMusic:opening[6]}));
- console.log("PASS: duck head stays on-screen; the complete T fades before neon");
+ // Reproduce the cropped short viewport from the reported screenshots.
+ // The duck must fit INSIDE the actual canvas rather than only on desktop.
+ await page.setViewportSize({width:580,height:430});
+ await page.waitForTimeout(250);
+ await page.evaluate(()=>window.__nothing3DPreview.seekFinaleOpening(4.54));
+ const shortViewport=await page.evaluate(()=>
+  window.__nothing3DPreview.seekFinaleOpening(4.55));
+ assert(shortViewport.cat.emergenceHeadScreenY<.84&&
+  shortViewport.cat.emergenceHeadScreenY>-.85&&
+  shortViewport.duckRootClearanceOverFrontRim>.38,
+  "Duck head is cropped off the short game canvas, or the feet intersect "+
+   "the front lip: "+JSON.stringify(shortViewport));
+ await page.setViewportSize({width:1000,height:720});
+ console.log("PASS: duck stays on-screen at short viewport; T fades before neon");
  console.log("PASS: one shared duck, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
