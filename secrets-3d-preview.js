@@ -185,6 +185,16 @@ const rightFace = new THREE.Group();rightFace.position.x=faceSize/2;rightFace.ro
 const leftFace = new THREE.Group();leftFace.position.x=-faceSize/2;leftFace.rotation.y=-Math.PI/2;faceRoot.add(leftFace);
 const topFace = new THREE.Group();topFace.position.y=faceSize/2;topFace.rotation.x=-Math.PI/2;faceRoot.add(topFace);
 const bottomFace = new THREE.Group();bottomFace.position.y=-faceSize/2;bottomFace.rotation.x=Math.PI/2;faceRoot.add(bottomFace);
+// Give every moving face a stable identity for the panel-local geometry
+// optimizer and finale attachment diagnostics. These are the ORIGINAL
+// material-bearing face groups, not cloned/flattened substitutes.
+for(const [name,face] of Object.entries({
+ frontFace,backFace,leftFace,rightFace,topFace,bottomFace
+})){
+ face.name=name;
+ face.userData.finalePanelName=name;
+}
+faceRoot.name="Six original cube faces";
 
 // Cutout-shaped paneling: the face is assembled around the opening, rather
 // than drawing a dark rectangle on a solid cube.
