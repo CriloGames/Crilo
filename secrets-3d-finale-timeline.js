@@ -142,6 +142,22 @@ const INTRO_AUDIO_ATTACKS=new Map([
  [1.64,1.64],[4.38,4.38],[8.04,8.04],[11.26,11.26],
  [14.43,14.43],[17.62,17.62],[20.81,20.81]
 ]);
+// The early decoded MP3 contains fills and small phase resets that do NOT
+// fit a single (time - .04) / .4 beat grid. If the cat begins a new
+// measured spin exactly at 4.38s but its light/bounce still pulses at
+// 4.44s, the animation looks late even though the yaw is on time.
+// Use the most recent actual bass onset as the LOCAL pulse clock during
+// the opening, then revert to the continuous 150 BPM stage grid.
+const INTRO_BEAT_ONSETS=[...INTRO_AUDIO_ATTACKS.values()];
+function beatPulseClock(t){
+ if(t>=26.84||t<INTRO_BEAT_ONSETS[0])return (t-.04)/CAT_BEAT_SECONDS;
+ let anchor=INTRO_BEAT_ONSETS[0];
+ for(let i=1;i<INTRO_BEAT_ONSETS.length;i++){
+  if(t<INTRO_BEAT_ONSETS[i])break;
+  anchor=INTRO_BEAT_ONSETS[i];
+ }
+ return (t-anchor)/CAT_BEAT_SECONDS;
+}
 function soundtrackTurns(t,start,end,sourceRate){
  const beat=CAT_BEAT_SECONDS;
  // Those seven peak timestamps were measured from the installed MP3,
@@ -167,11 +183,14 @@ export function motionAt(seconds){
  const next=CAT_POSE_CUTS[Math.min(pIndex+1,CAT_POSE_CUTS.length-1)][0];
  const duration=Math.max(.01,next-start),local=Math.max(0,t-start);
  const loaf=mode==="loaf";
- const beat=(t-.04)/CAT_BEAT_SECONDS;
- // Floating-point drift can turn an exact beat (1.64s, 8.04s, etc.)
- // into phase .9999999999, suppressing the pulse at the spin cut.
+ const beat=beatPulseClock(t);
+ // Preserve a monotonically increasing global beat index for section
+ // sequencing, but align every visible pulse to the measured local kick.
+ // Otherwise e.g. the 4.38s spin occurs 60ms before its bounce/lighting.
  const beatSafe=beat+1e-9;
- const beatPhase=fract(beatSafe),beatIndex=Math.max(0,Math.floor(beatSafe));
+ const beatPhase=fract(beatSafe);
+ const beatIndex=Math.max(0,
+  Math.floor((t-.04)/CAT_BEAT_SECONDS+1e-9));
  // Reference footage: the loaf turns LEFT / RIGHT around a vertical
  // axis, showing right side -> back -> left side -> face. It does NOT
  // tumble as a barrel roll. Six rotations/second in the opening section.
