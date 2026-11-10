@@ -4344,10 +4344,12 @@ function startCharge(source){
  charging=true;chargeSource=source;chargeFrom=performance.now();
  chargeStartPower=power;
  lastChargeAimPreview=-1000;
- // Reattempts begin from the last thrown power, not a fresh auto-aim
- // solution. A deliberate hold still changes the meter as before.
- const referencePower=aimPowerLocked?power:idealPower();
- chargeAnchor=settings.wall?.06:clamp(referencePower-(settings.n===50?.20:.13),.06,.87);
+ // Every new charge starts at genuinely LOW power. Starting near
+ // idealPower() made a short tap launch at 40–85% and prevented feather-
+ // light tosses entirely, especially on distant or bank-shot levels.
+ // Keep the previous aim direction but let hold duration—not auto-aim—
+ // control actual throw strength from the very first frame.
+ chargeAnchor=.06;
  power=chargeAnchor;
  hear(510,.048,'triangle',.013);updatePower();
 }
