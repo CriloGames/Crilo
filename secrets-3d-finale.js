@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=37";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=38";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -328,7 +328,7 @@ export function createNothingHereFinale({
    .to(joints.top.rotation,{x:Math.PI/2,duration:1.1,ease:"power2.inOut"},.35)
    .call(()=>setFrames(true),null,1.40)
    // The cat physically emerges before the cube falls into its T.
-   .to(rise,{progress:1,duration:3.2,ease:"power2.out"},1.55)
+   .to(rise,{progress:1,duration:3.5,ease:"power2.out"},1.55)
    .to(cube.scale,{x:scale,y:scale,z:scale,duration:4.3,ease:"power2.inOut"},1.15)
    .to(cube.position,{x:0,y:0,z:3.5,duration:4.8,ease:"power2.inOut"},1.25)
    .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:4.7,ease:"power2.inOut"},1.30)
