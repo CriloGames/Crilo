@@ -111,6 +111,11 @@
    finaleMaster.gain.cancelScheduledValues(now);
    finaleMaster.gain.setTargetAtTime(audible?.35:.0001,now,.025);
   }
+  if(windUpMaster&&fluteContext){
+   const now=fluteContext.currentTime;
+   windUpMaster.gain.cancelScheduledValues(now);
+   windUpMaster.gain.setTargetAtTime(audible?.20:.0001,now,.025);
+  }
  }
  function startMusic(){
   if(finaleSceneActive()||finalePlaying||!musicEnabled||
@@ -140,23 +145,26 @@
   if(musicEnabled)gestureReady=true;
   if(finaleSceneActive()){
    pauseLobbyMusic();
-   if(finalePlaying){
-    // Muting affects ONLY audible volume. The media playhead and duck
-    // continue together, so re-enabling Music cannot drift off beat.
-    syncFinaleMusicVolume();
+   syncFinaleMusicVolume();
+   if(windUpActive){
+    // Start at the CURRENT box animation time, not the opening again.
+    if(musicEnabled)syncWindUp(windUpSeconds);
+   }else if(finalePlaying){
+    // Music Off freezes the actual playback position: do not continue
+    // silently and then jump ahead on the next Music On click.
+    const clip=activeFinaleAudio();
     if(musicEnabled){
-     // The Music button is a direct user gesture: unlock a browser-
-     // suspended synthesized fallback without restarting its score.
      if(finaleMaster&&fluteContext?.state==="suspended")
       fluteContext.resume()?.catch?.(()=>{});
-     const clip=activeFinaleAudio();
-     if(clip?.paused&&!clip.ended)clip.play()?.catch?.(()=>{});
+     if(clip?.paused&&!clip.ended)
+      clip.play()?.catch?.(()=>{});
+    }else{
+     if(clip&&!clip.paused)clip.pause();
+     finaleMediaStarted=false;
+     if(finaleMaster&&fluteContext?.state==="running")
+      fluteContext.suspend()?.catch?.(()=>{});
     }
-   }else if(musicEnabled){
-    // Opening: prime for the eventual reveal. Already playing: join
-    // the duck's current timestamp. The finale handler owns that logic.
-    requestFinaleAudio();
-   }
+   }else if(musicEnabled)requestFinaleAudio();
    return;
   }
   if(musicEnabled)startMusic();
@@ -169,7 +177,7 @@
    active.clear();
    // The music score has its own switch and clock. A Sounds click must
    // NEVER stop its MP3, reset the duck, or suspend its audio clock.
-   if(!finalePlaying&&fluteContext?.state==="running")
+   if(!finalePlaying&&!windUpActive&&fluteContext?.state==="running")
     fluteContext.suspend().catch(()=>{});
   }
   syncUi();
@@ -202,6 +210,86 @@
  let licensedFinale=null,licensedUnavailable=false,finaleClockStart=null;
  let finaleMediaStarted=false;
  let finaleSynthClockStart=null;
+ // Music-box style mechanical wind-up: original notes/ticks (E minor),
+ // accelerating into the following soundtrack's 150 BPM pulse.
+ const windUpBeats=[0,.82,1.52,2.14,2.71,3.23,3.71,4.17,
+  4.6,5.02,5.43,5.83,6.23,6.63,7.03,7.43,7.83,8.23,8.63,9.03,9.43];
+ const windUpNotes=[329.63,392,493.88,587.33,659.25,587.33,493.88,
+  392,329.63,392,493.88,587.33,659.25,783.99,739.99,659.25,
+  587.33,659.25,739.99,783.99,987.77];
+ let windUpActive=false,windUpSeconds=0,windUpNext=0,windUpMaster=null;
+ function stopWindUp(){
+  windUpActive=false;windUpNext=0;
+  if(windUpMaster&&fluteContext){
+   windUpMaster.gain.cancelScheduledValues(fluteContext.currentTime);
+   windUpMaster.gain.setTargetAtTime(.0001,fluteContext.currentTime,.03);
+  }
+  windUpMaster=null;
+ }
+ function startWindUp(){
+  stopWindUp();
+  windUpActive=true;windUpSeconds=0;
+  syncWindUp(0);
+  return true;
+ }
+ function windUpBell(ctx,at,freq,strength){
+  const chime=ctx.createOscillator(),gain=ctx.createGain();
+  chime.type="triangle";
+  chime.frequency.setValueAtTime(freq,at);
+  gain.gain.setValueAtTime(.0001,at);
+  gain.gain.exponentialRampToValueAtTime(strength,at+.009);
+  gain.gain.setTargetAtTime(.0001,at+.11,.09);
+  chime.connect(gain).connect(windUpMaster);
+  chime.start(at);chime.stop(at+.52);
+  // Restrained upper partial gives the music a winding metal-tooth sound
+  // without sampling or recreating another artist's melody.
+  const upper=ctx.createOscillator(),upperGain=ctx.createGain();
+  upper.type="sine";upper.frequency.setValueAtTime(freq*2.01,at);
+  upperGain.gain.setValueAtTime(.0001,at);
+  upperGain.gain.exponentialRampToValueAtTime(strength*.16,at+.01);
+  upperGain.gain.setTargetAtTime(.0001,at+.072,.039);
+  upper.connect(upperGain).connect(windUpMaster);
+  upper.start(at);upper.stop(at+.31);
+ }
+ function syncWindUp(seconds){
+  if(!windUpActive)return false;
+  windUpSeconds=Math.max(0,Math.min(9.68,Number(seconds)||0));
+  if(!musicEnabled||document.hidden)return false;
+  const Engine=window.AudioContext||window.webkitAudioContext;
+  if(!Engine)return false;
+  try{
+   if(!fluteContext||fluteContext.state==="closed")
+    fluteContext=new Engine();
+   if(fluteContext.state==="suspended")
+    fluteContext.resume()?.catch?.(()=>{});
+   const ctx=fluteContext;
+   if(!windUpMaster){
+    windUpMaster=ctx.createGain();
+    windUpMaster.gain.setValueAtTime(.0001,ctx.currentTime);
+    windUpMaster.connect(ctx.destination);
+   }
+   const fade=1-Math.max(0,Math.min(1,(windUpSeconds-9.02)/.66));
+   windUpMaster.gain.setTargetAtTime(.20*fade+.0001,ctx.currentTime,.04);
+   // Skip old notes if Music was enabled halfway through the reveal.
+   while(windUpNext<windUpBeats.length&&
+    windUpBeats[windUpNext]<windUpSeconds-.06)windUpNext++;
+   while(windUpNext<windUpBeats.length&&
+    windUpBeats[windUpNext]<=windUpSeconds+.13){
+    const idx=windUpNext++,time=windUpBeats[idx];
+    const at=ctx.currentTime+Math.max(.018,time-windUpSeconds);
+    const intensity=.35+.65*(idx/(windUpBeats.length-1));
+    windUpBell(ctx,at,windUpNotes[idx],.17*intensity);
+    // Ratchet ticks mark the gear's acceleration toward the 150 BPM drop.
+    windUpBell(ctx,at+.055,1568,.025*intensity);
+    if(idx===0||idx===8||idx===15)
+     windUpBell(ctx,at,164.81,.065*intensity);
+   }
+   return true;
+  }catch(error){
+   console.warn("Wind-up cue unavailable:",error?.message||error);
+   return false;
+  }
+ }
  const licensedFinaleSrc='audio/nothing-here/finale-licensed.mp3?v=1';
  function ensureLicensedFinale(){
   if(!audioSupported||licensedUnavailable)return null;
@@ -230,20 +318,23 @@
   return personalFinale||(!licensedUnavailable?licensedFinale:null);
  }
  function getFinaleClock(){
-  if(!finalePlaying)return null;
+  // No audible soundtrack means NO advancing duck/music-video clock.
+  // This includes Music Off, tab hidden, buffering and a suspended synth.
+  if(!finalePlaying||!musicEnabled||document.hidden)return null;
   const track=activeFinaleAudio();
   // When audio takes a moment to buffer/unlock, the cat must WAIT rather
   // than run ahead from performance.now and then snap back at the first beat.
   // The media playhead is always the authoritative clock while the licensed
   // recording exists (including its brief initial 0-second preload).
-  if(track)return track.ended||!finaleMediaStarted?null:
+  if(track)return track.ended||track.paused||track.muted||
+   track.seeking||track.readyState<3||!finaleMediaStarted?null:
    Number(track.currentTime)||0;
   // The fallback must follow actual Web Audio time, not wall-clock time.
   // AudioContext.currentTime freezes while suspended or interrupted.
-  if(Number.isFinite(finaleSynthClockStart)&&fluteContext)
+  if(Number.isFinite(finaleSynthClockStart)&&
+   fluteContext?.state==="running")
    return Math.max(0,fluteContext.currentTime-finaleSynthClockStart);
-  return Number.isFinite(finaleClockStart)
-   ?Math.max(0,(performance.now()-finaleClockStart)/1000):null;
+  return null;
  }
  // A personal soundtrack is a browser-local Blob URL. The uploaded file
  // never becomes a public asset, and is only decoded in this visitor's tab.
@@ -275,6 +366,7 @@
  }
 
  function stopFinale(){
+  stopWindUp();
   finaleMediaStarted=false;
   if(licensedFinale){
    licensedFinale.pause();
@@ -332,8 +424,10 @@
  // cat show. The commercial W&W "OIIA OIIA" song is NOT bundled; a licensed
  // synchronized music file can be substituted by the game's owner later.
  function playFinale(durationSeconds=134.699,startAtSeconds=0){
-  // Even with Music Off, run the authorized soundtrack muted to keep
-  // its real playhead as the single clock for the duck's choreography.
+  // The wind-up yields cleanly to the first actual musical note.
+  stopWindUp();
+  // Music Off must NOT run the media silently: the choreography holds
+  // until Music is enabled, then plays from its preserved exact position.
   if(document.hidden)return false;
   const offset=Math.max(0,Math.min(134.599,
    Number(startAtSeconds)||0));
@@ -365,7 +459,7 @@
      window.dispatchEvent(new Event('nothing-here-finale-ended'));
      if(musicEnabled&&gestureReady&&!document.hidden)startMusic();
     };
-    if(clip.paused)clip.play()?.catch?.(error=>{
+    if(musicEnabled&&clip.paused)clip.play()?.catch?.(error=>{
      if(clip!==activeFinaleAudio())return;
      console.warn('Finale MP3 playback:',error?.message||error);
      if(clip===licensedFinale){
@@ -373,6 +467,7 @@
       finalePlaying=false;playFinale(durationSeconds,offset); // synth backup, same beat
      }else finalePlaying=false;
     });
+    if(!musicEnabled&&!clip.paused)clip.pause();
     return true;
    }catch(error){
     console.warn('Unable to start personal finale:',error?.message||error);
@@ -398,6 +493,10 @@
    finaleSynthClockStart=now;
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
    syncFinaleMusicVolume();
+   // Freeze the synth transport while muted; starting it silently would
+   // make the duck leap several beats when the Music button is enabled.
+   if(!musicEnabled&&ctx.state==="running")
+    ctx.suspend()?.catch?.(()=>{});
    // Match the 150-BPM animation and licensed track. The previous 136-BPM
    // backup could never stay on beat with the duck's 150-BPM choreography.
    const beat=60/150,half=beat/2;
@@ -529,18 +628,29 @@
  document.addEventListener('pointerdown',gesture,{passive:true});
  document.addEventListener('keydown',gesture);
  document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){if(music)music.pause()}
+  if(document.hidden){
+   if(music)music.pause();
+   // Preserve the soundtrack position rather than silently advancing
+   // while the browser renders no frames in a hidden tab.
+   const clip=activeFinaleAudio();
+   if(finalePlaying&&clip&&!clip.paused)clip.pause();
+   finaleMediaStarted=false;
+  }
   if(finalePlaying)syncFinaleMusicVolume();
-  else if(!document.hidden&&musicEnabled&&gestureReady)startMusic();
+  else if(!document.hidden&&musicEnabled&&gestureReady&&
+   !windUpActive)startMusic();
  });
  window.addEventListener('pagehide',()=>{stopFinale();if(music)music.pause()});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
  else bind();
  window.NothingHereAudio={
   play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,getFinaleClock,action,setSfx,setMusic,setPersonalFinaleFile,pauseLobbyMusic,
+  startWindUp,syncWindUp,stopWindUp,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,
-   finaleMusicAudible:finalePlaying&&musicEnabled&&!document.hidden,
+   windUpActive,windUpSeconds,windUpNext,windUpNoteCount:windUpBeats.length,
+   finaleMusicAudible:finalePlaying&&musicEnabled&&!document.hidden&&
+    Number.isFinite(getFinaleClock()),
    finaleSceneActive:finaleSceneActive(),musicCreated:!!music,
    personalFinaleReady:!!personalFinale,personalFinaleName,
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
