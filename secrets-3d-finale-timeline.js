@@ -132,15 +132,24 @@ function spinRate(t){
  while(index>0&&t<CAT_YAW_TURN_RATES[index][0])index--;
  return CAT_YAW_TURN_RATES[index][1];
 }
-function turnsBetween(start,end){
- let turns=0,current=start;
- for(let i=1;i<CAT_YAW_TURN_RATES.length;i++){
-  const change=CAT_YAW_TURN_RATES[i][0];
-  if(change<=current||change>=end)continue;
-  turns+=(change-current)*spinRate(current);
-  current=change;
- }
- return turns+(end-current)*spinRate(current);
+// The source video has visually varying 5–6 rps motion, but running
+// those free-running rates against a 150-BPM soundtrack makes the duck
+// change its facing angle on every kick. Instead each 400ms beat completes
+// exactly two turns. An audio-phase-locked speed accent accelerates near
+// each kick and eases between kicks, giving 3.8–6.2 rps without drifting.
+function soundtrackTurns(t,start,end,sourceRate){
+ const beat=CAT_BEAT_SECONDS;
+ const phaseAt=time=>TAU*(time-.04)/beat;
+ const accent=sourceRate>=5.75?.48:sourceRate>=5.45?.34:.24;
+ const first=phaseAt(start),now=phaseAt(t),last=phaseAt(end);
+ const accentTurns=x=>accent/TAU*(Math.sin(x)-Math.sin(first));
+ const base=2*(t-start)/beat+accentTurns(now);
+ const total=2*(end-start)/beat+accentTurns(last);
+ // A front-facing hold always starts from a clean complete turn. Spread
+ // the small correction across the last 420ms rather than snapping when
+ // the music hits the front-hold cue.
+ const settle=Math.max(start,end-.42);
+ return base+(Math.round(total)-total)*smooth(settle,end,t);
 }
 export function motionAt(seconds){
  const t=clip(seconds,0,CAT_REFERENCE_DURATION);
@@ -158,7 +167,7 @@ export function motionAt(seconds){
  // axis, showing right side -> back -> left side -> face. It does NOT
  // tumble as a barrel roll. Six rotations/second in the opening section.
  const rate=spinRate(t);
- const turn=turnsBetween(start,t);
+ const turn=loaf?soundtrackTurns(t,start,next,spinRate(start)):0;
  const spinRadians=loaf?TAU*turn:0;
  const radialTilt=loaf?.24*Math.sin(local*6.3):0;
  const dip=loaf?Math.sin(local*5.6)*.08:0;
@@ -197,7 +206,8 @@ export function motionAt(seconds){
   sceneStart:scene.start,sceneEnd:scene.end,
   poseMode:mode,poseStart:start,poseEnd:next,
   spinMode:loaf?(rate>=5.75?"rapid":"yaw"):"front",
-  spinAxis:"y",revolutionsPerSecond:loaf?rate:0,
+  spinAxis:"y",revolutionsPerSecond:loaf?2/CAT_BEAT_SECONDS:0,
+  sourceRevolutionsPerSecond:loaf?rate:0,beatLockedRotation:true,
   spinActive:loaf,spinning:loaf,spinRadians,
   spinProgress:clip(local/duration,0,1),sideways:loaf?1:0,
   rollRadians:0,tiltRadians:0,threeDRoll:0,
