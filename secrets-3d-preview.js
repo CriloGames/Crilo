@@ -2430,6 +2430,29 @@ window.__nothing3DPreview={
  get finishQuality(){return finish.quality},
  get decorativeCornerCaps(){return finish.getDecorativeCornerCaps?.()||[]},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
+ get finaleBatchAttachmentAudit(){
+  // Every optimized physical decoration must be a descendant of its
+  // OWN hinged face. A cube-root batch cannot follow the panel and would
+  // recreate the floating green-dial/metal-fixture artifact during the T.
+  const panels=new Map([
+   [frontFace,"front"],[backFace,"back"],[leftFace,"left"],
+   [rightFace,"right"],[topFace,"top"],[bottomFace,"bottom"]
+  ]);
+  const owners={front:0,back:0,left:0,right:0,top:0,bottom:0};
+  let total=0,panelAttached=0,cubeAttached=0,unassigned=0;
+  cube.traverse(node=>{
+   if(!node.isMesh||!/-physical-batch-/.test(node.name))return;
+   total++;
+   if(node.parent===cube)cubeAttached++;
+   let panel=node.parent;
+   while(panel&&panel!==cube&&!panels.has(panel))panel=panel.parent;
+   if(panels.has(panel)){panelAttached++;owners[panels.get(panel)]++;}
+   else unassigned++;
+  });
+  return {total,panelAttached,cubeAttached,unassigned,owners,
+   allFollowPanels:total>0&&panelAttached===total&&cubeAttached===0&&
+    unassigned===0};
+ },
  get detailMeshCount(){return intricate.meshCount()},
  get interactiveDetailCount(){return intricate.actions.length},
  get solidShellBlockerCount(){return occlusionMeshes.length},
