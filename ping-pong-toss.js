@@ -455,6 +455,10 @@ function updateObjective(){
  el.objective.textContent=shotSteps(settings,ball).join(' → ')+hint;
 }
 function levelInstructions(spec){
+ if(projectileId==='frisbee'&&spec.n===47)
+  return 'With the frisbee, use a gentle, short hold and a modest upward angle. Pass through the hanging ring, land on the green spring, then glide down into the slowly sliding cup. Strong throws may fly over the spring.';
+ if(projectileId==='frisbee'&&spec.n===48)
+  return 'Archive Springs: keep the frisbee nearly level and throw lightly. Hit SPRING 1 and then SPRING 2 in that order. The second spring now preserves enough forward glide to reach the raised cup. Avoid overcharging the throw.';
  if(spec.n===22)return 'Aim toward the glowing orange wall cushion on the left, not straight into the cup. Bounce off it first, then land in the slowly sliding cup. The crosswind is gentler here.';
  if(spec.n===40)return 'Bank off the glowing wall cushion on the right, then land in the gently moving cup. Follow the dotted ricochet arc. The timed lid is gone so your wall shot counts whenever it lands.';
  if(spec.n===50)return 'Final challenge: bounce on spring PAD 1 and then PAD 2, in that order. Use controlled power and follow the dotted trajectory through BOTH real rebounds into the moving cup. There is no auto-aim.';
