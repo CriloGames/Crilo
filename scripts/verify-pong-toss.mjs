@@ -201,7 +201,7 @@ const chargeProbe=new Function([
  'charging=false;power=.98;',
  "startCharge('keyboard');const retry=power;",
  'return {instant,tap,medium,maximum,retry};'
-].join('\\n'))();
+].join('\n'))();
 assert.equal(chargeProbe.instant,.06,'A fresh charge must start at 6%');
 assert(chargeProbe.tap>.06&&chargeProbe.tap<.14,
  'A quick tap must actually throw gently: '+JSON.stringify(chargeProbe));
