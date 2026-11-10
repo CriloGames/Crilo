@@ -181,6 +181,35 @@ assert(Math.abs(aimProbe.afterOnePixel.yaw-aimProbe.initial.yaw)<.01,
  'A moving cup must not shift the mouse aim baseline');
 assert.equal(aimProbe.afterShot.power,.76,
  'Mouse correction after throw must retain the last shot power');
+// Reproduce the regression: a high recommended/previous strength used to
+// become the minimum for the NEXT throw. A brief tap must now be light on
+// every level, regardless of automatic trajectory suggestions.
+const chargeCode=cut('function startCharge(','// Aborted touch/keyboard gestures');
+const chargeProbe=new Function([
+ 'let playing=true,paused=false,flight=false,charging=false;',
+ 'let chargeSource=null,chargeFrom=0,chargeStartPower=0,chargeAnchor=0;',
+ 'let lastChargeAimPreview=0,gesture=null,power=.92,aimPowerLocked=true;',
+ 'const performance={now:()=>0};',
+ 'const getGameAudio=()=>{},hear=()=>{},updatePower=()=>{};',
+ 'const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));',
+ chargeCode,
+ "startCharge('pointer');",
+ 'const instant=power;',
+ 'chargeTick(100);const tap=power;',
+ 'chargeTick(1000);const medium=power;',
+ 'chargeTick(2000);const maximum=power;',
+ 'charging=false;power=.98;',
+ "startCharge('keyboard');const retry=power;",
+ 'return {instant,tap,medium,maximum,retry};'
+].join('\\n'))();
+assert.equal(chargeProbe.instant,.06,'A fresh charge must start at 6%');
+assert(chargeProbe.tap>.06&&chargeProbe.tap<.14,
+ 'A quick tap must actually throw gently: '+JSON.stringify(chargeProbe));
+assert(chargeProbe.medium>.50&&chargeProbe.medium<.75,
+ 'Medium holds must still reach controllable intermediate strength');
+assert.equal(chargeProbe.maximum,1,'Long holds must still reach full power');
+assert.equal(chargeProbe.retry,.06,
+ 'A previous full-power throw must not prevent light retry throws');
 assert(source.includes("if(e.pointerType==='touch')flickAim(e);")&&
  source.includes("else trackMouseAim(e);"),
  'Mouse release must not apply the relative touch flick');
