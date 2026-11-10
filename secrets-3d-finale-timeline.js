@@ -68,14 +68,16 @@ export const CAT_POSE_CUTS=[
  // before it and a one-beat front pause after the 17-beat spin section.
  [29.24,"loaf"],[36.04,"front"],
  [36.44,"loaf"],[58.95,"front"],
- [62.22,"loaf"],[63.84,"front"],
+ // The late MP3 bass attacks arrive AFTER the original video-estimated
+ // poses here. Do not begin rotating 130–180ms before the musical drop.
+ [62.40,"loaf"],[63.84,"front"],
  [65.25,"loaf"],[66.33,"front"],
- [68.28,"loaf"],[69.78,"front"],
+ [68.31,"loaf"],[69.78,"front"],
  [71.25,"loaf"],[72.78,"front"],
- [74.85,"loaf"],[77.82,"front"],
+ [75.03,"loaf"],[77.82,"front"],
  [81.74,"loaf"],[84.75,"front"],
  [87.58,"loaf"],[100.12,"front"],
- [103.87,"loaf"],[115.78,"front"],
+ [104.00,"loaf"],[115.78,"front"],
  [116.89,"loaf"],[118.78,"front"],
  [119.28,"loaf"],[130.82,"front"],
  [132.39,"loaf"],[134.28,"front"],[134.699,"front"]
@@ -142,6 +144,11 @@ const INTRO_AUDIO_ATTACKS=new Map([
  [1.64,1.64],[4.38,4.38],[8.04,8.04],[11.26,11.26],
  [14.43,14.43],[17.62,17.62],[20.81,20.81]
 ]);
+// Late scene-change attacks verified against the ENTIRE licensed MP3,
+// not inferred from the visual cut or a fixed mathematical beat grid.
+const LATE_AUDIO_ATTACKS=new Map([
+ [62.40,62.40],[68.31,68.31],[75.03,75.03],[104.00,104.00]
+]);
 // The early decoded MP3 contains fills and small phase resets that do NOT
 // fit a single (time - .04) / .4 beat grid. If the cat begins a new
 // measured spin exactly at 4.38s but its light/bounce still pulses at
@@ -149,7 +156,9 @@ const INTRO_AUDIO_ATTACKS=new Map([
 // Use the most recent actual bass onset as the LOCAL pulse clock during
 // the opening, then revert to the continuous 150 BPM stage grid.
 const INTRO_BEAT_ONSETS=[...INTRO_AUDIO_ATTACKS.values()];
-function beatPulseClock(t){
+function beatPulseClock(t,spinStart){
+ const measuredLate=LATE_AUDIO_ATTACKS.get(spinStart);
+ if(measuredLate!==undefined)return (t-measuredLate)/CAT_BEAT_SECONDS;
  if(t>=26.84||t<INTRO_BEAT_ONSETS[0])return (t-.04)/CAT_BEAT_SECONDS;
  let anchor=INTRO_BEAT_ONSETS[0];
  for(let i=1;i<INTRO_BEAT_ONSETS.length;i++){
@@ -163,7 +172,7 @@ function soundtrackTurns(t,start,end,sourceRate){
  // Those seven peak timestamps were measured from the installed MP3,
  // not estimated from a global metronome. Begin on the recorded
  // attack, not an early "pre-roll" which is visible ahead of the kick.
- const attack=INTRO_AUDIO_ATTACKS.get(start);
+ const attack=INTRO_AUDIO_ATTACKS.get(start)??LATE_AUDIO_ATTACKS.get(start);
  const phaseAt=time=>TAU*(time-(attack??.04))/beat;
  const accent=sourceRate>=5.75?.48:sourceRate>=5.45?.34:.24;
  const first=phaseAt(start),now=phaseAt(t),last=phaseAt(end);
@@ -187,7 +196,7 @@ export function motionAt(seconds){
  // main 150 BPM grid (.04s phase); only the active intro spins need their
  // per-attack resynchronization. This prevents a phase jump from making
  // the duck bounce AFTER it has already settled forward.
- const beat=loaf?beatPulseClock(t):(t-.04)/CAT_BEAT_SECONDS;
+ const beat=loaf?beatPulseClock(t,start):(t-.04)/CAT_BEAT_SECONDS;
  // Preserve a monotonically increasing global beat index for section
  // sequencing, but align every visible pulse to the measured local kick.
  // Otherwise e.g. the 4.38s spin occurs 60ms before its bounce/lighting.
