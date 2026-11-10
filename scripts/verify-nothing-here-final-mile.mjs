@@ -144,7 +144,8 @@ try{
  assert(finish.phase==="open"&&finish.replay&&
   Object.keys(finish.panels).length===6&&finish.originalFramePreserved&&
   finish.originalFramePieceCount>=20&&
-  finish.originalFrameVisibleCount===finish.originalFramePieceCount,
+  finish.originalFrameVisibleCount===finish.originalFramePieceCount&&
+  finish.rigidCubeOrphanCount===0,
   "Completed save didn't reveal its actual unfolded T");
  assert(finish.reverseTexturedPanels===6&&
   finish.duck?.real3DDuck&&finish.duck.loadedModel&&
@@ -521,7 +522,8 @@ try{
   assert(sample.originalFramePreserved&&
    sample.originalFramePieceCount>=20&&
    sample.originalFrameAttachedCount===sample.originalFramePieceCount&&
-   sample.originalFrameVisibleCount===sample.originalFramePieceCount,
+   sample.originalFrameVisibleCount===sample.originalFramePieceCount&&
+   sample.rigidCubeOrphanCount===0,
    "The original frame disappeared/replaced at "+
    openingTimes[i]+"s: "+JSON.stringify(sample));
  }
