@@ -41,11 +41,11 @@
  border-radius:999px;font:750 11px/1.3 system-ui,sans-serif;
  cursor:pointer;box-shadow:0 3px 9px #263c4529;
 }
-.nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleReplay:hover,
 .nc-page .nc-finale-banner #ncFinaleSkip:hover{
  background:#3b5f67;transform:translateY(-1px);
 }
-.nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleReplay:focus-visible,
 .nc-page .nc-finale-banner #ncFinaleSkip:focus-visible{
  outline:3px solid #c98d55;outline-offset:3px;
 }
@@ -95,7 +95,7 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
 }
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-finale-banner{animation:none}
- .nc-page .nc-finale-banner #ncFinaleReplay,
+ .nc-page .nc-finale-banner #ncFinaleReplay:hover,
 .nc-page .nc-finale-banner #ncFinaleSkip:hover{transform:none}
 }
 
