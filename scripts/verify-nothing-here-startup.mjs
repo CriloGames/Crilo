@@ -215,6 +215,7 @@ try{
      canvas:!!canvas&&canvas.width>0&&canvas.height>0,
      meshCount:view?.meshCount||0,
      mazeChannels:view?.physicalGearMaze?.networkChannels||0,
+     finaleBatchMounts:view?.finaleBatchAttachmentAudit,
      mazeBall:view?.physicalGearMaze?{
       cell:view.physicalGearMaze.cell,
       haloAttached:view.physicalGearMaze.blackHaloAttached,
@@ -244,6 +245,11 @@ try{
    assert(result.ready&&result.physical&&!result.retry&&result.canvas&&
     result.meshCount>80&&result.mazeChannels>0,
     "The real WebGL game did not initialize: "+JSON.stringify(result));
+   assert(result.finaleBatchMounts?.allFollowPanels&&
+    result.finaleBatchMounts.total>0&&
+    result.finaleBatchMounts.cubeAttached===0,
+    "Decorative mesh batching must follow hinged cube faces, never float "+
+    "in the main cube frame: "+JSON.stringify(result.finaleBatchMounts));
    assert(result.mazeBall?.haloAttached&&result.mazeBall?.paleRemoved&&
     result.mazeBall.markerParts===2&&
     Math.abs(result.mazeBall.haloDiameter-.036)<.0001,
