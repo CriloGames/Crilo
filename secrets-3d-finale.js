@@ -90,20 +90,16 @@ export function createNothingHereFinale({
   }
   netOpacity=1;
  }
- function setNetFade(seconds){
-  if(phase!=="open")return;
+ // Fade the complete assembled T BEFORE the neon/music backdrop begins.
+ // Fading a still-visible panel against neon green made its separate metal
+ // rings, mounts, and translucent glass read as detached floating objects.
+ function applyNetOpacity(amount){
   if(keepNetForInspection){resetNetFade();return;}
-  // The net is visible as the melody starts, then dissolves away over the
-  // first 1.8 seconds, leaving ONLY the floating cat and neon stage.
-  const u=END.clamp(seconds/1.8,0,1);
-  const amount=1-u*u*(3-2*u);
+  amount=END.clamp(amount,0,1);
   netOpacity=amount;
-  // Keep the top-left moon on the EXACT same 1.8s curve as the real T.
-  // Set a CSS variable rather than toggling its pseudo-element abruptly.
-  document.body.style.setProperty("--nh-finale-moon-opacity",
-   String(amount));
+  document.body.style.setProperty("--nh-finale-moon-opacity",String(amount));
   if(amount<=.001){
-   faceRoot.visible=false; // skip expensive hidden machinery draw calls
+   faceRoot.visible=false;
    return;
   }
   faceRoot.visible=true;
@@ -114,6 +110,12 @@ export function createNothingHereFinale({
    if(!material.transparent){material.transparent=true;material.needsUpdate=true;}
    material.depthWrite=false;
   }
+ }
+ function setNetFade(seconds){
+  if(phase!=="open")return;
+  // The duck video must start with NO residual semi-transparent machine
+  // geometry; the box has already finished its own pre-music dissolve.
+  applyNetOpacity(0);
  }
  function clearWatchdog(){
   if(completionWatchdog!==null)clearTimeout(completionWatchdog);
@@ -313,7 +315,8 @@ export function createNothingHereFinale({
   if(timeline){timeline.kill();timeline=null;}
   placeNet();
   phase="open";
-  resetNetFade();
+  if(keepNetForInspection)resetNetFade();
+  else applyNetOpacity(0);
   showBanner("open");
   // Start the music FIRST, then authorize the duck's beat clock. If the
   // MP3 buffers for a second, it must remain still rather than sprinting
@@ -360,6 +363,14 @@ export function createNothingHereFinale({
   // horizontal T. The music and T fade remain unchanged after this.
   timeline=gsap.timeline({
    onUpdate:()=>{
+    if(phase==="opening"){
+     // All six faces and their detail fade as ONE sculpture while the
+     // ordinary stage is still behind them. Never show their ghosted
+     // glass/metal over the green music-video background.
+     if(timeline.time()>=8.98)
+      applyNetOpacity(1-END.smoothstep(timeline.time(),8.98,9.68));
+     else if(netOpacity<.999)resetNetFade();
+    }
     if(phase==="opening"&&timeline.time()>=1.55){
      cube.updateWorldMatrix(true,true);
      frontFace.updateWorldMatrix(true,false);
@@ -380,8 +391,12 @@ export function createNothingHereFinale({
    },
    onComplete:finish
   });
-  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:8.75,ease:"power2.inOut"},0)
-   .to(controls.target,{x:0,y:.55,z:0,duration:8.6,ease:"power2.inOut"},0)
+  // Pull the camera back BEFORE the duck emerges and aim higher during
+  // its rise, then ease down to the normal front-facing light-show framing.
+  timeline.to(camera.position,{x:0,y:4.7,z:14.2,duration:1.5,ease:"power2.out"},0)
+   .to(camera.position,{x:0,y:5.7,z:18.4,duration:7.4,ease:"power2.inOut"},1.5)
+   .to(controls.target,{x:0,y:1.45,z:0,duration:1.5,ease:"power2.out"},0)
+   .to(controls.target,{x:0,y:.55,z:0,duration:7.4,ease:"power2.inOut"},1.5)
    // Square the object upright before the reveal even when the player
    // finishes the last puzzle with the cube rotated upside down.
    .to(cube.rotation,{x:0,y:0,z:0,duration:.85,ease:"power2.inOut"},0)
@@ -401,12 +416,15 @@ export function createNothingHereFinale({
    .to(joints.left.rotation,{y:Math.PI/2,duration:1.3,ease:"power2.inOut"},6.15)
    .to(joints.right.rotation,{y:-Math.PI/2,duration:1.3,ease:"power2.inOut"},6.3)
    .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.25,ease:"power2.inOut"},6.75)
-   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.2,ease:"power2.inOut"},7.65);
+   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.2,ease:"power2.inOut"},7.65)
+   // This extra hold/dissolve happens while the game background is still
+   // neutral. Starting the soundtrack is the clean cut to neon.
+   .to({phase:0},{phase:1,duration:.7,ease:"power2.inOut"},8.98);
   // Software WebGL can starve GSAP's frame ticker. Never trap a player
   // in a half-unfolded cube if Chromium stalls or goes into background.
   completionWatchdog=setTimeout(()=>{
    if(phase==="opening")finish();
-  },18000);
+  },22000);
   return true;
  }
  function restoreComplete(){
@@ -437,7 +455,7 @@ export function createNothingHereFinale({
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
    if(phase!=="opening")begin({animate:true,audio:false});
-   timeline.pause().seek(END.clamp(Number(t)||0,0,8.75),false);
+   timeline.pause().seek(END.clamp(Number(t)||0,0,9.67),false);
    // A deliberately paused WebGL seek may take longer than the real
    // 12.5s watchdog when taking software-rendered screenshots; don't let
    // that timer start the soundtrack in the middle of a test capture.
