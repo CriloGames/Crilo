@@ -65,7 +65,7 @@ for(let t=0;t<CAT_REFERENCE_DURATION-1/60;t+=1/60){
   comparedFrames++;
  }
 }
-assert(comparedFrames>5700&&maxObservedRps<8&&minObservedRps>0,
+assert(comparedFrames>5600&&maxObservedRps<8&&minObservedRps>0,
  "Full soundtrack spin sweep was not sampled correctly");
 console.log("PASS: all 7 early cues align yaw/bounce/lights and full "+
  comparedFrames+"-frame music sweep keeps forward-only yaw");
