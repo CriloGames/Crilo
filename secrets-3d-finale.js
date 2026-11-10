@@ -196,12 +196,22 @@ export function createNothingHereFinale({
    right:rightFace,top:topFace,bottom:bottomFace};
   for(const entry of framePieces){
    const node=entry.node,geometry=node.geometry;
-   if(!geometry)continue;
-   if(!geometry.boundingBox)geometry.computeBoundingBox();
-   const size=geometry.boundingBox.getSize(new THREE.Vector3());
+   // Both meshes AND compound detail groups must follow a moving wall.
+   // Previously non-Mesh cube children were simply skipped here, so
+   // complicated ornaments stayed at the original cube coordinates.
+   if(geometry&&!geometry.boundingBox)geometry.computeBoundingBox();
+   const size=geometry?geometry.boundingBox.getSize(new THREE.Vector3()):
+    new THREE.Vector3();
    const {x,y,z}=node.position;
    let owner;
-   if(Math.max(size.x,size.y,size.z)<.45){
+   if(!geometry){
+    // A compound fitting can be attached to the nearest physical face.
+    // Its complete child hierarchy follows the same hinge afterward.
+    const max=Math.max(Math.abs(x),Math.abs(y),Math.abs(z));
+    owner=max===Math.abs(y)?(y>=0?"top":"bottom"):
+     max===Math.abs(x)?(x>=0?"right":"left"):
+     z>=0?"front":"back";
+   }else if(Math.max(size.x,size.y,size.z)<.45){
     // Corner fittings stay with their matching top/bottom covers.
     owner=y>=0?"top":"bottom";
    }else if(size.x>size.y&&size.x>size.z){
@@ -487,6 +497,9 @@ export function createNothingHereFinale({
      node.visible===visible&&node.visible).length,
     originalFramePreserved:framePieces.every(({node,visible})=>
      node.visible===visible&&!!node.userData.finaleAttachedFramePanel),
+    // The ONLY remaining direct cube child should be faceRoot. Every
+    // physical piece, group, and optimized ornament must be hinged under it.
+    rigidCubeOrphanCount:cube.children.filter(node=>node!==faceRoot).length,
     centerFit:Math.abs(controls.target.y-.55)<.1,
     platformHorizontal:Math.abs(cube.rotation.x+Math.PI/2)<.01,
     platformUnderCat:duckShow.getState().platformUnderCat,
