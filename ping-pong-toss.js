@@ -335,9 +335,16 @@ const LEVEL_FAIRNESS={
    {side:1,fraction:.80,x:1.45,length:3.0}]},
  45:{wind:0,motion:'slide',moving:.26,radius:.455},
  46:{wind:0,fanPower:3.0,motion:'still',clearBarriers:true,radius:.46},
+ // With a frisbee, a hoop + spring + moving cup must have a recoverable
+ // release corridor. Keep the physical hoop and spring mandatory, but
+ // remove unrelated desk clutter across the intended flight lane.
  47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true,
-  moving:.32,radius:.45},
- 48:{wind:0,motion:'still',clearBarriers:true,radius:.465},
+  clearObstacles:true,moving:.16,radius:.50},
+ // Archive Springs (level 48) needs TWO real contacts; the second plate's
+ // former 14% forward grip almost stopped the disc directly in front of
+ // the raised cup. Preserve both pads while allowing an actual follow-up.
+ 48:{wind:0,motion:'still',clearBarriers:true,clearObstacles:true,
+  radius:.51,secondPadOffset:0},
  49:{wind:0,fanPower:2.85,motion:'still',clearBarriers:true,radius:.47},
  // Final exam: two numbered spring rebounds and a small moving cup.
  // The second cart used to overlap the goal stand and its very low
@@ -2120,29 +2127,30 @@ function buildWorld(){
  worldClean();
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];physicsMovingOwners=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
- // Coordinated 50-level arcade palette from the new home-card art:
- // saturated teal walls, turquoise/cyan accents, warm orange worktops,
- // navy shadow structure and reflective steel buckets. Distinct rooms
- // keep their lighting and furniture layouts; physics remains untouched.
+ // Crilo-inspired office materials: softly desaturated stone, sage,
+ // muted slate-teal, charcoal hardware and natural oak. Lighting retains
+ // the established day/night distinction without turning the room neon
+ // or almost black (particularly the Archive Springs level).
  const sets=[
-  {walls:0x6cced2,carpet:0x255d66,desk:0xdd783f,trim:0x066c80,name:'THE CUBICLE'},
-  {walls:0x90d9d3,carpet:0x2b6470,desk:0xe18b52,trim:0x087685,name:'MEETING ROOM'},
-  {walls:0x5bc3d4,carpet:0x245d70,desk:0xd97743,trim:0x075f7a,name:'MAILROOM'},
-  {walls:0xa1d9cf,carpet:0x31666a,desk:0xed9555,trim:0x147486,name:'BREAK ROOM'},
-  {walls:0x286d80,carpet:0x173e50,desk:0xc86d41,trim:0x064456,name:'NIGHT SHIFT'},
-  {walls:0x64abae,carpet:0x275760,desk:0xc77345,trim:0x175f6e,name:'ARCHIVE'},
-  {walls:0x8cdbd7,carpet:0x2b6b71,desk:0xe48b4d,trim:0x096c82,name:'RECEPTION'},
-  {walls:0x4a9ba8,carpet:0x204857,desk:0xd57948,trim:0x086479,name:'AWARDS OFFICE'},
-  {walls:0x6db8bf,carpet:0x25545c,desk:0xd87b43,trim:0x086878,name:'SHIPPING DOCK'},
-  {walls:0x235c70,carpet:0x16394e,desk:0xc76d3d,trim:0x034557,name:'SERVER ROOM'}
+  {walls:0x9cb7b6,carpet:0x5b7474,desk:0xb99a81,trim:0x587583,name:'THE CUBICLE'},
+  {walls:0xb4bfba,carpet:0x5e757c,desk:0xbf9e85,trim:0x607889,name:'MEETING ROOM'},
+  {walls:0x91afb5,carpet:0x546e79,desk:0xb89a83,trim:0x547181,name:'MAILROOM'},
+  {walls:0xb2bbae,carpet:0x637b76,desk:0xc3a58c,trim:0x657d75,name:'BREAK ROOM'},
+  {walls:0x6b858b,carpet:0x3f525b,desk:0xa88e78,trim:0x3e6775,name:'NIGHT SHIFT'},
+  {walls:0x869e99,carpet:0x516a67,desk:0xb18e76,trim:0x5d7b76,name:'ARCHIVE'},
+  {walls:0xa6bdb4,carpet:0x5b7f74,desk:0xc5a489,trim:0x597e76,name:'RECEPTION'},
+  {walls:0x9e9ca9,carpet:0x5e6274,desk:0xb59b85,trim:0x6c7183,name:'AWARDS OFFICE'},
+  {walls:0x94adb0,carpet:0x566e73,desk:0xb4977f,trim:0x5d7980,name:'SHIPPING DOCK'},
+  {walls:0x617a87,carpet:0x384f60,desk:0x9f8a79,trim:0x456777,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
  const artPlan=stageArtPlan(settings);
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
  // and the challenge layout changes its foreground props per individual level.
  const lightingMode=(level-1)%10>=5;
- const sceneTone=[0x0b7386,0x1a8890,0x0b687c,0x297e81,0x083e55,0x286779,0x167e82,0x124c69,0x0c6470,0x073b50][settings.sceneId];
- const nearDeskTone=settings.roomVariant?0x9c4a2d:theme.desk;
+ const sceneTone=[0x718b90,0x809294,0x708996,0x85928d,0x546a78,0x607c7a,0x7f9890,0x777785,0x70888e,0x425e70][settings.sceneId];
+ const nearDeskTone=settings.roomVariant?
+ new THREE.Color(theme.desk).lerp(new THREE.Color(0x8b6d60),.25).getHex():theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
  wallMat.map=roomTexture('wall',level,5,3);
@@ -2152,11 +2160,11 @@ function buildWorld(){
  const wood=finishMat(nearDeskTone,'lacquer'),darkWood=createMat(0x45392f,.68);
  wood.map=roomTexture('wood',level+39,3,2);
  wood.bumpMap=surfaceRelief('wood',level+39,3,2);wood.bumpScale=.012;
- const metal=finishMat(0xa5c2c9,'anodized'),dark=createMat(theme.trim,.6,.15);
+ const metal=finishMat(0x9dabb5,'anodized'),dark=createMat(theme.trim,.6,.15);
  metal.bumpMap=surfaceRelief('wall',level+73,2,2);metal.bumpScale=.004;
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
- const blue=createMat(0x168da1,.6),light=createMat(0xffd992,.7);
+ const blue=createMat(0x6d919c,.6),light=createMat(0xe7d5b4,.7);
  const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
  // Each chapter keeps a single identifiable accent, with cool metal
  // hardware and warm desks. Game pieces remain brighter than set dressing.
@@ -3349,7 +3357,7 @@ function buildWorld(){
 // impact position and the pad's authored friction. Tested spacings make
 // far single pads and two-pad sequences actually landable.
 const PAD_GRIP_BY_LEVEL={
- 12:[.30],45:[.13],47:[.30],48:[.28,.14],50:[.36,.28]
+ 12:[.30],45:[.13],47:[.50],48:[.55,.56],50:[.36,.28]
 };
 // Chapter 5: rubber launch plates on actual rolling office carts.
  // Distinct spaced launch carts: late-game pads no longer sit at one
@@ -3560,7 +3568,7 @@ const PAD_GRIP_BY_LEVEL={
  readabilityAspect=camera.aspect;
  separateBlockersOnScreen();
  validateLevelReadability();
- scene.background.setHex(lightingMode?0x0b374a:sceneTone);
+ scene.background.setHex(lightingMode?0x394e59:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
  buildPhysicsBodies();
@@ -4720,8 +4728,8 @@ function animate(now){
 async function init(){
  try{
   THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
-  scene=new THREE.Scene();scene.background=new THREE.Color(0x0c6e82);
-  scene.fog=new THREE.Fog(0x0e6677,22,45);
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x748e93);
+  scene.fog=new THREE.Fog(0x657d81,22,45);
   camera=new THREE.PerspectiveCamera(47,1,.1,95);
   renderer=new THREE.WebGLRenderer({canvas:el.canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<720?1.50:2));
