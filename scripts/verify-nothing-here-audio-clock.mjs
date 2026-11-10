@@ -27,14 +27,19 @@ class AudioContext{
  createGain(){return new Gain()}
  createOscillator(){return new Osc()}
  resume(){this.state="running";return Promise.resolve()}
+ suspend(){this.state="suspended";return Promise.resolve()}
 }
 const timers=new Map();let next=0;let finaleEndedEvents=0;
+let finaleActive=false,finaleRequests=0,finaleMutedEvents=0;
 const window={AudioContext,addEventListener(){},
  dispatchEvent(event){
   if(event.type==="nothing-here-finale-ended")finaleEndedEvents++;
+  if(event.type==="nothing-here-finale-audio-request")finaleRequests++;
+  if(event.type==="nothing-here-finale-audio-muted")finaleMutedEvents++;
   return true;
  }};
 const document={hidden:false,readyState:"complete",
+ body:{classList:{contains(name){return finaleActive&&name==="nc-finale-active"}}},
  addEventListener(){},getElementById(){return null}};
 const create=new Function("window","document","localStorage","performance",
  "setInterval","clearInterval","setTimeout","clearTimeout",
@@ -71,4 +76,24 @@ assert.equal(audio.getState().finalePlaying,false);
 assert.equal(audio.getFinaleClock(),null);
 assert.equal(finaleEndedEvents,1,
  "The visual duck must be notified exactly when backup audio ends");
-console.log("PASS: fallback 150 BPM, audio clock remains still while buffered/suspended, correct ending");
+// Regression: a player who completed the cube with audio off can enable
+// either toggle in the open finale. It must request the duck soundtrack,
+// never create the menu loop, and join the existing beat when unmuted.
+finaleActive=true;
+audio.setSfx(false);
+audio.setMusic(true);
+assert.equal(finaleRequests,1,
+ "Turning Music on during the finale failed to request its soundtrack");
+assert(!audio.getState().musicCreated,
+ "Finale audio toggle created the ordinary background-music loop");
+assert(audio.playFinale(5,2),"Turning sound on should allow a late finale start");
+assert(Math.abs(audio.getFinaleClock()-2)<.06,
+ "Late finale audio failed to synchronize with the duck's existing beat");
+audio.setSfx(true);
+audio.setMusic(false);
+assert(audio.getState().finalePlaying,
+ "Disabling Music must not stop a finale when Sounds remains enabled");
+audio.setSfx(false);
+assert(!audio.getState().finalePlaying&&finaleMutedEvents===1,
+ "Muting both settings must hand control back to the silent duck timeline");
+console.log("PASS: fallback 150 BPM, stable audio clock and late finale audio toggles");
