@@ -335,16 +335,11 @@ const LEVEL_FAIRNESS={
    {side:1,fraction:.80,x:1.45,length:3.0}]},
  45:{wind:0,motion:'slide',moving:.26,radius:.455},
  46:{wind:0,fanPower:3.0,motion:'still',clearBarriers:true,radius:.46},
- // With a frisbee, a hoop + spring + moving cup must have a recoverable
- // release corridor. Keep the physical hoop and spring mandatory, but
- // remove unrelated desk clutter across the intended flight lane.
+ // Leave ping-pong and previously unlocked throwables unchanged.
+ // Frisbee-specific refinements for these stages are layered below.
  47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true,
-  clearObstacles:true,moving:.16,radius:.50},
- // Archive Springs (level 48) needs TWO real contacts; the second plate's
- // former 14% forward grip almost stopped the disc directly in front of
- // the raised cup. Preserve both pads while allowing an actual follow-up.
- 48:{wind:0,motion:'still',clearBarriers:true,clearObstacles:true,
-  radius:.51,secondPadOffset:0},
+  moving:.32,radius:.45},
+ 48:{wind:0,motion:'still',clearBarriers:true,radius:.465},
  49:{wind:0,fanPower:2.85,motion:'still',clearBarriers:true,radius:.47},
  // Final exam: two numbered spring rebounds and a small moving cup.
  // The second cart used to overlap the goal stand and its very low
@@ -354,8 +349,20 @@ const LEVEL_FAIRNESS={
    padFractions:[.49,.87],secondPadOffset:0,clearBarriers:true,
    radius:.48}
 };
+const FRISBEE_LATE_FAIRNESS={
+ // The ring and real rebound remain required. Only the frisbee gets a
+ // slightly wider stationary scoring window and a clean flight corridor.
+ 47:{wind:0,hoops:1,hoopMove:false,clearBarriers:true,
+  clearObstacles:true,moving:.16,radius:.50},
+ // The two real spring contacts remain mandatory. Do not modify the
+ // original ping-pong route or already completed projectile campaigns.
+ 48:{wind:0,motion:'still',clearBarriers:true,clearObstacles:true,
+  radius:.51,secondPadOffset:0}
+};
 function balanceStage(spec){
- const tune=LEVEL_FAIRNESS[spec.n];if(!tune)return spec;
+ const tune=projectileId==='frisbee'&&FRISBEE_LATE_FAIRNESS[spec.n]?
+  FRISBEE_LATE_FAIRNESS[spec.n]:LEVEL_FAIRNESS[spec.n];
+ if(!tune)return spec;
  if(tune.wind!==undefined)spec.wind=tune.wind;
  if(tune.radius!==undefined)spec.radius=tune.radius;
  if(tune.moving!==undefined)spec.moving=tune.moving;
@@ -3357,8 +3364,11 @@ function buildWorld(){
 // impact position and the pad's authored friction. Tested spacings make
 // far single pads and two-pad sequences actually landable.
 const PAD_GRIP_BY_LEVEL={
- 12:[.30],45:[.13],47:[.50],48:[.55,.56],50:[.36,.28]
+ 12:[.30],45:[.13],47:[.30],48:[.28,.14],50:[.36,.28]
 };
+// Higher-grip physical spring surfaces for late frisbee precision only.
+// Preserve all other projectile bounce velocities (including past scores).
+const FRISBEE_PAD_GRIP_BY_LEVEL={47:[.50],48:[.55,.56]};
 // Chapter 5: rubber launch plates on actual rolling office carts.
  // Distinct spaced launch carts: late-game pads no longer sit at one
  // fixed halfway point. A numbered sequence must be completed in order.
@@ -3441,7 +3451,9 @@ const PAD_GRIP_BY_LEVEL={
   // Swept collision at the upper tabletop prevents fast-moving balls from
   // tunnelling through thin geometry between frame steps or pad misses.
   padPlatforms.push({x,z,top:padY-.03,halfX:.875,halfZ:.875});
-  const authoredGrip=PAD_GRIP_BY_LEVEL[level]?.[i];
+  const authoredGrip=projectileId==='frisbee'?
+   FRISBEE_PAD_GRIP_BY_LEVEL[level]?.[i]??PAD_GRIP_BY_LEVEL[level]?.[i]:
+   PAD_GRIP_BY_LEVEL[level]?.[i];
   pads.push({type:'spring',index:i,x,z,r:.71,y:padY+.05,mat:spring.material,
    plate:spring,glow:ring,halo,lastImpact:-10,
    forwardGrip:authoredGrip??(closePad?.30:.53),
