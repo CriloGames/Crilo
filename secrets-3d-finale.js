@@ -18,6 +18,9 @@ export function createNothingHereFinale({
  const originalRotation=cube.rotation.clone();
  const originalPosition=cube.position.clone();
  const originalScale=cube.scale.clone();
+ // These are the original twelve brass structural rails and eight fitted
+ // corners. They used to be children of cube and were all hidden at 1.4s,
+ // making a fully folded cube suddenly look stripped of its original trim.
  const framePieces=cube.children.filter(node=>node!==faceRoot)
   .map(node=>({node,visible:node.visible}));
  const panels=[
@@ -184,13 +187,39 @@ export function createNothingHereFinale({
   const back=hinge(bottomFace,[0,-half,0],backFace);
   const top=hinge(backFace,[0,half,0],topFace);
   joints={left,right,bottom,back,top};
-  // New slim edge beads belong to each individual panel. The rigid outer
-  // cubic frame goes away as the six actual panels spread into their net.
+  // Preserve the ORIGINAL 3D brass frame by attaching every rail/corner
+  // to an existing hinged panel. Object3D.attach keeps the EXACT folded
+  // world transform, including textures and highlights, with no pop on
+  // the first opening frame. The trim then follows the actual panels
+  // instead of suddenly vanishing while the cube is still folded.
+  const frameGroups={front:frontFace,back:backFace,left:leftFace,
+   right:rightFace,top:topFace,bottom:bottomFace};
+  for(const entry of framePieces){
+   const node=entry.node,geometry=node.geometry;
+   if(!geometry)continue;
+   if(!geometry.boundingBox)geometry.computeBoundingBox();
+   const size=geometry.boundingBox.getSize(new THREE.Vector3());
+   const {x,y,z}=node.position;
+   let owner;
+   if(Math.max(size.x,size.y,size.z)<.45){
+    // Corner fittings stay with their matching top/bottom covers.
+    owner=y>=0?"top":"bottom";
+   }else if(size.x>size.y&&size.x>size.z){
+    owner=y>0?(z>0?"top":"back"):(z>0?"front":"bottom");
+   }else if(size.y>size.x&&size.y>size.z){
+    owner=x<0?(z>0?"left":"back"):(z>0?"front":"right");
+   }else{
+    owner=y>0?(x<0?"top":"right"):(x<0?"left":"bottom");
+   }
+   frameGroups[owner].attach(node);
+   node.userData.finaleAttachedFramePanel=owner;
+  }
+  // Reverse enamels are only revealed when panels actually separate;
+  // these supplement their ORIGINAL front textures rather than replacing
+  // or covering any geometry while the box is still upright.
+
   const gold=new THREE.MeshPhysicalMaterial({
    color:0xd5b883,metalness:.65,roughness:.28,clearcoat:.28
-  });
-  const dark=new THREE.MeshPhysicalMaterial({
-   color:0x4c4b57,metalness:.35,roughness:.48
   });
   for(const [name,panel] of panels){
    const rim=new THREE.Group();
@@ -207,15 +236,7 @@ export function createNothingHereFinale({
     const nut=new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,.013,12),gold);
     nut.rotation.x=Math.PI/2;nut.position.set(x,y,-.145);rim.add(nut);
    }
-   for(const edge of [-1,1]){
-    const y=edge*(half-.034);
-    const top=new THREE.Mesh(new THREE.BoxGeometry(S-.055,.07,.065),gold);
-    top.position.set(0,y,.060);rim.add(top);
-    const side=new THREE.Mesh(new THREE.BoxGeometry(.07,S-.055,.065),gold);
-    side.position.set(edge*(half-.034),0,.060);rim.add(side);
-    const engraved=new THREE.Mesh(new THREE.BoxGeometry(S-.17,.012,.013),dark);
-    engraved.position.set(0,y-edge*.052,.102);rim.add(engraved);
-   }
+   // Do not overlay replacement rails on the original ones.
    frameRims.push(rim);
   }
  }
@@ -229,7 +250,10 @@ export function createNothingHereFinale({
   ),.18,.43);
  }
  function setFrames(unfolded){
-  for(const {node,visible} of framePieces)node.visible=unfolded?false:visible;
+  // Never discard the frame during the duck's emergence, unfolding, or
+  // finished T. Every original frame element belongs to a hinged panel.
+  for(const {node,visible} of framePieces)node.visible=visible;
+  // Add the six reverse panel textures once the sides actually spread.
   for(const rim of frameRims)rim.visible=unfolded;
  }
  function placeNet(){
@@ -353,7 +377,9 @@ export function createNothingHereFinale({
    .to(cube.rotation,{x:0,y:0,z:0,duration:.85,ease:"power2.inOut"},0)
    // Crack open the far lid while the side walls still form a recognizable box.
    .to(joints.top.rotation,{x:Math.PI/2,duration:1.1,ease:"power2.inOut"},.35)
-   .call(()=>setFrames(true),null,1.40)
+   // At 1.40s the entire original folded cube must remain fully detailed.
+   // Do not show the replacement backings until the actual side unfolding.
+   .call(()=>setFrames(true),null,6.14)
    // The duck exits all the way ABOVE the top rim while the cube stays
    // square and full size. Only once its feet clear the rim can the six
    // panels rotate into a horizontal T beneath it.
@@ -454,6 +480,13 @@ export function createNothingHereFinale({
     normalControls:controls.enabled,
     scale:+cube.scale.x.toFixed(3),
     outerFrameHidden:framePieces.every(({node})=>!node.visible),
+    originalFramePieceCount:framePieces.length,
+    originalFrameAttachedCount:framePieces.filter(({node})=>
+     !!node.userData.finaleAttachedFramePanel).length,
+    originalFrameVisibleCount:framePieces.filter(({node,visible})=>
+     node.visible===visible&&node.visible).length,
+    originalFramePreserved:framePieces.every(({node,visible})=>
+     node.visible===visible&&!!node.userData.finaleAttachedFramePanel),
     centerFit:Math.abs(controls.target.y-.55)<.1,
     platformHorizontal:Math.abs(cube.rotation.x+Math.PI/2)<.01,
     platformUnderCat:duckShow.getState().platformUnderCat,
