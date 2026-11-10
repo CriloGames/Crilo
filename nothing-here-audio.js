@@ -142,6 +142,11 @@
  }
  function setMusic(on){
   musicEnabled=!!on;save(keyMusic,musicEnabled);syncUi();
+  // The banner can offer a direct path to the egg when the player keeps
+  // Music Off. Music On hides that option and resumes the normal video.
+  const changed=new Event("nothing-here-finale-music-state");
+  changed.musicEnabled=musicEnabled;
+  window.dispatchEvent(changed);
   if(musicEnabled)gestureReady=true;
   if(finaleSceneActive()){
    pauseLobbyMusic();
