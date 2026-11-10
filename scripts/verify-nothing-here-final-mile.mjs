@@ -186,10 +186,10 @@ try{
   "Completion banner is painted above the sticky navigation: "+
    JSON.stringify(headerHit));
  console.log("PASS: completion banner cannot block sticky top navigation");
- // The unfolded real T is present for the first note, dissolves over 1.8s,
- // then vanishes. The 3D cat remains anchored over its center and hovering.
- // The top-left moon is a ::after decoration. The same real music-clock
- // fade must reach both the box and the moon, not hide just the 3D mesh.
+ // The fully modeled T now dissolves BEFORE the green light show begins.
+ // At the first soundtrack beat no glass, fixtures or panels may linger
+ // semi-transparent over the bright neon background.
+ // The corner moon must disappear with the real 3D cube.
  await page.evaluate(()=>document.body.classList.add("nc-moon"));
  const fadeStages=[];
  for(const seconds of [0,.9,2.2]){
@@ -206,16 +206,14 @@ try{
     JSON.stringify(frame));
   fadeStages.push(frame);
  }
- assert(fadeStages[0].opacity===1&&!fadeStages[0].done&&
-  fadeStages[1].opacity>.05&&fadeStages[1].opacity<.95&&
-  fadeStages[2].opacity===0&&fadeStages[2].done,
-  "The T-shaped box must smoothly fade away when the music begins: "+
+ assert(fadeStages.every(f=>f.opacity===0&&f.done),
+  "The cube must finish dissolving BEFORE the neon music video begins: "+
    JSON.stringify(fadeStages));
  assert(fadeStages.every(f=>Math.abs(f.moon-f.opacity)<.025&&
   Math.abs(f.moonClock-f.opacity)<.025),
   "Moon and T-shaped box do not fade together: "+JSON.stringify(fadeStages));
  await page.evaluate(()=>document.body.classList.remove("nc-moon"));
- console.log("PASS: unfolded box fades during first musical notes; duck stays centered");
+ console.log("PASS: no transparent cube/ghost fixtures during neon duck music");
  // Inspect the ENTIRE 134.7s visual choreography, not just the start and
  // end. The actual rendered Three.js meshes and shader uniforms must change
  // at the same timestamp as the uploaded 1080p reference video.
@@ -502,7 +500,7 @@ try{
  // The duck must COMPLETELY leave the upright box before any wall
  // rotation or opening-frame translation begins. Earlier versions moved
  // the cube at 3.1s although the duck was still rising until 5.05s.
- const openingTimes=[1.2,2.3,4.55,6.8,8.75];
+ const openingTimes=[1.2,2.3,4.55,6.8,8.75,9.32,9.66];
  const opening=[];
  for(const time of openingTimes){
   const sample=await page.evaluate(t=>
@@ -555,8 +553,9 @@ try{
   opening[2].openingSideAngle<.01&&
   Math.abs(opening[2].openingCubeTilt)<.01&&
   opening[2].cat.emergenceHorizontalProgress===0&&
-  opening[2].cat.emergenceLipClearance>.80&&
-  opening[2].duckRootClearanceOverFrontRim>.5,
+  opening[2].cat.emergenceLipClearance>.50&&
+  opening[2].duckRootClearanceOverFrontRim>.38&&
+  opening[2].cat.emergenceHeadScreenY<.84,
   "Duck must fully clear the physical FRONT wall while the cube is "+
    "upright and BEFORE unfolding starts: "+
    JSON.stringify(opening[2]));
@@ -564,7 +563,8 @@ try{
   opening[3].openingCubeTilt<-.25&&
   opening[3].cat.emergenceHorizontalProgress>.10&&
   opening[3].duckRootClearanceOverFrontRim>.15&&
-  opening[3].cat.emergenceScale<.72,
+  opening[3].cat.emergenceScale<.72&&
+  opening[3].cat.emergenceHeadScreenY<.84,
   "Cube should unfold only after duck is outside, and never intersect "+
    "the real front lip: "+JSON.stringify(opening[3]));
  assert(opening[4].entranceProgress>=.999&&
@@ -575,7 +575,12 @@ try{
   opening[4].cat.actualRotations.y===0,
   "Duck must finish outside the unfolded T without clipping: "+
    JSON.stringify(opening[4]));
- console.log("PASS: lid opens, duck fully rises vertically, THEN cube unfolds");
+ assert(opening[5].netOpacity>.05&&opening[5].netOpacity<.95&&
+  opening[6].netOpacity<.005,
+  "Complete six-panel sculpture should dissolve only AFTER unfolding, "+
+  "and be gone before green backdrop appears: "+
+  JSON.stringify({atTransition:opening[5],beforeMusic:opening[6]}));
+ console.log("PASS: duck head stays on-screen; the complete T fades before neon");
  console.log("PASS: one shared duck, synchronized moon fade and wormhole strobes");
  console.log("PASS: full-video 3D reference sweep",JSON.stringify(renderResults));
  assert.deepEqual(errors,[],"Browser errors in final-mile scene");
