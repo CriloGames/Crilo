@@ -145,6 +145,10 @@
     // continue together, so re-enabling Music cannot drift off beat.
     syncFinaleMusicVolume();
     if(musicEnabled){
+     // The Music button is a direct user gesture: unlock a browser-
+     // suspended synthesized fallback without restarting its score.
+     if(finaleMaster&&fluteContext?.state==="suspended")
+      fluteContext.resume()?.catch?.(()=>{});
      const clip=activeFinaleAudio();
      if(clip?.paused&&!clip.ended)clip.play()?.catch?.(()=>{});
     }
