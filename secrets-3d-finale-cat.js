@@ -659,6 +659,11 @@ export function createFinaleDuckShow({
  }
  return {
   start,stop,previewEmergence,syncToAudio,continueSilently,
+  skipSilentVideo(){
+   if(!playing)return false;
+   finishOnAudioEnd();
+   return true;
+  },
   simulatePendingAudioForTest(){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
