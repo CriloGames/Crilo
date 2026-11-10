@@ -29,15 +29,15 @@ let GRAVITY=10.65,BALL_R=.095;
 const MAX_AIM_YAW=1.02;
 function launchOffset(){return clamp(aimYaw*.37,-.38,.38);}
 const CHAPTERS=[
- {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x6ccab5,short:'First Week'},
- {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xeba1b5,short:'Desk Shift'},
- {name:'CROSS DRAFT',desc:'Varying fan gusts, blind shots, moving openings and combination trick shots.',from:21,to:30,color:0x8ba8e9,short:'Cross Draft'},
- {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xebbc70,short:'Late Shift'},
- {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xae8edc,short:'Final Shift'}
+ {name:'FIRST WEEK',desc:'Learn accuracy, moving cups, a bank, crosswind and your first shutter, all before level 10.',from:1,to:10,color:0x24d8da,short:'First Week'},
+ {name:'THE DESK SHIFT',desc:'Mix moving cups with spring pads, lifting targets and the first timed lid.',from:11,to:20,color:0xff9f38,short:'Desk Shift'},
+ {name:'CROSS DRAFT',desc:'Varying fan gusts, blind shots, moving openings and combination trick shots.',from:21,to:30,color:0x13bcd1,short:'Cross Draft'},
+ {name:'THE LATE SHIFT',desc:'Sequence moving drawers, shutters, timed lids and precision rebounds.',from:31,to:40,color:0xffc23e,short:'Late Shift'},
+ {name:'FINAL TRICK SHOTS',desc:'Spring pads, moving cups and timed lids collide in the final ten challenges.',from:41,to:50,color:0xff7747,short:'Final Shift'}
 ];
 // Five sequential 50-level campaigns, each saved independently.
 const PROJECTILES=[
- {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xffb86f},
+ {id:'ping',name:'Ping-Pong Ball',short:'Ping-Pong',hint:'Classic bounce',radius:.095,gravity:10.65,speed:1,drag:0,air:1,bounce:1,pad:1,lift:0,color:0xffbe35},
  {id:'frisbee',name:'Frisbee',short:'Frisbee',hint:'Banks, curves, glides and stalls like a flying disc',radius:.125,gravity:9.8,speed:1.07,drag:.044,air:1.25,bounce:.66,pad:1.03,lift:1.65,color:0x8ae1cd},
  {id:'basketball',name:'Mini Basketball',short:'Basketball',hint:'Bouncier and larger',radius:.115,gravity:10.9,speed:1.04,drag:.014,air:.78,bounce:1.13,pad:1.05,lift:0,color:0xed914f},
  {id:'heavy',name:'Heavy Ball',short:'Heavy Ball',hint:'Falls faster; resists wind',radius:.107,gravity:12,speed:1.08,drag:.005,air:.40,bounce:.60,pad:1.20,lift:0,color:0x9cadc1},
@@ -2120,25 +2120,29 @@ function buildWorld(){
  worldClean();
  group=new THREE.Group();scene.add(group);
  obstacles=[];pads=[];padPlatforms=[];hoops=[];wallPad=null;wallPads=[];airZone=null;fanFields=[];physicsBodies=[];physicsGrid=new Map();physicsGlobal=[];physicsMoving=[];physicsMovingOwners=[];specialSurfaces=[];decorCandidates=[];readabilityAspect=0;ambient=[];aimLine=[];targetLift=null;targetShadow=null;ballTrailMeshes=[];impactRing=null;impactAge=2;cupLid=null;
+ // Coordinated 50-level arcade palette from the new home-card art:
+ // saturated teal walls, turquoise/cyan accents, warm orange worktops,
+ // navy shadow structure and reflective steel buckets. Distinct rooms
+ // keep their lighting and furniture layouts; physics remains untouched.
  const sets=[
-  {walls:0xc7d4cf,carpet:0x738981,desk:0xc49c7c,trim:0x436977,name:'THE CUBICLE'},
-  {walls:0xd8cbb9,carpet:0x7b8c86,desk:0xc29a77,trim:0x536d79,name:'MEETING ROOM'},
-  {walls:0xc4d2d7,carpet:0x6d8392,desk:0xbfa080,trim:0x4c7283,name:'MAILROOM'},
-  {walls:0xe0d9c5,carpet:0x899186,desk:0xc8a28b,trim:0x73796a,name:'BREAK ROOM'},
-  {walls:0x728c9c,carpet:0x495f74,desk:0x9f8166,trim:0x3c6173,name:'NIGHT SHIFT'},
-  {walls:0xa5a096,carpet:0x686260,desk:0xb19677,trim:0x70635e,name:'ARCHIVE'},
-  {walls:0xd4ddd2,carpet:0x78958a,desk:0xcdb18f,trim:0x477976,name:'RECEPTION'},
-  {walls:0xb1a8a2,carpet:0x656273,desk:0xbca283,trim:0x6e5b65,name:'AWARDS OFFICE'},
-  {walls:0xa1afb0,carpet:0x5c7073,desk:0xb09775,trim:0x5a737b,name:'SHIPPING DOCK'},
-  {walls:0x667e91,carpet:0x42586b,desk:0x977f6d,trim:0x416a80,name:'SERVER ROOM'}
+  {walls:0x6cced2,carpet:0x255d66,desk:0xdd783f,trim:0x066c80,name:'THE CUBICLE'},
+  {walls:0x90d9d3,carpet:0x2b6470,desk:0xe18b52,trim:0x087685,name:'MEETING ROOM'},
+  {walls:0x5bc3d4,carpet:0x245d70,desk:0xd97743,trim:0x075f7a,name:'MAILROOM'},
+  {walls:0xa1d9cf,carpet:0x31666a,desk:0xed9555,trim:0x147486,name:'BREAK ROOM'},
+  {walls:0x286d80,carpet:0x173e50,desk:0xc86d41,trim:0x064456,name:'NIGHT SHIFT'},
+  {walls:0x64abae,carpet:0x275760,desk:0xc77345,trim:0x175f6e,name:'ARCHIVE'},
+  {walls:0x8cdbd7,carpet:0x2b6b71,desk:0xe48b4d,trim:0x096c82,name:'RECEPTION'},
+  {walls:0x4a9ba8,carpet:0x204857,desk:0xd57948,trim:0x086479,name:'AWARDS OFFICE'},
+  {walls:0x6db8bf,carpet:0x25545c,desk:0xd87b43,trim:0x086878,name:'SHIPPING DOCK'},
+  {walls:0x235c70,carpet:0x16394e,desk:0xc76d3d,trim:0x034557,name:'SERVER ROOM'}
  ];
  const theme=sets[settings.sceneId],roomEnd=settings.targetZ-4.15;
  const artPlan=stageArtPlan(settings);
  // Ten authored-looking layouts: each room has a day/night and workday/after-hours state,
  // and the challenge layout changes its foreground props per individual level.
  const lightingMode=(level-1)%10>=5;
- const sceneTone=[0x526977,0x756e68,0x526574,0x776f5f,0x4f5e70,0x5a5450,0x657874,0x605866,0x5f6e71,0x394f61][settings.sceneId];
- const nearDeskTone=settings.roomVariant?0x695348:theme.desk;
+ const sceneTone=[0x0b7386,0x1a8890,0x0b687c,0x297e81,0x083e55,0x286779,0x167e82,0x124c69,0x0c6470,0x073b50][settings.sceneId];
+ const nearDeskTone=settings.roomVariant?0x9c4a2d:theme.desk;
  const roomMiddle=(LAUNCH_Z+5+roomEnd)/2,roomLength=LAUNCH_Z+5-roomEnd;
  const wallMat=createMat(theme.walls,.91),carpet=createMat(theme.carpet,.94);
  wallMat.map=roomTexture('wall',level,5,3);
@@ -2148,11 +2152,11 @@ function buildWorld(){
  const wood=finishMat(nearDeskTone,'lacquer'),darkWood=createMat(0x45392f,.68);
  wood.map=roomTexture('wood',level+39,3,2);
  wood.bumpMap=surfaceRelief('wood',level+39,3,2);wood.bumpScale=.012;
- const metal=finishMat(0x687985,'anodized'),dark=createMat(theme.trim,.6,.15);
+ const metal=finishMat(0xa5c2c9,'anodized'),dark=createMat(theme.trim,.6,.15);
  metal.bumpMap=surfaceRelief('wall',level+73,2,2);metal.bumpScale=.004;
  const cream=createMat(0xe3d9cb,.8),paper=createMat(0xdfddcf,.9);
  const highlight=createMat(settings.color,.38,.02,settings.color);
- const blue=createMat(0x66899b,.6),light=createMat(0xf0e0b9,.7);
+ const blue=createMat(0x168da1,.6),light=createMat(0xffd992,.7);
  const lampGlow=new THREE.MeshBasicMaterial({color:0xffe9b3});
  // Each chapter keeps a single identifiable accent, with cool metal
  // hardware and warm desks. Game pieces remain brighter than set dressing.
@@ -2581,10 +2585,10 @@ function buildWorld(){
  // A believable warm practical highlight keeps the target legible in dim rooms.
  const targetSpot=new THREE.PointLight(0xffd49d,settings.roomVariant?2.4:2.9,2.7,2);
  targetSpot.position.set(0,h+.45,0);cupGroup.add(targetSpot);
- const colors=[0xd5e2e1,0xe7b5a0,0x9dbcc4,0xd0b38c,0x94bec1,0xe0c7ad,0xf0ce89];
+ const colors=[0xc9dbe1,0xb1c8d0,0xd5e4e7,0xaec5ce,0xbed6d9,0xd3c5b0,0xf0b667];
  const cupMat=kind===2||kind===4||kind===6?
   finishMat(colors[kind],'anodized'):finishMat(colors[kind],'ceramic');
- const insideMat=createMat(0x60747b,.73),lipMat=createMat(0xf4d8a8,.23,.32,0x5a402e);
+ const insideMat=createMat(0x273f50,.73),lipMat=createMat(0xd7e6eb,.23,.38,0x143c50);
  // Curved lathe profile: a real bucket/mug silhouette, not a straight block.
  const baseRadius=kind===3?r*.62:r*.72;
  const outline=[
@@ -3556,7 +3560,7 @@ const PAD_GRIP_BY_LEVEL={
  readabilityAspect=camera.aspect;
  separateBlockersOnScreen();
  validateLevelReadability();
- scene.background.setHex(lightingMode?0x3d4c57:sceneTone);
+ scene.background.setHex(lightingMode?0x0b374a:sceneTone);
  if(scene.fog)scene.fog.color.copy(scene.background);
  renderer.setClearColor(scene.background,1);
  buildPhysicsBodies();
@@ -4714,8 +4718,8 @@ function animate(now){
 async function init(){
  try{
   THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
-  scene=new THREE.Scene();scene.background=new THREE.Color(0xe0f3f1);
-  scene.fog=new THREE.Fog(0x687985,22,45);
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x0c6e82);
+  scene.fog=new THREE.Fog(0x0e6677,22,45);
   camera=new THREE.PerspectiveCamera(47,1,.1,95);
   renderer=new THREE.WebGLRenderer({canvas:el.canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,window.innerWidth<720?1.50:2));
