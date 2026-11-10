@@ -469,16 +469,9 @@ if(serverReply){
  score=Number(serverReply.score);spins=Number(serverReply.remaining_spins);
 }
 update();
-// resolve() runs only after the wheel animation stops. A 2% Mystery Gift
-// can appear now, never while the wheel is still spinning.
-// The final spin waits for verified Daily saving before its gift check.
-if(serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0){
- // Minimal isolated wheel tests may not load the optional Mystery module.
- if(window.CriloMysteryGift?.refresh)
-  window.dispatchEvent(new CustomEvent('crilo-official-wheel-stopped',{
-   detail:{spinCount:totalSpins}
-  }));
-}
+// Mystery Gifts may be earned during a Daily, but they are only presented
+// AFTER the final spin has resolved AND the official Daily has been saved.
+// Do not open anything after intermediate rolls, including bonus/free spins.
 if(guestRun&&spins>0&&!guestSaveOrPause())return;
 if(spins<=0){
  // Classify only after the LAST resolved spin, after every extra-spin effect.
@@ -795,8 +788,13 @@ if(isBonus){
  }
  officialRun={...payload,is_test:false};
  update(); // Immediately show the completed DAILY SCORE.
- // A rare gift takes priority on top of the wheel; once it's closed,
- // show the next available bonus run beneath the Daily result.
+ // The completed, server-verified official Daily is the sole point at
+ // which Mystery Gift auto-presentation may occur.
+ window.dispatchEvent(new CustomEvent('crilo-official-daily-saved',{
+  detail:{spinCount:totalSpins,remainingSpins:spins,finished:true,
+   verified:true}
+ }));
+ // Open the rare gift before offering any unlocked bonus run.
  await window.CriloMysteryGift?.refresh?.({autoOpen:true});
  await window.CriloBonusRuns?.refresh?.({focus:true});
  
