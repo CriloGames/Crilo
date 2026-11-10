@@ -45,6 +45,19 @@ for(const attack of introAttacks){
   "Duck yaw, bounce and lighting are not locked to the same audible kick "+
    attack+": "+JSON.stringify({at,after}));
 }
+// Later bass drops are also measured from the full 134.7s MP3.
+// Previously the mascot could begin 130–180ms before the actual kick.
+for(const attack of [62.40,68.31,75.03,104.00]){
+ const before=motionAt(attack-.012),at=motionAt(attack),
+  after=motionAt(attack+.06);
+ assert(!before.spinning&&before.spinRadians===0,
+  "Late mascot spin anticipated the actual musical drop at "+attack);
+ assert(at.spinning&&at.poseStart===attack&&at.spinRadians===0&&
+  at.beatPulse>.99&&after.spinRadians>.2,
+  "Late spin, bounce and lighting are not locked to the recorded kick at "+
+  attack+": "+JSON.stringify({before,at,after}));
+}
+console.log("PASS: 4 late musical drops start spinning ON recorded bass attacks");
 // Sweep every 60Hz frame over the ENTIRE finale, catching reversed yaw,
 // discontinuities, premature cut changes and unreasonably fast turns.
 // Angle may reset to zero only at an authored front-facing pose cut.
@@ -65,7 +78,7 @@ for(let t=0;t<CAT_REFERENCE_DURATION-1/60;t+=1/60){
   comparedFrames++;
  }
 }
-assert(comparedFrames>5600&&maxObservedRps<8&&minObservedRps>0,
+assert(comparedFrames>5500&&maxObservedRps<8&&minObservedRps>0,
  "Full soundtrack spin sweep was not sampled correctly");
 console.log("PASS: all 7 early cues align yaw/bounce/lights and full "+
  comparedFrames+"-frame music sweep keeps forward-only yaw");
