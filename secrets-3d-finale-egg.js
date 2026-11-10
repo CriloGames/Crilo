@@ -476,6 +476,21 @@ export function createFinaleEggEnding({
   render(Math.max(0,Number(t)||0));
   return getState();
  }
+ function seekCrackForVisualTest(seconds){
+  if(!["localhost","127.0.0.1"].includes(window.location.hostname))
+   return null;
+  // Re-enter the settled egg on each sample. These fixed offsets let the
+  // browser regression inspect the first fracture, separated jagged shell,
+  // and grounded pieces without relying on software-renderer frame timing.
+  start({restore:true});
+  if(frameId)cancelAnimationFrame(frameId);
+  frameId=0;
+  phase="cracking";
+  eggButton.hidden=true;
+  crackTime=performance.now()-Math.max(0,Number(seconds)||0)*1000;
+  render(5);
+  return getState();
+ }
  function getState(){
   return {
    postludePhase:phase,
@@ -534,5 +549,6 @@ export function createFinaleEggEnding({
    }:null
   };
  }
- return {start,stop,onResize,getState,seekForVisualTest,clickEgg};
+ return {start,stop,onResize,getState,seekForVisualTest,
+  seekCrackForVisualTest,clickEgg};
 }
