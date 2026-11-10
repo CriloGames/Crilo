@@ -387,10 +387,16 @@ export function finishMechanicalArtifact({
   // No click targets or new puzzles are assigned to this relief.
   // Lower clues, iris calibration and discoveries remain authoritative.
 
-  // Substantial three-dimensional beveled corner gussets instead of
-  // independent square caps. These are mounted to the fixed frame.
+  // Substantial three-dimensional beveled corner gussets.
+  // Each fitting MUST belong to a hinged face, not the rigid cube root:
+  // root-mounted gussets were left floating behind the box as the panels
+  // unfolded and remained visible when the faceRoot faded for the finale.
+  // Attach with world-transform preservation while the cube is folded so
+  // nothing changes visually for normal puzzle play.
   for(const x of [-1,1])for(const y of [-1,1])for(const z of [-1,1]){
     const crown=group(cube,x*1.615,y*1.615,z*1.615);
+    (y>0?topFace:bottomFace).attach(crown);
+    crown.userData.finalePanelName=y>0?"topFace":"bottomFace";
     B(crown,.28,.28,.28,0,0,0,metal,.085);
     B(crown,.19,.19,.06,0,0,z*.126,tinyGold,.052);
     C(crown,.047,.036,0,0,z*.175,darkMetal);
