@@ -4,6 +4,7 @@ import {readFileSync} from "node:fs";
 // No wall-clock timers are allowed to make the soundtrack or duck advance.
 const original=readFileSync(new URL("../nothing-here-audio.js",import.meta.url),"utf8");
 const starts=[];let audioContext=null,wallMs=0;
+let trackAudibleSignal=true,activityAnalyser=null;
 class Param{
  constructor(){this.value=0;}
  setValueAtTime(v){this.value=v}
@@ -26,6 +27,14 @@ class AudioContext{
  constructor(){audioContext=this;this.currentTime=0;this.state="running";this.destination={}}
  createGain(){return new Gain()}
  createOscillator(){return new Osc()}
+ createMediaStreamSource(){return {connect(){return this}}}
+ createAnalyser(){
+  activityAnalyser={
+   fftSize:1024,
+   getByteTimeDomainData(data){data.fill(trackAudibleSignal?136:128)}
+  };
+  return activityAnalyser;
+ }
  resume(){this.state="running";return Promise.resolve()}
  suspend(){this.state="suspended";return Promise.resolve()}
 }
@@ -211,3 +220,31 @@ assert.equal(buttons.ncMusicToggle.attributes["aria-pressed"],"true",
 mediaAudio.stopFinale();
 assert(track.paused,"Stopping the finale must still pause the MP3");
 console.log("PASS: real MP3 halts on silence, resumes on original beat, independent Sounds");
+
+// A non-invasive stream meter also stops the duck during actual SILENT
+// passages inside an MP3 even while audio.currentTime continues advancing.
+Track.prototype.captureStream=function(){
+ return {getAudioTracks(){return [{}]}};
+};
+const meterAudio=makeTrackAudio(Track,window,mediaDocument,
+ {getItem(){return null},setItem(){}},{now:()=>wallMs},
+ ()=>0,()=>{},()=>0,()=>{},()=>0,()=>{});
+meterAudio.setMusic(true);
+assert(meterAudio.playFinale(134.699),"Meter source must play");
+const metered=Track.instances.at(-1);
+metered.currentTime=18.5;
+assert(activityAnalyser&&meterAudio.getFinaleClock()===18.5,
+ "Real soundtrack audio must authorize spinning");
+trackAudibleSignal=false;
+wallMs+=630;
+metered.currentTime=19.13;
+assert(meterAudio.getFinaleClock()===null&&
+ meterAudio.getState().finaleQuietSection,
+ "Duck must stop spinning during sustained quiet MP3 passages");
+trackAudibleSignal=true;
+metered.currentTime=19.4;
+assert(meterAudio.getFinaleClock()===19.4&&
+ !meterAudio.getState().finaleQuietSection,
+ "Duck must rejoin the real playback beat after a musical rest");
+meterAudio.stopFinale();
+console.log("PASS: 520ms silent MP3 passage freezes spin; next sound resumes on audio.currentTime");
