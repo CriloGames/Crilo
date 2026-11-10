@@ -394,6 +394,48 @@ try{
  assert(Math.abs(eggWobbleLater.postlude.eggWobble-
   eggWaiting.postlude.eggWobble)>.005,
   "The egg must physically wobble, not only report eggShaking=true");
+ // A cracked egg should NOT instantly turn into two smoothly cut
+ // hemispheres. Its fracture grows across the real shell, the jagged top
+ // peels back, and two tiny pieces fall to rest beside the lower cup.
+ const hairline=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleEggCrack(t),.20);
+ assert(hairline.postlude?.postludePhase==="cracking"&&
+  hairline.postlude.eggCrackProgress>.25&&
+  hairline.postlude.eggCrackProgress<.95&&
+  !hairline.postlude.eggTopCapVisible,
+  "Egg must show a developing surface crack BEFORE the shell separates: "+
+   JSON.stringify(hairline.postlude));
+ const openingShell=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleEggCrack(t),.68);
+ assert(openingShell.postlude?.eggJaggedSeamTeeth===40&&
+  openingShell.postlude.eggShellThickness>.035&&
+  openingShell.postlude.eggOpeningProgress>.25&&
+  openingShell.postlude.eggTopCapTilt<-.20&&
+  openingShell.postlude.eggTopCapVisible&&
+  openingShell.postlude.eggLowerCupVisible&&
+  openingShell.postlude.eggLowerShellStationary,
+  "Top must hinge back around its irregular broken lip while the lower "+
+   "cup stays on the floor: "+JSON.stringify(openingShell.postlude));
+ if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
+  await page.locator("#stage canvas").screenshot({
+   path:"test-results/egg-jagged-opening.png",timeout:45000
+  });
+ const openedShell=await page.evaluate(t=>
+  window.__nothing3DPreview.seekFinaleEggCrack(t),1.57);
+ assert(openedShell.postlude?.eggOpeningProgress===1&&
+  openedShell.postlude.eggTopCapTilt< -1.0&&
+  openedShell.postlude.eggFragmentCount===2&&
+  openedShell.postlude.eggFragmentsRested&&
+  openedShell.postlude.eggLowerShellStationary,
+  "Broken shell cap and small chips must fall naturally, not float: "+
+   JSON.stringify(openedShell.postlude));
+ if(process.env.NH_CAPTURE_FINALE_SWEEP==="1")
+  await page.locator("#stage canvas").screenshot({
+   path:"test-results/egg-cracked-open.png",timeout:45000
+  });
+ // Restore the actual waiting egg to verify the real clickable control
+ // and its normal end-card reveal still function after the visual sweep.
+ await page.evaluate(()=>window.__nothing3DPreview.seekFinaleEgg(5.0));
  assert(await page.locator("#ncFinaleEgg").isVisible(),
   "Shaking egg has no accessible touch/keyboard hit target");
  const eggButton=page.locator("#ncFinaleEgg");
