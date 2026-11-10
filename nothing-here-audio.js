@@ -88,7 +88,7 @@
  // The opening/unfolded finale is not the lobby: never play the box loop
  // over the duck soundtrack or while the duck is waiting for sound.
  function finaleSceneActive(){
-  return document.body.classList.contains('nc-finale-active');
+  return document.body?.classList?.contains('nc-finale-active')===true;
  }
  function pauseLobbyMusic(){
   if(!music)return;
