@@ -184,6 +184,7 @@
  let fluteContext=null;
  let finaleMaster=null,finaleTimeout=null,finaleTimer=null,finalePlaying=false;
  let licensedFinale=null,licensedUnavailable=false,finaleClockStart=null;
+ let finaleMediaStarted=false;
  let finaleSynthClockStart=null;
  const licensedFinaleSrc='audio/nothing-here/finale-licensed.mp3?v=1';
  function ensureLicensedFinale(){
@@ -191,6 +192,9 @@
   if(licensedFinale)return licensedFinale;
   const track=new Audio(licensedFinaleSrc);
   track.preload='auto';track.loop=false;track.volume=.75;
+  track.addEventListener('playing',()=>{finaleMediaStarted=true;});
+  track.addEventListener('waiting',()=>{finaleMediaStarted=false;});
+  track.addEventListener('pause',()=>{finaleMediaStarted=false;});
   track.addEventListener('error',()=>{
    licensedUnavailable=true;
    if(finalePlaying&&licensedFinale===track){
@@ -210,7 +214,8 @@
   // than run ahead from performance.now and then snap back at the first beat.
   // The media playhead is always the authoritative clock while the licensed
   // recording exists (including its brief initial 0-second preload).
-  if(track)return track.ended?null:Number(track.currentTime)||0;
+  if(track)return track.ended||!finaleMediaStarted?null:
+   Number(track.currentTime)||0;
   // The fallback must follow actual Web Audio time, not wall-clock time.
   // AudioContext.currentTime freezes while suspended or interrupted.
   if(Number.isFinite(finaleSynthClockStart)&&fluteContext)
@@ -233,12 +238,16 @@
    personalFinale.preload='auto';
    personalFinale.loop=false;
    personalFinale.volume=.72;
+   personalFinale.addEventListener('playing',()=>{finaleMediaStarted=true;});
+   personalFinale.addEventListener('waiting',()=>{finaleMediaStarted=false;});
+   personalFinale.addEventListener('pause',()=>{finaleMediaStarted=false;});
    personalFinaleName=String(name||'Personal finale track');
   }
   return true;
  }
 
  function stopFinale(){
+  finaleMediaStarted=false;
   if(licensedFinale){
    licensedFinale.pause();
    licensedFinale.onended=null;
@@ -308,6 +317,9 @@
     // Enabling sound mid-performance should JOIN the duck at its current
     // beat, not start an unrelated song from the beginning.
     clip.currentTime=offset;
+    // A buffered silent preload may already be playing. Otherwise
+    // wait for the real 'playing' event before advancing the duck.
+    finaleMediaStarted=!clip.paused&&clip.readyState>=3;
     clip.volume=.72;
     clip.muted=false;
     finaleClockStart=performance.now();
@@ -497,6 +509,7 @@
    finaleSceneActive:finaleSceneActive(),musicCreated:!!music,
    personalFinaleReady:!!personalFinale,personalFinaleName,
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
+   finaleMediaStarted,
    licensedFinalePlaying:!!licensedFinale&&!licensedFinale.paused&&!licensedFinale.muted,
    finaleSeconds:getFinaleClock(),
    finaleEnded:!!activeFinaleAudio()?.ended,
