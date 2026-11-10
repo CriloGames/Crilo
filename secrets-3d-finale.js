@@ -56,7 +56,7 @@ export function createNothingHereFinale({
  // instead of accidentally starting the ordinary box menu soundtrack.
  window.addEventListener("nothing-here-finale-audio-request",()=>{
   if(phase==="opening"){
-   window.NothingHereAudio?.prepareFinale?.();
+   window.NothingHereAudio?.syncWindUp?.(timeline?.time()||0);
    return;
   }
   if(phase!=="open"||!duckShow.getState().dancing)return;
@@ -355,6 +355,7 @@ export function createNothingHereFinale({
  function finish(){
   clearWatchdog();
   if(timeline){timeline.kill();timeline=null;}
+  window.NothingHereAudio?.stopWindUp?.();
   placeNet();
   phase="open";
   if(keepNetForInspection)resetNetFade();
@@ -364,7 +365,8 @@ export function createNothingHereFinale({
   // MP3 buffers for a second, it must remain still rather than sprinting
   // ahead using performance.now() while the speakers are silent.
   const audioAccepted=audioAtFinish?cue():false;
-  duckShow.start({syncToAudio:audioAccepted});
+  // No soundtrack means no wall-clock-driven duck dance.
+  duckShow.start({syncToAudio:true});
   audioAtFinish=false;
   controls.enabled=true; // Orbit the unfolded object; never reactivate puzzles.
   controls.enableRotate=true;
@@ -387,7 +389,10 @@ export function createNothingHereFinale({
   // Start the duck soundtrack only AFTER the final panel lands. The replay
   // click unlocks Web Audio; normal completion uses the last puzzle click.
   audioAtFinish=audio;
-  if(audio)window.NothingHereAudio?.prepareFinale?.();
+  if(audio){
+   window.NothingHereAudio?.prepareFinale?.();
+   window.NothingHereAudio?.startWindUp?.();
+  }
   duckShow.stop();
   rise.progress=0;
   // The opening is at the upright cube's actual top plane, not the
@@ -406,6 +411,7 @@ export function createNothingHereFinale({
   timeline=gsap.timeline({
    onUpdate:()=>{
     if(phase==="opening"){
+     window.NothingHereAudio?.syncWindUp?.(timeline.time());
      // All six faces and their detail fade as ONE sculpture while the
      // ordinary stage is still behind them. Never show their ghosted
      // glass/metal over the green music-video background.
