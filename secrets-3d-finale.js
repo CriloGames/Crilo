@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=40";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=41";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -27,6 +27,7 @@ export function createNothingHereFinale({
  let joints=null,frameRims=[],timeline=null,phase="idle",hasPlayed=false;
  const rise={progress:0};
  const boxPoint=new THREE.Vector3(),landingPoint=new THREE.Vector3();
+ const frontRimPoint=new THREE.Vector3();
  let audioAtFinish=false;
  // The inspector must see every real mesh for its triangle-level collision
  // audit, even when a saved 60/60 run has already finished.
@@ -310,6 +311,13 @@ export function createNothingHereFinale({
   if(audio)window.NothingHereAudio?.prepareFinale?.();
   duckShow.stop();
   rise.progress=0;
+  // The opening is at the upright cube's actual top plane, not the
+  // rotating front panel. Freeze this world-space point for the whole
+  // emergence so later folding/translation cannot drag the duck through
+  // any of the box's six physical faces.
+  boxPoint.set(0,half+.12,-half*.14)
+   .multiply(originalScale).add(originalPosition);
+  cube.parent?.localToWorld(boxPoint);
   if(!animate||reducedMotion){finish();return true;}
   setFrames(false);
   const scale=fit();
@@ -321,45 +329,48 @@ export function createNothingHereFinale({
     if(phase==="opening"&&timeline.time()>=1.55){
      cube.updateWorldMatrix(true,true);
      frontFace.updateWorldMatrix(true,false);
-     // Source is the TOP opening, not the cube pivot or its front dial.
-     // Keep the duck set back into the hollow interior as it rises.
-     boxPoint.set(0,half*.92,-half*.40);
-     cube.localToWorld(boxPoint);
      frontFace.getWorldPosition(landingPoint);
-     // The camera pulls back throughout the T unfold. Limit cat growth
-     // until the camera can actually fit its entire body, then reach full
-     // soundtrack scale seamlessly as the final panel lands at 6 seconds.
-     const cameraFraction=END.clamp((timeline.time()-2.6)/3.4,0,1);
+     // Prevent the duck's feet from going through the real upper front
+     // edge during the T rotation, not merely a guessed box-center offset.
+     frontRimPoint.set(0,half,0);
+     frontFace.localToWorld(frontRimPoint);
+     // Entrance is deliberately two stages: rise out of the still-upright
+     // box (1.55–4.55s), THEN drift forward as the box unfolds (4.8–8.85s).
+     const departure=END.smoothstep(timeline.time(),4.8,8.85);
+     const cameraFraction=END.clamp((timeline.time()-3.0)/5.8,0,1);
      const scaleCap=.46+.54*Math.pow(cameraFraction,3);
-     duckShow.previewEmergence(rise.progress,boxPoint,landingPoint,scaleCap);
+     duckShow.previewEmergence(rise.progress,boxPoint,landingPoint,
+      scaleCap,departure,frontRimPoint.y);
     }
     invalidate();
    },
    onComplete:finish
   });
-  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:5.1,ease:"power2.inOut"},0)
-   .to(controls.target,{x:0,y:.55,z:0,duration:5.0,ease:"power2.inOut"},0)
+  timeline.to(camera.position,{x:0,y:5.7,z:18.4,duration:8.75,ease:"power2.inOut"},0)
+   .to(controls.target,{x:0,y:.55,z:0,duration:8.6,ease:"power2.inOut"},0)
    // Square the object upright before the reveal even when the player
    // finishes the last puzzle with the cube rotated upside down.
    .to(cube.rotation,{x:0,y:0,z:0,duration:.85,ease:"power2.inOut"},0)
    // Crack open the far lid while the side walls still form a recognizable box.
    .to(joints.top.rotation,{x:Math.PI/2,duration:1.1,ease:"power2.inOut"},.35)
    .call(()=>setFrames(true),null,1.40)
-   // The cat physically emerges before the cube falls into its T.
-   .to(rise,{progress:1,duration:3.5,ease:"power2.out"},1.55)
-   .to(cube.scale,{x:scale,y:scale,z:scale,duration:4.3,ease:"power2.inOut"},1.15)
-   .to(cube.position,{x:0,y:0,z:3.5,duration:4.8,ease:"power2.inOut"},1.25)
-   .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:4.7,ease:"power2.inOut"},1.30)
-   .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.4,ease:"power2.inOut"},3.10)
-   .to(joints.left.rotation,{y:Math.PI/2,duration:1.25,ease:"power2.inOut"},3.30)
-   .to(joints.right.rotation,{y:-Math.PI/2,duration:1.25,ease:"power2.inOut"},3.55)
-   .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.25,ease:"power2.inOut"},4.00)
-   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.15,ease:"power2.inOut"},4.85);
+   // The duck exits all the way ABOVE the top rim while the cube stays
+   // square and full size. Only once its feet clear the rim can the six
+   // panels rotate into a horizontal T beneath it.
+   .to(rise,{progress:1,duration:3.0,ease:"power2.out"},1.55)
+   .to(cube.scale,{x:scale,y:scale,z:scale,duration:4.05,ease:"power2.inOut"},4.8)
+   .to(cube.position,{x:0,y:0,z:3.5,duration:4.05,ease:"power2.inOut"},4.8)
+   .to(faceRoot.position,{x:0,y:1.18*S,z:-half,duration:4.05,ease:"power2.inOut"},4.8)
+   .to(cube.rotation,{x:-Math.PI/2,y:0,z:0,duration:2.55,ease:"power2.inOut"},4.95)
+   .to(joints.left.rotation,{y:Math.PI/2,duration:1.3,ease:"power2.inOut"},6.15)
+   .to(joints.right.rotation,{y:-Math.PI/2,duration:1.3,ease:"power2.inOut"},6.3)
+   .to(joints.bottom.rotation,{x:-Math.PI/2,duration:1.25,ease:"power2.inOut"},6.75)
+   .to(joints.back.rotation,{x:-Math.PI/2,duration:1.2,ease:"power2.inOut"},7.65);
   // Software WebGL can starve GSAP's frame ticker. Never trap a player
   // in a half-unfolded cube if Chromium stalls or goes into background.
   completionWatchdog=setTimeout(()=>{
    if(phase==="opening")finish();
-  },12500);
+  },18000);
   return true;
  }
  function restoreComplete(){
@@ -390,7 +401,7 @@ export function createNothingHereFinale({
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
    if(phase!=="opening")begin({animate:true,audio:false});
-   timeline.pause().seek(END.clamp(Number(t)||0,0,5.8),false);
+   timeline.pause().seek(END.clamp(Number(t)||0,0,8.75),false);
    // A deliberately paused WebGL seek may take longer than the real
    // 12.5s watchdog when taking software-rendered screenshots; don't let
    // that timer start the soundtrack in the middle of a test capture.
