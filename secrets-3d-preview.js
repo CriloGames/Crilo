@@ -2439,6 +2439,7 @@ window.__nothing3DPreview={
  },
  get finishQuality(){return finish.quality},
  get decorativeCornerCaps(){return finish.getDecorativeCornerCaps?.()||[]},
+ get finaleGussetAudit(){return finish.getFinaleGussetAudit?.()||null},
  get batching(){return {artisan:finish.batching,precision:intricate.batching}},
  get finaleBatchAttachmentAudit(){
   // Every optimized physical decoration must be a descendant of its
