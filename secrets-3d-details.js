@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {batchStaticGeometry} from "./secrets-3d-batching.js?v=2";
+import {batchStaticGeometry} from "./secrets-3d-batching.js?v=3";
 import {sculptMaze} from "./secrets-3d-maze-assembly.js?v=3";
 import {clearRailSegments,railClearanceFaults} from "./secrets-3d-rail-clearance.js?v=1";
 
@@ -843,6 +843,10 @@ export function buildIntricateCube({
     return labels[action];
   }
   const batching=batchStaticGeometry(cube,authoredMeshes,{
+    // Merge only within a single hinged face. Batching in cube coordinates
+    // made the decorative geometry appear to float when panels rotated.
+    panelRoots:[frontFace,backFace,leftFace,rightFace,topFace,bottomFace],
+    faceRoot:frontFace.parent, // all six faces share this root before folding
     dynamicRoots:[front.drawer,side.drawer,lidPivot,wheelA,wheelB,mazePlate,needle],
     protectedMeshes:[bulb,...irisBlades],
     label:"precision"
