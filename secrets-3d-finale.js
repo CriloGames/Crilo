@@ -3,7 +3,7 @@
  * and its light show are new 3D geometry, never video frames. */
 import * as THREE from "three";
 import {gsap} from "gsap";
-import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=38";
+import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=39";
 
 export function createNothingHereFinale({
  cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
@@ -40,6 +40,23 @@ export function createNothingHereFinale({
   scene,stage,camera,controls,invalidate,reducedMotion,
   getCatAnchor:()=>frontFace.getWorldPosition(anchor),
   onTimelineFrame:seconds=>setNetFade(seconds)
+ });
+ // When enabled during the show, join the duck's current music beat
+ // instead of accidentally starting the ordinary box menu soundtrack.
+ window.addEventListener("nothing-here-finale-audio-request",()=>{
+  if(phase==="opening"){
+   window.NothingHereAudio?.prepareFinale?.();
+   return;
+  }
+  if(phase!=="open"||!duckShow.getState().dancing)return;
+  if(window.NothingHereAudio?.getState?.().finalePlaying)return;
+  const seconds=duckShow.getState().elapsedSeconds;
+  const accepted=window.NothingHereAudio?.playFinale?.(
+   CAT_REFERENCE_DURATION,seconds);
+  if(accepted)duckShow.syncToAudio();
+ });
+ window.addEventListener("nothing-here-finale-audio-muted",()=>{
+  if(phase==="open")duckShow.continueSilently();
  });
  let completionWatchdog=null;
  function collectNetMaterials(){
@@ -284,6 +301,7 @@ export function createNothingHereFinale({
   hasPlayed=true;
   showBanner("opening");
   document.body.classList.add("nc-finale-active");
+  window.NothingHereAudio?.pauseLobbyMusic?.();
   dismissInspection?.();
   controls.enabled=false;
   // Start the duck soundtrack only AFTER the final panel lands. The replay
@@ -350,6 +368,7 @@ export function createNothingHereFinale({
   phase="open";
   hasPlayed=true;
   document.body.classList.add("nc-finale-active");
+  window.NothingHereAudio?.pauseLobbyMusic?.();
   showBanner("open");
   audioAtFinish=false;
   finish();
