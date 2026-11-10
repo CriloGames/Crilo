@@ -1832,7 +1832,7 @@ if(debugging3D){
 completionFinale=embeddedGame?createNothingHereFinale({
  cube,faceRoot,
  faces:{frontFace,leftFace,rightFace,bottomFace,backFace,topFace},
- camera,controls,stage,scene,invalidate,reducedMotion,
+ camera,controls,stage,scene,renderer,invalidate,reducedMotion,
  dismissInspection:()=>{
   clearKeyboardInspection();
   clearSelectedFitFlashes();
