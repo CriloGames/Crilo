@@ -596,6 +596,21 @@ export function createFinaleDuckShow({
   startTime=performance.now();lastPaint=0;
   raf=requestAnimationFrame(tick);
  }
+ // Toggle between the duck's silent clock and the real music playhead
+ // without resetting its pose or the unfolded box.
+ function syncToAudio(){
+  if(!playing)return false;
+  waitingForSoundtrack=true;
+  soundtrackStarted=false;
+  return true;
+ }
+ function continueSilently(){
+  if(!playing||!waitingForSoundtrack)return false;
+  waitingForSoundtrack=false;
+  soundtrackStarted=false;
+  startTime=performance.now()-elapsed*1000;
+  return true;
+ }
  function stop(){
   eggEnding?.stop();
   playing=false;
@@ -613,7 +628,7 @@ export function createFinaleDuckShow({
   invalidate();
  }
  return {
-  start,stop,previewEmergence,
+  start,stop,previewEmergence,syncToAudio,continueSilently,
   simulatePendingAudioForTest(){
    if(!["localhost","127.0.0.1"].includes(window.location.hostname))
     return null;
