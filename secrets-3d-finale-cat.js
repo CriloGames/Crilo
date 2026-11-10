@@ -544,41 +544,25 @@ export function createFinaleDuckShow({
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
-  // Keep the duck behind the front wall until it clears the opening.
-  // Vertical emergence progresses normally, but horizontal movement
-  // toward the dial/front wall waits until the sides begin unfolding.
-  // A smooth curve avoids the old body/bill clipping through the box face.
-  // Start BELOW the lid, not perched on its rear rim. Rise vertically
-  // through the open top and only travel forward after the belly and legs
-  // have cleared the front panel. The initial model is physically hidden
-  // inside the box until its head appears above the rim.
-  // The bill and feet cannot move through the box's front wall. Hold the
-  // duck over the opening until the WHOLE body has cleared the upper rim,
-  // not merely until its head is visible. The box is already unfolding by
-  // the time the duck begins its short forward landing movement.
-  const horizontal=THREE.MathUtils.smoothstep(e,.88,.985);
-  const from=boxCenter.clone().add(new THREE.Vector3(0,-.20,-.18));
+  // Rise inside the opening first. Keep the duck centered above the box
+  // until its body and toes are clear of the front rim; then move forward.
+  const horizontal=THREE.MathUtils.smoothstep(e,.93,.995);
+  const from=boxCenter.clone().add(new THREE.Vector3(0,-.28,-.20));
   const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
   group.position.set(
    THREE.MathUtils.lerp(from.x,to.x,horizontal),
-   THREE.MathUtils.lerp(from.y,to.y,e)+.09*Math.sin(Math.PI*e),
+   THREE.MathUtils.lerp(from.y,to.y,e)+.07*Math.sin(Math.PI*e),
    THREE.MathUtils.lerp(from.z,to.z,horizontal)
   );
-  // Keep its feet inside the box early, then enforce proper clearance
-  // as the duck comes forward. This is an actual 3D depth transition,
-  // not a sudden visibility toggle over the back lid.
-  // Before the side walls rotate, lift the duck's feet above the opening.
-  // This gradual clearance is independent of forward travel, so there is
-  // no last-frame pop or bill/body intersection with a rotating panel.
-  // The model's lowest toes sit just below its origin at this scale.
-  const clearanceProgress=THREE.MathUtils.smoothstep(e,.42,.76);
-  const lipHeight=boxCenter.y+.16+.12*emergenceScale;
-  const emergingHeight=boxCenter.y-.20+.60*e;
-  const safeLift=THREE.MathUtils.lerp(boxCenter.y-.20,
-   lipHeight,clearanceProgress);
-  const safeForwardHeight=lipHeight+.08*horizontal;
-  group.position.y=Math.max(group.position.y,emergingHeight,
-   safeLift, horizontal>0?safeForwardHeight:boxCenter.y-.20);
+  // Lift before advancing: a smooth physical entrance without clipping
+  // through the front dial/wall during the horizontal transition.
+  const verticalClear=THREE.MathUtils.smoothstep(e,.38,.78);
+  const lipHeight=boxCenter.y+.22+.14*emergenceScale;
+  const innerRise=boxCenter.y-.28+.72*e;
+  const forcedLift=THREE.MathUtils.lerp(boxCenter.y-.28,lipHeight,verticalClear);
+  const forwardClearance=lipHeight+.10*horizontal;
+  group.position.y=Math.max(group.position.y,innerRise,forcedLift,
+   forwardClearance*horizontal+forcedLift*(1-horizontal));
   catRig.rotation.x=-.07*(1-e);
   // During the opening there is no music-frame paint() yet. Refresh
   // the camera-facing rim here too, otherwise the back/top of the tail
