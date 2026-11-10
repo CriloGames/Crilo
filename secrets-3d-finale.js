@@ -429,6 +429,10 @@ export function createNothingHereFinale({
     entranceProgress:cat.emergenceProgress,
     openingLidAngle:+(joints?.top?.rotation.x??0).toFixed(3),
     openingSideAngle:+(joints?.left?.rotation.y??0).toFixed(3),
+    openingCubeTilt:+cube.rotation.x.toFixed(3),
+    duckRootClearanceOverFrontRim:duck.catWorldPosition?
+     +(duck.catWorldPosition.y-frontFace.localToWorld(
+      new THREE.Vector3(0,half,0)).y).toFixed(3):null,
     catRisingFromBox:phase==="opening"&&duck.emerging&&duck.visible,
     duckRisingFromBox:phase==="opening"&&duck.emerging&&duck.visible,
     catRevealedBeforeT:phase==="opening"&&duck.emergenceProgress>.25&&
