@@ -51,18 +51,19 @@ export const CAT_SCENES=[
 // never instructions to display different models.
 export const CAT_POSE_CUTS=[
  [0,"front"],
- // The opening is keyed to transients measured from the INSTALLED MP3
- // (ffmpeg high-pass 45Hz / low-pass 170Hz), not a guessed .04s downbeat.
- // Begin drawing the next spinning frame just ahead of the decoded attack
- // to compensate for the requestAnimationFrame/Three.js paint delay.
- // Reference attack peaks: 1.64, 4.38, 8.04, 11.26, 14.43, 17.62, 20.81.
- [1.60,"loaf"],[2.84,"front"],
- [4.36,"loaf"],[6.04,"front"],
- [8.00,"loaf"],[9.24,"front"],
- [11.22,"loaf"],[12.44,"front"],
- [14.40,"loaf"],[15.64,"front"],
- [17.60,"loaf"],[18.84,"front"],
- [20.78,"loaf"],[26.84,"front"],
+ // All seven opening spin starts are aligned to the measured bass
+ // attacks in the INSTALLED MP3 (45–170 Hz audit). They must NEVER
+ // start early to "compensate" for RAF/render delay: choreography is
+ // sampled from audio.currentTime, which already owns the playback clock.
+ // Bass attacks: 1.64, 4.38, 8.04, 11.26, 14.43, 17.62, 20.81.
+ // Before the first audible downbeat the character remains front-facing.
+ [1.64,"loaf"],[2.84,"front"],
+ [4.38,"loaf"],[6.04,"front"],
+ [8.04,"loaf"],[9.24,"front"],
+ [11.26,"loaf"],[12.44,"front"],
+ [14.43,"loaf"],[15.64,"front"],
+ [17.62,"loaf"],[18.84,"front"],
+ [20.81,"loaf"],[26.84,"front"],
  // First nebula spin starts exactly on beat 73, with a clean 6-beat hold
  // before it and a one-beat front pause after the 17-beat spin section.
  [29.24,"loaf"],[36.04,"front"],
@@ -138,14 +139,14 @@ function spinRate(t){
 // exactly two turns. An audio-phase-locked speed accent accelerates near
 // each kick and eases between kicks, giving 3.8–6.2 rps without drifting.
 const INTRO_AUDIO_ATTACKS=new Map([
- [1.60,1.64],[4.36,4.38],[8.00,8.04],[11.22,11.26],
- [14.40,14.43],[17.60,17.62],[20.78,20.81]
+ [1.64,1.64],[4.38,4.38],[8.04,8.04],[11.26,11.26],
+ [14.43,14.43],[17.62,17.62],[20.81,20.81]
 ]);
 function soundtrackTurns(t,start,end,sourceRate){
  const beat=CAT_BEAT_SECONDS;
  // Those seven peak timestamps were measured from the installed MP3,
- // not estimated from a global metronome. Phase-lock each opening spin
- // to its own actual bass attack, eliminating 20–60ms cue mismatch.
+ // not estimated from a global metronome. Begin on the recorded
+ // attack, not an early "pre-roll" which is visible ahead of the kick.
  const attack=INTRO_AUDIO_ATTACKS.get(start);
  const phaseAt=time=>TAU*(time-(attack??.04))/beat;
  const accent=sourceRate>=5.75?.48:sourceRate>=5.45?.34:.24;
