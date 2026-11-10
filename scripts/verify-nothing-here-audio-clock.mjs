@@ -133,7 +133,20 @@ const makeTrackAudio=new Function("Audio","window","document","localStorage",
  "performance","setInterval","clearInterval","setTimeout","clearTimeout",
  "requestAnimationFrame","cancelAnimationFrame",
  original+";return window.NothingHereAudio;");
-const mediaAudio=makeTrackAudio(Track,window,document,
+// Drive the real button click listeners, not just the exported setter.
+function button(){
+ const listeners={};
+ return {
+  attributes:{},classList:{toggle(){}},
+  setAttribute(k,v){this.attributes[k]=v},
+  querySelector(){return {textContent:""}},
+  addEventListener(type,cb){listeners[type]=cb},
+  click(){listeners.click?.()}
+ };
+}
+const buttons={ncMusicToggle:button(),ncSfxToggle:button()};
+const mediaDocument={...document,getElementById:id=>buttons[id]??null};
+const mediaAudio=makeTrackAudio(Track,window,mediaDocument,
  {getItem(){return null},setItem(){}},{now:()=>wallMs},
  ()=>0,()=>{},()=>0,()=>{},()=>0,()=>{});
 const clipState0=mediaAudio.getState();
@@ -144,21 +157,23 @@ assert(track&&track.muted&&!track.paused,
  "Initial music-off finale must run the correct MP3 silently");
 track.currentTime=23.64;
 const mediaStartCount=track.playCalls;
-mediaAudio.setMusic(true);
+buttons.ncMusicToggle.click();
 assert(!track.muted&&track.playCalls===mediaStartCount&&track.currentTime===23.64,
  "Turning Music on must unmute without restarting the real MP3");
-mediaAudio.setSfx(false);
+buttons.ncSfxToggle.click();
 assert(!track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
  "Turning Sounds off must not affect active Music or the MP3 time");
-mediaAudio.setMusic(false);
+buttons.ncMusicToggle.click();
 assert(track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
  "Music Off must mute without pausing or seeking the MP3");
-mediaAudio.setSfx(true);
+buttons.ncSfxToggle.click();
 assert(track.muted&&!track.paused,
  "Sounds On must not inadvertently turn the soundtrack on");
-mediaAudio.setMusic(true);
+buttons.ncMusicToggle.click();
 assert(!track.muted&&track.currentTime===23.64&&
  track.playCalls===mediaStartCount,"Re-enabling Music must preserve the exact song beat");
+assert.equal(buttons.ncMusicToggle.attributes["aria-pressed"],"true",
+ "Music button must display the correct audible state during finale");
 mediaAudio.stopFinale();
 assert(track.paused,"Stopping the finale must still pause the MP3");
 console.log("PASS: real MP3 Music On/Off, Sounds independence, zero restart/seek drift");
