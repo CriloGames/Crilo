@@ -1,7 +1,8 @@
 /* Nothing Here: 60/60 finale. Heading stays OUTSIDE the stage so
    no piece of the unfolded T is obscured on desktop or mobile. */
 .nc-page .nc-finale-banner[hidden],
-.nc-page .nc-finale-banner #ncFinaleReplay[hidden]{display:none!important}
+.nc-page .nc-finale-banner #ncFinaleReplay[hidden],
+.nc-page .nc-finale-banner #ncFinaleSkip[hidden]{display:none!important}
 /* The site header is sticky at z-index:30. Keep the completion panel in
    ordinary page content instead of letting it paint over header tabs when
    the user scrolls or uses a high browser zoom level. */
@@ -32,17 +33,20 @@
  margin:5px 0 0;color:#536d72;
  font:500 12px/1.4 system-ui,sans-serif;
 }
-.nc-page .nc-finale-banner #ncFinaleReplay{
+.nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleSkip{
  display:inline-flex;align-items:center;justify-content:center;
  pointer-events:auto;margin:10px auto 0;padding:7px 18px;
  background:#273e48;color:#f7f6ea;border:1px solid #41616b;
  border-radius:999px;font:750 11px/1.3 system-ui,sans-serif;
  cursor:pointer;box-shadow:0 3px 9px #263c4529;
 }
-.nc-page .nc-finale-banner #ncFinaleReplay:hover{
+.nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleSkip:hover{
  background:#3b5f67;transform:translateY(-1px);
 }
-.nc-page .nc-finale-banner #ncFinaleReplay:focus-visible{
+.nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleSkip:focus-visible{
  outline:3px solid #c98d55;outline-offset:3px;
 }
 .nc-page .nc-finale-banner[data-phase="opening"]{
@@ -86,11 +90,13 @@ html[data-theme="dark"] .nc-page .nc-finale-banner p{
  .nc-page .nc-finale-banner h2{font-size:clamp(20px,5vw,27px)}
  .nc-page .nc-finale-banner .nc-finale-label{font-size:9px}
  .nc-page .nc-finale-banner p{font-size:10px;margin-top:3px}
- .nc-page .nc-finale-banner #ncFinaleReplay{margin-top:4px;padding:4px 13px}
+ .nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleSkip{margin-top:4px;padding:4px 13px}
 }
 @media(prefers-reduced-motion:reduce){
  .nc-page .nc-finale-banner{animation:none}
- .nc-page .nc-finale-banner #ncFinaleReplay:hover{transform:none}
+ .nc-page .nc-finale-banner #ncFinaleReplay,
+.nc-page .nc-finale-banner #ncFinaleSkip:hover{transform:none}
 }
 
 /* Optional private-device finale audio never adds the recording to the
