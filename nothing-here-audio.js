@@ -98,9 +98,9 @@
  function requestFinaleAudio(){
   window.dispatchEvent(new Event('nothing-here-finale-audio-request'));
  }
- // Music controls the finale score, while Sounds controls mechanical SFX.
- // Never pause/reset the running media when muting the score: preserving
- // audio.currentTime keeps the duck and every stage flash on the same beat.
+ // Music controls both the mechanical intro and the finale score.
+ // Muting stops the playback transport WITHOUT seeking, so the mascot
+ // cannot keep dancing over silence. Music On resumes at that same beat.
  function syncFinaleMusicVolume(){
   const audible=musicEnabled&&!document.hidden;
   for(const track of [licensedFinale,personalFinale]){
@@ -636,8 +636,15 @@
    if(finalePlaying&&clip&&!clip.paused)clip.pause();
    finaleMediaStarted=false;
   }
-  if(finalePlaying)syncFinaleMusicVolume();
-  else if(!document.hidden&&musicEnabled&&gestureReady&&
+  if(finalePlaying){
+   syncFinaleMusicVolume();
+   if(!document.hidden&&musicEnabled){
+    const clip=activeFinaleAudio();
+    if(clip?.paused&&!clip.ended)clip.play()?.catch?.(()=>{});
+    if(finaleMaster&&fluteContext?.state==="suspended")
+     fluteContext.resume()?.catch?.(()=>{});
+   }
+  }else if(!document.hidden&&musicEnabled&&gestureReady&&
    !windUpActive)startMusic();
  });
  window.addEventListener('pagehide',()=>{stopFinale();if(music)music.pause()});
