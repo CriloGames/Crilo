@@ -199,7 +199,7 @@
    licensedUnavailable=true;
    if(finalePlaying&&licensedFinale===track){
     licensedFinale=null;
-    playFinale(134.699); // fall back to the original score, never silence
+    playFinale(134.699,track.currentTime||0); // fall back to the original score, never silence
    }
   });
   licensedFinale=track;return track;
@@ -338,7 +338,7 @@
      console.warn('Finale MP3 playback:',error?.message||error);
      if(clip===licensedFinale){
       licensedUnavailable=true;licensedFinale=null;
-      finalePlaying=false;playFinale(durationSeconds); // original synth backup
+      finalePlaying=false;playFinale(durationSeconds,offset); // synth backup, same beat
      }else finalePlaying=false;
     });
     return true;
