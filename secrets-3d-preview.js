@@ -4,8 +4,8 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { gsap } from "gsap";
 import { createNothingHereFinale } from "./secrets-3d-finale.js?v=44";
-import { buildIntricateCube } from "./secrets-3d-details.js?v=52";
-import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=25";
+import { buildIntricateCube } from "./secrets-3d-details.js?v=53";
+import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=26";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
