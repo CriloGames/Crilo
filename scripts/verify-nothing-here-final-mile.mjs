@@ -398,7 +398,7 @@ try{
  // hemispheres. Its fracture grows across the real shell, the jagged top
  // peels back, and two tiny pieces fall to rest beside the lower cup.
  const hairline=await page.evaluate(t=>
-  window.__nothing3DPreview.seekFinaleEggCrack(t),.20);
+  window.__nothing3DPreview.seekFinaleEggCrack(t),.085);
  assert(hairline.postlude?.postludePhase==="cracking"&&
   hairline.postlude.eggCrackProgress>.25&&
   hairline.postlude.eggCrackProgress<.95&&
@@ -406,10 +406,14 @@ try{
   "Egg must show a developing surface crack BEFORE the shell separates: "+
    JSON.stringify(hairline.postlude));
  const openingShell=await page.evaluate(t=>
-  window.__nothing3DPreview.seekFinaleEggCrack(t),.68);
+  window.__nothing3DPreview.seekFinaleEggCrack(t),.35);
  assert(openingShell.postlude?.eggJaggedSeamTeeth===40&&
   openingShell.postlude.eggShellThickness>.035&&
   openingShell.postlude.eggOpeningProgress>.25&&
+  openingShell.postlude.eggBlackOutlineCount===2&&
+  openingShell.postlude.eggBlackRimCount===2&&
+  openingShell.postlude.eggBlackEdgeColor===0x17191e&&
+  openingShell.postlude.eggCrackAnimationDuration<=1.1&&
   openingShell.postlude.eggTopCapTilt<-.20&&
   openingShell.postlude.eggTopCapVisible&&
   openingShell.postlude.eggLowerCupVisible&&
@@ -421,9 +425,9 @@ try{
    path:"test-results/egg-jagged-opening.png",timeout:45000
   });
  const openedShell=await page.evaluate(t=>
-  window.__nothing3DPreview.seekFinaleEggCrack(t),1.57);
+  window.__nothing3DPreview.seekFinaleEggCrack(t),.9);
  assert(openedShell.postlude?.eggOpeningProgress===1&&
-  openedShell.postlude.eggTopCapTilt< -1.0&&
+  openedShell.postlude.eggTopCapTilt< -2.1&&
   openedShell.postlude.eggFragmentCount===2&&
   openedShell.postlude.eggFragmentsRested&&
   openedShell.postlude.eggLowerShellStationary,
