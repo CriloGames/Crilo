@@ -66,8 +66,13 @@ try{
  // hinged face roots, not to the cube's rigid world-space geometry.
  const batchBefore=await page.evaluate(()=>({
   attachment:window.__nothing3DPreview.finaleBatchAttachmentAudit,
-  batching:window.__nothing3DPreview.batching
+  batching:window.__nothing3DPreview.batching,
+  gussets:window.__nothing3DPreview.finaleGussetAudit
  }));
+ assert(batchBefore.gussets.allFollowWall&&
+  batchBefore.gussets.attached===8,
+  "The 8 corner gussets are not all mounted to moving walls: "+
+   JSON.stringify(batchBefore.gussets));
  assert(batchBefore.attachment.allFollowPanels&&
   batchBefore.attachment.total>0&&
   batchBefore.batching.artisan.coordinateSpace==="hinged-panel"&&
@@ -136,6 +141,10 @@ try{
  await ready();
  const finish=await page.evaluate(()=>window.__nothing3DPreview.completionFinale);
  const batchAfter=await page.evaluate(()=>window.__nothing3DPreview.finaleBatchAttachmentAudit);
+ const gussetsAfter=await page.evaluate(()=>window.__nothing3DPreview.finaleGussetAudit);
+ assert(gussetsAfter.allFollowWall&&gussetsAfter.attached===8,
+  "Corner fittings no longer follow their panels after unfolding: "+
+   JSON.stringify(gussetsAfter));
  assert(batchAfter.allFollowPanels&&
   batchAfter.total===batchBefore.attachment.total&&
   batchAfter.cubeAttached===0&&batchAfter.unassigned===0,
