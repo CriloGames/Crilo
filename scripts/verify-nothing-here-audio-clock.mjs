@@ -118,8 +118,10 @@ audio.syncWindUp(0);
 audio.syncWindUp(3.23);
 audio.syncWindUp(7.83);
 audio.syncWindUp(9.43);
-assert(audio.getState().windUpActive&&audio.getState().windUpNoteCount===21,
- "Original mechanical intro should schedule 21 accelerating musical notes");
+assert(audio.getState().windUpActive&&
+ audio.getState().windUpNoteCount===21&&
+ audio.getState().windUpLastBeatSpacing===.4,
+ "Original wind-up must have 21 notes leading to the 150 BPM beat");
 assert(starts.length>oldCount,
  "Wind-up synth failed to schedule audible bell notes");
 const windUpPlayed=starts.length;
@@ -127,6 +129,11 @@ audio.setMusic(false);
 audio.syncWindUp(9.5);
 assert.equal(starts.length,windUpPlayed,
  "Wind-up kept generating notes when Music was off");
+const requestsBeforeWindUpToggle=finaleRequests;
+audio.setMusic(true);
+assert(audio.getState().windUpActive&&
+ finaleRequests===requestsBeforeWindUpToggle,
+ "Enabling Music mid-opening must join wind-up, not start the finale MP3");
 audio.stopWindUp();
 assert(!audio.getState().windUpActive,
  "Wind-up must finish BEFORE licensed soundtrack begins");
