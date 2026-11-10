@@ -204,7 +204,13 @@
   if(licensedFinale)return licensedFinale;
   const track=new Audio(licensedFinaleSrc);
   track.preload='auto';track.loop=false;track.volume=.75;
-  track.addEventListener('playing',()=>{finaleMediaStarted=true;});
+  track.addEventListener('playing',()=>{
+   finaleMediaStarted=!track.seeking;
+  });
+  track.addEventListener('seeking',()=>{finaleMediaStarted=false;});
+  track.addEventListener('seeked',()=>{
+   if(finalePlaying&&!track.paused)finaleMediaStarted=true;
+  });
   track.addEventListener('waiting',()=>{finaleMediaStarted=false;});
   track.addEventListener('pause',()=>{finaleMediaStarted=false;});
   track.addEventListener('error',()=>{
@@ -250,7 +256,13 @@
    personalFinale.preload='auto';
    personalFinale.loop=false;
    personalFinale.volume=.72;
-   personalFinale.addEventListener('playing',()=>{finaleMediaStarted=true;});
+   personalFinale.addEventListener('playing',()=>{
+    finaleMediaStarted=!personalFinale.seeking;
+   });
+   personalFinale.addEventListener('seeking',()=>{finaleMediaStarted=false;});
+   personalFinale.addEventListener('seeked',()=>{
+    if(finalePlaying&&!personalFinale.paused)finaleMediaStarted=true;
+   });
    personalFinale.addEventListener('waiting',()=>{finaleMediaStarted=false;});
    personalFinale.addEventListener('pause',()=>{finaleMediaStarted=false;});
    personalFinaleName=String(name||'Personal finale track');
@@ -334,7 +346,7 @@
     clip.currentTime=offset;
     // A buffered silent preload may already be playing. Otherwise
     // wait for the real 'playing' event before advancing the duck.
-    finaleMediaStarted=!clip.paused&&clip.readyState>=3;
+    finaleMediaStarted=!clip.paused&&!clip.seeking&&clip.readyState>=3;
     clip.volume=.72;
     clip.muted=!musicEnabled;
     finaleClockStart=performance.now();
