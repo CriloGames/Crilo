@@ -143,9 +143,9 @@ const track=Track.instances.find(x=>x.src.includes("finale-licensed.mp3"));
 assert(track&&track.muted&&!track.paused,
  "Initial music-off finale must run the correct MP3 silently");
 track.currentTime=23.64;
-const starts=track.playCalls;
+const mediaStartCount=track.playCalls;
 mediaAudio.setMusic(true);
-assert(!track.muted&&track.playCalls===starts&&track.currentTime===23.64,
+assert(!track.muted&&track.playCalls===mediaStartCount&&track.currentTime===23.64,
  "Turning Music on must unmute without restarting the real MP3");
 mediaAudio.setSfx(false);
 assert(!track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
@@ -158,7 +158,7 @@ assert(track.muted&&!track.paused,
  "Sounds On must not inadvertently turn the soundtrack on");
 mediaAudio.setMusic(true);
 assert(!track.muted&&track.currentTime===23.64&&
- track.playCalls===starts,"Re-enabling Music must preserve the exact song beat");
+ track.playCalls===mediaStartCount,"Re-enabling Music must preserve the exact song beat");
 mediaAudio.stopFinale();
 assert(track.paused,"Stopping the finale must still pause the MP3");
 console.log("PASS: real MP3 Music On/Off, Sounds independence, zero restart/seek drift");
