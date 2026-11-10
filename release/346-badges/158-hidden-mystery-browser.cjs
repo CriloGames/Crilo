@@ -23,9 +23,11 @@ assert.doesNotMatch(sql,/(insert into|update|delete from) public\.(daily_runs|us
 assert.match(gift,/shortcut\.classList\.toggle\('hidden',!waiting\)/,
  'Mystery should be invisible on Daily until a surprise actually appears');
 assert.doesNotMatch(gift,/count\+' \/ '\+names\.length\+' mysteries found'/);
-assert.match(game,/serverReply&&!guestRun&&!isBonus&&!isTest&&spins>0/);
-assert.match(game,/crilo-official-wheel-stopped/);
-assert.match(gift,/addEventListener\('crilo-official-wheel-stopped'/);
+assert.doesNotMatch(game,/crilo-official-wheel-stopped/,
+ 'Intermediate spins must never auto-present a Mystery Gift');
+assert.match(game,/crilo-official-daily-saved/);
+assert.match(gift,/finalOfficialDailySaved/,
+ 'The gift may only auto-open after verified final Daily save');
 assert.match(profile,/id="criloCuriosities"/);
 assert.match(home,/id="criloMysteryOpenCollection" hidden/);
 const markup=profile.match(/<section id="criloCuriosities"[\s\S]*?<\/dialog>/);
