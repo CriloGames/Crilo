@@ -98,6 +98,20 @@
  function requestFinaleAudio(){
   window.dispatchEvent(new Event('nothing-here-finale-audio-request'));
  }
+ // Music controls the finale score, while Sounds controls mechanical SFX.
+ // Never pause/reset the running media when muting the score: preserving
+ // audio.currentTime keeps the duck and every stage flash on the same beat.
+ function syncFinaleMusicVolume(){
+  const audible=musicEnabled&&!document.hidden;
+  for(const track of [licensedFinale,personalFinale]){
+   if(track)track.muted=!audible;
+  }
+  if(finaleMaster&&fluteContext){
+   const now=fluteContext.currentTime;
+   finaleMaster.gain.cancelScheduledValues(now);
+   finaleMaster.gain.setTargetAtTime(audible?.35:.0001,now,.025);
+  }
+ }
  function startMusic(){
   if(finaleSceneActive()||finalePlaying||!musicEnabled||
    !gestureReady||document.hidden)return false;
@@ -123,41 +137,39 @@
  }
  function setMusic(on){
   musicEnabled=!!on;save(keyMusic,musicEnabled);syncUi();
-  if(musicEnabled){
-   gestureReady=true;
-   if(finaleSceneActive()){
-    pauseLobbyMusic();
-    requestFinaleAudio();
-   }else startMusic();
-  }else{
+  if(musicEnabled)gestureReady=true;
+  if(finaleSceneActive()){
    pauseLobbyMusic();
-   // Keep playing if Sounds is still on; otherwise switch the duck
-   // back to its silent clock until one of the toggles is enabled.
-   if(finaleSceneActive()&&!sfxEnabled&&finalePlaying){
-    stopFinale();
-    window.dispatchEvent(new Event('nothing-here-finale-audio-muted'));
+   if(finalePlaying){
+    // Muting affects ONLY audible volume. The media playhead and duck
+    // continue together, so re-enabling Music cannot drift off beat.
+    syncFinaleMusicVolume();
+    if(musicEnabled){
+     const clip=activeFinaleAudio();
+     if(clip?.paused&&!clip.ended)clip.play()?.catch?.(()=>{});
+    }
+   }else if(musicEnabled){
+    // Opening: prime for the eventual reveal. Already playing: join
+    // the duck's current timestamp. The finale handler owns that logic.
+    requestFinaleAudio();
    }
+   return;
   }
+  if(musicEnabled)startMusic();
+  else pauseLobbyMusic();
  }
  function setSfx(on){
   sfxEnabled=!!on;save(keySfx,sfxEnabled);
   if(!sfxEnabled){
    for(const a of active){a.pause();a.currentTime=0}
    active.clear();
-   // Music has its own toggle. Muting Sounds must not kill the score
-   // when Music remains enabled.
-   if(!musicEnabled&&finalePlaying){
-    stopFinale();
-    window.dispatchEvent(new Event('nothing-here-finale-audio-muted'));
-   }
-   if(!musicEnabled&&fluteContext?.state==="running")
+   // The music score has its own switch and clock. A Sounds click must
+   // NEVER stop its MP3, reset the duck, or suspend its audio clock.
+   if(!finalePlaying&&fluteContext?.state==="running")
     fluteContext.suspend().catch(()=>{});
   }
   syncUi();
-  if(sfxEnabled){
-   if(finaleSceneActive())requestFinaleAudio();
-   else play('select');
-  }
+  if(sfxEnabled&&!finaleSceneActive())play('select');
  }
  function play(kind='click'){
   if(!sfxEnabled||document.hidden||!files[kind]||!audioSupported)return false;
@@ -278,7 +290,8 @@
  // Starting the 134.7s score after a 4s unfolding delay otherwise loses
  // the user-gesture permission on browsers that suspend new audio contexts.
  function prepareFinale(){
-  if(!sfxEnabled&&!musicEnabled)return false;
+  // Always prime muted media during the user's finishing click, including
+  // when Music is Off. Silent playback keeps the 3D show synchronized.
   // Prime browser-local media during the genuine finishing/replay click,
   // allowing sound to begin only when the unfolding animation completes.
   const song=personalFinale||ensureLicensedFinale();
@@ -303,7 +316,9 @@
  // cat show. The commercial W&W "OIIA OIIA" song is NOT bundled; a licensed
  // synchronized music file can be substituted by the game's owner later.
  function playFinale(durationSeconds=134.699,startAtSeconds=0){
-  if((!sfxEnabled&&!musicEnabled)||document.hidden)return false;
+  // Even with Music Off, run the authorized soundtrack muted to keep
+  // its real playhead as the single clock for the duck's choreography.
+  if(document.hidden)return false;
   const offset=Math.max(0,Math.min(134.599,
    Number(startAtSeconds)||0));
   const selected=personalFinale||ensureLicensedFinale();
@@ -321,10 +336,11 @@
     // wait for the real 'playing' event before advancing the duck.
     finaleMediaStarted=!clip.paused&&clip.readyState>=3;
     clip.volume=.72;
-    clip.muted=false;
+    clip.muted=!musicEnabled;
     finaleClockStart=performance.now();
     finaleSynthClockStart=null;
     finalePlaying=true;latestEffect='finale';
+    syncFinaleMusicVolume();
     clip.onended=()=>{
      if(clip!==activeFinaleAudio())return;
      finalePlaying=false;
@@ -360,11 +376,12 @@
    const now=anchor-Math.min(offset,duration-.10);
    const master=ctx.createGain();
    master.gain.setValueAtTime(.0001,anchor);
-   master.gain.exponentialRampToValueAtTime(.35,anchor+.15);
+   master.gain.exponentialRampToValueAtTime(musicEnabled?.35:.0001,anchor+.15);
    master.connect(ctx.destination);
    finaleClockStart=performance.now();
    finaleSynthClockStart=now;
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
+   syncFinaleMusicVolume();
    // Match the 150-BPM animation and licensed track. The previous 136-BPM
    // backup could never stay on beat with the duck's 150-BPM choreography.
    const beat=60/150,half=beat/2;
@@ -497,7 +514,8 @@
  document.addEventListener('keydown',gesture);
  document.addEventListener('visibilitychange',()=>{
   if(document.hidden){if(music)music.pause()}
-  else if(musicEnabled&&gestureReady)startMusic();
+  if(finalePlaying)syncFinaleMusicVolume();
+  else if(!document.hidden&&musicEnabled&&gestureReady)startMusic();
  });
  window.addEventListener('pagehide',()=>{stopFinale();if(music)music.pause()});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
@@ -506,6 +524,7 @@
   play,toneFor,playFluteNote,prepareFinale,playFinale,stopFinale,getFinaleClock,action,setSfx,setMusic,setPersonalFinaleFile,pauseLobbyMusic,
   getState:()=>({
    sfxEnabled,musicEnabled,latestEffect,finalePlaying,
+   finaleMusicAudible:finalePlaying&&musicEnabled&&!document.hidden,
    finaleSceneActive:finaleSceneActive(),musicCreated:!!music,
    personalFinaleReady:!!personalFinale,personalFinaleName,
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
