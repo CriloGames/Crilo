@@ -18,7 +18,7 @@ PERIOD=.4
 if not TRACK.is_file():raise SystemExit("Missing licensed finale MP3")
 p=subprocess.run([
  "ffmpeg","-nostdin","-v","error","-i",str(TRACK),
- "-t","65","-af","highpass=f=45,lowpass=f=170",
+ "-t","135","-af","highpass=f=45,lowpass=f=170",
  "-ar",str(SAMPLE_RATE),"-ac","1","-f","f32le","pipe:1",
 ],capture_output=True,check=True)
 if not p.stdout:raise SystemExit("No decoded audio")
@@ -93,3 +93,22 @@ for cue in starts:
   f"peak at {attack:.3f}, strength={amplitude:.3f}")
  print("PASS: intro spin start",cue,"MP3 attack",round(attack,3),
        "delta",round(delta,3),"amplitude",round(amplitude,4))
+
+# Report later pose transitions against the complete 134.699-second soundtrack.
+# These are diagnostics, NOT automatic snapping: fills, syncopations and
+# instrument changes can create valid non-kick entrances.
+late_starts=[float(t) for t in re.findall(
+ r'\[([0-9.]+),\s*"loaf"\]',opening)[7:]]
+for cue in late_starts:
+ k=round(cue*100)
+ left=max(0,k-19);right=min(len(signal),k+20)
+ peak=max(((signal[j],j/100) for j in range(left,right)),default=(0,0))
+ near=[(round(signal[j],4),round(j/100,3)) for j in range(left,right)
+       if signal[j]>.015 and signal[j]>=signal[max(0,j-1)]
+       and signal[j]>=signal[min(len(signal)-1,j+1)]]
+ near=sorted(near,reverse=True)[:4]
+ print("LATE SPIN AUDIO",round(cue,3),"bass peaks",
+       near,"strongest",round(peak[1],3),
+       "offset",round(peak[1]-cue,3),
+       "strength",round(peak[0],4))
+
