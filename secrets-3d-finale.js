@@ -6,7 +6,7 @@ import {gsap} from "gsap";
 import {createFinaleDuckShow,CAT_REFERENCE_DURATION} from "./secrets-3d-finale-cat.js?v=44";
 
 export function createNothingHereFinale({
- cube,faceRoot,faces,camera,controls,stage,scene,invalidate,reducedMotion,
+ cube,faceRoot,faces,camera,controls,stage,scene,renderer,invalidate,reducedMotion,
  dismissInspection
 }){
  const {frontFace,leftFace,rightFace,bottomFace,backFace,topFace}=faces;
@@ -36,7 +36,14 @@ export function createNothingHereFinale({
  // audit, even when a saved 60/60 run has already finished.
  const keepNetForInspection=new URLSearchParams(window.location.search)
   .get("inspect3d")==="1";
- let netOpacity=1,trackedNetMaterials=null;
+ let netOpacity=1,trackedNetMaterials=null,netClipBounds=null;
+ const clipNormal=new THREE.Vector3(1,.08,.08).normalize();
+ const netClipPlane=new THREE.Plane(clipNormal,1e5);
+ const originalRendererClipping=renderer.localClippingEnabled;
+ let netClipActive=false;
+ // This is a solid, world-space cutaway, NOT an opacity blend.
+ // Everything on the remaining side keeps its exact depth, materials,
+ // metallic highlights and texture. No semi-transparent floating fittings.
  // The middle panel is the open box itself. Track its world position so the
  // cat remains exactly above the opening regardless of cube scale/orientation.
  const anchor=new THREE.Vector3();
@@ -71,28 +78,64 @@ export function createNothingHereFinale({
    for(const material of Array.isArray(node.material)?node.material:[node.material]){
     if(material&&!unique.has(material))unique.set(material,{
      opacity:material.opacity,transparent:material.transparent,
-     depthWrite:material.depthWrite
+     depthWrite:material.depthWrite,
+     clippingPlanes:material.clippingPlanes,
+     clipShadows:material.clipShadows
     });
    }
   });
   trackedNetMaterials=[...unique.entries()];
  }
+ function restoreClipMaterials(){
+  if(!netClipActive)return;
+  for(const [material,original] of trackedNetMaterials){
+   material.clippingPlanes=original.clippingPlanes;
+   material.clipShadows=original.clipShadows;
+   material.needsUpdate=true;
+  }
+  netClipActive=false;
+  netClipBounds=null;
+  renderer.localClippingEnabled=originalRendererClipping;
+ }
  function resetNetFade(){
+  restoreClipMaterials();
   faceRoot.visible=true;
-  // Intro-only moon is part of the box silhouette, not the laser show.
   document.body.style.setProperty("--nh-finale-moon-opacity","1");
+  // Guarantee normal materials, including existing glass, remain untouched.
   if(trackedNetMaterials)for(const [material,original] of trackedNetMaterials){
-   const changing=material.transparent!==original.transparent;
+   const changed=material.transparent!==original.transparent;
    material.opacity=original.opacity;
    material.transparent=original.transparent;
    material.depthWrite=original.depthWrite;
-   if(changing)material.needsUpdate=true;
+   if(changed)material.needsUpdate=true;
   }
   netOpacity=1;
  }
- // Fade the complete assembled T BEFORE the neon/music backdrop begins.
- // Fading a still-visible panel against neon green made its separate metal
- // rings, mounts, and translucent glass read as detached floating objects.
+ function enableSolidWipe(){
+  if(netClipActive)return;
+  collectNetMaterials();
+  // Compute this AFTER the entire physical T has settled. Its actual
+  // position/size is needed because the T lies horizontally on the stage.
+  faceRoot.updateWorldMatrix(true,true);
+  const bounds=new THREE.Box3().setFromObject(faceRoot,true);
+  const center=bounds.getCenter(new THREE.Vector3());
+  const extent=bounds.getSize(new THREE.Vector3());
+  const span=Math.abs(clipNormal.x*extent.x)+
+   Math.abs(clipNormal.y*extent.y)+Math.abs(clipNormal.z*extent.z);
+  const middle=center.dot(clipNormal);
+  netClipBounds=[middle-span*.5-.10,middle+span*.5+.10];
+  renderer.localClippingEnabled=true;
+  for(const [material,original] of trackedNetMaterials){
+   // Preserve pre-existing local clip planes, if any. Clip each material
+   // with the SAME world plane so the box erases as a single solid.
+   material.clippingPlanes=[
+    ...(original.clippingPlanes||[]),netClipPlane
+   ];
+   material.clipShadows=true;
+   material.needsUpdate=true;
+  }
+  netClipActive=true;
+ }
  function applyNetOpacity(amount){
   if(keepNetForInspection){resetNetFade();return;}
   amount=END.clamp(amount,0,1);
@@ -104,12 +147,11 @@ export function createNothingHereFinale({
   }
   faceRoot.visible=true;
   if(amount>=.999){resetNetFade();return;}
-  collectNetMaterials();
-  for(const [material,original] of trackedNetMaterials){
-   material.opacity=original.opacity*amount;
-   if(!material.transparent){material.transparent=true;material.needsUpdate=true;}
-   material.depthWrite=false;
-  }
+  enableSolidWipe();
+  const threshold=THREE.MathUtils.lerp(
+   netClipBounds[0],netClipBounds[1],1-amount
+  );
+  netClipPlane.constant=-threshold;
  }
  function setNetFade(seconds){
   if(phase!=="open")return;
@@ -492,6 +534,13 @@ export function createNothingHereFinale({
     catRevealedBeforeT:phase==="opening"&&duck.emergenceProgress>.25&&
      joints?.left?.rotation.y<1.20,
     netOpacity:+netOpacity.toFixed(3),
+    netFadeTechnique:"opaque-solid-wipe",
+    netClipActive,
+    netClippedMaterialCount:netClipActive?trackedNetMaterials?.length||0:0,
+    netAlteredTransparencyCount:trackedNetMaterials?.filter(([material,original])=>
+     material.transparent!==original.transparent||
+     material.depthWrite!==original.depthWrite||
+     material.opacity!==original.opacity).length||0,
     netFadeComplete:phase==="open"&&netOpacity<=.001&&!faceRoot.visible,
     duckCenteredOverBox:!!duck.catWorldPosition&&
      Math.abs(duck.catWorldPosition.x-center.x)<.02&&
