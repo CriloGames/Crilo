@@ -215,6 +215,123 @@ assert(source.includes("if(e.pointerType==='touch')flickAim(e);")&&
  'Mouse release must not apply the relative touch flick');
 assert(source.includes('loadLevel(level,{keepAim:true})'),
  'Restart must preserve the aiming line');
+// Deterministic late-frisbee route witnesses, using the REAL glide,
+// impacted-disc and spring-rebound functions from the game. The previous
+// level-48 second plate retained 14% of forward velocity; the frisbee
+// could hit both springs but stall short of the elevated cup. Include
+// mandatory ring clearance on level 47 and both sequential pads on 48.
+// This is a core-flight regression, not a substitute for visual WebGL QA.
+const lateSections=[
+ cut('const STAGES=[','let settings=stageSettings(level);'),
+ cut('function makeVelocity(','function windAt('),
+ cut('function windAt(','// Deterministic, physically visible target travel.'),
+ cut('function targetLocation(','// Pads act like REAL bounce surfaces'),
+ cut('function padRebound(','// Shared by live flight')
+].join('\n');
+const latePaths=new Function([
+ 'const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),LAUNCH_Z=4.25,LAUNCH_Y=1.32;',
+ 'const chapterIndex=n=>Math.min(4,Math.floor((n-1)/10)),chapter=n=>({color:0x8ae1cd});',
+ "let projectileId='frisbee',physicsProfile={speed:1.07,gravity:9.8,pad:1.03,air:1.25},",
+ 'GRAVITY=9.8,BALL_R=.125,frisbeeTilt=0,aimYaw=0,aimPitch=.4,settings={},level=47;',
+ lateSections,
+ `const routes=[
+ {n:47,yaw:-.07553259887419518,pitch:.4289970292476938,
+  power:.15668390152044592,tilt:-.1242188704898581,
+  shift:2.4109215047210455},
+ {n:48,yaw:.14500233882515512,pitch:.2968657734105363,
+  power:.07456723073497415,tilt:-.01991021486464888,
+  shift:.0700331018306315}
+ ];
+ function flight(route){
+  settings=stageSettings(route.n);
+  aimYaw=route.yaw;aimPitch=route.pitch;frisbeeTilt=route.tilt;
+  const v=makeVelocity(route.power),
+   b={x:0,y:LAUNCH_Y,z:LAUNCH_Z,...v,
+    disc:newDiscFlightState(),springHits:0,hoopsPassed:0};
+  const grips=route.n===47?[.50]:[.55,.56];
+  const pads=settings.springFractions.map((f,i)=>({
+   type:'spring',index:i,
+   x:settings.x*f+(settings.padCount>1?
+    (i===0?-.15:settings.secondPadOffset??.10):0),
+   z:LAUNCH_Z-settings.d*f,
+   y:1.14+(i===1&&settings.padCount>1?.16:0)+.05,
+   r:.71,forwardGrip:grips[i],sideGrip:.79
+  }));
+  const hoops=[];
+  for(let i=0;i<settings.hoops;i++){
+   const f=settings.hoops===1?.39:i===0?.24:.40;
+   const pitch=settings.springRequired?.32:settings.bankRequired?.31:.70;
+   const dist=settings.d*f,
+    range=settings.springRequired?LAUNCH_Z-settings.springZ:
+     Math.hypot(settings.d,settings.x);
+   const height=settings.springRequired?1.21+BALL_R:
+    .19+settings.topPad+settings.targetHeight-BALL_R;
+   const speed=Math.sqrt(Math.max(1,GRAVITY*range*range/
+    Math.max(.08,2*Math.cos(pitch)**2*
+     (range*Math.tan(pitch)+LAUNCH_Y-height))));
+   const effective=(clamp((speed/physicsProfile.speed-5.6)/8.2,.06,.97)*8.2+5.6)*
+    physicsProfile.speed;
+   const flightTime=dist/(Math.cos(pitch)*effective);
+   const y=clamp(LAUNCH_Y+Math.sin(pitch)*effective*flightTime-
+    GRAVITY*flightTime*flightTime*.5,1.05,5.4);
+   hoops.push({x:settings.x*f,y,z:LAUNCH_Z-dist,r:.93});
+  }
+  for(let j=0;j<580;j++){
+   const h=.014,time=j*h+route.shift,previous={x:b.x,y:b.y,z:b.z};
+   applyProjectileForces(b,h,time,{x:0,y:0});
+   b.x+=b.vx*h;b.y+=b.vy*h;b.z+=b.vz*h;
+   if(b.vz<0&&b.hoopsPassed<hoops.length){
+    const hoop=hoops[b.hoopsPassed];
+    if(previous.z>=hoop.z&&b.z<=hoop.z){
+     const f=clamp((previous.z-hoop.z)/(previous.z-b.z),0,1);
+     const x=previous.x+(b.x-previous.x)*f,
+      y=previous.y+(b.y-previous.y)*f;
+     if(Math.hypot(x-hoop.x,y-hoop.y)<hoop.r-BALL_R*.75)
+      b.hoopsPassed++;
+    }
+   }
+   if(b.vy<0)for(const pad of pads){
+    const plane=pad.y+BALL_R;
+    if(previous.y<plane-.002||b.y>plane)continue;
+    const f=clamp((previous.y-plane)/(previous.y-b.y),0,1);
+    const x=previous.x+(b.x-previous.x)*f,
+     z=previous.z+(b.z-previous.z)*f;
+    if(Math.hypot(x-pad.x,z-pad.z)>
+     pad.r+BALL_R*.9*Math.max(.65,Math.cos(Math.abs(b.disc.bank))))continue;
+    if(pad.index!==b.springHits)continue;
+    b.x=x;b.z=z;b.y=plane+.002;
+    applyDiscImpact(b,0,1,0,b.vy,
+     (x-pad.x)/pad.r,(z-pad.z)/pad.r,.9);
+    Object.assign(b,padRebound(b,pad));
+    b.springHits++;
+    break;
+   }
+   if(b.springHits===settings.padCount&&
+    b.hoopsPassed===settings.hoops&&b.vy<0){
+    const at=targetLocation(time),top=at.y+settings.targetHeight;
+    if(previous.y>=top-BALL_R&&b.y<=top-BALL_R){
+     const dist=Math.hypot(b.x-at.x,b.z-at.z);
+     if(dist<settings.radius-BALL_R*.7)
+      return {level:route.n,scored:true,springs:b.springHits,
+       hoops:b.hoopsPassed,dist};
+    }
+   }
+   if(b.y<-.3||b.z<settings.targetZ-5.3||b.z>LAUNCH_Z+3)break;
+  }
+  return {level:route.n,scored:false,
+   springs:b.springHits,hoops:b.hoopsPassed};
+ }
+ return routes.map(flight);`
+].join('\n'))();
+for(const route of latePaths){
+ assert(route.scored,'Frisbee route blocked on level '+route.level+
+  ': '+JSON.stringify(route));
+ assert.equal(route.springs,route.level===48?2:1);
+ assert.equal(route.hoops,route.level===47?1:0);
+}
+console.log('PASS: late frisbee routes hit required springs/ring and moving cup',
+ JSON.stringify(latePaths));
+
 console.log('PASS:',results.count,'combinations,',results.shots,
  'flight simulations,',results.checks,'checks.');
 console.log('NOTE: these isolated mechanics tests do not verify every complete 3D scoring route.');
