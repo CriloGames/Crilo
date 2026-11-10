@@ -86,14 +86,79 @@ assert.equal(finaleRequests,1,
  "Turning Music on during the finale failed to request its soundtrack");
 assert(!audio.getState().musicCreated,
  "Finale audio toggle created the ordinary background-music loop");
-assert(audio.playFinale(5,2),"Turning sound on should allow a late finale start");
+assert(audio.playFinale(5,2),"Turning Music on should allow a late finale start");
 assert(Math.abs(audio.getFinaleClock()-2)<.06,
- "Late finale audio failed to synchronize with the duck's existing beat");
+ "Late finale audio failed to join the duck's existing beat");
+assert(audio.getState().finaleMusicAudible,
+ "Music On must unmute the synthesized finale");
 audio.setSfx(true);
 audio.setMusic(false);
-assert(audio.getState().finalePlaying,
- "Disabling Music must not stop a finale when Sounds remains enabled");
+assert(audio.getState().finalePlaying&&!audio.getState().finaleMusicAudible,
+ "Music Off must mute the finale regardless of the Sounds preference");
 audio.setSfx(false);
-assert(!audio.getState().finalePlaying&&finaleMutedEvents===1,
- "Muting both settings must hand control back to the silent duck timeline");
-console.log("PASS: fallback 150 BPM, stable audio clock and late finale audio toggles");
+assert(audio.getState().finalePlaying&&finaleMutedEvents===0,
+ "Sounds must not terminate the duck's independent music clock");
+assert(Math.abs(audio.getFinaleClock()-2)<.06,
+ "Muting must not reset the soundtrack playhead");
+audio.setMusic(true);
+assert(audio.getState().finalePlaying&&audio.getState().finaleMusicAudible,
+ "Re-enabling Music must unmute the continuing finale");
+assert(Math.abs(audio.getFinaleClock()-2)<.06,
+ "Unmuting music must not restart its beat");
+audio.stopFinale();
+assert(!audio.getState().finalePlaying,"Stop should still end the score");
+console.log("PASS: stable 150 BPM clock; Music toggles audible score independently of Sounds");
+
+// Exercise the actual HTMLAudioElement route as well as the synth fallback.
+// Music Off must mute, not pause/reseek; on/off rapidly must never restart.
+class Track{
+ constructor(src=""){
+  this.src=src;this.paused=true;this.muted=false;this.volume=1;
+  this.currentTime=0;this.readyState=4;this.ended=false;
+  this.listeners={};this.playCalls=0;this.pauseCalls=0;
+  Track.instances.push(this);
+ }
+ canPlayType(){return "probably"}
+ addEventListener(type,cb){(this.listeners[type]??=[]).push(cb)}
+ emit(type){for(const cb of this.listeners[type]||[])cb()}
+ play(){
+  this.playCalls++;this.paused=false;this.emit("playing");
+  return Promise.resolve();
+ }
+ pause(){this.pauseCalls++;this.paused=true;this.emit("pause")}
+ load(){}
+}
+Track.instances=[];
+const makeTrackAudio=new Function("Audio","window","document","localStorage",
+ "performance","setInterval","clearInterval","setTimeout","clearTimeout",
+ "requestAnimationFrame","cancelAnimationFrame",
+ original+";return window.NothingHereAudio;");
+const mediaAudio=makeTrackAudio(Track,window,document,
+ {getItem(){return null},setItem(){}},{now:()=>wallMs},
+ ()=>0,()=>{},()=>0,()=>{},()=>0,()=>{});
+const clipState0=mediaAudio.getState();
+assert(!clipState0.musicEnabled,"Fresh visitor starts with Music Off");
+assert(mediaAudio.playFinale(134.699),"Muted finale must start its timeline");
+const track=Track.instances.find(x=>x.src.includes("finale-licensed.mp3"));
+assert(track&&track.muted&&!track.paused,
+ "Initial music-off finale must run the correct MP3 silently");
+track.currentTime=23.64;
+const starts=track.playCalls;
+mediaAudio.setMusic(true);
+assert(!track.muted&&track.playCalls===starts&&track.currentTime===23.64,
+ "Turning Music on must unmute without restarting the real MP3");
+mediaAudio.setSfx(false);
+assert(!track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
+ "Turning Sounds off must not affect active Music or the MP3 time");
+mediaAudio.setMusic(false);
+assert(track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
+ "Music Off must mute without pausing or seeking the MP3");
+mediaAudio.setSfx(true);
+assert(track.muted&&!track.paused,
+ "Sounds On must not inadvertently turn the soundtrack on");
+mediaAudio.setMusic(true);
+assert(!track.muted&&track.currentTime===23.64&&
+ track.playCalls===starts,"Re-enabling Music must preserve the exact song beat");
+mediaAudio.stopFinale();
+assert(track.paused,"Stopping the finale must still pause the MP3");
+console.log("PASS: real MP3 Music On/Off, Sounds independence, zero restart/seek drift");
