@@ -526,49 +526,45 @@ export function createFinaleDuckShow({
  // Before the soundtrack, reveal the SAME 3D cat from inside the opening
  // physical cube. Its entrance is independent of the music-clock choreography:
  // the box becomes a horizontal T only AFTER the duck has started rising.
- function previewEmergence(progress,boxCenter,landingCenter,scaleCap=1){
+ function previewEmergence(progress,boxCenter,landingCenter,scaleCap=1,
+  departure=0,frontRimTop=null){
   ensure();
   const t=clip(Number(progress)||0,0,1);
-  // Smooth the physical movement; the timeline supplies the overall pacing.
   const e=t*t*(3-2*t);
+  const forward=THREE.MathUtils.smoothstep(clip(departure,0,1),.02,.86);
   emerging=true;
   emergenceProgress=t;
   playing=false;
   background.visible=false;
   group.visible=true;
-  // Keep the growing animal inside the camera during the unfolding.
-  // At the midpoint the view still looks down onto the six cube faces,
-  // so full music-scene scale would crop the duck's head above the canvas.
+  // First climb vertically out of the REAL opening while the cube is
+  // stationary and upright. Growing the duck does not move it forward.
   emergenceScale=Math.min(.14+.86*e,clip(scaleCap,.14,1));
   group.scale.setScalar(emergenceScale);
   catRig.scale.setScalar(1.08);
   spinner.scale.setScalar(1.09);
   spinner.rotation.set(0,0,0);
-  // Rise inside the opening first. Keep the duck centered above the box
-  // until its body and toes are clear of the front rim; then move forward.
-  const horizontal=THREE.MathUtils.smoothstep(e,.93,.995);
-  const from=boxCenter.clone().add(new THREE.Vector3(0,-.28,-.20));
-  const to=landingCenter.clone().add(new THREE.Vector3(0,.98,0));
+  const fromY=boxCenter.y-.53;
+  const clearY=boxCenter.y+.90;
+  const verticalY=THREE.MathUtils.lerp(fromY,clearY,e);
+  // Only AFTER the duck is entirely above the lip does the box begin
+  // unfolding. Keep the duck's entire underside clear of the physical
+  // front wall as that wall rotates down into the horizontal T.
+  const targetY=landingCenter.y+.98;
+  const frontClearance=Number.isFinite(frontRimTop)?
+   frontRimTop+.25:clearY;
   group.position.set(
-   THREE.MathUtils.lerp(from.x,to.x,horizontal),
-   THREE.MathUtils.lerp(from.y,to.y,e)+.07*Math.sin(Math.PI*e),
-   THREE.MathUtils.lerp(from.z,to.z,horizontal)
+   THREE.MathUtils.lerp(boxCenter.x,landingCenter.x,forward),
+   Math.max(THREE.MathUtils.lerp(verticalY,targetY,forward),
+    forward>0?frontClearance:verticalY),
+   THREE.MathUtils.lerp(boxCenter.z,landingCenter.z,forward)
   );
-  // Lift before advancing: a smooth physical entrance without clipping
-  // through the front dial/wall during the horizontal transition.
-  const verticalClear=THREE.MathUtils.smoothstep(e,.38,.78);
-  const lipHeight=boxCenter.y+.22+.14*emergenceScale;
-  const innerRise=boxCenter.y-.28+.72*e;
-  const forcedLift=THREE.MathUtils.lerp(boxCenter.y-.28,lipHeight,verticalClear);
-  const forwardClearance=lipHeight+.10*horizontal;
-  group.position.y=Math.max(group.position.y,innerRise,forcedLift,
-   forwardClearance*horizontal+forcedLift*(1-horizontal));
   catRig.rotation.x=-.07*(1-e);
   // During the opening there is no music-frame paint() yet. Refresh
   // the camera-facing rim here too, otherwise the back/top of the tail
   // loses its outline from the elevated cube reveal camera.
   loadedModel?.userData.updateTailContour?.(camera);
-  emergenceHorizontalProgress=horizontal;
+  emergenceHorizontalProgress=forward;
   emergenceLipClearance=group.position.y-boxCenter.y;
   key.color.setHex(0xffe8c6);
   rim.color.setHex(0xb1e5ff);
