@@ -217,6 +217,52 @@
  let licensedFinale=null,licensedUnavailable=false,finaleClockStart=null;
  let finaleMediaStarted=false;
  let finaleSynthClockStart=null;
+ // Optional, non-invasive audio activity meter for sustained QUIET sections
+ // inside a decoded MP3. It captures a separate silent analysis stream;
+ // the original <audio> element still goes straight to the speakers.
+ // Unsupported browsers simply rely on the strict playback-state checks.
+ const trackMeters=new WeakMap();
+ function attachFinaleActivityMeter(track){
+  if(!track?.captureStream||trackMeters.has(track))return;
+  const Engine=window.AudioContext||window.webkitAudioContext;
+  if(!Engine)return;
+  try{
+   const stream=track.captureStream();
+   if(!stream?.getAudioTracks?.().length)return;
+   const context=new Engine();
+   if(!context.createMediaStreamSource||!context.createAnalyser)return;
+   const source=context.createMediaStreamSource(stream);
+   const analyser=context.createAnalyser();
+   analyser.fftSize=1024;
+   const silent=context.createGain();
+   silent.gain.value=0;
+   source.connect(analyser);
+   analyser.connect(silent);
+   silent.connect(context.destination);
+   if(context.state==="suspended")context.resume()?.catch?.(()=>{});
+   trackMeters.set(track,{context,analyser,samples:new Uint8Array(1024),
+    everSound:false,lastSoundAt:performance.now(),quiet:false});
+  }catch(error){
+   // Stream capture is not universal (notably some mobile Safari builds).
+   console.info("Finale silence detection unavailable:",error?.message||error);
+  }
+ }
+ function trackSoundPresent(track){
+  const meter=trackMeters.get(track);
+  if(!meter||meter.context.state!=="running")return true;
+  try{
+   meter.analyser.getByteTimeDomainData(meter.samples);
+   let energy=0;
+   for(const v of meter.samples)energy+=(v-128)*(v-128);
+   const rms=Math.sqrt(energy/meter.samples.length)/128;
+   const now=performance.now();
+   if(rms>.0025){meter.everSound=true;meter.lastSoundAt=now;}
+   // Ignore individual quiet beats, but never keep spinning over a
+   // sustained >520ms musical rest after real audio has been observed.
+   meter.quiet=meter.everSound&&now-meter.lastSoundAt>520;
+   return !meter.quiet;
+  }catch{return true}
+ }
  // Music-box style mechanical wind-up: original notes/ticks (E minor),
  // accelerating into the following soundtrack's 150 BPM pulse.
  const windUpBeats=[0,.82,1.52,2.14,2.71,3.23,3.71,4.17,
@@ -305,6 +351,7 @@
   track.preload='auto';track.loop=false;track.volume=.75;
   track.addEventListener('playing',()=>{
    finaleMediaStarted=!track.seeking;
+   attachFinaleActivityMeter(track);
   });
   track.addEventListener('seeking',()=>{finaleMediaStarted=false;});
   track.addEventListener('seeked',()=>{
@@ -335,7 +382,7 @@
   // recording exists (including its brief initial 0-second preload).
   if(track)return track.ended||track.paused||track.muted||
    track.volume<=0||track.seeking||track.readyState<3||
-   !finaleMediaStarted?null:
+   !finaleMediaStarted||!trackSoundPresent(track)?null:
    Number(track.currentTime)||0;
   // The fallback must follow actual Web Audio time, not wall-clock time.
   // AudioContext.currentTime freezes while suspended or interrupted.
@@ -361,6 +408,7 @@
    personalFinale.volume=.72;
    personalFinale.addEventListener('playing',()=>{
     finaleMediaStarted=!personalFinale.seeking;
+    attachFinaleActivityMeter(personalFinale);
    });
    personalFinale.addEventListener('seeking',()=>{finaleMediaStarted=false;});
    personalFinale.addEventListener('seeked',()=>{
@@ -671,6 +719,10 @@
    personalFinaleReady:!!personalFinale,personalFinaleName,
    licensedFinaleReady:!!licensedFinale&&!licensedUnavailable,
    finaleMediaStarted,
+   finaleQuietSection:!!activeFinaleAudio()&&
+    trackMeters.get(activeFinaleAudio())?.quiet===true,
+   finaleActivityMeterReady:!!activeFinaleAudio()&&
+    trackMeters.has(activeFinaleAudio()),
    licensedFinalePlaying:!!licensedFinale&&!licensedFinale.paused&&!licensedFinale.muted,
    finaleSeconds:getFinaleClock(),
    finaleEnded:!!activeFinaleAudio()?.ended,
