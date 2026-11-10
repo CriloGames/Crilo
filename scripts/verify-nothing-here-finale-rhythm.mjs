@@ -78,17 +78,34 @@ assert(motionAt(2.0).sideways>.8&&motionAt(2.0).spinAxis==="y"&&
  motionAt(2.0).spinMode==="rapid",
  "The first fast horizontal yaw spin from the reference is missing");
 assert(motionAt(34.2).spinAxis==="y"&&
- motionAt(34.2).revolutionsPerSecond>=5.8,
- "The neon tunnel should retain the fast horizontal spin");
+ motionAt(34.2).sourceRevolutionsPerSecond>=5.8&&
+ motionAt(34.2).beatLockedRotation,
+ "The high-energy spin must retain its source intensity AND lock to beats");
 assert.equal(CAT_YAW_TURN_RATES[0][1],6);
-assert(Math.abs(motionAt(2.0).revolutionsPerSecond-6)<.01&&
- Math.abs(motionAt(8.2).revolutionsPerSecond-5)<.01,
- "Frame-measured intro (6rps) and middle (5rps) speeds missing");
-// The first video pose repeats every five source frames at 30fps.
-const d0=motionAt(1.70).spinRadians;
-const d1=motionAt(1.70+5/30).spinRadians;
-assert(Math.abs((d1-d0)-2*Math.PI)<.0001,
- "The first spin must turn 360 degrees in five 30fps frames");
+assert.equal(motionAt(2.0).sourceRevolutionsPerSecond,6);
+assert.equal(motionAt(8.2).sourceRevolutionsPerSecond,5);
+// Two complete yaw revolutions per 400ms musical beat, with an audible
+// acceleration on each downbeat. Five-to-six-rps independent spinning
+// made the duck drift in orientation relative to the soundtrack.
+for(const [a,b] of [[1.64,2.04],[4.44,4.84],[29.24,29.64],
+ [36.84,37.24],[108.84,109.24]]){
+ const diff=motionAt(b).spinRadians-motionAt(a).spinRadians;
+ assert(Math.abs(diff-4*Math.PI)<.0001,
+  "Duck did not complete exactly two turns on the 150 BPM beat: "+
+   JSON.stringify({a,b,diff}));
+}
+const angleAdvance=t=>motionAt(t+.018).spinRadians-motionAt(t).spinRadians;
+assert(angleAdvance(1.63)>angleAdvance(1.83)*1.30,
+ "Duck's fast angular acceleration should visibly land on each musical kick");
+for(const [time,mode] of CAT_POSE_CUTS.slice(1)){
+ if(mode!=="front"||time<=.01)continue;
+ const before=motionAt(time-.0001);
+ if(!before.spinning)continue;
+ const phase=Math.abs(Math.atan2(Math.sin(before.spinRadians),
+  Math.cos(before.spinRadians)));
+ assert(phase<.03,
+  "Duck must settle face-on before every musical hold: "+time);
+}
 // Smooth acceleration changes at 33s must never teleport the cat.
 const before=motionAt(32.999).spinRadians;
 const after=motionAt(33.001).spinRadians;
@@ -106,5 +123,5 @@ assert(motionAt(108.84).spinning&&motionAt(119.4).spinning,
 const flashes=Array.from({length:210},(_,i)=>motionAt(33+i*.04).flash);
 assert(flashes.filter(x=>x>.5).length>=4,
  "The neon section should visibly strobe on multiple musical downbeats");
-console.log("PASS: authorized MP3, source-sampled 5-6rps horizontal yaw, "+
+console.log("PASS: authorized MP3, beat-locked horizontal yaw, "+
  "front holds, soundtrack-timed scene cuts and hard-white flashes");
