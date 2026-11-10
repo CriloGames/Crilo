@@ -601,7 +601,9 @@ export function createFinaleDuckShow({
  function syncToAudio(){
   if(!playing)return false;
   waitingForSoundtrack=true;
-  soundtrackStarted=false;
+  // Joining the music late must HOLD the current duck pose while the MP3
+  // buffers, rather than briefly rewinding to the opening pose at t=0.
+  soundtrackStarted=true;
   return true;
  }
  function continueSilently(){
