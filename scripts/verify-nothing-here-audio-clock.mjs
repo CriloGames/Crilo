@@ -49,6 +49,7 @@ const audio=create(window,document,
  {getItem(){return null},setItem(){}},{now:()=>wallMs},
  (cb)=>{const id=++next;timers.set(id,cb);return id},
  id=>timers.delete(id),()=>null,()=>{},()=>null,()=>{});
+audio.setMusic(true);
 assert(audio.playFinale(5),"Synth fallback did not start");
 assert.equal(audio.getFinaleClock(),0);
 assert(audioContext,"Web Audio was not initialized");
@@ -68,9 +69,12 @@ wallMs=700000;
 for(const cb of [...timers.values()])cb();
 assert.equal(audio.getState().finalePlaying,true,
  "Wall time ended music while AudioContext was suspended");
+assert.equal(audio.getFinaleClock(),null,
+ "A suspended soundtrack MUST NOT authorize duck spinning");
+audioContext.state="running";
 assert(Math.abs(audio.getFinaleClock()-1)<.005,
- "The duck progressed when the context was suspended");
-audioContext.state="running";audioContext.currentTime=5.1;
+ "The score must resume at its exact earlier beat");
+audioContext.currentTime=5.1;
 for(const cb of [...timers.values()])cb();
 assert.equal(audio.getState().finalePlaying,false);
 assert.equal(audio.getFinaleClock(),null);
@@ -98,8 +102,8 @@ assert(audio.getState().finalePlaying&&!audio.getState().finaleMusicAudible,
 audio.setSfx(false);
 assert(audio.getState().finalePlaying&&finaleMutedEvents===0,
  "Sounds must not terminate the duck's independent music clock");
-assert(Math.abs(audio.getFinaleClock()-2)<.06,
- "Muting must not reset the soundtrack playhead");
+assert.equal(audio.getFinaleClock(),null,
+ "Music Off must freeze the duck instead of advancing in silence");
 audio.setMusic(true);
 assert(audio.getState().finalePlaying&&audio.getState().finaleMusicAudible,
  "Re-enabling Music must unmute the continuing finale");
@@ -107,7 +111,26 @@ assert(Math.abs(audio.getFinaleClock()-2)<.06,
  "Unmuting music must not restart its beat");
 audio.stopFinale();
 assert(!audio.getState().finalePlaying,"Stop should still end the score");
-console.log("PASS: stable 150 BPM clock; Music toggles audible score independently of Sounds");
+console.log("PASS: silent/suspended synth freezes duck, resumes on actual 150-BPM clock");
+const oldCount=starts.length;
+audio.startWindUp();
+audio.syncWindUp(0);
+audio.syncWindUp(3.23);
+audio.syncWindUp(7.83);
+audio.syncWindUp(9.43);
+assert(audio.getState().windUpActive&&audio.getState().windUpNoteCount===21,
+ "Original mechanical intro should schedule 21 accelerating musical notes");
+assert(starts.length>oldCount,
+ "Wind-up synth failed to schedule audible bell notes");
+const windUpPlayed=starts.length;
+audio.setMusic(false);
+audio.syncWindUp(9.5);
+assert.equal(starts.length,windUpPlayed,
+ "Wind-up kept generating notes when Music was off");
+audio.stopWindUp();
+assert(!audio.getState().windUpActive,
+ "Wind-up must finish BEFORE licensed soundtrack begins");
+console.log("PASS: original accelerated mechanical intro joins 150 BPM, obeys Music toggle");
 
 // Exercise the actual HTMLAudioElement route as well as the synth fallback.
 // Music Off must mute, not pause/reseek; on/off rapidly must never restart.
@@ -153,27 +176,31 @@ const clipState0=mediaAudio.getState();
 assert(!clipState0.musicEnabled,"Fresh visitor starts with Music Off");
 assert(mediaAudio.playFinale(134.699),"Muted finale must start its timeline");
 const track=Track.instances.find(x=>x.src.includes("finale-licensed.mp3"));
-assert(track&&track.muted&&!track.paused,
- "Initial music-off finale must run the correct MP3 silently");
+assert(track&&track.muted&&track.paused&&
+ mediaAudio.getFinaleClock()===null,
+ "Initial Music Off must keep the MP3 paused AND duck stationary");
 track.currentTime=23.64;
 const mediaStartCount=track.playCalls;
 buttons.ncMusicToggle.click();
-assert(!track.muted&&track.playCalls===mediaStartCount&&track.currentTime===23.64,
- "Turning Music on must unmute without restarting the real MP3");
+assert(!track.muted&&!track.paused&&
+ track.playCalls===mediaStartCount+1&&track.currentTime===23.64,
+ "Turning Music on must resume the MP3 at the saved beat");
 buttons.ncSfxToggle.click();
 assert(!track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
  "Turning Sounds off must not affect active Music or the MP3 time");
 buttons.ncMusicToggle.click();
-assert(track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
- "Music Off must mute without pausing or seeking the MP3");
+assert(track.muted&&track.paused&&mediaAudio.getFinaleClock()===null&&
+ track.currentTime===23.64,
+ "Music Off must PAUSE the MP3, hold the duck and preserve its beat");
 buttons.ncSfxToggle.click();
-assert(track.muted&&!track.paused,
- "Sounds On must not inadvertently turn the soundtrack on");
+assert(track.muted&&track.paused,
+ "Sounds On must not restart the muted soundtrack");
 buttons.ncMusicToggle.click();
-assert(!track.muted&&track.currentTime===23.64&&
- track.playCalls===mediaStartCount,"Re-enabling Music must preserve the exact song beat");
+assert(!track.muted&&!track.paused&&track.currentTime===23.64&&
+ track.playCalls===mediaStartCount+2,
+ "Re-enabling Music must RESUME at the exact preserved song beat");
 assert.equal(buttons.ncMusicToggle.attributes["aria-pressed"],"true",
  "Music button must display the correct audible state during finale");
 mediaAudio.stopFinale();
 assert(track.paused,"Stopping the finale must still pause the MP3");
-console.log("PASS: real MP3 Music On/Off, Sounds independence, zero restart/seek drift");
+console.log("PASS: real MP3 halts on silence, resumes on original beat, independent Sounds");
