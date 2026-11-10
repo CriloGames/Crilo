@@ -8,7 +8,7 @@ const html=fs.readFileSync('index.html','utf8');
 const game=fs.readFileSync('game.js','utf8');
 const sql=fs.readFileSync('release/346-badges/151-mystery-gift-collection.sql','utf8');
 assert.ok(html.includes('mystery-gift.js?v='),'Wheel popup gift script must load');
-assert.match(html,/mystery-gift\.css\?v=3/);
+assert.match(html,/mystery-gift\.css\?v=4/);
 assert.ok(html.includes('game.js?v='),'The Daily wheel bundle must be loaded');
 assert.match(html,/id="criloMysteryWheel"/);
 assert.match(html,/id="criloMysteryShelf"/);
@@ -94,8 +94,19 @@ const stateFor=(available,spun=false,slice=null,prize=null,discovered=[])=>({
    'No automatic gift when event was not drawn');
   await setServer(stateFor(true));
   await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
+  assert.equal(await page.locator('#criloMysteryModal').isVisible(),false,
+   'No mystery auto-popup before the final Daily spin');
+  await page.evaluate(()=>window.dispatchEvent(
+   new CustomEvent('crilo-official-daily-saved',{
+    detail:{finished:true,verified:true,remainingSpins:0,spinCount:7}
+   })
+  ));
+  await page.evaluate(()=>window.CriloMysteryGift.refresh({autoOpen:true}));
   assert.equal(await page.locator('#criloMysteryModal').isVisible(),true,
-   width+'px gift should surprise the player immediately on the wheel');
+   width+'px gift should surprise the player after final verified save');
+  assert.equal(await page.locator('.wheel-stage > .pointer').evaluate(
+   element=>getComputedStyle(element).visibility),'hidden',
+   'The giant wheel pointer must not overlap the mystery title');
   assert.equal(await page.locator('#criloMysterySpin').isVisible(),true);
   const placement=await page.evaluate(()=>{
    const wheel=document.getElementById('wheelWrap').getBoundingClientRect();
