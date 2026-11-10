@@ -19,16 +19,16 @@ assert.equal(sceneAt(3).name,"green");
 assert.equal(sceneAt(30).name,"nebula");
 // Audio-driven timing is measured from the actual installed MP3's 45–170Hz
 // transient peaks (by scripts/audit-nothing-here-audio-beats.py), not a
-// mathematically perfect beat grid. The initial visual cue should be ahead
-// of a real attack by just enough to render on the next 60Hz frame.
+// mathematically perfect beat grid. The visual cue must START AT the real
+// attack: audio.currentTime already owns video playback timing.
 const introAttacks=[1.64,4.38,8.04,11.26,14.43,17.62,20.81];
 const introStarts=CAT_POSE_CUTS.filter(([,mode])=>mode==="loaf").slice(0,7)
  .map(([time])=>time);
 assert.equal(introStarts.length,introAttacks.length);
 for(let i=0;i<introStarts.length;i++){
  const lead=introAttacks[i]-introStarts[i];
- assert(lead>=-.015&&lead<=.081,
-  "Opening duck spin misses actual MP3 attack "+introAttacks[i]+
+ assert(Math.abs(lead)<.011,
+  "Opening duck must not anticipate the MP3 attack at "+introAttacks[i]+
   "s by "+lead.toFixed(3)+"s");
 }
 for(const [time,mode] of CAT_POSE_CUTS.slice(1,16)){
@@ -95,7 +95,7 @@ for(const [a,b] of [[1.64,2.04],[4.44,4.84],[29.24,29.64],
    JSON.stringify({a,b,diff}));
 }
 const angleAdvance=t=>motionAt(t+.018).spinRadians-motionAt(t).spinRadians;
-assert(angleAdvance(1.63)>angleAdvance(1.83)*1.30,
+assert(angleAdvance(1.64)>angleAdvance(1.83)*1.30,
  "Duck's fast angular acceleration should visibly land on each musical kick");
 for(const [time,mode] of CAT_POSE_CUTS.slice(1)){
  if(mode!=="front"||time<=.01)continue;
