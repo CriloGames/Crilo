@@ -64,9 +64,11 @@ export const CAT_POSE_CUTS=[
  [14.43,"loaf"],[15.64,"front"],
  [17.62,"loaf"],[18.84,"front"],
  [20.81,"loaf"],[26.84,"front"],
- // First nebula spin starts exactly on beat 73, with a clean 6-beat hold
- // before it and a one-beat front pause after the 17-beat spin section.
- [29.24,"loaf"],[36.04,"front"],
+ // The red-nebula interlude has an extended quiet musical break: the
+ // original 29.24s cue spun over the fading music before it returned.
+ // Hold the duck face-forward until the first full 150-BPM beat AFTER the
+ // renewed full-band music at ~30.3s (verified in the installed MP3).
+ [30.44,"loaf"],[36.04,"front"],
  [36.44,"loaf"],[58.95,"front"],
  // The late MP3 bass attacks arrive AFTER the original video-estimated
  // poses here. Do not begin rotating 130–180ms before the musical drop.
@@ -127,7 +129,7 @@ export function sceneAt(seconds){
 // recompute localTime*newRate at a scene cut (which caused sudden jumps).
 export const CAT_YAW_TURN_RATES=[
  [0,6.0],[4.5,5.6],[7.9,5.0],[20.7,5.4],
- [26.87,5.5],[29.24,5.0],[33,6.0],[59,5.6],[75,5.3],
+ [26.87,5.5],[30.44,5.0],[33,6.0],[59,5.6],[75,5.3],
  [88,5.7],[101,5.8],[107,6.0],[131,5.6]
 ];
 function spinRate(t){
