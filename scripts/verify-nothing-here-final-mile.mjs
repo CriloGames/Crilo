@@ -222,7 +222,8 @@ try{
  // at the same timestamp as the uploaded 1080p reference video.
  const visualSamples=[
   [0,"front",0],[2,"loaf",0],[4,"front",0],[8.5,"loaf",0],
-  [29,"front",1],[29.45,"loaf",1],[30.5,"loaf",1],[34,"loaf",2],
+  [29,"front",1],[29.45,"front",1],[30.3,"front",1],
+   [30.43,"front",1],[30.5,"loaf",1],[34,"loaf",2],
   [40.5,"loaf",7],[48,"loaf",9],[55,"loaf",10],
   [60,"front",3],[65,"front",8],[65.5,"loaf",8],
   [68,"front",8],[68.5,"loaf",8],[70.5,"front",8],
@@ -621,8 +622,15 @@ try{
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
     [2.3,4.55,6.8,9.32].includes(time)){
    await page.waitForTimeout(350);
-   await page.locator("#stage canvas").screenshot({
-    path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
+   // The GSAP reveal moves continuously; Playwright locator screenshots
+   // wait for a stable element and can timeout despite healthy WebGL.
+   // Read the canvas bounds directly and capture the current frame.
+   const bounds=await page.locator("#stage canvas").boundingBox();
+   assert(bounds&&bounds.width>0&&bounds.height>0,
+    "Finale stage canvas disappeared during emergence at "+time+"s");
+   await page.screenshot({
+    path:"test-results/video-reference-emergence-"+time+".png",
+    clip:bounds,animations:"disabled",timeout:45000
    });
   }
  }

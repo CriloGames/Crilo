@@ -134,3 +134,17 @@ for left,right in [(0,2.5),(26.5,33.5),(61.5,66.5),(86.5,89.5),(102.8,104.5)]:
  values=[(round(t/10,2),round(volume_at(t/10),5))
   for t in range(round(left*10),round(right*10),2)]
  print("FULL-BAND VOLUME",left,right,values)
+
+# Regression for the red-nebula musical break: the 29.24s visual cue
+# previously started the duck spinning over a genuinely quiet section.
+# The soundtrack swells back around 30.3s. Start on the NEXT 150-BPM
+# downbeat, not over the preceding fading tail.
+quiet_rms=max(volume_at(t,.16) for t in (29.24,29.62,29.92))
+returned_rms=min(volume_at(t,.16) for t in (30.44,30.68))
+assert returned_rms>quiet_rms*2.5, (
+ f"Red-nebula spin cue must follow the soundtrack return: "
+ f"quiet={quiet_rms:.5f}, music={returned_rms:.5f}")
+assert re.search(r'\[30\.44,\s*"loaf"\]',opening), (
+ "Duck must wait for the first 150-BPM beat after music returns at ~30.3s")
+print("PASS: nebula duck waits through quiet gap; "
+      f"quiet RMS={quiet_rms:.5f}, renewed-music RMS={returned_rms:.5f}")
