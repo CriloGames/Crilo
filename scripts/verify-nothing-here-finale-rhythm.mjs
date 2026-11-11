@@ -89,16 +89,18 @@ for(const [time,mode] of CAT_POSE_CUTS.slice(1,16)){
 }
 assert(motionAt(14.44).bob>.045&&motionAt(14.64).bob<.01,
  "Duck bobbing must bounce on the same beat as music, not at an unrelated rate");
-assert.equal(motionAt(29.24).revolutionsPerSecond,5,
+assert.equal(motionAt(30.44).revolutionsPerSecond,5,
  "Red-section duck should spin exactly twice per 150 BPM beat");
-assert(Math.abs((motionAt(29.64).spinRadians-
- motionAt(29.24).spinRadians)-4*Math.PI)<.0001,
+assert(Math.abs((motionAt(30.84).spinRadians-
+ motionAt(30.44).spinRadians)-4*Math.PI)<.0001,
  "Red-section spin angle drifts between musical downbeats");
-assert(!motionAt(29.20).spinning&&motionAt(29.24).spinning&&
- motionAt(29.40).spinning&&sceneAt(29.24).name==="nebula",
- "The duck must begin its first red-nebula spin on the 29.24s music beat");
-assert(Math.min(motionAt(29.24).beatPhase,
- 1-motionAt(29.24).beatPhase)<.01,
+assert(!motionAt(29.20).spinning&&!motionAt(29.60).spinning&&
+ !motionAt(30.30).spinning&&!motionAt(30.439).spinning&&
+ motionAt(30.44).spinning&&motionAt(30.60).spinning&&
+ sceneAt(30.44).name==="nebula",
+ "Duck must hold still through the quiet 29–30s break and spin only after the music returns");
+assert(Math.min(motionAt(30.44).beatPhase,
+ 1-motionAt(30.44).beatPhase)<.01,
  "Red-nebula spin cue must hit a 150 BPM beat, not the middle of a beat");
 assert.equal(sceneAt(38).name,"tunnel");
 assert.equal(sceneAt(61).name,"white");
@@ -138,7 +140,7 @@ assert.equal(motionAt(8.2).sourceRevolutionsPerSecond,5);
 // Two complete yaw revolutions per 400ms musical beat, with an audible
 // acceleration on each downbeat. Five-to-six-rps independent spinning
 // made the duck drift in orientation relative to the soundtrack.
-for(const [a,b] of [[1.64,2.04],[4.44,4.84],[29.24,29.64],
+for(const [a,b] of [[1.64,2.04],[4.44,4.84],[30.44,30.84],
  [36.84,37.24],[108.84,109.24]]){
  const diff=motionAt(b).spinRadians-motionAt(a).spinRadians;
  assert(Math.abs(diff-4*Math.PI)<.0001,
