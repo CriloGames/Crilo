@@ -222,7 +222,8 @@ try{
  // at the same timestamp as the uploaded 1080p reference video.
  const visualSamples=[
   [0,"front",0],[2,"loaf",0],[4,"front",0],[8.5,"loaf",0],
-  [29,"front",1],[29.45,"loaf",1],[30.5,"loaf",1],[34,"loaf",2],
+  [29,"front",1],[29.45,"front",1],[30.3,"front",1],
+   [30.43,"front",1],[30.5,"loaf",1],[34,"loaf",2],
   [40.5,"loaf",7],[48,"loaf",9],[55,"loaf",10],
   [60,"front",3],[65,"front",8],[65.5,"loaf",8],
   [68,"front",8],[68.5,"loaf",8],[70.5,"front",8],
