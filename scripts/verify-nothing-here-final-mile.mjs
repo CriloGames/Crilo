@@ -622,8 +622,15 @@ try{
   if(process.env.NH_CAPTURE_FINALE_SWEEP==="1"&&
     [2.3,4.55,6.8,9.32].includes(time)){
    await page.waitForTimeout(350);
-   await page.locator("#stage canvas").screenshot({
-    path:"test-results/video-reference-emergence-"+time+".png",timeout:45000
+   // The GSAP reveal moves continuously; Playwright locator screenshots
+   // wait for a stable element and can timeout despite healthy WebGL.
+   // Read the canvas bounds directly and capture the current frame.
+   const bounds=await page.locator("#stage canvas").boundingBox();
+   assert(bounds&&bounds.width>0&&bounds.height>0,
+    "Finale stage canvas disappeared during emergence at "+time+"s");
+   await page.screenshot({
+    path:"test-results/video-reference-emergence-"+time+".png",
+    clip:bounds,animations:"disabled",timeout:45000
    });
   }
  }
