@@ -9,12 +9,13 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=7/);
+assert.match(html,/test-games\.js\?v=8/);
 assert.match(html,/test-games\.css\?v=5/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
 assert.match(html,/id="apNew">NEW GAME/);
 assert.match(html,/id="apReplay" hidden/);
+assert.match(html,/id="apShapeTitle"/);
 assert.match(js,/const forgiving=Math\.exp\(-error\/155\)/);
 assert.match(js,/timeAccuracy\*\.72\+pathScore\(attempt\)\*\.28/);
 assert.match(js,/await criloDB\.auth\.getUser\(\)/);
@@ -124,6 +125,8 @@ async function run(owner){
  }
  node('testOpenPrecision').events.click();
  assert.equal(node('precisionPrototype').hidden,false);
+ assert.equal(node('apRetry').textContent,'TRY SAME SHAPE');
+ assert.equal(node('apShapeTitle').textContent,'SHAPE');
  // Compare calibration at low, middle and near-perfect accuracies.
  const boost=window.__apSmoke.boostPrecisionScore;
  for(let i=0;i<=100;i++){
@@ -195,6 +198,8 @@ async function run(owner){
   'A shortcut must score worse than a perfect reproduction');
  // Perfect Distance: visible target before starting, hidden during the run.
  node('apMode').value='distance';node('apMode').events.change();
+ assert.equal(node('apRetry').textContent,'TRY SAME DISTANCE');
+ assert.equal(node('apShapeTitle').textContent,'TARGET DISTANCE');
  start();
  const center=window.__apSmoke.distanceCenter;
  const radius=window.__apSmoke.targetDistance(),first=center(0);
@@ -224,6 +229,8 @@ async function run(owner){
  assert.ok(Math.abs(nextRadius-radius)>=18,'New Game changes distance noticeably');
  // Perfect Motion compares exact position at a given time.
  node('apMode').value='motion';node('apMode').events.change();
+ assert.equal(node('apRetry').textContent,'TRY SAME SHAPE');
+ assert.equal(node('apShapeTitle').textContent,'SHAPE');
  start();animateFor(5.2);
  const motion=window.__apSmoke.route();
  pointer('pointerdown',motion[0].x,motion[0].y);
