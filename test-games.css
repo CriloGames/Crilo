@@ -36,7 +36,7 @@
  padding:9px 30px 9px 12px;border:1.5px solid #9ebbb3;border-radius:10px;
  color:var(--text,#253533);background:var(--panel,#fff);cursor:pointer}
 .ap-controls button{padding:10px 12px;min-height:41px}
-.ap-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.ap-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:12px}
 .ap-stats>div{padding:10px 13px;border:1px solid #dce5e1;background:#f5f8f6;border-radius:13px;min-width:0}
 .ap-stats span{display:block;color:#66877a;font:900 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.04em;margin-bottom:3px}
 .ap-stats strong{display:block;font:950 clamp(17px,2.6vw,24px)/1.2 ui-monospace,Consolas,monospace;color:#273e39;white-space:nowrap}
@@ -120,6 +120,7 @@ html[data-theme="dark"] .tg-card,html[data-theme="dark"] .ap-prototype{box-shado
  .ap-controls label{width:100%}
  .ap-controls select{flex:1;min-width:0}
  .ap-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .ap-stats>div:last-child{grid-column:1/-1}
  .ap-arena{min-height:250px}
  .ap-overlay{padding:9px}
  .ap-overlay-content{padding:16px 12px;border-radius:12px}
