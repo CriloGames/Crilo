@@ -72,14 +72,14 @@
          <option value="distance">Perfect Distance</option>
          <option value="motion">Perfect Motion</option>
        </select>
-       <button type="button" id="apNew">NEW CHALLENGE ↻</button>
+       <button type="button" id="apNew">NEW GAME ↻</button>
      </div>
    </header>
 
    <div class="ap-stats" aria-label="Practice scores">
     <div><span>LAST ATTEMPT</span><strong id="apLast">—</strong></div>
     <div><span>PERSONAL BEST</span><strong id="apBest">—</strong></div>
-    <div><span>CHALLENGE</span><strong id="apRound">01</strong></div>
+    <div><span>SHAPE</span><strong id="apShape">RANDOM</strong></div>
     <div><span id="apMetricTitle">DRAW TIME</span><strong id="apMetric">—</strong></div>
    </div>
 
@@ -100,8 +100,20 @@
      </div>
     </div>
    </div>
+   <section class="ap-result" id="apResult" aria-label="Your result and full drawing comparison" aria-live="polite" hidden>
+     <div class="ap-result-summary">
+       <span id="apResultLabel">ATTEMPT COMPLETE</span>
+       <strong id="apResultScore">—</strong>
+       <p id="apResultDetail">Your orange line and the blue reference stay visible above.</p>
+     </div>
+     <div class="ap-result-actions">
+       <button type="button" id="apCompare">MY LINE ONLY</button>
+       <button type="button" id="apRetry">TRY SAME SHAPE</button>
+       <button type="button" id="apNewResult" class="ap-next">NEW RANDOM GAME ↻</button>
+     </div>
+   </section>
    <div class="ap-underbar">
-     <p id="apStatus" role="status" aria-live="polite">Choose a mode and start your first challenge.</p>
+     <p id="apStatus" role="status" aria-live="polite">Choose a mode and start your first game.</p>
      <span id="apProgress" aria-label="Attempt progress"></span>
    </div>
 
@@ -110,8 +122,8 @@
       <strong id="apHowTitle">Perfect Path</strong>
       <span>HOW TO PLAY</span>
     </div>
-    <p id="apHowCopy">Watch the line for a few seconds. When it disappears, drag from its starting point to reproduce the shape. Release to see your exact score and an overlay of your attempt.</p>
-    <p class="ap-help-foot">Your best percentages are saved only on this device, separately for each mode. No game is public until you approve it.</p>
+    <p id="apHowCopy">Watch the line for a few seconds. When it disappears, drag from its starting point to reproduce the shape. Your drawing stays visible next to the original after scoring.</p>
+    <p class="ap-help-foot">No levels: each New Game creates a new random route. Your best percentages are saved on this device for each mode. These games are not public.</p>
    </section>
   </section>
  </div>
