@@ -9,7 +9,7 @@
 .tg-heading p{font-size:14px;line-height:1.6;max-width:730px;margin:0;color:var(--muted,#717b80)}
 .tg-access{border:1px solid #d6e2df;border-radius:16px;padding:22px 24px;background:var(--panel,#fff);color:var(--muted,#69757b);line-height:1.5}
 .tg-access.is-denied{border-color:#e0bcbc;color:#a03939}
-#testCollection[hidden],#precisionPrototype[hidden],#apOverlay[hidden],#apMessage[hidden]{display:none!important}
+#testCollection[hidden],#precisionPrototype[hidden],#apOverlay[hidden],#apMessage[hidden],#apResult[hidden]{display:none!important}
 .tg-catalog{display:grid;gap:16px;margin-bottom:25px}
 .tg-card{display:grid;grid-template-columns:94px minmax(0,1fr) auto;align-items:center;gap:22px;
  padding:21px 23px;background:var(--panel,#fff);border:1.5px solid var(--line,#e2e5e4);
@@ -61,14 +61,28 @@
 .ap-overlay p{font-size:14px;line-height:1.55;color:#b9c5cd;margin:0 0 19px}
 .ap-start{min-height:43px;padding:11px 24px;background:#dff0e5;border-color:#bbd6c2;color:#224b3a}
 .ap-overlay small{display:block;margin-top:12px;color:#93a4ae;font-size:11px;line-height:1.5}
-/* After grading, reveal both traces rather than dimming the whole comparison.
-   Keep the score controls in a compact corner panel. */
-.ap-overlay.is-result{background:transparent;display:flex;justify-content:flex-end;align-items:flex-end;pointer-events:none;padding:12px}
-.ap-overlay.is-result .ap-overlay-content{width:min(298px,100%);padding:13px 17px;border-radius:14px;background:#141b25ef;pointer-events:auto;box-shadow:0 6px 18px #0008}
-.ap-overlay.is-result h3{font-size:32px;margin:5px 0}
-.ap-overlay.is-result p{font-size:12px;line-height:1.4;margin-bottom:10px}
-.ap-overlay.is-result small{font-size:10px;margin-top:8px}
-
+/* Scoring lives below the arena. Nothing may cover either drawing. */
+.ap-result{display:flex;align-items:center;justify-content:space-between;gap:16px;
+ flex-wrap:wrap;margin:13px 0 6px;padding:14px 18px;border-radius:15px;
+ background:#edf5ef;border:1.5px solid #c1dacf}
+.ap-result-summary{flex:1 1 240px;min-width:0}
+.ap-result-summary>span{display:block;font:900 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.13em;color:#608f7c}
+.ap-result-summary>strong{display:block;font:950 clamp(27px,4.5vw,39px)/1.2 ui-monospace,Consolas,monospace;
+ letter-spacing:-.045em;color:#235143}
+.ap-result-summary>p{margin:4px 0 0;font-size:12px;line-height:1.4;color:#537164}
+.ap-result-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.ap-result-actions button{background:#fff;border:1px solid #a3c7b5;color:#245a47;
+ border-radius:11px;padding:10px 13px;min-height:40px;cursor:pointer;
+ font:850 11px/1.3 system-ui,sans-serif}
+.ap-result-actions button:hover{background:#d9f0e4}
+.ap-result-actions .ap-next{background:#2b6a50;color:#f7fff8;border-color:#2b6a50}
+.ap-result-actions .ap-next:hover{background:#20553f}
+.ap-result-actions button:focus-visible{outline:3px solid #c3a36c;outline-offset:2px}
+html[data-theme="dark"] .ap-result{background:#1c3731;border-color:#496c5e}
+html[data-theme="dark"] .ap-result-summary>span{color:#acddc5}
+html[data-theme="dark"] .ap-result-summary>strong{color:#e3f5e9}
+html[data-theme="dark"] .ap-result-summary>p{color:#bad4c6}
+html[data-theme="dark"] .ap-result-actions button:not(.ap-next){background:#2d5548;color:#e4f3ec;border-color:#67917f}
 .ap-underbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;
  min-height:42px}
 .ap-underbar p{font-size:13px;line-height:1.45;color:var(--muted,#68747b);margin:10px 0}
@@ -113,4 +127,10 @@ html[data-theme="dark"] .tg-card,html[data-theme="dark"] .ap-prototype{box-shado
 }
 @media(prefers-reduced-motion:reduce){
  .tg-launch,.ap-controls button,.ap-start{transition:none}
+}
+
+@media(max-width:620px){
+ .ap-result{padding:12px}
+ .ap-result-actions{width:100%;justify-content:stretch}
+ .ap-result-actions button{flex:1 1 auto}
 }
