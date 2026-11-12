@@ -47,6 +47,14 @@
  const lerp=(a,b,t)=>a+(b-a)*t;
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const pct=n=>clamp(n,0,100).toFixed(2)+'%';
+ // Nonlinear precision bonus: reward an accurate overall curve without
+ // flattening the rankings. It is zero at 0% and 100%, largest mid-range,
+ // and strictly increases with the underlying accuracy at every point.
+ // Only Path and Motion use it; Distance keeps its measured score.
+ const boostPrecisionScore=raw=>{
+  const accuracy=clamp(raw,0,100);
+  return clamp(accuracy+16*Math.sin(Math.PI*accuracy/100),0,100);
+ };
  const labelSec=n=>Math.max(0,n).toFixed(1)+'s';
  const key=m=>'crilo_owner_almost_perfect_v1:'+ownerId+':'+m;
  const readBest=m=>{
@@ -289,7 +297,7 @@
    100*accuracyIntegral/DURATION.distance:motionScore();
   phase='result';cancel();activePointer=null;
   arena.classList.remove('is-drawing','is-tracking');
-  const score=clamp(value,0,100);
+  const score=mode==='distance'?clamp(value,0,100):boostPrecisionScore(value);
   lastScores[mode]=score;
   const isBest=saveBest(score);
   renderStats();
