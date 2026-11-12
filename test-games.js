@@ -20,7 +20,7 @@
    title:'Perfect Distance',description:'Keep an exact distance from the moving dot.',
    intro:'A new target distance is chosen for each game. Memorize the dotted ring: it disappears once the dot starts moving.',
    button:'START DISTANCE',
-   help:'Each new game chooses a different target distance. Look at the ring, then click it to start. The ring and connecting guide vanish immediately: follow the moving dot for 11 seconds using your memory of the distance. Try Same Shape keeps the same target distance.',
+   help:'Each new game chooses a different target distance. Look at the ring, then click it to start. The ring and connecting guide vanish immediately: follow the moving dot for 11 seconds using your memory of the distance. Try Same Distance keeps the target distance and movement pattern for a fair retry.',
    metric:'TIME LEFT'
   },
   motion:{
@@ -230,6 +230,7 @@
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
   bestLabel.textContent=bests[mode]>0?pct(bests[mode]):'—';
   shapeLabel.textContent='RANDOM';
+  shapeLabel.previousElementSibling.textContent=mode==='distance'?'TARGET DISTANCE':'SHAPE';
   metricTitle.textContent=modes[mode].metric;
   const remaining=DURATION[mode]-elapsed;
   metric.textContent=phase==='active'?
@@ -254,6 +255,7 @@
   }
   resultPanel.hidden=true;
   replayButton.hidden=true;replayButton.textContent='REPLAY BOTH LINES ▶';showReference=true;compareButton.textContent='MY LINE ONLY';
+  $('apRetry').textContent=mode==='distance'?'TRY SAME DISTANCE':'TRY SAME SHAPE';
   arena.classList.remove('is-drawing','is-tracking');
   showOverlay(mode==='path'?'01 / 03':mode==='distance'?'02 / 03':'03 / 03',
    modes[mode].title,modes[mode].intro,modes[mode].button,
