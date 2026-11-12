@@ -30,7 +30,7 @@ assert.match(style,/@media\(max-width:700px\)\{[\s\S]*?\.topbar nav\{[\s\S]*?jus
  'Narrowed or zoomed navigation must distribute links evenly');
 for(const page of ['index.html','ducks.html','leaderboard.html','profile.html','settings.html','friends.html','badge-sets.html','moderation.html','owner-analytics.html','shape-of-sound.html','domain/index.html']){
  const html=fs.readFileSync(page,'utf8');
- assert.match(html,/header-fit\.css\?v=3/,'Missing shared dynamic header CSS: '+page);
+ assert.match(html,/header-fit\.css\?v=4/,'Missing shared dynamic header CSS: '+page);
  assert.match(html,/header-continuity\.js\?v=7/,'Old header JS cache: '+page);
 }
 console.log('DAILY_REVIEW_HEADER_SMOKE_PASS saved review, secure badge links, responsive shared header');
