@@ -18,16 +18,16 @@
   },
   distance:{
    title:'Perfect Distance',description:'Keep an exact distance from the moving dot.',
-   intro:'A dot will start moving. Keep your cursor exactly on the circle around it for 11 seconds. No clicking targets or rhythm.',
+   intro:'A new target distance is chosen for each game. Memorize the dotted ring: it disappears once the dot starts moving.',
    button:'START DISTANCE',
-   help:'Click anywhere on the dotted ring to start. Follow the moving dot while keeping your pointer on the ring. Being too close or too far reduces your score. Complete the full 11 seconds.',
+   help:'Each new game chooses a different target distance. Look at the ring, then click it to start. The ring and connecting guide vanish immediately: follow the moving dot for 11 seconds using your memory of the distance. Try Same Shape keeps the same target distance.',
    metric:'TIME LEFT'
   },
   motion:{
    title:'Perfect Motion',description:'Copy a moving cursor — including its speed changes.',
    intro:'Watch a cursor trace a route, remembering when it slows and speeds up. Then repeat its exact motion.',
    button:'WATCH MOTION',
-   help:'Watch the ghost cursor and its changes in speed. When it disappears, begin at the marked start and drag across the same route for 5.2 seconds. Your score combines where the cursor was and when it got there.',
+   help:'Watch the ghost cursor and its changes in speed. Recreate its route and timing for 5.2 seconds. Scoring allows small imperfections but still rewards precision. Afterward, use Replay Both Lines to watch the blue reference and your orange attempt draw together in real time.',
    metric:'TIME LEFT'
   }
  };
@@ -36,12 +36,12 @@
  const hudLeft=$('apHudLeft'),hudRight=$('apHudRight'),message=$('apMessage');
  const overlay=$('apOverlay'),start=$('apStart'),status=$('apStatus'),progress=$('apProgress');
  const resultPanel=$('apResult'),resultLabel=$('apResultLabel'),resultScore=$('apResultScore');
- const resultDetail=$('apResultDetail'),compareButton=$('apCompare');
+ const resultDetail=$('apResultDetail'),compareButton=$('apCompare'),replayButton=$('apReplay');
  let ownerId=null,verifySerial=0,mode='path',phase='intro';
- let routeSeed=0,previousSeed=0,showReference=true,distancePattern=null;
+ let routeSeed=0,previousSeed=0,showReference=true,distancePattern=null,targetDistance=82;
  let bests={path:0,distance:0,motion:0},lastScores={path:null,distance:null,motion:null};
  let route=[],preview=0,elapsed=0,activePointer=null,mouse=null,attempt=[],timeSamples=[];
- let lastFrame=0,raf=0,accuracyIntegral=0,lastStep=0;
+ let lastFrame=0,raf=0,accuracyIntegral=0,lastStep=0,replayElapsed=0;
  let pixelRatio=1;
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const lerp=(a,b,t)=>a+(b-a)*t;
@@ -124,6 +124,16 @@
    amplitudeX:105+rand()*76,amplitudeY:70+rand()*65,
    phaseDetailX:rand()*6.283,phaseDetailY:rand()*6.283};
  }
+ // Change the invisible target distance on every NEW GAME (not on Retry).
+ // Avoid practically identical consecutive distances so each round feels new.
+ function chooseTargetDistance(seed,previous){
+  const rng=seededRng((seed^0x7c3a5e91)>>>0);
+  let next=Math.round(62+rng()*55);
+  if(previous>0&&Math.abs(next-previous)<16){
+   next=next<=89?Math.min(117,next+19):Math.max(62,next-19);
+  }
+  return next;
+ }
  function targetAt(u){
   const i=clamp(u,0,1)*(route.length-1),n=Math.floor(i);
   return {x:lerp(route[n].x,route[Math.min(n+1,route.length-1)].x,i-n),
@@ -148,7 +158,7 @@
  }
  function pointOnRing(t){
   const p=distanceCenter(t);
-  return {x:p.x+82,y:p.y};
+  return {x:p.x+targetDistance,y:p.y};
  }
  function lengthOf(points){
   let n=0;for(let i=1;i<points.length;i++)n+=dist(points[i-1],points[i]);
@@ -195,11 +205,17 @@
    const a=timeSamples[i-1],b=timeSamples[i],dt=b.t-a.t;
    if(dt<=0)continue;
    const target=targetAt(motionProgress(clamp(b.t/duration,0,1)));
-   const error=b.missing?260:dist(b.point,target);
-   area+=Math.exp(-error/103)*dt;
+   if(b.missing||!b.point)continue;
+   const error=dist(b.point,target);
+   const strict=Math.exp(-error/103);
+   const forgiving=Math.exp(-error/155);
+   area+=(.48*strict+.52*forgiving)*dt;
   }
   const timeAccuracy=100*area/duration;
-  return clamp(timeAccuracy*.72+pathScore(attempt,false)*.28,0,100);
+  // Like Perfect Path, reward a recognizable reproduction instead of
+  // requiring near-pixel accuracy for every sampled moment.
+  // Missing time still scores zero; this cannot reward early release.
+  return clamp(timeAccuracy*.72+pathScore(attempt)*.28,0,100);
  }
  function renderStats(){
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
@@ -210,21 +226,25 @@
   metric.textContent=phase==='active'?
    (mode==='path'?labelSec(elapsed):labelSec(remaining)):
    phase==='preview'?labelSec((mode==='motion'?DURATION.motion:3.8)-preview):
+   phase==='replay'?labelSec(DURATION.motion-replayElapsed):
    phase==='result'?mode==='path'?labelSec(elapsed):'DONE':'—';
   hudLeft.textContent=modes[mode].title.toUpperCase();
   hudRight.textContent=phase==='preview'?'WATCH':phase==='ready'?'YOUR TURN':
    phase==='active'?(mode==='path'?'TRACE':Math.ceil(remaining)+'s'):
+   phase==='replay'?'REPLAY '+labelSec(replayElapsed):
    phase==='result'?(lastScores[mode]!==null?pct(lastScores[mode]):'FINISHED'):'READY';
  }
  function reset({reroll=false}={}){
-  cancel();phase='intro';elapsed=0;preview=0;lastStep=0;activePointer=null;mouse=null;
+  cancel();phase='intro';elapsed=0;preview=0;replayElapsed=0;lastStep=0;activePointer=null;mouse=null;
   attempt=[];timeSamples=[];accuracyIntegral=0;
   if(reroll||!route.length){
    routeSeed=nextSeed();
    route=createRoute(mode,routeSeed);
    distancePattern=createDistancePattern(routeSeed);
+   targetDistance=chooseTargetDistance(routeSeed,targetDistance);
   }
-  resultPanel.hidden=true;showReference=true;compareButton.textContent='MY LINE ONLY';
+  resultPanel.hidden=true;
+  replayButton.hidden=true;replayButton.textContent='REPLAY BOTH LINES ▶';showReference=true;compareButton.textContent='MY LINE ONLY';
   arena.classList.remove('is-drawing','is-tracking');
   showOverlay(mode==='path'?'01 / 03':mode==='distance'?'02 / 03':'03 / 03',
    modes[mode].title,modes[mode].intro,modes[mode].button,
@@ -247,8 +267,8 @@
   if(phase==='result'){reset();} 
   if(mode==='distance'){
    phase='ready';clearOverlay();
-   setMessage('MOVE ONTO THE DOTTED RING • CLICK TO BEGIN');
-   announce('Find the moving dot’s distance ring and click on it to start.');
+   setMessage('MEMORIZE THE RING • CLICK IT TO BEGIN');
+   announce('Memorize '+targetDistance+' pixels, then click the dotted ring. The entire distance guide disappears once you begin.');
    renderStats();draw();return;
   }
   phase='preview';preview=0;clearOverlay();
@@ -275,15 +295,37 @@
   setMessage('');
   draw();
   const detail=mode==='path'?'Your orange drawing and the original blue path stay visible above.':
-   mode==='distance'?'The score measures how closely you stayed 82 pixels from the moving dot.':
-    'Your orange trace and the reference path are shown above. Timing counts for 72% of the score.';
+   mode==='distance'?'The hidden target was '+targetDistance+' pixels from the dot. Next game chooses a different distance.':
+    'Your orange route and blue reference stay visible. Replay both to compare their timing (72%) and shape (28%).';
   clearOverlay();
   resultLabel.textContent=isBest?'NEW PERSONAL BEST':'ATTEMPT COMPLETE';
   resultScore.textContent=pct(score);
   resultDetail.textContent=detail;
   compareButton.hidden=mode==='distance';
+  replayButton.hidden=mode!=='motion';
+  replayButton.textContent='REPLAY BOTH LINES ▶';
   resultPanel.hidden=false;
   announce('You scored '+pct(score)+' in '+modes[mode].title+'. '+(isBest?'New personal best.':'Try again to improve.'));
+ }
+ // Retain the original attempt data while animating both trajectories on the
+ // same timeline. Replay is a visualization only; it does not rescore or save.
+ function stopReplay(finished=false){
+  if(phase!=='replay')return;
+  cancel();phase='result';
+  replayButton.textContent='REPLAY BOTH LINES ▶';
+  setMessage('');
+  renderStats();draw();
+  announce(finished?'Replay complete. Blue is the reference; orange is your attempt.':'Replay stopped. Your score and original attempt are unchanged.');
+ }
+ function replayMotion(){
+  if(!ownerId||mode!=='motion'||prototype.hidden)return;
+  if(phase==='replay'){stopReplay();return}
+  if(phase!=='result')return;
+  cancel();phase='replay';replayElapsed=0;
+  replayButton.textContent='STOP REPLAY ■';
+  setMessage('BLUE = REFERENCE • ORANGE = YOUR ATTEMPT');
+  announce('Replaying your attempt and the reference at their original speeds.');
+  renderStats();draw();schedule();
  }
  function addPoint(p){
   const last=attempt.at(-1);
@@ -301,6 +343,7 @@
   activePointer=id;
   phase='active';elapsed=0;accuracyIntegral=0;
   attempt=[];timeSamples=[];mouse=p;lastFrame=0;
+  if(mode==='motion')timeSamples.push({t:0,point:{x:p.x,y:p.y},missing:false});
   if(mode!=='distance')addPoint(p);
   arena.classList.toggle('is-drawing',mode!=='distance');
   arena.classList.toggle('is-tracking',mode==='distance');
@@ -322,7 +365,7 @@
    const actual=elapsed-before;
    if(mode==='distance'){
     if(mouse){
-     const radius=Math.abs(dist(mouse,distanceCenter(elapsed))-82);
+     const radius=Math.abs(dist(mouse,distanceCenter(elapsed))-targetDistance);
      accuracyIntegral+=Math.exp(-radius/58)*actual;
     }
    }else if(mode==='motion'){
@@ -330,6 +373,9 @@
      missing:!mouse});
    }
    if(elapsed>=DURATION[mode]){finish();return}
+  }else if(phase==='replay'){
+   replayElapsed=Math.min(DURATION.motion,replayElapsed+dt);
+   if(replayElapsed>=DURATION.motion){stopReplay(true);return}
   }else return;
   renderStats();draw();schedule();
  }
@@ -359,19 +405,39 @@
   const origin=route[0],end=route.at(-1);
   if(mode==='distance'){
    const p=distanceCenter(phase==='active'?elapsed:phase==='result'?DURATION.distance:0);
-   ctx.beginPath();ctx.arc(p.x,p.y,82,0,2*Math.PI);
-   ctx.setLineDash([5,7]);ctx.lineWidth=2.5;ctx.strokeStyle='#e8ce93';ctx.stroke();
-   ctx.setLineDash([]);
-   ctx.beginPath();ctx.arc(p.x,p.y,72,0,Math.PI*2);
-   ctx.lineWidth=.7;ctx.strokeStyle='#e2c58d45';ctx.stroke();
-   ctx.beginPath();ctx.arc(p.x,p.y,92,0,Math.PI*2);
-   ctx.strokeStyle='#e2c58d45';ctx.stroke();
+   // The aiming ring, tolerance rings, and connecting distance line must ALL
+   // vanish immediately at the start, leaving only the moving dot and cursor.
+   if(phase!=='active'){
+    ctx.beginPath();ctx.arc(p.x,p.y,targetDistance,0,2*Math.PI);
+    ctx.setLineDash([5,7]);ctx.lineWidth=2.5;ctx.strokeStyle='#e8ce93';ctx.stroke();
+    ctx.setLineDash([]);
+    for(const radius of [targetDistance-10,targetDistance+10]){
+     ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);
+     ctx.lineWidth=.7;ctx.strokeStyle='#e2c58d45';ctx.stroke();
+    }
+   }
    dot(p,8,'#f6db9f',null);
    if(mouse&&(phase==='active'||phase==='ready')){
-    ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);
-    ctx.strokeStyle='#a7d9eb66';ctx.lineWidth=1.5;ctx.stroke();
+    if(phase==='ready'){
+     ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(mouse.x,mouse.y);
+     ctx.strokeStyle='#a7d9eb66';ctx.lineWidth=1.5;ctx.stroke();
+    }
     dot(mouse,5,'#a7e3ef',null);
    }
+  }else if(phase==='replay'){
+   // Draw both motion traces in lockstep using the recorded time samples.
+   const u=motionProgress(clamp(replayElapsed/DURATION.motion,0,1));
+   drawLine(route,'#abd8f0',5,.92,u);
+   dot(targetAt(u),8,'#abd8f0',null);
+   let segment=[],cursor=null;
+   const flush=()=>{if(segment.length>1)drawLine(segment,'#f0b67f',4,.95);segment=[]};
+   for(const sample of timeSamples){
+    if(sample.t>replayElapsed)break;
+    if(sample.missing||!sample.point){flush();cursor=null;continue}
+    segment.push(sample.point);cursor=sample.point;
+   }
+   flush();
+   if(cursor)dot(cursor,7,'#f0b67f',null);
   }else if(phase==='preview'){
    if(mode==='path'){
     const part=clamp(preview/2.65,0,1);
@@ -405,7 +471,13 @@
   }
   ctx.font='700 11px ui-monospace,monospace';
   ctx.fillStyle='#9babc0';
-  if(mode==='distance'){ctx.fillText('STAY 82 PX AWAY',21,H-22)}
+  if(mode==='distance'){
+   ctx.fillText(phase==='active'?'GUIDE HIDDEN — HOLD YOUR DISTANCE':
+    'TARGET DISTANCE: '+targetDistance+' PX',21,H-22);
+  }else if(phase==='replay'){
+   ctx.fillStyle='#abd8f0';ctx.fillText('— REFERENCE',21,H-22);
+   ctx.fillStyle='#f0b67f';ctx.fillText('— YOUR RUN',142,H-22);
+  }
   else if(phase==='result'){
     if(showReference){ctx.fillStyle='#a9d8f0';ctx.fillText('— TARGET',21,H-22);}
     ctx.fillStyle='#f0b67f';ctx.fillText('— YOUR ATTEMPT',showReference?115:21,H-22);
@@ -416,7 +488,7 @@
   if(e.pointerType==='mouse'&&e.button!==0)return;
   const p=position(e);
   if(mode==='distance'){
-   if(Math.abs(dist(p,distanceCenter(0))-82)>31){
+   if(Math.abs(dist(p,distanceCenter(0))-targetDistance)>31){
     announce('Click the dotted ring around the gold dot to begin.');return;
    }
   }else if(dist(p,route[0])>43){
@@ -467,6 +539,7 @@
  $('apNew').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
  $('apNewResult').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
  $('apRetry').addEventListener('click',()=>{if(ownerId)reset()});
+ replayButton.addEventListener('click',replayMotion);
  compareButton.addEventListener('click',()=>{
   if(!ownerId||phase!=='result'||mode==='distance')return;
   showReference=!showReference;
@@ -475,10 +548,10 @@
  });
  start.addEventListener('click',startPreview);
  window.addEventListener('blur',()=>{
-  if(phase==='active'||phase==='preview')reset();
+  if(phase==='active'||phase==='preview'||phase==='replay')reset();
  });
  document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&(phase==='active'||phase==='preview'))reset();
+  if(document.hidden&&(phase==='active'||phase==='preview'||phase==='replay'))reset();
  });
  window.addEventListener('pagehide',cancel);
  function deny(reason){
