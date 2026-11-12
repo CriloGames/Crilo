@@ -1336,3 +1336,20 @@ html[data-theme="dark"] body.pt-page .pt-power-head strong{
 @media(prefers-reduced-motion:reduce){
  body.pt-page .pt-overlay-card{animation:none!important}
 }
+
+
+/* Keyboard gameplay must remain discoverable, without trapping Space on
+   the toolbar, menu, or other controls. The canvas is a real tab stop. */
+body.pt-page .pt-viewport:has(.pt-canvas:focus-visible){
+ outline:3px solid #b88652;
+ outline-offset:3px;
+}
+body.pt-page :is(.pt-secondary-button,.pt-back,.pt-step):focus-visible{
+ outline:3px solid #b88652;
+ outline-offset:3px;
+ border-radius:8px;
+}
+html[data-theme="dark"] body.pt-page .pt-viewport:has(.pt-canvas:focus-visible),
+html[data-theme="dark"] body.pt-page :is(.pt-secondary-button,.pt-back,.pt-step):focus-visible{
+ outline-color:#f0ca92;
+}
