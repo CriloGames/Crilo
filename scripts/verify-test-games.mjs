@@ -9,12 +9,16 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=9/);
-assert.match(html,/test-games\.css\?v=6/);
+assert.match(html,/test-games\.js\?v=10/);
+assert.match(html,/test-games\.css\?v=7/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
 assert.match(html,/id="apNew">NEW GAME/);
 assert.match(html,/id="apReplay" hidden/);
+assert.match(html,/id="apLiveScore"[^>]*hidden/);
+assert.match(html,/id="apLiveValue"/);
+assert.match(html,/id="apSound"[^>]*aria-pressed="true"/);
+assert.match(css,/\.ap-live-score\[hidden\]/);
 assert.ok(!html.includes('id="apShape"')&&!html.includes('id="apShapeTitle"'),'Shape card must be absent from all game modes');
 assert.match(js,/const forgiving=Math\.exp\(-error\/155\)/);
 assert.match(js,/timeAccuracy\*\.72\+pathScore\(attempt\)\*\.28/);
@@ -81,6 +85,7 @@ function motionProgress(u){
 }
 async function run(owner){
  const elements=new Map(),frames=new Map(),store=new Map(),events={},windowEvents={};
+ const audioNotes=[];let soundClock=10000;
  const strokes=[],dashes=[];
  const canvasContext=new Proxy({strokeStyle:''},{
   get:(obj,name)=>name==='stroke'?()=>strokes.push(obj.strokeStyle):
@@ -90,17 +95,29 @@ async function run(owner){
  });
  const node=id=>{
   if(elements.has(id))return elements.get(id);
-  const el={id,hidden:['testCollection','precisionPrototype','apResult','apMessage'].includes(id),
+  const el={id,hidden:['testCollection','precisionPrototype','apResult','apMessage','apLiveScore'].includes(id),
    inert:false,disabled:false,textContent:'',value:id==='apMode'?'path':'',width:960,height:560,events:{},
    addEventListener(type,fn){this.events[type]=fn},
    getContext(){return canvasContext},
    getBoundingClientRect(){return {left:0,top:0,width:960,height:560}},
-   setAttribute(){},setPointerCapture(){},releasePointerCapture(){},scrollIntoView(){}};
+   setAttribute(name,value){this.attributes??={};this.attributes[name]=value},setPointerCapture(){},releasePointerCapture(){},scrollIntoView(){}};
   el.classList={add(){},remove(){},toggle(){}};
   elements.set(id,el);return el;
  };
  const document={hidden:false,getElementById:node,addEventListener(type,fn){events[type]=fn}};
  const window={Crilo:{authResolved:true},devicePixelRatio:1,
+  AudioContext:class {
+   currentTime=0;state='running';destination={};
+   createOscillator(){
+    return {frequency:{setValueAtTime(value){this.value=value}},
+     type:'sine',connect(){},disconnect(){},
+     start(){audioNotes.push({pitch:this.frequency.value,type:this.type})},
+     stop(){}};
+   }
+   createGain(){return {gain:{setValueAtTime(){},exponentialRampToValueAtTime(){}},
+    connect(){},disconnect(){}}}
+   resume(){return Promise.resolve()}
+  },
   addEventListener(type,fn){windowEvents[type]=fn}};
  let nextFrame=0,clock=100,role=owner;
  const requestAnimationFrame=fn=>{frames.set(++nextFrame,fn);return nextFrame};
@@ -113,8 +130,9 @@ async function run(owner){
     data:{id:'test-owner',is_owner:role},error:null
    })})})};
   }};
- new Function('document','window','criloDB','localStorage','requestAnimationFrame','cancelAnimationFrame',exposed)
-  (document,window,criloDB,localStorage,requestAnimationFrame,cancelAnimationFrame);
+ const FakeDate={now:()=>soundClock};
+ new Function('document','window','criloDB','localStorage','requestAnimationFrame','cancelAnimationFrame','Date',exposed)
+  (document,window,criloDB,localStorage,requestAnimationFrame,cancelAnimationFrame,FakeDate);
  for(let i=0;i<10;i++)await Promise.resolve();
  assert.equal(node('testCollection').hidden,!owner);
  if(!owner){
@@ -148,9 +166,12 @@ async function run(owner){
   for(let i=0;i<Math.ceil(seconds/.05)+6&&frames.size;i++)tick();
  };
  const click=id=>node(id).events.click();
- const pointer=(type,x,y,id=1)=>node('apCanvas').events[type]({
-  pointerType:'mouse',button:0,pointerId:id,clientX:x,clientY:y,preventDefault(){}
- });
+ const pointer=(type,x,y,id=1)=>{
+  soundClock+=100;
+  node('apCanvas').events[type]({
+   pointerType:'mouse',button:0,pointerId:id,clientX:x,clientY:y,preventDefault(){}
+  });
+ };
  const start=()=>click('apStart');
  // Draw the generated target perfectly and verify that the result cannot hide it.
  start();animateFor(3.8);
@@ -170,9 +191,22 @@ async function run(owner){
    'Strong distortions must score well below a recognizable curve');
  assert.ok(window.__apSmoke.scoreStrict(reference)>99.99,
    'Original strict scoring remains available to Perfect Motion');
+ assert.equal(node('apLiveScore').hidden,true,'Live score hidden before drawing');
+ const beforeSound=audioNotes.length;
  pointer('pointerdown',reference[0].x,reference[0].y);
- for(let i=1;i<reference.length;i++)pointer('pointermove',reference[i].x,reference[i].y);
+ assert.equal(node('apLiveScore').hidden,false,'Live score starts with drawing');
+ assert.ok(audioNotes.length>=beforeSound+2,'Starting a stroke should play a gentle two-note cue');
+ for(let i=1;i<reference.length;i++){
+  pointer('pointermove',reference[i].x,reference[i].y);
+  if(i===40){
+   assert.match(node('apLiveValue').textContent,/\d+\.\d{2}%/,
+    'Path accuracy must update on screen while still drawing');
+  }
+ }
+ assert.ok(audioNotes.length>beforeSound+2,'Movement should produce quiet drawing sounds');
  pointer('pointerup',reference.at(-1).x,reference.at(-1).y);
+ assert.equal(node('apLiveScore').hidden,true,'Live score hides at completion');
+ assert.ok(audioNotes.length>=beforeSound+5,'Finishing should play a completion cue');
  assert.equal(node('apOverlay').hidden,true,'No modal should cover completed drawings');
  assert.equal(node('apResult').hidden,false,'Result controls must be outside canvas');
  const pathScore=parseFloat(node('apResultScore').textContent);
@@ -181,6 +215,20 @@ async function run(owner){
  assert.equal(node('apCompare').textContent,'SHOW BOTH LINES');
  click('apCompare');
  assert.equal(node('apCompare').textContent,'MY LINE ONLY');
+ // Mute is a genuine setting: no start, stroke or finish notes when off.
+ click('apSound');
+ assert.equal(node('apSound').textContent,'SOUND: OFF');
+ assert.equal(node('apSound').attributes['aria-pressed'],'false');
+ const afterMute=audioNotes.length;
+ click('apRetry');start();animateFor(3.8);
+ pointer('pointerdown',reference[0].x,reference[0].y);
+ for(let i=1;i<reference.length;i+=3)pointer('pointermove',reference[i].x,reference[i].y);
+ pointer('pointerup',reference.at(-1).x,reference.at(-1).y);
+ assert.equal(audioNotes.length,afterMute,'Muted game must not emit any notes');
+ click('apSound');
+ assert.equal(node('apSound').textContent,'SOUND: ON');
+ assert.equal(node('apSound').attributes['aria-pressed'],'true');
+ assert.ok(audioNotes.length>afterMute,'Enabling sound confirms the setting');
  const previousSeed=window.__apSmoke.seed(),previous=JSON.stringify(window.__apSmoke.route());
  click('apRetry');
  assert.equal(window.__apSmoke.seed(),previousSeed,'Try Same Shape must preserve route');
@@ -204,8 +252,10 @@ async function run(owner){
  assert.ok(dashes.some(pattern=>pattern.length>0),'Guide appears before start');
  dashes.length=0;
  pointer('pointerdown',first.x+radius,first.y);
- tick();
+ tick();tick();
  assert.equal(window.__apSmoke.phase(),'active');
+ assert.equal(node('apLiveScore').hidden,false,'Live accuracy visible during Distance');
+ assert.match(node('apLiveValue').textContent,/%$/,'Distance uses cumulative accuracy');
  assert.ok(!dashes.some(pattern=>pattern.length>0),'Guide must disappear during play');
  let elapsed=.05;
  for(let i=0;i<245&&frames.size;i++){
@@ -213,6 +263,7 @@ async function run(owner){
   pointer('pointermove',p.x+radius,p.y);tick();elapsed+=.05;
  }
  assert.equal(node('apResult').hidden,false);
+ assert.equal(node('apLiveScore').hidden,true,'Live number clears at the result');
  const distanceScore=parseFloat(node('apResultScore').textContent);
  assert.ok(distanceScore>80,'Correct distance should earn a high score '+distanceScore);
  click('apRetry');
@@ -234,7 +285,12 @@ async function run(owner){
  for(let i=0;i<126&&frames.size;i++){
   const p=at(motion,motionProgress(Math.min(1,(elapsedMotion+.05)/5.2)));
   pointer('pointermove',p.x,p.y);tick();elapsedMotion+=.05;
+  if(i===22){
+   assert.equal(node('apLiveScore').hidden,false,'Motion has live accuracy');
+   assert.match(node('apLiveValue').textContent,/%$/);
+  }
  }
+ assert.equal(node('apLiveScore').hidden,true,'Motion result clears live estimate');
  const motionScore=parseFloat(node('apResultScore').textContent);
  assert.ok(motionScore>50,'A correctly timed motion must score well');
  assert.equal(node('apReplay').hidden,false,'Only Motion exposes replay');
@@ -290,4 +346,4 @@ async function run(owner){
 }
 await run(false);
 const result=await run(true);
-console.log('PASS: owner access, three modes, hidden changing distance, forgiving Motion, synchronized replay',result);
+console.log('PASS: owner access, live accuracy in all modes, generated start/move/end sounds, mute, hidden distance and motion replay',result);
