@@ -25,6 +25,38 @@ assert.match(app,/testLink\.textContent='TEST GAMES'/);
 assert.match(css,/#apResult\[hidden\]/);
 assert.match(css,/@media\(max-width:520px\)/);
 
+// Hard refresh must open Test Games at the top, but ordinary visits and
+// explicit hash links must keep the browser's normal scroll behavior.
+const scrollScriptMatch=html.match(/<script>\s*\/\* Keep a hard refresh[\s\S]*?<\/script>/);
+assert.ok(scrollScriptMatch,'Missing early hard-refresh scroll fix');
+const scrollScript=scrollScriptMatch[0].replace(/^<script>/,'').replace(/<\/script>$/,'');
+function simulatePageNavigation(type,hash=''){
+ const calls=[],windowListeners={},documentListeners={};
+ const history={scrollRestoration:'auto'};
+ const window={scrollTo:(x,y)=>calls.push([x,y]),
+  addEventListener:(name,handler)=>{windowListeners[name]=handler}};
+ const document={addEventListener:(name,handler)=>{documentListeners[name]=handler}};
+ const performance={getEntriesByType:()=>[{type}]};
+ const requestAnimationFrame=callback=>callback();
+ new Function('performance','location','history','window','document','requestAnimationFrame',scrollScript)
+  (performance,{hash},history,window,document,requestAnimationFrame);
+ return {calls,history,windowListeners,documentListeners};
+}
+const hardReload=simulatePageNavigation('reload');
+assert.equal(hardReload.history.scrollRestoration,'manual');
+assert.deepEqual(hardReload.calls,[[0,0]]);
+hardReload.documentListeners.DOMContentLoaded();
+hardReload.windowListeners.load();
+hardReload.windowListeners.pageshow();
+assert.ok(hardReload.calls.length>=4,'Reload should reset top through load and pageshow');
+hardReload.windowListeners.pagehide();
+assert.equal(hardReload.history.scrollRestoration,'auto','Restoration resets before leaving');
+for(const [type,hash] of [['navigate',''],['back_forward',''],['reload','#precisionPrototype']]){
+ const nav=simulatePageNavigation(type,hash);
+ assert.equal(nav.history.scrollRestoration,'auto');
+ assert.equal(nav.calls.length,0,'Normal page history and hash navigation must not jump to top');
+}
+
 const exposed=js.replace(" window.addEventListener('crilo-auth-ready',verify);",
  " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,targetDistance:()=>targetDistance,phase:()=>phase,replayElapsed:()=>replayElapsed,samples:()=>timeSamples.map(s=>({...s})),attempt:()=>attempt.map(p=>({...p})),targetAt,boostPrecisionScore,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
 assert.notEqual(js,exposed,'Could not expose test-only state');
