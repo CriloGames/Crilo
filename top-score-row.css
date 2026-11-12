@@ -585,7 +585,7 @@ html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
  position:relative;
  z-index:1;
 }
-html[data-theme="dark"] .best-card .best-score-ray{background:#84b8df}
+html[data-theme="dark"] .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{background:#84b8df}
 html[data-theme="dark"] .best-points-stars .star{background:#e8bd55}
 @media(max-width:540px){
  .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{
