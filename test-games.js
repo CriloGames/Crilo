@@ -169,15 +169,23 @@
   }
   return samples;
  }
- function pathScore(points){
+ function pathScore(points,forgiving=true){
   if(points.length<3||lengthOf(points)<20)return 0;
   const original=sampleByArc(route,120),drawn=sampleByArc(points,120);
   const mean=original.reduce((a,p,i)=>a+dist(p,drawn[i]),0)/120;
-  const shape=Math.exp(-mean/105);
-  const lengthPenalty=Math.exp(-1.45*Math.abs(lengthOf(points)-lengthOf(route))/lengthOf(route));
-  const endPenalty=Math.exp(-dist(route.at(-1),points.at(-1))/115);
-  const startPenalty=Math.exp(-dist(route[0],points[0])/115);
-  return clamp(100*shape*lengthPenalty*endPenalty*startPenalty,0,100);
+  const lengthError=Math.abs(lengthOf(points)-lengthOf(route))/lengthOf(route);
+  const startError=dist(route[0],points[0]),endError=dist(route.at(-1),points.at(-1));
+  // Keep the original strict score for Perfect Motion's timing/path blend.
+  const strict=Math.exp(-mean/105)*Math.exp(-1.45*lengthError)*
+   Math.exp(-endError/115)*Math.exp(-startError/115);
+  if(!forgiving)return clamp(100*strict,0,100);
+  // Perfect Path should value an identifiable overall curve, even when
+  // the hand-drawn details, exact length, or endpoint aren't pixel-perfect.
+  // Blend the original metric with a gentler curve instead of inflating
+  // every imperfect attempt to an artificially high percentage.
+  const recognizable=Math.exp(-mean/155)*Math.exp(-.65*lengthError)*
+   Math.exp(-(startError+endError)/360);
+  return clamp(100*(.48*strict+.52*recognizable),0,100);
  }
  function motionScore(){
   const duration=DURATION.motion;
@@ -191,7 +199,7 @@
    area+=Math.exp(-error/103)*dt;
   }
   const timeAccuracy=100*area/duration;
-  return clamp(timeAccuracy*.72+pathScore(attempt)*.28,0,100);
+  return clamp(timeAccuracy*.72+pathScore(attempt,false)*.28,0,100);
  }
  function renderStats(){
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
