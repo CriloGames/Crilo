@@ -72,6 +72,7 @@
   $('apOverlayCopy').textContent=copy;
   $('apOverlayNote').textContent=note||'Your results are private to this device.';
   start.textContent=action;
+  overlay.classList.toggle('is-result',phase==='result');
   overlay.hidden=false;
  }
  function clearOverlay(){overlay.hidden=true}
