@@ -204,7 +204,6 @@ html[data-theme="dark"] .best-card .best-crown{color:#d6ad60}
 html[data-theme="dark"] .best-card .best-crown::before,
 html[data-theme="dark"] .best-card .best-crown::after{background:rgba(212,179,108,.22)}
 html[data-theme="dark"] .best-card #bestHeading{color:#e7ecf5}
-html[data-theme="dark"] 
 html[data-theme="dark"] .best-card .best-user{
  color:#b8cdec;
  text-shadow:0 1px 0 rgba(0,0,0,.2);
