@@ -390,10 +390,25 @@
   };
   function renderAccount(){
     // Owner-only navigation is also checked server-side by the moderation RPCs.
-    const nav=document.querySelector('body:not(.crilo-standalone) .topbar nav');
+    const nav=document.querySelector('.topbar nav');
+    const owner=!!(Crilo.user?.id&&Crilo.profile?.id===Crilo.user.id&&Crilo.profile?.is_owner===true);
     if(nav){
+      // Test Games is never listed for guests or other signed-in players.
+      // The destination independently verifies the server-backed owner role.
+      let testLink=nav.querySelector('#ownerTestGamesNav');
+      if(owner){
+        if(!testLink){
+          testLink=document.createElement('a');
+          testLink.id='ownerTestGamesNav';
+          testLink.href=siteRoot+'test-games.html';
+          testLink.textContent='TEST GAMES';
+          nav.appendChild(testLink);
+        }
+        testLink.className='crilo-owner-test-link';
+        testLink.classList.toggle('active',location.pathname.endsWith('/test-games.html'));
+      }else if(testLink)testLink.remove();
       let link=nav.querySelector('#ownerDrawingNav');
-      if(Crilo.profile?.is_owner){
+      if(owner&&!document.body.classList.contains('crilo-standalone')){
         if(!link){
           link=document.createElement('a');
           link.id='ownerDrawingNav';
