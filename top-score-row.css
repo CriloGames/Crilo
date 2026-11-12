@@ -540,7 +540,7 @@ html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
    stars, matching the other leaderboard celebration details. The rays are
    anchored to the actual score capsule, not its full-width flex stage. */
 .best-score-frame{display:contents}
-.best-score-ray,.best-points-stars{display:none}
+.best-score-ray,.best-leader-stars{display:none}
 .best-card{position:relative}
 .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-frame{
  display:inline-flex;
@@ -564,29 +564,29 @@ html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
 .best-score-ray.ray-top-right{top:-16px;right:-30px;transform:rotate(-37deg)}
 .best-score-ray.ray-bottom-left{bottom:-16px;left:-30px;transform:rotate(-37deg)}
 .best-score-ray.ray-bottom-right{bottom:-16px;right:-30px;transform:rotate(37deg)}
-.leader-main:has(.leader-tab[data-tab="points"].active) .best-points-stars{
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-leader-stars{
  display:block;
  position:absolute;
  inset:0;
  z-index:0;
  pointer-events:none;
 }
-.best-points-stars .star{
+.best-leader-stars .star{
  position:absolute;
  display:block;
  background:#f5c54f;
  clip-path:polygon(50% 0%,63% 35%,100% 38%,72% 61%,81% 100%,50% 79%,19% 100%,28% 61%,0% 38%,37% 35%);
  filter:drop-shadow(0 1px 0 rgba(167,116,24,.1));
 }
-.best-points-stars .star-left{width:20px;height:20px;left:18%;top:43%}
-.best-points-stars .star-upper-right{width:18px;height:18px;right:13%;top:29%}
-.best-points-stars .star-lower-right{width:13px;height:13px;right:18%;top:67%}
-.leader-main:has(.leader-tab[data-tab="points"].active) .best-card > :not(.best-points-stars){
+.best-leader-stars .star-left{width:20px;height:20px;left:18%;top:43%}
+.best-leader-stars .star-upper-right{width:18px;height:18px;right:13%;top:29%}
+.best-leader-stars .star-lower-right{width:13px;height:13px;right:18%;top:67%}
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-card > :not(.best-leader-stars){
  position:relative;
  z-index:1;
 }
 html[data-theme="dark"] .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{background:#84b8df}
-html[data-theme="dark"] .best-points-stars .star{background:#e8bd55}
+html[data-theme="dark"] .best-leader-stars .star{background:#e8bd55}
 @media(max-width:540px){
  .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{
   width:16px;
@@ -596,7 +596,66 @@ html[data-theme="dark"] .best-points-stars .star{background:#e8bd55}
  .best-score-ray.ray-top-right{top:-12px;right:-22px}
  .best-score-ray.ray-bottom-left{bottom:-12px;left:-22px}
  .best-score-ray.ray-bottom-right{bottom:-12px;right:-22px}
- .best-points-stars .star-left{left:9%;top:44%;width:15px;height:15px}
- .best-points-stars .star-upper-right{right:9%;top:31%;width:15px;height:15px}
- .best-points-stars .star-lower-right{right:11%;top:68%;width:11px;height:11px}
+ .best-leader-stars .star-left{left:9%;top:44%;width:15px;height:15px}
+ .best-leader-stars .star-upper-right{right:9%;top:31%;width:15px;height:15px}
+ .best-leader-stars .star-lower-right{right:11%;top:68%;width:11px;height:11px}
+}
+
+
+/* All-time Badges and Ducks: the same small gold stars as Points, with
+   board-specific constellations. No blue corner rays on either board. */
+.leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars,
+.leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars{
+ display:block;
+ position:absolute;
+ inset:0;
+ z-index:0;
+ pointer-events:none;
+}
+.leader-main:has(.leader-tab[data-tab="badges"].active) .best-card > :not(.best-leader-stars),
+.leader-main:has(.leader-tab[data-tab="ducks"].active) .best-card > :not(.best-leader-stars){
+ position:relative;
+ z-index:1;
+}
+/* Badges: one glint above-left, a larger one mid-right, and a tiny
+   accent below-right. Positioned clear of the count and name. */
+.leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-left{
+ left:19%;top:33%;width:16px;height:16px;
+}
+.leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-upper-right{
+ right:15%;top:47%;width:19px;height:19px;
+}
+.leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-lower-right{
+ right:23%;top:69%;width:12px;height:12px;
+}
+/* Ducks: offset the three glints to the opposite side for an intentionally
+   distinct but equally restrained treatment. */
+.leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-left{
+ left:14%;top:53%;width:19px;height:19px;
+}
+.leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-upper-right{
+ right:20%;top:34%;width:16px;height:16px;
+}
+.leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-lower-right{
+ right:14%;top:69%;width:13px;height:13px;
+}
+@media(max-width:540px){
+ .leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-left{
+  left:7%;top:37%;width:13px;height:13px;
+ }
+ .leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-upper-right{
+  right:7%;top:51%;width:15px;height:15px;
+ }
+ .leader-main:has(.leader-tab[data-tab="badges"].active) .best-leader-stars .star-lower-right{
+  right:16%;top:69%;width:10px;height:10px;
+ }
+ .leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-left{
+  left:7%;top:53%;width:15px;height:15px;
+ }
+ .leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-upper-right{
+  right:8%;top:37%;width:13px;height:13px;
+ }
+ .leader-main:has(.leader-tab[data-tab="ducks"].active) .best-leader-stars .star-lower-right{
+  right:7%;top:69%;width:10px;height:10px;
+ }
 }
