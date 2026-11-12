@@ -14,7 +14,7 @@ assert.ok(!html.includes('Free to play · No sign-in'),'Remove redundant sound g
 assert.ok(html.includes('Best with sound on'),'Preserve helpful audio hint');
 assert.match(html,/id="soundPlayRoom"/);
 assert.match(html,/id="soundObjects"/);
-assert.match(html,/sound-shapes\.js\?v=3/);
+assert.match(html,/sound-shapes\.js\?v=4/);
 assert.match(html,/sound-shapes\.css\?v=5/);
 assert.ok(css.includes('@media(max-width:420px)'),'Mobile touch and scaling CSS must exist');
 assert.ok(css.includes('@media(prefers-reduced-motion:reduce)'),'Reduce motion for sensitive visitors');
@@ -109,6 +109,15 @@ tap(nodes()[0]);
 assert.ok(voiceCount>0,'Tapping a sound should synthesize audio');
 assert.equal(get('soundInspector').hidden,false,'Selected sound inspector should open');
 assert.match(get('soundSelectedName').textContent,/Boop/);
+// A held Space/Enter should play once, not stack repeated oscillator voices.
+const firstKeyboardNode=nodes()[0];
+const beforeKeyboard=voiceCount;
+firstKeyboardNode.events.keydown({key:' ',repeat:false,preventDefault(){}});
+assert.ok(voiceCount>beforeKeyboard,'Space must play a selected sound');
+const singleKeyVoices=voiceCount;
+firstKeyboardNode.events.keydown({key:' ',repeat:true,preventDefault(){}});
+firstKeyboardNode.events.keydown({key:'Enter',repeat:true,preventDefault(){}});
+assert.equal(voiceCount,singleKeyVoices,'Held activation keys must not replay audio');
 const initialVoices=voiceCount;
 get('soundStretch').value='155';get('soundStretch').events.input();
 assert.ok(local.get('crilo_sound_shapes_v1'),'Shape changes must persist locally');
