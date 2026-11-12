@@ -4917,8 +4917,14 @@ el.canvas.addEventListener('pointercancel',e=>{
  try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
 });
 document.addEventListener('keydown',e=>{
- const tag=document.activeElement?.tagName||'';
- if(/^(INPUT|TEXTAREA|SELECT)$/.test(tag)||e.ctrlKey||e.altKey||e.metaKey)return;
+ const focused=document.activeElement;
+ const tag=focused?.tagName||'';
+ // Respect keyboard activation and scrolling on game controls and links.
+ // Space remains the charge key when the canvas or page has focus.
+ const inUI=/^(INPUT|TEXTAREA|SELECT|BUTTON|A|SUMMARY)$/.test(tag)||
+  !!focused?.isContentEditable||
+  !!focused?.closest?.('[role="button"],[role="slider"],[role="link"],[contenteditable="true"]');
+ if(inUI||e.ctrlKey||e.altKey||e.metaKey)return;
  const key=e.key.toLowerCase();
  if(key==='r'){
   e.preventDefault();
