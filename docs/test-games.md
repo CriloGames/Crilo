@@ -28,8 +28,12 @@ One game with a dropdown for three modes:
 
 The game saves personal-best accuracy separately for each mode, keyed by
 owner profile and mode in localStorage. All gameplay is browser-only.
-Different challenges cycle through five path variants; the current round
-can be retried, or advanced with NEW CHALLENGE.
+There are no numbered challenges or levels. NEW GAME creates a newly seeded,
+randomized path (or target movement) for the selected mode. TRY SAME SHAPE
+repeats the exact current target for practice. After grading, the full-size
+canvas remains uncovered: blue is the original and orange is the player trace.
+A comparison toggle allows showing the player's line on its own. The score
+and action buttons are below the canvas.
 
 ## Workflow
 
