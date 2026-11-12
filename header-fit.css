@@ -64,3 +64,28 @@
   padding-inline:2px;box-sizing:border-box;
  }
 }
+
+/* Visible only after app.js confirms the current account is the owner. */
+.topbar nav a.crilo-owner-test-link{
+ display:inline-flex;align-items:center;justify-content:center;
+ border:1px solid #a6cfbf;border-radius:999px;
+ padding:8px 12px;background:#eaf5ef;color:#23584a;
+ font-size:11px;font-weight:900;letter-spacing:.035em;
+}
+.topbar nav a.crilo-owner-test-link:hover,
+.topbar nav a.crilo-owner-test-link.active{
+ background:#2a6656;color:#fff;border-color:#2a6656;
+}
+.topbar nav a.crilo-owner-test-link:focus-visible{
+ outline:3px solid #b99456;outline-offset:3px;
+}
+html[data-theme="dark"] .topbar nav a.crilo-owner-test-link{
+ background:#25463e;color:#c5e9d9;border-color:#527d6d;
+}
+html[data-theme="dark"] .topbar nav a.crilo-owner-test-link:hover,
+html[data-theme="dark"] .topbar nav a.crilo-owner-test-link.active{
+ background:#a3d9c2;color:#132620;border-color:#a3d9c2;
+}
+@media(max-width:700px){
+ .topbar nav a.crilo-owner-test-link{padding:7px 10px;font-size:10px}
+}
