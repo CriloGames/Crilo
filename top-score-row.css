@@ -535,3 +535,68 @@ html[data-theme="dark"] .best-card .best-feature-row #bestDrawing{
 @media(max-width:340px){
  .best-card{height:415px}
 }
+
+/* All-time Points hero: four blue corner rays and three restrained gold
+   stars, matching the other leaderboard celebration details. The rays are
+   anchored to the actual score capsule, not its full-width flex stage. */
+.best-score-frame{display:contents}
+.best-score-ray,.best-points-stars{display:none}
+.best-card{position:relative}
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-frame{
+ display:inline-flex;
+ position:relative;
+ align-items:center;
+ justify-content:center;
+ max-width:100%;
+ min-width:0;
+}
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{
+ display:block;
+ position:absolute;
+ width:22px;
+ height:5px;
+ border-radius:999px;
+ background:#9ac8eb;
+ opacity:.88;
+ pointer-events:none;
+}
+.best-score-ray.ray-top-left{top:-16px;left:-30px;transform:rotate(37deg)}
+.best-score-ray.ray-top-right{top:-16px;right:-30px;transform:rotate(-37deg)}
+.best-score-ray.ray-bottom-left{bottom:-16px;left:-30px;transform:rotate(-37deg)}
+.best-score-ray.ray-bottom-right{bottom:-16px;right:-30px;transform:rotate(37deg)}
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-points-stars{
+ display:block;
+ position:absolute;
+ inset:0;
+ z-index:0;
+ pointer-events:none;
+}
+.best-points-stars .star{
+ position:absolute;
+ display:block;
+ background:#f5c54f;
+ clip-path:polygon(50% 0%,63% 35%,100% 38%,72% 61%,81% 100%,50% 79%,19% 100%,28% 61%,0% 38%,37% 35%);
+ filter:drop-shadow(0 1px 0 rgba(167,116,24,.1));
+}
+.best-points-stars .star-left{width:20px;height:20px;left:18%;top:43%}
+.best-points-stars .star-upper-right{width:18px;height:18px;right:13%;top:29%}
+.best-points-stars .star-lower-right{width:13px;height:13px;right:18%;top:67%}
+.leader-main:has(.leader-tab[data-tab="points"].active) .best-card > :not(.best-points-stars){
+ position:relative;
+ z-index:1;
+}
+html[data-theme="dark"] .best-card .best-score-ray{background:#84b8df}
+html[data-theme="dark"] .best-points-stars .star{background:#e8bd55}
+@media(max-width:540px){
+ .leader-main:has(.leader-tab[data-tab="points"].active) .best-card .best-score-ray{
+  width:16px;
+  height:4px;
+ }
+ .best-score-ray.ray-top-left{top:-12px;left:-22px}
+ .best-score-ray.ray-top-right{top:-12px;right:-22px}
+ .best-score-ray.ray-bottom-left{bottom:-12px;left:-22px}
+ .best-score-ray.ray-bottom-right{bottom:-12px;right:-22px}
+ .best-points-stars .star-left{left:9%;top:44%;width:15px;height:15px}
+ .best-points-stars .star-upper-right{right:9%;top:31%;width:15px;height:15px}
+ .best-points-stars .star-lower-right{right:11%;top:68%;width:11px;height:11px}
+}
