@@ -129,8 +129,9 @@
  function chooseTargetDistance(seed,previous){
   const rng=seededRng((seed^0x7c3a5e91)>>>0);
   let next=Math.round(62+rng()*55);
-  if(previous>0&&Math.abs(next-previous)<16){
-   next=next<=89?Math.min(117,next+19):Math.max(62,next-19);
+  if(previous>0&&Math.abs(next-previous)<18){
+   const higher=previous+20,lower=previous-20;
+   next=higher<=117&&(lower<62||rng()>.5)?higher:lower;
   }
   return next;
  }
