@@ -98,9 +98,8 @@
  function requestFinaleAudio(){
   window.dispatchEvent(new Event('nothing-here-finale-audio-request'));
  }
- // Music controls both the mechanical intro and the finale score.
- // Muting stops the playback transport WITHOUT seeking, so the mascot
- // cannot keep dancing over silence. Music On resumes at that same beat.
+ // Music controls sound, not the finale visuals. Muting pauses audio while
+ // the duck continues on its own clock; Music On seeks to the live animation.
  function syncFinaleMusicVolume(){
   const audible=musicEnabled&&!document.hidden;
   for(const track of [licensedFinale,personalFinale]){
@@ -141,6 +140,7 @@
   return true;
  }
  function setMusic(on){
+  const lastAudibleTime=musicEnabled?getFinaleClock():null;
   musicEnabled=!!on;save(keyMusic,musicEnabled);syncUi();
   // The banner can offer a direct path to the egg when the player keeps
   // Music Off. Music On hides that option and resumes the normal video.
@@ -154,29 +154,21 @@
    if(windUpActive){
     // Start at the CURRENT box animation time, not the opening again.
     if(musicEnabled)syncWindUp(windUpSeconds);
-   }else if(finalePlaying){
-    // Music Off freezes the actual playback position: do not continue
-    // silently and then jump ahead on the next Music On click.
+   }else if(musicEnabled){
+    // Restart the score at the still-moving duck's current frame.
+    requestFinaleAudio();
+   }else{
     const clip=activeFinaleAudio();
-    if(musicEnabled){
-     if(finaleMaster&&fluteContext?.state==="suspended")
-      fluteContext.resume()?.catch?.(()=>{});
-     if(clip?.paused&&!clip.ended)
-      clip.play()?.catch?.(error=>{
-       console.warn("Finale audio resume:",error?.message||error);
-       if(clip===licensedFinale){
-        const at=clip.currentTime||0;
-        licensedUnavailable=true;licensedFinale=null;
-        finalePlaying=false;playFinale(134.699,at);
-       }
-      });
-    }else{
+    if(finalePlaying){
      if(clip&&!clip.paused)clip.pause();
      finaleMediaStarted=false;
      if(finaleMaster&&fluteContext?.state==="running")
       fluteContext.suspend()?.catch?.(()=>{});
     }
-   }else if(musicEnabled)requestFinaleAudio();
+    const muted=new Event("nothing-here-finale-audio-muted");
+    muted.elapsedSeconds=lastAudibleTime;
+    window.dispatchEvent(muted);
+   }
    return;
   }
   if(musicEnabled)startMusic();
@@ -487,8 +479,8 @@
  function playFinale(durationSeconds=134.699,startAtSeconds=0){
   // The wind-up yields cleanly to the first actual musical note.
   stopWindUp();
-  // Music Off must NOT run the media silently: the choreography holds
-  // until Music is enabled, then plays from its preserved exact position.
+  // Music Off pauses the soundtrack but NOT the 3D finale. Music On
+  // joins the independently advancing duck at its current animation time.
   if(document.hidden)return false;
   const offset=Math.max(0,Math.min(134.599,
    Number(startAtSeconds)||0));
@@ -554,8 +546,8 @@
    finaleSynthClockStart=now;
    finaleMaster=master;finalePlaying=true;latestEffect='finale';
    syncFinaleMusicVolume();
-   // Freeze the synth transport while muted; starting it silently would
-   // make the duck leap several beats when the Music button is enabled.
+   // Quiet the synth transport while muted. The duck's visual timer
+   // advances independently until the listener turns Music back on.
    if(!musicEnabled&&ctx.state==="running")
     ctx.suspend()?.catch?.(()=>{});
    // Match the 150-BPM animation and licensed track. The previous 136-BPM

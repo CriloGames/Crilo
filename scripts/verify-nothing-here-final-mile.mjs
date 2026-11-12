@@ -601,6 +601,58 @@ try{
   delete window.__finaleStateBeforeTest;
  });
  console.log("PASS: audio ending between frames does not hang the duck finale");
+ // Music controls sound, NOT the finale's 3D animation. Start at a known
+ // licensed soundtrack beat, mute, and verify the duck continues spinning.
+ await page.evaluate(()=>{
+  const sound=window.NothingHereAudio;
+  sound.stopFinale();
+  sound.setMusic(true);
+  window.__nothing3DPreview.testFinalePendingAudio();
+  window.__duckOldAudioClock=sound.getFinaleClock;
+  sound.getFinaleClock=()=>22.5;
+ });
+ await page.waitForFunction(()=>{
+  const duck=window.__nothing3DPreview.completionFinale.duck;
+  return duck.soundtrackStarted&&duck.elapsedSeconds>=22.49;
+ },null,{timeout:4000,polling:60});
+ await page.evaluate(()=>window.NothingHereAudio.setMusic(false));
+ await page.waitForTimeout(300);
+ const mutedDuckA=await page.evaluate(()=>
+  window.__nothing3DPreview.completionFinale.duck);
+ await page.waitForTimeout(320);
+ const mutedDuckB=await page.evaluate(()=>
+  window.__nothing3DPreview.completionFinale.duck);
+ assert(!mutedDuckB.waitingForSoundtrack&&
+  mutedDuckB.dancing&&
+  mutedDuckB.elapsedSeconds>mutedDuckA.elapsedSeconds+.17&&
+  mutedDuckB.motion.spinning,
+  "Turning Music off paused the duck or stopped its show: "+
+   JSON.stringify({mutedDuckA,mutedDuckB}));
+ const rejoin=await page.evaluate(()=>{
+  const sound=window.NothingHereAudio;
+  const original=sound.playFinale;
+  let requested=null;
+  sound.getFinaleClock=()=>null;
+  sound.playFinale=(duration,seconds)=>{
+   requested={duration,seconds};return true;
+  };
+  sound.setMusic(true);
+  sound.playFinale=original;
+  return {requested,duck:window.__nothing3DPreview.completionFinale.duck};
+ });
+ assert(rejoin.requested&&
+  Math.abs(rejoin.requested.seconds-mutedDuckB.elapsedSeconds)<.35&&
+  rejoin.duck.waitingForSoundtrack,
+  "Music On failed to rejoin the moving duck's beat: "+
+   JSON.stringify(rejoin));
+ await page.evaluate(()=>{
+  const sound=window.NothingHereAudio;
+  sound.getFinaleClock=window.__duckOldAudioClock;
+  delete window.__duckOldAudioClock;
+  sound.setMusic(false);
+ });
+ console.log("PASS: Music Off keeps the rendered duck moving; Music On seeks the live frame");
+
  const electric=await page.evaluate(t=>
   window.__nothing3DPreview.seekFinaleFrame(t),78.04);
  assert(electric.stageScene===12&&electric.sourceTimedHardStrobe>.85,

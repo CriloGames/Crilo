@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 // Run the actual browser audio module in a minimal mocked AudioContext.
-// No wall-clock timers are allowed to make the soundtrack or duck advance.
+// The audible soundtrack follows its own clock; muting it must not freeze
+// the independently advancing 3D finale. Rejoining uses the current frame.
 const original=readFileSync(new URL("../nothing-here-audio.js",import.meta.url),"utf8");
 const starts=[];let audioContext=null,wallMs=0;
 let trackAudibleSignal=true,activityAnalyser=null;
@@ -41,11 +42,14 @@ class AudioContext{
 }
 const timers=new Map();let next=0;let finaleEndedEvents=0;
 let finaleActive=false,finaleRequests=0,finaleMutedEvents=0;
+let lastMutedAt=null;
 const window={AudioContext,addEventListener(){},
  dispatchEvent(event){
   if(event.type==="nothing-here-finale-ended")finaleEndedEvents++;
   if(event.type==="nothing-here-finale-audio-request")finaleRequests++;
-  if(event.type==="nothing-here-finale-audio-muted")finaleMutedEvents++;
+  if(event.type==="nothing-here-finale-audio-muted"){
+   finaleMutedEvents++;lastMutedAt=event.elapsedSeconds;
+  }
   return true;
  }};
 const document={hidden:false,readyState:"complete",
@@ -110,18 +114,22 @@ audio.setMusic(false);
 assert(audio.getState().finalePlaying&&!audio.getState().finaleMusicAudible,
  "Music Off must mute the finale regardless of the Sounds preference");
 audio.setSfx(false);
-assert(audio.getState().finalePlaying&&finaleMutedEvents===0,
- "Sounds must not terminate the duck's independent music clock");
+assert(audio.getState().finalePlaying&&finaleMutedEvents===1,
+ "Music Off must notify the duck to continue silently; Sounds must not stop it");
 assert.equal(audio.getFinaleClock(),null,
- "Music Off must freeze the duck instead of advancing in silence");
+ "Muted soundtrack must expose no audible clock; duck uses visual time");
 audio.setMusic(true);
+assert.equal(finaleRequests,2,
+ "Unmuting must request music at the duck's current visual time");
+assert(audio.playFinale(5,2.8),
+ "The finale listener should rejoin the audio at the new duck position");
 assert(audio.getState().finalePlaying&&audio.getState().finaleMusicAudible,
- "Re-enabling Music must unmute the continuing finale");
-assert(Math.abs(audio.getFinaleClock()-2)<.06,
- "Unmuting music must not restart its beat");
+ "Re-enabling Music must restore the audible finale");
+assert(Math.abs(audio.getFinaleClock()-2.8)<.06,
+ "Rejoined music must start at the CURRENT duck frame, not its muted position");
 audio.stopFinale();
 assert(!audio.getState().finalePlaying,"Stop should still end the score");
-console.log("PASS: silent/suspended synth freezes duck, resumes on actual 150-BPM clock");
+console.log("PASS: muted synth leaves visual finale running and rejoins the live duck clock");
 const oldCount=starts.length;
 audio.startWindUp();
 audio.syncWindUp(0);
@@ -150,7 +158,7 @@ assert(!audio.getState().windUpActive,
 console.log("PASS: original accelerated mechanical intro joins 150 BPM, obeys Music toggle");
 
 // Exercise the actual HTMLAudioElement route as well as the synth fallback.
-// Music Off must mute, not pause/reseek; on/off rapidly must never restart.
+// Music Off pauses the audio, not the visuals; Music On seeks to visual time.
 class Track{
  constructor(src=""){
   this.src=src;this.paused=true;this.muted=false;this.volume=1;
@@ -195,32 +203,37 @@ assert(mediaAudio.playFinale(134.699),"Muted finale must start its timeline");
 const track=Track.instances.find(x=>x.src.includes("finale-licensed.mp3"));
 assert(track&&track.muted&&track.paused&&
  mediaAudio.getFinaleClock()===null,
- "Initial Music Off must keep the MP3 paused AND duck stationary");
+ "Initial Music Off must silence the MP3; visuals use their own clock");
 track.currentTime=23.64;
 const mediaStartCount=track.playCalls;
 buttons.ncMusicToggle.click();
+assert(track.paused,"Music On must request the live visual beat before playing");
+mediaAudio.playFinale(134.699,23.64); // finale listener's current visual position
 assert(!track.muted&&!track.paused&&
  track.playCalls===mediaStartCount+1&&track.currentTime===23.64,
- "Turning Music on must resume the MP3 at the saved beat");
+ "Music On must join the current duck frame");
 buttons.ncSfxToggle.click();
 assert(!track.muted&&!track.paused&&mediaAudio.getFinaleClock()===23.64,
  "Turning Sounds off must not affect active Music or the MP3 time");
 buttons.ncMusicToggle.click();
 assert(track.muted&&track.paused&&mediaAudio.getFinaleClock()===null&&
- track.currentTime===23.64,
- "Music Off must PAUSE the MP3, hold the duck and preserve its beat");
+ track.currentTime===23.64&&lastMutedAt===23.64,
+ "Music Off must pause ONLY the soundtrack and send the duck its final audio time");
 buttons.ncSfxToggle.click();
 assert(track.muted&&track.paused,
  "Sounds On must not restart the muted soundtrack");
 buttons.ncMusicToggle.click();
-assert(!track.muted&&!track.paused&&track.currentTime===23.64&&
+assert(track.paused,
+ "Audio must not resume from its old beat while the duck has moved on");
+mediaAudio.playFinale(134.699,27.31); // animation continued during mute
+assert(!track.muted&&!track.paused&&track.currentTime===27.31&&
  track.playCalls===mediaStartCount+2,
- "Re-enabling Music must RESUME at the exact preserved song beat");
+ "Re-enabling Music must seek to the duck's advanced position");
 assert.equal(buttons.ncMusicToggle.attributes["aria-pressed"],"true",
  "Music button must display the correct audible state during finale");
 mediaAudio.stopFinale();
 assert(track.paused,"Stopping the finale must still pause the MP3");
-console.log("PASS: real MP3 halts on silence, resumes on original beat, independent Sounds");
+console.log("PASS: real MP3 pauses on Music Off, then rejoins moving duck on Music On");
 
 // A non-invasive stream meter also stops the duck during actual SILENT
 // passages inside an MP3 even while audio.currentTime continues advancing.

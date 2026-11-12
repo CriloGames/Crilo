@@ -523,13 +523,14 @@ export function createFinaleDuckShow({
     paint((now-startTime)/1000);
    }
   }
-  // A buffered or paused MP3 can take longer than 134.7s of wall time.
-  // Never end an audio-synchronized finale until its actual playhead ends.
+  // Audio buffering keeps synced playback paused. Music Off switches to
+  // the visual clock instead, allowing the silent duck to reach the egg.
   const reachedEnd=elapsed>=CAT_REFERENCE_DURATION-.015;
   const unsyncedTimeout=!waitingForSoundtrack&&
    now-startTime>=CAT_REFERENCE_DURATION*1000;
   if((soundtrackStarted||!waitingForSoundtrack)&&
     (reachedEnd||unsyncedTimeout)){
+   if(!waitingForSoundtrack)window.NothingHereAudio?.stopFinale?.();
    finishOnAudioEnd();
   }else raf=requestAnimationFrame(tick);
  }
@@ -618,12 +619,12 @@ export function createFinaleDuckShow({
  function start({syncToAudio=false}={}){
   stop();show(0);playing=true;
   waitingForSoundtrack=!!syncToAudio;
-  soundtrackStarted=!syncToAudio;
+  soundtrackStarted=false;
   startTime=performance.now();lastPaint=0;
   raf=requestAnimationFrame(tick);
  }
- // Toggle between the duck's silent clock and the real music playhead
- // without resetting its pose or the unfolded box.
+ // Muting music never pauses the visuals. Switching music back on seeks
+ // the score to the current silent duck frame without restarting the show.
  function syncToAudio(){
   if(!playing)return false;
   waitingForSoundtrack=true;
@@ -633,8 +634,12 @@ export function createFinaleDuckShow({
   spinner.rotation.y=0;
   return true;
  }
- function continueSilently(){
-  if(!playing||!waitingForSoundtrack)return false;
+ function continueSilently(audioAt=null){
+  if(!playing)return false;
+  // A mute click can fall between animation frames; use the final audible
+  // playhead to avoid losing up to one rendered frame on the transition.
+  if(Number.isFinite(audioAt)&&audioAt>=0)
+   paint(Math.max(elapsed,audioAt));
   waitingForSoundtrack=false;
   soundtrackStarted=false;
   startTime=performance.now()-elapsed*1000;
