@@ -1,35 +1,43 @@
 # Crilo private Test Games
 
-The owner-only playtest catalog is `/test-games.html`. It is not linked in
-the public More Games collection. The shared `app.js` header adds a TEST
-GAMES tab after authenticated owner-profile verification. The test page
-independently checks Supabase `auth.getUser()` and the current profile's
-protected `is_owner` column, and leaves the game hidden/inert otherwise.
+The owner-only playtest catalog is at /test-games.html. It is intentionally
+separate from the published More Games listing. The site's shared app.js
+adds a TEST GAMES header tab for a verified authenticated owner. The playtest
+page independently calls Supabase auth.getUser() and checks the authenticated
+profile's protected is_owner flag before revealing the game.
 
-**Important limitation:** GitHub Pages serves static HTML, CSS and JS
-publicly. This is owner-only *navigation and in-browser access*, not
-private source code or a server-enforced executable boundary. Never store
-secrets or privileged data in prototype assets; do not add privileged
-RPCs without database-side owner authorization.
+**Hosting limitation:** GitHub Pages serves HTML/JavaScript/CSS as public
+static files. This gates the normal in-browser experience and owner navigation,
+but is NOT a server-enforced restriction on reading or copying code. Never
+put credentials, private game data, server-side privileges or secret assets
+into any prototype.
 
-## Prototype 01: The Last Light
+## Prototype 01: Almost Perfect
 
-- One illuminated ellipse in a black tracking arena.
-- Move into it and click to start. Leaving its moving boundary ends the run.
-- Its motion has momentum, modest cursor reaction and slow shape changes.
-- Esc pauses; a touch pointer can drag and lift to pause.
-- Gentle, Standard and Intense modes offer useful playtesting comparisons.
-- Best survival time is browser-local and keyed by authenticated owner ID
-  and difficulty. No Daily results, badges, public scores or Supabase writes.
+One game with a dropdown for three modes:
+
+- **Perfect Path:** the route draws itself, then disappears. Trace the route
+  from memory. Score measures mean spatial error along equally arc-resampled
+  paths and penalizes incorrect length and endpoints.
+- **Perfect Distance:** click the dotted ring, then maintain precisely 82
+  logical pixels from a continuously moving point for 11 seconds. Score
+  integrates distance error over time; being off the arena counts as missed.
+- **Perfect Motion:** watch a cursor for 5.2 seconds. Recreate both its path
+  and speed. Score weights accuracy at corresponding times (72%) plus the
+  traced path shape (28%); releasing early loses remaining timed accuracy.
+
+The game saves personal-best accuracy separately for each mode, keyed by
+owner profile and mode in localStorage. All gameplay is browser-only.
+Different challenges cycle through five path variants; the current round
+can be retried, or advanced with NEW CHALLENGE.
 
 ## Workflow
 
-1. Keep new prototypes under Test Games while evaluating their feel.
-2. Test with an owner session, a regular account and a signed-out browser.
-3. Run `node scripts/verify-test-games.mjs` for the offline access and input
-   regression suite; perform actual browser and phone tests as well.
-4. When the owner explicitly approves a prototype, move it to its own public
-   game URL, remove the owner-only *gameplay* gate for that published version,
-   and then add a card to `index.html#more-games`.
-5. Keep unfinished experiments, owner test scores and prototype debugging
-   separate from public rankings and progress.
+1. Keep prototypes in Test Games until the owner is happy with gameplay.
+2. Run node scripts/verify-test-games.mjs and the GitHub Actions job
+   Owner Test Games smoke for owner/guest behavior and all mode mechanics.
+3. Visually playtest desktop mouse and mobile touch input in browsers.
+4. When explicitly approved, release a **separate public version** with
+   its owner-only gameplay gate removed, and add a card in More Games.
+5. Keep prototype stats and local progress isolated from public rankings
+   and Daily Wheel results.
