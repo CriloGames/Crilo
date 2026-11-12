@@ -65,7 +65,7 @@
 .best-card .best-score-stage::after{
  content:"";
  position:absolute;
- left:0;
+ left:-26px;
  width:16px;
  height:4px;
  border-radius:999px;
@@ -74,8 +74,8 @@
  opacity:.75;
  pointer-events:none;
 }
-.best-card .best-score-stage::before{top:18%}
-.best-card .best-score-stage::after{bottom:18%;transform:rotate(-35deg)}
+.best-card .best-score-stage::before{top:4%}
+.best-card .best-score-stage::after{bottom:40%;transform:rotate(-35deg)}
 .best-card .best-feature-row #bestScore{
  display:flex;
  justify-content:center;
