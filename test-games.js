@@ -32,10 +32,13 @@
   }
  };
  const modeSelect=$('apMode'),lastLabel=$('apLast'),bestLabel=$('apBest');
- const roundLabel=$('apRound'),metricTitle=$('apMetricTitle'),metric=$('apMetric');
+ const shapeLabel=$('apShape'),metricTitle=$('apMetricTitle'),metric=$('apMetric');
  const hudLeft=$('apHudLeft'),hudRight=$('apHudRight'),message=$('apMessage');
  const overlay=$('apOverlay'),start=$('apStart'),status=$('apStatus'),progress=$('apProgress');
- let ownerId=null,verifySerial=0,mode='path',phase='intro',rounds={path:1,distance:1,motion:1};
+ const resultPanel=$('apResult'),resultLabel=$('apResultLabel'),resultScore=$('apResultScore');
+ const resultDetail=$('apResultDetail'),compareButton=$('apCompare');
+ let ownerId=null,verifySerial=0,mode='path',phase='intro';
+ let routeSeed=0,previousSeed=0,showReference=true,distancePattern=null;
  let bests={path:0,distance:0,motion:0},lastScores={path:null,distance:null,motion:null};
  let route=[],preview=0,elapsed=0,activePointer=null,mouse=null,attempt=[],timeSamples=[];
  let lastFrame=0,raf=0,accuracyIntegral=0,lastStep=0;
@@ -72,24 +75,54 @@
   $('apOverlayCopy').textContent=copy;
   $('apOverlayNote').textContent=note||'Your results are private to this device.';
   start.textContent=action;
-  overlay.classList.toggle('is-result',phase==='result');
+  overlay.classList.remove('is-result');
   overlay.hidden=false;
  }
  function clearOverlay(){overlay.hidden=true}
- function createRoute(m,round){
-  const pts=[],type=(round-1)%5,tilt=(round*0.63)%6.28;
+ // A freshly generated seed creates new shapes every time NEW GAME is chosen.
+ // Reject a duplicate seed, even if a deterministic test/browser RNG repeats.
+ function nextSeed(){
+  const value=(Math.floor(Math.random()*0xffffffff)>>>0)||1;
+  previousSeed=value===previousSeed?(value+0x9e3779b9)>>>0:value;
+  return previousSeed||1;
+ }
+ function seededRng(initial){
+  let s=initial>>>0||1;
+  return ()=>{
+   s^=s<<13;s^=s>>>17;s^=s<<5;
+   return (s>>>0)/4294967296;
+  };
+ }
+ function createRoute(m,seed){
+  const random=seededRng(seed),curveCount=3;
+  const parts=[];
+  for(let j=0;j<curveCount;j++){
+   parts.push({amplitude:20+random()*(j===0?99:67),
+    frequency: .52+random()*2.25+(j*.26),
+    offset:random()*Math.PI*2});
+  }
+  const xWave=15+random()*41,xFreq=.55+random()*1.9,xPhase=random()*6.283;
+  const shift=(random()-.5)*44;
+  const values=[];
   for(let i=0;i<=240;i++){
    const u=i/240,t=u*Math.PI*2;
-   let x=125+710*u,y=280;
-   if(type===0)y+=92*Math.sin(t+tilt*.15)+42*Math.sin(2*t+.6);
-   if(type===1)y+=112*Math.sin(1.5*t+.3)+28*Math.cos(3*t+.4);
-   if(type===2){x+=29*Math.sin(t*3);y+=119*Math.cos(t*1.25+.35);}
-   if(type===3)y+=95*Math.sin(2.35*t+.15)+30*Math.cos(t*4+.7);
-   if(type===4){x+=36*Math.sin(2*t+.4);y+=115*Math.sin(t*1.8+.2);}
-   if(m==='motion')y=280+(y-280)*.78+23*Math.sin(3.5*t+tilt*.18);
-   pts.push({x:clamp(x,90,W-90),y:clamp(y,82,H-82)});
+   let y=280+shift;
+   for(const p of parts)y+=p.amplitude*Math.sin(t*p.frequency+p.offset);
+   const x=121+718*u+xWave*Math.sin(t*xFreq+xPhase)*Math.sin(Math.PI*u);
+   values.push({x,y});
   }
-  return pts;
+  const ys=values.map(p=>p.y),mid=(Math.min(...ys)+Math.max(...ys))/2;
+  const range=Math.max(...ys)-Math.min(...ys);
+  const scale=Math.min(1,316/Math.max(range,1));
+  return values.map(p=>({x:clamp(p.x,96,W-96),y:clamp(280+(p.y-mid)*scale,105,H-105)}));
+ }
+ function createDistancePattern(seed){
+  const rand=seededRng((seed^0xa3c59ac3)>>>0);
+  return {phaseX:rand()*Math.PI*2,phaseY:rand()*Math.PI*2,
+   frequencyX:.43+rand()*.52,frequencyY:.48+rand()*.55,
+   detailX:1.12+rand()*.66,detailY:1.04+rand()*.63,
+   amplitudeX:105+rand()*76,amplitudeY:70+rand()*65,
+   phaseDetailX:rand()*6.283,phaseDetailY:rand()*6.283};
  }
  function targetAt(u){
   const i=clamp(u,0,1)*(route.length-1),n=Math.floor(i);
@@ -107,9 +140,11 @@
   return 1;
  }
  function distanceCenter(t){
-  const r=rounds.distance,offset=(r-1)*.58;
-  return {x:480+169*Math.sin(.68*t+offset)+42*Math.sin(1.47*t+offset*.8),
-   y:280+99*Math.cos(.77*t+offset*.7)+31*Math.sin(1.17*t+offset)};
+  const p=distancePattern||createDistancePattern(12345);
+  return {x:480+p.amplitudeX*Math.sin(p.frequencyX*t+p.phaseX)+
+     35*Math.sin(p.detailX*t+p.phaseDetailX),
+   y:280+p.amplitudeY*Math.cos(p.frequencyY*t+p.phaseY)+
+     23*Math.sin(p.detailY*t+p.phaseDetailY)};
  }
  function pointOnRing(t){
   const p=distanceCenter(t);
@@ -161,7 +196,7 @@
  function renderStats(){
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
   bestLabel.textContent=bests[mode]>0?pct(bests[mode]):'—';
-  roundLabel.textContent=String(rounds[mode]).padStart(2,'0');
+  shapeLabel.textContent='RANDOM';
   metricTitle.textContent=modes[mode].metric;
   const remaining=DURATION[mode]-elapsed;
   metric.textContent=phase==='active'?
@@ -173,11 +208,15 @@
    phase==='active'?(mode==='path'?'TRACE':Math.ceil(remaining)+'s'):
    phase==='result'?(lastScores[mode]!==null?pct(lastScores[mode]):'FINISHED'):'READY';
  }
- function reset(keepRound=true){
+ function reset({reroll=false}={}){
   cancel();phase='intro';elapsed=0;preview=0;lastStep=0;activePointer=null;mouse=null;
   attempt=[];timeSamples=[];accuracyIntegral=0;
-  if(!keepRound)rounds[mode]++;
-  route=createRoute(mode,rounds[mode]);
+  if(reroll||!route.length){
+   routeSeed=nextSeed();
+   route=createRoute(mode,routeSeed);
+   distancePattern=createDistancePattern(routeSeed);
+  }
+  resultPanel.hidden=true;showReference=true;compareButton.textContent='MY LINE ONLY';
   arena.classList.remove('is-drawing','is-tracking');
   showOverlay(mode==='path'?'01 / 03':mode==='distance'?'02 / 03':'03 / 03',
    modes[mode].title,modes[mode].intro,modes[mode].button,
@@ -193,7 +232,7 @@
   $('apModeDescription').textContent=modes[next].description;
   $('apHowTitle').textContent=modes[next].title;
   $('apHowCopy').textContent=modes[next].help;
-  reset();
+  reset({reroll:true});
  }
  function startPreview(){
   if(!ownerId||prototype.hidden)return;
@@ -227,12 +266,15 @@
   renderStats();
   setMessage('');
   draw();
-  const detail=mode==='path'?'Your path is shown in orange over the original blue line.':
+  const detail=mode==='path'?'Your orange drawing and the original blue path stay visible above.':
    mode==='distance'?'The score measures how closely you stayed 82 pixels from the moving dot.':
-    'The score combines route accuracy (28%) and matching its timing (72%).';
-  showOverlay(isBest?'NEW PERSONAL BEST':'ATTEMPT COMPLETE',
-   pct(score),detail,
-   'TRY AGAIN','Same challenge, another attempt. Or choose NEW CHALLENGE.');
+    'Your orange trace and the reference path are shown above. Timing counts for 72% of the score.';
+  clearOverlay();
+  resultLabel.textContent=isBest?'NEW PERSONAL BEST':'ATTEMPT COMPLETE';
+  resultScore.textContent=pct(score);
+  resultDetail.textContent=detail;
+  compareButton.hidden=mode==='distance';
+  resultPanel.hidden=false;
   announce('You scored '+pct(score)+' in '+modes[mode].title+'. '+(isBest?'New personal best.':'Try again to improve.'));
  }
  function addPoint(p){
@@ -346,8 +388,8 @@
    dot(end,4,'#b4b9bd',null);
   }else{
    if(phase==='result'){
-    drawLine(route,'#abd8f0',5,.88);
-    dot(origin,7,'#a9d8f0');dot(end,6,'#f3cf98');
+    if(showReference){drawLine(route,'#abd8f0',5,.88);
+     dot(origin,7,'#a9d8f0');dot(end,6,'#f3cf98');}
    }
    drawLine(attempt,'#f0b67f',4,.96);
    if(attempt.length)dot(attempt.at(-1),5,'#f7c28e',null);
@@ -356,8 +398,10 @@
   ctx.font='700 11px ui-monospace,monospace';
   ctx.fillStyle='#9babc0';
   if(mode==='distance'){ctx.fillText('STAY 82 PX AWAY',21,H-22)}
-  else if(phase==='result'){ctx.fillStyle='#a9d8f0';ctx.fillText('— TARGET',21,H-22);
-    ctx.fillStyle='#f0b67f';ctx.fillText('— YOUR ATTEMPT',115,H-22);}
+  else if(phase==='result'){
+    if(showReference){ctx.fillStyle='#a9d8f0';ctx.fillText('— TARGET',21,H-22);}
+    ctx.fillStyle='#f0b67f';ctx.fillText('— YOUR ATTEMPT',showReference?115:21,H-22);
+   }
  }
  canvas.addEventListener('pointerdown',e=>{
   if(!ownerId||prototype.hidden||phase!=='ready')return;
@@ -412,7 +456,15 @@
   switchMode(mode);prototype.scrollIntoView({behavior:'smooth',block:'start'});
  });
  modeSelect.addEventListener('change',()=>switchMode(modeSelect.value));
- $('apNew').addEventListener('click',()=>{if(ownerId){rounds[mode]++;reset()}});
+ $('apNew').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
+ $('apNewResult').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
+ $('apRetry').addEventListener('click',()=>{if(ownerId)reset()});
+ compareButton.addEventListener('click',()=>{
+  if(!ownerId||phase!=='result'||mode==='distance')return;
+  showReference=!showReference;
+  compareButton.textContent=showReference?'MY LINE ONLY':'SHOW BOTH LINES';
+  draw();
+ });
  start.addEventListener('click',startPreview);
  window.addEventListener('blur',()=>{
   if(phase==='active'||phase==='preview')reset();
