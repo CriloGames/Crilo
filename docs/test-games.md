@@ -33,6 +33,12 @@ One game with a dropdown for three modes:
   attempt together in real time, using the original movement timings. Replay
   never changes the stored attempt or its score.
 
+Perfect Path and Perfect Motion apply a smooth, monotonic mid-range score
+bonus after measuring the run: score + 16 × sin(π × score / 100).
+A previous 48% becomes approximately 64%, but 0% and 100% stay
+unchanged and better attempts always score higher. Perfect Distance is
+not affected.
+
 The game saves personal-best accuracy separately for each mode, keyed by
 owner profile and mode in localStorage. All gameplay is browser-only.
 There are no numbered challenges or levels. NEW GAME creates a newly seeded,
