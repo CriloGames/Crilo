@@ -9,7 +9,7 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=6/);
+assert.match(html,/test-games\.js\?v=7/);
 assert.match(html,/test-games\.css\?v=5/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
@@ -26,7 +26,7 @@ assert.match(css,/#apResult\[hidden\]/);
 assert.match(css,/@media\(max-width:520px\)/);
 
 const exposed=js.replace(" window.addEventListener('crilo-auth-ready',verify);",
- " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,targetDistance:()=>targetDistance,phase:()=>phase,replayElapsed:()=>replayElapsed,samples:()=>timeSamples.map(s=>({...s})),attempt:()=>attempt.map(p=>({...p})),targetAt,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
+ " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,targetDistance:()=>targetDistance,phase:()=>phase,replayElapsed:()=>replayElapsed,samples:()=>timeSamples.map(s=>({...s})),attempt:()=>attempt.map(p=>({...p})),targetAt,boostPrecisionScore,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
 assert.notEqual(js,exposed,'Could not expose test-only state');
 
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -92,6 +92,19 @@ async function run(owner){
  }
  node('testOpenPrecision').events.click();
  assert.equal(node('precisionPrototype').hidden,false);
+ // Compare calibration at low, middle and near-perfect accuracies.
+ const boost=window.__apSmoke.boostPrecisionScore;
+ for(let i=0;i<=100;i++){
+  const score=boost(i);
+  assert.ok(score>=i-1e-8&&score<=100,'Score bonus cannot lower a result or exceed 100');
+  if(i<100)assert.ok(score<boost(i+1),'Score boost must preserve ranking order');
+ }
+ assert.equal(boost(0),0);
+ assert.equal(boost(100),100);
+ assert.ok(boost(48)>63&&boost(48)<65,'Screenshot-like 48% should become about 64%');
+ assert.ok(boost(90)>94&&boost(90)<96,'High precision remains clearly rewarded');
+ assert.match(js,/mode==='distance'\?clamp\(value,0,100\):boostPrecisionScore\(value\)/,
+  'Perfect Distance must retain original distance-only scoring');
  const tick=()=>{
   const entry=frames.entries().next().value;
   assert.ok(entry,'Animation frame missing');
