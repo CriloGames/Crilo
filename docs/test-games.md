@@ -19,12 +19,19 @@ One game with a dropdown for three modes:
 - **Perfect Path:** the route draws itself, then disappears. Trace the route
   from memory. Score measures mean spatial error along equally arc-resampled
   paths and penalizes incorrect length and endpoints.
-- **Perfect Distance:** click the dotted ring, then maintain precisely 82
-  logical pixels from a continuously moving point for 11 seconds. Score
-  integrates distance error over time; being off the arena counts as missed.
+- **Perfect Distance:** each New Game randomly picks a target distance
+  between 62 and 117 logical pixels, at least 18 pixels away from the previous
+  target. Memorize the dotted guide and click on it to start; the guide ring,
+  tolerance lines, numeric distance and connecting line disappear immediately.
+  Only the moving target and cursor remain for the 11-second run. Try Same
+  Shape preserves the target distance. The score integrates distance error.
 - **Perfect Motion:** watch a cursor for 5.2 seconds. Recreate both its path
-  and speed. Score weights accuracy at corresponding times (72%) plus the
-  traced path shape (28%); releasing early loses remaining timed accuracy.
+  and speed. The accuracy formula blends strict and forgiving time-distance
+  measurements and uses the forgiving Perfect Path shape metric. Timing is 72%
+  of the score and route shape is 28%; missing time still scores zero. After
+  the run, REPLAY BOTH LINES draws the blue reference and recorded orange
+  attempt together in real time, using the original movement timings. Replay
+  never changes the stored attempt or its score.
 
 The game saves personal-best accuracy separately for each mode, keyed by
 owner profile and mode in localStorage. All gameplay is browser-only.
