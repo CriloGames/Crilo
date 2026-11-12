@@ -75,12 +75,12 @@ async function exercise(owner){
  const requestAnimationFrame=fn=>{const id=timers.size+1;timers.set(id,fn);return id};
  const cancelAnimationFrame=id=>timers.delete(id);
  const localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))};
- let queried=0;
+ let queried=0,roleAllowed=owner;
  const criloDB={auth:{getUser:async()=>({data:{user:{id:'owner-test-user'}}})},
   from:table=>{
    assert.equal(table,'profiles');queried++;
    return {select:()=>({eq:()=>({maybeSingle:async()=>({
-    data:{id:'owner-test-user',is_owner:owner},error:null
+    data:{id:'owner-test-user',is_owner:roleAllowed},error:null
    })})})};
   }
  };
@@ -126,6 +126,14 @@ async function exercise(owner){
  assert.equal(node('apOverlay').hidden,true);
  node('apNew').events.click();
  assert.equal(node('apRound').textContent,'02');
+ // An obviously inaccurate straight-line shortcut must score below a careful trace.
+ start();playPreview(3.8);
+ const second=targetPoints('path',2);
+ pointer('pointerdown',second[0].x,second[0].y);
+ pointer('pointermove',second[0].x+120,second[0].y-90);
+ pointer('pointerup',second.at(-1).x,second.at(-1).y);
+ assert.ok(parseFloat(node('apLast').textContent)<scorePath,
+  'A short inaccurate path must not beat a perfect one');
 
  node('apMode').value='distance';node('apMode').events.change();
  assert.match(node('apHowTitle').textContent,/Distance/);
@@ -145,6 +153,10 @@ async function exercise(owner){
  assert.match(node('apOverlayTitle').textContent,/%$/);
  const distanceScore=parseFloat(node('apLast').textContent);
  assert.ok(distanceScore>85,'Keeping distance should earn strong score: '+distanceScore);
+ start();pointer('pointerdown',562,379);
+ for(let i=0;i<242&&timers.size;i++)tick();
+ assert.ok(parseFloat(node('apLast').textContent)<distanceScore,
+  'Standing still must not earn a perfect moving-distance score');
 
  node('apMode').value='motion';node('apMode').events.change();
  assert.match(node('apHowTitle').textContent,/Motion/);
@@ -157,17 +169,27 @@ async function exercise(owner){
   pointer('pointermove',p.x,p.y);tick();time+=.05;
  }
  assert.match(node('apOverlayTitle').textContent,/%$/);
- assert.ok(parseFloat(node('apLast').textContent)>50,'Motion timing should be graded');
+ const motionScore=parseFloat(node('apLast').textContent);
+ assert.ok(motionScore>50,'Motion timing should be graded');
+ // Jumping immediately to the endpoint cannot imitate the ghost's timing.
+ start();playPreview(5.2);
+ pointer('pointerdown',motion[0].x,motion[0].y);
+ pointer('pointermove',motion.at(-1).x,motion.at(-1).y);
+ for(let i=0;i<122&&timers.size;i++)tick();
+ assert.ok(parseFloat(node('apLast').textContent)<motionScore,
+  'Instantly skipping to the end must lose motion-timing accuracy');
  const numKeys=[...store.keys()];
  assert.equal(numKeys.filter(k=>k.includes(':path')).length,1);
  assert.equal(numKeys.filter(k=>k.includes(':distance')).length,1);
  assert.equal(numKeys.filter(k=>k.includes(':motion')).length,1);
  // A lost owner role or sign-out must hide the entire collection on next auth refresh.
+ roleAllowed=false;
  window.Crilo.authResolved=false;
  windowEvents['crilo-auth-ready']();
  for(let i=0;i<7;i++)await Promise.resolve();
- assert.equal(node('testCollection').hidden,false);
- return {scorePath,distanceScore,motionScore:parseFloat(node('apLast').textContent)};
+ assert.equal(node('testCollection').hidden,true,
+  'Revoking the owner role must immediately hide the playtest area');
+ return {scorePath,distanceScore,motionScore};
 }
 await exercise(false);
 const scores=await exercise(true);
