@@ -61,14 +61,15 @@ export function createNothingHereFinale({
    return;
   }
   if(phase!=="open"||!duckShow.getState().dancing)return;
-  if(window.NothingHereAudio?.getState?.().finalePlaying)return;
+  // A paused soundtrack has an OLD playhead. Music On always restarts
+  // the score at the duck's present animation timestamp.
   const seconds=duckShow.getState().elapsedSeconds;
   const accepted=window.NothingHereAudio?.playFinale?.(
    CAT_REFERENCE_DURATION,seconds);
   if(accepted)duckShow.syncToAudio();
  });
- window.addEventListener("nothing-here-finale-audio-muted",()=>{
-  if(phase==="open")duckShow.continueSilently();
+ window.addEventListener("nothing-here-finale-audio-muted",event=>{
+  if(phase==="open")duckShow.continueSilently(event.elapsedSeconds);
  });
  let completionWatchdog=null;
  function collectNetMaterials(){
@@ -379,12 +380,11 @@ export function createNothingHereFinale({
   if(keepNetForInspection)resetNetFade();
   else applyNetOpacity(0);
   showBanner("open");
-  // Start the music FIRST, then authorize the duck's beat clock. If the
-  // MP3 buffers for a second, it must remain still rather than sprinting
-  // ahead using performance.now() while the speakers are silent.
+  // When sound is on, wait for the decoded music beat. If Music is off,
+  // keep the 3D animation running on its own clock, all the way to the egg.
   const audioAccepted=audioAtFinish?cue():false;
-  // No soundtrack means no wall-clock-driven duck dance.
-  duckShow.start({syncToAudio:true});
+  const musicOn=window.NothingHereAudio?.getState?.().musicEnabled!==false;
+  duckShow.start({syncToAudio:audioAccepted&&musicOn});
   syncSkipButton();
   audioAtFinish=false;
   controls.enabled=true; // Orbit the unfolded object; never reactivate puzzles.
