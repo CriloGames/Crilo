@@ -61,6 +61,14 @@
 .ap-overlay p{font-size:14px;line-height:1.55;color:#b9c5cd;margin:0 0 19px}
 .ap-start{min-height:43px;padding:11px 24px;background:#dff0e5;border-color:#bbd6c2;color:#224b3a}
 .ap-overlay small{display:block;margin-top:12px;color:#93a4ae;font-size:11px;line-height:1.5}
+/* After grading, reveal both traces rather than dimming the whole comparison.
+   Keep the score controls in a compact corner panel. */
+.ap-overlay.is-result{background:transparent;display:flex;justify-content:flex-end;align-items:flex-end;pointer-events:none;padding:12px}
+.ap-overlay.is-result .ap-overlay-content{width:min(298px,100%);padding:13px 17px;border-radius:14px;background:#141b25ef;pointer-events:auto;box-shadow:0 6px 18px #0008}
+.ap-overlay.is-result h3{font-size:32px;margin:5px 0}
+.ap-overlay.is-result p{font-size:12px;line-height:1.4;margin-bottom:10px}
+.ap-overlay.is-result small{font-size:10px;margin-top:8px}
+
 .ap-underbar{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap;
  min-height:42px}
 .ap-underbar p{font-size:13px;line-height:1.45;color:var(--muted,#68747b);margin:10px 0}
