@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="dark-comfort.css?v=1">
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="header-fit.css?v=4">
-<link rel="stylesheet" href="test-games.css?v=6">
+<link rel="stylesheet" href="test-games.css?v=7">
 <script src="auth-first-paint.js?v=1"></script>
 <script src="theme-bridge.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -94,6 +94,7 @@
          <option value="motion">Perfect Motion</option>
        </select>
        <button type="button" id="apNew">NEW GAME ↻</button>
+       <button type="button" id="apSound" class="ap-sound" aria-pressed="true" title="Toggle game sound effects">SOUND: ON</button>
      </div>
    </header>
 
@@ -108,6 +109,10 @@
     <div class="ap-hud" aria-hidden="true">
       <span id="apHudLeft">PERFECT PATH</span>
       <span id="apHudRight">READY</span>
+    </div>
+    <div class="ap-live-score" id="apLiveScore" aria-label="Current estimated accuracy" hidden>
+      <span class="ap-live-label">LIVE ACCURACY <small>ESTIMATE</small></span>
+      <strong id="apLiveValue">—</strong>
     </div>
     <div class="ap-message" id="apMessage" hidden aria-live="polite"></div>
     <div class="ap-overlay" id="apOverlay">
@@ -153,6 +158,6 @@
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
 <script src="supabase-config.js?v=21"></script>
 <script src="app.js?v=57"></script>
-<script src="test-games.js?v=9"></script>
+<script src="test-games.js?v=10"></script>
 </body>
 </html>
