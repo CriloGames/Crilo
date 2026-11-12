@@ -9,7 +9,7 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=4/);
+assert.match(html,/test-games\.js\?v=5/);
 assert.match(html,/test-games\.css\?v=4/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
@@ -23,7 +23,7 @@ assert.match(css,/#apResult\[hidden\]/);
 assert.match(css,/@media\(max-width:520px\)/);
 
 const exposed=js.replace(" window.addEventListener('crilo-auth-ready',verify);",
- " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter};\n window.addEventListener('crilo-auth-ready',verify);");
+ " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
 assert.notEqual(js,exposed,'Could not expose test-only state');
 
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -100,6 +100,20 @@ async function run(owner){
  start();animateFor(3.8);
  assert.equal(node('apOverlay').hidden,true);
  const reference=window.__apSmoke.route();
+ // Calibration: broad but recognizable curves should score meaningfully above
+ // the original strict path formula, without awarding an inaccurate scribble.
+ const moderate=reference.map((p,i)=>({x:p.x,y:p.y+23*Math.sin(i*.11)}));
+ const sloppy=reference.map((p,i)=>({x:p.x,y:p.y+85*Math.sin(i*.11)}));
+ const exactScore=window.__apSmoke.scorePath(reference);
+ const moderateScore=window.__apSmoke.scorePath(moderate);
+ const previousStrict=window.__apSmoke.scoreStrict(moderate);
+ assert.ok(exactScore>99.99&&exactScore<=100,'Exact match stays near 100%');
+ assert.ok(moderateScore>previousStrict+4,'Recognizable shape must earn a fairer score');
+ assert.ok(moderateScore<exactScore-5,'Moderate imprecision must still be penalized');
+ assert.ok(window.__apSmoke.scorePath(sloppy)<moderateScore-12,
+   'Strong distortions must score well below a recognizable curve');
+ assert.ok(window.__apSmoke.scoreStrict(reference)>99.99,
+   'Original strict scoring remains available to Perfect Motion');
  pointer('pointerdown',reference[0].x,reference[0].y);
  for(let i=1;i<reference.length;i++)pointer('pointermove',reference[i].x,reference[i].y);
  pointer('pointerup',reference.at(-1).x,reference.at(-1).y);
