@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Test Games — Crilo</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css?v=127">
+<link rel="stylesheet" href="legal.css?v=7">
+<link rel="stylesheet" href="dark-comfort.css?v=1">
+<link rel="stylesheet" href="night-pages.css?v=1">
+<link rel="stylesheet" href="header-fit.css?v=4">
+<link rel="stylesheet" href="test-games.css?v=1">
+<script src="auth-first-paint.js?v=1"></script>
+<script src="theme-bridge.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="crilo-test-page">
+<header class="topbar">
+ <a class="brand" href="index.html">CRILO</a>
+ <nav aria-label="Main navigation">
+  <a href="index.html">PLAY</a>
+  <a href="leaderboard.html">LEADERBOARD</a>
+  <a href="ducks.html">DUCKS</a>
+  <a href="index.html#more-games">MORE GAMES</a>
+ </nav>
+ <div class="header-actions"><div class="account-wrap">
+  <button type="button" class="account-btn" id="accountBtn" style="visibility:hidden" aria-busy="true">SIGN IN</button>
+  <div class="account-menu hidden" id="accountMenu"></div>
+ </div></div>
+</header>
+<script src="header-continuity.js?v=7"></script>
+<main class="tg-shell">
+ <header class="tg-heading">
+  <span class="tg-kicker">PRIVATE OWNER WORKSHOP</span>
+  <h1>Test Games<span class="tg-period">.</span></h1>
+  <p>Try new ideas here before deciding what deserves a spot in More Games. Nothing on this page changes official Daily results, badges or public rankings.</p>
+ </header>
+ <div id="testAccess" class="tg-access" role="status" aria-live="polite">Checking your owner account…</div>
+ <div id="testCollection" hidden inert>
+  <section class="tg-catalog" aria-label="Unpublished prototypes">
+   <div class="tg-card">
+    <div class="tg-card-icon" aria-hidden="true"><span class="tg-card-glow"></span><span class="tg-card-core"></span></div>
+    <div class="tg-card-copy">
+     <span class="tg-tag">PROTOTYPE 01 <span class="tg-tag-separator">/</span> NOT PUBLIC</span>
+     <h2>The Last Light</h2>
+     <p>Stay inside a moving patch of light in an otherwise black room. No clicking targets or rhythm: learn how the light behaves, and see how long you can keep up.</p>
+     <p class="tg-hint">For now, the light has momentum, reacts subtly to your movements and changes shape as you survive.</p>
+    </div>
+    <button type="button" id="testOpenLight" class="tg-launch">TEST GAME <span aria-hidden="true">↗</span></button>
+   </div>
+  </section>
+  <section id="lightPrototype" class="ll-prototype" aria-labelledby="llTitle" hidden>
+   <header class="ll-header">
+    <div><div class="tg-tag">OWNER PLAYTEST <span class="tg-tag-separator">/</span> VERSION 0.1</div>
+      <h2 id="llTitle">The Last Light</h2></div>
+    <div class="ll-header-actions">
+     <label for="llDifficulty">Difficulty <select id="llDifficulty"><option value="gentle">Gentle</option><option value="standard" selected>Standard</option><option value="intense">Intense</option></select></label>
+     <button type="button" id="llSound" aria-pressed="false" title="Optional game sound">Sound: Off</button>
+     <button type="button" id="llPause" disabled>Pause</button>
+     <button type="button" id="llReset">Restart</button>
+    </div>
+   </header>
+   <div class="ll-stats" aria-label="Playtest statistics">
+    <div><span>TIME ALIVE</span><strong id="llTime">00:00.00</strong></div>
+    <div><span>CENTER ACCURACY</span><strong id="llPrecision">—</strong></div>
+    <div><span>PERSONAL BEST</span><strong id="llBest">—</strong></div>
+    <div><span>PHASE</span><strong id="llPhase">Stillness</strong></div>
+   </div>
+   <div class="ll-stage" id="llStage">
+    <canvas id="llCanvas" width="1100" height="640" aria-label="Black tracking arena with a moving light. Stay inside the illuminated boundary with your mouse."></canvas>
+    <div class="ll-overlay" id="llOverlay">
+     <div class="ll-overlay-content">
+      <span class="ll-overlay-tag" id="llOverlayTag">THE LAST LIGHT</span>
+      <h3 id="llOverlayTitle">Keep up with it.</h3>
+      <p id="llOverlayCopy">Move your mouse into the light and click to start. Once it moves, leaving the light's edge ends your run.</p>
+      <button type="button" id="llStart" class="ll-start">START TRACKING</button>
+      <small id="llOverlayNote">No lives. No clicking targets. Just you and the light.</small>
+     </div>
+    </div>
+    <div class="ll-prompt" id="llPrompt" hidden>MOVE INTO THE LIGHT • CLICK TO BEGIN</div>
+   </div>
+   <p id="llStatus" class="ll-status" role="status" aria-live="polite">This experiment is local to your browser. It does not submit scores to Crilo.</p>
+   <div class="ll-note"><strong>How it works:</strong> The light gains momentum and gradually changes shape. The more your cursor presses against its edge, the more it pulls away. Following its center is steadier. <span>Esc pauses; restart to try a different difficulty. A touch screen also works by dragging while holding.</span></div>
+  </section>
+ </div>
+</main>
+<footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
+<script src="supabase-config.js?v=21"></script>
+<script src="app.js?v=57"></script>
+<script src="test-games.js?v=1"></script>
+</body>
+</html>
