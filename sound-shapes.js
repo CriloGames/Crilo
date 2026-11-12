@@ -176,7 +176,10 @@
     });
     btn.addEventListener('keydown',event=>{
       if(event.key==='Enter'||event.key===' '){
-        event.preventDefault();select(blob.id);playBlob(blob);pulse(blob.id);return;
+        event.preventDefault();
+        // A held activation key must not synthesize dozens of stacked voices.
+        if(event.repeat)return;
+        select(blob.id);playBlob(blob);pulse(blob.id);return;
       }
       const dirs={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
       if(!dirs[event.key])return;
