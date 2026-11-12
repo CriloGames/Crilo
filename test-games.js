@@ -325,7 +325,7 @@
   // Every visit must independently confirm the current user and profile.
   deny('Checking your owner account…');
   access.classList.remove('is-denied');
-  if(!window.criloDB?.auth?.getUser){deny('Sign-in service is unavailable. Please refresh.');return}
+  if(typeof criloDB==='undefined'||!criloDB?.auth?.getUser){deny('Sign-in service is unavailable. Please refresh.');return}
   try{
    const {data:auth,error:authError}=await criloDB.auth.getUser();
    if(revision!==authRevision)return;
