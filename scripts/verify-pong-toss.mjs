@@ -12,6 +12,26 @@ const cut=(a,b)=>{
  assert(i>=0&&j>i,'Missing physics function '+a);return source.slice(i,j);
 };
 new Function(source);
+// Keyboard shortcuts belong to the canvas/page, never a focused button,
+// link, form field or other interactive game UI. Test the production guard
+// expression against representative native and ARIA controls.
+const keydownSource=cut("document.addEventListener('keydown',e=>{",
+ "document.addEventListener('keyup',e=>{");
+const guardMatch=keydownSource.match(/const inUI=([\s\S]*?);\n if\(inUI\|\|/);
+assert(guardMatch,'Pong Toss keydown handler must preserve focused UI controls');
+const inUI=new Function('focused',
+ "const tag=focused?.tagName||'';return ("+guardMatch[1]+");");
+for(const tagName of ['BUTTON','A','INPUT','TEXTAREA','SELECT','SUMMARY'])
+ assert.equal(inUI({tagName}),true,'Keyboard hotkeys must skip focused '+tagName);
+assert.equal(inUI({tagName:'DIV',isContentEditable:true}),true,
+ 'Keyboard hotkeys must skip editable elements');
+assert.equal(inUI({tagName:'DIV',closest:()=>({})}),true,
+ 'Keyboard hotkeys must skip ARIA button/slider/link controls');
+for(const tagName of ['CANVAS','BODY'])
+ assert.equal(inUI({tagName,closest:()=>null}),false,
+  'Keyboard aiming/Space charging must remain available on '+tagName);
+assert.match(css,/\.pt-viewport:has\(\.pt-canvas:focus-visible\)/,
+ 'Tabbing to the 3D canvas should show a visible focus indicator');
 const pieces=[
  cut('const PROJECTILES=[',"let projectileId='ping'"),
  cut('const STAGES=[','let settings=stageSettings(level);'),
