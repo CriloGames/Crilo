@@ -9,11 +9,14 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=5/);
-assert.match(html,/test-games\.css\?v=4/);
+assert.match(html,/test-games\.js\?v=6/);
+assert.match(html,/test-games\.css\?v=5/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
 assert.match(html,/id="apNew">NEW GAME/);
+assert.match(html,/id="apReplay" hidden/);
+assert.match(js,/const forgiving=Math\.exp\(-error\/155\)/);
+assert.match(js,/timeAccuracy\*\.72\+pathScore\(attempt\)\*\.28/);
 assert.match(js,/await criloDB\.auth\.getUser\(\)/);
 assert.match(js,/\.select\('id,is_owner'\)\.eq\('id',userId\)\.maybeSingle\(\)/);
 assert.match(js,/profile\?\.id!==userId\|\|profile\.is_owner!==true/);
@@ -23,7 +26,7 @@ assert.match(css,/#apResult\[hidden\]/);
 assert.match(css,/@media\(max-width:520px\)/);
 
 const exposed=js.replace(" window.addEventListener('crilo-auth-ready',verify);",
- " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
+ " window.__apSmoke={route:()=>route.map(p=>({...p})),seed:()=>routeSeed,distanceCenter,targetDistance:()=>targetDistance,phase:()=>phase,replayElapsed:()=>replayElapsed,samples:()=>timeSamples.map(s=>({...s})),attempt:()=>attempt.map(p=>({...p})),targetAt,scorePath:points=>pathScore(points),scoreStrict:points=>pathScore(points,false)};\n window.addEventListener('crilo-auth-ready',verify);");
 assert.notEqual(js,exposed,'Could not expose test-only state');
 
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -45,7 +48,13 @@ function motionProgress(u){
 }
 async function run(owner){
  const elements=new Map(),frames=new Map(),store=new Map(),events={},windowEvents={};
- const canvasContext=new Proxy({},{get:()=>()=>{},set:()=>true});
+ const strokes=[],dashes=[];
+ const canvasContext=new Proxy({strokeStyle:''},{
+  get:(obj,name)=>name==='stroke'?()=>strokes.push(obj.strokeStyle):
+   name==='setLineDash'?pattern=>dashes.push([...pattern]):
+   name in obj?obj[name]:()=>{},
+  set:(obj,name,value)=>{obj[name]=value;return true}
+ });
  const node=id=>{
   if(elements.has(id))return elements.get(id);
   const el={id,hidden:['testCollection','precisionPrototype','apResult','apMessage'].includes(id),
@@ -139,26 +148,35 @@ async function run(owner){
  pointer('pointerup',newPath.at(-1).x,newPath.at(-1).y);
  assert.ok(parseFloat(node('apResultScore').textContent)<pathScore,
   'A shortcut must score worse than a perfect reproduction');
- // Perfect Distance maintains a randomized movement pattern across New Game.
+ // Perfect Distance: visible target before starting, hidden during the run.
  node('apMode').value='distance';node('apMode').events.change();
- assert.match(node('apHowTitle').textContent,/Distance/);
  start();
  const center=window.__apSmoke.distanceCenter;
- const first=center(0);
- pointer('pointerdown',first.x+82,first.y);
- let elapsed=0;
+ const radius=window.__apSmoke.targetDistance(),first=center(0);
+ assert.ok(radius>=62&&radius<=117,'Distance falls within playable range');
+ assert.ok(dashes.some(pattern=>pattern.length>0),'Guide appears before start');
+ dashes.length=0;
+ pointer('pointerdown',first.x+radius,first.y);
+ tick();
+ assert.equal(window.__apSmoke.phase(),'active');
+ assert.ok(!dashes.some(pattern=>pattern.length>0),'Guide must disappear during play');
+ let elapsed=.05;
  for(let i=0;i<245&&frames.size;i++){
   const p=center(Math.min(11,elapsed));
-  pointer('pointermove',p.x+82,p.y);tick();elapsed+=.05;
+  pointer('pointermove',p.x+radius,p.y);tick();elapsed+=.05;
  }
  assert.equal(node('apResult').hidden,false);
  const distanceScore=parseFloat(node('apResultScore').textContent);
  assert.ok(distanceScore>80,'Correct distance should earn a high score '+distanceScore);
- click('apRetry');start();
- pointer('pointerdown',first.x+82,first.y);
+ click('apRetry');
+ assert.equal(window.__apSmoke.targetDistance(),radius,'Retry preserves target');
+ start();pointer('pointerdown',first.x+radius,first.y);
  for(let i=0;i<245&&frames.size;i++)tick();
  assert.ok(parseFloat(node('apResultScore').textContent)<distanceScore,
-  'Standing still should score below accurate tracking');
+  'Standing still should score below correct tracking');
+ click('apNew');
+ const nextRadius=window.__apSmoke.targetDistance();
+ assert.ok(Math.abs(nextRadius-radius)>=18,'New Game changes distance noticeably');
  // Perfect Motion compares exact position at a given time.
  node('apMode').value='motion';node('apMode').events.change();
  start();animateFor(5.2);
@@ -171,7 +189,43 @@ async function run(owner){
  }
  const motionScore=parseFloat(node('apResultScore').textContent);
  assert.ok(motionScore>50,'A correctly timed motion must score well');
+ assert.equal(node('apReplay').hidden,false,'Only Motion exposes replay');
+ const scoreBeforeReplay=node('apResultScore').textContent;
+ click('apReplay');
+ assert.equal(window.__apSmoke.phase(),'replay');
+ assert.equal(node('apReplay').textContent,'STOP REPLAY ■');
+ strokes.length=0;
+ for(let i=0;i<30;i++)tick();
+ assert.ok(strokes.includes('#abd8f0'),'Replay draws the blue reference');
+ assert.ok(strokes.includes('#f0b67f'),'Replay draws the orange attempt');
+ assert.ok(window.__apSmoke.replayElapsed()>0,'Replay advances through time');
+ assert.equal(node('apResultScore').textContent,scoreBeforeReplay);
+ click('apReplay');
+ assert.equal(window.__apSmoke.phase(),'result','Replay can be stopped');
+ click('apReplay');animateFor(5.2);
+ assert.equal(window.__apSmoke.phase(),'result','Replay ends automatically');
+ assert.equal(node('apResultScore').textContent,scoreBeforeReplay);
+ // Test forgiving Motion scoring on a moderately imperfect, but recognizable, trace.
  click('apRetry');start();animateFor(5.2);
+ pointer('pointerdown',motion[0].x,motion[0].y);
+ let driftT=0;
+ for(let i=0;i<126&&frames.size;i++){
+  const p=at(motion,motionProgress(Math.min(1,(driftT+.05)/5.2)));
+  pointer('pointermove',p.x+20*Math.sin(driftT*1.3),p.y+20*Math.sin(driftT));
+  tick();driftT+=.05;
+ }
+ const moderateMotionScore=parseFloat(node('apResultScore').textContent);
+ const sample=window.__apSmoke.samples();let oldArea=0;
+ for(let i=1;i<sample.length;i++){
+  const a=sample[i-1],b=sample[i],dt=b.t-a.t;
+  if(dt<=0||b.missing)continue;
+  const target=window.__apSmoke.targetAt(motionProgress(b.t/5.2));
+  oldArea+=Math.exp(-Math.hypot(b.point.x-target.x,b.point.y-target.y)/103)*dt;
+ }
+ const oldMotionScore=100*oldArea/5.2*.72+window.__apSmoke.scoreStrict(window.__apSmoke.attempt())*.28;
+ assert.ok(moderateMotionScore>oldMotionScore+1,'Forgiving motion should beat old strict score');
+ assert.ok(moderateMotionScore<motionScore,'Accurate motion should still score higher');
+  click('apRetry');start();animateFor(5.2);
  pointer('pointerdown',motion[0].x,motion[0].y);
  pointer('pointermove',motion.at(-1).x,motion.at(-1).y);
  for(let i=0;i<126&&frames.size;i++)tick();
@@ -184,8 +238,8 @@ async function run(owner){
  windowEvents['crilo-auth-ready']();
  for(let i=0;i<10;i++)await Promise.resolve();
  assert.equal(node('testCollection').hidden,true,'Revoking owner role must close playtests');
- return {pathScore,distanceScore,motionScore};
+ return {pathScore,distanceScore,motionScore,moderateMotionScore,oldMotionScore,radius,nextRadius};
 }
 await run(false);
 const result=await run(true);
-console.log('PASS: owner gate, 3 modes, random New Game, visible full drawing, replay, scored timing and local bests',result);
+console.log('PASS: owner access, three modes, hidden changing distance, forgiving Motion, synchronized replay',result);
