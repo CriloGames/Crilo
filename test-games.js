@@ -37,12 +37,14 @@
  const overlay=$('apOverlay'),start=$('apStart'),status=$('apStatus'),progress=$('apProgress');
  const resultPanel=$('apResult'),resultLabel=$('apResultLabel'),resultScore=$('apResultScore');
  const resultDetail=$('apResultDetail'),compareButton=$('apCompare'),replayButton=$('apReplay');
+ const liveDisplay=$('apLiveScore'),liveValue=$('apLiveValue'),soundButton=$('apSound');
  let ownerId=null,verifySerial=0,mode='path',phase='intro';
  let routeSeed=0,previousSeed=0,showReference=true,distancePattern=null,targetDistance=82;
  let bests={path:0,distance:0,motion:0},lastScores={path:null,distance:null,motion:null};
  let route=[],preview=0,elapsed=0,activePointer=null,mouse=null,attempt=[],timeSamples=[];
  let lastFrame=0,raf=0,accuracyIntegral=0,lastStep=0,replayElapsed=0;
- let pixelRatio=1;
+ let pixelRatio=1,soundEnabled=true,audioContext=null,lastSoundAt=0,soundTravel=0;
+ let liveWeighted=0,liveDistance=0,liveMotionArea=0;
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const lerp=(a,b,t)=>a+(b-a)*t;
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -55,6 +57,89 @@
   const accuracy=clamp(raw,0,100);
   return clamp(accuracy+16*Math.sin(Math.PI*accuracy/100),0,100);
  };
+ // The number in the arena is a provisional live estimate. The final
+ // score is still computed using the full completed trace and timing.
+ function nearestLineError(p){
+  let best=Infinity;
+  for(let i=1;i<route.length;i++){
+   const a=route[i-1],b=route[i],dx=b.x-a.x,dy=b.y-a.y;
+   const len=dx*dx+dy*dy;
+   const u=len?clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/len,0,1):0;
+   const x=a.x+u*dx,y=a.y+u*dy;
+   const d=(p.x-x)*(p.x-x)+(p.y-y)*(p.y-y);
+   if(d<best)best=d;
+  }
+  return Math.sqrt(best);
+ }
+ function recordLiveStroke(before,after){
+  if(!before||!after||mode==='distance')return;
+  const moved=dist(before,after);
+  if(moved<.3)return;
+  // Long pointer jumps do not get rewarded just for skipping curved sections.
+  const weight=Math.min(moved,24);
+  const error=nearestLineError(after);
+  const quality=.42*Math.exp(-error/75)+.58*Math.exp(-error/125);
+  liveWeighted+=quality*weight;liveDistance+=weight;
+ }
+ function renderLive(){
+  const active=phase==='active';
+  liveDisplay.hidden=!active;
+  if(!active)return;
+  let accuracy=null;
+  if(mode==='path'&&liveDistance>3){
+   accuracy=boostPrecisionScore(100*liveWeighted/liveDistance);
+  }else if(mode==='distance'&&elapsed>.04){
+   // Cumulative accuracy avoids revealing the hidden target radius.
+   accuracy=100*accuracyIntegral/elapsed;
+  }else if(mode==='motion'&&elapsed>.04){
+   const shape=liveDistance>3?100*liveWeighted/liveDistance:0;
+   accuracy=boostPrecisionScore(.72*(100*liveMotionArea/elapsed)+.28*shape);
+  }
+  liveValue.textContent=accuracy===null?'—':pct(accuracy);
+ }
+ // Small synthesized notes. No audio files, external assets, or looping music.
+ // Construct the context only from an actual user gesture.
+ function playTone(frequency,duration=.08,delay=0,volume=.015,type='sine'){
+  if(!soundEnabled)return;
+  const Context=window.AudioContext||window.webkitAudioContext;
+  if(!Context)return;
+  try{
+   if(!audioContext)audioContext=new Context();
+   if(audioContext.state==='suspended'){
+    const resume=audioContext.resume();
+    resume?.catch?.(()=>{});
+   }
+   const t=audioContext.currentTime+delay;
+   const osc=audioContext.createOscillator(),gain=audioContext.createGain();
+   osc.type=type;osc.frequency.setValueAtTime(frequency,t);
+   gain.gain.setValueAtTime(.0001,t);
+   gain.gain.exponentialRampToValueAtTime(volume,t+.012);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+duration);
+   osc.connect(gain);gain.connect(audioContext.destination);
+   osc.start(t);osc.stop(t+duration+.02);
+   osc.onended=()=>{try{osc.disconnect();gain.disconnect()}catch{}};
+  }catch{}
+ }
+ function soundBegin(){
+  soundTravel=0;lastSoundAt=Date.now();
+  playTone(370,.08,0,.021,'sine');
+  playTone(520,.085,.065,.012,'sine');
+ }
+ function soundMove(before,after){
+  if(!soundEnabled||!before||!after)return;
+  soundTravel+=Math.min(dist(before,after),45);
+  const now=Date.now();
+  if(soundTravel<23||now-lastSoundAt<65)return;
+  lastSoundAt=now;soundTravel=0;
+  const pitch=mode==='distance'?228:198;
+  playTone(pitch+28*Math.sin(now/190),.053,0,.0075,'triangle');
+ }
+ function soundFinish(score){
+  const good=score>=82;
+  playTone(good?525:320,.12,0,.023,'sine');
+  playTone(good?660:390,.13,.115,.022,'sine');
+  if(good)playTone(784,.16,.235,.017,'sine');
+ }
  const labelSec=n=>Math.max(0,n).toFixed(1)+'s';
  const key=m=>'crilo_owner_almost_perfect_v1:'+ownerId+':'+m;
  const readBest=m=>{
@@ -245,6 +330,7 @@
  function reset({reroll=false}={}){
   cancel();phase='intro';elapsed=0;preview=0;replayElapsed=0;lastStep=0;activePointer=null;mouse=null;
   attempt=[];timeSamples=[];accuracyIntegral=0;
+  liveWeighted=0;liveDistance=0;liveMotionArea=0;soundTravel=0;
   if(reroll||!route.length){
    routeSeed=nextSeed();
    route=createRoute(mode,routeSeed);
@@ -259,7 +345,7 @@
    modes[mode].title,modes[mode].intro,modes[mode].button,
    'Every attempt gets an accuracy percentage. Aim for 99%.');
   setMessage('');
-  renderStats();draw();
+  renderStats();renderLive();draw();
   announce('Ready for '+modes[mode].title+'. Your results stay in your browser.');
  }
  function switchMode(next){
@@ -298,6 +384,7 @@
   phase='result';cancel();activePointer=null;
   arena.classList.remove('is-drawing','is-tracking');
   const score=mode==='distance'?clamp(value,0,100):boostPrecisionScore(value);
+  renderLive();soundFinish(score);
   lastScores[mode]=score;
   const isBest=saveBest(score);
   renderStats();
@@ -340,6 +427,8 @@
   const last=attempt.at(-1);
   if(!last||dist(last,p)>.35){
    if(attempt.length>=2600)return;
+   recordLiveStroke(last,p);
+   soundMove(last,p);
    attempt.push({x:p.x,y:p.y});
   }
  }
@@ -351,14 +440,16 @@
  function begin(p,id){
   activePointer=id;
   phase='active';elapsed=0;accuracyIntegral=0;
+  liveWeighted=0;liveDistance=0;liveMotionArea=0;
   attempt=[];timeSamples=[];mouse=p;lastFrame=0;
+  soundBegin();
   if(mode==='motion')timeSamples.push({t:0,point:{x:p.x,y:p.y},missing:false});
   if(mode!=='distance')addPoint(p);
   arena.classList.toggle('is-drawing',mode!=='distance');
   arena.classList.toggle('is-tracking',mode==='distance');
   setMessage(mode==='distance'?'KEEP YOUR CURSOR ON THE RING':mode==='motion'?'MATCH THE ORIGINAL SPEED':'COPY THE CURVE');
   announce(mode==='distance'?'Tracking distance for 11 seconds.':mode==='path'?'Draw and release to score.':'Keep drawing until the timer runs out.');
-  renderStats();schedule();
+  renderStats();renderLive();schedule();
  }
  function frame(now){
   raf=0;
@@ -380,13 +471,18 @@
    }else if(mode==='motion'){
     timeSamples.push({t:elapsed,point:mouse?{x:mouse.x,y:mouse.y}:null,
      missing:!mouse});
+    if(mouse&&actual>0){
+     const expected=targetAt(motionProgress(clamp(elapsed/DURATION.motion,0,1)));
+     const error=dist(mouse,expected);
+     liveMotionArea+=(.48*Math.exp(-error/103)+.52*Math.exp(-error/155))*actual;
+    }
    }
    if(elapsed>=DURATION[mode]){finish();return}
   }else if(phase==='replay'){
    replayElapsed=Math.min(DURATION.motion,replayElapsed+dt);
    if(replayElapsed>=DURATION.motion){stopReplay(true);return}
   }else return;
-  renderStats();draw();schedule();
+  renderStats();renderLive();draw();schedule();
  }
  function schedule(){
   if(!raf)raf=requestAnimationFrame(frame);
@@ -514,9 +610,11 @@
   if(phase!=='active')return;
   if(mode!=='distance'&&e.pointerId!==activePointer)return;
   if(mode==='distance'&&activePointer!==null&&e.pointerType==='touch'&&e.pointerId!==activePointer)return;
+  const previous=mouse;
   mouse=position(e);
-  if(mode!=='distance')addPoint(mouse);
-  draw();
+  if(mode==='distance')soundMove(previous,mouse);
+  else addPoint(mouse);
+  renderLive();draw();
  });
  canvas.addEventListener('pointerup',e=>{
   if(phase!=='active'||activePointer!==e.pointerId)return;
@@ -549,6 +647,12 @@
  $('apNewResult').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
  $('apRetry').addEventListener('click',()=>{if(ownerId)reset()});
  replayButton.addEventListener('click',replayMotion);
+ soundButton.addEventListener('click',()=>{
+  soundEnabled=!soundEnabled;
+  soundButton.textContent=soundEnabled?'SOUND: ON':'SOUND: OFF';
+  soundButton.setAttribute('aria-pressed',String(soundEnabled));
+  if(soundEnabled)playTone(525,.09,0,.016);
+ });
  compareButton.addEventListener('click',()=>{
   if(!ownerId||phase!=='result'||mode==='distance')return;
   showReference=!showReference;
