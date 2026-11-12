@@ -75,6 +75,9 @@
  border-radius:11px;padding:10px 13px;min-height:40px;cursor:pointer;
  font:850 11px/1.3 system-ui,sans-serif}
 .ap-result-actions button:hover{background:#d9f0e4}
+.ap-result-actions #apReplay{background:#e4edf8;color:#294d70;border-color:#9ebbd7}
+.ap-result-actions #apReplay:hover{background:#d2e4f7}
+.ap-result-actions #apReplay[hidden]{display:none!important}
 .ap-result-actions .ap-next{background:#2b6a50;color:#f7fff8;border-color:#2b6a50}
 .ap-result-actions .ap-next:hover{background:#20553f}
 .ap-result-actions button:focus-visible{outline:3px solid #c3a36c;outline-offset:2px}
