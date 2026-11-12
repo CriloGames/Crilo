@@ -24,7 +24,7 @@ One game with a dropdown for three modes:
   target. Memorize the dotted guide and click on it to start; the guide ring,
   tolerance lines, numeric distance and connecting line disappear immediately.
   Only the moving target and cursor remain for the 11-second run. Try Same
-  Shape preserves the target distance. The score integrates distance error.
+  Distance preserves the target distance. The score integrates distance error.
 - **Perfect Motion:** watch a cursor for 5.2 seconds. Recreate both its path
   and speed. The accuracy formula blends strict and forgiving time-distance
   measurements and uses the forgiving Perfect Path shape metric. Timing is 72%
@@ -38,6 +38,18 @@ bonus after measuring the run: score + 16 × sin(π × score / 100).
 A previous 48% becomes approximately 64%, but 0% and 100% stay
 unchanged and better attempts always score higher. Perfect Distance is
 not affected.
+
+During an active run, a large **LIVE ACCURACY / ESTIMATE** readout
+appears inside the arena. Perfect Path estimates local stroke accuracy against
+the reference curve; Perfect Motion combines estimated spatial and timed
+accuracy; Perfect Distance displays cumulative tracking accuracy rather than
+revealing the hidden target distance. The readout is provisional and disappears
+at completion when the final score appears in the results panel.
+
+Small Web Audio sound effects are synthesized on demand for starting, moving
+and finishing each run. SOUND: ON/OFF in the playtest header mutes all effects
+immediately. Browsers without Web Audio play silently. There are no external
+music files or loops.
 
 The game saves personal-best accuracy separately for each mode, keyed by
 owner profile and mode in localStorage. All gameplay is browser-only.
