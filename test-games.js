@@ -32,7 +32,7 @@
   }
  };
  const modeSelect=$('apMode'),lastLabel=$('apLast'),bestLabel=$('apBest');
- const shapeLabel=$('apShape'),shapeTitle=$('apShapeTitle'),metricTitle=$('apMetricTitle'),metric=$('apMetric');
+ const metricTitle=$('apMetricTitle'),metric=$('apMetric');
  const hudLeft=$('apHudLeft'),hudRight=$('apHudRight'),message=$('apMessage');
  const overlay=$('apOverlay'),start=$('apStart'),status=$('apStatus'),progress=$('apProgress');
  const resultPanel=$('apResult'),resultLabel=$('apResultLabel'),resultScore=$('apResultScore');
@@ -229,8 +229,6 @@
  function renderStats(){
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
   bestLabel.textContent=bests[mode]>0?pct(bests[mode]):'—';
-  shapeLabel.textContent='RANDOM';
-  shapeTitle.textContent=mode==='distance'?'TARGET DISTANCE':'SHAPE';
   metricTitle.textContent=modes[mode].metric;
   const remaining=DURATION[mode]-elapsed;
   metric.textContent=phase==='active'?
