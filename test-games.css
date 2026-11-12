@@ -36,6 +36,9 @@
  padding:9px 30px 9px 12px;border:1.5px solid #9ebbb3;border-radius:10px;
  color:var(--text,#253533);background:var(--panel,#fff);cursor:pointer}
 .ap-controls button{padding:10px 12px;min-height:41px}
+.ap-controls .ap-sound{background:#f4f7f6;border-color:#c7d5d0;color:#45665b}
+.ap-controls .ap-sound[aria-pressed="false"]{opacity:.77;background:#f1f1f1;color:#6b7474;border-color:#d2d6d6}
+html[data-theme="dark"] .ap-controls .ap-sound[aria-pressed="false"]{background:#303a3b;color:#c2c8c6;border-color:#64716c}
 .ap-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:12px}
 .ap-stats>div{padding:10px 13px;border:1px solid #dce5e1;background:#f5f8f6;border-radius:13px;min-width:0}
 .ap-stats span{display:block;color:#66877a;font:900 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.04em;margin-bottom:3px}
@@ -48,6 +51,18 @@
  color:#a6aebb;pointer-events:none;font:900 11px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.09em;
  text-shadow:0 2px 4px #0008;z-index:2}
 .ap-hud span:last-child{text-align:right;color:#e8d19d;font-variant-numeric:tabular-nums}
+/* Provisional accuracy during the attempt, separate from the final score. */
+.ap-live-score{position:absolute;top:40px;left:50%;transform:translateX(-50%);z-index:3;
+ display:flex;align-items:center;gap:12px;padding:9px 15px;border-radius:14px;
+ background:rgba(18,27,37,.88);border:1px solid rgba(166,196,196,.36);
+ box-shadow:0 5px 20px #030b1699;pointer-events:none;user-select:none;white-space:nowrap}
+.ap-live-score[hidden]{display:none!important}
+.ap-live-label{display:flex;flex-direction:column;gap:2px;color:#b7d8cb;
+ font:900 10px/1.25 ui-monospace,Consolas,monospace;letter-spacing:.09em}
+.ap-live-label small{font:750 9px/1.25 ui-monospace,Consolas,monospace;
+ letter-spacing:.05em;color:#a5aeb2}
+.ap-live-score strong{font:950 clamp(24px,3.3vw,37px)/1 ui-monospace,Consolas,monospace;
+ letter-spacing:-.055em;color:#f9e1a8;font-variant-numeric:tabular-nums}
 .ap-message{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);text-align:center;
  max-width:calc(100% - 24px);min-width:min(330px,calc(100% - 24px));
  pointer-events:none;z-index:2;border:1px solid #53616b;border-radius:99px;
@@ -128,6 +143,10 @@ html[data-theme="dark"] .tg-card,html[data-theme="dark"] .ap-prototype{box-shado
  .ap-overlay small{font-size:10px}
  .ap-hud{font-size:9px;left:9px;right:9px;top:8px}
  .ap-message{font-size:9px}
+ .ap-live-score{top:28px;gap:7px;padding:6px 10px;border-radius:10px}
+ .ap-live-label{font-size:8px;letter-spacing:.025em}
+ .ap-live-label small{font-size:7px}
+ .ap-live-score strong{font-size:22px}
 }
 @media(prefers-reduced-motion:reduce){
  .tg-launch,.ap-controls button,.ap-start{transition:none}
