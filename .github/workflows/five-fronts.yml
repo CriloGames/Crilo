@@ -1,0 +1,32 @@
+name: Five Fronts prototype checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'five-fronts.html'
+      - 'five-fronts.css'
+      - 'five-fronts.js'
+      - 'five-fronts-core.js'
+      - 'test-games.html'
+      - 'scripts/verify-five-fronts.cjs'
+      - '.github/workflows/five-fronts.yml'
+  pull_request:
+    paths:
+      - 'five-fronts.html'
+      - 'five-fronts.css'
+      - 'five-fronts.js'
+      - 'five-fronts-core.js'
+      - 'test-games.html'
+      - 'scripts/verify-five-fronts.cjs'
+      - '.github/workflows/five-fronts.yml'
+  workflow_dispatch:
+jobs:
+  game-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate single-player engine and owner access
+        run: node scripts/verify-five-fronts.cjs
