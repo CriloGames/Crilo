@@ -351,6 +351,7 @@
  function switchMode(next){
   if(!modes[next]||!ownerId)return;
   mode=next;
+  arena.setAttribute('data-mode',mode);
   modeSelect.value=next;
   $('apModeDescription').textContent=modes[next].description;
   $('apHowTitle').textContent=modes[next].title;
@@ -490,22 +491,45 @@
  function drawLine(points,color,width,alpha=1,part=1){
   if(points.length<2)return;
   const last=Math.max(1,Math.floor((points.length-1)*clamp(part,0,1)));
-  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineWidth=width;
-  ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
-  ctx.moveTo(points[0].x,points[0].y);
+  ctx.save();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
   for(let i=1;i<=last;i++)ctx.lineTo(points[i].x,points[i].y);
-  ctx.stroke();ctx.restore();
+  // Understroke softens jagged pixels without creating a neon or glossy trail.
+  ctx.globalAlpha=alpha*.17;ctx.lineWidth=width+5;ctx.stroke();
+  ctx.globalAlpha=alpha;ctx.lineWidth=width;ctx.stroke();
+  ctx.restore();
  }
  function dot(p,r,color,outline='#101820'){
+  ctx.save();
+  ctx.beginPath();ctx.arc(p.x,p.y,r+8,0,Math.PI*2);
+  ctx.strokeStyle=color;ctx.globalAlpha=.19;ctx.lineWidth=1.25;ctx.stroke();
+  ctx.globalAlpha=1;
   ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
   ctx.fillStyle=color;ctx.fill();
   if(outline){ctx.lineWidth=2;ctx.strokeStyle=outline;ctx.stroke()}
+  ctx.restore();
+ }
+ function drawCanvasBackdrop(){
+  // Graph-paper texture: low contrast so the moving targets remain the focus.
+  ctx.fillStyle='#101923';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#e9f2f704';
+  for(let x=28;x<W;x+=28)ctx.fillRect(x,0,1,H);
+  for(let y=28;y<H;y+=28)ctx.fillRect(0,y,W,1);
+  ctx.fillStyle='#ddeef208';
+  for(let x=140;x<W;x+=140)ctx.fillRect(x,0,1,H);
+  for(let y=140;y<H;y+=140)ctx.fillRect(0,y,W,1);
+  // Small registration marks give the board a designed, tactile feel.
+  ctx.fillStyle='#aec6ce4b';
+  for(const x of [23,W-23]){
+   ctx.fillRect(x-7,25,14,1);ctx.fillRect(x,19,1,13);
+   ctx.fillRect(x-7,H-25,14,1);ctx.fillRect(x,H-31,1,13);
+  }
  }
  function draw(){
   const dpr=Math.min(2,window.devicePixelRatio||1);
   if(dpr!==pixelRatio){pixelRatio=dpr;canvas.width=W*dpr;canvas.height=H*dpr}
   ctx.setTransform(pixelRatio,0,0,pixelRatio,0,0);
-  ctx.clearRect(0,0,W,H);ctx.fillStyle='#0a0e16';ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H);drawCanvasBackdrop();
   if(!ownerId||prototype.hidden)return;
   const origin=route[0],end=route.at(-1);
   if(mode==='distance'){
