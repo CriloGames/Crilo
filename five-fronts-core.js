@@ -12,7 +12,7 @@
  const NAMES=['Mossvale','Solara','Northreach','Aster','Tideland','Cinderfall'];
  const TERRAIN=['plains','farms','forest','hills','river'];
  const DIRS=[[1,0],[-1,0],[0,1],[0,-1],[1,-1],[-1,1]];
- const COST={train:{metal:14,food:11,people:8},fortify:{metal:19,food:10}};
+ const COST={train:{metal:14,food:11,oil:3,people:8},fortify:{metal:19,food:10}};
  const STRATEGIES={
   mobilize:{label:'Rapid Mobilization',detail:'Training produces 30 troops instead of 20 for the next five minutes.'},
   industry:{label:'Industrial Expansion',detail:'Metal and oil production increase by 35% for five minutes.'},
@@ -164,7 +164,10 @@
   const count=Math.floor(amount);
   if(!Number.isFinite(count)||count<12||count>from.troops-5)return {ok:false,error:'Send at least 12 troops, leaving five behind.'};
   const c=country(g,id);
+  const fuel=Math.ceil(count/22);
+  if(c.resources.oil<fuel)return {ok:false,error:'Not enough oil to transport this army ('+fuel+' required).'};
   const travel=20+(to.terrain==='hills'?16:0)+(to.terrain==='forest'?8:0)+randomRange(g,0,8);
+  c.resources.oil-=fuel;
   from.troops-=count;
   g.transits.push({id:g.rng+g.transits.length,owner:id,from:from.id,to:to.id,
    troops:count,start:g.time,arrival:g.time+travel});
@@ -202,7 +205,8 @@
   const defendPolicy=defender.policyUntil>g.time&&defender.policy==='defense'?1.25:1;
   const attackPolicy=attacker.policyUntil>g.time&&['research','intelligence'].includes(attacker.policy)?1.18:1;
   const oilFactor=attacker.resources.oil<8?.84:1;
-  const attackPower=order.troops*(1+.10*(attacker.tech-1))*attackPolicy*oilFactor*(.95+roll(g)*.10);
+  const foodFactor=attacker.resources.food<5?.82:1;
+  const attackPower=order.troops*(1+.10*(attacker.tech-1))*attackPolicy*oilFactor*foodFactor*(.95+roll(g)*.10);
   const defendPower=Math.max(1,target.troops)*(1+target.fort*.28)*terrainFactor*supplyBonus*defendPolicy*(.95+roll(g)*.10);
   if(attackPower>defendPower){
    const losses=clamp(Math.round(order.troops*(.17+.52*(defendPower/attackPower))),1,order.troops-1);
@@ -236,10 +240,14 @@
    return {ok:false,error:'Choose one of the offered strategies.'};
   }
   c.policy=key;c.policyUntil=g.time+300;
-  if(key==='research'){c.tech=Math.min(5,c.tech+.4);c.resources.knowledge+=13}
+  if(key==='research'){
+   const points=Math.min(25,c.resources.knowledge);
+   c.resources.knowledge=Math.max(0,c.resources.knowledge-points);
+   c.tech=Math.min(5,c.tech+.15+points/100);
+  }
   if(key==='harvest')c.resources.food+=35;
   if(key==='defense')idsFor(g,id).forEach(s=>{if(s.fort<2)s.fort++});
-  if(key==='intelligence')c.resources.knowledge+=8;
+  if(key==='intelligence')c.resources.knowledge=Math.max(0,c.resources.knowledge-12);
   note(g,c.name+' adopted '+STRATEGIES[key].label+'.');
   if(id===0)g.pendingStrategy=null;
   return {ok:true};
@@ -332,6 +340,9 @@
     if(!ownedCount(g,c.id))continue;
     const r=production(g,c.id);
     for(const [k,rate] of Object.entries(r))c.resources[k]=Math.min(500,c.resources[k]+rate*step/60);
+    // Every garrison consumes supplies, so farms and supply logistics matter.
+    const upkeep=idsFor(g,c.id).reduce((total,s)=>total+s.troops,0)/45;
+    c.resources.food=Math.max(0,c.resources.food-upkeep*step/60);
    }
    for(let i=g.transits.length-1;i>=0;i--){
     if(g.transits[i].arrival<=g.time){
@@ -361,6 +372,6 @@
   }
  }
  return {createMatch,advance,march,train,fortify,applyStrategy,triggerEvent,resolveEvent,
-  production,scoreCountry,ownedCount,idsFor,getState,neighbors,aliveCountries,
+  production,scoreCountry,ownedCount,idsFor,getState,neighbors,aliveCountries,supply,
   TERRAIN,STRATEGIES,EVENTS,COST,COLORS,NAMES};
 });
