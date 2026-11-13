@@ -38,6 +38,7 @@
  const resultPanel=$('apResult'),resultLabel=$('apResultLabel'),resultScore=$('apResultScore');
  const resultDetail=$('apResultDetail'),compareButton=$('apCompare'),replayButton=$('apReplay');
  const liveDisplay=$('apLiveScore'),liveValue=$('apLiveValue'),soundButton=$('apSound');
+ const reachSelect=$('apReach'),reachWrap=$('apReachWrap');
  let ownerId=null,verifySerial=0,mode='path',phase='intro';
  let routeSeed=0,previousSeed=0,showReference=true,distancePattern=null,targetDistance=82;
  let bests={path:0,distance:0,motion:0},lastScores={path:null,distance:null,motion:null};
@@ -45,6 +46,10 @@
  let lastFrame=0,raf=0,accuracyIntegral=0,lastStep=0,replayElapsed=0;
  let pixelRatio=1,soundEnabled=true,audioContext=null,lastSoundAt=0,soundTravel=0;
  let liveWeighted=0,liveDistance=0,liveMotionArea=0;
+ // Horizontal mouse movement is amplified for trackpads; scoring geometry
+ // and touch/distance input remain unchanged.
+ const REACH_LEVELS=[1,1.4,1.75,2.1];
+ let reach=1.75,lastNativePointer=null;
  const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
  const lerp=(a,b,t)=>a+(b-a)*t;
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -315,6 +320,7 @@
   lastLabel.textContent=lastScores[mode]===null?'—':pct(lastScores[mode]);
   bestLabel.textContent=bests[mode]>0?pct(bests[mode]):'—';
   metricTitle.textContent=modes[mode].metric;
+  reachSelect.disabled=phase==='active';
   const remaining=DURATION[mode]-elapsed;
   metric.textContent=phase==='active'?
    (mode==='path'?labelSec(elapsed):labelSec(remaining)):
@@ -328,7 +334,7 @@
    phase==='result'?(lastScores[mode]!==null?pct(lastScores[mode]):'FINISHED'):'READY';
  }
  function reset({reroll=false}={}){
-  cancel();phase='intro';elapsed=0;preview=0;replayElapsed=0;lastStep=0;activePointer=null;mouse=null;
+  cancel();phase='intro';elapsed=0;preview=0;replayElapsed=0;lastStep=0;activePointer=null;mouse=null;lastNativePointer=null;
   attempt=[];timeSamples=[];accuracyIntegral=0;
   liveWeighted=0;liveDistance=0;liveMotionArea=0;soundTravel=0;
   if(reroll||!route.length){
@@ -352,6 +358,7 @@
   if(!modes[next]||!ownerId)return;
   mode=next;
   arena.setAttribute('data-mode',mode);
+  reachWrap.hidden=mode==='distance';
   modeSelect.value=next;
   $('apModeDescription').textContent=modes[next].description;
   $('apHowTitle').textContent=modes[next].title;
@@ -382,7 +389,7 @@
   if(phase!=='active')return;
   const value=mode==='path'?pathScore(attempt):mode==='distance'?
    100*accuracyIntegral/DURATION.distance:motionScore();
-  phase='result';cancel();activePointer=null;
+  phase='result';cancel();activePointer=null;lastNativePointer=null;
   arena.classList.remove('is-drawing','is-tracking');
   const score=mode==='distance'?clamp(value,0,100):boostPrecisionScore(value);
   renderLive();soundFinish(score);
@@ -433,7 +440,28 @@
    attempt.push({x:p.x,y:p.y});
   }
  }
- function position(e){
+ function setReach(value,store=false){
+  const numeric=Number(value);
+  reach=REACH_LEVELS.includes(numeric)?numeric:1.75;
+  reachSelect.value=String(reach);
+  if(store&&ownerId){
+   try{localStorage.setItem('crilo_owner_ap_reach_v1:'+ownerId,String(reach))}catch{}
+  }
+ }
+ function virtualPosition(e){
+  const next={x:e.clientX,y:e.clientY};
+  const prev=lastNativePointer;
+  lastNativePointer=next;
+  if(!prev||e.pointerType!=='mouse'||mode==='distance'||reach===1||!mouse){
+   return position(e);
+  }
+  const rect=canvas.getBoundingClientRect();
+  const dx=(next.x-prev.x)*W/Math.max(1,rect.width);
+  const dy=(next.y-prev.y)*H/Math.max(1,rect.height);
+  // Releasing and dragging use one virtual cursor: never snap to native x.
+  return {x:clamp(mouse.x+dx*reach,0,W),y:clamp(mouse.y+dy,0,H)};
+ }
+  function position(e){
   const box=canvas.getBoundingClientRect();
   return {x:(e.clientX-box.left)/Math.max(1,box.width)*W,
    y:(e.clientY-box.top)/Math.max(1,box.height)*H};
@@ -627,6 +655,7 @@
   if(e.pointerType!=='mouse'){
    try{canvas.setPointerCapture(e.pointerId)}catch{}
   }else try{canvas.setPointerCapture(e.pointerId)}catch{}
+  lastNativePointer={x:e.clientX,y:e.clientY};
   begin(p,e.pointerId);
  });
  canvas.addEventListener('pointermove',e=>{
@@ -635,7 +664,7 @@
   if(mode!=='distance'&&e.pointerId!==activePointer)return;
   if(mode==='distance'&&activePointer!==null&&e.pointerType==='touch'&&e.pointerId!==activePointer)return;
   const previous=mouse;
-  mouse=position(e);
+  mouse=virtualPosition(e);
   if(mode==='distance')soundMove(previous,mouse);
   else addPoint(mouse);
   renderLive();draw();
@@ -643,13 +672,14 @@
  canvas.addEventListener('pointerup',e=>{
   if(phase!=='active'||activePointer!==e.pointerId)return;
   if(mode==='path'){
-   addPoint(position(e));finish();
+   addPoint(virtualPosition(e));finish();
   }else if(mode==='motion'){
    // Releasing early ends the attempt: remaining time counts as missed.
    mouse=null;
    finish();
   }else if(e.pointerType!=='mouse')mouse=null;
   try{canvas.releasePointerCapture(e.pointerId)}catch{}
+  lastNativePointer=null;
   if(mode==='distance')activePointer=null;
  });
  canvas.addEventListener('pointerleave',e=>{
@@ -659,7 +689,7 @@
   if(phase!=='active'||activePointer!==e.pointerId)return;
   if(mode==='path'||mode==='motion')finish();
   else mouse=null;
-  activePointer=null;
+  activePointer=null;lastNativePointer=null;
  });
  $('testOpenPrecision').addEventListener('click',()=>{
   if(!ownerId)return;
@@ -667,6 +697,10 @@
   switchMode(mode);prototype.scrollIntoView({behavior:'smooth',block:'start'});
  });
  modeSelect.addEventListener('change',()=>switchMode(modeSelect.value));
+ reachSelect.addEventListener('change',()=>{
+  if(phase==='active')return;
+  setReach(reachSelect.value,true);
+ });
  $('apNew').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
  $('apNewResult').addEventListener('click',()=>{if(ownerId)reset({reroll:true})});
  $('apRetry').addEventListener('click',()=>{if(ownerId)reset()});
@@ -717,6 +751,7 @@
     deny('This playtest area is available only to Crilo’s owner account.');return;
    }
    ownerId=userId;
+   try{setReach(localStorage.getItem('crilo_owner_ap_reach_v1:'+ownerId))}catch{setReach(1.75)}
    for(const m of Object.keys(modes))bests[m]=readBest(m);
    access.hidden=true;collection.hidden=false;collection.inert=false;
    prototype.hidden=true;prototype.inert=true;
