@@ -79,7 +79,7 @@
   matchPanel.hidden=true;setup.hidden=false;
   renderSetup();
  }
- function schedule(){if(!raf)raf=requestAnimationFrame(frame)}
+ function schedule(){if(!raf&&match&&!match.ended)raf=requestAnimationFrame(frame)}
  function frame(now){
   raf=0;
   const dt=lastFrame?Math.min(.18,Math.max(0,(now-lastFrame)/1000)):0;
@@ -93,7 +93,7 @@
    if(now-lastPaint>160){render();lastPaint=now}
    if(now-lastSave>2800){save();lastSave=now}
   }else if(match?.ended&&endModal.hidden){showOutcome();render();save()}
-  if(ownerId)schedule();
+  if(ownerId&&match&&!match.ended)schedule();
  }
  function poly(s,cx,cy,r){
   const points=[];
