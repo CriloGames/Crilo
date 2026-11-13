@@ -170,6 +170,8 @@
    E.STRATEGIES[c.policy]?.label||'None':'Not assigned');
   $('ffPause').textContent=match.paused?'RESUME':'PAUSE';
   $('ffPause').disabled=match.ended||!!match.pendingEvent||!!match.pendingStrategy;
+  $('ffTestEvent').disabled=match.ended||match.paused||!!match.pendingEvent||
+   !!match.pendingStrategy||!E.ownedCount(match,0);
  }
  function renderSelected(){
   const state=E.getState(match,selectedId),mine=state?.owner===0;
@@ -339,6 +341,12 @@
   endModal.hidden=true;
   match=null;clearSave();matchPanel.hidden=true;setup.hidden=false;
   renderSetup();
+ });
+ $('ffTestEvent').addEventListener('click',()=>{
+  if(!match||match.paused||match.ended||match.pendingEvent||match.pendingStrategy)return;
+  if(E.triggerEvent(match,true)){
+   checkInterruptions();save();render();
+  }
  });
  $('ffPause').addEventListener('click',()=>{
   if(!match||match.ended||match.pendingEvent||match.pendingStrategy)return;
