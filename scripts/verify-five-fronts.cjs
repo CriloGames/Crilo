@@ -83,7 +83,8 @@ assert.equal(capital.troops,before-30);
 assert.equal(g.transits.length,1);
 assert.equal(E.march(g,0,capital.id,dst.id,1000).ok,false,'Troops cannot be duplicated');
 for(let n=0;n<14;n++)E.advance(g,5);
-assert.equal(g.transits.length,0,'Army orders must actually arrive');
+assert.ok(!g.transits.some(o=>o.owner===0&&o.from===capital.id&&o.to===dst.id),
+ 'Human army orders must arrive even while AI armies continue moving');
 // Event checks: a skilled response should lose fewer troops and resources.
 assert.equal(E.triggerEvent(g,true),true);
 const beforeEvent=structuredClone(g),event=beforeEvent.pendingEvent;
