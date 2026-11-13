@@ -153,6 +153,8 @@ async function run(owner){
  }
  node('testOpenPrecision').events.click();
  assert.equal(node('precisionPrototype').hidden,false);
+ assert.equal(node('apArena').attributes?.['data-mode'],'path',
+  'Path palette must be selected on game open');
  assert.equal(node('apRetry').textContent,'TRY SAME SHAPE');
  // Compare calibration at low, middle and near-perfect accuracies.
  const boost=window.__apSmoke.boostPrecisionScore;
@@ -254,6 +256,8 @@ async function run(owner){
   'A shortcut must score worse than a perfect reproduction');
  // Perfect Distance: visible target before starting, hidden during the run.
  node('apMode').value='distance';node('apMode').events.change();
+ assert.equal(node('apArena').attributes?.['data-mode'],'distance',
+  'Distance mode must switch board accent');
  assert.equal(node('apRetry').textContent,'TRY SAME DISTANCE');
  start();
  const center=window.__apSmoke.distanceCenter;
@@ -287,6 +291,8 @@ async function run(owner){
  assert.ok(Math.abs(nextRadius-radius)>=18,'New Game changes distance noticeably');
  // Perfect Motion compares exact position at a given time.
  node('apMode').value='motion';node('apMode').events.change();
+ assert.equal(node('apArena').attributes?.['data-mode'],'motion',
+  'Motion mode must switch board accent');
  assert.equal(node('apRetry').textContent,'TRY SAME SHAPE');
  start();animateFor(5.2);
  const motion=window.__apSmoke.route();
