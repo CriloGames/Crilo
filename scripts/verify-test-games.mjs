@@ -9,8 +9,8 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=10/);
-assert.match(html,/test-games\.css\?v=7/);
+assert.match(html,/test-games\.js\?v=11/);
+assert.match(html,/test-games\.css\?v=8/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
 assert.match(html,/id="apNew">NEW GAME/);
@@ -29,6 +29,16 @@ assert.ok(!js.includes('criloDB.rpc('),'No public scoreboard or Daily writes');
 assert.match(app,/testLink\.textContent='TEST GAMES'/);
 assert.match(css,/#apResult\[hidden\]/);
 assert.match(css,/@media\(max-width:520px\)/);
+assert.match(css,/precision studio visual pass/);
+assert.match(css,/\.ap-arena::after\s*\{[^}]*pointer-events:none/s,
+  'Arena ornamentation must never block input');
+assert.match(css,/\.ap-stats\s*\{[^}]*display:flex/s,
+  'Scores should share one calmer score rail rather than separate cards');
+assert.match(js,/function drawCanvasBackdrop\(\)/);
+assert.match(js,/ctx\.globalAlpha=alpha\*\.17/,
+  'Drawn strokes should have a soft matte understroke');
+assert.match(js,/arena\.setAttribute\('data-mode',mode\)/,
+  'Mode switch must update instrument-board accent');
 
 // Hard refresh must open Test Games at the top, but ordinary visits and
 // explicit hash links must keep the browser's normal scroll behavior.
