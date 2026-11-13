@@ -337,3 +337,22 @@ html[data-theme="dark"] .ap-controls .ap-sound[aria-pressed="false"]{
  .ap-overlay-content{max-width:375px}
  .ap-controls select{min-height:42px}
 }
+
+/* Trackpad reach controls: a shorter horizontal swipe covers a full curve. */
+.ap-controls .ap-reach{
+ display:flex;flex-direction:column;align-items:stretch;gap:4px;
+ min-width:153px;
+ color:#658679;
+}
+#apReachWrap[hidden]{display:none!important}
+.ap-controls .ap-reach select{
+ width:100%;
+ padding:9px 22px 9px 11px;
+ font-weight:750;
+}
+.ap-controls .ap-reach select:disabled{opacity:.65;cursor:not-allowed}
+html[data-theme="dark"] .ap-controls .ap-reach{color:#a7cbb8}
+@media(max-width:620px){
+ .ap-controls .ap-reach{min-width:128px;flex:1 1 136px}
+ .ap-controls .ap-reach select{font-size:12px}
+}
