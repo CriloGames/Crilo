@@ -31,7 +31,7 @@
 <link rel="stylesheet" href="dark-comfort.css?v=1">
 <link rel="stylesheet" href="night-pages.css?v=1">
 <link rel="stylesheet" href="header-fit.css?v=4">
-<link rel="stylesheet" href="test-games.css?v=8">
+<link rel="stylesheet" href="test-games.css?v=9">
 <script src="auth-first-paint.js?v=1"></script>
 <script src="theme-bridge.js?v=1"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -93,6 +93,14 @@
          <option value="distance">Perfect Distance</option>
          <option value="motion">Perfect Motion</option>
        </select>
+       <label class="ap-reach" id="apReachWrap" for="apReach">DRAWING REACH
+         <select id="apReach" aria-label="Drawing cursor horizontal sensitivity" title="Move farther across the game with less trackpad travel">
+           <option value="1">Normal · 1×</option>
+           <option value="1.4">Medium · 1.4×</option>
+           <option value="1.75" selected>Trackpad · 1.75×</option>
+           <option value="2.1">Long reach · 2.1×</option>
+         </select>
+       </label>
        <button type="button" id="apNew">NEW GAME ↻</button>
        <button type="button" id="apSound" class="ap-sound" aria-pressed="true" title="Toggle game sound effects">SOUND: ON</button>
      </div>
@@ -149,7 +157,7 @@
       <span>HOW TO PLAY</span>
     </div>
     <p id="apHowCopy">Watch the line for a few seconds. When it disappears, drag from its starting point to reproduce the shape. Your drawing stays visible next to the original after scoring.</p>
-    <p class="ap-help-foot">No levels: each New Game creates a new random route. Your best percentages are saved on this device for each mode. These games are not public.</p>
+    <p class="ap-help-foot">Trackpad tip: Drawing Reach increases horizontal cursor travel without changing the target shape or score formula. Touch input stays 1×. No levels; New Game creates a random route. Best scores are saved on this device.</p>
    </section>
   </section>
  </div>
@@ -158,6 +166,6 @@
 <footer class="crilo-simple-footer" aria-label="Crilo footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
 <script src="supabase-config.js?v=21"></script>
 <script src="app.js?v=57"></script>
-<script src="test-games.js?v=11"></script>
+<script src="test-games.js?v=12"></script>
 </body>
 </html>
