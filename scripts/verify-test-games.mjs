@@ -9,8 +9,8 @@ assert.match(html,/name="robots" content="noindex,nofollow"/);
 assert.match(html,/id="testCollection" hidden inert/);
 assert.match(html,/id="precisionPrototype"[^>]+hidden/);
 assert.match(html,/id="apResult"[^>]+hidden/);
-assert.match(html,/test-games\.js\?v=11/);
-assert.match(html,/test-games\.css\?v=8/);
+assert.match(html,/test-games\.js\?v=12/);
+assert.match(html,/test-games\.css\?v=9/);
 assert.ok(!html.includes('id="apRound"'),'Numbered levels must not appear');
 for(const mode of ['path','distance','motion'])assert.ok(html.includes('<option value="'+mode+'">'));
 assert.match(html,/id="apNew">NEW GAME/);
@@ -18,6 +18,12 @@ assert.match(html,/id="apReplay" hidden/);
 assert.match(html,/id="apLiveScore"[^>]*hidden/);
 assert.match(html,/id="apLiveValue"/);
 assert.match(html,/id="apSound"[^>]*aria-pressed="true"/);
+assert.match(html,/id="apReach"/);
+assert.match(html,/<option value="1\.75" selected>/);
+assert.match(css,/#apReachWrap\[hidden\]\{display:none!important\}/);
+assert.match(js,/function virtualPosition\(e\)/);
+assert.match(js,/e\.pointerType!=='mouse'\|\|mode==='distance'/,
+ 'Touch and radial distance must bypass trackpad amplification');
 assert.match(css,/\.ap-live-score\[hidden\]/);
 assert.ok(!html.includes('id="apShape"')&&!html.includes('id="apShapeTitle"'),'Shape card must be absent from all game modes');
 assert.match(js,/const forgiving=Math\.exp\(-error\/155\)/);
@@ -185,8 +191,40 @@ async function run(owner){
   });
  };
  const start=()=>click('apStart');
- // Draw the generated target perfectly and verify that the result cannot hide it.
+ // A trackpad user can reach much farther with a short horizontal stroke.
+ assert.equal(node('apReach').value,'1.75','Trackpad drawing reach is enabled by default');
+ assert.equal(node('apReachWrap').hidden,false);
  start();animateFor(3.8);
+ const reachRoute=window.__apSmoke.route();
+ const reachStart=reachRoute[0];
+ pointer('pointerdown',reachStart.x,reachStart.y);
+ assert.equal(node('apReach').disabled,true,'Reach cannot change in the middle of a stroke');
+ pointer('pointermove',reachStart.x+100,reachStart.y+25);
+ const amplified=window.__apSmoke.attempt().at(-1);
+ assert.ok(Math.abs(amplified.x-(reachStart.x+175))<.01,
+  'A 100px horizontal trackpad swipe should move 175px across the game');
+ assert.ok(Math.abs(amplified.y-(reachStart.y+25))<.01,
+  'Vertical movement must remain 1x for accurate curves');
+ pointer('pointerup',reachStart.x+100,reachStart.y+25);
+ assert.ok(Math.abs(window.__apSmoke.attempt().at(-1).x-amplified.x)<.01,
+  'Releasing must not snap the line back to the physical cursor');
+ assert.equal(node('apReach').disabled,false);
+ // Touch gestures must remain exactly 1x, even with amplified mouse reach.
+ click('apRetry');start();animateFor(3.8);
+ const touchEvent=(kind,x,y)=>node('apCanvas').events[kind]({
+  pointerType:'touch',button:0,pointerId:41,clientX:x,clientY:y,preventDefault(){}
+ });
+ touchEvent('pointerdown',reachStart.x,reachStart.y);
+ touchEvent('pointermove',reachStart.x+100,reachStart.y+30);
+ assert.ok(Math.abs(window.__apSmoke.attempt().at(-1).x-(reachStart.x+100))<.01,
+  'Touch input must not inherit trackpad sensitivity');
+ touchEvent('pointerup',reachStart.x+100,reachStart.y+30);
+ node('apReach').value='1';node('apReach').events.change();
+ assert.equal(node('apReach').value,'1','Normal reach is selectable');
+ assert.equal(store.get('crilo_owner_ap_reach_v1:test-owner'),'1',
+  'Cursor reach preference must persist for the owner account');
+ // Verify legacy exact-trace scoring in normal 1x mode.
+ click('apRetry');start();animateFor(3.8);
  assert.equal(node('apOverlay').hidden,true);
  const reference=window.__apSmoke.route();
  // Calibration: broad but recognizable curves should score meaningfully above
@@ -255,7 +293,10 @@ async function run(owner){
  assert.ok(parseFloat(node('apResultScore').textContent)<pathScore,
   'A shortcut must score worse than a perfect reproduction');
  // Perfect Distance: visible target before starting, hidden during the run.
+ // Distance ignores the reach setting entirely; it measures actual pixels.
+ node('apReach').value='2.1';node('apReach').events.change();
  node('apMode').value='distance';node('apMode').events.change();
+ assert.equal(node('apReachWrap').hidden,true,'Trackpad drawing reach is hidden in Distance');
  assert.equal(node('apArena').attributes?.['data-mode'],'distance',
   'Distance mode must switch board accent');
  assert.equal(node('apRetry').textContent,'TRY SAME DISTANCE');
@@ -291,6 +332,8 @@ async function run(owner){
  assert.ok(Math.abs(nextRadius-radius)>=18,'New Game changes distance noticeably');
  // Perfect Motion compares exact position at a given time.
  node('apMode').value='motion';node('apMode').events.change();
+ assert.equal(node('apReachWrap').hidden,false,'Drawing reach applies to Motion too');
+ node('apReach').value='1';node('apReach').events.change();
  assert.equal(node('apArena').attributes?.['data-mode'],'motion',
   'Motion mode must switch board accent');
  assert.equal(node('apRetry').textContent,'TRY SAME SHAPE');
@@ -362,4 +405,4 @@ async function run(owner){
 }
 await run(false);
 const result=await run(true);
-console.log('PASS: owner access, live accuracy in all modes, generated start/move/end sounds, mute, hidden distance and motion replay',result);
+console.log('PASS: owner access, adjustable trackpad reach, touch 1x, three modes, scores, audio, hidden distance and replay',result);
