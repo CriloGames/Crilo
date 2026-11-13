@@ -39,6 +39,16 @@ A previous 48% becomes approximately 64%, but 0% and 100% stay
 unchanged and better attempts always score higher. Perfect Distance is
 not affected.
 
+**Trackpad-friendly drawing:** Perfect Path and Perfect Motion offer a DRAWING
+REACH selector (Normal 1x, Medium 1.4x, Trackpad 1.75x by default, and
+Long Reach 2.1x). It amplifies *horizontal mouse movement only* inside
+the playfield, letting shorter trackpad strokes reach the far endpoint.
+The virtual cursor, the displayed stroke, and final scoring all use the
+same coordinates; releasing does not jump back to the physical pointer.
+Vertical movement is unchanged for precision. Touch input and Perfect
+Distance always use their original 1x mapping. The chosen level is saved
+locally per owner account and is locked during an active stroke.
+
 During an active run, a large **LIVE ACCURACY / ESTIMATE** readout
 appears inside the arena. Perfect Path estimates local stroke accuracy against
 the reference curve; Perfect Motion combines estimated spatial and timed
