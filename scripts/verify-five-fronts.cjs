@@ -53,6 +53,9 @@ for(let count=2;count<=6;count++){
    assert.equal(E.ownedCount(g,owner),5,'Every country must own five equal-area hex states');
    assert.ok(connected(g,owner),'Country must begin as contiguous land');
    assert.equal(g.states.filter(s=>s.owner===owner&&s.capital).length,1);
+   const terrains= g.states.filter(s=>s.owner===owner).map(s=>s.terrain);
+   assert.equal(new Set(terrains).size,5,
+    'Every starting country must receive every resource terrain once');
    assert.ok(g.countries[owner].resources.food>0);
   }
   for(const s of g.states){
@@ -63,6 +66,12 @@ for(let count=2;count<=6;count++){
   }
  }
 }
+// National specializations should be seeded and varied, not always fixed.
+const specialties=new Set(Array.from({length:20},(_,i)=>
+ E.createMatch({countries:3,seed:100+i}).countries[0].specialty));
+assert.ok(specialties.size>=3,
+ 'Different matches should grant the player different economic specializations');
+
 // Test real actions and economic costs, not just the module shape.
 const g=E.createMatch({countries:3,seed:7717});
 const capital=g.states.find(s=>s.owner===0&&s.capital);
