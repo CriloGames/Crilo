@@ -8,7 +8,10 @@ URL: /five-fronts.html, linked only inside the owner-gated Test Games catalog.
 - A seeded land map with five **equal-area, connected hex states** per country.
   All states use the same-sized hexagon. Borders are randomized by connected,
   equal-count swaps; no player starts with more land area than another.
-- Different starting specializations: metal, oil, food, knowledge, population.
+- Seed-randomized starting specializations: metal, oil, food, knowledge,
+  population. Every country starts with one farm, one hill, one forest,
+  one river and one plain, balancing the basic resource geography while the
+  exact position and borders stay unpredictable.
 - Terrain changes production and combat: farms, hills, forests, river and plains.
 - Select your own state to recruit, fortify, or order troops into one adjacent
   state. Orders take time; attacks resolve using troop counts, terrain, defense,
