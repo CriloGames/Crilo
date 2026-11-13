@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Five Fronts — Crilo Test Games</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css?v=127">
+<link rel="stylesheet" href="legal.css?v=7">
+<link rel="stylesheet" href="dark-comfort.css?v=1">
+<link rel="stylesheet" href="night-pages.css?v=1">
+<link rel="stylesheet" href="header-fit.css?v=4">
+<link rel="stylesheet" href="five-fronts.css?v=1">
+<script src="auth-first-paint.js?v=1"></script>
+<script src="theme-bridge.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="crilo-fronts-page">
+<header class="topbar">
+<a class="brand" href="index.html">CRILO</a>
+<nav aria-label="Main navigation">
+<a href="index.html">PLAY</a>
+<a href="leaderboard.html">LEADERBOARD</a>
+<a href="ducks.html">DUCKS</a>
+<a href="index.html#more-games">MORE GAMES</a>
+</nav>
+<div class="header-actions"><div class="account-wrap">
+<button class="account-btn" type="button" id="accountBtn" style="visibility:hidden" aria-busy="true">SIGN IN</button>
+<div class="account-menu hidden" id="accountMenu"></div>
+</div></div>
+</header>
+<script src="header-continuity.js?v=7"></script>
+<main class="ff-shell">
+ <div class="ff-backline">
+  <a href="test-games.html" class="ff-back">← Back to Test Games</a>
+  <span class="ff-flag">OWNER PLAYTEST · UNPUBLISHED</span>
+ </div>
+ <div class="ff-heading">
+  <div><p class="ff-overline">CRILO STRATEGY LAB / PROTOTYPE 02</p>
+   <h1>FIVE <em>FRONTS</em><span>.</span></h1>
+   <p class="ff-subheading">Five states. Equal land. Unequal advantages. One victor.</p>
+  </div>
+  <div class="ff-version">SINGLE PLAYER <span>ALPHA 0.1</span></div>
+ </div>
+ <div class="ff-gate" id="ffGate" role="status" aria-live="polite">Verifying owner access…</div>
+ <div id="ffGame" hidden inert>
+  <div class="ff-setup" id="ffSetup">
+   <div class="ff-setup-heading">
+    <div><span class="ff-smallcaps">WAR ROOM</span><h2>Prepare your campaign</h2>
+     <p>Pick your opponents and match speed. Each country starts with five equal-area hex states and a different economic advantage.</p>
+    </div>
+    <span class="ff-solo-tag">ONE HUMAN · AI OPPONENTS</span>
+   </div>
+   <div class="ff-formline">
+    <label>COUNTRIES
+     <select id="ffCountries">
+      <option value="2">2 countries · 1 opponent</option>
+      <option value="3" selected>3 countries · 2 opponents</option>
+      <option value="4">4 countries · 3 opponents</option>
+      <option value="5">5 countries · 4 opponents</option>
+      <option value="6">6 countries · 5 opponents</option>
+     </select>
+    </label>
+    <label>MATCH DURATION
+     <select id="ffSpeed">
+      <option value="fast" selected>Playtest · ~6 min</option>
+      <option value="normal">Full campaign · ~30 min</option>
+     </select>
+    </label>
+    <button type="button" id="ffStart" class="ff-primary">BEGIN CAMPAIGN <span>↗</span></button>
+    <button type="button" id="ffResume" hidden>RESUME SAVED GAME</button>
+   </div>
+   <div class="ff-briefing">
+    <span><b>01</b> Build your economy</span><span><b>02</b> Move armies across borders</span>
+    <span><b>03</b> Pick a policy every five minutes</span>
+    <span><b>04</b> Survive events and win territory</span>
+   </div>
+  </div>
+  <div id="ffMatch" hidden>
+   <div class="ff-statusline">
+    <div class="ff-war-clock"><span>WAR CLOCK</span><strong id="ffClock">00:00</strong><small id="ffClockType">OF 30:00</small></div>
+    <div class="ff-status-stat"><span>YOUR LAND</span><strong id="ffLand">5 states</strong></div>
+    <div class="ff-status-stat"><span>YOUR ARMY</span><strong id="ffArmy">—</strong></div>
+    <div class="ff-status-stat"><span>RIVALS LEFT</span><strong id="ffRivals">—</strong></div>
+    <div class="ff-status-stat ff-status-policy"><span>YOUR POLICY</span><strong id="ffPolicy">None yet</strong></div>
+    <div class="ff-clock-actions">
+     <button type="button" id="ffPause">PAUSE</button>
+     <button type="button" id="ffRestart">NEW MATCH ↻</button>
+    </div>
+   </div>
+   <div class="ff-resources" id="ffResources" aria-label="Country resource reserves"></div>
+   <div class="ff-layout">
+    <section class="ff-board" aria-label="Strategic country map">
+     <div class="ff-board-title">
+      <div><span class="ff-smallcaps">TACTICAL OVERVIEW</span><strong>Contested frontier</strong></div>
+      <span class="ff-map-hint">SELECT A STATE TO GIVE ORDERS</span>
+     </div>
+     <div class="ff-map-wrap">
+      <svg id="ffMap" viewBox="0 0 640 560" role="img" aria-label="Interactive map of equal-area hexagonal states. Select a state to give orders."></svg>
+      <div class="ff-map-corner">RECON / <span id="ffMapSeed">—</span></div>
+     </div>
+     <div class="ff-legend" id="ffLegend"></div>
+     <div class="ff-transport" id="ffTransits">No armies on the move.</div>
+    </section>
+    <aside class="ff-sidebar">
+     <section class="ff-command">
+      <div class="ff-panel-heading"><span class="ff-smallcaps">FIELD COMMAND</span><strong id="ffSelectedTitle">Select a state</strong></div>
+      <p id="ffSelectedDescription">Choose one of your states on the map to recruit troops, build defenses, or move an army.</p>
+      <div class="ff-state-stats" id="ffStateStats"></div>
+      <div class="ff-command-actions" id="ffCommandActions" hidden>
+       <button type="button" id="ffTrain">RECRUIT <span>+20 TROOPS</span></button>
+       <button type="button" id="ffFortify">FORTIFY <span>+1 DEFENSE</span></button>
+       <label for="ffMarchAmount">MARCHING FORCE <output id="ffMarchLabel">50%</output></label>
+       <input type="range" id="ffMarchAmount" min="25" max="85" value="60" step="5">
+       <button type="button" class="ff-primary" id="ffMarch">ORDER TROOPS TO MOVE</button>
+       <button type="button" id="ffCancelMarch" hidden>CANCEL MOVE</button>
+      </div>
+     </section>
+     <section class="ff-intel">
+      <div class="ff-panel-heading"><span class="ff-smallcaps">INTELLIGENCE</span><strong>Incoming reports</strong></div>
+      <ol class="ff-log" id="ffLog"><li>Awaiting first orders.</li></ol>
+     </section>
+    </aside>
+   </div>
+   <p class="ff-guidance" id="ffGuidance" role="status" aria-live="polite">Select a state to begin issuing orders.</p>
+  </div>
+ </div>
+</main>
+<div class="ff-modal" id="ffCouncilModal" role="dialog" aria-modal="true" aria-labelledby="ffCouncilTitle" hidden>
+ <div class="ff-modal-panel">
+  <span class="ff-smallcaps">NATIONAL COUNCIL · EVERY 05:00</span>
+  <h2 id="ffCouncilTitle">Choose your next directive.</h2>
+  <p>Take one strategic advantage for the next five game minutes. The war pauses while you decide.</p>
+  <div class="ff-policy-options" id="ffPolicyOptions"></div>
+ </div>
+</div>
+<div class="ff-modal" id="ffEventModal" role="dialog" aria-modal="true" aria-labelledby="ffEventTitle" hidden>
+ <div class="ff-modal-panel ff-event-panel">
+  <span class="ff-smallcaps">EMERGENCY RESPONSE · ONE CHANCE</span>
+  <h2 id="ffEventTitle">Emergency</h2>
+  <p id="ffEventDescription"></p>
+  <div class="ff-event-timer"><span>RESPONSE WINDOW</span><strong id="ffEventCountdown">9.0s</strong></div>
+  <p id="ffEventPrompt"></p>
+  <div class="ff-gauge" id="ffGauge" aria-label="Moving gauge with a target zone">
+   <div class="ff-gauge-window" id="ffGaugeWindow"></div>
+   <div class="ff-gauge-needle" id="ffGaugeNeedle"></div>
+  </div>
+  <button type="button" id="ffEventTry" class="ff-primary">DEPLOY RESPONSE</button>
+  <small>Hit the colored window. One attempt only; a miss applies the full penalty.</small>
+ </div>
+</div>
+<div class="ff-modal" id="ffEndModal" role="dialog" aria-modal="true" aria-labelledby="ffEndTitle" hidden>
+ <div class="ff-modal-panel ff-finish-panel">
+  <span class="ff-smallcaps">CAMPAIGN COMPLETE</span>
+  <h2 id="ffEndTitle">War finished.</h2>
+  <p id="ffEndDescription"></p>
+  <div id="ffFinalStandings" class="ff-final-standings"></div>
+  <button type="button" id="ffEndNew" class="ff-primary">START ANOTHER CAMPAIGN</button>
+ </div>
+</div>
+<footer class="crilo-simple-footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
+<script src="supabase-config.js?v=21"></script>
+<script src="app.js?v=57"></script>
+<script src="five-fronts-core.js?v=1"></script>
+<script src="five-fronts.js?v=1"></script>
+</body>
+</html>
