@@ -78,13 +78,40 @@ assert.equal(E.train(g,0,g.states.find(s=>s.owner!==0).id).ok,false);
 const invalid=g.states.find(s=>!capital.neighbors.includes(s.id)&&s.id!==capital.id);
 assert.equal(E.march(g,0,capital.id,invalid.id,20).ok,false,'No teleporting through the map');
 const dst=E.getState(g,capital.neighbors[0]),before=capital.troops;
+const oilBefore=g.countries[0].resources.oil;
 assert.equal(E.march(g,0,capital.id,dst.id,30).ok,true);
 assert.equal(capital.troops,before-30);
+assert.equal(g.countries[0].resources.oil,oilBefore-Math.ceil(30/22),
+ 'Transporting troops consumes oil');
 assert.equal(g.transits.length,1);
 assert.equal(E.march(g,0,capital.id,dst.id,1000).ok,false,'Troops cannot be duplicated');
 for(let n=0;n<14;n++)E.advance(g,5);
 assert.ok(!g.transits.some(o=>o.owner===0&&o.from===capital.id&&o.to===dst.id),
  'Human army orders must arrive even while AI armies continue moving');
+
+// Resource shortages matter: metal/food/population for armies, oil for orders.
+const depleted=E.createMatch({countries:2,seed:187});
+const home=depleted.states.find(s=>s.owner===0&&s.capital);
+const neighbor=home.neighbors[0];
+depleted.countries[0].resources.oil=0;
+assert.equal(E.march(depleted,0,home.id,neighbor,20).ok,false,
+ 'Armies without oil cannot move');
+assert.equal(E.train(depleted,0,home.id).ok,false,
+ 'Recruitment without oil must fail');
+const knowledgeBefore=depleted.countries[0].resources.knowledge;
+depleted.pendingStrategy={options:['research','mobilize','defense']};
+assert.equal(E.applyStrategy(depleted,0,'research').ok,true);
+assert.ok(depleted.countries[0].resources.knowledge<knowledgeBefore,
+ 'Military research must actually spend the research reserve');
+assert.ok(depleted.countries[0].tech>1);
+const p=E.production(depleted,0);
+assert.ok(p.food>0);
+const foodBefore=depleted.countries[0].resources.food;
+E.advance(depleted,5);
+assert.ok(depleted.countries[0].resources.food>foodBefore-5,
+ 'Food production and army upkeep should both be active');
+assert.equal(typeof E.supply,'function','Map must expose capital supply connectivity');
+
 // Event checks: a skilled response should lose fewer troops and resources.
 assert.equal(E.triggerEvent(g,true),true);
 const beforeEvent=structuredClone(g),event=beforeEvent.pendingEvent;
