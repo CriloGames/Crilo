@@ -69,11 +69,20 @@
     a.owner=oldA;b.owner=oldB;
    }
   }
-  const terrainDeck=['plains','plains','farms','forest','hills','river'];
-  for(const s of states){
-   s.originalOwner=s.owner;
-   s.terrain=terrainDeck[randomRange(g,0,terrainDeck.length-1)];
-   s.troops=28+randomRange(g,0,15);
+  // Every country receives one of each terrain type. Geography remains
+  // random, but no country is unfairly deprived of farms, mines, or oil rivers.
+  for(let id=0;id<n;id++){
+   const terrain=['plains','farms','forest','hills','river'];
+   for(let i=terrain.length-1;i>0;i--){
+    const j=randomRange(g,0,i);
+    [terrain[i],terrain[j]]=[terrain[j],terrain[i]];
+   }
+   const owned=states.filter(s=>s.owner===id);
+   owned.forEach((s,i)=>{
+    s.originalOwner=s.owner;
+    s.terrain=terrain[i];
+    s.troops=28+randomRange(g,0,15);
+   });
   }
   for(let id=0;id<n;id++){
    const owned=states.filter(s=>s.owner===id);
@@ -101,6 +110,10 @@
   };
   g.states=createMap(g,num);
   const specialties=['metal','oil','food','knowledge','people','metal'];
+  for(let i=specialties.length-1;i>0;i--){
+   const j=randomRange(g,0,i);
+   [specialties[i],specialties[j]]=[specialties[j],specialties[i]];
+  }
   for(let i=0;i<num;i++){
    const specialty=specialties[i];
    const resources={food:85,metal:85,oil:70,knowledge:35,people:125};
