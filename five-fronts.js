@@ -189,18 +189,22 @@
    ' terrain. '+(mine?'Give military orders from here.':'Capture this state from a neighboring army.'));
   const stats=[['OWNER',owner.name],['ARMY',Math.floor(state.troops)+' troops'],
    ['DEFENSE','Level '+state.fort],['TERRAIN',state.terrain.toUpperCase()],
-   ['SUPPLY','Capital route · '+(state.capital?'HQ':'field')],['NEIGHBORS',adjacent.length+' states']];
+   ['SUPPLY',E.supply(match,state,state.owner)?'Connected':'Isolated'],['NEIGHBORS',adjacent.length+' states']];
   $('ffStateStats').innerHTML=stats.map(([k,v])=>
    '<div><span>'+k+'</span><strong>'+v+'</strong></div>').join('');
   $('ffCommandActions').hidden=!mine;
   if(!mine)return;
   const r=match.countries[0].resources,blocked=match.paused||!!match.pendingEvent||!!match.pendingStrategy||match.ended;
   $('ffTrain').disabled=blocked||!Object.entries(E.COST.train).every(([k,v])=>r[k]>=v);
+  $('ffTrain').title='Cost: 14 metal, 11 food, 3 oil and 8 population.';
+  $('ffFortify').title='Cost: 19 metal and 10 food.';
   $('ffFortify').disabled=blocked||state.fort>=3||!Object.entries(E.COST.fortify).every(([k,v])=>r[k]>=v);
   const fraction=Number($('ffMarchAmount').value)/100;
   const count=Math.floor(Math.max(0,state.troops-5)*fraction);
   put('ffMarchLabel',$('ffMarchAmount').value+'% · '+count+' troops');
-  $('ffMarch').disabled=blocked||count<12;
+  const fuel=Math.ceil(count/22);
+  $('ffMarch').disabled=blocked||count<12||r.oil<fuel;
+  $('ffMarch').title='Uses '+fuel+' oil to transport '+count+' troops to an adjacent state.';
   $('ffMarch').textContent=choosingTarget?'CLICK AN ADJACENT STATE':'ORDER TROOPS TO MOVE';
   $('ffCancelMarch').hidden=!choosingTarget;
  }
