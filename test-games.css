@@ -356,3 +356,10 @@ html[data-theme="dark"] .ap-controls .ap-reach{color:#a7cbb8}
  .ap-controls .ap-reach{min-width:128px;flex:1 1 136px}
  .ap-controls .ap-reach select{font-size:12px}
 }
+
+/* Owner-only strategy alpha card: behave like the other playtest launch button. */
+.tg-fronts-art{background:#101e28;border-color:#334b4f}
+.tg-fronts-launch{display:inline-flex;align-items:center;justify-content:center;gap:4px;
+ text-decoration:none;line-height:1.35}
+.tg-fronts-launch:hover{text-decoration:none}
+@media(max-width:800px){.tg-fronts-launch{grid-column:1/-1;justify-self:stretch}}
