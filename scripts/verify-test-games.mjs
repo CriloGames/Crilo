@@ -209,6 +209,17 @@ async function run(owner){
  assert.ok(Math.abs(window.__apSmoke.attempt().at(-1).x-amplified.x)<.01,
   'Releasing must not snap the line back to the physical cursor');
  assert.equal(node('apReach').disabled,false);
+ // The far endpoint must be reachable in fewer physical pixels without
+ // changing a perfect reproduction's final accuracy.
+ click('apRetry');start();animateFor(3.8);
+ pointer('pointerdown',reachStart.x,reachStart.y);
+ for(let i=1;i<reachRoute.length;i++){
+  const p=reachRoute[i];
+  pointer('pointermove',reachStart.x+(p.x-reachStart.x)/1.75,p.y);
+ }
+ pointer('pointerup',reachStart.x+(reachRoute.at(-1).x-reachStart.x)/1.75,reachRoute.at(-1).y);
+ assert.ok(parseFloat(node('apResultScore').textContent)>98,
+  'Amplified trackpad draw must still earn near 100% when it traces the target');
  // Touch gestures must remain exactly 1x, even with amplified mouse reach.
  click('apRetry');start();animateFor(3.8);
  const touchEvent=(kind,x,y)=>node('apCanvas').events[kind]({
