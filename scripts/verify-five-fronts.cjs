@@ -17,7 +17,7 @@ assert.match(html,/id="ffGate"/);
 assert.match(catalog,/href="five-fronts.html"/);
 assert.doesNotMatch(publicIndex,/href="five-fronts.html"/);
 assert.match(js,/await criloDB\.auth\.getUser\(\)/);
-assert.match(js,/\.select\('id,is_owner'\)\.eq\('id',uid\)\.maybeSingle\(\)/);
+assert.match(js,/\.\s*select\('id,is_owner'\)\.eq\('id',uid\)\.maybeSingle\(\)/);
 assert.match(js,/profile\?\.id!==uid\|\|profile\.is_owner!==true/);
 assert.doesNotMatch(js,/criloDB\.(?:rpc|from\('five_fronts)/);
 assert.match(html,/five-fronts-core\.js\?v=1/);
