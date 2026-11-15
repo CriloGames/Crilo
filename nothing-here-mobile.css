@@ -1,0 +1,81 @@
+/* Nothing Here touch-control improvements (phone and tablet).
+ * Keep every 3D control reachable without turning the WebGL stage into a
+ * scrolling surface. Touch gestures on the canvas stay with OrbitControls.
+ */
+.nc-page #stage canvas{
+ touch-action:none;
+ -webkit-user-select:none;
+ user-select:none;
+ -webkit-touch-callout:none;
+}
+.nc-page .nc-pocket .nc-inventory{
+ touch-action:pan-y;
+ overscroll-behavior-y:auto;
+}
+.nc-page .nc-pocket .nc-item{
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:rgba(109,171,149,.20);
+}
+@media (pointer:coarse){
+ .nc-page .nc-pocket .nc-item{
+  min-height:48px;
+  padding:8px 12px;
+  cursor:pointer;
+ }
+ .nc-page .nc-pocket #ncUnselect,
+ .nc-page #ncModalClose,
+ .nc-page .nc-inspection-controls button{
+  min-width:44px;
+  min-height:44px;
+  touch-action:manipulation;
+ }
+ .nc-page .nc-overline :is(button,.nc-fullscreen-toggle){
+  min-height:42px;
+  touch-action:manipulation;
+ }
+ .nc-page .nc-flute-tray :is(button,.nc-flute-play-key){
+  touch-action:manipulation;
+ }
+ .nc-page .nc-modal-backdrop .nc-modal{
+  max-height:min(89dvh,calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px));
+  -webkit-overflow-scrolling:touch;
+ }
+ .nc-page .nc-pocket{
+  scroll-margin-top:18px;
+ }
+}
+@media (max-width:760px) and (pointer:coarse){
+ .nc-page .nc-inspection-controls{
+  left:6px;right:6px;bottom:6px;
+  gap:5px;
+  flex-wrap:wrap;
+  justify-content:center;
+ }
+ .nc-page .nc-inspection-controls .nc-rotate-controls,
+ .nc-page .nc-inspection-controls .nc-zoom-controls{
+  gap:4px;
+  justify-content:center;
+ }
+ .nc-page .nc-inspection-controls button{
+  border-radius:9px;
+  font-size:17px;
+ }
+ .nc-page .nc-zoom-controls #ncZoomAmount{
+  min-width:42px;
+ }
+ .nc-page .nc-world .nc-cube-hint{
+  bottom:102px;
+  pointer-events:none;
+ }
+ .nc-page .nc-pocket{
+  padding:13px 12px 17px;
+ }
+ .nc-page .nc-pocket-head{
+  flex-wrap:wrap;
+  row-gap:6px;
+ }
+}
+@media (max-width:390px) and (pointer:coarse){
+ .nc-page .nc-inspection-controls button{min-width:40px;min-height:42px}
+ .nc-page .nc-world .nc-cube-hint{bottom:119px}
+}
