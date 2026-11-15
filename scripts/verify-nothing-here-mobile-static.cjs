@@ -26,7 +26,7 @@ assert.equal(picker(110,100),'pickup:tooth','Drawer casing does not steal a near
 assert.equal(picker(150,150),'gear-small','A precise mechanic is not stolen by pickup tolerance');
 assert.equal(picker(0,0),null,'Nothing invisible can be picked up at the edge');
 assert.equal(picker(200,200),null,'Empty space is still empty');
-assert.match(three,/if\(e\.pointerType==="touch"\)touchPointers\.add\(e\.pointerId\)/);
+assert.match(three,/if\(e\.pointerType==="touch"\)\s*\{\s*touchPointers\.add\(e\.pointerId\)/);
 assert.match(three,/if\(multiTouchGesture\)/);
 assert.match(three,/pointerType==="touch"\?17:9/);
 assert.match(three,/pointerType==="touch"\?17:7/);
