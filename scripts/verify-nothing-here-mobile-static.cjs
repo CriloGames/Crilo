@@ -77,7 +77,7 @@ const fluteTarget=target('flute');
 tap(fluteTarget);
 assert.equal(flute,1,'Touch opens flute controls exactly once');
 
-assert.match(html,/cube-secrets\.js\?v=93/);
+assert.match(html,/cube-secrets\.js\?v=94/);
 assert.match(html,/secrets-3d-preview\.js\?v=276/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(css,/touch-action:none/);
