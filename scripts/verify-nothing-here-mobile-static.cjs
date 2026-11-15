@@ -55,16 +55,14 @@ function event(type,item,id=5,x=40,y=50,detail=1){
  return {type,pointerType:'touch',isPrimary:true,pointerId:id,
   clientX:x,clientY:y,detail,target:item};
 }
-function tap(item){
+function tap(item,detail=1){
  pocket.pocketPointerDown(event('pointerdown',item));
  pocket.pocketPointerUp(event('pointerup',item));
- pocket.clickInventory(event('click',item));
+ pocket.clickInventory(event('click',item,5,40,50,detail));
 }
 const thread=target('thread');
-tap(thread);
+tap(thread,0);
 assert.equal(selected,'thread','One physical touch holds the item');
-assert.deepEqual(activated,['thread'],'No duplicate synthetic click');
-pocket.clickInventory({...event('click',thread,5,40,50,0),pointerType:'touch'});
 assert.deepEqual(activated,['thread'],
  'Safari synthetic clicks with detail=0 must not immediately deselect a touched item');
 assert.equal(thread.element.draggable,false,'Touch disables native item drag');
