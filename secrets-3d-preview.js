@@ -1170,7 +1170,8 @@ function pickTouchAction(clientX,clientY){
  const rect=renderer.domElement.getBoundingClientRect();
  if(!rect.width||!rect.height)return direct;
  // Respect the physical canvas bounds: near-edge taps may be clipped.
- const limit=Math.min(16,Math.max(10,rect.width*.027));
+ // Roughly a 40–44px mobile hit diameter for very small 3D objects.
+ const limit=Math.min(22,Math.max(16,rect.width*.05));
  const offsets=[[1,0],[-1,0],[0,1],[0,-1],
   [.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
  let nearbyControl=null;
