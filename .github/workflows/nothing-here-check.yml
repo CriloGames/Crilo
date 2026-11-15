@@ -25,6 +25,7 @@ on:
       - 'cube-physical.css'
       - 'nothing-here-mobile.css'
       - 'scripts/verify-nothing-here-mobile.mjs'
+      - 'scripts/verify-nothing-here-mobile-static.cjs'
       - '.github/workflows/nothing-here-check.yml'
   workflow_dispatch:
 
@@ -52,6 +53,8 @@ jobs:
         run: node scripts/verify-nothing-here.mjs
       - name: Verify all 32 inventory silhouettes and keyboard-friendly selection
         run: node scripts/verify-nothing-here-pocket.mjs
+      - name: Check Nothing Here mobile touch targeting without a browser
+        run: node scripts/verify-nothing-here-mobile-static.cjs
       - name: Verify phone and tablet touch input, pickups, inventory and puzzles
         run: node scripts/verify-nothing-here-mobile.mjs
       - name: Preserve desktop and mobile snapshots
