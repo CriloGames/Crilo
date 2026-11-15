@@ -22,6 +22,7 @@ const picker=new Function('renderer','pickVisibleAction',
  {domElement:{getBoundingClientRect:()=>rect}},raycast);
 assert.equal(picker(100,100),'pickup:tooth','Exact touches collect');
 assert.equal(picker(107,100),'pickup:tooth','Small fingertip offsets still collect');
+assert.equal(picker(115,100),'pickup:tooth','Phone-sized pickup tolerance covers a larger fingertip offset');
 assert.equal(picker(110,100),'pickup:tooth','Drawer casing does not steal a nearby pickup tap');
 assert.equal(picker(150,150),'gear-small','A precise mechanic is not stolen by pickup tolerance');
 assert.equal(picker(0,0),null,'Nothing invisible can be picked up at the edge');
