@@ -1855,9 +1855,11 @@ function clickInventory(e){
  // A touch pointerup is handled directly because some mobile browsers
  // suppress the synthesized click on draggable or rapidly rerendered cards.
  // Ignore only the following synthetic click, not real keyboard activation.
- if(e.type==='click'&&e.detail!==0&&pocketTouchActivation&&
+ if(e.type==='click'&&pocketTouchActivation&&
     pocketTouchActivation.item===item.dataset.item&&
-    Date.now()-pocketTouchActivation.when<800){
+    Date.now()-pocketTouchActivation.when<800&&
+    (e.detail!==0||e.pointerType==='touch'||
+     e.sourceCapabilities?.firesTouchEvents)){
   pocketTouchActivation=null;
   return;
  }
