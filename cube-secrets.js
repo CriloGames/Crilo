@@ -889,7 +889,9 @@ function render(){
     button.type='button';
     button.className='nc-item';
     button.dataset.item=id;
-    button.draggable=true;
+    // Native HTML dragging can swallow the tap/click on mobile Safari.
+    // Desktop drag-to-combine remains intact; phones use tap-to-hold/use.
+    button.draggable=!window.matchMedia?.('(pointer:coarse)')?.matches;
     button.dataset.material=pocketMaterial(id);
     button.innerHTML='<span class="nc-item-icon" aria-hidden="true">'+
      inventoryIcon(id)+'</span>'+names[id];
@@ -1846,11 +1848,40 @@ function eventThing(e){
  if(!node)return;
  clickThing(node.dataset.thing);
 }
+let pocketTouchStart=null,pocketTouchActivation=null;
 function clickInventory(e){
  const item=e.target.closest('[data-item]');
  if(!item)return;
+ // A touch pointerup is handled directly because some mobile browsers
+ // suppress the synthesized click on draggable or rapidly rerendered cards.
+ // Ignore only the following synthetic click, not real keyboard activation.
+ if(e.type==='click'&&e.detail!==0&&pocketTouchActivation&&
+    pocketTouchActivation.item===item.dataset.item&&
+    Date.now()-pocketTouchActivation.when<800){
+  pocketTouchActivation=null;
+  return;
+ }
  if(item.dataset.item==='flute'){openFlute();return}
  take(item.dataset.item);
+}
+function pocketPointerDown(e){
+ if(e.pointerType!=='touch'||e.isPrimary===false)return;
+ const target=e.target.closest('[data-item]');
+ if(!target)return;
+ pocketTouchStart={pointerId:e.pointerId,item:target.dataset.item,
+  x:e.clientX,y:e.clientY};
+ // Phones use deliberate taps; disabling native drag prevents iOS from
+ // turning a long inventory touch into a draggable ghost card.
+ target.draggable=false;
+}
+function pocketPointerUp(e){
+ const start=pocketTouchStart;pocketTouchStart=null;
+ if(!start||e.pointerId!==start.pointerId)return;
+ if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>15)return;
+ const item=e.target.closest('[data-item]');
+ if(!item||item.dataset.item!==start.item)return;
+ pocketTouchActivation={item:start.item,when:Date.now()};
+ clickInventory(e);
 }
 // Chromium can project a hinged 3D control at one screen coordinate while
 // routing the pointer to its flat parent instead. Fall back to the actual
@@ -1886,6 +1917,9 @@ $('ncCube').addEventListener('pointerdown',event=>{
 $('ncCube').addEventListener('click',hit);
 $('ncSideObjects').addEventListener('click',eventThing);
 $('ncDoorScene').addEventListener('click',eventThing);
+$('ncInventory').addEventListener('pointerdown',pocketPointerDown);
+$('ncInventory').addEventListener('pointerup',pocketPointerUp);
+$('ncInventory').addEventListener('pointercancel',()=>{pocketTouchStart=null});
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
