@@ -1175,7 +1175,7 @@ function pickTouchAction(clientX,clientY){
  const offsets=[[1,0],[-1,0],[0,1],[0,-1],
   [.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
  let nearbyControl=null;
- for(const radius of [6,limit]){
+ for(const radius of [7,Math.min(14,limit),limit]){
   for(const [dx,dy] of offsets){
    const x=clientX+dx*radius,y=clientY+dy*radius;
    if(x<rect.left||x>rect.right||y<rect.top||y>rect.bottom)continue;
