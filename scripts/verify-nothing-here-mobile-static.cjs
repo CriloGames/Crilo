@@ -64,6 +64,9 @@ const thread=target('thread');
 tap(thread);
 assert.equal(selected,'thread','One physical touch holds the item');
 assert.deepEqual(activated,['thread'],'No duplicate synthetic click');
+pocket.clickInventory({...event('click',thread,5,40,50,0),pointerType:'touch'});
+assert.deepEqual(activated,['thread'],
+ 'Safari synthetic clicks with detail=0 must not immediately deselect a touched item');
 assert.equal(thread.element.draggable,false,'Touch disables native item drag');
 tap(thread);
 assert.equal(selected,null,'Second touch releases item');
@@ -71,7 +74,7 @@ assert.deepEqual(activated,['thread','thread']);
 pocket.pocketPointerDown(event('pointerdown',thread));
 pocket.pocketPointerUp(event('pointerup',thread,5,80,90));
 assert.equal(activated.length,2,'A swipe/scroll must not select inventory');
-pocket.clickInventory(event('click',thread,5,80,90,0));
+pocket.clickInventory({...event('click',thread,5,80,90,0),pointerType:''});
 assert.equal(selected,'thread','Keyboard synthetic click remains functional');
 const fluteTarget=target('flute');
 tap(fluteTarget);
