@@ -2830,7 +2830,7 @@ if(embeddedGame){
  // identify an object without accidentally pressing a secret mechanism.
  const gestureHint=document.getElementById("ncCubeHint");
  if(gestureHint)gestureHint.textContent=window.matchMedia?.("(pointer:coarse)")?.matches
-  ?"drag to rotate · hold to identify"
+  ?"tap to collect · hold to inspect · drag to turn"
   :"drag to rotate · hover to identify";
  // The old illustrated-world buttons are now invisible puzzle-event nodes.
  // All playable objects belong to the physical cube and keyboard inspection.
