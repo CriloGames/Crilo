@@ -1156,6 +1156,36 @@ function pickVisibleAction(clientX,clientY){
      !!currentGameState.observatoryRaised)&&
     isMeshEffectivelyVisible(hit.object))?.object.userData.action||null;
 }
+// A phone fingertip obscures several physical pixels and the collectible
+// meshes are much smaller than that at the mobile overview zoom. Keep all
+// existing face occlusion, puzzle unlocking, and keyboard hit rules by
+// sampling the SAME true raycast in a narrow circle around a touch.
+// This does not create an invisible hitbox through the cube or auto-collect.
+function pickTouchAction(clientX,clientY){
+ const direct=pickVisibleAction(clientX,clientY);
+ if(direct?.startsWith("pickup:"))return direct;
+ const rect=renderer.domElement.getBoundingClientRect();
+ if(!rect.width||!rect.height)return direct;
+ // Respect the physical canvas bounds: near-edge taps may be clipped.
+ const limit=Math.min(16,Math.max(10,rect.width*.027));
+ const offsets=[[1,0],[-1,0],[0,1],[0,-1],
+  [.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
+ let nearbyControl=null;
+ for(const radius of [6,limit]){
+  for(const [dx,dy] of offsets){
+   const x=clientX+dx*radius,y=clientY+dy*radius;
+   if(x<rect.left||x>rect.right||y<rect.top||y>rect.bottom)continue;
+   const action=pickVisibleAction(x,y);
+   // An actual pickup wins over a generic drawer/hatch surface when the
+   // fingertip is close to a tiny exposed item, but never a precise
+   // mechanical control pressed directly at the center.
+   if(action?.startsWith("pickup:")&&(!direct||
+    ["front","side","hatch","underside"].includes(direct)))return action;
+   if(!direct&&action&&!nearbyControl)nearbyControl=action;
+  }
+ }
+ return direct||nearbyControl;
+}
 
 /* Accessible physical inspection: the keyboard only cycles through parts
  * that can actually be reached by the current camera ray. It never lists
@@ -1480,7 +1510,8 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  if(e.button!==0||multiTouchGesture)return;
  dismissTouchHint();
  clickStart={x:e.clientX,y:e.clientY,pointerId:e.pointerId,
-  pointerType:e.pointerType,action:pickVisibleAction(e.clientX,e.clientY),
+  pointerType:e.pointerType,action:e.pointerType==="touch"
+   ?pickTouchAction(e.clientX,e.clientY):pickVisibleAction(e.clientX,e.clientY),
   inspected:false,moved:false};
  stopInspectTimer();
  if(e.pointerType==="touch"&&clickStart.action){
@@ -1517,7 +1548,8 @@ function clearHover(){
 }
 renderer.domElement.addEventListener("pointermove",e=>{
  if(clickStart&&e.pointerId===clickStart.pointerId&&
-    Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>9){
+    Math.hypot(e.clientX-clickStart.x,e.clientY-clickStart.y)>
+     (clickStart.pointerType==="touch"?17:9)){
    clickStart.moved=true;
    stopInspectTimer();
    // A drag is not an inspection. Remove even a still-pinned caption from
@@ -1574,13 +1606,14 @@ renderer.domElement.addEventListener("pointerup",e=>{
   pinTouchHint();clearHover();return;
  }
  if(!start||start.pointerId!==e.pointerId||
-    Math.hypot(e.clientX-start.x,e.clientY-start.y)>(start.pointerType==="touch"?12:7)){
+    Math.hypot(e.clientX-start.x,e.clientY-start.y)>(start.pointerType==="touch"?17:7)){
   clearHover();return;
  }
- const action=start.action||pickVisibleAction(e.clientX,e.clientY);
+ const action=start.action||(start.pointerType==="touch"
+  ?pickTouchAction(e.clientX,e.clientY):pickVisibleAction(e.clientX,e.clientY));
  if(action)clickAction(action);
  clearHover();
-});
+},true); // Run before OrbitControls can release mobile pointer capture.
 renderer.domElement.addEventListener("pointercancel",e=>{
  if(e.pointerType==="touch")touchPointers.delete(e.pointerId);
  stopInspectTimer();clickStart=null;
