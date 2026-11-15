@@ -1163,7 +1163,10 @@ function pickVisibleAction(clientX,clientY){
 // This does not create an invisible hitbox through the cube or auto-collect.
 function pickTouchAction(clientX,clientY){
  const direct=pickVisibleAction(clientX,clientY);
- if(direct?.startsWith("pickup:"))return direct;
+ // Exact puzzle controls remain exact, and should not pay for 16 extra
+ // raycasts on a slow phone GPU. Only empty space and broad tray surfaces
+ // get fingertip tolerance when searching for an exposed collectible.
+ if(direct&&!(["front","side","hatch","underside"].includes(direct)))return direct;
  const rect=renderer.domElement.getBoundingClientRect();
  if(!rect.width||!rect.height)return direct;
  // Respect the physical canvas bounds: near-edge taps may be clipped.
