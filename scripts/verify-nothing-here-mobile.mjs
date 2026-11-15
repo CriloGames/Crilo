@@ -95,6 +95,15 @@ async function runMobile(width,height,includePickup){
    "Canceling reset must not erase progress");
   await page.locator("#ncSfxToggle").tap();
   await page.locator("#ncSfxToggle").tap();
+  // Phone Safari may lack native fullscreen: entering/exiting must still be
+  // reversible, with the pocket inside the viewport experience.
+  await page.locator("#ncFullscreenToggle").tap();
+  await page.waitForFunction(()=>document.body.classList.contains("nc-pseudo-fullscreen")||
+   document.fullscreenElement===document.body,null,{timeout:3500});
+  assert.ok(await page.locator("#ncPocket").isVisible());
+  await page.locator("#ncFullscreenToggle").tap();
+  await page.waitForFunction(()=>!document.body.classList.contains("nc-pseudo-fullscreen")&&
+   document.fullscreenElement!==document.body,null,{timeout:3500});
   if(includePickup){
    await page.evaluate(()=>{
     window.__nothing3DPreview.setRotation(-13,0);
@@ -116,7 +125,16 @@ async function runMobile(width,height,includePickup){
     "Exposed key is not raycast-selectable on a phone: "+JSON.stringify(target));
    const box=await page.locator("#stage canvas").boundingBox();
    assert.ok(box,"WebGL canvas must have a mobile bounding box");
-   await page.touchscreen.tap(box.x+target.x,box.y+target.y);
+   // A long hold names the collectible but must NOT accidentally pocket it.
+   const cdp=await context.newCDPSession(page);
+   const px=box.x+target.x,py=box.y+target.y;
+   await cdp.send("Input.dispatchTouchEvent",{
+    type:"touchStart",touchPoints:[{x:px,y:py}]});
+   await page.waitForTimeout(640);
+   assert.equal((await state()).pocket.includes("tooth"),false,
+    "Holding to inspect an item must not collect it");
+   await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+   await page.touchscreen.tap(px,py);
    await page.waitForFunction(()=>
     window.CriloNothingHereCube.getState().pocket.includes("tooth"),
     null,{timeout:7000});
@@ -134,6 +152,39 @@ async function runMobile(width,height,includePickup){
     "Real touch pickup must persist across reloads");
    assert.equal((await state()).pocket.length,pocketLength,
     "Saved inventory must never duplicate a touched collectible");
+   // Test a genuine one-finger swipe and two-finger pinch, not only buttons.
+   const cdp2=await context.newCDPSession(page);
+   const area=await page.locator("#stage canvas").boundingBox();
+   const cx=area.x+area.width*.23,cy=area.y+area.height*.37;
+   const beforeSwipe=await page.evaluate(()=>
+    window.__nothing3DPreview.navigationState.camera);
+   await cdp2.send("Input.dispatchTouchEvent",{type:"touchStart",
+    touchPoints:[{x:cx,y:cy}]});
+   for(let i=1;i<=7;i++){
+    await cdp2.send("Input.dispatchTouchEvent",{type:"touchMove",
+     touchPoints:[{x:cx+i*11,y:cy+i*2}]});
+    await page.waitForTimeout(22);
+   }
+   await cdp2.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+   const afterSwipe=await page.evaluate(()=>
+    window.__nothing3DPreview.navigationState.camera);
+   assert.ok(Math.hypot(...afterSwipe.map((value,i)=>value-beforeSwipe[i]))>.03,
+    "Swiping across the 3D stage must rotate the camera");
+   await page.locator("#ncViewReset").tap();
+   const beforePinch=await page.evaluate(()=>
+    window.__nothing3DPreview.navigationState.camera);
+   await cdp2.send("Input.dispatchTouchEvent",{type:"touchStart",
+    touchPoints:[{x:cx-28,y:cy},{x:cx+28,y:cy}]});
+   for(let i=1;i<=5;i++){
+    await cdp2.send("Input.dispatchTouchEvent",{type:"touchMove",
+     touchPoints:[{x:cx-28-i*12,y:cy},{x:cx+28+i*12,y:cy}]});
+    await page.waitForTimeout(24);
+   }
+   await cdp2.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+   const afterPinch=await page.evaluate(()=>
+    window.__nothing3DPreview.navigationState.camera);
+   assert.ok(Math.hypot(...afterPinch.map((value,i)=>value-beforePinch[i]))>.03,
+    "Pinching must zoom the 3D camera on mobile");
   }
   assert.equal(errors.length,0,"Mobile JS errors: "+errors.join("; "));
   const sizes=await page.evaluate(()=>({
