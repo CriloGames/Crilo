@@ -152,6 +152,15 @@ assert(logic.includes("spend('flute');")&&
  'The successful flute melody must consume the item and migrate old saves');
 assert(hotspots.includes('flute.visible=!s.door&&Array.isArray(s.pocket)'),
  'The consumed flute must disappear from the actual 3D top face');
+assert(logic.includes("const carried=[...pocket].filter(id=>id!=='flute');")&&
+ !markup.includes('id="ncFluteTray"')&&
+ !logic.includes("fluteTrayOpen"),
+ 'The physical flute must not be duplicated in inventory or a second keyboard');
+assert(hotspots.includes("const fluteLightBar=B(flute,")&&
+ hotspots.includes("fluteBarSegments:fluteStepLights.length")&&
+ hotspots.includes("fluteBarMounted:")&&
+ hotspots.includes("fluteBarBelowKeys:"),
+ 'The physical flute needs a grounded six-segment light bar beneath its keys');
 
 // A formerly added service cassette crashed during import because a
 // sensor was created on a shutter const before the const was initialized.
