@@ -330,3 +330,21 @@
 /* Allow the homepage's Shape of Sound card to bypass Night Shift entirely. */
 #shape-of-sound{scroll-margin-top:90px}
 @media(max-width:700px){#shape-of-sound{scroll-margin-top:84px}}
+
+/* Finger-sized sculpt handles, without enlarging the animated sound blobs or
+   obstructing the other stage controls on narrow iPhone displays. */
+@media(pointer:coarse){
+ .sound-blob.is-selected .sound-handle{
+  width:44px;height:44px;
+  font-size:20px;
+  touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+ }
+ .sound-blob.is-selected .sound-handle-x{right:-23px}
+ .sound-blob.is-selected .sound-handle-y{bottom:-24px}
+ .sound-page .sound-button,.sound-page .sound-palette-button{
+  min-height:44px;
+  touch-action:manipulation;
+ }
+ .sound-stage{overscroll-behavior:contain}
+}
