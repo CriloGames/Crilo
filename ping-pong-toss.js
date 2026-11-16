@@ -4887,6 +4887,11 @@ el.full.addEventListener('click',async()=>{
 });
 document.addEventListener('fullscreenchange',syncFullscreenControl);
 window.addEventListener('pagehide',exitPseudoFullscreen);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&pseudoFullscreen){
+  e.preventDefault();e.stopImmediatePropagation();exitPseudoFullscreen();
+ }
+},true);
 // Flick gesture inspired by classic touchscreen toss games — drag upward to
 // aim/throw, or simply hold and release for power-charging on desktop.
 function flickAim(e){
