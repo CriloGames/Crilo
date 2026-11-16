@@ -67,9 +67,15 @@ async function runMobile(width,height,includePickup){
   const originalSeen=(await state()).seen.length;
   const thread=page.locator('#ncInventory [data-item="thread"]');
   await thread.tap();
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().selected==="thread",
+   null,{timeout:2000});
   assert.equal((await state()).selected,"thread",
    "One mobile tap should select an inventory item exactly once");
   await thread.tap();
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().selected===null,
+   null,{timeout:2000});
   assert.equal((await state()).selected,null,"Second tap should release item");
   assert.equal(await thread.getAttribute("draggable"),"false",
    "Touch inventory must not trigger native HTML drag");
@@ -99,6 +105,9 @@ async function runMobile(width,height,includePickup){
   const fluteCanvas=await page.locator("#stage canvas").boundingBox();
   assert.ok(fluteCanvas,"3D stage needs a mobile canvas");
   await page.touchscreen.tap(fluteCanvas.x+fluteKey.x,fluteCanvas.y+fluteKey.y);
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().fluteNotes.length===1,
+   null,{timeout:3000});
   assert.deepEqual((await state()).fluteNotes,[1],
    "A finger tap on the physical flute must play one note");
   assert.equal(await page.evaluate(()=>
