@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { createNothingHereFinale } from "./secrets-3d-finale.js?v=56";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=54";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=28";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=55";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
 
@@ -819,8 +819,8 @@ function clickAction(action){
    return;
   }
   if(action==="flute-body"){
-   // The instrument body should be selectable. Open its larger keys in the
-   // existing pocket rather than showing a floating puzzle popup.
+   // The body identifies the mounted instrument; note inputs stay on
+   // the three physical keys, never in a second inventory keyboard.
    window.CriloNothingHereCube?.openFluteFromBox?.();
    return;
   }
@@ -2705,7 +2705,7 @@ window.__nothing3DPreview={
   );
   originalPickupGlow?.ring.setActive(undersideRing.visible);
   renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
-   ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Keys 1, 2 and 3 play the collected flute."
+   ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Tap the three mounted flute keys to play; keyboard keys 1, 2 and 3 also work."
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   if(physicalPickups)physicalPickups.setState(currentGameState);
