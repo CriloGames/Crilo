@@ -1813,36 +1813,36 @@ function pocketKeyDown(e){
 function clickInventory(e){
  const item=e.target.closest('[data-item]');
  if(!item||item.dataset.item==='flute')return;
- // Mobile Safari can emit a MouseEvent click with detail=0 and without
- // pointerType/sourceCapabilities AFTER pointerup already selected the item.
- // Suppress that duplicate irrespective of its event metadata. A real
- // keyboard activation is identified by its preceding Enter/Space keydown.
+ // Pointerup must not activate an item AND then let a mobile compatibility
+ // click activate it again. Use click as the primary touch action; a short
+ // pointerup fallback handles Safari when the click gets swallowed.
  const keyboardClick=e.type==='click'&&e.detail===0&&
   pocketKeyboardActivation?.item===item.dataset.item&&
   Date.now()-pocketKeyboardActivation.when<1200;
  if(keyboardClick)pocketKeyboardActivation=null;
- if(e.type==='click'&&pocketTouchActivation&&
-    pocketTouchActivation.item===item.dataset.item&&
-    Date.now()-pocketTouchActivation.when<1600&&!keyboardClick){
-  // Some browsers dispatch more than one compatibility click after a
-  // single touch. Keep the suppression marker until the next real touch
-  // rather than letting the second click deselect the item.
+ const pending=pocketTouchActivation;
+ if(e.type==='click'&&!keyboardClick&&pending&&
+    pending.item===item.dataset.item&&Date.now()-pending.when<1600){
+  if(pending.handled)return;
+  pending.handled=true;
+  clearTimeout(pending.timer);
+  take(item.dataset.item);
   return;
  }
  take(item.dataset.item);
 }
 function pocketPointerDown(e){
  if(e.pointerType!=='touch'||e.isPrimary===false)return;
- // A new deliberate finger press must not inherit a previous tap's
- // compatibility-click guard; its pointerup will establish a new one.
+ // Starting a new genuine finger tap ends any prior compatibility-click
+ // suppression, even when the browser sends duplicated click events.
+ if(pocketTouchActivation)clearTimeout(pocketTouchActivation.timer);
  pocketTouchActivation=null;
  const target=e.target.closest('[data-item]');
  if(!target||target.dataset.item==='flute')return;
  pocketKeyboardActivation=null;
  pocketTouchStart={pointerId:e.pointerId,item:target.dataset.item,
   x:e.clientX,y:e.clientY};
- // Phones use deliberate taps; disabling native drag prevents iOS from
- // turning a long inventory touch into a draggable ghost card.
+ // Prevent native ghost dragging from swallowing Safari's click.
  target.draggable=false;
 }
 function pocketPointerUp(e){
@@ -1851,8 +1851,14 @@ function pocketPointerUp(e){
  if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>15)return;
  const item=e.target.closest('[data-item]');
  if(!item||item.dataset.item!==start.item)return;
- pocketTouchActivation={item:start.item,when:Date.now()};
- clickInventory(e);
+ const pending={item:start.item,when:Date.now(),handled:false,timer:null};
+ pocketTouchActivation=pending;
+ pending.timer=setTimeout(()=>{
+  // Click was not delivered: select exactly once from this touch release.
+  if(pocketTouchActivation!==pending||pending.handled)return;
+  pending.handled=true;
+  take(pending.item);
+ },90);
 }
 // Chromium can project a hinged 3D control at one screen coordinate while
 // routing the pointer to its flat parent instead. Fall back to the actual
