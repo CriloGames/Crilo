@@ -1422,6 +1422,24 @@ function showHeldItemDestination(){
 // entire cube while the player is operating a visible wheel.
 const gearDragParts=intricate.getGearMazeTargets?.()||null;
 const gearDragActions=new Set(["gear-small","maze-in","maze-out"]);
+// Tiny physical cogs need a finger-sized contact area, but only when the
+// finger starts on empty canvas. Never steal a visible screw or pickup.
+function pickGearDragTouchAction(e){
+ const direct=pickVisibleAction(e.clientX,e.clientY);
+ if(gearDragActions.has(direct))return direct;
+ if(e.pointerType!=="touch"||direct)return null;
+ const rect=renderer.domElement.getBoundingClientRect();
+ if(!rect.width||!rect.height)return null;
+ const offsets=[[1,0],[-1,0],[0,1],[0,-1],
+  [.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
+ for(const radius of [6,12])for(const [dx,dy] of offsets){
+  const x=e.clientX+dx*radius,y=e.clientY+dy*radius;
+  if(x<rect.left||x>rect.right||y<rect.top||y>rect.bottom)continue;
+  const action=pickVisibleAction(x,y);
+  if(gearDragActions.has(action))return action;
+ }
+ return null;
+}
 let gearDrag=null;
 function endGearDrag(pointerId){
  if(!gearDrag||pointerId!==gearDrag.pointerId)return false;
@@ -1436,8 +1454,8 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  if(!embeddedGame||e.button!==0)return;
  if(gearDrag){endGearDrag(gearDrag.pointerId);return;}
  if(window.CriloNothingHereCube?.getState?.().selected)return;
- const action=pickVisibleAction(e.clientX,e.clientY);
- if(!gearDragActions.has(action))return;
+ const action=pickGearDragTouchAction(e);
+ if(!action)return;
  const root=action==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
  if(!root)return;
  scene.updateMatrixWorld(true);camera.updateMatrixWorld();
