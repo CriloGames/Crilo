@@ -25,6 +25,8 @@ assert.match(html,/five-fronts\.js\?v=2/);
 assert.match(html,/id="ffCountries"/);
 assert.match(html,/id="ffSpeed"/);
 assert.match(html,/id="ffMap"/);
+assert.match(html,/id="ffStatePicker"/);
+assert.match(js,/function renderStatePicker\(\)/);
 assert.match(html,/id="ffCouncilModal"/);
 assert.match(html,/id="ffEventModal"/);
 assert.match(html,/id="ffEndModal"/);
@@ -178,6 +180,7 @@ for(let players=2;players<=6;players++){
     addEventListener(type,fn){events[type]=fn},
     setAttribute(k,v){attributes[k]=v},
     focus(){},append(...els){children.push(...els)},
+    appendChild(el){children.push(el);return el},
     replaceChildren(){children.length=0},
     querySelector(sel){return sel==='button'?children.find(c=>c.tagName==='button'):null},
     classList:{add(){},remove(){}}
@@ -213,6 +216,9 @@ for(let players=2;players<=6;players++){
   assert.ok(war&&war.states.length===15);
   assert.equal(node('ffMatch').hidden,false);
   assert.match(node('ffMap').innerHTML,/data-state="0"/);
+  assert.equal(node('ffStatePicker').children.length,16,
+   'Native mobile state picker should include all 15 countries states and a prompt');
+  assert.equal(node('ffStatePicker').disabled,false);
   assert.match(node('ffResources').innerHTML,/FOOD/);
   const state=war.states.find(s=>s.owner===0&&s.capital);
   const before=state.troops;
@@ -221,9 +227,17 @@ for(let players=2;players<=6;players++){
   node('ffMarch').events.click();
   assert.match(node('ffGuidance').textContent,/adjacent/i);
   const target=state.neighbors[0];
+  assert.equal(node('ffStatePicker').children.length,
+   state.neighbors.length+1,
+   'Marching on mobile should offer only adjacent destinations');
   // Event delegation passes a real SVG-like target to the map.
   node('ffMap').events.click({target:{closest:()=>({dataset:{state:String(target)}})}});
   assert.equal(war.transits.length,1);
+  // The native select is a second path through the identical state action.
+  node('ffMarch').events.click();
+  node('ffStatePicker').events.change({target:{value:String(target)}});
+  assert.equal(war.transits.length,2,
+   'Selecting a destination from the mobile picker should dispatch a troop order');
   node('ffPause').events.click();assert.equal(war.paused,true);
   node('ffPause').events.click();assert.equal(war.paused,false);
   node('ffTestEvent').events.click();
