@@ -35,6 +35,12 @@ on:
       - '.github/workflows/all-games-mobile.yml'
   pull_request:
     paths:
+      - 'secrets.html'
+      - 'secrets-3d-preview.js'
+      - 'cube-secrets.js'
+      - 'nothing-here-mobile.css'
+      - 'scripts/verify-nothing-here-mobile.mjs'
+      - 'scripts/verify-nothing-here-mobile-static.cjs'
       - 'scripts/verify-all-games-mobile.cjs'
       - 'pong-toss.html'
       - 'ping-pong-toss.js'
