@@ -1823,14 +1823,19 @@ function clickInventory(e){
  if(keyboardClick)pocketKeyboardActivation=null;
  if(e.type==='click'&&pocketTouchActivation&&
     pocketTouchActivation.item===item.dataset.item&&
-    Date.now()-pocketTouchActivation.when<800&&!keyboardClick){
-  pocketTouchActivation=null;
+    Date.now()-pocketTouchActivation.when<1600&&!keyboardClick){
+  // Some browsers dispatch more than one compatibility click after a
+  // single touch. Keep the suppression marker until the next real touch
+  // rather than letting the second click deselect the item.
   return;
  }
  take(item.dataset.item);
 }
 function pocketPointerDown(e){
  if(e.pointerType!=='touch'||e.isPrimary===false)return;
+ // A new deliberate finger press must not inherit a previous tap's
+ // compatibility-click guard; its pointerup will establish a new one.
+ pocketTouchActivation=null;
  const target=e.target.closest('[data-item]');
  if(!target||target.dataset.item==='flute')return;
  pocketKeyboardActivation=null;
