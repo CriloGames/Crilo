@@ -13,7 +13,7 @@
  let ownerId=null,authCounter=0,match=null,selectedId=null,choosingTarget=false;
  let lastFrame=0,raf=0,lastPaint=0,lastSave=0,lastLogKey='',modalKind='';
  let emergencyElapsed=0,emergencyTarget=.5,emergencyNeedle=.5;
- let returnedFocus=null;
+ let returnedFocus=null,lastSelectorKey='';
  const money=x=>Math.floor(Math.max(0,x));
  const formatSeconds=x=>{
   const s=Math.max(0,Math.floor(x));
@@ -52,7 +52,7 @@
   choosingTarget=false;
   setup.hidden=true;matchPanel.hidden=false;
   for(const overlay of [council,eventModal,endModal])overlay.hidden=true;
-  modalKind='';lastFrame=0;lastPaint=0;lastSave=0;lastLogKey='';
+  modalKind='';lastFrame=0;lastPaint=0;lastSave=0;lastLogKey='';lastSelectorKey='';
   put('ffMapSeed',match.seed.toString(16).slice(0,7).toUpperCase());
   setStatus('Select your capital to recruit, fortify, or march into a neighboring state.');
   render();save();schedule();
@@ -64,7 +64,7 @@
   selectedId=E.getState(match,saved.selectedId)?.id??match.states.find(s=>s.owner===0)?.id??null;
   choosingTarget=false;
   setup.hidden=true;matchPanel.hidden=false;
-  lastFrame=0;lastPaint=0;lastSave=0;lastLogKey='';
+  lastFrame=0;lastPaint=0;lastSave=0;lastLogKey='';lastSelectorKey='';
   put('ffMapSeed',match.seed.toString(16).slice(0,7).toUpperCase());
   render();checkInterruptions();schedule();
   setStatus('Saved campaign restored. Time does not advance while you are away.');
@@ -145,6 +145,37 @@
   }
   svg.innerHTML=paths.join('');
  }
+// A small phone may scale 30 hexes to targets under 25px. The selector
+ // gives the same gameplay actions without changing map size or combat rules.
+ function renderStatePicker(){
+  const picker=$('ffStatePicker');
+  const source=E.getState(match,selectedId);
+  const choices=choosingTarget&&source
+   ?source.neighbors.map(id=>E.getState(match,id))
+   :match.states.slice().sort((a,b)=>(a.owner===0?0:1)-(b.owner===0?0:1)||a.id-b.id);
+  const signature=(choosingTarget?'targets:':'all:')+
+   (choosingTarget?selectedId+':':'')+
+   choices.map(s=>s.id+':'+s.owner).join(',');
+  if(signature!==lastSelectorKey){
+   lastSelectorKey=signature;
+   picker.replaceChildren();
+   const hint=document.createElement('option');
+   hint.value='';
+   hint.textContent=choosingTarget?'Choose an adjacent destination…':'Choose a state…';
+   picker.appendChild(hint);
+   for(const s of choices){
+    const opt=document.createElement('option');
+    opt.value=String(s.id);
+    const nation=match.countries[s.owner].name;
+    opt.textContent='State '+(s.id+1)+' · '+nation+
+     (s.owner===0?' (YOU)':'')+(s.capital?' · Capital':'')+
+     ' · '+s.terrain;
+    picker.appendChild(opt);
+   }
+  }
+  picker.disabled=match.ended||!!match.pendingEvent||!!match.pendingStrategy;
+  picker.value=choosingTarget?'':String(selectedId??'');
+ }
  function renderLegend(){
   $('ffLegend').innerHTML=match.countries.map(c=>{
    const count=E.ownedCount(match,c.id);
@@ -224,7 +255,7 @@
  }
  function render(){
   if(!match||matchPanel.hidden)return;
-  renderCounters();renderResources();renderMap();renderLegend();renderSelected();
+  renderCounters();renderResources();renderMap();renderStatePicker();renderLegend();renderSelected();
   renderTransits();renderLog();
  }
  function selectState(id){
@@ -329,6 +360,10 @@
     '</span><b>'+x.score.states+' states · '+x.score.troops+' troops</b></div>').join('');
   endModal.hidden=false;$('ffEndNew').focus();
  }
+ $('ffStatePicker').addEventListener('change',e=>{
+  if(e.target.value==='')return;
+  selectState(Number(e.target.value));
+ });
  svg.addEventListener('click',e=>{
   const tile=e.target.closest('[data-state]');
   if(tile)selectState(Number(tile.dataset.state));
