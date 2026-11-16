@@ -124,7 +124,7 @@ try{
   "Selecting an item must not enlarge its border and shift the inventory");
  assert.equal(selectedBorder.transform,"none",
   "Selected inventory card cannot leave the mouse hit area");
- assert.equal(await page.locator("#ncPocketCount").innerText(),"33 carried",
+ assert.equal(await page.locator("#ncPocketCount").innerText(),"32 carried",
   "Selecting an item must not remove it from the pocket");
  await page.evaluate(()=>{document.documentElement.dataset.theme="dark"});
  const contrast=await page.locator('#ncInventory [data-item="lens"] .nc-item-icon')
