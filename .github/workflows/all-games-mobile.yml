@@ -45,6 +45,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+# An iteration can change several game files in quick succession. Run only
+# the newest revision rather than charging CI minutes for obsolete versions.
+concurrency:
+  group: all-crilo-mobile-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   all-games:
     name: Real touch interactions on iPhone, Android, iPad and Safari
