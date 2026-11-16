@@ -1,0 +1,66 @@
+name: All Crilo games mobile interaction QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'game.js'
+      - 'style.css'
+      - 'ping-pong-toss.js'
+      - 'ping-pong-toss.css'
+      - 'pong-toss.html'
+      - 'secrets.html'
+      - 'secrets-3d-preview.js'
+      - 'cube-secrets.js'
+      - 'nothing-here-mobile.css'
+      - 'sound-shapes.js'
+      - 'sound-shapes.css'
+      - 'shape-of-sound.html'
+      - 'domain/index.html'
+      - 'domain/game.js'
+      - 'domain/style.css'
+      - 'test-games.html'
+      - 'test-games.js'
+      - 'test-games.css'
+      - 'five-fronts.html'
+      - 'five-fronts.js'
+      - 'five-fronts-core.js'
+      - 'five-fronts.css'
+      - 'scripts/verify-all-games-mobile.cjs'
+      - '.github/workflows/all-games-mobile.yml'
+  pull_request:
+    paths:
+      - 'scripts/verify-all-games-mobile.cjs'
+      - 'pong-toss.html'
+      - 'ping-pong-toss.js'
+      - 'shape-of-sound.html'
+      - 'sound-shapes.js'
+      - 'five-fronts.html'
+      - 'five-fronts.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  all-games:
+    name: Real touch interactions on iPhone, Android, iPad and Safari
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Test playable mobile games with isolated accounts
+        run: node scripts/verify-all-games-mobile.cjs
+      - name: Preserve failed mobile screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-games-mobile-screenshots
+          path: test-results/mobile-games/
+          if-no-files-found: ignore
+          retention-days: 7
