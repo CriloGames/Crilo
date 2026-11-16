@@ -1840,29 +1840,24 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
- // A new player should understand the flute ON FIRST CLICK in inventory.
- // The same canonical note engine powers both the inline keys and the
- // three raised metal controls on the cube.
- await page.locator('#ncInventory [data-item="flute"]').click();
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "Clicking a found flute in inventory opened no playable controls");
- assert.equal(await page.locator('#ncInventory [data-item="flute"]').getAttribute("aria-expanded"),"true");
- assert(await page.locator("#ncModal").isHidden(),
-  "Flute inventory interaction must not open a floating old-style puzzle");
- assert.match(await page.locator("#ncFluteTray").innerText(),/musical phrases marked A and B/i,
-  "The inventory instrument does not explain where its notes come from");
- await page.locator('#ncFluteTray [data-flute-key="1"]').click();
- assert.deepEqual((await state()).fluteNotes,[1],
-  "The new inventory key was decorative rather than playable");
- assert.equal(await page.locator("#ncFluteNoteSteps .is-lit").count(),1,
-  "Pressing the inventory flute did not move its six-note progress display");
- await page.locator("#ncFluteStartOver").click();
- assert.deepEqual((await state()).fluteNotes,[],
-  "The explicit flute Start over button did not clear an abandoned melody");
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "Resetting a melody unexpectedly hid its instrument");
- // Clicking the physical flute body should open the same inline instrument
- // even if its individual keycaps are visually too small for a player.
+ // The flute remains in the save for compatibility but belongs on the
+ // top of the box, never as a second keyboard in Things You Found.
+ assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+  "A built flute must not also appear in Things You Found");
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "The old second flute keyboard was not removed");
+ const fluteIndicator=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert.equal(fluteIndicator.fluteBarSegments,6,
+  "The flute must have exactly six indicator segments");
+ assert.equal(fluteIndicator.fluteBarMounted,true,
+  "The light bar backing is not physically attached to the top rail");
+ assert.equal(fluteIndicator.fluteBarBelowKeys,true,
+  "The light bar must sit below the keys, without crossing them");
+ assert.equal(fluteIndicator.fluteStepsShown,0,
+  "The new bar should start dark");
+ // Clicking the copper flute body explains the on-box controls without
+ // opening a second modal, keyboard or panel.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
  const tube=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
@@ -1871,14 +1866,13 @@ try{
  });
  assert(tube?.pick==="flute-body"&&tube.hit==="flute-body",
   "The visible flute body is not a working pointer target: "+JSON.stringify(tube));
- await page.locator("#ncFluteClose").click();
- assert(await page.locator("#ncFluteTray").isHidden());
  await page.locator("#stage canvas").click({
   position:{x:tube.x,y:tube.y},timeout:30000
  });
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "A click on the actual physical flute did not expose the playable keys");
- await page.locator("#ncFluteClose").click();
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "Touching the flute must not open another keyboard");
+ assert.match(await page.locator("#ncNarrator").innerText(),/three raised keys.*light bar/i,
+  "The flute body should explain its physical keys and progress light bar");
  for(const n of [1,1,1,1,1,1])await activate("flute-note-"+n);
  assert.deepEqual((await state()).fluteNotes,[],
   "Six incorrect flute notes must clear before the next attempt");
@@ -1949,16 +1943,17 @@ try{
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalFluteVisible),false,
   "The flute model stayed on the top face after completing its purpose");
- assert(await page.locator('#ncInventory [data-item="flute"]').count()===0&&
-  await page.locator("#ncFluteTray").isHidden(),
-  "Completed flute still occupies inventory or leaves its keyboard open");
+ assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+  "The spent flute must never reappear in inventory");
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "The removed duplicate controls must stay absent after success");
  assert(await page.locator("#ncModal").isHidden(),
   "Playing the 3D flute opened an obstructive classic dialog");
  await page.locator("#stage canvas").focus();
  await page.keyboard.press("1");
  assert.deepEqual((await state()).fluteNotes,[2,1,3,1,3,2],
   "Keyboard input must not restart the spent flute");
- console.log("PASS: tactile physical flute, consumed on completion, keyboard access before unlock");
+ console.log("PASS: on-box flute, six-step light bar, saved melody, keyboard accessibility and consumption");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").count(),0,
   "The Classic/3D mode switch must not appear in the 3D-only game");
