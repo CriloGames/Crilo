@@ -393,10 +393,17 @@
   }
   window.addEventListener('pointermove',moveInteraction);
   window.addEventListener('pointerup',finishInteraction);
-  window.addEventListener('pointercancel',event=>{
-    if(!interaction||(event.pointerId!==undefined&&event.pointerId!==interaction.pointerId))return;
-    interaction=null;stage.classList.remove('is-interacting');paint();persist();
-  });
+  function cancelInteraction(event){
+    if(!interaction||(event?.pointerId!==undefined&&
+      event.pointerId!==interaction.pointerId))return;
+    // A phone gesture interrupted by a call, app switch, browser toolbar or
+    // lost capture must not leave a shape in permanent drag mode.
+    interaction=null;stage.classList.remove('is-interacting');
+    paint();persist();
+  }
+  window.addEventListener('pointercancel',cancelInteraction);
+  stage.addEventListener('lostpointercapture',cancelInteraction);
+  window.addEventListener('blur',()=>cancelInteraction());
   function stepDuration(){return 60/tempo/2}
   function tick(){
     if(!audio||!loopTimer)return;
@@ -522,8 +529,12 @@
     bpmLabel.textContent=tempo+' BPM';
   });
   window.addEventListener('resize',paint,{passive:true});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRoom()});
-  window.addEventListener('pagehide',stopRoom);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){cancelInteraction();stopRoom()}
+  });
+  window.addEventListener('pagehide',()=>{
+    cancelInteraction();stopRoom();
+  });
   const loaded=restore();
   blobs=loaded||initial.map(v=>newBlob(v.kind,v.x,v.y,v.sx,v.sy));
   paint();updateMute();
