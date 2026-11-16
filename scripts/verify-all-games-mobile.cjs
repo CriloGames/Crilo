@@ -19,7 +19,10 @@ const games=[
  {id:'sound',url:'shape-of-sound.html',selector:'#soundStage'},
  {id:'domain',url:'domain/',selector:'#priceSlider'},
  {id:'precision',url:'test-games.html',selector:'#testOpenPrecision',owner:true},
- {id:'fronts',url:'five-fronts.html',selector:'#ffStart',owner:true}
+ {id:'fronts',url:'five-fronts.html',selector:'#ffStart',owner:true},
+ // The two hidden playable Easter eggs are games too, not just decorations.
+ {id:'escape',url:'index.html',selector:'#criloHiddenBox'},
+ {id:'needle',url:'ducks.html',selector:'#secretWheelEntry',owner:true}
 ];
 const layouts=[
  {name:'iPhone portrait',width:390,height:844,engine:chromium},
@@ -38,7 +41,9 @@ for(const [file,needles] of Object.entries({
  'sound-shapes.js':['cancelInteraction','lostpointercapture'],
  'domain/game.js':['priceSlider','guessButton'],
  'test-games.js':['pointerdown','pointercancel'],
- 'five-fronts.js':['ffStatePicker','selectState']
+ 'five-fronts.js':['ffStatePicker','selectState'],
+ 'hidden-box.js':['pointerdown','pointerup','data-secret-direction'],
+ 'secret-wheel.js':['secretWheelEntry','secretWheelClose']
 })){
  const content=fs.readFileSync(file,'utf8');
  for(const needle of needles)assert.ok(content.includes(needle),
@@ -195,6 +200,25 @@ async function testGame(page,game,layout){
   assert.match(await page.locator('#ffPause').innerText(),/RESUME/);
   await tap('#ffPause');
   checks+=5;
+ }else if(game.id==='escape'){
+  await tap('#criloHiddenBox');
+  assert.equal(await page.locator('#criloHiddenBoxNote').isVisible(),true,
+   'Hidden Box must open by finger tap');
+  await tap('[data-secret-direction="right"]');
+  assert.equal(await page.locator('#criloHiddenBoxNote').isVisible(),true);
+  await tap('#criloEscapeClose');
+  assert.equal(await page.locator('#criloHiddenBoxNote').isVisible(),false,
+   'Hidden Box close must work on mobile');
+  checks+=3;
+ }else if(game.id==='needle'){
+  await tap('#secretWheelEntry');
+  assert.equal(await page.locator('#secretWheelDialog').isVisible(),true,
+   'The Green Needle must open by touch when signed in');
+  await tap('#secretWheelClose');
+  assert.equal(await page.locator('#secretWheelDialog').isVisible(),false);
+  // Never invoke secretWheelSpin in a synthetic browser test: the genuine
+  // game is server-owned and we cannot claim a fake prize.
+  checks+=2;
  }
 }
 (async()=>{
