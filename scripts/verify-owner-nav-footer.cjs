@@ -93,7 +93,7 @@ function runHeader(owner,standalone=false){
   assert.equal(link.tabIndex>=0,true);
   assert.equal(nav.querySelector('#ownerTestGamesNav'),link,
    'Verified auth should reuse the exact same node instead of flickering');
- }else assert.equal(link,undefined,'Non-owner must never see owner preview');
+ }else assert.equal(link,null,'Non-owner must never see owner preview');
  return true;
 }
 runHeader(true);
