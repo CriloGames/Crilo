@@ -132,6 +132,12 @@ async function testGame(page,game,layout){
    'Finger tap must launch one toss');
   checks+=5;
  }else if(game.id==='nothing'){
+  // Three.js is imported asynchronously; a visible HTML stage is NOT proof
+  // that the WebGL renderer has finished booting. Slower 360px/390px phone
+  // emulations were tested before the renderer created its canvas.
+  await page.waitForFunction(()=>window.__nothing3DPreview?.ready&&
+   document.querySelectorAll('#stage canvas').length===1,
+   null,{timeout:90000});
   await page.locator('#ncViewReset').tap();
   assert.equal(await page.locator('#stage canvas').count(),1,
    'Nothing Here must present one live 3D stage on mobile');
@@ -235,7 +241,8 @@ async function testGame(page,game,layout){
       label(layout,game)+' runtime errors');
      console.log('PASS '+label(layout,game));
     }catch(e){
-     errors.push(label(layout,game)+': '+e.stack);
+     errors.push(label(layout,game)+': '+e.stack+
+      (runtime.length?'\nPage errors: '+runtime.join('; '):''));
      try{
       const directory='test-results/mobile-games';
       fs.mkdirSync(directory,{recursive:true});
