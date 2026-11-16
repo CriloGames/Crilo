@@ -88,7 +88,17 @@ function boot(){
  function layout(){
   scheduled=false;
   const width=Math.max(280,innerWidth);
-  const height=Math.max(document.body.scrollHeight,document.documentElement.scrollHeight,650);
+  // The decorative layer is absolutely positioned *inside* the body.
+  // Measuring scrollHeight included the layer's own previous height,
+  // leading to a self-sustaining extra viewport of empty space after the
+  // footer, especially on tall displays and after cross-page navigation.
+  // Measure real content instead; the beetle track is the final page edge.
+  const footer=document.querySelector('body > footer');
+  const contentEnd=footer
+   ?Math.ceil(footer.getBoundingClientRect().bottom+window.scrollY)
+   :Math.ceil(document.querySelector('main')?.getBoundingClientRect().bottom+
+      window.scrollY||0);
+  const height=Math.max(0,contentEnd);
   layer.style.height=height+'px';
   const signature=location.pathname+':'+Math.round(width)+':'+Math.round(height/40);
   // Always reassess visible content, even when dimensions are unchanged.
