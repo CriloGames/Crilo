@@ -1848,18 +1848,26 @@ function eventThing(e){
  if(!node)return;
  clickThing(node.dataset.thing);
 }
-let pocketTouchStart=null,pocketTouchActivation=null;
+let pocketTouchStart=null,pocketTouchActivation=null,pocketKeyboardActivation=null;
+function pocketKeyDown(e){
+ if(e.key!=='Enter'&&e.key!==' '&&e.key!=='Spacebar')return;
+ const item=e.target.closest?.('[data-item]');
+ if(item)pocketKeyboardActivation={item:item.dataset.item,when:Date.now()};
+}
 function clickInventory(e){
  const item=e.target.closest('[data-item]');
  if(!item)return;
- // A touch pointerup is handled directly because some mobile browsers
- // suppress the synthesized click on draggable or rapidly rerendered cards.
- // Ignore only the following synthetic click, not real keyboard activation.
+ // Mobile Safari can emit a MouseEvent click with detail=0 and without
+ // pointerType/sourceCapabilities AFTER pointerup already selected the item.
+ // Suppress that duplicate irrespective of its event metadata. A real
+ // keyboard activation is identified by its preceding Enter/Space keydown.
+ const keyboardClick=e.type==='click'&&e.detail===0&&
+  pocketKeyboardActivation?.item===item.dataset.item&&
+  Date.now()-pocketKeyboardActivation.when<1200;
+ if(keyboardClick)pocketKeyboardActivation=null;
  if(e.type==='click'&&pocketTouchActivation&&
     pocketTouchActivation.item===item.dataset.item&&
-    Date.now()-pocketTouchActivation.when<800&&
-    (e.detail!==0||e.pointerType==='touch'||
-     e.sourceCapabilities?.firesTouchEvents)){
+    Date.now()-pocketTouchActivation.when<800&&!keyboardClick){
   pocketTouchActivation=null;
   return;
  }
@@ -1870,6 +1878,7 @@ function pocketPointerDown(e){
  if(e.pointerType!=='touch'||e.isPrimary===false)return;
  const target=e.target.closest('[data-item]');
  if(!target)return;
+ pocketKeyboardActivation=null;
  pocketTouchStart={pointerId:e.pointerId,item:target.dataset.item,
   x:e.clientX,y:e.clientY};
  // Phones use deliberate taps; disabling native drag prevents iOS from
@@ -1922,6 +1931,7 @@ $('ncDoorScene').addEventListener('click',eventThing);
 $('ncInventory').addEventListener('pointerdown',pocketPointerDown);
 $('ncInventory').addEventListener('pointerup',pocketPointerUp);
 $('ncInventory').addEventListener('pointercancel',()=>{pocketTouchStart=null});
+$('ncInventory').addEventListener('keydown',pocketKeyDown);
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
