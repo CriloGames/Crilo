@@ -1821,6 +1821,10 @@ function clickInventory(e){
   Date.now()-pocketKeyboardActivation.when<1200;
  if(keyboardClick)pocketKeyboardActivation=null;
  const pending=pocketTouchActivation;
+ if(keyboardClick&&pending){
+  clearTimeout(pending.timer);
+  pending.handled=true;
+ }
  if(e.type==='click'&&!keyboardClick&&pending&&
     pending.item===item.dataset.item&&Date.now()-pending.when<1600){
   if(pending.handled)return;
