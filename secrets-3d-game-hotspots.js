@@ -424,9 +424,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
- // The curved body itself was never a registered hit target. Players
- // naturally clicked the flute, but only three tiny separate keys worked.
- // Touching its body now opens the instrument in the inventory.
+ // Tapping the copper body identifies the instrument. Only the three
+ // physical raised keys play notes; no second keyboard appears in the pocket.
  setHit(fluteTube,"flute-body");targets.set("flute-body",fluteTube);
  for(const x of [-.33,.33]){
   const lip=new THREE.Mesh(new THREE.TorusGeometry(.065,.011,8,20),brass);
@@ -470,17 +469,24 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   key.add(touch);
   setHit(touch,"flute-note-"+i);
  }
- // Six small inlaid dots along the physical flute show input progress.
- // They are part of the instrument and are not extra clickable controls.
+ // A low-profile, six-window light bar is seated directly BELOW the
+ // physical flute, on the same fixed top-face rail. Match the vent switch
+ // indicator's muted green metal inlays without introducing new click zones.
+ // The backing reaches the enamel (z≈.072), with no floating decorative part.
+ const fluteLightBar=B(flute,.73,.105,.052,0,-.19,-.072,nickel,.013);
+ fluteLightBar.userData.mechanicalMount=true;
+ B(flute,.658,.065,.017,0,-.19,-.035,graphite,.007);
  const fluteStepLights=[];
  for(let i=0;i<6;i++){
-  const x=(i-2.5)*.095;
-  const lamp=mat(0x7e9b87,.11,.31);
-  lamp.emissive=new THREE.Color(0x7dd3b2);
+  const x=(i-2.5)*.100;
+  B(flute,.084,.043,.012,x,-.19,-.020,graphite,.004);
+  const lamp=mat(0x668b81,.13,.26);
+  lamp.emissive=new THREE.Color(0x6cd7b0);
   lamp.emissiveIntensity=0;
-  C(flute,.011,.010,x,-.018,.072,lamp);
+  B(flute,.070,.030,.012,x,-.19,-.008,lamp,.004);
   fluteStepLights.push(lamp);
  }
+ for(const x of [-.335,.335])C(flute,.012,.009,x,-.19,-.018,brass);
  flute.visible=false;
  // The rear eye must look like an actual eye, rather than the old
  // circular control marked with a cross. Sculpt an almond-shaped white
@@ -812,6 +818,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    bellHatchOffset:bellHatch.position.x,
    ventStepsShown:ventStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
    fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
+   fluteBarSegments:fluteStepLights.length,
+   fluteBarMounted:fluteLightBar.parent===flute&&
+    flute.position.z+fluteLightBar.position.z-
+    fluteLightBar.geometry.parameters.depth/2<=.0725,
+   fluteBarBelowKeys:fluteLightBar.position.y<-.12,
    serviceKeyInserted:insertedServiceKey.visible
   }),
   fluteVisible:()=>flute.visible,
