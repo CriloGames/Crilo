@@ -4,6 +4,11 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'ducks.html'
+      - 'hidden-box.js'
+      - 'hidden-box.css'
+      - 'secret-wheel.js'
+      - 'secret-wheel.css'
       - 'game.js'
       - 'style.css'
       - 'ping-pong-toss.js'
