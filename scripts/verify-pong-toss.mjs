@@ -12,6 +12,21 @@ const cut=(a,b)=>{
  assert(i>=0&&j>i,'Missing physics function '+a);return source.slice(i,j);
 };
 new Function(source);
+// Mobile input guards: no duplicate touches, no stuck holds after an app
+// switch, and usable fullscreen even on iPhone Safari.
+assert.match(source,/e\.isPrimary===false\|\|!playing/,
+ 'A second finger cannot steal or duplicate an active throw');
+assert.match(source,/lostpointercapture/, 'Mobile lost capture must cancel charging');
+assert.match(source,/window\.addEventListener\('blur'/,
+ 'Leaving Safari must not leave an armed shot');
+assert.match(source,/pt-pseudo-fullscreen/,
+ 'Unsupported element fullscreen must use the iPhone viewport fallback');
+assert.match(source,/stopImmediatePropagation\(\);exitPseudoFullscreen\(\)/,
+ 'Escape must close the fallback instead of pausing');
+assert.match(css,/\.pt-shell\.pt-pseudo-fullscreen\{/,
+ 'Fullscreen fallback must have responsive game geometry');
+assert.match(css,/env\(safe-area-inset-bottom\)/,
+ 'Fullscreen viewport must clear the iPhone home indicator');
 // Keyboard shortcuts belong to the canvas/page, never a focused button,
 // link, form field or other interactive game UI. Test the production guard
 // expression against representative native and ARIA controls.
