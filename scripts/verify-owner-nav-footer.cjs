@@ -46,7 +46,7 @@ const makeElement=tag=>({
  tagName:tag.toUpperCase(),style:{},dataset:{},classList:makeClassList(),
  attributes:{},textContent:'',tabIndex:0,
  setAttribute(k,v){this.attributes[k]=String(v)},
- removeAttribute(k){delete this.attributes[k]},
+ removeAttribute(k){delete this.attributes[k];if(k==='tabindex')this.tabIndex=0},
  appendChild(child){(this.children||=([])).push(child);return child}
 });
 function runHeader(owner,standalone=false){
@@ -116,6 +116,7 @@ function runAmbient(){
  let layer=null;
  const document={
   readyState:'complete',
+  head:{append(){}},
   body:{scrollHeight:7200,append(el){layer=el}},
   documentElement:{scrollHeight:9000},
   createElement:makeNode,
