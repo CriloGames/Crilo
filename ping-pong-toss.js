@@ -4876,10 +4876,14 @@ el.full.addEventListener('click',async()=>{
   try{await document.exitFullscreen()}catch{}
   syncFullscreenControl();return;
  }
- if(typeof root.requestFullscreen==='function'){
+ // Prefer the CSS full-screen surface for touch devices. Native
+ // element fullscreen on iPad/Android can swallow the next touch gesture,
+ // leaving the player unable to exit even though the button is visible.
+ // Desktops keep the native API; its rejection also falls back to CSS.
+ const touchDevice=window.matchMedia?.('(pointer:coarse)')?.matches===true;
+ if(!touchDevice&&typeof root.requestFullscreen==='function'){
   try{await root.requestFullscreen();syncFullscreenControl();return}catch{}
  }
- // Do not show a dead-end alert on iPhone and smaller tablets.
  pseudoFullscreen=true;
  root.classList.add('pt-pseudo-fullscreen');
  document.documentElement.classList.add('pt-pseudo-fullscreen-open');
