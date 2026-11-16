@@ -18,7 +18,7 @@ assert.match(pocket,/button\.draggable=!window\.matchMedia/);
 assert.match(pocket,/function pocketPointerUp\(e\)/);
 assert.match(pocket,/function pocketKeyDown/);
 assert.match(three,/function pickGearDragTouchAction/);
-assert.match(pocket,/pocketTouchActivation\.item===item\.dataset\.item/);
+assert.match(pocket,/pending\.item===item\.dataset\.item/);
 assert.match(styles,/\.nc-page \.nc-pocket \.nc-item\{/);
 
 const base=process.env.NOTHING_HERE_TEST_URL||
