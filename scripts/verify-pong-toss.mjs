@@ -19,7 +19,7 @@ assert.match(source,/e\.isPrimary===false\|\|!playing/,
 assert.match(source,/lostpointercapture/, 'Mobile lost capture must cancel charging');
 assert.match(source,/window\.addEventListener\('blur'/,
  'Leaving Safari must not leave an armed shot');
-assert.match(source,/pt-pseudo-fullscreen/,
+assert.match(source,/touchDevice=window\.matchMedia/,\n 'Mobile and tablet touch screens must avoid native fullscreen trapping taps');\nassert.match(source,/pt-pseudo-fullscreen/,
  'Unsupported element fullscreen must use the iPhone viewport fallback');
 assert.match(source,/stopImmediatePropagation\(\);exitPseudoFullscreen\(\)/,
  'Escape must close the fallback instead of pausing');
