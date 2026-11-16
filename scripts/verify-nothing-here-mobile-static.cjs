@@ -74,6 +74,9 @@ function tap(item,detail=1){
  const click=event('click',item,5,40,50,detail);
  if(detail===0)delete click.pointerType; // Safari can omit touch metadata.
  pocket.clickInventory(click);
+ // A second compatibility click must not toggle a touched card back off,
+ // even when it loses its touch metadata or reports detail=0.
+ pocket.clickInventory({...click,detail:0,pointerType:undefined});
 }
 const thread=target('thread');
 tap(thread,0);
