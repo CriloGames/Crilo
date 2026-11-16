@@ -54,6 +54,26 @@ function ownerLink(){
  link.classList.toggle('active',location.pathname.endsWith('/moderation.html'));
  return link;
 }
+// Preserve the same header width when an owner moves between Crilo pages.
+// This is visual-only continuity from the existing short-lived snapshot;
+// the link stays disabled until app.js verifies the owner role again.
+// Without this, TEST GAMES is inserted after first paint and the navbar
+// visibly shifts/flickers on every cross-document navigation.
+function ownerTestGamesLink(){
+ const nav=document.querySelector('.topbar nav');
+ if(!nav)return null;
+ let link=nav.querySelector('#ownerTestGamesNav');
+ if(!link){
+  link=document.createElement('a');
+  link.id='ownerTestGamesNav';
+  link.href=siteRoot+'test-games.html';
+  link.textContent='TEST GAMES';
+  link.className='crilo-owner-test-link';
+  nav.appendChild(link);
+ }
+ link.classList.toggle('active',location.pathname.endsWith('/test-games.html'));
+ return link;
+}
 function ensureBell(host=document.querySelector('.header-actions')){
  if(!host)return null;
  let wrap=document.getElementById('friendBellWrap');
@@ -89,8 +109,10 @@ function prime(){
  button.dataset.visualReady='true';
  button.setAttribute('aria-busy','true');
  if(snapshot.owner){
-  const link=ownerLink();
+  const link=ownerTestGamesLink();
   if(link){link.setAttribute('aria-disabled','true');link.tabIndex=-1;link.classList.add('crilo-owner-pending')}
+  const drawing=ownerLink();
+  if(drawing){drawing.setAttribute('aria-disabled','true');drawing.tabIndex=-1;drawing.classList.add('crilo-owner-pending')}
  }
  const counter=document.getElementById('friendBellCount');
  if(counter){
@@ -111,6 +133,8 @@ function save(user,profile){
  if(button)delete button.dataset.visualReady;
  const link=document.getElementById('ownerDrawingNav');
  if(link){link.removeAttribute('aria-disabled');link.removeAttribute('tabindex');link.classList.remove('crilo-owner-pending')}
+ const test=document.getElementById('ownerTestGamesNav');
+ if(test){test.removeAttribute('aria-disabled');test.removeAttribute('tabindex');test.classList.remove('crilo-owner-pending')}
 }
 function updateCount(userId,count){
  const old=read();
