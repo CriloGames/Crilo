@@ -1353,3 +1353,44 @@ html[data-theme="dark"] body.pt-page .pt-viewport:has(.pt-canvas:focus-visible),
 html[data-theme="dark"] body.pt-page :is(.pt-secondary-button,.pt-back,.pt-step):focus-visible{
  outline-color:#f0ca92;
 }
+
+/* iOS Safari does not support element fullscreen consistently. This local
+   viewport fallback uses the exact same flex geometry as native fullscreen,
+   but never blocks the EXIT button or leaves the document scroll-locked. */
+html.pt-pseudo-fullscreen-open,html.pt-pseudo-fullscreen-open body{
+ overflow:hidden!important;
+ overscroll-behavior:none;
+}
+.pt-shell.pt-pseudo-fullscreen{
+ position:fixed!important;
+ z-index:9997!important;
+ inset:0!important;
+ width:100vw!important;
+ height:100dvh!important;
+ max-width:none!important;
+ max-height:none!important;
+ margin:0!important;
+ border:0!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ overflow-y:auto!important;
+ overscroll-behavior:contain;
+ display:flex!important;
+ flex-direction:column;
+ padding:max(9px,env(safe-area-inset-top)) max(9px,env(safe-area-inset-right))
+  max(9px,env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left))!important;
+ background:#35464c;
+}
+.pt-shell.pt-pseudo-fullscreen .pt-top{flex:0 0 auto}
+.pt-shell.pt-pseudo-fullscreen .pt-stage-wrap{display:flex;flex:1 1 auto;min-height:0}
+.pt-shell.pt-pseudo-fullscreen .pt-viewport{
+ flex:1 1 auto;min-height:0;height:auto;max-height:none
+}
+.pt-shell.pt-pseudo-fullscreen .pt-stage-footer{flex:0 0 auto}
+html[data-theme="light"] .pt-shell.pt-pseudo-fullscreen{background:#e4eeeb}
+html[data-theme="dark"] .pt-shell.pt-pseudo-fullscreen{background:#273740}
+@media(max-height:480px) and (orientation:landscape){
+ .pt-shell.pt-pseudo-fullscreen .pt-top{gap:3px;padding-bottom:4px}
+ .pt-shell.pt-pseudo-fullscreen .pt-stat{min-height:37px;padding:3px 7px}
+ .pt-shell.pt-pseudo-fullscreen .pt-stage-footer{padding:3px 0}
+}
