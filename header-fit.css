@@ -76,6 +76,12 @@
 .topbar nav a.crilo-owner-test-link.active{
  background:#2a6656;color:#fff;border-color:#2a6656;
 }
+/* Previewed from the prior page for layout stability, but never clickable
+   before the new page confirms the owner identity with Supabase. */
+.topbar nav a.crilo-owner-test-link.crilo-owner-pending{
+ pointer-events:none;
+ cursor:default;
+}
 .topbar nav a.crilo-owner-test-link:focus-visible{
  outline:3px solid #b99456;outline-offset:3px;
 }
