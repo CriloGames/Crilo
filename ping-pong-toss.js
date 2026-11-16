@@ -4852,18 +4852,41 @@ el.sound.addEventListener('click',()=>{
  }
  try{localStorage.setItem(MUTED,soundOn?'on':'off');}catch{}
 });
+// iPhone Safari has historically not supported fullscreen on generic
+// divs. Provide the same whole-screen layout with a reversible CSS fallback.
+let pseudoFullscreen=false;
+function syncFullscreenControl(){
+ const active=pseudoFullscreen||document.fullscreenElement===$('ptShell');
+ el.full.textContent=active?'×':'⛶';
+ el.full.title=active?'Exit fullscreen':'Enter fullscreen';
+ el.full.setAttribute('aria-label',el.full.title);
+ resize();
+}
+function exitPseudoFullscreen(){
+ if(!pseudoFullscreen)return;
+ pseudoFullscreen=false;
+ $('ptShell').classList.remove('pt-pseudo-fullscreen');
+ document.documentElement.classList.remove('pt-pseudo-fullscreen-open');
+ syncFullscreenControl();
+}
 el.full.addEventListener('click',async()=>{
  const root=$('ptShell');
- try{
-  if(document.fullscreenElement===root)await document.exitFullscreen();
-  else await root.requestFullscreen();
- }catch{message('FULLSCREEN NOT AVAILABLE');}
+ if(pseudoFullscreen){exitPseudoFullscreen();return}
+ if(document.fullscreenElement===root){
+  try{await document.exitFullscreen()}catch{}
+  syncFullscreenControl();return;
+ }
+ if(typeof root.requestFullscreen==='function'){
+  try{await root.requestFullscreen();syncFullscreenControl();return}catch{}
+ }
+ // Do not show a dead-end alert on iPhone and smaller tablets.
+ pseudoFullscreen=true;
+ root.classList.add('pt-pseudo-fullscreen');
+ document.documentElement.classList.add('pt-pseudo-fullscreen-open');
+ syncFullscreenControl();
 });
-document.addEventListener('fullscreenchange',()=>{
- const active=document.fullscreenElement===$('ptShell');
- el.full.textContent='⛶';el.full.title=active?'Exit fullscreen':'Enter fullscreen';
- el.full.setAttribute('aria-label',el.full.title);resize();
-});
+document.addEventListener('fullscreenchange',syncFullscreenControl);
+window.addEventListener('pagehide',exitPseudoFullscreen);
 // Flick gesture inspired by classic touchscreen toss games — drag upward to
 // aim/throw, or simply hold and release for power-charging on desktop.
 function flickAim(e){
@@ -4894,7 +4917,8 @@ el.canvas.addEventListener('pointermove',e=>{
  else if(e.pointerType!=='touch')trackMouseAim(e);
 });
 el.canvas.addEventListener('pointerdown',e=>{
- if(e.button!==0||!playing||paused||flight||charging)return;
+ // A second finger must never steal an ongoing throw or create two shots.
+ if(e.button!==0||e.isPrimary===false||!playing||paused||flight||charging)return;
  e.preventDefault();
  el.canvas.setPointerCapture?.(e.pointerId);
  if(e.pointerType==='touch')inputAim(e.clientX,e.clientY);
@@ -4915,6 +4939,17 @@ el.canvas.addEventListener('pointercancel',e=>{
  if(chargeSource!=='pointer'||gesture?.id!==e.pointerId)return;
  cancelCharge();
  try{el.canvas.releasePointerCapture?.(e.pointerId);}catch{}
+});
+// Mobile interruptions (app switch, Safari toolbar gesture, incoming call)
+// must not leave a charging shot active when the player returns.
+el.canvas.addEventListener('lostpointercapture',e=>{
+ if(chargeSource==='pointer'&&gesture?.id===e.pointerId)cancelCharge();
+});
+window.addEventListener('blur',()=>{
+ if(chargeSource==='pointer')cancelCharge();
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&chargeSource==='pointer')cancelCharge();
 });
 document.addEventListener('keydown',e=>{
  const focused=document.activeElement;
