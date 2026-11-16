@@ -1,0 +1,46 @@
+name: Crilo header continuity and footer boundary
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'header-continuity.js'
+      - 'app.js'
+      - 'header-fit.css'
+      - 'secret-wheel-ambient.js'
+      - 'secret-wheel-ambient.css'
+      - 'index.html'
+      - 'leaderboard.html'
+      - 'ducks.html'
+      - 'profile.html'
+      - 'badge-sets.html'
+      - 'friends.html'
+      - 'settings.html'
+      - 'moderation.html'
+      - 'owner-analytics.html'
+      - 'test-games.html'
+      - 'five-fronts.html'
+      - 'secrets.html'
+      - 'shape-of-sound.html'
+      - 'pong-toss.html'
+      - 'domain/index.html'
+      - 'scripts/verify-owner-nav-footer.cjs'
+      - '.github/workflows/site-header-footer.yml'
+  pull_request:
+    paths:
+      - 'header-continuity.js'
+      - 'app.js'
+      - 'header-fit.css'
+      - 'secret-wheel-ambient.js'
+      - 'index.html'
+      - 'scripts/verify-owner-nav-footer.cjs'
+  workflow_dispatch:
+jobs:
+  header-and-footer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify owner-only first-paint nav and footer boundary
+        run: node scripts/verify-owner-nav-footer.cjs
