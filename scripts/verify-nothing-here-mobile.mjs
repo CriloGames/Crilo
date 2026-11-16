@@ -8,14 +8,16 @@ const html=readFileSync("secrets.html","utf8");
 const three=readFileSync("secrets-3d-preview.js","utf8");
 const pocket=readFileSync("cube-secrets.js","utf8");
 const styles=readFileSync("nothing-here-mobile.css","utf8");
-assert.match(html,/secrets-3d-preview\.js\?v=276/);
-assert.match(html,/cube-secrets\.js\?v=94/);
+assert.match(html,/secrets-3d-preview\.js\?v=277/);
+assert.match(html,/cube-secrets\.js\?v=95/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(three,/function pickTouchAction\(clientX,clientY\)/);
 assert.match(three,/const action=start\.action\|\|\(start\.pointerType==="touch"/);
 assert.match(three,/clearHover\(\);\n\},true\); \/\/ Run before OrbitControls/);
 assert.match(pocket,/button\.draggable=!window\.matchMedia/);
 assert.match(pocket,/function pocketPointerUp\(e\)/);
+assert.match(pocket,/function pocketKeyDown/);
+assert.match(three,/function pickGearDragTouchAction/);
 assert.match(pocket,/pocketTouchActivation\.item===item\.dataset\.item/);
 assert.match(styles,/\.nc-page \.nc-pocket \.nc-item\{/);
 
