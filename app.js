@@ -406,6 +406,11 @@
         }
         testLink.className='crilo-owner-test-link';
         testLink.classList.toggle('active',location.pathname.endsWith('/test-games.html'));
+        // The saved header only reserved its space. The verified profile
+        // is the first point at which owner-only navigation becomes live.
+        testLink.classList.remove('crilo-owner-pending');
+        testLink.removeAttribute('aria-disabled');
+        testLink.removeAttribute('tabindex');
       }else if(testLink)testLink.remove();
       let link=nav.querySelector('#ownerDrawingNav');
       if(owner&&!document.body.classList.contains('crilo-standalone')){
