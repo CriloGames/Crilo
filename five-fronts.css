@@ -182,3 +182,28 @@ html[data-theme="dark"] .ff-log li{border-bottom-color:#344d40}
 @media(prefers-reduced-motion:reduce){
  .ff-map-state polygon{transition:none}
 }
+
+/* State picker prevents tiny country hexes from being the only mobile
+   input. Uses native iOS/Android select sheets for large 2–6 nation maps. */
+.ff-state-picker{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+ margin:0 0 10px;font:900 10px/1.4 ui-monospace,Consolas,monospace;
+ letter-spacing:.06em;color:#668a7b;
+}
+.ff-state-picker select{
+ flex:1;min-width:0;max-width:440px;min-height:44px;
+ background:var(--panel,#fff);color:var(--text,#1a3e30);
+ border:1.5px solid #aacbba;border-radius:10px;
+ padding:7px 10px;font:750 12px/1.4 system-ui,sans-serif;
+ touch-action:manipulation;
+}
+.ff-state-picker select:focus-visible{outline:3px solid #ddb97d;outline-offset:2px}
+@media(max-width:750px){
+ .ff-state-picker{align-items:stretch;flex-direction:column;gap:5px}
+ .ff-state-picker select{max-width:none;width:100%;min-height:48px}
+ .ff-map-state{touch-action:manipulation}
+ .ff-clock-actions button,.ff-command-actions button{min-height:44px}
+}
+html[data-theme="dark"] .ff-state-picker select{
+ background:#263e32;color:#def2e5;border-color:#658a78
+}
