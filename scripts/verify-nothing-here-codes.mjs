@@ -162,8 +162,11 @@ const shutterKeyPos=hotspots.indexOf('const serviceKeyway=node(shutterBody,');
 const fixedFaceSensor=hotspots.indexOf('const resonator=node(rightFace,');
 const fixedHousingPos=hotspots.indexOf('const shutterCassette=node(rightFace,');
 const fixedHousingSensor=hotspots.indexOf('const resonator=node(shutterCassette,');
-assert(shutterAliasPos>=0&&shutterKeyPos>shutterAliasPos,
- 'A service keyway uses the shutter before its declaration');
+assert(shutterAliasPos>=0&&shutterKeyPos>shutterAliasPos&&
+ hotspots.includes('const shutterBody=B(shutterUnit,.46,.255,.23,')&&
+ hotspots.includes('const blackShutterInset=B(serviceKeyway,')&&
+ hotspots.includes('actuators.set("shutter",shutterUnit);'),
+ 'The service shutter needs one moving gray plate carrying its black inset');
 assert(fixedFaceSensor>=0||
   fixedHousingPos>=0&&fixedHousingSensor>fixedHousingPos,
  'Service shutter sensor has no initialized physical mount');
