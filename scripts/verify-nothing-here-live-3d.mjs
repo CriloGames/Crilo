@@ -682,7 +682,15 @@ try{
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
  // Locked shutter interaction stays on a horizontal track, not a
- // generic pushbutton moving into the cube.
+ // generic pushbutton moving into the cube. Its old three-layer tab
+ // must be replaced by ONE solid plate with the keyway on that plate.
+ const shutterBefore=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceShutterAudit);
+ assert(shutterBefore?.bodyCount===1&&shutterBefore.oneBody&&
+  shutterBefore.keywayOnSameUnit&&shutterBefore.actuatorOnSameUnit&&
+  shutterBefore.faceAttached&&shutterBefore.rearDepth<=.0725,
+  "Service shutter is still built as multiple plates or is floating: "+
+   JSON.stringify(shutterBefore));
  await activate("shutter");
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalActuatorDepths.shutter),0,
@@ -741,9 +749,9 @@ try{
    "Expected a tangible collectible to be waiting on the cube: "+id);
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
-  // The old sliding-drawer tooth has a warm gold cue; all other
-  // collectibles use the standard violet. Both remain subdued and inert.
-  const expectedGlowColor=id==="tooth"?0xf2c66d:0xb45cff;
+  // All collectibles, including the original key teeth, glow the same
+  // violet. Their underlying metal colors can still be distinct.
+  const expectedGlowColor=0xb45cff;
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
     glowBefore.color===expectedGlowColor&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
