@@ -207,3 +207,13 @@ html[data-theme="dark"] .ff-log li{border-bottom-color:#344d40}
 html[data-theme="dark"] .ff-state-picker select{
  background:#263e32;color:#def2e5;border-color:#658a78
 }
+
+.ff-online-entry{display:flex;align-items:center;justify-content:space-between;gap:15px;
+ flex-wrap:wrap;padding:14px 16px;margin-top:17px;border:1px solid #c9ded2;
+ border-radius:12px;background:var(--soft,#f3f8f4)}
+.ff-online-entry div{display:grid;gap:4px}
+.ff-online-entry strong{font:900 14px/1.3 system-ui,sans-serif;color:var(--text,#254c3b)}
+.ff-online-entry span{font:650 11px/1.5 system-ui,sans-serif;color:var(--muted,#718479)}
+.ff-online-entry a{padding:11px 14px;border-radius:10px;text-decoration:none;
+ font:850 11px/1.3 system-ui,sans-serif;white-space:nowrap}
+@media(max-width:520px){.ff-online-entry a{width:100%;text-align:center}}
