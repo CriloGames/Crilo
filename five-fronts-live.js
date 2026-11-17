@@ -120,7 +120,7 @@
    showRoom=false;outcomeViewed=false;modalKind='';
    council.hidden=true;endModal.hidden=true;subscribe(room.id);
   }
-  if(match&&!E.getState(match,selectedId))
+  if(match&&(selectedId===null||!E.getState(match,selectedId)))
    selectedId=match.states.find(s=>s.owner===meSeat&&s.capital)?.id??
     match.states.find(s=>s.owner===meSeat)?.id??null;
   if(room.status==='waiting'||room.status==='cancelled')showRoom=true;
