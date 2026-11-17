@@ -118,6 +118,18 @@ const run=async()=>{
  const started=requireSuccess(await call('a',{operation:'start',roomId:host.id}),'start');
  assert.equal(started.status,'playing');assert.equal(started.game.online,true);
  assert.equal(started.game.countries.length,2);
+ // A busy match must not freeze the clock just because somebody issues an
+ // order every 150ms. A no-tick command must preserve the last tick anchor.
+ const hostState=started.game.states.find(s=>s.owner===0&&s.capital);
+ for(let repeat=0;repeat<3;repeat++){
+  clock+=150;
+  requireSuccess(await call('a',{operation:'command',roomId:host.id,
+   command:'train',args:{stateId:hostState.id},requestId:crypto.randomUUID()}),
+   'busy live clock '+repeat);
+ }
+ const movingTime=requireSuccess(await call('a',{operation:'sync',roomId:host.id}),
+  'live clock after rapid commands').game.time;
+ assert.ok(movingTime>=2,'The server clock must continue ticking during frequent actions');
  const own=started.game.states.find(s=>s.owner===1&&s.capital);
  const other=started.game.states.find(s=>s.owner===0&&s.capital);
  assert.equal((await call('b',{operation:'command',roomId:host.id,
