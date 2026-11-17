@@ -8,7 +8,7 @@ const html=readFileSync("secrets.html","utf8");
 const three=readFileSync("secrets-3d-preview.js","utf8");
 const pocket=readFileSync("cube-secrets.js","utf8");
 const styles=readFileSync("nothing-here-mobile.css","utf8");
-assert.match(html,/secrets-3d-preview\.js\?v=276/);
+assert.match(html,/secrets-3d-preview\.js\?v=281/);
 assert.match(html,/cube-secrets\.js\?v=94/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(three,/function pickTouchAction\(clientX,clientY\)/);
