@@ -247,6 +247,12 @@ Deno.serve(async req=>{
   if(!token)throw error("Sign in to play online.",401);
   const {data:{user},error:authError}=await admin.auth.getUser(token);
   if(authError||!user)throw error("Sign in to play online.",401);
+  // Honor site-wide bans: a banned account cannot create a lobby or
+  // continue issuing multiplayer orders using an old browser session.
+  const {data:ban,error:banError}=await admin.from("crilo_banned_accounts")
+   .select("user_id").eq("user_id",user.id).maybeSingle();
+  if(banError)throw banError;
+  if(ban)throw error("This account cannot join Crilo multiplayer.",403);
   const params=await req.json();
   if(!params||typeof params!=="object"||Array.isArray(params))
    throw error("Invalid request.");
