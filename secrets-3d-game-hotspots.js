@@ -969,8 +969,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
     (previous.eyeRingTicks||0)*Math.PI/8,restore,.48);
    pose(pressureKnob,"rotation","z",(s.pressureTicks||0)*Math.PI/6,
     (previous.pressureTicks||0)*Math.PI/6,restore,.58);
-   pose(shutter,"position","x",s.serviceOpen?.78:.58,
-    previous.serviceOpen?.78:.58,restore,.64);
+   // Slide the single plate fully beyond the wax-cylinder socket.
+   // The old .78 stop left the gray plate intersecting its revealed
+   // reward; the black inset travels with this same shutter transform.
+   pose(shutter,"position","x",s.serviceOpen?1.10:.58,
+    previous.serviceOpen?1.10:.58,restore,.64);
    resonatorLight.material.emissiveIntensity=s.serviceOpen?1.4:.3;
    for(const [name,g] of targets){
     if(name==="top-reed")g.visible=!!s.top&&!s.pipeTaken;
