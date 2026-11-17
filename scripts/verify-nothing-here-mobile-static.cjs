@@ -105,7 +105,7 @@ assert.equal(flute,0,'The mounted flute must not open an inventory keyboard');
 assert.equal(selected,'thread','A hidden flute card must never change the held item');
 
 assert.match(html,/cube-secrets\.js\?v=96/);
-assert.match(html,/secrets-3d-preview\.js\?v=278/);
+assert.match(html,/secrets-3d-preview\.js\?v=279/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(css,/touch-action:none/);
 assert.match(game,/const carried=\[\.\.\.pocket\]\.filter\(id=>id!=='flute'\)/);
