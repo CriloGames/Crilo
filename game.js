@@ -794,9 +794,13 @@ if(isBonus){
   detail:{spinCount:totalSpins,remainingSpins:spins,finished:true,
    verified:true}
  }));
- // Open the rare gift before offering any unlocked bonus run.
+ // Present a newly earned 50-badge bonus tier only after the official
+ // Daily is saved and its awards are confirmed. Existing tiers stay quiet.
+ // Mystery Gift takes priority; Bonus Runs waits until it closes.
  await window.CriloMysteryGift?.refresh?.({autoOpen:true});
- await window.CriloBonusRuns?.refresh?.({focus:true});
+ await window.CriloBonusRuns?.refresh?.({
+  focus:true,badgeCountBefore:priorBadges?.size
+ });
  
 }
 }finally{finalSaveInProgress=false}
@@ -1177,7 +1181,10 @@ async function claimFinishedGuestDaily(){
   await checkPlayed();
   window.CriloMysteryGift?.setMode?.('official');
   await window.CriloMysteryGift?.refresh?.({autoOpen:data.status==='saved'});
-  await window.CriloBonusRuns?.refresh?.({focus:data.status==='saved'});
+  await window.CriloBonusRuns?.refresh?.({
+   focus:data.status==='saved',
+   badgeCountBefore:data.status==='saved'?priorBadges?.size:undefined
+  });
   return true;
  }catch(error){
   console.warn('Guest Daily claim failed',error);
