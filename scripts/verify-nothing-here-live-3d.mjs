@@ -698,7 +698,21 @@ try{
   shutterBefore.faceAttached&&shutterBefore.rearDepth<=.0725,
   "Service shutter is still built as multiple plates or is floating: "+
    JSON.stringify(shutterBefore));
- await activate("shutter");
+ const shutterRattle=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const before=view.physicalServiceShutterAudit;
+  view.clickAction("shutter");
+  const after=view.physicalServiceShutterAudit;
+  const delta=(a,b)=>a.map((v,i)=>b[i]-v);
+  const bodyTravel=delta(before.bodyWorld,after.bodyWorld);
+  const insetTravel=delta(before.insetWorld,after.insetWorld);
+  const distance=v=>Math.hypot(...v);
+  return {travel:distance(bodyTravel),syncError:distance(
+   delta(bodyTravel,insetTravel)),before,after};
+ });
+ assert(shutterRattle.travel>.025&&shutterRattle.syncError<.002,
+  "The black service shutter inset did not move in sync with its gray plate: "+
+   JSON.stringify(shutterRattle));
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalActuatorDepths.shutter),0,
   "Locked service shutter moves inward instead of rattling along its rail");
