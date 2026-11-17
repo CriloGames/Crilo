@@ -166,13 +166,16 @@ assert(hotspots.includes("const fluteLightBar=B(flute,")&&
 // sensor was created on a shutter const before the const was initialized.
 // The restored older mechanism mounts its sensor to the fixed right face;
 // a future cassette implementation can use its initialized fixed housing.
-const shutterAliasPos=hotspots.indexOf('const shutter=targets.get("shutter");');
-const shutterKeyPos=hotspots.indexOf('const serviceKeyway=node(shutter,');
+const shutterAliasPos=hotspots.indexOf('const shutter=node(rightFace,.58,-1.08,.18);');
+const shutterKeyPos=hotspots.indexOf('const serviceKeyway=node(shutterUnit,');
 const fixedFaceSensor=hotspots.indexOf('const resonator=node(rightFace,');
 const fixedHousingPos=hotspots.indexOf('const shutterCassette=node(rightFace,');
 const fixedHousingSensor=hotspots.indexOf('const resonator=node(shutterCassette,');
-assert(shutterAliasPos>=0&&shutterKeyPos>shutterAliasPos,
- 'A service keyway uses the shutter before its declaration');
+assert(shutterAliasPos>=0&&shutterKeyPos>shutterAliasPos&&
+ hotspots.includes('const shutterBody=B(shutterUnit,.46,.255,.23,')&&
+ hotspots.includes('actuators.set("shutter",shutterUnit);')&&
+ hotspots.includes('getServiceShutterAudit:()=>({'),
+ 'The shutter must be one solid moving plate carrying its own keyway');
 assert(fixedFaceSensor>=0||
   fixedHousingPos>=0&&fixedHousingSensor>fixedHousingPos,
  'Service shutter sensor has no initialized physical mount');
@@ -658,10 +661,16 @@ assert(preview.includes('bit.position.set(0,-.135,-.33);')&&
  preview.includes('bit.scale.setScalar(1.16);')&&
  preview.includes('const keySeat=box(front.drawer,.82,.026,.31,0,-.283,-.33,metal,.009);')&&
  preview.includes('keySeat.userData.mechanicalMount=true;')&&
- preview.includes('root:looseKey,model:looseKey,color:0xf2c66d,')&&
+ preview.includes('root:looseKey,model:looseKey,')&&
+ !preview.includes('root:looseKey,model:looseKey,color:')&&
  preview.includes('size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate')&&
  preview.includes('get lavenderDrawerItemAudit(){'),
- 'Lavender drawer key is no longer displayed in its actual physical tray');
+ 'Lavender drawer key is no longer in its own cradle or has a mismatched glow');
+const glowSource=read('secrets-3d-pickups.js');
+assert(glowSource.includes('export const COLLECTIBLE_GLOW_COLOR=0xb45cff;')&&
+ glowSource.includes('color=COLLECTIBLE_GLOW_COLOR,')&&
+ glowSource.includes('socketMaterial.emissive.setHex(COLLECTIBLE_GLOW_COLOR);'),
+ 'All physical collectible surfaces and sockets must use the same violet glow');
 // Once exposed, the lavender key needs a REAL surface raycast target,
  // not a point floating a tenth of a unit in front of its teeth.
 assert(preview.includes('const samples=id==="tooth"?[')&&
