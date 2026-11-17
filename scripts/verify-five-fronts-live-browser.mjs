@@ -104,6 +104,7 @@ try{
  const a=await desktop.newPage(),b=await mobile.newPage();
  const url='http://127.0.0.1:'+port+'/five-fronts-live.html';
  const errorsA=await setup(a,'a',url),errorsB=await setup(b,'b',url);
+ await a.locator('#ffCountries').selectOption('2');
  await a.locator('#ffCreateRoom').click();
  await a.waitForFunction(()=>document.getElementById('ffInviteCode').textContent.length===6);
  const code=await a.locator('#ffInviteCode').textContent();
