@@ -13,7 +13,7 @@ const ids={
  c:'33333333-3333-4333-8333-333333333333',
  d:'44444444-4444-4444-8444-444444444444'
 };
-const state={rooms:[],players:[],profiles:[
+const state={ff_live_rooms:[],ff_live_players:[],profiles:[
  {id:ids.a,username:'Host'},{id:ids.b,username:'Visitor'},
  {id:ids.c,username:'Third'},{id:ids.d,username:'Banned'}
 ],crilo_banned_accounts:[{user_id:ids.d}]};
@@ -176,8 +176,8 @@ const run=async()=>{
   'Finished rooms return a read-only snapshot and ignore orders');
  const returner=requireSuccess(await call('b',{operation:'join',code:host.code}),'finished reconnect');
  assert.equal(returner.meSeat,1);
- assert.equal(state.rooms.length,1,'No duplicate rooms');
- assert.equal(state.players.length,2,'Two members, no duplicate seat joins');
+ assert.equal(state.ff_live_rooms.length,1,'No duplicate rooms');
+ assert.equal(state.ff_live_players.length,2,'Two members, no duplicate seat joins');
  console.log('PASS server HTTP: auth, bans, private code, capacity, start, 2 seats, 403 invalid orders, idempotent actions, 5× clock, simultaneous writes, independent policies, reconnect and finish');
 };
 run().catch(err=>{console.error(err);process.exitCode=1});
