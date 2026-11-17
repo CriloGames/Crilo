@@ -8,7 +8,7 @@ import { buildIntricateCube } from "./secrets-3d-details.js?v=54";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=28";
 import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=55";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
-import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=22";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -707,7 +707,7 @@ const physicalPickups=embeddedGame?buildPhysicalPickups({
 // after a deliberate click. Their own geometry remains the only hit target.
 const originalPickupGlow=embeddedGame?{
  tooth:attachCollectibleGlow({
-  root:looseKey,model:looseKey,color:0xf2c66d,
+  root:looseKey,model:looseKey,
   size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate
  }),
  thread:attachCollectibleGlow({
@@ -2542,6 +2542,7 @@ window.__nothing3DPreview={
  get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
  get physicalServiceCodeClearance(){return gameHotspots?.getServiceCodeClearance?.()||null},
  get physicalFluteVisible(){return gameHotspots?.fluteVisible?.()||false},
+ get physicalServiceShutterAudit(){return gameHotspots?.getServiceShutterAudit?.()||null},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
