@@ -298,14 +298,20 @@ function keyShape(parent) {
  bit.rotation.x=-.22;
  bit.scale.setScalar(1.16);
  parent.add(bit);
- const shank=box(bit,.47,.059,.070,.058,0,0,brass,.011);
+ // The exposed key bit must appear PURPLE, not gold with a faint purple
+ // halo. Metal base color is lilac while the collectible aura uses the
+ // same #B45CFF emissive purple as every other found item.
+ const violetKeyMetal=mat(0x9562c7,.40,.34);
+ const shank=box(bit,.47,.059,.070,.058,0,0,violetKeyMetal,.011);
  box(bit,.117,.082,.075,-.212,0,0,metal,.014);
  // Two short jaws leave a notch at the broken end for the ring's lug.
  for(const sign of [-1,1])
-  box(bit,.083,.020,.071,-.286,sign*.033,0,brass,.006);
- // Three genuinely different cuts in the tip; all join the shaft.
- for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]])
-  box(bit,.042,height,.066,x,-height/2+.022,0,brass,.004);
+  box(bit,.083,.020,.071,-.286,sign*.033,0,violetKeyMetal,.006);
+ // Each tooth is ACTUALLY purple, not a brass tooth beneath a violet halo.
+ for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]]){
+  const tooth=box(bit,.042,height,.066,x,-height/2+.022,0,violetKeyMetal,.004);
+  tooth.userData.lavenderKeyTooth=true;
+ }
  // The darker relieved groove makes the partial lock-bit readable
  // even when the sliding drawer is viewed at a low angle.
  box(bit,.210,.009,.007,.184,.027,.040,darkMetal,.002);
@@ -2105,6 +2111,16 @@ window.__nothing3DPreview={
    keyPosition:[position.x,position.y,position.z],
    keyScale:looseKey.scale.x,
    seatTop,
+   toothMaterials:(()=>{
+    const samples=[];
+    looseKey.traverse(part=>{
+     if(part.userData.lavenderKeyTooth&&part.isMesh)
+      samples.push({color:part.material.color.getHex(),
+       emissive:part.material.emissive.getHex(),
+       intensity:part.material.emissiveIntensity});
+    });
+    return samples;
+   })(),
    glow:originalPickupGlow?.tooth.getState()||null
   };
  },
