@@ -666,6 +666,12 @@ try{
   unfinishedKey.parts>=7&&!unfinishedKey.hasPreinstalledRing,
   "The first key piece looks like an already-complete key or is detached: "+
    JSON.stringify(unfinishedKey));
+ const keyTeeth=await page.evaluate(()=>
+  window.__nothing3DPreview.lavenderDrawerItemAudit.toothMaterials);
+ assert(keyTeeth.length===3&&keyTeeth.every(m=>
+  m.color===0x9562c7&&m.emissive===0xb45cff),
+  "All three key teeth must visibly glow purple, not brass gold: "+
+   JSON.stringify(keyTeeth));
  // A prior precise-collision tool silently omitted every tiny 3D control.
  // Check the underlying assembled geometry groups, not just its toolbar.
  const collisionParts=await page.evaluate(()=>
@@ -683,7 +689,24 @@ try{
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
  // Locked shutter interaction stays on a horizontal track, not a
  // generic pushbutton moving into the cube.
- await activate("shutter");
+ const shutterMotion=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const before=view.physicalServiceShutterAudit;
+  view.clickAction("shutter");
+  const after=view.physicalServiceShutterAudit;
+  const travel=(a,b)=>a.map((v,i)=>b[i]-v);
+  const body=travel(before.bodyWorld,after.bodyWorld);
+  const inset=travel(before.insetWorld,after.insetWorld);
+  return {before,after,travel:Math.hypot(...body),
+   syncError:Math.hypot(...travel(body,inset))};
+ });
+ assert(shutterMotion.before.oneBody&&
+  shutterMotion.before.keywayOnSameUnit&&
+  shutterMotion.before.blackInsetAttached&&
+  shutterMotion.before.insetSurfaceFlush&&
+  shutterMotion.travel>.025&&shutterMotion.syncError<.002,
+  "Black service shutter slot does not move with the main plate: "+
+   JSON.stringify(shutterMotion));
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalActuatorDepths.shutter),0,
   "Locked service shutter moves inward instead of rattling along its rail");
@@ -743,7 +766,7 @@ try{
    window.__nothing3DPreview.getPickupGlowState(item),id);
   // The old sliding-drawer tooth has a warm gold cue; all other
   // collectibles use the standard violet. Both remain subdued and inert.
-  const expectedGlowColor=id==="tooth"?0xf2c66d:0xb45cff;
+  const expectedGlowColor=0xb45cff;
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
     glowBefore.color===expectedGlowColor&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
