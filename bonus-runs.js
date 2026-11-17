@@ -101,7 +101,9 @@
   const baseline=earlier??(hasPrior?Math.min(4,Math.floor(prior/50)):unlocked);
   const current=Math.max(baseline,unlocked);
   rememberTier(userId,current);
-  if(unlocked>baseline&&data?.official_done){
+  if(unlocked>baseline){
+   // The server can confirm an unlock from exploration badges even before
+   // today's Official Daily is finished. A Test Run cannot grant badges.
    // If several milestones arrive together, celebrate only the newest.
    showTierToast(unlocked);
   }
