@@ -39,3 +39,19 @@ jobs:
         run: node scripts/verify-five-fronts-live.cjs
       - name: Simulate authenticated live Edge server requests
         run: node scripts/verify-five-fronts-live-server.cjs
+
+  two-browser-rooms:
+    name: Check mobile and desktop room gameplay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run desktop + phone invite, battle and reconnect simulation
+        run: node scripts/verify-five-fronts-live-browser.mjs
