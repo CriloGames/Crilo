@@ -167,15 +167,17 @@ assert(hotspots.includes("const fluteLightBar=B(flute,")&&
 // The restored older mechanism mounts its sensor to the fixed right face;
 // a future cassette implementation can use its initialized fixed housing.
 const shutterAliasPos=hotspots.indexOf('const shutter=node(rightFace,.58,-1.08,.18);');
-const shutterKeyPos=hotspots.indexOf('const serviceKeyway=node(shutterUnit,');
+const shutterKeyPos=hotspots.indexOf('const serviceKeyway=node(shutterBody,');
 const fixedFaceSensor=hotspots.indexOf('const resonator=node(rightFace,');
 const fixedHousingPos=hotspots.indexOf('const shutterCassette=node(rightFace,');
 const fixedHousingSensor=hotspots.indexOf('const resonator=node(shutterCassette,');
 assert(shutterAliasPos>=0&&shutterKeyPos>shutterAliasPos&&
  hotspots.includes('const shutterBody=B(shutterUnit,.46,.255,.23,')&&
  hotspots.includes('actuators.set("shutter",shutterUnit);')&&
- hotspots.includes('getServiceShutterAudit:()=>({'),
- 'The shutter must be one solid moving plate carrying its own keyway');
+ hotspots.includes('const blackShutterInset=B(serviceKeyway,')&&
+ hotspots.includes('blackInsetAttached:blackShutterInset.parent===serviceKeyway')&&
+ hotspots.includes('getServiceShutterAudit:()=>{'),
+ 'The shutter must be one solid moving plate carrying its own black keyway inset');
 assert(fixedFaceSensor>=0||
   fixedHousingPos>=0&&fixedHousingSensor>fixedHousingPos,
  'Service shutter sensor has no initialized physical mount');
@@ -662,6 +664,8 @@ assert(preview.includes('bit.position.set(0,-.135,-.33);')&&
  preview.includes('const keySeat=box(front.drawer,.82,.026,.31,0,-.283,-.33,metal,.009);')&&
  preview.includes('keySeat.userData.mechanicalMount=true;')&&
  preview.includes('root:looseKey,model:looseKey,')&&
+ preview.includes('const violetKeyMetal=mat(0x9562c7,.40,.34);')&&
+ preview.includes('tooth.userData.lavenderKeyTooth=true;')&&
  !preview.includes('root:looseKey,model:looseKey,color:')&&
  preview.includes('size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate')&&
  preview.includes('get lavenderDrawerItemAudit(){'),
