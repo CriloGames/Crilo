@@ -110,16 +110,21 @@ async function run(){
  h.window.dispatchEvent({type:'crilo-mystery-closed'});
  assert.equal(h.created.length,2,'Show queued tier once after the gift closes');
  assert.equal(h.toast().children[1].textContent,'Bonus Run 2 unlocked!');
+ h.setStatus(149,2);await h.refresh();
+ assert.equal(h.created.length,2,'149 badges must not celebrate tier 3');
+ h.setStatus(150,3);await h.refresh({badgeCountBefore:149});
+ assert.equal(h.created.length,3,'150 badges must celebrate tier 3');
+ assert.equal(h.toast().children[1].textContent,'Bonus Run 3 unlocked!');
  h.window.Crilo.user={id:'user-b'};h.window.Crilo.profile={id:'p-b'};
  h.setStatus(205,4);await h.refresh();
- assert.equal(h.created.length,2,'Old 205-badge account must not receive four old popups');
+ assert.equal(h.created.length,3,'Old 205-badge account must not receive four old popups');
  assert.equal(h.toast(),undefined,'Switching users must clear an old toast');
  h.window.Crilo.user={id:'user-c'};h.window.Crilo.profile={id:'p-c'};
  h.setStatus(200,4);await h.refresh({badgeCountBefore:199});
- assert.equal(h.created.length,3,'First 200-badge guest claim must celebrate tier 4');
+ assert.equal(h.created.length,4,'First 200-badge guest claim must celebrate tier 4');
  assert.equal(h.toast().children[1].textContent,'Bonus Run 4 unlocked!');
  await h.refresh({badgeCountBefore:199});
- assert.equal(h.created.length,3,'Claim retry must never double celebrate');
+ assert.equal(h.created.length,4,'Claim retry must never double celebrate');
  const reloaded=harness({storage:h.storage});
  reloaded.window.Crilo.user={id:'user-c'};reloaded.window.Crilo.profile={id:'p-c'};
  reloaded.setStatus(200,4);await reloaded.refresh();
@@ -144,6 +149,6 @@ async function run(){
   'Only successful guest claims can report a newly crossed milestone');
  assert.match(html,/bonus-runs\.js\?v=5/);
  assert.match(html,/bonus-runs\.css\?v=3/);
- console.log('PASS bonus tiers: 50/100/200 badges, one-time per account, gift priority, guest claim, reduced motion, first load, automatic dismissal');
+ console.log('PASS bonus tiers: 50/100/150/200 badges, one-time per account, gift priority, guest claim, reduced motion, first load, automatic dismissal');
 }
 run().catch(error=>{console.error(error);process.exitCode=1});
