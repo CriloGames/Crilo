@@ -83,7 +83,7 @@
    element('span','crilo-bonus-tier-message',tier*50+' unique badges · 5 free spins'));
   document.body.append(toast);
   tierToast=toast;
-  tierTimer=setTimeout(()=>{toast.remove();if(tierToast===toast)tierToast=null;tierTimer=null},3300);
+  tierTimer=setTimeout(()=>{toast.remove();if(tierToast===toast)tierToast=null;tierTimer=null},2800);
  }
  function checkTierUnlock(data,options={}){
   const userId=String(window.Crilo?.user?.id||'');
