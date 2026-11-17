@@ -134,8 +134,11 @@ async function run(){
  assert.equal(quiet.toast().children[0].children.length,0,
   'Reduced-motion players must not receive animated confetti');
  const noOfficial=harness();
- await noOfficial.refresh();noOfficial.setStatus(50,1,false);await noOfficial.refresh();
- assert.equal(noOfficial.created.length,0,'An unverified run must not produce a popup');
+ await noOfficial.refresh();noOfficial.setStatus(50,0,false);await noOfficial.refresh();
+ assert.equal(noOfficial.created.length,0,'Badge count without a server unlock must not celebrate');
+ noOfficial.setStatus(50,1,false);await noOfficial.refresh();
+ assert.equal(noOfficial.created.length,1,
+  'An exploration-earned tier should celebrate even before the Official Daily');
  assert.match(source,/Math\.min\(4,Math\.trunc\(Number\(data\?\.bonus_unlocked\)/,
   'Use the server-confirmed unlocked count, not the raw displayed badge count');
  assert.match(source,/TIER_SEEN_PREFIX='crilo-bonus-milestone-seen-v1:'/);
