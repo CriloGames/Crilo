@@ -232,7 +232,7 @@
   }else{
    const losses=Math.min(target.troops-1,Math.round(order.troops*.35/(terrainFactor*supplyBonus)));
    target.troops=Math.max(5,target.troops-losses);
-   if(order.owner===0||target.owner===0){
+   if(g.online||order.owner===0||target.owner===0){
     note(g,defender.name+' held State '+(target.id+1)+' against '+attacker.name+'.');
    }
   }
