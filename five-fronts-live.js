@@ -343,3 +343,189 @@
   renderTransits();renderLog();
  }
 
+
+ function selectState(id){
+  if(!match||match.ended)return;
+  const state=E.getState(match,id);
+  if(!state)return;
+  if(choosingTarget){
+   const from=E.getState(match,selectedId);
+   if(!from||!from.neighbors.includes(state.id)){
+    setStatus('That state is not adjacent. Choose a highlighted tile.');return;
+   }
+   const troops=Math.floor(Math.max(0,from.troops-5)*Number($('ffMarchAmount').value)/100);
+   choosingTarget=false;lastSelectorKey='';
+   setStatus('Sending '+troops+' troops to State '+(state.id+1)+'…');
+   render();
+   void issue('march',{from:from.id,to:state.id,troops}).then(result=>{
+    if(result)setStatus('March accepted. The troops are now traveling.');
+   });
+   return;
+  }
+  selectedId=state.id;lastSelectorKey='';
+  setStatus(state.owner===meSeat?'State '+(state.id+1)+' selected. Give your orders.':
+   match.countries[state.owner].name+' controls this state. Invade from an adjacent state you own.');
+  render();
+ }
+ function checkInterruptions(){
+  if(!match||matchPanel.hidden)return;
+  if(match.ended){
+   council.hidden=true;
+   if(!outcomeViewed)showOutcome();
+   return;
+  }
+  const offered=match.pendingStrategies?.[meSeat];
+  if(offered&&council.hidden)openCouncil(offered);
+  if(!offered&&!council.hidden)council.hidden=true;
+ }
+ function openCouncil(offered){
+  modalKind='council';returnedFocus=document.activeElement;
+  const root=$('ffPolicyOptions');root.replaceChildren();
+  for(const key of offered.options||[]){
+   const policy=E.STRATEGIES[key];if(!policy)continue;
+   const b=node('button');b.type='button';
+   b.append(node('strong',policy.label),node('span',policy.detail));
+   b.addEventListener('click',async()=>{
+    b.disabled=true;
+    const result=await issue('policy',{policy:key});
+    if(result){
+     council.hidden=true;modalKind='';
+     setStatus('National directive adopted: '+policy.label+'.');
+     returnedFocus?.focus?.();
+     render();
+    }else b.disabled=false;
+   });
+   root.append(b);
+  }
+  council.hidden=false;
+  root.querySelector('button')?.focus();
+ }
+ function showOutcome(){
+  if(!match||!match.ended)return;
+  outcomeViewed=true;modalKind='finished';
+  const winner=match.countries[match.winner];
+  put('ffEndTitle',match.winner===meSeat?'Victory! Your nation prevailed.':
+   'Campaign complete. '+(winner?.name||'No country')+' wins.');
+  put('ffEndDescription',match.winner===meSeat?
+   'Your planning, troop movements, and economy secured victory.':
+   'One victor is decided by captured territory, surviving troops, and research.');
+  const rankings=match.countries.map(c=>({c,score:E.scoreCountry(match,c)}))
+   .sort((a,b)=>b.score.total-a.score.total||a.c.id-b.c.id);
+  const root=$('ffFinalStandings');root.replaceChildren();
+  for(let i=0;i<rankings.length;i++){
+   const {c,score}=rankings[i],row=node('div');
+   row.append(node('span',(i+1)+'. '+c.name+(c.id===meSeat?' (YOU)':'')),
+    node('b',score.states+' states · '+score.troops+' troops'));
+   root.append(row);
+  }
+  endModal.hidden=false;$('ffEndNew').focus();
+ }
+ function animateClock(){
+  if(!match||matchPanel.hidden)return;
+  const seconds=room?.status==='playing'&&!match.ended?
+   Math.min(match.limit,match.time+Math.max(0,(Date.now()-snapAt)/1000)*match.speed):
+   match.time;
+  put('ffClock',formatSeconds(seconds));
+ }
+ svg.addEventListener('click',e=>{
+  const tile=e.target.closest('[data-state]');
+  if(tile)selectState(Number(tile.dataset.state));
+ });
+ svg.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const tile=e.target.closest('[data-state]');
+  if(tile){e.preventDefault();selectState(Number(tile.dataset.state))}
+ });
+ $('ffStatePicker').addEventListener('change',e=>{
+  if(e.target.value!=='')selectState(Number(e.target.value));
+ });
+ $('ffCreateRoom').addEventListener('click',()=>{void createRoom()});
+ $('ffJoinRoom').addEventListener('click',()=>{void joinRoom($('ffRoomCode').value)});
+ $('ffRoomCode').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();void joinRoom($('ffRoomCode').value)}
+ });
+ $('ffStartLive').addEventListener('click',()=>{void startRoom()});
+ $('ffLeaveLobby').addEventListener('click',()=>{void leaveRoom()});
+ $('ffBackToRoom').addEventListener('click',()=>{showRoom=true;switchViews()});
+ $('ffReturnBattle').addEventListener('click',()=>{showRoom=false;switchViews()});
+ $('ffCopyInvite').addEventListener('click',async()=>{
+  if(!room)return;
+  try{
+   await navigator.clipboard.writeText(inviteLink());
+   say('Invite link copied. Send it to your friends.');
+  }catch{say('Invite code: '+room.code)}
+ });
+ $('ffTrain').addEventListener('click',()=>{
+  if(selectedId!==null)void issue('train',{stateId:selectedId}).then(result=>{
+   if(result)setStatus('Recruited '+result.amount+' troops.');
+  });
+ });
+ $('ffFortify').addEventListener('click',()=>{
+  if(selectedId!==null)void issue('fortify',{stateId:selectedId}).then(result=>{
+   if(result)setStatus('Fortifications improved.');
+  });
+ });
+ $('ffMarchAmount').addEventListener('input',()=>{if(match)renderSelected()});
+ $('ffMarch').addEventListener('click',()=>{
+  if(!match||match.ended||busy||selectedId===null)return;
+  choosingTarget=true;lastSelectorKey='';
+  setStatus('Choose one adjacent highlighted state, or use the State Selector.');
+  render();
+ });
+ $('ffCancelMarch').addEventListener('click',()=>{
+  choosingTarget=false;lastSelectorKey='';
+  setStatus('Move canceled.');render();
+ });
+ $('ffEndNew').addEventListener('click',()=>{
+  endModal.hidden=true;showRoom=true;switchViews();
+ });
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh()});
+ window.addEventListener('pagehide',()=>{
+  if(channel){void criloDB.removeChannel(channel);channel=null}
+ });
+ function deny(message){
+  uid=null;room=null;match=null;
+  game.hidden=true;game.inert=true;gate.hidden=false;
+  gate.textContent=message;gate.classList.add('is-denied');
+  council.hidden=true;endModal.hidden=true;
+ }
+ async function verify(){
+  const attempt=++authCount;
+  if(typeof criloDB==='undefined'||!criloDB.auth?.getUser){
+   deny('Crilo sign-in is unavailable. Refresh this page.');return;
+  }
+  try{
+   const {data,error}=await criloDB.auth.getUser();
+   if(attempt!==authCount)return;
+   if(error||!data?.user?.id){
+    deny('Sign in with a Crilo account to host or join a multiplayer room. Use the SIGN IN menu above.');
+    return;
+   }
+   if(uid&&uid!==data.user.id){
+    if(channel){void criloDB.removeChannel(channel);channel=null}
+    room=null;match=null;autoJoinDone=false;
+   }
+   uid=data.user.id;gate.hidden=true;game.hidden=false;game.inert=false;
+   gate.classList.remove('is-denied');
+   switchViews();
+   if(!autoJoinDone){
+    autoJoinDone=true;
+    const invite=new URLSearchParams(location.search).get('join');
+    if(invite){$('ffRoomCode').value=invite;void joinRoom(invite)}
+    else{
+     const last=remembered();
+     if(last){
+      try{accept(await call({operation:'sync',roomId:last}))}
+      catch(_){remember(null)}
+     }
+    }
+   }
+  }catch{
+   if(attempt===authCount)deny('Could not verify your sign-in. Check your connection.');
+  }
+ }
+ window.addEventListener('crilo-auth-ready',()=>{void verify()});
+ if(window.Crilo?.authResolved)void verify();
+ setInterval(()=>{void refresh()},3000);
+ setInterval(animateClock,250);
+})();
