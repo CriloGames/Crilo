@@ -321,7 +321,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // inside the real teal drawer bezel. Its plaque sits below the switch.
  tab(rightFace,"seam",-1.13,.31,copper,.22,.16);
 
- tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
+ // The service shutter is ONE rigid machined plate. The previous generic
+ // tab drew a fixed backing, another faceplate, then a sliding inset;
+ // together they looked like two shutters beside the brass keyway.
+ // Its one deep solid body extends into the enamel to keep it seated.
+ // All slot hardware rides in shutterUnit, including during the locked
+ // lateral rattle and the actual save-state opening animation.
+ reserve(rightFace,"shutter",.58,-1.08,.475,.25);
+ const shutter=node(rightFace,.58,-1.08,.18);
+ const shutterUnit=new THREE.Group();shutter.add(shutterUnit);
+ const shutterBody=B(shutterUnit,.46,.255,.23,0,0,-.016,nickel,.024);
+ shutterBody.userData.mechanicalMount=true;
+ actuators.set("shutter",shutterUnit);
+ setHit(shutter,"shutter");targets.set("shutter",shutter);
 
  // There is ONE removable service bolt on this face. The other three
  // were fake moving screwheads with no unlock effect, duplicated again by
@@ -676,11 +688,10 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const receiver=targets.get("cube-offer");
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
- const shutter=targets.get("shutter");
  // A narrow captive brass keyway is machined into the SAME moving
- // shutter plate. The tool earned from the second coin is visibly seated
- // here and moves with the shutter instead of floating near it.
- const serviceKeyway=node(shutter,.095,-.027,.112);
+ // shutter plate. The tool earned from the second coin moves with the
+ // shutter's single body, not with a separate fixed-looking outer slab.
+ const serviceKeyway=node(shutterUnit,.095,-.027,.099);
  B(serviceKeyway,.140,.051,.019,0,0,0,nickel,.010);
  B(serviceKeyway,.103,.016,.009,0,0,.015,graphite,.003);
  for(const x of [-.057,.057])C(serviceKeyway,.010,.016,x,0,.016,brass);
@@ -781,6 +792,16 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    actionRegistered:!!f.stem.userData.action
   })),
   getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
+  getServiceShutterAudit:()=>({
+   bodyCount:shutterUnit.children.filter(part=>part.isMesh).length,
+   oneBody:shutterBody.parent===shutterUnit,
+   keywayOnSameUnit:serviceKeyway.parent===shutterUnit,
+   actuatorOnSameUnit:actuators.get("shutter")===shutterUnit,
+   faceAttached:shutter.parent===rightFace,
+   rearDepth:shutter.position.z+shutterBody.position.z-
+    shutterBody.geometry.parameters.depth/2,
+   x:shutter.position.x,rotation:shutter.rotation.z
+  }),
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   getDentedCopperShape:()=>{
    const obj=targets.get("dent"),data=obj?.userData.dentProfile;
