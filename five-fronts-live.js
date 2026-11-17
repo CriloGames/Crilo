@@ -113,7 +113,11 @@
   if(!data?.id||!Array.isArray(data.players))return;
   if(room?.id===data.id&&data.revision<room.revision)return;
   const newRoom=room?.id!==data.id;
+  const wasWaiting=room?.id===data.id&&room.status==='waiting';
   room=data;match=data.game||null;meSeat=data.meSeat;snapAt=Date.now();
+  // Once the host starts, pull every waiting guest out of the lobby.
+  // Preserve manual "ROOM / INVITE" viewing during an already live game.
+  if(wasWaiting&&room.status==='playing')showRoom=false;
   remember(data.id);
   if(newRoom){
    selectedId=null;choosingTarget=false;lastSelectorKey='';lastLogKey='';
