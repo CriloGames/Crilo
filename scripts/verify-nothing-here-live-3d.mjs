@@ -666,6 +666,12 @@ try{
   unfinishedKey.parts>=7&&!unfinishedKey.hasPreinstalledRing,
   "The first key piece looks like an already-complete key or is detached: "+
    JSON.stringify(unfinishedKey));
+ const keyMaterial=await page.evaluate(()=>
+  window.__nothing3DPreview.lavenderDrawerItemAudit.toothMaterials);
+ assert(keyMaterial.length===3&&keyMaterial.every(m=>
+  m.color===0x9562c7&&m.emissive===0xb45cff),
+  "The key teeth must be purple themselves, not gold beneath a purple halo: "+
+   JSON.stringify(keyMaterial));
  // A prior precise-collision tool silently omitted every tiny 3D control.
  // Check the underlying assembled geometry groups, not just its toolbar.
  const collisionParts=await page.evaluate(()=>
@@ -687,7 +693,8 @@ try{
  const shutterBefore=await page.evaluate(()=>
   window.__nothing3DPreview.physicalServiceShutterAudit);
  assert(shutterBefore?.bodyCount===1&&shutterBefore.oneBody&&
-  shutterBefore.keywayOnSameUnit&&shutterBefore.actuatorOnSameUnit&&
+  shutterBefore.keywayOnSameUnit&&shutterBefore.blackInsetAttached&&
+  shutterBefore.insetSurfaceFlush&&shutterBefore.actuatorOnSameUnit&&
   shutterBefore.faceAttached&&shutterBefore.rearDepth<=.0725,
   "Service shutter is still built as multiple plates or is floating: "+
    JSON.stringify(shutterBefore));
@@ -2111,7 +2118,8 @@ try{
  const openedShutter=await page.evaluate(()=>
   window.__nothing3DPreview.physicalServiceShutterAudit);
  assert(openedShutter?.bodyCount===1&&openedShutter.oneBody&&
-  openedShutter.keywayOnSameUnit&&openedShutter.actuatorOnSameUnit&&
+  openedShutter.keywayOnSameUnit&&openedShutter.blackInsetAttached&&
+  openedShutter.insetSurfaceFlush&&openedShutter.actuatorOnSameUnit&&
   Math.abs(openedShutter.x-.78)<.012&&
   Math.abs(openedShutter.rotation-.12)<.012,
   "Restoring an OPEN service shutter created a second plate or detached its keyway: "+
