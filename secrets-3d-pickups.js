@@ -5,6 +5,8 @@ import {gsap} from "gsap";
 // collectibles. Never pulse unfinished clues, locked mechanisms, or entire
 // compartments. This preserves the scene's on-demand rendering budget.
 let auraTexture=null,auraTimer=null;
+// Single visual language for EVERY revealed pickup, including the original key bit.
+export const COLLECTIBLE_GLOW_COLOR=0xb45cff;
 const activeAuras=new Set();
 const motionReduced=window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches||false;
 function getAuraTexture(){
@@ -41,7 +43,7 @@ function scheduleAuras(){
 // The aura is a non-interactive plane BEHIND the collectible; its meshes
 // never become hitboxes and are excluded from solid geometry inspection.
 export function attachCollectibleGlow({
- root,model=root,invalidate=()=>{},color=0xb45cff,
+ root,model=root,invalidate=()=>{},color=COLLECTIBLE_GLOW_COLOR,
  size=.355,depth=.035,offsetX=0,offsetY=0
 }){
  const materialCopies=new Map();
@@ -449,7 +451,7 @@ export function buildPhysicalPickups({faces,worlds,hotspots,box,cylinder,mat,set
   // reserved for items that have ALREADY been revealed by puzzle logic;
   // it never points at undiscovered mechanisms or correct answers.
   const socketMaterial=ink.clone();
-  socketMaterial.emissive.setHex(0xb45cff);
+  socketMaterial.emissive.setHex(COLLECTIBLE_GLOW_COLOR);
   socketMaterial.emissiveIntensity=0;
   // A narrow recess and retaining lip, not another black tile behind
   // each item. Keep the fine physical detail and its subtle found glow.

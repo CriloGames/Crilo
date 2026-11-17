@@ -6,9 +6,9 @@ import { gsap } from "gsap";
 import { createNothingHereFinale } from "./secrets-3d-finale.js?v=56";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=54";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=28";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=57";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
-import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
+import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=22";
 
 // A genuine hollow box: panels leave real holes for the two sliding trays
 // and the top hatch. Drawers have separate floors, walls, backs and fronts.
@@ -298,14 +298,20 @@ function keyShape(parent) {
  bit.rotation.x=-.22;
  bit.scale.setScalar(1.16);
  parent.add(bit);
- const shank=box(bit,.47,.059,.070,.058,0,0,brass,.011);
+ // The exposed key bit must appear PURPLE, not gold with a faint purple
+ // halo. Metal base color is lilac while the collectible aura uses the
+ // same #B45CFF emissive purple as every other found item.
+ const violetKeyMetal=mat(0x9562c7,.40,.34);
+ const shank=box(bit,.47,.059,.070,.058,0,0,violetKeyMetal,.011);
  box(bit,.117,.082,.075,-.212,0,0,metal,.014);
  // Two short jaws leave a notch at the broken end for the ring's lug.
  for(const sign of [-1,1])
-  box(bit,.083,.020,.071,-.286,sign*.033,0,brass,.006);
- // Three genuinely different cuts in the tip; all join the shaft.
- for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]])
-  box(bit,.042,height,.066,x,-height/2+.022,0,brass,.004);
+  box(bit,.083,.020,.071,-.286,sign*.033,0,violetKeyMetal,.006);
+ // Each tooth is ACTUALLY purple, not a brass tooth beneath a violet halo.
+ for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]]){
+  const tooth=box(bit,.042,height,.066,x,-height/2+.022,0,violetKeyMetal,.004);
+  tooth.userData.lavenderKeyTooth=true;
+ }
  // The darker relieved groove makes the partial lock-bit readable
  // even when the sliding drawer is viewed at a low angle.
  box(bit,.210,.009,.007,.184,.027,.040,darkMetal,.002);
@@ -707,7 +713,7 @@ const physicalPickups=embeddedGame?buildPhysicalPickups({
 // after a deliberate click. Their own geometry remains the only hit target.
 const originalPickupGlow=embeddedGame?{
  tooth:attachCollectibleGlow({
-  root:looseKey,model:looseKey,color:0xf2c66d,
+  root:looseKey,model:looseKey,
   size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate
  }),
  thread:attachCollectibleGlow({
@@ -819,8 +825,8 @@ function clickAction(action){
    return;
   }
   if(action==="flute-body"){
-   // The instrument body should be selectable. Open its larger keys in the
-   // existing pocket rather than showing a floating puzzle popup.
+   // The body identifies the mounted instrument; note inputs stay on
+   // the three physical keys, never in a second inventory keyboard.
    window.CriloNothingHereCube?.openFluteFromBox?.();
    return;
   }
@@ -1422,6 +1428,24 @@ function showHeldItemDestination(){
 // entire cube while the player is operating a visible wheel.
 const gearDragParts=intricate.getGearMazeTargets?.()||null;
 const gearDragActions=new Set(["gear-small","maze-in","maze-out"]);
+// Tiny physical cogs need a finger-sized contact area, but only when the
+// finger starts on empty canvas. Never steal a visible screw or pickup.
+function pickGearDragTouchAction(e){
+ const direct=pickVisibleAction(e.clientX,e.clientY);
+ if(gearDragActions.has(direct))return direct;
+ if(e.pointerType!=="touch"||direct)return null;
+ const rect=renderer.domElement.getBoundingClientRect();
+ if(!rect.width||!rect.height)return null;
+ const offsets=[[1,0],[-1,0],[0,1],[0,-1],
+  [.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
+ for(const radius of [6,12])for(const [dx,dy] of offsets){
+  const x=e.clientX+dx*radius,y=e.clientY+dy*radius;
+  if(x<rect.left||x>rect.right||y<rect.top||y>rect.bottom)continue;
+  const action=pickVisibleAction(x,y);
+  if(gearDragActions.has(action))return action;
+ }
+ return null;
+}
 let gearDrag=null;
 function endGearDrag(pointerId){
  if(!gearDrag||pointerId!==gearDrag.pointerId)return false;
@@ -1436,8 +1460,8 @@ renderer.domElement.addEventListener("pointerdown",e=>{
  if(!embeddedGame||e.button!==0)return;
  if(gearDrag){endGearDrag(gearDrag.pointerId);return;}
  if(window.CriloNothingHereCube?.getState?.().selected)return;
- const action=pickVisibleAction(e.clientX,e.clientY);
- if(!gearDragActions.has(action))return;
+ const action=pickGearDragTouchAction(e);
+ if(!action)return;
  const root=action==="gear-small"?gearDragParts?.small:gearDragParts?.dial;
  if(!root)return;
  scene.updateMatrixWorld(true);camera.updateMatrixWorld();
@@ -2087,6 +2111,16 @@ window.__nothing3DPreview={
    keyPosition:[position.x,position.y,position.z],
    keyScale:looseKey.scale.x,
    seatTop,
+   toothMaterials:(()=>{
+    const samples=[];
+    looseKey.traverse(part=>{
+     if(part.userData.lavenderKeyTooth&&part.isMesh)
+      samples.push({color:part.material.color.getHex(),
+       emissive:part.material.emissive.getHex(),
+       intensity:part.material.emissiveIntensity});
+    });
+    return samples;
+   })(),
    glow:originalPickupGlow?.tooth.getState()||null
   };
  },
@@ -2524,6 +2558,7 @@ window.__nothing3DPreview={
  get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
  get physicalServiceCodeClearance(){return gameHotspots?.getServiceCodeClearance?.()||null},
  get physicalFluteVisible(){return gameHotspots?.fluteVisible?.()||false},
+ get physicalServiceShutterAudit(){return gameHotspots?.getServiceShutterAudit?.()||null},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
@@ -2687,7 +2722,7 @@ window.__nothing3DPreview={
   );
   originalPickupGlow?.ring.setActive(undersideRing.visible);
   renderer.domElement.setAttribute("aria-label",gameHotspots?.fluteVisible?.()
-   ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Keys 1, 2 and 3 play the collected flute."
+   ?"3D puzzle cube. Use arrow keys to rotate, I to inspect visible parts, Enter to activate and Escape to exit inspection. Tap the three mounted flute keys to play; keyboard keys 1, 2 and 3 also work."
    :"Rotatable 3D puzzle cube. Use arrow keys to rotate, I to inspect visible fittings, Enter to activate the selected part, and Escape to exit inspection.");
   if(pocketWorlds)pocketWorlds.setState(currentGameState);
   if(physicalPickups)physicalPickups.setState(currentGameState);

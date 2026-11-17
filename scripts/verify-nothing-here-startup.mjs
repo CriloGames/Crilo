@@ -509,6 +509,13 @@ try{
      // unlocks a real door; the door itself must still be pressed to open.
      assert(before.pocket.includes("flute")&&!before.door,
       "New flute scenario lost the unsolved instrument");
+     assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+      "Mounted flute must not appear in the player's inventory");
+     const lightBar=await page.evaluate(()=>
+      window.__nothing3DPreview.physicalMechanicalFeedback);
+     assert(lightBar.fluteBarMounted&&lightBar.fluteBarBelowKeys&&
+      lightBar.fluteBarSegments===6,
+      "Flute progress bar must have six physically mounted segments");
      await page.evaluate(()=>window.__nothing3DPreview.clickAction("thing:door"));
      assert.equal((await page.evaluate(()=>window.CriloNothingHereCube.getState())).doorOpen,
       false,"Touching a still-locked door bypassed its melody");
@@ -528,9 +535,10 @@ try{
     assert.equal(await page.evaluate(()=>
      window.__nothing3DPreview.physicalFluteVisible),false,
      "The physical flute should disappear after the correct code");
-    assert(await page.locator('#ncInventory [data-item="flute"]').count()===0&&
-      await page.locator("#ncFluteTray").isHidden(),
-     "Completed flute or its controls remained on screen");
+    assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+     "Flute must never appear in Things You Found");
+    assert.equal(await page.locator("#ncFluteTray").count(),0,
+     "Removed flute tray must remain absent");
     await page.evaluate(()=>window.CriloNothingHereCube.activatePhysicalFluteNote(2));
     assert.deepEqual((await page.evaluate(()=>
       window.CriloNothingHereCube.getState())).fluteNotes,[2,1,3,1,3,2],

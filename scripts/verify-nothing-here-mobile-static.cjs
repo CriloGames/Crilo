@@ -6,7 +6,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const read=name=>fs.readFileSync(path.join(__dirname,'..',name),'utf8');
-const three=read('secrets-3d-preview.js'),game=read('cube-secrets.js');
+const three=read('secrets-3d-preview.js'),game=read('cube-secrets.js'),hotspots=read('secrets-3d-game-hotspots.js');
 const html=read('secrets.html'),css=read('nothing-here-mobile.css');
 const start=three.indexOf('function pickTouchAction(clientX,clientY){');
 const end=three.indexOf('\n\n/* Accessible physical inspection:',start);
@@ -27,6 +27,19 @@ assert.equal(picker(110,100),'pickup:tooth','Drawer casing does not steal a near
 assert.equal(picker(150,150),'gear-small','A precise mechanic is not stolen by pickup tolerance');
 assert.equal(picker(0,0),null,'Nothing invisible can be picked up at the edge');
 assert.equal(picker(200,200),null,'Empty space is still empty');
+const gearStart=three.indexOf('function pickGearDragTouchAction(e){');
+const gearEnd=three.indexOf('\nlet gearDrag=null;',gearStart);
+assert.ok(gearStart>0&&gearEnd>gearStart,'Missing fingertip-safe 3D gear dragging');
+const gearPicker=new Function('renderer','pickVisibleAction','gearDragActions',
+ three.slice(gearStart,gearEnd)+'\nreturn pickGearDragTouchAction;')(
+ {domElement:{getBoundingClientRect:()=>rect}},raycast,
+ new Set(['gear-small','maze-in','maze-out']));
+assert.equal(gearPicker({clientX:162,clientY:150,pointerType:'touch'}),'gear-small',
+ 'A phone can drag a small gear when tapping slightly beside it');
+assert.equal(gearPicker({clientX:162,clientY:150,pointerType:'mouse'}),null,
+ 'Desktop controls retain precise hit testing');
+assert.equal(gearPicker({clientX:110,clientY:100,pointerType:'touch'}),null,
+ 'An exposed drawer surface must not be hijacked by a nearby gear');
 assert.match(three,/if\(e\.pointerType==="touch"\)\s*\{\s*touchPointers\.add\(e\.pointerId\)/);
 assert.match(three,/if\(multiTouchGesture\)/);
 assert.match(three,/pointerType==="touch"\?17:9/);
@@ -35,7 +48,7 @@ assert.match(three,/clearHover\(\);\n\},true\); \/\/ Run before OrbitControls/);
 assert.match(three,/start\?\.inspected/);
 assert.match(three,/stopInspectTimer\(\);clickStart=null/);
 
-const a=game.indexOf('let pocketTouchStart=null,pocketTouchActivation=null;');
+const a=game.indexOf('let pocketTouchStart=null,pocketTouchActivation=null,pocketKeyboardActivation=null;');
 const b=game.indexOf('// Chromium can project',a);
 assert.ok(a>0&&b>a,'Missing mobile inventory tap handlers');
 const handlers=game.slice(a,b);
@@ -46,7 +59,7 @@ const take=item=>{
 };
 const openFlute=()=>flute++;
 const pocket=new Function('take','openFlute',
- handlers+'\nreturn {clickInventory,pocketPointerDown,pocketPointerUp}')(take,openFlute);
+ handlers+'\nreturn {clickInventory,pocketPointerDown,pocketPointerUp,pocketKeyDown}')(take,openFlute);
 function target(id){
  const element={dataset:{item:id},draggable:true};
  return {element,closest:()=>element};
@@ -58,7 +71,12 @@ function event(type,item,id=5,x=40,y=50,detail=1){
 function tap(item,detail=1){
  pocket.pocketPointerDown(event('pointerdown',item));
  pocket.pocketPointerUp(event('pointerup',item));
- pocket.clickInventory(event('click',item,5,40,50,detail));
+ const click=event('click',item,5,40,50,detail);
+ if(detail===0)delete click.pointerType; // Safari can omit touch metadata.
+ pocket.clickInventory(click);
+ // A second compatibility click must not toggle a touched card back off,
+ // even when it loses its touch metadata or reports detail=0.
+ pocket.clickInventory({...click,detail:0,pointerType:undefined});
 }
 const thread=target('thread');
 tap(thread,0);
@@ -74,18 +92,30 @@ pocket.pocketPointerUp(event('pointerup',thread,5,80,90));
 assert.equal(activated.length,2,'A swipe/scroll must not select inventory');
 pocket.clickInventory({...event('click',thread,5,80,90,0),pointerType:''});
 assert.equal(selected,'thread','Keyboard synthetic click remains functional');
+pocket.pocketPointerDown(event('pointerdown',thread));
+pocket.pocketPointerUp(event('pointerup',thread));
+pocket.clickInventory(event('click',thread));
+assert.equal(selected,null,'A real click finishes the next finger tap once');
+pocket.pocketKeyDown({key:'Enter',target:thread});
+pocket.clickInventory({type:'click',target:thread,detail:0});
+assert.equal(selected,'thread','Keyboard activation immediately after touch must still work');
 const fluteTarget=target('flute');
-tap(fluteTarget);
-assert.equal(flute,1,'Touch opens flute controls exactly once');
+tap(fluteTarget,0);
+assert.equal(flute,0,'The mounted flute must not open an inventory keyboard');
+assert.equal(selected,'thread','A hidden flute card must never change the held item');
 
-assert.match(html,/cube-secrets\.js\?v=94/);
-assert.match(html,/secrets-3d-preview\.js\?v=276/);
+assert.match(html,/cube-secrets\.js\?v=96/);
+assert.match(html,/secrets-3d-preview\.js\?v=280/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(css,/touch-action:none/);
+assert.match(game,/const carried=\[\.\.\.pocket\]\.filter\(id=>id!=='flute'\)/);
+assert.doesNotMatch(html,/id="ncFluteTray"/);
+assert.match(hotspots,/const fluteLightBar=B\(flute/);
+assert.match(hotspots,/fluteBarSegments:fluteStepLights\.length/);
 assert.match(css,/min-height:48px/);
 assert.match(css,/#ncModalClose/);
 const catalogText=game.split('const catalog=[')[1]?.split('];')[0]||'';
 const names=[...catalogText.matchAll(/^\s*\['([^']+)'/gm)].map(m=>m[1]);
 assert.equal(names.length,60,'All 60 original discoveries must remain');
 assert.equal(new Set(names).size,60);
-console.log('PASS Nothing Here mobile static: accurate one-tap pickup, drag-free inventory, scroll/swipe safety, keyboard, flute, gestures, full 60-secret catalog');
+console.log('PASS Nothing Here mobile static: pickup taps, finger-sized gears, Safari synthetic clicks, keyboard activation, on-box flute and light bar, gestures, full 60-secret catalog');

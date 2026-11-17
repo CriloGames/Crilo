@@ -21,6 +21,10 @@ assert(!source.includes("location.search).get('classic')"),
 
 const browser=await chromium.launch({headless:true});
 const page=await browser.newPage({viewport:{width:1230,height:820}});
+// Audio logic is covered separately from pointer hit-testing. In software
+// WebGL, the animated toolbar can fail Playwright's "stable" criterion even
+// while its accessible button and click handler both work.
+const toggleAudio=selector=>page.locator(selector).evaluate(button=>button.click());
 const base="http://127.0.0.1:4173/secrets.html";
 const testProgress={
  seen:["first","drawer","mouse"],
@@ -83,10 +87,10 @@ try{
   assert(result.ok&&result.length>4000,
    "Bundled CC0 audio file missing or empty: "+JSON.stringify({file,result}));
  }
- await page.locator("#ncSfxToggle").click();
+ await toggleAudio("#ncSfxToggle");
  assert.equal(await page.locator("#ncSfxToggle").getAttribute("aria-pressed"),"false");
  assert.equal(await page.evaluate(()=>window.NothingHereAudio.play("tap")),false);
- await page.locator("#ncMusicToggle").click();
+ await toggleAudio("#ncMusicToggle");
  const onMusic=await page.evaluate(()=>window.NothingHereAudio.getState());
  assert(onMusic.musicEnabled&&onMusic.musicCreated&&onMusic.musicLoop,
   "Enabling lobby music did not initialize looping soundtrack: "+JSON.stringify(onMusic));
@@ -95,8 +99,8 @@ try{
  const restoredAudio=await page.evaluate(()=>window.NothingHereAudio.getState());
  assert(!restoredAudio.sfxEnabled&&restoredAudio.musicEnabled,
   "Sound and music preferences did not survive refresh: "+JSON.stringify(restoredAudio));
- await page.locator("#ncMusicToggle").click();
- await page.locator("#ncSfxToggle").click();
+ await toggleAudio("#ncMusicToggle");
+ await toggleAudio("#ncSfxToggle");
  const enabledAudio=await page.evaluate(()=>{
   const controller=window.NothingHereAudio;
   return {played:controller.play("gear"),state:controller.getState()};
@@ -105,8 +109,8 @@ try{
   "Re-enabling sound did not restore the sampled mechanical effects");
  // Toggle music before its pending play promise has necessarily settled.
  // Off must win, regardless of the browser's asynchronous audio decoding.
- await page.locator("#ncMusicToggle").click();
- await page.locator("#ncMusicToggle").click();
+ await toggleAudio("#ncMusicToggle");
+ await toggleAudio("#ncMusicToggle");
  await page.waitForTimeout(320);
  const promptlyMuted=await page.evaluate(()=>window.NothingHereAudio.getState());
  assert(!promptlyMuted.musicEnabled&&!promptlyMuted.musicPlaying,

@@ -321,7 +321,19 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  // inside the real teal drawer bezel. Its plaque sits below the switch.
  tab(rightFace,"seam",-1.13,.31,copper,.22,.16);
 
- tab(rightFace,"shutter",.58,-1.08,nickel,.40,.19);
+ // The service shutter is ONE rigid machined plate. The previous generic
+ // tab drew a fixed backing, another faceplate, then a sliding inset;
+ // together they looked like two shutters beside the brass keyway.
+ // Its one deep solid body extends into the enamel to keep it seated.
+ // All slot hardware rides in shutterUnit, including during the locked
+ // lateral rattle and the actual save-state opening animation.
+ reserve(rightFace,"shutter",.58,-1.08,.475,.25);
+ const shutter=node(rightFace,.58,-1.08,.18);
+ const shutterUnit=new THREE.Group();shutter.add(shutterUnit);
+ const shutterBody=B(shutterUnit,.46,.255,.23,0,0,-.016,nickel,.024);
+ shutterBody.userData.mechanicalMount=true;
+ actuators.set("shutter",shutterUnit);
+ setHit(shutter,"shutter");targets.set("shutter",shutter);
 
  // There is ONE removable service bolt on this face. The other three
  // were fake moving screwheads with no unlock effect, duplicated again by
@@ -424,9 +436,8 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const fluteTube=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,.68,18),copper);
  fluteTube.rotation.z=Math.PI/2;
  flute.add(fluteTube);count++;
- // The curved body itself was never a registered hit target. Players
- // naturally clicked the flute, but only three tiny separate keys worked.
- // Touching its body now opens the instrument in the inventory.
+ // Tapping the copper body identifies the instrument. Only the three
+ // physical raised keys play notes; no second keyboard appears in the pocket.
  setHit(fluteTube,"flute-body");targets.set("flute-body",fluteTube);
  for(const x of [-.33,.33]){
   const lip=new THREE.Mesh(new THREE.TorusGeometry(.065,.011,8,20),brass);
@@ -470,17 +481,24 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
   key.add(touch);
   setHit(touch,"flute-note-"+i);
  }
- // Six small inlaid dots along the physical flute show input progress.
- // They are part of the instrument and are not extra clickable controls.
+ // A low-profile, six-window light bar is seated directly BELOW the
+ // physical flute, on the same fixed top-face rail. Match the vent switch
+ // indicator's muted green metal inlays without introducing new click zones.
+ // The backing reaches the enamel (z≈.072), with no floating decorative part.
+ const fluteLightBar=B(flute,.73,.105,.052,0,-.19,-.072,nickel,.013);
+ fluteLightBar.userData.mechanicalMount=true;
+ B(flute,.658,.065,.017,0,-.19,-.035,graphite,.007);
  const fluteStepLights=[];
  for(let i=0;i<6;i++){
-  const x=(i-2.5)*.095;
-  const lamp=mat(0x7e9b87,.11,.31);
-  lamp.emissive=new THREE.Color(0x7dd3b2);
+  const x=(i-2.5)*.100;
+  B(flute,.084,.043,.012,x,-.19,-.020,graphite,.004);
+  const lamp=mat(0x668b81,.13,.26);
+  lamp.emissive=new THREE.Color(0x6cd7b0);
   lamp.emissiveIntensity=0;
-  C(flute,.011,.010,x,-.018,.072,lamp);
+  B(flute,.070,.030,.012,x,-.19,-.008,lamp,.004);
   fluteStepLights.push(lamp);
  }
+ for(const x of [-.335,.335])C(flute,.012,.009,x,-.19,-.018,brass);
  flute.visible=false;
  // The rear eye must look like an actual eye, rather than the old
  // circular control marked with a cross. Sculpt an almond-shaped white
@@ -670,15 +688,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const receiver=targets.get("cube-offer");
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
- const shutter=targets.get("shutter");
- // A narrow captive brass keyway is machined into the SAME moving
- // shutter plate. The tool earned from the second coin is visibly seated
- // here and moves with the shutter instead of floating near it.
- const serviceKeyway=node(shutter,.095,-.027,.112);
- B(serviceKeyway,.140,.051,.019,0,0,0,nickel,.010);
- B(serviceKeyway,.103,.016,.009,0,0,.015,graphite,.003);
- for(const x of [-.057,.057])C(serviceKeyway,.010,.016,x,0,.016,brass);
- const insertedServiceKey=node(serviceKeyway,-.010,0,.029);
+ // The dark slot is now a shallow inset DIRECTLY ON the single gray
+ // shutter mesh. It is NOT a second panel sitting on the stationary rail:
+ // locked rattles, saved closed/open poses and the whole keyway always
+ // inherit the exact same transform from shutterBody.
+ const serviceKeyway=node(shutterBody,.095,-.027,.114);
+ const blackShutterInset=B(serviceKeyway,.117,.018,.006,0,0,.003,graphite,.003);
+ blackShutterInset.userData.mechanicalMount=true;
+ for(const x of [-.071,.071])C(serviceKeyway,.009,.009,x,0,.005,brass);
+ const insertedServiceKey=node(serviceKeyway,-.010,0,.022);
  B(insertedServiceKey,.115,.024,.012,0,0,0,brass,.004);
  B(insertedServiceKey,.028,.043,.012,-.049,-.007,.006,brass,.004);
  B(insertedServiceKey,.022,.015,.014,.058,-.016,.006,nickel,.004);
@@ -775,6 +793,33 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    actionRegistered:!!f.stem.userData.action
   })),
   getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
+  getServiceShutterAudit:()=>{
+   // World coordinates make it possible to confirm the dark inset moves
+   // with the gray shutter on actual WebGL frames, not just in a tree.
+   shutter.updateWorldMatrix(true,true);
+   const bodyWorld=shutterBody.getWorldPosition(new THREE.Vector3());
+   const insetWorld=blackShutterInset.getWorldPosition(new THREE.Vector3());
+   const faceLocal=rightFace.worldToLocal(insetWorld.clone());
+   return {
+    bodyCount:shutterUnit.children.filter(part=>part.isMesh).length,
+    oneBody:shutterBody.parent===shutterUnit,
+    keywayOnSameUnit:serviceKeyway.parent===shutterBody,
+    blackInsetAttached:blackShutterInset.parent===serviceKeyway,
+    actuatorOnSameUnit:actuators.get("shutter")===shutterUnit,
+    faceAttached:shutter.parent===rightFace,
+    rearDepth:shutter.position.z+shutterBody.position.z-
+     shutterBody.geometry.parameters.depth/2,
+    insetDepth:serviceKeyway.position.z+blackShutterInset.position.z,
+    bodyDepth:shutterBody.geometry.parameters.depth/2,
+    insetSurfaceFlush:Math.abs(serviceKeyway.position.z+
+     blackShutterInset.position.z+
+     blackShutterInset.geometry.parameters.depth/2-
+     shutterBody.geometry.parameters.depth/2)<.015,
+    bodyWorld:bodyWorld.toArray(),insetWorld:insetWorld.toArray(),
+    insetFacePosition:faceLocal.toArray(),
+    x:shutter.position.x,rotation:shutter.rotation.z
+   };
+  },
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   getDentedCopperShape:()=>{
    const obj=targets.get("dent"),data=obj?.userData.dentProfile;
@@ -812,6 +857,11 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    bellHatchOffset:bellHatch.position.x,
    ventStepsShown:ventStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
    fluteStepsShown:fluteStepLights.filter(lamp=>lamp.emissiveIntensity>.25).length,
+   fluteBarSegments:fluteStepLights.length,
+   fluteBarMounted:fluteLightBar.parent===flute&&
+    flute.position.z+fluteLightBar.position.z-
+    fluteLightBar.geometry.parameters.depth/2<=.0725,
+   fluteBarBelowKeys:fluteLightBar.position.y<-.12,
    serviceKeyInserted:insertedServiceKey.visible
   }),
   fluteVisible:()=>flute.visible,

@@ -27,6 +27,17 @@ on:
       - 'scripts/verify-nothing-here-mobile.mjs'
       - 'scripts/verify-nothing-here-mobile-static.cjs'
       - '.github/workflows/nothing-here-check.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'secrets.html'
+      - 'cube-secrets.js'
+      - 'secrets-3d-preview.js'
+      - 'secrets-3d-pickups.js'
+      - 'nothing-here-mobile.css'
+      - 'scripts/verify-nothing-here-mobile.mjs'
+      - 'scripts/verify-nothing-here-mobile-static.cjs'
+      - '.github/workflows/nothing-here-check.yml'
   workflow_dispatch:
 
 permissions:

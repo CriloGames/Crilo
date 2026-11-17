@@ -8,15 +8,17 @@ const html=readFileSync("secrets.html","utf8");
 const three=readFileSync("secrets-3d-preview.js","utf8");
 const pocket=readFileSync("cube-secrets.js","utf8");
 const styles=readFileSync("nothing-here-mobile.css","utf8");
-assert.match(html,/secrets-3d-preview\.js\?v=276/);
-assert.match(html,/cube-secrets\.js\?v=94/);
+assert.match(html,/secrets-3d-preview\.js\?v=280/);
+assert.match(html,/cube-secrets\.js\?v=96/);
 assert.match(html,/nothing-here-mobile\.css\?v=1/);
 assert.match(three,/function pickTouchAction\(clientX,clientY\)/);
 assert.match(three,/const action=start\.action\|\|\(start\.pointerType==="touch"/);
 assert.match(three,/clearHover\(\);\n\},true\); \/\/ Run before OrbitControls/);
 assert.match(pocket,/button\.draggable=!window\.matchMedia/);
 assert.match(pocket,/function pocketPointerUp\(e\)/);
-assert.match(pocket,/pocketTouchActivation\.item===item\.dataset\.item/);
+assert.match(pocket,/function pocketKeyDown/);
+assert.match(three,/function pickGearDragTouchAction/);
+assert.match(pocket,/pending\.item===item\.dataset\.item/);
 assert.match(styles,/\.nc-page \.nc-pocket \.nc-item\{/);
 
 const base=process.env.NOTHING_HERE_TEST_URL||
@@ -65,17 +67,52 @@ async function runMobile(width,height,includePickup){
   const originalSeen=(await state()).seen.length;
   const thread=page.locator('#ncInventory [data-item="thread"]');
   await thread.tap();
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().selected==="thread",
+   null,{timeout:2000});
   assert.equal((await state()).selected,"thread",
    "One mobile tap should select an inventory item exactly once");
   await thread.tap();
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().selected===null,
+   null,{timeout:2000});
   assert.equal((await state()).selected,null,"Second tap should release item");
   assert.equal(await thread.getAttribute("draggable"),"false",
    "Touch inventory must not trigger native HTML drag");
-  await page.locator('#ncInventory [data-item="flute"]').tap();
-  assert.equal(await page.locator("#ncFluteTray").isVisible(),true);
-  await page.locator('[data-flute-key="1"]').tap();
-  await page.locator("#ncFluteClose").tap();
-  assert.equal(await page.locator("#ncFluteTray").isVisible(),false);
+  assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+   "Mounted flute must not appear as a carried inventory object");
+  assert.equal(await page.locator("#ncFluteTray").count(),0,
+   "No duplicate inventory flute keyboard should exist");
+  assert.equal(await page.evaluate(()=>
+   window.__nothing3DPreview.physicalMechanicalFeedback.fluteBarSegments),6,
+   "The physical flute is missing its six-part indicator");
+  await page.locator("#stage canvas").scrollIntoViewIfNeeded();
+  await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
+  await page.waitForTimeout(350);
+  let fluteKey=await page.evaluate(()=>
+   window.__nothing3DPreview.projectGameControl("flute-note-1"));
+  if(fluteKey?.pick!=="flute-note-1"){
+   for(const angle of [60,90,45]){
+    await page.evaluate(value=>window.__nothing3DPreview.setRotation(value,0),angle);
+    await page.waitForTimeout(180);
+    fluteKey=await page.evaluate(()=>
+     window.__nothing3DPreview.projectGameControl("flute-note-1"));
+    if(fluteKey?.pick==="flute-note-1")break;
+   }
+  }
+  assert.equal(fluteKey?.pick,"flute-note-1",
+   "The top-mounted flute note cannot be reached on a phone");
+  const fluteCanvas=await page.locator("#stage canvas").boundingBox();
+  assert.ok(fluteCanvas,"3D stage needs a mobile canvas");
+  await page.touchscreen.tap(fluteCanvas.x+fluteKey.x,fluteCanvas.y+fluteKey.y);
+  await page.waitForFunction(()=>
+   window.CriloNothingHereCube.getState().fluteNotes.length===1,
+   null,{timeout:3000});
+  assert.deepEqual((await state()).fluteNotes,[1],
+   "A finger tap on the physical flute must play one note");
+  assert.equal(await page.evaluate(()=>
+   window.__nothing3DPreview.physicalMechanicalFeedback.fluteStepsShown),1,
+   "Playing on the box must light exactly one indicator segment");
   await page.locator("#ncZoomIn").tap();
   await page.locator("#ncZoomOut").tap();
   await page.locator("#ncPanMode").tap();
@@ -193,7 +230,7 @@ async function runMobile(width,height,includePickup){
   assert.ok(sizes.document<=sizes.viewport+22,
    "Mobile layout overflows horizontally: "+JSON.stringify(sizes));
   console.log("PASS Nothing Here "+width+"×"+height+
-   ": inventory, flute, zoom, move, reset, journal, sound, saved state"+
+   ": inventory, on-box flute and light bar, zoom, move, reset, journal, sound, saved state"+
    (includePickup?", physical touch pickup":""));
  }finally{await context.close()}
 }

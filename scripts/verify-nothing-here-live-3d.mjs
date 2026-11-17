@@ -666,6 +666,12 @@ try{
   unfinishedKey.parts>=7&&!unfinishedKey.hasPreinstalledRing,
   "The first key piece looks like an already-complete key or is detached: "+
    JSON.stringify(unfinishedKey));
+ const keyMaterial=await page.evaluate(()=>
+  window.__nothing3DPreview.lavenderDrawerItemAudit.toothMaterials);
+ assert(keyMaterial.length===3&&keyMaterial.every(m=>
+  m.color===0x9562c7&&m.emissive===0xb45cff),
+  "The key teeth must be purple themselves, not gold beneath a purple halo: "+
+   JSON.stringify(keyMaterial));
  // A prior precise-collision tool silently omitted every tiny 3D control.
  // Check the underlying assembled geometry groups, not just its toolbar.
  const collisionParts=await page.evaluate(()=>
@@ -682,8 +688,31 @@ try{
  const activate=async name=>page.evaluate(action=>window.__nothing3DPreview.clickAction(action),name);
  const state=async()=>page.evaluate(()=>window.CriloNothingHereCube.getState());
  // Locked shutter interaction stays on a horizontal track, not a
- // generic pushbutton moving into the cube.
- await activate("shutter");
+ // generic pushbutton moving into the cube. Its old three-layer tab
+ // must be replaced by ONE solid plate with the keyway on that plate.
+ const shutterBefore=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceShutterAudit);
+ assert(shutterBefore?.bodyCount===1&&shutterBefore.oneBody&&
+  shutterBefore.keywayOnSameUnit&&shutterBefore.blackInsetAttached&&
+  shutterBefore.insetSurfaceFlush&&shutterBefore.actuatorOnSameUnit&&
+  shutterBefore.faceAttached&&shutterBefore.rearDepth<=.0725,
+  "Service shutter is still built as multiple plates or is floating: "+
+   JSON.stringify(shutterBefore));
+ const shutterRattle=await page.evaluate(()=>{
+  const view=window.__nothing3DPreview;
+  const before=view.physicalServiceShutterAudit;
+  view.clickAction("shutter");
+  const after=view.physicalServiceShutterAudit;
+  const delta=(a,b)=>a.map((v,i)=>b[i]-v);
+  const bodyTravel=delta(before.bodyWorld,after.bodyWorld);
+  const insetTravel=delta(before.insetWorld,after.insetWorld);
+  const distance=v=>Math.hypot(...v);
+  return {travel:distance(bodyTravel),syncError:distance(
+   delta(bodyTravel,insetTravel)),before,after};
+ });
+ assert(shutterRattle.travel>.025&&shutterRattle.syncError<.002,
+  "The black service shutter inset did not move in sync with its gray plate: "+
+   JSON.stringify(shutterRattle));
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalActuatorDepths.shutter),0,
   "Locked service shutter moves inward instead of rattling along its rail");
@@ -741,9 +770,9 @@ try{
    "Expected a tangible collectible to be waiting on the cube: "+id);
   const glowBefore=await page.evaluate(item=>
    window.__nothing3DPreview.getPickupGlowState(item),id);
-  // The old sliding-drawer tooth has a warm gold cue; all other
-  // collectibles use the standard violet. Both remain subdued and inert.
-  const expectedGlowColor=id==="tooth"?0xf2c66d:0xb45cff;
+  // All collectibles, including the original key teeth, glow the same
+  // violet. Their underlying metal colors can still be distinct.
+  const expectedGlowColor=0xb45cff;
   assert(glowBefore?.active&&glowBefore?.haloVisible&&
     glowBefore.color===expectedGlowColor&&
    glowBefore.haloOpacity>=.45&&glowBefore.haloOpacity<=.64&&
@@ -1840,29 +1869,24 @@ try{
  assert.equal(await page.evaluate(()=>window.__nothing3DPreview.physicalFluteVisible),true,
   "The crafted flute did not materialize in the physical top compartment");
  assert(await page.locator("#ncModal").isHidden(),"3D flute should not require a flat popup");
- // A new player should understand the flute ON FIRST CLICK in inventory.
- // The same canonical note engine powers both the inline keys and the
- // three raised metal controls on the cube.
- await page.locator('#ncInventory [data-item="flute"]').click();
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "Clicking a found flute in inventory opened no playable controls");
- assert.equal(await page.locator('#ncInventory [data-item="flute"]').getAttribute("aria-expanded"),"true");
- assert(await page.locator("#ncModal").isHidden(),
-  "Flute inventory interaction must not open a floating old-style puzzle");
- assert.match(await page.locator("#ncFluteTray").innerText(),/musical phrases marked A and B/i,
-  "The inventory instrument does not explain where its notes come from");
- await page.locator('#ncFluteTray [data-flute-key="1"]').click();
- assert.deepEqual((await state()).fluteNotes,[1],
-  "The new inventory key was decorative rather than playable");
- assert.equal(await page.locator("#ncFluteNoteSteps .is-lit").count(),1,
-  "Pressing the inventory flute did not move its six-note progress display");
- await page.locator("#ncFluteStartOver").click();
- assert.deepEqual((await state()).fluteNotes,[],
-  "The explicit flute Start over button did not clear an abandoned melody");
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "Resetting a melody unexpectedly hid its instrument");
- // Clicking the physical flute body should open the same inline instrument
- // even if its individual keycaps are visually too small for a player.
+ // The flute remains in the save for compatibility but belongs on the
+ // top of the box, never as a second keyboard in Things You Found.
+ assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+  "A built flute must not also appear in Things You Found");
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "The old second flute keyboard was not removed");
+ const fluteIndicator=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalMechanicalFeedback);
+ assert.equal(fluteIndicator.fluteBarSegments,6,
+  "The flute must have exactly six indicator segments");
+ assert.equal(fluteIndicator.fluteBarMounted,true,
+  "The light bar backing is not physically attached to the top rail");
+ assert.equal(fluteIndicator.fluteBarBelowKeys,true,
+  "The light bar must sit below the keys, without crossing them");
+ assert.equal(fluteIndicator.fluteStepsShown,0,
+  "The new bar should start dark");
+ // Clicking the copper flute body explains the on-box controls without
+ // opening a second modal, keyboard or panel.
  await page.evaluate(()=>window.__nothing3DPreview.setRotation(75,0));
  const tube=await page.evaluate(()=>{
   const v=window.__nothing3DPreview;
@@ -1871,14 +1895,13 @@ try{
  });
  assert(tube?.pick==="flute-body"&&tube.hit==="flute-body",
   "The visible flute body is not a working pointer target: "+JSON.stringify(tube));
- await page.locator("#ncFluteClose").click();
- assert(await page.locator("#ncFluteTray").isHidden());
  await page.locator("#stage canvas").click({
   position:{x:tube.x,y:tube.y},timeout:30000
  });
- assert(await page.locator("#ncFluteTray").isVisible(),
-  "A click on the actual physical flute did not expose the playable keys");
- await page.locator("#ncFluteClose").click();
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "Touching the flute must not open another keyboard");
+ assert.match(await page.locator("#ncNarrator").innerText(),/three raised keys.*light bar/i,
+  "The flute body should explain its physical keys and progress light bar");
  for(const n of [1,1,1,1,1,1])await activate("flute-note-"+n);
  assert.deepEqual((await state()).fluteNotes,[],
   "Six incorrect flute notes must clear before the next attempt");
@@ -1949,16 +1972,17 @@ try{
  assert.equal(await page.evaluate(()=>
   window.__nothing3DPreview.physicalFluteVisible),false,
   "The flute model stayed on the top face after completing its purpose");
- assert(await page.locator('#ncInventory [data-item="flute"]').count()===0&&
-  await page.locator("#ncFluteTray").isHidden(),
-  "Completed flute still occupies inventory or leaves its keyboard open");
+ assert.equal(await page.locator('#ncInventory [data-item="flute"]').count(),0,
+  "The spent flute must never reappear in inventory");
+ assert.equal(await page.locator("#ncFluteTray").count(),0,
+  "The removed duplicate controls must stay absent after success");
  assert(await page.locator("#ncModal").isHidden(),
   "Playing the 3D flute opened an obstructive classic dialog");
  await page.locator("#stage canvas").focus();
  await page.keyboard.press("1");
  assert.deepEqual((await state()).fluteNotes,[2,1,3,1,3,2],
   "Keyboard input must not restart the spent flute");
- console.log("PASS: tactile physical flute, consumed on completion, keyboard access before unlock");
+ console.log("PASS: on-box flute, six-step light bar, saved melody, keyboard accessibility and consumption");
  assert(await page.locator("#ncCount").innerText()!=="0","Live discovery counter did not advance");
  assert.equal(await page.locator("#ncPhysicalToggle").count(),0,
   "The Classic/3D mode switch must not appear in the 3D-only game");
@@ -2105,6 +2129,15 @@ try{
   "Journal must reflect the saved 59 pre-completion discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
+ const openedShutter=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceShutterAudit);
+ assert(openedShutter?.bodyCount===1&&openedShutter.oneBody&&
+  openedShutter.keywayOnSameUnit&&openedShutter.blackInsetAttached&&
+  openedShutter.insetSurfaceFlush&&openedShutter.actuatorOnSameUnit&&
+  Math.abs(openedShutter.x-.78)<.012&&
+  Math.abs(openedShutter.rotation-.12)<.012,
+  "Restoring an OPEN service shutter created a second plate or detached its keyway: "+
+   JSON.stringify(openedShutter));
  assert.equal(migrated.eyeRingTicks,3,
    "Legacy optical over-rotations must be normalized without losing saved discoveries");
  await page.waitForTimeout(770);

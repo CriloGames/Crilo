@@ -394,7 +394,7 @@ for(const [id,owned] of [
   pocket.add(id);pendingPickups.delete(id);recoveredFromSave.push(id);
  }
 }
-let selected=null,fluteTrayOpen=false,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
+let selected=null,previousFocus=null,panel=null,dragging=false,dragMoved=false,dragStart=null,blockedClick=false;
 const changeNotes={
  drawer:'Front latch released. The lavender drawer opened on its runners.',
  thread:'Side release moved. The teal drawer opened with a red spool inside.',
@@ -409,7 +409,7 @@ const changeNotes={
  bell:'An underside shutter opened, exposing a little bell.',
  key:'Two metal pieces locked together to make a key.',
  'bag-code':'The bag catch opened its false bottom. Three small objects are inside.',
- flute:'The hollow tube and reed became a playable flute.',
+ flute:'The hollow tube and reed became a flute mounted on the top rail.',
  door:'The melody released a tiny door on the cube.',
  dog:'The little door opened. A dog is behind it.',
  vase:'The vase broke. Check its fragments for loose contents.',
@@ -513,7 +513,7 @@ function ongoingMechanisms(){
  if(s.gearMazeSolved&&!s.pressureReady)
   add('Released calibration latch','The grooved screw has reached its end stop. The brass tongue beside the dial is withdrawn.');
  if(pocket.has('flute')&&!s.door)
-  add('Flute','The instrument has three keys and needs six notes. Visible score fragments: '+
+  add('Flute','The instrument is mounted on the top rail. Press its three raised keys to play six notes. Visible score fragments: '+
    (s.back?'A':'—')+' / '+(s.footChecked?'B':'—')+'.');
  if(s.vase&&['acorn','spring'].some(id=>pendingPickups.has(id)))
   add('Broken vase','The squirrel knocked the vase loose. Its acorn and spring have not both been collected.');
@@ -825,10 +825,13 @@ function render(){
   elevator:s.watch&&s.tag,moth:s.floorFour,telescope:!!s.observatoryRaised||!!s.observed||!!s.telescopeLensMounted||!!s.telescopeIrisMounted||!!s.secondSky,train:s.train
  })){const node=prop(name);if(node)node.hidden=!on}
  const inventory=$('ncInventory');
+ // The flute is permanently mounted on the cube while unsolved. Keep its
+ // legacy pocket flag for save compatibility, not for inventory display.
+ const carried=[...pocket].filter(id=>id!=='flute');
  const count=$('ncPocketCount');
  if(count){
-  count.textContent=pocket.size+' carried';
-  count.setAttribute('aria-label',pocket.size+' items carried');
+  count.textContent=carried.length+' carried';
+  count.setAttribute('aria-label',carried.length+' items carried');
  }
  // Clear feedback for the new physical-only pickup behavior. Do not
  // list items, signal which mechanism they belong to, or spoil a recipe.
@@ -875,14 +878,14 @@ function render(){
  const existing=new Map([...inventory.querySelectorAll('.nc-item')]
   .map(button=>[button.dataset.item,button]));
  for(const [id,button] of existing){
-  if(!pocket.has(id)){button.remove();existing.delete(id)}
+  if(!carried.includes(id)){button.remove();existing.delete(id)}
  }
- if(!pocket.size){
+ if(!carried.length){
   if(!inventory.querySelector('.nc-empty'))
    inventory.innerHTML='<span class="nc-empty">Nothing. Yet.</span>';
  }else{
   inventory.querySelector('.nc-empty')?.remove();
-  for(const id of pocket){
+  for(const id of carried){
    let button=existing.get(id);
    if(!button){
     button=document.createElement('button');
@@ -901,14 +904,12 @@ function render(){
     !!recipe[sorted(selected,id)];
    button.classList.toggle('nc-selected',id===selected);
    button.classList.toggle('nc-item-reactive',itemMayReact(id));
-   button.classList.toggle('nc-item-playable',id==='flute');
-   if(id==='flute')button.setAttribute('aria-expanded',String(fluteTrayOpen));
-   else button.removeAttribute('aria-expanded');
+   button.classList.remove('nc-item-playable');
+   button.removeAttribute('aria-expanded');
    button.classList.toggle('nc-item-combine-match',combinesWithHeld);
    button.classList.toggle('nc-item-new',(pocketArrivalUntil.get(id)||0)>now);
    button.title=combinesWithHeld?'Fits with the item you are holding':
     id===selected?'Click again to put it down':
-    id==='flute'?'Open the flute keys below to play six notes':
     craftParts.has(id)&&worldUseItems.has(id)?'Might work on the cube or with another item':
     craftParts.has(id)?'Might fit with another item':
     worldUseItems.has(id)?'Might work on the cube':'Collected item';
@@ -918,7 +919,7 @@ function render(){
  }
  // Keyboard players must not lose focus just because an unrelated gear
  // was clicked or the same pocket item was selected again.
- if(focusedItem&&pocket.has(focusedItem))
+ if(focusedItem&&carried.includes(focusedItem))
   inventory.querySelector('[data-item="'+focusedItem+'"]')?.focus({preventScroll:true});
  const held=$('ncPocketSelection');
  if(held){
@@ -926,27 +927,6 @@ function render(){
   held.hidden=!selected;
  }
  $('ncUnselect').hidden=!selected;
- // This playable instrument is in the pocket, not a detached fullscreen
- // dialog. It uses the SAME canonical note engine as the physical keys.
- const fluteTray=$('ncFluteTray');
- if(fluteTray){
-  const show=fluteTrayOpen&&pocket.has('flute');
-  fluteTray.hidden=!show;
-  if(show){
-   const progress=fluteTray.querySelectorAll('#ncFluteNoteSteps i');
-   const entered=s.fluteNotes.length;
-   progress.forEach((lamp,i)=>lamp.classList.toggle('is-lit',i<entered));
-   const scoreState=$('ncFluteScores');
-   if(scoreState){
-    scoreState.textContent='Engraved scores: A '+(s.back?'found':'not found')+
-     ' · B '+(s.footChecked?'found':'not found')+'.';
-   }
-   const status=$('ncFluteStatus');
-   if(status)status.textContent=entered?'Notes played: '+s.fluteNotes.map(n=>['Ⅰ','Ⅱ','Ⅲ'][n-1]).join(' · ')+
-     ' ('+entered+' of 6).':
-     'Ready. Play six notes. A wrong phrase resets so you can try again.';
-  }
- }
  // A selected item is clearly marked in the pocket, but never highlight
  // the correct combinations or recipient targets before discovery.
  document.querySelectorAll('[data-thing]').forEach(node=>{
@@ -1594,29 +1574,6 @@ function callElevator(floor){
  }
  render();
 }
-function openFlute(){
- if(!pocket.has('flute')){
-  tell('A hollow tube and a tiny reed can make an instrument, but it has to be assembled first.');
-  return;
- }
- // Clicking the inventory flute OPENS actual note buttons, even if the
- // hinged lid is facing away from the player or an old save lacks top=true.
- fluteTrayOpen=true;
- selected=null;
- render();
- tell('The flute is ready in your inventory. Press its three keys. Two engraved phrases on the cube, A and B, form a six-note melody.');
-}
-function closeFlute(){
- fluteTrayOpen=false;
- render();
- tell('The flute keys are put away. Click the flute in your inventory to play again.');
-}
-function resetFlutePhrase(){
- if(!pocket.has('flute'))return;
- s.fluteNotes=[];
- render();
- tell('The flute returns to its starting note. Try a fresh six-note phrase.');
-}
 function note(i){
  if(!Number.isInteger(i)||i<1||i>3||!pocket.has('flute')||s.door)return;
  if(s.fluteNotes.length>=FLUTE_CODE.length)s.fluteNotes=[];
@@ -1632,7 +1589,6 @@ function note(i){
     s.door=true;
     spend('flute');
     pendingPickups.delete('flute');
-    fluteTrayOpen=false;
     bloom('door','The six-note melody unlatches a miniature door on the box. The flute disappears after playing its part.');
     tell('The melody matches both engraved phrases. The flute disappears, and a little door unlocks. Press its front panel or brass knob to swing it open.');
     cue('ncDoorScene','nc-arriving',1430);cue('ncWorld','nc-shudder',430);scatter('#e5c8aa',12,$('ncDoorScene'));
@@ -1848,32 +1804,49 @@ function eventThing(e){
  if(!node)return;
  clickThing(node.dataset.thing);
 }
-let pocketTouchStart=null,pocketTouchActivation=null;
+let pocketTouchStart=null,pocketTouchActivation=null,pocketKeyboardActivation=null;
+function pocketKeyDown(e){
+ if(e.key!=='Enter'&&e.key!==' '&&e.key!=='Spacebar')return;
+ const item=e.target.closest?.('[data-item]');
+ if(item)pocketKeyboardActivation={item:item.dataset.item,when:Date.now()};
+}
 function clickInventory(e){
  const item=e.target.closest('[data-item]');
- if(!item)return;
- // A touch pointerup is handled directly because some mobile browsers
- // suppress the synthesized click on draggable or rapidly rerendered cards.
- // Ignore only the following synthetic click, not real keyboard activation.
- if(e.type==='click'&&pocketTouchActivation&&
-    pocketTouchActivation.item===item.dataset.item&&
-    Date.now()-pocketTouchActivation.when<800&&
-    (e.detail!==0||e.pointerType==='touch'||
-     e.sourceCapabilities?.firesTouchEvents)){
-  pocketTouchActivation=null;
+ if(!item||item.dataset.item==='flute')return;
+ // Pointerup must not activate an item AND then let a mobile compatibility
+ // click activate it again. Use click as the primary touch action; a short
+ // pointerup fallback handles Safari when the click gets swallowed.
+ const keyboardClick=e.type==='click'&&e.detail===0&&
+  pocketKeyboardActivation?.item===item.dataset.item&&
+  Date.now()-pocketKeyboardActivation.when<1200;
+ if(keyboardClick)pocketKeyboardActivation=null;
+ const pending=pocketTouchActivation;
+ if(keyboardClick&&pending){
+  clearTimeout(pending.timer);
+  pending.handled=true;
+ }
+ if(e.type==='click'&&!keyboardClick&&pending&&
+    pending.item===item.dataset.item&&Date.now()-pending.when<1600){
+  if(pending.handled)return;
+  pending.handled=true;
+  clearTimeout(pending.timer);
+  take(item.dataset.item);
   return;
  }
- if(item.dataset.item==='flute'){openFlute();return}
  take(item.dataset.item);
 }
 function pocketPointerDown(e){
  if(e.pointerType!=='touch'||e.isPrimary===false)return;
+ // Starting a new genuine finger tap ends any prior compatibility-click
+ // suppression, even when the browser sends duplicated click events.
+ if(pocketTouchActivation)clearTimeout(pocketTouchActivation.timer);
+ pocketTouchActivation=null;
  const target=e.target.closest('[data-item]');
- if(!target)return;
+ if(!target||target.dataset.item==='flute')return;
+ pocketKeyboardActivation=null;
  pocketTouchStart={pointerId:e.pointerId,item:target.dataset.item,
   x:e.clientX,y:e.clientY};
- // Phones use deliberate taps; disabling native drag prevents iOS from
- // turning a long inventory touch into a draggable ghost card.
+ // Prevent native ghost dragging from swallowing Safari's click.
  target.draggable=false;
 }
 function pocketPointerUp(e){
@@ -1882,8 +1855,14 @@ function pocketPointerUp(e){
  if(Math.hypot(e.clientX-start.x,e.clientY-start.y)>15)return;
  const item=e.target.closest('[data-item]');
  if(!item||item.dataset.item!==start.item)return;
- pocketTouchActivation={item:start.item,when:Date.now()};
- clickInventory(e);
+ const pending={item:start.item,when:Date.now(),handled:false,timer:null};
+ pocketTouchActivation=pending;
+ pending.timer=setTimeout(()=>{
+  // Click was not delivered: select exactly once from this touch release.
+  if(pocketTouchActivation!==pending||pending.handled)return;
+  pending.handled=true;
+  take(pending.item);
+ },90);
 }
 // Chromium can project a hinged 3D control at one screen coordinate while
 // routing the pointer to its flat parent instead. Fall back to the actual
@@ -1922,6 +1901,7 @@ $('ncDoorScene').addEventListener('click',eventThing);
 $('ncInventory').addEventListener('pointerdown',pocketPointerDown);
 $('ncInventory').addEventListener('pointerup',pocketPointerUp);
 $('ncInventory').addEventListener('pointercancel',()=>{pocketTouchStart=null});
+$('ncInventory').addEventListener('keydown',pocketKeyDown);
 $('ncInventory').addEventListener('click',clickInventory);
 $('ncJournalBtn').addEventListener('click',journal);
 $('ncResetCubeBtn')?.addEventListener('click',openCubeResetConfirmation);
@@ -2108,15 +2088,6 @@ document.addEventListener('keydown',e=>{
   }
  }
 });
-// The inventory flute opens real inline keys on the FIRST click.
-// Avoid two competing click handlers that used to select then immediately
-// deselect the same tool, leaving only an unhelpful sentence.
-$('ncFluteTray')?.addEventListener('click',e=>{
- const key=e.target.closest('[data-flute-key]');
- if(key){note(Number(key.dataset.fluteKey));return}
- if(e.target.closest('#ncFluteClose')){closeFlute();return}
- if(e.target.closest('#ncFluteStartOver'))resetFlutePhrase();
-});
 $('ncInventory').addEventListener('dragstart',e=>{
  const el=e.target.closest('[data-item]');
  if(!el)return;e.dataTransfer.setData('text/plain',el.dataset.item);e.dataTransfer.effectAllowed='move';
@@ -2171,12 +2142,9 @@ window.CriloNothingHereCube={getState:()=>({...s,pocket:[...pocket],pendingPicku
  // props. Selecting an inventory item and then a 3D object uses the same
  // recipe, discovery, modal and storage rules as clicking its HTML button.
  openFluteFromBox(){
-  if(!pocket.has('flute'))return;
-  fluteTrayOpen=true;
-  selected=null;
-  render();
-  tell('The flute is playable. Press one of its three raised keys, or use the larger keys in your inventory below.');
-  $('ncFluteTray')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  if(!pocket.has('flute')||s.door)return;
+  // The body only explains the controls; it never opens another keyboard.
+  tell('Press the three raised keys on this flute. The A and B inscriptions form a six-note melody. The light bar below shows your progress.');
  },
  activatePhysicalFluteNote(index){
   // The flute is only playable before its melody unlocks the door.
