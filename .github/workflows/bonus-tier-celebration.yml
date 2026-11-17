@@ -1,0 +1,39 @@
+name: Bonus Run milestone toast
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'bonus-runs.js'
+      - 'bonus-runs.css'
+      - 'game.js'
+      - 'index.html'
+      - 'scripts/verify-bonus-tier-celebration.cjs'
+      - '.github/workflows/bonus-tier-celebration.yml'
+  pull_request:
+    paths:
+      - 'bonus-runs.js'
+      - 'bonus-runs.css'
+      - 'game.js'
+      - 'index.html'
+      - 'scripts/verify-bonus-tier-celebration.cjs'
+      - '.github/workflows/bonus-tier-celebration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  bonus-milestones:
+    name: Verify one-time bonus unlock celebrations
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check bonus-runs.js
+          node --check game.js
+          node --check scripts/verify-bonus-tier-celebration.cjs
+      - name: Test server milestones, confetti, accessibility and no duplicate popups
+        run: node scripts/verify-bonus-tier-celebration.cjs

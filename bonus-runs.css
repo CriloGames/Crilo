@@ -91,3 +91,45 @@
 @media(prefers-reduced-motion:reduce){
  .crilo-bonus-track>span,.crilo-bonus-chevron{transition:none}
 }
+
+/* Small milestone toast: no backdrop, no focus trap, and no blocked taps. */
+.crilo-bonus-tier-toast{
+ position:fixed;z-index:850;top:clamp(76px,16vh,144px);left:50%;
+ width:min(270px,calc(100vw - 34px));box-sizing:border-box;
+ transform:translateX(-50%);padding:13px 17px 12px;
+ border:1px solid var(--line,#dedee2);border-radius:15px;
+ background:var(--panel,#fff);color:var(--text,#17191e);
+ box-shadow:0 12px 35px rgba(23,25,30,.15);
+ text-align:center;pointer-events:none;isolation:isolate;
+ animation:crilo-bonus-tier-pop .28s cubic-bezier(.22,1.4,.45,1) both
+}
+.crilo-bonus-tier-title{display:block;font:850 15px/1.25 system-ui,sans-serif;
+ letter-spacing:-.02em}
+.crilo-bonus-tier-message{display:block;margin-top:4px;
+ color:var(--muted,#777);font:650 11px/1.4 system-ui,sans-serif}
+.crilo-bonus-tier-confetti{position:absolute;inset:0;pointer-events:none;z-index:-1}
+.crilo-bonus-tier-confetti i{
+ position:absolute;left:50%;top:50%;width:6px;height:9px;
+ border-radius:2px;background:#bda6eb;opacity:0;
+ animation:crilo-bonus-tier-burst 1.05s cubic-bezier(.12,.6,.25,1) both;
+ animation-delay:var(--burst-delay,0ms)
+}
+.crilo-bonus-tier-confetti i:nth-child(5n+2){background:#9ccedb}
+.crilo-bonus-tier-confetti i:nth-child(5n+3){background:#ffe6aa}
+.crilo-bonus-tier-confetti i:nth-child(5n+4){background:#f2bfd8}
+.crilo-bonus-tier-confetti i:nth-child(5n+5){background:#9ed8c9}
+@keyframes crilo-bonus-tier-pop{
+ from{opacity:0;transform:translate(-50%,8px) scale(.96)}
+ to{opacity:1;transform:translate(-50%,0) scale(1)}
+}
+@keyframes crilo-bonus-tier-burst{
+ 0%{opacity:0;transform:translate(0,0) rotate(0deg) scale(.7)}
+ 12%{opacity:1}
+ 70%{opacity:1}
+ 100%{opacity:0;transform:translate(var(--burst-x),var(--burst-y))
+  rotate(var(--burst-rotation)) scale(.8)}
+}
+@media(prefers-reduced-motion:reduce){
+ .crilo-bonus-tier-toast{animation:none}
+ .crilo-bonus-tier-confetti{display:none}
+}
