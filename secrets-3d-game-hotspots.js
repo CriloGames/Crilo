@@ -688,14 +688,15 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
  const receiver=targets.get("cube-offer");
  const eyeGear=targets.get("eye-ring");
  const pressureKnob=targets.get("pressure");
- // A narrow captive brass keyway is machined into the SAME moving
- // shutter plate. The tool earned from the second coin moves with the
- // shutter's single body, not with a separate fixed-looking outer slab.
- const serviceKeyway=node(shutterUnit,.095,-.027,.099);
- B(serviceKeyway,.140,.051,.019,0,0,0,nickel,.010);
- B(serviceKeyway,.103,.016,.009,0,0,.015,graphite,.003);
- for(const x of [-.057,.057])C(serviceKeyway,.010,.016,x,0,.016,brass);
- const insertedServiceKey=node(serviceKeyway,-.010,0,.029);
+ // The dark slot is now a shallow inset DIRECTLY ON the single gray
+ // shutter mesh. It is NOT a second panel sitting on the stationary rail:
+ // locked rattles, saved closed/open poses and the whole keyway always
+ // inherit the exact same transform from shutterBody.
+ const serviceKeyway=node(shutterBody,.095,-.027,.114);
+ const blackShutterInset=B(serviceKeyway,.117,.018,.006,0,0,.003,graphite,.003);
+ blackShutterInset.userData.mechanicalMount=true;
+ for(const x of [-.071,.071])C(serviceKeyway,.009,.009,x,0,.005,brass);
+ const insertedServiceKey=node(serviceKeyway,-.010,0,.022);
  B(insertedServiceKey,.115,.024,.012,0,0,0,brass,.004);
  B(insertedServiceKey,.028,.043,.012,-.049,-.007,.006,brass,.004);
  B(insertedServiceKey,.022,.015,.014,.058,-.016,.006,nickel,.004);
@@ -792,16 +793,33 @@ export function buildGameHotspots({faces,lidPivot,box,cylinder,setHit,mat,animat
    actionRegistered:!!f.stem.userData.action
   })),
   getCogHatchPose:()=>({angle:cogDoorPose(),open:Math.abs(cogDoorPose())>1.0}),
-  getServiceShutterAudit:()=>({
-   bodyCount:shutterUnit.children.filter(part=>part.isMesh).length,
-   oneBody:shutterBody.parent===shutterUnit,
-   keywayOnSameUnit:serviceKeyway.parent===shutterUnit,
-   actuatorOnSameUnit:actuators.get("shutter")===shutterUnit,
-   faceAttached:shutter.parent===rightFace,
-   rearDepth:shutter.position.z+shutterBody.position.z-
-    shutterBody.geometry.parameters.depth/2,
-   x:shutter.position.x,rotation:shutter.rotation.z
-  }),
+  getServiceShutterAudit:()=>{
+   // World coordinates make it possible to confirm the dark inset moves
+   // with the gray shutter on actual WebGL frames, not just in a tree.
+   shutter.updateWorldMatrix(true,true);
+   const bodyWorld=shutterBody.getWorldPosition(new THREE.Vector3());
+   const insetWorld=blackShutterInset.getWorldPosition(new THREE.Vector3());
+   const faceLocal=rightFace.worldToLocal(insetWorld.clone());
+   return {
+    bodyCount:shutterUnit.children.filter(part=>part.isMesh).length,
+    oneBody:shutterBody.parent===shutterUnit,
+    keywayOnSameUnit:serviceKeyway.parent===shutterBody,
+    blackInsetAttached:blackShutterInset.parent===serviceKeyway,
+    actuatorOnSameUnit:actuators.get("shutter")===shutterUnit,
+    faceAttached:shutter.parent===rightFace,
+    rearDepth:shutter.position.z+shutterBody.position.z-
+     shutterBody.geometry.parameters.depth/2,
+    insetDepth:serviceKeyway.position.z+blackShutterInset.position.z,
+    bodyDepth:shutterBody.geometry.parameters.depth/2,
+    insetSurfaceFlush:Math.abs(serviceKeyway.position.z+
+     blackShutterInset.position.z+
+     blackShutterInset.geometry.parameters.depth/2-
+     shutterBody.geometry.parameters.depth/2)<.015,
+    bodyWorld:bodyWorld.toArray(),insetWorld:insetWorld.toArray(),
+    insetFacePosition:faceLocal.toArray(),
+    x:shutter.position.x,rotation:shutter.rotation.z
+   };
+  },
   getPermanentFaceFootprints:()=>clearanceFootprints.map(item=>({...item})),
   getDentedCopperShape:()=>{
    const obj=targets.get("dent"),data=obj?.userData.dentProfile;
