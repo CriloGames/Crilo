@@ -99,11 +99,11 @@ function advanceToNow(room,now){
  }
  return {game,progressed:true};
 }
-async function compareSave(room,game,now,status){
+async function compareSave(room,game,now,status,advanceClock=true){
  const next=Number(room.revision)+1;
  const {data,error:problem}=await admin.from("ff_live_rooms")
   .update({game,status:status||((game&&game.ended)?"finished":room.status),
-   revision:next,tick_at:new Date(now).toISOString(),
+   revision:next,tick_at:advanceClock?new Date(now).toISOString():room.tick_at,
    updated_at:new Date(now).toISOString()})
   .eq("id",room.id).eq("revision",room.revision)
   .eq("status",room.status).select("*").maybeSingle();
@@ -226,7 +226,7 @@ async function operate(userId,params){
   if(game.ended)throw error("This campaign has ended.");
   const outcome=executeCommand(game,member.seat,params.command,params.args);
   game.recentActions=[...(game.recentActions||[]),duplicateKey].slice(-60);
-  const saved=await compareSave(room,game,now);
+  const saved=await compareSave(room,game,now,undefined,tick.progressed);
   if(saved)return {snapshot:await snapshot(saved,userId,await roster(id)),result:outcome};
  }
  throw error("Other players are acting right now. Retry.",409);
