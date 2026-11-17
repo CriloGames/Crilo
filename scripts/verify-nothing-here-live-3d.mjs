@@ -666,6 +666,12 @@ try{
   unfinishedKey.parts>=7&&!unfinishedKey.hasPreinstalledRing,
   "The first key piece looks like an already-complete key or is detached: "+
    JSON.stringify(unfinishedKey));
+ const keyTeeth=await page.evaluate(()=>
+  window.__nothing3DPreview.lavenderDrawerItemAudit.toothMaterials);
+ assert(keyTeeth.length===3&&keyTeeth.every(m=>
+  m.color===0x9562c7&&m.emissive===0xb45cff),
+  "All three key teeth must visibly glow purple, not brass gold: "+
+   JSON.stringify(keyTeeth));
  // A prior precise-collision tool silently omitted every tiny 3D control.
  // Check the underlying assembled geometry groups, not just its toolbar.
  const collisionParts=await page.evaluate(()=>
