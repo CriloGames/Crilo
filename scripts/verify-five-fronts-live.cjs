@@ -26,7 +26,7 @@ for(const id of ['ffCreateRoom','ffJoinRoom','ffLiveRoom','ffInviteCode','ffCopy
 }
 assert.match(html,/name="robots" content="noindex,nofollow"/,
  'Unlisted live rooms must not enter search engines while testing');
-assert.match(html,/five-fronts-core\.js\?v=2/);
+assert.match(html,/five-fronts-core\.js\?v=3/);
 assert.match(html,/five-fronts-live\.js\?v=1/);
 assert.match(online,/criloDB\.functions\.invoke\('five-fronts-live'/);
 assert.match(online,/\.on\('postgres_changes'/);
