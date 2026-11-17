@@ -1,0 +1,37 @@
+/* Crilo Five Fronts — compact online lobbies and shared country scoreboard. */
+#ffLiveChoices[hidden],#ffLiveRoom[hidden],#ffStartLive[hidden],#ffGame[hidden]{display:none!important}
+.ff-live-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.ff-live-card{min-width:0;border:1px solid #c9dfd1;border-radius:15px;padding:21px;background:var(--soft,#f5f9f6);display:grid;align-content:start;gap:12px}
+.ff-live-card h3,.ff-live-room h3{margin:0;color:var(--text,#213d30);font-size:21px;letter-spacing:-.04em}
+.ff-live-card label{display:grid;gap:6px;font:900 10px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.08em;color:#568573}
+.ff-live-card input,.ff-live-card select{min-width:0;width:100%;box-sizing:border-box;min-height:45px;padding:9px 12px;border:1.5px solid #a9c9b9;border-radius:10px;background:var(--panel,#fff);color:var(--text,#213d30);font:850 13px/1.35 system-ui,sans-serif}
+.ff-live-card input{text-transform:uppercase;letter-spacing:.23em;font-size:16px}
+.ff-live-card>button,.ff-live-room-actions button{border:1px solid #aacbb9;border-radius:11px;background:#eaf5ed;color:#2b624d;font:850 12px/1.3 system-ui,sans-serif;min-height:45px;padding:11px 14px;cursor:pointer}
+.ff-live-card>p{font-size:12px;line-height:1.5}
+.ff-live-status{margin:14px 0 0!important;min-height:19px;font:700 12px/1.5 system-ui,sans-serif!important;color:#496c61!important}
+.ff-live-status.is-error{color:#c04e4e!important}
+.ff-live-solo-link{margin:10px 0 0!important;font-size:12px!important}
+.ff-live-solo-link a{color:#2f7961;text-decoration:underline}
+.ff-live-room{border:1px solid #b5d2bf;border-radius:15px;background:var(--soft,#eff7f1);padding:19px}
+.ff-live-room h3{margin-top:4px;margin-bottom:5px}
+#ffInviteCode{font:900 22px/1.2 ui-monospace,Consolas,monospace;letter-spacing:.1em;color:#286b55}
+.ff-live-room-actions{display:flex;flex-wrap:wrap;gap:8px;margin:15px 0}
+.ff-live-room-actions button:disabled{opacity:.5;cursor:default}
+.ff-live-seats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;list-style:none;padding:0;margin:10px 0}
+.ff-live-seats li{padding:11px 12px;background:var(--panel,#fff);border:1px solid var(--line,#d6e5d8);border-radius:11px;display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap;font-size:12px;font-weight:750}
+.ff-live-seats li i{display:inline-block;width:12px;height:12px;border-radius:4px;flex:0 0 auto}
+.ff-live-seats li em{font:750 10px/1.2 ui-monospace,Consolas,monospace;color:#6e9080;font-style:normal;margin-left:auto}
+.ff-live-caption{font-size:11px!important}
+.ff-live-players{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px}
+.ff-live-player{display:flex;gap:7px;align-items:center;padding:9px 11px;background:var(--panel,#fff);border:1px solid #cbded2;border-radius:11px;min-width:0;font:750 11px/1.25 system-ui,sans-serif}
+.ff-live-player .ff-color-dot{width:11px;height:11px}
+.ff-live-player.is-me{outline:2px solid #9ccab2;outline-offset:0}
+.ff-live-player.is-offline{opacity:.54}
+.ff-live-player.is-eliminated{text-decoration:line-through;opacity:.58}
+.ff-live-player small{color:var(--muted,#718179);font-size:9px}
+#ffLobbyMessage:empty{min-height:0}
+:is(.ff-live-card input,.ff-live-card select,.ff-live-card button,.ff-live-room-actions button):focus-visible{outline:3px solid #dfba7b;outline-offset:2px}
+html[data-theme="dark"] .ff-live-card,html[data-theme="dark"] .ff-live-room{background:#23332e;border-color:#426052}
+html[data-theme="dark"] .ff-live-card input,html[data-theme="dark"] .ff-live-card select{border-color:#577b6a}
+@media(max-width:720px){.ff-live-choices{grid-template-columns:1fr}.ff-live-seats{grid-template-columns:1fr}}
+@media(max-width:460px){.ff-live-card{padding:15px}.ff-live-room{padding:14px}.ff-live-player{flex:1 1 44%}}

@@ -102,10 +102,10 @@
   const num=clamp(Math.floor(Number(options.countries)||3),2,6);
   const seed=(Number(options.seed)>>>0)||Math.floor(Math.random()*0xffffffff)||1;
   const g={
-   version:1,seed,rng:seed,countryCount:num,
+   version:1,seed,rng:seed,countryCount:num,online:options.online===true,
    time:0,limit:1800,speed:options.fast?5:1,paused:false,
    nextStrategy:300,nextEvent:120,ended:false,winner:null,log:[],
-   pendingStrategy:null,pendingEvent:null,transits:[],
+   pendingStrategy:null,pendingEvent:null,pendingStrategies:{},transits:[],
    states:[],countries:[]
   };
   g.states=createMap(g,num);
@@ -152,7 +152,7 @@
  function spend(r,cost){for(const [k,v] of Object.entries(cost))r[k]-=v}
  function train(g,id,stateId){
   const s=getState(g,stateId),c=country(g,id);
-  if(g.ended||g.pendingEvent||g.pendingStrategy||!s||s.owner!==id)return {ok:false,error:'Select a state you control.'};
+  if(g.ended||(!g.online&&(g.pendingEvent||g.pendingStrategy))||g.online&&g.pendingStrategies?.[id]||!s||s.owner!==id)return {ok:false,error:'Select a state you control.'};
   if(!canPay(c.resources,COST.train))return {ok:false,error:'Not enough metal, food, or population.'};
   spend(c.resources,COST.train);
   const amount=c.policy==='mobilize'&&c.policyUntil>g.time?30:20;
@@ -162,7 +162,7 @@
  }
  function fortify(g,id,stateId){
   const s=getState(g,stateId),c=country(g,id);
-  if(g.ended||g.pendingEvent||g.pendingStrategy||!s||s.owner!==id)return {ok:false,error:'Select a state you control.'};
+  if(g.ended||(!g.online&&(g.pendingEvent||g.pendingStrategy))||g.online&&g.pendingStrategies?.[id]||!s||s.owner!==id)return {ok:false,error:'Select a state you control.'};
   if(s.fort>=3)return {ok:false,error:'This state already has maximum fortifications.'};
   if(!canPay(c.resources,COST.fortify))return {ok:false,error:'Not enough metal or food.'};
   spend(c.resources,COST.fortify);s.fort++;
@@ -171,7 +171,7 @@
  }
  function march(g,id,fromId,toId,amount){
   const from=getState(g,fromId),to=getState(g,toId);
-  if(g.ended||g.pendingEvent||g.pendingStrategy)return {ok:false,error:'Resolve the current event first.'};
+  if(g.ended||(!g.online&&(g.pendingEvent||g.pendingStrategy))||g.online&&g.pendingStrategies?.[id])return {ok:false,error:'Resolve your national directive first.'};
   if(!from||!to||from.owner!==id)return {ok:false,error:'Choose an army in your territory.'};
   if(!from.neighbors.includes(to.id))return {ok:false,error:'Armies can only move to adjoining states.'};
   const count=Math.floor(amount);
@@ -232,7 +232,7 @@
   }else{
    const losses=Math.min(target.troops-1,Math.round(order.troops*.35/(terrainFactor*supplyBonus)));
    target.troops=Math.max(5,target.troops-losses);
-   if(order.owner===0||target.owner===0){
+   if(g.online||order.owner===0||target.owner===0){
     note(g,defender.name+' held State '+(target.id+1)+' against '+attacker.name+'.');
    }
   }
@@ -249,7 +249,10 @@
   if(!STRATEGIES[key]||g.ended)return {ok:false,error:'Unknown strategy.'};
   const c=country(g,id);
   if(!idsFor(g,id).length)return {ok:false,error:'This country was eliminated.'};
-  if(id===0&&(!g.pendingStrategy||!g.pendingStrategy.options.includes(key))){
+  if(g.online){
+   if(!g.pendingStrategies?.[id]?.options.includes(key))
+    return {ok:false,error:'Choose an offered national directive.'};
+  }else if(id===0&&(!g.pendingStrategy||!g.pendingStrategy.options.includes(key))){
    return {ok:false,error:'Choose one of the offered strategies.'};
   }
   c.policy=key;c.policyUntil=g.time+300;
@@ -262,11 +265,12 @@
   if(key==='defense')idsFor(g,id).forEach(s=>{if(s.fort<2)s.fort++});
   if(key==='intelligence')c.resources.knowledge=Math.max(0,c.resources.knowledge-12);
   note(g,c.name+' adopted '+STRATEGIES[key].label+'.');
-  if(id===0)g.pendingStrategy=null;
+  if(g.online)delete g.pendingStrategies[id];
+  else if(id===0)g.pendingStrategy=null;
   return {ok:true};
  }
  function triggerEvent(g,forced=false){
-  if(g.ended||g.pendingEvent||g.pendingStrategy)return false;
+  if(g.ended||(!g.online&&(g.pendingEvent||g.pendingStrategy)))return false;
   if(!forced&&roll(g)>.27)return false;
   const candidates=aliveCountries(g);
   if(!candidates.length)return false;
@@ -275,7 +279,11 @@
   const land=idsFor(g,receiver.id),state=land[randomRange(g,0,land.length-1)];
   const keys=Object.keys(EVENTS),type=keys[randomRange(g,0,keys.length-1)];
   const event={type,stateId:state.id,owner:receiver.id,created:g.time};
-  if(receiver.id===0){g.pendingEvent=event;note(g,EVENTS[type].title+' threatens your territory!')}
+  if(g.online){
+   // In live matches, disasters resolve automatically without freezing
+   // all players while somebody else completes a mini-game.
+   resolveEvent(g,event,roll(g)>.46);
+  }else if(receiver.id===0){g.pendingEvent=event;note(g,EVENTS[type].title+' threatens your territory!')}
   else resolveEvent(g,event,roll(g)>.46);
   return true;
  }
@@ -341,13 +349,13 @@
   });
   g.winner=eligible[0]?.id??null;
   note(g,(g.winner===null?'No winner':country(g,g.winner).name+' has won the war!'));
-  g.pendingStrategy=null;g.pendingEvent=null;
+  g.pendingStrategy=null;g.pendingEvent=null;g.pendingStrategies={};
  }
  function advance(g,dt){
-  if(g.ended||g.paused||g.pendingStrategy||g.pendingEvent)return;
+  if(g.ended||g.paused||(!g.online&&(g.pendingStrategy||g.pendingEvent)))return;
   const stop=Math.min(g.limit,g.time+clamp(Number(dt)||0,0,5));
   // Small deterministic steps keep income, dispatch and event boundaries stable.
-  while(g.time+1e-7<stop&&!g.pendingStrategy&&!g.pendingEvent&&!g.ended){
+  while(g.time+1e-7<stop&&(g.online||!g.pendingStrategy&&!g.pendingEvent)&&!g.ended){
    const step=Math.min(1,stop-g.time);g.time+=step;
    for(const c of g.countries){
     if(!ownedCount(g,c.id))continue;
@@ -362,23 +370,29 @@
      const transit=g.transits.splice(i,1)[0];battle(g,transit);
     }
    }
-   if(Math.floor(g.time)%3===0){
+   if(!g.online&&Math.floor(g.time)%3===0){
     for(let i=1;i<g.countries.length;i++){
      if(g.countries[i].nextAi<=g.time)aiStep(g,i);
     }
    }
    if(g.time>=g.nextStrategy){
     g.nextStrategy+=300;
-    for(let i=1;i<g.countries.length;i++)if(ownedCount(g,i)){
-     const choices=pickStrategies(g);
-     applyStrategy(g,i,choices[randomRange(g,0,2)]);
-    }
-    if(ownedCount(g,0)){
-     g.pendingStrategy={options:pickStrategies(g)};
-     note(g,'National council convened. Choose your next five-minute directive.');
+    if(g.online){
+     for(const c of aliveCountries(g))
+      g.pendingStrategies[c.id]={options:pickStrategies(g)};
+     note(g,'National councils convened. Each country has a new directive.');
+    }else{
+     for(let i=1;i<g.countries.length;i++)if(ownedCount(g,i)){
+      const choices=pickStrategies(g);
+      applyStrategy(g,i,choices[randomRange(g,0,2)]);
+     }
+     if(ownedCount(g,0)){
+      g.pendingStrategy={options:pickStrategies(g)};
+      note(g,'National council convened. Choose your next five-minute directive.');
+     }
     }
    }
-   if(g.time>=g.nextEvent&&!g.pendingStrategy){
+   if(g.time>=g.nextEvent&&(g.online||!g.pendingStrategy)){
     g.nextEvent+=120;triggerEvent(g);
    }
    finishGame(g);

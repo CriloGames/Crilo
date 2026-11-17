@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Five Fronts — Live Multiplayer | Crilo</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="stylesheet" href="style.css?v=127">
+<link rel="stylesheet" href="legal.css?v=7">
+<link rel="stylesheet" href="dark-comfort.css?v=1">
+<link rel="stylesheet" href="night-pages.css?v=1">
+<link rel="stylesheet" href="header-fit.css?v=5">
+<link rel="stylesheet" href="five-fronts.css?v=3">
+<link rel="stylesheet" href="five-fronts-live.css?v=1">
+<script src="auth-first-paint.js?v=1"></script>
+<script src="theme-bridge.js?v=1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="crilo-fronts-page">
+<header class="topbar">
+<a class="brand" href="index.html">CRILO</a>
+<nav aria-label="Main navigation">
+<a href="index.html">PLAY</a>
+<a href="leaderboard.html">LEADERBOARD</a>
+<a href="ducks.html">DUCKS</a>
+<a href="index.html#more-games">MORE GAMES</a>
+</nav>
+<div class="header-actions"><div class="account-wrap">
+<button class="account-btn" type="button" id="accountBtn" style="visibility:hidden" aria-busy="true">SIGN IN</button>
+<div class="account-menu hidden" id="accountMenu"></div>
+</div></div>
+</header>
+<script src="header-continuity.js?v=8"></script>
+<main class="ff-shell">
+ <div class="ff-backline">
+  <a href="five-fronts.html" class="ff-back">← Single Player</a>
+  <span class="ff-flag">LIVE ROOMS · PRIVATE INVITES</span>
+ </div>
+ <div class="ff-heading">
+  <div><p class="ff-overline">CRILO STRATEGY LAB / PROTOTYPE 02</p>
+   <h1>FIVE <em>FRONTS</em><span>.</span></h1>
+   <p class="ff-subheading">Real players. Equal land. Unequal advantages. One victor.</p>
+  </div>
+  <div class="ff-version">REAL-TIME MULTIPLAYER <span>ALPHA 0.2</span></div>
+ </div>
+ <div class="ff-gate" id="ffGate" role="status" aria-live="polite">Checking your Crilo sign-in…</div>
+ <div id="ffGame" hidden inert>
+  <section class="ff-setup ff-live-setup" id="ffSetup">
+   <div class="ff-setup-heading">
+    <div><span class="ff-smallcaps">MULTIPLAYER WAR ROOM</span>
+     <h2>Play against real people</h2>
+     <p>Create a private room for 2–6 signed-in players. Share your invite code, choose a nation, and fight a synchronized 6- or 30-minute campaign.</p>
+    </div>
+    <span class="ff-solo-tag">NO BOTS · ALL HUMAN</span>
+   </div>
+   <div class="ff-live-choices" id="ffLiveChoices">
+    <section class="ff-live-card">
+     <span class="ff-smallcaps">HOST A GAME</span>
+     <h3>Create a room</h3>
+     <label for="ffCountries">PLAYERS
+      <select id="ffCountries">
+       <option value="2">2 players</option><option value="3" selected>3 players</option>
+       <option value="4">4 players</option><option value="5">5 players</option><option value="6">6 players</option>
+      </select>
+     </label>
+     <label for="ffSpeed">MATCH LENGTH
+      <select id="ffSpeed">
+       <option value="fast" selected>Quick battle · ~6 min</option>
+       <option value="normal">Full campaign · ~30 min</option>
+      </select>
+     </label>
+     <button type="button" id="ffCreateRoom" class="ff-primary">CREATE PRIVATE ROOM ↗</button>
+    </section>
+    <section class="ff-live-card">
+     <span class="ff-smallcaps">JOIN A GAME</span>
+     <h3>Enter an invite</h3>
+     <label for="ffRoomCode">ROOM CODE
+      <input type="text" id="ffRoomCode" inputmode="text" maxlength="6" placeholder="ABC123" autocapitalize="characters" autocomplete="off" spellcheck="false">
+     </label>
+     <button type="button" id="ffJoinRoom">JOIN FRIENDS ↗</button>
+     <p>Already joined? Enter the same code to reconnect without losing your country.</p>
+    </section>
+   </div>
+   <div class="ff-live-room" id="ffLiveRoom" hidden>
+    <span class="ff-smallcaps">PRIVATE MULTIPLAYER LOBBY</span>
+    <h3>Room <strong id="ffInviteCode">—</strong></h3>
+    <p id="ffRoomDetail">Waiting for players to join.</p>
+    <div class="ff-live-room-actions">
+     <button id="ffCopyInvite" type="button">COPY INVITE LINK</button>
+     <button id="ffStartLive" class="ff-primary" type="button" hidden>START MATCH ↗</button>
+     <button id="ffReturnBattle" class="ff-primary" type="button" hidden>RETURN TO BATTLE</button>
+     <button id="ffLeaveLobby" type="button">LEAVE ROOM</button>
+    </div>
+    <ol id="ffSeats" class="ff-live-seats" aria-label="Connected countries"></ol>
+    <p class="ff-live-caption">Everyone must join before the host can start. Your assigned nation remains yours after reconnecting.</p>
+   </div>
+   <p class="ff-live-status" id="ffLobbyMessage" role="status" aria-live="polite"></p>
+   <p class="ff-live-solo-link">The original <a href="five-fronts.html">solo playtest</a> is currently owner-only.</p>
+  </section>
+  <div id="ffMatch" hidden>
+   <div class="ff-statusline">
+    <div class="ff-war-clock"><span>LIVE WAR CLOCK</span><strong id="ffClock">00:00</strong><small id="ffClockType">OF 30:00</small></div>
+    <div class="ff-status-stat"><span>YOUR LAND</span><strong id="ffLand">5 states</strong></div>
+    <div class="ff-status-stat"><span>YOUR ARMY</span><strong id="ffArmy">—</strong></div>
+    <div class="ff-status-stat"><span>RIVALS LEFT</span><strong id="ffRivals">—</strong></div>
+    <div class="ff-status-stat ff-status-policy"><span>YOUR POLICY</span><strong id="ffPolicy">None yet</strong></div>
+    <div class="ff-clock-actions">
+     <button type="button" id="ffBackToRoom">ROOM / INVITE</button>
+    </div>
+   </div>
+   <div class="ff-live-players" id="ffLivePlayers" aria-label="Live nations in this campaign"></div>
+   <div class="ff-resources" id="ffResources" aria-label="Country resource reserves"></div>
+   <div class="ff-layout">
+    <section class="ff-board" aria-label="Strategic country map">
+     <div class="ff-board-title">
+      <div><span class="ff-smallcaps">TACTICAL OVERVIEW</span><strong>Contested frontier</strong></div>
+      <span class="ff-map-hint">SERVER-VERIFIED ORDERS</span>
+     </div>
+     <label class="ff-state-picker" for="ffStatePicker">STATE SELECTOR
+      <select id="ffStatePicker" aria-label="Select a state without needing to tap a small map tile">
+       <option value="">Choose a state…</option>
+      </select>
+     </label>
+     <div class="ff-map-wrap">
+      <svg id="ffMap" viewBox="0 0 640 560" role="img" aria-label="Interactive map of equal-area hexagonal states. Select a state to give orders."></svg>
+      <div class="ff-map-corner">RECON / <span id="ffMapSeed">—</span></div>
+     </div>
+     <div class="ff-legend" id="ffLegend"></div>
+     <div class="ff-transport" id="ffTransits">No armies on the move.</div>
+    </section>
+    <aside class="ff-sidebar">
+     <section class="ff-command">
+      <div class="ff-panel-heading"><span class="ff-smallcaps">FIELD COMMAND</span><strong id="ffSelectedTitle">Select a state</strong></div>
+      <p id="ffSelectedDescription">Choose one of your states on the map to recruit troops, build defenses, or move an army.</p>
+      <div class="ff-state-stats" id="ffStateStats"></div>
+      <div class="ff-command-actions" id="ffCommandActions" hidden>
+       <button type="button" id="ffTrain">RECRUIT <span>+20 TROOPS</span></button>
+       <button type="button" id="ffFortify">FORTIFY <span>+1 DEFENSE</span></button>
+       <label for="ffMarchAmount">MARCHING FORCE <output id="ffMarchLabel">50%</output></label>
+       <input type="range" id="ffMarchAmount" min="25" max="85" value="60" step="5">
+       <button type="button" class="ff-primary" id="ffMarch">ORDER TROOPS TO MOVE</button>
+       <button type="button" id="ffCancelMarch" hidden>CANCEL MOVE</button>
+      </div>
+     </section>
+     <section class="ff-intel">
+      <div class="ff-panel-heading"><span class="ff-smallcaps">INTELLIGENCE</span><strong>Incoming reports</strong></div>
+      <ol class="ff-log" id="ffLog"><li>Awaiting first orders.</li></ol>
+     </section>
+    </aside>
+   </div>
+   <p class="ff-guidance" id="ffGuidance" role="status" aria-live="polite">Select a state to begin issuing orders.</p>
+  </div>
+ </div>
+</main>
+<div class="ff-modal" id="ffCouncilModal" role="dialog" aria-modal="true" aria-labelledby="ffCouncilTitle" hidden>
+ <div class="ff-modal-panel">
+  <span class="ff-smallcaps">NATIONAL COUNCIL · EVERY 05:00</span>
+  <h2 id="ffCouncilTitle">Choose your next directive.</h2>
+  <p>Choose one strategic advantage for your nation. Other players continue fighting while you decide.</p>
+  <div class="ff-policy-options" id="ffPolicyOptions"></div>
+ </div>
+</div>
+<div class="ff-modal" id="ffEndModal" role="dialog" aria-modal="true" aria-labelledby="ffEndTitle" hidden>
+ <div class="ff-modal-panel ff-finish-panel">
+  <span class="ff-smallcaps">CAMPAIGN COMPLETE</span>
+  <h2 id="ffEndTitle">War finished.</h2>
+  <p id="ffEndDescription"></p>
+  <div id="ffFinalStandings" class="ff-final-standings"></div>
+  <button type="button" id="ffEndNew" class="ff-primary">RETURN TO LOBBY</button>
+ </div>
+</div>
+<footer class="crilo-simple-footer"><nav class="crilo-legal-nav"><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms of Service</a><a href="mailto:crilogame@gmail.com?subject=Crilo%20Inquiry">Contact</a></nav><small class="crilo-legal-copy">© 2026 CriloGames (crilo.fun). All rights reserved.</small></footer>
+<script src="supabase-config.js?v=21"></script>
+<script src="app.js?v=58"></script>
+<script src="five-fronts-core.js?v=3"></script>
+<script src="five-fronts-live.js?v=1"></script>
+</body>
+</html>
