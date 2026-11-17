@@ -34,7 +34,7 @@ function state(room,id){
 }
 function api(id,p){
  if(p.operation==='create'){
-  const room={id:crypto.randomUUID(),code:'ROOM'+String(codes.size+1),
+  const room={id:crypto.randomUUID(),code:'FRONT'+String(codes.size+2),
    status:'waiting',capacity:p.capacity,fast:p.fast,revision:0,
    players:[{id,seat:0,name:'Host'}],game:null,last:Date.now()};
   rooms.set(room.id,room);codes.set(room.code,room.id);
