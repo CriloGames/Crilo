@@ -2128,6 +2128,13 @@ try{
   "Journal must reflect the saved 59 pre-completion discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
+ const openService=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceShutterAudit);
+ assert(openService?.oneBody&&openService.blackInsetAttached&&
+  openService.keywayOnSameUnit&&openService.insetSurfaceFlush&&
+  openService.x>=1.09,
+  "The unified shutter did not retract far enough to uncover its wax-cylinder socket: "+
+   JSON.stringify(openService));
  assert.equal(migrated.eyeRingTicks,3,
    "Legacy optical over-rotations must be normalized without losing saved discoveries");
  await page.waitForTimeout(770);
