@@ -12,6 +12,9 @@
   details=$('criloBonusDetails'),status=$('criloBonusStatus');
  if(![panel,summary,lead,remaining,primary,list,progress,track,trackFill,runsCount,details,status].every(Boolean))return;
  let snapshot=null,serial=0,starting=false,active=false,pendingFocus=false,focusTimer=null;
+ let tierToast=null,tierTimer=null,queuedTier=0,celebrationAccount='';
+ const tierSeenThisSession=new Map();
+ const TIER_SEEN_PREFIX='crilo-bonus-milestone-seen-v1:';
  const loggedIn=()=>Boolean(window.Crilo?.user?.id&&window.Crilo?.profile?.id);
  const prefersLessMotion=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
  const mysteryOpen=()=>!$('criloMysteryModal')?.classList.contains('hidden');
@@ -32,6 +35,76 @@
   if(classes)node.className=classes;
   if(text!==undefined)node.textContent=text;
   return node;
+ }
+ // This is a quiet, non-modal celebration of the 50/100/150/200 badge
+ // milestones. The Supabase bonus status is authoritative: never grant
+ // a run, infer one from a test run, or replay old milestones on sign-in.
+ function seenTier(userId){
+  let seen=tierSeenThisSession.get(userId)??null;
+  try{
+   const raw=localStorage.getItem(TIER_SEEN_PREFIX+userId);
+   const saved=raw===null?null:Number(raw);
+   if(saved!==null&&Number.isInteger(saved)&&saved>=0&&saved<=4)
+    seen=Math.max(seen??0,saved);
+  }catch(_){}
+  return seen;
+ }
+ function rememberTier(userId,level){
+  tierSeenThisSession.set(userId,level);
+  try{localStorage.setItem(TIER_SEEN_PREFIX+userId,String(level))}catch(_){}
+ }
+ function clearTierToast(){
+  if(tierTimer!==null){clearTimeout(tierTimer);tierTimer=null}
+  if(tierToast){tierToast.remove();tierToast=null}
+ }
+ function showTierToast(tier){
+  if(mysteryOpen()){queuedTier=Math.max(queuedTier,tier);return}
+  clearTierToast();
+  const toast=element('div','crilo-bonus-tier-toast');
+  toast.id='criloBonusTierToast';
+  toast.setAttribute('role','status');
+  toast.setAttribute('aria-live','polite');
+  toast.setAttribute('aria-atomic','true');
+  const confetti=element('div','crilo-bonus-tier-confetti');
+  confetti.setAttribute('aria-hidden','true');
+  if(!prefersLessMotion()){
+   for(let i=0;i<18;i++){
+    const piece=element('i');
+    const angle=i*Math.PI*2/18,radius=86+(i%3)*14;
+    piece.style.setProperty('--burst-x',Math.round(Math.cos(angle)*radius)+'px');
+    piece.style.setProperty('--burst-y',Math.round(Math.sin(angle)*radius)+'px');
+    piece.style.setProperty('--burst-rotation',(i%2?230:-200)+'deg');
+    piece.style.setProperty('--burst-delay',(i%5)*28+'ms');
+    confetti.append(piece);
+   }
+  }
+  toast.append(confetti,
+   element('strong','crilo-bonus-tier-title','Bonus Run '+tier+' unlocked!'),
+   element('span','crilo-bonus-tier-message',tier*50+' unique badges · 5 free spins'));
+  document.body.append(toast);
+  tierToast=toast;
+  tierTimer=setTimeout(()=>{toast.remove();if(tierToast===toast)tierToast=null;tierTimer=null},3300);
+ }
+ function checkTierUnlock(data,options={}){
+  const userId=String(window.Crilo?.user?.id||'');
+  if(!userId)return;
+  if(userId!==celebrationAccount){
+   clearTierToast();queuedTier=0;celebrationAccount=userId;
+  }
+  const unlocked=Math.max(0,Math.min(4,Math.trunc(Number(data?.bonus_unlocked)||0)));
+  const prior=Number(options.badgeCountBefore);
+  const hasPrior=options.badgeCountBefore!==undefined&&options.badgeCountBefore!==null&&
+   Number.isInteger(prior)&&prior>=0;
+  const earlier=seenTier(userId);
+  // On the first load, old earned tiers become the baseline instead of
+  // triggering four belated popups for an established account.
+  const baseline=earlier??(hasPrior?Math.min(4,Math.floor(prior/50)):unlocked);
+  const current=Math.max(baseline,unlocked);
+  rememberTier(userId,current);
+  if(unlocked>baseline&&data?.official_done){
+   // If several milestones arrive together, celebrate only the newest.
+   showTierToast(unlocked);
+  }
  }
  function makeButton(slot,primaryButton=false){
   const button=element('button',primaryButton?'crilo-bonus-action':'crilo-bonus-play');
@@ -105,7 +178,8 @@
   const shouldFocus=options?.focus===true;
   const gen=++serial;
   if(!loggedIn()||typeof criloDB==='undefined'){
-   snapshot=null;active=false;pendingFocus=false;
+   snapshot=null;active=false;pendingFocus=false;queuedTier=0;celebrationAccount='';
+   clearTierToast();
    panel.classList.add('hidden');return;
   }
   const {data,error}=await criloDB.rpc('crilo_bonus_status');
@@ -119,6 +193,7 @@
   active=false;
   status.textContent='';
   render();
+  checkTierUnlock(data,options);
   if(shouldFocus&&snapshot?.official_done)requestFocus();
  }
  async function activate(number){
@@ -143,6 +218,7 @@
  }
  window.addEventListener('crilo-mystery-closed',()=>{
   if(pendingFocus)requestFocus();
+  if(queuedTier){const tier=queuedTier;queuedTier=0;showTierToast(tier)}
  });
  window.addEventListener('crilo-auth-ready',()=>refresh());
  window.CriloBonusRuns={refresh};
