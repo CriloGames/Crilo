@@ -2108,6 +2108,14 @@ try{
   "Journal must reflect the saved 59 pre-completion discoveries");
  assert(migrated.plateOpen&&migrated.serviceOpen&&migrated.pressureTicks===3,
    "3D migration reset existing mechanical puzzle state");
+ const openedShutter=await page.evaluate(()=>
+  window.__nothing3DPreview.physicalServiceShutterAudit);
+ assert(openedShutter?.bodyCount===1&&openedShutter.oneBody&&
+  openedShutter.keywayOnSameUnit&&openedShutter.actuatorOnSameUnit&&
+  Math.abs(openedShutter.x-.78)<.012&&
+  Math.abs(openedShutter.rotation-.12)<.012,
+  "Restoring an OPEN service shutter created a second plate or detached its keyway: "+
+   JSON.stringify(openedShutter));
  assert.equal(migrated.eyeRingTicks,3,
    "Legacy optical over-rotations must be normalized without losing saved discoveries");
  await page.waitForTimeout(770);
