@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { createNothingHereFinale } from "./secrets-3d-finale.js?v=56";
 import { buildIntricateCube } from "./secrets-3d-details.js?v=54";
 import { finishMechanicalArtifact } from "./secrets-3d-finish.js?v=28";
-import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=54";
+import {buildGameHotspots} from "./secrets-3d-game-hotspots.js?v=58";
 import {buildPocketWorlds} from "./secrets-3d-worlds.js?v=73";
 import {buildPhysicalPickups,attachCollectibleGlow} from "./secrets-3d-pickups.js?v=21";
 
@@ -298,14 +298,20 @@ function keyShape(parent) {
  bit.rotation.x=-.22;
  bit.scale.setScalar(1.16);
  parent.add(bit);
- const shank=box(bit,.47,.059,.070,.058,0,0,brass,.011);
+ // The key bit is itself violet, not bright GOLD beneath an otherwise
+ // purple glow. Keep a separate metal for its shank and three teeth, so
+ // surrounding brass fixtures keep their original appearance.
+ const violetKeyMetal=mat(0x9562c7,.40,.34);
+ const shank=box(bit,.47,.059,.070,.058,0,0,violetKeyMetal,.011);
  box(bit,.117,.082,.075,-.212,0,0,metal,.014);
  // Two short jaws leave a notch at the broken end for the ring's lug.
  for(const sign of [-1,1])
-  box(bit,.083,.020,.071,-.286,sign*.033,0,brass,.006);
- // Three genuinely different cuts in the tip; all join the shaft.
- for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]])
-  box(bit,.042,height,.066,x,-height/2+.022,0,brass,.004);
+  box(bit,.083,.020,.071,-.286,sign*.033,0,violetKeyMetal,.006);
+ // All three cut teeth share the same visible violet surface.
+ for(const [x,height] of [[.126,.091],[.202,.118],[.274,.084]]){
+  const tooth=box(bit,.042,height,.066,x,-height/2+.022,0,violetKeyMetal,.004);
+  tooth.userData.lavenderKeyTooth=true;
+ }
  // The darker relieved groove makes the partial lock-bit readable
  // even when the sliding drawer is viewed at a low angle.
  box(bit,.210,.009,.007,.184,.027,.040,darkMetal,.002);
@@ -707,7 +713,7 @@ const physicalPickups=embeddedGame?buildPhysicalPickups({
 // after a deliberate click. Their own geometry remains the only hit target.
 const originalPickupGlow=embeddedGame?{
  tooth:attachCollectibleGlow({
-  root:looseKey,model:looseKey,color:0xf2c66d,
+  root:looseKey,model:looseKey,
   size:.33,depth:-.070,offsetX:0,offsetY:0,invalidate
  }),
  thread:attachCollectibleGlow({
@@ -2087,6 +2093,16 @@ window.__nothing3DPreview={
    keyPosition:[position.x,position.y,position.z],
    keyScale:looseKey.scale.x,
    seatTop,
+   toothMaterials:(()=>{
+    const colors=[];
+    looseKey.traverse(part=>{
+     if(part.userData.lavenderKeyTooth&&part.isMesh)
+      colors.push({color:part.material.color.getHex(),
+       emissive:part.material.emissive.getHex(),
+       intensity:part.material.emissiveIntensity});
+    });
+    return colors;
+   })(),
    glow:originalPickupGlow?.tooth.getState()||null
   };
  },
@@ -2524,6 +2540,7 @@ window.__nothing3DPreview={
  get physicalClueVisibility(){return gameHotspots?.getClueVisibility?.()||{}},
  get physicalServiceCodeClearance(){return gameHotspots?.getServiceCodeClearance?.()||null},
  get physicalFluteVisible(){return gameHotspots?.fluteVisible?.()||false},
+ get physicalServiceShutterAudit(){return gameHotspots?.getServiceShutterAudit?.()||null},
  get physicalActuatorDepths(){return Object.fromEntries(
   ["latch","dot","triangle","pressure","vent-1","shutter","eye-ring"]
    .map(name=>[name,gameHotspots?.getActuatorDepth(name)??null]))},
