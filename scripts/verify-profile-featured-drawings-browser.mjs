@@ -14,7 +14,10 @@ const imageCSS=await readFile(path.join(root,'profile-featured-drawings.css'),'u
 const imageJS=await readFile(path.join(root,'profile-featured-drawings.js'),'utf8');
 assert.ok(pageHTML.indexOf('id="statsGrid"')<pageHTML.indexOf('id="featuredDrawings"'));
 assert.ok(pageHTML.indexOf('id="featuredDrawings"')<pageHTML.indexOf('<h2>Featured badges</h2>'));
-assert.ok(pageHTML.includes('profile-featured-drawings.css?v=1'));
+assert.ok(pageHTML.includes('profile-featured-drawings.css?v=2'));
+assert.match(imageCSS,/\.profile-drawing-slot\.has-drawing img\{/);
+assert.match(imageCSS,/\.profile-drawing-choice img\{/);
+assert.match(imageCSS,/\.profile-drawing-preview img\{/);
 assert.ok(pageHTML.includes('profile-featured-drawings.js?v=1'));
 assert.match(imageCSS,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
 assert.match(imageCSS,/@media\(max-width:480px\)/);
@@ -128,6 +131,16 @@ try{
  assert.equal(await visitor.page.locator('.profile-drawing-slot.has-drawing').count(),2);
  assert.equal(await visitor.page.locator('button.profile-drawing-slot').count(),2,
   'Visitors must not be able to open empty slot pickers');
+ async function checkCircle(selector,where){
+  const shape=await owner.page.locator(selector).first().evaluate(el=>{
+   const css=getComputedStyle(el),bounds=el.getBoundingClientRect();
+   return {width:bounds.width,height:bounds.height,radius:css.borderRadius,fit:css.objectFit};
+  });
+  assert.ok(Math.abs(shape.width-shape.height)<2,where+' must have a square image box: '+JSON.stringify(shape));
+  assert.equal(shape.radius,'50%',where+' must clip the gray square corners');
+  assert.equal(shape.fit,'cover',where+' must fill the wheel');
+ }
+ await checkCircle('.profile-drawing-slot.has-drawing img','Featured slot');
  const layout=await owner.page.evaluate(()=>{
   const box=id=>document.getElementById(id).getBoundingClientRect();
   return {stats:box('statsGrid').bottom,art:box('featuredDrawings').top,
@@ -141,6 +154,7 @@ try{
  assert.equal(await owner.page.locator('.profile-drawing-choice').count(),8);
  assert.equal(await owner.page.locator('.profile-drawing-choice:disabled').count(),2,
   'Artwork already featured elsewhere must be disabled');
+ await checkCircle('.profile-drawing-choice img','Picker thumbnail');
  await owner.page.locator('.profile-drawing-choice[data-choice-index="1"]').click();
  await owner.page.locator('#fdPickerSave').click();
  await owner.page.waitForFunction(()=>
@@ -155,6 +169,13 @@ try{
  const img=visitor.page.locator('#fdPreviewImage');
  await img.evaluate(el=>el.decode());
  assert.ok(await img.evaluate(el=>el.naturalWidth>0),'Featured artwork must render as an image');
+ const previewShape=await img.evaluate(el=>{
+  const r=el.getBoundingClientRect(),c=getComputedStyle(el);
+  return {w:r.width,h:r.height,radius:c.borderRadius,fit:c.objectFit};
+ });
+ assert.ok(Math.abs(previewShape.w-previewShape.h)<2,'Expanded image must be circular');
+ assert.equal(previewShape.radius,'50%','Expanded image must hide gray square corners');
+ assert.equal(previewShape.fit,'cover');
  await visitor.page.locator('#fdPreviewClose').click();
  assert.equal(counts.visitorWrites,0,'Visitors must never call the drawing mutation RPC');
  await owner.page.locator('.profile-drawing-slot[data-slot="2"]').click();
@@ -174,6 +195,12 @@ try{
  assert.ok(metrics.scrollWidth<=metrics.viewport+3,
   'Featured drawing gallery causes mobile overflow: '+JSON.stringify(metrics));
  assert.equal(metrics.cards[0].y,metrics.cards[1].y,'Phone must show two images per row');
+ const mobileShape=await phone.page.locator('.profile-drawing-slot.has-drawing img').first().evaluate(el=>{
+  const r=el.getBoundingClientRect(),style=getComputedStyle(el);
+  return {w:r.width,h:r.height,radius:style.borderRadius};
+ });
+ assert.ok(Math.abs(mobileShape.w-mobileShape.h)<2,'Mobile wheel must be circular');
+ assert.equal(mobileShape.radius,'50%');
  await phone.page.locator('.profile-drawing-slot[data-slot="5"]').click();
  assert.equal(await phone.page.locator('#featuredDrawingPicker[open]').count(),1);
  assert.deepEqual(owner.errors,[],'Owner browser exceptions');
@@ -183,7 +210,7 @@ try{
  await owner.page.screenshot({path:path.join(root,'test-results','featured-drawings-desktop.png')});
  await phone.page.locator('#fdPickerClose').click();
  await phone.page.screenshot({path:path.join(root,'test-results','featured-drawings-mobile.png')});
- console.log('PASS Featured Drawings desktop + mobile: five image slots, exact section position, owner picker/save/remove, moderated-source RPC, visitor preview, gallery fit and no overflow.');
+ console.log('PASS Featured Drawings: circular wheel images in profile cards, picker, full preview and on mobile; existing save/remove and responsive layout.');
 }finally{
  await browser?.close();
  await new Promise(resolve=>httpServer.close(resolve));
