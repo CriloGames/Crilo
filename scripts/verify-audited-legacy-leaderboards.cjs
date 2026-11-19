@@ -36,7 +36,7 @@ assert.deepEqual(new Set(newDef),new Set([
 assert.equal(newDef.length,5,'Each function should be replaced once');
 for(const name of newDef){
  const start=sql.indexOf('CREATE OR REPLACE FUNCTION public.'+name+'(');
- const end=sql.indexOf('\n$function$;',start);
+ const end=sql.indexOf('\n$function$\n;',start);
  assert.ok(start>=0&&end>start,'Find '+name+' definition');
  const ddl=sql.slice(start,end);
  assert.match(ddl,/d\.is_test=false AND \(d\.verified_spin_session_id IS NOT NULL OR EXISTS \(/,
