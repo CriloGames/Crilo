@@ -1,0 +1,41 @@
+name: Leaderboard Audited Legacy Runs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'leaderboard.html'
+      - 'owner-profile-scores.js'
+      - 'profile.html'
+      - 'supabase/migrations/*rank_audited_legacy_dailies.sql'
+      - 'scripts/verify-audited-legacy-leaderboards.cjs'
+      - '.github/workflows/leaderboard-audited-legacy.yml'
+  pull_request:
+    paths:
+      - 'leaderboard.html'
+      - 'owner-profile-scores.js'
+      - 'profile.html'
+      - 'supabase/migrations/*rank_audited_legacy_dailies.sql'
+      - 'scripts/verify-audited-legacy-leaderboards.cjs'
+      - '.github/workflows/leaderboard-audited-legacy.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eligible-scores:
+    name: Verify audited official, bonus and preview exclusions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: |
+          node --check scripts/verify-audited-legacy-leaderboards.cjs
+          node --check owner-profile-scores.js
+          node --check leaderboard.js
+      - name: Check audited historical proof and leaderboard consistency
+        run: node scripts/verify-audited-legacy-leaderboards.cjs
+      - name: Preserve preview and test-score exclusions
+        run: node release/346-badges/066-preview-proof-leaderboards-smoke.cjs
