@@ -65,7 +65,7 @@ revoke all on function public.crilo_profile_eligible_artwork(uuid)
 -- Visible on the player's public profile, but only the five *selected*
 -- drawings, after rerunning eligibility each time to honor moderation.
 create or replace function public.crilo_profile_featured_drawings(p_user uuid)
-returns table(position smallint,source text,run_id text,daily_period date,drawing text,score bigint)
+returns table(slot smallint,source text,run_id text,daily_period date,drawing text,score bigint)
 language sql stable security definer set search_path=''
 as $$
   select f.position,a.source,a.run_id,a.daily_period,a.drawing,a.score
