@@ -1,0 +1,45 @@
+name: Statistics Featured Drawings
+on:
+  pull_request:
+    paths:
+      - 'profile.html'
+      - 'profile-featured-drawings.*'
+      - 'supabase/migrations/*profile_five_featured_drawings*'
+      - 'scripts/verify-profile-featured-drawings-browser.mjs'
+      - '.github/workflows/profile-featured-drawings.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'profile.html'
+      - 'profile-featured-drawings.*'
+      - 'supabase/migrations/*profile_five_featured_drawings*'
+      - 'scripts/verify-profile-featured-drawings-browser.mjs'
+      - '.github/workflows/profile-featured-drawings.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  profile-drawings:
+    name: Verify 5 slots, editing, visitor preview and mobile fit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check profile-featured-drawings.js
+      - name: Install Chromium test runner
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install chromium
+      - name: Test on desktop and mobile
+        run: node scripts/verify-profile-featured-drawings-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: featured-drawings-layout
+          path: test-results/featured-drawings-*.png
+          if-no-files-found: ignore
+          retention-days: 5
