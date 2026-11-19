@@ -14,7 +14,7 @@
  const queryId=new URLSearchParams(location.search).get('id');
  const PAGE_SIZE=18,IMAGE=/^data:image\/(?:png|webp);base64,[A-Za-z0-9+/=]+$/;
  let target=null,mine=false,featured=new Map(),loadVersion=0;
- let editSlot=0,chosen=null,choices=[],offset=0,hasMore=false,
+ let editSlot=0,chosen=null,choices=[],offset=0,hasMore=false,pickerSequence=0,
   choicesBusy=false,saving=false,returnTo=null,previewReturn=null;
  const art=src=>typeof src==='string'&&src.length>100&&IMAGE.test(src)?src:null;
  const key=x=>x?.source&&x?.run_id?x.source+':'+x.run_id:null;
@@ -139,6 +139,7 @@
  }
  async function loadChoices(){
   if(choicesBusy||!editSlot||!mine||!target)return;
+  const sequence=pickerSequence;
   choicesBusy=true;moreButton.disabled=true;
   if(offset===0)options.replaceChildren(element('p','profile-drawings-loading','Finding your saved drawings…'));
   try{
@@ -146,7 +147,7 @@
     p_limit:PAGE_SIZE,p_offset:offset
    });
    if(error)throw error;
-   if(!editSlot||!picker.open)return;
+   if(sequence!==pickerSequence||!editSlot||!picker.open)return;
    const batch=(Array.isArray(data)?data:[]).filter(d=>
     art(d.drawing)&&key(d)&&['official','bonus'].includes(d.source));
    choices.push(...batch);
@@ -156,10 +157,13 @@
   }catch(err){
    status.textContent='Could not load saved drawings. Try again.';
    console.warn('Featured drawing picker unavailable',err);
-  }finally{choicesBusy=false;renderChoices()}
+  }finally{
+   if(sequence===pickerSequence){choicesBusy=false;renderChoices()}
+  }
  }
  function openPicker(slot,trigger){
   if(!mine||!Number.isInteger(slot)||slot<1||slot>5)return;
+  pickerSequence++;
   editSlot=slot;chosen=key(featured.get(slot));choices=[];offset=0;
   hasMore=false;saving=false;returnTo=trigger;
   $('fdSlotNumber').textContent=String(slot);
@@ -222,10 +226,12 @@
  $('fdPickerClose').addEventListener('click',()=>closeDialog(picker));
  $('fdPreviewClose').addEventListener('click',()=>closeDialog(preview));
  picker.addEventListener('close',()=>{
+  pickerSequence++;
+  const closedSlot=editSlot;
   resetPicker();
   const restore=returnTo;returnTo=null;
   if(restore?.isConnected)restore.focus({preventScroll:true});
-  else gallery.querySelector('button[data-slot]')?.focus({preventScroll:true});
+  else gallery.querySelector('button[data-slot="'+closedSlot+'"]')?.focus({preventScroll:true});
  });
  preview.addEventListener('close',()=>{
   $('fdPreviewImage').removeAttribute('src');
