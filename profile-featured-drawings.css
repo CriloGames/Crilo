@@ -80,3 +80,24 @@ button.profile-drawing-slot:focus-visible{outline:3px solid #88a6e7;outline-offs
 @media(prefers-reduced-motion:reduce){
  button.profile-drawing-slot:hover{transform:none}
 }
+
+/* The saved Daily is a square image, but the artwork is drawn on the wheel.
+   Match the circular wheel preview used in Spin History, including for
+   the picker and full-size preview. Never change the original saved pixels. */
+.profile-drawing-slot.has-drawing img{
+  width:100%;height:auto;aspect-ratio:1 / 1;flex:0 0 auto;
+  display:block;box-sizing:border-box;object-fit:cover;
+  border:3px solid #202329;border-radius:50%;background:#fff;
+  box-shadow:none;
+}
+.profile-drawing-choice img{
+  width:100%;aspect-ratio:1 / 1;box-sizing:border-box;object-fit:cover;
+  border:2px solid #202329;border-radius:50%;background:#fff;
+  box-shadow:none;
+}
+.profile-drawing-preview img{
+  width:min(100%, 55dvh, 510px);height:auto;max-height:none;
+  aspect-ratio:1 / 1;box-sizing:border-box;object-fit:cover;
+  border:4px solid #202329;border-radius:50%;
+  margin-inline:auto;background:#fff;
+}
