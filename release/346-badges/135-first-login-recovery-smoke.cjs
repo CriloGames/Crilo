@@ -30,10 +30,16 @@ const run=vm.runInNewContext(send+';sendMagicLink',{
    return {invalid:true};
   }
   button.disabled=true;
-  const {error}=await auth.signInWithOtp({email:input.value.trim(),options:{emailRedirectTo:redirectTo}});
-  status.textContent=error?'Could not send your link: '+error.message:'Check your email for your Crilo sign-in or confirmation link.';
-  button.disabled=false;
-  return {ok:!error};
+  try{
+   const {error}=await auth.signInWithOtp({email:input.value.trim(),options:{emailRedirectTo:redirectTo}});
+   status.textContent=error?'Could not send your link: '+error.message:'Check your email for your Crilo sign-in or confirmation link.';
+   return {ok:!error};
+  }catch(error){
+   status.textContent='Could not send your link: '+error.message;
+   return {ok:false};
+  }finally{
+   button.disabled=false;
+  }
  }}},
  $:id=>({emailInput:input,sendLinkBtn:button,authStatus:status})[id],
  criloDB:{auth},location:{origin:'https://crilo.fun',pathname:'/index.html'}
