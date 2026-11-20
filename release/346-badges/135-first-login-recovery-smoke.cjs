@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const game=fs.readFileSync('game.js','utf8');
 const app=fs.readFileSync('app.js','utf8');
 const html=fs.readFileSync('index.html','utf8');
-assert.match(html,/app\.js\?v=56/);
+assert.match(html,/app\.js\?v=59/);
 const gameVersion=html.match(/game\.js\?v=(\d+)/);
 assert.ok(gameVersion&&Number(gameVersion[1])>=112,
  'Initial sign-in client must use a sufficiently recent game bundle');
@@ -22,6 +22,13 @@ const auth={signInWithOtp:async args=>{sent.push(args);
  return {error:null};
 }};
 const run=vm.runInNewContext(send+';sendMagicLink',{
+ window:{CriloMagicLink:{send:async({input,button,status,redirectTo})=>{
+  button.disabled=true;
+  const {error}=await auth.signInWithOtp({email:input.value.trim(),options:{emailRedirectTo:redirectTo}});
+  status.textContent=error?'Could not send your link: '+error.message:'Check your email for your Crilo sign-in or confirmation link.';
+  button.disabled=false;
+  return {ok:!error};
+ }}},
  $:id=>({emailInput:input,sendLinkBtn:button,authStatus:status})[id],
  criloDB:{auth},location:{origin:'https://crilo.fun',pathname:'/index.html'}
 });
