@@ -23,6 +23,7 @@ const auth={signInWithOtp:async args=>{sent.push(args);
 }};
 const run=vm.runInNewContext(send+';sendMagicLink',{
  window:{CriloMagicLink:{send:async({input,button,status,redirectTo})=>{
+  if(button.disabled)return {ignored:true};
   button.disabled=true;
   const {error}=await auth.signInWithOtp({email:input.value.trim(),options:{emailRedirectTo:redirectTo}});
   status.textContent=error?'Could not send your link: '+error.message:'Check your email for your Crilo sign-in or confirmation link.';
