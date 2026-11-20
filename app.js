@@ -5,6 +5,110 @@
   const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   window.Crilo = { $, esc, user:null, profile:null, authResolved:false };
 
+  // Supabase enforces a per-address cooldown. Production auth logs show a
+  // five-minute window on this project; avoid sending 14 redundant requests
+  // when only one email can be accepted. Email addresses are not persisted.
+  const magicLinkLocks=new Map();
+  const magicLinkControls=new WeakMap();
+  const magicAddress=email=>String(email||'').trim().toLowerCase();
+  const magicWait=email=>{
+    const expiry=magicLinkLocks.get(magicAddress(email))?.expires||0;
+    return Math.max(0,Math.ceil((expiry-Date.now())/1000));
+  };
+  const magicClock=seconds=>{
+    const s=Math.max(0,Math.ceil(seconds));
+    return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  };
+  function renderMagicLinkWait(control){
+    if(control.sending)return;
+    const seconds=magicWait(control.input.value);
+    const record=magicLinkLocks.get(magicAddress(control.input.value));
+    control.button.disabled=seconds>0;
+    if(seconds>0){
+      control.status.dataset.magicLinkWaiting='yes';
+      control.status.textContent=record?.accepted?
+        'Sign-in link requested. Check your inbox and spam folder. Resend in '+magicClock(seconds)+'.':
+        'Supabase is limiting sign-in emails. Try again in '+magicClock(seconds)+'.';
+    }else if(control.status.dataset.magicLinkWaiting==='yes'){
+      delete control.status.dataset.magicLinkWaiting;
+      control.status.textContent='You can request another sign-in link now.';
+    }
+  }
+  function magicControls(input,button,status){
+    let control=magicLinkControls.get(button);
+    if(!control){
+      control={input,button,status,sending:false};
+      magicLinkControls.set(button,control);
+      input.addEventListener('input',()=>renderMagicLinkWait(control));
+      // One small UI-only timer per sign-in form; it never sends emails.
+      setInterval(()=>renderMagicLinkWait(control),1000);
+    }
+    return control;
+  }
+  window.CriloMagicLink={
+    remaining:magicWait,
+    async send({input,button,status,redirectTo}){
+      const control=magicControls(input,button,status);
+      if(control.sending)return {ok:false,ignored:true};
+      const email=String(input.value||'').trim();
+      if(!email||!input.checkValidity()){
+        status.textContent='Enter a valid email address.';
+        input.focus();
+        return {ok:false,invalid:true};
+      }
+      if(magicWait(email)){
+        renderMagicLinkWait(control);
+        return {ok:false,cooldown:true};
+      }
+      control.sending=true;
+      button.disabled=true;
+      status.textContent='Requesting your Crilo sign-in link…';
+      let result={ok:false};
+      try{
+        const {error}=await criloDB.auth.signInWithOtp({
+          email,options:{emailRedirectTo:redirectTo}
+        });
+        if(!error){
+          // The request was accepted; email delivery itself cannot be
+          // verified from the browser.
+          magicLinkLocks.set(magicAddress(email),{
+            expires:Date.now()+300000,accepted:true
+          });
+          result={ok:true};
+        }else if(error.code==='over_email_send_rate_limit'||error.status===429||
+          /only request this after|email rate limit exceeded/i.test(error.message||'')){
+          const match=String(error.message||'').match(/after\s+(\d+)\s+seconds?/i);
+          const wait=Math.max(1,Math.min(3600,match?Number(match[1]):300));
+          magicLinkLocks.set(magicAddress(email),{
+            expires:Date.now()+wait*1000,accepted:false
+          });
+          result={ok:false,cooldown:true};
+        }else{
+          result={ok:false,message:error.code==='email_address_not_authorized'?
+            'Crilo email delivery is not enabled for this address. The site needs a custom email sender.':
+            'Could not send the sign-in link: '+(error.message||'Please try again.')};
+        }
+      }catch(error){
+        result={ok:false,message:'Could not send the sign-in link: '+
+          (error?.message||'Check your connection and try again.')};
+      }finally{
+        control.sending=false;
+        // A player may correct a mistyped email while a request is pending.
+        if(magicWait(input.value))renderMagicLinkWait(control);
+        else{
+          button.disabled=false;
+          status.textContent=result.message||(
+            result.ok?
+              'Request accepted. Check your inbox and spam folder for the Crilo sign-in link.':
+              result.cooldown?'Email limit reached. Try again shortly.':
+              'Please try again.'
+          );
+        }
+      }
+      return result;
+    }
+  };
+
   // Fixed-format, database-owned username ink. Never treat player text as HTML.
   window.CriloNameColors={
     valid(profile){
@@ -317,29 +421,18 @@
         email.focus();
         return;
       }
-      button.disabled=true;
-      status.textContent='Sending your sign-in link…';
-      try{
-        // Keep this callback consistent with the existing home-page flow.
-        // Supabase handles the one-time email and subsequent session restore.
-        const {error}=await criloDB.auth.signInWithOtp({
-          email:address,
-          options:{emailRedirectTo:location.origin+location.pathname+(
-            /\/friends\.html$/i.test(location.pathname)&&
-            /^[A-Za-z0-9_-]{5,24}$/.test(new URLSearchParams(location.search).get('invite')||'')
-              ?'?invite='+encodeURIComponent(new URLSearchParams(location.search).get('invite'))
-              :''
-          )}
-        });
-        status.textContent=error?
-          'Could not send the sign-in link: '+error.message:
-          'Check your email for your Crilo sign-in link.';
-      }catch(error){
-        status.textContent='Could not send the sign-in link: '+
-          (error?.message||'Please try again.');
-      }finally{
-        button.disabled=false;
-      }
+      // One shared sender for the home page and all other account pages.
+      // Respect Supabase's response instead of showing a misleading
+      // "not sent" message or sending several requests in a row.
+      await window.CriloMagicLink.send({
+        input:email,button,status,
+        redirectTo:location.origin+location.pathname+(
+          /\/friends\.html$/i.test(location.pathname)&&
+          /^[A-Za-z0-9_-]{5,24}$/.test(new URLSearchParams(location.search).get('invite')||'')
+            ?'?invite='+encodeURIComponent(new URLSearchParams(location.search).get('invite'))
+            :''
+        )
+      });
     });
     return modal;
   }
