@@ -18,7 +18,7 @@ const pages=['index.html','leaderboard.html','ducks.html','profile.html',
 for(const p of pages){
  const html=read(p);
  assert.match(html,/header-continuity\.js\?v=8/,p+' needs prepaint owner nav');
- assert.match(html,/app\.js\?v=58/,p+' must confirm owner permissions');
+ assert.match(html,/app\.js\?v=59/,p+' must confirm owner permissions');
  assert.match(html,/header-fit\.css\?v=5/,p+' needs pending-tab styling');
 }
 assert.match(authCode,/testLink\.classList\.remove\('crilo-owner-pending'\)/);
