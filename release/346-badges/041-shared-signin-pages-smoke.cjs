@@ -114,6 +114,7 @@ function createPage(home=false){
  assert.match(status.textContent,/Resend in 5:00/);
  assert.match(status.textContent,/Check your email/);
  email.value='different@example.com';
+ await email.dispatch('input',{});
  page.auth.signInWithOtp=async()=>({error:{message:'Rate limit reached'}});
  await form.dispatch('submit',{preventDefault(){}});
  assert.match(status.textContent,/Rate limit reached/,'Backend error visible');
