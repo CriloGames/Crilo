@@ -60,7 +60,7 @@ function form(address='not-an-email'){
  assert.equal(calls[0].email,'player@example.test');
  assert.equal(calls[0].options.emailRedirectTo,'https://crilo.fun/index.html');
  assert.equal(f.button.disabled,true,'Prevent resend before cooldown ends');
- assert.match(f.status.textContent,/Check your inbox and spam/);
+ assert.match(f.status.textContent,/Check your email inbox and spam/);
  assert.match(f.status.textContent,/5:00/);
  await f.run();
  assert.equal(calls.length,1,'Repeat click must never cause another SMTP attempt');
