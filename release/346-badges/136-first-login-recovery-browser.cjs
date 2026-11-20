@@ -49,7 +49,9 @@ sdk=patch(sdk,"signInWithOtp:async()=>({data:{},error:null}),",
    assert.equal(sends.length,2,'One failed request plus one successful request');
    assert.equal(sends[1][2].email,'new@example.test');
    assert.equal(sends[1][2].options.emailRedirectTo,base+'/index.html');
-   assert.equal(await page.locator('#sendLinkBtn').isEnabled(),true);
+   assert.equal(await page.locator('#sendLinkBtn').isEnabled(),false,
+    'Repeated clicks must be blocked during the Supabase 5-minute email cooldown');
+   assert.match(await page.locator('#authStatus').innerText(),/Resend in 5:/);
    // An expired verification link should display an actionable error and
    // let the player request a new link without losing the page.
    const expired=await context.newPage();
