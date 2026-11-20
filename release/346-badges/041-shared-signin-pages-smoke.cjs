@@ -12,7 +12,7 @@ for(const page of pages){
  const html=fs.readFileSync(path.join(root,page),'utf8');
  assert.match(html,/\bid="accountBtn"/,'Missing account button on '+page);
  assert.match(html,/\bid="accountMenu"/,'Missing account dropdown on '+page);
- assert.match(html,/app\.js\?v=56/,'Old cached script on '+page);
+ assert.match(html,/app\.js\?v=59/,'Old cached script on '+page);
 }
 assert.match(app,/window\.addEventListener\('crilo-signin-request'/);
 assert.match(app,/document\.addEventListener\('click',e=>/);
@@ -110,8 +110,10 @@ function createPage(home=false){
  assert.equal(page.sent.length,1);
  assert.equal(page.sent[0].email,'player@example.com');
  assert.equal(page.sent[0].options.emailRedirectTo,'https://crilo.fun/leaderboard.html');
- assert.equal(send.disabled,false,'Submit button must be available after response');
+ assert.equal(send.disabled,true,'Prevent repeat sends during Supabase email cooldown');
+ assert.match(status.textContent,/Resend in 5:00/);
  assert.match(status.textContent,/Check your email/);
+ email.value='different@example.com';
  page.auth.signInWithOtp=async()=>({error:{message:'Rate limit reached'}});
  await form.dispatch('submit',{preventDefault(){}});
  assert.match(status.textContent,/Rate limit reached/,'Backend error visible');
