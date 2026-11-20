@@ -27,7 +27,7 @@
     if(seconds>0){
       control.status.dataset.magicLinkWaiting='yes';
       control.status.textContent=record?.accepted?
-        'Sign-in link requested. Check your inbox and spam folder. Resend in '+magicClock(seconds)+'.':
+        'Sign-in link requested. Check your email inbox and spam folder. Resend in '+magicClock(seconds)+'.':
         'Supabase is limiting sign-in emails. Try again in '+magicClock(seconds)+'.';
     }else if(control.status.dataset.magicLinkWaiting==='yes'){
       delete control.status.dataset.magicLinkWaiting;
