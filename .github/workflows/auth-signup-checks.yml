@@ -9,6 +9,7 @@ on:
       - 'supabase-config.js'
       - 'auth-first-paint.js'
       - 'release/346-badges/135-first-login-recovery-smoke.cjs'
+      - 'scripts/verify-magic-link-cooldown.cjs'
       - 'release/346-badges/136-first-login-recovery-browser.cjs'
       - '.github/workflows/auth-signup-checks.yml'
   workflow_dispatch:
@@ -29,6 +30,7 @@ jobs:
           node release/346-badges/041-shared-signin-pages-smoke.cjs
           node release/346-badges/119-profile-signup-grants-smoke.cjs
           node release/346-badges/135-first-login-recovery-smoke.cjs
+          node scripts/verify-magic-link-cooldown.cjs
           node emails/check-templates.cjs
   auth-browser:
     runs-on: ubuntu-24.04
