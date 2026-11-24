@@ -1,0 +1,15 @@
+.ascent-game header a{color:#fff4da;text-underline-offset:4px}
+.expedition .card{width:min(520px,48vw);color:#fff5dd}
+.card h1{font:500 clamp(32px,4.2vw,62px)/1 Georgia,serif;letter-spacing:-.045em;margin:10px 0 16px}
+.kicker{font:700 11px/1.4 var(--mono);color:#f2cc8d;letter-spacing:.12em;margin:0}
+#clues,#summary{padding:0;list-style:none;margin:0 0 16px}
+#clues{counter-reset:evidence;border-top:1px solid #d8cfaa55}
+#clues li,#summary li{padding:7px 0;border-bottom:1px solid #d8cfaa55}
+#clues li{display:flex;gap:12px;counter-increment:evidence;align-items:baseline}
+#clues li::before{content:counter(evidence,decimal-leading-zero);color:#ebc88e;font:700 11px var(--mono)}
+#choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#choices button{border:1px solid #b8c7ae;background:#1f4039f5;border-radius:8px;min-height:48px;padding:8px 10px;font-weight:650}
+#choices button:hover{background:#395b47}#hint{margin-top:8px;min-height:44px;text-decoration:underline;text-underline-offset:4px;color:#f7d49c}
+#summary li{display:flex;justify-content:space-between;gap:8px}#summary b{color:#efce94;white-space:nowrap}
+@media(max-width:700px){.expedition .card{width:min(100%,460px)}.expedition{padding-top:80px}.card h1{font-size:35px}#clues li{font-size:15px}}
+@media(prefers-reduced-motion:no-preference){#clues li{animation:appear .22s ease-out}@keyframes appear{from{opacity:.25;transform:translateY(3px)}}}

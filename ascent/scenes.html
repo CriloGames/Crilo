@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#19362f"><title>Read the scene · Ascent</title><link rel="icon" href="badge.svg"><link rel="stylesheet" href="style.css?v=10"><link rel="stylesheet" href="scenes.css"></head>
+<body class="ascent-game"><header><div class="bar"><a href="./" class="brand"><img src="badge.svg" alt="">ASCENT</a><a href="./">Daily climb</a></div></header>
+<main><div class="expedition" data-phase="ready"><section class="mountain"><canvas id="view" aria-label="A climber on an alpine rock face"></canvas></section>
+<section class="card"><p class="kicker" id="pitch">FIVE-PITCH PRACTICE ROUTE</p><h1 id="heading" tabindex="-1">Read the scene</h1>
+<div id="startPane"><p>Six details come from one scene. Start with two and choose where you are. An early solve earns 200 points. Each extra pair costs 50. A miss earns zero.</p><button class="primary" id="begin">Start the climb ↗</button></div>
+<div id="board" hidden><ol id="clues" aria-live="polite" aria-label="Scene clues"></ol><div id="choices" aria-label="Possible scenes"></div><button id="hint"></button></div>
+<div id="recap" hidden><p id="why"></p><button class="primary" id="next"></button></div>
+<div id="finish" hidden><ol id="summary"></ol><button class="primary" id="again">Replay these scenes ↗</button></div>
+</section></div></main><script defer src="mountain.js?v=7"></script><script defer src="scenes.js"></script></body></html>

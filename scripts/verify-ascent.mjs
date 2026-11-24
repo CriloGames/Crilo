@@ -82,4 +82,16 @@ try {
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);await page.close();
   }
+  const scenes=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
+  await scenes.goto('http://127.0.0.1:4173/ascent/scenes.html');
+  await scenes.locator('#begin').click();
+  for(const [i,choice] of [0,1,2,3,0].entries()){
+    assert.equal(await scenes.locator('#clues li').count(),2);
+    if(i===1||i===2)await scenes.locator('#hint').click();
+    if(i===2)await scenes.locator('#hint').click();
+    await scenes.locator('#choices button').nth(choice).click();
+    await scenes.locator('#next').click();
+  }
+  assert.equal(await scenes.locator('#heading').innerText(),'650 / 1,000');
+  await scenes.locator('#again').click();assert.equal(await scenes.locator('#clues li').count(),2);
 } finally {await browser.close()}
