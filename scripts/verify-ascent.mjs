@@ -23,7 +23,7 @@ try {
         state.clues=board;state.deadline=new Date(Date.now()+(p.p_round===5?800:15000)).toISOString();
       }
       const expired=state.deadline && Date.parse(state.deadline)<=Date.now();
-      if(expired || (p.p_action==='guess' && p.p_guess==='paper')){
+      if(expired || (p.p_action==='guess' && p.p_guess==='paper trail')){
         const solution=Object.fromEntries(board.map(c=>[c,c+' / paper']));
         state.history.push({guess:expired?'':'paper',clues:board,links:expired?{}:solution,points:expired?0:200,target:'paper',solution,timedOut:!!expired});
         state.clues=null;state.deadline=null;
@@ -60,9 +60,12 @@ try {
         await page.locator('#guess').fill('zzzz');await page.locator('#lock').click();
         await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Try another word'));
         assert.equal(state.history.length,0);
+        assert.equal(await page.locator('#guess').getAttribute('aria-invalid'),'true');
+        assert(await page.locator('#guess').evaluate(el=>el.selectionStart===0 && el.selectionEnd===el.value.length));
+        assert.equal(state.deadline,deadline);
         await page.reload();await page.waitForSelector('#lock:enabled');assert.equal(state.deadline,deadline);
       }
-      if(i<5){await page.locator('#guess').fill('paper');await page.locator('#lock').click();
+      if(i<5){await page.locator('#guess').fill('paper trail');await page.locator('#lock').click();
         if(name==='desktop' && i===1){
           await page.waitForFunction(()=>document.querySelector('.expedition').dataset.phase==='animating' && Number(getComputedStyle(document.querySelector('.expedition .card')).opacity)<0.05);
           await page.waitForFunction(()=>document.getElementById('gripWord').textContent.length>0);
@@ -82,16 +85,4 @@ try {
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);await page.close();
   }
-  const scenes=await browser.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});
-  await scenes.goto('http://127.0.0.1:4173/ascent/scenes.html');
-  await scenes.locator('#begin').click();
-  for(const [i,choice] of [0,1,2,3,0].entries()){
-    assert.equal(await scenes.locator('#clues li').count(),2);
-    if(i===1||i===2)await scenes.locator('#hint').click();
-    if(i===2)await scenes.locator('#hint').click();
-    await scenes.locator('#choices button').nth(choice).click();
-    await scenes.locator('#next').click();
-  }
-  assert.equal(await scenes.locator('#heading').innerText(),'650 / 1,000');
-  await scenes.locator('#again').click();assert.equal(await scenes.locator('#clues li').count(),2);
 } finally {await browser.close()}

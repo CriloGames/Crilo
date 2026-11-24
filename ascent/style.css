@@ -113,3 +113,16 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  @keyframes settle-hold{from{transform:translateY(4px);border-color:#ffe5a7;background:#527053}to{transform:translateY(0)}}
 }
 @media(prefers-reduced-motion:reduce){#gripCaption,#answerReview summary::after{transition:none}}
+
+.expedition #guess.guess-rejected{animation:guess-retry .48s ease-out}
+@keyframes guess-retry{
+  0%,100%{transform:translateX(0)}
+  8%,68%{background-color:#622c2d;border-color:#ff9990;outline-color:#ff9990}
+  18%,48%{transform:translateX(-5px)}
+  33%,62%{transform:translateX(4px)}
+  78%{transform:translateX(-2px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .expedition #guess.guess-rejected{animation-name:guess-retry-color}
+ @keyframes guess-retry-color{0%,72%{background-color:#622c2d;border-color:#ff9990;outline-color:#ff9990}}
+}

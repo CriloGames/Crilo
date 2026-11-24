@@ -19,7 +19,7 @@ let timerEnd=0, waitingForReconnect=false;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
-const clean=s=>s.trim().toLowerCase();
+const clean=s=>s.trim().toLowerCase().replace(/\s+/g,' ');
 function getTicket(){
   const saved=localStorage.getItem(ticketKey);
   if(saved && /^[a-f0-9-]{36}$/i.test(saved))return saved;
@@ -102,7 +102,7 @@ function render(){
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
  scene.dataset.phase=mode;
  document.querySelector('.expedition .card').inert=false;
- $('readyRule').textContent=state.semantic?'Read six clues and name their shared theme. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
+ $('readyRule').textContent=state.semantic?'Connect six clues with one word or short phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='New themed climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many holds as possible. Try it on either side.';
@@ -143,7 +143,7 @@ function displayResponse(next,previous,action){
  else if(advanced){revealIndex=next.history.length-1}
  else if(next.results){revealIndex=null}
  else {revealIndex=next.history.length?next.history.length-1:null}
- if(!sameDay||advanced||action==='start')$('guess').value='';
+ if(!sameDay||advanced||action==='start'){$('guess').value='';$('guess').removeAttribute('aria-invalid')}
  if(advanced && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && action==='guess'){
   const row=next.history[revealIndex], count=Object.keys(row.links).length;
   mode='animating';scene.dataset.phase=mode;$('guess').blur();
@@ -161,7 +161,7 @@ function displayResponse(next,previous,action){
   setTimeout(end,4600);
  }else{
   render();
-  if(next.rejected){message('No listed connection. Try another word.');$('guess').focus();$('guess').select()}
+  if(next.rejected){rejectGuess('No listed connection. Try another word or phrase.')}
   else if(mode==='play' && action==='start')$('guess').focus({preventScroll:true});
  }
 }
@@ -178,11 +178,23 @@ async function requestPitch(action='read',guess=null){
  finally{pending=false;$('next').disabled=false}
 }
 function connect(){return requestPitch('read')}
+function rejectGuess(reason){
+ const input=$('guess');
+ message(reason);
+ input.setAttribute('aria-invalid','true');
+ input.focus({preventScroll:true});
+ input.select();
+ input.classList.remove('guess-rejected');
+ void input.offsetWidth;
+ input.classList.add('guess-rejected');
+}
+$('guess').addEventListener('animationend',()=> $('guess').classList.remove('guess-rejected'));
+$('guess').addEventListener('input',()=> $('guess').removeAttribute('aria-invalid'));
 function submit(e){
  e.preventDefault();if(pending||mode!=='play'||waitingForReconnect)return;
  if(performance.now()>=timerEnd){connect();return}
  const g=clean($('guess').value);
- if(!/^[a-z]{1,36}$/.test(g)||state.clues.includes(g)){message('Enter one word of your own, using letters only.');$('guess').select();return}
+ if(g.length>48||!/^[a-z]+(?: [a-z]+){0,5}$/.test(g)||state.clues.includes(g)){rejectGuess('Try a word or short phrase of your own, using letters and spaces.');return}
  message('Checking your word…');requestPitch('guess',g);
 }
 $('guide').onclick=()=>$('manual').showModal();$('close').onclick=$('understood').onclick=()=>$('manual').close();
