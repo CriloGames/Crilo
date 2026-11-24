@@ -148,12 +148,18 @@
     }
   }
 
+  function frameScale(){
+    const cover=Math.max(width/1000,height/650);
+    return {x:mix(cover,width/1000,pullback),y:mix(cover,height/650,pullback)};
+  }
   function project(p, cam) {
-    return {x:(p.x*cam.z+cam.x)*width/1000, y:(p.y*cam.z+cam.y)*height/650};
+    const s=frameScale();
+    return {x:(p.x*cam.z+cam.x-635)*s.x+width*.635, y:(p.y*cam.z+cam.y-425)*s.y+height*425/650};
   }
   function renderScenery(cam) {
     const c=scenery.getContext('2d');
-    c.setTransform(scenery.width/1000,0,0,scenery.height/650,0,0);
+    const s=frameScale();
+    c.setTransform(s.x*pixelRatio,0,0,s.y*pixelRatio,(width*.635-635*s.x)*pixelRatio,(height*425/650-425*s.y)*pixelRatio);
     backdrop(c,altitude/1000*(1-pullback));
     c.save(); c.translate(cam.x,cam.y); c.scale(cam.z,cam.z); cliff(c);
     // A few evergreens are perched on the lower ledges.

@@ -31,7 +31,7 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .route-menu .routes button{margin:0;text-align:left}
 .ascent-game main{max-width:none;padding:0}
 .ascent-game footer,.expedition .map-caption,.expedition .card-top,.expedition #intro,.expedition #limit,.expedition form label{display:none}
-.ascent-game #themeTry{position:relative;z-index:3;margin:0;padding:66px 15px 7px;background:#203a32;font-size:13px}
+.ascent-game #themeTry{margin:0 0 12px;padding:0;color:#f9edcf;font-size:13px}
 .expedition{position:relative;isolation:isolate;display:grid;grid-template-columns:1fr;justify-items:center;align-content:center;min-height:100svh;gap:0;padding:90px 16px 40px;overflow:clip}
 .expedition .mountain{position:absolute;z-index:-1;inset:0;border:0;border-radius:0;height:100%;width:100%;min-height:0}
 .expedition .mountain::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#102c2bea, #183532b8 43%,transparent 82%);transition:opacity .45s}
@@ -78,5 +78,3 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .ascent-game .bar nav button{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.expedition :is(.card,.mountain::after){transition:none}}
-
-.ascent-game main:has(.expedition:not([data-phase=ready])) #themeTry{display:none}
