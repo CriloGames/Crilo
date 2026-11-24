@@ -56,7 +56,7 @@ function renderAnswerReview(){
  review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
-  summary.textContent='Pitch '+(index+1)+(state.semantic?' · Theme and related answers':' · Top 100 answers');
+  summary.textContent='Pitch '+(index+1)+(state.fullBank===false?' · Theme and related answers':' · Top 100 answers');
   body.className='answer-body';
   details.append(summary,body);review.append(details);
   details.addEventListener('toggle',async()=>{
@@ -81,8 +81,11 @@ function render(){
  const h=state.history,finished=!!state.results&&revealIndex===null,shown=revealIndex!==null?h[revealIndex]:null;
  const idx=shown?revealIndex:Math.min(h.length,4);
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
+ $('readyRule').textContent=state.semantic?'Read six clues and name their shared theme. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
+ $('themeTry').hidden=state.semantic;
+ $('generate').textContent='New themed climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many holds as possible. Try it on either side.';
- $('guideRule').textContent=state.semantic?'Look for a common theme across the six clues. Related answers can score for some of the clues.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
+ $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
  $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-hold word';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
