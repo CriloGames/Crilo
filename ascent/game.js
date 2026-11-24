@@ -46,7 +46,7 @@ function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!
 function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
 function renderHolds(clues,record){
  $('holds').replaceChildren();
- clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record?.links[word]){const phrase=document.createElement('small');phrase.className='hold-phrase';phrase.textContent=record.links[word];hold.append(phrase)}if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
+ clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record?.links[word]&&!state.semantic){const phrase=document.createElement('small');phrase.className='hold-phrase';phrase.textContent=record.links[word];hold.append(phrase)}if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
 }
 function renderAnswerReview(){
  const review=$('answerReview');
@@ -56,7 +56,7 @@ function renderAnswerReview(){
  review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
-  summary.textContent='Pitch '+(index+1)+' · Top 100 answers';
+  summary.textContent='Pitch '+(index+1)+(state.semantic?' · Theme and related answers':' · Top 100 answers');
   body.className='answer-body';
   details.append(summary,body);review.append(details);
   details.addEventListener('toggle',async()=>{
@@ -81,6 +81,9 @@ function render(){
  const h=state.history,finished=!!state.results&&revealIndex===null,shown=revealIndex!==null?h[revealIndex]:null;
  const idx=shown?revealIndex:Math.min(h.length,4);
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
+ $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many holds as possible. Try it on either side.';
+ $('guideRule').textContent=state.semantic?'Look for a common theme across the six clues. Related answers can score for some of the clues.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
+ $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-hold word';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
  $('roundCount').textContent=String(idx+1).padStart(2,'0')+' / 05';
@@ -95,7 +98,7 @@ function render(){
  if(shown){let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess.toUpperCase()+'” connected these holds.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
- $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>shown.solution[c]).join(' · ');
+ $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>state.semantic?c.toUpperCase()+' — '+shown.solution[c]:shown.solution[c]).join(' · ');
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }
