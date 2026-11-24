@@ -182,54 +182,34 @@
   }
   function climber(p,cam,now,phase,energy) {
     const c=ctx, anchor=project(p,cam);
-    const s=(.56+.65*clamp(height/540,0,1.25))*(1-.37*pullback);
-    const breath=reduced?0:Math.sin(now*.002)*.72;
-    const wave=Math.sin(phase), opp=Math.cos(phase);
-    const lift=energy*Math.max(0,wave)*4;
-    const grip=(x,y)=>{oval(c,x,y+.8,4.2,1.7,'#9e7663');line(c,[[x-3,y-.1],[x+.5,y-.7],[x+3,y-.3]],'#efcfad',.8);};
-    rope(cam,p,s,now);
-    c.save(); c.translate(anchor.x,anchor.y);c.scale(s,s);
-    c.lineCap='round'; c.lineJoin='round';
-    const bx=2+energy*opp*2, by=-21-lift+breath;
-    const leftFoot=[-9+energy*wave*3,-2-energy*Math.max(0,-wave)*9];
-    const rightFoot=[10+energy*opp*2,-7-energy*Math.max(0,wave)*9];
-    const leftHand=[5+energy*opp*3,-45-energy*Math.max(0,wave)*6];
-    const rightHand=[15+energy*wave*3,-34-energy*Math.max(0,-wave)*8];
-    grip(...leftFoot);grip(...rightFoot);grip(...leftHand);grip(...rightHand);
-    function limb(points,dark,color,size) {
-      line(c,points,dark,size+1.4);line(c,points,color,size);
-    }
-    limb([[bx+2,by+1],[11,by+8],rightFoot],'#354640','#46625a',5.1);
-    line(c,[[rightFoot[0]-2,rightFoot[1]],[rightFoot[0]+2,rightFoot[1]+1],[rightFoot[0]+4,rightFoot[1]]],'#273b36',3.3);
-    limb([[bx+1,by-11],[12,by-13],rightHand],'#854c3b','#b85a44',4.3);
-    oval(c,rightHand[0],rightHand[1],2.2,2.3,'#efb98b');
-    limb([[bx,by],[-8+energy*wave*2,by+8],leftFoot],'#293e3a','#3e5551',5.3);
-    line(c,[[leftFoot[0]-1,leftFoot[1]],[leftFoot[0]+2,leftFoot[1]+.9],[leftFoot[0]+5,leftFoot[1]]],'#223834',3.6);
-    c.save();c.translate(bx,by);
-    shape(c,[[-5,-15],[-1,-19],[5,-17],[7,-11],[6,-3],[4,2],[-5,1],[-7,-6]],'#733e32');
-    shape(c,[[-5,-14],[-1,-18],[4,-16],[5,-11],[3,-4],[-4,0],[-6,-7]],'#d84d3c');
-    shape(c,[[-5,-14],[-1,-17],[1,-15],[-2,-9],[-4,-5],[-6,-7]],'#ec6c4b');
-    line(c,[[-6,-2],[-1,0],[5,-2]],'#384741',2.5);
-    line(c,[[-2,0],[-1,4],[3,3]],'#e6ab69',1.2);
-    shape(c,[[-8,-3],[-5,-3],[-4,2],[-5,6],[-10,5],[-11,0]],'#658c89');
-    line(c,[[-11,-1],[-7,-2],[-5,-2]],'#e1d4ac',1.4);
-    // Helmet, face and chin strap remain legible at phone scale.
-    oval(c,2.3,-20.8,4.7,5.4,'#573e33');
-    shape(c,[[.5,-24],[5.4,-24],[6.3,-20.7],[7.8,-19.5],[6.2,-18.8],[5.4,-16.8],[1.5,-17.4],[-.2,-20.5]],'#e9b38b');
-    oval(c,1.7,-24.5,5.7,3.9,'#f1cf87');
-    shape(c,[[-4.1,-23.7],[2,-24.1],[6,-24.5],[8,-23.4],[6.3,-22.3],[.4,-22.1],[-4.2,-22.5]],'#dca358');
-    line(c,[[.3,-22], [2.2,-18],[4,-17.5]],'#755648',.8);
-    c.restore();
-    limb([[bx-2,by-13],[-7,by-19],leftHand],'#964336','#e65c42',4.7);
-    oval(c,leftHand[0],leftHand[1],2.3,2.1,'#f3c298');
-    if(energy>.1 && !reduced) {
-      for(let i=0;i<4;i++){
-        const f=(now*.0018+i*.239)%1;
-        c.globalAlpha=(1-f)*energy*.62;
-        oval(c,leftHand[0]-2-i-f*(5+i),leftHand[1]+f*(6+i),.7+f*.6,.6+f*.3,'#f8e8d2');
-      }
-      c.globalAlpha=1;
-    }
+    const size=(.53+.62*clamp(height/540,0,1.25))*(1-.37*pullback);
+    const stride=energy*Math.sin(phase), reach=energy*Math.cos(phase);
+    rope(cam,p,size,now);
+    c.save();
+    c.translate(anchor.x,anchor.y);
+    c.scale(size,size);
+    c.lineJoin=c.lineCap='round';
+    const hip=[-2,-20-3*energy], shoulder=[3,-40-3*energy];
+    const lowFoot=[-12+4*stride,-2], highFoot=[14,-13-4*stride];
+    const highGrip=[21+4*reach,-59-4*stride], lowGrip=[18,-37+3*stride];
+    const stroke=(points,width,shade)=>{
+      line(c,points,'#182a29',width+2);
+      line(c,points,shade,width);
+    };
+    stroke([hip,[12,-25],highFoot],6,'#2c4548');
+    stroke([shoulder,[13,-32],lowGrip],5,'#9e5136');
+    stroke([hip,[-12,-15],lowFoot],7,'#4a6463');
+    for(const [x,y] of [lowFoot,highFoot])line(c,[[x-3,y],[x+4,y]],'#172928',4);
+    shape(c,[[hip[0]-6,hip[1]],[shoulder[0]-7,shoulder[1]+1],[shoulder[0]+4,shoulder[1]-2],[hip[0]+5,hip[1]-3],[hip[0]+4,hip[1]+1]],'#d76b40');
+    shape(c,[[-8,-36],[-3,-40],[1,-32],[-5,-23],[-12,-25],[-13,-32]],'#345954');
+    line(c,[[-9,-33],[-6,-28]],'#85a896',1.4);
+    stroke([shoulder,[9,-48],highGrip],5,'#ec8852');
+    for(const [x,y] of [lowGrip,highGrip])oval(c,x,y,2.5,2.1,'#e8ac7e');
+    oval(c,7,-46-3*energy,5.3,6,'#9b6849');
+    oval(c,6,-49-3*energy,6.8,4.2,'#f1d289');
+    line(c,[[1,-47-3*energy],[12,-47-3*energy]],'#a5753e',1.1);
+    line(c,[[-7,hip[1]-2],[3,hip[1]-2]],'#1c3634',2.8);
+    oval(c,-8,hip[1]+2,3,3.7,'#c0d2bb');
     c.restore();
   }
   function flag(cam,score,colour,opposite=false) {

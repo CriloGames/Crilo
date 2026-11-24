@@ -44,10 +44,38 @@ function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gai
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
-const objectClues = {"ball":"⚽","bed":"🛏️","bird":"🐦","board":"🪵","book":"📕","box":"📦","bridge":"🌉","brush":"🖌️","cap":"🧢","chain":"⛓️","coat":"🧥","door":"🚪","gate":"🚧","hand":"✋","house":"🏠","key":"🔑","light":"💡","paper":"📄","plate":"🍽️","ring":"💍","screen":"🖥️","sign":"🪧","stone":"🪨","watch":"⌚","wheel":"🛞"};
 function renderHolds(clues,record){
  $('holds').replaceChildren();
- clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num);const icon=objectClues[word];if(icon){const picture=document.createElement('span');picture.className='object-clue';picture.setAttribute('aria-hidden','true');picture.textContent=icon;hold.append(picture)}hold.append(word.toUpperCase());if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
+ clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record?.links[word]){const phrase=document.createElement('small');phrase.className='hold-phrase';phrase.textContent=record.links[word];hold.append(phrase)}if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
+}
+function renderAnswerReview(){
+ const review=$('answerReview');
+ const key=state.day;
+ if(review.dataset.day===key)return;
+ review.dataset.day=key;
+ review.replaceChildren();
+ state.history.forEach((pitch,index)=>{
+  const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
+  summary.textContent='Pitch '+(index+1)+' · Top 100 answers';
+  body.className='answer-body';
+  details.append(summary,body);review.append(details);
+  details.addEventListener('toggle',async()=>{
+   if(!details.open||body.dataset.loaded)return;
+   body.dataset.loaded='pending';body.textContent='Loading answers…';
+   try{
+    const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:key,p_archive:archive,p_seed:seed,p_pitch:index+1});
+    if(!answers.length)throw new Error('Unavailable');
+    const list=document.createElement('ol');list.className='answer-list';
+    for(const answer of answers){
+     const row=document.createElement('li'),title=document.createElement('strong'),score=document.createElement('span'),links=document.createElement('small');
+     title.textContent=answer.word;score.textContent=answer.hits+'/6 · '+answer.points+' pts';
+     links.textContent=pitch.clues.filter(clue=>answer.links[clue]).map(clue=>answer.links[clue]).join(' · ');
+     row.append(title,score,links);list.append(row);
+    }
+    body.replaceChildren(list);body.dataset.loaded='yes';
+   }catch{delete body.dataset.loaded;body.textContent='Couldn’t load answers. Close and reopen this pitch to retry.'}
+  });
+ });
 }
 function render(){
  const h=state.history,finished=!!state.results&&revealIndex===null,shown=revealIndex!==null?h[revealIndex]:null;
@@ -60,7 +88,7 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  $('splits').textContent=h.map((r,i)=>'P'+(i+1)+' · '+Object.keys(r.links).length+'/6').join('   ');return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
