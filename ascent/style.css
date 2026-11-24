@@ -78,3 +78,20 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .ascent-game .bar nav button{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.expedition :is(.card,.mountain::after){transition:none}}
+
+.expedition .hold{
+ display:grid;grid-template-columns:1fr;justify-items:start;align-content:center;gap:3px;
+ position:relative;text-align:left;min-height:58px;padding:10px 12px 9px;
+ border-radius:6px 12px 6px 6px;background:linear-gradient(130deg,#304e43f5,#19352ff5);
+ box-shadow:inset 0 1px #efedbd24,0 3px 8px #10221a24;
+}
+.expedition .hold i{font:700 10px/1 var(--mono);color:#dac392;letter-spacing:.08em}
+.expedition .hold>span{font:650 clamp(14px,1.25vw,19px)/1.1 system-ui;color:#fff4dd}
+.expedition .hold.hit{background:#355d46;border-color:#e9cc84}
+.expedition .hold.miss{opacity:1;background:#203b35de;border-color:#7e9387}
+.expedition .hold.miss>span,.expedition .hold.miss small{color:#c3d0c3}
+.expedition .hold small{color:#f1d394;font:600 10px/1.15 system-ui}
+.expedition .clock.urgent{--timer-color:#ffb281;color:#ffd2ab}
+.expedition #guess:focus-visible{outline:2px solid #ffcf89;outline-offset:2px}
+.expedition #reveal .intro{margin-bottom:12px}
+@media(max-width:700px){.expedition .hold{min-height:49px;padding:7px 8px}.expedition .hold>span{font-size:14px}}

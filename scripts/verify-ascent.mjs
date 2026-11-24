@@ -70,6 +70,8 @@ try {
         }
       }
       await page.waitForSelector('#reveal:visible');assert.equal(await page.locator('#results').isVisible(),false);
+      assert.equal(await page.locator('#reveal #holds .hold').count(),6);
+      assert.equal(await page.locator('#reveal #holds .hit').count(),i===5?0:6);
       if(i===2){await page.reload();await page.waitForSelector('#reveal:visible')}
       if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
       await page.locator('#next').click();

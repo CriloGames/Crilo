@@ -14,7 +14,6 @@ const syncKey=official?'ascent.last.v1':'ascent.last.'+scope;
 const $=id=>document.getElementById(id);
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
-const holdPositions=[[56,20],[78,28],[84,47],[71,68],[48,62],[40,39]];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
 let timerEnd=0, waitingForReconnect=false;
 const mountain=window.Mountain;
@@ -46,8 +45,23 @@ function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gai
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
 function renderHolds(clues,record){
- $('holds').replaceChildren();
- clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record?.links[word]&&!state.semantic){const phrase=document.createElement('small');phrase.className='hold-phrase';phrase.textContent=record.links[word];hold.append(phrase)}if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
+ const board=$('holds');
+ const anchor=record?$('links'):$('guessform');
+ anchor.before(board);
+ board.replaceChildren(...clues.map((word,index)=>{
+  const hold=document.createElement('span'),number=document.createElement('i'),label=document.createElement('span');
+  const matched=record && Object.hasOwn(record.links,word);
+  hold.className='hold'+(record?(matched?' hit':' miss'):'');
+  number.textContent=String(index+1);
+  label.textContent=word;
+  hold.append(number,label);
+  if(record){
+   const outcome=document.createElement('small');
+   outcome.textContent=matched?'Matched':'Missed';
+   hold.append(outcome);
+  }
+  return hold;
+ }));
 }
 function renderAnswerReview(){
  const review=$('answerReview');
@@ -102,7 +116,7 @@ function render(){
  $('splits').textContent=h.map((r,i)=>'P'+(i+1)+' · '+Object.keys(r.links).length+'/6').join('   ');return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
- $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess.toUpperCase()+'” connected these holds.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
+ $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'Your word was “'+shown.guess+'”.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
  $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>state.semantic?c.toUpperCase()+' — '+shown.solution[c]:shown.solution[c]).join(' · ');
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';

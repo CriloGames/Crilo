@@ -42,7 +42,16 @@
     sky.addColorStop(0, '#79abb2'); sky.addColorStop(.39,'#b9cdc0');
     sky.addColorStop(.69,'#f5d7a8'); sky.addColorStop(1,'#edbb87');
     c.fillStyle=sky; c.fillRect(0,0,1000,650);
-    const sunY=118+u*27;
+    // The sky warms as the climber gains altitude.
+    const light=clamp(altitude/1000);
+    if(light>0){
+      const glow=c.createLinearGradient(0,0,0,470);
+      glow.addColorStop(0,'rgba(62,73,124,'+(light*.54)+')');
+      glow.addColorStop(.56,'rgba(245,165,118,'+(light*.62)+')');
+      glow.addColorStop(1,'rgba(255,215,163,0)');
+      c.fillStyle=glow;c.fillRect(0,0,1000,470);
+    }
+    const sunY=118+light*57;
     c.save(); c.translate(213,sunY); c.scale(1,1);
     const halo=c.createRadialGradient(0,0,18,0,0,88);
     halo.addColorStop(0,'rgba(255,238,183,0.42)'); halo.addColorStop(1,'rgba(255,238,183,0)');
