@@ -41,6 +41,11 @@ try {
       const a=boxes[i],b=boxes[j];
       assert(a.right<=b.left || b.right<=a.left || a.bottom<=b.top || b.bottom<=a.top,'clue overlap');
     }
+    const field=await page.locator('#guess').boundingBox();
+    const scene=await page.locator('#view').boundingBox();
+    assert(field.y+field.height<=height && field.y>=scene.y,'answer fits inside the visible scene');
+    assert.equal(scene.x,0,'edge-to-edge mountain');
+    assert.equal(Math.round(scene.width),width);
     const colors = await page.locator('canvas').evaluate(c => {
       const pixels=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
       const palette=new Set();for(let n=0;n<pixels.length;n+=316)palette.add(pixels[n]*65536+pixels[n+1]*256+pixels[n+2]);return palette.size;

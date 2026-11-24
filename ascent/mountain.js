@@ -252,6 +252,16 @@
       pullback=mix(pull.from,1,smooth(t));if(t>=1)pull=null;
     }
     const cam=camera(altitude,pullback);
+    // Let the climber rise in the frame before the camera catches up at the belay.
+    if(motion && !reduced){
+      const t=clamp((now-motion.start)/motion.duration);
+      const travel=(motion.to-motion.from)*Math.sin(Math.PI*t);
+      cam.y-=Math.min(68,travel*.6);
+      cam.z+=.11*Math.sin(Math.PI*t);
+      const anchor=route(altitude);
+      cam.x-=anchor.x*.11*Math.sin(Math.PI*t);
+      cam.y-=anchor.y*.11*Math.sin(Math.PI*t);
+    }
     const key=[cam.x.toFixed(1),cam.y.toFixed(1),cam.z.toFixed(4),altitude.toFixed(1)].join('|');
     if(key!==backgroundKey){renderScenery(cam);backgroundKey=key;}
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(scenery,0,0);
