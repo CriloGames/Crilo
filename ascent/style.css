@@ -78,3 +78,5 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .ascent-game .bar nav button{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.expedition :is(.card,.mountain::after){transition:none}}
+
+.ascent-game main:has(.expedition:not([data-phase=ready])) #themeTry{display:none}
