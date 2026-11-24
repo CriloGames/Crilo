@@ -105,9 +105,9 @@ function render(){
  $('readyRule').textContent=state.semantic?'Connect six clues with one word or short phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='New themed climb ↗';
- $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many holds as possible. Try it on either side.';
+ $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
  $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
- $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-hold word';
+ $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-clue answer';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
  $('roundCount').textContent=String(idx+1).padStart(2,'0')+' / 05';
@@ -119,13 +119,13 @@ function render(){
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
- if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
+ if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 matched.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
  $('retryGuess').value='';$('retryOutcome').textContent='';$('retryCheck').disabled=false;
- $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 holds? ':'Take another look at the six holds. ')+'This practice guess is untimed. Your first score stands.';
+ $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'This practice guess is untimed. Your first score stands.';
  $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>state.semantic?c.toUpperCase()+' — '+shown.solution[c]:shown.solution[c]).join(' · ');
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
@@ -157,7 +157,7 @@ function displayResponse(next,previous,action){
   $('gripWord').textContent='';$('gripCount').textContent='';
   const onGrip=index=>{
    if(complete || !matched[index])return;
-   $('gripCount').textContent='Hold '+(index+1)+' of '+count;
+   $('gripCount').textContent='Match '+(index+1)+' of '+count;
    $('gripWord').textContent=matched[index];
    tone(index);
   };
