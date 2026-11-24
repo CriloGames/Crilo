@@ -49,6 +49,7 @@ try {
     await page.screenshot({path:'test-results/ascent/'+name+'.png',fullPage:true});
     await page.locator('#guide').click();assert(await page.locator('dialog').isVisible());await page.locator('#close').click();
     for(let i=1;i<=5;i++){
+      await page.waitForSelector('#play:visible');
       if(i===1){
         const deadline=state.deadline;
         await page.locator('#guess').fill('zzzz');await page.locator('#lock').click();
