@@ -12,6 +12,7 @@ const scope=custom?'practice.'+seed:replay?'archive.'+archive:'daily';
 const ticketKey=official?'ascent.climber.v1':'ascent.attempt.'+scope;
 const syncKey=official?'ascent.last.v1':'ascent.last.'+scope;
 const $=id=>document.getElementById(id);
+const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 const holdPositions=[[56,20],[78,28],[84,47],[71,68],[48,62],[40,39]];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
@@ -81,6 +82,8 @@ function render(){
  const h=state.history,finished=!!state.results&&revealIndex===null,shown=revealIndex!==null?h[revealIndex]:null;
  const idx=shown?revealIndex:Math.min(h.length,4);
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
+ scene.dataset.phase=mode;
+ document.querySelector('.expedition .card').inert=false;
  $('readyRule').textContent=state.semantic?'Read six clues and name their shared theme. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='New themed climb ↗';
@@ -125,12 +128,13 @@ function displayResponse(next,previous,action){
  if(!sameDay||advanced||action==='start')$('guess').value='';
  if(advanced && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && action==='guess'){
   const row=next.history[revealIndex], count=Object.keys(row.links).length;
-  mode='animating';message('Climbing…');let complete=false;
-  const end=()=>{if(complete)return;complete=true;render()};
+  mode='animating';scene.dataset.phase=mode;$('guess').blur();
+  scene.querySelector('.card').inert=true;message('Climbing…');let complete=false;
+  const end=()=>{if(complete)return;complete=true;render();$('next').focus({preventScroll:true})};
   row.clues.map((c,i)=>c in row.links?i:-1).filter(i=>i>=0).forEach((pos,j)=>setTimeout(()=>{
    if(!complete){$('holds').children[pos]?.classList.add('hit');tone(j)}
   },180+j*305));
-  mountain.climb(sum(previous.history),sum(next.history),count,end);setTimeout(end,2850);
+  mountain.climb(sum(previous.history),sum(next.history),count,end);setTimeout(end,3900);
  }else{
   render();
   if(next.rejected){message('No listed connection. Try another word.');$('guess').focus();$('guess').select()}

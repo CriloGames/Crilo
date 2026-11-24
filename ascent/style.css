@@ -18,3 +18,43 @@
 body{background:#142d29;background-image:radial-gradient(ellipse at 48% 0,#26463d,transparent 65%)}.card,dialog{border-color:#42605a}.card-top .eyebrow,#splits{color:var(--muted)}.primary:hover{background:#42765d}.hold{background:#1a3933ec;color:#fff3d7;border-color:#abc5a6;box-shadow:0 3px 0 #10282499;padding:6px 10px}.hold i{color:#c5d1af}.hold.hit{background:#306248}.hold-phrase{position:absolute;top:100%;left:50%;transform:translateX(-50%);background:#244b3b;color:#fff3d7;border-radius:5px;padding:4px 7px;font:600 11px/1.15 system-ui;max-width:105px;white-space:normal;text-align:center;width:max-content;z-index:2}
 input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.urgent{color:#f1ae94}.clock{--timer-color:#a7cca3}.routes a,.routes button,.secondary,.archive-link{color:#d3e3bb}
 #answerReview details{margin:0;border-top:1px solid var(--line);padding:9px 0}.answer-body{margin-top:8px;max-height:19rem;overflow:auto}.answer-list{margin:0;padding-left:25px}.answer-list li{padding:5px 8px 7px 2px;border-bottom:1px solid var(--line)}.answer-list strong{color:var(--ink);text-transform:uppercase}.answer-list span{float:right}.answer-list small{display:block;clear:both;color:var(--muted);line-height:1.35}
+
+/* Keep the input and the ascent in one continuous mountain scene. */
+body:has(.expedition) main{max-width:1600px;padding-inline:clamp(8px,2.2vw,34px)}
+body:has(.expedition) .headline{align-items:center;margin:12px 0 5px}
+body:has(.expedition) .headline h1{font-size:clamp(23px,3vw,38px);margin:0}
+body:has(.expedition) :is(.headline .eyebrow,.edition small,footer){display:none}
+body:has(.expedition) .routes{margin:0 0 8px}
+.expedition{--scene-height:clamp(490px,74svh,870px);display:grid;position:relative;isolation:isolate;grid-template-columns:minmax(0,1fr);gap:0}
+.expedition .mountain{grid-area:1/1;height:var(--scene-height);min-height:0;border-radius:16px;overflow:hidden}
+.expedition .card{grid-area:1/1;position:relative;z-index:1;align-self:end;justify-self:center;width:min(570px,calc(100% - 24px));margin:0 0 16px;min-height:0;padding:14px 18px;border:1px solid #cadaac60;border-radius:14px;background:#142f29f5;box-shadow:0 5px 22px #10291e42;transition:opacity .22s,transform .22s}
+.expedition :is(.card-top,.progress,.map-caption,#prompt,#intro,#limit,#guessform label){display:none}
+.expedition .card h2{font-size:clamp(25px,3vw,34px);margin-bottom:6px}
+.expedition .intro{margin:0 0 8px}
+.expedition .clock{margin-bottom:8px;grid-template-columns:auto 1fr auto}
+.expedition .clock progress{grid-column:2;grid-row:1}
+.expedition .clock strong{grid-column:3;grid-row:1}
+.expedition form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.expedition form input{min-width:0;font-size:16px}
+.expedition form .primary{margin:0;gap:12px}
+.expedition #holds{inset:0 2% 21%;transition:opacity .22s}
+.expedition .hold{left:clamp(12%,var(--x),86%);max-width:28%;white-space:normal;text-align:center;line-height:1.2}
+.expedition .scene-label{transition:opacity .22s}
+.expedition[data-phase=animating] :is(.card,#holds,.scene-label){opacity:0;pointer-events:none}
+.expedition[data-phase=animating] .card{transform:translateY(9px)}
+.expedition:is([data-phase=reveal],[data-phase=results]) .card{grid-area:2/1;margin:-36px 0 18px}
+.expedition[data-phase=results] .mountain{height:calc(var(--scene-height) * .78)}
+.expedition #reveal details{margin:8px 0}
+@media(max-width:670px){
+ .expedition{--scene-height:clamp(390px,72svh,650px)}
+ .expedition .card{padding:12px;margin-bottom:10px}
+ .expedition #holds{inset:8% 0 24%}
+ .expedition .hold{font-size:12px;padding:5px 7px}
+ .expedition .hold:nth-child(1){left:45%;top:14%}
+ .expedition .hold:nth-child(2){left:77%;top:28%}
+ .expedition .hold:nth-child(3){left:82%;top:54%}
+ .expedition .hold:nth-child(4){left:60%;top:78%}
+ .expedition .hold:nth-child(5){left:24%;top:68%}
+ .expedition .hold:nth-child(6){left:18%;top:38%}
+}
+@media(prefers-reduced-motion:reduce){.expedition :is(.card,#holds,.scene-label){transition:none}}

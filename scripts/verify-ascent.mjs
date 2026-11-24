@@ -6,7 +6,7 @@ const browser = await chromium.launch();
 await mkdir('test-results/ascent', { recursive: true });
 try {
   for (const [name, width, height] of [['phone',390,844],['tablet',768,1024],['desktop',1440,980]]) {
-    const page = await browser.newPage({viewport:{width,height}, reducedMotion:'reduce'});
+    const page = await browser.newPage({viewport:{width,height}, reducedMotion:name==='desktop'?'no-preference':'reduce'});
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/ascent/');
@@ -57,7 +57,13 @@ try {
         assert.equal(state.history.length,0);
         await page.reload();await page.waitForSelector('#lock:enabled');assert.equal(state.deadline,deadline);
       }
-      if(i<5){await page.locator('#guess').fill('paper');await page.locator('#lock').click()}
+      if(i<5){await page.locator('#guess').fill('paper');await page.locator('#lock').click();
+        if(name==='desktop' && i===1){
+          await page.waitForFunction(()=>document.querySelector('.expedition').dataset.phase==='animating' && Number(getComputedStyle(document.querySelector('.expedition .card')).opacity)<0.05);
+          assert(await page.locator('#view').isVisible());
+          assert(await page.locator('.expedition .card').evaluate(el=>el.inert));
+        }
+      }
       await page.waitForSelector('#reveal:visible');assert.equal(await page.locator('#results').isVisible(),false);
       if(i===2){await page.reload();await page.waitForSelector('#reveal:visible')}
       if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');

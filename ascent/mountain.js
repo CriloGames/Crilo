@@ -273,7 +273,7 @@
   }
   function climb(from,to,matches,done) {
     set(from); const steps=clamp(Math.round(Number(matches)||0),1,6);
-    motion={from:altitude,to:clamp(Number(to)||0,0,1000),steps,done,start:performance.now(),duration:reduced?1:420+steps*325};
+    motion={from:altitude,to:clamp(Number(to)||0,0,1000),steps,done,start:performance.now(),duration:reduced?1:920+steps*400};
     start();
   }
   function finish(h,average) {
