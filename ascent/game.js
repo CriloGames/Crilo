@@ -93,7 +93,7 @@ function render(){
  $('splits').textContent=h.map((r,i)=>'P'+(i+1)+' · '+Object.keys(r.links).length+'/6').join('   ');return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
- $('hitCopy').textContent=shown.timedOut?'The 15 seconds ran out. This pitch earns zero points.':count?'“'+shown.guess.toUpperCase()+'” connected these holds.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
+ $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess.toUpperCase()+'” connected these holds.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
  $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>shown.solution[c]).join(' · ');
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
@@ -109,8 +109,9 @@ setInterval(paintClock,100);
 function displayResponse(next,previous,action){
  const sameDay=previous?.day===next.day;
  const advanced=sameDay && next.history.length>previous.history.length;
+ const estimatedEnd=next.deadline?performance.now()+Math.max(0,Date.parse(next.deadline)-Date.parse(next.serverTime)):0;
+ timerEnd=next.deadline && next.deadline===previous?.deadline ? Math.min(timerEnd,estimatedEnd) : estimatedEnd;
  state=next;waitingForReconnect=false;
- timerEnd=next.deadline?performance.now()+Math.max(0,Date.parse(next.deadline)-Date.parse(next.serverTime)):0;
  if(next.deadline){revealIndex=null}
  else if(advanced){revealIndex=next.history.length-1}
  else if(next.results){revealIndex=null}
