@@ -227,6 +227,23 @@
     oval(c,-8,hip[1]+2,3,3.7,'#c0d2bb');
     c.restore();
   }
+  function chalkDust(cam,now){
+    if(!motion?.contact || reduced)return;
+    const age=(now-motion.contact.time)/540;
+    if(age>=1)return;
+    const anchor=project(motion.contact.position,cam);
+    const size=(.53+.62*clamp(height/540,0,1.25));
+    ctx.save();
+    ctx.globalAlpha=.78*(1-age);
+    for(let i=0;i<9;i++){
+      const angle=i*2.4+motion.lastGrip;
+      const spread=(5+i%4*4)*age;
+      const x=anchor.x+(21+Math.cos(angle)*spread)*size;
+      const y=anchor.y+(-59+Math.sin(angle)*spread+age*age*13)*size;
+      oval(ctx,x,y,(1+i%3*.55)*size,(1+i%2*.6)*size,'#fff2d9');
+    }
+    ctx.restore();
+  }
   function flag(cam,score,colour,opposite=false) {
     if(score===null || !Number.isFinite(Number(score)))return;
     const p=project(route(clamp(score/1000)*1000),cam);
@@ -260,7 +277,15 @@
       const advance=(base+smooth(clamp((frac-.13)/.73)))/motion.steps;
       altitude=mix(motion.from,motion.to,advance);
       phase=beats*Math.PI*2;energy=motion.to>motion.from?Math.sin(Math.PI*t)**.4:0;
-      if(t>=1){altitude=motion.to;done=motion.done;motion=null;}
+      const landed=Math.min(motion.steps,Math.floor(beats+.20));
+      if(!reduced && landed>motion.lastGrip && motion.to>motion.from){
+        motion.lastGrip=landed;
+        motion.contact={time:now,position:route(altitude)};
+        motion.onGrip(landed-1);
+      }
+      if(t>=1 && (reduced || now>=motion.start+motion.duration+420)){
+        altitude=motion.to;done=motion.done;motion=null;
+      }
     }
     if(pull) {
       const t=clamp((now-pull.start)/pull.duration);
@@ -284,6 +309,7 @@
     ctx.lineJoin='round';ctx.lineCap='round';
     if(pullback>.98)flag(cam,mean,'#517d80',true);
     climber(route(altitude),cam,now,phase,energy);
+    chalkDust(cam,now);
     if(pullback>.98)flag(cam,altitude,'#ce503c');
     if(!reduced) {
       // Two small birds skirt the edge of the valley in the distance.
@@ -296,9 +322,9 @@
   function set(h) {
     altitude=clamp(Number(h)||0,0,1000); motion=null;pull=null;pullback=0;mean=null;backgroundKey=''; start();
   }
-  function climb(from,to,matches,done) {
+  function climb(from,to,matches,done,onGrip) {
     set(from); const steps=clamp(Math.round(Number(matches)||0),1,6);
-    motion={from:altitude,to:clamp(Number(to)||0,0,1000),steps,done,start:performance.now(),duration:reduced?1:920+steps*400};
+    motion={from:altitude,to:clamp(Number(to)||0,0,1000),steps,done,onGrip,lastGrip:0,start:performance.now(),duration:reduced?1:920+steps*400};
     start();
   }
   function finish(h,average) {

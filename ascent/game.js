@@ -71,7 +71,11 @@ function renderAnswerReview(){
  review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
-  summary.textContent='Pitch '+(index+1)+(state.fullBank===false?' · Theme and related answers':' · Top 100 answers');
+  const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
+  title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
+  detail.textContent=state.fullBank===false?'Theme and related answers':'Top 100 answers';
+  score.textContent=Object.keys(pitch.links).length+'/6 · '+pitch.points+' pts';
+  summary.append(title,score,detail);
   body.className='answer-body';
   details.append(summary,body);review.append(details);
   details.addEventListener('toggle',async()=>{
@@ -113,7 +117,7 @@ function render(){
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
  if(finished){renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
- $('splits').textContent=h.map((r,i)=>'P'+(i+1)+' · '+Object.keys(r.links).length+'/6').join('   ');return}
+ return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'Your word was “'+shown.guess+'”.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
@@ -145,10 +149,16 @@ function displayResponse(next,previous,action){
   mode='animating';scene.dataset.phase=mode;$('guess').blur();
   scene.querySelector('.card').inert=true;message('Climbing…');let complete=false;
   const end=()=>{if(complete)return;complete=true;render();$('next').focus({preventScroll:true})};
-  row.clues.map((c,i)=>c in row.links?i:-1).filter(i=>i>=0).forEach((pos,j)=>setTimeout(()=>{
-   if(!complete){$('holds').children[pos]?.classList.add('hit');tone(j)}
-  },180+j*305));
-  mountain.climb(sum(previous.history),sum(next.history),count,end);setTimeout(end,3900);
+  const matched=row.clues.filter(word=>word in row.links);
+  $('gripWord').textContent='';$('gripCount').textContent='';
+  const onGrip=index=>{
+   if(complete || !matched[index])return;
+   $('gripCount').textContent='Hold '+(index+1)+' of '+count;
+   $('gripWord').textContent=matched[index];
+   tone(index);
+  };
+  mountain.climb(sum(previous.history),sum(next.history),count,end,onGrip);
+  setTimeout(end,4600);
  }else{
   render();
   if(next.rejected){message('No listed connection. Try another word.');$('guess').focus();$('guess').select()}

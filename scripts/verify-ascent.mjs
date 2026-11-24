@@ -65,6 +65,7 @@ try {
       if(i<5){await page.locator('#guess').fill('paper');await page.locator('#lock').click();
         if(name==='desktop' && i===1){
           await page.waitForFunction(()=>document.querySelector('.expedition').dataset.phase==='animating' && Number(getComputedStyle(document.querySelector('.expedition .card')).opacity)<0.05);
+          await page.waitForFunction(()=>document.getElementById('gripWord').textContent.length>0);
           assert(await page.locator('#view').isVisible());
           assert(await page.locator('.expedition .card').evaluate(el=>el.inert));
         }
@@ -77,6 +78,8 @@ try {
       await page.locator('#next').click();
     }
     await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');
+    assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
+    assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);await page.close();
   }
 } finally {await browser.close()}
