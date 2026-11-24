@@ -20,10 +20,17 @@ const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
 const clean=s=>s.trim().toLowerCase().replace(/\s+/g,' ');
+const uuidTicket=value=>typeof value==='string'&&/^[a-f0-9-]{36}$/i.test(value);
 function getTicket(){
   const saved=localStorage.getItem(ticketKey);
   if(saved && /^[a-f0-9-]{36}$/i.test(saved))return saved;
-  const fresh=crypto.randomUUID();localStorage.setItem(ticketKey,fresh);return fresh;
+  // Share an anonymous ticket across new generated climbs so the server can
+  // avoid previously seen clues. Existing route tickets and replays stay intact.
+  const browserKey='ascent.climber.v1';
+  let fresh=custom?localStorage.getItem(browserKey):null;
+  if(!fresh||!uuidTicket(fresh))fresh=crypto.randomUUID();
+  if(custom&&!uuidTicket(localStorage.getItem(browserKey)))localStorage.setItem(browserKey,fresh);
+  localStorage.setItem(ticketKey,fresh);return fresh;
 }
 function localDay(){
   return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>['year','month','day'].includes(p.type)).reduce((o,p)=>(o[p.type]=p.value,o),{});
