@@ -10,6 +10,28 @@ try {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/ascent/');
+    await page.waitForSelector('#start:enabled');
+    assert.equal(await page.locator('.hold').count(),0);
+    // The initial read uses the live API. Keep scored fixtures out of the daily average.
+    const board=['clip','plane','wall','trail','news','mill'];
+    const state={history:[],clues:null,deadline:null};
+    await page.route('**/rpc/ascent_pitch', async route => {
+      const p=route.request().postDataJSON();
+      state.day=p.p_day || state.day;
+      state.rejected=false;
+      if(p.p_action==='start' && !state.deadline){
+        state.clues=board;state.deadline=new Date(Date.now()+(p.p_round===5?800:15000)).toISOString();
+      }
+      const expired=state.deadline && Date.parse(state.deadline)<=Date.now();
+      if(expired || (p.p_action==='guess' && p.p_guess==='paper')){
+        const solution=Object.fromEntries(board.map(c=>[c,c+' / paper']));
+        state.history.push({guess:expired?'':'paper',clues:board,links:expired?{}:solution,points:expired?0:200,target:'paper',solution,timedOut:!!expired});
+        state.clues=null;state.deadline=null;
+        if(state.history.length===5)state.results={score:800,players:2,average:600};
+      }else if(p.p_action==='guess'){state.rejected=true}
+      await route.fulfill({json:{...state,serverTime:new Date().toISOString()}});
+    });
+    await page.locator('#start').click();
     await page.waitForSelector('#lock:enabled');
     const clues = await page.locator('.hold').allTextContents();
     assert.equal(clues.length,6);
@@ -26,27 +48,21 @@ try {
     assert(colors>20,'scene painted');
     await page.screenshot({path:'test-results/ascent/'+name+'.png',fullPage:true});
     await page.locator('#guide').click();assert(await page.locator('dialog').isVisible());await page.locator('#close').click();
-    // Keep practice runs out of the live daily average. Initial load above uses the real API.
-    const board=['clip','plane','wall','trail','news','mill'];
-    const state={history:[],clues:board};
-    await page.route('**/rpc/ascent_daily', async route => {
-      const p=route.request().postDataJSON();
-      state.day=p.p_day || state.day;
-      if(p.p_guess && p.p_round===state.history.length+1) {
-        const links=Object.fromEntries(board.map(c=>[c,c+' / paper']));
-        state.history.push({guess:'paper',clues:board,links,points:200,target:'paper',solution:links});
-        if(state.history.length===5)state.results={score:1000,players:2,average:600};
-      }
-      await route.fulfill({json:state});
-    });
     for(let i=1;i<=5;i++){
-      // First real board may itself show PAPER as a clue.
-      await page.locator('#guess').fill(i===1?'fixture':'paper');await page.locator('#lock').click();
+      if(i===1){
+        const deadline=state.deadline;
+        await page.locator('#guess').fill('zzzz');await page.locator('#lock').click();
+        await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Try another word'));
+        assert.equal(state.history.length,0);
+        await page.reload();await page.waitForSelector('#lock:enabled');assert.equal(state.deadline,deadline);
+      }
+      if(i<5){await page.locator('#guess').fill('paper');await page.locator('#lock').click()}
       await page.waitForSelector('#reveal:visible');assert.equal(await page.locator('#results').isVisible(),false);
       if(i===2){await page.reload();await page.waitForSelector('#reveal:visible')}
+      if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
       await page.locator('#next').click();
     }
-    await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'1,000');
+    await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');
     assert.deepEqual(errors,[]);await page.close();
   }
 } finally {await browser.close()}
