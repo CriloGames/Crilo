@@ -3,7 +3,7 @@ declare
  candidate record; attempt int; holds text[]; pitches jsonb:='[]'; bank int; perfect int; strong int; signature text; signatures text[]:='{}';
 begin
  if seed like 'daily:%' then
-  select coalesce(array_agg(distinct signature),'{}') into signatures
+  select coalesce(array_agg(distinct recent.signature),'{}') into signatures
   from (
    select (select string_agg(clue,',' order by clue) from jsonb_array_elements_text(pitch->'clues') clue) signature
    from ascent_game.circuits c cross join lateral jsonb_array_elements(c.boards) pitch
