@@ -6,3 +6,8 @@
 .clock strong{font-size:18px;font-variant-numeric:tabular-nums}.clock.urgent{--timer-color:#a13724}
 .clock progress{grid-column:1/-1;appearance:none;width:100%;height:5px;border:0;border-radius:4px;overflow:hidden;background:#dde1ce;color:var(--timer-color)}
 .clock progress::-webkit-progress-bar{background:#dde1ce}.clock progress::-webkit-progress-value{background:var(--timer-color)}.clock progress::-moz-progress-bar{background:var(--timer-color)}
+
+.routes{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;margin:-5px 0 18px;font-size:14px;font-weight:650}
+.routes a,.routes button,.secondary,.archive-link{color:var(--green);text-underline-offset:4px}.routes a{text-decoration:none;padding:6px 0;border-bottom:2px solid transparent}.routes a[aria-current],.routes a:hover{border-color:currentColor}.routes button{margin-left:auto;text-decoration:underline;font-size:13px}.secondary{padding:8px 0;text-decoration:underline;font-weight:600}
+.archive-shell{max-width:960px}.archive-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:18px;align-items:start}.archive-grid .card{min-height:0}.archive-list{list-style:none;margin:16px 0;padding:0}.archive-list li{border-top:1px solid var(--line)}.archive-list a{display:flex;justify-content:space-between;padding:12px 0;text-decoration:none;color:var(--green);font-weight:650}.archive-list a:hover{text-decoration:underline}.archive-grid .primary{text-decoration:none;justify-content:center}.archive-grid h2{font-size:32px}.archive-grid .intro{margin:12px 0}.archive-grid .card-top{margin-bottom:15px}
+@media(max-width:670px){.routes{font-size:12px;gap:4px 13px;margin-bottom:10px}.archive-grid{grid-template-columns:1fr}}

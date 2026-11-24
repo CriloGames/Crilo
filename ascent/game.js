@@ -1,7 +1,16 @@
 (() => {
 'use strict';
-const endpoint='https://mqozqigwkobnhijvvboy.supabase.co/rest/v1/rpc/ascent_pitch';
-const apiKey='sb_publishable__AqZ1h05YLDbnKZf8FC-Tw_WahZdQot';
+const params=new URLSearchParams(location.search);
+if(params.has('new')){
+ params.delete('new');params.delete('archive');params.set('climb',crypto.randomUUID());
+ history.replaceState(null,'','?'+params.toString());
+}
+const seed=params.get('climb'),archive=params.get('archive');
+const custom=seed!==null, replay=archive!==null, official=!custom&&!replay;
+const routeName=custom?'Generated climb':replay?'Archive climb':'Daily climb';
+const scope=custom?'practice.'+seed:replay?'archive.'+archive:'daily';
+const ticketKey=official?'ascent.climber.v1':'ascent.attempt.'+scope;
+const syncKey=official?'ascent.last.v1':'ascent.last.'+scope;
 const $=id=>document.getElementById(id);
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 const holdPositions=[[56,20],[78,28],[84,47],[71,68],[48,62],[40,39]];
@@ -12,19 +21,17 @@ const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
 const clean=s=>s.trim().toLowerCase();
 function getTicket(){
-  const saved=localStorage.getItem('ascent.climber.v1');
+  const saved=localStorage.getItem(ticketKey);
   if(saved && /^[a-f0-9-]{36}$/i.test(saved))return saved;
-  const fresh=crypto.randomUUID();localStorage.setItem('ascent.climber.v1',fresh);return fresh;
+  const fresh=crypto.randomUUID();localStorage.setItem(ticketKey,fresh);return fresh;
 }
 function localDay(){
   return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>['year','month','day'].includes(p.type)).reduce((o,p)=>(o[p.type]=p.value,o),{});
 }
 function today(){const d=localDay();return [d.year,d.month,d.day].join('-')}
-function putDate(day){$('date').textContent=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).toUpperCase()}
-async function call(extra={}){
- const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),12000);
- try {const response=await fetch(endpoint,{method:'POST',headers:{apikey:apiKey,'Content-Type':'application/json'},body:JSON.stringify({p_ticket:ticket,...extra}),signal:controller.signal});
- if(!response.ok)throw new Error('connection');return await response.json()}finally{clearTimeout(timeout)}
+function putDate(day){if(custom){$('date').textContent='ROUTE '+seed.slice(0,8).toUpperCase();return}$('date').textContent=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).toUpperCase()}
+function call(extra={}){
+ return official?window.ascentRpc('ascent_pitch',{p_ticket:ticket,...extra}):window.ascentRpc('ascent_circuit',{p_ticket:ticket,p_seed:seed,p_archive:archive,...extra});
 }
 function toggleSound(){
  sound=!sound;
@@ -36,7 +43,7 @@ function toggleSound(){
 function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gain=audio.createGain(),t=audio.currentTime;
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
-function cache(){if(state)localStorage.setItem('ascent.last.v1',JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
+function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
 function renderHolds(clues,record){
  $('holds').replaceChildren();
  clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
@@ -52,8 +59,8 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('total').textContent=format(state.results.score);$('average').textContent=format(state.results.average);
- $('finishers').textContent=state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
+ if(finished){$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  $('splits').textContent=h.map((r,i)=>'P'+(i+1)+' · '+Object.keys(r.links).length+'/6').join('   ');return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
@@ -119,9 +126,21 @@ $('manual').addEventListener('click',e=>{if(e.target===$('manual')){const r=$('m
 $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick=connect;
 $('start').onclick=()=>requestPitch('start');
 $('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
-$('share').onclick=async()=>{const h=state.history;const result='Ascent · '+state.day+'\n'+format(state.results.score)+' / 1,000\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
-function refresh(){if(document.hidden||pending||mode==='animating')return;if(state?.day!==today()||mode==='results'||mode==='play')connect()}
+$('share').onclick=async()=>{const h=state.history;const result='Ascent · '+(custom?'Custom '+seed.slice(0,8):replay?'Archive '+archive:state.day)+'\n'+format(state.results.score)+' / 1,000\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
+function refresh(){if(document.hidden||pending||mode==='animating')return;if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});setInterval(refresh,60000);
-window.addEventListener('storage',e=>{if(e.key==='ascent.last.v1'&&!document.hidden&&!pending&&mode!=='animating')connect()});
-putDate(today());mountain.init($('view'));connect();
+window.addEventListener('storage',e=>{if(e.key===syncKey&&!document.hidden&&!pending&&mode!=='animating')connect()});
+const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const valid=!(custom&&replay)&&(!custom||uuid.test(seed))&&(!replay||(/^\d{4}-\d{2}-\d{2}$/.test(archive)&&archive>='2026-11-24'&&archive<today()));
+if(!valid){$('start').disabled=true;message('This route is unavailable. Choose Today, Archive, or Generate a climb.');return}
+if(!official){
+ document.title=routeName+' · Ascent';document.querySelector('.headline h1').textContent=custom?'Your own ascent.':'An earlier ascent.';
+ document.querySelector('.headline .eyebrow').textContent=custom?'PRACTICE CIRCUIT':'DAILY ARCHIVE';
+ $('avgLabel').textContent='Original daily average';
+}else $('dailyLink').setAttribute('aria-current','page');
+if(replay)$('archiveLink').setAttribute('aria-current','page');
+$('again').onclick=()=>{localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
+$('routeLink').hidden=!custom;
+$('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
+putDate(archive||today());mountain.init($('view'));connect();
 })();
