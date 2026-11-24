@@ -17,6 +17,10 @@ try {
     const state={history:[],clues:null,deadline:null};
     await page.route('**/rpc/ascent_pitch', async route => {
       const p=route.request().postDataJSON();
+      if(p.p_action==='retry_pitch'){
+        assert.equal(p.p_round,5);
+        return route.fulfill({json:{links:{clip:'a paper clip',mill:'a paper mill'},points:30,rejected:false}});
+      }
       state.day=p.p_day || state.day;
       state.rejected=false;
       if(p.p_action==='start' && !state.deadline){
@@ -77,7 +81,13 @@ try {
       assert.equal(await page.locator('#reveal #holds .hold').count(),6);
       assert.equal(await page.locator('#reveal #holds .hit').count(),i===5?0:6);
       if(i===2){await page.reload();await page.waitForSelector('#reveal:visible')}
-      if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
+      if(i===5){
+        assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
+        await page.locator('#practicePitch summary').click();
+        await page.locator('#retryGuess').fill('paper');
+        await page.locator('#retryCheck').click();
+        await page.waitForFunction(()=>document.getElementById('retryOutcome').textContent.includes('+30'));
+      }else assert(await page.locator('#practicePitch').isHidden());
       await page.locator('#next').click();
     }
     await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');

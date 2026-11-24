@@ -114,7 +114,7 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 }
 @media(prefers-reduced-motion:reduce){#gripCaption,#answerReview summary::after{transition:none}}
 
-.expedition #guess.guess-rejected{animation:guess-retry .48s ease-out}
+.expedition :is(#guess,#retryGuess).guess-rejected{animation:guess-retry .48s ease-out}
 @keyframes guess-retry{
   0%,100%{transform:translateX(0)}
   8%,68%{background-color:#622c2d;border-color:#ff9990;outline-color:#ff9990}
@@ -123,6 +123,8 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
   78%{transform:translateX(-2px)}
 }
 @media(prefers-reduced-motion:reduce){
- .expedition #guess.guess-rejected{animation-name:guess-retry-color}
+ .expedition :is(#guess,#retryGuess).guess-rejected{animation-name:guess-retry-color}
  @keyframes guess-retry-color{0%,72%{background-color:#622c2d;border-color:#ff9990;outline-color:#ff9990}}
 }
+
+#practicePitch[open]{padding:10px 12px;background:#19372fe8;border-radius:8px}#practicePitch p{font-size:14px;line-height:1.4}#retryOutcome:empty{display:none}#retryCheck{margin:0}

@@ -120,8 +120,12 @@ function render(){
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 holds.';
- $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'Your word was “'+shown.guess+'”.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
+ $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
+ $('practicePitch').hidden=count===6;
+ $('practicePitch').open=false;
+ $('retryGuess').value='';$('retryOutcome').textContent='';$('retryCheck').disabled=false;
+ $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 holds? ':'Take another look at the six holds. ')+'This practice guess is untimed. Your first score stands.';
  $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>state.semantic?c.toUpperCase()+' — '+shown.solution[c]:shown.solution[c]).join(' · ');
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
@@ -197,6 +201,25 @@ function submit(e){
  if(g.length>48||!/^[a-z]+(?: [a-z]+){0,5}$/.test(g)||state.clues.includes(g)){rejectGuess('Try a word or short phrase of your own, using letters and spaces.');return}
  message('Checking your word…');requestPitch('guess',g);
 }
+$('retryForm').onsubmit=async e=>{
+ e.preventDefault();
+ if(mode!=='reveal'||$('retryCheck').disabled)return;
+ const pitchIndex=revealIndex,day=state.day,record=state.history[pitchIndex];
+ const guess=clean($('retryGuess').value);
+ if(!guess)return;
+ const stillHere=()=>mode==='reveal'&&revealIndex===pitchIndex&&state.day===day;
+ $('retryCheck').disabled=true;$('retryOutcome').textContent='Checking…';
+ try{
+  const result=await call({p_action:'retry_pitch',p_day:day,p_round:pitchIndex+1,p_guess:guess});
+  if(!stillHere())return;
+  const matches=record.clues.filter(c=>Object.hasOwn(result.links,c));
+  const gain=result.points-record.points;
+  $('retryOutcome').textContent=result.rejected?'No listed connection. Try another word or phrase.':
+    '“'+guess+'” · '+matches.length+'/6 · '+result.points+' points'+(gain>0?' (+'+gain+')':'')+'. Matched '+matches.join(', ')+'.';
+  if(result.rejected){$('retryGuess').focus();$('retryGuess').select();$('retryGuess').classList.remove('guess-rejected');void $('retryGuess').offsetWidth;$('retryGuess').classList.add('guess-rejected')}
+ }catch{if(stillHere())$('retryOutcome').textContent='Couldn’t check that guess. Try again.'}
+ finally{if(stillHere())$('retryCheck').disabled=false}
+};
 $('guide').onclick=()=>$('manual').showModal();$('close').onclick=$('understood').onclick=()=>$('manual').close();
 $('manual').addEventListener('click',e=>{if(e.target===$('manual')){const r=$('manual').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('manual').close()}});
 $('routeLink').addEventListener('click',()=>document.querySelector('.route-menu').open=false);
