@@ -44,9 +44,10 @@ function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gai
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
+const objectClues = {"ball":"⚽","bed":"🛏️","bird":"🐦","board":"🪵","book":"📕","box":"📦","bridge":"🌉","brush":"🖌️","cap":"🧢","chain":"⛓️","coat":"🧥","door":"🚪","gate":"🚧","hand":"✋","house":"🏠","key":"🔑","light":"💡","paper":"📄","plate":"🍽️","ring":"💍","screen":"🖥️","sign":"🪧","stone":"🪨","watch":"⌚","wheel":"🛞"};
 function renderHolds(clues,record){
  $('holds').replaceChildren();
- clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num,word.toUpperCase());if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
+ clues.forEach((word,i)=>{const hold=document.createElement('span');hold.className='hold';hold.style.setProperty('--x',holdPositions[i][0]+'%');hold.style.setProperty('--y',holdPositions[i][1]+'%');const num=document.createElement('i');num.textContent=String(i+1);hold.append(num);const icon=objectClues[word];if(icon){const picture=document.createElement('span');picture.className='object-clue';picture.setAttribute('aria-hidden','true');picture.textContent=icon;hold.append(picture)}hold.append(word.toUpperCase());if(record)hold.classList.add(word in record.links?'hit':'miss');$('holds').append(hold)})
 }
 function render(){
  const h=state.history,finished=!!state.results&&revealIndex===null,shown=revealIndex!==null?h[revealIndex]:null;
