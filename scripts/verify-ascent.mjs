@@ -126,9 +126,10 @@ try {
     await page.locator('#answerReview > details > summary').last().click();
     const possible=page.locator('#answerReview > details').last().locator('.answer-entry').first();
     assert(await possible.isVisible());
-    assert.equal(await possible.evaluate(el=>el.open),false);
-    await possible.locator('summary').click();
-    assert(await possible.locator('.connection-row').first().isVisible());
+    assert.equal(await possible.evaluate(el=>el.tagName),'DIV');
+    assert(await possible.locator('strong').isVisible());
+    assert.match(await possible.locator('span').innerText(),/\d+ pts/);
+    assert.equal(await page.locator('#answerReview .connection-row, #answerReview .answer-entry details, #answerReview details.answer-entry').count(),0,'ranked words only');
     assert.equal(reviewFetches,0,'expanding review makes no requests');
     assert((await page.locator('#answerReview > details > summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);

@@ -284,3 +284,8 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 
 #answerReview details[open]>summary::after{transform:rotate(225deg)}
 #answerReview details:not([open])>summary::after{transform:rotate(45deg)}
+
+/* A pitch opens a ranked list of words, not another level of dropdowns. */
+#answerReview .answer-word-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;min-width:0}
+#answerReview .answer-word-row strong{font-size:13px;font-weight:600;color:#f3e8cb;overflow-wrap:anywhere}
+#answerReview .answer-word-row span{font:700 12px var(--mono);color:#eed1a2;white-space:nowrap;flex-shrink:0}

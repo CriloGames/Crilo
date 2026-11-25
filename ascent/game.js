@@ -446,15 +446,15 @@ function renderAlternatives(pitch,container,answers=[]){
  add(pitch.target,pitch.solution);
  add(pitch.guess,pitch.links,pitch.points);
  const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
- const openWords=new Set([...container.querySelectorAll('details[open]')].map(row=>row.dataset.word));
  for(let hits=6;hits>=1;hits--){
   const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));if(!matching.length)continue;
   const tier=document.createElement('section'),head=document.createElement('h3');
   head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
   for(const answer of matching){
-   const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
-   row.className='answer-entry';row.dataset.word=answer.word.toLowerCase();title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';summary.append(title,score);
-   row.append(summary,connectionList(pitch.clues,answer.links,answer.word));row.open=openWords.has(row.dataset.word);tier.append(row);
+   const row=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
+   row.className='answer-entry answer-word-row';row.dataset.word=answer.word.toLowerCase();
+   title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';
+   row.append(title,score);tier.append(row);
   }
   groups.append(tier);
  }
