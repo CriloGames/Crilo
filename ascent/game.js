@@ -71,6 +71,73 @@ function getTicket(){
   if(custom&&!uuidTicket(localStorage.getItem(browserKey)))localStorage.setItem(browserKey,fresh);
   localStorage.setItem(ticketKey,fresh);return fresh;
 }
+// Keep exactly one freshly generated, unplayed practice route for this tab.
+// A route is marked ready only after the server confirms that it saved all five pitches.
+const nextRouteKey='ascent.next-practice.v1';
+let nextRouteMemory=null,nextRouteJob=null,nextRouteAttempts=0,nextRouteRetry=0,openingNext=false;
+function nextRouteRead(){
+ try{return JSON.parse(sessionStorage.getItem(nextRouteKey))||nextRouteMemory}catch{return nextRouteMemory}
+}
+function nextRouteWrite(value){
+ nextRouteMemory=value;
+ try{if(value)sessionStorage.setItem(nextRouteKey,JSON.stringify(value));else sessionStorage.removeItem(nextRouteKey)}catch{}
+}
+function nextRouteTicket(){
+ const key='ascent.climber.v1';
+ let id=localStorage.getItem(key);
+ if(!uuidTicket(id)){id=ticket||crypto.randomUUID();localStorage.setItem(key,id)}
+ return id;
+}
+async function generateRoute(routeSeed,routeTicket){
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),40000);
+ try{
+  const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed:routeSeed,ticket:routeTicket}),signal:controller.signal});
+  const data=await response.json();
+  if(!response.ok||!data.ok){const e=new Error('Generation unavailable');e.generation=true;e.status=response.status;throw e}
+ }catch(error){error.generation=true;throw error}finally{clearTimeout(timeout)}
+}
+function prepareNextRoute(){
+ if(nextRouteJob)return nextRouteJob;
+ let next=nextRouteRead();
+ if(next?.seed===seed||!uuidTicket(next?.seed)||next.ticket!==nextRouteTicket()){
+  next={seed:crypto.randomUUID(),ticket:nextRouteTicket(),ready:false};nextRouteWrite(next);
+ }
+ if(next.ready)return Promise.resolve(next);
+ if(nextRouteAttempts>=3)return Promise.resolve(null);
+ nextRouteAttempts++;
+ nextRouteJob=generateRoute(next.seed,next.ticket).then(()=>{
+  const ready={...next,ready:true};nextRouteWrite(ready);return ready;
+ }).catch(error=>{
+  if(error.status!==429&&nextRouteAttempts<3){
+   clearTimeout(nextRouteRetry);nextRouteRetry=setTimeout(()=>prepareNextRoute(),1500*nextRouteAttempts);
+  }
+  return null;
+ }).finally(()=>{nextRouteJob=null});
+ return nextRouteJob;
+}
+function openNextRoute(next){
+ if(!next?.ready||!uuidTicket(next.seed))return false;
+ clearTimeout(nextRouteRetry);
+ // Preserve the identity used to generate the route, including across archived climbs.
+ localStorage.setItem('ascent.attempt.practice.'+next.seed,next.ticket);
+ nextRouteWrite(null);
+ location.assign('?climb='+encodeURIComponent(next.seed));
+ return true;
+}
+async function playAgain(event){
+ if(event.button!==undefined&&event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+ event.preventDefault();
+ if(openingNext)return;
+ const ready=nextRouteRead();
+ if(ready?.ready&&ready.seed!==seed&&ready.ticket===nextRouteTicket()&&openNextRoute(ready))return;
+ openingNext=true;
+ message('Finishing your new route…');
+ if(nextRouteAttempts>=3)nextRouteAttempts=0;
+ clearTimeout(nextRouteRetry);
+ const next=await prepareNextRoute();
+ openingNext=false;
+ if(!openNextRoute(next))message('A fresh route is not ready yet. Try Play again shortly.');
+}
 function localDay(){
   return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>['year','month','day'].includes(p.type)).reduce((o,p)=>(o[p.type]=p.value,o),{});
 }
@@ -361,17 +428,14 @@ async function requestPitch(action='read',guess=null,retrying=false){
   let next=await call(args);
   if(custom&&next.needsGeneration){
    message('Generating a brand-new climb…');
-   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),40000);
-   try{
-    const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed,ticket}),signal:controller.signal});
-    const data=await response.json();
-    if(!response.ok||!data.ok){const e=new Error('Generation unavailable');e.generation=true;e.status=response.status;throw e;}
-   }catch(error){error.generation=true;throw error}finally{clearTimeout(timeout)}
+   await generateRoute(seed,ticket);
    next=await call(args);
    if(next.needsGeneration){const e=new Error('Route not saved');e.generation=true;throw e;}
   }
   recovery=null;recoveryDelay=800;waitingForReconnect=false;
   displayResponse(next,prev,action);
+  // Run alongside gameplay, never inside the scoring or timer request.
+  if(!document.hidden)void prepareNextRoute();
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
   waitingForReconnect=true;recovery={action,guess,args};
@@ -475,5 +539,6 @@ if(replay)$('archiveLink').setAttribute('aria-current','page');
 $('again').onclick=()=>{if(custom){location.assign('?new=1');return}localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
 $('routeLink').hidden=!custom;
 $('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
+for(const link of document.querySelectorAll('a[href="?new=1"]'))link.addEventListener('click',playAgain);
 putDate(archive||today());mountain.init($('view'));connect();
 })();
