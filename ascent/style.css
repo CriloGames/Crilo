@@ -222,7 +222,7 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .expedition #results .answer-entry summary{min-height:44px}
  .expedition[data-phase=ready] .mountain{height:clamp(180px,36svh,340px)}
  .expedition[data-phase=ready] .headline h1{font-size:clamp(56px,14vw,82px)}
- .expedition[data-phase=results] .mountain{height:auto;aspect-ratio:1000/650;max-height:380px;min-height:0}
+ .expedition[data-phase=results] .mountain{width:min(100%,584px);height:auto;aspect-ratio:1000/650;max-height:none;min-height:0;align-self:center}
  .expedition[data-phase=results] .mountain::after{background:linear-gradient(0deg,#152c2b 0%,transparent 15%)}
  .expedition[data-phase=results] .card{padding-top:18px}
  .expedition[data-phase=animating] .mountain{height:calc(100svh - 58px);min-height:180px}
