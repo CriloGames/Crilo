@@ -35,6 +35,24 @@ function connectionRow(clue,raw,answer){
  }
  reason.textContent=explanation;item.append(heading,reason);return item;
 }
+function renderReport(clues,links,guess){
+ const panel=$('reportConnection'),list=$('reportClues'),status=$('reportStatus');
+ const missing=clues.filter(c=>!Object.hasOwn(links||{},c));
+ panel.open=false;panel.hidden=!guess||!missing.length;list.replaceChildren();status.textContent='';
+ $('reportAnswer').textContent=guess?'Which clue should “'+guess+'” also match?':'';
+ if(panel.hidden)return;
+ const pitch=revealIndex+1,day=state.day;
+ for(const clue of missing){
+  const b=document.createElement('button');b.type='button';b.className='secondary report-clue';b.textContent=displayWord(clue);
+  b.onclick=async()=>{b.disabled=true;status.textContent='Sending…';try{
+   const result=await window.ascentRpc('ascent_report_connection',{p_ticket:ticket,p_day:day,p_round:pitch,p_guess:guess,p_clue:clue,p_archive:archive,p_seed:seed});
+   if(!b.isConnected)return;
+   if(result.ok){b.textContent=displayWord(clue)+' ✓';status.textContent='Reported for review. Your score is unchanged.';}
+   else{b.disabled=false;status.textContent=result.limited?'Report limit reached for today.':'This connection could not be reported.';}
+  }catch{if(b.isConnected){b.disabled=false;status.textContent='Could not send. Try again.'}}};
+  list.append(b);
+ }
+}
 function connectionList(clues,links,answer){
  const list=document.createElement('ul');list.className='connection-list';
  for(const clue of clues)if(links&&Object.hasOwn(links,clue)&&links[clue]!=null)list.append(connectionRow(clue,links[clue],answer));
@@ -183,6 +201,7 @@ function render(){
  if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
+ renderReport(clues,shown.links,shown.guess);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
  $('retryGuess').value='';$('retryOutcome').textContent='';$('retryConnections').replaceChildren();$('practiceBest').hidden=true;$('retryCheck').disabled=false;
@@ -285,6 +304,7 @@ $('retryForm').onsubmit=async e=>{
   $('retryOutcome').textContent=result.rejected?'No recognized connection. Try another word or phrase.':
     '“'+guess+'” · '+matches.length+'/6 · '+result.points+' points'+(gain>0?' (+'+gain+')':'')+'. Matched '+matches.join(', ')+'.';
   $('retryConnections').replaceChildren();
+  renderReport(record.clues,result.links,guess);
   if(!result.rejected){
    $('retryConnections').append(connectionList(record.clues,result.links,guess));
    if(result.points>practiceBest.points){practiceBest={guess,points:result.points,links:result.links};tone(5)}
