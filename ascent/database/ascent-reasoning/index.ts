@@ -19,12 +19,12 @@ Deno.serve(async req=>{
  const reserve=await fetch(base+"/rest/v1/rpc/ascent_llm_reserve",{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({p_token:token,p_ticket:body.ticket}),signal:AbortSignal.timeout(1300)});
  if(!reserve.ok||await reserve.json()!==true)return respond({error:"quota_or_auth"},429);
  const start=performance.now();
- const cf=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/run/"+MODEL,{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"system",content:prompt},{role:"user",content:JSON.stringify({answer:body.guess,clues:body.clues.map((c:string,i:number)=>({i:i+1,clue:c}))})}],max_tokens:220,temperature:0,response_format:{type:"json_object"}}),signal:AbortSignal.timeout(5100)});
+ const cf=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/run/"+MODEL,{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"system",content:prompt},{role:"user",content:JSON.stringify({answer:body.guess,clues:body.clues.map((c:string,i:number)=>({i:i+1,clue:c}))})}],max_tokens:220,temperature:0,response_format:{type:"json_schema",json_schema:{type:"object",properties:{matches:{type:"array",items:{type:"object",properties:{i:{type:"integer"},reason:{type:"string"}},required:["i","reason"],additionalProperties:false}}},required:["matches"],additionalProperties:false}}}),signal:AbortSignal.timeout(5100)});
  const data=await cf.json();
  if(!cf.ok||data.success!==true)return respond({error:"cloudflare_request_failed",status:cf.status,code:data.errors?.[0]?.code??null});
  let result=data.result?.response;
  if(typeof result==="string"){try{result=JSON.parse(result)}catch{return respond({error:"invalid_model_json"})}}
- if(!result||!Array.isArray(result.matches)||result.matches.length>body.clues.length)return respond({error:"invalid_model_output"});
+ if(!result||!Array.isArray(result.matches)||result.matches.length>body.clues.length)return respond({error:"invalid_model_output",shape:typeof result,keys:result&&typeof result==="object"?Object.keys(result).slice(0,10):[]});
  const matches:Record<string,string>={},seen=new Set<number>();
  for(const m of result.matches){
  if(!Number.isInteger(m.i)||m.i<1||m.i>body.clues.length||seen.has(m.i)||typeof m.reason!=="string"||m.reason.length<4||m.reason.length>150||/[<>\u0000-\u001f]/.test(m.reason))return respond({error:"invalid_model_output"});
