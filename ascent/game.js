@@ -176,7 +176,7 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
@@ -321,7 +321,7 @@ if(!official){
  $('avgLabel').textContent='Original daily average';
 }else $('dailyLink').setAttribute('aria-current','page');
 if(replay)$('archiveLink').setAttribute('aria-current','page');
-$('again').onclick=()=>{localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
+$('again').onclick=()=>{if(custom){location.assign('?new=1');return}localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
 $('routeLink').hidden=!custom;
 $('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
 putDate(archive||today());mountain.init($('view'));connect();
