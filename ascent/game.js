@@ -178,7 +178,7 @@ function render(){
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' / 1,000';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.';
- $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
+ $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
@@ -192,7 +192,7 @@ function paintClock(){
  if(mode!=='play')return;
  const ms=Math.max(0,timerEnd-performance.now()), sec=Math.ceil(ms/1000);
  $('seconds').textContent=sec+'s';$('clockbar').value=ms/1000;$('clock').classList.toggle('urgent',sec<=5);
- if(ms===0&&!pending&&!waitingForReconnect)requestPitch('read');
+ if(ms===0&&!pending&&!waitingForReconnect)finishAtDeadline();
 }
 setInterval(paintClock,100);
 function displayResponse(next,previous,action){
@@ -206,7 +206,7 @@ function displayResponse(next,previous,action){
  else if(next.results){revealIndex=null}
  else {revealIndex=next.history.length?next.history.length-1:null}
  if(!sameDay||advanced||action==='start'){$('guess').value='';$('guess').removeAttribute('aria-invalid')}
- if(advanced && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && action==='guess'){
+ if(advanced && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && (action==='guess'||action==='auto_guess') && Object.keys(next.history[revealIndex].links).length>0){
   const row=next.history[revealIndex], count=Object.keys(row.links).length;
   mode='animating';scene.dataset.phase=mode;$('guess').blur();
   scene.querySelector('.card').inert=true;message('Climbing…');let complete=false;
@@ -239,7 +239,13 @@ async function requestPitch(action='read',guess=null){
  }catch{waitingForReconnect=true;message('Connection interrupted. Reconnect to check your pitch.',true)}
  finally{pending=false;$('next').disabled=false}
 }
-function connect(){return requestPitch('read')}
+function finishAtDeadline(){
+ if(pending||mode!=='play')return;
+ const guess=clean($('guess').value);
+ if(guess&&validGuess(guess)&&!state.clues.includes(guess)){message('Time’s up — submitting your answer…');return requestPitch('auto_guess',guess)}
+ return requestPitch('read');
+}
+function connect(){return mode==='play'&&performance.now()>=timerEnd?finishAtDeadline():requestPitch('read')}
 function rejectGuess(reason){
  const input=$('guess');
  message(reason);
@@ -254,7 +260,7 @@ $('guess').addEventListener('animationend',()=> $('guess').classList.remove('gue
 $('guess').addEventListener('input',()=> $('guess').removeAttribute('aria-invalid'));
 function submit(e){
  e.preventDefault();if(pending||mode!=='play'||waitingForReconnect)return;
- if(performance.now()>=timerEnd){connect();return}
+ if(performance.now()>=timerEnd){finishAtDeadline();return}
  const g=clean($('guess').value);
  if(!validGuess(g)||state.clues.includes(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
  message('Checking your answer…');requestPitch('guess',g);
