@@ -183,7 +183,7 @@ function render(){
  document.querySelector('.expedition .card').inert=false;
  $('readyRule').textContent=state.semantic?'Connect six clues with a word or phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
- $('generate').textContent='New themed climb ↗';
+ $('generate').textContent='Practice climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
  $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. Use one idea, even if it takes several words. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
  $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-clue answer';
