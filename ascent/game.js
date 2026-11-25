@@ -279,12 +279,19 @@ function rememberView(){
  if(!state||!ticket)return;
  writeLocal(viewKey,!state.deadline&&state.history.length?{ticket,state}:null);
 }
+// Five locked pitches are a completed climb, even in an older saved view
+// that did not include the results object. Never invent crowd statistics.
+function completedView(snapshot){
+ if(!snapshot||snapshot.deadline||snapshot.history?.length!==5)return snapshot;
+ if(snapshot.results&&Number.isFinite(snapshot.results.score))return snapshot;
+ return {...snapshot,results:{score:sum(snapshot.history),average:null,players:0},semantic:snapshot.semantic??true};
+}
 function cachedView(day){
  const saved=readLocal(viewKey),s=saved?.state;
  if(saved?.ticket!==ticket||s?.day!==day||s.deadline||!Array.isArray(s.history)||!s.history.length||s.history.length>5)return null;
  if(s.history.some(p=>!Array.isArray(p.clues)||!p.links||typeof p.points!=='number'))return null;
  if(s.results&&(!Number.isFinite(s.results.score)||s.history.length!==5))return null;
- return s;
+ return completedView(s);
 }
 function cache(){if(state){writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length});rememberView()}}
 function matchMeter(node,clues,links,showWords=false){
@@ -539,18 +546,24 @@ function paintClock(){
 setInterval(paintClock,100);
 paintResetClock();setInterval(paintResetClock,1000);
 function displayResponse(next,previous,action){
+ next=completedView(next);
  guessClockRemaining=null;
  const sameDay=previous?.day===next.day;
  const advanced=!!previous&&sameDay&&next.history.length>previous.history.length;
  const estimatedEnd=next.deadline?performance.now()+Math.max(0,Date.parse(next.deadline)-Date.parse(next.serverTime)):0;
  timerEnd=next.deadline && next.deadline===previous?.deadline ? Math.min(timerEnd,estimatedEnd) : estimatedEnd;
+ const wasPlaying=mode==='play';
  state=next;waitingForReconnect=false;
+ // Show the last pitch only when it finishes during this live play session.
+ // A read/refresh of an already completed climb must go straight to results.
  if(next.deadline){revealIndex=null}
+ else if(next.results&&!(advanced&&wasPlaying)){revealIndex=null}
  else if(advanced){revealIndex=next.history.length-1}
  else if(next.results){revealIndex=null}
  else {revealIndex=next.history.length?next.history.length-1:null}
+ rememberView();
  if(!sameDay||advanced||action==='start'){$('guess').value='';$('guess').removeAttribute('aria-invalid')}
- if(advanced && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && (action==='guess'||action==='auto_guess') && Object.keys(next.history[revealIndex].links).length>0){
+ if(advanced && revealIndex!==null && !next.deadline && !next.history[revealIndex].timedOut && mode==='play' && (action==='guess'||action==='auto_guess') && Object.keys(next.history[revealIndex].links).length>0){
   const row=next.history[revealIndex], count=Object.keys(row.links).length;
   mode='animating';scene.dataset.phase=mode;$('guess').blur();
   scene.querySelector('.card').inert=true;message('Climbing…');let complete=false;
@@ -598,7 +611,7 @@ function bootstrap(){
  // Render synchronously before making any network request. Start is usable
  // even when the initial status request has not returned.
  state=saved||{day,history:[],deadline:null,pitchSeconds:20,semantic:!replay,fullBank:true};
- revealIndex=saved&&!saved.results?saved.history.length-1:null;
+ revealIndex=saved&&!saved.results&&saved.history.length<5?saved.history.length-1:null;
  startupReading=true;
  render();
  const id=++startupReadId;
@@ -693,7 +706,7 @@ window.addEventListener('pageshow',e=>{if(e.persisted)restoreSound()});
 window.addEventListener('storage',e=>{if(e.key===soundKey||e.key===null)restoreSound()});
 $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick=connect;
 $('start').onclick=()=>requestPitch('start');
-$('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
+$('next').onclick=()=>{if(state.results){revealIndex=null;rememberView();render()}else requestPitch('start')};
 $('share').onclick=async()=>{const h=state.history;const result='Ascent · '+(custom?'Custom '+seed.slice(0,8):replay?'Archive '+archive:state.day)+'\n'+format(state.results.score)+' pts\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
 function refresh(){if(document.hidden||pending||startupReading||automaticReviewJob||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});setInterval(refresh,60000);

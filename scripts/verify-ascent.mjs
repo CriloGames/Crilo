@@ -121,7 +121,13 @@ try {
       if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
       assert.equal(await page.locator('#reveal details, #reveal #originalRecheck').count(),0,'no mid-climb review controls');
       assert(await page.locator('#reveal #next').isVisible(),'next pitch stays available');
-      await page.locator('#next').click();
+      if(i===5){
+        // Hard-refresh from the final pitch itself: completed daily must go
+        // directly to results, not ask the player to click See my climb again.
+        await page.reload({waitUntil:'domcontentloaded'});
+        await page.waitForSelector('#results:visible');
+        assert(await page.locator('#reveal').isHidden());
+      }else await page.locator('#next').click();
     }
     await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');
     assert.equal(await page.locator('#completeTitle').innerText(),'Daily complete.');
