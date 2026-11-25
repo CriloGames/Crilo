@@ -25,9 +25,9 @@ const displayWord=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
 function connectionRow(clue,raw,answer){
  const item=document.createElement('li'),heading=document.createElement('div'),label=document.createElement('strong'),reason=document.createElement('p');
  item.className='connection-row';heading.className='connection-heading';label.textContent=displayWord(clue);heading.append(label);
- const match=typeof raw==='string'?raw.match(/\s*\((\d+)% match\)$/):null;
- let explanation=typeof raw==='string'?raw.replace(/\s*\(\d+% match\)$/,'').trim():'';
- if(match){const percent=document.createElement('span');percent.className='connection-percent';percent.textContent=match[1]+'%';heading.append(percent)}
+ const match=typeof raw==='string'?raw.match(/\s*\((\d+)% (match|similarity)\)$/):null;
+ let explanation=typeof raw==='string'?raw.replace(/\s*\(\d+% (?:match|similarity)\)$/,'').trim():'';
+ if(match){const percent=document.createElement('span');percent.className='connection-percent';percent.textContent=match[1]+'%';if(match[2]==='similarity'||explanation.startsWith('Semantic '))percent.title='AI semantic similarity, not a probability of correctness';heading.append(percent)}
  if(!explanation||/^Related to .+\.$/.test(explanation)||explanation==='Direct reverse association'||explanation.includes(' ↔ ')){
   explanation=answer?displayWord(answer)+' — recognized association.':'Recognized association.';
  }else if(explanation.startsWith('Related through ')){
@@ -136,6 +136,9 @@ function renderAnswerReview(){
    body.dataset.loaded='pending';body.textContent='Loading answers…';
    try{
     const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:key,p_archive:archive,p_seed:seed,p_pitch:index+1});
+    const playedHits=Object.keys(pitch.links||{}).length;
+    // A dynamically inferred answer may not be in the precomputed answer bank.
+    if(playedHits&&pitch.guess&&!answers.some(a=>a.word.toLowerCase()===pitch.guess.toLowerCase()&&a.hits===playedHits))answers.unshift({word:pitch.guess,hits:playedHits,points:pitch.points,links:pitch.links});
     if(!answers.length)throw new Error('Unavailable');
     const groups=document.createElement('div');groups.className='answer-groups';
     for(let hits=6;hits>=1;hits--){
