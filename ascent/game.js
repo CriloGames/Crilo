@@ -16,6 +16,7 @@ const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
 let timerEnd=0, waitingForReconnect=false, practiceBest=null, practiceAttempts=0;
+let recovery=null,recoveryTimer=null,recoveryDelay=800;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
@@ -88,7 +89,7 @@ function toggleSound(){
 function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gain=audio.createGain(),t=audio.currentTime;
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
-function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
+function cache(){if(state)writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length})}
 function matchMeter(node,clues,links){
  node.replaceChildren(...clues.map((clue,i)=>{
   const e=document.createElement('span');const hit=Object.hasOwn(links||{},clue);
@@ -219,7 +220,7 @@ function paintClock(){
 setInterval(paintClock,100);
 function displayResponse(next,previous,action){
  const sameDay=previous?.day===next.day;
- const advanced=sameDay && next.history.length>previous.history.length;
+ const advanced=!!previous&&sameDay&&next.history.length>previous.history.length;
  const estimatedEnd=next.deadline?performance.now()+Math.max(0,Date.parse(next.deadline)-Date.parse(next.serverTime)):0;
  timerEnd=next.deadline && next.deadline===previous?.deadline ? Math.min(timerEnd,estimatedEnd) : estimatedEnd;
  state=next;waitingForReconnect=false;
@@ -249,25 +250,41 @@ function displayResponse(next,previous,action){
   else if(mode==='play' && action==='start')$('guess').focus({preventScroll:true});
  }
 }
-async function requestPitch(action='read',guess=null){
+function scheduleRecovery(){
+ clearTimeout(recoveryTimer);
+ recoveryTimer=setTimeout(()=>{if(!pending&&mode!=='animating'&&recovery)requestPitch(recovery.action,recovery.guess,true)},recoveryDelay);
+ recoveryDelay=Math.min(15000,recoveryDelay*2);
+}
+async function requestPitch(action='read',guess=null,retrying=false){
  if(pending||mode==='animating')return;
+ if(recovery&&!retrying)return connect();
  const prev=state;
- pending=true;$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
+ const args=retrying&&recovery?recovery.args:{p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess};
+ pending=true;clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();
-  const next=await call({p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess});
+  const next=await call(args);
+  recovery=null;recoveryDelay=800;waitingForReconnect=false;
   displayResponse(next,prev,action);
-  if(action!=='read'&&(next.history.length!==prev.history.length||next.deadline!==prev.deadline))cache();
- }catch{waitingForReconnect=true;message('Connection interrupted. Reconnect to check your pitch.',true)}
- finally{pending=false;$('next').disabled=false}
+  if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
+ }catch(error){
+  waitingForReconnect=true;recovery={action,guess,args};
+  message('Reconnecting automatically… Your climb is saved.',true);
+  scheduleRecovery();
+ }finally{pending=false;$('next').disabled=false}
 }
 function finishAtDeadline(){
- if(pending||mode!=='play')return;
+ if(pending||mode!=='play'||waitingForReconnect)return;
  const guess=clean($('guess').value);
  if(guess&&validGuess(guess)&&!state.clues.includes(guess)){message('Time’s up — submitting your answer…');return requestPitch('auto_guess',guess)}
  return requestPitch('read');
 }
-function connect(){return mode==='play'&&performance.now()>=timerEnd?finishAtDeadline():requestPitch('read')}
+function connect(){
+ if(pending)return;
+ if(recovery){clearTimeout(recoveryTimer);return requestPitch(recovery.action,recovery.guess,true)}
+ return mode==='play'&&performance.now()>=timerEnd?finishAtDeadline():requestPitch('read')
+}
+window.addEventListener('online',()=>{if(recovery)connect()});
 function rejectGuess(reason){
  const input=$('guess');
  message(reason);
@@ -329,7 +346,7 @@ $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick
 $('start').onclick=()=>requestPitch('start');
 $('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
 $('share').onclick=async()=>{const h=state.history;const result='Ascent · '+(custom?'Custom '+seed.slice(0,8):replay?'Archive '+archive:state.day)+'\n'+format(state.results.score)+' pts\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
-function refresh(){if(document.hidden||pending||mode==='animating')return;if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
+function refresh(){if(document.hidden||pending||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});setInterval(refresh,60000);
 window.addEventListener('storage',e=>{if(e.key===syncKey&&!document.hidden&&!pending&&mode!=='animating')connect()});
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
