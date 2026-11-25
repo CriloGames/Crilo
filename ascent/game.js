@@ -446,15 +446,22 @@ function renderAlternatives(pitch,container,answers=[]){
  add(pitch.target,pitch.solution);
  add(pitch.guess,pitch.links,pitch.points);
  const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
+ const openWords=new Set([...container.querySelectorAll('details[open]')].map(row=>row.dataset.word));
  for(let hits=6;hits>=1;hits--){
   const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));if(!matching.length)continue;
   const tier=document.createElement('section'),head=document.createElement('h3');
   head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
   for(const answer of matching){
-   const row=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
-   row.className='answer-entry answer-word-row';row.dataset.word=answer.word.toLowerCase();
+   const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
+   row.className='answer-entry';row.dataset.word=answer.word.toLowerCase();
    title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';
-   row.append(title,score);tier.append(row);
+   summary.append(title,score);
+   const words=document.createElement('ul');words.className='answer-matched-words';words.setAttribute('aria-label','Matched clue words');
+   for(const clue of pitch.clues){
+    if(!Object.hasOwn(answer.links||{},clue)||answer.links[clue]==null)continue;
+    const word=document.createElement('li');word.textContent=displayWord(clue);words.append(word);
+   }
+   row.append(summary,words);row.open=openWords.has(row.dataset.word);tier.append(row);
   }
   groups.append(tier);
  }

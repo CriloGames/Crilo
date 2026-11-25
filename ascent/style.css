@@ -285,7 +285,8 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview details[open]>summary::after{transform:rotate(225deg)}
 #answerReview details:not([open])>summary::after{transform:rotate(45deg)}
 
-/* A pitch opens a ranked list of words, not another level of dropdowns. */
-#answerReview .answer-word-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;min-width:0}
-#answerReview .answer-word-row strong{font-size:13px;font-weight:600;color:#f3e8cb;overflow-wrap:anywhere}
-#answerReview .answer-word-row span{font:700 12px var(--mono);color:#eed1a2;white-space:nowrap;flex-shrink:0}
+/* Keep the original answer dropdowns with a short list of matched words. */
+#answerReview .answer-matched-words{display:flex;flex-wrap:wrap;gap:4px 0;list-style:none;padding:0;margin:3px 0 9px;color:#d6e4d5;font-size:13px;line-height:1.6}
+#answerReview .answer-matched-words li{display:inline;overflow-wrap:anywhere;max-width:100%}
+#answerReview .answer-matched-words li:not(:last-child)::after{content:' · ';color:#a5bfb1;white-space:pre}
+#answerReview .answer-entry summary:focus-visible{outline:1px solid #b4d0a5;outline-offset:2px;border-radius:3px}
