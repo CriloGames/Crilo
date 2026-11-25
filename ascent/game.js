@@ -358,12 +358,24 @@ async function requestPitch(action='read',guess=null,retrying=false){
  pending=true;clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();
-  const next=await call(args);
+  let next=await call(args);
+  if(custom&&next.needsGeneration){
+   message('Generating a brand-new climb…');
+   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),40000);
+   try{
+    const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed,ticket}),signal:controller.signal});
+    const data=await response.json();
+    if(!response.ok||!data.ok){const e=new Error('Generation unavailable');e.generation=true;e.status=response.status;throw e;}
+   }catch(error){error.generation=true;throw error}finally{clearTimeout(timeout)}
+   next=await call(args);
+   if(next.needsGeneration){const e=new Error('Route not saved');e.generation=true;throw e;}
+  }
   recovery=null;recoveryDelay=800;waitingForReconnect=false;
   displayResponse(next,prev,action);
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
   waitingForReconnect=true;recovery={action,guess,args};
+  if(error.generation){message(error.status===429?'New-climb generation limit reached. Try again later.':'Couldn’t create a fresh climb. Try again.',true);return;}
   message(guess?'Reconnecting automatically… Keeping your answer.':'Reconnecting automatically…',true);
   if(!error.status||error.status===408||error.status===429||error.status>=500)scheduleRecovery();else message('Unable to load this climb. Try again.',true);
  }finally{pending=false;$('next').disabled=false}
