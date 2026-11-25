@@ -1,0 +1,124 @@
+{
+  "description": "Read-only 100,000 distinct dictionary-word bulk test of the exact synonym and direct WordNet relation matching layer. Not a full matcher invocation per word and not an AI accuracy benchmark.",
+  "method": {
+    "source": "Existing Open English WordNet membership and relation tables",
+    "sampling": "Deterministic md5(guess || ':ascent-100k-v1') sampling, 60,000 synonym pairs, 15,000 direct dictionary edges with hypernym child count <=35, 15,000 identical displayed-clue controls, 10,000 random unlabeled pairs, disjoint guess sets.",
+    "evaluation": "Set-based version of one-hop dictionary matching and displayed-clue guards, using actual guess_forms and clue_terms functions; no new connections inserted. Multi-hop, other local scoring layers and model inference not included.",
+    "limitations": "Dictionary is also used by matcher, so this checks coverage of known lexical relations, not independent semantic generalization. Random pairings have no independently validated negative labels."
+  },
+  "rows": [
+    {
+      "kind": "synonym",
+      "tested": 60000,
+      "unique_guesses": 60000,
+      "accepted": 59843,
+      "blocked": 115,
+      "excluded": 20,
+      "no_direct_match": 22
+    },
+    {
+      "kind": "hypernym",
+      "tested": 13315,
+      "unique_guesses": 13315,
+      "accepted": 13312,
+      "blocked": 0,
+      "excluded": 1,
+      "no_direct_match": 2
+    },
+    {
+      "kind": "similar",
+      "tested": 1574,
+      "unique_guesses": 1574,
+      "accepted": 1573,
+      "blocked": 0,
+      "excluded": 1,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "mero_part",
+      "tested": 39,
+      "unique_guesses": 39,
+      "accepted": 39,
+      "blocked": 0,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "mero_substance",
+      "tested": 41,
+      "unique_guesses": 41,
+      "accepted": 41,
+      "blocked": 0,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "mero_member",
+      "tested": 6,
+      "unique_guesses": 6,
+      "accepted": 6,
+      "blocked": 0,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "entails",
+      "tested": 24,
+      "unique_guesses": 24,
+      "accepted": 24,
+      "blocked": 0,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "causes",
+      "tested": 1,
+      "unique_guesses": 1,
+      "accepted": 1,
+      "blocked": 0,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "displayed",
+      "tested": 15000,
+      "unique_guesses": 15000,
+      "accepted": 0,
+      "blocked": 15000,
+      "excluded": 0,
+      "no_direct_match": 0
+    },
+    {
+      "kind": "random_unlabeled",
+      "tested": 10000,
+      "unique_guesses": 10000,
+      "accepted": 0,
+      "blocked": 0,
+      "excluded": 5,
+      "no_direct_match": 9995
+    }
+  ],
+  "bulk_duration_ms": 29515,
+  "actual_function_checks": [
+    {
+      "function": "preview_registered_guess",
+      "test": "1,000 distinct dictionary synonym pairs with guesses beginning with a, excluding displayed clues",
+      "tested": 1000,
+      "accepted": 983,
+      "elapsed_ms": 31211
+    },
+    {
+      "function": "live_dictionary_links",
+      "test": "2,000 distinct dictionary synonym pairs with guesses beginning with b, excluding displayed clues",
+      "tested": 2000,
+      "accepted": 2000,
+      "elapsed_ms": 14625
+    }
+  ],
+  "ai_calls": {
+    "used": 80,
+    "limit": 80,
+    "live_ai_tests_run": 0
+  },
+  "production_data_changed": false
+}
