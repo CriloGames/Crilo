@@ -560,6 +560,17 @@ if(replay)$('archiveLink').setAttribute('aria-current','page');
 $('again').onclick=()=>{if(custom){location.assign('?new=1');return}localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
 $('routeLink').hidden=!custom;
 $('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
-for(const link of document.querySelectorAll('a[href="?new=1"]'))link.addEventListener('click',playAgain);
+// Routes must always navigate immediately. Use a prepared fresh route when one
+// exists, but never hold the menu open waiting for an AI request or quota.
+function openPracticeFromRoutes(event){
+ if(event.button!==undefined&&event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.defaultPrevented)return;
+ const ready=nextRouteRead();
+ if(ready?.ready&&ready.seed!==seed&&ready.ticket===nextRouteTicket()){
+  try{if(openNextRoute(ready)){event.preventDefault();return}}catch{}
+ }
+ // Native ?new=1 navigation opens the Practice ascent page even on failure.
+}
+$('generate').addEventListener('click',openPracticeFromRoutes);
+for(const link of document.querySelectorAll('a[href="?new=1"]:not(#generate)'))link.addEventListener('click',playAgain);
 putDate(archive||today());mountain.init($('view'));connect();
 })();
