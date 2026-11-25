@@ -46,31 +46,39 @@ Deno.serve(async req=>{
  const b=JSON.parse(raw);
  if(!uuid(b.ticket)||!uuid(b.seed))return respond({error:"input"},400);
  const base=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),account=Deno.env.get("CLOUDFLARE_ACCOUNT_ID")?.trim(),api=Deno.env.get("CLOUDFLARE_API_TOKEN")?.trim();
- if(!base||!key||!account||!api)return respond({error:"configuration"},503);
+ if(!base||!key)return respond({error:"configuration"},503);
  const rpc=async(name:string,args:unknown)=>fetch(base+"/rest/v1/rpc/"+name,{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify(args),signal:AbortSignal.timeout(4000)});
+ const fallback=async()=>{try{
+  const res=await fetch(base+"/rest/v1/rpc/ascent_generate_local_practice",{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({p_seed:b.seed,p_ticket:b.ticket}),signal:AbortSignal.timeout(18000)});
+  if(!res.ok)return respond({error:"local_generation_unavailable"},503);
+  const local=await res.json();return local.ok?respond({ok:true,generation:"local"}):respond({error:"local_generation_unavailable"},503);
+ }catch{return respond({error:"local_generation_unavailable"},503)}};
+ if(!account||!api)return await fallback();
  const prep=await rpc("ascent_prepare_generated_practice",{p_seed:b.seed,p_ticket:b.ticket});
- if(!prep.ok)return respond({error:"preparation_unavailable"},503);
+ if(!prep.ok)return await fallback();
  const plan=await prep.json();
  if(plan.exists)return respond({ok:true});
- if(plan.quota)return respond({error:"generation_limit"},429);
- if(!Array.isArray(plan.avoid)||!plan.avoid.every(word))return respond({error:"invalid_plan"},503);
+ if(plan.quota)return await fallback();
+ if(!Array.isArray(plan.avoid)||!plan.avoid.every(word))return await fallback();
+ try{
  const cf=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast",{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"system",content:prompt},{role:"user",content:JSON.stringify({seed:b.seed,avoid:plan.avoid})}],max_tokens:4600,temperature:.65,response_format:{type:"json_object"}}),signal:AbortSignal.timeout(33000)});
- const data=await cf.json();if(!cf.ok||data.success!==true)return respond({error:"model_request",code:data.errors?.[0]?.code??null},503);
+ const data=await cf.json();if(!cf.ok||data.success!==true)return await fallback();
  let out=data.result?.response;if(typeof out==="string")out=JSON.parse(out);
- if(!Array.isArray(out?.pitches)||out.pitches.length!==5)return respond({error:"invalid_pitches"},422);
+ if(!Array.isArray(out?.pitches)||out.pitches.length!==5)return await fallback();
  const normalize=(s:unknown)=>typeof s==="string"?s.toLowerCase().trim().replace(/[-–—]+/g," ").replace(/\s+/g," ").replace(/[.!?]+$/,""):s;
  // Normalize harmless case and punctuation differences before strict DB validation.
  const pitches=out.pitches.map((x:any)=>({target:normalize(x?.target),clues:Array.isArray(x?.clues)?x.clues.map(normalize):x?.clues,reasons:x?.reasons,alternatives:Array.isArray(x?.alternatives)?x.alternatives.map((a:any)=>({word:normalize(a?.word),reasons:a?.reasons})):[],common:Array.isArray(x?.common)?x.common.map((c:any)=>Array.isArray(c)?c.map((a:any)=>Array.isArray(a)?[normalize(a[0]),a[1]]:a):c):[]}));
  const rows=reviewRows(pitches);
  const reviewPrompt=standard+"\nYou are an independent quality-control reviewer. For every proposed pair, judge the EXACT two words and the supplied explanation against the standard. Accept only when both the connection and the explanation are specific, true and direct. Reject vague explanations, incidental settings, false facts, invented compounds, and explanations dependent on a third object's unrelated property. Do not assume a pair is right because it was generated. Return exactly one boolean per input row, in the given order, grouped by pitch. Reconsider alternate meanings before rejecting. Return only JSON {\"verdicts\":[[true,false],...]} with exactly five arrays, each exactly as long as its corresponding input array.";
  const audit=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({model:"@cf/openai/gpt-oss-120b",input:[{role:"system",content:reviewPrompt},{role:"user",content:JSON.stringify({pitches:rows.map(a=>a.map(({guess,clue,reason})=>[guess,clue,reason]))})}],reasoning:{effort:"low"},max_output_tokens:2200,text:{format:{type:"json_schema",name:"connection_review",strict:true,schema:{type:"object",properties:{verdicts:{type:"array",items:{type:"array",items:{type:"boolean"}}}},required:["verdicts"],additionalProperties:false}}}}),signal:AbortSignal.timeout(24000)});
- if(!audit.ok)return respond({error:"review_unavailable"},503);
+ if(!audit.ok)return await fallback();
  const ad=await audit.json(),envelope=ad.result??ad;
  const output=envelope.output_text??envelope.output?.flatMap((o:any)=>o.type==="message"?o.content??[]:[]).filter((c:any)=>c.type==="output_text").map((c:any)=>c.text).join("");
- let checked:any;try{checked=typeof output==="string"?JSON.parse(output):output}catch{return respond({error:"invalid_review"},422)}
- if(!applyReview(pitches,rows,checked?.verdicts))return respond({error:"connection_review_failed"},422);
+ let checked:any;try{checked=typeof output==="string"?JSON.parse(output):output}catch{return await fallback()}
+ if(!applyReview(pitches,rows,checked?.verdicts))return await fallback();
  const stored=await rpc("ascent_store_generated_practice",{p_seed:b.seed,p_ticket:b.ticket,p_reply:{pitches,review:"ascent-standard-review-v1"}});
- if(!stored.ok){console.warn("Generated route failed validation",stored.status);return respond({error:"route_validation"},422);}
- return respond({ok:true});
+ if(!stored.ok){console.warn("Generated route failed validation",stored.status);return await fallback();}
+ return respond({ok:true,generation:"ai"});
+ }catch{return await fallback()}
  }catch(e){return respond({error:"generation_unavailable"},503)}
 });
