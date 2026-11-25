@@ -28,7 +28,7 @@ const soundKey='ascent.sound.v1';
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
-let timerEnd=0, guessClockRemaining=null, waitingForReconnect=false, practiceBest=null, practiceAttempts=0;
+let timerEnd=0, guessClockRemaining=null, waitingForReconnect=false;
 let recovery=null,recoveryTimer=null,recoveryDelay=800;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
@@ -286,7 +286,7 @@ function renderClimbStats(){
 }
 function renderHolds(clues,record){
  const board=$('holds');
- const anchor=record?$('links'):$('guessform');
+ const anchor=record?$('next'):$('guessform');
  anchor.before(board);
  board.replaceChildren(...clues.map((word,index)=>{
   const hold=document.createElement('span'),number=document.createElement('i'),label=document.createElement('span');
@@ -393,6 +393,11 @@ function renderAnswerReview(){
     const playedHits=Object.keys(pitch.links||{}).length;
     // A dynamically inferred answer may not be in the precomputed answer bank.
     if(playedHits&&pitch.guess&&!answers.some(a=>a.word.toLowerCase()===pitch.guess.toLowerCase()&&a.hits===playedHits))answers.unshift({word:pitch.guess,hits:playedHits,points:pitch.points,links:pitch.links});
+    const solutionHits=Object.keys(pitch.solution||{}).length;
+    if(solutionHits&&pitch.target&&!answers.some(a=>a.word.toLowerCase()===pitch.target.toLowerCase()&&a.hits===solutionHits)){
+     const oppositePairs=[0,1,2].filter(i=>Object.hasOwn(pitch.solution,pitch.clues[i])&&Object.hasOwn(pitch.solution,pitch.clues[i+3])).length;
+     answers.unshift({word:pitch.target,hits:solutionHits,points:solutionHits===6?200:10*(solutionHits*(solutionHits+1)/2+oppositePairs),links:pitch.solution});
+    }
     if(!answers.length)throw new Error('Unavailable');
     const groups=document.createElement('div');groups.className='answer-groups';
     for(let hits=6;hits>=1;hits--){
@@ -422,7 +427,6 @@ function render(){
  $('generate').textContent='Practice climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
  $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. Use one idea, even if it takes several words. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
- $('sol').querySelector('summary').textContent=state.semantic?'Explore the full connection':'See a six-clue answer';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
  $('roundCount').textContent=String(idx+1).padStart(2,'0')+' / 05';
@@ -435,18 +439,9 @@ function render(){
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
- if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
+ if(shown){matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
- $('originalRecheck').hidden=!shown.checkIncomplete||!shown.guess;$('originalRecheck').disabled=false;$('originalRecheck').textContent='Recheck original answer';$('originalRecheck').onclick=()=>recheckOriginal(revealIndex,$('originalRecheck'));
- if(shown.checkIncomplete)$('hitCopy').textContent+=' Some connections are unverified. Recheck your original answer to recover any missed points.';
- $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
- $('practicePitch').hidden=count===6;
- $('practicePitch').open=false;
- $('retryGuess').value='';$('retryOutcome').textContent='';$('retryConnections').replaceChildren();$('practiceBest').hidden=true;$('retryCheck').disabled=false;
- $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'Explore another meaning. Your original score stays unchanged.';
- $('sol').open=false;const target=document.createElement('strong');target.className='solution-word';target.textContent=displayWord(shown.target);$('solution').replaceChildren(target,connectionList(clues,shown.solution,shown.target));
- const decoy=$('decoyReview');decoy.replaceChildren();decoy.hidden=!shown.decoy||!shown.decoyLinks;
- if(!decoy.hidden){const title=document.createElement('strong'),copy=document.createElement('p'),meter=document.createElement('div');title.textContent='The tempting connection: '+displayWord(shown.decoy);const hits=Object.keys(shown.decoyLinks).length;copy.textContent=hits+' of 6 clues fit this idea. The remaining clues point beyond that interpretation.';meter.className='match-meter';matchMeter(meter,clues,shown.decoyLinks);decoy.append(title,copy,meter,connectionList(clues,shown.decoyLinks,shown.decoy));}
+ if(shown.checkIncomplete)$('hitCopy').textContent+=' Unverified connections can be rechecked after your climb.';
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }
@@ -557,39 +552,7 @@ function submit(e){
  if(!validGuess(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
  message();requestPitch('guess',g);
 }
-$('retryForm').onsubmit=async e=>{
- e.preventDefault();
- if(mode!=='reveal'||$('retryCheck').disabled)return;
- const pitchIndex=revealIndex,day=state.day,record=state.history[pitchIndex];
- const guess=clean($('retryGuess').value);
- if(!guess)return;
- if(isDisplayedClue(guess,record.clues)){$('retryOutcome').textContent='That word is already in a clue. Try a different connection.';return}
- if(!validGuess(guess)){$('retryOutcome').textContent='Enter one idea, up to 120 characters, rather than a list.';return}
- const stillHere=()=>mode==='reveal'&&revealIndex===pitchIndex&&state.day===day;
- $('retryCheck').disabled=true;$('retryOutcome').textContent='Checking…';
- try{
-  const result=await call({p_action:'retry_pitch',p_day:day,p_round:pitchIndex+1,p_guess:guess});
-  if(!stillHere())return;
-  const matches=record.clues.filter(c=>Object.hasOwn(result.links,c));
-  const gain=result.points-record.points;practiceAttempts++;
-  $('retryOutcome').textContent=result.rejected?(result.checkIncomplete?'Couldn’t verify every connection. Try checking again.':'No recognized connection. Try another word or phrase.'):
-    '“'+guess+'” · '+matches.length+'/6 · '+result.points+' points'+(gain>0?' (+'+gain+')':'')+'. Matched '+matches.join(', ')+'.';
-  $('retryConnections').replaceChildren();
-  if(!result.rejected){
-   $('retryConnections').append(connectionList(record.clues,result.links,guess));
-   if(result.points>practiceBest.points){practiceBest={guess,points:result.points,links:result.links};tone(5)}
-   const bestHits=Object.keys(practiceBest.links).length;
-   $('practiceBest').hidden=false;$('practiceBestText').textContent='Best: '+bestHits+'/6 · '+practiceBest.points+' pts'+(practiceBest.points>record.points?' · +'+(practiceBest.points-record.points)+' improvement':'')+' · '+practiceAttempts+' '+(practiceAttempts===1?'try':'tries');
-   matchMeter($('practiceMeter'),record.clues,practiceBest.links);
-   $('retryGuess').focus();$('retryGuess').select();
-  }
-  if(result.rejected){$('retryGuess').focus();$('retryGuess').select();$('retryGuess').classList.remove('guess-rejected');void $('retryGuess').offsetWidth;$('retryGuess').classList.add('guess-rejected')}
- }catch{if(stillHere())$('retryOutcome').textContent='Couldn’t check that guess. Try again.'}
- finally{if(stillHere())$('retryCheck').disabled=false}
-};
-for(const [inputId,formId] of [['guess','guessform'],['retryGuess','retryForm']]){
- $(inputId).addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$(formId).requestSubmit()}});
-}
+$('guess').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$('guessform').requestSubmit()}});
 $('guide').onclick=()=>$('manual').showModal();$('close').onclick=$('understood').onclick=()=>$('manual').close();
 $('manual').addEventListener('click',e=>{if(e.target===$('manual')){const r=$('manual').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('manual').close()}});
 $('routeLink').addEventListener('click',()=>document.querySelector('.route-menu').open=false);
