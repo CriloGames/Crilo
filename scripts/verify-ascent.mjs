@@ -26,6 +26,11 @@ try {
     const state={history:[],clues:null,deadline:null};
     await page.route('**/rpc/ascent_pitch', async route => {
       const p=route.request().postDataJSON();
+      if(p.p_action==='recheck_pitch'){
+        const record=state.history[p.p_round-1];
+        record.checkIncomplete=false;
+        return route.fulfill({json:{record,total:state.results.score,checkIncomplete:false}});
+      }
       if(p.p_action==='retry_pitch'){
         assert.equal(p.p_round,5);
         return route.fulfill({json:{links:{clip:'a paper clip',mill:'a paper mill'},points:30,rejected:false}});
@@ -111,7 +116,11 @@ try {
     assert.equal(await page.evaluate(()=>localStorage.getItem('ascent.climber.v1')),dailyTicket);
     assert.equal(await page.locator('#total').innerText(),'800');
     assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
-    assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),1,'recheck is retained only in final review');
+    assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),0,'no manual recheck');
+    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({status:503,body:'Unavailable'}));
+    await page.locator('#answerReview > details > summary').first().click();
+    assert.equal(await page.locator('#answerReview > details').first().locator('.original-connections .connection-row').count(),6);
+    assert(await page.locator('#answerReview > details').first().locator('.original-connections').isVisible());
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
     // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.

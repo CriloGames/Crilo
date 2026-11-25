@@ -292,7 +292,7 @@ function renderClimbStats(){
  const fresh=score>old.score;const best=Math.max(score,old.score);
  if(fresh&&!h.some(p=>p.checkIncomplete))writeLocal(key,{score,id});
  $('personalBest').textContent=format(best);
- $('bestNote').textContent=h.some(p=>p.checkIncomplete)?'Score verification incomplete — review original guesses below.':(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
+ $('bestNote').textContent=h.some(p=>p.checkIncomplete)?'Some connections could not be verified yet.':(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
  const summary=$('pitchSummary');summary.replaceChildren(...h.map((p,i)=>{
   const row=document.createElement('div'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
   row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
@@ -365,57 +365,88 @@ function renderFinishMap(result){
   svg('text',{x:308,y:py+4,'text-anchor':'middle',fill:'#fff3d8'},'You · '+format(score))
  );
 }
-async function recheckOriginal(index,button){
- if(pending||button.disabled||!state.history[index]?.checkIncomplete)return;
- pending=true;button.disabled=true;button.textContent='Checking original answer…';
- try{
-  const result=await call({p_action:'recheck_pitch',p_day:state.day,p_round:index+1});
-  if(!result.record)throw Error('Missing original record');
-  state.history[index]=result.record;
-  if(state.results)state.results.score=result.total;
-  delete $('answerReview').dataset.day;
-  render();
-  message(result.checkIncomplete?'Some connections are still unverified. Your original answer is saved.':'Original answer verified. Score updated.');
-  try{cache()}catch{}
- }catch{button.textContent='Recheck original answer';message('Verification unavailable. Your original answer is saved.')}
- finally{pending=false;button.disabled=false}
+// Verification is the game's responsibility, not the player's. Reconsider
+// incomplete original guesses once per completed climb view, without blocking
+// the results or changing an answer. The server alone awards any extra points.
+const automaticReviewAttempts=new Set();
+let automaticReviewJob=null;
+function verifyCompletedClimb(){
+ if(automaticReviewJob||mode!=='results'||!state?.results||document.hidden)return;
+ const snapshot=state, day=snapshot.day;
+ const candidates=snapshot.history.map((pitch,index)=>({pitch,index,key:[day,scope,index,pitch.guess].join('|')}))
+  .filter(x=>x.pitch.checkIncomplete&&x.pitch.guess&&!automaticReviewAttempts.has(x.key));
+ if(!candidates.length)return;
+ automaticReviewJob=(async()=>{
+  let changed=false;
+  for(const {pitch,index,key} of candidates){
+   if(state!==snapshot||mode!=='results')break;
+   automaticReviewAttempts.add(key);
+   try{
+    const result=await call({p_action:'recheck_pitch',p_day:day,p_round:index+1});
+    if(state!==snapshot||mode!=='results')break;
+    if(!result?.record||result.record.guess!==pitch.guess||!Number.isFinite(result.total))continue;
+    if(JSON.stringify(result.record)!==JSON.stringify(snapshot.history[index])||snapshot.results.score!==result.total){
+     snapshot.history[index]=result.record;snapshot.results.score=result.total;changed=true;
+    }
+   }catch{}
+  }
+  if(changed&&state===snapshot&&mode==='results'){render();try{cache()}catch{}}
+ })().finally(()=>{automaticReviewJob=null});
 }
-function originalRecheckButton(index){
- const button=document.createElement('button');button.type='button';button.className='primary';
- button.textContent='Recheck original answer';button.onclick=()=>recheckOriginal(index,button);return button;
+function originalConnections(pitch){
+ const section=document.createElement('section'),head=document.createElement('h3');
+ section.className='original-connections';head.className='answer-tier-heading';
+ head.textContent=pitch.guess?'Your connections · '+displayWord(pitch.guess):'Your connections';
+ section.append(head);
+ const list=document.createElement('ul');list.className='connection-list';
+ for(const clue of pitch.clues){
+  if(Object.hasOwn(pitch.links||{},clue)&&pitch.links[clue]!=null){
+   const row=connectionRow(clue,pitch.links[clue],pitch.guess);
+   row.classList.add('review-matched');list.append(row);
+  }else{
+   const row=connectionRow(clue,pitch.checkIncomplete&&pitch.guess?'Not yet verified.':'Not matched.',pitch.guess);
+   row.classList.add('review-unmatched');list.append(row);
+  }
+ }
+ section.append(list);return section;
 }
 function renderAnswerReview(){
  const review=$('answerReview');
- const key=state.day;
- if(review.dataset.day===key)return;
- review.dataset.day=key;
+ const day=state.day;
+ const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete])]);
+ if(review.dataset.key===key)return;
+ const open=review.dataset.day===day?new Set([...review.children].map((node,i)=>node.open?i:-1)):new Set();
+ review.dataset.day=day;review.dataset.key=key;
  review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
   const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
-  detail.textContent=pitch.checkIncomplete?'Some connections unverified · recheck original answer':'Answers by number of matches';
-  score.textContent=Object.keys(pitch.links).length+'/6 · '+pitch.points+' pts';
+  detail.textContent='Connections and possible answers';
+  score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts';
   summary.append(title,score,detail);
   body.className='answer-body';
-  details.append(summary);if(pitch.checkIncomplete&&pitch.guess)details.append(originalRecheckButton(index));details.append(body);review.append(details);
+  body.append(originalConnections(pitch));
+  // The recorded answer and intended solution are already in the response.
+  // Display both immediately, even if the answer catalog is slow or offline.
+  const solutionHits=Object.keys(pitch.solution||{}).length;
+  if(solutionHits&&pitch.target&&(pitch.target!==pitch.guess||solutionHits!==Object.keys(pitch.links||{}).length)){
+   const solution=document.createElement('section'),label=document.createElement('h3');
+   solution.className='review-solution';label.className='answer-tier-heading';
+   label.textContent='Intended answer · '+displayWord(pitch.target);
+   solution.append(label,connectionList(pitch.clues,pitch.solution,pitch.target));body.append(solution);
+  }
+  const alternatives=document.createElement('div');alternatives.className='review-alternatives';body.append(alternatives);
+  details.append(summary,body);review.append(details);
   details.addEventListener('toggle',async()=>{
-   if(!details.open||body.dataset.loaded)return;
-   body.dataset.loaded='pending';body.textContent='Loading answers…';
+   if(!details.open||alternatives.dataset.loaded)return;
+   alternatives.dataset.loaded='pending';
    try{
-    const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:key,p_archive:archive,p_seed:seed,p_pitch:index+1});
-    const playedHits=Object.keys(pitch.links||{}).length;
-    // A dynamically inferred answer may not be in the precomputed answer bank.
-    if(playedHits&&pitch.guess&&!answers.some(a=>a.word.toLowerCase()===pitch.guess.toLowerCase()&&a.hits===playedHits))answers.unshift({word:pitch.guess,hits:playedHits,points:pitch.points,links:pitch.links});
-    const solutionHits=Object.keys(pitch.solution||{}).length;
-    if(solutionHits&&pitch.target&&!answers.some(a=>a.word.toLowerCase()===pitch.target.toLowerCase()&&a.hits===solutionHits)){
-     const oppositePairs=[0,1,2].filter(i=>Object.hasOwn(pitch.solution,pitch.clues[i])&&Object.hasOwn(pitch.solution,pitch.clues[i+3])).length;
-     answers.unshift({word:pitch.target,hits:solutionHits,points:solutionHits===6?200:10*(solutionHits*(solutionHits+1)/2+oppositePairs),links:pitch.solution});
-    }
-    if(!answers.length)throw new Error('Unavailable');
+    const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:day,p_archive:archive,p_seed:seed,p_pitch:index+1});
+    if(!Array.isArray(answers))throw Error('Unavailable');
     const groups=document.createElement('div');groups.className='answer-groups';
     for(let hits=6;hits>=1;hits--){
-     const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues));if(!matching.length)continue;
+     const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues)&&a.word.toLowerCase()!==String(pitch.guess||'').toLowerCase()&&a.word.toLowerCase()!==String(pitch.target||'').toLowerCase());if(!matching.length)continue;
      const tier=document.createElement('section'),head=document.createElement('h3');
      head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
      for(const answer of matching){
@@ -425,9 +456,11 @@ function renderAnswerReview(){
      }
      groups.append(tier);
     }
-    body.replaceChildren(groups);body.dataset.loaded='yes';
-   }catch{delete body.dataset.loaded;body.textContent='Couldn’t load answers. Close and reopen this pitch to retry.'}
+    if(groups.children.length){const heading=document.createElement('h3');heading.className='answer-tier-heading';heading.textContent='Other possible answers';alternatives.replaceChildren(heading,groups)}
+    alternatives.dataset.loaded='yes';
+   }catch{delete alternatives.dataset.loaded;/* Recorded connections remain visible. */}
   });
+  if(open.has(index))details.open=true;
  });
 }
 function render(){
@@ -450,7 +483,7 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){$('completeTitle').textContent=official?'Daily complete.':'Climb complete.';$('dailyCompleteNote').hidden=!official;$('freshClimb').firstChild.textContent=official?'Play a practice climb ': 'Play again ';renderFinishMap(state.results);renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){$('completeTitle').textContent=official?'Daily complete.':'Climb complete.';$('dailyCompleteNote').hidden=!official;$('freshClimb').firstChild.textContent=official?'Play a practice climb ': 'Play again ';renderFinishMap(state.results);renderClimbStats();renderAnswerReview();verifyCompletedClimb();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
@@ -590,7 +623,7 @@ $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick
 $('start').onclick=()=>requestPitch('start');
 $('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
 $('share').onclick=async()=>{const h=state.history;const result='Ascent · '+(custom?'Custom '+seed.slice(0,8):replay?'Archive '+archive:state.day)+'\n'+format(state.results.score)+' pts\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
-function refresh(){if(document.hidden||pending||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
+function refresh(){if(document.hidden||pending||automaticReviewJob||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});setInterval(refresh,60000);
 window.addEventListener('storage',e=>{if(e.key===syncKey&&!document.hidden&&!pending&&mode!=='animating')connect()});
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;

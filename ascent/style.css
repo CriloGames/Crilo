@@ -267,3 +267,10 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .archive-crilo{color:var(--green);border-color:var(--green)}
 
 .expedition .daily-complete-note{color:#e1dbbb;font-size:14px;margin:0 0 16px}.daily-complete-note [role=timer]{font-family:var(--mono);color:#f5c987;font-weight:700;white-space:nowrap}
+
+/* Final pitch review: show the player's recorded connections before optional answers. */
+#answerReview .original-connections,#answerReview .review-solution{margin:0 0 14px}
+#answerReview .review-unmatched{opacity:.78}
+#answerReview .review-unmatched .connection-heading strong{color:#c2cec6}
+#answerReview .review-matched .connection-heading strong{color:#dcebcf}
+#answerReview .review-alternatives:empty{display:none}
