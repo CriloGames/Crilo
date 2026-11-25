@@ -293,9 +293,32 @@ function renderClimbStats(){
  if(fresh&&!h.some(p=>p.checkIncomplete))writeLocal(key,{score,id});
  $('personalBest').textContent=format(best);
  $('bestNote').textContent=h.some(p=>p.checkIncomplete)?'Some connections could not be verified yet.':(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
- const summary=$('pitchSummary');summary.replaceChildren(...h.map((p,i)=>{
-  const row=document.createElement('div'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
-  row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
+ const summary=$('pitchSummary');
+ const open=summary.dataset.day===state.day?new Set([...summary.children].map((node,i)=>node.open?i:-1)):new Set();
+ const breakdownKey=JSON.stringify([state.day,h.map(p=>[p.guess,p.points,p.clues,p.links,p.solution,p.checkIncomplete])]);
+ if(summary.dataset.key===breakdownKey)return;
+ summary.dataset.day=state.day;summary.dataset.key=breakdownKey;
+ summary.replaceChildren(...h.map((p,i)=>{
+  const item=document.createElement('details'),row=document.createElement('summary'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
+  item.className='pitch-breakdown';row.className='pitch-summary-row';
+  label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);
+  const clues=document.createElement('div');clues.className='pitch-clue-preview';
+  for(const clue of p.clues){
+   const matched=Object.hasOwn(p.links||{},clue),chip=document.createElement('span');
+   chip.className=matched?'clue-preview matched':'clue-preview unmatched';
+   chip.textContent=clue;chip.setAttribute('aria-label',clue+' — '+(matched?'matched':p.checkIncomplete?'unverified':'not matched'));clues.append(chip);
+  }
+  row.append(clues);item.append(row);
+  const body=document.createElement('div');body.className='pitch-connection-breakdown';
+  if(p.guess)body.append(originalConnections(p));
+  const hits=Object.keys(p.solution||{}).length;
+  if(hits&&p.target&&(p.target!==p.guess||hits!==Object.keys(p.links||{}).length)){
+   const section=document.createElement('section'),heading=document.createElement('h3');
+   section.className='review-solution';heading.className='answer-tier-heading';heading.textContent='Intended answer · '+displayWord(p.target)+' · '+hits+'/6';
+   section.append(heading,connectionList(p.clues,p.solution,p.target));body.append(section);
+  }
+  if(!p.guess&&!hits)body.append(originalConnections(p));
+  item.append(body);item.open=open.has(i);return item;
  }));
 }
 function renderHolds(clues,record){
@@ -433,31 +456,6 @@ function primeAnswerReviews(snapshot){
   reviewRequests.set(key,job);
  });
 }
-// Connections are a separate, always visible panel. The answer accordion
-// is reserved for browsing possible guesses, ranked by number of matches.
-let connectionPitch=0,connectionDay=null;
-function renderReviewConnections(index=connectionPitch){
- const history=state.history||[], panel=$('reviewConnections'), tabs=$('reviewPitchTabs'), body=$('reviewConnectionBody');
- if(!history.length)return;
- if(connectionDay!==state.day){connectionDay=state.day;index=0}
- connectionPitch=Math.max(0,Math.min(index,history.length-1));
- const pitch=history[connectionPitch];
- tabs.replaceChildren(...history.map((_,i)=>{
-  const button=document.createElement('button');button.type='button';button.textContent='Pitch '+(i+1);
-  button.setAttribute('aria-pressed',String(i===connectionPitch));button.onclick=()=>renderReviewConnections(i);return button;
- }));
- body.replaceChildren();
- if(pitch.guess)body.append(originalConnections(pitch));
- const solutionHits=Object.keys(pitch.solution||{}).length;
- if(solutionHits&&pitch.target&&(pitch.target!==pitch.guess||solutionHits!==Object.keys(pitch.links||{}).length)){
-  const section=document.createElement('section'),label=document.createElement('h3');
-  section.className='review-solution';label.className='answer-tier-heading';
-  label.textContent='Intended answer · '+displayWord(pitch.target)+' · '+solutionHits+'/6';
-  section.append(label,connectionList(pitch.clues,pitch.solution,pitch.target));body.append(section);
- }
- if(!pitch.guess&&!solutionHits)body.append(originalConnections(pitch));
- panel.hidden=false;
-}
 function renderAlternatives(pitch,container,answers=[]){
  const groups=document.createElement('div');groups.className='answer-groups';
  const byWord=new Map();
@@ -490,7 +488,6 @@ function renderAnswerReview(){
  const review=$('answerReview'),day=state.day;
  const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete,p.solution])]);
  if(review.dataset.key===key)return;
- renderReviewConnections();
  const open=review.dataset.day===day?new Set([...review.children].map((node,i)=>node.open?i:-1)):new Set();
  review.dataset.day=day;review.dataset.key=key;review.replaceChildren();
  state.history.forEach((pitch,index)=>{

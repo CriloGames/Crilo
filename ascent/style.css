@@ -283,12 +283,21 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .answer-entry .connection-list{margin:5px 0 10px}
 
 /* Keep the six-clue breakdown separate from the possible-answer accordion. */
-#reviewConnections{margin:20px 0;border-top:1px solid #547164;padding-top:14px}
-#reviewConnectionsTitle,.expedition .review-section-heading{font-size:17px;color:#f3e8cb;margin:0 0 10px}
-#reviewPitchTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-bottom:12px}
-#reviewPitchTabs button{min-width:0;min-height:36px;padding:6px 2px;border:1px solid #547164;border-radius:6px;background:#203e35;color:#e6dcc0;font:700 11px var(--mono);white-space:nowrap;cursor:pointer}
-#reviewPitchTabs button[aria-pressed=true]{background:#b4d0a5;color:#17352f;border-color:#b4d0a5}
-#reviewConnections .original-connections,#reviewConnections .review-solution{margin:0 0 12px}
-#reviewConnections .review-unmatched{opacity:.78}
 #answerReview details[open]>summary::after{transform:rotate(225deg)}
 #answerReview details:not([open])>summary::after{transform:rotate(45deg)}
+
+/* Reuse the existing score breakdown rather than adding a separate pitch selector. */
+.expedition .pitch-summary{gap:8px}
+.expedition .pitch-breakdown{border:1px solid #547164;border-radius:8px;padding:8px 10px;background:#203e35}
+.expedition .pitch-breakdown>summary{list-style:none;cursor:pointer;grid-template-columns:48px minmax(0,1fr) 55px 12px}
+.expedition .pitch-breakdown>summary::-webkit-details-marker{display:none}
+.expedition .pitch-breakdown>summary:after{content:'';grid-column:4;grid-row:1;width:6px;height:6px;border:solid #e2cfaa;border-width:0 1.5px 1.5px 0;transform:rotate(45deg);justify-self:center}
+.expedition .pitch-breakdown[open]>summary:after{transform:rotate(225deg)}
+.expedition .pitch-clue-preview{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:3px}
+.expedition .clue-preview{font:600 11px/1.3 system-ui,sans-serif;min-width:0;overflow-wrap:anywhere;border-radius:4px;padding:4px 5px;background:#19332d;color:#bdcbbf}
+.expedition .clue-preview.matched{background:#365a48;color:#dcebcf}
+.expedition .clue-preview.matched:before{content:'✓ ';color:#b9d6a8}
+.expedition .pitch-connection-breakdown{padding-top:8px}
+.expedition .pitch-connection-breakdown .review-unmatched{opacity:.78}
+.expedition .pitch-connection-breakdown .review-solution{margin-top:12px}
+.expedition .review-section-heading{font-size:17px;color:#f3e8cb;margin:14px 0 8px}
