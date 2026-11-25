@@ -40,7 +40,7 @@ try {
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
     const board=['clip','plane','wall','trail','lighthouse','mill'];
-    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({json:[{word:'paper',hits:6,points:200,links:Object.fromEntries(board.map(c=>[c,'fixture']))},{word:'travel',hits:4,points:110,links:Object.fromEntries(board.slice(0,4).map(c=>[c,'fixture']))}]}));
+    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({json:['sailing','travel','journey','map','boat','paper'].map((word,i)=>{const hits=[5,4,3,2,1,6][i];return {word,hits,points:hits===6?200:10*(hits*(hits+1)/2+Math.max(0,hits-3)),links:Object.fromEntries(board.slice(0,hits).map(c=>[c,'fixture']))}})}));
     const state={history:[],clues:null,deadline:null};
     await page.route('**/rpc/ascent_pitch', async route => {
       const p=route.request().postDataJSON();
@@ -193,7 +193,9 @@ try {
       assert(await more.locator('.answer-word-row').first().isHidden());
       await more.locator(':scope > summary').click();
       assert(await more.locator('.answer-word-row').first().isVisible());
-      assert.equal(await more.locator('.answer-word-row strong').first().innerText(),'Travel');
+      assert.deepEqual(await more.locator('.answer-tier-heading').allTextContents(),['5/6 matches','4/6 matches','3/6 matches','2/6 matches','1/6 matches']);
+      assert.equal(await more.locator('.answer-word-row strong').first().innerText(),'Sailing');
+      assert.equal(await more.locator('.answer-word-row strong').last().innerText(),'Boat');
       assert.equal(await pitch.locator('details.answer-entry').count(),0,'no per-word dropdowns');
     }
     assert.equal(await page.locator('#answerReview .connection-row').count(),0);

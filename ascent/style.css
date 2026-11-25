@@ -318,3 +318,5 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .more-answer-words>summary strong{font-size:13px;font-weight:650}
 #answerReview .more-answer-words>summary::after{grid-row:1}
 #answerReview .more-answer-words>.answer-groups{padding-bottom:5px}
+
+#answerReview .answer-tier-empty{font-size:12px;color:#b8cbbc;margin:4px 0 8px;font-weight:400}
