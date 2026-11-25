@@ -1,0 +1,6002 @@
+[
+  {
+    "guess": "trowel",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "seedling",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "compost",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "fertilizer",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "pruning",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "weeding",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "mulch",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "greenhouse",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "watering can",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "flower bed",
+    "clue": "gardening",
+    "expected": true,
+    "domain": "gardening"
+  },
+  {
+    "guess": "hedge trimmer",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "potting mix",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "secateurs",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "garden hose",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "horticulture",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "plant nursery",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "topiary",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "cultivator",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "garden fork",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "raised bed",
+    "clue": "pottery",
+    "expected": false,
+    "domain": "gardening"
+  },
+  {
+    "guess": "sawdust",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "woodworking",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "chisel",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "plane",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "dovetail",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "jigsaw",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "workbench",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "joinery",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "sandpaper",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "wood glue",
+    "clue": "carpentry",
+    "expected": true,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "circular saw",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "tenon",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "mortise",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "carpenter",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "wood stain",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "router bit",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "miter saw",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "wood shavings",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "clamp",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "plywood",
+    "clue": "beekeeping",
+    "expected": false,
+    "domain": "carpentry"
+  },
+  {
+    "guess": "oven",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "flour",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "dough",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "yeast",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "baking powder",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "rolling pin",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "cake",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "cookie",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "bread",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "muffin",
+    "clue": "baking",
+    "expected": true,
+    "domain": "baking"
+  },
+  {
+    "guess": "pastry",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "batter",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "whisk",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "loaf pan",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "baking soda",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "sourdough",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "pie crust",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "shortbread",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "croissant",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "cupcake",
+    "clue": "botany",
+    "expected": false,
+    "domain": "baking"
+  },
+  {
+    "guess": "thread",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "needle",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "fabric",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "stitch",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "seam",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "thimble",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "bobbin",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "sewing machine",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "pattern",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "embroidery",
+    "clue": "sewing",
+    "expected": true,
+    "domain": "sewing"
+  },
+  {
+    "guess": "hem",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "zipper",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "buttonhole",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "seam ripper",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "pincushion",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "tailor",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "dressmaker",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "quilting",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "overlocker",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "interfacing",
+    "clue": "geology",
+    "expected": false,
+    "domain": "sewing"
+  },
+  {
+    "guess": "camera",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "lens",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "aperture",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "shutter",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "exposure",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "portrait",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "tripod",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "flash",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "photograph",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "viewfinder",
+    "clue": "photography",
+    "expected": true,
+    "domain": "photography"
+  },
+  {
+    "guess": "darkroom",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "film roll",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "focal length",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "telephoto",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "macro lens",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "light meter",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "photographer",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "photo album",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "negative",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "contact sheet",
+    "clue": "meteorology",
+    "expected": false,
+    "domain": "photography"
+  },
+  {
+    "guess": "bicycle",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "pedal",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "handlebar",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "saddle",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "derailleur",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "chainring",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "helmet",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "spoke",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "cycling shoes",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "bike lane",
+    "clue": "cycling",
+    "expected": true,
+    "domain": "cycling"
+  },
+  {
+    "guess": "bicycle pump",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "road bike",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "mountain bike",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "freewheel",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "cassette",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "crankset",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "wheelset",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "cycle track",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "handlebar tape",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "bicycle bell",
+    "clue": "anatomy",
+    "expected": false,
+    "domain": "cycling"
+  },
+  {
+    "guess": "oar",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "rowboat",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "coxswain",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "scull",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "regatta",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "rower",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "rowing machine",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "stroke seat",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "oarlock",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "shell",
+    "clue": "rowing",
+    "expected": true,
+    "domain": "rowing"
+  },
+  {
+    "guess": "double scull",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "single scull",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "rowing club",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "sweep oar",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "boat race",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "rowing tank",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "sliding seat",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "catch position",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "finish position",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "crew boat",
+    "clue": "cardiology",
+    "expected": false,
+    "domain": "rowing"
+  },
+  {
+    "guess": "telescope",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "planet",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "star",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "galaxy",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "nebula",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "comet",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "asteroid",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "constellation",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "observatory",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "eclipse",
+    "clue": "astronomy",
+    "expected": true,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "red giant",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "white dwarf",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "pulsar",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "quasar",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "supernova",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "exoplanet",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "black hole",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "spectroscope",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "celestial sphere",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "light year",
+    "clue": "cooking",
+    "expected": false,
+    "domain": "astronomy"
+  },
+  {
+    "guess": "dentist",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "tooth",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "molar",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "incisor",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "enamel",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "floss",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "denture",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "crown",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "cavity",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "root canal",
+    "clue": "dentistry",
+    "expected": true,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "orthodontist",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "dental drill",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "dental implant",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "wisdom tooth",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "gum disease",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "tooth decay",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "dental filling",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "toothbrush",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "dental hygienist",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "periodontist",
+    "clue": "coffee",
+    "expected": false,
+    "domain": "dentistry"
+  },
+  {
+    "guess": "conductor",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "violin",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "cello",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "viola",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "double bass",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "oboe",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "clarinet",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "bassoon",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "timpani",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "concertmaster",
+    "clue": "orchestra",
+    "expected": true,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "symphony",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "music stand",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "concert hall",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "sheet music",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "french horn",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "piccolo",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "orchestration",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "first violin",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "second violin",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "trombone",
+    "clue": "tea",
+    "expected": false,
+    "domain": "orchestra"
+  },
+  {
+    "guess": "seawater",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "wave",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "tide",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "coral reef",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "whale",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "shark",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "seafloor",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "saltwater",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "ocean current",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "marine life",
+    "clue": "ocean",
+    "expected": true,
+    "domain": "ocean"
+  },
+  {
+    "guess": "kelp forest",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "seamount",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "ocean trench",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "continental shelf",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "plankton",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "sea anemone",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "sea turtle",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "jellyfish",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "dolphin",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "oceanographer",
+    "clue": "winemaking",
+    "expected": false,
+    "domain": "ocean"
+  },
+  {
+    "guess": "airplane",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "pilot",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "cockpit",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "runway",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "propeller",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "jet engine",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "altimeter",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "airspeed",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "air traffic control",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "landing gear",
+    "clue": "aviation",
+    "expected": true,
+    "domain": "aviation"
+  },
+  {
+    "guess": "flight attendant",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "airliner",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "airfield",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "hangar",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "wing flap",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "rudder",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "ailerons",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "jet fuel",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "flight plan",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "control tower",
+    "clue": "bread",
+    "expected": false,
+    "domain": "aviation"
+  },
+  {
+    "guess": "checkmate",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "pawn",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "knight",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "bishop",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "rook",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "queen",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "king",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "chessboard",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "castling",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "stalemate",
+    "clue": "chess",
+    "expected": true,
+    "domain": "chess"
+  },
+  {
+    "guess": "gambit",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "en passant",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "chess clock",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "grandmaster",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "opening move",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "endgame",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "chess piece",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "chess tournament",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "queenside",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "kingside",
+    "clue": "railway",
+    "expected": false,
+    "domain": "chess"
+  },
+  {
+    "guess": "pitcher",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "catcher",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "home run",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "shortstop",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "outfielder",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "batting",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "base hit",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "strikeout",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "dugout",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "infield",
+    "clue": "baseball",
+    "expected": true,
+    "domain": "baseball"
+  },
+  {
+    "guess": "bullpen",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "baseball glove",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "batting cage",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "foul ball",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "bunt",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "sacrifice fly",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "first baseman",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "double play",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "fastball",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "curveball",
+    "clue": "sailing",
+    "expected": false,
+    "domain": "baseball"
+  },
+  {
+    "guess": "goalkeeper",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "striker",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "penalty kick",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "corner kick",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "offside",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "midfielder",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "defender",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "soccer ball",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "goalpost",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "free kick",
+    "clue": "soccer",
+    "expected": true,
+    "domain": "soccer"
+  },
+  {
+    "guess": "red card",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "yellow card",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "touchline",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "throw in",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "goal kick",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "penalty area",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "soccer cleats",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "football pitch",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "center forward",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "winger",
+    "clue": "firefighting",
+    "expected": false,
+    "domain": "soccer"
+  },
+  {
+    "guess": "racket",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "serve",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "forehand",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "backhand",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "volley",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "ace",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "deuce",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "baseline",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "tennis ball",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "net",
+    "clue": "tennis",
+    "expected": true,
+    "domain": "tennis"
+  },
+  {
+    "guess": "topspin",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "drop shot",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "lob",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "tiebreak",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "doubles court",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "tennis shoe",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "service line",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "clay court",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "grass court",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "ball boy",
+    "clue": "archery",
+    "expected": false,
+    "domain": "tennis"
+  },
+  {
+    "guess": "ski pole",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski boot",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski binding",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "slalom",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "downhill",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski lift",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski slope",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "goggles",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski resort",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "snowplow",
+    "clue": "skiing",
+    "expected": true,
+    "domain": "skiing"
+  },
+  {
+    "guess": "chairlift",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "cross country ski",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski wax",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski instructor",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "mogul",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski jump",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski patrol",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "ski helmet",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "giant slalom",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "snow groomer",
+    "clue": "printing",
+    "expected": false,
+    "domain": "skiing"
+  },
+  {
+    "guess": "carabiner",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "belay",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "harness",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "rope",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "crag",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "chalk bag",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "bouldering",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "crash pad",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "climbing shoe",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "handhold",
+    "clue": "climbing",
+    "expected": true,
+    "domain": "climbing"
+  },
+  {
+    "guess": "foothold",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "quickdraw",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "cam",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "rappel",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "anchor bolt",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "lead climbing",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "top rope",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "belay device",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "prusik",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "climbing wall",
+    "clue": "library",
+    "expected": false,
+    "domain": "climbing"
+  },
+  {
+    "guess": "fishhook",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "bait",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "lure",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "rod",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "reel",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fishing line",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "tackle box",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "float",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "angler",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fishing net",
+    "clue": "fishing",
+    "expected": true,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fly fishing",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "wader",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "sinkers",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "trolling",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "spinning reel",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fishing boat",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fish finder",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "bobber",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "fishing license",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "landing net",
+    "clue": "computer",
+    "expected": false,
+    "domain": "fishing"
+  },
+  {
+    "guess": "anvil",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "forge",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "hammer",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "tongs",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "hot iron",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "smith",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "horseshoe",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "quenching",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "steel",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "metalworking",
+    "clue": "blacksmithing",
+    "expected": true,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "blacksmith",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "coal forge",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "forging hammer",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "iron bar",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "swage block",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "hardy tool",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "bellows",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "metal tongs",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "forged steel",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "quench tank",
+    "clue": "guitar",
+    "expected": false,
+    "domain": "blacksmithing"
+  },
+  {
+    "guess": "pipe",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "faucet",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "drain",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "valve",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "plunger",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "pipe wrench",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "water supply",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "sewer",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "trap",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "plumber",
+    "clue": "plumbing",
+    "expected": true,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "shutoff valve",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "water heater",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "copper pipe",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "toilet flange",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "drain snake",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "pipe fitting",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "ball valve",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "stopcock",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "solder joint",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "water main",
+    "clue": "drumming",
+    "expected": false,
+    "domain": "plumbing"
+  },
+  {
+    "guess": "battery",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "voltage",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "current",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "circuit",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "wire",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "switch",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "socket",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "transformer",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "generator",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "ampere",
+    "clue": "electricity",
+    "expected": true,
+    "domain": "electricity"
+  },
+  {
+    "guess": "watt",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "ohm",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "capacitor",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "resistor",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "conductor wire",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "electric meter",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "circuit breaker",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "power grid",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "alternating current",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "direct current",
+    "clue": "virology",
+    "expected": false,
+    "domain": "electricity"
+  },
+  {
+    "guess": "paintbrush",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "canvas",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "palette",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "pigment",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "easel",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "watercolor",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "acrylic paint",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "oil paint",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "gesso",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "painter",
+    "clue": "painting",
+    "expected": true,
+    "domain": "painting"
+  },
+  {
+    "guess": "underpainting",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "palette knife",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "turpentine",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "brushstroke",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "still life",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "oil pastel",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "paint roller",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "paint tray",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "varnish",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "wall paint",
+    "clue": "chemistry",
+    "expected": false,
+    "domain": "painting"
+  },
+  {
+    "guess": "clay",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "kiln",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "glaze",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "ceramics",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "potter",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "pottery wheel",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "earthenware",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "stoneware",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "porcelain",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "firing",
+    "clue": "pottery",
+    "expected": true,
+    "domain": "pottery"
+  },
+  {
+    "guess": "slip",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "bisque",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "wedging",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "clay coil",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "ceramic bowl",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "ceramic vase",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "throwing wheel",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "kiln shelf",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "glaze firing",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "terracotta",
+    "clue": "accounting",
+    "expected": false,
+    "domain": "pottery"
+  },
+  {
+    "guess": "hive",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "honey",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "beekeeper",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "honeycomb",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "queen bee",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "worker bee",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "drone bee",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "bee smoker",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "beeswax",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "apiary",
+    "clue": "beekeeping",
+    "expected": true,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "bee suit",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "hive tool",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "brood box",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "honey extractor",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "hive frame",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "wax foundation",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "propolis",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "pollen trap",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "bee veil",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "queen excluder",
+    "clue": "law",
+    "expected": false,
+    "domain": "beekeeping"
+  },
+  {
+    "guess": "plant",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "leaf",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "stem",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "root",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "flower",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "pollen",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "photosynthesis",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "chlorophyll",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "germination",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "seed",
+    "clue": "botany",
+    "expected": true,
+    "domain": "botany"
+  },
+  {
+    "guess": "stamen",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "pistil",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "sepal",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "petal",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "xylem",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "phloem",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "stomata",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "plant cell",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "herbarium",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "botanist",
+    "clue": "basketball",
+    "expected": false,
+    "domain": "botany"
+  },
+  {
+    "guess": "rock",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "mineral",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "fossil",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "sediment",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "granite",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "basalt",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "limestone",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "sandstone",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "tectonic plate",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "geologist",
+    "clue": "geology",
+    "expected": true,
+    "domain": "geology"
+  },
+  {
+    "guess": "igneous rock",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "metamorphic rock",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "sedimentary rock",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "rock strata",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "geologic fault",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "gneiss",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "schist",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "shale",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "quartzite",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "magma",
+    "clue": "swimming",
+    "expected": false,
+    "domain": "geology"
+  },
+  {
+    "guess": "weather",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "forecast",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "barometer",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "humidity",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "temperature",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "precipitation",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "wind",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "cloud",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "storm",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "rain gauge",
+    "clue": "meteorology",
+    "expected": true,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "anemometer",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "weather radar",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "cold front",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "warm front",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "air pressure",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "weather station",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "meteorologist",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "dew point",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "weather balloon",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "isobar",
+    "clue": "gardening",
+    "expected": false,
+    "domain": "meteorology"
+  },
+  {
+    "guess": "skeleton",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "muscle",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "organ",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "artery",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "vein",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "nerve",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "ligament",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "tendon",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "cartilage",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "joint",
+    "clue": "anatomy",
+    "expected": true,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "femur",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "tibia",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "fibula",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "scapula",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "clavicle",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "humerus",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "radius bone",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "ulna",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "vertebra",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "sternum",
+    "clue": "carpentry",
+    "expected": false,
+    "domain": "anatomy"
+  },
+  {
+    "guess": "heart",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "heartbeat",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "cardiologist",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "electrocardiogram",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "pacemaker",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "cardiac arrest",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "aorta",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "coronary artery",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "ventricle",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "arrhythmia",
+    "clue": "cardiology",
+    "expected": true,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "angiogram",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "heart valve",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "atrial fibrillation",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "heart murmur",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "heart attack",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "heart failure",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "cardiac catheter",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "stent",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "myocardium",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "cardiac muscle",
+    "clue": "baking",
+    "expected": false,
+    "domain": "cardiology"
+  },
+  {
+    "guess": "stove",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "skillet",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "saucepan",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "recipe",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "spatula",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "ladle",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "chef",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "kitchen",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "boiling",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "frying",
+    "clue": "cooking",
+    "expected": true,
+    "domain": "cooking"
+  },
+  {
+    "guess": "colander",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "cutting board",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "measuring cup",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "kitchen knife",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "mixing bowl",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "simmering",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "sauteing",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "roasting",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "steaming",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "braising",
+    "clue": "sewing",
+    "expected": false,
+    "domain": "cooking"
+  },
+  {
+    "guess": "espresso",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "cappuccino",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "latte",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee bean",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "roast",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "grinder",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "caffeine",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "barista",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee filter",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "mocha",
+    "clue": "coffee",
+    "expected": true,
+    "domain": "coffee"
+  },
+  {
+    "guess": "french press",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "americano",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "macchiato",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "cold brew",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee grounds",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee pot",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee mug",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "portafilter",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee machine",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "coffee plantation",
+    "clue": "photography",
+    "expected": false,
+    "domain": "coffee"
+  },
+  {
+    "guess": "teapot",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea bag",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea leaf",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "green tea",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "black tea",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "oolong",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "matcha",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea strainer",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "teacup",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "kettle",
+    "clue": "tea",
+    "expected": true,
+    "domain": "tea"
+  },
+  {
+    "guess": "chamomile tea",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "earl grey",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "darjeeling",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "assam tea",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea infuser",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "white tea",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "pu erh",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "chai",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea caddy",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "tea plantation",
+    "clue": "cycling",
+    "expected": false,
+    "domain": "tea"
+  },
+  {
+    "guess": "grape",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "vineyard",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "fermentation",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "winemaker",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine barrel",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "must",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "press",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "tannin",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine yeast",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine cellar",
+    "clue": "winemaking",
+    "expected": true,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "vintner",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "malolactic fermentation",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine press",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "oak barrel",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "grape harvest",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine bottle",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "cork",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine aging",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "crush pad",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "wine vat",
+    "clue": "rowing",
+    "expected": false,
+    "domain": "winemaking"
+  },
+  {
+    "guess": "crust",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "crumb",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "bakery",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "loaf",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "toast",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "sandwich",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "baguette",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "pita",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "brioche",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "rye",
+    "clue": "bread",
+    "expected": true,
+    "domain": "bread"
+  },
+  {
+    "guess": "bagel",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "ciabatta",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "focaccia",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "flatbread",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "naan",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "bread roll",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "bread knife",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "breadcrumb",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "bread pudding",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "bread basket",
+    "clue": "astronomy",
+    "expected": false,
+    "domain": "bread"
+  },
+  {
+    "guess": "train",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "rail",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "station",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "locomotive",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "railroad track",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "signal",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "railway sleeper",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "carriage",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "freight car",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "platform",
+    "clue": "railway",
+    "expected": true,
+    "domain": "railway"
+  },
+  {
+    "guess": "railway crossing",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "rail switch",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "railway bridge",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "train conductor",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "train driver",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "boxcar",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "caboose",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "rail yard",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "railway tunnel",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "railway timetable",
+    "clue": "dentistry",
+    "expected": false,
+    "domain": "railway"
+  },
+  {
+    "guess": "sail",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "mast",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "boom",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "jib",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "spinnaker",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sailboat",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "tiller",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "keel",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "rigging",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sailor",
+    "clue": "sailing",
+    "expected": true,
+    "domain": "sailing"
+  },
+  {
+    "guess": "mainsail",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "halyard",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sheet rope",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sailing yacht",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "tacking",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "gybing",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "bowline",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "cleat",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sailing dinghy",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "sailcloth",
+    "clue": "orchestra",
+    "expected": false,
+    "domain": "sailing"
+  },
+  {
+    "guess": "firefighter",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire hose",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "hydrant",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire engine",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "extinguisher",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "smoke alarm",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire station",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire ladder",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire blanket",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "breathing apparatus",
+    "clue": "firefighting",
+    "expected": true,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire nozzle",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire crew",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire helmet",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire axe",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire hydrant",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire truck",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire brigade",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire captain",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "water cannon",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "fire sprinkler",
+    "clue": "ocean",
+    "expected": false,
+    "domain": "firefighting"
+  },
+  {
+    "guess": "bow",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "arrow",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "quiver",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "bowstring",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "archer",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "target",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "fletching",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "arrowhead",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "nock",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "bullseye",
+    "clue": "archery",
+    "expected": true,
+    "domain": "archery"
+  },
+  {
+    "guess": "recurve bow",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "compound bow",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "longbow",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "archery range",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "finger tab",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "arm guard",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "bow sight",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "arrow rest",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "draw weight",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "target face",
+    "clue": "aviation",
+    "expected": false,
+    "domain": "archery"
+  },
+  {
+    "guess": "ink",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "paper",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "printer",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "toner",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "printing press",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "typeface",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "typesetting",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "letterpress",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "offset printing",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "print cartridge",
+    "clue": "printing",
+    "expected": true,
+    "domain": "printing"
+  },
+  {
+    "guess": "printhead",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "inkjet",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "laser printer",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "printing plate",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "screen printing",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "lithography",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "halftone",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "proof sheet",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "print run",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "printer driver",
+    "clue": "chess",
+    "expected": false,
+    "domain": "printing"
+  },
+  {
+    "guess": "book",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "librarian",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "bookshelf",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "catalog",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "library card",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "reading room",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "book loan",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "reference desk",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "periodical",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "archive",
+    "clue": "library",
+    "expected": true,
+    "domain": "library"
+  },
+  {
+    "guess": "library catalog",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "book return",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "book stack",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "library branch",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "reading list",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "interlibrary loan",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "reference book",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "bookmobile",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "library fine",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "library patron",
+    "clue": "baseball",
+    "expected": false,
+    "domain": "library"
+  },
+  {
+    "guess": "keyboard",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "mouse",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "monitor",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "processor",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "memory",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "motherboard",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "hard drive",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "software",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "operating system",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "computer case",
+    "clue": "computer",
+    "expected": true,
+    "domain": "computer"
+  },
+  {
+    "guess": "graphics card",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "solid state drive",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "usb port",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "central processing unit",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "computer fan",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "power supply",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "desktop computer",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "laptop",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "computer program",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "computer screen",
+    "clue": "soccer",
+    "expected": false,
+    "domain": "computer"
+  },
+  {
+    "guess": "string",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "fret",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "fretboard",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "pick",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "sound hole",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "tuning peg",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar neck",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar bridge",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar strap",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "amplifier",
+    "clue": "guitar",
+    "expected": true,
+    "domain": "guitar"
+  },
+  {
+    "guess": "capo",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar chord",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar solo",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar tuner",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar case",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar cable",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar pickup",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar body",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar pedal",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "guitar tab",
+    "clue": "tennis",
+    "expected": false,
+    "domain": "guitar"
+  },
+  {
+    "guess": "drum",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drumstick",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "snare",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "bass drum",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "cymbal",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "hi hat",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "tom tom",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum kit",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drumhead",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drummer",
+    "clue": "drumming",
+    "expected": true,
+    "domain": "drumming"
+  },
+  {
+    "guess": "ride cymbal",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "crash cymbal",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum fill",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum roll",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum throne",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum pedal",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum key",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum practice pad",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum solo",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "drum beat",
+    "clue": "skiing",
+    "expected": false,
+    "domain": "drumming"
+  },
+  {
+    "guess": "virus",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral infection",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "capsid",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral genome",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "virologist",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "host cell",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral replication",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "bacteriophage",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "retrovirus",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "antiviral",
+    "clue": "virology",
+    "expected": true,
+    "domain": "virology"
+  },
+  {
+    "guess": "rhinovirus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "adenovirus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "norovirus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "rotavirus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "influenza virus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "herpesvirus",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral envelope",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral load",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "virus culture",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "viral vector",
+    "clue": "climbing",
+    "expected": false,
+    "domain": "virology"
+  },
+  {
+    "guess": "molecule",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "atom",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "element",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "compound",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "reaction",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "reagent",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "solvent",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "solute",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "catalyst",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "chemist",
+    "clue": "chemistry",
+    "expected": true,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "beaker",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "test tube",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "burette",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "pipette",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "flask",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "titration",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "molarity",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "chemical bond",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "periodic table",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "chemical equation",
+    "clue": "fishing",
+    "expected": false,
+    "domain": "chemistry"
+  },
+  {
+    "guess": "ledger",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "balance sheet",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "income statement",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "debit",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "credit",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "asset",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "liability",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "equity",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "accountant",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "journal entry",
+    "clue": "accounting",
+    "expected": true,
+    "domain": "accounting"
+  },
+  {
+    "guess": "trial balance",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "accounts payable",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "accounts receivable",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "depreciation",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "amortization",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "bookkeeping",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "financial statement",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "general ledger",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "audit trail",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "accrual",
+    "clue": "blacksmithing",
+    "expected": false,
+    "domain": "accounting"
+  },
+  {
+    "guess": "court",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "judge",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "attorney",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "statute",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "verdict",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "jurisdiction",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "plaintiff",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "defendant",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "lawsuit",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "legal precedent",
+    "clue": "law",
+    "expected": true,
+    "domain": "law"
+  },
+  {
+    "guess": "barrister",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "solicitor",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "case law",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "court order",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "legal brief",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "court clerk",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "legal counsel",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "civil procedure",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "criminal code",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "judicial review",
+    "clue": "plumbing",
+    "expected": false,
+    "domain": "law"
+  },
+  {
+    "guess": "basket",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "backboard",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "dribble",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "free throw",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "layup",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "rebound",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "jump shot",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "point guard",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "basketball court",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "three pointer",
+    "clue": "basketball",
+    "expected": true,
+    "domain": "basketball"
+  },
+  {
+    "guess": "shot clock",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "slam dunk",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "basketball hoop",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "basketball jersey",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "power forward",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "shooting guard",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "small forward",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "basketball coach",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "pick and roll",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "full court press",
+    "clue": "electricity",
+    "expected": false,
+    "domain": "basketball"
+  },
+  {
+    "guess": "swim cap",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swimsuit",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swimmer",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "freestyle",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "backstroke",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "breaststroke",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "butterfly stroke",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swimming pool",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim goggles",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim lane",
+    "clue": "swimming",
+    "expected": true,
+    "domain": "swimming"
+  },
+  {
+    "guess": "kickboard",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "pull buoy",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "flip turn",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim meet",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "starting block",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "lap pool",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim coach",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim fins",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim team",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  },
+  {
+    "guess": "swim stroke",
+    "clue": "painting",
+    "expected": false,
+    "domain": "swimming"
+  }
+]
