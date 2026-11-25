@@ -148,6 +148,17 @@ try {
     assert.equal(await page.locator('#pitchSummary .match-segment.matched').count(),24);
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
     assert(await page.locator('#pitchSummary .match-segment').evaluateAll(nodes=>nodes.every(n=>n.scrollWidth<=n.clientWidth+1)),'all clue words fit their cells');
+    assert(await page.locator('#pitchSummary .match-word-label').evaluateAll(nodes=>{
+      const words=['dismissal','extinguisher','television','internationalization'];
+      return words.every((word,i)=>{
+        const label=nodes[i],old=label.textContent,fit=label.style.getPropertyValue('--word-fit');
+        label.textContent=word;label.style.setProperty('--word-fit',(100/(.66*word.length))+'cqi');
+        const range=document.createRange();range.selectNodeContents(label);
+        const rects=[...range.getClientRects()];
+        const ok=rects.length===1&&rects[0].width<=label.parentElement.clientWidth+1;
+        label.textContent=old;label.style.setProperty('--word-fit',fit);return ok;
+      });
+    }),'long single words never break across lines');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});

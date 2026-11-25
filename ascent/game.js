@@ -297,7 +297,15 @@ function cache(){if(state){writeLocal(syncKey,{day:state.day,reveal:revealIndex,
 function matchMeter(node,clues,links,showWords=false){
  node.replaceChildren(...clues.map((clue,i)=>{
   const e=document.createElement('span');const hit=Object.hasOwn(links||{},clue);
-  e.className='match-segment'+(hit?' matched':'');e.textContent=showWords?clue:String(i+1);e.title=displayWord(clue)+(hit?' — matched':' — missed');return e;
+  e.className='match-segment'+(hit?' matched':'');
+  if(showWords){
+   const label=document.createElement('span');label.className='match-word-label';label.textContent=clue;
+   // Use the longest word, not the whole phrase, to fit the cell.
+   const longest=Math.max(1,...clue.split(/\s+/).map(word=>Array.from(word).length));
+   label.style.setProperty('--word-fit',(100/(.66*longest))+'cqi');
+   e.append(label);
+  }else e.textContent=String(i+1);
+  e.title=displayWord(clue)+(hit?' — matched':' — missed');return e;
  }));
  node.setAttribute('aria-label',clues.filter(c=>Object.hasOwn(links||{},c)).length+' of '+clues.length+' matched');
 }

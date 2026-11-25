@@ -292,7 +292,8 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .answer-entry summary:focus-visible{outline:1px solid #b4d0a5;outline-offset:2px;border-radius:3px}
 
 /* Preserve the compact score grid; print each clue in its existing match segment. */
-.expedition #pitchSummary .match-segment{min-width:0;min-height:18px;padding:2px 3px;font-size:10px;line-height:1.15;text-align:center;overflow-wrap:anywhere;white-space:normal}
+.expedition #pitchSummary .match-segment{min-width:0;min-height:18px;padding:2px 3px;font-size:10px;line-height:1.15;text-align:center;container-type:inline-size;overflow-wrap:normal;word-break:normal;white-space:normal}
+.expedition #pitchSummary .match-word-label{display:block;min-width:0;max-width:100%;font-size:min(10px,var(--word-fit,10px));line-height:1.15;white-space:normal;overflow-wrap:normal;word-break:normal;hyphens:none;text-align:center}
 /* Very narrow displays need two rows rather than six unreadably narrow cells. */
 @media(max-width:480px){.expedition #pitchSummary .match-meter{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.expedition #pitchSummary .match-segment{padding:2px;min-height:18px}}
 
