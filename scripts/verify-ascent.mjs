@@ -120,6 +120,11 @@ try {
     assert.equal(await page.locator('#reviewPitchTabs').count(),0);
     assert.equal(await page.locator('#pitchSummary > .pitch-summary-row').count(),5);
     assert.equal(await page.locator('#pitchSummary .match-meter').count(),5);
+    assert.equal(await page.locator('#pitchSummary .match-segment').count(),30);
+    assert.deepEqual(await page.locator('#pitchSummary .match-meter').first().locator('.match-segment').allTextContents(),board);
+    assert.equal(await page.locator('#pitchSummary .match-segment.matched').count(),24);
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    assert(await page.locator('#pitchSummary .match-segment').evaluateAll(nodes=>nodes.every(n=>n.scrollWidth<=n.clientWidth+1)),'all clue words fit their cells');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});

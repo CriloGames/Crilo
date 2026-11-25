@@ -272,10 +272,10 @@ function climbContact(){
 }
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length})}
-function matchMeter(node,clues,links){
+function matchMeter(node,clues,links,showWords=false){
  node.replaceChildren(...clues.map((clue,i)=>{
   const e=document.createElement('span');const hit=Object.hasOwn(links||{},clue);
-  e.className='match-segment'+(hit?' matched':'');e.textContent=String(i+1);e.title=displayWord(clue)+(hit?' — matched':' — missed');return e;
+  e.className='match-segment'+(hit?' matched':'');e.textContent=showWords?clue:String(i+1);e.title=displayWord(clue)+(hit?' — matched':' — missed');return e;
  }));
  node.setAttribute('aria-label',clues.filter(c=>Object.hasOwn(links||{},c)).length+' of '+clues.length+' matched');
 }
@@ -295,7 +295,7 @@ function renderClimbStats(){
  $('bestNote').textContent=h.some(p=>p.checkIncomplete)?'Some connections could not be verified yet.':(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
  const summary=$('pitchSummary');summary.replaceChildren(...h.map((p,i)=>{
   const row=document.createElement('div'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
-  row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
+  row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links,true);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
  }));
 }
 function renderHolds(clues,record){
