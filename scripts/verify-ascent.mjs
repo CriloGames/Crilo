@@ -12,13 +12,13 @@ try {
     await page.goto('http://127.0.0.1:4173/ascent/');
     await page.waitForSelector('#start:enabled');
     assert(await page.locator('.crilo-top').isVisible());
-    assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/');
+    assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/index.html?games=2');
     assert(await page.locator('#dailyReset').isVisible());
     assert.match(await page.locator('#resetClock').innerText(),/^\d{2}:\d{2}:\d{2}$/);
     await page.locator('.route-menu summary').click();
     const home=page.locator('.route-menu .crilo-home');
     assert(await home.isVisible(),'Crilo return link is accessible');
-    assert.equal(await home.getAttribute('href'),'/');
+    assert.equal(await home.getAttribute('href'),'/index.html?games=2');
     await page.locator('.route-menu summary').click();
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
@@ -113,6 +113,12 @@ try {
     assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
     assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),1,'recheck is retained only in final review');
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
-    assert.deepEqual(errors,[]);await page.close();
+    assert.deepEqual(errors,[]);
+    // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.
+    await Promise.all([page.waitForURL('**/index.html?games=2'),page.locator('.crilo-top').click()]);
+    assert(await page.locator('.topbar .main-ascent-link').isVisible());
+    assert(await page.locator('.daily-games-feature .ascent-daily-choice').isVisible());
+    assert(await page.locator('.daily-games-feature .wheel-daily-choice').isVisible());
+    await page.close();
   }
 } finally {await browser.close()}
