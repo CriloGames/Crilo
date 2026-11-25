@@ -30,6 +30,7 @@ const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit 
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
 let timerEnd=0, guessClockRemaining=null, waitingForReconnect=false;
 let recovery=null,recoveryTimer=null,recoveryDelay=800;
+let startupReading=false,startupReadId=0;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
@@ -271,7 +272,21 @@ function climbContact(){
  }catch{} // Audio must never interrupt a scored climb.
 }
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
-function cache(){if(state)writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length})}
+// A reload can restore locked pitches immediately. Never restore an active
+// timer from an old snapshot; the server remains authoritative for live play.
+const viewKey='ascent.view.v1.'+scope;
+function rememberView(){
+ if(!state||!ticket)return;
+ writeLocal(viewKey,!state.deadline&&state.history.length?{ticket,state}:null);
+}
+function cachedView(day){
+ const saved=readLocal(viewKey),s=saved?.state;
+ if(saved?.ticket!==ticket||s?.day!==day||s.deadline||!Array.isArray(s.history)||!s.history.length||s.history.length>5)return null;
+ if(s.history.some(p=>!Array.isArray(p.clues)||!p.links||typeof p.points!=='number'))return null;
+ if(s.results&&(!Number.isFinite(s.results.score)||s.history.length!==5))return null;
+ return s;
+}
+function cache(){if(state){writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length});rememberView()}}
 function matchMeter(node,clues,links,showWords=false){
  node.replaceChildren(...clues.map((clue,i)=>{
   const e=document.createElement('span');const hit=Object.hasOwn(links||{},clue);
@@ -371,7 +386,7 @@ function renderFinishMap(result){
 const automaticReviewAttempts=new Set();
 let automaticReviewJob=null;
 function verifyCompletedClimb(){
- if(automaticReviewJob||mode!=='results'||!state?.results||document.hidden)return;
+ if(startupReading||automaticReviewJob||mode!=='results'||!state?.results||document.hidden)return;
  const snapshot=state, day=snapshot.day;
  const candidates=snapshot.history.map((pitch,index)=>({pitch,index,key:[day,scope,index,pitch.guess].join('|')}))
   .filter(x=>x.pitch.checkIncomplete&&x.pitch.guess&&!automaticReviewAttempts.has(x.key));
@@ -570,9 +585,46 @@ function warmCurrentPractice(){
  }).catch(()=>{}).finally(()=>{currentRouteWarm=null});
  return currentRouteWarm;
 }
+function prepareAfterResponse(next){
+ primeAnswerReviews(next);
+ if(!document.hidden){
+  if(custom&&next.needsGeneration)warmCurrentPractice();
+  else void prepareNextRoute();
+ }
+}
+function bootstrap(){
+ ticket=getTicket();
+ const day=archive||today();
+ const saved=cachedView(day);
+ // Render synchronously before making any network request. Start is usable
+ // even when the initial status request has not returned.
+ state=saved||{day,history:[],deadline:null,pitchSeconds:20,semantic:!replay,fullBank:true};
+ revealIndex=saved&&!saved.results?saved.history.length-1:null;
+ startupReading=true;
+ render();
+ const id=++startupReadId;
+ void (async()=>{
+  try{
+   const next=await call({p_action:'read',p_day:null,p_round:null,p_guess:null});
+   if(id!==startupReadId||pending)return;
+   startupReading=false;
+   displayResponse(next,null,'read');
+   rememberView();
+   prepareAfterResponse(next);
+  }catch{
+   // A slow/failed status check must not block Begin ascent. A click sends
+   // a normal server-authoritative start request, including for existing runs.
+   if(id===startupReadId&&!pending){
+    startupReading=false;
+    if(mode==='ready')message('Connection unavailable. Press Begin ascent to retry.');
+   }
+  }finally{if(id===startupReadId)startupReading=false}
+ })();
+}
 async function requestPitch(action='read',guess=null,retrying=false){
  if(pending||mode==='animating')return;
  if(recovery&&!retrying)return connect();
+ ++startupReadId;startupReading=false; // Ignore any older status response.
  const prev=state;
  const args=retrying&&recovery?recovery.args:{p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess};
  pending=true;
@@ -585,11 +637,8 @@ async function requestPitch(action='read',guess=null,retrying=false){
   // A cold route still has a fully usable ready screen. Never await generation
   // on the initial read. Start can create the same seed server-side if necessary.
   displayResponse(next,prev,action);
-  primeAnswerReviews(next);
-  if(!document.hidden){
-   if(custom&&next.needsGeneration)warmCurrentPractice();
-   else void prepareNextRoute();
-  }
+  rememberView();
+  prepareAfterResponse(next);
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
   guessClockRemaining=null;
@@ -606,7 +655,7 @@ function finishAtDeadline(){
  return requestPitch('read');
 }
 function connect(){
- if(pending)return;
+ if(pending||startupReading)return;
  if(recovery){clearTimeout(recoveryTimer);return requestPitch(recovery.action,recovery.guess,true)}
  return mode==='play'&&performance.now()>=timerEnd?finishAtDeadline():requestPitch('read')
 }
@@ -647,7 +696,7 @@ $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick
 $('start').onclick=()=>requestPitch('start');
 $('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
 $('share').onclick=async()=>{const h=state.history;const result='Ascent · '+(custom?'Custom '+seed.slice(0,8):replay?'Archive '+archive:state.day)+'\n'+format(state.results.score)+' pts\n'+h.map(r=>Object.keys(r.links).length+'/6').join(' · ');try{await navigator.clipboard.writeText(result);message('Result copied.')}catch{message(result)}};
-function refresh(){if(document.hidden||pending||automaticReviewJob||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
+function refresh(){if(document.hidden||pending||startupReading||automaticReviewJob||mode==='animating')return;if(recovery){connect();return;}if((official&&state?.day!==today())||mode==='results'||mode==='play')connect()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});setInterval(refresh,60000);
 window.addEventListener('storage',e=>{if(e.key===syncKey&&!document.hidden&&!pending&&mode!=='animating')connect()});
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -668,8 +717,7 @@ function openPracticeFromRoutes(event){playAgain(event)}
 $('generate').addEventListener('click',openPracticeFromRoutes);
 for(const link of document.querySelectorAll('a[href="?new=1"]:not(#generate)'))link.addEventListener('click',playAgain);
 putDate(archive||today());mountain.init($('view'));
-// Start preparing routes as soon as the daily/archive page opens. For a
-// practice route, first finish loading the current route to avoid contention.
-if(!custom&&!document.hidden){ticket=getTicket();void prepareNextRoute()}
-connect();
+// Initial read is non-blocking. Practice prefetch starts after the status or
+// first start response, not in competition with the initial daily lookup.
+bootstrap();
 })();

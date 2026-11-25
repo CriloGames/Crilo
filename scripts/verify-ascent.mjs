@@ -9,7 +9,24 @@ try {
     const page = await browser.newPage({viewport:{width,height}, reducedMotion:name==='desktop'?'no-preference':'reduce'});
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
-    await page.goto('http://127.0.0.1:4173/ascent/');
+    let releaseInitialRead,initialReadHeld=false,initialReadDone;
+    const initialReadGate=new Promise(resolve=>{releaseInitialRead=resolve});
+    const initialReadCompleted=new Promise(resolve=>{initialReadDone=resolve});
+    const holdInitialRead=async route=>{
+      if(route.request().postDataJSON().p_action!=='read'||initialReadHeld)return route.continue();
+      initialReadHeld=true;
+      await initialReadGate;
+      const response=await route.fetch();
+      await route.fulfill({response});
+      initialReadDone();
+    };
+    await page.route('**/rpc/ascent_pitch',holdInitialRead);
+    await page.goto('http://127.0.0.1:4173/ascent/',{waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>document.getElementById('start')&&!document.getElementById('start').disabled);
+    assert(await page.locator('#start').isEnabled(),'Begin ascent is enabled while initial read is held');
+    releaseInitialRead();
+    await initialReadCompleted;
+    await page.unroute('**/rpc/ascent_pitch',holdInitialRead);
     await page.waitForSelector('#start:enabled');
     assert(await page.locator('.crilo-top').isVisible());
     assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/index.html?games=3');
