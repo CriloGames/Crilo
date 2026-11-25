@@ -12,6 +12,7 @@ const scope=custom?'practice.'+seed:replay?'archive.'+archive:'daily';
 const ticketKey=official?'ascent.climber.v1':'ascent.attempt.'+scope;
 const syncKey=official?'ascent.last.v2':'ascent.last.'+scope;
 const $=id=>document.getElementById(id);
+const soundKey='ascent.sound.v1';
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
@@ -78,12 +79,26 @@ function putDate(day){if(custom){$('date').textContent='ROUTE '+seed.slice(0,8).
 function call(extra={}){
  return official?window.ascentRpc('ascent_pitch',{p_ticket:ticket,...extra}):window.ascentRpc('ascent_circuit',{p_ticket:ticket,p_seed:seed,p_archive:archive,...extra});
 }
+function showSoundSetting(){
+ $('sound').textContent=sound?'Sound on':'Sound off';
+ $('sound').setAttribute('aria-pressed',String(sound));
+}
+function restoreSound(){
+ sound=readLocal(soundKey)===true;
+ showSoundSetting();
+}
+function enableAudio(){
+ if(!sound||audio?.state==='running')return;
+ try{
+  audio??=new (window.AudioContext||window.webkitAudioContext)();
+  if(audio.state!=='running')audio.resume().catch(()=>{});
+ }catch{}
+}
 function toggleSound(){
  sound=!sound;
- try{if(sound){audio??=new (window.AudioContext||window.webkitAudioContext)();audio.resume().catch(()=>{})}}
- catch{sound=false}
- $('sound').textContent=sound?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound));
- if(sound)tone(0);
+ writeLocal(soundKey,sound);
+ showSoundSetting();
+ if(sound){enableAudio();tone(0)}
 }
 function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gain=audio.createGain(),t=audio.currentTime;
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
@@ -344,6 +359,12 @@ $('manual').addEventListener('click',e=>{if(e.target===$('manual')){const r=$('m
 $('routeLink').addEventListener('click',()=>document.querySelector('.route-menu').open=false);
 document.addEventListener('click',e=>{if(!e.target.closest('.route-menu'))document.querySelector('.route-menu').open=false});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.route-menu').open=false});
+restoreSound();
+// Each new document needs a user gesture to unlock its own audio context.
+document.addEventListener('click',enableAudio,true);
+document.addEventListener('keydown',enableAudio,true);
+window.addEventListener('pageshow',e=>{if(e.persisted)restoreSound()});
+window.addEventListener('storage',e=>{if(e.key===soundKey||e.key===null)restoreSound()});
 $('sound').onclick=toggleSound;$('guessform').onsubmit=submit;$('retry').onclick=connect;
 $('start').onclick=()=>requestPitch('start');
 $('next').onclick=()=>{if(state.results){revealIndex=null;render()}else requestPitch('start')};
