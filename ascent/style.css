@@ -153,3 +153,31 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .answer-entry summary strong{font-size:13px;font-weight:600}
 #answerReview .answer-entry .connection-list{margin-left:2px}
 #answerReview .answer-body{max-height:25rem}
+
+/* Clear progress and practice feedback */
+.expedition .match-meter{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;min-width:0}
+.expedition .match-segment{min-height:18px;border-radius:4px;background:#263f37;color:#afc2b5;display:grid;place-items:center;font:700 10px var(--mono);border:1px solid #557267}
+.expedition .match-segment.matched{background:#a9c99c;color:#16372c;border-color:#b7d4ad}
+.expedition .reveal-meter{margin:8px 0 14px}
+.expedition .reveal-meter .match-segment{min-height:28px;font-size:12px;animation:ascent-match-pop .24s ease-out both}
+.expedition .reveal-meter .match-segment:nth-child(2){animation-delay:.035s}
+.expedition .reveal-meter .match-segment:nth-child(3){animation-delay:.07s}
+.expedition .reveal-meter .match-segment:nth-child(4){animation-delay:.105s}
+.expedition .reveal-meter .match-segment:nth-child(5){animation-delay:.14s}
+.expedition .reveal-meter .match-segment:nth-child(6){animation-delay:.175s}
+@keyframes ascent-match-pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.expedition .reveal-score{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.expedition .reveal-score strong{color:#c6e1b5;font-size:25px}
+.expedition .reveal-score small{color:#b8cbbc;font:700 11px var(--mono)}
+.expedition .practice-best{padding:10px;border:1px solid #769880;background:#243f32;border-radius:8px;margin:8px 0 12px}
+.expedition .practice-best strong{display:block;color:#d3e7c8;font-size:12px;margin-bottom:8px}
+.expedition .climb-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:12px}
+.expedition .climb-stats>div{border:1px solid #557267;padding:8px 6px;border-radius:7px;background:#203a31;min-width:0}
+.expedition .climb-stats small{display:block;color:#bacdbf;font-size:10px;line-height:1.2}
+.expedition .climb-stats strong{display:block;color:#f2e5c7;font:700 17px var(--mono);margin-top:6px}
+.expedition .best-note{color:#c4e0b6;font-size:12px;margin:8px 0 12px}
+.expedition .pitch-summary{display:grid;gap:6px;margin:12px 0 18px}
+.expedition .pitch-summary-row{display:grid;grid-template-columns:48px minmax(0,1fr) 55px;gap:6px;align-items:center;font:700 10px var(--mono);color:#b8cbbc}
+.expedition .pitch-summary-row>strong{text-align:right;color:#e8dfc4}
+.expedition .fresh-climb{display:flex;align-items:center;justify-content:space-between;text-decoration:none;box-sizing:border-box}
+@media(prefers-reduced-motion:reduce){.expedition .reveal-meter .match-segment{animation:none}}
