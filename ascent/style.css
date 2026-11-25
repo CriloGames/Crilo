@@ -128,3 +128,28 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 }
 
 #practicePitch[open]{padding:10px 12px;background:#19372fe8;border-radius:8px}#practicePitch p{font-size:14px;line-height:1.4}#retryOutcome:empty{display:none}#retryCheck{margin:0}
+
+/* Phrase-friendly entry and readable per-clue connection feedback */
+.expedition textarea{min-width:0}
+.expedition .guess-hint{margin:6px 0 0}
+
+.expedition textarea{font:inherit}
+
+.expedition textarea{display:block;box-sizing:border-box;width:100%;min-height:65px;resize:vertical;padding:12px;border:1px solid #6c9181;border-radius:8px;background:#152f2a;color:var(--ink);font-size:16px;line-height:1.45}
+.expedition textarea::placeholder{color:#b1c2b5}
+.expedition textarea:focus-visible{outline:2px solid #ffcf89;outline-offset:2px}
+.expedition .guess-hint{color:var(--muted);font-size:11px;line-height:1.45}
+.expedition .connection-list{list-style:none;padding:0;margin:9px 0 2px;display:grid;gap:6px}
+.expedition .connection-row,#phrases .connection-row{background:#152f2a;border:1px solid #547164;border-radius:7px;padding:9px 10px;min-width:0}
+.expedition .connection-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.expedition .connection-heading strong{font-size:13px;color:#f3e8cb;overflow-wrap:anywhere}
+.expedition .connection-heading .connection-percent{font:700 11px var(--mono);color:#b4d9aa;white-space:nowrap}
+.expedition .connection-row p{font-size:12px;line-height:1.45;margin:4px 0 0;color:#c9d9cb;overflow-wrap:anywhere}
+.expedition .solution-word{display:block;font-size:20px;color:#f3e8cb;margin:10px 0 8px}
+.expedition .answer-groups{display:grid;gap:12px}
+.expedition .answer-tier-heading{font:700 12px var(--mono);color:#eed1a2;margin:8px 0 5px}
+#answerReview .answer-entry{border-top:1px solid #547164;padding:5px 0}
+#answerReview .answer-entry summary{grid-template-columns:minmax(0,1fr) auto 12px}
+#answerReview .answer-entry summary strong{font-size:13px;font-weight:600}
+#answerReview .answer-entry .connection-list{margin-left:2px}
+#answerReview .answer-body{max-height:25rem}
