@@ -22,6 +22,8 @@ const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
 const clean=s=>s.trim().toLowerCase().replace(/[’']/g,'').replace(/[\s‐‑–—-]+/g,' ').replace(/[.!?]+$/,'').trim();
 const validGuess=g=>g.length<=120&&/^[a-z0-9]+(?: [a-z0-9]+){0,15}$/.test(g);
+const clueInflections=[["airplane","airplanes"],["apple","apples"],["artist","artists"],["banana","bananas"],["banjo","banjos"],["batteries","battery"],["beam","beams"],["bee","bees"],["bell","bells"],["bird","birds"],["board","boards"],["boat","boats"],["bolt","bolts"],["bone","bones"],["book","books"],["bottle","bottles"],["branch","branches"],["bridge","bridges"],["button","buttons"],["cable","cables"],["car","cars"],["card","cards"],["carpenter","carpenters"],["carrot","carrots"],["cell","cells"],["cello","cellos"],["channel","channels"],["cliff","cliffs"],["clock","clocks"],["cloud","clouds"],["clue","clues"],["coil","coils"],["coin","coins"],["computer","computers"],["container","containers"],["cup","cups"],["dentist","dentists"],["device","devices"],["diamond","diamonds"],["doctor","doctors"],["document","documents"],["door","doors"],["drum","drums"],["egg","eggs"],["engine","engines"],["equation","equations"],["fastener","fasteners"],["feather","feathers"],["fence","fences"],["file","files"],["finger","fingers"],["fish","fishes"],["floor","floors"],["flower","flowers"],["fountain","fountains"],["frame","frames"],["frequencies","frequency"],["fruit","fruits"],["garment","garments"],["glove","gloves"],["guitar","guitars"],["hammer","hammers"],["hat","hats"],["helmet","helmets"],["hive","hives"],["insect","insects"],["instrument","instruments"],["jacket","jackets"],["jar","jars"],["key","keys"],["leaf","leaves"],["letter","letters"],["lock","locks"],["magnet","magnets"],["mandolin","mandolins"],["measure","measures"],["meter","meters"],["motor","motors"],["mountain","mountains"],["muscle","muscles"],["musician","musicians"],["needle","needles"],["note","notes"],["number","numbers"],["nut","nuts"],["page","pages"],["painting","paintings"],["phone","phones"],["photograph","photographs"],["piano","pianos"],["picture","pictures"],["pipe","pipes"],["plant","plants"],["plate","plates"],["poem","poems"],["potato","potatoes"],["radish","radishes"],["reptile","reptiles"],["ring","rings"],["river","rivers"],["rock","rocks"],["roof","roofs"],["root","roots"],["rope","ropes"],["screen","screens"],["screw","screws"],["seed","seeds"],["sentence","sentences"],["ship","ships"],["shirt","shirts"],["shoe","shoes"],["shovel","shovels"],["signal","signals"],["sock","socks"],["spring","springs"],["stamp","stamps"],["stone","stones"],["string","strings"],["student","students"],["teacher","teachers"],["thread","threads"],["ticket","tickets"],["toe","toes"],["tomato","tomatoes"],["tool","tools"],["teeth","tooth"],["train","trains"],["tree","trees"],["valve","valves"],["vegetable","vegetables"],["vehicle","vehicles"],["violin","violins"],["wall","walls"],["watch","watches"],["wave","waves"],["wheel","wheels"],["window","windows"],["wing","wings"],["wire","wires"],["word","words"],["wrench","wrenches"],["zipper","zippers"]];
+const isDisplayedClue=(guess,clues)=>{const g=clean(guess).replace(/^(a|an|the) +/,'');return clues.some(c=>{const w=clean(c).replace(/^(a|an|the) +/,'');return g===w||clueInflections.some(group=>group.includes(g)&&group.includes(w))})};
 const displayWord=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
 function connectionRow(clue,raw,answer){
  const item=document.createElement('li'),heading=document.createElement('div'),label=document.createElement('strong'),reason=document.createElement('p');
@@ -276,7 +278,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
 function finishAtDeadline(){
  if(pending||mode!=='play'||waitingForReconnect)return;
  const guess=clean($('guess').value);
- if(guess&&validGuess(guess)&&!state.clues.includes(guess)){message('Time’s up — submitting your answer…');return requestPitch('auto_guess',guess)}
+ if(guess&&validGuess(guess)&&!isDisplayedClue(guess,state.clues)){message('Time’s up — submitting your answer…');return requestPitch('auto_guess',guess)}
  return requestPitch('read');
 }
 function connect(){
@@ -301,7 +303,8 @@ function submit(e){
  e.preventDefault();if(pending||mode!=='play'||waitingForReconnect)return;
  if(performance.now()>=timerEnd){finishAtDeadline();return}
  const g=clean($('guess').value);
- if(!validGuess(g)||state.clues.includes(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
+ if(isDisplayedClue(g,state.clues)){rejectGuess('Choose an answer that is not already a clue.');return}
+ if(!validGuess(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
  message('Checking your answer…');requestPitch('guess',g);
 }
 $('retryForm').onsubmit=async e=>{
@@ -310,7 +313,8 @@ $('retryForm').onsubmit=async e=>{
  const pitchIndex=revealIndex,day=state.day,record=state.history[pitchIndex];
  const guess=clean($('retryGuess').value);
  if(!guess)return;
- if(!validGuess(guess)||record.clues.includes(guess)){$('retryOutcome').textContent='Enter one idea, up to 120 characters, rather than a list.';return}
+ if(isDisplayedClue(guess,record.clues)){$('retryOutcome').textContent='Choose an answer that is not already a clue.';return}
+ if(!validGuess(guess)){$('retryOutcome').textContent='Enter one idea, up to 120 characters, rather than a list.';return}
  const stillHere=()=>mode==='reveal'&&revealIndex===pitchIndex&&state.day===day;
  $('retryCheck').disabled=true;$('retryOutcome').textContent='Checking…';
  try{
