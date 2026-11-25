@@ -74,13 +74,16 @@ function connectionList(clues,links,answer){
 const uuidTicket=value=>typeof value==='string'&&/^[a-f0-9-]{36}$/i.test(value);
 function getTicket(){
   const saved=localStorage.getItem(ticketKey);
-  if(saved && /^[a-f0-9-]{36}$/i.test(saved))return saved;
-  // Share an anonymous ticket across new generated climbs so the server can
-  // avoid previously seen clues. Existing route tickets and replays stay intact.
+  if(uuidTicket(saved))return saved;
   const browserKey='ascent.climber.v1';
-  let fresh=custom?localStorage.getItem(browserKey):null;
-  if(!fresh||!uuidTicket(fresh))fresh=crypto.randomUUID();
-  if(custom&&!uuidTicket(localStorage.getItem(browserKey)))localStorage.setItem(browserKey,fresh);
+  // Never rotate the official identity on replay or practice navigation.
+  let fresh=custom||official?localStorage.getItem(browserKey):null;
+  if(!uuidTicket(fresh))fresh=crypto.randomUUID();
+  if(custom||official){
+   const existing=localStorage.getItem(browserKey);
+   if(uuidTicket(existing))fresh=existing;
+   else localStorage.setItem(browserKey,fresh);
+  }
   localStorage.setItem(ticketKey,fresh);return fresh;
 }
 // Keep exactly one freshly generated, unplayed practice route for this tab.
@@ -207,7 +210,7 @@ function resetClockText(date=new Date()){
 }
 function paintResetClock(){
  $('dailyReset').hidden=!official;
- if(official)$('resetClock').textContent=resetClockText();
+ if(official){const clock=resetClockText();$('resetClock').textContent=clock;$('completeResetClock').textContent=clock;}
 }
 function putDate(day){if(custom){$('date').textContent='ROUTE '+seed.slice(0,8).toUpperCase();return}$('date').textContent=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).toUpperCase()}
 function call(extra={}){
@@ -434,6 +437,7 @@ function render(){
  scene.dataset.phase=mode;
  document.querySelector('.expedition .card').inert=false;
  $('readyRule').textContent=state.semantic?'Connect six clues with a word or phrase. The first pitch gives you 20 seconds.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
+ if(official)$('readyRule').textContent+=' One official attempt per day.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='Practice climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
@@ -446,7 +450,7 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){renderFinishMap(state.results);renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){$('completeTitle').textContent=official?'Daily complete.':'Climb complete.';$('dailyCompleteNote').hidden=!official;$('freshClimb').firstChild.textContent=official?'Play a practice climb ': 'Play again ';renderFinishMap(state.results);renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
@@ -598,7 +602,7 @@ if(!official){
  $('avgLabel').textContent='Original daily average';
 }else $('dailyLink').setAttribute('aria-current','page');
 if(replay)$('archiveLink').setAttribute('aria-current','page');
-$('again').onclick=()=>{if(custom){location.assign('?new=1');return}localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
+$('again').onclick=()=>{if(!replay)return;localStorage.setItem(ticketKey,crypto.randomUUID());location.reload()};
 $('routeLink').hidden=!custom;
 $('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
 // Routes must always navigate immediately. Use a prepared fresh route when one

@@ -102,6 +102,14 @@ try {
       await page.locator('#next').click();
     }
     await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');
+    assert.equal(await page.locator('#completeTitle').innerText(),'Daily complete.');
+    assert(await page.locator('#dailyCompleteNote').isVisible());
+    assert(await page.locator('#again').isHidden());
+    assert.match(await page.locator('#freshClimb').innerText(),/practice climb/i);
+    const dailyTicket=await page.evaluate(()=>localStorage.getItem('ascent.climber.v1'));
+    await page.reload();await page.waitForSelector('#results:visible');
+    assert.equal(await page.evaluate(()=>localStorage.getItem('ascent.climber.v1')),dailyTicket);
+    assert.equal(await page.locator('#total').innerText(),'800');
     assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
     assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),1,'recheck is retained only in final review');
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));

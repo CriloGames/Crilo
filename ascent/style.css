@@ -265,3 +265,5 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .crilo-top:hover{background:#f5c987;color:#17352f}
 @media(max-width:700px),(max-width:950px) and (pointer:coarse){.ascent-game .bar nav{flex-wrap:wrap;justify-content:flex-end}.crilo-top{min-height:36px;padding:4px 7px;font-size:11px}.expedition .edition{gap:6px 12px}.daily-reset{font-size:11px}}
 .archive-crilo{color:var(--green);border-color:var(--green)}
+
+.expedition .daily-complete-note{color:#e1dbbb;font-size:14px;margin:0 0 16px}.daily-complete-note [role=timer]{font-family:var(--mono);color:#f5c987;font-weight:700;white-space:nowrap}
