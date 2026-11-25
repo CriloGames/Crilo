@@ -500,8 +500,9 @@ async function requestPitch(action='read',guess=null,retrying=false){
  if(recovery&&!retrying)return connect();
  const prev=state;
  const args=retrying&&recovery?recovery.args:{p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess};
+ pending=true;
  if(action==='guess'&&mode==='play'&&prev?.deadline){guessClockRemaining=Math.max(0,timerEnd-performance.now());paintClock()}
- pending=true;clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
+ clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();
   let next=await call(args);
