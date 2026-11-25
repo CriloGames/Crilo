@@ -19,7 +19,27 @@ let timerEnd=0, waitingForReconnect=false;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
-const clean=s=>s.trim().toLowerCase().replace(/\s+/g,' ');
+const clean=s=>s.trim().toLowerCase().replace(/[’']/g,'').replace(/[\s‐‑–—-]+/g,' ').replace(/[.!?]+$/,'').trim();
+const validGuess=g=>g.length<=120&&/^[a-z0-9]+(?: [a-z0-9]+){0,15}$/.test(g);
+const displayWord=s=>s?s.charAt(0).toUpperCase()+s.slice(1):'';
+function connectionRow(clue,raw,answer){
+ const item=document.createElement('li'),heading=document.createElement('div'),label=document.createElement('strong'),reason=document.createElement('p');
+ item.className='connection-row';heading.className='connection-heading';label.textContent=displayWord(clue);heading.append(label);
+ const match=typeof raw==='string'?raw.match(/\s*\((\d+)% match\)$/):null;
+ let explanation=typeof raw==='string'?raw.replace(/\s*\(\d+% match\)$/,'').trim():'';
+ if(match){const percent=document.createElement('span');percent.className='connection-percent';percent.textContent=match[1]+'%';heading.append(percent)}
+ if(!explanation||/^Related to .+\.$/.test(explanation)||explanation==='Direct reverse association'||explanation.includes(' ↔ ')){
+  explanation=answer?displayWord(answer)+' — recognized association.':'Recognized association.';
+ }else if(explanation.startsWith('Related through ')){
+  explanation='Shared topic: '+explanation.slice('Related through '.length)+'.';
+ }
+ reason.textContent=explanation;item.append(heading,reason);return item;
+}
+function connectionList(clues,links,answer){
+ const list=document.createElement('ul');list.className='connection-list';
+ for(const clue of clues)if(links&&Object.hasOwn(links,clue)&&links[clue]!=null)list.append(connectionRow(clue,links[clue],answer));
+ return list;
+}
 const uuidTicket=value=>typeof value==='string'&&/^[a-f0-9-]{36}$/i.test(value);
 function getTicket(){
   const saved=localStorage.getItem(ticketKey);
@@ -80,7 +100,7 @@ function renderAnswerReview(){
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
   const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
-  detail.textContent=state.fullBank===false?'Theme and related answers':'Top 100 answers';
+  detail.textContent='Answers by number of matches';
   score.textContent=Object.keys(pitch.links).length+'/6 · '+pitch.points+' pts';
   summary.append(title,score,detail);
   body.className='answer-body';
@@ -91,14 +111,19 @@ function renderAnswerReview(){
    try{
     const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:key,p_archive:archive,p_seed:seed,p_pitch:index+1});
     if(!answers.length)throw new Error('Unavailable');
-    const list=document.createElement('ol');list.className='answer-list';
-    for(const answer of answers){
-     const row=document.createElement('li'),title=document.createElement('strong'),score=document.createElement('span'),links=document.createElement('small');
-     title.textContent=answer.word;score.textContent=answer.hits+'/6 · '+answer.points+' pts';
-     links.textContent=pitch.clues.filter(clue=>answer.links[clue]).map(clue=>answer.links[clue]).join(' · ');
-     row.append(title,score,links);list.append(row);
+    const groups=document.createElement('div');groups.className='answer-groups';
+    for(let hits=6;hits>=1;hits--){
+     const matching=answers.filter(a=>a.hits===hits);if(!matching.length)continue;
+     const tier=document.createElement('section'),head=document.createElement('h3');
+     head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
+     for(const answer of matching){
+      const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
+      row.className='answer-entry';title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';summary.append(title,score);
+      row.append(summary,connectionList(pitch.clues,answer.links,answer.word));tier.append(row);
+     }
+     groups.append(tier);
     }
-    body.replaceChildren(list);body.dataset.loaded='yes';
+    body.replaceChildren(groups);body.dataset.loaded='yes';
    }catch{delete body.dataset.loaded;body.textContent='Couldn’t load answers. Close and reopen this pitch to retry.'}
   });
  });
@@ -109,11 +134,11 @@ function render(){
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
  scene.dataset.phase=mode;
  document.querySelector('.expedition .card').inert=false;
- $('readyRule').textContent=state.semantic?'Connect six clues with one word or short phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
+ $('readyRule').textContent=state.semantic?'Connect six clues with a word or phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='New themed climb ↗';
- $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
- $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
+ $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
+ $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. Use one idea, even if it takes several words. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
  $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-clue answer';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
@@ -128,12 +153,12 @@ function render(){
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 matched.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
- $('phrases').replaceChildren(...clues.filter(c=>c in shown.links).map(c=>{const li=document.createElement('li');li.textContent=shown.links[c];return li}));
+ $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
  $('retryGuess').value='';$('retryOutcome').textContent='';$('retryCheck').disabled=false;
  $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'This practice guess is untimed. Your first score stands.';
- $('sol').open=false;$('solution').textContent=shown.target.toUpperCase()+' · '+clues.map(c=>state.semantic?c.toUpperCase()+' — '+shown.solution[c]:shown.solution[c]).join(' · ');
+ $('sol').open=false;const target=document.createElement('strong');target.className='solution-word';target.textContent=displayWord(shown.target);$('solution').replaceChildren(target,connectionList(clues,shown.solution,shown.target));
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }
@@ -205,8 +230,8 @@ function submit(e){
  e.preventDefault();if(pending||mode!=='play'||waitingForReconnect)return;
  if(performance.now()>=timerEnd){connect();return}
  const g=clean($('guess').value);
- if(g.length>48||!/^[a-z]+(?: [a-z]+){0,5}$/.test(g)||state.clues.includes(g)){rejectGuess('Try a word or short phrase of your own, using letters and spaces.');return}
- message('Checking your word…');requestPitch('guess',g);
+ if(!validGuess(g)||state.clues.includes(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
+ message('Checking your answer…');requestPitch('guess',g);
 }
 $('retryForm').onsubmit=async e=>{
  e.preventDefault();
@@ -214,6 +239,7 @@ $('retryForm').onsubmit=async e=>{
  const pitchIndex=revealIndex,day=state.day,record=state.history[pitchIndex];
  const guess=clean($('retryGuess').value);
  if(!guess)return;
+ if(!validGuess(guess)||record.clues.includes(guess)){$('retryOutcome').textContent='Enter one idea, up to 120 characters, rather than a list.';return}
  const stillHere=()=>mode==='reveal'&&revealIndex===pitchIndex&&state.day===day;
  $('retryCheck').disabled=true;$('retryOutcome').textContent='Checking…';
  try{
@@ -227,6 +253,9 @@ $('retryForm').onsubmit=async e=>{
  }catch{if(stillHere())$('retryOutcome').textContent='Couldn’t check that guess. Try again.'}
  finally{if(stillHere())$('retryCheck').disabled=false}
 };
+for(const [inputId,formId] of [['guess','guessform'],['retryGuess','retryForm']]){
+ $(inputId).addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();$(formId).requestSubmit()}});
+}
 $('guide').onclick=()=>$('manual').showModal();$('close').onclick=$('understood').onclick=()=>$('manual').close();
 $('manual').addEventListener('click',e=>{if(e.target===$('manual')){const r=$('manual').getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$('manual').close()}});
 $('routeLink').addEventListener('click',()=>document.querySelector('.route-menu').open=false);
