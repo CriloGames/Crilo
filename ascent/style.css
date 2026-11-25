@@ -301,3 +301,13 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .answer-word-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;min-width:0}
 #answerReview .answer-word-row strong{font-size:13px;font-weight:600;color:#f3e8cb;overflow-wrap:anywhere}
 #answerReview .answer-word-row span{font:700 12px var(--mono);color:#eed1a2;white-space:nowrap;flex-shrink:0}
+
+/* Give the final score grid more horizontal room without changing gameplay. */
+.expedition[data-phase=results] .card{width:min(640px,60vw)}
+.expedition #pitchSummary .pitch-summary-row{grid-template-columns:44px minmax(0,1fr) 50px;gap:5px}
+.expedition #pitchSummary .match-segment{padding:2px;min-height:22px}
+.expedition #pitchSummary .match-word-label{font-size:min(10.5px,var(--word-fit,10.5px))}
+@media(max-width:950px){
+ .expedition[data-phase=results] .card{width:min(100%,640px);max-width:640px;margin-inline:0;justify-self:center}
+ .expedition #pitchSummary .match-meter{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+}

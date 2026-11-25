@@ -159,6 +159,12 @@ try {
         label.textContent=old;label.style.setProperty('--word-fit',fit);return ok;
       });
     }),'long single words never break across lines');
+    assert(await page.locator('#pitchSummary .match-word-label').evaluateAll(nodes=>{
+      const label=nodes[0],old=label.textContent,fit=label.style.getPropertyValue('--word-fit');
+      label.textContent='extinguisher';label.style.setProperty('--word-fit',(100/(.66*12))+'cqi');
+      const readable=parseFloat(getComputedStyle(label).fontSize)>=8;
+      label.textContent=old;label.style.setProperty('--word-fit',fit);return readable;
+    }),'long clues retain a readable font size');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
