@@ -6,7 +6,7 @@ if(params.has('new')){
  let prepared=null;
  try{
   const player=localStorage.getItem('ascent.climber.v1');
-  for(const key of ['ascent.next-practice.v1','ascent.next-practice.fast.v1']){
+  for(const key of ['ascent.next-practice.v2','ascent.next-practice.fast.v2']){
    const entry=JSON.parse(sessionStorage.getItem(key));
    if(entry?.ready&&entry.ticket===player&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(entry.seed)){
     localStorage.setItem('ascent.attempt.practice.'+entry.seed,entry.ticket);
@@ -444,7 +444,7 @@ function originalConnections(pitch){
 // never starts a request; the original and intended connections are local.
 const reviewCatalog=new Map(),reviewRequests=new Map(),reviewFailures=new Map();
 function reviewCatalogKey(day,index){return [scope,ticket,day,index].join('|')}
-const catalogStore='ascent.answer-catalog.v4.';
+const catalogStore='ascent.answer-catalog.v5.';
 function savedReviewCatalog(day,index){
  const key=reviewCatalogKey(day,index);
  if(reviewCatalog.has(key))return reviewCatalog.get(key);
