@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-const MODEL="@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-const VERSION="llama70b-r4";
+const VERSION="gptoss120b-r5";
 const respond=(v:unknown,status=200)=>new Response(JSON.stringify(v),{status,headers:{"Content-Type":"application/json","Cache-Control":"no-store"}});
 const valid=(s:unknown):s is string=>typeof s==="string"&&s.length<=100&&/^[a-z0-9]+(?: [a-z0-9]+){0,9}$/.test(s);
 const uuid=(s:unknown):s is string=>typeof s==="string"&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(s);
@@ -19,11 +18,16 @@ Deno.serve(async req=>{
  const reserve=await fetch(base+"/rest/v1/rpc/ascent_llm_reserve",{method:"POST",headers:{apikey:key,Authorization:"Bearer "+key,"Content-Type":"application/json"},body:JSON.stringify({p_token:token,p_ticket:body.ticket}),signal:AbortSignal.timeout(1300)});
  if(!reserve.ok||await reserve.json()!==true)return respond({error:"quota_or_auth"},429);
  const start=performance.now();
- const cf=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/run/"+MODEL,{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"system",content:prompt},{role:"user",content:JSON.stringify({answer:body.guess,clues:body.clues.map((c:string,i:number)=>({i:i+1,clue:c}))})}],max_tokens:300,temperature:0,response_format:{type:"json_schema",json_schema:{type:"object",properties:{decisions:{type:"array",items:{type:"object",properties:{i:{type:"integer"},reason:{type:"string"}},required:["i","reason"],additionalProperties:false}}},required:["decisions"],additionalProperties:false}}}),signal:AbortSignal.timeout(3600)});
- const data=await cf.json();
- if(!cf.ok||data.success!==true)return respond({error:"cloudflare_request_failed",status:cf.status,code:data.errors?.[0]?.code??null});
- let result=data.result?.response;
- if(typeof result==="string"){try{result=JSON.parse(result)}catch{return respond({error:"invalid_model_json"})}}
+ let result:any;
+  const schema={type:"object",properties:{decisions:{type:"array",items:{type:"object",properties:{i:{type:"integer"},reason:{type:"string"}},required:["i","reason"],additionalProperties:false}}},required:["decisions"],additionalProperties:false};
+  const instructions=prompt+" Before rejecting a clue, reconsider at least one alternate meaning of either word. Distinguish a direct familiar association from a merely imaginable scenario. Reject a relationship that belongs only to an intermediate object: e.g., thread pitch belongs to a bolt, not to a wrench used on the bolt. Do not transfer a property of something a tool touches to the tool itself. Be especially careful with common object-use pairs, wordplay, and natural processes. Check that all clue numbers are present.";
+  const cf=await fetch("https://api.cloudflare.com/client/v4/accounts/"+account+"/ai/v1/responses",{method:"POST",headers:{Authorization:"Bearer "+api,"Content-Type":"application/json"},body:JSON.stringify({model:"@cf/openai/gpt-oss-120b",input:[{role:"system",content:instructions},{role:"user",content:JSON.stringify({answer:body.guess,clues:body.clues.map((c:string,i:number)=>({i:i+1,clue:c}))})}],reasoning:{effort:"low"},max_output_tokens:450,text:{format:{type:"json_schema",name:"clue_decisions",schema,strict:true}}}),signal:AbortSignal.timeout(4200)});
+  const data=await cf.json();
+  if(!cf.ok)return respond({error:"reasoning_model_request_failed",status:cf.status});
+  const envelope=data.result??data;
+  const output=envelope.output_text??envelope.output?.flatMap((o:any)=>o.type==="message"?o.content??[]:[]).filter((c:any)=>c.type==="output_text").map((c:any)=>c.text).join("");
+  try{result=typeof output==="string"?JSON.parse(output):output}catch{return respond({error:"invalid_reasoning_json"})}
+
  if(!result||!Array.isArray(result.decisions)||result.decisions.length!==body.clues.length)return respond({error:"incomplete_model_output"});
  const matches:Record<string,string>={},seen=new Set<number>();
  for(const m of result.decisions){
@@ -34,6 +38,6 @@ Deno.serve(async req=>{
   if(reason.split(/\s+/).length<3||/^(?:related to|associated with|type of|kind of|setting for|used with|needs power|uses power|is a power)\b/i.test(reason))return respond({error:"invalid_reason"});
   matches[body.clues[m.i-1]]=reason;
  }
- return respond({version:VERSION,matches,ms:Math.round(performance.now()-start)});
+ return respond({version:VERSION,engine:'gpt-oss-120b',matches,ms:Math.round(performance.now()-start)});
  }catch(e){return respond({error:"reasoning_timeout_or_unavailable"})}
 });
