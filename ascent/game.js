@@ -28,7 +28,7 @@ const soundKey='ascent.sound.v1';
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
-let timerEnd=0, waitingForReconnect=false, practiceBest=null, practiceAttempts=0;
+let timerEnd=0, guessClockRemaining=null, waitingForReconnect=false, practiceBest=null, practiceAttempts=0;
 let recovery=null,recoveryTimer=null,recoveryDelay=800;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
@@ -452,12 +452,13 @@ function render(){
 }
 function paintClock(){
  if(mode!=='play')return;
- const ms=Math.max(0,timerEnd-performance.now()), sec=Math.ceil(ms/1000);
+ const ms=guessClockRemaining===null?Math.max(0,timerEnd-performance.now()):guessClockRemaining, sec=Math.ceil(ms/1000);
  $('seconds').textContent=sec+'s';$('clockbar').max=state.pitchSeconds||20;$('clockbar').value=ms/1000;$('clock').classList.toggle('urgent',sec<=5);
  if(ms===0&&!pending&&!waitingForReconnect)finishAtDeadline();
 }
 setInterval(paintClock,100);
 function displayResponse(next,previous,action){
+ guessClockRemaining=null;
  const sameDay=previous?.day===next.day;
  const advanced=!!previous&&sameDay&&next.history.length>previous.history.length;
  const estimatedEnd=next.deadline?performance.now()+Math.max(0,Date.parse(next.deadline)-Date.parse(next.serverTime)):0;
@@ -499,6 +500,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
  if(recovery&&!retrying)return connect();
  const prev=state;
  const args=retrying&&recovery?recovery.args:{p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess};
+ if(action==='guess'&&mode==='play'&&prev?.deadline){guessClockRemaining=Math.max(0,timerEnd-performance.now());paintClock()}
  pending=true;clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();
@@ -515,6 +517,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
   if(!document.hidden)void prepareNextRoute();
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
+  guessClockRemaining=null;
   waitingForReconnect=true;recovery={action,guess,args};
   if(error.generation){message(error.status===429?'Fresh climb temporarily unavailable. Retry generation.':'Couldn’t create a fresh climb. Try again.',true);return;}
   message(guess?'Reconnecting automatically… Keeping your answer.':'Reconnecting automatically…',true);
@@ -551,7 +554,7 @@ function submit(e){
  const g=clean($('guess').value);
  if(isDisplayedClue(g,state.clues)){rejectGuess('That word is already in a clue. Try a different connection.');return}
  if(!validGuess(g)){rejectGuess('Enter one idea, up to 120 characters, rather than a list of guesses.');return}
- message('Checking your answer…');requestPitch('guess',g);
+ message();requestPitch('guess',g);
 }
 $('retryForm').onsubmit=async e=>{
  e.preventDefault();
