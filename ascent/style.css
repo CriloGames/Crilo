@@ -235,3 +235,6 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .expedition .card{padding-inline:12px}
  .expedition .hold{padding-inline:5px}
 }
+
+/* Optional feedback after the score is locked. */
+.expedition #reportConnection{margin-block:10px}.expedition .report-clues{display:flex;flex-wrap:wrap;gap:7px;margin-block:8px}.expedition .report-clue{min-height:38px;width:auto;padding:6px 12px;font-size:13px}.expedition #reportStatus{min-height:1.2em;margin:4px 0}.expedition .report-clue:disabled{opacity:.6}
