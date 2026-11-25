@@ -102,6 +102,37 @@ function toggleSound(){
 }
 function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gain=audio.createGain(),t=audio.currentTime;
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
+let climbNoise=null,lastClimbContact=-Infinity;
+function climbContact(){
+ if(!sound||!audio||audio.state!=='running'||document.hidden)return;
+ const t=audio.currentTime;
+ if(t-lastClimbContact<.035)return; // Coalesce grips skipped by a slow frame.
+ try{
+  if(!climbNoise||climbNoise.context!==audio){
+   const buffer=audio.createBuffer(1,Math.ceil(audio.sampleRate*.5),audio.sampleRate);
+   const data=buffer.getChannelData(0);
+   for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;
+   climbNoise={context:audio,buffer};
+  }
+  lastClimbContact=t;
+  const variation=.85+Math.random()*.3;
+  function grain(delay,duration,frequency,volume,type,q){
+   const start=t+delay, src=audio.createBufferSource(), filter=audio.createBiquadFilter(), gain=audio.createGain();
+   src.buffer=climbNoise.buffer;filter.type=type;filter.frequency.value=frequency*variation;filter.Q.value=q;
+   gain.gain.setValueAtTime(.0001,start);
+   gain.gain.exponentialRampToValueAtTime(volume,start+.003);
+   gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+   src.connect(filter);filter.connect(gain);gain.connect(audio.destination);
+   src.start(start,Math.random()*.28,duration);
+   src.onended=()=>{src.disconnect();filter.disconnect();gain.disconnect()};
+  }
+  // Chalky fingers catching rough stone, followed by a rubber shoe settling.
+  grain(0,.073,1700,.24,'bandpass',.85);
+  grain(.008,.037,3900,.11,'bandpass',.65);
+  grain(.042,.085,420,.25,'lowpass',.65);
+  grain(.045,.045,950,.10,'bandpass',.8);
+ }catch{} // Audio must never interrupt a scored climb.
+}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)writeLocal(syncKey,{day:state.day,reveal:revealIndex,len:state.history.length})}
 function matchMeter(node,clues,links){
@@ -304,7 +335,7 @@ function displayResponse(next,previous,action){
    if(complete || !matched[index])return;
    $('gripCount').textContent='Match '+(index+1)+' of '+count;
    $('gripWord').textContent=matched[index];
-   tone(index);
+   climbContact();
   };
   mountain.climb(sum(previous.history),sum(next.history),count,end,onGrip);
   setTimeout(end,1400);
