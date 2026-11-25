@@ -11,6 +11,11 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/ascent/');
     await page.waitForSelector('#start:enabled');
+    await page.locator('.route-menu summary').click();
+    const home=page.locator('.route-menu .crilo-home');
+    assert(await home.isVisible(),'Crilo return link is accessible');
+    assert.equal(await home.getAttribute('href'),'/');
+    await page.locator('.route-menu summary').click();
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
     const board=['clip','plane','wall','trail','lighthouse','mill'];
