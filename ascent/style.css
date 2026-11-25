@@ -281,3 +281,14 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .review-answer-heading strong{color:#f3e8cb;font-size:14px}
 #answerReview .review-answer-heading span{color:#eed1a2;font:700 12px var(--mono);white-space:nowrap}
 #answerReview .answer-entry .connection-list{margin:5px 0 10px}
+
+/* Keep the six-clue breakdown separate from the possible-answer accordion. */
+#reviewConnections{margin:20px 0;border-top:1px solid #547164;padding-top:14px}
+#reviewConnectionsTitle,.expedition .review-section-heading{font-size:17px;color:#f3e8cb;margin:0 0 10px}
+#reviewPitchTabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-bottom:12px}
+#reviewPitchTabs button{min-width:0;min-height:36px;padding:6px 2px;border:1px solid #547164;border-radius:6px;background:#203e35;color:#e6dcc0;font:700 11px var(--mono);white-space:nowrap;cursor:pointer}
+#reviewPitchTabs button[aria-pressed=true]{background:#b4d0a5;color:#17352f;border-color:#b4d0a5}
+#reviewConnections .original-connections,#reviewConnections .review-solution{margin:0 0 12px}
+#reviewConnections .review-unmatched{opacity:.78}
+#answerReview details[open]>summary::after{transform:rotate(225deg)}
+#answerReview details:not([open])>summary::after{transform:rotate(45deg)}

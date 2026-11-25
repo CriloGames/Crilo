@@ -433,50 +433,74 @@ function primeAnswerReviews(snapshot){
   reviewRequests.set(key,job);
  });
 }
-function renderAlternatives(pitch,container,answers){
+// Connections are a separate, always visible panel. The answer accordion
+// is reserved for browsing possible guesses, ranked by number of matches.
+let connectionPitch=0,connectionDay=null;
+function renderReviewConnections(index=connectionPitch){
+ const history=state.history||[], panel=$('reviewConnections'), tabs=$('reviewPitchTabs'), body=$('reviewConnectionBody');
+ if(!history.length)return;
+ if(connectionDay!==state.day){connectionDay=state.day;index=0}
+ connectionPitch=Math.max(0,Math.min(index,history.length-1));
+ const pitch=history[connectionPitch];
+ tabs.replaceChildren(...history.map((_,i)=>{
+  const button=document.createElement('button');button.type='button';button.textContent='Pitch '+(i+1);
+  button.setAttribute('aria-pressed',String(i===connectionPitch));button.onclick=()=>renderReviewConnections(i);return button;
+ }));
+ body.replaceChildren();
+ if(pitch.guess)body.append(originalConnections(pitch));
+ const solutionHits=Object.keys(pitch.solution||{}).length;
+ if(solutionHits&&pitch.target&&(pitch.target!==pitch.guess||solutionHits!==Object.keys(pitch.links||{}).length)){
+  const section=document.createElement('section'),label=document.createElement('h3');
+  section.className='review-solution';label.className='answer-tier-heading';
+  label.textContent='Intended answer · '+displayWord(pitch.target)+' · '+solutionHits+'/6';
+  section.append(label,connectionList(pitch.clues,pitch.solution,pitch.target));body.append(section);
+ }
+ if(!pitch.guess&&!solutionHits)body.append(originalConnections(pitch));
+ panel.hidden=false;
+}
+function renderAlternatives(pitch,container,answers=[]){
  const groups=document.createElement('div');groups.className='answer-groups';
- const excluded=new Set([String(pitch.guess||'').toLowerCase(),String(pitch.target||'').toLowerCase()]);
+ const byWord=new Map();
+ for(const answer of answers)if(answer?.word)byWord.set(answer.word.toLowerCase(),answer);
+ const add=(word,links,points)=>{
+  if(!word||!links)return;
+  const hits=Object.keys(links).length;if(!hits)return;
+  const pairs=[0,1,2].filter(i=>Object.hasOwn(links,pitch.clues[i])&&Object.hasOwn(links,pitch.clues[i+3])).length;
+  byWord.set(word.toLowerCase(),{word,hits,points:points??(hits===6?200:10*(hits*(hits+1)/2+pairs)),links});
+ };
+ add(pitch.target,pitch.solution);
+ add(pitch.guess,pitch.links,pitch.points);
+ const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
+ const openWords=new Set([...container.querySelectorAll('details[open]')].map(row=>row.dataset.word));
  for(let hits=6;hits>=1;hits--){
-  const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues)&&!excluded.has(a.word.toLowerCase()));if(!matching.length)continue;
+  const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));if(!matching.length)continue;
   const tier=document.createElement('section'),head=document.createElement('h3');
   head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
   for(const answer of matching){
-   const row=document.createElement('article'),heading=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
-   row.className='answer-entry';heading.className='review-answer-heading';title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';heading.append(title,score);
-   row.append(heading,connectionList(pitch.clues,answer.links,answer.word));tier.append(row);
+   const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
+   row.className='answer-entry';row.dataset.word=answer.word.toLowerCase();title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';summary.append(title,score);
+   row.append(summary,connectionList(pitch.clues,answer.links,answer.word));row.open=openWords.has(row.dataset.word);tier.append(row);
   }
   groups.append(tier);
  }
  container.replaceChildren();
- if(groups.children.length){const heading=document.createElement('h3');heading.className='answer-tier-heading';heading.textContent='Other possible answers';container.append(heading,groups)}
+ if(groups.children.length)container.append(groups);
 }
 function renderAnswerReview(){
  const review=$('answerReview'),day=state.day;
  const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete,p.solution])]);
  if(review.dataset.key===key)return;
+ renderReviewConnections();
  const open=review.dataset.day===day?new Set([...review.children].map((node,i)=>node.open?i:-1)):new Set();
  review.dataset.day=day;review.dataset.key=key;review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
   const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
-  detail.textContent='Connections and possible answers';
+  detail.textContent='Answers by number of matches';
   score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts';
-  summary.append(title,score,detail);body.className='answer-body';
-  // Always show the intended answer first after a timeout, and the recorded
-  // guess first otherwise. No second dropdown hides the explanation.
-  if(pitch.guess)body.append(originalConnections(pitch));
-  const solutionHits=Object.keys(pitch.solution||{}).length;
-  if(solutionHits&&pitch.target&&(pitch.target!==pitch.guess||solutionHits!==Object.keys(pitch.links||{}).length)){
-   const solution=document.createElement('section'),label=document.createElement('h3');
-   solution.className='review-solution';label.className='answer-tier-heading';
-   label.textContent='Intended answer · '+displayWord(pitch.target)+' · '+solutionHits+'/6';
-   solution.append(label,connectionList(pitch.clues,pitch.solution,pitch.target));body.append(solution);
-  }
-  if(!pitch.guess&&!solutionHits)body.append(originalConnections(pitch));
-  const alternatives=document.createElement('div');alternatives.className='review-alternatives';body.append(alternatives);
-  const cached=reviewCatalog.get(reviewCatalogKey(day,index));
-  if(cached)renderAlternatives(pitch,alternatives,cached);
+  summary.append(title,score,detail);body.className='answer-body review-alternatives';
+  renderAlternatives(pitch,body,reviewCatalog.get(reviewCatalogKey(day,index))||[]);
   details.append(summary,body);review.append(details);
   if(open.has(index))details.open=true;
  });
