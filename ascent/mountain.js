@@ -5,7 +5,7 @@
   const smooth = t => t * t * (3 - 2 * t);
   let canvas, ctx, scenery, observer, frame, width = 1, height = 1, pixelRatio = 1;
   let altitude = 0, pullback = 0, mean = null, motion, pull, lastPaint = -100, backgroundKey = '';
-  let reduced = false, reducedQuery;
+  let reduced = false, reducedQuery, cliffLayer, skyLayer, skyKey='', followAltitude=0, followX=null, lastFrame=0, contact=null;
   function random(seed) {
     return () => {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -106,7 +106,7 @@
     return {x:edgeX(y)+inset,y};
   }
   function camera(h,b) {
-    const p=route(h), z=mix(1.48,.94,b);
+    const p=route(h), z=mix(1.48,.94,b); if(followX!==null)p.x=followX;
     return {z, x:mix(635-p.x*z,30,b), y:mix(425-p.y*z,34,b)};
   }
   function cliff(c) {
@@ -169,19 +169,29 @@
     const c=scenery.getContext('2d');
     const s=frameScale();
     c.setTransform(s.x*pixelRatio,0,0,s.y*pixelRatio,(width*.635-635*s.x)*pixelRatio,(height*425/650-425*s.y)*pixelRatio);
-    backdrop(c,altitude/1000*(1-pullback));
-    c.save(); c.translate(cam.x,cam.y); c.scale(cam.z,cam.z); cliff(c);
-    // A few evergreens are perched on the lower ledges.
-    pine(c,473,615,75,'#32554a','#516c51');pine(c,458,638,43,'#385e4d','#617950');
-    pine(c,493,576,36,'#47674f','#667b53');
-    c.restore();
-    const rng=random(672);
-    c.fillStyle='rgba(53,51,40,.10)';
-    for(let i=0;i<2200;i++)c.fillRect(rng()*1000,rng()*650,.65+rng()*.8,.7+rng()*.7);
+    // Cache the illustrated rock and valley layers; the camera can move without
+    // rebuilding thousands of polygons every frame.
+    const skyStamp=Math.round(altitude/8)+'|'+Math.round(pullback*32);
+    if(!skyLayer){skyLayer=document.createElement('canvas');skyLayer.width=1500;skyLayer.height=975;}
+    if(skyKey!==skyStamp){
+      const sky=skyLayer.getContext('2d');sky.setTransform(1.5,0,0,1.5,0,0);
+      backdrop(sky,altitude/1000*(1-pullback));
+      const rng=random(672);sky.fillStyle='rgba(53,51,40,.10)';
+      for(let i=0;i<2200;i++)sky.fillRect(rng()*1000,rng()*650,.65+rng()*.8,.7+rng()*.7);
+      skyKey=skyStamp;
+    }
+    c.drawImage(skyLayer,0,0,1000,650);
+    if(!cliffLayer){
+      cliffLayer=document.createElement('canvas');cliffLayer.width=2280;cliffLayer.height=1560;
+      const rock=cliffLayer.getContext('2d');rock.scale(1.5,1.5);cliff(rock);
+      pine(rock,473,615,75,'#32554a','#516c51');pine(rock,458,638,43,'#385e4d','#617950');
+      pine(rock,493,576,36,'#47674f','#667b53');
+    }
+    c.save();c.translate(cam.x,cam.y);c.scale(cam.z,cam.z);c.drawImage(cliffLayer,0,0,1520,1040);c.restore();
   }
   function rope(cam,p,scale,now) {
     const c=ctx, dest=project(p,cam);
-    const sway=reduced?0:Math.sin(now*.0008)*2.2*scale;
+    const sway=reduced?0:Math.sin(now*.002)*1.4*scale;
     c.beginPath(); c.moveTo(dest.x+1*scale,dest.y-17*scale);
     let latest=dest;
     for(let step=Math.floor((altitude-18)/65)*65;step>=0;step-=65) {
@@ -195,30 +205,56 @@
     c.strokeStyle='#7b4d3e'; c.lineWidth=2.5*scale; c.stroke();
     c.strokeStyle='#e7aa63';c.lineWidth=1.2*scale;c.stroke();
   }
-  function climber(p,cam,now,phase,energy) {
+  function climberSize(cam){
+    const s=frameScale();
+    return clamp(Math.sqrt(s.x*s.y)*cam.z*.88,.54,1.55)*(1-.25*pullback);
+  }
+  function contactPose(p,cam,size,beat,energy){
+    const base=project(p,cam);
+    const rest=[[-12,-2],[14,-13],[21,-59],[18,-37]];
+    if(!motion||reduced||!energy)return rest;
+    const cycle=Math.floor(beat), frac=beat-cycle;
+    const total=motion.to-motion.from, steps=motion.gaitSteps;
+    // Opposing hands and feet alternate. During the support phase their
+    // world positions stay put while the torso moves between them.
+    return rest.map(([x,y],i)=>{
+      const offset=[.50,0,0,.50][i];
+      const k=beat+offset, step=Math.floor(k), u=k-step;
+      const a=clamp((step-offset)/steps),b=clamp((step+1-offset)/steps);
+      const from=route(mix(motion.from,motion.to,a)),to=route(mix(motion.from,motion.to,b));
+      const swing=smooth(clamp(u/.52));
+      const wx=mix(from.x,to.x,swing),wy=mix(from.y,to.y,swing);
+      const pos=project({x:wx,y:wy},cam);
+      const lift=Math.sin(Math.PI*clamp(u/.52))*energy;
+      const blend=smooth(clamp(beat/.4))*smooth(clamp((steps-beat)/.4));
+      return [x+clamp((pos.x-base.x)/size,-15,15)*blend+(i<2?-3:3)*lift,y+clamp((pos.y-base.y)/size,-22,22)*blend-5*lift];
+    });
+  }
+  function climber(p,cam,now,beat,energy) {
     const c=ctx, anchor=project(p,cam);
-    const size=(.53+.62*clamp(height/540,0,1.25))*(1-.37*pullback);
-    const stride=energy*Math.sin(phase), reach=energy*Math.cos(phase);
+    const size=climberSize(cam);
+    const stride=energy*Math.sin(beat*Math.PI*2), reach=energy*Math.cos(beat*Math.PI*2);
     rope(cam,p,size,now);
     c.save();
     c.translate(anchor.x,anchor.y);
     c.scale(size,size);
     c.lineJoin=c.lineCap='round';
-    const hip=[-2,-20-3*energy], shoulder=[3,-40-3*energy];
-    const lowFoot=[-12+4*stride,-2], highFoot=[14,-13-4*stride];
-    const highGrip=[21+4*reach,-59-4*stride], lowGrip=[18,-37+3*stride];
+    const hip=[-2+1.6*stride,-20-2*energy], shoulder=[3+1.3*reach,-40-2*energy];
+    const [lowFoot,highFoot,highGrip,lowGrip]=contactPose(p,cam,size,beat,energy);
+    // Bend joints toward the wall and keep the body balanced over the feet.
+    const joint=(a,b,dx,dy)=>[(a[0]+b[0])*.5+dx,(a[1]+b[1])*.5+dy];
     const stroke=(points,width,shade)=>{
       line(c,points,'#182a29',width+2);
       line(c,points,shade,width);
     };
-    stroke([hip,[12,-25],highFoot],6,'#2c4548');
-    stroke([shoulder,[13,-32],lowGrip],5,'#9e5136');
-    stroke([hip,[-12,-15],lowFoot],7,'#4a6463');
+    stroke([hip,joint(hip,highFoot,6,-8),highFoot],6,'#2c4548');
+    stroke([shoulder,joint(shoulder,lowGrip,3,7),lowGrip],5,'#9e5136');
+    stroke([hip,joint(hip,lowFoot,-6,-3),lowFoot],7,'#4a6463');
     for(const [x,y] of [lowFoot,highFoot])line(c,[[x-3,y],[x+4,y]],'#172928',4);
     shape(c,[[hip[0]-6,hip[1]],[shoulder[0]-7,shoulder[1]+1],[shoulder[0]+4,shoulder[1]-2],[hip[0]+5,hip[1]-3],[hip[0]+4,hip[1]+1]],'#d76b40');
     shape(c,[[-8,-36],[-3,-40],[1,-32],[-5,-23],[-12,-25],[-13,-32]],'#345954');
     line(c,[[-9,-33],[-6,-28]],'#85a896',1.4);
-    stroke([shoulder,[9,-48],highGrip],5,'#ec8852');
+    stroke([shoulder,joint(shoulder,highGrip,-6,-1),highGrip],5,'#ec8852');
     for(const [x,y] of [lowGrip,highGrip])oval(c,x,y,2.5,2.1,'#e8ac7e');
     oval(c,7,-46-3*energy,5.3,6,'#9b6849');
     oval(c,6,-49-3*energy,6.8,4.2,'#f1d289');
@@ -228,15 +264,15 @@
     c.restore();
   }
   function chalkDust(cam,now){
-    if(!motion?.contact || reduced)return;
-    const age=(now-motion.contact.time)/540;
+    if(!contact || reduced)return;
+    const age=(now-contact.time)/420;
     if(age>=1)return;
-    const anchor=project(motion.contact.position,cam);
-    const size=(.53+.62*clamp(height/540,0,1.25));
+    const anchor=project(contact.position,cam);
+    const size=climberSize(cam);
     ctx.save();
     ctx.globalAlpha=.78*(1-age);
     for(let i=0;i<9;i++){
-      const angle=i*2.4+motion.lastGrip;
+      const angle=i*2.4+contact.index;
       const spread=(5+i%4*4)*age;
       const x=anchor.x+(21+Math.cos(angle)*spread)*size;
       const y=anchor.y+(-59+Math.sin(angle)*spread+age*age*13)*size;
@@ -267,41 +303,38 @@
   function paint(now) {
     frame=0;
     if(!canvas || document.hidden)return;
-    if(now-lastPaint<1000/30){start();return;}
-    lastPaint=now;
+    // Full refresh rate during movement, inexpensive idle refresh.
+    if(!motion&&!pull&&now-lastPaint<1000/30){start();return;}
+    const dt=clamp(now-lastFrame,0,80);lastFrame=now;lastPaint=now;
     let phase=0,energy=0,done;
     if(motion) {
       const t=clamp((now-motion.start)/motion.duration);
-      // Each move pauses briefly as the hand finds its next hold.
-      const beats=t*motion.steps, base=Math.floor(beats), frac=beats-base;
-      const advance=(base+smooth(clamp((frac-.13)/.73)))/motion.steps;
-      altitude=mix(motion.from,motion.to,advance);
-      phase=beats*Math.PI*2;energy=motion.to>motion.from?Math.sin(Math.PI*t)**.4:0;
-      const landed=Math.min(motion.steps,Math.floor(beats+.20));
-      if(!reduced && landed>motion.lastGrip && motion.to>motion.from){
-        motion.lastGrip=landed;
-        motion.contact={time:now,position:route(altitude)};
-        motion.onGrip(landed-1);
+      const progress=reduced?t:smooth(t);
+      altitude=mix(motion.from,motion.to,progress);
+      phase=progress*motion.gaitSteps;
+      energy=motion.to>motion.from?Math.sin(Math.PI*t)**.4:0;
+      const landed=Math.min(motion.steps,Math.floor(progress*motion.steps+.12));
+      if(!reduced&&motion.to>motion.from){
+        while(motion.lastGrip<landed){
+          motion.lastGrip++;
+          contact={time:now,position:route(altitude),index:motion.lastGrip};
+          if(typeof motion.onGrip==='function')motion.onGrip(motion.lastGrip-1);
+        }
       }
-      if(t>=1 && (reduced || now>=motion.start+motion.duration+420)){
-        altitude=motion.to;done=motion.done;motion=null;
+      if(t>=1&&(reduced||now>=motion.start+motion.duration+180)){
+        altitude=motion.to;done=motion.done;motion=null;phase=0;energy=0;
       }
     }
     if(pull) {
       const t=clamp((now-pull.start)/pull.duration);
       pullback=mix(pull.from,1,smooth(t));if(t>=1)pull=null;
     }
-    const cam=camera(altitude,pullback);
-    // Let the climber rise in the frame before the camera catches up at the belay.
-    if(motion && !reduced){
-      const t=clamp((now-motion.start)/motion.duration);
-      const travel=(motion.to-motion.from)*Math.sin(Math.PI*t);
-      cam.y-=Math.min(68,travel*.6);
-      cam.z+=.11*Math.sin(Math.PI*t);
-      const anchor=route(altitude);
-      cam.x-=anchor.x*.11*Math.sin(Math.PI*t);
-      cam.y-=anchor.y*.11*Math.sin(Math.PI*t);
-    }
+    // A continuous, damped follow camera instead of per-hold jumps.
+    const blend=reduced?1:1-Math.exp(-dt/115);
+    followAltitude=mix(followAltitude,altitude,blend);
+    followX=mix(followX??route(followAltitude).x,route(followAltitude).x,blend);
+    if(Math.abs(altitude-followAltitude)<.15)followAltitude=altitude;
+    const cam=camera(followAltitude,pullback);
     const key=[cam.x.toFixed(1),cam.y.toFixed(1),cam.z.toFixed(4),altitude.toFixed(1)].join('|');
     if(key!==backgroundKey){renderScenery(cam);backgroundKey=key;}
     ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(scenery,0,0);
@@ -320,11 +353,12 @@
     if(!reduced || motion || pull)start();
   }
   function set(h) {
-    altitude=clamp(Number(h)||0,0,1000); motion=null;pull=null;pullback=0;mean=null;backgroundKey=''; start();
+    altitude=clamp(Number(h)||0,0,1000);followAltitude=altitude;followX=route(altitude).x;motion=null;contact=null;pull=null;pullback=0;mean=null;backgroundKey='';start();
   }
   function climb(from,to,matches,done,onGrip) {
     set(from); const steps=clamp(Math.round(Number(matches)||0),1,6);
-    motion={from:altitude,to:clamp(Number(to)||0,0,1000),steps,done,onGrip,lastGrip:0,start:performance.now(),duration:reduced?1:920+steps*400};
+    const destination=clamp(Number(to)||0,0,1000);
+    motion={from:altitude,to:destination,steps,gaitSteps:Math.max(steps,Math.ceil(Math.abs(destination-altitude)*.562/14)),done,onGrip,lastGrip:0,start:performance.now(),duration:reduced?1:650+steps*285};
     start();
   }
   function finish(h,average) {
