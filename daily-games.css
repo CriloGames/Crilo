@@ -1,0 +1,14 @@
+/* Equal access to Crilo's two main daily games. */
+.daily-game-switcher{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:min(100%,470px);margin:0 auto 22px;padding:5px;border:1px solid var(--line,#e5e5e5);border-radius:18px;background:var(--soft,#f7f7f7);text-align:left}
+.daily-game-choice{display:flex;align-items:center;gap:10px;min-width:0;min-height:57px;padding:9px 12px;border:1px solid transparent;border-radius:13px;text-decoration:none;color:var(--text,#15171c);transition:background .15s,border-color .15s}
+.daily-game-choice[aria-current="page"]{background:var(--panel,#fff);border-color:var(--line,#e5e5e5);box-shadow:0 2px 8px var(--shadow,rgba(0,0,0,.07))}
+.daily-game-choice:hover{background:var(--panel,#fff);border-color:var(--line,#e5e5e5)}
+.daily-game-choice:focus-visible{outline:2px solid #8b79d4;outline-offset:2px}
+.daily-game-icon{width:36px;height:36px;flex:0 0 36px;object-fit:contain;border-radius:10px}
+.wheel-choice-icon{position:relative;border-radius:50%;border:2px solid #272932;background:conic-gradient(#a9d7ef 0deg 60deg,#ead1f0 60deg 120deg,#f9de91 120deg 180deg,#bce5bf 180deg 240deg,#f5b8b2 240deg 300deg,#c7b5f3 300deg);box-shadow:inset 0 0 0 2px #fff8}
+.wheel-choice-icon:after{content:"";position:absolute;inset:35%;border:1px solid #272932;border-radius:50%;background:#fff}
+.daily-game-copy{display:grid;gap:2px;min-width:0}
+.daily-game-copy strong{font-size:15px;line-height:1.2;font-weight:900;letter-spacing:-.015em}
+.daily-game-copy small{font-size:11px;line-height:1.25;color:var(--muted,#777)}
+.daily-game-arrow{margin-left:auto;font-size:18px;color:var(--muted,#777)}
+@media(max-width:480px){.daily-game-switcher{gap:4px;margin-bottom:18px}.daily-game-choice{gap:7px;padding:8px;min-height:52px}.daily-game-icon{width:30px;height:30px;flex-basis:30px}.daily-game-copy strong{font-size:13px}.daily-game-copy small{font-size:10px}.daily-game-arrow{font-size:14px}}
