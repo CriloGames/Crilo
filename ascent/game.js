@@ -444,7 +444,7 @@ function originalConnections(pitch){
 // never starts a request; the original and intended connections are local.
 const reviewCatalog=new Map(),reviewRequests=new Map(),reviewFailures=new Map();
 function reviewCatalogKey(day,index){return [scope,ticket,day,index].join('|')}
-const catalogStore='ascent.answer-catalog.v2.';
+const catalogStore='ascent.answer-catalog.v3.';
 function savedReviewCatalog(day,index){
  const key=reviewCatalogKey(day,index);
  if(reviewCatalog.has(key))return reviewCatalog.get(key);
@@ -496,7 +496,10 @@ function renderAlternatives(pitch,container,answers=[]){
  };
  add(pitch.target,pitch.solution);
  add(pitch.guess,pitch.links,pitch.points);
- const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
+ // Preserve the server's evidence-ranked, diversified order within tiers.
+ // The player's actual guess remains visible even when it scored only 1/6 or 2/6.
+ const original=String(pitch.guess||'').toLowerCase();
+ const candidates=[...byWord.values()].filter(a=>a.hits>=3||a.word.toLowerCase()===original).sort((x,y)=>y.hits-x.hits);
  const more=document.createElement('details'),moreSummary=document.createElement('summary'),moreTitle=document.createElement('strong'),moreCount=document.createElement('span'),partialGroups=document.createElement('div');
  more.className='more-answer-words';partialGroups.className='answer-groups';moreTitle.textContent='Other possible answers';
  more.open=container.querySelector('.more-answer-words')?.open===true;
