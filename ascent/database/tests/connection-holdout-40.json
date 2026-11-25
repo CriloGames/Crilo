@@ -1,0 +1,305 @@
+{
+  "description": "New pairs not explicitly inserted as training corrections in this migration. Local matcher only; labels reflect direct connection standard.",
+  "summary": {
+    "cases": 40,
+    "unique": 30,
+    "tp": 5,
+    "fn": 15,
+    "tn": 19,
+    "fp": 1
+  },
+  "results": [
+    {
+      "guess": "whisk",
+      "clue": "eggs",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pancreas",
+      "clue": "insulin",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "turntable",
+      "clue": "vinyl",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "scalpel",
+      "clue": "surgery",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "feather",
+      "clue": "quill",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "bark",
+      "clue": "tree",
+      "expected": true,
+      "links": {
+        "tree": "Related through trees (75% match)"
+      },
+      "actual": true
+    },
+    {
+      "guess": "spindle",
+      "clue": "spinning wheel",
+      "expected": true,
+      "links": {
+        "spinning wheel": "spindle is a component of spinning wheel — Open English WordNet"
+      },
+      "actual": true
+    },
+    {
+      "guess": "silkworm",
+      "clue": "cocoon",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "earbud",
+      "clue": "audio",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "guitarist",
+      "clue": "music",
+      "expected": true,
+      "links": {
+        "music": "Related through music performance (72% match)"
+      },
+      "actual": true
+    },
+    {
+      "guess": "snowflake",
+      "clue": "ice crystal",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "trout",
+      "clue": "fish",
+      "expected": true,
+      "links": {
+        "fish": "A specific type — Open English WordNet (85% match)"
+      },
+      "actual": true
+    },
+    {
+      "guess": "hummingbird",
+      "clue": "nectar",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "petal",
+      "clue": "flower",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "clay",
+      "clue": "potter",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "lens",
+      "clue": "binoculars",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "kettle",
+      "clue": "steam",
+      "expected": true,
+      "links": {
+        "steam": "Related through steam and boiling (77% match)"
+      },
+      "actual": true
+    },
+    {
+      "guess": "refrigerator",
+      "clue": "compressor",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pulley",
+      "clue": "rope",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "sail",
+      "clue": "wind",
+      "expected": true,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "guitar strings",
+      "clue": "violin",
+      "expected": false,
+      "links": {
+        "violin": "Shared meaning through 9 related terms (79% match)"
+      },
+      "actual": true
+    },
+    {
+      "guess": "calculator",
+      "clue": "soil",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "power",
+      "clue": "wrench set",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "wrench",
+      "clue": "pitch",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "clock",
+      "clue": "corkscrew",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "racket",
+      "clue": "dental floss",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pencil",
+      "clue": "volcano",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "whisk",
+      "clue": "telescope",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "turntable",
+      "clue": "compost",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pancreas",
+      "clue": "door lock",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "quill",
+      "clue": "spark plug",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "earbud",
+      "clue": "tectonic plate",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "snowflake",
+      "clue": "income statement",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "trout",
+      "clue": "sewing machine",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "hummingbird",
+      "clue": "piston",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "petal",
+      "clue": "circuit breaker",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "clay",
+      "clue": "keyboard",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "binoculars",
+      "clue": "yeast",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "compressor",
+      "clue": "tournament",
+      "expected": false,
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pulley",
+      "clue": "cinnamon",
+      "expected": false,
+      "links": {},
+      "actual": false
+    }
+  ]
+}
