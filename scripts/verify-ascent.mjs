@@ -124,6 +124,11 @@ try {
     assert(await menu.getByRole('link',{name:/daily wheel/i}).isVisible());
     const ascentLink=menu.getByRole('link',{name:/ascent/i});
     assert(await ascentLink.isVisible());
+    for(const name of ['Daily Wheel','ASCENT']){
+      const label=menu.locator('strong').filter({hasText:name});
+      assert(await label.isVisible());
+      assert.notEqual(await label.evaluate(el=>getComputedStyle(el).webkitTextFillColor),'rgba(0, 0, 0, 0)','game name must not inherit transparent logo text');
+    }
     assert.equal(await ascentLink.getAttribute('href'),'/ascent/');
     await page.keyboard.press('Escape');
     assert(await menu.locator('.crilo-game-options').isHidden());

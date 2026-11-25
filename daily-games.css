@@ -18,3 +18,9 @@
 .crilo-menu-arrow{margin-left:auto;font-size:15px;color:var(--muted,#777)}
 @media(max-width:700px){.crilo-game-menu summary{min-height:36px;gap:5px}}
 @media(prefers-reduced-motion:reduce){.crilo-game-chevron{transition:none}}
+
+/* The animated wordmark uses transparent WebKit text fill. Keep that effect on the logo only, never the menu. */
+.topbar .crilo-game-menu{background:none;animation:none;-webkit-text-fill-color:currentColor}
+.topbar .crilo-game-menu .crilo-game-options,.topbar .crilo-game-menu .crilo-game-options *{-webkit-text-fill-color:currentColor}
+.topbar .crilo-game-menu .crilo-game-options a>span:not(.crilo-menu-icon):not(.crilo-menu-arrow){display:block;flex:1;min-width:0;white-space:normal}
+.topbar .crilo-game-menu .crilo-game-options a strong{color:var(--text,#15171c);font-size:14px;line-height:1.3}
