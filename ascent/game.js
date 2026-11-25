@@ -269,8 +269,8 @@ async function requestPitch(action='read',guess=null,retrying=false){
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
   waitingForReconnect=true;recovery={action,guess,args};
-  message('Reconnecting automatically… Your climb is saved.',true);
-  scheduleRecovery();
+  message(guess?'Reconnecting automatically… Keeping your answer.':'Reconnecting automatically…',true);
+  if(!error.status||error.status===408||error.status===429||error.status>=500)scheduleRecovery();else message('Unable to load this climb. Try again.',true);
  }finally{pending=false;$('next').disabled=false}
 }
 function finishAtDeadline(){
