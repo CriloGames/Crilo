@@ -139,7 +139,8 @@ try {
     await page.reload();await page.waitForSelector('#results:visible');
     assert.equal(await page.evaluate(()=>localStorage.getItem('ascent.climber.v1')),dailyTicket);
     assert.equal(await page.locator('#total').innerText(),'800');
-    assert.equal(await page.locator('#answerReview > details:not([open])').count(),5);
+    assert.equal(await page.locator('#answerReview > .perfect-pitch-review').count(),5);
+    assert.equal(await page.locator('#answerReview details').count(),0);
     assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),0);
     assert.equal(await page.locator('#reviewPitchTabs').count(),0);
     assert.equal(await page.locator('#pitchSummary > .pitch-summary-row').count(),5);
@@ -167,40 +168,23 @@ try {
       label.textContent=old;label.style.setProperty('--word-fit',fit);return readable;
     }),'long clues retain a readable font size');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
-    await page.waitForFunction(()=>document.querySelectorAll('#answerReview .more-answer-words').length===5);
-    // A second reload must retain the complete prefetched lists even when the
-    // catalog endpoint is unavailable. No request on opening the dropdown.
+    await page.waitForFunction(()=>document.querySelectorAll('#answerReview .answer-word-row').length>=5);
     await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({status:503,body:'Unavailable'}));
     await page.reload({waitUntil:'domcontentloaded'});
     await page.waitForSelector('#results:visible');
-    assert.equal(await page.locator('#answerReview .more-answer-words').count(),5,'prefetched catalogs survive hard refresh');
-    let reviewFetches=0;
-    await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
-    for(const pitch of await page.locator('#answerReview > details').all()){
-      await pitch.locator(':scope > summary').click();
-      const clueList=pitch.locator('.answer-body > .answer-matched-words');
+    assert.equal(await page.locator('#answerReview details').count(),0);
+    for(const pitch of await page.locator('#answerReview > .perfect-pitch-review').all()){
+      const clueList=pitch.locator('.answer-matched-words');
       assert(await clueList.isVisible());
       assert.deepEqual(await clueList.locator('li').allTextContents(),board.map(w=>w[0].toUpperCase()+w.slice(1)));
-      const possible=pitch.locator('.answer-entry').first();
-      assert(await possible.isVisible());
-      assert.equal(await possible.evaluate(el=>el.tagName),'DIV');
-      assert(await possible.locator('strong').isVisible());
-      assert.match(await possible.locator('span').innerText(),/\d+ pts/);
-      assert(await pitch.evaluate(el=>{const c=el.querySelector('.answer-matched-words'),a=el.querySelector('.review-alternatives');return c.nextElementSibling===a}));
-      const more=pitch.locator('.more-answer-words');
-      assert(await more.isVisible());
-      assert.equal(await more.evaluate(el=>el.open),false);
-      assert(await more.locator('.answer-word-row').first().isHidden());
-      await more.locator(':scope > summary').click();
-      assert(await more.locator('.answer-word-row').first().isVisible());
-      assert.deepEqual(await more.locator('.answer-tier-heading').allTextContents(),['5/6 matches','4/6 matches','3/6 matches','2/6 matches','1/6 matches']);
-      assert.equal(await more.locator('.answer-word-row strong').first().innerText(),'Sailing');
-      assert.equal(await more.locator('.answer-word-row strong').last().innerText(),'Boat');
-      assert.equal(await pitch.locator('details.answer-entry').count(),0,'no per-word dropdowns');
+      assert.deepEqual(await pitch.locator('.answer-tier-heading').allTextContents(),['6/6 answers']);
+      const rows=await pitch.locator('.answer-word-row').all();
+      assert(rows.length>=1);
+      for(const row of rows){assert(await row.isVisible());assert.equal(await row.locator('span').innerText(),'200 pts')}
+      assert.equal(await pitch.locator('.more-answer-words').count(),0);
     }
     assert.equal(await page.locator('#answerReview .connection-row').count(),0);
-    assert.equal(reviewFetches,0,'expanding review makes no requests');
-    assert((await page.locator('#answerReview > details > summary').first().innerText()).includes('200 pts'));
+    assert((await page.locator('#answerReview .perfect-pitch-heading').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
     // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.
     await Promise.all([page.waitForURL('**/index.html?games=3'),page.locator('.crilo-top').click()]);

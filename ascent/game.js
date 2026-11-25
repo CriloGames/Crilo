@@ -444,7 +444,7 @@ function originalConnections(pitch){
 // never starts a request; the original and intended connections are local.
 const reviewCatalog=new Map(),reviewRequests=new Map(),reviewFailures=new Map();
 function reviewCatalogKey(day,index){return [scope,ticket,day,index].join('|')}
-const catalogStore='ascent.answer-catalog.v5.';
+const catalogStore='ascent.answer-catalog.perfect.v1.';
 function savedReviewCatalog(day,index){
  const key=reviewCatalogKey(day,index);
  if(reviewCatalog.has(key))return reviewCatalog.get(key);
@@ -470,10 +470,11 @@ function primeAnswerReviews(snapshot){
  const day=snapshot.day,owner=ticket;
  snapshot.history.forEach((pitch,index)=>{
   const key=reviewCatalogKey(day,index);
-  if(savedReviewCatalog(day,index).length||reviewRequests.has(key)||(reviewFailures.get(key)||0)>Date.now())return;
+  if(reviewCatalog.has(key)||savedReviewCatalog(day,index).length||reviewRequests.has(key)||(reviewFailures.get(key)||0)>Date.now())return;
   const job=window.ascentRpc('ascent_top_answers',{p_ticket:owner,p_day:day,p_archive:archive,p_seed:seed,p_pitch:index+1})
    .then(answers=>{
-    if(!Array.isArray(answers)||!answers.length)throw Error('Unavailable');
+    if(!Array.isArray(answers))throw Error('Unavailable');
+    answers=answers.filter(a=>a?.hits===6);
     storeReviewCatalog(day,index,answers);
     if(mode==='results'&&state?.day===day&&ticket===owner){
      const body=$('answerReview').children[index]?.querySelector('.review-alternatives');
@@ -485,65 +486,41 @@ function primeAnswerReviews(snapshot){
  });
 }
 function renderAlternatives(pitch,container,answers=[]){
- const groups=document.createElement('div');groups.className='answer-groups';
  const byWord=new Map();
- for(const answer of answers)if(answer?.word)byWord.set(answer.word.toLowerCase(),answer);
- const add=(word,links,points)=>{
-  if(!word||!links)return;
-  const hits=Object.keys(links).length;if(!hits)return;
-  const pairs=[0,1,2].filter(i=>Object.hasOwn(links,pitch.clues[i])&&Object.hasOwn(links,pitch.clues[i+3])).length;
-  byWord.set(word.toLowerCase(),{word,hits,points:points??(hits===6?200:10*(hits*(hits+1)/2+pairs)),links});
+ const add=(word,links)=>{
+  if(typeof word!=='string'||!word||!links||!pitch.clues.every(clue=>Object.hasOwn(links,clue)&&links[clue]!=null)||isDisplayedClue(word,pitch.clues))return;
+  byWord.set(word.toLowerCase(),word);
  };
  add(pitch.target,pitch.solution);
- add(pitch.guess,pitch.links,pitch.points);
- // Preserve the server's evidence ranking in all six match tiers.
- const candidates=[...byWord.values()].filter(a=>a.hits>=1&&a.hits<=6).sort((x,y)=>y.hits-x.hits);
- const more=document.createElement('details'),moreSummary=document.createElement('summary'),moreTitle=document.createElement('strong'),moreCount=document.createElement('span'),partialGroups=document.createElement('div');
- more.className='more-answer-words';partialGroups.className='answer-groups';moreTitle.textContent='Other possible answers';
- more.open=container.querySelector('.more-answer-words')?.open===true;
- moreSummary.append(moreTitle,moreCount);more.append(moreSummary,partialGroups);
- let partialCount=0;
- for(let hits=6;hits>=1;hits--){
-  const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));
-  if(!matching.length&&!answers.length)continue;
-  const tier=document.createElement('section'),head=document.createElement('h3');
-  head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
-  if(!matching.length){const note=document.createElement('p');note.className='answer-tier-empty';note.textContent='No verified answers yet.';tier.append(note)}
-  for(const answer of matching){
-   const row=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
-   row.className='answer-entry answer-word-row';row.dataset.word=answer.word.toLowerCase();
-   title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';
-   row.append(title,score);tier.append(row);
-  }
-  if(hits===6)groups.append(tier);
-  else{partialGroups.append(tier);partialCount+=matching.length}
+ if(!pitch.checkIncomplete)add(pitch.guess,pitch.links);
+ for(const answer of answers)if(answer?.hits===6)add(answer.word,answer.links);
+ const groups=document.createElement('div');groups.className='answer-groups';
+ const tier=document.createElement('section'),head=document.createElement('h3');head.className='answer-tier-heading';head.textContent='6/6 answers';tier.append(head);
+ for(const [key,word] of byWord){
+  const row=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
+  row.className='answer-entry answer-word-row';row.dataset.word=key;
+  title.textContent=displayWord(word);score.textContent='200 pts';row.append(title,score);tier.append(row);
  }
- if(partialCount||answers.length){moreCount.textContent=String(partialCount);groups.append(more)}
- container.replaceChildren();
- if(groups.children.length)container.append(groups);
+ if(!byWord.size){const note=document.createElement('p');note.className='answer-tier-empty';note.textContent='No verified perfect answer available.';tier.append(note)}
+ groups.append(tier);container.replaceChildren(groups);
 }
 function renderAnswerReview(){
  const review=$('answerReview'),day=state.day;
- const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete,p.solution])]);
+ const key=JSON.stringify([day,state.history.map(p=>[p.target,p.guess,p.points,p.links,p.checkIncomplete,p.solution])]);
  if(review.dataset.key===key)return;
- const open=review.dataset.day===day?new Set([...review.children].map((node,i)=>node.open?i:-1)):new Set();
  review.dataset.day=day;review.dataset.key=key;review.replaceChildren();
  state.history.forEach((pitch,index)=>{
-  const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
-  const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
+  const section=document.createElement('section'),heading=document.createElement('div'),body=document.createElement('div');
+  section.className='perfect-pitch-review';heading.className='perfect-pitch-heading';
+  const title=document.createElement('strong'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
-  detail.textContent='Answers by number of matches';
-  score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts';
-  summary.append(title,score,detail);body.className='answer-body';
+  score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts'+(pitch.checkIncomplete?' · provisional':'');
+  heading.append(title,score);body.className='answer-body';
   const clues=document.createElement('ul');clues.className='answer-matched-words';clues.setAttribute('aria-label','Pitch clue words');
-  for(const clue of pitch.clues){
-   const word=document.createElement('li');word.textContent=displayWord(clue);clues.append(word);
-  }
+  for(const clue of pitch.clues){const word=document.createElement('li');word.textContent=displayWord(clue);clues.append(word)}
   const alternatives=document.createElement('div');alternatives.className='review-alternatives';
   renderAlternatives(pitch,alternatives,savedReviewCatalog(day,index));
-  body.append(clues,alternatives);
-  details.append(summary,body);review.append(details);
-  if(open.has(index))details.open=true;
+  body.append(clues,alternatives);section.append(heading,body);review.append(section);
  });
 }
 function render(){
@@ -572,7 +549,7 @@ function render(){
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
- if(shown.checkIncomplete)$('hitCopy').textContent+=' Some connections remain unverified.';
+ if(shown.checkIncomplete)$('hitCopy').textContent+=' Your answer is saved. Score provisional until AI verification is available.';
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }
@@ -679,7 +656,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
  const prev=state;
  const args=retrying&&recovery?recovery.args:{p_action:action,p_day:prev?.day||null,p_round:prev?prev.history.length+1:null,p_guess:guess};
  pending=true;
- if(action==='guess'&&mode==='play'&&prev?.deadline){guessClockRemaining=Math.max(0,timerEnd-performance.now());paintClock()}
+ if((action==='guess'||action==='auto_guess')&&mode==='play'&&prev?.deadline){guessClockRemaining=Math.max(0,timerEnd-performance.now());paintClock()}
  clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();

@@ -320,3 +320,10 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .more-answer-words>.answer-groups{padding-bottom:5px}
 
 #answerReview .answer-tier-empty{font-size:12px;color:#b8cbbc;margin:4px 0 8px;font-weight:400}
+
+/* Perfect solutions are visible immediately, without expandable panels. */
+#answerReview .perfect-pitch-review{border-top:1px solid var(--line);padding:11px 0;margin:0}
+#answerReview .perfect-pitch-heading{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+#answerReview .perfect-pitch-heading strong{font-size:15px;overflow-wrap:anywhere}
+#answerReview .perfect-pitch-heading span{color:#eed1a2;font:700 12px var(--mono)}
+#answerReview .perfect-pitch-review .answer-body{margin-top:6px}
