@@ -15,7 +15,7 @@ const $=id=>document.getElementById(id);
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
 let state=null, mode='loading', pending=false, revealIndex=null, audio=null, sound=false, ticket=null;
-let timerEnd=0, waitingForReconnect=false;
+let timerEnd=0, waitingForReconnect=false, practiceBest=null, practiceAttempts=0;
 const mountain=window.Mountain;
 const sum=items=>items.reduce((n,r)=>n+r.points,0);
 const format=n=>Number(n).toLocaleString('en-US');
@@ -71,6 +71,32 @@ function tone(i){if(!sound||!audio)return;const osc=audio.createOscillator(),gai
  osc.type='sine';osc.frequency.value=[330,392,440,494,587,660][i%6];gain.gain.setValueAtTime(.0001,t);gain.gain.exponentialRampToValueAtTime(.065,t+.018);gain.gain.exponentialRampToValueAtTime(.0001,t+.24);osc.connect(gain);gain.connect(audio.destination);osc.start(t);osc.stop(t+.25)}
 function message(s='',retry=false){$('status').textContent=s;$('retry').hidden=!retry}
 function cache(){if(state)localStorage.setItem(syncKey,JSON.stringify({day:state.day,reveal:revealIndex,len:state.history.length}))}
+function matchMeter(node,clues,links){
+ node.replaceChildren(...clues.map((clue,i)=>{
+  const e=document.createElement('span');const hit=Object.hasOwn(links||{},clue);
+  e.className='match-segment'+(hit?' matched':'');e.textContent=String(i+1);e.title=displayWord(clue)+(hit?' — matched':' — missed');return e;
+ }));
+ node.setAttribute('aria-label',clues.filter(c=>Object.hasOwn(links||{},c)).length+' of '+clues.length+' matched');
+}
+function readLocal(key){try{return JSON.parse(localStorage.getItem(key))}catch{return null}}
+function writeLocal(key,value){try{localStorage.setItem(key,JSON.stringify(value))}catch{}}
+function renderClimbStats(){
+ const h=state.history,score=state.results.score;
+ const totalMatches=h.reduce((n,p)=>n+Object.keys(p.links).length,0);
+ const perfect=h.filter(p=>Object.keys(p.links).length===6).length;
+ $('matchTotal').textContent=totalMatches+'/30';$('perfectTotal').textContent=perfect+'/5';
+ const key='ascent.best.'+(official?'daily':replay?'archive':'practice')+'.v1';
+ const id=official?state.day:replay?archive:seed;
+ const old=readLocal(key)||{score:0,id:null};
+ const fresh=score>old.score;const best=Math.max(score,old.score);
+ if(fresh)writeLocal(key,{score,id});
+ $('personalBest').textContent=format(best);
+ $('bestNote').textContent=(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
+ const summary=$('pitchSummary');summary.replaceChildren(...h.map((p,i)=>{
+  const row=document.createElement('div'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
+  row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
+ }));
+}
 function renderHolds(clues,record){
  const board=$('holds');
  const anchor=record?$('links'):$('guessform');
@@ -147,17 +173,17 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=official;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
- if(shown){$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count+' of 6 matched.';
+ if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' / 1,000';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.';
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
- $('retryGuess').value='';$('retryOutcome').textContent='';$('retryCheck').disabled=false;
- $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'This practice guess is untimed. Your first score stands.';
+ $('retryGuess').value='';$('retryOutcome').textContent='';$('retryConnections').replaceChildren();$('practiceBest').hidden=true;$('retryCheck').disabled=false;
+ $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'Try as many answers as you want. Your original score stays unchanged.';
  $('sol').open=false;const target=document.createElement('strong');target.className='solution-word';target.textContent=displayWord(shown.target);$('solution').replaceChildren(target,connectionList(clues,shown.solution,shown.target));
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
@@ -197,7 +223,7 @@ function displayResponse(next,previous,action){
   setTimeout(end,4600);
  }else{
   render();
-  if(next.rejected){rejectGuess('No listed connection. Try another word or phrase.')}
+  if(next.rejected){rejectGuess('No recognized connection. Try another word or phrase.')}
   else if(mode==='play' && action==='start')$('guess').focus({preventScroll:true});
  }
 }
@@ -246,9 +272,18 @@ $('retryForm').onsubmit=async e=>{
   const result=await call({p_action:'retry_pitch',p_day:day,p_round:pitchIndex+1,p_guess:guess});
   if(!stillHere())return;
   const matches=record.clues.filter(c=>Object.hasOwn(result.links,c));
-  const gain=result.points-record.points;
-  $('retryOutcome').textContent=result.rejected?'No listed connection. Try another word or phrase.':
+  const gain=result.points-record.points;practiceAttempts++;
+  $('retryOutcome').textContent=result.rejected?'No recognized connection. Try another word or phrase.':
     '“'+guess+'” · '+matches.length+'/6 · '+result.points+' points'+(gain>0?' (+'+gain+')':'')+'. Matched '+matches.join(', ')+'.';
+  $('retryConnections').replaceChildren();
+  if(!result.rejected){
+   $('retryConnections').append(connectionList(record.clues,result.links,guess));
+   if(result.points>practiceBest.points){practiceBest={guess,points:result.points,links:result.links};tone(5)}
+   const bestHits=Object.keys(practiceBest.links).length;
+   $('practiceBest').hidden=false;$('practiceBestText').textContent='Best: '+bestHits+'/6 · '+practiceBest.points+' pts'+(practiceBest.points>record.points?' · +'+(practiceBest.points-record.points)+' improvement':'')+' · '+practiceAttempts+' '+(practiceAttempts===1?'try':'tries');
+   matchMeter($('practiceMeter'),record.clues,practiceBest.links);
+   $('retryGuess').focus();$('retryGuess').select();
+  }
   if(result.rejected){$('retryGuess').focus();$('retryGuess').select();$('retryGuess').classList.remove('guess-rejected');void $('retryGuess').offsetWidth;$('retryGuess').classList.add('guess-rejected')}
  }catch{if(stillHere())$('retryOutcome').textContent='Couldn’t check that guess. Try again.'}
  finally{if(stillHere())$('retryCheck').disabled=false}
