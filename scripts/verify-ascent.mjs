@@ -119,8 +119,10 @@ try {
     assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),0);
     assert.equal(await page.locator('#reviewPitchTabs').count(),0);
     assert.equal(await page.locator('#pitchSummary > details').count(),5);
-    assert.equal(await page.locator('#pitchSummary .clue-preview').count(),30);
-    assert(await page.locator('#pitchSummary .clue-preview').first().isVisible());
+    assert.equal(await page.locator('#pitchSummary .pitch-match-count').count(),5);
+    assert.equal(await page.locator('#pitchSummary .clue-preview, #pitchSummary .match-meter').count(),0);
+    assert(await page.locator('#pitchSummary .pitch-review-label strong').first().isVisible());
+    assert.equal(await page.locator('#pitchSummary > details').first().evaluate(el=>getComputedStyle(el).marginTop),'0px');
     const breakdown=page.locator('#pitchSummary > details');
     await breakdown.first().locator('summary').click();
     assert.equal(await breakdown.first().locator('.original-connections .connection-row').count(),6);
@@ -138,7 +140,7 @@ try {
     await possible.locator('summary').click();
     assert(await possible.locator('.connection-row').first().isVisible());
     assert.equal(reviewFetches,0,'expanding review makes no requests');
-    assert((await page.locator('#answerReview > details > summary').first().innerText()).includes('200 pts'));
+    assert((await page.locator('#pitchSummary > details > summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
     // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.
     await Promise.all([page.waitForURL('**/index.html?games=3'),page.locator('.crilo-top').click()]);
