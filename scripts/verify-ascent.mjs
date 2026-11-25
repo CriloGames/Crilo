@@ -29,7 +29,7 @@ try {
       const expired=state.deadline && Date.parse(state.deadline)<=Date.now();
       if(expired || (p.p_action==='guess' && p.p_guess==='paper trail')){
         const solution=Object.fromEntries(board.map(c=>[c,c+' / paper']));
-        state.history.push({guess:expired?'':'paper',clues:board,links:expired?{}:solution,points:expired?0:200,target:'paper',solution,timedOut:!!expired});
+        state.history.push({guess:expired?'':'paper',clues:board,links:expired?{}:solution,points:expired?0:200,target:'paper',solution,timedOut:!!expired,checkIncomplete:!expired&&state.history.length===0});
         state.clues=null;state.deadline=null;
         if(state.history.length===5)state.results={score:800,players:2,average:600};
       }else if(p.p_action==='guess'){state.rejected=true}
@@ -87,19 +87,14 @@ try {
       assert.equal(await page.locator('#reveal #holds .hold').count(),6);
       assert.equal(await page.locator('#reveal #holds .hit').count(),i===5?0:6);
       if(i===2){await page.reload();await page.waitForSelector('#reveal:visible')}
-      if(i===5){
-        assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
-        await page.locator('#practicePitch summary').click();
-        await page.locator('#retryGuess').fill('light');await page.locator('#retryCheck').click();
-        assert.match(await page.locator('#retryOutcome').innerText(),/already in a clue/);
-        await page.locator('#retryGuess').fill('paper');
-        await page.locator('#retryCheck').click();
-        await page.waitForFunction(()=>document.getElementById('retryOutcome').textContent.includes('+30'));
-      }else assert(await page.locator('#practicePitch').isHidden());
+      if(i===5)assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
+      assert.equal(await page.locator('#reveal details, #reveal #originalRecheck').count(),0,'no mid-climb review controls');
+      assert(await page.locator('#reveal #next').isVisible(),'next pitch stays available');
       await page.locator('#next').click();
     }
     await page.waitForSelector('#results:visible');assert.equal(await page.locator('#total').innerText(),'800');
     assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
+    assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),1,'recheck is retained only in final review');
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);await page.close();
   }

@@ -441,7 +441,7 @@ function render(){
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
- if(shown.checkIncomplete)$('hitCopy').textContent+=' Unverified connections can be rechecked after your climb.';
+ if(shown.checkIncomplete)$('hitCopy').textContent+=' Some connections remain unverified.';
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }

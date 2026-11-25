@@ -254,3 +254,6 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .expedition .finish-map h3{margin:0 0 9px;font-size:1rem;color:inherit}
 .finish-map svg{display:block;width:100%;height:auto;font:600 12px system-ui,sans-serif;font-variant-numeric:tabular-nums}
 .finish-map figcaption{margin-top:9px;font-size:.9rem;line-height:1.4}
+
+/* Pitch results remain compact; explanations and rechecks belong to the final review. */
+#reveal details,#reveal #originalRecheck{display:none!important}
