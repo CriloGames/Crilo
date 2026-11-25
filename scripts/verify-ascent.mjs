@@ -11,6 +11,10 @@ try {
     page.on('pageerror', error => errors.push(error.message));
     await page.goto('http://127.0.0.1:4173/ascent/');
     await page.waitForSelector('#start:enabled');
+    assert(await page.locator('.crilo-top').isVisible());
+    assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/');
+    assert(await page.locator('#dailyReset').isVisible());
+    assert.match(await page.locator('#resetClock').innerText(),/^\d{2}:\d{2}:\d{2}$/);
     await page.locator('.route-menu summary').click();
     const home=page.locator('.route-menu .crilo-home');
     assert(await home.isVisible(),'Crilo return link is accessible');

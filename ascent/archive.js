@@ -13,7 +13,7 @@ async function load(){
    const row=document.createElement('li'),a=document.createElement('a'),label=document.createElement('span'),play=document.createElement('span');
    a.href='./?archive='+day;label.textContent=fmt.format(new Date(day+'T12:00:00Z'));play.textContent='Climb ↗';a.append(label,play);row.append(a);list.append(row);
   }
-  status.textContent=list.children.length?'Replay the original five pitches. Your replay score stays separate from the official results.':'Today is the first daily climb. It joins the archive at midnight Pacific. Until then, you can generate a practice climb.';
+  status.textContent=list.children.length?'Replay the original five pitches. Your replay score stays separate from the official results.':'Today is the first daily climb. It joins the archive at 22:00 UTC. Until then, you can generate a practice climb.';
   before=page.older;older.hidden=!before;
  }catch{status.textContent='Couldn’t load the archive.';retry.hidden=false}
  finally{loading=false;older.disabled=false}

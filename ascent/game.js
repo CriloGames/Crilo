@@ -194,10 +194,21 @@ function playAgain(event){
  // No waiting on promises. Without a standby, native navigation takes the
  // player straight to a new page, where the fast path bypasses the AI.
 }
-function localDay(){
-  return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>['year','month','day'].includes(p.type)).reduce((o,p)=>(o[p.type]=p.value,o),{});
+// Use the same 22:00 UTC reset as Crilo. Keep existing Ascent date labels.
+function today(date=new Date()){return new Date(date.getTime()+2*3600000).toISOString().slice(0,10)}
+function nextDailyReset(date=new Date()){
+ const reset=new Date(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate(),22));
+ if(date>=reset)reset.setUTCDate(reset.getUTCDate()+1);
+ return reset;
 }
-function today(){const d=localDay();return [d.year,d.month,d.day].join('-')}
+function resetClockText(date=new Date()){
+ const seconds=Math.max(0,Math.floor((nextDailyReset(date)-date)/1000));
+ return [Math.floor(seconds/3600),Math.floor(seconds%3600/60),seconds%60].map(n=>String(n).padStart(2,'0')).join(':');
+}
+function paintResetClock(){
+ $('dailyReset').hidden=!official;
+ if(official)$('resetClock').textContent=resetClockText();
+}
 function putDate(day){if(custom){$('date').textContent='ROUTE '+seed.slice(0,8).toUpperCase();return}$('date').textContent=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).toUpperCase()}
 function call(extra={}){
  return official?window.ascentRpc('ascent_pitch',{p_ticket:ticket,...extra}):window.ascentRpc('ascent_circuit',{p_ticket:ticket,p_seed:seed,p_archive:archive,...extra});
@@ -452,6 +463,7 @@ function paintClock(){
  if(ms===0&&!pending&&!waitingForReconnect)finishAtDeadline();
 }
 setInterval(paintClock,100);
+paintResetClock();setInterval(paintResetClock,1000);
 function displayResponse(next,previous,action){
  guessClockRemaining=null;
  const sameDay=previous?.day===next.day;
