@@ -10,7 +10,7 @@ const custom=seed!==null, replay=archive!==null, official=!custom&&!replay;
 const routeName=custom?'Generated climb':replay?'Archive climb':'Daily climb';
 const scope=custom?'practice.'+seed:replay?'archive.'+archive:'daily';
 const ticketKey=official?'ascent.climber.v1':'ascent.attempt.'+scope;
-const syncKey=official?'ascent.last.v1':'ascent.last.'+scope;
+const syncKey=official?'ascent.last.v2':'ascent.last.'+scope;
 const $=id=>document.getElementById(id);
 const scene=document.querySelector('.expedition');
 const stageNames=['Trailhead','Lower slabs','The traverse','Upper face','Summit ridge'];
@@ -106,7 +106,7 @@ function renderClimbStats(){
  const totalMatches=h.reduce((n,p)=>n+Object.keys(p.links).length,0);
  const perfect=h.filter(p=>Object.keys(p.links).length===6).length;
  $('matchTotal').textContent=totalMatches+'/30';$('perfectTotal').textContent=perfect+'/5';
- const key='ascent.best.'+(official?'daily':replay?'archive':'practice')+'.v1';
+ const key='ascent.best.'+(official?'daily.v2':replay?'archive.v1':'practice.v1');
  const id=official?state.day:replay?archive:seed;
  const old=readLocal(key)||{score:0,id:null};
  const fresh=score>old.score;const best=Math.max(score,old.score);
