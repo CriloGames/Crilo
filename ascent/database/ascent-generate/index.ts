@@ -53,7 +53,8 @@ Deno.serve(async req=>{
   if(!res.ok)return respond({error:"local_generation_unavailable"},503);
   const local=await res.json();return local.ok?respond({ok:true,generation:"local"}):respond({error:"local_generation_unavailable"},503);
  }catch{return respond({error:"local_generation_unavailable"},503)}};
- if(!account||!api)return await fallback();
+ // A player opening an unprepared route should never wait for model generation.
+ if(b.fast===true||!account||!api)return await fallback();
  const prep=await rpc("ascent_prepare_generated_practice",{p_seed:b.seed,p_ticket:b.ticket});
  if(!prep.ok)return await fallback();
  const plan=await prep.json();

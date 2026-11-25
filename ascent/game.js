@@ -2,7 +2,19 @@
 'use strict';
 const params=new URLSearchParams(location.search);
 if(params.has('new')){
- params.delete('new');params.delete('archive');params.set('climb',crypto.randomUUID());
+ // Reuse a fully prepared, unplayed route across normal page navigation.
+ let prepared=null;
+ try{
+  const player=localStorage.getItem('ascent.climber.v1');
+  for(const key of ['ascent.next-practice.v1','ascent.next-practice.fast.v1']){
+   const entry=JSON.parse(sessionStorage.getItem(key));
+   if(entry?.ready&&entry.ticket===player&&/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(entry.seed)){
+    localStorage.setItem('ascent.attempt.practice.'+entry.seed,entry.ticket);
+    sessionStorage.removeItem(key);prepared=entry.seed;break;
+   }
+  }
+ }catch{}
+ params.delete('new');params.delete('archive');params.set('climb',prepared||crypto.randomUUID());
  history.replaceState(null,'','?'+params.toString());
 }
 const seed=params.get('climb'),archive=params.get('archive');
@@ -88,26 +100,75 @@ function nextRouteTicket(){
  if(!uuidTicket(id)){id=ticket||crypto.randomUUID();localStorage.setItem(key,id)}
  return id;
 }
-async function generateRoute(routeSeed,routeTicket){
- const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),85000);
+async function generateRoute(routeSeed,routeTicket,fast=false){
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),fast?22000:85000);
  try{
-  const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed:routeSeed,ticket:routeTicket}),signal:controller.signal});
+  const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed:routeSeed,ticket:routeTicket,fast}),signal:controller.signal});
   const data=await response.json();
   if(!response.ok||!data.ok){const e=new Error('Generation unavailable');e.generation=true;e.status=response.status;throw e}
+  return data;
  }catch(error){error.generation=true;throw error}finally{clearTimeout(timeout)}
 }
-function prepareNextRoute(){
- if(nextRouteJob)return nextRouteJob;
- let next=nextRouteRead();
- if(next?.seed===seed||!uuidTicket(next?.seed)||next.ticket!==nextRouteTicket()){
-  next={seed:crypto.randomUUID(),ticket:nextRouteTicket(),ready:false};nextRouteWrite(next);
+// Two unplayed routes at most: the preferred AI route and a fast local
+// standby. Both are generated for this player, not taken from a fixed pool.
+const standbyKey='ascent.next-practice.fast.v1';
+let standbyMemory=null,standbyJob=null,standbyRetry=0,standbyAttempts=0;
+function standbyRead(){
+ try{return JSON.parse(sessionStorage.getItem(standbyKey))||standbyMemory}catch{return standbyMemory}
+}
+function standbyWrite(value){
+ standbyMemory=value;
+ try{if(value)sessionStorage.setItem(standbyKey,JSON.stringify(value));else sessionStorage.removeItem(standbyKey)}catch{}
+}
+function preparedRoute(){
+ const player=nextRouteTicket();
+ for(const [entry,slot] of [[nextRouteRead(),'ai'],[standbyRead(),'fast']]){
+  if(entry?.ready&&entry.seed!==seed&&uuidTicket(entry.seed)&&entry.ticket===player)return {...entry,slot};
+ }
+ return null;
+}
+async function routeAlreadySaved(entry){
+ try{
+  const status=await window.ascentRpc('ascent_circuit',{p_ticket:entry.ticket,p_seed:entry.seed,p_action:'read'});
+  return !!status&&!status.needsGeneration;
+ }catch{return false}
+}
+function prepareStandby(){
+ if(standbyJob)return standbyJob;
+ const player=nextRouteTicket();
+ let next=standbyRead();
+ if(next?.seed===seed||!uuidTicket(next?.seed)||next.ticket!==player){
+  next={seed:crypto.randomUUID(),ticket:player,ready:false};standbyWrite(next);
  }
  if(next.ready)return Promise.resolve(next);
- if(nextRouteAttempts>=3)return Promise.resolve(null);
+ if(standbyAttempts>=3)return Promise.resolve(null);
+ standbyAttempts++;
+ standbyJob=(async()=>{
+  if(!await routeAlreadySaved(next))await generateRoute(next.seed,next.ticket,true);
+  const ready={...next,ready:true};standbyWrite(ready);return ready;
+ })().catch(()=>{
+  if(standbyAttempts<3){clearTimeout(standbyRetry);standbyRetry=setTimeout(()=>prepareStandby(),1500*standbyAttempts)}
+  return null;
+ }).finally(()=>{standbyJob=null});
+ return standbyJob;
+}
+function prepareNextRoute(){
+ // A quick standby is always built before a potentially slow model request.
+ // The local standby remains available if AI is exhausted or still working.
+ if(nextRouteJob)return nextRouteJob;
+ let next=nextRouteRead();
+ const player=nextRouteTicket();
+ if(next?.seed===seed||!uuidTicket(next?.seed)||next.ticket!==player){
+  next={seed:crypto.randomUUID(),ticket:player,ready:false};nextRouteWrite(next);
+ }
+ if(next.ready){void prepareStandby();return Promise.resolve(next)}
+ if(nextRouteAttempts>=3){void prepareStandby();return Promise.resolve(null)}
  nextRouteAttempts++;
- nextRouteJob=generateRoute(next.seed,next.ticket).then(()=>{
+ nextRouteJob=(async()=>{
+  await prepareStandby();
+  if(!await routeAlreadySaved(next))await generateRoute(next.seed,next.ticket);
   const ready={...next,ready:true};nextRouteWrite(ready);return ready;
- }).catch(error=>{
+ })().catch(error=>{
   if(error.status!==429&&nextRouteAttempts<3){
    clearTimeout(nextRouteRetry);nextRouteRetry=setTimeout(()=>prepareNextRoute(),1500*nextRouteAttempts);
   }
@@ -116,27 +177,22 @@ function prepareNextRoute(){
  return nextRouteJob;
 }
 function openNextRoute(next){
- if(!next?.ready||!uuidTicket(next.seed))return false;
- clearTimeout(nextRouteRetry);
- // Preserve the identity used to generate the route, including across archived climbs.
+ if(!next?.ready||!uuidTicket(next.seed)||next.seed===seed)return false;
+ // Consume only the selected route, keeping the other standby for later.
  localStorage.setItem('ascent.attempt.practice.'+next.seed,next.ticket);
- nextRouteWrite(null);
+ if(next.slot==='fast')standbyWrite(null);else nextRouteWrite(null);
+ clearTimeout(nextRouteRetry);clearTimeout(standbyRetry);
  location.assign('?climb='+encodeURIComponent(next.seed));
  return true;
 }
-async function playAgain(event){
- if(event.button!==undefined&&event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
- event.preventDefault();
- if(openingNext)return;
- const ready=nextRouteRead();
- if(ready?.ready&&ready.seed!==seed&&ready.ticket===nextRouteTicket()&&openNextRoute(ready))return;
- openingNext=true;
- message('Finishing your new route…');
- if(nextRouteAttempts>=3)nextRouteAttempts=0;
- clearTimeout(nextRouteRetry);
- const next=await prepareNextRoute();
- openingNext=false;
- if(!openNextRoute(next))message('A fresh route is not ready yet. Try Play again shortly.');
+function playAgain(event){
+ if(event.button!==undefined&&event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.defaultPrevented)return;
+ try{
+  const ready=preparedRoute();
+  if(ready&&openNextRoute(ready))event.preventDefault();
+ }catch{}
+ // No waiting on promises. Without a standby, native navigation takes the
+ // player straight to a new page, where the fast path bypasses the AI.
 }
 function localDay(){
   return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>['year','month','day'].includes(p.type)).reduce((o,p)=>(o[p.type]=p.value,o),{});
@@ -449,7 +505,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
   let next=await call(args);
   if(custom&&next.needsGeneration){
    message('Generating a brand-new climb…');
-   await generateRoute(seed,ticket);
+   await generateRoute(seed,ticket,true);
    next=await call(args);
    if(next.needsGeneration){const e=new Error('Route not saved');e.generation=true;throw e;}
   }
@@ -562,15 +618,12 @@ $('routeLink').hidden=!custom;
 $('routeLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);message('Climb link copied.')}catch{message(location.href)}};
 // Routes must always navigate immediately. Use a prepared fresh route when one
 // exists, but never hold the menu open waiting for an AI request or quota.
-function openPracticeFromRoutes(event){
- if(event.button!==undefined&&event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.defaultPrevented)return;
- const ready=nextRouteRead();
- if(ready?.ready&&ready.seed!==seed&&ready.ticket===nextRouteTicket()){
-  try{if(openNextRoute(ready)){event.preventDefault();return}}catch{}
- }
- // Native ?new=1 navigation opens the Practice ascent page even on failure.
-}
+function openPracticeFromRoutes(event){playAgain(event)}
 $('generate').addEventListener('click',openPracticeFromRoutes);
 for(const link of document.querySelectorAll('a[href="?new=1"]:not(#generate)'))link.addEventListener('click',playAgain);
-putDate(archive||today());mountain.init($('view'));connect();
+putDate(archive||today());mountain.init($('view'));
+// Start preparing routes as soon as the daily/archive page opens. For a
+// practice route, first finish loading the current route to avoid contention.
+if(!custom&&!document.hidden){ticket=getTicket();void prepareNextRoute()}
+connect();
 })();
