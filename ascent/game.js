@@ -444,21 +444,42 @@ function originalConnections(pitch){
 // never starts a request; the original and intended connections are local.
 const reviewCatalog=new Map(),reviewRequests=new Map(),reviewFailures=new Map();
 function reviewCatalogKey(day,index){return [scope,ticket,day,index].join('|')}
+const catalogStore='ascent.answer-catalog.v2.';
+function savedReviewCatalog(day,index){
+ const key=reviewCatalogKey(day,index);
+ if(reviewCatalog.has(key))return reviewCatalog.get(key);
+ const saved=readLocal(catalogStore+key);
+ if(Array.isArray(saved)&&saved.length&&saved.every(a=>typeof a.word==='string'&&Number.isInteger(a.hits)&&a.hits>=1&&a.hits<=6&&Number.isFinite(a.points))){
+  reviewCatalog.set(key,saved);return saved;
+ }
+ return [];
+}
+function storeReviewCatalog(day,index,answers){
+ const key=reviewCatalogKey(day,index);
+ reviewCatalog.set(key,answers);
+ // Keep only a small rolling collection of locked-pitch catalogs.
+ try{
+  const keys=Object.keys(localStorage).filter(k=>k.startsWith(catalogStore));
+  while(keys.length>=25){const old=keys.shift();if(old!==catalogStore+key)localStorage.removeItem(old)}
+  writeLocal(catalogStore+key,answers);
+ }catch{}
+}
+
 function primeAnswerReviews(snapshot){
  if(!snapshot?.history?.length||!ticket)return;
  const day=snapshot.day,owner=ticket;
  snapshot.history.forEach((pitch,index)=>{
   const key=reviewCatalogKey(day,index);
-  if(reviewCatalog.has(key)||reviewRequests.has(key)||(reviewFailures.get(key)||0)>Date.now())return;
+  if(savedReviewCatalog(day,index).length||reviewRequests.has(key)||(reviewFailures.get(key)||0)>Date.now())return;
   const job=window.ascentRpc('ascent_top_answers',{p_ticket:owner,p_day:day,p_archive:archive,p_seed:seed,p_pitch:index+1})
    .then(answers=>{
     if(!Array.isArray(answers)||!answers.length)throw Error('Unavailable');
-    reviewCatalog.set(key,answers);
+    storeReviewCatalog(day,index,answers);
     if(mode==='results'&&state?.day===day&&ticket===owner){
      const body=$('answerReview').children[index]?.querySelector('.review-alternatives');
      if(body&&state.history[index])renderAlternatives(state.history[index],body,answers);
     }
-   }).catch(()=>{reviewFailures.set(key,Date.now()+60000)})
+   }).catch(()=>{reviewFailures.set(key,Date.now()+5000);if(mode==='results'&&state?.day===day&&ticket===owner)setTimeout(()=>{if(mode==='results'&&state?.day===day&&ticket===owner&&!document.hidden)primeAnswerReviews(state)},5100)})
    .finally(()=>reviewRequests.delete(key));
   reviewRequests.set(key,job);
  });
@@ -516,7 +537,7 @@ function renderAnswerReview(){
    const word=document.createElement('li');word.textContent=displayWord(clue);clues.append(word);
   }
   const alternatives=document.createElement('div');alternatives.className='review-alternatives';
-  renderAlternatives(pitch,alternatives,reviewCatalog.get(reviewCatalogKey(day,index))||[]);
+  renderAlternatives(pitch,alternatives,savedReviewCatalog(day,index));
   body.append(clues,alternatives);
   details.append(summary,body);review.append(details);
   if(open.has(index))details.open=true;

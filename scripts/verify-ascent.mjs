@@ -168,6 +168,12 @@ try {
     }),'long clues retain a readable font size');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
     await page.waitForFunction(()=>document.querySelectorAll('#answerReview .more-answer-words').length===5);
+    // A second reload must retain the complete prefetched lists even when the
+    // catalog endpoint is unavailable. No request on opening the dropdown.
+    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({status:503,body:'Unavailable'}));
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.waitForSelector('#results:visible');
+    assert.equal(await page.locator('#answerReview .more-answer-words').count(),5,'prefetched catalogs survive hard refresh');
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
     for(const pitch of await page.locator('#answerReview > details').all()){
