@@ -490,6 +490,14 @@ function scheduleRecovery(){
  recoveryTimer=setTimeout(()=>{if(!pending&&mode!=='animating'&&recovery)requestPitch(recovery.action,recovery.guess,true)},recoveryDelay);
  recoveryDelay=Math.min(15000,recoveryDelay*2);
 }
+let currentRouteWarm=null;
+function warmCurrentPractice(){
+ if(currentRouteWarm)return currentRouteWarm;
+ currentRouteWarm=generateRoute(seed,ticket,true).then(()=>{
+  if(!document.hidden)void prepareNextRoute();
+ }).catch(()=>{}).finally(()=>{currentRouteWarm=null});
+ return currentRouteWarm;
+}
 async function requestPitch(action='read',guess=null,retrying=false){
  if(pending||mode==='animating')return;
  if(recovery&&!retrying)return connect();
@@ -500,22 +508,20 @@ async function requestPitch(action='read',guess=null,retrying=false){
  clearTimeout(recoveryTimer);$('start').disabled=true;$('next').disabled=true;$('lock').disabled=true;$('guess').readOnly=true;
  try{
   ticket??=getTicket();
-  let next=await call(args);
-  if(custom&&next.needsGeneration){
-   message('Generating a brand-new climb…');
-   await generateRoute(seed,ticket,true);
-   next=await call(args);
-   if(next.needsGeneration){const e=new Error('Route not saved');e.generation=true;throw e;}
-  }
+  const next=await call(args);
   recovery=null;recoveryDelay=800;waitingForReconnect=false;
+  // A cold route still has a fully usable ready screen. Never await generation
+  // on the initial read. Start can create the same seed server-side if necessary.
   displayResponse(next,prev,action);
-  // Run alongside gameplay, never inside the scoring or timer request.
-  if(!document.hidden)void prepareNextRoute();
+  if(!document.hidden){
+   if(custom&&next.needsGeneration)warmCurrentPractice();
+   else void prepareNextRoute();
+  }
   if(action!=='read'&&(!prev||next.history.length!==prev.history.length||next.deadline!==prev.deadline)){try{cache()}catch{}}
  }catch(error){
   guessClockRemaining=null;
   waitingForReconnect=true;recovery={action,guess,args};
-  if(error.generation){message(error.status===429?'Fresh climb temporarily unavailable. Retry generation.':'Couldn’t create a fresh climb. Try again.',true);return;}
+  
   message(guess?'Reconnecting automatically… Keeping your answer.':'Reconnecting automatically…',true);
   if(!error.status||error.status===408||error.status===429||error.status>=500)scheduleRecovery();else message('Unable to load this climb. Try again.',true);
  }finally{pending=false;$('next').disabled=false}
