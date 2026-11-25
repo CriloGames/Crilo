@@ -247,3 +247,6 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .expedition #decoyReview>p{font-size:13px;line-height:1.45;color:#bfd0c3;margin:0 0 10px}
 .expedition #decoyReview .match-meter{margin:0 0 10px}
 .expedition #decoyReview .matched{background:#d5b775;color:#24382f;border-color:#d5b775}
+
+/* The mobile scene clips its canvas and offscreen transition layers to the viewport. */
+@media(max-width:700px),(max-width:950px) and (pointer:coarse){.ascent-game main,.ascent-game header{overflow-x:clip}.ascent-game .expedition{max-width:100%;overflow-x:clip}.ascent-game .expedition .mountain{max-width:100%}}
