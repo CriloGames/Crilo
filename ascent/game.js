@@ -89,7 +89,7 @@ function nextRouteTicket(){
  return id;
 }
 async function generateRoute(routeSeed,routeTicket){
- const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),40000);
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);
  try{
   const response=await fetch('https://mqozqigwkobnhijvvboy.supabase.co/functions/v1/ascent-generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({seed:routeSeed,ticket:routeTicket}),signal:controller.signal});
   const data=await response.json();
