@@ -149,6 +149,54 @@ function renderHolds(clues,record){
   return hold;
  }));
 }
+// The route is drawn in score order from the trailhead to the summit.
+const finishEdge=[[0,146],[90,155],[155,153],[220,166],[290,168],[360,182],[430,180],[500,192],[560,194],[635,208],[700,210],[760,223],[835,224],[900,238],[950,239],[1000,249]];
+function renderFinishMap(result){
+ const figure=$('finishMap'),bands=result.finishBands;
+ figure.hidden=custom||!bands;
+ if(figure.hidden)return;
+ const counts=Array.from({length:10},(_,i)=>Number(bands[i]||0));
+ const peak=Math.max(...counts),total=counts.reduce((a,b)=>a+b,0);
+ if(!peak||total<10){figure.hidden=true;return}
+ const range=i=>format(i*100)+'–'+format(i===9?1000:i*100+99);
+ const leaders=counts.flatMap((count,i)=>count===peak?[range(i)]:[]);
+ const summary=leaders.length===1
+  ? 'The most common finish was '+leaders[0]+' points ('+peak+' of '+total+' climbers).'
+  : leaders.length===10?'All ten score ranges tied at '+peak+' each.'
+  : 'Tied for the most finishes: '+leaders.join(', ')+' points ('+peak+' in each range).';
+ $('finishCaption').textContent=summary+' Longer bars mean more climbers.';
+ $('finishMapDesc').textContent='Your finish: '+format(result.score)+' points. '+counts.map((n,i)=>range(i)+' points: '+n).join('. ');
+ const svg=(name,attrs,label)=>{
+  const node=document.createElementNS('http://www.w3.org/2000/svg',name);
+  for(const [key,value] of Object.entries(attrs))node.setAttribute(key,value);
+  if(label!==undefined)node.textContent=label;
+  return node;
+ };
+ const y=score=>193-score*.168;
+ function x(score){
+  const i=finishEdge.findIndex(([s])=>s>=score);
+  if(i===0)return finishEdge[0][1];
+  const [lo,a]=finishEdge[i-1],[hi,b]=finishEdge[i];
+  return a+(b-a)*(score-lo)/(hi-lo);
+ }
+ const ridge=finishEdge.map(([s,px])=>px+' '+y(s)).join(' L');
+ $('finishSlope').setAttribute('d','M0 209 L'+ridge+' L263 37 L271 38 L286 58 L301 64 L323 97 L340 105 L360 132 V216 H0Z');
+ const bars=$('finishBars');bars.replaceChildren();
+ for(let i=0;i<counts.length;i++){
+  if(!counts[i])continue;
+  const score=i*100+50,px=x(score),py=y(score);
+  const length=counts[i]/peak*104;
+  bars.append(svg('rect',{x:px-length,y:py-4,width:length,height:8,rx:3,fill:counts[i]===peak?'#f5c363':'#245b55',stroke:'#29473f','stroke-width':.8}));
+  bars.append(svg('text',{x:px-length-5,y:py+4,'text-anchor':'end',fill:'#153d35',stroke:'#d2dfd7','stroke-width':2.5,'paint-order':'stroke'},String(counts[i])));
+ }
+ const score=Math.max(0,Math.min(1000,result.score)),px=x(score),py=y(score);
+ $('finishPin').replaceChildren(
+  svg('line',{x1:px,y1:py,x2:266,y2:py,stroke:'#382b25','stroke-width':2}),
+  svg('circle',{cx:px,cy:py,r:4.5,fill:'#ce503c',stroke:'#fff0d8','stroke-width':2}),
+  svg('rect',{x:265,y:py-10,width:86,height:20,rx:10,fill:'#3c312d'}),
+  svg('text',{x:308,y:py+4,'text-anchor':'middle',fill:'#fff3d8'},'You · '+format(score))
+ );
+}
 function renderAnswerReview(){
  const review=$('answerReview');
  const key=state.day;
@@ -210,7 +258,7 @@ function render(){
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
- if(finished){renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
+ if(finished){renderFinishMap(state.results);renderClimbStats();renderAnswerReview();$('holds').replaceChildren();mountain.finish(state.results.score,state.results.average);$('again').hidden=!replay;$('total').textContent=format(state.results.score);$('average').parentElement.hidden=custom||!state.results.players;$('average').textContent=state.results.average==null?'—':format(state.results.average);
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
