@@ -1,0 +1,578 @@
+{
+  "description": "Fresh hypothetical boards, not used to add explicit facts in this migration; authored expectations are provisional. Local preview only.",
+  "summary": {
+    "guesses": 32,
+    "clueDecisions": 192,
+    "exact": 16,
+    "tp": 7,
+    "tn": 136,
+    "fp": 0,
+    "fn": 49
+  },
+  "results": [
+    {
+      "id": 1,
+      "group": "intended",
+      "guess": "match",
+      "clues": [
+        "candle flame",
+        "sports contest",
+        "compatible pair",
+        "dating app",
+        "equal opponent",
+        "identical pattern"
+      ],
+      "expected": [
+        "candle flame",
+        "sports contest",
+        "compatible pair",
+        "dating app",
+        "equal opponent",
+        "identical pattern"
+      ],
+      "links": {
+        "dating app": "A dating app identifies matches (100% match)"
+      }
+    },
+    {
+      "id": 1,
+      "group": "partial",
+      "guess": "fire",
+      "clues": [
+        "candle flame",
+        "sports contest",
+        "compatible pair",
+        "dating app",
+        "equal opponent",
+        "identical pattern"
+      ],
+      "expected": [
+        "candle flame"
+      ],
+      "links": {}
+    },
+    {
+      "id": 1,
+      "group": "unrelated",
+      "guess": "tooth enamel",
+      "clues": [
+        "candle flame",
+        "sports contest",
+        "compatible pair",
+        "dating app",
+        "equal opponent",
+        "identical pattern"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 1,
+      "group": "displayed",
+      "guess": "candle flame",
+      "clues": [
+        "candle flame",
+        "sports contest",
+        "compatible pair",
+        "dating app",
+        "equal opponent",
+        "identical pattern"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "intended",
+      "guess": "bank",
+      "clues": [
+        "river shore",
+        "deposit account",
+        "aircraft turn",
+        "memory storage",
+        "billiards cushion",
+        "blood donation"
+      ],
+      "expected": [
+        "river shore",
+        "deposit account",
+        "aircraft turn",
+        "memory storage",
+        "billiards cushion",
+        "blood donation"
+      ],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "partial",
+      "guess": "money",
+      "clues": [
+        "river shore",
+        "deposit account",
+        "aircraft turn",
+        "memory storage",
+        "billiards cushion",
+        "blood donation"
+      ],
+      "expected": [
+        "deposit account"
+      ],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "unrelated",
+      "guess": "guitar string",
+      "clues": [
+        "river shore",
+        "deposit account",
+        "aircraft turn",
+        "memory storage",
+        "billiards cushion",
+        "blood donation"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "displayed",
+      "guess": "river shore",
+      "clues": [
+        "river shore",
+        "deposit account",
+        "aircraft turn",
+        "memory storage",
+        "billiards cushion",
+        "blood donation"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "intended",
+      "guess": "light",
+      "clues": [
+        "sunshine",
+        "featherweight",
+        "ignite candle",
+        "pale shade",
+        "traffic signal",
+        "daybreak"
+      ],
+      "expected": [
+        "sunshine",
+        "featherweight",
+        "ignite candle",
+        "pale shade",
+        "traffic signal",
+        "daybreak"
+      ],
+      "links": {
+        "sunshine": "sunshine is a specific type of light — Open English WordNet",
+        "traffic signal": "Traffic lights regulate traffic (100% match)"
+      }
+    },
+    {
+      "id": 3,
+      "group": "partial",
+      "guess": "flame",
+      "clues": [
+        "sunshine",
+        "featherweight",
+        "ignite candle",
+        "pale shade",
+        "traffic signal",
+        "daybreak"
+      ],
+      "expected": [
+        "ignite candle"
+      ],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "unrelated",
+      "guess": "railway sleeper",
+      "clues": [
+        "sunshine",
+        "featherweight",
+        "ignite candle",
+        "pale shade",
+        "traffic signal",
+        "daybreak"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "displayed",
+      "guess": "sunshine",
+      "clues": [
+        "sunshine",
+        "featherweight",
+        "ignite candle",
+        "pale shade",
+        "traffic signal",
+        "daybreak"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "intended",
+      "guess": "shot",
+      "clues": [
+        "camera exposure",
+        "basketball attempt",
+        "espresso serving",
+        "medical injection",
+        "gunfire",
+        "opportunity"
+      ],
+      "expected": [
+        "camera exposure",
+        "basketball attempt",
+        "espresso serving",
+        "medical injection",
+        "gunfire",
+        "opportunity"
+      ],
+      "links": {
+        "gunfire": "gunfire is a specific type of shot — Open English WordNet",
+        "opportunity": "shot is a specific type of opportunity — Open English WordNet"
+      }
+    },
+    {
+      "id": 4,
+      "group": "partial",
+      "guess": "syringe",
+      "clues": [
+        "camera exposure",
+        "basketball attempt",
+        "espresso serving",
+        "medical injection",
+        "gunfire",
+        "opportunity"
+      ],
+      "expected": [
+        "medical injection"
+      ],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "unrelated",
+      "guess": "plant root",
+      "clues": [
+        "camera exposure",
+        "basketball attempt",
+        "espresso serving",
+        "medical injection",
+        "gunfire",
+        "opportunity"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "displayed",
+      "guess": "camera exposure",
+      "clues": [
+        "camera exposure",
+        "basketball attempt",
+        "espresso serving",
+        "medical injection",
+        "gunfire",
+        "opportunity"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "intended",
+      "guess": "bolt",
+      "clues": [
+        "door latch",
+        "lightning flash",
+        "fabric roll",
+        "threaded fastener",
+        "sudden escape",
+        "crossbow projectile"
+      ],
+      "expected": [
+        "door latch",
+        "lightning flash",
+        "fabric roll",
+        "threaded fastener",
+        "sudden escape",
+        "crossbow projectile"
+      ],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "partial",
+      "guess": "screw",
+      "clues": [
+        "door latch",
+        "lightning flash",
+        "fabric roll",
+        "threaded fastener",
+        "sudden escape",
+        "crossbow projectile"
+      ],
+      "expected": [
+        "threaded fastener"
+      ],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "unrelated",
+      "guess": "coffee foam",
+      "clues": [
+        "door latch",
+        "lightning flash",
+        "fabric roll",
+        "threaded fastener",
+        "sudden escape",
+        "crossbow projectile"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "displayed",
+      "guess": "door latch",
+      "clues": [
+        "door latch",
+        "lightning flash",
+        "fabric roll",
+        "threaded fastener",
+        "sudden escape",
+        "crossbow projectile"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "intended",
+      "guess": "wave",
+      "clues": [
+        "ocean swell",
+        "hand greeting",
+        "radio transmission",
+        "hair curl",
+        "crowd stadium",
+        "heat surge"
+      ],
+      "expected": [
+        "ocean swell",
+        "hand greeting",
+        "radio transmission",
+        "hair curl",
+        "crowd stadium",
+        "heat surge"
+      ],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "partial",
+      "guess": "antenna",
+      "clues": [
+        "ocean swell",
+        "hand greeting",
+        "radio transmission",
+        "hair curl",
+        "crowd stadium",
+        "heat surge"
+      ],
+      "expected": [
+        "radio transmission"
+      ],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "unrelated",
+      "guess": "bread crust",
+      "clues": [
+        "ocean swell",
+        "hand greeting",
+        "radio transmission",
+        "hair curl",
+        "crowd stadium",
+        "heat surge"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "displayed",
+      "guess": "ocean swell",
+      "clues": [
+        "ocean swell",
+        "hand greeting",
+        "radio transmission",
+        "hair curl",
+        "crowd stadium",
+        "heat surge"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "intended",
+      "guess": "point",
+      "clues": [
+        "pencil tip",
+        "tennis score",
+        "argument",
+        "compass direction",
+        "decimal separator",
+        "finger gesture"
+      ],
+      "expected": [
+        "pencil tip",
+        "tennis score",
+        "argument",
+        "compass direction",
+        "decimal separator",
+        "finger gesture"
+      ],
+      "links": {
+        "argument": "A point can be an argument (100% match)"
+      }
+    },
+    {
+      "id": 7,
+      "group": "partial",
+      "guess": "tennis ball",
+      "clues": [
+        "pencil tip",
+        "tennis score",
+        "argument",
+        "compass direction",
+        "decimal separator",
+        "finger gesture"
+      ],
+      "expected": [
+        "tennis score"
+      ],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "unrelated",
+      "guess": "dental floss",
+      "clues": [
+        "pencil tip",
+        "tennis score",
+        "argument",
+        "compass direction",
+        "decimal separator",
+        "finger gesture"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "displayed",
+      "guess": "pencil tip",
+      "clues": [
+        "pencil tip",
+        "tennis score",
+        "argument",
+        "compass direction",
+        "decimal separator",
+        "finger gesture"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "intended",
+      "guess": "club",
+      "clues": [
+        "golf course",
+        "nightlife venue",
+        "membership group",
+        "playing card suit",
+        "sandwich",
+        "wooden weapon"
+      ],
+      "expected": [
+        "golf course",
+        "nightlife venue",
+        "membership group",
+        "playing card suit",
+        "sandwich",
+        "wooden weapon"
+      ],
+      "links": {
+        "sandwich": "Together they form the established expression “club sandwich”."
+      }
+    },
+    {
+      "id": 8,
+      "group": "partial",
+      "guess": "golf bag",
+      "clues": [
+        "golf course",
+        "nightlife venue",
+        "membership group",
+        "playing card suit",
+        "sandwich",
+        "wooden weapon"
+      ],
+      "expected": [
+        "golf course"
+      ],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "unrelated",
+      "guess": "ice crystal",
+      "clues": [
+        "golf course",
+        "nightlife venue",
+        "membership group",
+        "playing card suit",
+        "sandwich",
+        "wooden weapon"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "displayed",
+      "guess": "golf course",
+      "clues": [
+        "golf course",
+        "nightlife venue",
+        "membership group",
+        "playing card suit",
+        "sandwich",
+        "wooden weapon"
+      ],
+      "expected": [],
+      "links": {}
+    }
+  ]
+}
