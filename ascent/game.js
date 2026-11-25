@@ -410,56 +410,74 @@ function originalConnections(pitch){
  }
  section.append(list);return section;
 }
+// Load only locked pitches, while the climb continues. Opening a review
+// never starts a request; the original and intended connections are local.
+const reviewCatalog=new Map(),reviewRequests=new Map(),reviewFailures=new Map();
+function reviewCatalogKey(day,index){return [scope,ticket,day,index].join('|')}
+function primeAnswerReviews(snapshot){
+ if(!snapshot?.history?.length||!ticket)return;
+ const day=snapshot.day,owner=ticket;
+ snapshot.history.forEach((pitch,index)=>{
+  const key=reviewCatalogKey(day,index);
+  if(reviewCatalog.has(key)||reviewRequests.has(key)||(reviewFailures.get(key)||0)>Date.now())return;
+  const job=window.ascentRpc('ascent_top_answers',{p_ticket:owner,p_day:day,p_archive:archive,p_seed:seed,p_pitch:index+1})
+   .then(answers=>{
+    if(!Array.isArray(answers)||!answers.length)throw Error('Unavailable');
+    reviewCatalog.set(key,answers);
+    if(mode==='results'&&state?.day===day&&ticket===owner){
+     const body=$('answerReview').children[index]?.querySelector('.review-alternatives');
+     if(body&&state.history[index])renderAlternatives(state.history[index],body,answers);
+    }
+   }).catch(()=>{reviewFailures.set(key,Date.now()+60000)})
+   .finally(()=>reviewRequests.delete(key));
+  reviewRequests.set(key,job);
+ });
+}
+function renderAlternatives(pitch,container,answers){
+ const groups=document.createElement('div');groups.className='answer-groups';
+ const excluded=new Set([String(pitch.guess||'').toLowerCase(),String(pitch.target||'').toLowerCase()]);
+ for(let hits=6;hits>=1;hits--){
+  const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues)&&!excluded.has(a.word.toLowerCase()));if(!matching.length)continue;
+  const tier=document.createElement('section'),head=document.createElement('h3');
+  head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
+  for(const answer of matching){
+   const row=document.createElement('article'),heading=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
+   row.className='answer-entry';heading.className='review-answer-heading';title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';heading.append(title,score);
+   row.append(heading,connectionList(pitch.clues,answer.links,answer.word));tier.append(row);
+  }
+  groups.append(tier);
+ }
+ container.replaceChildren();
+ if(groups.children.length){const heading=document.createElement('h3');heading.className='answer-tier-heading';heading.textContent='Other possible answers';container.append(heading,groups)}
+}
 function renderAnswerReview(){
- const review=$('answerReview');
- const day=state.day;
- const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete])]);
+ const review=$('answerReview'),day=state.day;
+ const key=JSON.stringify([day,state.history.map(p=>[p.guess,p.points,p.links,p.checkIncomplete,p.solution])]);
  if(review.dataset.key===key)return;
  const open=review.dataset.day===day?new Set([...review.children].map((node,i)=>node.open?i:-1)):new Set();
- review.dataset.day=day;review.dataset.key=key;
- review.replaceChildren();
+ review.dataset.day=day;review.dataset.key=key;review.replaceChildren();
  state.history.forEach((pitch,index)=>{
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
   const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
   detail.textContent='Connections and possible answers';
   score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts';
-  summary.append(title,score,detail);
-  body.className='answer-body';
-  body.append(originalConnections(pitch));
-  // The recorded answer and intended solution are already in the response.
-  // Display both immediately, even if the answer catalog is slow or offline.
+  summary.append(title,score,detail);body.className='answer-body';
+  // Always show the intended answer first after a timeout, and the recorded
+  // guess first otherwise. No second dropdown hides the explanation.
+  if(pitch.guess)body.append(originalConnections(pitch));
   const solutionHits=Object.keys(pitch.solution||{}).length;
   if(solutionHits&&pitch.target&&(pitch.target!==pitch.guess||solutionHits!==Object.keys(pitch.links||{}).length)){
    const solution=document.createElement('section'),label=document.createElement('h3');
    solution.className='review-solution';label.className='answer-tier-heading';
-   label.textContent='Intended answer · '+displayWord(pitch.target);
+   label.textContent='Intended answer · '+displayWord(pitch.target)+' · '+solutionHits+'/6';
    solution.append(label,connectionList(pitch.clues,pitch.solution,pitch.target));body.append(solution);
   }
+  if(!pitch.guess&&!solutionHits)body.append(originalConnections(pitch));
   const alternatives=document.createElement('div');alternatives.className='review-alternatives';body.append(alternatives);
+  const cached=reviewCatalog.get(reviewCatalogKey(day,index));
+  if(cached)renderAlternatives(pitch,alternatives,cached);
   details.append(summary,body);review.append(details);
-  details.addEventListener('toggle',async()=>{
-   if(!details.open||alternatives.dataset.loaded)return;
-   alternatives.dataset.loaded='pending';
-   try{
-    const answers=await window.ascentRpc('ascent_top_answers',{p_ticket:ticket,p_day:day,p_archive:archive,p_seed:seed,p_pitch:index+1});
-    if(!Array.isArray(answers))throw Error('Unavailable');
-    const groups=document.createElement('div');groups.className='answer-groups';
-    for(let hits=6;hits>=1;hits--){
-     const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues)&&a.word.toLowerCase()!==String(pitch.guess||'').toLowerCase()&&a.word.toLowerCase()!==String(pitch.target||'').toLowerCase());if(!matching.length)continue;
-     const tier=document.createElement('section'),head=document.createElement('h3');
-     head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
-     for(const answer of matching){
-      const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
-      row.className='answer-entry';title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';summary.append(title,score);
-      row.append(summary,connectionList(pitch.clues,answer.links,answer.word));tier.append(row);
-     }
-     groups.append(tier);
-    }
-    if(groups.children.length){const heading=document.createElement('h3');heading.className='answer-tier-heading';heading.textContent='Other possible answers';alternatives.replaceChildren(heading,groups)}
-    alternatives.dataset.loaded='yes';
-   }catch{delete alternatives.dataset.loaded;/* Recorded connections remain visible. */}
-  });
   if(open.has(index))details.open=true;
  });
 }
@@ -562,6 +580,7 @@ async function requestPitch(action='read',guess=null,retrying=false){
   // A cold route still has a fully usable ready screen. Never await generation
   // on the initial read. Start can create the same seed server-side if necessary.
   displayResponse(next,prev,action);
+  primeAnswerReviews(next);
   if(!document.hidden){
    if(custom&&next.needsGeneration)warmCurrentPractice();
    else void prepareNextRoute();

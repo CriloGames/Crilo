@@ -274,3 +274,10 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview .review-unmatched .connection-heading strong{color:#c2cec6}
 #answerReview .review-matched .connection-heading strong{color:#dcebcf}
 #answerReview .review-alternatives:empty{display:none}
+
+/* Answer explanations are inline, never inside nested dropdowns or a scroll trap. */
+#answerReview .answer-body{max-height:none;overflow:visible}
+#answerReview .review-answer-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0}
+#answerReview .review-answer-heading strong{color:#f3e8cb;font-size:14px}
+#answerReview .review-answer-heading span{color:#eed1a2;font:700 12px var(--mono);white-space:nowrap}
+#answerReview .answer-entry .connection-list{margin:5px 0 10px}

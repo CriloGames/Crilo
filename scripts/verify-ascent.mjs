@@ -117,10 +117,17 @@ try {
     assert.equal(await page.locator('#total').innerText(),'800');
     assert.equal(await page.locator('#answerReview details:not([open])').count(),5);
     assert.equal(await page.locator('#answerReview button').filter({hasText:'Recheck original answer'}).count(),0,'no manual recheck');
-    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({status:503,body:'Unavailable'}));
+    // Opening a pitch must not initiate a request, even offline.
+    let reviewFetches=0;
+    await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
     await page.locator('#answerReview > details > summary').first().click();
     assert.equal(await page.locator('#answerReview > details').first().locator('.original-connections .connection-row').count(),6);
     assert(await page.locator('#answerReview > details').first().locator('.original-connections').isVisible());
+    assert.equal(await page.locator('#answerReview > details').first().locator('.original-connections .connection-row p').count(),6);
+    await page.locator('#answerReview > details > summary').last().click();
+    assert.equal(await page.locator('#answerReview > details').last().locator('.review-solution .connection-row').count(),6);
+    assert.equal(await page.locator('#answerReview > details').last().locator('.review-solution').isVisible(),true);
+    assert.equal(reviewFetches,0,'expanding review makes no requests');
     assert((await page.locator('#answerReview summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
     // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.
