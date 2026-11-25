@@ -311,3 +311,10 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
  .expedition[data-phase=results] .card{width:min(100%,640px);max-width:640px;margin-inline:0;justify-self:center}
  .expedition #pitchSummary .match-meter{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
 }
+
+/* Keep perfect answers visible; reveal the remaining ranked words on demand. */
+#answerReview .more-answer-words{border-top:1px solid #547164;margin:0;padding:0}
+#answerReview .more-answer-words>summary{grid-template-columns:minmax(0,1fr) auto 12px;min-height:36px;padding:8px 0;gap:8px}
+#answerReview .more-answer-words>summary strong{font-size:13px;font-weight:650}
+#answerReview .more-answer-words>summary::after{grid-row:1}
+#answerReview .more-answer-words>.answer-groups{padding-bottom:5px}

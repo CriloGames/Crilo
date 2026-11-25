@@ -476,6 +476,11 @@ function renderAlternatives(pitch,container,answers=[]){
  add(pitch.target,pitch.solution);
  add(pitch.guess,pitch.links,pitch.points);
  const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
+ const more=document.createElement('details'),moreSummary=document.createElement('summary'),moreTitle=document.createElement('strong'),moreCount=document.createElement('span'),partialGroups=document.createElement('div');
+ more.className='more-answer-words';partialGroups.className='answer-groups';moreTitle.textContent='Other possible answers';
+ more.open=container.querySelector('.more-answer-words')?.open===true;
+ moreSummary.append(moreTitle,moreCount);more.append(moreSummary,partialGroups);
+ let partialCount=0;
  for(let hits=6;hits>=1;hits--){
   const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));if(!matching.length)continue;
   const tier=document.createElement('section'),head=document.createElement('h3');
@@ -486,8 +491,10 @@ function renderAlternatives(pitch,container,answers=[]){
    title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';
    row.append(title,score);tier.append(row);
   }
-  groups.append(tier);
+  if(hits===6)groups.append(tier);
+  else{partialGroups.append(tier);partialCount+=matching.length}
  }
+ if(partialCount){moreCount.textContent=String(partialCount);groups.append(more)}
  container.replaceChildren();
  if(groups.children.length)container.append(groups);
 }

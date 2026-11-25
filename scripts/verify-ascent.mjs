@@ -40,6 +40,7 @@ try {
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
     const board=['clip','plane','wall','trail','lighthouse','mill'];
+    await page.route('**/rpc/ascent_top_answers',route=>route.fulfill({json:[{word:'paper',hits:6,points:200,links:Object.fromEntries(board.map(c=>[c,'fixture']))},{word:'travel',hits:4,points:110,links:Object.fromEntries(board.slice(0,4).map(c=>[c,'fixture']))}]}));
     const state={history:[],clues:null,deadline:null};
     await page.route('**/rpc/ascent_pitch', async route => {
       const p=route.request().postDataJSON();
@@ -166,6 +167,7 @@ try {
       label.textContent=old;label.style.setProperty('--word-fit',fit);return readable;
     }),'long clues retain a readable font size');
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
+    await page.waitForFunction(()=>document.querySelectorAll('#answerReview .more-answer-words').length===5);
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
     for(const pitch of await page.locator('#answerReview > details').all()){
@@ -179,7 +181,14 @@ try {
       assert(await possible.locator('strong').isVisible());
       assert.match(await possible.locator('span').innerText(),/\d+ pts/);
       assert(await pitch.evaluate(el=>{const c=el.querySelector('.answer-matched-words'),a=el.querySelector('.review-alternatives');return c.nextElementSibling===a}));
-      assert.equal(await pitch.locator('details').count(),0,'no nested answer dropdowns');
+      const more=pitch.locator('.more-answer-words');
+      assert(await more.isVisible());
+      assert.equal(await more.evaluate(el=>el.open),false);
+      assert(await more.locator('.answer-word-row').first().isHidden());
+      await more.locator(':scope > summary').click();
+      assert(await more.locator('.answer-word-row').first().isVisible());
+      assert.equal(await more.locator('.answer-word-row strong').first().innerText(),'Travel');
+      assert.equal(await pitch.locator('details.answer-entry').count(),0,'no per-word dropdowns');
     }
     assert.equal(await page.locator('#answerReview .connection-row').count(),0);
     assert.equal(reviewFetches,0,'expanding review makes no requests');
