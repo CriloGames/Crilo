@@ -30,7 +30,7 @@ function connectionRow(clue,raw,answer){
  item.className='connection-row';heading.className='connection-heading';label.textContent=displayWord(clue);heading.append(label);
  const match=typeof raw==='string'?raw.match(/\s*\((\d+)% (match|similarity)\)$/):null;
  let explanation=typeof raw==='string'?raw.replace(/\s*\(\d+% (?:match|similarity)\)$/,'').trim():'';
- if(match){const percent=document.createElement('span');percent.className='connection-percent';percent.textContent=match[1]+'%';if(match[2]==='similarity'||explanation.startsWith('Semantic '))percent.title='AI semantic similarity, not a probability of correctness';heading.append(percent)}
+ // Internal association weights are not calibrated confidence scores; display the reason instead.
  if(!explanation||/^Related to .+\.$/.test(explanation)||explanation==='Direct reverse association'||explanation.includes(' ↔ ')){
   explanation=answer?displayWord(answer)+' — recognized association.':'Recognized association.';
  }else if(explanation.startsWith('Related through ')){
@@ -163,7 +163,7 @@ function renderAnswerReview(){
     if(!answers.length)throw new Error('Unavailable');
     const groups=document.createElement('div');groups.className='answer-groups';
     for(let hits=6;hits>=1;hits--){
-     const matching=answers.filter(a=>a.hits===hits);if(!matching.length)continue;
+     const matching=answers.filter(a=>a.hits===hits&&!isDisplayedClue(a.word,pitch.clues));if(!matching.length)continue;
      const tier=document.createElement('section'),head=document.createElement('h3');
      head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
      for(const answer of matching){
@@ -189,7 +189,7 @@ function render(){
  $('generate').textContent='Practice climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
  $('guideRule').textContent=state.semantic?'Find the idea behind the six clues. For example, aperture, shutter and portrait all point to photography. Use one idea, even if it takes several words. A related guess earns credit for the clues it fits.':'Find one word that forms a familiar phrase with as many clues as possible, in either order.';
- $('sol').querySelector('summary').textContent=state.semantic?'See the theme':'See a six-clue answer';
+ $('sol').querySelector('summary').textContent=state.semantic?'Explore the full connection':'See a six-clue answer';
  $('ready').hidden=mode!=='ready';$('start').disabled=false;putDate(state.day);message();
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
  $('roundCount').textContent=String(idx+1).padStart(2,'0')+' / 05';
@@ -201,15 +201,17 @@ function render(){
  $('finishers').textContent=custom?'Practice score':replay?(state.results.players?format(state.results.players)+' original daily finishers':'No recorded finishers on the original day.'):state.results.players===1?'You’re today’s first finisher.':format(state.results.players)+' completed climbs';
  return}
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
- if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'A clean send.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.';
+ if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
  $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
  renderReport(clues,shown.links,shown.guess);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
  $('retryGuess').value='';$('retryOutcome').textContent='';$('retryConnections').replaceChildren();$('practiceBest').hidden=true;$('retryCheck').disabled=false;
- $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'Try as many answers as you want. Your original score stays unchanged.';
+ $('retryPrompt').textContent=(count?'Can you beat '+count+' of 6 matches? ':'Take another look at the six clues. ')+'Explore another meaning. Your original score stays unchanged.';
  $('sol').open=false;const target=document.createElement('strong');target.className='solution-word';target.textContent=displayWord(shown.target);$('solution').replaceChildren(target,connectionList(clues,shown.solution,shown.target));
+ const decoy=$('decoyReview');decoy.replaceChildren();decoy.hidden=!shown.decoy||!shown.decoyLinks;
+ if(!decoy.hidden){const title=document.createElement('strong'),copy=document.createElement('p'),meter=document.createElement('div');title.textContent='The tempting connection: '+displayWord(shown.decoy);const hits=Object.keys(shown.decoyLinks).length;copy.textContent=hits+' of 6 clues fit this idea. The remaining clues point beyond that interpretation.';meter.className='match-meter';matchMeter(meter,clues,shown.decoyLinks);decoy.append(title,copy,meter,connectionList(clues,shown.decoyLinks,shown.decoy));}
  $('next').textContent=idx===4?'See my climb ↗':'Next pitch ↗';
  }else if(mode==='play'){$('guess').disabled=false;$('guess').readOnly=false;$('lock').disabled=false;paintClock()}
 }
