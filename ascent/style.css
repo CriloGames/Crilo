@@ -285,7 +285,7 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 #answerReview details[open]>summary::after{transform:rotate(225deg)}
 #answerReview details:not([open])>summary::after{transform:rotate(45deg)}
 
-/* Keep the original answer dropdowns with a short list of matched words. */
+/* Show all six clue words once, above the ranked answer list. */
 #answerReview .answer-matched-words{display:flex;flex-wrap:wrap;gap:4px 0;list-style:none;padding:0;margin:3px 0 9px;color:#d6e4d5;font-size:13px;line-height:1.6}
 #answerReview .answer-matched-words li{display:inline;overflow-wrap:anywhere;max-width:100%}
 #answerReview .answer-matched-words li:not(:last-child)::after{content:' · ';color:#a5bfb1;white-space:pre}
@@ -295,3 +295,8 @@ input,.rules,#phrases li{background:#152f2a;border-color:#6c9181}#status,.clock.
 .expedition #pitchSummary .match-segment{min-width:0;min-height:18px;padding:2px 3px;font-size:10px;line-height:1.15;text-align:center;overflow-wrap:anywhere;white-space:normal}
 /* Very narrow displays need two rows rather than six unreadably narrow cells. */
 @media(max-width:480px){.expedition #pitchSummary .match-meter{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.expedition #pitchSummary .match-segment{padding:2px;min-height:18px}}
+
+#answerReview .answer-body>.answer-matched-words{margin:0 0 10px}
+#answerReview .answer-word-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;min-width:0}
+#answerReview .answer-word-row strong{font-size:13px;font-weight:600;color:#f3e8cb;overflow-wrap:anywhere}
+#answerReview .answer-word-row span{font:700 12px var(--mono);color:#eed1a2;white-space:nowrap;flex-shrink:0}

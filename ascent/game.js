@@ -461,22 +461,15 @@ function renderAlternatives(pitch,container,answers=[]){
  add(pitch.target,pitch.solution);
  add(pitch.guess,pitch.links,pitch.points);
  const candidates=[...byWord.values()].sort((x,y)=>y.points-x.points||x.word.localeCompare(y.word));
- const openWords=new Set([...container.querySelectorAll('details[open]')].map(row=>row.dataset.word));
  for(let hits=6;hits>=1;hits--){
   const matching=candidates.filter(answer=>answer.hits===hits&&!isDisplayedClue(answer.word,pitch.clues));if(!matching.length)continue;
   const tier=document.createElement('section'),head=document.createElement('h3');
   head.className='answer-tier-heading';head.textContent=hits+'/6 matches';tier.append(head);
   for(const answer of matching){
-   const row=document.createElement('details'),summary=document.createElement('summary'),title=document.createElement('strong'),score=document.createElement('span');
-   row.className='answer-entry';row.dataset.word=answer.word.toLowerCase();
+   const row=document.createElement('div'),title=document.createElement('strong'),score=document.createElement('span');
+   row.className='answer-entry answer-word-row';row.dataset.word=answer.word.toLowerCase();
    title.textContent=displayWord(answer.word);score.textContent=answer.points+' pts';
-   summary.append(title,score);
-   const words=document.createElement('ul');words.className='answer-matched-words';words.setAttribute('aria-label','Matched clue words');
-   for(const clue of pitch.clues){
-    if(!Object.hasOwn(answer.links||{},clue)||answer.links[clue]==null)continue;
-    const word=document.createElement('li');word.textContent=displayWord(clue);words.append(word);
-   }
-   row.append(summary,words);row.open=openWords.has(row.dataset.word);tier.append(row);
+   row.append(title,score);tier.append(row);
   }
   groups.append(tier);
  }
@@ -495,8 +488,14 @@ function renderAnswerReview(){
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
   detail.textContent='Answers by number of matches';
   score.textContent=Object.keys(pitch.links||{}).length+'/6 · '+pitch.points+' pts';
-  summary.append(title,score,detail);body.className='answer-body review-alternatives';
-  renderAlternatives(pitch,body,reviewCatalog.get(reviewCatalogKey(day,index))||[]);
+  summary.append(title,score,detail);body.className='answer-body';
+  const clues=document.createElement('ul');clues.className='answer-matched-words';clues.setAttribute('aria-label','Pitch clue words');
+  for(const clue of pitch.clues){
+   const word=document.createElement('li');word.textContent=displayWord(clue);clues.append(word);
+  }
+  const alternatives=document.createElement('div');alternatives.className='review-alternatives';
+  renderAlternatives(pitch,alternatives,reviewCatalog.get(reviewCatalogKey(day,index))||[]);
+  body.append(clues,alternatives);
   details.append(summary,body);review.append(details);
   if(open.has(index))details.open=true;
  });

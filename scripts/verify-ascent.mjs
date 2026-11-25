@@ -145,17 +145,20 @@ try {
     assert.equal(await page.locator('#pitchSummary details, #pitchSummary .clue-preview').count(),0);
     let reviewFetches=0;
     await page.route('**/rpc/ascent_top_answers',route=>{reviewFetches++;return route.fulfill({status:503,body:'Unavailable'})});
-    await page.locator('#answerReview > details > summary').last().click();
-    const possible=page.locator('#answerReview > details').last().locator('.answer-entry').first();
-    assert(await possible.isVisible());
-    assert.equal(await possible.evaluate(el=>el.tagName),'DETAILS');
-    assert.equal(await possible.evaluate(el=>el.open),false);
-    assert(await possible.locator('summary strong').isVisible());
-    assert.match(await possible.locator('summary span').innerText(),/\d+ pts/);
-    await possible.locator('summary').click();
-    assert(await possible.locator('.answer-matched-words').isVisible());
-    assert.equal(await possible.locator('.answer-matched-words li').count(),6);
-    assert.equal(await page.locator('#answerReview .connection-row').count(),0,'no bulky connection cards');
+    for(const pitch of await page.locator('#answerReview > details').all()){
+      await pitch.locator(':scope > summary').click();
+      const clueList=pitch.locator('.answer-body > .answer-matched-words');
+      assert(await clueList.isVisible());
+      assert.deepEqual(await clueList.locator('li').allTextContents(),board.map(w=>w[0].toUpperCase()+w.slice(1)));
+      const possible=pitch.locator('.answer-entry').first();
+      assert(await possible.isVisible());
+      assert.equal(await possible.evaluate(el=>el.tagName),'DIV');
+      assert(await possible.locator('strong').isVisible());
+      assert.match(await possible.locator('span').innerText(),/\d+ pts/);
+      assert(await pitch.evaluate(el=>{const c=el.querySelector('.answer-matched-words'),a=el.querySelector('.review-alternatives');return c.nextElementSibling===a}));
+      assert.equal(await pitch.locator('details').count(),0,'no nested answer dropdowns');
+    }
+    assert.equal(await page.locator('#answerReview .connection-row').count(),0);
     assert.equal(reviewFetches,0,'expanding review makes no requests');
     assert((await page.locator('#answerReview > details > summary').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
