@@ -1,0 +1,2093 @@
+{
+  "description": "Phrase-specific local tests and six-clue regression. No test facts inserted.",
+  "results": [
+    {
+      "guess": "black",
+      "clue": "market",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "market": "Together they form the established expression “black market”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "paper",
+      "clue": "trail",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "trail": "Together they form the established expression “paper trail”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "blind",
+      "clue": "spot",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "spot": "Together they form the established expression “blind spot”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "cold",
+      "clue": "front",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "front": "Together they form the established expression “cold front”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "silver",
+      "clue": "lining",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "lining": "Together they form the established expression “silver lining”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "hot",
+      "clue": "dog",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "dog": "Together they form the established expression “hot dog”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "glass",
+      "clue": "ceiling",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "ceiling": "Together they form the established expression “glass ceiling”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "red",
+      "clue": "tape",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "tape": "Together they form the established expression “red tape”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "white",
+      "clue": "noise",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "noise": "Together they form the established expression “white noise”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "iron",
+      "clue": "curtain",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "curtain": "Together they form the established expression “iron curtain”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "blue",
+      "clue": "moon",
+      "expected": true,
+      "group": "development",
+      "links": {
+        "moon": "Together they form the established expression “blue moon”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "power",
+      "clue": "wrench set",
+      "expected": false,
+      "group": "development",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "writing",
+      "clue": "queue",
+      "expected": false,
+      "group": "development",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "calculator",
+      "clue": "dirt",
+      "expected": false,
+      "group": "development",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "pitch",
+      "clue": "wrench",
+      "expected": false,
+      "group": "development",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "guitar strings",
+      "clue": "violin",
+      "expected": false,
+      "group": "development",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "gold",
+      "clue": "rush",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "rush": "Together they form the established expression “gold rush”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "brain",
+      "clue": "storm",
+      "expected": true,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "carbon",
+      "clue": "copy",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "copy": "Together they form the established expression “carbon copy”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "green",
+      "clue": "room",
+      "expected": true,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "sweet",
+      "clue": "tooth",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "tooth": "Together they form the established expression “sweet tooth”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "book",
+      "clue": "worm",
+      "expected": true,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "dead",
+      "clue": "end",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "end": "Together they form the established expression “dead end”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "upper",
+      "clue": "hand",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "hand": "Together they form the established expression “upper hand”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "full",
+      "clue": "moon",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "moon": "Together they form the established expression “full moon”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "wild",
+      "clue": "card",
+      "expected": true,
+      "group": "fresh",
+      "links": {
+        "card": "Together they form the established expression “wild card”."
+      },
+      "actual": true
+    },
+    {
+      "guess": "shoe",
+      "clue": "rain gauge",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "tea",
+      "clue": "computer mouse",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "planet",
+      "clue": "flour",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "power",
+      "clue": "door lock",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "bow",
+      "clue": "printer ink",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    },
+    {
+      "guess": "ice",
+      "clue": "ice cube",
+      "expected": false,
+      "group": "fresh",
+      "links": {},
+      "actual": false
+    }
+  ],
+  "sixClueRetest": {
+    "tp": 34,
+    "tn": 416,
+    "fp": 0,
+    "fn": 150
+  },
+  "sixClueResults": [
+    {
+      "id": 1,
+      "group": "displayed",
+      "guess": "rough manuscript",
+      "clues": [
+        "rough manuscript",
+        "beer tap",
+        "conscription",
+        "cold air",
+        "fantasy league",
+        "preliminary sketch"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 1,
+      "group": "intended",
+      "guess": "draft",
+      "clues": [
+        "rough manuscript",
+        "beer tap",
+        "conscription",
+        "cold air",
+        "fantasy league",
+        "preliminary sketch"
+      ],
+      "expected": [
+        "rough manuscript",
+        "beer tap",
+        "conscription",
+        "cold air",
+        "fantasy league",
+        "preliminary sketch"
+      ],
+      "links": {
+        "beer tap": "Draft beer flows from a tap (100% match)",
+        "conscription": "A military draft is conscription (100% match)"
+      }
+    },
+    {
+      "id": 1,
+      "group": "partial",
+      "guess": "soldier",
+      "clues": [
+        "rough manuscript",
+        "beer tap",
+        "conscription",
+        "cold air",
+        "fantasy league",
+        "preliminary sketch"
+      ],
+      "expected": [
+        "conscription"
+      ],
+      "links": {
+        "conscription": "Related to conscription. (100% match)"
+      }
+    },
+    {
+      "id": 1,
+      "group": "unrelated",
+      "guess": "tooth enamel",
+      "clues": [
+        "rough manuscript",
+        "beer tap",
+        "conscription",
+        "cold air",
+        "fantasy league",
+        "preliminary sketch"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "displayed",
+      "guess": "fish skin",
+      "clues": [
+        "fish skin",
+        "weighing machine",
+        "musical notes",
+        "map legend",
+        "mountain ascent",
+        "model railway"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "intended",
+      "guess": "scale",
+      "clues": [
+        "fish skin",
+        "weighing machine",
+        "musical notes",
+        "map legend",
+        "mountain ascent",
+        "model railway"
+      ],
+      "expected": [
+        "fish skin",
+        "weighing machine",
+        "musical notes",
+        "map legend",
+        "mountain ascent",
+        "model railway"
+      ],
+      "links": {
+        "musical notes": "A musical scale is a sequence of notes",
+        "weighing machine": "Same dictionary meaning as weighing machine — Open English WordNet"
+      }
+    },
+    {
+      "id": 2,
+      "group": "partial",
+      "guess": "miniature",
+      "clues": [
+        "fish skin",
+        "weighing machine",
+        "musical notes",
+        "map legend",
+        "mountain ascent",
+        "model railway"
+      ],
+      "expected": [
+        "map legend",
+        "model railway"
+      ],
+      "links": {}
+    },
+    {
+      "id": 2,
+      "group": "unrelated",
+      "guess": "dental floss",
+      "clues": [
+        "fish skin",
+        "weighing machine",
+        "musical notes",
+        "map legend",
+        "mountain ascent",
+        "model railway"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "displayed",
+      "guess": "baseball mound",
+      "clues": [
+        "baseball mound",
+        "tent setup",
+        "sales presentation",
+        "roof slope",
+        "musical tone",
+        "tar"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "intended",
+      "guess": "pitch",
+      "clues": [
+        "baseball mound",
+        "tent setup",
+        "sales presentation",
+        "roof slope",
+        "musical tone",
+        "tar"
+      ],
+      "expected": [
+        "baseball mound",
+        "tent setup",
+        "sales presentation",
+        "roof slope",
+        "musical tone",
+        "tar"
+      ],
+      "links": {
+        "tar": "Pitch is a tar-like substance (100% match)",
+        "roof slope": "Pitch describes the angle of a roof (100% match)",
+        "sales presentation": "A sales presentation is a pitch (100% match)"
+      }
+    },
+    {
+      "id": 3,
+      "group": "partial",
+      "guess": "hitter",
+      "clues": [
+        "baseball mound",
+        "tent setup",
+        "sales presentation",
+        "roof slope",
+        "musical tone",
+        "tar"
+      ],
+      "expected": [
+        "baseball mound"
+      ],
+      "links": {}
+    },
+    {
+      "id": 3,
+      "group": "unrelated",
+      "guess": "potting soil",
+      "clues": [
+        "baseball mound",
+        "tent setup",
+        "sales presentation",
+        "roof slope",
+        "musical tone",
+        "tar"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "displayed",
+      "guess": "wax stamp",
+      "clues": [
+        "wax stamp",
+        "marine mammal",
+        "airtight lid",
+        "official document",
+        "rubber gasket",
+        "navy special forces"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "intended",
+      "guess": "seal",
+      "clues": [
+        "wax stamp",
+        "marine mammal",
+        "airtight lid",
+        "official document",
+        "rubber gasket",
+        "navy special forces"
+      ],
+      "expected": [
+        "wax stamp",
+        "marine mammal",
+        "airtight lid",
+        "official document",
+        "rubber gasket",
+        "navy special forces"
+      ],
+      "links": {
+        "rubber gasket": "A gasket forms a seal (100% match)"
+      }
+    },
+    {
+      "id": 4,
+      "group": "partial",
+      "guess": "authentication",
+      "clues": [
+        "wax stamp",
+        "marine mammal",
+        "airtight lid",
+        "official document",
+        "rubber gasket",
+        "navy special forces"
+      ],
+      "expected": [
+        "wax stamp",
+        "official document"
+      ],
+      "links": {}
+    },
+    {
+      "id": 4,
+      "group": "unrelated",
+      "guess": "pasta sauce",
+      "clues": [
+        "wax stamp",
+        "marine mammal",
+        "airtight lid",
+        "official document",
+        "rubber gasket",
+        "navy special forces"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "displayed",
+      "guess": "mattress coil",
+      "clues": [
+        "mattress coil",
+        "water source",
+        "march equinox",
+        "jump",
+        "watch mechanism",
+        "shock absorber"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "intended",
+      "guess": "spring",
+      "clues": [
+        "mattress coil",
+        "water source",
+        "march equinox",
+        "jump",
+        "watch mechanism",
+        "shock absorber"
+      ],
+      "expected": [
+        "mattress coil",
+        "water source",
+        "march equinox",
+        "jump",
+        "watch mechanism",
+        "shock absorber"
+      ],
+      "links": {
+        "jump": "To spring is to leap or jump. (100% match)",
+        "water source": "A natural spring supplies water. (100% match)",
+        "march equinox": "march equinox is a component of spring — Open English WordNet",
+        "shock absorber": "A suspension spring absorbs road disturbances (100% match)"
+      }
+    },
+    {
+      "id": 5,
+      "group": "partial",
+      "guess": "season",
+      "clues": [
+        "mattress coil",
+        "water source",
+        "march equinox",
+        "jump",
+        "watch mechanism",
+        "shock absorber"
+      ],
+      "expected": [
+        "march equinox"
+      ],
+      "links": {}
+    },
+    {
+      "id": 5,
+      "group": "unrelated",
+      "guess": "printer ink",
+      "clues": [
+        "mattress coil",
+        "water source",
+        "march equinox",
+        "jump",
+        "watch mechanism",
+        "shock absorber"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "displayed",
+      "guess": "paper fastener",
+      "clues": [
+        "paper fastener",
+        "short video",
+        "hair accessory",
+        "pruning shears",
+        "ammunition holder",
+        "coupon cutting"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "intended",
+      "guess": "clip",
+      "clues": [
+        "paper fastener",
+        "short video",
+        "hair accessory",
+        "pruning shears",
+        "ammunition holder",
+        "coupon cutting"
+      ],
+      "expected": [
+        "paper fastener",
+        "short video",
+        "hair accessory",
+        "pruning shears",
+        "ammunition holder",
+        "coupon cutting"
+      ],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "partial",
+      "guess": "video editing",
+      "clues": [
+        "paper fastener",
+        "short video",
+        "hair accessory",
+        "pruning shears",
+        "ammunition holder",
+        "coupon cutting"
+      ],
+      "expected": [
+        "short video"
+      ],
+      "links": {}
+    },
+    {
+      "id": 6,
+      "group": "unrelated",
+      "guess": "tectonic plate",
+      "clues": [
+        "paper fastener",
+        "short video",
+        "hair accessory",
+        "pruning shears",
+        "ammunition holder",
+        "coupon cutting"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "intended",
+      "guess": "key",
+      "clues": [
+        "door lock",
+        "piano keyboard",
+        "map legend",
+        "password encryption",
+        "answer sheet",
+        "island chain"
+      ],
+      "expected": [
+        "door lock",
+        "piano keyboard",
+        "map legend",
+        "password encryption",
+        "answer sheet",
+        "island chain"
+      ],
+      "links": {
+        "door lock": "A key opens a lock (100% match)",
+        "map legend": "A map key explains its symbols (100% match)",
+        "answer sheet": "An answer key supplies correct answers (100% match)"
+      }
+    },
+    {
+      "id": 7,
+      "group": "displayed",
+      "guess": "door lock",
+      "clues": [
+        "door lock",
+        "piano keyboard",
+        "map legend",
+        "password encryption",
+        "answer sheet",
+        "island chain"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "partial",
+      "guess": "cartography",
+      "clues": [
+        "door lock",
+        "piano keyboard",
+        "map legend",
+        "password encryption",
+        "answer sheet",
+        "island chain"
+      ],
+      "expected": [
+        "map legend"
+      ],
+      "links": {}
+    },
+    {
+      "id": 7,
+      "group": "unrelated",
+      "guess": "sourdough starter",
+      "clues": [
+        "door lock",
+        "piano keyboard",
+        "map legend",
+        "password encryption",
+        "answer sheet",
+        "island chain"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "displayed",
+      "guess": "plant stem",
+      "clues": [
+        "plant stem",
+        "square number",
+        "tooth canal",
+        "word origin",
+        "cause",
+        "computer administrator"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "intended",
+      "guess": "root",
+      "clues": [
+        "plant stem",
+        "square number",
+        "tooth canal",
+        "word origin",
+        "cause",
+        "computer administrator"
+      ],
+      "expected": [
+        "plant stem",
+        "square number",
+        "tooth canal",
+        "word origin",
+        "cause",
+        "computer administrator"
+      ],
+      "links": {
+        "square number": "A square root is related to a square number (100% match)"
+      }
+    },
+    {
+      "id": 8,
+      "group": "partial",
+      "guess": "etymology",
+      "clues": [
+        "plant stem",
+        "square number",
+        "tooth canal",
+        "word origin",
+        "cause",
+        "computer administrator"
+      ],
+      "expected": [
+        "word origin"
+      ],
+      "links": {}
+    },
+    {
+      "id": 8,
+      "group": "unrelated",
+      "guess": "basketball hoop",
+      "clues": [
+        "plant stem",
+        "square number",
+        "tooth canal",
+        "word origin",
+        "cause",
+        "computer administrator"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 9,
+      "group": "displayed",
+      "guess": "finger jewelry",
+      "clues": [
+        "finger jewelry",
+        "boxing arena",
+        "telephone sound",
+        "saturn",
+        "tree cross section",
+        "doorbell"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 9,
+      "group": "intended",
+      "guess": "ring",
+      "clues": [
+        "finger jewelry",
+        "boxing arena",
+        "telephone sound",
+        "saturn",
+        "tree cross section",
+        "doorbell"
+      ],
+      "expected": [
+        "finger jewelry",
+        "boxing arena",
+        "telephone sound",
+        "saturn",
+        "tree cross section",
+        "doorbell"
+      ],
+      "links": {
+        "saturn": "Saturn has rings (100% match)"
+      }
+    },
+    {
+      "id": 9,
+      "group": "partial",
+      "guess": "planet",
+      "clues": [
+        "finger jewelry",
+        "boxing arena",
+        "telephone sound",
+        "saturn",
+        "tree cross section",
+        "doorbell"
+      ],
+      "expected": [
+        "saturn"
+      ],
+      "links": {
+        "saturn": "saturn ↔ planet (100% match)"
+      }
+    },
+    {
+      "id": 9,
+      "group": "unrelated",
+      "guess": "sewing thread",
+      "clues": [
+        "finger jewelry",
+        "boxing arena",
+        "telephone sound",
+        "saturn",
+        "tree cross section",
+        "doorbell"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 10,
+      "group": "displayed",
+      "guess": "prison room",
+      "clues": [
+        "prison room",
+        "biology microscope",
+        "spreadsheet grid",
+        "battery",
+        "mobile tower",
+        "honeycomb"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 10,
+      "group": "intended",
+      "guess": "cell",
+      "clues": [
+        "prison room",
+        "biology microscope",
+        "spreadsheet grid",
+        "battery",
+        "mobile tower",
+        "honeycomb"
+      ],
+      "expected": [
+        "prison room",
+        "biology microscope",
+        "spreadsheet grid",
+        "battery",
+        "mobile tower",
+        "honeycomb"
+      ],
+      "links": {
+        "battery": "A battery contains one or more cells (100% match)",
+        "honeycomb": "A honeycomb is made up of wax cells. (100% match)"
+      }
+    },
+    {
+      "id": 10,
+      "group": "partial",
+      "guess": "inmate",
+      "clues": [
+        "prison room",
+        "biology microscope",
+        "spreadsheet grid",
+        "battery",
+        "mobile tower",
+        "honeycomb"
+      ],
+      "expected": [
+        "prison room"
+      ],
+      "links": {}
+    },
+    {
+      "id": 10,
+      "group": "unrelated",
+      "guess": "shoe polish",
+      "clues": [
+        "prison room",
+        "biology microscope",
+        "spreadsheet grid",
+        "battery",
+        "mobile tower",
+        "honeycomb"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 11,
+      "group": "displayed",
+      "guess": "river crossing",
+      "clues": [
+        "river crossing",
+        "dental prosthesis",
+        "card game",
+        "violin strings",
+        "song transition",
+        "network device"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 11,
+      "group": "intended",
+      "guess": "bridge",
+      "clues": [
+        "river crossing",
+        "dental prosthesis",
+        "card game",
+        "violin strings",
+        "song transition",
+        "network device"
+      ],
+      "expected": [
+        "river crossing",
+        "dental prosthesis",
+        "card game",
+        "violin strings",
+        "song transition",
+        "network device"
+      ],
+      "links": {
+        "card game": "bridge is a specific type of card game — Open English WordNet"
+      }
+    },
+    {
+      "id": 11,
+      "group": "partial",
+      "guess": "dentist",
+      "clues": [
+        "river crossing",
+        "dental prosthesis",
+        "card game",
+        "violin strings",
+        "song transition",
+        "network device"
+      ],
+      "expected": [
+        "dental prosthesis"
+      ],
+      "links": {}
+    },
+    {
+      "id": 11,
+      "group": "unrelated",
+      "guess": "cinnamon stick",
+      "clues": [
+        "river crossing",
+        "dental prosthesis",
+        "card game",
+        "violin strings",
+        "song transition",
+        "network device"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 12,
+      "group": "displayed",
+      "guess": "river flow",
+      "clues": [
+        "river flow",
+        "electric circuit",
+        "ocean drift",
+        "present moment",
+        "news events",
+        "air stream"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 12,
+      "group": "intended",
+      "guess": "current",
+      "clues": [
+        "river flow",
+        "electric circuit",
+        "ocean drift",
+        "present moment",
+        "news events",
+        "air stream"
+      ],
+      "expected": [
+        "river flow",
+        "electric circuit",
+        "ocean drift",
+        "present moment",
+        "news events",
+        "air stream"
+      ],
+      "links": {}
+    },
+    {
+      "id": 12,
+      "group": "partial",
+      "guess": "water",
+      "clues": [
+        "river flow",
+        "electric circuit",
+        "ocean drift",
+        "present moment",
+        "news events",
+        "air stream"
+      ],
+      "expected": [
+        "river flow",
+        "ocean drift"
+      ],
+      "links": {}
+    },
+    {
+      "id": 12,
+      "group": "unrelated",
+      "guess": "guitar pick",
+      "clues": [
+        "river flow",
+        "electric circuit",
+        "ocean drift",
+        "present moment",
+        "news events",
+        "air stream"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 13,
+      "group": "intended",
+      "guess": "charge",
+      "clues": [
+        "battery",
+        "criminal accusation",
+        "credit card fee",
+        "military attack",
+        "electric particle",
+        "responsibility"
+      ],
+      "expected": [
+        "battery",
+        "criminal accusation",
+        "credit card fee",
+        "military attack",
+        "electric particle",
+        "responsibility"
+      ],
+      "links": {
+        "battery": "A battery stores charge (100% match)",
+        "responsibility": "Being in charge means having responsibility (100% match)"
+      }
+    },
+    {
+      "id": 13,
+      "group": "partial",
+      "guess": "prosecutor",
+      "clues": [
+        "battery",
+        "criminal accusation",
+        "credit card fee",
+        "military attack",
+        "electric particle",
+        "responsibility"
+      ],
+      "expected": [
+        "criminal accusation"
+      ],
+      "links": {}
+    },
+    {
+      "id": 13,
+      "group": "displayed",
+      "guess": "battery",
+      "clues": [
+        "battery",
+        "criminal accusation",
+        "credit card fee",
+        "military attack",
+        "electric particle",
+        "responsibility"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 13,
+      "group": "unrelated",
+      "guess": "teapot",
+      "clues": [
+        "battery",
+        "criminal accusation",
+        "credit card fee",
+        "military attack",
+        "electric particle",
+        "responsibility"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 14,
+      "group": "displayed",
+      "guess": "swimming pool",
+      "clues": [
+        "swimming pool",
+        "paintbrush",
+        "brain injury",
+        "clock chime",
+        "golf swing",
+        "rowing race"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 14,
+      "group": "intended",
+      "guess": "stroke",
+      "clues": [
+        "swimming pool",
+        "paintbrush",
+        "brain injury",
+        "clock chime",
+        "golf swing",
+        "rowing race"
+      ],
+      "expected": [
+        "swimming pool",
+        "paintbrush",
+        "brain injury",
+        "clock chime",
+        "golf swing",
+        "rowing race"
+      ],
+      "links": {
+        "paintbrush": "A paintbrush makes strokes (100% match)"
+      }
+    },
+    {
+      "id": 14,
+      "group": "partial",
+      "guess": "golf club",
+      "clues": [
+        "swimming pool",
+        "paintbrush",
+        "brain injury",
+        "clock chime",
+        "golf swing",
+        "rowing race"
+      ],
+      "expected": [
+        "golf swing"
+      ],
+      "links": {}
+    },
+    {
+      "id": 14,
+      "group": "unrelated",
+      "guess": "flour",
+      "clues": [
+        "swimming pool",
+        "paintbrush",
+        "brain injury",
+        "clock chime",
+        "golf swing",
+        "rowing race"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 15,
+      "group": "displayed",
+      "guess": "solar energy",
+      "clues": [
+        "solar energy",
+        "discussion group",
+        "wooden wall",
+        "electrical breaker",
+        "comic strip",
+        "jury selection"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 15,
+      "group": "intended",
+      "guess": "panel",
+      "clues": [
+        "solar energy",
+        "discussion group",
+        "wooden wall",
+        "electrical breaker",
+        "comic strip",
+        "jury selection"
+      ],
+      "expected": [
+        "solar energy",
+        "discussion group",
+        "wooden wall",
+        "electrical breaker",
+        "comic strip",
+        "jury selection"
+      ],
+      "links": {}
+    },
+    {
+      "id": 15,
+      "group": "partial",
+      "guess": "judge",
+      "clues": [
+        "solar energy",
+        "discussion group",
+        "wooden wall",
+        "electrical breaker",
+        "comic strip",
+        "jury selection"
+      ],
+      "expected": [
+        "jury selection"
+      ],
+      "links": {}
+    },
+    {
+      "id": 15,
+      "group": "unrelated",
+      "guess": "flower pollen",
+      "clues": [
+        "solar energy",
+        "discussion group",
+        "wooden wall",
+        "electrical breaker",
+        "comic strip",
+        "jury selection"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 16,
+      "group": "displayed",
+      "guess": "flashlight",
+      "clues": [
+        "flashlight",
+        "wooden support",
+        "smile",
+        "balance apparatus",
+        "radio signal",
+        "laser pointer"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 16,
+      "group": "intended",
+      "guess": "beam",
+      "clues": [
+        "flashlight",
+        "wooden support",
+        "smile",
+        "balance apparatus",
+        "radio signal",
+        "laser pointer"
+      ],
+      "expected": [
+        "flashlight",
+        "wooden support",
+        "smile",
+        "balance apparatus",
+        "radio signal",
+        "laser pointer"
+      ],
+      "links": {
+        "smile": "To beam is to smile radiantly (100% match)",
+        "flashlight": "A flashlight projects a beam (100% match)",
+        "balance apparatus": "A balance beam is a gymnastics apparatus (100% match)"
+      }
+    },
+    {
+      "id": 16,
+      "group": "partial",
+      "guess": "gymnast",
+      "clues": [
+        "flashlight",
+        "wooden support",
+        "smile",
+        "balance apparatus",
+        "radio signal",
+        "laser pointer"
+      ],
+      "expected": [
+        "balance apparatus"
+      ],
+      "links": {}
+    },
+    {
+      "id": 16,
+      "group": "unrelated",
+      "guess": "wine cork",
+      "clues": [
+        "flashlight",
+        "wooden support",
+        "smile",
+        "balance apparatus",
+        "radio signal",
+        "laser pointer"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 17,
+      "group": "displayed",
+      "guess": "seat belt",
+      "clues": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "structural collapse",
+        "knees giving way",
+        "bag closure"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 17,
+      "group": "intended",
+      "guess": "buckle",
+      "clues": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "structural collapse",
+        "knees giving way",
+        "bag closure"
+      ],
+      "expected": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "structural collapse",
+        "knees giving way",
+        "bag closure"
+      ],
+      "links": {}
+    },
+    {
+      "id": 17,
+      "group": "partial",
+      "guess": "metal clasp",
+      "clues": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "structural collapse",
+        "knees giving way",
+        "bag closure"
+      ],
+      "expected": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "bag closure"
+      ],
+      "links": {}
+    },
+    {
+      "id": 17,
+      "group": "unrelated",
+      "guess": "violin bow",
+      "clues": [
+        "seat belt",
+        "shoe strap",
+        "belt fastener",
+        "structural collapse",
+        "knees giving way",
+        "bag closure"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 18,
+      "group": "displayed",
+      "guess": "chemical attraction",
+      "clues": [
+        "chemical attraction",
+        "government debt",
+        "friendship",
+        "adhesive glue",
+        "bail payment",
+        "spy film"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 18,
+      "group": "intended",
+      "guess": "bond",
+      "clues": [
+        "chemical attraction",
+        "government debt",
+        "friendship",
+        "adhesive glue",
+        "bail payment",
+        "spy film"
+      ],
+      "expected": [
+        "chemical attraction",
+        "government debt",
+        "friendship",
+        "adhesive glue",
+        "bail payment",
+        "spy film"
+      ],
+      "links": {}
+    },
+    {
+      "id": 18,
+      "group": "partial",
+      "guess": "investor",
+      "clues": [
+        "chemical attraction",
+        "government debt",
+        "friendship",
+        "adhesive glue",
+        "bail payment",
+        "spy film"
+      ],
+      "expected": [
+        "government debt"
+      ],
+      "links": {}
+    },
+    {
+      "id": 18,
+      "group": "unrelated",
+      "guess": "snowflake",
+      "clues": [
+        "chemical attraction",
+        "government debt",
+        "friendship",
+        "adhesive glue",
+        "bail payment",
+        "spy film"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 19,
+      "group": "intended",
+      "guess": "strike",
+      "clues": [
+        "labor walkout",
+        "bowling alley",
+        "baseball count",
+        "lightning bolt",
+        "match ignition",
+        "clock chime"
+      ],
+      "expected": [
+        "labor walkout",
+        "bowling alley",
+        "baseball count",
+        "lightning bolt",
+        "match ignition",
+        "clock chime"
+      ],
+      "links": {
+        "bowling alley": "bowling alley ↔ strike (100% match)"
+      }
+    },
+    {
+      "id": 19,
+      "group": "partial",
+      "guess": "union",
+      "clues": [
+        "labor walkout",
+        "bowling alley",
+        "baseball count",
+        "lightning bolt",
+        "match ignition",
+        "clock chime"
+      ],
+      "expected": [
+        "labor walkout"
+      ],
+      "links": {}
+    },
+    {
+      "id": 19,
+      "group": "unrelated",
+      "guess": "dental crown",
+      "clues": [
+        "labor walkout",
+        "bowling alley",
+        "baseball count",
+        "lightning bolt",
+        "match ignition",
+        "clock chime"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 19,
+      "group": "displayed",
+      "guess": "labor walkout",
+      "clues": [
+        "labor walkout",
+        "bowling alley",
+        "baseball count",
+        "lightning bolt",
+        "match ignition",
+        "clock chime"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 20,
+      "group": "displayed",
+      "guess": "court trial",
+      "clues": [
+        "court trial",
+        "phone cover",
+        "grammar inflection",
+        "medical diagnosis",
+        "suitcase luggage",
+        "capital letters"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 20,
+      "group": "intended",
+      "guess": "case",
+      "clues": [
+        "court trial",
+        "phone cover",
+        "grammar inflection",
+        "medical diagnosis",
+        "suitcase luggage",
+        "capital letters"
+      ],
+      "expected": [
+        "court trial",
+        "phone cover",
+        "grammar inflection",
+        "medical diagnosis",
+        "suitcase luggage",
+        "capital letters"
+      ],
+      "links": {}
+    },
+    {
+      "id": 20,
+      "group": "partial",
+      "guess": "lawyer",
+      "clues": [
+        "court trial",
+        "phone cover",
+        "grammar inflection",
+        "medical diagnosis",
+        "suitcase luggage",
+        "capital letters"
+      ],
+      "expected": [
+        "court trial"
+      ],
+      "links": {}
+    },
+    {
+      "id": 20,
+      "group": "unrelated",
+      "guess": "cucumber",
+      "clues": [
+        "court trial",
+        "phone cover",
+        "grammar inflection",
+        "medical diagnosis",
+        "suitcase luggage",
+        "capital letters"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 21,
+      "group": "displayed",
+      "guess": "computer folder",
+      "clues": [
+        "computer folder",
+        "nail care",
+        "metal smoothing",
+        "legal complaint",
+        "document cabinet",
+        "single line"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 21,
+      "group": "intended",
+      "guess": "file",
+      "clues": [
+        "computer folder",
+        "nail care",
+        "metal smoothing",
+        "legal complaint",
+        "document cabinet",
+        "single line"
+      ],
+      "expected": [
+        "computer folder",
+        "nail care",
+        "metal smoothing",
+        "legal complaint",
+        "document cabinet",
+        "single line"
+      ],
+      "links": {
+        "single line": "People may walk in single file (100% match)"
+      }
+    },
+    {
+      "id": 21,
+      "group": "partial",
+      "guess": "manicure",
+      "clues": [
+        "computer folder",
+        "nail care",
+        "metal smoothing",
+        "legal complaint",
+        "document cabinet",
+        "single line"
+      ],
+      "expected": [
+        "nail care"
+      ],
+      "links": {}
+    },
+    {
+      "id": 21,
+      "group": "unrelated",
+      "guess": "rain gauge",
+      "clues": [
+        "computer folder",
+        "nail care",
+        "metal smoothing",
+        "legal complaint",
+        "document cabinet",
+        "single line"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 22,
+      "group": "displayed",
+      "guess": "sea snail",
+      "clues": [
+        "sea snail",
+        "egg exterior",
+        "command terminal",
+        "artillery projectile",
+        "turtle armor",
+        "nut casing"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 22,
+      "group": "intended",
+      "guess": "shell",
+      "clues": [
+        "sea snail",
+        "egg exterior",
+        "command terminal",
+        "artillery projectile",
+        "turtle armor",
+        "nut casing"
+      ],
+      "expected": [
+        "sea snail",
+        "egg exterior",
+        "command terminal",
+        "artillery projectile",
+        "turtle armor",
+        "nut casing"
+      ],
+      "links": {
+        "sea snail": "Many sea snails have shells. (100% match)"
+      }
+    },
+    {
+      "id": 22,
+      "group": "partial",
+      "guess": "tortoise",
+      "clues": [
+        "sea snail",
+        "egg exterior",
+        "command terminal",
+        "artillery projectile",
+        "turtle armor",
+        "nut casing"
+      ],
+      "expected": [
+        "turtle armor"
+      ],
+      "links": {}
+    },
+    {
+      "id": 22,
+      "group": "unrelated",
+      "guess": "tennis racket",
+      "clues": [
+        "sea snail",
+        "egg exterior",
+        "command terminal",
+        "artillery projectile",
+        "turtle armor",
+        "nut casing"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 23,
+      "group": "displayed",
+      "guess": "railroad",
+      "clues": [
+        "railroad",
+        "running lane",
+        "music album",
+        "animal footprints",
+        "vehicle tread",
+        "shipment status"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 23,
+      "group": "intended",
+      "guess": "track",
+      "clues": [
+        "railroad",
+        "running lane",
+        "music album",
+        "animal footprints",
+        "vehicle tread",
+        "shipment status"
+      ],
+      "expected": [
+        "railroad",
+        "running lane",
+        "music album",
+        "animal footprints",
+        "vehicle tread",
+        "shipment status"
+      ],
+      "links": {
+        "railroad": "Together they form the established expression “railroad track”."
+      }
+    },
+    {
+      "id": 23,
+      "group": "partial",
+      "guess": "runner",
+      "clues": [
+        "railroad",
+        "running lane",
+        "music album",
+        "animal footprints",
+        "vehicle tread",
+        "shipment status"
+      ],
+      "expected": [
+        "running lane"
+      ],
+      "links": {}
+    },
+    {
+      "id": 23,
+      "group": "unrelated",
+      "guess": "toothpaste",
+      "clues": [
+        "railroad",
+        "running lane",
+        "music album",
+        "animal footprints",
+        "vehicle tread",
+        "shipment status"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 24,
+      "group": "displayed",
+      "guess": "harbor",
+      "clues": [
+        "harbor",
+        "fortified wine",
+        "computer connector",
+        "left side of ship",
+        "network socket",
+        "charging cable"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 24,
+      "group": "intended",
+      "guess": "port",
+      "clues": [
+        "harbor",
+        "fortified wine",
+        "computer connector",
+        "left side of ship",
+        "network socket",
+        "charging cable"
+      ],
+      "expected": [
+        "harbor",
+        "fortified wine",
+        "computer connector",
+        "left side of ship",
+        "network socket",
+        "charging cable"
+      ],
+      "links": {
+        "harbor": "A port can be located in a harbor (100% match)",
+        "fortified wine": "Port is a fortified wine (100% match)"
+      }
+    },
+    {
+      "id": 24,
+      "group": "partial",
+      "guess": "usb",
+      "clues": [
+        "harbor",
+        "fortified wine",
+        "computer connector",
+        "left side of ship",
+        "network socket",
+        "charging cable"
+      ],
+      "expected": [
+        "computer connector",
+        "charging cable"
+      ],
+      "links": {}
+    },
+    {
+      "id": 24,
+      "group": "unrelated",
+      "guess": "cake frosting",
+      "clues": [
+        "harbor",
+        "fortified wine",
+        "computer connector",
+        "left side of ship",
+        "network socket",
+        "charging cable"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 25,
+      "group": "displayed",
+      "guess": "cake mix",
+      "clues": [
+        "cake mix",
+        "baseball plate",
+        "pancake mixture",
+        "deep frying",
+        "cricket match",
+        "repeated blows"
+      ],
+      "expected": [],
+      "links": {}
+    },
+    {
+      "id": 25,
+      "group": "intended",
+      "guess": "batter",
+      "clues": [
+        "cake mix",
+        "baseball plate",
+        "pancake mixture",
+        "deep frying",
+        "cricket match",
+        "repeated blows"
+      ],
+      "expected": [
+        "cake mix",
+        "baseball plate",
+        "pancake mixture",
+        "deep frying",
+        "cricket match",
+        "repeated blows"
+      ],
+      "links": {}
+    },
+    {
+      "id": 25,
+      "group": "partial",
+      "guess": "flour",
+      "clues": [
+        "cake mix",
+        "baseball plate",
+        "pancake mixture",
+        "deep frying",
+        "cricket match",
+        "repeated blows"
+      ],
+      "expected": [
+        "cake mix",
+        "pancake mixture",
+        "deep frying"
+      ],
+      "links": {}
+    },
+    {
+      "id": 25,
+      "group": "unrelated",
+      "guess": "door hinge",
+      "clues": [
+        "cake mix",
+        "baseball plate",
+        "pancake mixture",
+        "deep frying",
+        "cricket match",
+        "repeated blows"
+      ],
+      "expected": [],
+      "links": {}
+    }
+  ]
+}
