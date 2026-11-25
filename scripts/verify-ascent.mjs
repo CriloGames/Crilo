@@ -13,7 +13,7 @@ try {
     await page.waitForSelector('#start:enabled');
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
-    const board=['clip','plane','wall','trail','news','mill'];
+    const board=['clip','plane','wall','trail','lighthouse','mill'];
     const state={history:[],clues:null,deadline:null};
     await page.route('**/rpc/ascent_pitch', async route => {
       const p=route.request().postDataJSON();
@@ -61,6 +61,11 @@ try {
       await page.waitForSelector('#play:visible');
       if(i===1){
         const deadline=state.deadline;
+        for(const word of ['light','house','the lights']){
+          await page.locator('#guess').fill(word);await page.locator('#lock').click();
+          assert.match(await page.locator('#status').innerText(),/already in a clue/);
+          assert.equal(await page.locator('#guess').inputValue(),word);
+        }
         await page.locator('#guess').fill('zzzz');await page.locator('#lock').click();
         await page.waitForFunction(()=>document.getElementById('status').textContent.includes('Try another word'));
         assert.equal(state.history.length,0);
@@ -84,6 +89,8 @@ try {
       if(i===5){
         assert.equal(await page.locator('#hitTitle').innerText(),'Time’s up.');
         await page.locator('#practicePitch summary').click();
+        await page.locator('#retryGuess').fill('light');await page.locator('#retryCheck').click();
+        assert.match(await page.locator('#retryOutcome').innerText(),/already in a clue/);
         await page.locator('#retryGuess').fill('paper');
         await page.locator('#retryCheck').click();
         await page.waitForFunction(()=>document.getElementById('retryOutcome').textContent.includes('+30'));

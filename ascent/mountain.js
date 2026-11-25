@@ -321,7 +321,7 @@
           if(typeof motion.onGrip==='function')motion.onGrip(motion.lastGrip-1);
         }
       }
-      if(t>=1&&(reduced||now>=motion.start+motion.duration+180)){
+      if(t>=1&&(reduced||now>=motion.start+motion.duration+60)){
         altitude=motion.to;done=motion.done;motion=null;phase=0;energy=0;
       }
     }
@@ -358,7 +358,7 @@
   function climb(from,to,matches,done,onGrip) {
     set(from); const steps=clamp(Math.round(Number(matches)||0),1,6);
     const destination=clamp(Number(to)||0,0,1000);
-    motion={from:altitude,to:destination,steps,gaitSteps:Math.max(steps,Math.ceil(Math.abs(destination-altitude)*.562/14)),done,onGrip,lastGrip:0,start:performance.now(),duration:reduced?1:650+steps*285};
+    motion={from:altitude,to:destination,steps,gaitSteps:Math.max(steps,Math.ceil(Math.abs(destination-altitude)*.562/14)),done,onGrip,lastGrip:0,start:performance.now(),duration:reduced?1:360+steps*100};
     start();
   }
   function finish(h,average) {
