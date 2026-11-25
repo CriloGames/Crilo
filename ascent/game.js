@@ -220,9 +220,9 @@ function renderClimbStats(){
  const id=official?state.day:replay?archive:seed;
  const old=readLocal(key)||{score:0,id:null};
  const fresh=score>old.score;const best=Math.max(score,old.score);
- if(fresh)writeLocal(key,{score,id});
+ if(fresh&&!h.some(p=>p.checkIncomplete))writeLocal(key,{score,id});
  $('personalBest').textContent=format(best);
- $('bestNote').textContent=(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
+ $('bestNote').textContent=h.some(p=>p.checkIncomplete)?'Score verification incomplete — review original guesses below.':(fresh||old.id===id&&score===best&&best>0)?'Personal best!':score===best?'Tied your best':' '+format(best-score)+' points from your best';
  const summary=$('pitchSummary');summary.replaceChildren(...h.map((p,i)=>{
   const row=document.createElement('div'),label=document.createElement('span'),meter=document.createElement('div'),points=document.createElement('strong');
   row.className='pitch-summary-row';label.textContent='Pitch '+(i+1);meter.className='match-meter';matchMeter(meter,p.clues,p.links);points.textContent=p.points+' pts';row.append(label,meter,points);return row;
@@ -241,7 +241,7 @@ function renderHolds(clues,record){
   hold.append(number,label);
   if(record){
    const outcome=document.createElement('small');
-   outcome.textContent=matched?'Matched':'Missed';
+   outcome.textContent=matched?'Matched':record.checkIncomplete?'Unverified':'Missed';
    hold.append(outcome);
   }
   return hold;
@@ -295,6 +295,25 @@ function renderFinishMap(result){
   svg('text',{x:308,y:py+4,'text-anchor':'middle',fill:'#fff3d8'},'You · '+format(score))
  );
 }
+async function recheckOriginal(index,button){
+ if(pending||button.disabled||!state.history[index]?.checkIncomplete)return;
+ pending=true;button.disabled=true;button.textContent='Checking original answer…';
+ try{
+  const result=await call({p_action:'recheck_pitch',p_day:state.day,p_round:index+1});
+  if(!result.record)throw Error('Missing original record');
+  state.history[index]=result.record;
+  if(state.results)state.results.score=result.total;
+  delete $('answerReview').dataset.day;
+  render();
+  message(result.checkIncomplete?'Some connections are still unverified. Your original answer is saved.':'Original answer verified. Score updated.');
+  try{cache()}catch{}
+ }catch{button.textContent='Recheck original answer';message('Verification unavailable. Your original answer is saved.')}
+ finally{pending=false;button.disabled=false}
+}
+function originalRecheckButton(index){
+ const button=document.createElement('button');button.type='button';button.className='primary';
+ button.textContent='Recheck original answer';button.onclick=()=>recheckOriginal(index,button);return button;
+}
 function renderAnswerReview(){
  const review=$('answerReview');
  const key=state.day;
@@ -305,11 +324,11 @@ function renderAnswerReview(){
   const details=document.createElement('details'),summary=document.createElement('summary'),body=document.createElement('div');
   const title=document.createElement('strong'),detail=document.createElement('small'),score=document.createElement('span');
   title.textContent='Pitch '+(index+1)+' · '+(pitch.guess||'Time expired');
-  detail.textContent='Answers by number of matches';
+  detail.textContent=pitch.checkIncomplete?'Some connections unverified · recheck original answer':'Answers by number of matches';
   score.textContent=Object.keys(pitch.links).length+'/6 · '+pitch.points+' pts';
   summary.append(title,score,detail);
   body.className='answer-body';
-  details.append(summary,body);review.append(details);
+  details.append(summary);if(pitch.checkIncomplete&&pitch.guess)details.append(originalRecheckButton(index));details.append(body);review.append(details);
   details.addEventListener('toggle',async()=>{
    if(!details.open||body.dataset.loaded)return;
    body.dataset.loaded='pending';body.textContent='Loading answers…';
@@ -362,7 +381,8 @@ function render(){
  const clues=shown?shown.clues:(state.clues||[]);renderHolds(clues,shown);mountain.set(sum(h));
  if(shown){practiceBest={guess:shown.guess,points:shown.points,links:shown.links};practiceAttempts=0;matchMeter($('revealMeter'),clues,shown.links);$('revealPoints').textContent='+'+shown.points+' pts';$('runningTotal').textContent=format(sum(h))+' pts';$('links').open=false;$('links').hidden=!Object.keys(shown.links).length;let count=Object.keys(shown.links).length;$('hitTitle').textContent=shown.timedOut?'Time’s up.':count===6?'Perfect pitch.':count===5?'One away!':count===4?'Strong connection.':count+' of 6 matched.'; $('reveal').dataset.hits=String(count);
  $('hitCopy').textContent=shown.timedOut?'The clock ran out. This pitch earns zero points.':count?'“'+shown.guess+'” earned '+shown.points+' points.'+(shown.autoSubmitted?' Automatically submitted when time ran out.':''):shown.autoSubmitted?'“'+shown.guess+'” was automatically submitted. No recognized connections this round.':'No recorded links for “'+shown.guess.toUpperCase()+'” on this pitch.';
- if(shown.checkIncomplete)$('hitCopy').textContent+=' Some connections could not be verified.';
+ $('originalRecheck').hidden=!shown.checkIncomplete||!shown.guess;$('originalRecheck').disabled=false;$('originalRecheck').textContent='Recheck original answer';$('originalRecheck').onclick=()=>recheckOriginal(revealIndex,$('originalRecheck'));
+ if(shown.checkIncomplete)$('hitCopy').textContent+=' Some connections are unverified. Recheck your original answer to recover any missed points.';
  $('phrases').replaceChildren(...connectionList(clues,shown.links,shown.guess).children);
  $('practicePitch').hidden=count===6;
  $('practicePitch').open=false;
