@@ -199,7 +199,7 @@ function render(){
  mode=finished?'results':shown?'reveal':state.deadline?'play':'ready';
  scene.dataset.phase=mode;
  document.querySelector('.expedition .card').inert=false;
- $('readyRule').textContent=state.semantic?'Connect six clues with a word or phrase. You have 20 seconds once you start.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
+ $('readyRule').textContent=state.semantic?'Connect six clues with a word or phrase. The first pitch gives you 20 seconds.':'This climb uses the original word-pair rules. You have 20 seconds once you start.';
  $('themeTry').hidden=state.semantic;
  $('generate').textContent='Practice climb ↗';
  $('intro').textContent=state.semantic?'Find the idea that connects the clues. A related word or phrase can earn partial credit.':'Find one word that forms a familiar word or phrase with as many clues as possible. Try it on either side.';
@@ -209,6 +209,7 @@ function render(){
  $('play').hidden=mode!=='play';$('reveal').hidden=mode!=='reveal';$('results').hidden=!finished;
  $('roundCount').textContent=String(idx+1).padStart(2,'0')+' / 05';
  $('stage').textContent=finished?'Expedition complete':'Pitch '+(idx+1)+' · '+stageNames[idx];
+ if(mode==='play'&&state.contexts)$('stage').textContent+=' · '+state.contexts+(state.contexts===1?' context':' contexts');
  $('mapnote').textContent=finished?'EXPEDITION VIEW':'ROUTE VIEW';
  $('progress').replaceChildren(...Array.from({length:5},(_,i)=>{const e=document.createElement('i');e.className=i<h.length?'done':i===idx?'current':'';return e}));
  $('footerStatus').textContent=h.length+' of 5 pitches complete';
@@ -233,7 +234,7 @@ function render(){
 function paintClock(){
  if(mode!=='play')return;
  const ms=Math.max(0,timerEnd-performance.now()), sec=Math.ceil(ms/1000);
- $('seconds').textContent=sec+'s';$('clockbar').value=ms/1000;$('clock').classList.toggle('urgent',sec<=5);
+ $('seconds').textContent=sec+'s';$('clockbar').max=state.pitchSeconds||20;$('clockbar').value=ms/1000;$('clock').classList.toggle('urgent',sec<=5);
  if(ms===0&&!pending&&!waitingForReconnect)finishAtDeadline();
 }
 setInterval(paintClock,100);

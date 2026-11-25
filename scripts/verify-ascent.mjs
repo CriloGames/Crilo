@@ -24,7 +24,7 @@ try {
       state.day=p.p_day || state.day;
       state.rejected=false;
       if(p.p_action==='start' && !state.deadline){
-        state.clues=board;state.deadline=new Date(Date.now()+(p.p_round===5?800:15000)).toISOString();
+        state.contexts=p.p_round;state.pitchSeconds=[20,21,22,24,25][p.p_round-1];state.clues=board;state.deadline=new Date(Date.now()+(p.p_round===5?800:15000)).toISOString();
       }
       const expired=state.deadline && Date.parse(state.deadline)<=Date.now();
       if(expired || (p.p_action==='guess' && p.p_guess==='paper trail')){
@@ -59,6 +59,7 @@ try {
     await page.locator('#guide').click();assert(await page.locator('dialog').isVisible());await page.locator('#close').click();
     for(let i=1;i<=5;i++){
       await page.waitForSelector('#play:visible');
+      assert.equal(await page.locator('#clockbar').evaluate(el=>el.max),[20,21,22,24,25][i-1]);
       if(i===1){
         const deadline=state.deadline;
         for(const word of ['light','house','the lights']){
