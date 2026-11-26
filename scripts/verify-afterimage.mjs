@@ -1,0 +1,6 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8'),ctx={};vm.runInNewContext(read('afterimage-core.js'),ctx);const E=ctx.Afterimage;
+let questions=0;
+for(let seed=0;seed<10000;seed++){const game=E.generate(seed);assert.equal(new Set(game.rounds.flatMap(r=>r.board.map(t=>t.name))).size,36);for(const r of game.rounds){assert.equal(r.board.length,12);assert.equal(new Set(r.board.map(t=>t.tag)).size,12);assert.equal(r.questions.length,5);for(const q of r.questions){assert(q.answer);assert(E.correct(q,q.answer));assert(!E.correct(q,''));assert.equal(E.grade(q,q.answer).points,100);assert.equal(E.grade(q,q.answer,true).points,0);assert(q.highlight.every(i=>i>=0&&i<12));questions++}}}
+assert.equal(questions,150000);assert(E.correct({answer:'camera',aliases:['photo camera']},' The Camera! '));assert(E.correct({answer:'3',aliases:[]},'three'));assert(!E.correct({answer:'camera',aliases:[]},'cameras'));
+new Function(read('afterimage.js'));assert.match(read('afterimage.html'),/id="aiGame" hidden inert/);assert.match(read('afterimage.js'),/profile\.is_owner!==true/);assert.match(read('test-games.html'),/href="afterimage\.html"/);console.log('PASS: 10,000 games, 150,000 questions, unique objects and tags, exact scoring, owner gate and syntax');
