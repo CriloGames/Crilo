@@ -20,16 +20,43 @@ async function verify(){
   if(readError||profile?.id!==uid||profile.is_owner!==true)return deny('This playtest is available only to Crilo’s owner account.');
   owner=uid;try{best=Math.max(0,Math.min(500,Number(localStorage.getItem(key()))||0))}catch{}
   game.hidden=false;game.inert=false;gate.hidden=true;show('aiIntro');hud();
+  try{$('aiSceneCount').textContent=readHistory().seen.length.toLocaleString()+' unique scenes explored or reserved'}catch{}
   criloDB.auth.onAuthStateChange?.((event,s)=>{if(event==='SIGNED_OUT'||(s?.user?.id&&s.user.id!==owner))deny('Owner access ended. Sign in and refresh.')});
  }catch{if(attempt===serial)deny('Could not verify owner access. Refresh to try again.')}
 }
-function newGame(){
- if(!owner)return;
- let seed=crypto.getRandomValues(new Uint32Array(1))[0];if(seed===session?.seed)seed=(seed+1)>>>0;
- stop();session=E.generate(seed);index=0;score=0;records=[];$('aiScene').replaceChildren();$('aiReviewScene').replaceChildren();
- phase='ready';$('aiReadyLabel').textContent='ONE ROOM · FIVE QUESTIONS';$('aiReadyTitle').textContent='Ready to look around?';
- $('aiReadyText').textContent='You will have '+session.scan+' seconds to observe the room. Then answer five questions with '+session.answer+' seconds each. The timer starts when you reveal it.';
- show('aiReady');hud();screenTop();
+const historyKey=()=> 'crilo_afterimage_scene_history_v3:'+owner;
+let generating=false;
+function readHistory(){
+ const raw=localStorage.getItem(historyKey());
+ if(raw===null)return {seen:[],deck:[],lastPlace:null};
+ const h=JSON.parse(raw);
+ if(!Array.isArray(h.seen)||!Array.isArray(h.deck)||h.seen.some(s=>typeof s!=='string')||h.deck.some(id=>!Number.isInteger(id)||id<0||id>=100))throw Error('Scene history is unreadable');
+ return h;
+}
+function reserve(){
+ const lib=globalThis.AfterimageScenes,history=readHistory();
+ const seed=crypto.getRandomValues(new Uint32Array(1))[0],next=lib.next(history,seed);
+ if(!next)throw Error('Could not find an unseen scene');
+ const stored=JSON.stringify(next.history);
+ localStorage.setItem(historyKey(),stored);
+ if(localStorage.getItem(historyKey())!==stored)throw Error('Could not save scene history');
+ return next;
+}
+async function newGame(){
+ if(!owner||generating)return;
+ generating=true;const uid=owner;
+ try{
+  const next=navigator.locks?.request?await navigator.locks.request(historyKey(),()=>reserve()):reserve();
+  if(owner!==uid)return;
+  stop();session=next.game;index=0;score=0;records=[];$('aiScene').replaceChildren();$('aiReviewScene').replaceChildren();
+  phase='ready';$('aiReadyLabel').textContent='NEW SCENE · FIVE QUESTIONS';$('aiReadyTitle').textContent='Ready to look around?';
+  $('aiReadyText').textContent='You will have '+session.scan+' seconds to observe a new scene. Then answer five questions with '+session.answer+' seconds each. The timer starts when you reveal it.';
+  $('aiSceneCount').textContent=next.history.seen.length.toLocaleString()+' unique scenes explored or reserved';
+  $('aiGenerationError').hidden=true;show('aiReady');hud();screenTop();
+ }catch(e){
+  $('aiGenerationError').textContent='Could not reserve a new scene. Make sure browser storage is available, then try again. Existing history has not been reset.';
+  $('aiGenerationError').hidden=false;
+ }finally{generating=false}
 }
 function tick(){
  if(!owner||!['observe','question'].includes(phase))return;
@@ -65,7 +92,7 @@ function finish(){
  hud();show('aiFinish');screenTop();
 }
 $('aiStart').onclick=$('aiAgain').onclick=newGame;
-$('aiRestart').onclick=()=>{if(phase==='finish'||phase==='ready'||confirm('Abandon this game and generate a new room?'))newGame()};
+$('aiRestart').onclick=()=>{if(phase==='finish'||phase==='ready'||confirm('Abandon this game and generate a new scene?'))newGame()};
 $('aiObserve').onclick=observe;
 $('aiForm').onsubmit=e=>{e.preventDefault();if(phase!=='question')return;if(performance.now()>=deadline)submit(true);else if($('aiInput').value.trim())submit()};
 $('aiSkip').onclick=()=>submit(false,true);

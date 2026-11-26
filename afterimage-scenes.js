@@ -32,7 +32,7 @@ const rand=seed=>{let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(
 function shuffle(a,r){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 const plural={'book':'books','cup':'cups','apple':'apples','paint tube':'paint tubes','record':'records','bolt':'bolts','flower pot':'flower pots','bread roll':'bread rolls','towel':'towels','dumbbell':'dumbbells','shell':'shells','log':'logs','flower':'flowers','cone':'cones'};
 const A={
- 'remote control':['remote','tv remote'],'vase':['flowers','flower pot','flowerpot','pot of flowers','vase with flowers','bouquet','potted plant'],'alarm clock':['clock','alarm'],'teddy bear':['teddy','stuffed bear','stuffed animal','bear'],'lamp':['table lamp','light'],'headphones':['headset','earphones'],'globe':['world globe','earth'],'kettle':['tea kettle','teakettle'],'toaster':['bread toaster'],'mixing bowl':['bowl'],'bottle':['water bottle'],'teapot':['tea pot','kettle'],'cake':['birthday cake','dessert'],'coffee pot':['coffeepot','coffee kettle'],'glasses':['eyeglasses','spectacles'],'hourglass':['sand timer'],'paintbrush':['brush','paint brush'],'palette':['paint palette','paint tray'],'scissors':['shears'],'guitar':['acoustic guitar'],'metronome':['music timer'],'trumpet':['horn'],'ruler':['measuring stick'],'pencil':['pen'],'hammer':['mallet'],'wrench':['spanner'],'screwdriver':['screw driver'],'tape measure':['measuring tape'],'watering can':['water can','watering pot'],'trowel':['garden shovel','small shovel','spade'],'gloves':['gardening gloves'],'spray bottle':['sprayer'],'basket':['wicker basket'],'rolling pin':['roller'],'detergent':['soap','laundry detergent'],'iron':['clothes iron'],'water bottle':['bottle'],'jump rope':['skipping rope'],'towel':['cloth'],'stopwatch':['timer'],'bucket':['pail'],'sunglasses':['shades','glasses'],'beach ball':['ball'],'lantern':['lamp','camp lantern'],'compass':['navigation compass'],'backpack':['bag','rucksack'],'kite':['toy kite'],'book':['notebook'],'ball':['toy ball'],'pineapple':['pine apple'],'flowers':['flower','bouquet','bunch of flowers']
+ 'remote control':['remote','tv remote'],'vase':['flowers','flower pot','flowerpot','pot of flowers','vase with flowers','bouquet','potted plant'],'alarm clock':['clock','alarm'],'teddy bear':['teddy','stuffed bear','stuffed animal','bear'],'lamp':['table lamp','light'],'headphones':['headset','earphones'],'globe':['world globe','earth'],'kettle':['tea kettle','teakettle'],'toaster':['bread toaster'],'mixing bowl':['bowl'],'bottle':['water bottle'],'teapot':['tea pot','kettle'],'cake':['birthday cake','dessert'],'coffee pot':['coffeepot','coffee kettle'],'glasses':['eyeglasses','spectacles'],'hourglass':['sand timer'],'paintbrush':['brush','paint brush'],'palette':['paint palette','paint tray'],'scissors':['shears'],'guitar':['acoustic guitar'],'metronome':['music timer'],'trumpet':['horn'],'ruler':['measuring stick'],'pencil':[],'hammer':['mallet'],'wrench':['spanner'],'screwdriver':['screw driver'],'tape measure':['measuring tape'],'watering can':['water can','watering pot'],'trowel':['garden shovel','small shovel','spade'],'gloves':['gardening gloves'],'spray bottle':['sprayer'],'basket':['wicker basket'],'rolling pin':['roller'],'detergent':['soap','laundry detergent'],'iron':['clothes iron'],'water bottle':['bottle'],'jump rope':['skipping rope'],'towel':['cloth'],'stopwatch':['timer'],'bucket':['pail'],'sunglasses':['shades','glasses'],'beach ball':['ball'],'lantern':['lamp','camp lantern'],'compass':['navigation compass'],'backpack':['bag','rucksack'],'kite':['toy kite'],'book':['notebook'],'ball':['toy ball'],'pineapple':['pine apple'],'flowers':['flower','bouquet','bunch of flowers']
 };
 function make(template,seed){
  const r=rand(seed),t=TEMPLATES[template],s=S[Math.floor(template/5)],pick=a=>a[Math.floor(r()*a.length)];
@@ -41,14 +41,15 @@ function make(template,seed){
  const room={version:3,template,theme:s[1],place:s[0],layout,main,wall:pick(B)[1],floor:pick(['#bc9875','#a58a71','#cfb08a']),kind:s[7],feature:s[2],surface:s[3],countPlace:s[4],countItem:s[5],count:2+Math.floor(r()*4),objects:[{name:p1,color:c1,side},{name:p2,color:c2,side:other}],weather:pick(['sunny','rainy','snowy']),clock:1+Math.floor(r()*12),detail:pick(['circle','triangle','square'])};
  const q=(id,prompt,answer,aliases=[],why='')=>({id,prompt,answer:String(answer),aliases,why});
  const [a,b]=room.objects;
- const count=q('sceneCount','How many '+plural[s[5]]+' were grouped together in the '+s[4]+' area?',room.count,[], 'The grouped '+plural[s[5]]+' can be counted in the original scene.');
+ const count=q('sceneCount','How many '+plural[s[5]]+' were grouped together on the '+(s[7]==='indoor'?'small separate display shelf':'separate low display tray')+'?',room.count,[], 'The grouped '+plural[s[5]]+' can be counted in the original scene.');
  // Numeric noun aliases are accepted, not merely the bare digit.
  const numWords=['zero','one','two','three','four','five'];
  count.aliases=[room.count+' '+plural[s[5]],numWords[room.count]+' '+plural[s[5]]];
  const color=q('furniture','What color was the '+s[2]+'?',main[0],[],'Look at the large '+s[2]+'.');
- const object=(o)=>q('sceneObject','What object was on the '+o.side+' side of the '+s[3]+'?',o.name,A[o.name]||[],'The '+o.name+' was on the '+o.side+'.');
+ const surface=r.place==='beach'?'picnic blanket':'long foreground table';
+ const object=(o)=>({...q('sceneObject','What object was on the '+o.side+' side of the '+surface+'?',o.name,A[o.name]||[],'The '+o.name+' was on the '+o.side+'.'),otherAnswers:room.objects.filter(t=>t!==o).flatMap(t=>[t.name,...(A[t.name]||[])])});
  const objColor=o=>q('sceneColor','What was the main color of the '+o.name+'?',o.color[0],[],'Look at the '+o.name+' on the '+o.side+'.');
- const location=o=>q('plant','Was the '+o.name+' on the left or right side of the '+s[3]+'?',o.side,[],'The '+o.name+' was on the '+o.side+'.');
+ const location=o=>q('plant','Was the '+o.name+' on the left or right side of the '+surface+'?',o.side,[],'The '+o.name+' was on the '+o.side+'.');
  const weather=q('weather','What was the weather '+(s[7]==='indoor'?'outside the window':'in the scene')+'?',room.weather,[],'Look at the sky.');
  const clock=q('hour','What hour did the wall clock show?',room.clock,[],'The short hand points to '+room.clock+'.');
  const [x,y]=r()<.5?[a,b]:[b,a];
@@ -65,17 +66,18 @@ function next(history,seed){
  let deck=Array.from(recent);
  if(!remaining.length){remaining=TEMPLATES.slice();deck=[]}
  const r=rand(seed);remaining=shuffle(remaining,r);
+ const last=history.lastPlace;remaining.sort((a,b)=>Number(a.place===last)-Number(b.place===last));
  for(const t of remaining){
   for(let i=0;i<64;i++){
    const candidate=make(t.id,Math.floor(r()*4294967296)),fingerprint=signature(candidate.room);
-   if(!seen.has(fingerprint))return {game:candidate,fingerprint,history:{seen:[...seen,fingerprint],deck:[...deck,t.id]}};
+   if(!seen.has(fingerprint))return {game:candidate,fingerprint,history:{seen:[...seen,fingerprint],deck:[...deck,t.id],lastPlace:t.place}};
   }
  }
  return null;
 }
 // Only fields visible in the actual art count toward identity. Use the
 // full serialization instead of a hash to avoid accidental collisions.
-function signature(r){return JSON.stringify([r.template,r.main[0],r.wall,r.floor,r.count,r.objects.map(o=>[o.name,o.color[0],o.side]),r.weather,r.kind==='indoor'?r.clock:0])}
+function signature(r){return JSON.stringify([r.template,r.main[0],r.kind==='indoor'?[r.wall,r.floor,r.clock]:[],r.count,r.objects.map(o=>[o.name,o.color[0],o.side]),r.weather])}
 const R=(x,y,w,h,f,rx=0,s='none',sw=1)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'"/>';
 const L=(x,y,X,Y,s='#5b4e42',sw=2)=>'<path d="M'+x+' '+y+'L'+X+' '+Y+'" fill="none" stroke="'+s+'" stroke-width="'+sw+'" stroke-linecap="round"/>';
 const P=(d,f,s='none',sw=1)=>'<path d="'+d+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"/>';

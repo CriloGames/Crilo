@@ -10,6 +10,7 @@ const WEATHER=['sunny','rainy','snowy'];
 function random(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296}}
 function shuffle(xs,r){const a=xs.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function generate(seed){
+ if(root.AfterimageScenes)return root.AfterimageScenes.make((seed>>>0)%root.AfterimageScenes.TEMPLATES.length,seed);
  const r=random(seed),pick=a=>a[Math.floor(r()*a.length)],int=(a,b)=>a+Math.floor(r()*(b-a+1));
  const [furniture,mug,rug,curtain]=shuffle(PALETTE,r);
  const theme=pick(THEMES),room={theme,furniture,mug,rug,curtain,books:int(2,5),cushions:int(1,3),hour:int(1,12),weather:pick(WEATHER),picture:pick(ART),prop:pick(PROPS),plant:pick(['left','right']),mirror:r()<.5,wall:pick(['#e6ddcd','#dce8dd','#e5e2ee','#f1e0d2']),floor:pick(['#b48c68','#a88b70','#c4a17b'])};
@@ -259,12 +260,12 @@ function oneTypo(a,b){
 }
 function correct(q,a){
  let s=normalize(a);if(!s)return false;const expected=normalize(q.answer);
- if(/^\d+$/.test(expected))return parseNumber(s,q)===expected;
+ if(/^\d+$/.test(expected))return parseNumber(s,q)===expected||(q.aliases||[]).some(x=>normalize(x)===s);
  const group=EQUIVALENTS[category(q)]||{};
  const accepted=[q.answer,...(q.aliases||[]),...(group[q.answer]||[])].map(normalize);
  if(category(q)==='color')s=s.replace(/\s+(?:colored|coloured|color|colour)$/,'');
  if(accepted.includes(s))return true;
- const others=Object.entries(group).filter(([key])=>key!==q.answer).flatMap(([key,aliases])=>[key,...aliases]).map(normalize);
+ const others=[...Object.entries(group).filter(([key])=>key!==q.answer).flatMap(([key,aliases])=>[key,...aliases]),...(q.otherAnswers||[])].map(normalize);
  if(others.includes(s)||others.some(x=>oneTypo(s,x)))return false;
  return accepted.some(x=>oneTypo(s,x));
 }
@@ -272,6 +273,7 @@ function grade(q,a){const ok=correct(q,a);return {answer:String(a??'').trim(),co
 // All room art is drawn from the same data used to produce the questions.
 // Fixed perspective and clear silhouettes avoid ambiguous or hidden details.
 function roomSVG(r){
+ if(r.version===3)return root.AfterimageScenes.render(r);
  const {theme}=r;const furniture=r.furniture[1],mug=r.mug[1],rug=r.rug[1],curtain=r.curtain[1];
  const rect=(x,y,w,h,fill,rx=0,stroke='none',sw=1)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
  const line=(x,y,x2,y2,stroke='#594d42',sw=2)=>'<path d="M'+x+' '+y+'L'+x2+' '+y2+'" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linecap="round" fill="none"/>';
