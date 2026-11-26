@@ -78,7 +78,14 @@ function next(history,seed){
 // Only fields visible in the actual art count toward identity. Use the
 // full serialization instead of a hash to avoid accidental collisions.
 function signature(r){return JSON.stringify([r.template,r.main[0],r.kind==='indoor'?[r.wall,r.floor,r.clock]:[],r.count,r.objects.map(o=>[o.name,o.color[0],o.side]),r.weather])}
-const R=(x,y,w,h,f,rx=0,s='none',sw=1)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'"/>';
+const R=(x,y,w,h,f,rx=0,s='none',sw=1)=>{
+ // Walls, small precise details and thin lines remain straight. Furniture and
+ // props get a lightly imperfect contour, rather than a computer-perfect rectangle.
+ if(w<18||h<18||w>620||h>270||s==='none'||f==='none')return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'"/>';
+ const k=Math.min(Math.max(rx,1.4),w/4,h/4),j=Math.min(1.1,w*.014,h*.022),X=x+w,Y=y+h;
+ const d='M'+(x+k)+' '+y+' Q'+(x+w*.54)+' '+(y-j)+' '+(X-k)+' '+(y+.25)+' Q'+(X+.3)+' '+y+' '+X+' '+(y+k)+' Q'+(X+j*.45)+' '+(y+h*.52)+' '+(X-.25)+' '+(Y-k)+' Q'+X+' '+(Y+.2)+' '+(X-k)+' '+Y+' Q'+(x+w*.48)+' '+(Y+j*.55)+' '+(x+k)+' '+(Y-.15)+' Q'+(x-.3)+' '+Y+' '+x+' '+(Y-k)+' Q'+(x-j*.5)+' '+(y+h*.45)+' '+(x+.2)+' '+(y+k)+' Q'+x+' '+y+' '+(x+k)+' '+y+'Z';
+ return '<path d="'+d+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'" stroke-linejoin="round"/>';
+};
 const L=(x,y,X,Y,s='#5b4e42',sw=2)=>'<path d="M'+x+' '+y+'L'+X+' '+Y+'" fill="none" stroke="'+s+'" stroke-width="'+sw+'" stroke-linecap="round"/>';
 const P=(d,f,s='none',sw=1)=>'<path d="'+d+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'" stroke-linecap="round" stroke-linejoin="round"/>';
 const O=(x,y,rad,f,s='none',sw=1)=>'<circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+f+'" stroke="'+s+'" stroke-width="'+sw+'"/>';
@@ -177,14 +184,47 @@ function feature(r){const c=r.main[1],z=ink;let f='';
  }
  return f;
 }
+// A restrained storybook finish, shared by every location and layout.
+function artDefs(r){
+ const id='aiArt'+r.template;
+ return '<defs>'+
+ '<linearGradient id="'+id+'wall" x1="0" y1="0" x2="0.85" y2="1"><stop stop-color="#fff9e8" stop-opacity=".21"/><stop offset=".63" stop-color="#fff9e8" stop-opacity="0"/><stop offset="1" stop-color="#564637" stop-opacity=".09"/></linearGradient>'+
+ '<linearGradient id="'+id+'floor" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#46382c" stop-opacity=".12"/><stop offset=".32" stop-color="#fff3d9" stop-opacity=".06"/><stop offset="1" stop-color="#5d4331" stop-opacity=".06"/></linearGradient>'+
+ '<linearGradient id="'+id+'shade" x1="0" y1="0" x2=".9" y2="1"><stop stop-color="#fff7e5" stop-opacity=".16"/><stop offset=".44" stop-color="#fff7e5" stop-opacity="0"/><stop offset="1" stop-color="#544335" stop-opacity=".12"/></linearGradient>'+
+ '<radialGradient id="'+id+'vignette" cx=".48" cy=".43" r=".75"><stop offset=".55" stop-color="#46382d" stop-opacity="0"/><stop offset="1" stop-color="#46382d" stop-opacity=".11"/></radialGradient>'+
+ '<pattern id="'+id+'paper" width="29" height="23" patternUnits="userSpaceOnUse"><path d="M3 5l1.8-.5m13 10l2-.7M7 20l1.1-.3M24 3l1 .4" stroke="#5b4938" stroke-width=".65" opacity=".15" stroke-linecap="round"/><path d="M10 9l2-.4m13 12l1.6-.7M1 14l1.7-.3" stroke="#fffdf2" stroke-width=".8" opacity=".34" stroke-linecap="round"/></pattern>'+
+ '</defs>';
+}
+function softShadow(x,y,rx,ry,opacity=.12){
+ return '<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#554538" opacity="'+opacity+'"/><ellipse cx="'+x+'" cy="'+y+'" rx="'+(rx*.79)+'" ry="'+(ry*.57)+'" fill="#554538" opacity="'+(opacity*.42)+'"/>';
+}
+function tree(x,y,scale,tone){
+ const a=tone?'#80996d':'#91a97d',b=tone?'#63835e':'#799666';
+ return G(x,y,P('M-5 154Q0 96-3 47L8 42Q9 108 13 154Z','#9b795b')+P('M3 111L-23 77M5 86L30 54','none','#8e7055',4)+P('M-40 82Q-60 68-48 42Q-48 20-23 18Q-20-4 3 3Q28-11 38 15Q63 18 59 45Q75 65 54 83Q35 107 13 91Q-13 110-40 82Z',a,'#637d59',1.2)+P('M-44 56Q-35 34-18 35Q-3 13 20 20Q15 34 35 39Q19 49 25 64Q2 51-16 67Q-30 62-44 56Z','#abc096')+P('M-43 78Q-23 88-5 76Q14 90 33 76Q47 77 59 60Q58 84 35 92Q13 96 5 89Q-24 105-43 78Z',b),scale);
+}
+function wallDetail(x,y,ww,wh){
+ // Thin wooden reveal and reflected light make the window look built into a room.
+ return R(x-12,y-10,ww+24,wh+23,'#8f755b',3,'#695646',1.5)+R(x-7,y-7,ww+14,wh+14,white,4,'#86735d',1.2);
+}
+function tableTop(x,y,w){
+ const top=P('M'+x+' '+y+'Q'+(x+w*.48)+' '+(y-2)+' '+(x+w)+' '+y+'L'+(x+w-12)+' '+(y+18)+'Q'+(x+w*.5)+' '+(y+20)+' '+(x+10)+' '+(y+18)+'Z','#a9825d','#6d5745',2);
+ let grain='';for(let i=0;i<4;i++){const a=x+30+i*137;grain+=P('M'+a+' '+(y+6)+'q40 -2 79 1','none','#e4bf90',1.1)}
+ return top+grain;
+}
 function render(r){
  const w=760,h=480,indoor=r.kind==='indoor',layout=r.layout,c=r.main[1];
+ const id='aiArt'+r.template;
  let bg='',outside=sky(r.weather,0,0,w,270);
  if(indoor){
   bg=R(0,0,w,h,r.wall)+R(0,292,w,188,r.floor)+R(0,286,w,12,'#f4ecdc',0,'#a89783');
-  for(let i=0;i<7;i++)bg+=L(0,312+i*25,w,312+i*25,'#8e725444',1);
+  bg+=R(0,0,w,292,'url(#'+id+'wall)')+R(0,292,w,188,'url(#'+id+'floor)');
+  // Sparse hand-drawn board seams converge toward the back wall.
+  for(let i=0;i<6;i++){const yy=302+i*11+i*i*3.2;bg+=P('M0 '+yy+'Q370 '+(yy+.8)+' 760 '+(yy-.5),'none','#8e725455',1.1)}
+  for(let i=0;i<9;i++){const x=24+i*94;bg+=L(380+(x-380)*.52,297,x,480,'#94785844',1)}
+  bg+=L(0,287,760,287,'#fff5df',1.5)+L(0,298,760,298,'#8e745e77',1);
   const wx=[45,545,48,550,292][layout],wy=layout===4?17:40,ww=layout===4?176:158,wh=layout===4?95:141;
-  bg+=R(wx-7,wy-7,ww+14,wh+14,white,3,ink,2)+sky(r.weather,wx,wy,ww,wh)+L(wx+ww/2,wy,wx+ww/2,wy+wh,white,5)+L(wx,wy+wh/2,wx+ww,wy+wh/2,white,5);
+  bg+=wallDetail(wx,wy,ww,wh)+sky(r.weather,wx,wy,ww,wh)+L(wx+ww/2,wy,wx+ww/2,wy+wh,white,5)+L(wx,wy+wh/2,wx+ww,wy+wh/2,white,5);
+  bg+=R(wx-14,wy+wh+3,ww+28,8,'#b49877',3,'#79634e',1.3)+L(wx+4,wy+5,wx+ww-5,wy+5,'#fff8e499',2);
   const cx=[652,106,652,106,630][layout];bg+=G(cx,82,clock(r.clock));
   // Five compositions have visibly different wall accents.
   if(layout===0||layout===3)bg+=R(305,20,104,11,wood,2)+R(320,31,12,27,wood,2)+R(382,31,12,27,wood,2);
@@ -192,24 +232,29 @@ function render(r){
  }else{
   bg=outside+R(0,270,w,210,r.kind==='beach'?'#dfc69b':r.weather==='snowy'?'#edf1e9':'#9ab485');
   if(r.kind==='beach'){bg+=R(0,160,w,110,'#80b4ca')+P('M0 251Q80 237 160 251T320 251T480 251T640 251T800 251','none','#f7f6df',5)}
-  else{for(let i=0;i<5;i++){const x=45+i*168;bg+=R(x,104,12,172,'#92745a')+P('M'+(x-52)+' 147L'+(x+6)+' 20L'+(x+64)+' 147Z','#769b70')+P('M'+(x-40)+' 105L'+(x+6)+' 9L'+(x+50)+' 105Z','#83a97d')}}
+  else{
+   bg+=P('M0 223Q116 187 229 218T450 210T760 219V270H0Z','#8ea985')+P('M0 258Q180 227 371 254T760 247V270H0Z','#a9bc92');
+   for(let i=0;i<5;i++)bg+=tree(45+i*168,65+(i%3)*9,.91+(i%3)*.095,i%2);
+   if(r.weather!=='snowy')bg+=P('M0 310Q185 279 365 303T760 310','none','#b1c59c',3);
+  }
   if(r.weather==='snowy')bg+=P('M0 285Q120 268 240 285T480 285T760 285','none','#fff',7);
  }
  const fx=[230,225,95,375,230][layout],fy=layout===4?111:96;
  // Count group sits on its own clearly separated shelf/tray/ground area.
  const countX=[45,500,510,38,280][layout],countY=layout===4?306:252;
- let count=R(countX-7,countY+35,222,11,indoor?'#9d7958':'#b5a387',4,ink,1.5);
+ let count=softShadow(countX+103,countY+44,112,7,.09)+R(countX-7,countY+35,222,11,indoor?'#9d7958':'#b5a387',4,ink,1.5)+L(countX-2,countY+38,countX+210,countY+38,'#d7bd96',1.3);
  const itemColor=['#c18b5e','#9aabd0','#b3ad82','#ca9d9c','#b0a2c3'];
- for(let i=0;i<r.count;i++)count+=G(countX+5+i*41,countY-5,icon(r.countItem,itemColor[i]),.62);
+ for(let i=0;i<r.count;i++)count+=softShadow(countX+23+i*41,countY+34,15,3,.09)+G(countX+5+i*41,countY-5,icon(r.countItem,itemColor[i]),.62);
  // One coherent surface, two objects on opposite sides, away from count group.
  const tableX=[84,98,83,95,88][layout],tableY=399;
  let table;
  if(r.place==='beach')table=R(tableX,tableY-9,580,67,'#e8d0a0',9,ink,2)+P('M100 411H640M100 431H640M100 451H640','none','#fff0d1',3);
- else table=R(tableX,tableY,580,18,wood,7,ink,2)+R(tableX+18,tableY+17,13,54,wood,3,ink)+R(tableX+549,tableY+17,13,54,wood,3,ink);
+ else table=softShadow(tableX+290,465,293,14,.13)+P('M'+(tableX+18)+' '+(tableY+15)+'h16l-5 54h-15Z','#907053',ink,1.5)+P('M'+(tableX+546)+' '+(tableY+15)+'h16l6 54h-16Z','#907053',ink,1.5)+R(tableX+10,tableY+13,560,10,'#8b6a4d',3,ink,1.5)+tableTop(tableX,tableY,580);
  let objects='';
- for(const o of r.objects){const x=o.side==='left'?tableX+90:tableX+430;objects+=G(x,tableY-67,icon(o.name,o.color[1]),1.05)}
- const focus=G(fx,fy,feature(r),layout===4?.87:1);
- return '<svg class="ai-room" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-label="Illustrated '+r.theme+'">'+bg+focus+count+table+objects+'</svg>';
+ for(const o of r.objects){const x=o.side==='left'?tableX+90:tableX+430;objects+=softShadow(x+31,tableY-1,34,5,.15)+G(x,tableY-67,icon(o.name,o.color[1]),1.05)}
+ const scale=layout===4?.87:1;
+ const focus=softShadow(fx+145*scale,fy+219*scale,141*scale,11,.13)+G(fx,fy,feature(r),scale);
+ return '<svg class="ai-room" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-label="Illustrated '+r.theme+'">'+artDefs(r)+bg+focus+count+table+objects+R(0,0,w,h,'url(#'+id+'vignette)')+R(0,0,w,h,'url(#'+id+'paper)')+'</svg>';
 }
 root.AfterimageScenes=Object.freeze({TEMPLATES,make,next,signature,render});
 })(typeof globalThis==='object'?globalThis:window);
