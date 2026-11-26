@@ -40,11 +40,22 @@ function addWord(word) {
   byId('pointLabel').textContent = wordsFound.size === 1 ? 'point' : 'points';
 }
 
+function extendsDailyWord(word, seed) {
+  if (word.length <= seed.length) return false;
+  let position = 0;
+  for (const letter of seed) {
+    const match = word.indexOf(letter, position);
+    if (match === -1) return false;
+    position = match + 1;
+  }
+  return true;
+}
+
 function showTotal() {
   const score = wordsFound.size;
   const list = byId('answers');
   const items = document.createDocumentFragment();
-  const answers = [...dictionary].filter(word => word !== round.word && word.includes(round.word)).sort();
+  const answers = [...dictionary].filter(word => extendsDailyWord(word, round.word)).sort();
   for (const word of answers) {
     const item = document.createElement('li');
     if (wordsFound.has(word)) {
@@ -187,7 +198,7 @@ byId('form').addEventListener('submit', event => {
   const seed = round.word;
   if (entry === seed) return rejectGuess('Add at least one letter to “' + seed.toUpperCase() + '”.');
   if (!dictionary.has(entry)) return rejectGuess('Word not found in the dictionary.');
-  if (!entry.includes(seed)) return rejectGuess('Your word must contain “' + seed.toUpperCase() + '”.');
+  if (!extendsDailyWord(entry, seed)) return rejectGuess('Use every letter of “' + seed.toUpperCase() + '” in order.');
   if (wordsFound.has(entry) || localStorage.getItem(guessPrefix + entry)) {
     return rejectGuess('You’ve already found this word.');
   }
