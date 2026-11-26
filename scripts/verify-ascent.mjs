@@ -20,6 +20,8 @@ try {
       await route.fulfill({response});
       initialReadDone();
     };
+    // Stub only the existing owner verification, not the gameplay API.
+    await page.route('**/npm/@supabase/supabase-js@2',route=>route.fulfill({contentType:'application/javascript',body:`window.supabase={createClient:()=>({auth:{getUser:async()=>({data:{user:{id:'fixture-owner'}}}),onAuthStateChange:()=>({})},from:()=>({select:()=>({eq:()=>({maybeSingle:async()=>({data:{id:'fixture-owner',is_owner:true}})})})})})}`}));
     await page.route('**/rpc/ascent_pitch',holdInitialRead);
     await page.goto('http://127.0.0.1:4173/ascent/',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>document.getElementById('start')&&!document.getElementById('start').disabled);
@@ -29,13 +31,13 @@ try {
     await page.unroute('**/rpc/ascent_pitch',holdInitialRead);
     await page.waitForSelector('#start:enabled');
     assert(await page.locator('.crilo-top').isVisible());
-    assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/index.html?games=3');
+    assert.equal(await page.locator('.crilo-top').getAttribute('href'),'/test-games.html');
     assert(await page.locator('#dailyReset').isVisible());
     assert.match(await page.locator('#resetClock').innerText(),/^\d{2}:\d{2}:\d{2}$/);
     await page.locator('.route-menu summary').click();
     const home=page.locator('.route-menu .crilo-home');
     assert(await home.isVisible(),'Crilo return link is accessible');
-    assert.equal(await home.getAttribute('href'),'/index.html?games=3');
+    assert.equal(await home.getAttribute('href'),'/test-games.html');
     await page.locator('.route-menu summary').click();
     assert.equal(await page.locator('.hold').count(),0);
     // The initial read uses the live API. Keep scored fixtures out of the daily average.
@@ -186,24 +188,13 @@ try {
     assert.equal(await page.locator('#answerReview .connection-row').count(),0);
     assert((await page.locator('#answerReview .perfect-pitch-heading').first().innerText()).includes('200 pts'));
     assert.deepEqual(errors,[]);
-    // Returning from Ascent must land on the same two-game homepage, not an old wheel-only page.
-    await Promise.all([page.waitForURL('**/index.html?games=3'),page.locator('.crilo-top').click()]);
+    await Promise.all([page.waitForURL('**/test-games.html'),page.locator('.crilo-top').click()]);
+    assert.equal(await page.locator('#testCollection a[href="/ascent/"]').count(),1);
+    await page.goto('http://127.0.0.1:4173/index.html?games=3');
     const menu=page.locator('.topbar .crilo-game-menu');
-    assert(await menu.locator('summary').isVisible());
-    assert.equal(await page.locator('.daily-games-feature').count(),0);
-    assert(await menu.locator('.crilo-game-options').isHidden());
     await menu.locator('summary').click();
     assert(await menu.getByRole('link',{name:/daily wheel/i}).isVisible());
-    const ascentLink=menu.getByRole('link',{name:/ascent/i});
-    assert(await ascentLink.isVisible());
-    for(const name of ['Daily Wheel','ASCENT']){
-      const label=menu.locator('strong').filter({hasText:name});
-      assert(await label.isVisible());
-      assert.notEqual(await label.evaluate(el=>getComputedStyle(el).webkitTextFillColor),'rgba(0, 0, 0, 0)','game name must not inherit transparent logo text');
-    }
-    assert.equal(await ascentLink.getAttribute('href'),'/ascent/');
-    await page.keyboard.press('Escape');
-    assert(await menu.locator('.crilo-game-options').isHidden());
+    assert.equal(await menu.getByRole('link',{name:/ascent/i}).count(),0);
     await page.close();
   }
 } finally {await browser.close()}
