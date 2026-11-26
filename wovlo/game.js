@@ -42,10 +42,27 @@ function addWord(word) {
 
 function showTotal() {
   const score = wordsFound.size;
-  byId('total').textContent = score + (score === 1 ? ' point · 1 word found' : ' points · ' + score + ' words found');
+  const list = byId('answers');
+  const items = document.createDocumentFragment();
+  const answers = [...dictionary].filter(word => word !== round.word && word.includes(round.word)).sort();
+  for (const word of answers) {
+    const item = document.createElement('li');
+    if (wordsFound.has(word)) {
+      item.className = 'found-answer';
+      item.setAttribute('aria-label', word + ', found');
+      item.textContent = '✓ ' + word;
+    } else {
+      item.textContent = word;
+    }
+    items.append(item);
+  }
+  list.replaceChildren(items);
+  byId('found').hidden = true;
+  byId('total').textContent = score + (score === 1 ? ' point' : ' points') + ' · Found ' + score + ' of ' + answers.length;
 }
 
 function updateClock() {
+  if (phase === 'done') return;
   const now = performance.now();
   if (now >= endsAt) {
     phase = 'done';

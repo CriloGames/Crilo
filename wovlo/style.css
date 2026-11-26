@@ -53,3 +53,7 @@ h3 { font:600 2rem Georgia,serif }
 
 main { position:relative }
 #loadingRound { position:absolute; inset:clamp(45px,10vh,115px) 0 auto; text-align:center; color:var(--purple); font-weight:650 }
+
+#answers { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); gap:5px 12px; padding:0; list-style:none; text-align:left }
+#answers li { overflow-wrap:anywhere; padding:4px 8px }
+#answers .found-answer { background:#e8dfef; color:var(--purple); border-radius:6px; font-weight:700 }

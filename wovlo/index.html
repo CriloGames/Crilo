@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f7f3eb">
   <meta name="description" content="A daily word game from Crilo. Find longer words that contain the daily word.">
   <link rel="icon" href="/favicon.png">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=answers1">
   <title>Wovlo · Crilo</title>
 </head>
 <body>
@@ -45,10 +45,10 @@
         </form>
         <p id="feedback" role="status"></p>
       </div>
-      <div id="result" hidden><h3>Time’s up.</h3><p id="total"></p></div>
+      <div id="result" hidden><h3>Time’s up.</h3><p id="total"></p><h4>All possible words</h4><ul id="answers" aria-label="All possible words"></ul></div>
       <ul id="found" aria-label="Words found"></ul>
     </section>
   </main>
-  <script type="module" src="game.js"></script>
+  <script type="module" src="game.js?v=answers1"></script>
 </body>
 </html>
