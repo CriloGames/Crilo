@@ -1,93 +1,101 @@
-/* AFTERIMAGE: deterministic randomized scenes and exact, local scoring. */
+/* AFTERIMAGE — a single illustrated room, five objectively scored questions. */
 (function(root){
- 'use strict';
- const ITEMS=[
- ['camera','M5 12h5l2-4h10l2 4h7v19H5z M18 15a6 6 0 1 0 0 12a6 6 0 1 0 0-12','photo camera'],
- ['key','M11 7a7 7 0 1 0 0 14a7 7 0 1 0 0-14 M17 18l14 14 M24 25l4-4 M28 29l4-4','house key'],
- ['clock','M18 4a14 14 0 1 0 0 28a14 14 0 1 0 0-28 M18 9v10l7 4','watch,wall clock'],
- ['mug','M7 10h19v15q0 6-9 6t-10-6z M26 13h4q7 0 5 6t-9 5 M12 3v4 M20 3v4','cup,coffee mug'],
- ['umbrella','M3 17a15 15 0 0 1 30 0q-5-5-10 0q-5-5-10 0q-5-5-10 0z M18 3v26q0 5 5 5t5-5','parasol'],
- ['book','M3 8q8-3 15 2q7-5 15-2v24q-8-3-15 2q-7-5-15-2z M18 10v24 M7 15l7 1 M22 16l7-1','notebook'],
- ['bottle','M13 4h10v7l6 8v12q0 3-3 3H10q-3 0-3-3V19l6-8z M8 22h20','water bottle'],
- ['bell','M6 27q5-4 5-14a7 7 0 1 1 14 0q0 10 5 14z M15 30a3 3 0 0 0 6 0',''],
- ['compass','M18 3a15 15 0 1 0 0 30a15 15 0 1 0 0-30 M24 10l-3 11l-10 5l4-11z',''],
- ['scissors','M7 20a6 6 0 1 0 0 12a6 6 0 1 0 0-12 M28 20a6 6 0 1 0 0 12a6 6 0 1 0 0-12 M11 22L29 4 M24 22L7 4','shears'],
- ['lantern','M12 8h12l5 7v15H7V15z M12 8V5a6 6 0 0 1 12 0v3 M12 15v15 M24 15v15 M5 30h26','lamp'],
- ['globe','M18 4a12 12 0 1 0 0 24a12 12 0 1 0 0-24 M6 16h24 M18 4q-12 12 0 24q12-12 0-24 M18 28v5 M10 33h16','earth globe'],
- ['envelope','M3 8h30v21H3z M3 8l15 13L33 8 M3 29l11-12 M33 29L22 17','letter,mail'],
- ['headphones','M5 20v-4a13 13 0 0 1 26 0v4 M5 19h6v13H5z M25 19h6v13h-6z','headset'],
- ['pencil','M7 26L25 5l6 6L13 32l-8 2z M22 9l6 6 M7 26l6 6',''],
- ['flashlight','M4 15h13l10-6h5v18h-5l-10-6H4z M10 15v6 M27 9v18','torch'],
- ['shoe','M5 8h8l4 12l12 4q5 1 5 6H3v-7z M13 14l7-2 M15 18l7-2 M4 26h29','sneaker,trainer'],
- ['hourglass','M8 4h20 M8 32h20 M10 4q0 9 8 14q-8 5-8 14 M26 4q0 9-8 14q8 5 8 14 M12 9h12 M12 28h12','sand timer'],
- ['apple','M18 11q-8-8-13 1q-5 9 4 19q5 5 9 0q4 5 9 0q9-10 4-19q-5-9-13-1 M18 11q0-7 5-9 M19 7q6-6 12-1',''],
- ['anchor','M18 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8 M18 12v20 M10 15h16 M4 22q0 10 14 10t14-10 M4 22l5 5 M32 22l-5 5',''],
- ['trophy','M10 5h16v12q0 8-8 8t-8-8z M10 8H3v4q0 7 7 7 M26 8h7v4q0 7-7 7 M18 25v7 M10 32h16','cup trophy'],
- ['guitar','M22 14L31 3l3 3l-10 11 M21 14q-5-4-8 3q-8-2-10 6q-2 11 9 11q8 0 8-8q7-3 1-12z M12 22a3 3 0 1 0 0 6a3 3 0 1 0 0-6',''],
- ['glasses','M3 15h12l2 5h2l2-5h12v7q0 7-7 7t-7-7 M17 22q0 7-7 7t-7-7v-7 M3 15l3-5 M33 15l-3-5','eyeglasses,spectacles'],
- ['teapot','M9 15h19v10q0 7-10 7T8 25z M28 17q10-2 6 6l-6 2 M9 17L3 9l-2 2l7 13 M7 14h23 M16 10h6 M19 5v5','tea pot'],
- ['leaf','M30 4Q4 5 5 22q0 9 9 9q17-1 16-27z M4 33L25 10 M13 24l-1-9 M19 18l9 1',''],
- ['lock','M8 15h20v17H8z M12 15V9a6 6 0 1 1 12 0v6 M18 21v5','padlock'],
- ['brush','M13 3h10v18H13z M10 21h16v6l-4 7H14l-4-7z M15 27v5 M21 27v5','paintbrush,paint brush'],
- ['suitcase','M4 12h28v20H4z M12 12V6h12v6 M11 12v20 M25 12v20','luggage,case'],
- ['binoculars','M4 12h10l3 8v10H3V20z M22 12h10l1 8v10H19V20z M14 16h8 M3 25h14 M19 25h14',''],
- ['candle','M12 15h12v18H12z M18 3q8 9 0 10q-8-1 0-10z M18 13v3',''],
- ['hammer','M5 5h21v9H5z M13 14h5v19h-5z M26 5l6 2v5l-6 2',''],
- ['kite','M18 3L32 17L18 31L4 17z M18 3v28 M4 17h28 M18 31q10-1 12 4',''],
- ['hat','M10 9h16l3 17H7z M3 26h30v4H3z M10 20h16','cap'],
- ['fish','M5 18q9-12 21-4l7-6v20l-7-6q-12 8-21-4z M12 17h1',''],
- ['rocket','M18 3q10 9 9 21H9Q8 12 18 3z M9 17l-5 9h7 M27 17l5 9h-7 M14 27l4 7l4-7 M18 12a3 3 0 1 0 0 6a3 3 0 1 0 0-6','spaceship'],
- ['basket','M4 17h28l-4 15H8z M10 17q0-14 8-14t8 14 M12 21v7 M18 21v7 M24 21v7','']
- ];
- const COLORS=[['red','#be484f'],['blue','#3579b0'],['green','#438563'],['yellow','#bd912b'],['purple','#8a61ad'],['orange','#c46a38']];
- const MARKS=['circle','triangle','square','diamond'];
- const CONFIG=[{scan:20,answer:14},{scan:17,answer:13},{scan:14,answer:12}];
- const COUNT=12,COLS=4;
- function random(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296}}
- function shuffle(xs,r){const a=xs.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
- function makeRound(index,r,items){
-  // Exactly two of each color, three of each symbol; tags are distinct.
-  const colors=shuffle(COLORS.flatMap(c=>[c,c]),r),marks=shuffle(MARKS.flatMap(m=>[m,m,m]),r),tags=shuffle(Array.from({length:90},(_,i)=>i+10),r);
-  const board=items.map(([name,path,aliases],i)=>({name,path,aliases:aliases?aliases.split(','):[],color:colors[i][0],hex:colors[i][1],mark:marks[i],tag:tags[i],row:Math.floor(i/COLS),col:i%COLS}));
-  const pick=a=>a[Math.floor(r()*a.length)],label=t=>t.name,word=(prompt,t,why)=>({prompt,answer:t.name,aliases:t.aliases,why,highlight:[board.indexOf(t)]}),num=(prompt,answer,why,highlight=[])=>({prompt,answer:String(answer),aliases:[],why,highlight}),attr=(prompt,t,k)=>({prompt,answer:String(t[k]),aliases:[],why:'The '+t.name+' had '+(k==='tag'?'tag '+t.tag:k==='color'?'a '+t.color+' color':'a '+t.mark+' symbol')+'.',highlight:[board.indexOf(t)]});
-  const adj=shuffle(board.flatMap((t,i)=>[[0,-1,'left of'],[0,1,'right of'],[-1,0,'above'],[1,0,'below']].flatMap(([dr,dc,dir])=>{const y=t.row+dr,x=t.col+dc;return y>=0&&y<3&&x>=0&&x<4?[{a:t,b:board[y*4+x],dir}]:[]})),r);
-  const pair=adj[0],pair2=adj.find(p=>![pair.a,pair.b].includes(p.a)&&![pair.a,pair.b].includes(p.b))||adj[1];
-  const unique=shuffle(board,r), colorPair=pick(COLORS)[0], matching=board.filter(t=>t.color===colorPair),lower=matching.reduce((a,b)=>a.tag<b.tag?a:b);
-  const row=1+Math.floor(r()*3),rowTiles=board.filter(t=>t.row===row-1),rowMax=rowTiles.reduce((a,b)=>a.tag>b.tag?a:b);
-  const intersection=board.filter(t=>t.mark===pick(MARKS)); // unused; choose a real, uniquely identifying intersection below
-  const signatures=board.filter(t=>board.filter(x=>x.color===t.color&&x.mark===t.mark).length===1),special=pick(signatures.length?signatures:board);
-  const col=1+Math.floor(r()*4),colTiles=board.filter(t=>t.col===col-1),mark=pick(colTiles).mark,marked=colTiles.filter(t=>t.mark===mark);
-  const corners=[board[0],board[3],board[8],board[11]],cornerMax=corners.reduce((a,b)=>a.tag>b.tag?a:b);
-  let questions;
-  if(index===0)questions=[
-   attr('What color was the '+unique[0].name+'?',unique[0],'color'),
-   word('Which object was directly '+pair.dir+' the '+label(pair.a)+'?',pair.b,'The '+pair.b.name+' sat directly '+pair.dir+' the '+pair.a.name+'.'),
-   attr('What symbol was on the '+unique[2].name+'?',unique[2],'mark'),
-   attr('What two-digit number was on the '+unique[3].name+'?',unique[3],'tag'),
-   word('Which object was in row '+(unique[4].row+1)+', column '+(unique[4].col+1)+'?',unique[4],'Rows count from the top and columns from the left.')
-  ];
-  else if(index===1)questions=[
-   word('Of the two '+colorPair+' objects, which had the lower tag number?',lower,'The tags were '+matching.map(t=>t.name+' '+t.tag).join(' and ')+'.'),
-   attr('What color was the object directly '+pair.dir+' the '+pair.a.name+'?',pair.b,'color'),
-   word('Which object had the largest tag number in row '+row+'?',rowMax,'The row contained '+rowTiles.map(t=>t.tag).join(', ')+'.'),
-   attr('What symbol was on the object directly '+pair2.dir+' the '+pair2.a.name+'?',pair2.b,'mark'),
-   word('Which object carried tag '+unique[4].tag+'?',unique[4],'Tag '+unique[4].tag+' belonged to the '+unique[4].name+'.')
-  ];
-  else questions=[
-   word(signatures.length?'Which '+special.color+' object carried a '+special.mark+' symbol?':'Which object had tag '+special.tag+'?',special,'The '+special.name+' was '+special.color+' with a '+special.mark+' symbol.'),
-   attr('What was the tag number of the object directly '+pair.dir+' the '+pair.a.name+'?',pair.b,'tag'),
-   num('How many objects in column '+col+' had a '+mark+' symbol?',marked.length,'There '+(marked.length===1?'was one match.':'were '+marked.length+' matches.'),marked.map(t=>board.indexOf(t))),
-   word('Among the four corners, which object had the highest tag number?',cornerMax,'Corner tags: '+corners.map(t=>t.name+' '+t.tag).join(', ')+'.'),
-   attr('What color was the object directly '+pair2.dir+' the '+pair2.a.name+'?',pair2.b,'color')
-  ];
-  return {index,board,questions:shuffle(questions,r),...CONFIG[index]};
+'use strict';
+const SCAN=25,ANSWER=15;
+const PALETTE=[['red','#b94f4d'],['blue','#467eac'],['green','#51835c'],['yellow','#d8ae46'],['purple','#8761a6'],['orange','#d18546']];
+const THEMES=['living room','bedroom','study'];
+const PROPS=['camera','headphones','vase','alarm clock','telescope'];
+const ART=['mountains','sailboat','sunflower'];
+const WEATHER=['sunny','rainy','snowy'];
+function random(seed){let a=seed>>>0;return ()=>{a=(a+0x6D2B79F5)|0;let t=Math.imul(a^a>>>15,1|a);t^=t+Math.imul(t^t>>>7,61|t);return ((t^t>>>14)>>>0)/4294967296}}
+function shuffle(xs,r){const a=xs.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function generate(seed){
+ const r=random(seed),pick=a=>a[Math.floor(r()*a.length)],int=(a,b)=>a+Math.floor(r()*(b-a+1));
+ const [furniture,mug,rug,curtain]=shuffle(PALETTE,r);
+ const theme=pick(THEMES),room={theme,furniture,mug,rug,curtain,books:int(2,5),cushions:int(1,3),hour:int(1,12),weather:pick(WEATHER),picture:pick(ART),prop:pick(PROPS),plant:pick(['left','right']),mirror:r()<.5,wall:pick(['#e6ddcd','#dce8dd','#e5e2ee','#f1e0d2']),floor:pick(['#b48c68','#a88b70','#c4a17b'])};
+ // Each question refers to a single visible object or an exact count.
+ const q=(id,prompt,answer,aliases=[],why='')=>({id,prompt,answer:String(answer),aliases,why});
+ const seat=theme==='living room'?'sofa':theme==='bedroom'?'bedspread':'desk chair';
+ const cushionName=theme==='bedroom'?'pillows':'cushions';
+ const colors=a=>a==='purple'?['violet']:a==='green'?[]:a==='yellow'?['gold']:a==='orange'?[]:[];
+ const easy=[
+ q('mug','What color was the mug on the table?',mug[0],[...colors(mug[0])],'Look at the mug on the small table.'),
+ q('furniture','What color was the '+seat+'?',furniture[0],colors(furniture[0]),'Look at the '+seat+'.'),
+ q('weather','What was the weather outside the window?',room.weather,{sunny:['sun','clear','clear skies','sunshine'],rainy:['rain','raining','rainfall'],snowy:['snow','snowing','snowfall']}[room.weather],'Look through the window.'),
+ q('prop','What object, besides the mug, was on the small table?',room.prop,{camera:['photo camera'],headphones:['headset','earphones'],vase:['flower vase','flowers'], 'alarm clock':['clock','alarm'],telescope:['spyglass']}[room.prop],'The two items on the table were a mug and '+(room.prop==='headphones'?'headphones':'a '+room.prop)+'.'),
+ q('picture','What was depicted in the framed picture on the wall?',room.picture,{mountains:['mountain','mountain range','hills'],sailboat:['boat','sailing boat','ship'],sunflower:['flower','sun flower']}[room.picture],'Look at the framed artwork.')];
+ const medium=[
+ q('books','How many books were standing on the wall shelf?',room.books,[],'Count the books on the shelf.'),
+ q('plant','Was the large potted plant on the left or right side of the room?',room.plant,[room.plant+' side','on the '+room.plant],'Look at the large floor plant.'),
+ q('rug','What color was the rug on the floor?',rug[0],colors(rug[0]),'Look at the floor rug.'),
+ q('curtain','What color were the curtains?',curtain[0],colors(curtain[0]),'Look on either side of the window.')];
+ if(theme!=='study')medium.push(q('cushions','How many '+cushionName+' were on the '+(theme==='bedroom'?'bed':'sofa')+'?',room.cushions,[],'Count the '+cushionName+' on the furniture.'));
+ const hard=[q('hour','What hour was shown on the wall clock? (It was exactly on the hour.)',room.hour,[room.hour+':00',room.hour+' o clock',room.hour+" o'clock"],'The long hand points to 12 and the short hand points to '+room.hour+'.')];
+ // Five questions are revealed only after the room disappears: 2 easy, 2 medium, 1 challenging.
+ const questions=[...shuffle(easy,r).slice(0,2),...shuffle(medium,r).slice(0,2),...hard];
+ return {seed:seed>>>0,room,questions,scan:SCAN,answer:ANSWER};
+}
+const nums={zero:'0',one:'1',two:'2',three:'3',four:'4',five:'5',six:'6',seven:'7',eight:'8',nine:'9',ten:'10',eleven:'11',twelve:'12'};
+function normalize(raw){let s=String(raw??'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[.!?]+$/,'').replace(/^(?:the|a|an)\s+/,'').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim();
+ if(/^\d+$/.test(s))return String(Number(s));
+ if(nums[s])return nums[s];
+ const hour=s.match(/^(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?::00| o['’]?clock)$/);if(hour)return nums[hour[1]]||String(Number(hour[1]));
+ return s;}
+function correct(q,a){const s=normalize(a);if(!s)return false;return [q.answer,...q.aliases].some(x=>normalize(x)===s)}
+function grade(q,a){const ok=correct(q,a);return {answer:String(a??'').trim(),correct:ok,points:ok?100:0}}
+// All room art is drawn from the same data used to produce the questions.
+// Fixed perspective and clear silhouettes avoid ambiguous or hidden details.
+function roomSVG(r){
+ const {theme}=r;const furniture=r.furniture[1],mug=r.mug[1],rug=r.rug[1],curtain=r.curtain[1];
+ const rect=(x,y,w,h,fill,rx=0,stroke='none',sw=1)=>'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="'+rx+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+ const line=(x,y,x2,y2,stroke='#594d42',sw=2)=>'<path d="M'+x+' '+y+'L'+x2+' '+y2+'" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linecap="round" fill="none"/>';
+ const circle=(x,y,rad,fill,stroke='none',sw=1)=>'<circle cx="'+x+'" cy="'+y+'" r="'+rad+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'"/>';
+ const path=(d,fill,stroke='none',sw=1)=>'<path d="'+d+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" stroke-linejoin="round" stroke-linecap="round"/>';
+ const group=(x,y,s)=>'<g transform="translate('+x+' '+y+')">'+s+'</g>';
+ const shadow=(x,y,rx,ry)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="'+rx+'" ry="'+ry+'" fill="#382d2a" opacity=".13"/>';
+ const outside=r.weather==='sunny'?'#9ecde0':r.weather==='rainy'?'#a1b3bf':'#c4d7e1';
+ let sky=rect(0,0,164,134,outside);
+ if(r.weather==='sunny'){sky+=circle(124,30,17,'#ffe5a0')+path('M0 110L46 66L84 108L126 83L164 109V134H0Z','#85ad8c')+path('M0 126Q41 93 83 117T164 111V134H0Z','#729c7c')}
+ else if(r.weather==='rainy'){sky+=path('M10 37Q9 24 23 23Q29 4 49 12Q68 5 76 23Q92 23 91 39Z','#e0e5e6')+path('M98 31Q100 18 112 20Q119 6 134 15Q149 13 155 31Z','#d4dce2');for(let i=0;i<12;i++)sky+=line(12+(i%6)*26,53+Math.floor(i/6)*36,6+(i%6)*26,68+Math.floor(i/6)*36,'#5d829b',3)}
+ else {sky+=path('M0 110Q47 82 86 110T164 108V134H0Z','#f7f9fb');for(let i=0;i<13;i++)sky+=circle(10+(i*37)%148,12+(i*19)%92,3,'#fff')}
+ const window=group(61,55,rect(-8,-8,180,150,'#f9f5e9',4,'#776e61',2)+sky+line(82,0,82,134,'#f8f5ed',6)+line(0,67,164,67,'#f8f5ed',6)+rect(-13,135,190,10,'#f7f2e5',2,'#9c8978')+line(-20,-10,184,-10,'#715a48',5)+path('M-14 -7H22Q10 50 24 91L22 141H-19Z',curtain,'#63584c',1.5)+path('M142 -7H178L183 141H142L140 91Q154 51 142 -7Z',curtain,'#63584c',1.5)+path('M-9 0V132M4 0L1 132M162 0L165 132M174 0L175 132','none','#fff',1.2));
+ let picture;
+ if(r.picture==='mountains')picture=rect(0,0,124,79,'#b3d4df')+circle(94,17,10,'#ffe3a5')+path('M0 79L37 22L70 70L93 39L124 79Z','#577e7c')+path('M23 45L37 22L52 44L38 37Z','#f8f6e9');
+ else if(r.picture==='sailboat')picture=rect(0,0,124,79,'#c4e0e7')+rect(0,47,124,32,'#538eb0')+path('M20 55H96L82 68H36Z','#a96743')+path('M61 9V52H23Z','#fff4da','#64594b')+path('M65 17L91 49H65Z','#e4b762');
+ else picture=rect(0,0,124,79,'#e8dfc8')+line(62,40,62,79,'#5f845c',5)+path('M62 64Q35 45 31 60Q48 78 62 64 M62 65Q88 44 93 61Q81 78 62 65Z','#719d63'); 
+ if(r.picture==='sunflower'){for(let i=0;i<10;i++){const a=i*Math.PI/5;picture+=circle(62+Math.cos(a)*18,30+Math.sin(a)*18,9,'#d9a536')}picture+=circle(62,30,12,'#82592f')}
+ const frame=group(303,42,rect(-8,-8,140,95,'#765b43',3)+rect(-4,-4,132,87,'#f8efdc',2)+picture);
+ let clock=circle(0,0,38,'#6c5541')+circle(0,0,33,'#fff8e9');
+ for(let i=0;i<12;i++){const a=i*Math.PI/6;clock+=line(Math.sin(a)*27,-Math.cos(a)*27,Math.sin(a)*30,-Math.cos(a)*30,'#806d54',2)}
+ clock+='<text x="0" y="-19" text-anchor="middle" font-size="9" fill="#564c42">12</text><text x="24" y="3" text-anchor="middle" font-size="9" fill="#564c42">3</text><text x="0" y="27" text-anchor="middle" font-size="9" fill="#564c42">6</text><text x="-24" y="3" text-anchor="middle" font-size="9" fill="#564c42">9</text>';
+ const angle=r.hour*Math.PI/6;clock+=line(0,0,Math.sin(angle)*17,-Math.cos(angle)*17,'#473c35',5)+line(0,0,0,-25,'#473c35',2.5)+circle(0,0,3,'#473c35');
+ const shelf=group(526,105,rect(-12,0,156,9,'#86674e',2)+path('M0 9H10L0 27ZM125 9H135L135 27Z','#80634f')+Array.from({length:r.books},(_,i)=>{const h=[48,38,43,33,46][i];return rect(5+i*23,-h,19,h,['#728f9a','#a35e50','#8c9c69','#d3ae57','#897da2'][i],1,'#544c43')+line(8+i*23,-h+6,20+i*23,-h+6,'#fff2d2',2)+line(8+i*23,-6,20+i*23,-6,'#fff2d2',2)}).join(''));
+ const wallClock=group(474,77,clock);
+ let big='';
+ if(theme==='living room'){
+ big=shadow(375,342,146,17)+rect(234,310,12,34,'#74563d',3)+rect(503,310,12,34,'#74563d',3)+rect(240,192,274,127,furniture,25,'#64574d',2)+rect(252,206,250,83,furniture,17,'#6a665e',1)+path('M257 282Q375 266 497 282V316H257Z',furniture,'#635a51',2)+rect(220,260,44,67,furniture,15,'#64574d',2)+rect(490,260,44,67,furniture,15,'#64574d',2)+line(267,307,487,307,'#ffffff55',2);
+ for(let i=0;i<r.cushions;i++){const x=276+i*72;big+=rect(x,217,55,55,['#f1d9ab','#d7e2d3','#e9d4d0'][i],9,'#776d60',1.5)+line(x+7,224,x+48,264,'#ffffff88',2)}
+ }else if(theme==='bedroom'){
+ big=shadow(369,355,152,17)+rect(234,173,280,127,'#886a52',14,'#64574d',2)+rect(244,236,260,108,'#eae3d5',11,'#76695b',2)+rect(235,320,12,37,'#74563d',3)+rect(502,320,12,37,'#74563d',3)+rect(240,266,268,80,furniture,8,'#64574d',2)+path('M240 283H508V303H240Z','#ffffff29')+line(244,333,504,333,'#ffffff66',2);
+ for(let i=0;i<r.cushions;i++)big+=rect(254+i*80,212,71,48,'#f9f4e7',11,'#9f927f',1.5);
+ }else{
+ big=shadow(380,342,126,15)+rect(239,227,279,13,'#94755b',4,'#685444',1.5)+rect(250,240,12,102,'#84664d',2)+rect(495,240,12,102,'#84664d',2)+rect(431,241,64,61,'#a3866a',4)+line(439,271,487,271,'#74583f')+line(456,259,469,259,'#574434',3)+line(456,286,469,286,'#574434',3)+rect(332,162,90,60,'#47565a',5)+rect(338,168,78,47,'#b5d0d3',2)+rect(371,222,12,6,'#586463')+rect(350,226,54,5,'#4d5b5a')+rect(343,257,65,64,furniture,11,'#5c554b',2)+rect(329,308,93,23,furniture,8,'#5c554b',2)+line(376,332,376,353,'#5a514a',7)+line(342,353,410,353,'#5a514a',5)+circle(343,356,5,'#504943')+circle(409,356,5,'#504943');
  }
- function generate(seed){const r=random(seed),all=shuffle(ITEMS,r);return {seed:seed>>>0,rounds:CONFIG.map((_,i)=>makeRound(i,r,all.slice(i*COUNT,(i+1)*COUNT)))}}
- const NUMBER_WORDS={zero:'0',one:'1',two:'2',three:'3',four:'4',five:'5',six:'6',seven:'7',eight:'8',nine:'9',ten:'10',eleven:'11',twelve:'12'};
- function normalize(raw){let s=String(raw??'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/^(?:the|a|an)\s+/,'').replace(/[.!?]+$/,'').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim();
-  if(/^\d+$/.test(s))return String(Number(s));
-  return NUMBER_WORDS[s]??s}
- function correct(q,answer){const a=normalize(answer);return !!a&&[q.answer,...q.aliases].some(x=>normalize(x)===a)}
- function grade(q,answer,expired=false){return {answer:String(answer??'').trim(),correct:!expired&&correct(q,answer),points:!expired&&correct(q,answer)?100:0}}
- root.Afterimage=Object.freeze({generate,normalize,correct,grade,CONFIG,COUNT,COLS});
+ const plantX=r.plant==='left'?106:647;
+ const plant=group(plantX,276,shadow(0,83,43,8)+path('M-29 40H29L21 81H-21Z','#b37551','#77533d',2)+rect(-32,35,64,12,'#c68a62',4,'#77533d')+line(0,36,0,-55,'#4c7852',4)+path('M0 14Q-40 1-41-30Q-9-33 0 14 M0-8Q31-50 39-24Q35-2 0-8 M0-28Q-24-63-35-50Q-44-29 0-28 M0-44Q12-82 29-70Q44-43 0-44Z','#65966a','#446e4b',2)+path('M0 22Q33-16 45 5Q42 27 0 22Z','#83aa77','#446e4b',2));
+ const mugArt=group(0,0,rect(0,0,28,32,mug,5,'#544b42',1.5)+path('M28 7Q46 4 42 17Q40 24 28 24','none',mug,6)+path('M5 6H23','none','#ffffff99',2)+path('M8-4Q3-12 10-17 M18-4Q13-12 20-17','none','#f2eee4',2));
+ let prop='';
+ if(r.prop==='camera')prop=rect(0,2,53,34,'#41494b',6,'#2d3637',2)+rect(7,-4,18,9,'#4d5758',2)+circle(27,19,13,'#b0b9b5','#292d2c',2)+circle(27,19,8,'#546a78')+circle(24,16,3,'#b9d6e1');
+ else if(r.prop==='headphones')prop=path('M4 26V15Q4-8 27-8T50 15V26','none','#3c484c',8)+rect(0,15,15,27,'#4e5c61',5,'#263538',2)+rect(39,15,15,27,'#4e5c61',5,'#263538',2);
+ else if(r.prop==='vase')prop=path('M14 9H36L31 23Q49 45 25 48Q1 45 19 23Z','#d9a86a','#7d674d',2)+line(24,8,14,-21,'#61885b',3)+line(26,8,38,-18,'#61885b',3)+circle(14,-23,8,'#c76664')+circle(38,-20,8,'#d5aa52');
+ else if(r.prop==='alarm clock')prop=circle(26,20,22,'#a58462','#66523e',2)+circle(26,20,17,'#f7f0de')+line(26,20,26,8,'#554a3d',2)+line(26,20,35,24,'#554a3d',2)+path('M4 0Q5-12 18-5M34-5Q47-12 48 0','none','#695445',5)+line(10,40,6,47,'#66523e',3)+line(42,40,46,47,'#66523e',3);
+ else prop=path('M3 13L43-5L51 6L12 25Z','#738d98','#41545c',2)+path('M42-5L51-9L57 2L51 6Z','#394b51')+line(28,15,26,42,'#645441',4)+line(26,25,8,42,'#645441',3)+line(26,25,46,42,'#645441',3);
+ const tableX=r.plant==='left'?586:105;
+ const table=group(tableX,355,shadow(0,63,76,10)+path('M-61 8H-49L-54 64H-65ZM49 8H61L65 64H54Z','#75583f','#5b4939')+rect(-75,-3,150,18,'#9c7757',8,'#634e3b',2)+group(-54,-35,mugArt)+group(13,-40,prop));
+ let floorLines='';for(let i=0;i<8;i++)floorLines+=line(0,306+i*25,760,306+i*25,'#80634544',1.5);
+ const room='<svg class="ai-room" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 480" role="img" aria-label="Illustrated '+theme+'"><defs><linearGradient id="roomLight" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".25"/><stop offset="1" stop-color="#655742" stop-opacity=".05"/></linearGradient></defs>'+rect(0,0,760,480,r.wall)+rect(0,0,760,290,'url(#roomLight)')+rect(0,290,760,190,r.floor)+floorLines+rect(0,283,760,13,'#e9e1d3',0,'#aa9a86')+path('M0 0H760V8H0Z','#f5ece0')+window+frame+wallClock+shelf+shadow(380,413,240,32)+rect(146,369,468,86,rug,32,'#6c5f53',1.5)+rect(156,378,448,68,'none',25,'#fff3d8',2)+line(185,387,575,387,'#ffffff55',2)+line(185,438,575,438,'#ffffff55',2)+big+plant+table+'</svg>';
+ // Never mirror text or clock hands; variations come from layout, objects and palette.
+ return room;
+}
+root.Afterimage=Object.freeze({generate,normalize,correct,grade,roomSVG,SCAN,ANSWER});
 })(typeof globalThis==='object'?globalThis:window);
