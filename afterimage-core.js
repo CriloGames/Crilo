@@ -35,13 +35,239 @@ function generate(seed){
  const questions=[...shuffle(easy,r).slice(0,2),...shuffle(medium,r).slice(0,2),...hard];
  return {seed:seed>>>0,room,questions,scan:SCAN,answer:ANSWER};
 }
+const EQUIVALENTS={
+ "prop": {
+  "camera": [
+   "photo camera",
+   "digital camera",
+   "film camera",
+   "camera with a lens"
+  ],
+  "headphones": [
+   "headphone",
+   "headset",
+   "earphones",
+   "earbuds",
+   "pair of headphones",
+   "over ear headphones"
+  ],
+  "vase": [
+   "flower vase",
+   "vase of flowers",
+   "vase with flowers",
+   "vase containing flowers",
+   "flower pot",
+   "flowerpot",
+   "pot of flowers",
+   "pot with flowers",
+   "flowers",
+   "flower",
+   "potted flowers",
+   "flower arrangement",
+   "bouquet",
+   "bouquet of flowers",
+   "plant",
+   "potted plant",
+   "pot plant",
+   "plant pot",
+   "flower pot with flowers"
+  ],
+  "alarm clock": [
+   "clock",
+   "alarm",
+   "table clock",
+   "desk clock",
+   "analog clock",
+   "analogue clock",
+   "small clock",
+   "bedside clock"
+  ],
+  "telescope": [
+   "spyglass",
+   "spy glass",
+   "scope",
+   "small telescope",
+   "telescope on a tripod",
+   "spotting scope"
+  ]
+ },
+ "picture": {
+  "mountains": [
+   "mountain",
+   "mountain range",
+   "mountain landscape",
+   "mountain scenery",
+   "snow capped mountains",
+   "snowy mountains",
+   "mountain scene",
+   "hills",
+   "picture of mountains"
+  ],
+  "sailboat": [
+   "sail boat",
+   "boat",
+   "sailing boat",
+   "sailing ship",
+   "ship",
+   "boat on water",
+   "boat on the water",
+   "boat at sea"
+  ],
+  "sunflower": [
+   "flower",
+   "flowers",
+   "sun flower",
+   "sunflowers",
+   "yellow flower",
+   "picture of a flower"
+  ]
+ },
+ "weather": {
+  "sunny": [
+   "sun",
+   "clear",
+   "clear skies",
+   "sunshine",
+   "sunny day",
+   "clear sky",
+   "bright and sunny",
+   "sunny outside"
+  ],
+  "rainy": [
+   "rain",
+   "raining",
+   "rainfall",
+   "rainy day",
+   "wet weather",
+   "rainy outside"
+  ],
+  "snowy": [
+   "snow",
+   "snowing",
+   "snowfall",
+   "snowy day",
+   "snowy outside"
+  ]
+ },
+ "color": {
+  "red": [
+   "reddish",
+   "brick red",
+   "dark red",
+   "light red",
+   "muted red",
+   "rust red",
+   "maroon",
+   "burgundy"
+  ],
+  "blue": [
+   "bluish",
+   "light blue",
+   "dark blue",
+   "sky blue",
+   "navy blue",
+   "navy",
+   "muted blue",
+   "steel blue"
+  ],
+  "green": [
+   "greenish",
+   "light green",
+   "dark green",
+   "sage",
+   "sage green",
+   "olive",
+   "olive green",
+   "forest green",
+   "muted green"
+  ],
+  "yellow": [
+   "yellowish",
+   "gold",
+   "golden",
+   "golden yellow",
+   "mustard",
+   "mustard yellow",
+   "light yellow",
+   "dark yellow"
+  ],
+  "purple": [
+   "purplish",
+   "violet",
+   "lavender",
+   "lilac",
+   "light purple",
+   "dark purple",
+   "muted purple"
+  ],
+  "orange": [
+   "orangish",
+   "orangeish",
+   "burnt orange",
+   "rust orange",
+   "light orange",
+   "dark orange",
+   "muted orange",
+   "terracotta"
+  ]
+ },
+ "plant": {
+  "left": [
+   "left side",
+   "on the left",
+   "on the left side",
+   "left hand side",
+   "left of the room",
+   "left side of the room",
+   "on the left side of the room"
+  ],
+  "right": [
+   "right side",
+   "on the right",
+   "on the right side",
+   "right hand side",
+   "right of the room",
+   "right side of the room",
+   "on the right side of the room"
+  ]
+ }
+};
 const nums={zero:'0',one:'1',two:'2',three:'3',four:'4',five:'5',six:'6',seven:'7',eight:'8',nine:'9',ten:'10',eleven:'11',twelve:'12'};
-function normalize(raw){let s=String(raw??'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[.!?]+$/,'').replace(/^(?:the|a|an)\s+/,'').replace(/[-_]/g,' ').replace(/\s+/g,' ').trim();
+function normalize(raw){
+ let s=String(raw??'').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').trim().replace(/[.!?]+$/,'').replace(/[’‘]/g,"'").replace(/[-_]/g,' ').replace(/\s+/g,' ').trim();
+ s=s.replace(/^(?:i (?:think|remember) (?:it was |there were |there was )?|it (?:was|is) |there (?:were|was) )/,'').replace(/^(?:the|a|an)\s+/,'').trim();
  if(/^\d+$/.test(s))return String(Number(s));
- if(nums[s])return nums[s];
- const hour=s.match(/^(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?::00| o['’]?clock)$/);if(hour)return nums[hour[1]]||String(Number(hour[1]));
- return s;}
-function correct(q,a){const s=normalize(a);if(!s)return false;return [q.answer,...q.aliases].some(x=>normalize(x)===s)}
+ return nums[s]||s;
+}
+function category(q){return ['mug','furniture','rug','curtain'].includes(q.id)?'color':q.id}
+function parseNumber(s,q){
+ if(q.id==='hour'||q.id==null){
+  const m=s.match(/^(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)(?::00(?:\s*(?:am|pm|a\.m\.?|p\.m\.?))?|\s*(?:am|pm|a\.m\.?|p\.m\.?)|\s+o(?:'|\s)?clock)$/);
+  if(m)return nums[m[1]]||String(Number(m[1]));
+ }
+ if(q.id==='books'||q.id==='cushions'){
+  const m=s.match(/^(\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s+(books?|pillows?|cushions?)$/);
+  if(m&&(q.id==='books'?/^books?$/.test(m[2]):/^(pillows?|cushions?)$/.test(m[2])))return nums[m[1]]||String(Number(m[1]));
+ }
+ return s;
+}
+function oneTypo(a,b){
+ if(a===b||Math.min(a.length,b.length)<4||Math.abs(a.length-b.length)>1||!(/^[a-z ]+$/.test(a)&&/^[a-z ]+$/.test(b))||a.includes(' ')!==b.includes(' '))return false;
+ if(a.length===b.length){const dif=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])dif.push(i);
+ return (a.length>=5&&dif.length===1)||(dif.length===2&&dif[1]===dif[0]+1&&a[dif[0]]===b[dif[1]]&&a[dif[1]]===b[dif[0]])}
+ if(a.length>b.length)[a,b]=[b,a];let i=0;while(i<a.length&&a[i]===b[i])i++;return a.slice(i)===b.slice(i+1);
+}
+function correct(q,a){
+ let s=normalize(a);if(!s)return false;const expected=normalize(q.answer);
+ if(/^\d+$/.test(expected))return parseNumber(s,q)===expected;
+ const group=EQUIVALENTS[category(q)]||{};
+ const accepted=[q.answer,...(q.aliases||[]),...(group[q.answer]||[])].map(normalize);
+ if(category(q)==='color')s=s.replace(/\s+(?:colored|coloured|color|colour)$/,'');
+ if(accepted.includes(s))return true;
+ const others=Object.entries(group).filter(([key])=>key!==q.answer).flatMap(([key,aliases])=>[key,...aliases]).map(normalize);
+ if(others.includes(s)||others.some(x=>oneTypo(s,x)))return false;
+ return accepted.some(x=>oneTypo(s,x));
+}
 function grade(q,a){const ok=correct(q,a);return {answer:String(a??'').trim(),correct:ok,points:ok?100:0}}
 // All room art is drawn from the same data used to produce the questions.
 // Fixed perspective and clear silhouettes avoid ambiguous or hidden details.
